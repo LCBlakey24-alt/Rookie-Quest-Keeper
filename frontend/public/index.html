@@ -28,89 +28,79 @@
         <meta name="twitter:description" content="Build characters, play from the sheet, run campaigns, and keep your TTRPG table moving." />
         <meta name="twitter:image" content="/brand/rqk-logo-main.svg" />
         <title>Rookie Quest Keeper</title>
-        <!--
-        These two scripts have been added for the testing, please do not edit or remove them
-        -->
-        <script src="https://unpkg.com/rrweb@latest/dist/rrweb.min.js"></script>
-        <script src="https://d2adkz2s9zrlge.cloudfront.net/rrweb-recorder-20250919-1.js"></script>
+        <script>
+            // Session recording is a test-only aid. Keep the existing recorder
+            // available on localhost and Vercel previews, but never load it on
+            // the public production/native experience.
+            (function () {
+                var host = window.location.hostname || '';
+                var testingHost = host === 'localhost' || host === '127.0.0.1' || host.endsWith('.vercel.app');
+                if (!testingHost) return;
+
+                var rrweb = document.createElement('script');
+                rrweb.src = 'https://unpkg.com/rrweb@latest/dist/rrweb.min.js';
+                rrweb.async = true;
+                rrweb.onload = function () {
+                    var recorder = document.createElement('script');
+                    recorder.src = 'https://d2adkz2s9zrlge.cloudfront.net/rrweb-recorder-20250919-1.js';
+                    recorder.async = true;
+                    document.head.appendChild(recorder);
+                };
+                document.head.appendChild(rrweb);
+            })();
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
-        <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
         <script>
-            !(function (t, e) {
-                var o, n, p, r;
-                e.__SV ||
-                    ((window.posthog = e),
-                    (e._i = []),
-                    (e.init = function (i, s, a) {
-                        function g(t, e) {
-                            var o = e.split(".");
-                            2 == o.length && ((t = t[o[0]]), (e = o[1])),
-                                (t[e] = function () {
-                                    t.push(
-                                        [e].concat(
-                                            Array.prototype.slice.call(
-                                                arguments,
-                                                0,
-                                            ),
-                                        ),
-                                    );
-                                });
-                        }
-                        ((p = t.createElement("script")).type =
-                            "text/javascript"),
-                            (p.crossOrigin = "anonymous"),
-                            (p.async = !0),
-                            (p.src =
-                                s.api_host.replace(
-                                    ".i.posthog.com",
-                                    "-assets.i.posthog.com",
-                                ) + "/static/array.js"),
-                            (r =
-                                t.getElementsByTagName(
-                                    "script",
-                                )[0]).parentNode.insertBefore(p, r);
-                        var u = e;
-                        for (
-                            void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
-                                u.people = u.people || [],
-                                u.toString = function (t) {
-                                    var e = "posthog";
-                                    return (
-                                        "posthog" !== a && (e += "." + a),
-                                        t || (e += " (stub)"),
-                                        e
-                                    );
-                                },
-                                u.people.toString = function () {
-                                    return u.toString(1) + ".people (stub)";
-                                },
-                                o =
-                                    "init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSessionId reset identify setPersonProperties group setPersonPropertiesForFlags resetGroupProperties setPersonPropertiesForFlags captureException startSessionRecording stopSessionRecording get_distinct_id get_property getSessionProperty get_property setPersonPropertiesForFlags".split(
-                                        " ",
-                                    ),
-                                n = 0;
-                            n < o.length;
-                            n++
-                        )
-                            g(u, o[n]);
-                        e._i.push([i, s, a]);
-                    }),
-                    (e.__SV = 1));
-            })(document, window.posthog || []);
-            posthog.init("phc_d9CLb1xDJ8YTm5Y0SDYVKeoJm3lGLmAIKxtdpkTRw0", {
-                api_host: "https://eu.i.posthog.com",
-            });
+            // Usage analytics are opt-in. Until an in-app privacy control sets
+            // this flag to "granted", the production app sends no PostHog data.
+            (function () {
+                var consent = '';
+                try { consent = localStorage.getItem('rqk.analyticsConsent') || ''; } catch (e) {}
+                if (consent !== 'granted') return;
+
+                !(function (t, e) {
+                    var o, n, p, r;
+                    e.__SV ||
+                        ((window.posthog = e),
+                        (e._i = []),
+                        (e.init = function (i, s, a) {
+                            function g(t, e) {
+                                var o = e.split('.');
+                                2 == o.length && ((t = t[o[0]]), (e = o[1])),
+                                    (t[e] = function () {
+                                        t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
+                                    });
+                            }
+                            ((p = t.createElement('script')).type = 'text/javascript'),
+                                (p.crossOrigin = 'anonymous'),
+                                (p.async = !0),
+                                (p.src = s.api_host.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js'),
+                                (r = t.getElementsByTagName('script')[0]).parentNode.insertBefore(p, r);
+                            var u = e;
+                            for (
+                                void 0 !== a ? (u = e[a] = []) : (a = 'posthog'),
+                                    u.people = u.people || [],
+                                    u.toString = function (t) {
+                                        var e = 'posthog';
+                                        return 'posthog' !== a && (e += '.' + a), t || (e += ' (stub)'), e;
+                                    },
+                                    u.people.toString = function () { return u.toString(1) + '.people (stub)'; },
+                                    o = 'init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSessionId reset identify setPersonProperties group setPersonPropertiesForFlags resetGroupProperties setPersonPropertiesForFlags captureException startSessionRecording stopSessionRecording get_distinct_id get_property getSessionProperty get_property setPersonPropertiesForFlags'.split(' '),
+                                    n = 0;
+                                n < o.length;
+                                n++
+                            ) g(u, o[n]);
+                            e._i.push([i, s, a]);
+                        }),
+                        (e.__SV = 1));
+                })(document, window.posthog || []);
+                posthog.init('phc_d9CLb1xDJ8YTm5Y0SDYVKeoJm3lGLmAIKxtdpkTRw0', {
+                    api_host: 'https://eu.i.posthog.com',
+                });
+            })();
         </script>
     </body>
 </html>
