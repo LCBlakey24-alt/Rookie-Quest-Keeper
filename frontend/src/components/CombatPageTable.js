@@ -9,7 +9,12 @@ import apiClient from '@/lib/apiClient';
 import NPCCombatRecruiter from '@/components/NPCCombatRecruiter';
 import MapCanvas from '@/components/MapBuilder/MapCanvas';
 import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
-import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
+import {
+  combatStateSnapshot,
+  queueOfflineCombatClose,
+  queueOfflineCombatState,
+} from '@/offline/offlineCombatSyncQueue';
 
 const rq = {
   bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
@@ -84,6 +89,15 @@ function combatantForDisplay(combatant) {
   };
 }
 
+function playerBaseStates(combatants = []) {
+  return combatants.reduce((result, combatant) => {
+    if (combatant?.type === 'player' && combatant.character_id) {
+      result[String(combatant.character_id)] = combatStateSnapshot(combatant);
+    }
+    return result;
+  }, {});
+}
+
 export default function CombatPageTable() {
   const { campaignId } = useParams();
   const location = useLocation();
@@ -110,6 +124,7 @@ export default function CombatPageTable() {
   const [combatBanner, setCombatBanner] = useState(null);
   const bannerTimerRef = useRef(null);
   const initiativeSubmissionRef = useRef({});
+  const initialPlayerStatesRef = useRef({});
 
   useEffect(() => () => {
     if (bannerTimerRef.current) window.clearTimeout(bannerTimerRef.current);
@@ -131,7 +146,14 @@ export default function CombatPageTable() {
       }
     } catch { /* ignore broken checkpoint */ }
 
+    const scenarioStart = safeArray(scenario.combatants).map(initialiseCombatant);
+    const scenarioBaseStates = playerBaseStates(scenarioStart);
+
     if (restored?.combatants?.length) {
+      initialPlayerStatesRef.current = {
+        ...scenarioBaseStates,
+        ...(restored.initialPlayerStates || {}),
+      };
       setCombatants(restored.combatants);
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
       setRound(Math.max(1, restored.round || 1));
@@ -140,7 +162,8 @@ export default function CombatPageTable() {
       setExpandedId(restored.combatants[Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1))]?.id || '');
       toast.info('Combat restored', { description: `Round ${Math.max(1, restored.round || 1)} checkpoint recovered.` });
     } else {
-      const loaded = safeArray(scenario.combatants).map(initialiseCombatant).sort((a, b) => b.initiative - a.initiative);
+      const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
+      initialPlayerStatesRef.current = playerBaseStates(loaded);
       setCombatants(loaded);
       setExpandedId(loaded[0]?.id || '');
       if (loaded.length) toast.success(`${loaded.length} combatants rolled initiative`);
@@ -166,6 +189,7 @@ export default function CombatPageTable() {
         round,
         selectedMapId,
         mapTokens,
+        initialPlayerStates: initialPlayerStatesRef.current,
         savedAt: Date.now(),
       }));
     } catch { /* local checkpoint is best effort */ }
@@ -424,56 +448,140 @@ export default function CombatPageTable() {
     toast.success(`${items.length} loot item${items.length === 1 ? '' : 's'} collected`);
   };
 
-  const saveLoot = async () => {
+  const saveLoot = async (options = {}) => {
+    const throwOnError = Boolean(options?.throwOnError);
+    const pending = [...collectedLoot];
+    let savedCount = 0;
     try {
-      await Promise.all(collectedLoot.map(item => apiClient.post(`/campaigns/${campaignId}/inventory`, {
-        name: item.name,
-        quantity: item.quantity || 1,
-        item_type: item.item_type || 'misc',
-        value: item.value || '',
-        is_magical: Boolean(item.is_magical),
-        description: item.description || `Looted from ${item.source}`,
-        notes: `Combat loot · Round ${round}`,
-      })));
+      for (const item of pending) {
+        await apiClient.post(`/campaigns/${campaignId}/inventory`, {
+          name: item.name,
+          quantity: item.quantity || 1,
+          item_type: item.item_type || 'misc',
+          value: item.value || '',
+          is_magical: Boolean(item.is_magical),
+          description: item.description || `Looted from ${item.source}`,
+          notes: `Combat loot · Round ${round}`,
+        });
+        savedCount += 1;
+      }
       toast.success('Loot added to party inventory');
       setCollectedLoot([]);
-    } catch {
-      toast.error('Could not add all loot to party inventory');
+      return true;
+    } catch (error) {
+      // Keep only the unsaved remainder so retrying cannot duplicate items that
+      // already reached the server before the connection failed.
+      setCollectedLoot(pending.slice(savedCount));
+      toast.error(savedCount > 0
+        ? `${savedCount} loot item${savedCount === 1 ? '' : 's'} saved; ${pending.length - savedCount} still waiting`
+        : 'Could not add loot to party inventory');
+      if (throwOnError) throw error;
+      return false;
     }
   };
 
   const syncPlayerState = async () => {
     const realCharacters = combatants.filter(item => item.type === 'player' && item.character_id);
     const legacyPlayers = combatants.filter(item => item.type === 'player' && !item.character_id && item.legacy_player_id);
-    await Promise.all([
-      ...realCharacters.map(item => apiClient.patch(`/characters/${item.character_id}`, {
-        current_hit_points: item.hp,
-        temporary_hit_points: item.tempHp || 0,
-        conditions: safeArray(item.conditions),
-        death_saves_successes: item.deathSaves?.successes || 0,
-        death_saves_failures: item.deathSaves?.failures || 0,
-        concentrating_on: item.concentrating_on || '',
-      }).catch(() => null)),
-      ...legacyPlayers.map(item => apiClient.put(`/campaigns/${campaignId}/players/${item.legacy_player_id}`, { hp: item.hp }).catch(() => null)),
-    ]);
+
+    await Promise.all(realCharacters.map(async item => {
+      const state = combatStateSnapshot(item);
+      await apiClient.patch(`/characters/${item.character_id}`, state);
+      // If another save in this batch later fails, this successfully persisted
+      // character now has a newer safe baseline for an offline retry.
+      initialPlayerStatesRef.current[String(item.character_id)] = state;
+    }));
+
+    await Promise.all(legacyPlayers.map(item => (
+      apiClient.put(`/campaigns/${campaignId}/players/${item.legacy_player_id}`, { hp: item.hp })
+    )));
+  };
+
+  const blankCombatDisplay = () => createDisplayState('blank', {
+    title: 'Combat ended',
+    subtitle: 'Waiting for the GM',
+  });
+
+  const endCombatOffline = async () => {
+    const realCharacters = combatants.filter(item => item.type === 'player' && item.character_id);
+    const legacyPlayers = combatants.filter(item => item.type === 'player' && !item.character_id && item.legacy_player_id);
+
+    if (legacyPlayers.length) {
+      toast.error('Reconnect before ending this fight: legacy roster HP cannot sync safely offline yet.');
+      return false;
+    }
+    if (collectedLoot.length) {
+      toast.error('Reconnect or save the collected loot before ending this fight. Offline loot creation is not enabled yet.');
+      return false;
+    }
+
+    const missingBase = realCharacters.filter(item => !initialPlayerStatesRef.current[String(item.character_id)]);
+    if (missingBase.length) {
+      toast.error('This restored fight is missing its safe pre-combat baseline. Reconnect once before ending it offline.');
+      return false;
+    }
+
+    const queued = await Promise.all(realCharacters.map(item => queueOfflineCombatState({
+      campaignId,
+      characterId: item.character_id,
+      characterName: item.name,
+      baseState: initialPlayerStatesRef.current[String(item.character_id)],
+      state: combatStateSnapshot(item),
+    })));
+    if (queued.some(item => !item)) {
+      toast.error('Rookie could not store the offline combat changes safely. The fight has been kept open.');
+      return false;
+    }
+
+    const displayState = blankCombatDisplay();
+    const closeRecord = await queueOfflineCombatClose({ campaignId, displayState });
+    if (!closeRecord) {
+      toast.error('Rookie could not store the reconnect cleanup safely. The fight has been kept open.');
+      return false;
+    }
+
+    publishDisplayState(campaignId, displayState);
+    try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+    toast.success(realCharacters.length
+      ? `Combat ended offline · ${realCharacters.length} player state${realCharacters.length === 1 ? '' : 's'} queued for sync`
+      : 'Combat ended offline · reconnect cleanup queued');
+    navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
+    return true;
   };
 
   const endCombat = async () => {
     if (!window.confirm('End this combat? Player combat state will be saved.')) return;
+
+    if (navigator.onLine === false) {
+      await endCombatOffline();
+      return;
+    }
+
     try {
       await syncPlayerState();
-      if (collectedLoot.length) await saveLoot();
-      await apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`).catch(() => null);
+      if (collectedLoot.length) await saveLoot({ throwOnError: true });
+
+      const displayState = blankCombatDisplay();
+      publishDisplayState(campaignId, displayState);
+      let cleanupQueued = false;
+      try {
+        await Promise.all([
+          apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`),
+          apiClient.put(`/campaigns/${campaignId}/display-state`, displayState),
+        ]);
+      } catch {
+        const queued = await queueOfflineCombatClose({ campaignId, displayState });
+        cleanupQueued = Boolean(queued);
+      }
+
       try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
-      await publishCampaignDisplayState(campaignId, createDisplayState('blank', {
-        title: 'Combat ended',
-        subtitle: 'Waiting for the GM',
-      })).catch(() => {});
-      toast.success('Combat ended and player state saved');
-    } catch {
-      toast.error('Combat ended, but some player state may not have saved');
+      toast.success(cleanupQueued
+        ? 'Combat ended and player state saved · display cleanup will retry automatically'
+        : 'Combat ended and player state saved');
+      navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not safely end combat. The fight is still open so you can retry.');
     }
-    navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
   };
 
   const resetCheckpoint = () => {
@@ -482,6 +590,7 @@ export default function CombatPageTable() {
     apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`).catch(() => null);
     initiativeSubmissionRef.current = {};
     const loaded = safeArray(scenario?.combatants).map(initialiseCombatant).sort((a, b) => b.initiative - a.initiative);
+    initialPlayerStatesRef.current = playerBaseStates(loaded);
     setCombatants(loaded);
     setCurrentTurn(0);
     setRound(1);
