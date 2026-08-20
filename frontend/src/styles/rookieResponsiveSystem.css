@@ -87,6 +87,99 @@ body {
   min-height: var(--rqk-control-height);
 }
 
+/* Character sheet compatibility while historical sunset repair files are
+   progressively retired. This final layer owns the visible product language. */
+html[data-theme='player'] .character-page-v2.clean-sheet-page {
+  --cs-bg: var(--rq-app-bg, #202020) !important;
+  --cs-panel: var(--rq-app-panel, #292929) !important;
+  --cs-card: var(--rq-app-card, #323232) !important;
+  --cs-input: var(--rq-app-input, #1d1d1d) !important;
+  --cs-text: #fff !important;
+  --cs-text-soft: rgba(255,255,255,.78) !important;
+  --cs-muted: rgba(255,255,255,.60) !important;
+  --cs-accent: var(--rq-app-red, #d00000) !important;
+  --cs-accent-soft: rgba(208,0,0,.14) !important;
+  --cs-border: rgba(255,255,255,.12) !important;
+  --cs-border-strong: rgba(255,255,255,.20) !important;
+  --cs-sunset: var(--rq-app-red, #d00000) !important;
+  --cs-sunset-line: var(--rq-app-red, #d00000) !important;
+  --sheet-bg: var(--rq-app-bg, #202020) !important;
+  --sheet-rail: var(--rq-app-bg-deep, #181818) !important;
+  --sheet-panel: var(--rq-app-panel, #292929) !important;
+  --sheet-card: var(--rq-app-card, #323232) !important;
+  --sheet-input: var(--rq-app-input, #1d1d1d) !important;
+  --sheet-sunset: var(--rq-app-red, #d00000) !important;
+  --sheet-danger: #b91c1c !important;
+  background: var(--rq-app-bg, #202020) !important;
+  background-image: none !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(
+  .clean-sheet-header,
+  .clean-sheet-compact-status,
+  .clean-sheet-vitals,
+  .clean-sheet-mobile-tools,
+  .clean-sheet-panel,
+  .clean-sheet-empty,
+  .clean-sheet-play-tools,
+  .clean-sheet-recovery-panel,
+  .clean-sheet-condition-panel,
+  .clean-sheet-roll-history-panel,
+  .clean-sheet-turn-strip,
+  .clean-sheet-identity,
+  .clean-sheet-core-stat-card,
+  .clean-sheet-passive-card,
+  .clean-sheet-compact-ability,
+  .clean-sheet-save-card,
+  .clean-sheet-skill-card,
+  .clean-sheet-spell-card,
+  .clean-sheet-slot-card,
+  .clean-sheet-feature-card,
+  .clean-sheet-item-card,
+  .clean-sheet-note-field
+) {
+  background: var(--rq-app-panel, #292929) !important;
+  background-image: none !important;
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(
+  .clean-sheet-core-stat-card,
+  .clean-sheet-passive-card,
+  .clean-sheet-compact-ability,
+  .clean-sheet-save-card,
+  .clean-sheet-skill-card,
+  .clean-sheet-spell-card,
+  .clean-sheet-slot-card,
+  .clean-sheet-feature-card,
+  .clean-sheet-item-card,
+  .clean-sheet-note-field
+) {
+  background: var(--rq-app-card, #323232) !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(
+  button.active,
+  .active > button,
+  .clean-sheet-level,
+  .clean-sheet-inspiration.active,
+  .clean-sheet-slot-pips i.filled,
+  .clean-sheet-death-track button.marked
+) {
+  background: var(--rq-app-red, #d00000) !important;
+  background-image: none !important;
+  border-color: var(--rq-app-red, #d00000) !important;
+  color: #fff !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(input, select, textarea) {
+  background: var(--rq-app-input, #1d1d1d) !important;
+  background-image: none !important;
+  border-color: rgba(255,255,255,.14) !important;
+  color: #fff !important;
+}
+
 /* TABLET — enough room for split views, but sized for fingers rather than mouse. */
 @media (min-width: 681px) and (max-width: 1024px) {
   :root {
@@ -147,11 +240,11 @@ body {
       calc(82px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* The old themes routinely pushed phone titles toward 40-50px. Keep screen
-     hierarchy obvious without spending a quarter of the viewport on a title. */
+  /* The old themes routinely pushed phone titles toward 40-50px. */
   .rqk-app-shell-content :where(h1, .page-title),
   .rqk-mobile-page :where(h1, .page-title),
-  .mobile-player-campaign :where(h1, .page-title) {
+  .mobile-player-campaign :where(h1, .page-title),
+  .character-page-v2 .clean-sheet-identity h1 {
     font-size: var(--rqk-text-h1) !important;
     line-height: 1.12 !important;
     margin-block: 0 8px;
@@ -159,7 +252,8 @@ body {
 
   .rqk-app-shell-content :where(h2, .section-title),
   .rqk-mobile-page :where(h2, .section-title),
-  .mobile-player-campaign :where(h2, .section-title) {
+  .mobile-player-campaign :where(h2, .section-title),
+  .character-page-v2 :where(.clean-sheet-panel h2, .clean-sheet-panel-heading h2, .clean-sheet-section-heading-row h2) {
     font-size: var(--rqk-text-h2) !important;
     line-height: 1.2 !important;
     margin-block: 0 7px;
@@ -181,6 +275,20 @@ body {
     line-height: 1.35;
   }
 
+  .character-page-v2 .clean-sheet-compact-stat--hp strong {
+    font-size: 28px !important;
+  }
+
+  .character-page-v2 :where(.clean-sheet-kicker, .clean-sheet-stat-label, small, .clean-sheet-muted) {
+    font-size: 10.5px !important;
+    line-height: 1.3 !important;
+  }
+
+  .character-page-v2 :where(.clean-sheet-header, .clean-sheet-panel, .clean-sheet-compact-status) {
+    padding: 10px !important;
+    border-radius: var(--rqk-panel-radius) !important;
+  }
+
   /* Cards should organise information, not create nested boxes-within-boxes. */
   .rqk-app-shell-content :where(.card, [class*='-card'], [class*='__card']) {
     border-radius: var(--rqk-panel-radius);
@@ -188,14 +296,16 @@ body {
 
   /* Keep touch targets generous even though labels and cards are tighter. */
   .rqk-app-shell :where(button, [role='button'], a, select),
-  .rqk-mobile-page :where(button, [role='button'], a, select) {
+  .rqk-mobile-page :where(button, [role='button'], a, select),
+  .character-page-v2 :where(button, [role='button'], select) {
     min-height: var(--rqk-touch-target);
   }
 
   /* Inputs stay 16px on phones to prevent Safari focus-zoom. */
   .rqk-app-shell :where(input, textarea, select),
-  .rqk-mobile-page :where(input, textarea, select) {
-    font-size: 16px;
+  .rqk-mobile-page :where(input, textarea, select),
+  .character-page-v2 :where(input, textarea, select) {
+    font-size: 16px !important;
   }
 
   /* Horizontal toolbars should scroll rather than squeeze labels into crumbs. */
