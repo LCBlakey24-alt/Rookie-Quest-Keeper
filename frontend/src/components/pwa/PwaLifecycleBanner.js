@@ -48,8 +48,8 @@ export default function PwaLifecycleBanner() {
       <aside className="rqk-pwa-banner rqk-pwa-banner--offline" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><WifiOff size={16} /></span>
         <span className="rqk-pwa-banner__copy">
-          <strong>Offline</strong>
-          <small>{offlineCacheActive ? 'Using saved campaign data where available. Combat state and collected loot can queue safely; deeper edits still need a connection.' : 'Downloaded campaign data can reopen. Combat state and collected loot can queue safely; deeper edits still need a connection.'}</small>
+          <strong>Offline mode</strong>
+          <small>{offlineCacheActive ? 'Using saved campaign data. Combat and loot can queue until you reconnect.' : 'Saved campaigns can reopen. Combat and loot can queue until you reconnect.'}</small>
         </span>
       </aside>
     );
@@ -58,10 +58,10 @@ export default function PwaLifecycleBanner() {
       <aside className="rqk-pwa-banner rqk-pwa-banner--update" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><RefreshCw size={16} /></span>
         <span className="rqk-pwa-banner__copy">
-          <strong>Rookie update ready</strong>
-          <small>Reload to use the newest version.</small>
+          <strong>Update ready</strong>
+          <small>Restart Rookie with the newest version.</small>
         </span>
-        <button type="button" className="rqk-pwa-banner__action" onClick={applyWaitingServiceWorker}>Update & reload</button>
+        <button type="button" className="rqk-pwa-banner__action" onClick={applyWaitingServiceWorker}>Update</button>
       </aside>
     );
   } else if (installReady && !dismissedInstall) {
@@ -69,8 +69,8 @@ export default function PwaLifecycleBanner() {
       <aside className="rqk-pwa-banner rqk-pwa-banner--install" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><Download size={16} /></span>
         <span className="rqk-pwa-banner__copy">
-          <strong>Install Rookie Quest Keeper</strong>
-          <small>Open it like an app from this device.</small>
+          <strong>Install Rookie</strong>
+          <small>Add Rookie Quest Keeper to this device.</small>
         </span>
         <button
           type="button"
