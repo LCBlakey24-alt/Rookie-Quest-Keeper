@@ -30,6 +30,10 @@ function sortedConditions(value) {
   return Array.from(new Set(Array.isArray(value) ? value.filter(Boolean).map(String) : [])).sort();
 }
 
+function dispatchQueued() {
+  try { window.dispatchEvent(new CustomEvent('rqk:offline-sync-queued')); } catch {}
+}
+
 export function combatStateSnapshot(source = {}) {
   const deathSaves = source.deathSaves || source.death_saves || {};
   return {
@@ -50,18 +54,83 @@ function operationKey(campaignId, characterId) {
   return `${getOfflineCacheScope()}::combat:${campaignId}:${characterId}`;
 }
 
-export async function queueOfflineCombatState({ campaignId, characterId, characterName, baseState, state }) {
-  if (!campaignId || !characterId) return null;
-  const db = await openDb().catch(() => null);
-  if (!db) return null;
-  const key = operationKey(campaignId, characterId);
+function closeOperationKey(campaignId) {
+  return `${getOfflineCacheScope()}::combat-close:${campaignId}`;
+}
 
-  const existing = await new Promise(resolve => {
+async function readOperation(db, key) {
+  return new Promise(resolve => {
     const transaction = db.transaction(STORE, 'readonly');
     const request = transaction.objectStore(STORE).get(key);
     request.onsuccess = () => resolve(request.result || null);
     request.onerror = () => resolve(null);
   });
+}
+
+async function putOperation(db, record) {
+  await new Promise(resolve => {
+    const transaction = db.transaction(STORE, 'readwrite');
+    transaction.objectStore(STORE).put(record);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+}
+
+async function listOperations(type) {
+  const db = await openDb().catch(() => null);
+  if (!db) return [];
+  const scope = getOfflineCacheScope();
+  const records = await new Promise(resolve => {
+    const transaction = db.transaction(STORE, 'readonly');
+    const request = transaction.objectStore(STORE).getAll();
+    request.onsuccess = () => resolve(Array.isArray(request.result)
+      ? request.result.filter(item => item.scope === scope && item.type === type)
+      : []);
+    request.onerror = () => resolve([]);
+  });
+  db.close();
+  return records.sort((a, b) => Number(a.queuedAt || 0) - Number(b.queuedAt || 0));
+}
+
+async function updateOperation(key, updater) {
+  const db = await openDb().catch(() => null);
+  if (!db) return;
+  await new Promise(resolve => {
+    const transaction = db.transaction(STORE, 'readwrite');
+    const store = transaction.objectStore(STORE);
+    const request = store.get(key);
+    request.onsuccess = () => {
+      const current = request.result;
+      if (current) store.put(updater(current));
+    };
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+  db.close();
+}
+
+async function removeOperation(key) {
+  if (!key) return;
+  const db = await openDb().catch(() => null);
+  if (!db) return;
+  await new Promise(resolve => {
+    const transaction = db.transaction(STORE, 'readwrite');
+    transaction.objectStore(STORE).delete(key);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+  db.close();
+}
+
+export async function queueOfflineCombatState({ campaignId, characterId, characterName, baseState, state }) {
+  if (!campaignId || !characterId) return null;
+  const db = await openDb().catch(() => null);
+  if (!db) return null;
+  const key = operationKey(campaignId, characterId);
+  const existing = await readOperation(db, key);
 
   const record = {
     key,
@@ -81,78 +150,78 @@ export async function queueOfflineCombatState({ campaignId, characterId, charact
     lastError: '',
   };
 
-  await new Promise(resolve => {
-    const transaction = db.transaction(STORE, 'readwrite');
-    transaction.objectStore(STORE).put(record);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
-  });
+  await putOperation(db, record);
   db.close();
-  try { window.dispatchEvent(new CustomEvent('rqk:offline-sync-queued')); } catch {}
+  dispatchQueued();
+  return record;
+}
+
+export async function queueOfflineCombatClose({ campaignId, displayState } = {}) {
+  if (!campaignId) return null;
+  const db = await openDb().catch(() => null);
+  if (!db) return null;
+  const key = closeOperationKey(campaignId);
+  const existing = await readOperation(db, key);
+  const record = {
+    key,
+    scope: getOfflineCacheScope(),
+    type: 'combat-close',
+    campaignId: String(campaignId),
+    displayState: displayState || existing?.displayState || {
+      mode: 'blank',
+      payload: { title: 'Combat ended', subtitle: 'Waiting for the GM' },
+    },
+    queuedAt: existing?.queuedAt || Date.now(),
+    updatedAt: Date.now(),
+    status: 'pending',
+    lastError: '',
+  };
+  await putOperation(db, record);
+  db.close();
+  dispatchQueued();
   return record;
 }
 
 export async function listOfflineCombatSyncs() {
-  const db = await openDb().catch(() => null);
-  if (!db) return [];
-  const scope = getOfflineCacheScope();
-  const records = await new Promise(resolve => {
-    const transaction = db.transaction(STORE, 'readonly');
-    const request = transaction.objectStore(STORE).getAll();
-    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result.filter(item => item.scope === scope && item.type === 'character-combat-state') : []);
-    request.onerror = () => resolve([]);
-  });
-  db.close();
-  return records.sort((a, b) => Number(a.queuedAt || 0) - Number(b.queuedAt || 0));
+  return listOperations('character-combat-state');
+}
+
+export async function listOfflineCombatClosures() {
+  return listOperations('combat-close');
 }
 
 export async function markOfflineCombatConflict(key, serverState, message = '') {
-  const db = await openDb().catch(() => null);
-  if (!db) return;
-  await new Promise(resolve => {
-    const transaction = db.transaction(STORE, 'readwrite');
-    const store = transaction.objectStore(STORE);
-    const request = store.get(key);
-    request.onsuccess = () => {
-      const current = request.result;
-      if (current) store.put({ ...current, status: 'conflict', serverState: combatStateSnapshot(serverState), lastError: message, updatedAt: Date.now() });
-    };
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
-  });
-  db.close();
+  await updateOperation(key, current => ({
+    ...current,
+    status: 'conflict',
+    serverState: combatStateSnapshot(serverState),
+    lastError: message,
+    updatedAt: Date.now(),
+  }));
 }
 
 export async function markOfflineCombatError(key, message = '') {
-  const db = await openDb().catch(() => null);
-  if (!db) return;
-  await new Promise(resolve => {
-    const transaction = db.transaction(STORE, 'readwrite');
-    const store = transaction.objectStore(STORE);
-    const request = store.get(key);
-    request.onsuccess = () => {
-      const current = request.result;
-      if (current) store.put({ ...current, status: 'pending', lastError: String(message || ''), updatedAt: Date.now() });
-    };
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
-  });
-  db.close();
+  await updateOperation(key, current => ({
+    ...current,
+    status: 'pending',
+    lastError: String(message || ''),
+    updatedAt: Date.now(),
+  }));
+}
+
+export async function markOfflineCombatCloseError(key, message = '') {
+  await updateOperation(key, current => ({
+    ...current,
+    status: 'pending',
+    lastError: String(message || ''),
+    updatedAt: Date.now(),
+  }));
 }
 
 export async function removeOfflineCombatSync(key) {
-  if (!key) return;
-  const db = await openDb().catch(() => null);
-  if (!db) return;
-  await new Promise(resolve => {
-    const transaction = db.transaction(STORE, 'readwrite');
-    transaction.objectStore(STORE).delete(key);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
-  });
-  db.close();
+  return removeOperation(key);
+}
+
+export async function removeOfflineCombatClose(key) {
+  return removeOperation(key);
 }
