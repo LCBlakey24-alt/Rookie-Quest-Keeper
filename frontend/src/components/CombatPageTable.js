@@ -13,7 +13,7 @@ import { createDisplayState, publishCampaignDisplayState, publishDisplayState } 
 import {
   combatStateSnapshot,
   queueOfflineCombatClose,
-  queueOfflineCombatState,
+  queueOfflineCombatEnd,
 } from '@/offline/offlineCombatSyncQueue';
 
 const rq = {
@@ -469,8 +469,6 @@ export default function CombatPageTable() {
       setCollectedLoot([]);
       return true;
     } catch (error) {
-      // Keep only the unsaved remainder so retrying cannot duplicate items that
-      // already reached the server before the connection failed.
       setCollectedLoot(pending.slice(savedCount));
       toast.error(savedCount > 0
         ? `${savedCount} loot item${savedCount === 1 ? '' : 's'} saved; ${pending.length - savedCount} still waiting`
@@ -487,8 +485,6 @@ export default function CombatPageTable() {
     await Promise.all(realCharacters.map(async item => {
       const state = combatStateSnapshot(item);
       await apiClient.patch(`/characters/${item.character_id}`, state);
-      // If another save in this batch later fails, this successfully persisted
-      // character now has a newer safe baseline for an offline retry.
       initialPlayerStatesRef.current[String(item.character_id)] = state;
     }));
 
@@ -521,22 +517,19 @@ export default function CombatPageTable() {
       return false;
     }
 
-    const queued = await Promise.all(realCharacters.map(item => queueOfflineCombatState({
-      campaignId,
-      characterId: item.character_id,
-      characterName: item.name,
-      baseState: initialPlayerStatesRef.current[String(item.character_id)],
-      state: combatStateSnapshot(item),
-    })));
-    if (queued.some(item => !item)) {
-      toast.error('Rookie could not store the offline combat changes safely. The fight has been kept open.');
-      return false;
-    }
-
     const displayState = blankCombatDisplay();
-    const closeRecord = await queueOfflineCombatClose({ campaignId, displayState });
-    if (!closeRecord) {
-      toast.error('Rookie could not store the reconnect cleanup safely. The fight has been kept open.');
+    const queued = await queueOfflineCombatEnd({
+      campaignId,
+      displayState,
+      characters: realCharacters.map(item => ({
+        characterId: item.character_id,
+        characterName: item.name,
+        baseState: initialPlayerStatesRef.current[String(item.character_id)],
+        state: combatStateSnapshot(item),
+      })),
+    });
+    if (!queued) {
+      toast.error('Rookie could not store the offline combat ending safely. The fight has been kept open.');
       return false;
     }
 
@@ -571,7 +564,8 @@ export default function CombatPageTable() {
         ]);
       } catch {
         const queued = await queueOfflineCombatClose({ campaignId, displayState });
-        cleanupQueued = Boolean(queued);
+        if (!queued) throw new Error('Player state saved, but Rookie could not queue the remaining combat cleanup.');
+        cleanupQueued = true;
       }
 
       try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
@@ -580,7 +574,7 @@ export default function CombatPageTable() {
         : 'Combat ended and player state saved');
       navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not safely end combat. The fight is still open so you can retry.');
+      toast.error(error?.response?.data?.detail || error?.message || 'Could not safely end combat. The fight is still open so you can retry.');
     }
   };
 
