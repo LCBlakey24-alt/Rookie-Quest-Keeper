@@ -24,6 +24,7 @@ from routes.tables import router as tables_router
 from routes.ai import router as ai_router
 from routes.rook_studio import router as rook_studio_router
 from routes.inventory import router as inventory_router
+from routes.offline_inventory_sync import router as offline_inventory_sync_router
 from routes.user_content import router as user_content_router
 from routes.player_rules import router as player_rules_router
 from routes.character_patch import router as character_patch_router
@@ -69,6 +70,8 @@ all_routers = [
     ai_router,  # Text-based Rook AI helpers stay enabled.
     rook_studio_router,  # Draft-first create/review/save workflow for GM content.
     inventory_router,
+    # Narrow retry-safe create endpoint used only by explicitly queued offline combat loot.
+    offline_inventory_sync_router,
     user_content_router,
     # Player rules feeds sit beside user content so builders can consume uploaded options.
     player_rules_router,
