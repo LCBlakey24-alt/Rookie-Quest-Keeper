@@ -77,6 +77,18 @@ async function putOperation(db, record) {
   });
 }
 
+async function putOperationsAtomically(db, records) {
+  return new Promise(resolve => {
+    let successful = true;
+    const transaction = db.transaction(STORE, 'readwrite');
+    const store = transaction.objectStore(STORE);
+    records.forEach(record => store.put(record));
+    transaction.oncomplete = () => resolve(successful);
+    transaction.onerror = () => { successful = false; };
+    transaction.onabort = () => resolve(false);
+  });
+}
+
 async function listOperations(type) {
   const db = await openDb().catch(() => null);
   if (!db) return [];
@@ -125,16 +137,10 @@ async function removeOperation(key) {
   db.close();
 }
 
-export async function queueOfflineCombatState({ campaignId, characterId, characterName, baseState, state }) {
-  if (!campaignId || !characterId) return null;
-  const db = await openDb().catch(() => null);
-  if (!db) return null;
-  const key = operationKey(campaignId, characterId);
-  const existing = await readOperation(db, key);
-
-  const record = {
-    key,
-    scope: getOfflineCacheScope(),
+function buildCombatStateRecord({ scope, campaignId, characterId, characterName, baseState, state, existing }) {
+  return {
+    key: operationKey(campaignId, characterId),
+    scope,
     type: 'character-combat-state',
     campaignId: String(campaignId),
     characterId: String(characterId),
@@ -149,7 +155,34 @@ export async function queueOfflineCombatState({ campaignId, characterId, charact
     serverState: null,
     lastError: '',
   };
+}
 
+function buildCloseRecord({ scope, campaignId, displayState, existing }) {
+  return {
+    key: closeOperationKey(campaignId),
+    scope,
+    type: 'combat-close',
+    campaignId: String(campaignId),
+    displayState: displayState || existing?.displayState || {
+      mode: 'blank',
+      payload: { title: 'Combat ended', subtitle: 'Waiting for the GM' },
+    },
+    queuedAt: existing?.queuedAt || Date.now(),
+    updatedAt: Date.now(),
+    status: 'pending',
+    lastError: '',
+  };
+}
+
+export async function queueOfflineCombatState({ campaignId, characterId, characterName, baseState, state }) {
+  if (!campaignId || !characterId) return null;
+  const db = await openDb().catch(() => null);
+  if (!db) return null;
+  const key = operationKey(campaignId, characterId);
+  const existing = await readOperation(db, key);
+  const record = buildCombatStateRecord({
+    scope: getOfflineCacheScope(), campaignId, characterId, characterName, baseState, state, existing,
+  });
   await putOperation(db, record);
   db.close();
   dispatchQueued();
@@ -162,24 +195,45 @@ export async function queueOfflineCombatClose({ campaignId, displayState } = {})
   if (!db) return null;
   const key = closeOperationKey(campaignId);
   const existing = await readOperation(db, key);
-  const record = {
-    key,
-    scope: getOfflineCacheScope(),
-    type: 'combat-close',
-    campaignId: String(campaignId),
-    displayState: displayState || existing?.displayState || {
-      mode: 'blank',
-      payload: { title: 'Combat ended', subtitle: 'Waiting for the GM' },
-    },
-    queuedAt: existing?.queuedAt || Date.now(),
-    updatedAt: Date.now(),
-    status: 'pending',
-    lastError: '',
-  };
+  const record = buildCloseRecord({ scope: getOfflineCacheScope(), campaignId, displayState, existing });
   await putOperation(db, record);
   db.close();
   dispatchQueued();
   return record;
+}
+
+export async function queueOfflineCombatEnd({ campaignId, characters = [], displayState } = {}) {
+  if (!campaignId) return null;
+  const safeCharacters = Array.isArray(characters)
+    ? characters.filter(item => item?.characterId && item?.baseState && item?.state)
+    : [];
+  const db = await openDb().catch(() => null);
+  if (!db) return null;
+  const scope = getOfflineCacheScope();
+
+  const characterRecords = [];
+  for (const item of safeCharacters) {
+    const key = operationKey(campaignId, item.characterId);
+    const existing = await readOperation(db, key);
+    characterRecords.push(buildCombatStateRecord({
+      scope,
+      campaignId,
+      characterId: item.characterId,
+      characterName: item.characterName,
+      baseState: item.baseState,
+      state: item.state,
+      existing,
+    }));
+  }
+
+  const closeKey = closeOperationKey(campaignId);
+  const existingClose = await readOperation(db, closeKey);
+  const closeRecord = buildCloseRecord({ scope, campaignId, displayState, existing: existingClose });
+  const successful = await putOperationsAtomically(db, [...characterRecords, closeRecord]);
+  db.close();
+  if (!successful) return null;
+  dispatchQueued();
+  return { characterRecords, closeRecord };
 }
 
 export async function listOfflineCombatSyncs() {
