@@ -49,7 +49,7 @@ export default function PwaLifecycleBanner() {
         <span className="rqk-pwa-banner__icon"><WifiOff size={16} /></span>
         <span className="rqk-pwa-banner__copy">
           <strong>Offline</strong>
-          <small>{offlineCacheActive ? 'Using saved campaign data where available. Combat state can queue safely; other edits still need a connection.' : 'Downloaded campaign data can reopen. Combat state can queue safely; other edits still need a connection.'}</small>
+          <small>{offlineCacheActive ? 'Using saved campaign data where available. Combat state and collected loot can queue safely; deeper edits still need a connection.' : 'Downloaded campaign data can reopen. Combat state and collected loot can queue safely; deeper edits still need a connection.'}</small>
         </span>
       </aside>
     );
