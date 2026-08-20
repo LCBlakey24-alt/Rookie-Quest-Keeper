@@ -6,6 +6,7 @@ import {
   grantRookAiConsent,
   revokeRookAiConsent,
 } from '@/privacy/rookAiConsent';
+import '@/styles/privacyDataSettings.css';
 
 const ANALYTICS_KEY = 'rqk.analyticsConsent';
 
