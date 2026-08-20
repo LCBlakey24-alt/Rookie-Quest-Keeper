@@ -118,8 +118,8 @@ export default function CampaignOfflineControl() {
     : 0;
 
   const description = playerMode
-    ? 'Your player campaign view, linked character sheets, party roster, shared handouts and their media can reopen without internet. GM-only prep is never included.'
-    : 'Quests, NPCs, locations, encounters, notes, party data, maps and handout media can reopen without internet. Offline editing is not enabled yet.';
+    ? 'Keep your campaign view, character sheets, party and shared handouts on this device.'
+    : 'Keep quests, NPCs, locations, encounters, notes, maps and handouts on this device. Combat state and loot can queue while offline.';
 
   const phaseLabel = progress?.phase === 'characters'
     ? 'Character sheets'
@@ -151,7 +151,7 @@ export default function CampaignOfflineControl() {
             </div>
 
             {!online && (
-              <div className="rqk-offline-warning"><WifiOff size={14} /><span>Reconnect to download or refresh. Your existing offline copy remains available.</span></div>
+              <div className="rqk-offline-warning"><WifiOff size={14} /><span>Reconnect to download or refresh. Your saved copy is still available.</span></div>
             )}
 
             {downloading && progress && (
@@ -163,9 +163,9 @@ export default function CampaignOfflineControl() {
 
             {pack && !downloading && (
               <div className="rqk-offline-metrics">
-                <span><strong>{pack.successfulSections || 0}</strong><small>Saved sections</small></span>
+                <span><strong>{pack.successfulSections || 0}</strong><small>Sections</small></span>
                 <span><strong>{pack.characterIds?.length || 0}</strong><small>Characters</small></span>
-                <span><strong>{pack.mediaSaved || 0}</strong><small>Media files</small></span>
+                <span><strong>{pack.mediaSaved || 0}</strong><small>Media</small></span>
                 <span><strong>{pack.failedSections || 0}</strong><small>Unavailable</small></span>
               </div>
             )}
@@ -183,14 +183,14 @@ export default function CampaignOfflineControl() {
 
             <div className="rqk-offline-note">
               {playerMode
-                ? 'This copy contains player-authorised data and media only. GM notes, secret NPC information, unrevealed handouts and encounter prep are excluded.'
-                : 'Offline packs include campaign data plus media Rookie can reach from maps, handouts, portraits, tokens and backgrounds. Online-only Rook AI and edits still require a connection.'}
+                ? 'Player packs never include GM-only notes, secret NPC information, unrevealed handouts or encounter prep.'
+                : 'Rook AI and deeper campaign editing still need a connection. Combat changes and collected loot can sync after reconnecting.'}
             </div>
 
             <div className="rqk-offline-actions">
               <button type="button" className="rqk-offline-primary" onClick={download} disabled={!online || downloading || loadingPack}>
                 {pack ? <RefreshCw size={14} /> : <Download size={14} />}
-                {downloading ? 'Downloading…' : pack ? 'Refresh Offline Copy' : 'Download Campaign'}
+                {downloading ? 'Downloading…' : pack ? 'Refresh Copy' : 'Download Campaign'}
               </button>
               {pack && (
                 <button type="button" className="rqk-offline-remove" onClick={remove} disabled={downloading}><Trash2 size={14} /> Remove</button>
