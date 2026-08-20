@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Download, RefreshCw, WifiOff, X } from 'lucide-react';
 import CampaignOfflineControl from '@/components/pwa/CampaignOfflineControl';
 import OfflineSyncManager from '@/components/pwa/OfflineSyncManager';
+import PrivacyDataSettings from '@/components/privacy/PrivacyDataSettings';
 import {
   PWA_EVENTS,
   applyWaitingServiceWorker,
@@ -92,6 +93,7 @@ export default function PwaLifecycleBanner() {
     <>
       <CampaignOfflineControl />
       <OfflineSyncManager />
+      <PrivacyDataSettings />
       {banner}
     </>
   );
