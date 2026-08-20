@@ -5,24 +5,32 @@ import apiClient from '@/lib/apiClient';
 import {
   combatStateSnapshot,
   combatStatesMatch,
+  listOfflineCombatClosures,
   listOfflineCombatSyncs,
+  markOfflineCombatCloseError,
   markOfflineCombatConflict,
   markOfflineCombatError,
+  removeOfflineCombatClose,
   removeOfflineCombatSync,
 } from '@/offline/offlineCombatSyncQueue';
 import '@/styles/offlineSyncManager.css';
 
 export default function OfflineSyncManager() {
   const [records, setRecords] = useState([]);
+  const [closures, setClosures] = useState([]);
   const [syncing, setSyncing] = useState(false);
   const [open, setOpen] = useState(false);
   const [online, setOnline] = useState(() => navigator.onLine);
   const syncingRef = useRef(false);
 
   const load = useCallback(async () => {
-    const next = await listOfflineCombatSyncs();
-    setRecords(next);
-    return next;
+    const [nextRecords, nextClosures] = await Promise.all([
+      listOfflineCombatSyncs(),
+      listOfflineCombatClosures(),
+    ]);
+    setRecords(nextRecords);
+    setClosures(nextClosures);
+    return { records: nextRecords, closures: nextClosures };
   }, []);
 
   const syncPending = useCallback(async () => {
@@ -30,7 +38,11 @@ export default function OfflineSyncManager() {
     syncingRef.current = true;
     setSyncing(true);
     try {
-      const queued = await listOfflineCombatSyncs();
+      const [queued, queuedClosures] = await Promise.all([
+        listOfflineCombatSyncs(),
+        listOfflineCombatClosures(),
+      ]);
+
       for (const record of queued.filter(item => item.status !== 'conflict')) {
         try {
           const currentResponse = await apiClient.get(`/characters/${record.characterId}`, { timeout: 15000 });
@@ -46,12 +58,30 @@ export default function OfflineSyncManager() {
           }
 
           await apiClient.patch(`/characters/${record.characterId}`, record.state, { timeout: 15000 });
-          // Refresh the read-through IndexedDB cache with the newly synced state.
           await apiClient.get(`/characters/${record.characterId}`, { timeout: 15000 }).catch(() => null);
           await removeOfflineCombatSync(record.key);
         } catch (error) {
           if (!error?.response || error?.response?.status === 401) break;
           await markOfflineCombatError(record.key, error?.response?.data?.detail || error?.message || 'Sync failed');
+        }
+      }
+
+      // Closing the shared combat display is independent of character conflicts.
+      // A fight is over even when one character needs a manual cloud/offline choice.
+      for (const record of queuedClosures) {
+        try {
+          await apiClient.put(
+            `/campaigns/${record.campaignId}/display-state`,
+            record.displayState || { mode: 'blank', payload: { title: 'Combat ended', subtitle: 'Waiting for the GM' } },
+            { timeout: 15000 }
+          );
+          await apiClient.delete(`/campaigns/${record.campaignId}/combat-initiative/submissions`, { timeout: 15000 });
+          await apiClient.get(`/campaigns/${record.campaignId}/display-state`, { timeout: 15000 }).catch(() => null);
+          await removeOfflineCombatClose(record.key);
+          toast.success('Offline combat cleanup synced');
+        } catch (error) {
+          if (!error?.response || error?.response?.status === 401) break;
+          await markOfflineCombatCloseError(record.key, error?.response?.data?.detail || error?.message || 'Combat cleanup failed');
         }
       }
     } finally {
@@ -63,7 +93,9 @@ export default function OfflineSyncManager() {
 
   useEffect(() => {
     load().then(next => {
-      if (navigator.onLine && next.some(item => item.status !== 'conflict')) syncPending();
+      if (navigator.onLine && (
+        next.records.some(item => item.status !== 'conflict') || next.closures.length > 0
+      )) syncPending();
     });
   }, [load, syncPending]);
 
@@ -75,7 +107,9 @@ export default function OfflineSyncManager() {
     const onOffline = () => setOnline(false);
     const onQueued = () => {
       load().then(next => {
-        if (navigator.onLine && next.some(item => item.status !== 'conflict')) syncPending();
+        if (navigator.onLine && (
+          next.records.some(item => item.status !== 'conflict') || next.closures.length > 0
+        )) syncPending();
       });
     };
     window.addEventListener('online', onOnline);
@@ -89,9 +123,11 @@ export default function OfflineSyncManager() {
   }, [load, syncPending]);
 
   const conflicts = useMemo(() => records.filter(item => item.status === 'conflict'), [records]);
-  const pending = records.length - conflicts.length;
+  const pendingCombat = records.length - conflicts.length;
+  const pending = pendingCombat + closures.length;
+  const total = records.length + closures.length;
 
-  if (!records.length) return null;
+  if (!total) return null;
 
   const keepCloud = async record => {
     await removeOfflineCombatSync(record.key);
@@ -128,7 +164,7 @@ export default function OfflineSyncManager() {
             {pending > 0 && (
               <div className="rqk-sync-summary" data-tone="pending">
                 {syncing ? <RefreshCw size={15} className="rqk-sync-spin" /> : <CloudUpload size={15} />}
-                <span><strong>{syncing ? 'Syncing combat changes…' : `${pending} combat change${pending === 1 ? '' : 's'} waiting`}</strong><small>{online ? 'Rookie will sync safe changes automatically.' : 'They will sync after this device reconnects.'}</small></span>
+                <span><strong>{syncing ? 'Syncing offline changes…' : `${pending} change${pending === 1 ? '' : 's'} waiting`}</strong><small>{online ? 'Rookie will sync safe changes automatically.' : 'They will sync after this device reconnects.'}</small></span>
               </div>
             )}
 
@@ -159,6 +195,13 @@ export default function OfflineSyncManager() {
                   )}
                 </article>
               ))}
+
+              {closures.map(record => (
+                <article key={record.key}>
+                  <span className="rqk-sync-character"><Swords size={14} /><span><strong>Finish combat cleanup</strong><small>Player display + initiative submissions · campaign {record.campaignId}</small></span></span>
+                  <small className="rqk-sync-waiting">{record.lastError || (online ? 'Waiting for sync attempt…' : 'Stored safely on this device.')}</small>
+                </article>
+              ))}
             </div>
 
             {online && pending > 0 && !syncing && (
@@ -170,7 +213,7 @@ export default function OfflineSyncManager() {
 
       <button type="button" className="rqk-sync-launcher" data-conflict={conflicts.length > 0 ? 'true' : 'false'} onClick={() => setOpen(value => !value)}>
         {conflicts.length > 0 ? <AlertTriangle size={15} /> : syncing ? <RefreshCw size={15} className="rqk-sync-spin" /> : <CloudUpload size={15} />}
-        <span>{conflicts.length > 0 ? `${conflicts.length} Sync Conflict${conflicts.length === 1 ? '' : 's'}` : `${records.length} Offline Change${records.length === 1 ? '' : 's'}`}</span>
+        <span>{conflicts.length > 0 ? `${conflicts.length} Sync Conflict${conflicts.length === 1 ? '' : 's'}` : `${total} Offline Change${total === 1 ? '' : 's'}`}</span>
       </button>
     </div>
   );
