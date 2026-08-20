@@ -1,22 +1,26 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, CloudUpload, RefreshCw, Swords, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, CloudUpload, Package, RefreshCw, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import {
   combatStateSnapshot,
   combatStatesMatch,
   listOfflineCombatClosures,
+  listOfflineCombatLootSyncs,
   listOfflineCombatSyncs,
   markOfflineCombatCloseError,
   markOfflineCombatConflict,
   markOfflineCombatError,
+  markOfflineCombatLootError,
   removeOfflineCombatClose,
+  removeOfflineCombatLootSync,
   removeOfflineCombatSync,
 } from '@/offline/offlineCombatSyncQueue';
 import '@/styles/offlineSyncManager.css';
 
 export default function OfflineSyncManager() {
   const [records, setRecords] = useState([]);
+  const [lootRecords, setLootRecords] = useState([]);
   const [closures, setClosures] = useState([]);
   const [syncing, setSyncing] = useState(false);
   const [open, setOpen] = useState(false);
@@ -24,13 +28,15 @@ export default function OfflineSyncManager() {
   const syncingRef = useRef(false);
 
   const load = useCallback(async () => {
-    const [nextRecords, nextClosures] = await Promise.all([
+    const [nextRecords, nextLoot, nextClosures] = await Promise.all([
       listOfflineCombatSyncs(),
+      listOfflineCombatLootSyncs(),
       listOfflineCombatClosures(),
     ]);
     setRecords(nextRecords);
+    setLootRecords(nextLoot);
     setClosures(nextClosures);
-    return { records: nextRecords, closures: nextClosures };
+    return { records: nextRecords, loot: nextLoot, closures: nextClosures };
   }, []);
 
   const syncPending = useCallback(async () => {
@@ -38,8 +44,9 @@ export default function OfflineSyncManager() {
     syncingRef.current = true;
     setSyncing(true);
     try {
-      const [queued, queuedClosures] = await Promise.all([
+      const [queued, queuedLoot, queuedClosures] = await Promise.all([
         listOfflineCombatSyncs(),
+        listOfflineCombatLootSyncs(),
         listOfflineCombatClosures(),
       ]);
 
@@ -66,8 +73,23 @@ export default function OfflineSyncManager() {
         }
       }
 
-      // Closing the shared combat display is independent of character conflicts.
-      // A fight is over even when one character needs a manual cloud/offline choice.
+      for (const record of queuedLoot) {
+        try {
+          await apiClient.post(
+            `/campaigns/${record.campaignId}/inventory/offline-sync`,
+            { operation_id: record.operationId, item: record.item },
+            { timeout: 15000 }
+          );
+          await apiClient.get(`/campaigns/${record.campaignId}/inventory`, { timeout: 15000 }).catch(() => null);
+          await removeOfflineCombatLootSync(record.key);
+        } catch (error) {
+          if (!error?.response || error?.response?.status === 401) break;
+          await markOfflineCombatLootError(record.key, error?.response?.data?.detail || error?.message || 'Loot sync failed');
+        }
+      }
+
+      // Closing the shared combat display is independent of character conflicts
+      // or a loot retry. The fight is over even if one record still needs work.
       for (const record of queuedClosures) {
         try {
           await apiClient.put(
@@ -91,13 +113,15 @@ export default function OfflineSyncManager() {
     }
   }, [load]);
 
+  const hasAutoSyncWork = useCallback(next => (
+    next.records.some(item => item.status !== 'conflict') || next.loot.length > 0 || next.closures.length > 0
+  ), []);
+
   useEffect(() => {
     load().then(next => {
-      if (navigator.onLine && (
-        next.records.some(item => item.status !== 'conflict') || next.closures.length > 0
-      )) syncPending();
+      if (navigator.onLine && hasAutoSyncWork(next)) syncPending();
     });
-  }, [load, syncPending]);
+  }, [hasAutoSyncWork, load, syncPending]);
 
   useEffect(() => {
     const onOnline = () => {
@@ -107,9 +131,7 @@ export default function OfflineSyncManager() {
     const onOffline = () => setOnline(false);
     const onQueued = () => {
       load().then(next => {
-        if (navigator.onLine && (
-          next.records.some(item => item.status !== 'conflict') || next.closures.length > 0
-        )) syncPending();
+        if (navigator.onLine && hasAutoSyncWork(next)) syncPending();
       });
     };
     window.addEventListener('online', onOnline);
@@ -120,12 +142,12 @@ export default function OfflineSyncManager() {
       window.removeEventListener('offline', onOffline);
       window.removeEventListener('rqk:offline-sync-queued', onQueued);
     };
-  }, [load, syncPending]);
+  }, [hasAutoSyncWork, load, syncPending]);
 
   const conflicts = useMemo(() => records.filter(item => item.status === 'conflict'), [records]);
   const pendingCombat = records.length - conflicts.length;
-  const pending = pendingCombat + closures.length;
-  const total = records.length + closures.length;
+  const pending = pendingCombat + lootRecords.length + closures.length;
+  const total = records.length + lootRecords.length + closures.length;
 
   if (!total) return null;
 
@@ -193,6 +215,13 @@ export default function OfflineSyncManager() {
                   ) : (
                     <small className="rqk-sync-waiting">{record.lastError || (online ? 'Waiting for sync attempt…' : 'Stored safely on this device.')}</small>
                   )}
+                </article>
+              ))}
+
+              {lootRecords.map(record => (
+                <article key={record.key}>
+                  <span className="rqk-sync-character"><Package size={14} /><span><strong>{record.itemName || 'Combat loot'}</strong><small>Party loot queued</small></span></span>
+                  <small className="rqk-sync-waiting">{record.lastError || (online ? 'Waiting for sync attempt…' : 'Stored safely on this device.')}</small>
                 </article>
               ))}
 
