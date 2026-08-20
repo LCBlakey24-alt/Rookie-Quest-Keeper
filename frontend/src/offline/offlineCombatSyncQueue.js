@@ -58,6 +58,10 @@ function closeOperationKey(campaignId) {
   return `${getOfflineCacheScope()}::combat-close:${campaignId}`;
 }
 
+function lootOperationKey(campaignId, operationId) {
+  return `${getOfflineCacheScope()}::combat-loot:${campaignId}:${operationId}`;
+}
+
 async function readOperation(db, key) {
   return new Promise(resolve => {
     const transaction = db.transaction(STORE, 'readonly');
@@ -174,6 +178,22 @@ function buildCloseRecord({ scope, campaignId, displayState, existing }) {
   };
 }
 
+function buildLootRecord({ scope, campaignId, operationId, item, itemName, existing }) {
+  return {
+    key: lootOperationKey(campaignId, operationId),
+    scope,
+    type: 'combat-loot-create',
+    campaignId: String(campaignId),
+    operationId: String(operationId),
+    item: item && typeof item === 'object' ? item : {},
+    itemName: itemName || item?.name || existing?.itemName || 'Combat loot',
+    queuedAt: existing?.queuedAt || Date.now(),
+    updatedAt: Date.now(),
+    status: 'pending',
+    lastError: '',
+  };
+}
+
 export async function queueOfflineCombatState({ campaignId, characterId, characterName, baseState, state }) {
   if (!campaignId || !characterId) return null;
   const db = await openDb().catch(() => null);
@@ -202,10 +222,13 @@ export async function queueOfflineCombatClose({ campaignId, displayState } = {})
   return record;
 }
 
-export async function queueOfflineCombatEnd({ campaignId, characters = [], displayState } = {}) {
+export async function queueOfflineCombatEnd({ campaignId, characters = [], loot = [], displayState } = {}) {
   if (!campaignId) return null;
   const safeCharacters = Array.isArray(characters)
     ? characters.filter(item => item?.characterId && item?.baseState && item?.state)
+    : [];
+  const safeLoot = Array.isArray(loot)
+    ? loot.filter(item => item?.operationId && item?.item && typeof item.item === 'object')
     : [];
   const db = await openDb().catch(() => null);
   if (!db) return null;
@@ -226,14 +249,28 @@ export async function queueOfflineCombatEnd({ campaignId, characters = [], displ
     }));
   }
 
+  const lootRecords = [];
+  for (const item of safeLoot) {
+    const key = lootOperationKey(campaignId, item.operationId);
+    const existing = await readOperation(db, key);
+    lootRecords.push(buildLootRecord({
+      scope,
+      campaignId,
+      operationId: item.operationId,
+      item: item.item,
+      itemName: item.itemName,
+      existing,
+    }));
+  }
+
   const closeKey = closeOperationKey(campaignId);
   const existingClose = await readOperation(db, closeKey);
   const closeRecord = buildCloseRecord({ scope, campaignId, displayState, existing: existingClose });
-  const successful = await putOperationsAtomically(db, [...characterRecords, closeRecord]);
+  const successful = await putOperationsAtomically(db, [...characterRecords, ...lootRecords, closeRecord]);
   db.close();
   if (!successful) return null;
   dispatchQueued();
-  return { characterRecords, closeRecord };
+  return { characterRecords, lootRecords, closeRecord };
 }
 
 export async function listOfflineCombatSyncs() {
@@ -242,6 +279,10 @@ export async function listOfflineCombatSyncs() {
 
 export async function listOfflineCombatClosures() {
   return listOperations('combat-close');
+}
+
+export async function listOfflineCombatLootSyncs() {
+  return listOperations('combat-loot-create');
 }
 
 export async function markOfflineCombatConflict(key, serverState, message = '') {
@@ -272,10 +313,23 @@ export async function markOfflineCombatCloseError(key, message = '') {
   }));
 }
 
+export async function markOfflineCombatLootError(key, message = '') {
+  await updateOperation(key, current => ({
+    ...current,
+    status: 'pending',
+    lastError: String(message || ''),
+    updatedAt: Date.now(),
+  }));
+}
+
 export async function removeOfflineCombatSync(key) {
   return removeOperation(key);
 }
 
 export async function removeOfflineCombatClose(key) {
+  return removeOperation(key);
+}
+
+export async function removeOfflineCombatLootSync(key) {
   return removeOperation(key);
 }
