@@ -15,9 +15,9 @@ import { installSafeToasts } from "@/utils/safeToast";
 import { registerPwaServiceWorker } from "@/pwa/registerServiceWorker";
 import { installQueuedCombatPartyOverlay } from "@/offline/queuedCombatPartyOverlay";
 import { installRookAiConsentGate } from "@/privacy/rookAiConsent";
-// Final signed-in/mobile guardrail. Keep this after App imports so legacy
-// twilight/sunset styles cannot recolour the installed-app shell again.
+// Current product guardrails load after App and all feature-level styles.
 import "@/styles/appStoreMobilePolish.css";
+import "@/styles/rookieResponsiveSystem.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
