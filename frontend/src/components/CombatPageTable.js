@@ -35,6 +35,42 @@ const numberOr = (value, fallback = 0) => {
 };
 const safeArray = value => Array.isArray(value) ? value : [];
 
+function newLootOperationId() {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return `combat-loot-${crypto.randomUUID()}`;
+  } catch { /* fall back below */ }
+  return `combat-loot-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function ensureLootOperation(item = {}) {
+  return {
+    ...item,
+    offlineOperationId: item.offlineOperationId || newLootOperationId(),
+  };
+}
+
+function inventoryPayload(item = {}, round = 1) {
+  return {
+    name: item.name || 'Combat loot',
+    quantity: Math.max(1, numberOr(item.quantity, 1)),
+    item_type: item.item_type || item.type || 'misc',
+    description: item.description || (item.source ? `Looted from ${item.source}` : ''),
+    value: item.value || '',
+    weight: Math.max(0, numberOr(item.weight, 0)),
+    is_magical: Boolean(item.is_magical),
+    attunement_required: Boolean(item.attunement_required || item.requires_attunement),
+    attuned_to: item.attuned_to || '',
+    notes: item.notes || `Combat loot · Round ${round}`,
+    image_url: item.image_url || '',
+    attack_bonus: numberOr(item.attack_bonus, 0),
+    ac_bonus: numberOr(item.ac_bonus, 0),
+    damage_dice: item.damage_dice || '',
+    damage_type: item.damage_type || '',
+    properties: safeArray(item.properties),
+    equip_slot: item.equip_slot || '',
+  };
+}
+
 function initialiseCombatant(source, index) {
   const maxHp = Math.max(1, numberOr(source.maxHp ?? source.max_hp ?? source.hit_points ?? source.hp, 10));
   const hp = Math.max(0, Math.min(maxHp, numberOr(source.hp ?? source.current_hit_points, maxHp)));
@@ -155,6 +191,7 @@ export default function CombatPageTable() {
         ...(restored.initialPlayerStates || {}),
       };
       setCombatants(restored.combatants);
+      setCollectedLoot(safeArray(restored.collectedLoot).map(ensureLootOperation));
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
       setRound(Math.max(1, restored.round || 1));
       setSelectedMapId(restored.selectedMapId || '');
@@ -165,6 +202,7 @@ export default function CombatPageTable() {
       const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
       initialPlayerStatesRef.current = playerBaseStates(loaded);
       setCombatants(loaded);
+      setCollectedLoot([]);
       setExpandedId(loaded[0]?.id || '');
       if (loaded.length) toast.success(`${loaded.length} combatants rolled initiative`);
     }
@@ -189,11 +227,12 @@ export default function CombatPageTable() {
         round,
         selectedMapId,
         mapTokens,
+        collectedLoot,
         initialPlayerStates: initialPlayerStatesRef.current,
         savedAt: Date.now(),
       }));
     } catch { /* local checkpoint is best effort */ }
-  }, [combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId]);
+  }, [collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId]);
 
   useEffect(() => {
     if (!scenario || !maps.length || selectedMapId) return;
@@ -441,7 +480,7 @@ export default function CombatPageTable() {
   };
 
   const collectLoot = (combatant) => {
-    const items = safeArray(combatant.loot).map(item => ({ ...item, source: combatant.name }));
+    const items = safeArray(combatant.loot).map(item => ensureLootOperation({ ...item, source: combatant.name }));
     if (!items.length) return;
     setCollectedLoot(previous => [...previous, ...items]);
     setCombatants(previous => previous.map(item => item.id === combatant.id ? { ...item, lootCollected: true } : item));
@@ -450,18 +489,13 @@ export default function CombatPageTable() {
 
   const saveLoot = async (options = {}) => {
     const throwOnError = Boolean(options?.throwOnError);
-    const pending = [...collectedLoot];
+    const pending = collectedLoot.map(ensureLootOperation);
     let savedCount = 0;
     try {
       for (const item of pending) {
-        await apiClient.post(`/campaigns/${campaignId}/inventory`, {
-          name: item.name,
-          quantity: item.quantity || 1,
-          item_type: item.item_type || 'misc',
-          value: item.value || '',
-          is_magical: Boolean(item.is_magical),
-          description: item.description || `Looted from ${item.source}`,
-          notes: `Combat loot · Round ${round}`,
+        await apiClient.post(`/campaigns/${campaignId}/inventory/offline-sync`, {
+          operation_id: item.offlineOperationId,
+          item: inventoryPayload(item, round),
         });
         savedCount += 1;
       }
@@ -506,10 +540,6 @@ export default function CombatPageTable() {
       toast.error('Reconnect before ending this fight: legacy roster HP cannot sync safely offline yet.');
       return false;
     }
-    if (collectedLoot.length) {
-      toast.error('Reconnect or save the collected loot before ending this fight. Offline loot creation is not enabled yet.');
-      return false;
-    }
 
     const missingBase = realCharacters.filter(item => !initialPlayerStatesRef.current[String(item.character_id)]);
     if (missingBase.length) {
@@ -517,6 +547,7 @@ export default function CombatPageTable() {
       return false;
     }
 
+    const safeLoot = collectedLoot.map(ensureLootOperation);
     const displayState = blankCombatDisplay();
     const queued = await queueOfflineCombatEnd({
       campaignId,
@@ -527,6 +558,11 @@ export default function CombatPageTable() {
         baseState: initialPlayerStatesRef.current[String(item.character_id)],
         state: combatStateSnapshot(item),
       })),
+      loot: safeLoot.map(item => ({
+        operationId: item.offlineOperationId,
+        itemName: item.name,
+        item: inventoryPayload(item, round),
+      })),
     });
     if (!queued) {
       toast.error('Rookie could not store the offline combat ending safely. The fight has been kept open.');
@@ -535,8 +571,11 @@ export default function CombatPageTable() {
 
     publishDisplayState(campaignId, displayState);
     try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
-    toast.success(realCharacters.length
-      ? `Combat ended offline · ${realCharacters.length} player state${realCharacters.length === 1 ? '' : 's'} queued for sync`
+    const details = [];
+    if (realCharacters.length) details.push(`${realCharacters.length} player state${realCharacters.length === 1 ? '' : 's'}`);
+    if (safeLoot.length) details.push(`${safeLoot.length} loot item${safeLoot.length === 1 ? '' : 's'}`);
+    toast.success(details.length
+      ? `Combat ended offline · ${details.join(' + ')} queued for sync`
       : 'Combat ended offline · reconnect cleanup queued');
     navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
     return true;
@@ -586,6 +625,7 @@ export default function CombatPageTable() {
     const loaded = safeArray(scenario?.combatants).map(initialiseCombatant).sort((a, b) => b.initiative - a.initiative);
     initialPlayerStatesRef.current = playerBaseStates(loaded);
     setCombatants(loaded);
+    setCollectedLoot([]);
     setCurrentTurn(0);
     setRound(1);
     setExpandedId(loaded[0]?.id || '');
