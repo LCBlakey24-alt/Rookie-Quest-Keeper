@@ -13,6 +13,9 @@ import AppErrorBoundary from "@/components/AppErrorBoundary";
 import PwaLifecycleBanner from "@/components/pwa/PwaLifecycleBanner";
 import { installSafeToasts } from "@/utils/safeToast";
 import { registerPwaServiceWorker } from "@/pwa/registerServiceWorker";
+// Final signed-in/mobile guardrail. Keep this after App imports so legacy
+// twilight/sunset styles cannot recolour the installed-app shell again.
+import "@/styles/appStoreMobilePolish.css";
 
 installSafeToasts();
 
