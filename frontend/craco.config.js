@@ -91,6 +91,17 @@ const webpackConfig = {
       return webpackConfig;
     },
   },
+  // CRA/Jest does not inherit webpack aliases. Keep the same @ -> src contract
+  // in tests so test imports exercise the same modules as production builds.
+  jest: {
+    configure: (jestConfig) => ({
+      ...jestConfig,
+      moduleNameMapper: {
+        ...(jestConfig.moduleNameMapper || {}),
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+    }),
+  },
 };
 
 // Only add babel plugin if visual editing is enabled
@@ -108,7 +119,7 @@ if (config.enableVisualEdits || config.enableHealthCheck) {
       devServerConfig = setupDevServer(devServerConfig);
     }
 
-    // Add health check endpoints if enabled
+    // Apply health check endpoints if enabled
     if (config.enableHealthCheck && setupHealthEndpoints && healthPluginInstance) {
       const originalSetupMiddlewares = devServerConfig.setupMiddlewares;
 
@@ -118,7 +129,7 @@ if (config.enableVisualEdits || config.enableHealthCheck) {
           middlewares = originalSetupMiddlewares(middlewares, devServer);
         }
 
-        // Setup health endpoints
+        // Setup health check endpoints
         setupHealthEndpoints(devServer, healthPluginInstance);
 
         return middlewares;
