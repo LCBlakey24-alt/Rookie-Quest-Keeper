@@ -116,6 +116,11 @@ function findAbilityKey(source = {}, ability) {
   return Object.keys(source || {}).find((key) => aliasKeys.has(String(key).toLowerCase())) || '';
 }
 
+function matchingAbilityKeys(source = {}, ability) {
+  const aliasKeys = new Set(abilityAliases(ability).map((alias) => String(alias).toLowerCase()));
+  return Object.keys(source || {}).filter((key) => aliasKeys.has(String(key).toLowerCase()));
+}
+
 function rawScoreValue(value) {
   return value && typeof value === 'object' ? value.score : value;
 }
@@ -126,12 +131,16 @@ function scoreFromValue(value) {
 }
 
 function readAbilityScore(source = {}, ability) {
-  const directKey = findAbilityKey(source, ability);
-  if (directKey) return scoreFromValue(source[directKey]);
+  // Imported sheets often carry a legacy scalar alongside a richer structured
+  // ability container. Prefer the structured source so stale defaults cannot
+  // override the imported score.
   const containerKey = ABILITY_CONTAINER_KEYS.find((key) => source?.[key] && findAbilityKey(source[key], ability));
-  if (!containerKey) return 10;
-  const abilityKey = findAbilityKey(source[containerKey], ability);
-  return abilityKey ? scoreFromValue(source[containerKey][abilityKey]) : 10;
+  if (containerKey) {
+    const abilityKey = findAbilityKey(source[containerKey], ability);
+    if (abilityKey) return scoreFromValue(source[containerKey][abilityKey]);
+  }
+  const directKey = findAbilityKey(source, ability);
+  return directKey ? scoreFromValue(source[directKey]) : 10;
 }
 
 function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
@@ -182,21 +191,26 @@ function readPayloadAbilityScore(target = {}, ability) {
 
 function writePayloadAbilityScore(target = {}, ability, score) {
   let wrote = false;
-  const directKey = findAbilityKey(target, ability);
-  if (directKey) {
-    target[directKey] = score;
+
+  // Keep every direct alias already present on an imported payload in sync.
+  // Preserve metadata if a direct representation is object-shaped.
+  matchingAbilityKeys(target, ability).forEach((directKey) => {
+    const current = target[directKey];
+    target[directKey] = current && typeof current === 'object' ? { ...current, score } : score;
     wrote = true;
-  }
+  });
 
   ABILITY_CONTAINER_KEYS.forEach((containerKey) => {
     const container = target?.[containerKey];
-    const abilityKey = container ? findAbilityKey(container, ability) : '';
-    if (!container || !abilityKey) return;
-    const current = container[abilityKey];
-    target[containerKey] = {
-      ...container,
-      [abilityKey]: current && typeof current === 'object' ? { ...current, score } : score,
-    };
+    if (!container) return;
+    const abilityKeys = matchingAbilityKeys(container, ability);
+    if (!abilityKeys.length) return;
+    const nextContainer = { ...container };
+    abilityKeys.forEach((abilityKey) => {
+      const current = container[abilityKey];
+      nextContainer[abilityKey] = current && typeof current === 'object' ? { ...current, score } : score;
+    });
+    target[containerKey] = nextContainer;
     wrote = true;
   });
 
