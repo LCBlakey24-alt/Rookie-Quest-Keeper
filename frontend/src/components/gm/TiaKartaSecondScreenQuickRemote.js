@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Copy, Eye, Monitor, Projector, Send, Sparkles, Table2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState } from '@/lib/liveDisplayBus';
+import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -63,10 +64,16 @@ export default function TiaKartaSecondScreenQuickRemote({ campaignId }) {
 
     try {
       setSendingId(preset.id);
-      await publishCampaignDisplayState(campaignId, state);
-      toast.success('Sent to second screen', { description: preset.title });
+      const result = await publishCampaignDisplayStateWithStatus(campaignId, state);
+      if (result.remoteSynced) {
+        toast.success('Sent to second screen', { description: preset.title });
+      } else {
+        toast.warning('Sent locally — remote display not synced', {
+          description: 'Same-browser display is updated. Another device will catch up when sync reconnects.',
+        });
+      }
     } catch {
-      toast.info('Sent locally. Remote display will catch up when sync reconnects.');
+      toast.error('Could not update the second screen');
     } finally {
       setSendingId('');
     }
@@ -76,12 +83,18 @@ export default function TiaKartaSecondScreenQuickRemote({ campaignId }) {
     const displayTarget = rememberTarget(safeTarget);
     try {
       setSendingId('blank');
-      await publishCampaignDisplayState(campaignId, createDisplayState('blank', {
+      const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState('blank', {
         display_target: displayTarget,
         title: 'Waiting for the GM',
         subtitle: 'The next Tia-Karta reveal will appear here.',
       }));
-      toast.success('Second screen cleared');
+      if (result.remoteSynced) {
+        toast.success('Second screen cleared');
+      } else {
+        toast.warning('Cleared locally — remote display not synced', {
+          description: 'Same-browser display is cleared. Another device will catch up when sync reconnects.',
+        });
+      }
     } finally {
       setSendingId('');
     }
@@ -89,11 +102,16 @@ export default function TiaKartaSecondScreenQuickRemote({ campaignId }) {
 
   const openDisplay = async (targetId = safeTarget) => {
     const displayTarget = rememberTarget(targetId);
-    await publishCampaignDisplayState(campaignId, createDisplayState('blank', {
+    const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState('blank', {
       display_target: displayTarget,
       title: displayTarget === 'virtual-table' ? 'Table Screen Ready' : 'TV Display Ready',
       subtitle: 'Leave this page open. Reveals update live from the GM remote.',
     }));
+    if (!result.remoteSynced) {
+      toast.warning('Display opened locally — remote sync unavailable', {
+        description: 'This browser can still use the display. Other devices will catch up when sync reconnects.',
+      });
+    }
     const url = `${window.location.origin}/player-display/${campaignId}?target=${encodeURIComponent(displayTarget)}`;
     const opened = window.open(url, '_blank', 'noopener,noreferrer');
     if (!opened) toast.error('Pop-up blocked. Copy the display link and open it manually.');
