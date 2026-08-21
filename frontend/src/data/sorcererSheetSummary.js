@@ -5,7 +5,13 @@ import { getSorcererBuilderChoiceSummary } from './sorcererBuilderChoiceSummary'
 import { getSorcererBuilderSelectionList } from './sorcererBuilderOptions';
 
 const normaliseRuleset = (character = {}) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
-const joinSelection = (value, fallback = '') => Array.isArray(value) ? value.filter(Boolean).join(', ') : value || fallback;
+const joinSelection = (value, fallback = '') => {
+  if (Array.isArray(value)) {
+    const joined = value.filter(Boolean).join(', ');
+    return joined || fallback;
+  }
+  return value || fallback;
+};
 const getSubclassName = (character = {}) => character?.subclass || character?.sorcerer_subclass || character?.sorcererSubclass || character?.origin || character?.sorcerousOrigin || '';
 
 function getSorceryPointLabel(maximum = 0) {
