@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Copy, Eye, Image as ImageIcon, Layers, Monitor, Projector, RefreshCw, Send, ShieldCheck, Skull, Sparkles, Table2, Users, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Copy, Eye, Image as ImageIcon, Layers, Monitor, Projector, RefreshCw, Send, ShieldCheck, Skull, Sparkles, Table2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState, loadDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, loadDisplayState } from '@/lib/liveDisplayBus';
+import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
+import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/livePlayerDisplayResources';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -142,6 +144,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [npcs, setNpcs] = useState([]);
   const [party, setParty] = useState([]);
   const [scenarios, setScenarios] = useState([]);
+  const [resourceWarning, setResourceWarning] = useState('');
+  const [refreshingResources, setRefreshingResources] = useState(false);
   const [sceneTitle, setSceneTitle] = useState(campaignName || 'Scene');
   const [sceneSubtitle, setSceneSubtitle] = useState('');
   const [quickAnnouncement, setQuickAnnouncement] = useState('');
@@ -154,26 +158,56 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [activeCombatantId, setActiveCombatantId] = useState('');
   const [displayTarget, setDisplayTarget] = useState(() => loadTarget(campaignId));
 
+  const applyResourceResult = useCallback(({ data, failures }) => {
+    if (Object.prototype.hasOwnProperty.call(data, 'maps')) setMaps(data.maps);
+    if (Object.prototype.hasOwnProperty.call(data, 'npcs')) setNpcs(data.npcs);
+    if (Object.prototype.hasOwnProperty.call(data, 'scenarios')) setScenarios(data.scenarios);
+    if (Object.prototype.hasOwnProperty.call(data, 'players')) {
+      const members = data.players.map(normalisePartyMember).filter(member => member?.name);
+      setParty(members);
+      setActiveCombatantId(current => current || (members[0]?.id ? `player-${members[0].id}` : ''));
+    }
+    const warning = playerDisplayResourceWarning(failures);
+    setResourceWarning(warning);
+    return warning;
+  }, []);
+
   useEffect(() => {
-    try { localStorage.setItem(targetStorageKey(campaignId), displayTarget); } catch { /* ignore */ }
+    try { localStorage.setItem(targetStorageKey(campaignId), displayTarget); } catch { /* preference storage is optional */ }
   }, [campaignId, displayTarget]);
 
   useEffect(() => {
-    if (!campaignId) return;
-    Promise.all([
-      apiClient.get(`/campaigns/${campaignId}/maps`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
-    ]).then(([mapsRes, npcsRes, scenariosRes, playersRes]) => {
-      setMaps(Array.isArray(mapsRes.data) ? mapsRes.data : []);
-      setNpcs(Array.isArray(npcsRes.data) ? npcsRes.data : []);
-      setScenarios(Array.isArray(scenariosRes.data) ? scenariosRes.data : []);
-      const members = Array.isArray(playersRes.data) ? playersRes.data.map(normalisePartyMember).filter(member => member?.name) : [];
-      setParty(members);
-      if (!activeCombatantId && members[0]?.id) setActiveCombatantId(`player-${members[0].id}`);
+    setMaps([]);
+    setNpcs([]);
+    setParty([]);
+    setScenarios([]);
+    setSelectedNpcIds([]);
+    setSelectedScenarioId('');
+    setVisibleCombatantIds([]);
+    setActiveCombatantId('');
+    setResourceWarning('');
+    setDisplayTarget(loadTarget(campaignId));
+    if (!campaignId) return undefined;
+
+    let cancelled = false;
+    loadPlayerDisplayResources(apiClient, campaignId).then((result) => {
+      if (!cancelled) applyResourceResult(result);
     });
-  }, [campaignId, activeCombatantId]);
+    return () => { cancelled = true; };
+  }, [campaignId, applyResourceResult]);
+
+  const refreshResources = useCallback(async () => {
+    if (!campaignId) return;
+    setRefreshingResources(true);
+    try {
+      const result = await loadPlayerDisplayResources(apiClient, campaignId);
+      const warning = applyResourceResult(result);
+      if (warning) toast.warning('Player display data only partly refreshed', { description: warning });
+      else toast.success('Player display data refreshed');
+    } finally {
+      setRefreshingResources(false);
+    }
+  }, [campaignId, applyResourceResult]);
 
   const displayUrlFor = (targetId = displayTarget) => `/campaign/${campaignId}/player-display?target=${encodeURIComponent(normaliseTarget(targetId))}`;
   const selectedNpcs = useMemo(() => npcs.filter(npc => selectedNpcIds.includes(String(npc.id))), [npcs, selectedNpcIds]);
@@ -207,39 +241,55 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   ].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0)), [partyPayload, combatTokenPayload]);
   const currentTarget = DISPLAY_TARGETS.find(target => target.id === displayTarget) || DISPLAY_TARGETS[0];
 
-  const publish = (mode, payload = {}, targetId = displayTarget) => {
+  const publish = async (mode, payload = {}, targetId = displayTarget) => {
     const safeTarget = normaliseTarget(targetId);
-    publishCampaignDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
     const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
-    toast.success('Sent to player display', { description: label });
+    const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
+    if (result.remoteSynced) {
+      toast.success('Sent to player display', { description: label });
+    } else {
+      toast.warning('Updated locally — remote display not synced', { description: `${label} is updated in this browser. Another device will catch up when sync reconnects.` });
+    }
+    return result;
   };
 
-  const publishBannerOverlay = (banner) => {
+  const publishBannerOverlay = async (banner) => {
     const current = loadDisplayState(campaignId) || createDisplayState('blank', {});
     const mode = current?.mode || 'blank';
     const payload = { ...(current?.payload || {}) };
     const safeTarget = normaliseTarget(displayTarget || payload.display_target);
     if (banner) payload.banner = { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, eyebrow: 'Announcement', ...banner };
     else delete payload.banner;
-    publishCampaignDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
-    toast.success(banner ? 'Banner sent over current display' : 'Banner cleared', { description: DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label });
+    const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
+    const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
+    if (result.remoteSynced) {
+      toast.success(banner ? 'Banner sent over current display' : 'Banner cleared', { description: label });
+    } else {
+      toast.warning('Updated locally — remote display not synced', { description: `${label} changed in this browser. Another device will catch up when sync reconnects.` });
+    }
+    return result;
   };
 
-  const sendDisplayTarget = (targetId = displayTarget) => {
+  const sendDisplayTarget = async (targetId = displayTarget) => {
     const safeTarget = normaliseTarget(targetId);
     const target = DISPLAY_TARGETS.find(item => item.id === safeTarget) || DISPLAY_TARGETS[0];
-    publishCampaignDisplayState(campaignId, createDisplayState('blank', {
+    const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState('blank', {
       title: target.label,
       subtitle: target.help,
       display_target: target.id,
     }));
-    toast.success(`Display set for ${target.label}`);
+    if (result.remoteSynced) {
+      toast.success(`Display set for ${target.label}`);
+    } else {
+      toast.warning('Display set locally — remote display not synced', { description: `${target.label} is ready in this browser. Another device will catch up when sync reconnects.` });
+    }
+    return result;
   };
 
   const openPlayerDisplay = (targetId = displayTarget) => {
     const safeTarget = normaliseTarget(targetId);
     setDisplayTarget(safeTarget);
-    sendDisplayTarget(safeTarget);
+    void sendDisplayTarget(safeTarget);
     const opened = window.open(displayUrlFor(safeTarget), '_blank', 'noopener,noreferrer');
     if (!opened) toast.error('The display tab was blocked. Allow pop-ups, then try again.');
   };
@@ -419,6 +469,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <button type="button" onClick={() => openPlayerDisplay('standing-tv')} style={primaryButtonStyle}><Projector size={14} /> Open TV</button>
           <button type="button" onClick={() => openPlayerDisplay('virtual-table')} style={primaryButtonStyle}><Table2 size={14} /> Open Table</button>
           <button type="button" onClick={() => copyDisplayLink(displayTarget)} style={secondaryButtonStyle}><Copy size={14} /> Copy Link</button>
+          <button type="button" onClick={refreshResources} disabled={refreshingResources} style={secondaryButtonStyle}><RefreshCw size={14} /> {refreshingResources ? 'Refreshing…' : 'Refresh Data'}</button>
           <button type="button" onClick={() => sendFlowPreset(FLOW_PRESETS[0])} style={dangerButtonStyle}><X size={14} /> Blackout</button>
           <button type="button" onClick={() => publishBannerOverlay(null)} style={secondaryButtonStyle}><X size={14} /> Clear Banner</button>
           <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Advanced' : 'Show Advanced'}</button>
@@ -430,6 +481,12 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         <span><strong>Party:</strong> {partyPayload.length} linked player{partyPayload.length === 1 ? '' : 's'} ready for the HUD</span>
         <span><strong>Combat:</strong> Round {combatRound || 1} · {combatRosterOptions.length} visible actor{combatRosterOptions.length === 1 ? '' : 's'}</span>
       </div>
+
+      {resourceWarning && (
+        <div role="status" data-testid="player-display-resource-warning" style={warningStyle}>
+          <AlertTriangle size={14} /> <span>{resourceWarning}</span>
+        </div>
+      )}
 
       <div style={bodyStyle}>
         <section style={commandDeckStyle}>
@@ -552,6 +609,7 @@ const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, co
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${theme.line}`, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 34, border: `1px solid ${theme.red}`, background: '#090909', color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const statusStripStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 12px', borderTop: `1px solid ${theme.line}`, borderBottom: `1px solid ${theme.line}`, background: theme.panel, color: theme.soft, fontSize: 11, lineHeight: 1.35 };
+const warningStyle = { display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 12px', borderBottom: '1px solid rgba(245,158,11,0.42)', background: 'rgba(245,158,11,0.08)', color: theme.soft, fontSize: 11, lineHeight: 1.4 };
 const bodyStyle = { display: 'grid', gap: 10, padding: 12 };
 const commandDeckStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10, alignItems: 'stretch' };
 const targetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 };
