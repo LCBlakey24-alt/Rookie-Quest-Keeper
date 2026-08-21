@@ -93,12 +93,15 @@ const webpackConfig = {
   },
   // CRA/Jest does not inherit webpack aliases. Keep the same @ -> src contract
   // in tests so test imports exercise the same modules as production builds.
+  // React Router v7 publishes react-router-dom as a compatibility re-export;
+  // Jest 27 resolves the underlying react-router package more reliably.
   jest: {
     configure: (jestConfig) => ({
       ...jestConfig,
       moduleNameMapper: {
         ...(jestConfig.moduleNameMapper || {}),
         '^@/(.*)$': '<rootDir>/src/$1',
+        '^react-router-dom$': 'react-router',
       },
     }),
   },
