@@ -2,7 +2,6 @@ import React from 'react';
 import { Shield, Sparkles, Sword } from 'lucide-react';
 
 import ClassSubclassPicker from '@/components/builder/ClassSubclassPicker';
-import StartingLevelChoicePlanPanel from '@/components/builder/StartingLevelChoicePlanPanel';
 import { DetailPanel, Pill, SelectCard, StepHeader } from '@/components/character-builder/BuilderPrimitives';
 import { detailHeaderStyle, traitChipStyle } from '@/components/character-builder/builderTheme';
 
@@ -12,8 +11,6 @@ export default function ClassStep({
   setClassName,
   classData,
   edition,
-  startingLevel = 1,
-  setStartingLevel,
   subclass,
   setSubclass,
   subclassLabel,
@@ -48,17 +45,6 @@ export default function ClassStep({
           />
         ))}
       </div>
-
-      {className && (
-        <StartingLevelChoicePlanPanel
-          className={className}
-          startingLevel={startingLevel}
-          onStartingLevelChange={setStartingLevel}
-          theme={theme}
-          inputStyle={inputStyle}
-          labelStyle={labelStyle}
-        />
-      )}
 
       {classData && (
         <DetailPanel title={`${classData.name} Level 1`} color={theme.sunset.purple}>
@@ -98,26 +84,26 @@ export default function ClassStep({
         <ClassSubclassPicker
           className={className}
           edition={edition}
-          level={startingLevel}
+          level={1}
           classes={mergedClasses}
           selectedSubclass={subclass}
           onSubclassChange={setSubclass}
           label={subclassLabel}
-          required={requiresLevelOneSubclass || startingLevel >= 3}
-          requiredText={requiresLevelOneSubclass ? '(REQUIRED at Level 1)' : `(REQUIRED by Level ${startingLevel})`}
-          optionalText="(optional now — typically chosen at level 3)"
+          required={requiresLevelOneSubclass}
+          requiredText="(REQUIRED at Level 1)"
+          optionalText="(chosen later at the appropriate level)"
           labelStyle={labelStyle}
           inputStyle={inputStyle}
           theme={theme}
         />
       )}
 
-      {fightingStyleClasses[className] && startingLevel >= fightingStyleClasses[className].level && (
+      {fightingStyleClasses[className]?.level === 1 && (
         <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: theme.accent.soft, border: `1px solid ${theme.accent.line || theme.border}` }}>
           <label style={labelStyle}>
             Fighting Style
-            <span style={{ color: className === 'Fighter' || startingLevel >= fightingStyleClasses[className].level ? theme.danger : theme.text.muted, textTransform: 'none', marginLeft: 6 }}>
-              {className === 'Fighter' ? '(REQUIRED at Level 1)' : `(gained at Level ${fightingStyleClasses[className].level})`}
+            <span style={{ color: theme.danger, textTransform: 'none', marginLeft: 6 }}>
+              (REQUIRED at Level 1)
             </span>
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 6 }}>
