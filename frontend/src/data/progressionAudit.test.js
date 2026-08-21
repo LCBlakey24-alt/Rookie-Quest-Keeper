@@ -65,12 +65,12 @@ describe('class resource unlocks and action economy audit', () => {
     if (level >= 17) expect(names).toContain('Quivering Palm');
   });
 
-  test('Shadow Monk action economy buckets are correct', () => {
-    const features = getCharacterClassFeatures(character('monk', 17, { subclass: 'Warrior of Shadow' }));
-    expect(features.find(feature => feature.name === 'Shadow Arts')).toMatchObject({ type: 'action' });
-    expect(features.find(feature => feature.name === 'Shadow Step')).toMatchObject({ type: 'bonus_action' });
-    expect(features.find(feature => feature.name === 'Cloak of Shadows')).toMatchObject({ type: 'action' });
-    expect(features.find(feature => feature.name === 'Opportunist')).toMatchObject({ type: 'reaction' });
+  test('supported Open Hand action economy buckets are correct', () => {
+    const features = getCharacterClassFeatures(character('monk', 17, { subclass: 'Way of the Open Hand' }));
+    expect(features.find(feature => feature.name === 'Open Hand Technique')).toMatchObject({ type: 'action_modifier' });
+    expect(features.find(feature => feature.name === 'Wholeness of Body')).toMatchObject({ type: 'action' });
+    expect(features.find(feature => feature.name === 'Tranquility')).toMatchObject({ type: 'passive' });
+    expect(features.find(feature => feature.name === 'Quivering Palm')).toMatchObject({ type: 'action_modifier' });
   });
 
   test('reference class action/resource cards are available at intended levels', () => {
