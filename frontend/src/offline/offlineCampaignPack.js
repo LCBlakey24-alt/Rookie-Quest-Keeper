@@ -194,10 +194,16 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     phase: 'characters',
   });
 
-  const discoveredMedia = extractOfflineMediaUrls(...mediaPayloads);
-  const mediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
+  const discoveredMedia = Array.isArray(extractOfflineMediaUrls(...mediaPayloads))
+    ? extractOfflineMediaUrls(...mediaPayloads)
+    : [];
+  const rawMediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
     onProgress: mediaProgress => onProgress({ ...mediaProgress, phase: 'media' }),
   });
+  const mediaResult = {
+    saved: Array.isArray(rawMediaResult?.saved) ? rawMediaResult.saved : [],
+    failed: Array.isArray(rawMediaResult?.failed) ? rawMediaResult.failed : [],
+  };
   if (discoveredMedia.length) {
     sections.push(sectionResult(
       { key: 'media', label: 'Maps, handouts & images', url: '' },
@@ -209,7 +215,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
   }
 
   const failedSections = sections.filter(section => section.status !== 'saved');
-  const metadata = await saveOfflineCampaignPackMetadata({
+  const metadataPayload = {
     version: OFFLINE_PACK_VERSION,
     audience: 'gm',
     campaignId: String(campaignId),
@@ -227,7 +233,9 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     mediaSaved: mediaResult.saved.length,
     mediaFailed: mediaResult.failed.length,
     mediaIncluded: mediaResult.saved.length > 0,
-  });
+  };
+  const storedMetadata = await saveOfflineCampaignPackMetadata(metadataPayload);
+  const metadata = storedMetadata || metadataPayload;
 
   onProgress({ phase: 'done', completed: sections.length, total: sections.length, label: 'Offline copy ready' });
   return metadata;
