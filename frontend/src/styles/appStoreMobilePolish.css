@@ -1,0 +1,497 @@
+/*
+  App-store/mobile readiness guardrail.
+  This is intentionally loaded after the legacy sunset/twilight layers.
+  It gives the signed-in product one quiet Rookie visual language and turns the
+  phone rail into a real bottom app dock without rewriting route components.
+*/
+
+html[data-theme='gm'],
+html[data-theme='player'] {
+  --rq-app-bg: #202020;
+  --rq-app-bg-deep: #181818;
+  --rq-app-panel: #292929;
+  --rq-app-card: #323232;
+  --rq-app-input: #1d1d1d;
+  --rq-app-line: rgba(255,255,255,.12);
+  --rq-app-line-strong: rgba(255,255,255,.20);
+  --rq-app-text: #ffffff;
+  --rq-app-muted: rgba(255,255,255,.68);
+  --rq-app-faint: rgba(255,255,255,.48);
+  --rq-app-red: #d00000;
+  --rq-app-red-hover: #b90000;
+  --rq-app-red-soft: rgba(208,0,0,.14);
+  --rq-app-amber: #f59e0b;
+
+  /* Neutralise old sunset variables still referenced by legacy components. */
+  --rq-bg: var(--rq-app-bg);
+  --rq-bg-main: var(--rq-app-bg);
+  --rq-bg-deep: var(--rq-app-bg-deep);
+  --rq-bg-rail: var(--rq-app-bg-deep);
+  --rq-bg-panel: var(--rq-app-panel);
+  --rq-bg-panel-alt: var(--rq-app-panel);
+  --rq-bg-card: var(--rq-app-card);
+  --rq-bg-input: var(--rq-app-input);
+  --rq-bg-button: var(--rq-app-card);
+  --rq-bg-button-hover: #3a3a3a;
+  --rq-surface: var(--rq-app-panel);
+  --rq-card: var(--rq-app-card);
+  --rq-card-hover: #3a3a3a;
+  --rq-button: var(--rq-app-card);
+  --rq-button-hover: #3a3a3a;
+  --rq-primary: var(--rq-app-red);
+  --rq-primary-hover: var(--rq-app-red-hover);
+  --rq-primary-soft: var(--rq-app-red-soft);
+  --rq-accent-primary: var(--rq-app-red);
+  --rq-accent-soft: var(--rq-app-red-soft);
+  --rq-accent-border: rgba(208,0,0,.42);
+  --rq-text: var(--rq-app-text);
+  --rq-text-primary: var(--rq-app-text);
+  --rq-text-secondary: var(--rq-app-muted);
+  --rq-text-muted: var(--rq-app-muted);
+  --rq-muted: var(--rq-app-muted);
+  --rq-faint: var(--rq-app-faint);
+  --rq-line: var(--rq-app-line);
+  --rq-line-strong: var(--rq-app-line-strong);
+  --rq-border-default: var(--rq-app-line);
+  --rq-border-strong: var(--rq-app-line-strong);
+  --rq-sunset-copper: var(--rq-app-red);
+  --rq-sunset-gold: var(--rq-app-red);
+  --rq-sunset-orange: var(--rq-app-amber);
+  --rq-sunset-cream: var(--rq-app-text);
+  --rq-sunset-muted: var(--rq-app-muted);
+  --rq-sunset-faint: var(--rq-app-faint);
+  --rq-sunset-line: var(--rq-app-line);
+  --rq-sunset-line-strong: rgba(208,0,0,.38);
+  --rq-sunset-gradient: linear-gradient(135deg, #d00000 0%, #b90000 100%);
+  --rq-sunset-gradient-soft: linear-gradient(135deg, rgba(208,0,0,.18), rgba(208,0,0,.06));
+}
+
+html[data-theme='gm'],
+html[data-theme='gm'] body,
+html[data-theme='gm'] #root,
+html[data-theme='player'],
+html[data-theme='player'] body,
+html[data-theme='player'] #root {
+  background: var(--rq-app-bg) !important;
+  color: var(--rq-app-text) !important;
+}
+
+html[data-theme='gm'] body,
+html[data-theme='player'] body {
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-shell,
+html[data-theme='gm'] #root .rqk-app-shell-content,
+html[data-theme='gm'] #root .gm-dashboard-shell,
+html[data-theme='player'] #root .rqk-app-shell,
+html[data-theme='player'] #root .rqk-app-shell-content,
+html[data-theme='player'] #root .character-page-v2,
+html[data-theme='player'] #root .character-mode-page,
+html[data-theme='player'] #root .uploads-dashboard-page {
+  background: var(--rq-app-bg) !important;
+  background-image: none !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-shell::before,
+html[data-theme='gm'] #root .rqk-app-shell-content::before,
+html[data-theme='player'] #root .rqk-app-shell::before,
+html[data-theme='player'] #root .rqk-app-shell-content::before {
+  background: none !important;
+}
+
+/* Quiet common work surfaces. */
+html[data-theme='gm'] #root [data-testid='gm-active-workspace'],
+html[data-theme='gm'] #root [data-testid='gm-active-workspace'] > div > section,
+html[data-theme='gm'] #root [data-testid='live-story-focus-panel'],
+html[data-theme='gm'] #root [data-testid='live-session-grid'] > aside,
+html[data-theme='gm'] #root [data-testid='live-session-grid'] > main,
+html[data-theme='player'] #root .dashboard-card,
+html[data-theme='player'] #root .dashboard-section,
+html[data-theme='player'] #root .player-dashboard-card,
+html[data-theme='player'] #root .campaign-card,
+html[data-theme='player'] #root .character-mode-card,
+html[data-theme='player'] #root .character-mode-guide,
+html[data-theme='player'] #root .uploads-dashboard-hero,
+html[data-theme='player'] #root .uploads-dashboard-card,
+html[data-theme='player'] #root .uploads-dashboard-next,
+html[data-theme='player'] #root .uploads-dashboard-dropzone {
+  background: var(--rq-app-panel) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-app-line) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='gm'] #root input,
+html[data-theme='gm'] #root textarea,
+html[data-theme='gm'] #root select,
+html[data-theme='player'] #root input,
+html[data-theme='player'] #root textarea,
+html[data-theme='player'] #root select {
+  background: var(--rq-app-input) !important;
+  color: var(--rq-app-text) !important;
+  border-color: var(--rq-app-line) !important;
+  box-shadow: none !important;
+}
+
+/* Logged-in app rail: neutral on larger screens. */
+html[data-theme='gm'] #root .rqk-app-rail,
+html[data-theme='player'] #root .rqk-app-rail {
+  background: var(--rq-app-bg-deep) !important;
+  background-image: none !important;
+  border-color: var(--rq-app-line) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-rail::after,
+html[data-theme='player'] #root .rqk-app-rail::after {
+  background: rgba(255,255,255,.08) !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-rail-brand,
+html[data-theme='player'] #root .rqk-app-rail-brand {
+  background: var(--rq-app-panel) !important;
+  border: 1px solid var(--rq-app-line) !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-rail-brand::before,
+html[data-theme='player'] #root .rqk-app-rail-brand::before,
+html[data-theme='gm'] #root .rqk-app-rail-link.is-active::before,
+html[data-theme='player'] #root .rqk-app-rail-link.is-active::before {
+  background: var(--rq-app-red) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-rail-brand-mark,
+html[data-theme='player'] #root .rqk-app-rail-brand-mark,
+html[data-theme='gm'] #root .rqk-app-rail-link.is-active svg,
+html[data-theme='player'] #root .rqk-app-rail-link.is-active svg {
+  background: var(--rq-app-red) !important;
+  color: #fff !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-rail-link::after,
+html[data-theme='player'] #root .rqk-app-rail-link::after {
+  background: none !important;
+}
+
+html[data-theme='gm'] #root .rqk-app-rail-link:hover,
+html[data-theme='gm'] #root .rqk-app-rail-link:focus-visible,
+html[data-theme='gm'] #root .rqk-app-rail-link.is-active,
+html[data-theme='player'] #root .rqk-app-rail-link:hover,
+html[data-theme='player'] #root .rqk-app-rail-link:focus-visible,
+html[data-theme='player'] #root .rqk-app-rail-link.is-active {
+  background: rgba(255,255,255,.055) !important;
+  border-color: var(--rq-app-line) !important;
+}
+
+/* Mobile More sheet: a compact utility sheet, not a neon card. */
+#root .rqk-app-mobile-more-panel {
+  background: #242424 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  box-shadow: 0 18px 54px rgba(0,0,0,.48) !important;
+}
+
+#root .rqk-app-mobile-more-panel::before { background: var(--rq-app-red, #d00000) !important; }
+#root .rqk-app-mobile-more-item,
+#root .rqk-app-mobile-more-close {
+  background: #303030 !important;
+  background-image: none !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+
+#root .rqk-app-mobile-more-item:hover,
+#root .rqk-app-mobile-more-item:focus-visible,
+#root .rqk-app-mobile-more-item.is-active {
+  background: #383838 !important;
+  border-color: rgba(208,0,0,.48) !important;
+}
+
+#root .rqk-app-mobile-more-item.is-active svg,
+#root .rqk-app-mobile-more-item--rook svg {
+  background: var(--rq-app-red, #d00000) !important;
+  color: #fff !important;
+}
+
+#root .rqk-app-mobile-more-item--rook {
+  background: rgba(208,0,0,.10) !important;
+  background-image: none !important;
+  border-color: rgba(208,0,0,.34) !important;
+}
+
+/* Install/update/offline prompt: intentionally understated and touch friendly. */
+.rqk-pwa-banner {
+  border: 1px solid rgba(255,255,255,.14) !important;
+  border-left: 0 !important;
+  border-top: 3px solid #d00000 !important;
+  border-radius: 12px !important;
+  background: rgba(37,37,37,.98) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 48px rgba(0,0,0,.42) !important;
+}
+
+.rqk-pwa-banner--offline { border-top-color: #f59e0b !important; }
+.rqk-pwa-banner--update,
+.rqk-pwa-banner--install { border-top-color: #d00000 !important; }
+
+.rqk-pwa-banner__icon,
+.rqk-pwa-banner__close {
+  border-radius: 8px !important;
+  background: #303030 !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+
+.rqk-pwa-banner__action {
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #d00000 !important;
+  color: #fff !important;
+  padding-inline: 14px !important;
+  font-size: 11px !important;
+}
+
+.rqk-pwa-banner--offline .rqk-pwa-banner__action { background: #3a3a3a !important; }
+
+/* Offline campaign controls use the same visual language. */
+.rqk-offline-launcher,
+.rqk-offline-card,
+.rqk-offline-card__header {
+  background: rgba(37,37,37,.985) !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.14) !important;
+}
+
+.rqk-offline-launcher {
+  border-left: 3px solid #d00000 !important;
+  border-radius: 9px !important;
+}
+
+.rqk-offline-launcher[data-tone='ready'] { border-left-color: #22c55e !important; }
+.rqk-offline-launcher[data-tone='warning'] { border-left-color: #f59e0b !important; }
+.rqk-offline-status--working { border-color: rgba(208,0,0,.45) !important; color: #ff8a8a !important; }
+.rqk-offline-progress i { background: #d00000 !important; }
+.rqk-offline-primary {
+  background: #d00000 !important;
+  background-image: none !important;
+  border-color: #d00000 !important;
+  border-radius: 8px !important;
+}
+
+@media (max-width: 719px) {
+  html[data-theme='gm'] #root .rqk-app-shell,
+  html[data-theme='player'] #root .rqk-app-shell {
+    display: block !important;
+    min-height: 100dvh !important;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #root .rqk-app-workspace {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Full-width mobile content with a real bottom app dock. */
+  html[data-theme='gm'] #root .rqk-app-rail,
+  html[data-theme='player'] #root .rqk-app-rail {
+    position: fixed !important;
+    inset: auto 0 0 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    gap: 4px !important;
+    padding: 5px 7px calc(5px + env(safe-area-inset-bottom, 0px)) !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(255,255,255,.14) !important;
+    background: rgba(27,27,27,.98) !important;
+    box-shadow: 0 -8px 28px rgba(0,0,0,.34) !important;
+    z-index: 90 !important;
+    backdrop-filter: blur(16px) !important;
+  }
+
+  #root .rqk-app-rail::after,
+  #root .rqk-app-rail-brand,
+  #root .rqk-app-rail-section-label {
+    display: none !important;
+  }
+
+  #root .rqk-app-rail-nav {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  #root .rqk-app-rail-bottom {
+    flex: 0 0 54px !important;
+    width: 54px !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  #root .rqk-app-rail-link--mobile-secondary,
+  #root .rqk-app-rail-support-link {
+    display: none !important;
+  }
+
+  #root .rqk-app-mobile-more-trigger {
+    display: flex !important;
+  }
+
+  #root .rqk-app-rail .rqk-app-rail-link {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 52px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    padding: 4px 2px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  #root .rqk-app-rail .rqk-app-rail-link span {
+    display: block !important;
+    max-width: 100% !important;
+    color: rgba(255,255,255,.60) !important;
+    font-family: inherit !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-align: center !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  #root .rqk-app-rail .rqk-app-rail-link svg,
+  #root .rqk-app-rail .rqk-app-rail-link.is-active svg {
+    width: 21px !important;
+    height: 21px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: rgba(255,255,255,.72) !important;
+    box-sizing: border-box !important;
+  }
+
+  #root .rqk-app-rail .rqk-app-rail-link.is-active {
+    background: rgba(208,0,0,.12) !important;
+  }
+
+  #root .rqk-app-rail .rqk-app-rail-link.is-active svg,
+  #root .rqk-app-rail .rqk-app-rail-link.is-active span {
+    color: #fff !important;
+  }
+
+  #root .rqk-app-rail .rqk-app-rail-link.is-active::before {
+    inset: auto 12px 2px !important;
+    width: auto !important;
+    height: 2px !important;
+    border-radius: 999px !important;
+    background: #d00000 !important;
+  }
+
+  #root .rqk-app-rail .rqk-app-rail-link span::after { display: none !important; }
+
+  #root .rqk-app-topbar {
+    min-height: 48px !important;
+    padding: 7px 10px !important;
+    gap: 8px !important;
+    background: rgba(32,32,32,.97) !important;
+    border-bottom-color: rgba(255,255,255,.10) !important;
+  }
+
+  #root .rqk-app-topbar-title > span { display: none !important; }
+  #root .rqk-app-topbar-title > strong { font-size: 13px !important; }
+  #root .rqk-app-search { display: none !important; }
+
+  #root .rqk-app-mobile-more-panel {
+    inset: auto 8px calc(72px + env(safe-area-inset-bottom, 0px)) 8px !important;
+    max-height: min(68dvh, 430px) !important;
+    padding: 10px !important;
+    gap: 9px !important;
+    border-radius: 14px !important;
+  }
+
+  #root .rqk-app-mobile-more-heading strong { font-size: 15px !important; font-family: inherit !important; }
+  #root .rqk-app-mobile-more-heading span { font-size: 10px !important; color: rgba(255,255,255,.58) !important; }
+  #root .rqk-app-mobile-more-grid { gap: 6px !important; }
+  #root .rqk-app-mobile-more-item { min-height: 48px !important; border-radius: 9px !important; padding: 7px !important; }
+
+  /* PWA prompts sit above the app dock instead of covering navigation. */
+  body:has(.rqk-app-shell) .rqk-pwa-banner {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  body:has(.rqk-offline-control) .rqk-pwa-banner {
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .rqk-pwa-banner {
+    width: calc(100vw - 16px) !important;
+    min-height: 58px !important;
+    grid-template-columns: 32px minmax(0,1fr) auto auto !important;
+    gap: 7px !important;
+    padding: 8px !important;
+    border-radius: 10px !important;
+  }
+
+  .rqk-pwa-banner__copy strong { font-size: 11px !important; }
+  .rqk-pwa-banner__copy small { font-size: 8px !important; line-height: 1.25 !important; }
+  .rqk-pwa-banner__icon { width: 30px !important; height: 30px !important; }
+  .rqk-pwa-banner__close { width: 32px !important; min-height: 36px !important; }
+  .rqk-pwa-banner__action { min-height: 36px !important; padding-inline: 10px !important; }
+
+  .rqk-offline-control {
+    left: auto !important;
+    right: 8px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    justify-items: end !important;
+  }
+
+  .rqk-offline-card {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-height: min(66dvh, 560px) !important;
+    border-radius: 12px !important;
+  }
+
+  .rqk-offline-card__body { padding: 9px !important; gap: 7px !important; }
+  .rqk-offline-metrics { grid-template-columns: repeat(4, minmax(0,1fr)) !important; gap: 4px !important; }
+  .rqk-offline-metrics span { min-height: 46px !important; padding: 4px !important; }
+  .rqk-offline-metrics strong { font-size: 13px !important; }
+  .rqk-offline-metrics small { font-size: 7px !important; }
+}
+
+@media (max-width: 390px) {
+  .rqk-pwa-banner {
+    grid-template-columns: 30px minmax(0,1fr) auto !important;
+  }
+  .rqk-pwa-banner__copy small { display: none !important; }
+  .rqk-pwa-banner__close { display: none !important; }
+  #root .rqk-app-rail .rqk-app-rail-link span { font-size: 7.5px !important; }
+  #root .rqk-app-mobile-more-grid { grid-template-columns: 1fr !important; }
+  .rqk-offline-metrics { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-app-rail-link,
+  #root .rqk-app-mobile-more-item,
+  .rqk-pwa-banner,
+  .rqk-offline-card { transition: none !important; }
+}

@@ -8,7 +8,7 @@ const PACK_STORE = 'campaign-packs';
 const CACHEABLE_PREFIXES = [
   '/campaigns',
   '/characters',
-  '/player/',
+  '/player',
   '/srd',
   '/rule-systems',
   '/progression',
@@ -47,8 +47,6 @@ export function getOfflineCacheScope() {
     if (username) return `user:${username.toLowerCase()}`;
     if (!token) return 'anonymous';
 
-    // Final fallback for legacy/non-JWT auth. The token itself is never written
-    // into IndexedDB, and normal Rookie JWTs should use their stable `sub` above.
     let hash = 2166136261;
     for (let i = 0; i < token.length; i += 1) {
       hash ^= token.charCodeAt(i);
@@ -71,11 +69,17 @@ function normaliseUrl(config = {}) {
   }
 }
 
+function isCampaignMembersRead(path) {
+  return /^\/campaign-invites\/[^/]+\/members$/.test(path);
+}
+
 export function isCacheableOfflineGet(config = {}) {
   if (String(config.method || 'get').toLowerCase() !== 'get') return false;
   const path = normaliseUrl(config);
   if (!path || path === '/auth/me' || path.startsWith('/auth/') || path.startsWith('/admin') || path.startsWith('/rook')) return false;
-  return CACHEABLE_EXACT.has(path) || CACHEABLE_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
+  return CACHEABLE_EXACT.has(path)
+    || isCampaignMembersRead(path)
+    || CACHEABLE_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 function stableParams(params) {
@@ -276,6 +280,38 @@ export async function removeOfflineCampaignPack(campaignId, audience = 'gm') {
     const packStore = transaction.objectStore(PACK_STORE);
     packStore.delete(campaignPackKey(campaignId, targetAudience));
     if (targetAudience === 'gm') packStore.delete(legacyCampaignPackKey(campaignId));
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+  db.close();
+}
+
+export async function clearCurrentOfflineAccountData() {
+  const scope = getOfflineCacheScope();
+  if (!scope || scope === 'anonymous' || scope === 'unknown') return;
+  const db = await openDb().catch(() => null);
+  if (!db) return;
+
+  await new Promise(resolve => {
+    const transaction = db.transaction([RESPONSE_STORE, PACK_STORE], 'readwrite');
+    const responseStore = transaction.objectStore(RESPONSE_STORE);
+    const packStore = transaction.objectStore(PACK_STORE);
+
+    const responseRequest = responseStore.getAll();
+    responseRequest.onsuccess = () => {
+      (responseRequest.result || []).forEach(record => {
+        if (record?.scope === scope) responseStore.delete(record.key);
+      });
+    };
+
+    const packRequest = packStore.getAll();
+    packRequest.onsuccess = () => {
+      (packRequest.result || []).forEach(record => {
+        if (record?.scope === scope) packStore.delete(record.key);
+      });
+    };
+
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
     transaction.onabort = () => resolve();

@@ -1,0 +1,364 @@
+/*
+ * Rookie Quest Keeper — responsive presentation system
+ *
+ * One product, three deliberate presentation modes:
+ *   desktop  > 1024px  : dense workspace
+ *   tablet   681-1024px: touch-first hybrid
+ *   mobile   <= 680px  : single-task app layout
+ *
+ * Keep visual theme decisions here boring and predictable. Feature files may
+ * own specialised layouts, but they should inherit these sizing/density tokens.
+ */
+
+:root {
+  --rqk-page-max: 1480px;
+  --rqk-page-pad-x: 24px;
+  --rqk-page-pad-y: 20px;
+  --rqk-space-1: 4px;
+  --rqk-space-2: 8px;
+  --rqk-space-3: 12px;
+  --rqk-space-4: 16px;
+  --rqk-space-5: 24px;
+  --rqk-control-height: 42px;
+  --rqk-touch-target: 44px;
+  --rqk-text-xs: 12px;
+  --rqk-text-sm: 13px;
+  --rqk-text-body: 15px;
+  --rqk-text-card: 16px;
+  --rqk-text-h3: 18px;
+  --rqk-text-h2: 23px;
+  --rqk-text-h1: 31px;
+  --rqk-line-body: 1.48;
+  --rqk-panel-radius: 8px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body,
+button,
+select,
+textarea,
+input {
+  font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  font-size: var(--rqk-text-body);
+  line-height: var(--rqk-line-body);
+}
+
+/* Shared signed-in workspace rhythm. */
+.rqk-app-shell-content {
+  width: min(100%, var(--rqk-page-max));
+  margin-inline: auto;
+  padding: var(--rqk-page-pad-y) var(--rqk-page-pad-x);
+  box-sizing: border-box;
+}
+
+.rqk-app-shell-content :where(h1, .page-title) {
+  font-size: var(--rqk-text-h1);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+.rqk-app-shell-content :where(h2, .section-title) {
+  font-size: var(--rqk-text-h2);
+  line-height: 1.2;
+}
+
+.rqk-app-shell-content :where(h3, .card-title) {
+  font-size: var(--rqk-text-h3);
+  line-height: 1.25;
+}
+
+.rqk-app-shell-content :where(p, li, label) {
+  line-height: var(--rqk-line-body);
+}
+
+.rqk-app-shell-content :where(.muted, .helper-text, small) {
+  font-size: var(--rqk-text-xs);
+}
+
+/* Make dense desktop workspaces compact without shrinking interaction targets. */
+.rqk-app-shell :where(button, [role='button'], a.rqk-app-rail-link) {
+  min-height: var(--rqk-control-height);
+}
+
+/* Character sheet compatibility while historical sunset repair files are
+   progressively retired. This final layer owns the visible product language. */
+html[data-theme='player'] .character-page-v2.clean-sheet-page {
+  --cs-bg: var(--rq-app-bg, #202020) !important;
+  --cs-panel: var(--rq-app-panel, #292929) !important;
+  --cs-card: var(--rq-app-card, #323232) !important;
+  --cs-input: var(--rq-app-input, #1d1d1d) !important;
+  --cs-text: #fff !important;
+  --cs-text-soft: rgba(255,255,255,.78) !important;
+  --cs-muted: rgba(255,255,255,.60) !important;
+  --cs-accent: var(--rq-app-red, #d00000) !important;
+  --cs-accent-soft: rgba(208,0,0,.14) !important;
+  --cs-border: rgba(255,255,255,.12) !important;
+  --cs-border-strong: rgba(255,255,255,.20) !important;
+  --cs-sunset: var(--rq-app-red, #d00000) !important;
+  --cs-sunset-line: var(--rq-app-red, #d00000) !important;
+  --sheet-bg: var(--rq-app-bg, #202020) !important;
+  --sheet-rail: var(--rq-app-bg-deep, #181818) !important;
+  --sheet-panel: var(--rq-app-panel, #292929) !important;
+  --sheet-card: var(--rq-app-card, #323232) !important;
+  --sheet-input: var(--rq-app-input, #1d1d1d) !important;
+  --sheet-sunset: var(--rq-app-red, #d00000) !important;
+  --sheet-danger: #b91c1c !important;
+  background: var(--rq-app-bg, #202020) !important;
+  background-image: none !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(
+  .clean-sheet-header,
+  .clean-sheet-compact-status,
+  .clean-sheet-vitals,
+  .clean-sheet-mobile-tools,
+  .clean-sheet-panel,
+  .clean-sheet-empty,
+  .clean-sheet-play-tools,
+  .clean-sheet-recovery-panel,
+  .clean-sheet-condition-panel,
+  .clean-sheet-roll-history-panel,
+  .clean-sheet-turn-strip,
+  .clean-sheet-identity,
+  .clean-sheet-core-stat-card,
+  .clean-sheet-passive-card,
+  .clean-sheet-compact-ability,
+  .clean-sheet-save-card,
+  .clean-sheet-skill-card,
+  .clean-sheet-spell-card,
+  .clean-sheet-slot-card,
+  .clean-sheet-feature-card,
+  .clean-sheet-item-card,
+  .clean-sheet-note-field
+) {
+  background: var(--rq-app-panel, #292929) !important;
+  background-image: none !important;
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(
+  .clean-sheet-core-stat-card,
+  .clean-sheet-passive-card,
+  .clean-sheet-compact-ability,
+  .clean-sheet-save-card,
+  .clean-sheet-skill-card,
+  .clean-sheet-spell-card,
+  .clean-sheet-slot-card,
+  .clean-sheet-feature-card,
+  .clean-sheet-item-card,
+  .clean-sheet-note-field
+) {
+  background: var(--rq-app-card, #323232) !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(
+  button.active,
+  .active > button,
+  .clean-sheet-level,
+  .clean-sheet-inspiration.active,
+  .clean-sheet-slot-pips i.filled,
+  .clean-sheet-death-track button.marked
+) {
+  background: var(--rq-app-red, #d00000) !important;
+  background-image: none !important;
+  border-color: var(--rq-app-red, #d00000) !important;
+  color: #fff !important;
+}
+
+html[data-theme='player'] .character-page-v2 :where(input, select, textarea) {
+  background: var(--rq-app-input, #1d1d1d) !important;
+  background-image: none !important;
+  border-color: rgba(255,255,255,.14) !important;
+  color: #fff !important;
+}
+
+/* TABLET — enough room for split views, but sized for fingers rather than mouse. */
+@media (min-width: 681px) and (max-width: 1024px) {
+  :root {
+    --rqk-page-pad-x: 18px;
+    --rqk-page-pad-y: 16px;
+    --rqk-space-4: 14px;
+    --rqk-space-5: 20px;
+    --rqk-control-height: 44px;
+    --rqk-text-xs: 11.5px;
+    --rqk-text-sm: 12.5px;
+    --rqk-text-body: 14.5px;
+    --rqk-text-card: 15px;
+    --rqk-text-h3: 17px;
+    --rqk-text-h2: 21px;
+    --rqk-text-h1: 28px;
+  }
+
+  .rqk-app-shell-content :where(.grid, [class*='grid']) {
+    column-gap: 12px;
+  }
+}
+
+/* MOBILE / NATIVE PHONE — less chrome, shorter headings, full-width content. */
+@media (max-width: 680px) {
+  :root {
+    --rqk-page-pad-x: 10px;
+    --rqk-page-pad-y: 10px;
+    --rqk-space-2: 6px;
+    --rqk-space-3: 9px;
+    --rqk-space-4: 12px;
+    --rqk-space-5: 16px;
+    --rqk-control-height: 44px;
+    --rqk-text-xs: 10.5px;
+    --rqk-text-sm: 12px;
+    --rqk-text-body: 14px;
+    --rqk-text-card: 14.5px;
+    --rqk-text-h3: 16px;
+    --rqk-text-h2: 19px;
+    --rqk-text-h1: 24px;
+    --rqk-line-body: 1.42;
+    --rqk-panel-radius: 6px;
+  }
+
+  body {
+    font-size: var(--rqk-text-body);
+    overflow-x: hidden;
+  }
+
+  .rqk-app-workspace,
+  .rqk-app-shell-content {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .rqk-app-shell-content {
+    padding: var(--rqk-page-pad-y) var(--rqk-page-pad-x)
+      calc(82px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* The old themes routinely pushed phone titles toward 40-50px. */
+  .rqk-app-shell-content :where(h1, .page-title),
+  .rqk-mobile-page :where(h1, .page-title),
+  .mobile-player-campaign :where(h1, .page-title),
+  .character-page-v2 .clean-sheet-identity h1 {
+    font-size: var(--rqk-text-h1) !important;
+    line-height: 1.12 !important;
+    margin-block: 0 8px;
+  }
+
+  .rqk-app-shell-content :where(h2, .section-title),
+  .rqk-mobile-page :where(h2, .section-title),
+  .mobile-player-campaign :where(h2, .section-title),
+  .character-page-v2 :where(.clean-sheet-panel h2, .clean-sheet-panel-heading h2, .clean-sheet-section-heading-row h2) {
+    font-size: var(--rqk-text-h2) !important;
+    line-height: 1.2 !important;
+    margin-block: 0 7px;
+  }
+
+  .rqk-app-shell-content :where(h3, .card-title),
+  .rqk-mobile-page :where(h3, .card-title),
+  .mobile-player-campaign :where(h3, .card-title) {
+    font-size: var(--rqk-text-h3) !important;
+    line-height: 1.24 !important;
+  }
+
+  .rqk-app-shell-content :where(p, li, label, td, th) {
+    font-size: inherit;
+  }
+
+  .rqk-app-shell-content :where(small, .muted, .helper-text, .meta, [class*='meta']) {
+    font-size: var(--rqk-text-xs);
+    line-height: 1.35;
+  }
+
+  .character-page-v2 .clean-sheet-compact-stat--hp strong {
+    font-size: 28px !important;
+  }
+
+  .character-page-v2 :where(.clean-sheet-kicker, .clean-sheet-stat-label, small, .clean-sheet-muted) {
+    font-size: 10.5px !important;
+    line-height: 1.3 !important;
+  }
+
+  .character-page-v2 :where(.clean-sheet-header, .clean-sheet-panel, .clean-sheet-compact-status) {
+    padding: 10px !important;
+    border-radius: var(--rqk-panel-radius) !important;
+  }
+
+  /* Cards should organise information, not create nested boxes-within-boxes. */
+  .rqk-app-shell-content :where(.card, [class*='-card'], [class*='__card']) {
+    border-radius: var(--rqk-panel-radius);
+  }
+
+  /* Keep touch targets generous even though labels and cards are tighter. */
+  .rqk-app-shell :where(button, [role='button'], a, select),
+  .rqk-mobile-page :where(button, [role='button'], a, select),
+  .character-page-v2 :where(button, [role='button'], select) {
+    min-height: var(--rqk-touch-target);
+  }
+
+  /* Inputs stay 16px on phones to prevent Safari focus-zoom. */
+  .rqk-app-shell :where(input, textarea, select),
+  .rqk-mobile-page :where(input, textarea, select),
+  .character-page-v2 :where(input, textarea, select) {
+    font-size: 16px !important;
+  }
+
+  /* Horizontal toolbars should scroll rather than squeeze labels into crumbs. */
+  .rqk-app-shell-content :where(.tabs, [role='tablist'], [class*='-tabs'], [class*='__tabs']) {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .rqk-app-shell-content :where(.tabs, [role='tablist'], [class*='-tabs'], [class*='__tabs'])::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile navigation is an app dock, not a compressed desktop sidebar. */
+  .rqk-app-rail-link > span,
+  .rqk-app-mobile-more-item > span {
+    font-size: 10.5px;
+    line-height: 1.1;
+  }
+
+  .rqk-app-mobile-more-heading strong {
+    font-size: 15px;
+  }
+
+  .rqk-app-mobile-more-heading span {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+}
+
+/* Small phones: preserve usability by tightening whitespace, not tap targets. */
+@media (max-width: 390px) {
+  :root {
+    --rqk-page-pad-x: 8px;
+    --rqk-text-h1: 22px;
+    --rqk-text-h2: 18px;
+    --rqk-text-h3: 15px;
+  }
+
+  .rqk-app-rail-link > span {
+    font-size: 9.5px;
+  }
+}
+
+/* Respect platform accessibility preferences across web/PWA/native wrappers. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

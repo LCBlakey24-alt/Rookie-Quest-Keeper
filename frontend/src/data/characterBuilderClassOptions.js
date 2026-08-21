@@ -51,7 +51,9 @@ export function getCharacterBuilderClassOptions(className = '', { edition = '201
     hasPackage: packageOptions.hasPackage,
     builderOptions: packageOptions.builderOptions || {},
     subclassOptions,
-    subclassNames: subclassOptions.map(option => option.value),
+    // These are human-facing convenience names. Keep machine/save values on
+    // subclassOptions[].value and return the display labels here.
+    subclassNames: subclassOptions.map(option => option.label),
     subclassLabels: subclassOptions.map(option => option.label),
     usesPackageSubclassOptions: packageSubclasses.length > 0,
   };

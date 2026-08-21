@@ -37,12 +37,82 @@ const ENCOUNTERS = [
 ];
 
 const normalise = value => String(value || '').trim().toLowerCase();
+const unique = values => Array.from(new Set((values || []).filter(Boolean).map(String)));
+
+function asList(response, label) {
+  if (!Array.isArray(response?.data)) {
+    throw new Error(`${label} could not be read safely. Nothing was imported.`);
+  }
+  return response.data;
+}
 
 async function ensureByName(existing, wanted, create) {
   const found = existing.find(item => normalise(item.name || item.title) === normalise(wanted.name || wanted.title));
-  if (found) return found;
+  if (found) return { item: found, created: false };
   const response = await create(wanted);
-  return response.data;
+  if (!response?.data) throw new Error(`Could not create ${wanted.name || wanted.title}.`);
+  existing.push(response.data);
+  return { item: response.data, created: true };
+}
+
+function canonicalObjectives(encounterByName) {
+  return [
+    { title: 'Reach Gragon and make contact with Jordan Crow', status: 'completed', optional: false },
+    { title: 'Learn about the missing children and the three prior attacks', status: 'completed', optional: false },
+    { title: 'Choose a defence point', status: 'completed', optional: false },
+    { title: 'Defend the Riverside through three waves', status: 'completed', optional: false, linked_encounter_id: encounterByName['Riverside Defence']?.id || '' },
+    { title: 'Investigate the source of the attacks and find the cave', status: 'upcoming', optional: false },
+    { title: 'Reach the ritual chamber', status: 'upcoming', optional: false },
+    { title: 'Destroy both Vine Hearts in the same round', status: 'upcoming', optional: false, linked_encounter_id: encounterByName['Brambleheart Ritual']?.id || '' },
+    { title: 'Rescue the children from the cocoons', status: 'upcoming', optional: false },
+    { title: 'Defeat or otherwise resolve Edris Brambleheart', status: 'upcoming', optional: false, linked_encounter_id: encounterByName['Brambleheart Ritual']?.id || '' },
+    { title: 'Return and secure Jordan Crow’s recruitment', status: 'upcoming', optional: false },
+  ];
+}
+
+export function mergeJordanQuest(existingQuest, ensuredNpcs, ensuredLocations, ensuredEncounters) {
+  const encounterByName = Object.fromEntries(ensuredEncounters.map(item => [item.name, item]));
+  const wantedObjectives = canonicalObjectives(encounterByName);
+
+  if (!existingQuest) {
+    return {
+      title: 'Recruit Jordan Crow',
+      summary: 'Resolve the attacks and missing-child crisis around Gragon, uncover the ritual below, and earn Jordan Crow’s trust for Balderin.',
+      hook: 'Recognition exchange: “The crown may fall, but Balderin must stand.” / “Then the people shall be its foundation.”',
+      status: 'active',
+      gm_notes: 'The party chose the Riverside defence and succeeded there in the known campaign run. Old Gate and Broken Wall remain useful alternate-route prep. The cave ritual requires both Vine Hearts to be destroyed in the same round.',
+      objectives: wantedObjectives,
+      linked_npc_ids: unique(ensuredNpcs.map(item => item.id)),
+      linked_location_ids: unique(ensuredLocations.map(item => item.id)),
+      linked_encounter_ids: unique(ensuredEncounters.map(item => item.id)),
+      linked_map_ids: [], linked_handout_ids: [], linked_reward_ids: [], is_pinned: true,
+    };
+  }
+
+  // Re-running the importer is a repair operation, not a reset. Existing GM
+  // wording/progress wins; we only add missing objective shells and links.
+  const existingObjectives = Array.isArray(existingQuest.objectives) ? existingQuest.objectives : [];
+  const byTitle = new Map(existingObjectives.map(item => [normalise(item.title), item]));
+  const mergedObjectives = [...existingObjectives];
+
+  wantedObjectives.forEach(wanted => {
+    const current = byTitle.get(normalise(wanted.title));
+    if (!current) {
+      mergedObjectives.push(wanted);
+      return;
+    }
+    if (!current.linked_encounter_id && wanted.linked_encounter_id) {
+      const index = mergedObjectives.indexOf(current);
+      mergedObjectives[index] = { ...current, linked_encounter_id: wanted.linked_encounter_id };
+    }
+  });
+
+  return {
+    objectives: mergedObjectives,
+    linked_npc_ids: unique([...(existingQuest.linked_npc_ids || []), ...ensuredNpcs.map(item => item.id)]),
+    linked_location_ids: unique([...(existingQuest.linked_location_ids || []), ...ensuredLocations.map(item => item.id)]),
+    linked_encounter_ids: unique([...(existingQuest.linked_encounter_ids || []), ...ensuredEncounters.map(item => item.id)]),
+  };
 }
 
 export default function TiaKartaJordanQuestImportV2({ campaignId, onImported }) {
@@ -53,75 +123,60 @@ export default function TiaKartaJordanQuestImportV2({ campaignId, onImported }) 
     if (!campaignId || importing) return;
     setImporting(true);
     try {
+      // These reads are part of the duplicate-protection contract. If any of
+      // them fail, abort rather than pretending the campaign is empty.
       const [questRes, npcRes, locationRes, encounterRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}/quests`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/locations`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
+        apiClient.get(`/campaigns/${campaignId}/quests`),
+        apiClient.get(`/campaigns/${campaignId}/npcs`),
+        apiClient.get(`/campaigns/${campaignId}/locations`),
+        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`),
       ]);
 
-      const existingQuests = Array.isArray(questRes.data) ? questRes.data : [];
+      const existingQuests = asList(questRes, 'Quests');
+      const npcs = [...asList(npcRes, 'NPCs')];
+      const locations = [...asList(locationRes, 'Locations')];
+      const encounters = [...asList(encounterRes, 'Encounters')];
       const existingQuest = existingQuests.find(item => normalise(item.title) === 'recruit jordan crow');
-      if (existingQuest) {
-        setDone(true);
-        toast.info('Recruit Jordan Crow is already in this campaign');
-        onImported?.();
-        return;
-      }
-
-      const npcs = [...(Array.isArray(npcRes.data) ? npcRes.data : [])];
-      const locations = [...(Array.isArray(locationRes.data) ? locationRes.data : [])];
-      const encounters = [...(Array.isArray(encounterRes.data) ? encounterRes.data : [])];
+      let createdCount = 0;
 
       const ensuredNpcs = [];
       for (const wanted of NPCS) {
-        const item = await ensureByName(npcs, wanted, payload => apiClient.post(`/campaigns/${campaignId}/npcs`, payload));
-        npcs.push(item); ensuredNpcs.push(item);
+        const result = await ensureByName(npcs, wanted, payload => apiClient.post(`/campaigns/${campaignId}/npcs`, payload));
+        ensuredNpcs.push(result.item);
+        if (result.created) createdCount += 1;
       }
 
       const ensuredLocations = [];
       for (const wanted of LOCATIONS) {
-        const item = await ensureByName(locations, wanted, payload => apiClient.post(`/campaigns/${campaignId}/locations`, payload));
-        locations.push(item); ensuredLocations.push(item);
+        const result = await ensureByName(locations, wanted, payload => apiClient.post(`/campaigns/${campaignId}/locations`, payload));
+        ensuredLocations.push(result.item);
+        if (result.created) createdCount += 1;
       }
 
       const ensuredEncounters = [];
       for (const wanted of ENCOUNTERS) {
-        const item = await ensureByName(encounters, wanted, payload => apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, payload));
-        encounters.push(item); ensuredEncounters.push(item);
+        const result = await ensureByName(encounters, wanted, payload => apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, payload));
+        ensuredEncounters.push(result.item);
+        if (result.created) createdCount += 1;
       }
 
-      const encounterByName = Object.fromEntries(ensuredEncounters.map(item => [item.name, item]));
-      const questPayload = {
-        title: 'Recruit Jordan Crow',
-        summary: 'Resolve the attacks and missing-child crisis around Gragon, uncover the ritual below, and earn Jordan Crow’s trust for Balderin.',
-        hook: 'Recognition exchange: “The crown may fall, but Balderin must stand.” / “Then the people shall be its foundation.”',
-        status: 'active',
-        gm_notes: 'The party chose the Riverside defence and succeeded there in the known campaign run. Old Gate and Broken Wall remain useful alternate-route prep. The cave ritual requires both Vine Hearts to be destroyed in the same round.',
-        objectives: [
-          { title: 'Reach Gragon and make contact with Jordan Crow', status: 'completed', optional: false },
-          { title: 'Learn about the missing children and the three prior attacks', status: 'completed', optional: false },
-          { title: 'Choose a defence point', status: 'completed', optional: false },
-          { title: 'Defend the Riverside through three waves', status: 'completed', optional: false, linked_encounter_id: encounterByName['Riverside Defence']?.id || '' },
-          { title: 'Investigate the source of the attacks and find the cave', status: 'upcoming', optional: false },
-          { title: 'Reach the ritual chamber', status: 'upcoming', optional: false },
-          { title: 'Destroy both Vine Hearts in the same round', status: 'upcoming', optional: false, linked_encounter_id: encounterByName['Brambleheart Ritual']?.id || '' },
-          { title: 'Rescue the children from the cocoons', status: 'upcoming', optional: false },
-          { title: 'Defeat or otherwise resolve Edris Brambleheart', status: 'upcoming', optional: false, linked_encounter_id: encounterByName['Brambleheart Ritual']?.id || '' },
-          { title: 'Return and secure Jordan Crow’s recruitment', status: 'upcoming', optional: false },
-        ],
-        linked_npc_ids: ensuredNpcs.map(item => item.id).filter(Boolean),
-        linked_location_ids: ensuredLocations.map(item => item.id).filter(Boolean),
-        linked_encounter_ids: ensuredEncounters.map(item => item.id).filter(Boolean),
-        linked_map_ids: [], linked_handout_ids: [], linked_reward_ids: [], is_pinned: true,
-      };
+      const questPayload = mergeJordanQuest(existingQuest, ensuredNpcs, ensuredLocations, ensuredEncounters);
+      if (existingQuest?.id) {
+        await apiClient.put(`/campaigns/${campaignId}/quests/${existingQuest.id}`, questPayload);
+      } else {
+        await apiClient.post(`/campaigns/${campaignId}/quests`, questPayload);
+        createdCount += 1;
+      }
 
-      await apiClient.post(`/campaigns/${campaignId}/quests`, questPayload);
       setDone(true);
-      toast.success('Jordan Crow quest loaded', { description: 'Known progress is pre-ticked; unknown combat stats were left blank for you.' });
+      toast.success(existingQuest ? 'Jordan Crow quest checked & repaired' : 'Jordan Crow quest loaded', {
+        description: createdCount
+          ? `${createdCount} missing campaign record${createdCount === 1 ? '' : 's'} added. Existing GM edits and quest progress were preserved.`
+          : 'Everything was already present; no duplicates were created.',
+      });
       onImported?.();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not load the Jordan Crow quest pack');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || error?.message || 'Could not load the Jordan Crow quest pack');
     } finally {
       setImporting(false);
     }
@@ -132,11 +187,11 @@ export default function TiaKartaJordanQuestImportV2({ campaignId, onImported }) 
       <div style={{ minWidth: 0 }}>
         <p style={eyebrowStyle}>Tia-Karta · Balderin</p>
         <strong style={titleStyle}><Swords size={16} /> Recruit Jordan Crow</strong>
-        <p style={textStyle}>Load the known quest structure, NPCs, locations and encounter shells into this campaign. Existing matching names are reused.</p>
+        <p style={textStyle}>Load or repair the known quest, NPCs, locations and encounter shells. Existing GM edits and progress are preserved.</p>
       </div>
       <button type="button" onClick={importQuest} disabled={importing || done} style={buttonStyle(done)}>
         {done ? <CheckCircle2 size={15} /> : <Download size={15} />}
-        {done ? 'Loaded' : importing ? 'Loading…' : 'Load Quest'}
+        {done ? 'Checked' : importing ? 'Checking…' : 'Load / Repair'}
       </button>
     </section>
   );

@@ -21,8 +21,9 @@ function dexMod(source = {}) {
   return Math.floor((numberOr(dex, 10) - 10) / 2);
 }
 
-function playerToCombatant(player) {
+export function playerToCombatant(player) {
   const maxHp = numberOr(player.max_hp ?? player.maxHitPoints ?? player.max_hit_points ?? player.hp, 10);
+  const tempHp = Math.max(0, numberOr(player.temporary_hit_points ?? player.temp_hp ?? player.tempHp, 0));
   return {
     id: player.id || `player-${player.name || player.character_name}`,
     character_id: player.character_id || null,
@@ -31,10 +32,17 @@ function playerToCombatant(player) {
     type: 'player',
     hp: numberOr(player.hp ?? player.current_hp ?? player.current_hit_points, maxHp),
     maxHp,
+    tempHp,
     ac: numberOr(player.ac ?? player.armor_class, 10),
     initiativeMod: numberOr(player.initiativeMod, dexMod(player)),
     conditions: safeArray(player.conditions),
+    deathSaves: {
+      successes: Math.max(0, Math.min(3, numberOr(player.death_saves_successes ?? player.deathSaves?.successes, 0))),
+      failures: Math.max(0, Math.min(3, numberOr(player.death_saves_failures ?? player.deathSaves?.failures, 0))),
+    },
+    concentrating_on: String(player.concentrating_on ?? player.concentration ?? ''),
     source: player.source || 'legacy',
+    rqk_pending_combat_sync: Boolean(player.rqk_pending_combat_sync),
     tokenColor: '#4a7dff', tokenSize: 40,
   };
 }
@@ -212,7 +220,11 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
       <ParticipantSection title="Party" count={players.length}>
         {players.length === 0 && <span style={mutedStyle}>No linked player characters yet.</span>}
-        {players.map(player => <ToggleRow key={player.id} checked={includedPlayerIds.includes(player.id)} title={player.name || player.character_name || 'Player'} meta={`${player.character_class || 'Player'}${player.level ? ` · L${player.level}` : ''} · HP ${player.hp ?? '?'} / ${player.max_hp ?? '?'} · AC ${player.ac ?? '?'}`} onClick={() => toggle(player.id, includedPlayerIds, setIncludedPlayerIds)} />)}
+        {players.map(player => {
+          const temp = numberOr(player.temporary_hit_points ?? player.temp_hp, 0);
+          const pending = player.rqk_pending_combat_sync ? ' · Offline queued' : '';
+          return <ToggleRow key={player.id} checked={includedPlayerIds.includes(player.id)} title={player.name || player.character_name || 'Player'} meta={`${player.character_class || 'Player'}${player.level ? ` · L${player.level}` : ''} · HP ${player.hp ?? '?'} / ${player.max_hp ?? '?'}${temp ? ` +${temp} temp` : ''} · AC ${player.ac ?? '?'}${pending}`} onClick={() => toggle(player.id, includedPlayerIds, setIncludedPlayerIds)} />;
+        })}
       </ParticipantSection>
 
       {companionNpcs.length > 0 && (

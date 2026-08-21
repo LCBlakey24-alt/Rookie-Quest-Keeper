@@ -127,9 +127,16 @@ export function getWarlockChoicesForLevel(level = 1, edition = '2014') {
   return getWarlockFeaturesForLevel(level, edition).filter(feature => feature.type === 'choice');
 }
 
+function nextProgressionLevel(features, currentLevel) {
+  const futureLevels = features
+    .map(feature => Number(feature.level || 0))
+    .filter(featureLevel => featureLevel > currentLevel);
+  return futureLevels.length ? Math.min(...futureLevels) : 0;
+}
+
 export function getNextWarlockFeatures(level = 1, edition = '2014') {
   const warlockLevel = Math.max(1, Number(level || 1));
-  const nextLevel = getWarlockProgression(edition).find(feature => feature.level > warlockLevel)?.level;
+  const nextLevel = nextProgressionLevel(getWarlockProgression(edition), warlockLevel);
   return nextLevel ? getWarlockFeaturesForLevel(nextLevel, edition) : [];
 }
 

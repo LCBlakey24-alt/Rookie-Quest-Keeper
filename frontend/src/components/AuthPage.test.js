@@ -89,9 +89,10 @@ describe('AuthPage', () => {
     renderAuthPage('/auth?token=abc123');
 
     expect(screen.getByRole('heading', { name: /choose a new password/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/new password/i)).toHaveAttribute('minLength', '8');
-    expect(screen.getByLabelText(/new password/i)).toHaveAttribute('enterKeyHint', 'done');
-    expect(screen.getByText(/set new password/i)).toBeInTheDocument();
+    const passwordInput = screen.getByLabelText(/new password/i, { selector: 'input' });
+    expect(passwordInput).toHaveAttribute('minLength', '8');
+    expect(passwordInput).toHaveAttribute('enterKeyHint', 'done');
+    expect(screen.getByText(/^set new password$/i)).toBeInTheDocument();
   });
 
   test('shows validation feedback before login submission', () => {

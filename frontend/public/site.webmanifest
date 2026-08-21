@@ -7,21 +7,21 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#070713",
-  "theme_color": "#13081f",
+  "background_color": "#202020",
+  "theme_color": "#202020",
   "categories": ["games", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/brand/rqk-logo-mini.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/brand/rqk-logo-mini.png",
+      "sizes": "1000x1000",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/brand/rqk-logo-mini.png",
       "sizes": "1000x1000",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable"
     }
   ]
 }

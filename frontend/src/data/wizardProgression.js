@@ -82,9 +82,16 @@ export function getWizardChoicesForLevel(level = 1, edition = '2014') {
   return getWizardFeaturesForLevel(level, edition).filter(feature => feature.type === 'choice');
 }
 
+function nextProgressionLevel(features, currentLevel) {
+  const futureLevels = features
+    .map(feature => Number(feature.level || 0))
+    .filter(featureLevel => featureLevel > currentLevel);
+  return futureLevels.length ? Math.min(...futureLevels) : 0;
+}
+
 export function getNextWizardFeatures(level = 1, edition = '2014') {
   const wizardLevel = Math.max(1, Number(level || 1));
-  const nextLevel = getWizardProgression(edition).find(feature => feature.level > wizardLevel)?.level;
+  const nextLevel = nextProgressionLevel(getWizardProgression(edition), wizardLevel);
   return nextLevel ? getWizardFeaturesForLevel(nextLevel, edition) : [];
 }
 

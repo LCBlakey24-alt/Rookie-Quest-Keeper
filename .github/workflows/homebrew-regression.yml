@@ -57,7 +57,7 @@ jobs:
           cache-dependency-path: frontend/yarn.lock
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --non-interactive
 
       - name: Run focused homebrew tests
         run: yarn test:homebrew

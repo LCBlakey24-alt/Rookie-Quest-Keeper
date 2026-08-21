@@ -1,8 +1,10 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
-// Style layering: base app/design styles first, route-specific legacy theme bridges next,
-// board/layout safety layers after that, then the current Sunset Gradient guardrails last.
+// Style layering: base design/feature styles first, current unified Rookie theme
+// and layout safety layers after that. Historical colour skins are intentionally
+// no longer loaded globally; responsive presentation is owned by the current
+// mobile/tablet/desktop layers instead.
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
@@ -22,9 +24,6 @@ import '@/styles/cleanInventoryTab.css';
 import '@/styles/cleanSpellsTab.css';
 import '@/styles/cleanNotesTab.css';
 import '@/styles/levelUpCleanStyle.css';
-import '@/styles/siteVelvetTheme.css';
-import '@/styles/blueEclipseTheme.css';
-import '@/styles/gmBlueEclipseTheme.css';
 import '@/styles/landingSafeFix.css';
 import '@/styles/simpleTheme.css';
 import '@/styles/landingFinal.css';
@@ -35,22 +34,10 @@ import '@/styles/rqkBoardSystem.css';
 import '@/styles/appBoardOverrides.css';
 import '@/styles/appUtilityPagesPolish.css';
 import '@/styles/mobileAppBoxGrid.css';
-import '@/styles/twilightKeeperTheme.css';
-import '@/styles/twilightKeeperPolish.css';
-import '@/styles/twilightKeeperScreens.css';
-import '@/styles/twilightKeeperAppPages.css';
 import '@/styles/homeHubFinalPolish.css';
 import '@/styles/homeHubSurfacePolish.css';
-import '@/styles/twilightKeeperCharacterSheet.css';
-import '@/styles/twilightKeeperCreator.css';
-import '@/styles/sunsetRebrandFixes.css';
-import '@/styles/twilightKeeperBoxLanguage.css';
-import '@/styles/sunsetMobileTightening.css';
 import '@/styles/utilityPagesFinalFixes.css';
-import '@/styles/sunsetButtonFinalOverride.css';
-import '@/styles/sunsetScrollbar.css';
 import '@/styles/fullCreatorReadiness.css';
-import '@/styles/characterSheetSunsetFinalOverride.css';
 import '@/styles/characterSheetRailAndHeroFix.css';
 import '@/styles/characterSheetColumnAlignmentFix.css';
 import '@/styles/characterSheetHeroBadgeFix.css';
@@ -116,6 +103,7 @@ const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
 const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
 const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
 const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
+const PlayerDashboard = lazyWithChunkRetry(() => import('@/components/PlayerDashboard'));
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
@@ -233,10 +221,22 @@ function AppRoutes() {
         <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create" element={<Navigate to="/characters/create/full" replace />} />
-        <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/basic" element={<Navigate to="/characters/create/full" replace />} />
-        <Route path="/characters/create/rook" element={<Navigate to="/characters/create/full" replace />} />
+
+        {/* One character creator. Legacy creator URLs remain redirects so old links and installed PWAs stay safe. */}
+        <Route path="/characters/new" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/full" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/basic" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/premade" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/kids" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/matchmaker" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/rook" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/full" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/basic" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/premade" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/kids" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/rook" element={<Navigate to="/characters/new" replace />} />
+
         <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />

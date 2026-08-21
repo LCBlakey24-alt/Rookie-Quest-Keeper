@@ -24,7 +24,7 @@ describe('character audit report', () => {
     expect(report.failed).toBe(0);
   });
 
-  test('audit report points at the exact broken character and reason', () => {
+  test('audit report points at the exact broken character and reason without flagging derivable spell slots', () => {
     const brokenWizard = makeAuditCharacter('Wizard', 5, {
       name: 'Broken Wizard',
       spell_slots: {},
@@ -38,7 +38,7 @@ describe('character audit report', () => {
 
     expect(report.failed).toBe(1);
     expect(report.text).toContain('Broken Wizard');
-    expect(report.text).toContain('caster has no spell slot data');
+    expect(report.text).not.toContain('caster has no spell slot data');
     expect(report.text).toContain('caster has no saved spells/cantrips');
     expect(report.text).toContain('no equipped items found');
   });

@@ -32,6 +32,7 @@ def _ability_mod(score: Any) -> int:
 
 def _character_row(character: Dict[str, Any], member: Dict[str, Any]) -> Dict[str, Any]:
     max_hp = max(1, _int(character.get("max_hit_points"), 10))
+    temp_hp = max(0, _int(character.get("temporary_hit_points", character.get("temp_hp", 0)), 0))
     return {
         "id": character.get("id"),
         "character_id": character.get("id"),
@@ -41,9 +42,14 @@ def _character_row(character: Dict[str, Any], member: Dict[str, Any]) -> Dict[st
         "level": _int(character.get("level"), 1),
         "hp": max(0, _int(character.get("current_hit_points"), max_hp)),
         "max_hp": max_hp,
+        "temporary_hit_points": temp_hp,
+        "temp_hp": temp_hp,
         "ac": _int(character.get("armor_class"), 10),
         "initiativeMod": _int(character.get("initiative_bonus"), _ability_mod(character.get("dexterity"))),
         "conditions": character.get("conditions") if isinstance(character.get("conditions"), list) else [],
+        "death_saves_successes": max(0, min(3, _int(character.get("death_saves_successes"), 0))),
+        "death_saves_failures": max(0, min(3, _int(character.get("death_saves_failures"), 0))),
+        "concentrating_on": str(character.get("concentrating_on") or character.get("concentration") or ""),
         "stats": {
             "strength": _int(character.get("strength"), 10),
             "dexterity": _int(character.get("dexterity"), 10),
@@ -69,9 +75,14 @@ def _legacy_row(player: Dict[str, Any]) -> Dict[str, Any]:
         "level": _int(player.get("level"), 1),
         "hp": max(0, _int(player.get("hp"), max_hp)),
         "max_hp": max_hp,
+        "temporary_hit_points": 0,
+        "temp_hp": 0,
         "ac": _int(player.get("ac"), 10),
         "initiativeMod": _ability_mod(stats.get("dexterity")),
         "conditions": player.get("conditions") if isinstance(player.get("conditions"), list) else [],
+        "death_saves_successes": 0,
+        "death_saves_failures": 0,
+        "concentrating_on": "",
         "stats": stats,
         "source": "legacy",
         "member_status": "gm_roster",

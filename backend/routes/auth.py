@@ -21,6 +21,43 @@ router = APIRouter()
 
 SAFE_USERNAME_RE = re.compile(r"^[A-Za-z0-9_-]{3,24}$")
 
+# These collections can reference an owned campaign but contain records that
+# belong to another person. Keep them, then unlink them explicitly below.
+CAMPAIGN_SWEEP_EXCLUSIONS = {
+    'users',
+    'player_characters',
+    'player_notes',
+    'password_resets',
+}
+
+# Personal records that should be removed when the account itself is deleted,
+# even when they belong to a campaign owned by somebody else.
+USER_OWNED_COLLECTIONS = [
+    'player_characters',
+    'player_journal',
+    'player_notes',
+    'player_handouts',
+    'session_recaps',
+    'custom_creatures',
+    'reviews',
+    'user_rulesets',
+    'user_playtest_packs',
+    'user_playtest_content',
+    'user_races',
+    'user_classes',
+    'user_subclasses',
+    'user_backgrounds',
+    'user_feats',
+    'user_spells',
+    'user_magic_items',
+    'homebrew_items',
+    'character_templates',
+    'campaign_invites',
+    'combat_initiative_submissions',
+    'roll_events',
+    'ai_usage',
+]
+
 
 def normalize_username_for_auth(username: str) -> str:
     """Trim and validate usernames for kid-friendly, email-free auth."""
@@ -36,11 +73,12 @@ def normalize_username_for_auth(username: str) -> str:
 
 
 async def cleanup_user_account(username: str) -> dict:
-    """Delete user-owned and campaign-owned records for account deletion.
+    """Delete the account, its personal records, and all data owned by its campaigns.
 
-    This intentionally covers the common ownership field names used across the
-    app. Missing collections are harmless in MongoDB; this keeps the cleanup
-    future-friendly as features are added.
+    Campaign data is swept by campaign_id across the live database rather than
+    relying on a brittle hand-written feature list. This keeps account deletion
+    correct when new campaign collections are added. Other users' character
+    sheets and personal notes are protected from the sweep and unlinked instead.
     """
     user = await db.users.find_one({'username': username}, {'_id': 0})
     email = (user or {}).get('email', '').lower()
@@ -57,30 +95,9 @@ async def cleanup_user_account(username: str) -> dict:
     deleted = {}
 
     async def delete_many(collection_name: str, query: dict):
-        result = await getattr(db, collection_name).delete_many(query)
+        result = await db[collection_name].delete_many(query)
         deleted[collection_name] = deleted.get(collection_name, 0) + result.deleted_count
 
-    # User-owned records.
-    user_owned_collections = [
-        'player_characters',
-        'player_journal',
-        'custom_creatures',
-        'reviews',
-        'user_rulesets',
-        'user_playtest_packs',
-        'user_playtest_content',
-        'user_races',
-        'user_classes',
-        'user_subclasses',
-        'user_backgrounds',
-        'user_feats',
-        'user_spells',
-        'user_magic_items',
-        'homebrew_items',
-        'character_templates',
-        'campaign_invites',
-        'ai_usage',
-    ]
     user_query = {
         '$or': [
             {'user_id': username},
@@ -90,65 +107,52 @@ async def cleanup_user_account(username: str) -> dict:
             {'dm_user_id': username},
         ]
     }
-    for collection in user_owned_collections:
+    for collection in USER_OWNED_COLLECTIONS:
         await delete_many(collection, user_query)
 
-    # Password reset records can be keyed by email rather than username.
     if email:
         await delete_many('password_resets', {'email': email})
 
-    # Campaign membership records where this user is a player (not the owner).
-    # These are indexed by user_id rather than campaign_id so they need a separate pass.
+    # Remove this user's membership records even for campaigns they do not own.
     await delete_many('campaign_members', {
         '$or': [{'user_id': username}, {'username': username}]
     })
 
-    # Campaign-owned records for campaigns created by this user.
     if campaign_ids:
         campaign_query = {'campaign_id': {'$in': campaign_ids}}
-        campaign_owned_collections = [
-            'campaigns',
-            'campaign_settings',
-            'locations',
-            'gods',
-            'calendars',
-            'calendar_events',
-            'npcs',
-            'notes',
-            'combat_encounters',
-            'combat_sessions',
-            'maps',
-            'world_maps',
-            'local_maps',
-            'campaign_maps',
-            'campaign_uploads',
-            'campaign_races',
-            'campaign_classes',
-            'campaign_subclasses',
-            'campaign_backgrounds',
-            'campaign_feats',
-            'campaign_rulesets',
-            'campaign_items',
-            'inventory_items',
-            'events',
-            'event_results',
-            'session_recaps',
-            'campaign_tokens',
-            'handouts',
-        ]
-        for collection in campaign_owned_collections:
-            if collection == 'campaigns':
-                await delete_many(collection, {'id': {'$in': campaign_ids}})
-            else:
-                await delete_many(collection, campaign_query)
 
-        # Unlink any remaining player characters from deleted campaigns.
+        # Remove every campaign-scoped record, including newer features such as
+        # quests, story arcs, tables, display/live state, roll events, event
+        # economy, current inventory and future campaign-scoped collections.
+        collection_names = await db.list_collection_names()
+        for collection_name in collection_names:
+            if collection_name in CAMPAIGN_SWEEP_EXCLUSIONS or collection_name == 'campaigns':
+                continue
+            await delete_many(collection_name, campaign_query)
+
+        # Other players own their character sheets. Detach them instead of
+        # deleting them when the GM removes their account/campaign.
         await db.player_characters.update_many(
+            {'campaign_id': {'$in': campaign_ids}},
+            {
+                '$set': {
+                    'campaign_id': None,
+                    'campaign_name': None,
+                    'campaign_join_status': 'removed',
+                    'updated_at': datetime.now(timezone.utc).isoformat(),
+                }
+            }
+        )
+
+        # Personal player notes remain personal; only their live campaign link
+        # is removed so they cannot point at a deleted campaign id.
+        await db.player_notes.update_many(
             {'campaign_id': {'$in': campaign_ids}},
             {'$set': {'campaign_id': None, 'updated_at': datetime.now(timezone.utc).isoformat()}}
         )
 
-    # Finally delete the user record.
+        await delete_many('campaigns', {'id': {'$in': campaign_ids}})
+
     await delete_many('users', {'username': username})
 
     return {
@@ -168,7 +172,6 @@ async def register(user_data: UserRegister):
         if existing_email:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     
-    # Check if username already exists
     existing_user = await db.users.find_one({'username': normalized_username})
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
@@ -185,8 +188,8 @@ async def register(user_data: UserRegister):
     await db.users.insert_one(user_doc)
 
     token = create_token(normalized_username)
-    
     return TokenResponse(token=token, username=normalized_username, email=normalized_email)
+
 
 @router.post("/auth/login", response_model=TokenResponse)
 async def login(user_data: UserLogin):
@@ -198,14 +201,11 @@ async def login(user_data: UserLogin):
     if '@' in identifier:
         lower_identifier = identifier.lower()
         lookup_candidates.append({'email': lower_identifier})
-        # Legacy accounts may have been created before optional recovery email
-        # support, with the email address stored directly as username.
         lookup_candidates.append({'username': identifier})
         if lower_identifier != identifier:
             lookup_candidates.append({'username': lower_identifier})
     else:
         lookup_candidates.append({'username': identifier})
-        # Compatibility for older clients that may still send an email in a generic field.
         lookup_candidates.append({'email': identifier.lower()})
 
     user = None
@@ -220,6 +220,7 @@ async def login(user_data: UserLogin):
     token = create_token(user['username'])
     return TokenResponse(token=token, username=user['username'], email=user.get('email'))
 
+
 # ==================== PASSWORD RESET ====================
 
 @router.post("/auth/forgot-password")
@@ -227,16 +228,13 @@ async def forgot_password(request: ForgotPasswordRequest):
     """Send password reset email"""
     user = await db.users.find_one({'email': request.email.lower()})
     
-    # Always return success to prevent email enumeration
     if not user:
         return {"message": "If an account exists with this email, a reset link has been sent"}
     
-    # Generate reset token
     reset_token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
     
-    # Store reset token in database
-    await db.password_resets.delete_many({'email': request.email.lower()})  # Remove old tokens
+    await db.password_resets.delete_many({'email': request.email.lower()})
     await db.password_resets.insert_one({
         'email': request.email.lower(),
         'token': reset_token,
@@ -244,7 +242,6 @@ async def forgot_password(request: ForgotPasswordRequest):
         'created_at': datetime.now(timezone.utc).isoformat()
     })
     
-    # Send email
     reset_link = f"{APP_URL}/reset-password?token={reset_token}"
     
     if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
@@ -255,10 +252,10 @@ async def forgot_password(request: ForgotPasswordRequest):
                 "subject": "Reset Your Rookie Quest Keeper Password",
                 "html": f"""
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h1 style="color: #14b8a6;">Rookie Quest Keeper</h1>
+                    <h1 style="color: #d00000;">Rookie Quest Keeper</h1>
                     <h2>Password Reset Request</h2>
                     <p>You requested to reset your password. Click the button below to set a new password:</p>
-                    <a href="{reset_link}" style="display: inline-block; background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
+                    <a href="{reset_link}" style="display: inline-block; background: #d00000; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
                         Reset Password
                     </a>
                     <p>Or copy and paste this link into your browser:</p>
@@ -270,9 +267,9 @@ async def forgot_password(request: ForgotPasswordRequest):
             })
         except Exception as e:
             logger.error(f"Failed to send password reset email: {e}")
-            # Don't reveal email sending failures
     
     return {"message": "If an account exists with this email, a reset link has been sent"}
+
 
 @router.post("/auth/reset-password")
 async def reset_password(request: ResetPasswordRequest):
@@ -282,23 +279,20 @@ async def reset_password(request: ResetPasswordRequest):
     if not reset_record:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
     
-    # Check if token expired
     expires_at = datetime.fromisoformat(reset_record['expires_at'])
     if datetime.now(timezone.utc) > expires_at:
         await db.password_resets.delete_one({'token': request.token})
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset token has expired")
     
-    # Update password
     password_hash = hash_password(request.new_password)
     await db.users.update_one(
         {'email': reset_record['email']},
         {'$set': {'password_hash': password_hash}}
     )
     
-    # Delete reset token
     await db.password_resets.delete_one({'token': request.token})
-    
     return {"message": "Password reset successful"}
+
 
 @router.post("/auth/change-password")
 async def change_password(request: ChangePasswordRequest, current_username: str = Depends(get_current_user)):
@@ -307,7 +301,6 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
     if not user or not verify_password(request.current_password, user['password_hash']):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect")
     
-    # Update password
     new_hash = hash_password(request.new_password)
     await db.users.update_one(
         {'username': current_username},
@@ -316,6 +309,7 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
     
     return {"message": "Password changed successfully"}
 
+
 @router.get("/auth/me")
 async def get_me(current_username: str = Depends(get_current_user)):
     """Get current user info"""
@@ -323,6 +317,7 @@ async def get_me(current_username: str = Depends(get_current_user)):
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return {"username": user['username'], "email": user.get('email'), "created_at": user.get('created_at')}
+
 
 @router.patch("/auth/me")
 async def update_me(request: UpdateAccountRequest, current_username: str = Depends(get_current_user)):
@@ -341,6 +336,7 @@ async def update_me(request: UpdateAccountRequest, current_username: str = Depen
 
     await db.users.update_one({'username': current_username}, {'$set': updates})
     return {"message": "Account updated successfully", **updates}
+
 
 @router.delete("/auth/me")
 async def delete_me(current_username: str = Depends(get_current_user)):

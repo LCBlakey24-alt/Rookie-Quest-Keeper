@@ -12,11 +12,11 @@ describe('ClassSubclassPicker', () => {
     expect(screen.queryByRole('option', { name: 'Divine Soul' })).not.toBeInTheDocument();
   });
 
-  test('keeps 2014 Sorcerer options separate from 2024 options', () => {
+  test('keeps edition-specific Sorcerer options available in the correct rules family', () => {
     render(<ClassSubclassPicker className="Sorcerer" edition="2014" label="Sorcerous Origin" />);
 
     expect(screen.getByRole('option', { name: 'Divine Soul' })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: 'Clockwork Soul' })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Clockwork Soul' })).toBeInTheDocument();
   });
 
   test('calls the subclass change handler', () => {

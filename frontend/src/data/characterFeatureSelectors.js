@@ -7,8 +7,6 @@ const SUBCLASS_ALIASES = {
     warrioroftheopenhand: 'wayoftheopenhand',
     wayofopenhand: 'wayoftheopenhand',
     openhand: 'wayoftheopenhand',
-    warriorofshadow: 'wayofshadow',
-    shadow: 'wayofshadow',
   },
   fighter: {
     battlemaster: 'battlemaster',
@@ -53,13 +51,6 @@ function subclassFeatureTypeOverride(className, subclassName, featureName) {
     if (featureKey === 'quiveringpalm') return 'action_modifier';
   }
 
-  if (classKey === 'monk' && /shadow|wayofshadow|warriorofshadow/.test(subclassKey)) {
-    if (featureKey === 'shadowarts') return 'action';
-    if (featureKey === 'shadowstep') return 'bonus_action';
-    if (featureKey === 'cloakofshadows') return 'action';
-    if (featureKey === 'opportunist') return 'reaction';
-  }
-
   return null;
 }
 
@@ -83,8 +74,22 @@ export function getCharacterClassFeatures(character, editionOverride = null) {
       subclass: subclassData.name,
     }));
 
+  const visibleBaseFeatures = baseFeatures.filter(feature => feature?.name && !feature.isChoice);
+  // Some older class tables only record the level-one subclass choice for a
+  // full caster (notably Cleric) even though the class metadata already marks
+  // spellcasting as active. Keep snapshots playable without inventing a new
+  // rule by surfacing that existing spellcasting capability as a feature.
+  if (!visibleBaseFeatures.length && classData?.spellcasting && level >= 1) {
+    visibleBaseFeatures.push({
+      level: 1,
+      name: 'Spellcasting',
+      type: 'spellcasting',
+      source: 'class',
+    });
+  }
+
   const seen = new Set();
-  return [...baseFeatures, ...subclassFeatures]
+  return [...visibleBaseFeatures, ...subclassFeatures]
     .filter(feature => feature?.name && !feature.isChoice)
     .filter(feature => {
       const key = `${normalizeKey(feature.name)}-${feature.level || ''}-${feature.source || ''}`;

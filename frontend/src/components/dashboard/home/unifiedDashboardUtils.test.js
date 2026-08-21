@@ -7,8 +7,15 @@ describe('unifiedDashboardUtils', () => {
     expect(characterMeta({ level: 2, character_class: 'Fighter' })).toBe('Level 2 Fighter');
   });
 
-  test('builds campaign setup notes without inventing fields', () => {
-    expect(buildWorldSettingNotes({ campaign_type: 'long_campaign', starting_point: 'session_zero', world_setting: 'custom', session_zero: ['safety'], description: 'Keep it grounded.' })).toContain('Session zero checklist: Safety tools and table boundaries');
+  test('builds campaign setup notes from fields the current campaign form actually stores', () => {
+    const notes = buildWorldSettingNotes({
+      campaign_type: 'long_campaign',
+      description: 'Keep it grounded.',
+    });
+
+    expect(notes).toContain('Campaign type: long_campaign');
+    expect(notes).toContain('GM notes: Keep it grounded.');
+    expect(notes).not.toContain('Session zero checklist');
   });
 
   test('describes backend status for the home dashboard', () => {
