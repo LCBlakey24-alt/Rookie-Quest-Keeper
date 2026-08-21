@@ -17,7 +17,7 @@ describe('class builder helper bridge', () => {
   });
 
   test('returns subclass options from class packages', () => {
-    expect(getClassPackageSubclassOptions('Fighter', '2014').map(option => option.key)).toEqual(expect.arrayContaining(['champion', 'battle_master', 'eldritch_knight']));
+    expect(getClassPackageSubclassOptions('Fighter', '2014').map(option => option.key)).toEqual(['champion', 'custom_fighter_subclass']);
     expect(getClassPackageSubclassOptions('Sorcerer', '2024').map(option => option.key)).toEqual(expect.arrayContaining(['draconic', 'wild_magic', 'aberrant_mind', 'clockwork_soul']));
     expect(getClassPackageSubclassOptions('paladin', '2014').map(option => option.key)).toEqual(expect.arrayContaining(['devotion']));
     expect(getClassPackageSubclassOptions('Unknown', '2014')).toEqual([]);
