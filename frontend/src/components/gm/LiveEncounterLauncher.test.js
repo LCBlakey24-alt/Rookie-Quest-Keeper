@@ -1,4 +1,4 @@
-import { playerToCombatant } from './LiveEncounterLauncher';
+import { clearQueuedNpcIds, playerToCombatant, readQueuedNpcIds } from './LiveEncounterLauncher';
 
 describe('LiveEncounterLauncher player combat handoff', () => {
   test('preserves temp HP, death saves and concentration', () => {
@@ -26,5 +26,37 @@ describe('LiveEncounterLauncher player combat handoff', () => {
     expect(combatant.deathSaves).toEqual({ successes: 1, failures: 2 });
     expect(combatant.concentrating_on).toBe('Bless');
     expect(combatant.rqk_pending_combat_sync).toBe(true);
+  });
+});
+
+describe('LiveEncounterLauncher queued NPC handoff', () => {
+  test('reading queued NPCs does not consume the queue', () => {
+    const storage = {
+      getItem: jest.fn(() => JSON.stringify(['npc-1', 'missing-npc'])),
+      removeItem: jest.fn(),
+    };
+
+    const queued = readQueuedNpcIds(storage, 'campaign-1', [
+      { id: 'npc-1', name: 'Jordan Crow' },
+      { id: 'npc-2', name: 'Godfrey Barfoot' },
+    ]);
+
+    expect(queued).toEqual(['npc-1']);
+    expect(storage.getItem).toHaveBeenCalledWith('gm.liveEncounterNpcQueue.campaign-1');
+    expect(storage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('queue is consumed explicitly when encounter launch commits', () => {
+    const storage = { removeItem: jest.fn() };
+
+    clearQueuedNpcIds(storage, 'campaign-1');
+
+    expect(storage.removeItem).toHaveBeenCalledWith('gm.liveEncounterNpcQueue.campaign-1');
+  });
+
+  test('bad queued data fails safely instead of blocking encounter review', () => {
+    const storage = { getItem: jest.fn(() => '{not-json') };
+
+    expect(readQueuedNpcIds(storage, 'campaign-1', [{ id: 'npc-1' }])).toEqual([]);
   });
 });
