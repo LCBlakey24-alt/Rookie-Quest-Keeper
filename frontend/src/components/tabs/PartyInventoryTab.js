@@ -3,7 +3,8 @@ import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Coins, Gem, Package, Plus, Save, ScrollText, Shield, Sparkles, Store, Sword, Trash2, UserPlus, Wand2, X } from 'lucide-react';
+import { AlertTriangle, Coins, Gem, Package, Plus, Save, ScrollText, Shield, Sparkles, Store, Sword, Trash2, UserPlus, Wand2, X } from 'lucide-react';
+import { createInventoryBatch, partyInventoryRefreshWarning, resolvePartyInventoryRefreshResults } from '@/lib/partyInventoryReliability';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -142,11 +143,14 @@ export default function PartyInventoryTab({ campaignId }) {
   const [currency, setCurrency] = useState(normaliseCurrency({}));
   const [grantTargets, setGrantTargets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshWarning, setRefreshWarning] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(EMPTY_ITEM);
   const [editingId, setEditingId] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [savingCurrency, setSavingCurrency] = useState(false);
   const [grantOptions, setGrantOptions] = useState({});
   const [showShopBuilder, setShowShopBuilder] = useState(false);
   const [shopDraft, setShopDraft] = useState(EMPTY_SHOP_DRAFT);
@@ -155,24 +159,49 @@ export default function PartyInventoryTab({ campaignId }) {
   const [generatedShopItems, setGeneratedShopItems] = useState([]);
   const [addingShopStock, setAddingShopStock] = useState(false);
 
-  useEffect(() => { loadInventory(); }, [campaignId]);
-
-  const loadInventory = async () => {
+  const loadInventory = async ({ initial = false } = {}) => {
     if (!campaignId) return;
-    setLoading(true);
+    if (initial) setLoading(true);
+    else setRefreshing(true);
     try {
-      const [itemsRes, currencyRes, targetsRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}/inventory`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/currency`).catch(() => ({ data: {} })),
-        apiClient.get(`/campaigns/${campaignId}/inventory/grant-targets`).catch(() => ({ data: [] })),
+      const results = await Promise.allSettled([
+        apiClient.get(`/campaigns/${campaignId}/inventory`),
+        apiClient.get(`/campaigns/${campaignId}/currency`),
+        apiClient.get(`/campaigns/${campaignId}/inventory/grant-targets`),
       ]);
-      setItems(normaliseItems(itemsRes.data));
-      setCurrency(normaliseCurrency(currencyRes.data));
-      setGrantTargets(Array.isArray(targetsRes.data) ? targetsRes.data : []);
+      const { data, failures } = resolvePartyInventoryRefreshResults(results);
+      if (Object.prototype.hasOwnProperty.call(data, 'items')) setItems(normaliseItems(data.items));
+      if (Object.prototype.hasOwnProperty.call(data, 'currency')) setCurrency(normaliseCurrency(data.currency));
+      if (Object.prototype.hasOwnProperty.call(data, 'grantTargets')) setGrantTargets(Array.isArray(data.grantTargets) ? data.grantTargets : []);
+      const warning = partyInventoryRefreshWarning(failures);
+      setRefreshWarning(warning);
+      if (warning && !initial) toast.warning('Party inventory only partly refreshed', { description: warning });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not load party inventory');
-    } finally { setLoading(false); }
+      const message = error?.response?.data?.detail || 'Could not load party inventory';
+      setRefreshWarning(message);
+      toast.error(message);
+    } finally {
+      if (initial) setLoading(false);
+      else setRefreshing(false);
+    }
   };
+
+  useEffect(() => {
+    setItems([]);
+    setCurrency(normaliseCurrency({}));
+    setGrantTargets([]);
+    setRefreshWarning('');
+    setGrantOptions({});
+    setEditingId(null);
+    setEditItem(null);
+    setGeneratedShopItems([]);
+    setShopStarterItems([]);
+    if (!campaignId) {
+      setLoading(false);
+      return;
+    }
+    loadInventory({ initial: true });
+  }, [campaignId]);
 
   const totalValue = useMemo(() => Math.round((coinValue(currency) + items.reduce((sum, item) => sum + (parseValue(item.value) * (Number(item.quantity) || 1)), 0)) * 100) / 100, [items, currency]);
   const groupedItems = useMemo(() => ITEM_CATEGORIES.map(category => ({ ...category, items: items.filter(item => (item.item_type || 'misc') === category.id) })).filter(group => group.items.length), [items]);
@@ -180,13 +209,22 @@ export default function PartyInventoryTab({ campaignId }) {
   const unclaimedItems = items.filter(item => !item.claimed_by && !item.claimed_by_id);
 
   const updateCurrency = async (patch) => {
+    if (savingCurrency) return;
+    const previous = currency;
     const next = normaliseCurrency({ ...currency, ...patch });
     setCurrency(next);
+    setSavingCurrency(true);
     try {
       const response = await apiClient.put(`/campaigns/${campaignId}/currency`, next);
-      setCurrency(normaliseCurrency(response.data));
+      const saved = response?.data && typeof response.data === 'object' ? response.data : next;
+      setCurrency(normaliseCurrency(saved));
       toast.success('Party funds updated');
-    } catch (error) { toast.error(error?.response?.data?.detail || 'Could not update party funds'); }
+    } catch (error) {
+      setCurrency(previous);
+      toast.error(error?.response?.data?.detail || 'Could not update party funds', { description: 'The previous party funds have been restored.' });
+    } finally {
+      setSavingCurrency(false);
+    }
   };
 
   const adjustCurrency = (key, amount) => updateCurrency({ [key]: Math.max(0, (Number(currency[key]) || 0) + amount) });
@@ -274,16 +312,30 @@ export default function PartyInventoryTab({ campaignId }) {
     if (!generatedShopItems.length) return;
     setAddingShopStock(true);
     try {
-      const created = [];
-      for (const item of generatedShopItems) {
-        const response = await apiClient.post(`/campaigns/${campaignId}/inventory`, itemPayload(item));
-        created.push(response.data);
+      const result = await createInventoryBatch(
+        generatedShopItems,
+        async (item) => {
+          const response = await apiClient.post(`/campaigns/${campaignId}/inventory`, itemPayload(item));
+          return response.data;
+        },
+        (sourceItem, createdItem) => {
+          setItems(prev => [createdItem, ...prev]);
+          setGeneratedShopItems(prev => prev.filter(existing => existing.id !== sourceItem.id));
+        },
+      );
+
+      if (result.error) {
+        const completed = result.created.length;
+        toast.error(result.error?.response?.data?.detail || `Could not add ${result.failedItem?.name || 'the next shop item'}`, {
+          description: completed
+            ? `${completed} item${completed === 1 ? '' : 's'} were added successfully and removed from the pending stock. The remaining items were left untouched.`
+            : 'No pending shop items were removed.',
+        });
+        return;
       }
-      setItems(prev => [...created, ...prev]);
-      setGeneratedShopItems([]);
-      toast.success('Shop stock added to party loot', { description: `${created.length} items added.` });
-    } catch (error) { toast.error(error?.response?.data?.detail || 'Could not add all shop stock'); }
-    finally { setAddingShopStock(false); }
+
+      toast.success('Shop stock added to party loot', { description: `${result.created.length} items added.` });
+    } finally { setAddingShopStock(false); }
   };
 
   if (loading) return <div style={loadingStyle}>Loading party inventory…</div>;
@@ -295,8 +347,10 @@ export default function PartyInventoryTab({ campaignId }) {
         <div style={heroStatsStyle}><Stat label="Unclaimed Items" value={unclaimedItems.length} /><Stat label="Granted / Claimed" value={claimedItems.length} /><Stat label="Approx Value" value={`${totalValue} gp`} /></div>
       </header>
 
-      <section style={currencyStyle}><div style={panelHeaderStyle}><h3 style={panelTitleStyle}><Coins size={18} /> Party Funds</h3><span style={mutedTextStyle}>Coins are stored separately from loot items.</span></div><div style={coinGridStyle}>{COINS.map(coin => <CoinBox key={coin.key} coin={coin} value={currency[coin.key] || 0} onAdjust={adjustCurrency} onSet={(value) => updateCurrency({ [coin.key]: value })} />)}</div></section>
-      <section style={actionRowStyle}><Button onClick={() => setShowAddItem(prev => !prev)} style={primaryButtonStyle}><Plus size={16} /> {showAddItem ? 'Hide Add Item' : 'Add Item'}</Button><Button onClick={() => setShowShopBuilder(prev => !prev)} style={secondaryButtonStyle}><Store size={16} /> {showShopBuilder ? 'Hide Shop Builder' : 'Rook Shop Builder'}</Button><Button onClick={loadInventory} style={secondaryButtonStyle}>Refresh Inventory</Button></section>
+      {refreshWarning && <div role="status" data-testid="party-inventory-refresh-warning" style={warningStyle}><AlertTriangle size={15} /><span>{refreshWarning}</span></div>}
+
+      <section style={currencyStyle}><div style={panelHeaderStyle}><h3 style={panelTitleStyle}><Coins size={18} /> Party Funds</h3><span style={mutedTextStyle}>Coins are stored separately from loot items.</span></div><div style={coinGridStyle}>{COINS.map(coin => <CoinBox key={coin.key} coin={coin} value={currency[coin.key] || 0} disabled={savingCurrency} onAdjust={adjustCurrency} onSet={(value) => updateCurrency({ [coin.key]: value })} />)}</div></section>
+      <section style={actionRowStyle}><Button onClick={() => setShowAddItem(prev => !prev)} style={primaryButtonStyle}><Plus size={16} /> {showAddItem ? 'Hide Add Item' : 'Add Item'}</Button><Button onClick={() => setShowShopBuilder(prev => !prev)} style={secondaryButtonStyle}><Store size={16} /> {showShopBuilder ? 'Hide Shop Builder' : 'Rook Shop Builder'}</Button><Button onClick={() => loadInventory()} disabled={refreshing} style={secondaryButtonStyle}>{refreshing ? 'Refreshing…' : 'Refresh Inventory'}</Button></section>
 
       {showAddItem && <section style={panelStyle} data-testid="add-party-item-panel"><h3 style={panelTitleStyle}><Package size={18} /> Add party item</h3><ItemForm item={newItem} onChange={setNewItem} /><div style={formActionsStyle}><Button onClick={() => { setShowAddItem(false); setNewItem(EMPTY_ITEM); }} style={secondaryButtonStyle}><X size={15} /> Cancel</Button><Button onClick={addItem} disabled={saving} style={primaryButtonStyle}><Save size={15} /> {saving ? 'Saving…' : 'Save Item'}</Button></div></section>}
       {showShopBuilder && <ShopBuilder shop={shopDraft} setShop={setShopDraft} starterItem={shopStarterItem} setStarterItem={setShopStarterItem} starterItems={shopStarterItems} setStarterItems={setShopStarterItems} generatedItems={generatedShopItems} generateShopStock={generateShopStock} addStarterShopItem={addStarterShopItem} addGeneratedItemToLoot={addGeneratedItemToLoot} addAllGeneratedToLoot={addAllGeneratedToLoot} addingShopStock={addingShopStock} />}
@@ -309,7 +363,7 @@ export default function PartyInventoryTab({ campaignId }) {
 function ShopBuilder({ shop, setShop, starterItem, setStarterItem, starterItems, setStarterItems, generatedItems, generateShopStock, addStarterShopItem, addGeneratedItemToLoot, addAllGeneratedToLoot, addingShopStock }) {
   return <section style={shopPanelStyle} data-testid="rook-shop-builder"><div style={shopHeaderStyle}><div><p style={eyebrowStyle}>Rook Helper</p><h3 style={shopTitleStyle}><Store size={20} /> Shop Stock Builder</h3><p style={subtitleStyle}>Give Rook a shop level, price attitude, and one or two starter items. Rook fills the shelves with suitable generic stock.</p></div><Button onClick={generateShopStock} style={primaryButtonStyle}><Wand2 size={15} /> Rook Fill Stock</Button></div><div style={shopConfigGridStyle}><Field label="Shop name"><Input value={shop.name} onChange={event => setShop({ ...shop, name: event.target.value })} style={inputStyle} /></Field><Field label="Shop level"><select value={shop.level} onChange={event => setShop({ ...shop, level: Number(event.target.value) })} style={selectStyle}>{[1, 2, 3, 4, 5].map(level => <option key={level} value={level}>Level {level}</option>)}</select><small style={fieldHelpStyle}>{SHOP_LEVELS[shop.level]}</small></Field><Field label="Expense level"><select value={shop.expense} onChange={event => setShop({ ...shop, expense: event.target.value })} style={selectStyle}>{Object.entries(EXPENSE_LEVELS).map(([key, option]) => <option key={key} value={key}>{option.label}</option>)}</select><small style={fieldHelpStyle}>{EXPENSE_LEVELS[shop.expense]?.note}</small></Field><Field label="Target stock count"><Input type="number" min="4" max="32" value={shop.targetCount} onChange={event => setShop({ ...shop, targetCount: event.target.value })} style={inputStyle} /></Field></div><div style={shopSeedGridStyle}><Field label="Starter item name"><Input value={starterItem.name} onChange={event => setStarterItem({ ...starterItem, name: event.target.value })} placeholder="Example: Cursed ring, rope, healing potion..." style={inputStyle} /></Field><Field label="Type"><select value={starterItem.item_type} onChange={event => setStarterItem({ ...starterItem, item_type: event.target.value })} style={selectStyle}>{ITEM_CATEGORIES.map(category => <option key={category.id} value={category.id}>{category.label}</option>)}</select></Field><Field label="Optional price"><Input value={starterItem.value} onChange={event => setStarterItem({ ...starterItem, value: event.target.value })} placeholder="Leave blank for Rook" style={inputStyle} /></Field><Button onClick={addStarterShopItem} style={secondaryButtonStyle}><Plus size={15} /> Add Seed</Button></div>{starterItems.length > 0 && <div style={seedListStyle}>{starterItems.map(item => <span key={item.id} style={tagStyle}>{item.name}<button type="button" onClick={() => setStarterItems(prev => prev.filter(existing => existing.id !== item.id))} style={tagXStyle}>×</button></span>)}</div>}{generatedItems.length > 0 && <div style={generatedStyle}><div style={panelHeaderStyle}><h3 style={panelTitleStyle}><Sparkles size={18} /> Generated Stock ({generatedItems.length})</h3><Button onClick={addAllGeneratedToLoot} disabled={addingShopStock} style={primaryButtonStyle}>{addingShopStock ? 'Adding…' : 'Add All to Loot'}</Button></div><div style={shopStockGridStyle}>{generatedItems.map(item => <article key={item.id} style={shopItemStyle}><strong>{item.name}</strong><p>{item.description}</p><span>{item.value} · {item.item_type}</span><button type="button" onClick={() => addGeneratedItemToLoot(item)} style={smallButtonStyle}>Add to Loot</button></article>)}</div></div>}</section>;
 }
-function CoinBox({ coin, value, onAdjust, onSet }) { const [draft, setDraft] = useState(String(value || 0)); useEffect(() => { setDraft(String(value || 0)); }, [value]); return <article style={coinBoxStyle}><span>{coin.label}</span><strong>{value}</strong><div style={miniButtonRowStyle}><button type="button" onClick={() => onAdjust(coin.key, -10)} style={miniButtonStyle}>-10</button><button type="button" onClick={() => onAdjust(coin.key, -1)} style={miniButtonStyle}>-1</button><button type="button" onClick={() => onAdjust(coin.key, 1)} style={miniButtonStyle}>+1</button><button type="button" onClick={() => onAdjust(coin.key, 10)} style={miniButtonStyle}>+10</button></div><div style={setCurrencyStyle}><input value={draft} onChange={event => setDraft(event.target.value)} type="number" min="0" style={smallInputStyle} /><button type="button" onClick={() => onSet(Math.max(0, Number.parseInt(draft, 10) || 0))} style={miniPrimaryStyle}>Set</button></div></article>; }
+function CoinBox({ coin, value, onAdjust, onSet, disabled = false }) { const [draft, setDraft] = useState(String(value || 0)); useEffect(() => { setDraft(String(value || 0)); }, [value]); return <article style={coinBoxStyle}><span>{coin.label}</span><strong>{value}</strong><div style={miniButtonRowStyle}><button type="button" disabled={disabled} onClick={() => onAdjust(coin.key, -10)} style={miniButtonStyle}>-10</button><button type="button" disabled={disabled} onClick={() => onAdjust(coin.key, -1)} style={miniButtonStyle}>-1</button><button type="button" disabled={disabled} onClick={() => onAdjust(coin.key, 1)} style={miniButtonStyle}>+1</button><button type="button" disabled={disabled} onClick={() => onAdjust(coin.key, 10)} style={miniButtonStyle}>+10</button></div><div style={setCurrencyStyle}><input value={draft} disabled={disabled} onChange={event => setDraft(event.target.value)} type="number" min="0" style={smallInputStyle} /><button type="button" disabled={disabled} onClick={() => onSet(Math.max(0, Number.parseInt(draft, 10) || 0))} style={miniPrimaryStyle}>Set</button></div></article>; }
 function ItemGroup({ group, editingId, editItem, setEditingId, setEditItem, onUpdate, onDelete, grantTargets, grantOptions, onGrantOptionChange, onGrant, saving }) { const Icon = group.icon; return <section style={panelStyle}><h3 style={panelTitleStyle}><Icon size={18} /> {group.label} ({group.items.length})</h3><div style={itemListStyle}>{group.items.map(item => editingId === item.id ? <EditingItem key={item.id} item={editItem} onChange={setEditItem} onUpdate={onUpdate} onCancel={() => { setEditingId(null); setEditItem(null); }} saving={saving} /> : <InventoryItemCard key={item.id} item={item} onEdit={() => { setEditingId(item.id); setEditItem({ ...item }); }} onDelete={() => onDelete(item)} grantTargets={grantTargets} grantOption={grantStateFor(grantOptions, item.id)} onGrantOptionChange={(patch) => onGrantOptionChange(item.id, patch)} onGrant={() => onGrant(item)} />)}</div></section>; }
 function EditingItem({ item, onChange, onUpdate, onCancel, saving }) { return <article style={editCardStyle}><ItemForm item={item} onChange={onChange} compact /><div style={formActionsStyle}><Button onClick={onCancel} style={secondaryButtonStyle}><X size={15} /> Cancel</Button><Button onClick={onUpdate} disabled={saving} style={primaryButtonStyle}><Save size={15} /> Save</Button></div></article>; }
 function InventoryItemCard({ item, onEdit, onDelete, grantTargets, grantOption, onGrantOptionChange, onGrant }) { const requiresAttunement = Boolean(item.attunement_required || item.requires_attunement); const canEquip = itemCanEquip(item); return <article style={itemCardStyle(item.is_magical)}><div style={{ minWidth: 0 }}><div style={itemTitleRowStyle}><strong>{item.name}</strong>{item.is_magical && <span style={tagStyle}>Magical</span>}{requiresAttunement && <span style={tagStyle}>Requires Attunement</span>}{Number(item.quantity) > 1 && <span style={tagStyle}>x{item.quantity}</span>}</div>{item.description && <p style={itemDescStyle}>{item.description}</p>}<div style={itemMetaStyle}>{item.value && <span>{item.value}</span>}{item.damage_dice && <span>{item.damage_dice} {item.damage_type}</span>}{Number(item.attack_bonus) !== 0 && <span>Attack +{item.attack_bonus}</span>}{Number(item.ac_bonus) !== 0 && <span>AC +{item.ac_bonus}</span>}{item.equip_slot && <span>{item.equip_slot}</span>}</div>{item.notes && <p style={itemNotesStyle}>{item.notes}</p>}</div><div style={itemActionsStyle}><div style={grantBoxStyle}><span style={grantTitleStyle}>Reward handoff</span><select value={grantOption.target_value || ''} onChange={event => onGrantOptionChange({ target_value: event.target.value })} style={selectStyle}><option value="">Who receives this?</option>{grantTargets.map(target => <option key={targetValue(target)} value={targetValue(target)}>{targetLabel(target)}</option>)}</select>{requiresAttunement && <label style={grantCheckStyle}><input type="checkbox" checked={Boolean(grantOption.auto_attune)} onChange={event => onGrantOptionChange({ auto_attune: event.target.checked })} /> Auto-attune on grant</label>}{canEquip && <label style={grantCheckStyle}><input type="checkbox" checked={Boolean(grantOption.auto_equip)} onChange={event => onGrantOptionChange({ auto_equip: event.target.checked })} /> Grant as equipped/ready</label>}<button type="button" onClick={onGrant} disabled={!grantOption.target_value} style={grantButtonStyle}><UserPlus size={14} /> Grant</button></div><div style={buttonRowStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={dangerButtonStyle}><Trash2 size={14} /> Remove</button></div></div></article>; }
@@ -325,6 +379,7 @@ const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize:
 const subtitleStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 760 };
 const heroStatsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(100px, 1fr))', gap: 8, minWidth: 'min(100%, 420px)' };
 const statStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, display: 'grid', gap: 3, textAlign: 'center' };
+const warningStyle = { display: 'flex', alignItems: 'flex-start', gap: 8, padding: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.42)', color: rq.soft, fontSize: 12, lineHeight: 1.4 };
 const currencyStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 14 };
 const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 };
 const panelTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950, display: 'flex', gap: 8, alignItems: 'center' };
