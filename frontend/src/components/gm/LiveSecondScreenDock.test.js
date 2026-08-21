@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import LiveSecondScreenDock from './LiveSecondScreenDock';
 import apiClient from '@/lib/apiClient';
+import * as liveDisplayBus from '@/lib/liveDisplayBus';
 import { toast } from 'sonner';
 
 jest.mock('@/lib/apiClient', () => ({
@@ -22,8 +23,8 @@ jest.mock('@/lib/liveDisplayBus', () => ({
   createDisplayState: jest.fn((mode, payload) => ({ mode, payload })),
   loadDisplayState: jest.fn(() => ({ mode: 'blank', payload: {} })),
   publishCampaignDisplayState: jest.fn(async (_campaignId, state) => state),
-  subscribeDisplayState: jest.fn(() => () => {}),
-  subscribeRemoteDisplayState: jest.fn(() => () => {}),
+  subscribeDisplayState: jest.fn(),
+  subscribeRemoteDisplayState: jest.fn(),
 }));
 
 jest.mock('@/data/tiaKartaSecondScreenPresets', () => []);
@@ -31,6 +32,10 @@ jest.mock('@/data/tiaKartaSecondScreenPresets', () => []);
 describe('LiveSecondScreenDock asset refresh reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    liveDisplayBus.loadDisplayState.mockReturnValue({ mode: 'blank', payload: {} });
+    liveDisplayBus.subscribeDisplayState.mockImplementation(() => () => {});
+    liveDisplayBus.subscribeRemoteDisplayState.mockImplementation(() => () => {});
+    liveDisplayBus.publishCampaignDisplayState.mockImplementation(async (_campaignId, state) => state);
   });
 
   test('keeps last known map and NPC assets when a manual refresh fails', async () => {
