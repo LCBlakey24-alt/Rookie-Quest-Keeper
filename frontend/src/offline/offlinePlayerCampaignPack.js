@@ -140,10 +140,15 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
 
   // Only media discovered inside the player-authorised payloads above is ever
   // considered. The player pack never reads the GM handout/NPC/encounter APIs.
-  const discoveredMedia = extractOfflineMediaUrls(...mediaPayloads);
-  const mediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
+  const rawDiscoveredMedia = extractOfflineMediaUrls(...mediaPayloads);
+  const discoveredMedia = Array.isArray(rawDiscoveredMedia) ? rawDiscoveredMedia : [];
+  const rawMediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
     onProgress: mediaProgress => onProgress({ ...mediaProgress, phase: 'media' }),
   });
+  const mediaResult = {
+    saved: Array.isArray(rawMediaResult?.saved) ? rawMediaResult.saved : [],
+    failed: Array.isArray(rawMediaResult?.failed) ? rawMediaResult.failed : [],
+  };
   if (discoveredMedia.length) {
     sections.push({
       key: 'media',
@@ -158,7 +163,7 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
 
   const failedSections = sections.filter(section => section.status !== 'saved');
   const campaign = payloads.campaign || {};
-  const metadata = await saveOfflineCampaignPackMetadata({
+  const metadataPayload = {
     version: OFFLINE_PACK_VERSION,
     audience: 'player',
     campaignId: String(campaignId),
@@ -176,7 +181,9 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
     mediaFailed: mediaResult.failed.length,
     mediaIncluded: mediaResult.saved.length > 0,
     playerSafe: true,
-  });
+  };
+  const storedMetadata = await saveOfflineCampaignPackMetadata(metadataPayload);
+  const metadata = storedMetadata || metadataPayload;
 
   onProgress({ phase: 'done', completed: sections.length, total: sections.length, label: 'Player offline copy ready' });
   return metadata;
