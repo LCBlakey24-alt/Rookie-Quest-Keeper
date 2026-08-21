@@ -5,6 +5,27 @@ import ClassSubclassPicker from '@/components/builder/ClassSubclassPicker';
 import { DetailPanel, Pill, SelectCard, StepHeader } from '@/components/character-builder/BuilderPrimitives';
 import { detailHeaderStyle, traitChipStyle } from '@/components/character-builder/builderTheme';
 
+const list = value => Array.isArray(value) ? value : [];
+const featureName = feature => typeof feature === 'string' ? feature : feature?.name || feature?.title || '';
+
+export function normaliseClassForLevelOneDisplay(classData = {}) {
+  const rawFeatures = classData?.features;
+  const levelOneFeatures = Array.isArray(rawFeatures)
+    ? rawFeatures
+      .filter(feature => typeof feature === 'string' || Number(feature?.level ?? 1) === 1)
+      .map(featureName)
+      .filter(Boolean)
+    : list(rawFeatures?.[1]).map(featureName).filter(Boolean);
+
+  return {
+    savingThrows: list(classData?.savingThrows ?? classData?.saving_throw_proficiencies),
+    armorProficiencies: list(classData?.armorProficiencies ?? classData?.armorProf ?? classData?.armor_proficiencies),
+    weaponProficiencies: list(classData?.weaponProficiencies ?? classData?.weaponProf ?? classData?.weapon_proficiencies),
+    levelOneFeatures,
+    startingEquipment: list(classData?.startingEquipment ?? classData?.equipment),
+  };
+}
+
 export default function ClassStep({
   mergedClasses,
   className,
@@ -22,6 +43,8 @@ export default function ClassStep({
   labelStyle,
   inputStyle,
 }) {
+  const classDisplay = normaliseClassForLevelOneDisplay(classData);
+
   return (
     <div>
       <StepHeader icon={Sword} title="Choose Your Class" subtitle="Your class defines your role and abilities" color={theme.sunset.purple} />
@@ -39,7 +62,7 @@ export default function ClassStep({
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                 <Pill icon="❤️">d{c.hitDie} HP</Pill>
                 {c.spellcasting && <Pill icon="✦">Spellcaster</Pill>}
-                <Pill icon="🛡️">{c.savingThrows.map(s => s.slice(0, 3).toUpperCase()).join('/')}</Pill>
+                <Pill icon="🛡️">{list(c.savingThrows ?? c.saving_throw_proficiencies).map(s => s.slice(0, 3).toUpperCase()).join('/')}</Pill>
               </div>
             }
           />
@@ -52,7 +75,7 @@ export default function ClassStep({
             <div>
               <div style={detailHeaderStyle}>Saving Throws</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                {classData.savingThrows.map(save => (
+                {classDisplay.savingThrows.map(save => (
                   <span key={save} style={traitChipStyle}>
                     <Shield size={12} /> {save.charAt(0).toUpperCase() + save.slice(1)}
                   </span>
@@ -60,20 +83,20 @@ export default function ClassStep({
               </div>
               <div style={detailHeaderStyle}>Armor & Weapons</div>
               <div style={{ fontSize: '13px', color: theme.text.secondary, marginBottom: '12px', lineHeight: 1.6 }}>
-                <div><strong>Armor:</strong> {classData.armorProficiencies.length ? classData.armorProficiencies.join(', ') : 'None'}</div>
-                <div><strong>Weapons:</strong> {Array.isArray(classData.weaponProficiencies) ? classData.weaponProficiencies.join(', ') : ''}</div>
+                <div><strong>Armor:</strong> {classDisplay.armorProficiencies.length ? classDisplay.armorProficiencies.join(', ') : 'None'}</div>
+                <div><strong>Weapons:</strong> {classDisplay.weaponProficiencies.length ? classDisplay.weaponProficiencies.join(', ') : 'None'}</div>
               </div>
             </div>
             <div>
               <div style={detailHeaderStyle}>Level 1 Features</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                {(classData.features?.[1] || []).map(feature => (
+                {classDisplay.levelOneFeatures.map(feature => (
                   <span key={feature} style={traitChipStyle}><Sparkles size={12} /> {feature}</span>
                 ))}
               </div>
               <div style={detailHeaderStyle}>Starting Equipment</div>
               <div style={{ fontSize: '12px', color: theme.text.secondary, lineHeight: 1.6 }}>
-                {(classData.startingEquipment || []).map((item, index) => <div key={index}>• {item}</div>)}
+                {classDisplay.startingEquipment.map((item, index) => <div key={index}>• {typeof item === 'string' ? item : item?.name || item?.label || 'Equipment'}</div>)}
               </div>
             </div>
           </div>
