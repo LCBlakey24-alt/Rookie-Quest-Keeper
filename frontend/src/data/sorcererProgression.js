@@ -101,9 +101,16 @@ export function getSorcererChoicesForLevel(level = 1, edition = '2014') {
   return getSorcererFeaturesForLevel(level, edition).filter(feature => feature.type === 'choice');
 }
 
+function nextProgressionLevel(features, currentLevel) {
+  const futureLevels = features
+    .map(feature => Number(feature.level || 0))
+    .filter(featureLevel => featureLevel > currentLevel);
+  return futureLevels.length ? Math.min(...futureLevels) : 0;
+}
+
 export function getNextSorcererFeatures(level = 1, edition = '2014') {
   const sorcererLevel = Math.max(1, Number(level || 1));
-  const nextLevel = getSorcererProgression(edition).find(feature => feature.level > sorcererLevel)?.level;
+  const nextLevel = nextProgressionLevel(getSorcererProgression(edition), sorcererLevel);
   return nextLevel ? getSorcererFeaturesForLevel(nextLevel, edition) : [];
 }
 
