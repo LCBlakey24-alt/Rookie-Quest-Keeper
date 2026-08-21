@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Rookie Quest Keeper app icon</title>
+  <desc id="desc">A red rook tower with a white keyhole on a deep navy background.</desc>
+  <rect width="512" height="512" rx="104" fill="#07111F"/>
+  <path fill="#D7192D" d="M112 104h72v62h42v-62h60v62h42v-62h72v118l-42 38v146H154V260l-42-38V104Zm64 126v134h160V230l24-22V188H152v20l24 22Z"/>
+  <path fill="#F8FBFF" d="M256 238c-24.3 0-44 19.7-44 44 0 17.1 9.8 31.9 24 39.2V352h40v-30.8c14.2-7.3 24-22.1 24-39.2 0-24.3-19.7-44-44-44Z"/>
+</svg>
