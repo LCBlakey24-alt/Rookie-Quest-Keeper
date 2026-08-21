@@ -49,3 +49,39 @@ def test_sanitize_display_state_accepts_known_modes_and_rejects_unknown_modes():
         assert exc.status_code == 400
     else:
         raise AssertionError('Unsupported display mode should raise HTTPException')
+
+
+def test_sanitize_display_state_preserves_safe_sync_metadata():
+    state = sanitize_display_state(
+        'campaign-1',
+        {
+            'mode': 'title',
+            'payload': {'title': 'Reveal'},
+            'sync_id': 'sync-123',
+            'sequence': 1787338800123,
+            'source_tab': 'tab-abc',
+        },
+        'gm-user',
+    )
+
+    assert state['sync_id'] == 'sync-123'
+    assert state['sequence'] == 1787338800123
+    assert state['source_tab'] == 'tab-abc'
+
+
+def test_sanitize_display_state_rejects_bad_sync_metadata_without_rejecting_display():
+    state = sanitize_display_state(
+        'campaign-1',
+        {
+            'mode': 'blank',
+            'payload': {},
+            'sync_id': 'x' * 400,
+            'sequence': 'not-a-number',
+            'source_tab': 'y' * 400,
+        },
+        'gm-user',
+    )
+
+    assert state['sync_id'] == 'x' * 200
+    assert 'sequence' not in state
+    assert state['source_tab'] == 'y' * 200
