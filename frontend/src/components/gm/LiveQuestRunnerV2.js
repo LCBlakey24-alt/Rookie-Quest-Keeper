@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, Circle, FileText, Gift, Map, MapPin, Pin, Search, SkipForward, Swords, UserCircle } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, ChevronRight, Circle, FileText, Gift, Map, MapPin, Pin, Search, SkipForward, Swords, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { persistLivePlayHandoff } from '@/lib/livePlayHandoffs';
 
 const rq = {
   bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000', text: '#fff',
@@ -9,6 +10,7 @@ const rq = {
 };
 const OPEN = new Set(['draft', 'available', 'active']);
 const safeArray = value => Array.isArray(value) ? value : [];
+const EMPTY_RESOURCES = { encounters: [], npcs: [], locations: [], maps: [], handouts: [], rewards: [] };
 
 const LINK_TYPES = [
   { key: 'linked_encounter_ids', resource: 'encounters', label: 'Encounters', icon: Swords, tool: 'combat', name: item => item.name },
@@ -32,39 +34,84 @@ function statusRank(status) {
   return 2;
 }
 
+function failureList(labels = []) {
+  if (!labels.length) return '';
+  if (labels.length === 1) return labels[0];
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+}
+
 export default function LiveQuestRunnerV2({ campaignId }) {
   const storageKey = `gm.liveQuestFocus.${campaignId}`;
   const [quests, setQuests] = useState([]);
-  const [resources, setResources] = useState({ encounters: [], npcs: [], locations: [], maps: [], handouts: [], rewards: [] });
+  const [resources, setResources] = useState(EMPTY_RESOURCES);
   const [loading, setLoading] = useState(true);
+  const [questLoadFailed, setQuestLoadFailed] = useState(false);
+  const [resourceWarning, setResourceWarning] = useState('');
   const [search, setSearch] = useState('');
   const [showResolved, setShowResolved] = useState({});
   const [expandedId, setExpandedId] = useState(() => {
     try { return localStorage.getItem(storageKey) || ''; } catch { return ''; }
   });
 
-  const load = async () => {
-    if (!campaignId) return;
-    try {
-      const [questRes, encounterRes, npcRes, locationRes, mapRes, handoutRes, rewardRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}/quests`),
-        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/locations`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/maps`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/handouts`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/inventory`).catch(() => ({ data: [] })),
-      ]);
-      setQuests(safeArray(questRes.data));
-      setResources({ encounters: safeArray(encounterRes.data), npcs: safeArray(npcRes.data), locations: safeArray(locationRes.data), maps: safeArray(mapRes.data), handouts: safeArray(handoutRes.data), rewards: safeArray(rewardRes.data) });
-    } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not load live quests');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (!campaignId) return undefined;
+    let cancelled = false;
 
-  useEffect(() => { load(); }, [campaignId]);
+    const load = async () => {
+      setLoading(true);
+      setQuestLoadFailed(false);
+      setResourceWarning('');
+      try {
+        const results = await Promise.allSettled([
+          apiClient.get(`/campaigns/${campaignId}/quests`),
+          apiClient.get(`/campaigns/${campaignId}/combat-scenarios`),
+          apiClient.get(`/campaigns/${campaignId}/npcs`),
+          apiClient.get(`/campaigns/${campaignId}/locations`),
+          apiClient.get(`/campaigns/${campaignId}/maps`),
+          apiClient.get(`/campaigns/${campaignId}/handouts`),
+          apiClient.get(`/campaigns/${campaignId}/inventory`),
+        ]);
+        if (cancelled) return;
+
+        const [questResult, encounterResult, npcResult, locationResult, mapResult, handoutResult, rewardResult] = results;
+        if (questResult.status === 'fulfilled') {
+          setQuests(safeArray(questResult.value?.data));
+          setQuestLoadFailed(false);
+        } else {
+          setQuestLoadFailed(true);
+          toast.error(questResult.reason?.response?.data?.detail || 'Could not load live quests');
+        }
+
+        const nextResources = {};
+        const failedResources = [];
+        const resourceResults = [
+          ['encounters', 'encounters', encounterResult],
+          ['npcs', 'NPCs', npcResult],
+          ['locations', 'locations', locationResult],
+          ['maps', 'maps', mapResult],
+          ['handouts', 'handouts', handoutResult],
+          ['rewards', 'loot', rewardResult],
+        ];
+        resourceResults.forEach(([key, label, result]) => {
+          if (result.status === 'fulfilled') nextResources[key] = safeArray(result.value?.data);
+          else failedResources.push(label);
+        });
+        setResources(prev => ({ ...prev, ...nextResources }));
+        setResourceWarning(failedResources.length
+          ? `Some linked quest data could not load: ${failureList(failedResources)}. Missing linked buttons may reappear after reconnecting.`
+          : '');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    setQuests([]);
+    setResources(EMPTY_RESOURCES);
+    setSearch('');
+    setShowResolved({});
+    load();
+    return () => { cancelled = true; };
+  }, [campaignId]);
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -108,10 +155,19 @@ export default function LiveQuestRunnerV2({ campaignId }) {
 
   const openTool = (type, itemId) => {
     if (type.key === 'linked_encounter_ids') {
-      try { localStorage.setItem(`gm.questEncounter.${campaignId}`, itemId); } catch { /* ignore */ }
+      const stored = persistLivePlayHandoff(localStorage, `gm.questEncounter.${campaignId}`, itemId);
+      if (!stored) {
+        toast.error('Could not prepare the linked encounter. Stay on this quest and try again.');
+        return false;
+      }
     }
     const button = typeof document !== 'undefined' ? document.querySelector(`[data-testid="live-tool-${type.tool}"]`) : null;
-    button?.click?.();
+    if (!button?.click) {
+      toast.error(`Could not open ${type.label}.`);
+      return false;
+    }
+    button.click();
+    return true;
   };
 
   const completeQuest = async quest => {
@@ -129,7 +185,14 @@ export default function LiveQuestRunnerV2({ campaignId }) {
     <div data-testid="live-quest-runner" style={shellStyle}>
       <label style={searchStyle}><Search size={14} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Find a quest" style={searchInputStyle} /></label>
 
-      {!visible.length && <div style={emptyStyle}>No open quests.</div>}
+      {questLoadFailed && (
+        <div data-testid="live-quest-load-warning" role="status" style={warningStyle}><AlertTriangle size={14} /> Rookie could not load the quest list. Do not assume the campaign has no open quests.</div>
+      )}
+      {resourceWarning && (
+        <div data-testid="live-quest-resource-warning" role="status" style={warningStyle}><AlertTriangle size={14} /> {resourceWarning}</div>
+      )}
+
+      {!visible.length && !questLoadFailed && <div style={emptyStyle}>No open quests.</div>}
 
       {visible.map(quest => {
         const p = progress(quest);
@@ -221,6 +284,7 @@ const shellStyle = { display: 'grid', gap: 6, color: rq.text };
 const searchStyle = { minHeight: 36, display: 'flex', alignItems: 'center', gap: 7, background: rq.bg, border: `1px solid ${rq.line}`, padding: '0 9px' };
 const searchInputStyle = { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: rq.text };
 const emptyStyle = { minHeight: 90, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px dashed ${rq.line}`, color: rq.muted, fontSize: 11 };
+const warningStyle = { minHeight: 38, display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.45)', color: rq.soft, padding: 8, fontSize: 10, lineHeight: 1.4 };
 const questStyle = { background: rq.panel, border: `1px solid ${rq.line}` };
 const questHeaderStyle = { width: '100%', minHeight: 52, border: 0, background: rq.card, color: rq.text, padding: '8px 10px', display: 'grid', gridTemplateColumns: '20px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, cursor: 'pointer' };
 const questTitleStyle = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 };
