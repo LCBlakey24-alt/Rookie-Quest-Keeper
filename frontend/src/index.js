@@ -15,6 +15,7 @@ import { installSafeToasts } from "@/utils/safeToast";
 import { registerPwaServiceWorker } from "@/pwa/registerServiceWorker";
 import { installQueuedCombatPartyOverlay } from "@/offline/queuedCombatPartyOverlay";
 import { installRookAiConsentGate } from "@/privacy/rookAiConsent";
+import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCleanup";
 // Current product guardrails load after App and all feature-level styles.
 import "@/styles/appStoreMobilePolish.css";
 import "@/styles/rookieResponsiveSystem.css";
@@ -22,6 +23,7 @@ import "@/styles/rookieResponsiveSystem.css";
 installSafeToasts();
 installQueuedCombatPartyOverlay();
 installRookAiConsentGate();
+installAccountDeletionLocalCleanup();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
