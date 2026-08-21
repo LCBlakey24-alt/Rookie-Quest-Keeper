@@ -8,7 +8,7 @@ const PACK_STORE = 'campaign-packs';
 const CACHEABLE_PREFIXES = [
   '/campaigns',
   '/characters',
-  '/player/',
+  '/player',
   '/srd',
   '/rule-systems',
   '/progression',
