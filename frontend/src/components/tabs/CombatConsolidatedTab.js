@@ -44,6 +44,24 @@ function uniqueScenarioList(prev, encounter) {
     : [encounter, ...prev];
 }
 
+async function loadPartyWithLegacyFallback(campaignId) {
+  try {
+    return await apiClient.get(`/campaigns/${campaignId}/live-party`);
+  } catch (liveError) {
+    try {
+      return await apiClient.get(`/campaigns/${campaignId}/players`);
+    } catch {
+      throw liveError;
+    }
+  }
+}
+
+function formatFailures(failures = []) {
+  if (!failures.length) return '';
+  if (failures.length === 1) return failures[0];
+  return `${failures.slice(0, -1).join(', ')} and ${failures[failures.length - 1]}`;
+}
+
 export default function CombatConsolidatedTab({ campaignId }) {
   const navigate = useNavigate();
   const [players, setPlayers] = useState([]);
@@ -52,43 +70,86 @@ export default function CombatConsolidatedTab({ campaignId }) {
   const [campaignName, setCampaignName] = useState('Campaign');
   const [loading, setLoading] = useState(true);
   const [activeMode, setActiveMode] = useState('combat');
+  const [loadWarning, setLoadWarning] = useState('');
+  const [partyReadFailed, setPartyReadFailed] = useState(false);
+  const [scenarioReadFailed, setScenarioReadFailed] = useState(false);
 
-  const loadCombatPrep = useCallback(async () => {
-    if (!campaignId) return;
+  const loadCombatPrep = useCallback(async ({ silent = true } = {}) => {
+    if (!campaignId) return { ok: false, failures: ['campaign'] };
     setLoading(true);
     try {
-      const [campaignRes, playersRes, scenariosRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}`).catch(() => ({ data: null })),
-        apiClient.get(`/campaigns/${campaignId}/live-party`).catch(() => apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] }))),
-        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
+      const [campaignResult, playersResult, scenariosResult] = await Promise.allSettled([
+        apiClient.get(`/campaigns/${campaignId}`),
+        loadPartyWithLegacyFallback(campaignId),
+        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`),
       ]);
-      setCampaignName(campaignRes.data?.name || 'Campaign');
-      setPlayers(Array.isArray(playersRes.data) ? playersRes.data : []);
-      const loadedScenarios = Array.isArray(scenariosRes.data) ? scenariosRes.data : [];
-      setScenarios(loadedScenarios);
 
-      let requestedScenarioId = '';
-      try {
-        requestedScenarioId = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
-        if (requestedScenarioId) localStorage.removeItem(`gm.questEncounter.${campaignId}`);
-      } catch { /* ignore */ }
+      const failures = [];
+      if (campaignResult.status === 'fulfilled') {
+        setCampaignName(campaignResult.value?.data?.name || 'Campaign');
+      } else {
+        failures.push('campaign details');
+      }
 
-      setSelectedScenario(prev => {
+      if (playersResult.status === 'fulfilled') {
+        setPlayers(Array.isArray(playersResult.value?.data) ? playersResult.value.data : []);
+        setPartyReadFailed(false);
+      } else {
+        failures.push('party');
+        setPartyReadFailed(true);
+      }
+
+      if (scenariosResult.status === 'fulfilled') {
+        const loadedScenarios = Array.isArray(scenariosResult.value?.data) ? scenariosResult.value.data : [];
+        setScenarios(loadedScenarios);
+        setScenarioReadFailed(false);
+
+        let requestedScenarioId = '';
+        try {
+          requestedScenarioId = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
+        } catch { /* handoff storage is optional */ }
+
+        setSelectedScenario(prev => {
+          let next = null;
+          if (requestedScenarioId) {
+            next = loadedScenarios.find(item => item.id === requestedScenarioId) || null;
+          }
+          if (!next && prev && loadedScenarios.some(item => item.id === prev.id)) {
+            next = loadedScenarios.find(item => item.id === prev.id) || null;
+          }
+          if (!next) next = loadedScenarios[0] || null;
+          return next;
+        });
+
         if (requestedScenarioId) {
-          const requested = loadedScenarios.find(item => item.id === requestedScenarioId);
-          if (requested) return requested;
+          try { localStorage.removeItem(`gm.questEncounter.${campaignId}`); } catch { /* ignore cleanup failure */ }
         }
-        if (prev && loadedScenarios.some(item => item.id === prev.id)) return loadedScenarios.find(item => item.id === prev.id);
-        return loadedScenarios[0] || null;
-      });
+      } else {
+        failures.push('saved encounters');
+        setScenarioReadFailed(true);
+      }
+
+      const warning = failures.length
+        ? `Could not refresh ${formatFailures(failures)}. Rookie is keeping the last known data for anything that failed.`
+        : '';
+      setLoadWarning(warning);
+
+      if (!silent) {
+        if (failures.length) toast.warning('Encounter prep only partly refreshed', { description: warning });
+        else toast.success('Encounter prep refreshed');
+      }
+      return { ok: failures.length === 0, failures };
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not load encounters');
+      const message = error?.response?.data?.detail || 'Could not load encounters';
+      setLoadWarning(message);
+      if (!silent) toast.error(message);
+      return { ok: false, failures: ['encounter prep'] };
     } finally {
       setLoading(false);
     }
   }, [campaignId]);
 
-  useEffect(() => { loadCombatPrep(); }, [loadCombatPrep]);
+  useEffect(() => { loadCombatPrep({ silent: true }); }, [loadCombatPrep]);
 
   const quickScenario = useMemo(() => ({
     id: `quick-party-${campaignId}`,
@@ -109,6 +170,10 @@ export default function CombatConsolidatedTab({ campaignId }) {
   };
 
   const quickStartCombat = () => {
+    if (partyReadFailed) {
+      toast.error('Rookie could not confirm the party. Refresh before starting quick party combat.');
+      return;
+    }
     if (!players.length) {
       toast.error('Add or link players before starting party combat');
       return;
@@ -120,12 +185,13 @@ export default function CombatConsolidatedTab({ campaignId }) {
     if (encounter?.id) {
       setScenarios(prev => uniqueScenarioList(prev, encounter));
       setSelectedScenario(encounter);
+      setScenarioReadFailed(false);
     }
     setActiveMode('combat');
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   };
 
-  if (loading) return <section style={loadingStyle}>Loading encounters…</section>;
+  if (loading && !scenarios.length && !players.length) return <section style={loadingStyle}>Loading encounters…</section>;
 
   return (
     <section data-testid="combat-consolidated-tab" style={shellStyle}>
@@ -134,11 +200,19 @@ export default function CombatConsolidatedTab({ campaignId }) {
           <button type="button" onClick={() => setActiveMode('combat')} style={modeButtonStyle(activeMode === 'combat')}><Swords size={15} /> Encounters</button>
           <button type="button" onClick={() => setActiveMode('monsters')} style={modeButtonStyle(activeMode === 'monsters')}><Skull size={15} /> Monster Builder</button>
         </nav>
-        <button type="button" onClick={loadCombatPrep} style={refreshButtonStyle}><RefreshCw size={14} /> Refresh</button>
+        <button type="button" onClick={() => loadCombatPrep({ silent: false })} disabled={loading} style={refreshButtonStyle}><RefreshCw size={14} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
       </div>
 
-      {!players.length && activeMode === 'combat' && (
+      {loadWarning && (
+        <section data-testid="combat-prep-load-warning" role="status" style={warningStyle}><AlertTriangle size={15} /> {loadWarning}</section>
+      )}
+
+      {!players.length && !partyReadFailed && activeMode === 'combat' && (
         <section style={warningStyle}><AlertTriangle size={15} /> No linked player characters yet. You can still prep encounters.</section>
+      )}
+
+      {scenarioReadFailed && !scenarios.length && activeMode === 'combat' && (
+        <section style={warningStyle}><AlertTriangle size={15} /> Saved encounters could not be loaded. Refresh before assuming this campaign has no encounter prep.</section>
       )}
 
       {activeMode === 'monsters' ? (
