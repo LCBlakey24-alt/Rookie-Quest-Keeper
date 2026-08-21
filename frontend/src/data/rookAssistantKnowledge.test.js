@@ -10,19 +10,22 @@ describe('rookAssistantKnowledge', () => {
   test('returns page-aware meta for major app routes', () => {
     expect(getRookPageMeta('/home')).toMatchObject({ key: 'dashboard', label: 'Dashboard Guide' });
     expect(getRookPageMeta('/characters')).toMatchObject({ key: 'characters', label: 'Character Builder Coach' });
+    expect(getRookPageMeta('/characters/new')).toMatchObject({ key: 'characters', label: 'Character Builder Coach' });
     expect(getRookPageMeta('/characters/abc123')).toMatchObject({ key: 'character-sheet', label: 'Player Sheet Helper' });
     expect(getRookPageMeta('/campaigns')).toMatchObject({ key: 'campaigns', label: 'Campaign Launcher' });
     expect(getRookPageMeta('/campaign/camp123')).toMatchObject({ key: 'campaign-dashboard', label: 'Campaign Co-GM' });
     expect(getRookPageMeta('/gm-screen/camp123')).toMatchObject({ key: 'gm-live', label: 'Live Play Co-GM' });
+    expect(getRookPageMeta('/combat/camp123')).toMatchObject({ key: 'gm-live', label: 'Live Play Co-GM' });
     expect(getRookPageMeta('/homebrew')).toMatchObject({ key: 'homebrew', label: 'Homebrew Workshop Assistant' });
     expect(getRookPageMeta('/uploads')).toMatchObject({ key: 'uploads', label: 'Upload & Import Assistant' });
     expect(getRookPageMeta('/admin')).toMatchObject({ key: 'admin', label: 'Admin QA Assistant' });
   });
 
-  test('extracts campaign IDs from campaign, GM, display, and mobile routes', () => {
+  test('extracts campaign IDs from campaign, GM, combat, display, and mobile routes', () => {
     expect(extractCampaignIdFromPath('/campaign/camp123')).toBe('camp123');
     expect(extractCampaignIdFromPath('/campaign/camp123/player-display')).toBe('camp123');
     expect(extractCampaignIdFromPath('/gm-screen/camp123')).toBe('camp123');
+    expect(extractCampaignIdFromPath('/combat/camp123')).toBe('camp123');
     expect(extractCampaignIdFromPath('/gm-second-screen/camp123')).toBe('camp123');
     expect(extractCampaignIdFromPath('/player-display/camp123')).toBe('camp123');
     expect(extractCampaignIdFromPath('/mobile/camp123')).toBe('camp123');
@@ -33,6 +36,7 @@ describe('rookAssistantKnowledge', () => {
     expect(getRookStarterPrompts('/gm-screen/camp123')).toContain('Describe this room in 20 seconds');
     expect(getRookMicroSuggestions('/characters/char123')).toContain('Turn checklist');
     expect(getRookMicroSuggestions('/homebrew')).toContain('Balance check');
+    expect(getRookMicroSuggestions('/campaign/camp123')).toContain('Quest prep');
   });
 
   test('builds system context with route mode, original pools, and optional page data', () => {
@@ -45,5 +49,15 @@ describe('rookAssistantKnowledge', () => {
     expect(context).toContain('Homebrew quality checks:');
     expect(context).toContain('CURRENT CHARACTER SHEET CONTEXT');
     expect(context).toContain('Test Hero');
+  });
+
+  test('keeps Rook aligned with quest-first campaign workflow', () => {
+    const context = buildRookSystemContext('/campaign/camp123');
+
+    expect(context).toContain('A campaign can have multiple active quests.');
+    expect(context).toContain('Do not require a special "Tonight\'s Session" or next-session object');
+    expect(context).toContain('Rook suggests; the GM decides.');
+    expect(context).not.toContain('Turn my loose ideas into a session plan');
+    expect(context).not.toContain('Give me a cliffhanger for tonight');
   });
 });
