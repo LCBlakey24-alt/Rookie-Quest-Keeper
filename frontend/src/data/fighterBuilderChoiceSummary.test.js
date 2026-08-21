@@ -24,6 +24,6 @@ describe('Fighter builder choice summary', () => {
     const subclass = summary.sections.find(section => section.key === 'subclass');
 
     expect(subclass).toMatchObject({ required: true, count: 1 });
-    expect(subclass.options.map(option => option.key)).toEqual(['champion', 'battle_master', 'eldritch_knight']);
+    expect(subclass.options.map(option => option.key)).toEqual(['champion', 'custom_fighter_subclass']);
   });
 });
