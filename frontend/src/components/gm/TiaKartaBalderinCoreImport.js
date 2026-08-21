@@ -111,11 +111,20 @@ Godfrey’s stock takes one week to replenish.
 
 const normalise = value => String(value || '').trim().toLowerCase();
 
+function asList(response, label) {
+  if (!Array.isArray(response?.data)) {
+    throw new Error(`${label} could not be read safely. Nothing was imported.`);
+  }
+  return response.data;
+}
+
 async function ensureNamed(existing, wanted, create) {
   const found = existing.find(item => normalise(item.name || item.title) === normalise(wanted.name || wanted.title));
-  if (found) return found;
+  if (found) return { item: found, created: false };
   const response = await create(wanted);
-  return response.data;
+  if (!response?.data) throw new Error(`Could not create ${wanted.name || wanted.title}.`);
+  existing.push(response.data);
+  return { item: response.data, created: true };
 }
 
 export default function TiaKartaBalderinCoreImport({ campaignId, onImported }) {
@@ -126,24 +135,27 @@ export default function TiaKartaBalderinCoreImport({ campaignId, onImported }) {
     if (!campaignId || importing) return;
     setImporting(true);
     try {
+      // Never turn a failed read into an empty campaign. A transient failure here
+      // must stop the import, otherwise a retry could create duplicate canon.
       const [npcRes, locationRes, handoutRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/locations`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/handouts`).catch(() => ({ data: [] })),
+        apiClient.get(`/campaigns/${campaignId}/npcs`),
+        apiClient.get(`/campaigns/${campaignId}/locations`),
+        apiClient.get(`/campaigns/${campaignId}/handouts`),
       ]);
 
-      const npcs = Array.isArray(npcRes.data) ? [...npcRes.data] : [];
-      const locations = Array.isArray(locationRes.data) ? [...locationRes.data] : [];
-      const handouts = Array.isArray(handoutRes.data) ? handoutRes.data : [];
+      const npcs = [...asList(npcRes, 'NPCs')];
+      const locations = [...asList(locationRes, 'Locations')];
+      const handouts = asList(handoutRes, 'Handouts');
+      let createdCount = 0;
 
       for (const wanted of CORE_NPCS) {
-        const item = await ensureNamed(npcs, wanted, payload => apiClient.post(`/campaigns/${campaignId}/npcs`, payload));
-        npcs.push(item);
+        const result = await ensureNamed(npcs, wanted, payload => apiClient.post(`/campaigns/${campaignId}/npcs`, payload));
+        if (result.created) createdCount += 1;
       }
 
       for (const wanted of CORE_LOCATIONS) {
-        const item = await ensureNamed(locations, wanted, payload => apiClient.post(`/campaigns/${campaignId}/locations`, payload));
-        locations.push(item);
+        const result = await ensureNamed(locations, wanted, payload => apiClient.post(`/campaigns/${campaignId}/locations`, payload));
+        if (result.created) createdCount += 1;
       }
 
       const title = 'Balderin Council & Restoration — GM Reference';
@@ -155,13 +167,18 @@ export default function TiaKartaBalderinCoreImport({ campaignId, onImported }) {
           category: 'gm_reference',
           allow_player_sharing: false,
         });
+        createdCount += 1;
       }
 
       setDone(true);
-      toast.success('Balderin core loaded', { description: 'Core NPCs, city locations and the council/restoration reference are now stored in the campaign.' });
+      toast.success(createdCount ? 'Balderin core loaded' : 'Balderin core already complete', {
+        description: createdCount
+          ? `${createdCount} missing campaign record${createdCount === 1 ? '' : 's'} added; existing matching records were preserved.`
+          : 'No duplicates were created.',
+      });
       onImported?.();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not load Balderin core');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || error?.message || 'Could not load Balderin core');
     } finally {
       setImporting(false);
     }
@@ -172,11 +189,11 @@ export default function TiaKartaBalderinCoreImport({ campaignId, onImported }) {
       <div style={{ minWidth: 0 }}>
         <p style={eyebrowStyle}>Tia-Karta · Campaign Core</p>
         <strong style={titleStyle}><Crown size={16} /> Balderin Core</strong>
-        <p style={textStyle}>Load the established city, palace, core council candidates and a compact GM restoration reference. Matching names are reused.</p>
+        <p style={textStyle}>Load or repair the established city, palace, core council candidates and GM restoration reference. Matching records are preserved.</p>
       </div>
       <button type="button" onClick={runImport} disabled={importing || done} style={buttonStyle(done)}>
         {done ? <CheckCircle2 size={15} /> : <Download size={15} />}
-        {done ? 'Loaded' : importing ? 'Loading…' : 'Load Core'}
+        {done ? 'Checked' : importing ? 'Checking…' : 'Load / Repair'}
       </button>
     </section>
   );
