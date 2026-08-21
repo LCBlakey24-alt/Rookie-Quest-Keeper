@@ -55,6 +55,18 @@ function decodeValues(values, source = {}) {
   return result;
 }
 
+export function notifyRookContentSaved({ campaignId, entityType, entity }) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('rook-content-saved', {
+    detail: { campaignId, entityType, entity },
+  }));
+
+  const currentPath = String(window.location?.pathname || '');
+  if (campaignId && currentPath.startsWith(`/campaign/${campaignId}`)) {
+    window.dispatchEvent(new Event('hashchange'));
+  }
+}
+
 export default function RookCreateStudio({ campaignId }) {
   const [entityType, setEntityType] = useState('npc');
   const [prompt, setPrompt] = useState('');
@@ -119,7 +131,7 @@ export default function RookCreateStudio({ campaignId }) {
       const saved = response.data?.entity;
       toast.success(`${saved?.name || saved?.title || typeMeta.label} saved to campaign`);
       try {
-        window.dispatchEvent(new CustomEvent('rook-content-saved', { detail: { entityType, entity: saved } }));
+        notifyRookContentSaved({ campaignId, entityType, entity: saved });
       } catch { /* optional live refresh event */ }
       cancelDraft();
       setPrompt('');
