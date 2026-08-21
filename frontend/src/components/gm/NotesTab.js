@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Check, FileText, Send, Swords, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { persistLivePlayHandoff } from '@/lib/livePlayHandoffs';
 
 export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNote, sessionNotes = [], setSessionNotes }) {
   const [saving, setSaving] = useState(false);
@@ -72,13 +73,19 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
 
   const openSuggestedEncounter = (suggestion) => {
     const encounterId = suggestion?.suggested_encounter_id;
-    if (!encounterId) return;
-    try { localStorage.setItem(`gm.questEncounter.${campaignId}`, encounterId); } catch { /* ignore */ }
-    if (typeof document !== 'undefined') {
-      window.requestAnimationFrame(() => {
-        document.querySelector('[data-testid="live-tool-combat"]')?.click?.();
-      });
+    if (!encounterId) return false;
+    if (!persistLivePlayHandoff(localStorage, `gm.questEncounter.${campaignId}`, encounterId)) {
+      toast.error('Could not prepare the linked encounter');
+      return false;
     }
+    if (typeof document === 'undefined') return false;
+    const combatButton = document.querySelector('[data-testid="live-tool-combat"]');
+    if (!combatButton?.click) {
+      toast.error('Encounter Review is unavailable right now');
+      return false;
+    }
+    combatButton.click();
+    return true;
   };
 
   const applySuggestion = async (suggestion, reviewEncounter = false) => {
@@ -94,8 +101,12 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
       setSuggestions(prev => prev.filter(item => item.id !== suggestion.id));
 
       if (reviewEncounter && suggestion.suggested_encounter_id) {
-        toast.success(`${suggestion.npc_name} added to travelling party`, { description: `Reviewing ${suggestion.suggested_encounter_name || 'the next linked encounter'}.` });
-        openSuggestedEncounter(suggestion);
+        const opened = openSuggestedEncounter(suggestion);
+        if (opened) {
+          toast.success(`${suggestion.npc_name} added to travelling party`, { description: `Reviewing ${suggestion.suggested_encounter_name || 'the next linked encounter'}.` });
+        } else {
+          toast.warning(`${suggestion.npc_name} was added to the travelling party`, { description: 'The encounter handoff could not be opened, so no encounter selection was assumed.' });
+        }
       } else {
         toast.success(suggestion.type === 'companion_add' ? `${suggestion.npc_name} marked as travelling with the party` : `${suggestion.npc_name} removed from travelling party`);
       }
