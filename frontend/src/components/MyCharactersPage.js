@@ -229,7 +229,7 @@ export default function MyCharactersPage() {
           </Link>
           <Link to="/characters/import" className="library-page-button-secondary">
             <FileUp size={16} />
-            Import / Free-build
+            Import Character
           </Link>
         </div>
         <div className="library-page-action-secondary">
@@ -261,7 +261,7 @@ export default function MyCharactersPage() {
           <p>Your next hero is waiting to be written into the story.</p>
           <div className="library-page-actions">
             <Link to="/characters/new" className="library-page-button library-page-button-primary">Create Character</Link>
-            <Link to="/characters/import" className="library-page-button-secondary">Import or Free-build</Link>
+            <Link to="/characters/import" className="library-page-button-secondary">Import Character</Link>
           </div>
         </section>
       ) : (
