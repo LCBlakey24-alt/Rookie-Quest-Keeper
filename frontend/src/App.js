@@ -103,6 +103,7 @@ const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
 const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
 const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
 const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
+const PlayerDashboard = lazyWithChunkRetry(() => import('@/components/PlayerDashboard'));
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
@@ -220,10 +221,22 @@ function AppRoutes() {
         <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create" element={<Navigate to="/characters/create/full" replace />} />
-        <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/basic" element={<Navigate to="/characters/create/full" replace />} />
-        <Route path="/characters/create/rook" element={<Navigate to="/characters/create/full" replace />} />
+
+        {/* One character creator. Legacy creator URLs remain redirects so old links and installed PWAs stay safe. */}
+        <Route path="/characters/new" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/full" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/basic" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/premade" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/kids" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/matchmaker" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/new/rook" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/full" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/basic" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/premade" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/kids" element={<Navigate to="/characters/new" replace />} />
+        <Route path="/characters/create/rook" element={<Navigate to="/characters/new" replace />} />
+
         <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
