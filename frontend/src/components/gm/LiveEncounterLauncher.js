@@ -11,6 +11,21 @@ const rq = {
 const EMPTY_QUICK = { name: '', quantity: 1, hp: 10, ac: 10, initiative: 0 };
 const safeArray = value => Array.isArray(value) ? value : [];
 
+export function readQueuedNpcIds(storage, campaignId, loadedNpcs = []) {
+  try {
+    const rawQueue = JSON.parse(storage.getItem(`gm.liveEncounterNpcQueue.${campaignId}`) || '[]');
+    return safeArray(rawQueue).filter(id => loadedNpcs.some(npc => npc.id === id));
+  } catch {
+    return [];
+  }
+}
+
+export function clearQueuedNpcIds(storage, campaignId) {
+  try {
+    storage.removeItem(`gm.liveEncounterNpcQueue.${campaignId}`);
+  } catch { /* local handoff cleanup is best effort */ }
+}
+
 function numberOr(value, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -118,9 +133,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
         try {
           requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
           localStorage.removeItem(`gm.questEncounter.${campaignId}`);
-          const rawQueue = JSON.parse(localStorage.getItem(`gm.liveEncounterNpcQueue.${campaignId}`) || '[]');
-          queued = safeArray(rawQueue).filter(id => loadedNpcs.some(npc => npc.id === id));
-          localStorage.removeItem(`gm.liveEncounterNpcQueue.${campaignId}`);
+          queued = readQueuedNpcIds(localStorage, campaignId, loadedNpcs);
         } catch { /* ignore */ }
         setQueuedNpcIds(queued);
         setSelectedId(loadedScenarios.some(item => item.id === requested) ? requested : (loadedScenarios[0]?.id || ''));
@@ -154,6 +167,12 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
   const toggle = (value, list, setter) => setter(list.includes(value) ? list.filter(item => item !== value) : [...list, value]);
 
+  const removeQueuedNpc = npcId => {
+    const nextQueuedIds = queuedNpcIds.filter(id => id !== npcId);
+    setQueuedNpcIds(nextQueuedIds);
+    try { localStorage.setItem(`gm.liveEncounterNpcQueue.${campaignId}`, JSON.stringify(nextQueuedIds)); } catch { /* ignore */ }
+  };
+
   const addQuickCombatants = () => {
     const name = String(quickDraft.name || '').trim();
     if (!name) return;
@@ -185,6 +204,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
     quickCombatants.forEach(combatant => { combatants = appendUnique(combatants, combatant); });
 
     try { localStorage.setItem(`gm.lastEncounter.${campaignId}`, selected.id || ''); } catch { /* ignore */ }
+    clearQueuedNpcIds(localStorage, campaignId);
     navigate(`/combat/${campaignId}`, {
       state: { scenario: { ...selected, combatants, name: selected.name || 'Live Encounter' }, campaignId, campaignName, source: 'live-play' },
     });
@@ -206,7 +226,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
       {queuedNpcs.length > 0 && (
         <ParticipantSection title="Added from NPCs" count={queuedNpcs.length} accent>
-          {queuedNpcs.map(npc => <ToggleRow key={npc.id} checked title={npc.name} meta={`${npc.role || npc.occupation || 'NPC'} · queued`} onClick={() => setQueuedNpcIds(prev => prev.filter(id => id !== npc.id))} />)}
+          {queuedNpcs.map(npc => <ToggleRow key={npc.id} checked title={npc.name} meta={`${npc.role || npc.occupation || 'NPC'} · queued`} onClick={() => removeQueuedNpc(npc.id)} />)}
         </ParticipantSection>
       )}
 
