@@ -69,11 +69,17 @@ function normaliseUrl(config = {}) {
   }
 }
 
+function isCampaignMembersRead(path) {
+  return /^\/campaign-invites\/[^/]+\/members$/.test(path);
+}
+
 export function isCacheableOfflineGet(config = {}) {
   if (String(config.method || 'get').toLowerCase() !== 'get') return false;
   const path = normaliseUrl(config);
   if (!path || path === '/auth/me' || path.startsWith('/auth/') || path.startsWith('/admin') || path.startsWith('/rook')) return false;
-  return CACHEABLE_EXACT.has(path) || CACHEABLE_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
+  return CACHEABLE_EXACT.has(path)
+    || isCampaignMembersRead(path)
+    || CACHEABLE_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 function stableParams(params) {
