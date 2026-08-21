@@ -10,7 +10,7 @@ on:
 
 jobs:
   frontend-build:
-    name: Frontend build
+    name: Frontend tests and build
     runs-on: ubuntu-latest
 
     defaults:
@@ -30,6 +30,11 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Run frontend tests
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand
 
       - name: Build frontend
         run: yarn build
