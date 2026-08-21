@@ -15,31 +15,63 @@ function nice(value = '') {
   return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
 
+function failureText(failures = []) {
+  if (!failures.length) return '';
+  if (failures.length === 1) return failures[0];
+  return `${failures.slice(0, -1).join(', ')} and ${failures[failures.length - 1]}`;
+}
+
 export default function GMPartyWorkspace({ campaignId }) {
   const [members, setMembers] = useState([]);
   const [party, setParty] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState('');
   const [showLegacy, setShowLegacy] = useState(false);
+  const [loadWarning, setLoadWarning] = useState('');
 
-  const load = useCallback(async () => {
-    if (!campaignId) return;
+  const load = useCallback(async ({ silent = true } = {}) => {
+    if (!campaignId) return { ok: false, failures: ['campaign'] };
     setLoading(true);
     try {
-      const [memberRes, partyRes] = await Promise.all([
-        apiClient.get(`/campaign-invites/${campaignId}/members`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/live-party`).catch(() => ({ data: [] })),
+      const [memberResult, partyResult] = await Promise.allSettled([
+        apiClient.get(`/campaign-invites/${campaignId}/members`),
+        apiClient.get(`/campaigns/${campaignId}/live-party`),
       ]);
-      setMembers(Array.isArray(memberRes.data) ? memberRes.data : []);
-      setParty(Array.isArray(partyRes.data) ? partyRes.data : []);
+
+      const failures = [];
+      if (memberResult.status === 'fulfilled') {
+        setMembers(Array.isArray(memberResult.value?.data) ? memberResult.value.data : []);
+      } else {
+        failures.push('joined characters');
+      }
+
+      if (partyResult.status === 'fulfilled') {
+        setParty(Array.isArray(partyResult.value?.data) ? partyResult.value.data : []);
+      } else {
+        failures.push('live party stats');
+      }
+
+      const warning = failures.length
+        ? `Could not refresh ${failureText(failures)}. Showing the last known data for anything that failed.`
+        : '';
+      setLoadWarning(warning);
+
+      if (!silent) {
+        if (failures.length) toast.warning('Party only partly refreshed', { description: warning });
+        else toast.success('Party refreshed');
+      }
+      return { ok: failures.length === 0, failures };
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not load party');
+      const message = error?.response?.data?.detail || 'Could not load party';
+      setLoadWarning(message);
+      if (!silent) toast.error(message);
+      return { ok: false, failures: ['party'] };
     } finally {
       setLoading(false);
     }
   }, [campaignId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load({ silent: true }); }, [load]);
 
   const partyByCharacter = useMemo(() => Object.fromEntries(party.filter(row => row.character_id).map(row => [row.character_id, row])), [party]);
   const legacy = useMemo(() => party.filter(row => row.source === 'legacy'), [party]);
@@ -53,8 +85,14 @@ export default function GMPartyWorkspace({ campaignId }) {
     try {
       await apiClient.put(`/campaign-invites/${campaignId}/members/${member.id}/status`, { status });
       setMembers(prev => prev.map(item => item.id === member.id ? { ...item, status } : item));
-      await load();
-      toast.success(`${member.character_name || member.username || 'Character'} marked ${nice(status)}`);
+      const refreshResult = await load({ silent: true });
+      if (refreshResult?.ok) {
+        toast.success(`${member.character_name || member.username || 'Character'} marked ${nice(status)}`);
+      } else {
+        toast.warning(`${member.character_name || member.username || 'Character'} marked ${nice(status)}`, {
+          description: 'The status change was saved, but some party details could not refresh. Last known data is being kept.',
+        });
+      }
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not update player status');
     } finally {
@@ -62,16 +100,22 @@ export default function GMPartyWorkspace({ campaignId }) {
     }
   };
 
-  if (loading) return <div style={emptyStyle}>Loading party…</div>;
+  if (loading && members.length === 0 && party.length === 0) return <div style={emptyStyle}>Loading party…</div>;
 
   return (
     <div data-testid="gm-party-workspace" style={shellStyle}>
       <div style={toolbarStyle}>
         <div style={toolbarTitleStyle}><Users size={16} /><strong>Joined Characters</strong><span style={countStyle}>{members.length}</span></div>
-        <button type="button" onClick={load} style={smallButtonStyle}><RefreshCw size={13} /> Refresh</button>
+        <button type="button" onClick={() => load({ silent: false })} disabled={loading || Boolean(savingId)} style={smallButtonStyle}><RefreshCw size={13} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
       </div>
 
-      {visibleMembers.length === 0 && (
+      {loadWarning && (
+        <section data-testid="gm-party-load-warning" role="status" style={warningStyle}>
+          <AlertCircle size={14} /> <span>{loadWarning}</span>
+        </section>
+      )}
+
+      {visibleMembers.length === 0 && !loading && (
         <section style={emptyStyle}>No joined characters yet. Share the join code above and they will appear here.</section>
       )}
 
@@ -139,6 +183,7 @@ const toolbarStyle = { minHeight: 42, display: 'flex', alignItems: 'center', jus
 const toolbarTitleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 };
 const countStyle = { color: rq.muted, fontSize: 10 };
 const smallButtonStyle = { minHeight: 30, border: `1px solid ${rq.line}`, background: rq.card, color: rq.soft, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 850 };
+const warningStyle = { minHeight: 36, display: 'flex', alignItems: 'flex-start', gap: 7, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.45)', color: rq.soft, padding: 8, fontSize: 10, lineHeight: 1.4 };
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 };
 const cardStyle = pending => ({ display: 'grid', gap: 7, background: rq.card, border: `1px solid ${pending ? rq.red : rq.line}`, borderLeft: `4px solid ${pending ? rq.red : rq.line}`, padding: 8, minWidth: 0 });
 const cardTopStyle = { display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 };
