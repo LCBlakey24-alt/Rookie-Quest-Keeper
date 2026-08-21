@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Copy, Image as ImageIcon, Monitor, RefreshCw, Send, Users, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Copy, Image as ImageIcon, Monitor, RefreshCw, Send, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { createDisplayState, loadDisplayState, publishCampaignDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
@@ -45,6 +45,8 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
   const [target, setTarget] = useState('standing-tv');
   const [busy, setBusy] = useState('');
+  const [refreshingAssets, setRefreshingAssets] = useState(false);
+  const [assetWarning, setAssetWarning] = useState('');
 
   useEffect(() => {
     setState(loadDisplayState(campaignId));
@@ -53,16 +55,48 @@ export default function LiveSecondScreenDock({ campaignId }) {
     return () => { local(); remote(); };
   }, [campaignId]);
 
-  useEffect(() => {
-    if (!campaignId) return;
-    Promise.all([
-      apiClient.get(`/campaigns/${campaignId}/maps`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-    ]).then(([mapsRes, npcsRes]) => {
-      setMaps(Array.isArray(mapsRes.data) ? mapsRes.data : []);
-      setNpcs(Array.isArray(npcsRes.data) ? npcsRes.data : []);
-    });
+  const refreshAssets = useCallback(async ({ silent = false } = {}) => {
+    if (!campaignId) return { ok: false, failures: ['campaign'] };
+    setRefreshingAssets(true);
+    try {
+      const [mapsResult, npcsResult] = await Promise.allSettled([
+        apiClient.get(`/campaigns/${campaignId}/maps`),
+        apiClient.get(`/campaigns/${campaignId}/npcs`),
+      ]);
+      const failures = [];
+
+      if (mapsResult.status === 'fulfilled') {
+        setMaps(Array.isArray(mapsResult.value?.data) ? mapsResult.value.data : []);
+      } else {
+        failures.push('maps');
+      }
+      if (npcsResult.status === 'fulfilled') {
+        setNpcs(Array.isArray(npcsResult.value?.data) ? npcsResult.value.data : []);
+      } else {
+        failures.push('NPC pictures');
+      }
+
+      const warning = failures.length
+        ? `Could not refresh ${failures.join(' and ')}. Keeping the last known assets for anything that failed.`
+        : '';
+      setAssetWarning(warning);
+
+      if (!silent) {
+        if (failures.length) toast.warning('Second screen assets only partly refreshed', { description: warning });
+        else toast.success('Second screen assets refreshed');
+      }
+      return { ok: failures.length === 0, failures };
+    } finally {
+      setRefreshingAssets(false);
+    }
   }, [campaignId]);
+
+  useEffect(() => {
+    setMaps([]);
+    setNpcs([]);
+    setAssetWarning('');
+    refreshAssets({ silent: true });
+  }, [campaignId, refreshAssets]);
 
   const visibleMaps = useMemo(() => maps.filter(imageFrom).slice(0, 8), [maps]);
   const visibleNpcs = useMemo(() => npcs.filter(imageFrom).slice(0, 8), [npcs]);
@@ -145,6 +179,12 @@ export default function LiveSecondScreenDock({ campaignId }) {
         <button type="button" onClick={copyDisplayLink} style={smallButtonStyle}><Copy size={13} /> Link</button>
       </section>
 
+      {assetWarning && (
+        <div data-testid="second-screen-asset-warning" role="status" style={warningStyle}>
+          <AlertTriangle size={13} /> <span>{assetWarning}</span>
+        </div>
+      )}
+
       <section style={buttonGroupStyle}>
         <p style={sectionLabelStyle}>Quick reveals</p>
         {tiaKartaSecondScreenPresets.slice(0, 10).map(preset => <button key={preset.id} type="button" onClick={() => sendPreset(preset)} disabled={busy === preset.id} style={revealButtonStyle}><Send size={13} /> {preset.title}</button>)}
@@ -157,7 +197,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
 
       <section style={buttonGroupStyle}>
         <p style={sectionLabelStyle}>Maps / images</p>
-        <button type="button" onClick={() => Promise.all([apiClient.get(`/campaigns/${campaignId}/maps`).catch(() => ({ data: [] })), apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] }))]).then(([mapsRes, npcsRes]) => { setMaps(Array.isArray(mapsRes.data) ? mapsRes.data : []); setNpcs(Array.isArray(npcsRes.data) ? npcsRes.data : []); toast.success('Second screen assets refreshed'); })} style={smallButtonStyle}><RefreshCw size={13} /> Refresh assets</button>
+        <button type="button" onClick={() => refreshAssets({ silent: false })} disabled={refreshingAssets} style={smallButtonStyle}><RefreshCw size={13} /> {refreshingAssets ? 'Refreshing…' : 'Refresh assets'}</button>
         {visibleMaps.length ? visibleMaps.map(map => <button key={map.id} type="button" onClick={() => sendMap(map)} style={mediaButtonStyle}><ImageIcon size={13} /> {map.name || map.title || 'Map'}</button>) : <p style={mutedStyle}>Upload maps/images to show them here.</p>}
       </section>
     </aside>
@@ -180,6 +220,7 @@ const previewTextStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeigh
 const targetRowStyle = { display: 'flex', gap: 6, flexWrap: 'wrap' };
 const targetButtonStyle = (active) => ({ minHeight: 30, border: `1px solid ${active ? theme.red : theme.line}`, background: active ? theme.red : theme.card, color: theme.text, padding: '0 8px', fontWeight: 900, cursor: 'pointer' });
 const smallButtonStyle = { minHeight: 30, border: 0, background: theme.card, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 900, cursor: 'pointer' };
+const warningStyle = { display: 'flex', alignItems: 'flex-start', gap: 6, padding: 7, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.45)', color: theme.soft, fontSize: 10, lineHeight: 1.4 };
 const buttonGroupStyle = { display: 'grid', gap: 6, borderTop: `1px solid ${theme.line}`, paddingTop: 8 };
 const sectionLabelStyle = { margin: 0, color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const revealButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 6, textAlign: 'left', justifyContent: 'flex-start', fontSize: 12, fontWeight: 900, cursor: 'pointer' };
