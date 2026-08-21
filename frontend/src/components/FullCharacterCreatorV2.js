@@ -8,6 +8,7 @@ import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/da
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
+import { classSkillsForEdit } from '@/data/characterEditSkillHelpers';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
 
@@ -264,6 +265,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         if (cancelled) return;
         const loadedGold = Number(data.gold || data.currency?.gold || 0);
         const loadedFightingStyle = arr(data.class_features).map((feature) => displayName(feature)).find((name) => name.startsWith('Fighting Style:'))?.replace('Fighting Style:', '').trim() || '';
+        const loadedBackgroundName = data.background || 'Soldier';
+        const loadedBackgroundSkills = arr(BACKGROUNDS[loadedBackgroundName]?.skillProficiencies);
         setDraft((prev) => ({
           ...prev,
           name: data.name || '',
@@ -274,10 +277,10 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           characterClass: data.character_class || 'Fighter',
           subclass: data.subclass || '',
           fighterFightingStyle: loadedFightingStyle,
-          background: data.background || 'Soldier',
+          background: loadedBackgroundName,
           alignment: data.alignment || 'Neutral',
           scores: Object.fromEntries(ABILITIES.map((ability) => [ability, Number(data[ability] || 10)])),
-          selectedSkills: arr(data.skill_proficiencies),
+          selectedSkills: classSkillsForEdit(data.skill_proficiencies, loadedBackgroundSkills),
           selectedCantrips: arr(data.cantrips_known || data.cantrips).map((spell) => spell.name || spell),
           selectedSpells: [...arr(data.spells_known || data.known_spells), ...arr(data.spellbook), ...arr(data.spells_prepared || data.prepared_spells)].map((spell) => spell.name || spell),
           customEquipment: '',
