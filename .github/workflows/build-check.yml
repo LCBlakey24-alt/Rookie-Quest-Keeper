@@ -34,6 +34,14 @@ jobs:
       - name: Show lockfile drift
         run: git diff -- yarn.lock
 
+      - name: Capture regenerated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: regenerated-yarn-lock
+          path: frontend/yarn.lock
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Run frontend tests
         env:
           CI: true
