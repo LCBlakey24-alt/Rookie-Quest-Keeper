@@ -14,7 +14,7 @@ const ROUTE_CONTEXTS = [
   },
   {
     key: 'characters',
-    match: (path) => path.startsWith('/characters/create') || path.startsWith('/characters/import') || path === '/characters',
+    match: (path) => path === '/characters' || path === '/characters/new' || path.startsWith('/characters/new/') || path.startsWith('/characters/create') || path.startsWith('/characters/import'),
     label: 'Character Builder Coach',
     subtitle: 'Builds, backstories, imports, and rules help',
     intent: 'Help players build readable, fun, rules-aware characters. Explain choices plainly, suggest original backstory hooks, help import character notes, and guide the user without overwhelming them.',
@@ -55,13 +55,13 @@ const ROUTE_CONTEXTS = [
     key: 'campaign-dashboard',
     match: (path) => /^\/campaign\/[^/]+/.test(path),
     label: 'Campaign Co-GM',
-    subtitle: 'NPCs, lore, sessions, notes, encounters, and prep',
-    intent: 'Act as the GM assistant for the active campaign. Use saved campaign context when supplied by the backend. Help with NPCs, factions, locations, gods, quests, combat, session prep, recaps, and loose thread tracking.',
+    subtitle: 'NPCs, lore, quests, notes, encounters, and prep',
+    intent: 'Act as the GM assistant for the active campaign. Use saved campaign context when supplied by the backend. Help with NPCs, factions, locations, gods, quests, combat, flexible prep, recaps, and loose thread tracking.',
     starters: [
       'Summarise what I should prep next',
       'Create three NPCs that fit this campaign',
-      'Turn my loose ideas into a session plan',
-      'Give me a cliffhanger for tonight'
+      'Turn my loose ideas into a quest plan',
+      'Give me a cliffhanger for the current quest'
     ]
   },
   {
@@ -166,7 +166,7 @@ const ROOK_PAGE_PLAYBOOKS = {
     'Recommend what a GM should prepare first before opening live play.'
   ],
   'campaign-dashboard': [
-    'Turn loose campaign notes into NPCs, locations, factions, quests, and next-session prep.',
+    'Turn loose campaign notes into NPCs, locations, factions, quests, and flexible prep.',
     'Track unresolved threads and suggest consequences that feel earned.',
     'Write table-ready recap, boxed text, complications, and cliffhangers.'
   ],
@@ -286,7 +286,7 @@ export const ROOK_CREATIVE_LIBRARY = {
   ],
   gmMoves: [
     'Offer a meaningful choice with a cost on both sides.',
-    'Reveal a consequence from a previous session.',
+    'Reveal a consequence from an earlier choice or scene.',
     'Let an NPC want something simple but urgent.',
     'Turn a failed roll into progress plus trouble.',
     'Make the battlefield change after round two.',
@@ -333,7 +333,7 @@ function getPlaybookForContext(context) {
 export function extractCampaignIdFromPath(pathname = '') {
   const campaignMatch = pathname.match(/^\/campaign\/([^/]+)/);
   if (campaignMatch) return campaignMatch[1];
-  const gmMatch = pathname.match(/^\/(?:gm-screen|gm-second-screen|player-display|mobile)\/([^/]+)/);
+  const gmMatch = pathname.match(/^\/(?:gm-screen|gm-second-screen|player-display|mobile|combat)\/([^/]+)/);
   if (gmMatch) return gmMatch[1];
   return '';
 }
@@ -381,11 +381,18 @@ ${playbook.map((item) => `- ${item}`).join('\n')}
 ROOKIE QUEST KEEPER PRODUCT MAP:
 - Dashboard: choose the next useful action and see recent player/GM activity.
 - Characters: create, import, review, and improve player characters.
-- Campaigns: create campaign foundations, prep sessions, and manage GM workspace.
+- Campaigns: create campaign foundations, prep quests and encounters, and manage the GM workspace.
 - Homebrew: parse, draft, clean, validate, and balance custom rules content.
 - Uploads: decide where files belong and prepare messy notes for import.
 - Account: explain profile, password, and safety settings clearly.
 - Admin: triage feedback, QA issues, product tasks, and release notes.
+
+CAMPAIGN WORKFLOW PRINCIPLES:
+- A campaign can have multiple active quests.
+- Do not require a special "Tonight's Session" or next-session object before the GM can prep or play.
+- Prep builds the reusable campaign library; Live Play reads and updates that library.
+- The focused/current quest is a convenience for the GM, not a restriction on what campaign information Rook may use.
+- Rook suggests; the GM decides. Never imply campaign state changed unless an explicit save/update action actually happened.
 
 CONTENT SAFETY AND SOURCE RULES:
 - Use saved campaign context from the backend when it is provided.
@@ -434,7 +441,7 @@ export function getRookMicroSuggestions(pathname = '') {
     characters: ['Build concept', 'Explain rules', 'Generate backstory', 'Suggest names'],
     'character-sheet': ['Turn checklist', 'Spell help', 'Inventory plan', 'Roleplay cue'],
     campaigns: ['Campaign pitch', 'Session zero', 'World tone', 'Player invite'],
-    'campaign-dashboard': ['NPC idea', 'Session plan', 'Loose threads', 'Encounter hook'],
+    'campaign-dashboard': ['NPC idea', 'Quest prep', 'Loose threads', 'Encounter hook'],
     'gm-live': ['Enemy tactics', 'Boxed text', 'Ruling help', 'Complication'],
     'player-display': ['Spoiler-free recap', 'Scene text', 'Rules reminder', 'Status explainer'],
     homebrew: ['Balance check', 'Feat wording', 'Species traits', 'Import cleanup'],
