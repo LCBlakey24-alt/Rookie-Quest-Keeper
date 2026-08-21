@@ -11,6 +11,24 @@ const rq = {
 const safeArray = value => Array.isArray(value) ? value : [];
 const normalize = value => String(value || '').trim().toLowerCase();
 
+export function queueNpcForEncounterStorage(storage, campaignId, npcId) {
+  if (!storage || !campaignId || !npcId) return false;
+  try {
+    const key = `gm.liveEncounterNpcQueue.${campaignId}`;
+    let current = [];
+    try {
+      const parsed = JSON.parse(storage.getItem(key) || '[]');
+      current = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      current = [];
+    }
+    storage.setItem(key, JSON.stringify([...new Set([...current, npcId])]));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export default function LiveNpcLookup({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -24,9 +42,12 @@ export default function LiveNpcLookup({ campaignId }) {
     if (!campaignId) return;
     const load = async () => {
       setLoading(true);
+      setNpcs([]);
+      setLocations([]);
+      setCompanionIds([]);
       try {
         const [npcRes, locationRes, stateRes] = await Promise.all([
-          apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
+          apiClient.get(`/campaigns/${campaignId}/npcs`),
           apiClient.get(`/campaigns/${campaignId}/locations`).catch(() => ({ data: [] })),
           apiClient.get(`/campaigns/${campaignId}/live-state`).catch(() => ({ data: { companion_npc_ids: [] } })),
         ]);
@@ -41,6 +62,7 @@ export default function LiveNpcLookup({ campaignId }) {
           }
         } catch { /* ignore */ }
       } catch (error) {
+        setNpcs([]);
         toast.error(error?.response?.data?.detail || 'Could not load NPCs');
       } finally {
         setLoading(false);
@@ -87,12 +109,16 @@ export default function LiveNpcLookup({ campaignId }) {
   };
 
   const queueForEncounter = npc => {
-    try {
-      const key = `gm.liveEncounterNpcQueue.${campaignId}`;
-      const current = JSON.parse(localStorage.getItem(key) || '[]');
-      localStorage.setItem(key, JSON.stringify([...new Set([...(Array.isArray(current) ? current : []), npc.id])]));
-    } catch { /* ignore */ }
-    document.querySelector('[data-testid="live-tool-combat"]')?.click?.();
+    if (!queueNpcForEncounterStorage(localStorage, campaignId, npc.id)) {
+      toast.error('Could not add this NPC to the encounter handoff');
+      return;
+    }
+    const combatButton = document.querySelector('[data-testid="live-tool-combat"]');
+    if (!combatButton?.click) {
+      toast.error('Encounter Review is unavailable right now');
+      return;
+    }
+    combatButton.click();
   };
 
   const openLocation = npc => {
