@@ -44,7 +44,7 @@ describe('class selection state', () => {
   });
 
   test('returns convenience lists for the builder component', () => {
-    expect(getAvailableSubclassesForBuilder({ className: 'Fighter', edition: '2014' })).toEqual(expect.arrayContaining(['Champion', 'Battle Master', 'Eldritch Knight']));
+    expect(getAvailableSubclassesForBuilder({ className: 'Fighter', edition: '2014' })).toEqual(['Champion', 'Custom / user-added subclass']);
     expect(getAvailableSubclassOptionsForBuilder({ className: 'Warlock', edition: '2014' })[0]).toEqual(expect.objectContaining({
       value: expect.any(String),
       label: expect.any(String),
