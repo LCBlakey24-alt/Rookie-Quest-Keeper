@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
+import { BookOpen, Home, MessageSquare, MoreHorizontal, Search, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
@@ -25,6 +25,11 @@ const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches:
 
 function isActive(pathname, item) {
   return item.matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
+}
+
+function sectionLabel(pathname) {
+  const item = [...mainNavItems, adminNavItem].find((candidate) => isActive(pathname, candidate));
+  return item?.label || 'Workspace';
 }
 
 function RailLink({ item, pathname, className = '', onClick }) {
