@@ -9,6 +9,13 @@ const CHARACTER_PUT_ONLY_FIELDS = new Set([
   'spell_slots_remaining',
 ]);
 
+const LEGACY_ACCOUNT_ROUTES = {
+  'get:/account/profile': { method: 'get', url: '/auth/me' },
+  'put:/account/update': { method: 'patch', url: '/auth/me' },
+  'post:/account/change-password': { method: 'post', url: '/auth/change-password' },
+  'delete:/account/delete': { method: 'delete', url: '/auth/me' },
+};
+
 function parseBody(data) {
   if (!data) return {};
   if (typeof data === 'string') {
@@ -27,6 +34,13 @@ function shouldUseCharacterPut(config) {
   return Object.keys(body).some(key => CHARACTER_PUT_ONLY_FIELDS.has(key));
 }
 
+export function applyLegacyApiCompatibility(config = {}) {
+  const key = `${String(config.method || 'get').toLowerCase()}:${String(config.url || '')}`;
+  const replacement = LEGACY_ACCOUNT_ROUTES[key];
+  if (!replacement) return config;
+  return { ...config, method: replacement.method, url: replacement.url };
+}
+
 function isAuthProbeNetworkFailure(error) {
   const url = String(error?.config?.url || '');
   return url === '/auth/me' && !error?.response;
@@ -37,7 +51,8 @@ const apiClient = axios.create({
   timeout: 20000,
 });
 
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((incomingConfig) => {
+  const config = applyLegacyApiCompatibility(incomingConfig);
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
