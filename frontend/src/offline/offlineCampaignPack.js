@@ -13,31 +13,42 @@ import {
   removeOfflineMediaUrls,
 } from '@/offline/offlineMediaCache';
 
-export const OFFLINE_PACK_VERSION = 1;
+export const OFFLINE_PACK_VERSION = 2;
 
-function requestList(campaignId) {
+export function buildGmOfflinePackRequests(campaignId) {
   const root = `/campaigns/${campaignId}`;
   return [
     { key: 'campaign', label: 'Campaign', url: root, required: true },
     { key: 'setting', label: 'World & setting', url: `${root}/setting` },
+    { key: 'world-setting', label: 'World tone', url: `${root}/world-setting` },
     { key: 'environment', label: 'Environment', url: `${root}/environment` },
     { key: 'rules', label: 'Campaign rules', url: `${root}/custom-rules` },
+    { key: 'content', label: 'Character options', url: `${root}/content` },
     { key: 'quests', label: 'Quests', url: `${root}/quests` },
+    { key: 'story-arcs', label: 'Story arcs', url: `${root}/story-arcs` },
     { key: 'npcs', label: 'NPCs', url: `${root}/npcs` },
     { key: 'locations', label: 'Locations', url: `${root}/locations` },
+    { key: 'world', label: 'World builder', url: `${root}/world` },
     { key: 'maps', label: 'Maps', url: `${root}/maps` },
     { key: 'encounters', label: 'Encounters', url: `${root}/combat-scenarios` },
+    { key: 'initiative', label: 'Current initiative', url: `${root}/initiative` },
     { key: 'party', label: 'Party', url: `${root}/live-party` },
     { key: 'legacy-party', label: 'Legacy party', url: `${root}/players` },
+    { key: 'members', label: 'Campaign members', url: `/campaign-invites/${campaignId}/members` },
     { key: 'live-state', label: 'Live state', url: `${root}/live-state` },
+    { key: 'display-state', label: 'Player display', url: `${root}/display-state` },
     { key: 'notes', label: 'GM notes', url: `${root}/ingame-notes` },
     { key: 'inventory', label: 'Loot & rewards', url: `${root}/inventory` },
     { key: 'handouts', label: 'Handouts', url: `${root}/handouts` },
     { key: 'handout-recipients', label: 'Handout recipients', url: `${root}/handout-recipients` },
     { key: 'powers', label: 'Factions & powers', url: `${root}/gods` },
+    { key: 'tables', label: 'Tables & references', url: `${root}/tables` },
     { key: 'timeline', label: 'Timeline', url: `${root}/timeline` },
     { key: 'calendar', label: 'Calendar', url: `${root}/calendar` },
     { key: 'calendar-events', label: 'Calendar events', url: `${root}/calendar-events` },
+    { key: 'events', label: 'Campaign events', url: `${root}/events` },
+    { key: 'event-locations', label: 'Event locations & economy', url: `${root}/event-locations` },
+    { key: 'roll-summary', label: 'Dice roll summary', url: `${root}/roll-events/summary` },
   ];
 }
 
@@ -65,6 +76,15 @@ function extractCharacterIds(partyPayload, legacyPartyPayload) {
   return unique([...fromParty, ...fromLegacy].map(value => value ? String(value) : ''));
 }
 
+function extractCustomRuleIds(rulesPayload) {
+  const rows = Array.isArray(rulesPayload)
+    ? rulesPayload
+    : Array.isArray(rulesPayload?.rules)
+      ? rulesPayload.rules
+      : [];
+  return unique(rows.map(rule => rule?.id ? String(rule.id) : ''));
+}
+
 function sectionResult(request, status, extra = {}) {
   return {
     key: request.key,
@@ -90,6 +110,26 @@ async function fetchAndPin(request) {
   };
 }
 
+async function pinDynamicRequests(requests, context) {
+  const { sections, recordKeys, mediaPayloads, onProgress, phase } = context;
+  let completed = 0;
+  for (const request of requests) {
+    onProgress({ phase, completed, total: requests.length, label: request.label });
+    try {
+      const { response, recordKey } = await fetchAndPin(request);
+      mediaPayloads.push(response.data);
+      if (recordKey) recordKeys.push(recordKey);
+      sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
+    } catch (error) {
+      if (isAuthFailure(error)) throw error;
+      sections.push(sectionResult(request, 'unavailable', {
+        message: error?.response?.data?.detail || error?.message || `Could not download ${request.label}.`,
+      }));
+    }
+    completed += 1;
+  }
+}
+
 export async function downloadCampaignOfflinePack(campaignId, options = {}) {
   if (!campaignId) throw new Error('Campaign id is required.');
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -101,7 +141,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
   const recordKeys = [];
   const payloads = {};
   const mediaPayloads = [];
-  const requests = requestList(campaignId);
+  const requests = buildGmOfflinePackRequests(campaignId);
   const totalBase = requests.length;
   let completed = 0;
 
@@ -119,39 +159,40 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
         message: error?.response?.data?.detail || error?.message || 'Could not download this section.',
       }));
       if (request.required) {
-        throw new Error(error?.response?.data?.detail || `Could not download ${request.label}.`);
+        throw new Error(error?.response?.data?.detail || error?.message || `Could not download ${request.label}.`);
       }
     }
     completed += 1;
   }
 
+  // The custom-rules index intentionally omits rule text. Pin each detail record
+  // so rules and uploaded reference documents are genuinely usable offline.
+  const customRuleRequests = extractCustomRuleIds(payloads.rules).map(ruleId => ({
+    key: `custom-rule:${ruleId}`,
+    label: 'Custom rule content',
+    url: `/campaigns/${campaignId}/custom-rules/${ruleId}`,
+  }));
+  await pinDynamicRequests(customRuleRequests, {
+    sections,
+    recordKeys,
+    mediaPayloads,
+    onProgress,
+    phase: 'rules',
+  });
+
   const characterIds = extractCharacterIds(payloads.party, payloads['legacy-party']);
-  let characterCompleted = 0;
-  for (const characterId of characterIds) {
-    const request = {
-      key: `character:${characterId}`,
-      label: 'Character sheet',
-      url: `/characters/${characterId}`,
-    };
-    onProgress({
-      phase: 'characters',
-      completed: characterCompleted,
-      total: characterIds.length,
-      label: `Character ${characterCompleted + 1} of ${characterIds.length}`,
-    });
-    try {
-      const { response, recordKey } = await fetchAndPin(request);
-      mediaPayloads.push(response.data);
-      if (recordKey) recordKeys.push(recordKey);
-      sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
-    } catch (error) {
-      if (isAuthFailure(error)) throw error;
-      sections.push(sectionResult(request, 'unavailable', {
-        message: error?.response?.data?.detail || error?.message || 'Could not download character sheet.',
-      }));
-    }
-    characterCompleted += 1;
-  }
+  const characterRequests = characterIds.map((characterId, index) => ({
+    key: `character:${characterId}`,
+    label: `Character ${index + 1} of ${characterIds.length}`,
+    url: `/characters/${characterId}`,
+  }));
+  await pinDynamicRequests(characterRequests, {
+    sections,
+    recordKeys,
+    mediaPayloads,
+    onProgress,
+    phase: 'characters',
+  });
 
   const discoveredMedia = extractOfflineMediaUrls(...mediaPayloads);
   const mediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
@@ -177,6 +218,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     recordKeys: unique(recordKeys),
     sections,
     characterIds,
+    customRuleIds: extractCustomRuleIds(payloads.rules),
     successfulSections: sections.length - failedSections.length,
     failedSections: failedSections.length,
     complete: failedSections.length === 0,
