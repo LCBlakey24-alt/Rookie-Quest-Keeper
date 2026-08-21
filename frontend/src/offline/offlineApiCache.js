@@ -47,8 +47,6 @@ export function getOfflineCacheScope() {
     if (username) return `user:${username.toLowerCase()}`;
     if (!token) return 'anonymous';
 
-    // Final fallback for legacy/non-JWT auth. The token itself is never written
-    // into IndexedDB, and normal Rookie JWTs should use their stable `sub` above.
     let hash = 2166136261;
     for (let i = 0; i < token.length; i += 1) {
       hash ^= token.charCodeAt(i);
@@ -276,6 +274,38 @@ export async function removeOfflineCampaignPack(campaignId, audience = 'gm') {
     const packStore = transaction.objectStore(PACK_STORE);
     packStore.delete(campaignPackKey(campaignId, targetAudience));
     if (targetAudience === 'gm') packStore.delete(legacyCampaignPackKey(campaignId));
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+  db.close();
+}
+
+export async function clearCurrentOfflineAccountData() {
+  const scope = getOfflineCacheScope();
+  if (!scope || scope === 'anonymous' || scope === 'unknown') return;
+  const db = await openDb().catch(() => null);
+  if (!db) return;
+
+  await new Promise(resolve => {
+    const transaction = db.transaction([RESPONSE_STORE, PACK_STORE], 'readwrite');
+    const responseStore = transaction.objectStore(RESPONSE_STORE);
+    const packStore = transaction.objectStore(PACK_STORE);
+
+    const responseRequest = responseStore.getAll();
+    responseRequest.onsuccess = () => {
+      (responseRequest.result || []).forEach(record => {
+        if (record?.scope === scope) responseStore.delete(record.key);
+      });
+    };
+
+    const packRequest = packStore.getAll();
+    packRequest.onsuccess = () => {
+      (packRequest.result || []).forEach(record => {
+        if (record?.scope === scope) packStore.delete(record.key);
+      });
+    };
+
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
     transaction.onabort = () => resolve();
