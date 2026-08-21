@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronRight, FileText, Grid, Map, MapPin, Search, Users } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, FileText, Grid, Map, MapPin, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { persistLivePlayHandoff } from '@/lib/livePlayHandoffs';
 
 const rq = {
   bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
@@ -17,19 +18,29 @@ export default function LiveMapsPanel({ campaignId }) {
   const [expandedLocationId, setExpandedLocationId] = useState('');
   const [focusedLocation, setFocusedLocation] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadErrors, setLoadErrors] = useState([]);
 
   useEffect(() => {
     if (!campaignId) return;
     const load = async () => {
       setLoading(true);
+      setLoadErrors([]);
+      setLocations([]);
+      setMaps([]);
       try {
-        const [locationRes, mapRes] = await Promise.all([
-          apiClient.get(`/campaigns/${campaignId}/locations`).catch(() => ({ data: [] })),
-          apiClient.get(`/campaigns/${campaignId}/maps`).catch(() => ({ data: [] })),
+        const [locationResult, mapResult] = await Promise.allSettled([
+          apiClient.get(`/campaigns/${campaignId}/locations`),
+          apiClient.get(`/campaigns/${campaignId}/maps`),
         ]);
-        const loadedLocations = safeArray(locationRes.data);
+        const errors = [];
+        const loadedLocations = locationResult.status === 'fulfilled' ? safeArray(locationResult.value.data) : [];
+        const loadedMaps = mapResult.status === 'fulfilled' ? safeArray(mapResult.value.data) : [];
+        if (locationResult.status === 'rejected') errors.push('Locations could not be loaded');
+        if (mapResult.status === 'rejected') errors.push('Battle maps could not be loaded');
         setLocations(loadedLocations);
-        setMaps(safeArray(mapRes.data));
+        setMaps(loadedMaps);
+        setLoadErrors(errors);
+        if (errors.length) toast.error(errors.join(' · '));
 
         try {
           const raw = localStorage.getItem(`gm.liveLocationFocus.${campaignId}`);
@@ -44,9 +55,7 @@ export default function LiveMapsPanel({ campaignId }) {
               setSearch(focus.name);
             }
           }
-        } catch { /* ignore */ }
-      } catch (error) {
-        toast.error(error?.response?.data?.detail || 'Could not load live maps');
+        } catch { /* focus handoff is best effort */ }
       } finally {
         setLoading(false);
       }
@@ -71,20 +80,42 @@ export default function LiveMapsPanel({ campaignId }) {
     return maps.filter(item => [item.name, item.description].some(value => norm(value).includes(term)));
   }, [maps, search]);
 
+  const openLiveTool = (testId, unavailableMessage) => {
+    const button = document.querySelector(`[data-testid="${testId}"]`);
+    if (!button?.click) {
+      toast.error(unavailableMessage);
+      return false;
+    }
+    button.click();
+    return true;
+  };
+
   const quickNote = location => {
-    try { localStorage.setItem(`gm.liveNotePrefill.${campaignId}`, `${location.name}: `); } catch { /* ignore */ }
-    document.querySelector('[data-testid="live-tool-notes"]')?.click?.();
+    if (!persistLivePlayHandoff(localStorage, `gm.liveNotePrefill.${campaignId}`, `${location.name}: `)) {
+      toast.error('Could not prepare the location note');
+      return;
+    }
+    openLiveTool('live-tool-notes', 'Live Notes is unavailable right now');
   };
 
   const findNpcs = location => {
-    try { localStorage.setItem(`gm.liveNpcSearch.${campaignId}`, location.name || ''); } catch { /* ignore */ }
-    document.querySelector('[data-testid="live-tool-npcs"]')?.click?.();
+    if (!persistLivePlayHandoff(localStorage, `gm.liveNpcSearch.${campaignId}`, location.name || '')) {
+      toast.error('Could not prepare the NPC search');
+      return;
+    }
+    openLiveTool('live-tool-npcs', 'Live NPCs is unavailable right now');
   };
 
   if (loading) return <div style={emptyStyle}>Loading locations and maps…</div>;
 
   return (
     <div data-testid="live-maps-panel" style={shellStyle}>
+      {loadErrors.length > 0 && (
+        <div data-testid="live-maps-load-warning" style={warningStyle}>
+          <AlertTriangle size={15} />
+          <span><strong>Some campaign data failed to load.</strong> {loadErrors.join(' · ')}. Empty lists below may be incomplete.</span>
+        </div>
+      )}
       <label style={searchStyle}><Search size={15} /><input value={search} onChange={event => { setSearch(event.target.value); setFocusedLocation(null); }} placeholder="Find a location or battle map" style={searchInputStyle} /></label>
 
       <section style={sectionStyle}>
@@ -133,6 +164,7 @@ export default function LiveMapsPanel({ campaignId }) {
 }
 
 const shellStyle = { display: 'grid', gap: 7, color: rq.text };
+const warningStyle = { minHeight: 42, display: 'grid', gridTemplateColumns: '18px minmax(0,1fr)', alignItems: 'start', gap: 7, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.45)', color: rq.soft, padding: 8, fontSize: 10, lineHeight: 1.4 };
 const searchStyle = { minHeight: 40, display: 'flex', alignItems: 'center', gap: 7, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.muted, padding: '0 9px' };
 const searchInputStyle = { flex: 1, minWidth: 0, minHeight: 38, border: 0, outline: 0, background: 'transparent', color: rq.text, fontSize: 12 };
 const sectionStyle = { display: 'grid', gap: 5 };
