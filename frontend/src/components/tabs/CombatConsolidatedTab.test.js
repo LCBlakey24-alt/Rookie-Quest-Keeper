@@ -3,11 +3,11 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CombatConsolidatedTab from './CombatConsolidatedTab';
 import apiClient from '@/lib/apiClient';
 
-const navigate = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useNavigate: () => navigate,
+  useNavigate: () => mockNavigate,
 }));
 
 jest.mock('@/lib/apiClient', () => ({
