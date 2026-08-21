@@ -6,6 +6,11 @@ describe('offline API cache boundaries', () => {
     expect(isCacheableOfflineGet({ method: 'GET', url: '/characters' })).toBe(true);
     expect(isCacheableOfflineGet({ method: 'get', url: '/player/campaign/abc' })).toBe(true);
     expect(isCacheableOfflineGet({ method: 'get', url: '/campaign-invites/joined/list' })).toBe(true);
+    expect(isCacheableOfflineGet({ method: 'get', url: '/campaign-invites/abc/members' })).toBe(true);
+  });
+
+  test('does not cache campaign invite-code reads that can create/rotate access state', () => {
+    expect(isCacheableOfflineGet({ method: 'get', url: '/campaign-invites/abc' })).toBe(false);
   });
 
   test('never treats mutations as offline-cacheable', () => {
