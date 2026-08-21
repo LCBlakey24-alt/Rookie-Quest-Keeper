@@ -29,18 +29,7 @@ jobs:
           cache-dependency-path: frontend/yarn.lock
 
       - name: Install dependencies
-        run: yarn install
-
-      - name: Show lockfile drift
-        run: git diff -- yarn.lock
-
-      - name: Capture regenerated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: regenerated-yarn-lock
-          path: frontend/yarn.lock
-          if-no-files-found: error
-          retention-days: 1
+        run: yarn install --non-interactive
 
       - name: Run frontend tests
         env:
