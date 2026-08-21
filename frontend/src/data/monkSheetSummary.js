@@ -12,6 +12,7 @@ export function getMonkSheetSummary(character = {}) {
   const subclass = getMonkSubclassSummary(character?.subclass || '', level || 1, edition);
   return {
     className: 'Monk', edition, level,
+    subclass,
     subclassKey: getMonkSubclassKey(character?.subclass || ''),
     subclassLabel: subclass?.label || character?.subclass || (level >= 3 ? 'Choose/record Monastic Tradition' : 'None yet'),
     subclassRole: subclass?.role || '', subclassSupportedInRuleset: subclass?.supportedInRuleset ?? true,
