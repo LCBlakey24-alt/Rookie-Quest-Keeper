@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Copy, Image as ImageIcon, Monitor, RefreshCw, Send, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState, loadDisplayState, publishCampaignDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
+import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -106,8 +107,14 @@ export default function LiveSecondScreenDock({ campaignId }) {
     try {
       setBusy(actionId || mode);
       const nextState = createDisplayState(mode, { display_target: currentTarget, ...payload });
-      await publishCampaignDisplayState(campaignId, nextState);
-      toast.success('Second screen updated', { description: payload?.title || mode });
+      const result = await publishCampaignDisplayStateWithStatus(campaignId, nextState);
+      if (result.remoteSynced) {
+        toast.success('Second screen updated', { description: payload?.title || mode });
+      } else {
+        toast.warning('Updated locally — remote display not synced', {
+          description: 'Same-browser display is updated. Another device will catch up when sync reconnects.',
+        });
+      }
     } catch {
       toast.error('Could not update the second screen');
     } finally {
