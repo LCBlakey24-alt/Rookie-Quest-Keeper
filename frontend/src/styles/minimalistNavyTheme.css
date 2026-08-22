@@ -2,16 +2,16 @@
    Loaded last so current product styling wins over historical skins and inline fallbacks. */
 
 :root {
-  --rq-bg: #07111f;
-  --rq-bg-deep: #040b14;
-  --rq-bg-main: #07111f;
-  --rq-bg-panel: #0d1b2a;
-  --rq-bg-panel-alt: #132438;
-  --rq-surface: #0d1b2a;
-  --rq-card: #132438;
-  --rq-card-hover: #19304a;
-  --rq-button: #0b1827;
-  --rq-button-hover: #14283e;
+  --rq-bg: #0a1728;
+  --rq-bg-deep: #06101c;
+  --rq-bg-main: #0a1728;
+  --rq-bg-panel: #102238;
+  --rq-bg-panel-alt: #14283e;
+  --rq-surface: #102238;
+  --rq-card: #14283e;
+  --rq-card-hover: #1a314b;
+  --rq-button: #0e1d30;
+  --rq-button-hover: #172d47;
   --rq-primary: #d00000;
   --rq-accent-primary: #d00000;
   --rq-primary-hover: #ef2b2b;
