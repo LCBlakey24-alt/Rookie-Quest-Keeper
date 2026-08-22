@@ -19,6 +19,15 @@ const rq = {
 };
 
 const hiddenPaths = ['/', '/auth', '/login', '/reset-password'];
+const shellExactPaths = new Set(['/home', '/characters', '/player', '/campaigns', '/admin', '/account', '/homebrew', '/uploads']);
+
+function launcherManagedByAppShell(pathname = '') {
+  if (shellExactPaths.has(pathname)) return true;
+  if (/^\/campaign\/[^/]+$/.test(pathname)) return true;
+  if (pathname === '/characters/new' || pathname === '/characters/import') return true;
+  if (/^\/characters\/[^/]+\/edit$/.test(pathname)) return true;
+  return false;
+}
 
 export default function GlobalFeedbackButton({ isAuthenticated, hideLauncher = false }) {
   const location = useLocation();
@@ -30,6 +39,8 @@ export default function GlobalFeedbackButton({ isAuthenticated, hideLauncher = f
     return true;
   }, [isAuthenticated, location.pathname]);
 
+  const launcherHidden = hideLauncher || launcherManagedByAppShell(location.pathname);
+
   useEffect(() => {
     const openFeedback = () => setOpen(true);
     window.addEventListener('rook-feedback-open', openFeedback);
@@ -40,7 +51,7 @@ export default function GlobalFeedbackButton({ isAuthenticated, hideLauncher = f
 
   return (
     <>
-      {!hideLauncher && (
+      {!launcherHidden && (
         <button
           type="button"
           data-testid="global-feedback-btn"
