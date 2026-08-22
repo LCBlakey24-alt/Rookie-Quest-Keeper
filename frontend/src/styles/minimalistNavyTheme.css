@@ -1,0 +1,174 @@
+/* Rookie Quest Keeper — unified minimalist navy theme.
+   Loaded last so current product styling wins over historical skins and inline fallbacks. */
+
+:root {
+  --rq-bg: #07111f;
+  --rq-bg-deep: #040b14;
+  --rq-bg-main: #07111f;
+  --rq-bg-panel: #0d1b2a;
+  --rq-bg-panel-alt: #132438;
+  --rq-surface: #0d1b2a;
+  --rq-card: #132438;
+  --rq-card-hover: #19304a;
+  --rq-button: #0b1827;
+  --rq-button-hover: #14283e;
+  --rq-primary: #d00000;
+  --rq-accent-primary: #d00000;
+  --rq-primary-hover: #ef2b2b;
+  --rq-primary-soft: rgba(208, 0, 0, 0.18);
+  --rq-text: #f7f9fc;
+  --rq-text-primary: #f7f9fc;
+  --rq-muted: rgba(229, 237, 247, 0.74);
+  --rq-text-secondary: rgba(229, 237, 247, 0.74);
+  --rq-faint: rgba(202, 216, 233, 0.52);
+  --rq-text-muted: rgba(202, 216, 233, 0.58);
+  --rq-line: rgba(181, 203, 226, 0.16);
+  --rq-border-default: rgba(181, 203, 226, 0.16);
+  --rq-line-strong: rgba(181, 203, 226, 0.28);
+  --rq-radius: 0px;
+}
+
+html,
+body,
+#root,
+#root > div {
+  background: var(--rq-bg) !important;
+  color: var(--rq-text) !important;
+}
+
+body { background-image: none !important; }
+
+#root .rqk-app-shell,
+#root .app-shell,
+#root .dashboard-shell,
+#root .gm-dashboard-shell,
+#root .campaign-dashboard,
+#root .clean-sheet-page,
+#root .character-builder-page,
+#root .character-import-page,
+#root .account-settings-page,
+#root .uploads-dashboard,
+#root .homebrew-workshop,
+#root .landing-page,
+#root .auth-page,
+#root .loading-screen {
+  background: var(--rq-bg) !important;
+  background-image: none !important;
+}
+
+#root .panel,
+#root .dashboard-section,
+#root .rqk-themed-panel,
+#root .clean-sheet-panel,
+#root .gm-command-card,
+#root [data-rqk-theme-surface="panel"] {
+  background: var(--rq-surface) !important;
+  background-image: none !important;
+  border-color: var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root .card,
+#root .dashboard-card,
+#root .rqk-themed-card,
+#root .clean-sheet-card,
+#root [data-rqk-theme-surface="card"] {
+  background: var(--rq-card) !important;
+  background-image: none !important;
+  border-color: var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root button,
+#root input,
+#root select,
+#root textarea,
+#root [role="button"] {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root input,
+#root select,
+#root textarea {
+  background: var(--rq-bg-deep) !important;
+  color: var(--rq-text) !important;
+  border-color: var(--rq-line) !important;
+}
+
+#root button:not([data-rqk-primary="true"]):not(.btn-primary):not(.landing-button-primary) {
+  background-image: none !important;
+}
+
+#root .btn-primary,
+#root .landing-button-primary,
+#root [data-rqk-primary="true"] {
+  background: var(--rq-primary) !important;
+  color: #fff !important;
+  border-color: var(--rq-primary) !important;
+}
+
+#root .landing-page,
+#root .auth-page,
+#root .landing-final,
+#root .landing-final-hero,
+#root .auth-shell,
+#root .auth-panel,
+#root .auth-card {
+  background-color: var(--rq-bg) !important;
+  background-image: none !important;
+}
+
+#root .landing-final-feature,
+#root .landing-benefit-card,
+#root .landing-marketing-block,
+#root .landing-roadmap,
+#root .landing-final-cta,
+#root .rqk-public-screen-card,
+#root .auth-card,
+#root .auth-panel {
+  background: var(--rq-surface) !important;
+  border: 1px solid var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root .landing-final-feature:hover,
+#root .landing-benefit-card:hover,
+#root .dashboard-card:hover,
+#root .rqk-themed-card:hover {
+  background: var(--rq-card-hover) !important;
+}
+
+#root [class*="glow"],
+#root [class*="gradient"],
+#root [class*="sunset"],
+#root [class*="twilight"] {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+#root h1,
+#root h2,
+#root h3,
+#root .page-title,
+#root .hero-title { text-shadow: none !important; }
+
+@media (max-width: 719px) {
+  html { font-size: 14px; }
+  #root h1 { font-size: clamp(1.55rem, 7vw, 2.15rem) !important; }
+  #root h2 { font-size: clamp(1.2rem, 5vw, 1.6rem) !important; }
+  #root h3 { font-size: 1rem !important; }
+
+  #root p,
+  #root li,
+  #root label,
+  #root input,
+  #root select,
+  #root textarea,
+  #root button { font-size: 0.84rem; }
+
+  #root button,
+  #root [role="button"],
+  #root input,
+  #root select { min-height: 42px; }
+}
