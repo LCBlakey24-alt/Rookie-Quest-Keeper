@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, MessageSquare, MoreHorizontal, Search, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
+import { BookOpen, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
 import '@/styles/homeDashboardExperience.css';
@@ -14,10 +15,10 @@ import '@/styles/characterImportExperience.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
-  { label: 'My Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
-  { label: 'My Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'], mobilePrimary: true },
-  { label: 'My Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
-  { label: 'My Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
+  { label: 'Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
+  { label: 'Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'], mobilePrimary: true },
+  { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
+  { label: 'Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
   { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'], mobilePrimary: false },
 ];
 
@@ -172,7 +173,9 @@ export default function AppShell({ children }) {
     <div className="rqk-app-shell">
       <aside className="rqk-app-rail" aria-label="App navigation">
         <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
-          <span className="rqk-app-rail-brand-mark" aria-hidden="true">RQK</span>
+          <span className="rqk-app-rail-brand-mark" aria-hidden="true">
+            <BrandMiniLogo size={36} alt="" />
+          </span>
           <span className="rqk-app-rail-brand-copy">
             <strong>Rookie Quest</strong>
             <small>Keeper Hub</small>
@@ -229,10 +232,6 @@ export default function AppShell({ children }) {
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
           </div>
-          <label className="rqk-app-search">
-            <Search size={18} aria-hidden="true" />
-            <input type="search" placeholder="Search characters, campaigns, notes..." aria-label="Search Rookie Quest Keeper" />
-          </label>
         </header>
 
         <div className="rqk-app-shell-content">
