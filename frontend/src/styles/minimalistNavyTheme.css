@@ -1,56 +1,8 @@
-/* Rookie Quest Keeper — unified minimalist navy theme.
-   Loaded last so the current product language wins over historical skins.
-   Responsive rules here intentionally repair legacy cascade conflicts without
-   changing feature behaviour. */
+/* Rookie Quest Keeper — stable minimalist navy foundation.
+   This file owns palette and shell-level colour only. Page components own their
+   own layout so theme changes cannot squeeze or reflow the product. */
 
 :root {
-  --rq-bg: #0a1728;
-  --rq-bg-deep: #06101c;
-  --rq-bg-main: #0a1728;
-  --rq-bg-panel: #102238;
-  --rq-bg-panel-alt: #14283e;
-  --rq-surface: #102238;
-  --rq-card: #14283e;
-  --rq-card-hover: #1a314b;
-  --rq-button: #0e1d30;
-  --rq-button-hover: #172d47;
-  --rq-primary: #d00000;
-  --rq-accent-primary: #d00000;
-  --rq-primary-hover: #ef2b2b;
-  --rq-primary-soft: rgba(208, 0, 0, 0.18);
-  --rq-text: #f7f9fc;
-  --rq-text-primary: #f7f9fc;
-  --rq-muted: rgba(229, 237, 247, 0.74);
-  --rq-text-secondary: rgba(229, 237, 247, 0.74);
-  --rq-faint: rgba(202, 216, 233, 0.52);
-  --rq-text-muted: rgba(202, 216, 233, 0.58);
-  --rq-line: rgba(181, 203, 226, 0.16);
-  --rq-border-default: rgba(181, 203, 226, 0.16);
-  --rq-line-strong: rgba(181, 203, 226, 0.28);
-  --rq-radius: 10px;
-  --rq-inner-radius: 8px;
-}
-
-/* Signed-in pages previously remapped the shared palette back to charcoal.
-   Match that selector specificity here so GM and player modes use the same
-   navy tokens as the public shell. */
-html[data-theme='gm'],
-html[data-theme='player'] {
-  --rq-app-bg: #0a1728;
-  --rq-app-bg-deep: #06101c;
-  --rq-app-panel: #102238;
-  --rq-app-card: #14283e;
-  --rq-app-input: #06101c;
-  --rq-app-line: rgba(181, 203, 226, 0.16);
-  --rq-app-line-strong: rgba(181, 203, 226, 0.28);
-  --rq-app-text: #f7f9fc;
-  --rq-app-muted: rgba(229, 237, 247, 0.74);
-  --rq-app-faint: rgba(202, 216, 233, 0.52);
-  --rq-app-red: #d00000;
-  --rq-app-red-hover: #ef2b2b;
-  --rq-app-red-soft: rgba(208, 0, 0, 0.18);
-  --rq-app-amber: #f59e0b;
-
   --rq-bg: #0a1728;
   --rq-bg-main: #0a1728;
   --rq-bg-deep: #06101c;
@@ -81,26 +33,45 @@ html[data-theme='player'] {
   --rq-line-strong: rgba(181, 203, 226, 0.28);
   --rq-border-default: rgba(181, 203, 226, 0.16);
   --rq-border-strong: rgba(181, 203, 226, 0.28);
-  --rq-sunset-copper: #d00000;
-  --rq-sunset-gold: #d00000;
-  --rq-sunset-orange: #f59e0b;
-  --rq-sunset-cream: #f7f9fc;
-  --rq-sunset-muted: rgba(229, 237, 247, 0.74);
-  --rq-sunset-faint: rgba(202, 216, 233, 0.52);
-  --rq-sunset-line: rgba(181, 203, 226, 0.16);
-  --rq-sunset-line-strong: rgba(208, 0, 0, 0.42);
-  --rq-sunset-gradient: linear-gradient(135deg, #d00000 0%, #b90000 100%);
-  --rq-sunset-gradient-soft: linear-gradient(135deg, rgba(208, 0, 0, 0.18), rgba(208, 0, 0, 0.06));
   --rq-radius: 10px;
   --rq-inner-radius: 8px;
+}
+
+html[data-theme='gm'],
+html[data-theme='player'] {
+  --rq-app-bg: var(--rq-bg);
+  --rq-app-bg-deep: var(--rq-bg-deep);
+  --rq-app-panel: var(--rq-surface);
+  --rq-app-card: var(--rq-card);
+  --rq-app-input: var(--rq-bg-input);
+  --rq-app-line: var(--rq-line);
+  --rq-app-line-strong: var(--rq-line-strong);
+  --rq-app-text: var(--rq-text);
+  --rq-app-muted: var(--rq-muted);
+  --rq-app-faint: var(--rq-faint);
+  --rq-app-red: var(--rq-primary);
+  --rq-app-red-hover: var(--rq-primary-hover);
+  --rq-app-red-soft: var(--rq-primary-soft);
+
+  /* Compatibility aliases used by older screens. Keep them flat and navy. */
+  --rq-sunset-copper: var(--rq-primary);
+  --rq-sunset-gold: var(--rq-primary);
+  --rq-sunset-orange: #f59e0b;
+  --rq-sunset-cream: var(--rq-text);
+  --rq-sunset-muted: var(--rq-muted);
+  --rq-sunset-faint: var(--rq-faint);
+  --rq-sunset-line: var(--rq-line);
+  --rq-sunset-line-strong: rgba(208, 0, 0, 0.42);
+  --rq-sunset-gradient: var(--rq-primary);
+  --rq-sunset-gradient-soft: var(--rq-primary-soft);
 }
 
 html,
 body,
 #root,
 #root > div {
-  background: var(--rq-bg) !important;
-  color: var(--rq-text) !important;
+  background-color: var(--rq-bg) !important;
+  color: var(--rq-text);
 }
 
 body {
@@ -109,8 +80,6 @@ body {
 
 #root .rqk-app-shell,
 #root .app-shell,
-#root .dashboard-shell,
-#root .gm-dashboard-shell,
 #root .campaign-dashboard,
 #root .clean-sheet-page,
 #root .character-builder-page,
@@ -121,70 +90,37 @@ body {
 #root .landing-page,
 #root .auth-page,
 #root .loading-screen,
-#root .library-page,
-#root .unified-dashboard-page,
-#root [data-testid='homebrew-workshop'] {
-  background: var(--rq-bg) !important;
+#root .library-page {
+  background-color: var(--rq-bg) !important;
   background-image: none !important;
 }
 
 #root .panel,
-#root .dashboard-section,
 #root .rqk-themed-panel,
 #root .clean-sheet-panel,
-#root .gm-command-card,
-#root [data-rqk-theme-surface='panel'],
-#root .dashboard-command-panel,
-#root .dashboard-updates-panel,
-#root .dashboard-system-panel,
-#root .dashboard-activity-panel,
-#root .dashboard-readiness-panel,
-#root .library-page-hero,
-#root .library-page-toolbar,
-#root .library-page-empty,
-#root .uploads-dashboard-hero,
-#root .uploads-dashboard-next,
-#root .uploads-dashboard-dropzone {
-  background: var(--rq-surface) !important;
+#root [data-rqk-theme-surface='panel'] {
+  background-color: var(--rq-surface) !important;
   background-image: none !important;
   border-color: var(--rq-line) !important;
-  border-radius: var(--rq-radius) !important;
   box-shadow: none !important;
 }
 
 #root .card,
-#root .dashboard-card,
 #root .rqk-themed-card,
 #root .clean-sheet-card,
-#root [data-rqk-theme-surface='card'],
-#root .library-page-stat-card,
-#root .library-card,
-#root .character-library-card,
-#root .campaign-library-card,
-#root .dashboard-activity-item,
-#root .dashboard-readiness-card,
-#root .uploads-dashboard-card {
-  background: var(--rq-card) !important;
+#root [data-rqk-theme-surface='card'] {
+  background-color: var(--rq-card) !important;
   background-image: none !important;
   border-color: var(--rq-line) !important;
-  border-radius: var(--rq-radius) !important;
   box-shadow: none !important;
 }
 
-#root .library-page-hero::before,
-#root .unified-dashboard-header::before,
-#root .dashboard-command-panel::before,
-#root .dashboard-activity-panel::before,
-#root .dashboard-readiness-panel::before,
-#root .campaign-library-card::before,
-#root .character-library-card::before,
-#root .library-page-toolbar::before,
-#root .library-page-stat-card::before {
-  background: var(--rq-primary) !important;
-  background-image: none !important;
-  height: 2px !important;
-  opacity: 0.72 !important;
-  box-shadow: none !important;
+#root input,
+#root select,
+#root textarea {
+  background-color: var(--rq-bg-input) !important;
+  color: var(--rq-text) !important;
+  border-color: var(--rq-line) !important;
 }
 
 #root button,
@@ -192,20 +128,7 @@ body {
 #root select,
 #root textarea,
 #root [role='button'] {
-  box-shadow: none !important;
   text-shadow: none !important;
-}
-
-#root input,
-#root select,
-#root textarea {
-  background: var(--rq-bg-deep) !important;
-  color: var(--rq-text) !important;
-  border-color: var(--rq-line) !important;
-}
-
-#root button:not([data-rqk-primary='true']):not(.btn-primary):not(.landing-button-primary) {
-  background-image: none !important;
 }
 
 #root .btn-primary,
@@ -216,74 +139,16 @@ body {
   border-color: var(--rq-primary) !important;
 }
 
-#root .landing-page,
-#root .auth-page,
-#root .landing-final,
-#root .landing-final-hero,
-#root .auth-shell,
-#root .auth-panel,
-#root .auth-card {
-  background-color: var(--rq-bg) !important;
-  background-image: none !important;
-}
-
-#root .landing-final-feature,
-#root .landing-benefit-card,
-#root .landing-marketing-block,
-#root .landing-roadmap,
-#root .landing-final-cta,
-#root .rqk-public-screen-card,
-#root .auth-card,
-#root .auth-panel {
-  background: var(--rq-surface) !important;
-  border: 1px solid var(--rq-line) !important;
-  border-radius: var(--rq-radius) !important;
-  box-shadow: none !important;
-}
-
-#root .landing-final-feature:hover,
-#root .landing-benefit-card:hover,
-#root .dashboard-card:hover,
-#root .rqk-themed-card:hover,
-#root .library-card:hover,
-#root .character-library-card:hover,
-#root .campaign-library-card:hover {
-  background: var(--rq-card-hover) !important;
-  filter: none !important;
-  box-shadow: none !important;
-}
-
-#root [class*='glow'],
-#root [class*='gradient'],
-#root [class*='sunset'],
-#root [class*='twilight'] {
-  text-shadow: none !important;
-  box-shadow: none !important;
-}
-
 #root h1,
 #root h2,
 #root h3,
 #root .page-title,
-#root .hero-title,
-#root .dashboard-panel-heading-row h2,
-#root .library-page-hero h1 {
+#root .hero-title {
   text-shadow: none !important;
-  font-family: inherit !important;
 }
 
-#root .library-page-hero h1,
-#root .campaigns-library-hero h1 {
-  font-size: clamp(2rem, 3.2vw, 3rem) !important;
-  line-height: 1.08 !important;
-}
-
-#root .dashboard-panel-heading-row h2 {
-  font-size: clamp(1.25rem, 2vw, 1.6rem) !important;
-  line-height: 1.15 !important;
-}
-
-/* Signed-in shell: one navy system, including old app-store selectors. */
+/* Signed-in shell colours only. Rail widths and responsive layout remain owned
+   by appShellRail.css so a theme update cannot change workspace geometry. */
 html[data-theme='gm'] #root .rqk-app-rail,
 html[data-theme='player'] #root .rqk-app-rail {
   background: var(--rq-bg-deep) !important;
@@ -292,32 +157,17 @@ html[data-theme='player'] #root .rqk-app-rail {
   box-shadow: none !important;
 }
 
-#root .rqk-app-rail::after {
-  background: var(--rq-line) !important;
-  box-shadow: none !important;
-}
-
 html[data-theme='gm'] #root .rqk-app-rail-brand,
 html[data-theme='player'] #root .rqk-app-rail-brand {
   background: var(--rq-surface) !important;
   background-image: none !important;
-  border: 1px solid var(--rq-line) !important;
-  border-radius: var(--rq-radius) !important;
+  border-color: var(--rq-line) !important;
   box-shadow: none !important;
 }
 
-#root .rqk-app-rail-brand::before {
-  background: var(--rq-primary) !important;
-  background-image: none !important;
-  height: 2px !important;
-}
-
-html[data-theme='gm'] #root .rqk-app-rail-brand-mark,
-html[data-theme='player'] #root .rqk-app-rail-brand-mark {
+#root .rqk-app-rail-brand-mark {
   background: transparent !important;
   box-shadow: none !important;
-  overflow: hidden !important;
-  padding: 0 !important;
 }
 
 #root .rqk-app-rail-brand-mark img {
@@ -326,55 +176,25 @@ html[data-theme='player'] #root .rqk-app-rail-brand-mark {
   object-fit: contain !important;
 }
 
-html[data-theme='gm'] #root .rqk-app-rail-link:hover,
-html[data-theme='gm'] #root .rqk-app-rail-link:focus-visible,
 html[data-theme='gm'] #root .rqk-app-rail-link.is-active,
-html[data-theme='player'] #root .rqk-app-rail-link:hover,
-html[data-theme='player'] #root .rqk-app-rail-link:focus-visible,
-html[data-theme='player'] #root .rqk-app-rail-link.is-active {
-  background: rgba(255, 255, 255, 0.055) !important;
+html[data-theme='player'] #root .rqk-app-rail-link.is-active,
+html[data-theme='gm'] #root .rqk-app-rail-link:hover,
+html[data-theme='player'] #root .rqk-app-rail-link:hover {
+  background-color: rgba(255, 255, 255, 0.055) !important;
   border-color: var(--rq-line) !important;
 }
 
-#root .rqk-app-rail-link::after {
-  background: none !important;
-}
-
-html[data-theme='gm'] #root .rqk-app-rail-link.is-active::before,
-html[data-theme='player'] #root .rqk-app-rail-link.is-active::before,
-html[data-theme='gm'] #root .rqk-app-rail-link.is-active svg,
-html[data-theme='player'] #root .rqk-app-rail-link.is-active svg {
-  background: var(--rq-primary) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  color: #fff !important;
-}
-
 #root .rqk-app-topbar {
-  min-height: 58px !important;
-  justify-content: flex-start !important;
-  padding: 10px 18px !important;
   background: rgba(10, 23, 40, 0.97) !important;
   background-image: none !important;
-  border-bottom: 1px solid var(--rq-line) !important;
+  border-bottom-color: var(--rq-line) !important;
   box-shadow: none !important;
-}
-
-#root .rqk-app-topbar-title > span {
-  color: var(--rq-muted) !important;
 }
 
 #root .rqk-app-mobile-more-panel {
   background: var(--rq-surface) !important;
   background-image: none !important;
-  border: 1px solid var(--rq-line-strong) !important;
-  border-radius: var(--rq-radius) !important;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34) !important;
-}
-
-#root .rqk-app-mobile-more-panel::before {
-  background: var(--rq-primary) !important;
-  background-image: none !important;
+  border-color: var(--rq-line-strong) !important;
 }
 
 #root .rqk-app-mobile-more-item,
@@ -382,224 +202,122 @@ html[data-theme='player'] #root .rqk-app-rail-link.is-active svg {
   background: var(--rq-card) !important;
   background-image: none !important;
   border-color: var(--rq-line) !important;
-  border-radius: var(--rq-inner-radius) !important;
 }
 
-#root .rqk-app-mobile-more-item:hover,
-#root .rqk-app-mobile-more-item:focus-visible,
-#root .rqk-app-mobile-more-item.is-active {
-  background: var(--rq-card-hover) !important;
-  border-color: rgba(208, 0, 0, 0.48) !important;
+/* The old cinematic dice renderer stays available internally, but the normal
+   app experience is flat 2D. The fake 2D/3D selector is hidden. */
+#root .rq-floating-dice__render-mode {
+  display: none !important;
 }
 
-#root .rqk-app-mobile-more-item--rook {
-  background: rgba(208, 0, 0, 0.10) !important;
+.rq-cinematic-roll.is-mode-2d {
+  width: min(620px, calc(100vw - 24px)) !important;
+  min-height: 0 !important;
+  grid-template-rows: auto auto !important;
+  border-radius: 12px !important;
+  background: #0a1728 !important;
+  border: 1px solid rgba(181, 203, 226, 0.24) !important;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: none !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__backdrop,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__wall,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__trail,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__impact,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__particles,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__burst,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die-shadow,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die__facet,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die__ridge,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die::after {
+  display: none !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__arena {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 210px !important;
+  perspective: none !important;
+  transform-style: flat !important;
+  border-radius: 0 !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__dice-line {
+  position: relative !important;
+  inset: auto !important;
+  min-height: 210px !important;
+  padding: 28px 18px 18px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  transform: none !important;
+  transform-style: flat !important;
+  animation: none !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die-card {
+  width: 88px !important;
+  height: 88px !important;
+  transform: none !important;
+  transform-style: flat !important;
+  animation: none !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die {
+  background: #14283e !important;
+  border: 1px solid rgba(181, 203, 226, 0.3) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transform-style: flat !important;
+  animation: none !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die small {
+  color: rgba(229, 237, 247, 0.66) !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die strong {
+  color: #fff !important;
+  opacity: 1 !important;
+  transform: translateY(4px) !important;
+  text-shadow: none !important;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__panel,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__total {
+  background: #102238 !important;
   background-image: none !important;
-  border-color: rgba(208, 0, 0, 0.34) !important;
+  border-color: rgba(181, 203, 226, 0.2) !important;
+  box-shadow: none !important;
 }
 
-.rqk-pwa-banner,
-.rqk-offline-launcher,
-.rqk-offline-card,
-.rqk-offline-card__header {
-  background: var(--rq-surface) !important;
-  background-image: none !important;
-  color: var(--rq-text) !important;
-  border-color: var(--rq-line) !important;
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__status {
+  color: #ef2b2b !important;
 }
 
-/* Tablet portrait / compact-width tablet: keep navigation useful without
-   sacrificing a quarter of the screen to labels. */
-@media (min-width: 720px) and (max-width: 959px),
-       (min-width: 960px) and (max-width: 1100px) and (orientation: portrait) {
-  #root .rqk-app-shell {
-    grid-template-columns: 72px minmax(0, 1fr) !important;
-  }
-
-  #root .rqk-app-rail {
-    padding: 10px 7px !important;
-    gap: 9px !important;
-  }
-
-  #root .rqk-app-rail-brand {
-    min-height: 54px !important;
-    grid-template-columns: 1fr !important;
-    place-items: center !important;
-    padding: 6px !important;
-  }
-
-  #root .rqk-app-rail-brand-mark {
-    width: 42px !important;
-    height: 42px !important;
-  }
-
-  #root .rqk-app-rail-brand-copy,
-  #root .rqk-app-rail-section-label,
-  #root .rqk-app-rail-link span {
-    display: none !important;
-  }
-
-  #root .rqk-app-rail-link {
-    min-height: 48px !important;
-    grid-template-columns: 1fr !important;
-    place-items: center !important;
-    padding: 6px !important;
-  }
-
-  #root .rqk-app-rail-link svg {
-    justify-self: center !important;
-  }
-
-  #root .dashboard-live-grid,
-  #root .library-page-hero,
-  #root .campaigns-library-hero {
-    grid-template-columns: 1fr !important;
-  }
-
-  #root .library-page-hero .library-page-button-primary,
-  #root .campaign-create-hero-button {
-    width: fit-content !important;
-    min-width: 0 !important;
-  }
-}
-
-/* Tablet landscape uses labelled navigation, but a slimmer rail than desktop. */
-@media (min-width: 960px) and (max-width: 1199px) and (orientation: landscape) {
-  #root .rqk-app-shell {
-    grid-template-columns: 204px minmax(0, 1fr) !important;
-  }
-
-  #root .rqk-app-rail-link span {
-    font-size: 13px !important;
-  }
-}
-
-/* At 1024-ish landscape widths the old two-column dashboard had only ~750px
-   of real workspace after the rail. Collapse it until there is genuine room. */
-@media (min-width: 960px) and (max-width: 1119px) {
-  #root .dashboard-live-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Desktop keeps the dense labelled workspace. */
-@media (min-width: 1200px) {
-  #root .rqk-app-shell {
-    grid-template-columns: 236px minmax(0, 1fr) !important;
-  }
-}
-
-/* Phone / narrow native layout. Preserve readable copy and 44px touch targets;
-   inputs stay 16px to avoid iOS Safari focus zoom. */
+/* Mobile accessibility: don't globally shrink the whole app. */
 @media (max-width: 719px) {
   body {
-    font-size: 14px !important;
-  }
-
-  #root h1,
-  #root .library-page-hero h1,
-  #root .campaigns-library-hero h1 {
-    font-size: clamp(1.55rem, 7vw, 2rem) !important;
-    line-height: 1.12 !important;
-  }
-
-  #root h2,
-  #root .dashboard-panel-heading-row h2 {
-    font-size: clamp(1.2rem, 5vw, 1.5rem) !important;
-    line-height: 1.18 !important;
-  }
-
-  #root h3 {
-    font-size: 1rem !important;
-  }
-
-  #root p,
-  #root li,
-  #root label {
-    font-size: 14px !important;
-  }
-
-  #root button,
-  #root [role='button'] {
-    min-height: 44px !important;
-    font-size: 14px !important;
+    font-size: 14px;
   }
 
   #root input,
   #root select,
   #root textarea {
-    min-height: 44px !important;
+    min-height: 44px;
     font-size: 16px !important;
   }
 
-  #root small,
-  #root .muted,
-  #root .helper-text,
-  #root .meta,
-  #root [class*='meta'] {
-    font-size: 11px !important;
+  #root button,
+  #root [role='button'] {
+    min-height: 44px;
   }
 
-  html[data-theme='gm'] #root .rqk-app-rail,
-  html[data-theme='player'] #root .rqk-app-rail {
-    background: rgba(6, 16, 28, 0.98) !important;
-    border-top-color: var(--rq-line) !important;
-    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.28) !important;
-  }
-
-  #root .rqk-app-rail-link > span,
-  #root .rqk-app-mobile-more-item > span {
-    font-size: 10.5px !important;
-  }
-
-  #root .rqk-app-topbar {
-    min-height: 50px !important;
-    padding: 7px 10px !important;
-    background: rgba(10, 23, 40, 0.98) !important;
-  }
-
-  #root .rqk-app-topbar-title > span {
-    display: none !important;
-  }
-
-  #root .rqk-app-topbar-title > strong {
-    font-size: 13px !important;
-  }
-
-  #root .rqk-app-mobile-more-panel {
-    inset: auto 8px calc(72px + env(safe-area-inset-bottom, 0px)) 8px !important;
-    max-height: min(68dvh, 430px) !important;
-  }
-
-  #root .library-page-hero,
-  #root .campaigns-library-hero,
-  #root .dashboard-live-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  #root .library-page-hero .library-page-button-primary,
-  #root .campaign-create-hero-button {
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  #root .panel,
-  #root .dashboard-section,
-  #root .dashboard-card,
-  #root .library-page-hero,
-  #root .library-page-toolbar,
-  #root .library-page-stat-card,
-  #root .library-card,
-  #root .character-library-card,
-  #root .campaign-library-card,
-  #root .clean-sheet-panel,
-  #root .clean-sheet-card {
-    border-radius: 8px !important;
-  }
-}
-
-@media (max-width: 420px) {
-  #root .campaign-card-actions {
-    grid-template-columns: 1fr !important;
+  .rq-cinematic-roll.is-mode-2d .rq-cinematic-die-card {
+    width: 72px !important;
+    height: 72px !important;
   }
 }
