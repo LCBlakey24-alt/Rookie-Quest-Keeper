@@ -15,12 +15,15 @@ jest.mock('@/styles/appShellRail.css', () => ({}), { virtual: true });
 jest.mock('@/styles/railFeedbackButtons.css', () => ({}), { virtual: true });
 
 describe('AppShell', () => {
-  test('renders desktop workspace search and page content', () => {
+  test('renders the current app navigation, brand mark, and page content', () => {
     const html = renderToStaticMarkup(<AppShell><main>GM prep content</main></AppShell>);
 
-    expect(html).toContain('Search Rookie Quest Keeper');
-    expect(html).toContain('Search characters, campaigns, notes');
-    expect(html).toContain('My Campaigns');
+    expect(html).toContain('/brand/rqk-logo-mini.svg');
+    expect(html).toContain('Campaigns');
+    expect(html).toContain('Characters');
+    expect(html).toContain('Homebrew');
     expect(html).toContain('GM prep content');
+    expect(html).not.toContain('Search Rookie Quest Keeper');
+    expect(html).not.toContain('Search characters, campaigns, notes');
   });
 });
