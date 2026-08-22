@@ -1,6 +1,3 @@
 # Rookie Quest Keeper brand assets
 
-This folder stores the current site logo assets used by the frontend.
-
-- `rqk-logo-main.png` — main wordmark
-- `rqk-logo-mini.png` — compact RQK mark
+Current brand direction: a white rook standing on an open book inside a Rookie-red shield, on the dark navy product field. SVG is the source of truth for favicon, installed-app icon and in-product branding.
