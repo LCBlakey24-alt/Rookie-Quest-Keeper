@@ -19,6 +19,7 @@ import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCle
 // Current product guardrails load after App and all feature-level styles.
 import "@/styles/appStoreMobilePolish.css";
 import "@/styles/rookieResponsiveSystem.css";
+import "@/styles/minimalistNavyTheme.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
