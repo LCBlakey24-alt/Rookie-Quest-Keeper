@@ -20,6 +20,7 @@ import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCle
 import "@/styles/appStoreMobilePolish.css";
 import "@/styles/rookieResponsiveSystem.css";
 import "@/styles/minimalistNavyTheme.css";
+import "@/styles/desktopShellCleanup.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();

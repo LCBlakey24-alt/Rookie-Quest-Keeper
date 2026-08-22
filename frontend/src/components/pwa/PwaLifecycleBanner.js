@@ -10,11 +10,23 @@ import {
   promptInstall,
 } from '@/pwa/registerServiceWorker';
 
+const INSTALL_DISMISSED_KEY = 'rqk.pwa.install.dismissed';
+
+function loadInstallDismissed() {
+  try { return localStorage.getItem(INSTALL_DISMISSED_KEY) === '1'; } catch { return false; }
+}
+
+function isCompactInstallSurface() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia('(max-width: 719px)').matches;
+}
+
 export default function PwaLifecycleBanner() {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [updateReady, setUpdateReady] = useState(false);
   const [installReady, setInstallReady] = useState(() => Boolean(getPendingInstallPrompt()));
-  const [dismissedInstall, setDismissedInstall] = useState(false);
+  const [dismissedInstall, setDismissedInstall] = useState(loadInstallDismissed);
+  const [compactInstallSurface, setCompactInstallSurface] = useState(isCompactInstallSurface);
   const [offlineCacheActive, setOfflineCacheActive] = useState(false);
 
   useEffect(() => {
@@ -24,11 +36,13 @@ export default function PwaLifecycleBanner() {
     const onUpdate = () => setUpdateReady(true);
     const onInstall = () => {
       setInstallReady(true);
-      setDismissedInstall(false);
+      if (!loadInstallDismissed()) setDismissedInstall(false);
     };
+    const onResize = () => setCompactInstallSurface(isCompactInstallSurface());
 
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
+    window.addEventListener('resize', onResize);
     window.addEventListener('rqk:offline-cache-hit', onOfflineCacheHit);
     window.addEventListener(PWA_EVENTS.UPDATE_READY_EVENT, onUpdate);
     window.addEventListener(PWA_EVENTS.INSTALL_AVAILABLE_EVENT, onInstall);
@@ -36,11 +50,17 @@ export default function PwaLifecycleBanner() {
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
+      window.removeEventListener('resize', onResize);
       window.removeEventListener('rqk:offline-cache-hit', onOfflineCacheHit);
       window.removeEventListener(PWA_EVENTS.UPDATE_READY_EVENT, onUpdate);
       window.removeEventListener(PWA_EVENTS.INSTALL_AVAILABLE_EVENT, onInstall);
     };
   }, []);
+
+  const dismissInstall = () => {
+    setDismissedInstall(true);
+    try { localStorage.setItem(INSTALL_DISMISSED_KEY, '1'); } catch {}
+  };
 
   let banner = null;
 
@@ -65,7 +85,7 @@ export default function PwaLifecycleBanner() {
         <button type="button" className="rqk-pwa-banner__action" onClick={applyWaitingServiceWorker}>Update</button>
       </aside>
     );
-  } else if (installReady && !dismissedInstall) {
+  } else if (installReady && !dismissedInstall && compactInstallSurface) {
     banner = (
       <aside className="rqk-pwa-banner rqk-pwa-banner--install" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><Download size={16} /></span>
@@ -79,12 +99,12 @@ export default function PwaLifecycleBanner() {
           onClick={async () => {
             const accepted = await promptInstall();
             setInstallReady(false);
-            if (!accepted) setDismissedInstall(true);
+            if (!accepted) dismissInstall();
           }}
         >
           Install
         </button>
-        <button type="button" className="rqk-pwa-banner__close" onClick={() => setDismissedInstall(true)} aria-label="Dismiss install prompt"><X size={14} /></button>
+        <button type="button" className="rqk-pwa-banner__close" onClick={dismissInstall} aria-label="Dismiss install prompt"><X size={14} /></button>
       </aside>
     );
   }
