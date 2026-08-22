@@ -41,6 +41,11 @@ export function applyLegacyApiCompatibility(config = {}) {
   return { ...config, method: replacement.method, url: replacement.url };
 }
 
+export function applyLoginTimeoutPolicy(config = {}) {
+  if (String(config.url || '') !== '/auth/login') return config;
+  return { ...config, timeout: 0 };
+}
+
 function isAuthProbeNetworkFailure(error) {
   const url = String(error?.config?.url || '');
   return url === '/auth/me' && !error?.response;
@@ -52,7 +57,8 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((incomingConfig) => {
-  const config = applyLegacyApiCompatibility(incomingConfig);
+  let config = applyLegacyApiCompatibility(incomingConfig);
+  config = applyLoginTimeoutPolicy(config);
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
