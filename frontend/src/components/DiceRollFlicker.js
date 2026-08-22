@@ -4,6 +4,7 @@ import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { DICE_ROLLER_MODES, loadDiceRollerMode, normaliseDiceRollerMode } from '@/lib/diceRollerPreferences';
 import CinematicDiceOverlay from '@/components/CinematicDiceOverlay';
+import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 import './DiceRollFlicker.css';
 
 const characterCache = new Map();
@@ -28,7 +29,7 @@ const palette = {
 };
 
 const CINEMATIC_REVEAL_DELAY = 2300;
-const TWO_D_REVEAL_DELAY = 520;
+const TWO_D_REVEAL_DELAY = 360;
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 3100;
 
@@ -107,6 +108,7 @@ export default function DiceRollFlicker({
   const onCloseRef = useRef(onClose || onComplete);
   const recordedKeyRef = useRef('');
   const effectiveRollMode = normaliseDiceRollerMode(rollMode || loadDiceRollerMode());
+  const usesCinematic = effectiveRollMode === DICE_ROLLER_MODES.THREE_D;
   const numericTotal = Number(total);
   const numericAnimationValue = Number(animationValue);
   const finalTotal = Number.isFinite(numericTotal) ? numericTotal : Number.isFinite(numericAnimationValue) ? numericAnimationValue : 0;
@@ -119,7 +121,7 @@ export default function DiceRollFlicker({
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
 
   useEffect(() => {
-    if (!visible || typeof document === 'undefined') return undefined;
+    if (!visible || !usesCinematic || typeof document === 'undefined') return undefined;
     const { body } = document;
     const previousOverflow = body.style.overflow;
     const previousOverscroll = body.style.overscrollBehavior;
@@ -131,7 +133,7 @@ export default function DiceRollFlicker({
       body.style.overflow = previousOverflow;
       body.style.overscrollBehavior = previousOverscroll;
     };
-  }, [visible]);
+  }, [visible, usesCinematic]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
@@ -204,13 +206,13 @@ export default function DiceRollFlicker({
 
     const revealDelay = prefersReducedMotion
       ? REDUCED_MOTION_REVEAL_DELAY
-      : effectiveRollMode === DICE_ROLLER_MODES.TWO_D
-        ? TWO_D_REVEAL_DELAY
-        : CINEMATIC_REVEAL_DELAY;
+      : usesCinematic
+        ? CINEMATIC_REVEAL_DELAY
+        : TWO_D_REVEAL_DELAY;
     const revealTimer = window.setTimeout(() => setShowTotal(true), revealDelay);
 
     return () => window.clearTimeout(revealTimer);
-  }, [visible, dice, finalTotal, prefersReducedMotion, effectiveRollMode]);
+  }, [visible, dice, finalTotal, prefersReducedMotion, usesCinematic]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
@@ -249,6 +251,24 @@ export default function DiceRollFlicker({
     setFading(true);
     window.setTimeout(() => onCloseRef.current?.(), 90);
   };
+
+  if (!usesCinematic) {
+    return createPortal(
+      <FlatDiceResultOverlay
+        total={finalTotal}
+        label={label}
+        rollDetail={rollDetail}
+        formulaText={formulaText}
+        rolls={dice}
+        isRevealed={showTotal}
+        isCrit={finalCrit}
+        isFumble={finalFumble}
+        onRevealNow={() => setShowTotal(true)}
+        onClose={closeNow}
+      />,
+      document.body
+    );
+  }
 
   return createPortal(
     <div
