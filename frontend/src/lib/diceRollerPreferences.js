@@ -9,30 +9,24 @@ export function normaliseDiceRollerMode(value) {
 }
 
 export function detectRecommendedDiceRollerMode() {
-  if (typeof window === 'undefined') return DICE_ROLLER_MODES.THREE_D;
-
-  try {
-    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return DICE_ROLLER_MODES.TWO_D;
-    }
-  } catch { /* ignore */ }
-
-  try {
-    const cores = Number(navigator.hardwareConcurrency || 0);
-    const memory = Number(navigator.deviceMemory || 0);
-    if ((cores && cores <= 4) || (memory && memory <= 4)) return DICE_ROLLER_MODES.TWO_D;
-  } catch { /* ignore */ }
-
-  return DICE_ROLLER_MODES.THREE_D;
+  // The normal Rookie experience is now the lightweight flat roller.
+  // Keep the 3D constant for backwards compatibility with older saved data,
+  // but do not choose it automatically on any device.
+  return DICE_ROLLER_MODES.TWO_D;
 }
 
 export function loadDiceRollerMode() {
-  if (typeof localStorage === 'undefined') return detectRecommendedDiceRollerMode();
+  if (typeof localStorage === 'undefined') return DICE_ROLLER_MODES.TWO_D;
   try {
     const stored = localStorage.getItem(DICE_ROLLER_MODE_KEY);
-    return stored ? normaliseDiceRollerMode(stored) : detectRecommendedDiceRollerMode();
+    if (stored === DICE_ROLLER_MODES.THREE_D) {
+      // Migrate existing users away from the retired default cinematic view.
+      localStorage.setItem(DICE_ROLLER_MODE_KEY, DICE_ROLLER_MODES.TWO_D);
+      return DICE_ROLLER_MODES.TWO_D;
+    }
+    return stored === DICE_ROLLER_MODES.TWO_D ? stored : DICE_ROLLER_MODES.TWO_D;
   } catch {
-    return detectRecommendedDiceRollerMode();
+    return DICE_ROLLER_MODES.TWO_D;
   }
 }
 
