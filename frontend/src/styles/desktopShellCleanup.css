@@ -1,0 +1,45 @@
+/* Desktop shell cleanup: the left rail already names and launches the workspace,
+   so desktop does not need a second section bar or mobile-only utility chrome. */
+
+@media (min-width: 720px) {
+  #root .rqk-app-topbar {
+    display: none !important;
+  }
+
+  #root .rqk-app-shell-content {
+    min-height: 100vh !important;
+  }
+
+  #root .rqk-app-mobile-more-trigger {
+    display: none !important;
+  }
+
+  #root .rqk-app-rail-bottom {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  #root .rqk-app-rail-bottom > .rqk-app-rail-section-label {
+    grid-column: 1 / -1 !important;
+  }
+
+  #root .rqk-app-rail-support-link {
+    min-width: 0 !important;
+    min-height: 42px !important;
+    grid-template-columns: 1fr !important;
+    place-items: center !important;
+    padding: 6px !important;
+  }
+
+  #root .rqk-app-rail-support-link span {
+    display: none !important;
+  }
+
+  #root .rqk-app-rail-support-link svg {
+    width: 19px !important;
+    height: 19px !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+}
