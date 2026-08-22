@@ -46,6 +46,16 @@ export function applyLoginTimeoutPolicy(config = {}) {
   return { ...config, timeout: 0 };
 }
 
+export async function wakeBackend() {
+  if (typeof fetch !== 'function') return false;
+  try {
+    await fetch(`${API_BASE}/health`, { method: 'GET', cache: 'no-store' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function isAuthProbeNetworkFailure(error) {
   const url = String(error?.config?.url || '');
   return url === '/auth/me' && !error?.response;
@@ -113,5 +123,14 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Free/sleeping hosts can take longer than the old login timeout to wake.
+// Start that wake-up as soon as the frontend bundle loads, while the user is
+// still reading the landing/auth UI. This is deliberately fire-and-forget.
+if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  window.setTimeout(() => {
+    wakeBackend();
+  }, 0);
+}
 
 export default apiClient;
