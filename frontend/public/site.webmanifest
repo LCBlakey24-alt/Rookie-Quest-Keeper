@@ -12,15 +12,15 @@
   "categories": ["games", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/brand/rqk-logo-mini.png",
-      "sizes": "1000x1000",
-      "type": "image/png",
+      "src": "/brand/rqk-logo-mini.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/brand/rqk-logo-mini.png",
-      "sizes": "1000x1000",
-      "type": "image/png",
+      "src": "/brand/rqk-logo-mini.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "maskable"
     }
   ]
