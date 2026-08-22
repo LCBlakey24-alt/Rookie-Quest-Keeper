@@ -1,4 +1,4 @@
-import { applyLegacyApiCompatibility, applyLoginTimeoutPolicy } from './apiClient';
+import { applyLegacyApiCompatibility, applyLoginTimeoutPolicy, wakeBackend } from './apiClient';
 
 describe('legacy account API compatibility', () => {
   test.each([
@@ -27,5 +27,20 @@ describe('login timeout policy', () => {
   test('keeps the normal timeout policy for other requests', () => {
     const original = { method: 'get', url: '/campaigns', timeout: 20000 };
     expect(applyLoginTimeoutPolicy(original)).toBe(original);
+  });
+});
+
+describe('backend wake-up', () => {
+  test('pings the health endpoint without surfacing a failure', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({ ok: true });
+
+    await expect(wakeBackend()).resolves.toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/api\/health$/),
+      expect.objectContaining({ method: 'GET', cache: 'no-store' })
+    );
+
+    global.fetch = originalFetch;
   });
 });
