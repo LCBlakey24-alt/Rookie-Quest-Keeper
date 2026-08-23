@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
+import { useDeviceLayout } from '@/layouts/deviceLayout';
 
-export const defaultSectionOrder = ['dashboard_hero', 'status_bar', 'quick_actions', 'live_workspace', 'site_updates', 'reviews', 'admin_notice'];
+export const defaultSectionOrder = ['dashboard_hero', 'quick_actions', 'live_workspace', 'site_updates', 'reviews', 'admin_notice'];
 
 export const defaultSectionOrderByDevice = {
   desktop: defaultSectionOrder,
@@ -117,21 +118,10 @@ function normaliseLayoutSettings(value = {}) {
   };
 }
 
-function getDevice(width) {
-  if (width <= 760) return 'mobile';
-  if (width <= 1180) return 'tablet';
-  return 'desktop';
-}
-
-function getWindowWidth() {
-  if (typeof window === 'undefined') return 1440;
-  return window.innerWidth || 1440;
-}
-
 export default function useLayoutSettings() {
   const [settings, setSettings] = useState(defaultLayoutSettings);
   const [loading, setLoading] = useState(true);
-  const [device, setDevice] = useState(getDevice(getWindowWidth()));
+  const device = useDeviceLayout();
 
   useEffect(() => {
     let cancelled = false;
@@ -147,13 +137,6 @@ export default function useLayoutSettings() {
     };
     load();
     return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    const onResize = () => setDevice(getDevice(getWindowWidth()));
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   const deviceSettings = settings[device] || defaultLayoutSettings[device];
