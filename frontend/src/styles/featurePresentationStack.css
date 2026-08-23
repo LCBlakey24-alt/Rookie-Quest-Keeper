@@ -1,0 +1,54 @@
+/*
+  Transitional feature presentation stack.
+
+  These imports intentionally preserve the exact historical cascade order that
+  existed in App.js before the frontend de-bloat. The current minimalist navy
+  theme still loads after this stack from index.js and therefore remains the
+  final product-level visual authority.
+
+  New feature/layout CSS must NOT be added here. As each route family is moved
+  into its desktop/tablet/mobile presentation layer, remove its old imports from
+  this file and delete any superseded stylesheets.
+*/
+
+@import './characterBuilderResponsive.css';
+@import './characterBuilderUXFoundation.css';
+@import './builderUI.css';
+@import './builderAbilityScoresTouch.css';
+@import './abilitiesStepTap.css';
+@import './brandPolish.css';
+@import './authBrandOverrides.css';
+@import './professionalLanding.css';
+@import './cleanCharacterSheet.css';
+@import './cleanCombatTab.css';
+@import './mobileSheetPolish.css';
+@import './cleanSheetInteractions.css';
+@import './cleanSheetRecovery.css';
+@import './cleanInventoryTab.css';
+@import './cleanSpellsTab.css';
+@import './cleanNotesTab.css';
+@import './levelUpCleanStyle.css';
+@import './landingSafeFix.css';
+@import './landingFinal.css';
+@import './actionFillAnimations.css';
+@import './scrollFixes.css';
+@import './appUtilityPagesPolish.css';
+@import './mobileAppBoxGrid.css';
+@import './homeHubFinalPolish.css';
+@import './utilityPagesFinalFixes.css';
+@import './fullCreatorReadiness.css';
+@import './characterSheetRailAndHeroFix.css';
+@import './characterSheetColumnAlignmentFix.css';
+@import './characterSheetHeroBadgeFix.css';
+@import './characterSheetSpellUnavailableState.css';
+@import './characterSheetPlayHeaderCompact.css';
+@import './characterSheetUnifiedMobileHeader.css';
+@import './characterSheetSavingThrowsCompact.css';
+@import './characterSheetSkillsCompact.css';
+@import './characterSheetStatsFinalMobileTweaks.css';
+@import './characterSheetStatsTabFinalPolish.css';
+@import './brandedLoading.css';
+@import './loadingExperiencePolish.css';
+@import './authExperiencePolish.css';
+@import './adminMissionControlHooks.css';
+@import './rookAssistantPlaybook.css';

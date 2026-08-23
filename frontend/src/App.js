@@ -2,50 +2,11 @@ import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 
-// Only true shared foundations belong here. Feature/page presentation is owned
-// by the component that renders it and will migrate into isolated layout layers.
+// App.js owns routing and app-wide foundations only. The ordered feature style
+// stack is transitional: it preserves the existing cascade until each route
+// family moves into its isolated desktop/tablet/mobile presentation layer.
 import '@/styles/designSystem.css';
-import '@/styles/characterBuilderResponsive.css';
-import '@/styles/characterBuilderUXFoundation.css';
-import '@/styles/builderUI.css';
-import '@/styles/builderAbilityScoresTouch.css';
-import '@/styles/abilitiesStepTap.css';
-import '@/styles/brandPolish.css';
-import '@/styles/authBrandOverrides.css';
-import '@/styles/professionalLanding.css';
-import '@/styles/cleanCharacterSheet.css';
-import '@/styles/cleanCombatTab.css';
-import '@/styles/mobileSheetPolish.css';
-import '@/styles/cleanSheetInteractions.css';
-import '@/styles/cleanSheetRecovery.css';
-import '@/styles/cleanInventoryTab.css';
-import '@/styles/cleanSpellsTab.css';
-import '@/styles/cleanNotesTab.css';
-import '@/styles/levelUpCleanStyle.css';
-import '@/styles/landingSafeFix.css';
-import '@/styles/landingFinal.css';
-import '@/styles/actionFillAnimations.css';
-import '@/styles/scrollFixes.css';
-import '@/styles/appUtilityPagesPolish.css';
-import '@/styles/mobileAppBoxGrid.css';
-import '@/styles/homeHubFinalPolish.css';
-import '@/styles/utilityPagesFinalFixes.css';
-import '@/styles/fullCreatorReadiness.css';
-import '@/styles/characterSheetRailAndHeroFix.css';
-import '@/styles/characterSheetColumnAlignmentFix.css';
-import '@/styles/characterSheetHeroBadgeFix.css';
-import '@/styles/characterSheetSpellUnavailableState.css';
-import '@/styles/characterSheetPlayHeaderCompact.css';
-import '@/styles/characterSheetUnifiedMobileHeader.css';
-import '@/styles/characterSheetSavingThrowsCompact.css';
-import '@/styles/characterSheetSkillsCompact.css';
-import '@/styles/characterSheetStatsFinalMobileTweaks.css';
-import '@/styles/characterSheetStatsTabFinalPolish.css';
-import '@/styles/brandedLoading.css';
-import '@/styles/loadingExperiencePolish.css';
-import '@/styles/authExperiencePolish.css';
-import '@/styles/adminMissionControlHooks.css';
-import '@/styles/rookAssistantPlaybook.css';
+import '@/styles/featurePresentationStack.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -108,7 +69,7 @@ const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSet
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
-const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridge'));
+const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridgeV2'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
 
 function CampaignLiveRedirect() {
