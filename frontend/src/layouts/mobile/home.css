@@ -1,0 +1,64 @@
+/* Home dashboard geometry for the mobile lane only. */
+
+#root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-page {
+  padding: 14px !important;
+  gap: 14px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-header {
+  grid-template-columns: 1fr !important;
+  align-items: start !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-header-buttons {
+  justify-content: flex-start !important;
+}
+
+@media (max-width: 620px) {
+  #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-page {
+    padding: 10px !important;
+    gap: 10px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-header,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-panel,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-updates-panel,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-activity-panel,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-readiness-panel {
+    padding: 13px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-header h1 {
+    font-size: 1.85rem !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-grid,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-updates-grid,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-info-grid,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-readiness-grid,
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-live-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card {
+    min-height: 132px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-activity-item {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-activity-item time {
+    grid-column: 2 !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-header-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-header-buttons button {
+    width: 100% !important;
+  }
+}
