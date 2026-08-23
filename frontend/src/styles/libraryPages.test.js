@@ -5,11 +5,16 @@ function read(relativePath) {
   return fs.readFileSync(path.join(__dirname, relativePath), 'utf8');
 }
 
+function readIfExists(relativePath) {
+  const filePath = path.join(__dirname, relativePath);
+  return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+}
+
 describe('library presentation ownership', () => {
   test('shared library styles delegate mobile geometry to the mobile lane', () => {
     const shared = read('libraryPages.css');
     const mobile = read('../layouts/mobile/libraryPages.css');
-    const mixedMobile = read('mobileAppBoxGrid.css');
+    const mixedMobile = readIfExists('mobileAppBoxGrid.css');
 
     expect(shared).toContain("@import '../layouts/mobile/libraryPages.css';");
     expect(shared).not.toMatch(/@media\s*\(max-width:\s*760px\)/i);
