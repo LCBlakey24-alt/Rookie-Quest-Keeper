@@ -1,5 +1,5 @@
-/* Shared card/list polish for the clean character sheet.
-   Sunset card language: dark purple cards, thin gradient borders, no red side bars. */
+/* Clean Character Sheet — shared card/list structure only.
+   Palette ownership lives in CleanCharacterSheetPolish.css. */
 
 .character-page-v2 .clean-sheet-grid,
 .character-page-v2 .clean-sheet-feature-lanes,
@@ -12,12 +12,9 @@
 .character-page-v2 .clean-sheet-readable-saves,
 .character-page-v2 .clean-sheet-compact-abilities,
 .character-page-v2 .clean-sheet-passive-grid,
-.character-page-v2 .clean-sheet-core-stat-grid {
+.character-page-v2 .clean-sheet-core-stat-grid,
+.character-page-v2 .clean-sheet-action-grid {
   gap: 10px !important;
-}
-
-.character-page-v2 .clean-sheet-panel {
-  padding: 14px !important;
 }
 
 .character-page-v2 .clean-sheet-panel-heading,
@@ -27,7 +24,7 @@
 .character-page-v2 .clean-sheet-spell-section-heading {
   margin-bottom: 10px !important;
   padding-bottom: 8px !important;
-  border-bottom: 0 !important;
+  border-bottom: 1px solid var(--cs-border) !important;
 }
 
 .character-page-v2 .clean-sheet-panel-heading h2,
@@ -38,27 +35,11 @@
 .character-page-v2 .clean-sheet-panel > h2,
 .character-page-v2 .clean-sheet-feature-lane h3,
 .character-page-v2 .clean-sheet-spell-level-group h3 {
-  color: #ffffff !important;
-  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.02em !important;
-}
-
-.character-page-v2 .clean-sheet-panel-heading h2::after,
-.character-page-v2 .clean-sheet-section-heading-row h2::after,
-.character-page-v2 .clean-sheet-inventory-header h2::after,
-.character-page-v2 .clean-sheet-spellcasting-heading h2::after,
-.character-page-v2 .clean-sheet-spell-section-heading h2::after,
-.character-page-v2 .clean-sheet-panel > h2::after,
-.character-page-v2 .clean-sheet-feature-lane h3::after,
-.character-page-v2 .clean-sheet-spell-level-group h3::after {
-  content: '';
-  display: block;
-  width: min(100%, 420px);
-  height: 3px;
-  margin-top: 8px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542);
+  margin: 0 !important;
+  color: var(--cs-text) !important;
+  font-family: inherit !important;
+  font-weight: 900 !important;
+  letter-spacing: -.01em !important;
 }
 
 .character-page-v2 .clean-sheet-panel-heading p,
@@ -68,7 +49,7 @@
 .character-page-v2 .clean-sheet-feature-empty,
 .character-page-v2 .clean-sheet-empty-note,
 .character-page-v2 .clean-sheet-muted {
-  color: rgba(255, 255, 255, 0.68) !important;
+  color: var(--cs-muted) !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
@@ -87,24 +68,25 @@
 .character-page-v2 .clean-sheet-skills-summary > div,
 .character-page-v2 .clean-sheet-currency-grid > div,
 .character-page-v2 .clean-sheet-equipment-preview > div,
-.character-page-v2 .clean-sheet-damage-result {
-  background:
-    linear-gradient(#10051d, #10051d) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.8), rgba(255, 149, 66, 0.52)) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 9px !important;
+.character-page-v2 .clean-sheet-damage-result,
+.character-page-v2 .clean-sheet-empty-slot {
+  min-width: 0 !important;
+  border: 1px solid var(--cs-border) !important;
+  border-left: 1px solid var(--cs-border) !important;
+  border-radius: 8px !important;
+  background: var(--cs-card) !important;
+  background-image: none !important;
+  color: var(--cs-text) !important;
   box-shadow: none !important;
-  color: #ffffff !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
 .character-page-v2 .clean-sheet-spell-card,
 .character-page-v2 .clean-sheet-item-card,
 .character-page-v2 .clean-sheet-caster-card,
-.character-page-v2 .clean-sheet-slot-card {
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-damage-result {
   padding: 12px !important;
-  min-width: 0 !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card:hover,
@@ -113,9 +95,10 @@
 .character-page-v2 .clean-sheet-skill-card:hover,
 .character-page-v2 .clean-sheet-save-card:hover,
 .character-page-v2 .clean-sheet-core-stat-card:hover {
-  filter: brightness(1.06) !important;
+  border-color: var(--cs-border-strong) !important;
+  background: #193149 !important;
+  filter: none !important;
   transform: none !important;
-  box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card strong,
@@ -126,7 +109,7 @@
 .character-page-v2 .clean-sheet-skill-card strong,
 .character-page-v2 .clean-sheet-save-card strong,
 .character-page-v2 .clean-sheet-core-stat-card strong {
-  color: #ffffff !important;
+  color: var(--cs-text) !important;
   font-weight: 900 !important;
   overflow-wrap: anywhere !important;
 }
@@ -137,7 +120,7 @@
 .character-page-v2 .clean-sheet-caster-card p,
 .character-page-v2 .clean-sheet-slot-card p,
 .character-page-v2 .clean-sheet-pact-card p {
-  color: rgba(255, 255, 255, 0.78) !important;
+  color: var(--cs-text-soft) !important;
   line-height: 1.45 !important;
 }
 
@@ -149,28 +132,26 @@
 .character-page-v2 .clean-sheet-save-card em,
 .character-page-v2 .clean-sheet-skill-tags em,
 .character-page-v2 .clean-sheet-skill-tags small {
-  color: rgba(255, 255, 255, 0.68) !important;
+  color: var(--cs-muted) !important;
   font-style: normal !important;
-  font-weight: 850 !important;
+  font-weight: 800 !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card[data-active='true'],
 .character-page-v2 .clean-sheet-spell-card.prepared,
-.character-page-v2 .clean-sheet-spell-card.cantrip,
 .character-page-v2 .clean-sheet-item-card.favorite,
-.character-page-v2 .clean-sheet-item-card.consumable,
 .character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient,
 .character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save:has(em),
 .character-page-v2 .clean-sheet-core-stat-card--rollable,
 .character-page-v2 .clean-sheet-slot-card:has(.filled),
-.character-page-v2 .clean-sheet-caster-card,
-.character-page-v2 .clean-sheet-empty-slot {
-  border-left: 1px solid transparent !important;
-  padding-left: 12px !important;
+.character-page-v2 .clean-sheet-caster-card {
+  border-color: var(--cs-accent-border) !important;
 }
 
+.character-page-v2 .clean-sheet-spell-card.cantrip,
+.character-page-v2 .clean-sheet-item-card.consumable,
 .character-page-v2 .clean-sheet-empty-slot {
-  opacity: 0.9 !important;
+  border-color: var(--cs-border-strong) !important;
 }
 
 .character-page-v2 .clean-sheet-item-slot,
@@ -180,13 +161,10 @@
 .character-page-v2 .clean-sheet-section-heading-row > span,
 .character-page-v2 .clean-sheet-spell-section-heading > span,
 .character-page-v2 .clean-sheet-spellcasting-heading > span {
-  background:
-    linear-gradient(#10051d, #10051d) padding-box,
-    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  color: #ffffff !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 8px !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 999px !important;
+  background: var(--cs-input) !important;
+  color: var(--cs-text-soft) !important;
   box-shadow: none !important;
 }
 
@@ -200,72 +178,52 @@
 .character-page-v2 .clean-sheet-item-actions button,
 .character-page-v2 .clean-sheet-spell-actions button,
 .character-page-v2 .clean-sheet-slot-actions button,
-.character-page-v2 .clean-sheet-roll-chip,
-.character-page-v2 .clean-sheet-skill-filter-row button,
 .character-page-v2 .clean-sheet-panel button,
-.character-page-v2 .clean-sheet-panel input,
-.character-page-v2 .clean-sheet-panel select,
-.character-page-v2 .clean-sheet-panel textarea {
+.character-page-v2 .clean-sheet-roll-chip,
+.character-page-v2 .clean-sheet-skill-filter-row button {
+  min-height: 38px !important;
+  border: 1px solid var(--cs-border) !important;
   border-radius: 8px !important;
+  background: var(--cs-card) !important;
+  background-image: none !important;
+  color: var(--cs-text) !important;
   box-shadow: none !important;
 }
 
-.character-page-v2 .clean-sheet-item-actions button,
-.character-page-v2 .clean-sheet-spell-actions button,
-.character-page-v2 .clean-sheet-slot-actions button,
-.character-page-v2 .clean-sheet-panel button,
-.character-page-v2 .clean-sheet-roll-chip {
-  background:
-    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
-    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  color: #ffffff !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-}
-
-.character-page-v2 .clean-sheet-item-actions button:hover:not(:disabled),
-.character-page-v2 .clean-sheet-spell-actions button:hover:not(:disabled),
-.character-page-v2 .clean-sheet-slot-actions button:hover:not(:disabled),
-.character-page-v2 .clean-sheet-panel button:hover:not(:disabled),
-.character-page-v2 .clean-sheet-roll-chip:hover:not(:disabled) {
-  filter: brightness(1.06) !important;
+.character-page-v2 .clean-sheet-skill-filter-row button.active,
+.character-page-v2 .clean-sheet-item-actions button.active,
+.character-page-v2 .clean-sheet-spell-actions button.active {
+  background: var(--cs-accent) !important;
+  border-color: var(--cs-accent) !important;
+  color: #fff !important;
 }
 
 .character-page-v2 .clean-sheet-panel input,
 .character-page-v2 .clean-sheet-panel select,
 .character-page-v2 .clean-sheet-panel textarea {
-  background:
-    linear-gradient(#090313, #090313) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.75), rgba(255, 149, 66, 0.42)) border-box !important;
-  color: #ffffff !important;
-  border: 1px solid transparent !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 8px !important;
+  background: var(--cs-input) !important;
+  background-image: none !important;
+  color: var(--cs-text) !important;
+  box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-spell-search,
-.character-page-v2 .clean-sheet-equipment-tools label,
-.character-page-v2 .clean-sheet-snapshot-warning,
-.character-page-v2 .clean-sheet-spell-warning {
-  background:
-    linear-gradient(#10051d, #10051d) padding-box,
-    linear-gradient(135deg, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 9px !important;
-  box-shadow: none !important;
+.character-page-v2 .clean-sheet-equipment-tools label {
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 8px !important;
+  background: var(--cs-input) !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i {
   border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.16) !important;
+  background: rgba(181, 203, 226, .16) !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i.filled {
-  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
-}
-
-.character-page-v2 .clean-sheet-damage-result {
-  padding: 12px !important;
-  border-left: 1px solid transparent !important;
+  background: var(--cs-accent) !important;
 }
 
 .character-page-v2 .clean-sheet-stats-tab .clean-sheet-panel,
@@ -277,16 +235,9 @@
 .character-page-v2 .clean-sheet-species-tab .clean-sheet-panel,
 .character-page-v2 .clean-sheet-feats-tab .clean-sheet-panel,
 .character-page-v2 .clean-sheet-character-tab .clean-sheet-panel {
-  background:
-    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
-    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
-  border-left-width: 1px !important;
+  border: 1px solid var(--cs-border) !important;
+  border-left: 1px solid var(--cs-border) !important;
   border-radius: 10px !important;
-}
-
-.character-page-v2 .clean-sheet-action-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-  gap: 10px !important;
+  background: var(--cs-panel) !important;
+  background-image: none !important;
 }
