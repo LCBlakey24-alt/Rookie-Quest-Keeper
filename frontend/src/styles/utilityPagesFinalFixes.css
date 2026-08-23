@@ -1,7 +1,6 @@
-/* Final utility page fixes for Homebrew, Uploads, and Account Settings.
-   This file loads after the sunset theme so it can beat older brown/red inline-heavy screens. */
+/* Transitional final overrides for Homebrew and Account Settings.
+   Uploads now owns its route presentation and has been removed from this mixed file. */
 
-#root .uploads-dashboard-page,
 #root [data-testid='homebrew-workshop'],
 #root .account-settings-page {
   min-height: 100dvh !important;
@@ -9,17 +8,12 @@
   color: #ffffff !important;
 }
 
-#root .uploads-dashboard-page *,
 #root [data-testid='homebrew-workshop'] *,
 #root .account-settings-page * {
   box-shadow: none !important;
   text-shadow: none !important;
 }
 
-#root .uploads-dashboard-hero,
-#root .uploads-dashboard-dropzone,
-#root .uploads-dashboard-card,
-#root .uploads-dashboard-next,
 #root [data-testid='homebrew-workshop'] header,
 #root [data-testid='homebrew-workshop'] aside,
 #root [data-testid='homebrew-workshop'] section,
@@ -34,24 +28,6 @@
   color: #ffffff !important;
 }
 
-#root .uploads-dashboard-page {
-  display: grid !important;
-  align-content: start !important;
-  gap: 10px !important;
-  padding: clamp(10px, 2vw, 20px) !important;
-}
-
-#root .uploads-dashboard-hero,
-#root .uploads-dashboard-dropzone,
-#root .uploads-dashboard-card,
-#root .uploads-dashboard-next {
-  padding: clamp(13px, 2.4vw, 20px) !important;
-}
-
-#root .uploads-dashboard-hero h1,
-#root .uploads-dashboard-dropzone h2,
-#root .uploads-dashboard-card h2,
-#root .uploads-dashboard-next h2,
 #root [data-testid='homebrew-workshop'] h1,
 #root [data-testid='homebrew-workshop'] h2,
 #root .account-settings-page h1,
@@ -66,23 +42,11 @@
   hyphens: none !important;
 }
 
-#root .uploads-dashboard-hero h1 {
-  font-size: clamp(2.25rem, 8vw, 4rem) !important;
-  max-width: 11ch !important;
-}
-
-#root .uploads-dashboard-dropzone h2,
-#root .uploads-dashboard-card h2,
-#root .uploads-dashboard-next h2,
 #root [data-testid='homebrew-workshop'] h2,
 #root .account-settings-page h2 {
   font-size: clamp(1.45rem, 5.7vw, 2.25rem) !important;
 }
 
-#root .uploads-dashboard-hero h1::after,
-#root .uploads-dashboard-dropzone h2::after,
-#root .uploads-dashboard-card h2::after,
-#root .uploads-dashboard-next h2::after,
 #root [data-testid='homebrew-workshop'] h2::after,
 #root .account-settings-page h2::after {
   content: '' !important;
@@ -94,41 +58,10 @@
   background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
 }
 
-#root .uploads-dashboard-page p,
-#root .uploads-dashboard-page li,
 #root [data-testid='homebrew-workshop'] p,
 #root .account-settings-page p,
 #root .account-settings-page label {
   color: #ffffff !important;
-}
-
-#root .uploads-dashboard-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
-  gap: 10px !important;
-}
-
-#root .uploads-dashboard-card {
-  min-height: 0 !important;
-  display: grid !important;
-  align-content: start !important;
-  gap: 10px !important;
-}
-
-#root .uploads-dashboard-dropzone {
-  min-height: 0 !important;
-  display: grid !important;
-  gap: 10px !important;
-  align-items: start !important;
-  background:
-    linear-gradient(#13081f, #13081f) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border-style: solid !important;
-}
-
-#root .uploads-dashboard-next ul {
-  margin: 10px 0 0 !important;
-  padding-left: 1.1rem !important;
 }
 
 #root [data-testid='homebrew-workshop'] {
@@ -225,7 +158,6 @@
 
 #root [data-testid='homebrew-workshop'] button,
 #root [data-testid='homebrew-workshop'] label[for='hb-file-input'],
-#root .uploads-dashboard-dropzone button,
 #root .account-settings-page button {
   min-height: 40px !important;
   display: inline-flex !important;
@@ -342,13 +274,6 @@
 }
 
 @media (max-width: 760px) {
-  #root .uploads-dashboard-hero h1 {
-    font-size: clamp(2.35rem, 11vw, 3.15rem) !important;
-  }
-
-  #root .uploads-dashboard-dropzone h2,
-  #root .uploads-dashboard-card h2,
-  #root .uploads-dashboard-next h2,
   #root [data-testid='homebrew-workshop'] h2,
   #root .account-settings-page h2 {
     font-size: clamp(1.45rem, 7vw, 2rem) !important;
@@ -394,7 +319,6 @@
 }
 
 @media (max-width: 390px) {
-  #root .uploads-dashboard-page,
   #root [data-testid='homebrew-workshop'],
   #root .account-settings-page {
     padding: 8px !important;
