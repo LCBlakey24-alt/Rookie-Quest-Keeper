@@ -1,0 +1,45 @@
+/* Uploads geometry for the mobile lane only. */
+
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-page {
+  padding: 10px !important;
+  gap: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-hero,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-dropzone,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-next,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-card {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-route-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-safety-grid {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-hero,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-dropzone,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-route-card,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-card,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-next,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-safety-grid article {
+  min-height: 0 !important;
+  padding: 13px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-action-row {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  width: 100% !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-action-row a,
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-route-card em {
+  width: 100% !important;
+  min-height: 44px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .uploads-dashboard-hero h1 {
+  font-size: clamp(2rem, 10vw, 2.8rem) !important;
+}
