@@ -1,0 +1,20 @@
+/* Campaign setup geometry for the desktop lane only. */
+
+#root .rqk-app-shell[data-rq-device='desktop'] .dashboard-campaign-setup-modal {
+  width: min(1120px, 100%) !important;
+  max-height: min(92dvh, 940px) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .dashboard-campaign-setup-form {
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr) !important;
+  align-items: start !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .dashboard-tone-section {
+  grid-row: span 2 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .dashboard-setup-preview,
+#root .rqk-app-shell[data-rq-device='desktop'] .dashboard-modal-actions {
+  grid-column: 1 / -1 !important;
+}
