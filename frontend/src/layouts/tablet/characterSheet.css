@@ -1,0 +1,36 @@
+/* Clean Character Sheet — tablet geometry only. */
+
+[data-rq-device='tablet'] .character-page-v2.clean-sheet-page {
+  padding: 14px !important;
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-header-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-compact-status--hp-only {
+  grid-template-columns: minmax(180px, .4fr) minmax(300px, .6fr) !important;
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-grid,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-action-grid,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-spell-grid,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-item-grid,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-feature-lanes {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-core-stat-grid,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-passive-grid,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-compact-abilities,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-readable-saves,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-readable-skills {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-panel,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-feature-card,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-spell-card,
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-item-card {
+  min-width: 0 !important;
+}
