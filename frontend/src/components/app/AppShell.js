@@ -3,12 +3,16 @@ import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { useDeviceLayout } from '@/layouts/deviceLayout';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
 import '@/styles/homeDashboardExperience.css';
 import '@/styles/homeHubMobileNavPolish.css';
 import '@/styles/adminFeedbackExperience.css';
 import '@/styles/appShellExperiencePolish.css';
+import '@/layouts/desktop/appShell.css';
+import '@/layouts/tablet/appShell.css';
+import '@/layouts/mobile/appShell.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
@@ -111,6 +115,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
 
 export default function AppShell({ children }) {
   const location = useLocation();
+  const deviceLayout = useDeviceLayout();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
@@ -167,7 +172,7 @@ export default function AppShell({ children }) {
   };
 
   return (
-    <div className="rqk-app-shell">
+    <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout}>
       <aside className="rqk-app-rail" aria-label="App navigation">
         <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
