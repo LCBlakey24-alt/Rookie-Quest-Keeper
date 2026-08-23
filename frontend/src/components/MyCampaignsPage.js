@@ -12,8 +12,6 @@ import {
 } from '@/components/dashboard/home/unifiedDashboardUtils';
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
-import '@/styles/unifiedDashboardBoard.css';
-import '@/styles/unifiedDashboardPolish.css';
 import '@/styles/campaignSetupModal.css';
 
 function recordId(record) {
@@ -73,13 +71,17 @@ export default function MyCampaignsPage() {
     total + Number(campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0)
   ), 0), [sortedCampaigns]);
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = async ({ notifyFailure = true } = {}) => {
     try {
       const response = await apiClient.get('/campaigns');
       const records = Array.isArray(response.data) ? response.data : response.data?.campaigns || [];
       setCampaigns(records.filter((item) => item && typeof item === 'object'));
+      return { ok: true };
     } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load campaigns');
+      if (notifyFailure) {
+        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load campaigns');
+      }
+      return { ok: false, error };
     } finally {
       setLoading(false);
     }
@@ -92,8 +94,8 @@ export default function MyCampaignsPage() {
   const refresh = async () => {
     setRefreshing(true);
     try {
-      await loadCampaigns();
-      toast.success('Campaigns refreshed');
+      const result = await loadCampaigns();
+      if (result.ok) toast.success('Campaigns refreshed');
     } finally {
       setRefreshing(false);
     }
