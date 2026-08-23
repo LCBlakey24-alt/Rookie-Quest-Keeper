@@ -1,0 +1,53 @@
+/* Campaign setup geometry for the mobile lane only. */
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-campaign-setup-overlay {
+  display: block !important;
+  padding: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-campaign-setup-modal {
+  width: 100% !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-campaign-setup-modal .dashboard-modal-header {
+  padding: 13px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-campaign-setup-modal .dashboard-modal-header h2 {
+  font-size: clamp(2rem, 11vw, 2.8rem) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-campaign-setup-form {
+  padding: 10px !important;
+  gap: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-form-split,
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-form-three {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-tone-presets {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-tone-preset,
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-modal-actions button {
+  width: 100% !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-modal-actions {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+}
+
+@media (max-width: 380px) {
+  #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-tone-presets {
+    grid-template-columns: 1fr !important;
+  }
+}
