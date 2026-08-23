@@ -66,7 +66,7 @@ const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
-const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
+const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
 const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridgeV2'));
