@@ -3,6 +3,9 @@
    file is the single final dashboard presentation. No legacy sunset gradients,
    configurable forced column counts, or oversized display typography. */
 
+@import '../layouts/tablet/home.css';
+@import '../layouts/mobile/home.css';
+
 #root .unified-dashboard-page {
   width: 100% !important;
   max-width: 1360px !important;
@@ -517,69 +520,4 @@
 #root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-readiness-card,
 #root .unified-dashboard-page.dashboard-card-scale-large .dashboard-readiness-card {
   min-height: 0 !important;
-}
-
-@media (max-width: 900px) {
-  #root .unified-dashboard-page {
-    padding: 14px !important;
-    gap: 14px !important;
-  }
-
-  #root .unified-dashboard-header {
-    grid-template-columns: 1fr !important;
-    align-items: start !important;
-  }
-
-  #root .dashboard-header-buttons {
-    justify-content: flex-start !important;
-  }
-}
-
-@media (max-width: 620px) {
-  #root .unified-dashboard-page {
-    padding: 10px !important;
-    gap: 10px !important;
-  }
-
-  #root .unified-dashboard-header,
-  #root .dashboard-command-panel,
-  #root .dashboard-updates-panel,
-  #root .dashboard-activity-panel,
-  #root .dashboard-readiness-panel {
-    padding: 13px !important;
-  }
-
-  #root .unified-dashboard-header h1 {
-    font-size: 1.85rem !important;
-  }
-
-  #root .dashboard-command-grid,
-  #root .dashboard-updates-grid,
-  #root .dashboard-info-grid,
-  #root .dashboard-readiness-grid,
-  #root .dashboard-live-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  #root .dashboard-command-card {
-    min-height: 132px !important;
-  }
-
-  #root .dashboard-activity-item {
-    grid-template-columns: auto minmax(0, 1fr) !important;
-  }
-
-  #root .dashboard-activity-item time {
-    grid-column: 2 !important;
-  }
-
-  #root .dashboard-header-buttons {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    width: 100% !important;
-  }
-
-  #root .dashboard-header-buttons button {
-    width: 100% !important;
-  }
 }
