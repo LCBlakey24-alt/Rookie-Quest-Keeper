@@ -1,0 +1,15 @@
+/* Homebrew geometry for the tablet lane only. */
+
+#root .rqk-app-shell[data-rq-device='tablet'] [data-testid='homebrew-workshop'] > section > header {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: start !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] [data-testid='homebrew-workshop'] > section > section[style*='grid-template-columns'] {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+  min-height: 92px !important;
+}
