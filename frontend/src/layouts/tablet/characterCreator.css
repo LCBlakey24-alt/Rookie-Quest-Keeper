@@ -1,0 +1,29 @@
+/* Character Creator — tablet geometry only. */
+
+[data-rq-device='tablet'] .full-creator-page {
+  padding: 14px;
+}
+
+[data-rq-device='tablet'] .full-creator-workspace {
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 10px;
+}
+
+[data-rq-device='tablet'] .full-creator-workspace .full-creator-steps button {
+  min-height: 54px !important;
+  font-size: .66rem !important;
+}
+
+[data-rq-device='tablet'] .full-creator-workspace .full-creator-layout {
+  grid-template-columns: 1fr !important;
+}
+
+[data-rq-device='tablet'] .full-creator-preview {
+  position: static;
+}
+
+[data-rq-device='tablet'] .full-creator-form-grid,
+[data-rq-device='tablet'] .full-creator-score-editor,
+[data-rq-device='tablet'] .full-creator-review-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
