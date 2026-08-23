@@ -5,8 +5,7 @@
    useful across those pages. */
 
 #root .library-page,
-#root .unified-dashboard-page,
-#root [data-testid='homebrew-workshop'] {
+#root .unified-dashboard-page {
   min-width: 0 !important;
   background-color: var(--rq-bg, #0a1728) !important;
   background-image: none !important;
@@ -122,10 +121,6 @@
   color: var(--rq-text, #f7f9fc) !important;
   border-color: var(--rq-line, rgba(181, 203, 226, .16)) !important;
   box-shadow: none !important;
-}
-
-#root [data-testid='homebrew-workshop'] section[style] {
-  min-width: 0 !important;
 }
 
 @media (max-width: 760px) {

@@ -5,6 +5,11 @@ function read(relativePath) {
   return fs.readFileSync(path.join(__dirname, relativePath), 'utf8');
 }
 
+function readIfPresent(relativePath) {
+  const absolutePath = path.join(__dirname, relativePath);
+  return fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf8') : '';
+}
+
 describe('Uploads presentation ownership', () => {
   test('Uploads uses the navy palette without retired sunset styling', () => {
     const css = read('uploadsDashboardExperience.css');
@@ -27,7 +32,7 @@ describe('Uploads presentation ownership', () => {
     ['appUtilityPagesPolish.css'],
     ['mobileAppBoxGrid.css'],
     ['utilityPagesFinalFixes.css'],
-  ])('%s no longer contains Uploads route selectors', (relativePath) => {
-    expect(read(relativePath)).not.toMatch(/\.uploads-dashboard/);
+  ])('%s is absent or no longer contains Uploads route selectors', (relativePath) => {
+    expect(readIfPresent(relativePath)).not.toMatch(/\.uploads-dashboard/);
   });
 });

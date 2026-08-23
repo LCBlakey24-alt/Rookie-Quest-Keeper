@@ -1,0 +1,238 @@
+/* Homebrew Workshop owns its presentation here. Inline component styles provide
+   structural defaults only; this file supplies the product theme and delegates
+   device geometry to the explicit tablet/mobile lanes. */
+
+@import '../layouts/tablet/homebrew.css';
+@import '../layouts/mobile/homebrew.css';
+
+#root [data-testid='homebrew-workshop'] {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 100dvh !important;
+  padding: clamp(12px, 2vw, 22px) !important;
+  background: var(--rq-bg, #0a1728) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+}
+
+#root [data-testid='homebrew-workshop'] *,
+#root [data-testid='homebrew-workshop'] *::before,
+#root [data-testid='homebrew-workshop'] *::after {
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] > section {
+  width: min(100%, 1240px) !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+  gap: 12px !important;
+}
+
+#root [data-testid='homebrew-workshop'] > section > header,
+#root [data-testid='homebrew-workshop'] aside,
+#root [data-testid='homebrew-workshop'] section[style],
+#root [data-testid='homebrew-workshop'] article {
+  min-width: 0 !important;
+  background: var(--rq-surface, #102238) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  color: var(--rq-text, #f7f9fc) !important;
+}
+
+#root [data-testid='homebrew-workshop'] > section > header,
+#root [data-testid='homebrew-workshop'] aside,
+#root [data-testid='homebrew-workshop'] section[style],
+#root [data-testid='homebrew-workshop'] article {
+  padding: 13px !important;
+}
+
+#root [data-testid='homebrew-workshop'] > section > section[style*='grid-template-columns'] {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+#root [data-testid='homebrew-workshop'] h1,
+#root [data-testid='homebrew-workshop'] h2,
+#root [data-testid='homebrew-workshop'] h3,
+#root [data-testid='homebrew-workshop'] strong {
+  color: var(--rq-text, #f7f9fc) !important;
+  font-family: inherit !important;
+  text-shadow: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] h1 {
+  margin: 0 !important;
+  font-size: clamp(2rem, 4vw, 3.25rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0 !important;
+}
+
+#root [data-testid='homebrew-workshop'] h2 {
+  font-size: 1.05rem !important;
+  line-height: 1.2 !important;
+}
+
+#root [data-testid='homebrew-workshop'] h1::after,
+#root [data-testid='homebrew-workshop'] h2::after,
+#root [data-testid='homebrew-workshop'] h3::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] p,
+#root [data-testid='homebrew-workshop'] span,
+#root [data-testid='homebrew-workshop'] small,
+#root [data-testid='homebrew-workshop'] label {
+  color: var(--rq-muted, rgba(229, 237, 247, 0.74)) !important;
+}
+
+#root [data-testid='homebrew-workshop'] p[style*='text-transform: uppercase'],
+#root [data-testid='homebrew-workshop'] p[style*='textTransform'],
+#root [data-testid='homebrew-workshop'] > section > header p:first-of-type {
+  color: var(--rq-primary-hover, #ef2b2b) !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+  min-width: 0 !important;
+  min-height: 86px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 5px !important;
+  padding: 10px !important;
+  background: var(--rq-card, #14283e) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:hover,
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:focus-visible {
+  background: var(--rq-card-hover, #1a314b) !important;
+  border-color: var(--rq-line-strong, rgba(181, 203, 226, .28)) !important;
+  outline: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='rgb(208, 0, 0)'],
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='#d00000'] {
+  background: var(--rq-primary, #d00000) !important;
+  border-color: var(--rq-primary, #d00000) !important;
+  color: #fff !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] strong {
+  color: inherit !important;
+  font-size: .95rem !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] span {
+  min-width: 0 !important;
+  color: inherit !important;
+  opacity: .74 !important;
+  font-size: .78rem !important;
+  line-height: 1.35 !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+#root [data-testid='homebrew-workshop'] input:not([type='file']),
+#root [data-testid='homebrew-workshop'] select,
+#root [data-testid='homebrew-workshop'] textarea {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  padding: 9px 10px !important;
+  background: var(--rq-bg-deep, #06101c) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  font: inherit !important;
+  outline: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] input:not([type='file']):focus,
+#root [data-testid='homebrew-workshop'] select:focus,
+#root [data-testid='homebrew-workshop'] textarea:focus {
+  border-color: var(--rq-primary, #d00000) !important;
+  box-shadow: 0 0 0 1px rgba(208, 0, 0, .18) !important;
+}
+
+#root [data-testid='homebrew-workshop'] textarea {
+  resize: vertical !important;
+}
+
+#root [data-testid='homebrew-workshop'] button,
+#root [data-testid='homebrew-workshop'] label[for='hb-file-input'] {
+  min-width: 0 !important;
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 0 11px !important;
+  background: var(--rq-button, #0e1d30) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, .16)) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+
+#root [data-testid='homebrew-workshop'] button:hover:not(:disabled),
+#root [data-testid='homebrew-workshop'] button:focus-visible,
+#root [data-testid='homebrew-workshop'] label[for='hb-file-input']:hover {
+  background: var(--rq-button-hover, #172d47) !important;
+  border-color: var(--rq-line-strong, rgba(181, 203, 226, .28)) !important;
+  outline: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn'],
+#root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn'] {
+  background: var(--rq-primary, #d00000) !important;
+  border-color: var(--rq-primary, #d00000) !important;
+  color: #fff !important;
+}
+
+#root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn']:hover:not(:disabled),
+#root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn']:hover:not(:disabled) {
+  background: var(--rq-primary-hover, #ef2b2b) !important;
+  border-color: var(--rq-primary-hover, #ef2b2b) !important;
+}
+
+#root [data-testid='homebrew-workshop'] button:disabled,
+#root [data-testid='homebrew-workshop'] label[aria-disabled='true'] {
+  opacity: .5 !important;
+  cursor: not-allowed !important;
+}
+
+#root [data-testid='homebrew-workshop'] label[for='hb-file-input'] {
+  width: 100% !important;
+  min-height: 54px !important;
+  border-style: dashed !important;
+}
+
+#root [data-testid='homebrew-workshop'] article {
+  background: var(--rq-card, #14283e) !important;
+}
+
+#root [data-testid='homebrew-workshop'] img {
+  border-radius: var(--rq-inner-radius, 8px) !important;
+}
