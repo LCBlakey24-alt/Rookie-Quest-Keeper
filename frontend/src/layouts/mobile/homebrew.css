@@ -1,0 +1,59 @@
+/* Homebrew geometry for the mobile lane only. */
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] {
+  padding: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] > section {
+  gap: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] > section > header {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] > section > header > select {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] > section > section[style*='grid-template-columns'],
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] div[style*='grid-template-columns'] {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+  min-height: 72px !important;
+  padding: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] span {
+  -webkit-line-clamp: 2 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] button,
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] select,
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] label[for='hb-file-input'] {
+  min-height: 44px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] div[style*='display: flex'] {
+  flex-wrap: wrap !important;
+}
+
+@media (max-width: 390px) {
+  #root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] > section > header {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] > section > header > button {
+    width: fit-content !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] span {
+    display: none !important;
+  }
+}
