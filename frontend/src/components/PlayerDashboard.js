@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { BookOpen, FileText, Mail, Shield, Users } from 'lucide-react';
+import { AlertTriangle, BookOpen, FileText, Mail, Shield, Users } from 'lucide-react';
 import PlayerDashboardHeader from '@/components/dashboard/player/PlayerDashboardHeader';
 import PlayerDashboardLoading from '@/components/dashboard/player/PlayerDashboardLoading';
 import PlayerJoinStrip from '@/components/dashboard/player/PlayerJoinStrip';
@@ -9,7 +9,11 @@ import PlayerDashboardContext from '@/components/dashboard/player/PlayerDashboar
 import PlayerDashboardTabs from '@/components/dashboard/player/PlayerDashboardTabs';
 import PlayerCharactersPanel from '@/components/dashboard/player/PlayerCharactersPanel';
 import PlayerCampaignsPanel from '@/components/dashboard/player/PlayerCampaignsPanel';
-import { combineLinkedCampaigns, summarizeHandouts } from '@/components/dashboard/player/playerDashboardUtils';
+import { combineLinkedCampaigns } from '@/components/dashboard/player/playerDashboardUtils';
+import {
+  describePlayerDashboardFailures,
+  fetchPlayerDashboardSections,
+} from '@/components/dashboard/player/playerDashboardData';
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
@@ -33,15 +37,21 @@ export default function PlayerDashboard() {
   const [joinOpen, setJoinOpen] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState('');
   const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
+  const [loadWarning, setLoadWarning] = useState('');
 
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) || characters[0] || null,
     [characters, selectedCharacterId],
   );
 
+  const dashboardTabs = useMemo(() => tabs.map((tab) => {
+    if (tab.id !== 'handouts' || handoutSummary.unread <= 0) return tab;
+    return { ...tab, label: `Received (${handoutSummary.unread})` };
+  }), [handoutSummary.unread]);
+
   const activeTabMeta = useMemo(
-    () => tabs.find((tab) => tab.id === activeTab) || tabs[0],
-    [activeTab],
+    () => dashboardTabs.find((tab) => tab.id === activeTab) || dashboardTabs[0],
+    [activeTab, dashboardTabs],
   );
 
   const linkedCampaigns = useMemo(
@@ -68,60 +78,59 @@ export default function PlayerDashboard() {
       icon: Users,
       detail: selectedCharacter
         ? `Level ${selectedCharacter.level || 1} ${selectedCharacter.character_class || 'Adventurer'}`
-        : 'Full, Basic, or Rook',
+        : 'Create or import a character',
     },
   ]), [characters.length, linkedCampaigns.length, selectedCharacter]);
 
-  useEffect(() => {
-    loadPlayerData();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedCharacterId && characters.length > 0) {
-      setSelectedCharacterId(characters[0].id);
-    }
-  }, [characters, selectedCharacterId]);
-
-  const loadPlayerData = async () => {
+  const loadPlayerData = useCallback(async ({ notifyFailure = true } = {}) => {
     try {
-      const [charactersRes, gmCampaignsRes, joinedCampaignsRes, handoutsRes] = await Promise.all([
-        apiClient.get('/characters').catch(() => ({ data: [] })),
-        apiClient.get('/campaigns').catch(() => ({ data: [] })),
-        apiClient.get('/campaign-invites/joined/list').catch(() => ({ data: [] })),
-        apiClient.get('/player/handouts').catch(() => ({ data: [] })),
-      ]);
+      const result = await fetchPlayerDashboardSections(apiClient);
 
-      const loadedCharacters = Array.isArray(charactersRes.data)
-        ? charactersRes.data
-        : charactersRes.data?.characters || [];
-      const handouts = Array.isArray(handoutsRes.data) ? handoutsRes.data : [];
-      const gmCampaigns = Array.isArray(gmCampaignsRes.data)
-        ? gmCampaignsRes.data
-        : gmCampaignsRes.data?.campaigns || [];
-      const joinedCampaigns = Array.isArray(joinedCampaignsRes.data)
-        ? joinedCampaignsRes.data
-        : joinedCampaignsRes.data?.campaigns || [];
-      const campaignMap = new Map();
+      if (result.characters !== null) setCharacters(result.characters);
+      if (result.campaigns !== null) setCampaigns(result.campaigns);
+      if (result.handoutSummary !== null) setHandoutSummary(result.handoutSummary);
 
-      [...gmCampaigns, ...joinedCampaigns].forEach((campaign) => {
-        if (campaign?.id) campaignMap.set(campaign.id, campaign);
-      });
+      if (result.ok) {
+        setLoadWarning('');
+      } else {
+        const description = describePlayerDashboardFailures(result.failures);
+        setLoadWarning(description);
+        if (notifyFailure) {
+          toast.warning('Some player dashboard data could not be refreshed', { description });
+        }
+      }
 
-      setCharacters(loadedCharacters);
-      setCampaigns(Array.from(campaignMap.values()));
-      setHandoutSummary(summarizeHandouts(handouts));
+      return result;
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load player dashboard');
+      const description = error?.response?.data?.detail
+        || 'Could not refresh the player dashboard. Showing last known data where available.';
+      setLoadWarning(description);
+      if (notifyFailure) toast.error('Player dashboard could not be refreshed', { description });
+      return { ok: false, failures: ['dashboard'] };
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadPlayerData();
+  }, [loadPlayerData]);
+
+  useEffect(() => {
+    if (characters.length === 0) {
+      if (selectedCharacterId) setSelectedCharacterId('');
+      return;
+    }
+
+    const selectionStillExists = characters.some((character) => character.id === selectedCharacterId);
+    if (!selectionStillExists) setSelectedCharacterId(characters[0].id);
+  }, [characters, selectedCharacterId]);
 
   const refresh = async () => {
     setRefreshing(true);
     try {
-      await loadPlayerData();
-      toast.success('Player dashboard refreshed');
+      const result = await loadPlayerData();
+      if (result.ok) toast.success('Player dashboard refreshed');
     } finally {
       setRefreshing(false);
     }
@@ -151,6 +160,16 @@ export default function PlayerDashboard() {
         onJoinCampaign={openJoinFlow}
       />
 
+      {loadWarning && (
+        <aside data-testid="player-dashboard-load-warning" role="status" style={loadWarningStyle}>
+          <AlertTriangle size={18} aria-hidden="true" style={{ flex: '0 0 auto' }} />
+          <div>
+            <strong>Some dashboard data is temporarily unavailable.</strong>
+            <span>{loadWarning}</span>
+          </div>
+        </aside>
+      )}
+
       <PlayerJoinStrip
         characters={characters}
         selectedCharacterId={selectedCharacterId}
@@ -163,7 +182,7 @@ export default function PlayerDashboard() {
         summaryCards={playerSummaryCards}
       />
 
-      <PlayerDashboardTabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab}>
+      <PlayerDashboardTabs tabs={dashboardTabs} activeTab={activeTab} setActiveTab={setActiveTab}>
         {activeTab === 'characters' && (
           <PlayerCharactersPanel
             characters={characters}
@@ -180,8 +199,8 @@ export default function PlayerDashboard() {
           />
         )}
 
-        {activeTab === 'notes' && <PlayerNotesTab />}
-        {activeTab === 'handouts' && <PlayerHandoutsPanel summary={handoutSummary} />}
+        {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
+        {activeTab === 'handouts' && <PlayerHandoutsPanel />}
       </PlayerDashboardTabs>
 
       <JoinCampaignModal
@@ -194,3 +213,14 @@ export default function PlayerDashboard() {
     </main>
   );
 }
+
+const loadWarningStyle = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 10,
+  padding: '12px 14px',
+  border: '1px solid rgba(245, 158, 11, 0.45)',
+  borderLeft: '4px solid #f59e0b',
+  background: 'rgba(245, 158, 11, 0.08)',
+  color: 'var(--rq-text-primary, #ffffff)',
+};
