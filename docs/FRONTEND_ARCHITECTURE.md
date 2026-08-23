@@ -66,6 +66,26 @@ Own presentation and interaction arrangement for a device lane.
 
 Owns design tokens, reset, typography and accessibility foundations only. Theme CSS must not own rail widths, grid column counts, card geometry or page-specific layout.
 
+## Current device boundary contract
+
+The first explicit layout boundary is attached to the signed-in `AppShell`.
+
+- **Mobile:** `0–719px`
+- **Tablet:** `720–1180px`
+- **Desktop:** `1181px+`
+
+`frontend/src/layouts/deviceLayout.js` is the single resolver for these lane names and boundaries. `AppShell` publishes the active lane as `data-rq-device="mobile|tablet|desktop"` and marks itself with `data-rq-layout-shell="app"`.
+
+The lane files are:
+
+```text
+frontend/src/layouts/desktop/appShell.css
+frontend/src/layouts/tablet/appShell.css
+frontend/src/layouts/mobile/appShell.css
+```
+
+Every rule in those files must remain scoped to its matching `data-rq-device` value. The first pass only establishes lane-specific layout tokens; existing page geometry is deliberately unchanged. Pages will migrate into these boundaries one route family at a time.
+
 ## CSS rules
 
 1. Do not add new feature/page CSS imports to `App.js`.
@@ -75,6 +95,7 @@ Owns design tokens, reset, typography and accessibility foundations only. Theme 
 5. Delete superseded styling once its replacement is verified.
 6. A colour/theme change must never change layout geometry.
 7. Do not share positioning CSS between desktop, tablet and mobile floating/docked tools.
+8. Device-lane CSS must be scoped to the matching `data-rq-device` boundary.
 
 ## Migration order
 
