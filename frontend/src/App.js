@@ -65,7 +65,7 @@ const MobilePlayerCampaignView = lazyWithChunkRetry(() => import('@/components/M
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
-const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
+const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
