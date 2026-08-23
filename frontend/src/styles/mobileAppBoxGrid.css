@@ -1,19 +1,14 @@
-/* Mobile-first equal box rhythm for app pages.
-   Applies the same box logic used on the character sheet to dashboard/library/utility pages. */
+/* Legacy shared mobile polish for library and utility pages.
+   Home dashboard geometry now lives in the explicit mobile device layout lane.
+   Keep shrinking this file as the remaining feature families migrate. */
 
 @media (max-width: 760px) {
-  .unified-dashboard-page,
   .library-page,
   .uploads-dashboard-page,
   [data-testid="homebrew-workshop"] {
     gap: 10px !important;
   }
 
-  .unified-dashboard-status,
-  .unified-dashboard-action-grid,
-  .unified-dashboard-continue-grid,
-  .dashboard-two-column,
-  .dashboard-list,
   .library-page-grid,
   .uploads-dashboard-grid,
   [data-testid="homebrew-workshop"] section[style*="grid"] {
@@ -25,13 +20,6 @@
     border: 0 !important;
   }
 
-  .unified-dashboard-stat,
-  .unified-dashboard-action-card,
-  .unified-dashboard-continue-panel,
-  .unified-dashboard-panel,
-  .dashboard-list-row,
-  .dashboard-system-panel,
-  .dashboard-system-panel > div,
   .library-page-hero,
   .library-page-toolbar,
   .library-page-card,
@@ -59,7 +47,6 @@
     background: var(--rq-bg-card, #151515) !important;
   }
 
-  .unified-dashboard-header,
   .library-page-hero,
   .uploads-dashboard-dropzone,
   [data-testid="homebrew-workshop"] header {
@@ -68,7 +55,6 @@
     gap: 8px !important;
   }
 
-  .dashboard-brand-row,
   .library-page-hero > div,
   .uploads-dashboard-hero > div,
   .uploads-dashboard-dropzone > div,
@@ -78,7 +64,6 @@
     box-sizing: border-box !important;
   }
 
-  .unified-dashboard-page button,
   .library-page button,
   .library-page .library-page-button,
   .uploads-dashboard-page button,
@@ -96,8 +81,6 @@
     text-overflow: ellipsis !important;
   }
 
-  .dashboard-action-text,
-  .dashboard-list-open > div,
   .library-page-card > div,
   .uploads-dashboard-card > div,
   .uploads-dashboard-next > div,
@@ -106,13 +89,6 @@
     min-width: 0 !important;
   }
 
-  .unified-dashboard-page h1,
-  .unified-dashboard-page h2,
-  .unified-dashboard-page strong,
-  .dashboard-action-text span,
-  .dashboard-action-text em,
-  .dashboard-list-open strong,
-  .dashboard-list-open em,
   .library-page h1,
   .library-page h2,
   .library-page-card-meta,
@@ -131,7 +107,6 @@
     text-overflow: ellipsis !important;
   }
 
-  .unified-dashboard-page button span,
   .library-page button span,
   .library-page .library-page-button,
   .uploads-dashboard-page button,
@@ -141,8 +116,6 @@
   }
 
   .library-page-actions,
-  .dashboard-header-buttons,
-  .dashboard-modal-actions,
   [data-testid="homebrew-workshop"] div[style*="flex"] {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -152,8 +125,6 @@
 
   .library-page-actions button:first-child,
   .library-page-actions .library-page-button:first-child,
-  .dashboard-header-buttons button:first-child,
-  .dashboard-modal-actions button:first-child,
   [data-testid="homebrew-workshop"] button[data-testid="hb-parse-text-btn"],
   [data-testid="homebrew-workshop"] button[data-testid="hb-save-btn"] {
     border-left-color: var(--rq-accent-primary, #c30000) !important;
@@ -162,13 +133,10 @@
 
 @media (max-width: 390px) {
   .library-page-actions,
-  .dashboard-header-buttons,
-  .dashboard-modal-actions,
   [data-testid="homebrew-workshop"] div[style*="flex"] {
     grid-template-columns: 1fr !important;
   }
 
-  .unified-dashboard-page h1,
   .library-page h1,
   .uploads-dashboard-page h1,
   [data-testid="homebrew-workshop"] h1 {
