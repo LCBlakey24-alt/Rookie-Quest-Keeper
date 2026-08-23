@@ -1,0 +1,17 @@
+/* Home dashboard geometry for the tablet lane only. */
+
+@media (max-width: 900px) {
+  #root .rqk-app-shell[data-rq-device='tablet'] .unified-dashboard-page {
+    padding: 14px !important;
+    gap: 14px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='tablet'] .unified-dashboard-header {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='tablet'] .dashboard-header-buttons {
+    justify-content: flex-start !important;
+  }
+}
