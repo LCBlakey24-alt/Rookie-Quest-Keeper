@@ -6,12 +6,9 @@ import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
 import '@/styles/homeDashboardExperience.css';
-import '@/styles/homebrewWorkshopExperience.css';
 import '@/styles/homeHubMobileNavPolish.css';
 import '@/styles/adminFeedbackExperience.css';
-import '@/styles/accountSettingsExperience.css';
 import '@/styles/appShellExperiencePolish.css';
-import '@/styles/characterImportExperience.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },

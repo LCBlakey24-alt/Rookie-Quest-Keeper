@@ -1,78 +1,73 @@
 # Site visual review guide
 
-Use this guide when asking Codex or another coding agent to verify the sunset-gradient rebrand visually.
+Use this guide to verify the current Rookie Minimal Navy interface. The retired sunset/twilight/velvet/Blue Eclipse themes are not valid visual references.
 
-## What is already visible in source
+## Visual baseline
 
-- The intended global UI direction is now a very dark blue-purple base with deep indigo panels, white readable text, subtle pale borders, and purple-pink-orange sunset-gradient actions.
-- The active design guideline files should point at the sunset-gradient direction rather than coffee, velvet, espresso, leather, parchment, brown-tabletop, or rustic wording.
-- The signed-in rail is the main selected/unselected pattern: quiet unselected links, sunset-gradient selected icon fill, a thin selected marker, and a short gradient label underline when labels are visible.
-- The main theme bridges, high-specificity app-page polish files, creator polish, brand polish, auth page, GM/live play bridge, and public update copy have been moved toward the same theme.
-- `frontend/src/App.js` has been checked against the current route/lazy-load structure so the Rook assistant import and route layout are preserved while the final responsive sunset guardrail import remains last.
-- `frontend/src/styles/responsiveSunsetLayouts.css` now contains route-family guardrails for the three target device lanes.
+- Background: navy `#0a1728`.
+- Deep navigation/input areas: `#06101c`.
+- Panels: `#102238`.
+- Raised cards: `#14283e`.
+- Primary action: Rookie red `#d00000`.
+- Main text: near-white `#f7f9fc`.
+- Amber is reserved for warnings and status, not decoration.
+- No purple/pink/orange gradients, fantasy glows, parchment, coffee, velvet or sunset borders.
+- Page geometry belongs to the page/device layout, not to the global theme.
 
 ## Required device lanes
 
-Every route review should use these exact lanes:
+Review all important routes in these lanes. Tablet portrait and landscape are deliberately separate because they have different usable workspace widths.
 
-| Lane | Width/orientation | What to verify |
+| Lane | Reference size | What to verify |
 | --- | --- | --- |
-| Mobile | `390px` wide portrait | Single-column flow, thumb-friendly buttons, no hidden primary action, no horizontal scroll. |
-| Tablet landscape | `1024px` wide landscape | Labelled rail, two-column summaries where useful, dense tools readable rather than squeezed. |
-| Desktop browser | `1440px` wide | Professional workspace, max-width controlled, 2–3 column grids only where cards stay readable. |
+| Mobile portrait | `390 × 844` | Single-task flow, large tap targets, no horizontal scroll, bottom/compact navigation, no desktop floating windows off-screen. |
+| Tablet portrait | `768 × 1024` | Compact navigation, mostly single-column content, no wide desktop rail stealing the workspace. |
+| Tablet landscape | `1024 × 768` | 1–2 columns only when the actual content area fits them; touch controls remain comfortable. |
+| Desktop | `1440 × 900` | Permanent navigation, deliberate multi-panel workspace, no content hidden outside the viewport. |
 
-## Route coverage list
+## Route coverage
 
-Because many pages include component-level styles, the rebrand should be checked route by route instead of assuming the global tokens fixed everything.
+Review production routes first:
 
-Review these production routes first:
+1. `/`
+2. `/auth`
+3. `/home`
+4. `/characters`
+5. `/characters/new`
+6. `/characters/import`
+7. `/characters/:characterId`
+8. `/characters/:characterId/edit`
+9. `/campaigns`
+10. `/campaign/:campaignId`
+11. `/gm-screen/:campaignId`
+12. `/gm-second-screen/:campaignId`
+13. `/player-display/:campaignId`
+14. `/mobile/:campaignId`
+15. `/combat/:campaignId`
+16. `/homebrew`
+17. `/uploads`
+18. `/admin`
+19. `/account`
 
-1. `/` landing.
-2. `/auth`.
-3. `/home`.
-4. `/characters`.
-5. `/characters/create/full`.
-6. `/characters/import`.
-7. `/characters/:characterId`.
-8. `/characters/:characterId/edit`.
-9. `/campaigns`.
-10. `/campaign/:campaignId`.
-11. `/gm-screen/:campaignId`.
-12. `/gm-second-screen/:campaignId`.
-13. `/player-display/:campaignId` and `/campaign/:campaignId/player-display`.
-14. `/mobile/:campaignId`.
-15. `/combat`.
-16. `/homebrew`.
-17. `/uploads`.
-18. `/admin`.
-19. `/account`.
-20. `/prototype`, `/prototype-mobile`, `/prototype-gm`, and `/prototype-progressions` as lower-priority developer/test routes.
+Prototype routes were retired and should not be reviewed or reintroduced.
 
-## How to give Codex visual access
+## Review checklist
 
-Pick one of these approaches:
+- No retired theme colours or gradients are visible.
+- No card, panel, modal or floating tool extends outside its usable workspace.
+- Desktop does not inherit mobile/tablet geometry and vice versa.
+- Tablet portrait does not receive a desktop-width sidebar.
+- Text does not shrink below comfortable reading/touch sizes to make a layout fit.
+- Inputs are at least 16px on phone where browser zoom behaviour matters.
+- Controls have practical touch targets on mobile/tablet.
+- Empty/loading/error states use the same navy system.
+- A failed refresh visibly reports stale/unavailable data instead of showing a believable empty state.
+- The dice roller uses the compact flat result experience; there is no cinematic 3D renderer.
+- Primary actions are Rookie red; destructive actions remain clearly destructive; amber is warning/status only.
 
-### Option A: Add screenshots to the task
+## Screenshots
 
-Attach screenshots for the exact routes and screen widths you want reviewed. This is fastest for quick feedback.
-
-Include:
-
-- Route name.
-- Device lane: mobile, tablet landscape, or desktop browser.
-- Screen width and orientation.
-- Whether the user is logged in.
-- What state is shown, such as loading, empty, populated, or error.
-
-### Option B: Provide a temporary preview URL
-
-Share a preview deployment URL that Codex can access without private credentials. If login is required, create a temporary test account with no real user data.
-
-Do not share production admin credentials, real customer data, API secrets, database URLs, or long-lived tokens.
-
-### Option C: Run the checked-in screenshot script
-
-Use the Playwright script in the `tests/` workspace to start the frontend, open the important routes, and write desktop/mobile screenshots to `tests/test-results/site-screenshots/`.
+The checked-in Playwright screenshot tooling can be used where appropriate:
 
 ```bash
 cd tests
@@ -81,38 +76,16 @@ npm run install:browsers
 npm run screenshots:site
 ```
 
-To capture a preview deployment instead of starting the local frontend, pass a base URL:
+To target a deployment:
 
 ```bash
-cd tests
 ROOK_SCREENSHOT_BASE_URL=https://your-preview-url.example npm run screenshots:site
 ```
 
-To limit routes during a focused review, pass a comma-separated route list:
+To focus routes:
 
 ```bash
-cd tests
 ROOK_SCREENSHOT_ROUTES=/auth,/home,/characters,/campaigns npm run screenshots:site
 ```
 
-Generated screenshots are ignored by git. Do not commit them unless they are intentionally part of review documentation.
-
-## Review checklist
-
-- Backgrounds are very dark blue-purple, not brown, white, parchment, or coffee-styled.
-- Cards use deep indigo/purple surfaces with subtle pale or sunset borders.
-- Primary actions use the sunset gradient and have clear hover/focus states.
-- Unselected rail and tabs stay quiet; selected rail and tabs use the gradient marker/fill language.
-- Destructive actions remain red and are not confused with primary CTAs.
-- Text is white or soft-white and readable on dark surfaces.
-- Empty, loading, and error states match the dark sunset shell.
-- Mobile spacing remains usable and does not hide primary actions.
-- Tablet landscape uses its extra width without becoming tiny desktop.
-- Desktop browser layouts feel deliberate, not stretched.
-- No user-facing copy describes a path as best, default, or recommended.
-
-## Suggested prompt for a future visual pass
-
-```text
-Please visually review the sunset-gradient rebrand using these screenshots or this preview URL. Check every listed route at 390px mobile portrait, 1024px tablet landscape, and 1440px desktop browser. Identify anything still using coffee, velvet, espresso, leather, parchment, brown-tabletop, white-page, or one-off styling, then make one small focused fix and commit it.
-```
+Do not commit generated screenshots unless they are intentionally part of review documentation.
