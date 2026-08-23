@@ -1,60 +1,74 @@
-/* Clean character sheet sunset polish.
-   Source-of-truth replacement for the old grey/red-bar sheet theme. */
+@import '../../layouts/tablet/characterSheet.css';
+
+/* Clean Character Sheet — route-owned visual foundation.
+   Existing foundational sheet CSS still provides behaviour/structure; this file
+   owns the live palette and surface language. Phone geometry lives separately. */
 
 .character-page-v2.clean-sheet-page {
-  --cs-bg: #070513;
-  --cs-panel: #1a0b2d;
-  --cs-card: #10051d;
-  --cs-input: #090313;
-  --cs-text: #ffffff;
-  --cs-text-soft: rgba(255, 255, 255, 0.88);
-  --cs-muted: rgba(255, 255, 255, 0.66);
-  --cs-border: transparent;
-  --cs-border-strong: transparent;
-  --cs-accent: #d84df1;
-  --cs-accent-soft: rgba(216, 77, 241, 0.12);
-  --cs-accent-border: transparent;
-  --cs-accent-ghost-border: transparent;
-  --cs-accent-hover-border: transparent;
-  --cs-accent-hover-bg: #1a0b2d;
-  --cs-sunset: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542);
-  --cs-sunset-line: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542);
-  background:
-    radial-gradient(circle at 8% 0%, rgba(115, 87, 255, 0.14), transparent 22rem),
-    radial-gradient(circle at 95% 12%, rgba(255, 79, 129, 0.1), transparent 18rem),
-    var(--cs-bg) !important;
-  color: var(--cs-text) !important;
+  --cs-bg: var(--rq-bg, #0a1728);
+  --cs-panel: var(--rq-surface, #102238);
+  --cs-card: var(--rq-card, #14283e);
+  --cs-input: var(--rq-bg-deep, #06101c);
+  --cs-text: var(--rq-text, #f7f9fc);
+  --cs-text-soft: #d3dfeb;
+  --cs-muted: var(--rq-muted, #9fb2c8);
+  --cs-border: var(--rq-line, rgba(181, 203, 226, .16));
+  --cs-border-strong: rgba(181, 203, 226, .28);
+  --cs-accent: var(--rq-primary, #d00000);
+  --cs-accent-soft: rgba(208, 0, 0, .12);
+  --cs-accent-border: rgba(208, 0, 0, .42);
+  --cs-accent-ghost-border: rgba(208, 0, 0, .28);
+  --cs-accent-hover-border: rgba(208, 0, 0, .62);
+  --cs-accent-hover-bg: rgba(208, 0, 0, .14);
+  --cs-blue-soft: rgba(181, 203, 226, .08);
+  --cs-success: #22c55e;
+  --cs-warning: #f59e0b;
+  --cs-danger: #ef4444;
+
+  width: 100% !important;
+  max-width: 100vw !important;
+  min-height: 100dvh !important;
+  padding: clamp(12px, 1.8vw, 20px) !important;
   overflow-x: hidden !important;
+  background: var(--cs-bg) !important;
+  color: var(--cs-text) !important;
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
 }
 
 .character-page-v2 *,
+.character-page-v2 *::before,
+.character-page-v2 *::after {
+  box-sizing: border-box !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
 .character-page-v2 button,
 .character-page-v2 input,
 .character-page-v2 select,
 .character-page-v2 textarea {
-  box-shadow: none !important;
+  font: inherit !important;
 }
 
 .character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-header--simple,
 .character-page-v2 .clean-sheet-compact-status,
-.character-page-v2 .clean-sheet-vitals,
-.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-compact-status--hp-only,
 .character-page-v2 .clean-sheet-panel,
-.character-page-v2 .clean-sheet-empty {
-  background:
-    linear-gradient(var(--cs-panel), var(--cs-panel)) padding-box,
-    var(--cs-sunset) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
+.character-page-v2 .clean-sheet-empty,
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-vitals,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-recovery-panel,
+.character-page-v2 .clean-sheet-condition-panel,
+.character-page-v2 .clean-sheet-roll-history-panel,
+.character-page-v2 .clean-sheet-turn-strip {
+  background: var(--cs-panel) !important;
+  background-image: none !important;
+  border: 1px solid var(--cs-border) !important;
+  border-left: 1px solid var(--cs-border) !important;
   border-radius: 10px !important;
   color: var(--cs-text) !important;
-}
-
-.character-page-v2 .clean-sheet-header,
-.character-page-v2 .clean-sheet-compact-status,
-.character-page-v2 .clean-sheet-mobile-tools,
-.character-page-v2 .clean-sheet-panel {
-  padding: 12px !important;
 }
 
 .character-page-v2 .clean-sheet-header::before,
@@ -65,161 +79,137 @@
 .character-page-v2 .clean-sheet-panel::after,
 .character-page-v2 .clean-sheet-identity::before,
 .character-page-v2 .clean-sheet-identity::after {
-  display: none !important;
   content: none !important;
+  display: none !important;
 }
 
-.character-page-v2 .clean-sheet-kicker,
-.character-page-v2 .clean-sheet-stat-label,
-.character-page-v2 .clean-sheet-hp-top span,
-.character-page-v2 .clean-sheet-roll-controls label span,
-.character-page-v2 .clean-sheet-passives span,
-.character-page-v2 .clean-sheet-hitdice-row span,
-.character-page-v2 .clean-sheet-death-track span,
-.character-page-v2 .clean-sheet-roll-history-list span,
-.character-page-v2 .clean-sheet-section-heading-row > span,
-.character-page-v2 .clean-sheet-card-meta,
-.character-page-v2 .clean-sheet-save-label span,
-.character-page-v2 .clean-sheet-skill-tags em,
-.character-page-v2 .clean-sheet-skills-summary span {
-  color: var(--cs-muted) !important;
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-compact-status,
+.character-page-v2 .clean-sheet-panel {
+  padding: 14px !important;
+}
+
+.character-page-v2 .clean-sheet-header--simple {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 10px !important;
+  margin-bottom: 0 !important;
+}
+
+.character-page-v2 .clean-sheet-identity {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 5px !important;
+  align-items: center !important;
+  padding: 14px 16px !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 9px !important;
+  background: var(--cs-card) !important;
 }
 
 .character-page-v2 .clean-sheet-identity h1,
 .character-page-v2 .clean-sheet-panel h2,
-.character-page-v2 .clean-sheet-empty h3,
+.character-page-v2 .clean-sheet-panel-heading h2,
+.character-page-v2 .clean-sheet-section-heading-row h2,
+.character-page-v2 .clean-sheet-feature-card strong,
+.character-page-v2 .clean-sheet-item-card strong,
+.character-page-v2 .clean-sheet-core-stat-card strong,
 .character-page-v2 .clean-sheet-stat-value,
-.character-page-v2 .clean-sheet-hp-top strong,
-.character-page-v2 .clean-sheet-passives strong,
-.character-page-v2 .clean-sheet-hitdice-row strong,
-.character-page-v2 .clean-sheet-roll-history-list strong,
-.character-page-v2 .clean-sheet-compact-ability > strong,
-.character-page-v2 .clean-sheet-save-label strong,
-.character-page-v2 .clean-sheet-skill-label,
-.character-page-v2 .clean-sheet-skills-summary strong {
+.character-page-v2 .clean-sheet-compact-ability > strong {
   color: var(--cs-text) !important;
+  font-family: inherit !important;
+  font-weight: 900 !important;
 }
 
-.character-page-v2 .clean-sheet-identity p:last-child,
-.character-page-v2 .clean-sheet-empty p,
-.character-page-v2 .clean-sheet-muted,
-.character-page-v2 .clean-sheet-roll-history-list p,
-.character-page-v2 .clean-sheet-no-conditions {
+.character-page-v2 .clean-sheet-identity h1 {
+  margin: 0 !important;
+  font-size: clamp(1.9rem, 5vw, 2.7rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -.025em !important;
+  overflow-wrap: anywhere !important;
+}
+
+.character-page-v2 .clean-sheet-identity p {
   color: var(--cs-text-soft) !important;
 }
 
-.character-page-v2 .clean-sheet-portrait,
-.character-page-v2 .clean-sheet-core-stat-grid,
-.character-page-v2 .clean-sheet-passive-grid,
-.character-page-v2 .clean-sheet-compact-abilities,
-.character-page-v2 .clean-sheet-readable-saves,
-.character-page-v2 .clean-sheet-skills-summary,
-.character-page-v2 .clean-sheet-skill-filter-row,
-.character-page-v2 .clean-sheet-readable-skills,
-.character-page-v2 .clean-sheet-passives div,
-.character-page-v2 .clean-sheet-hitdice-row,
-.character-page-v2 .clean-sheet-roll-history-list div,
-.character-page-v2 .clean-sheet-death-saves,
-.character-page-v2 .clean-sheet-roll-controls,
-.character-page-v2 .clean-sheet-condition-picker button,
-.character-page-v2 .clean-sheet-spell-summary div,
-.character-page-v2 .clean-sheet-list div,
-.character-page-v2 .clean-sheet-skills div,
-.character-page-v2 .clean-sheet-core-stat-card,
-.character-page-v2 .clean-sheet-passive-card,
-.character-page-v2 .clean-sheet-compact-ability,
-.character-page-v2 .clean-sheet-save-card,
-.character-page-v2 .clean-sheet-skill-card,
-.character-page-v2 .clean-sheet-spell-card,
-.character-page-v2 .clean-sheet-slot-card,
-.character-page-v2 .clean-sheet-skills-summary div,
-.character-page-v2 .clean-sheet-feature-card,
-.character-page-v2 .clean-sheet-item-card,
-.character-page-v2 .clean-sheet-readiness-grid > div,
-.character-page-v2 .clean-sheet-proficiency-lists > div,
-.character-page-v2 .clean-sheet-note-field {
-  background:
-    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.8), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 9px !important;
-  color: var(--cs-text) !important;
+.character-page-v2 .clean-sheet-kicker,
+.character-page-v2 .clean-sheet-stat-label,
+.character-page-v2 .clean-sheet-note-field span,
+.character-page-v2 .clean-sheet-skills-summary span,
+.character-page-v2 .clean-sheet-core-stat-card span,
+.character-page-v2 .clean-sheet-muted,
+.character-page-v2 small,
+.character-page-v2 em {
+  color: var(--cs-muted) !important;
 }
 
-.character-page-v2 .clean-sheet-core-stat-card--rollable,
-.character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient,
-.character-page-v2 .clean-sheet-roll-mode-group button.active,
-.character-page-v2 .clean-sheet-condition-picker button.active,
-.character-page-v2 .clean-sheet-inspiration.active {
-  border-left: 1px solid transparent !important;
-  background:
-    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
-    var(--cs-sunset) border-box !important;
-  color: var(--cs-text) !important;
+.character-page-v2 .clean-sheet-header-actions {
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin: 10px auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
 }
 
-.character-page-v2 button,
+.character-page-v2 .clean-sheet-header-actions button,
 .character-page-v2 .clean-sheet-back,
-.character-page-v2 .clean-sheet-edit,
 .character-page-v2 .clean-sheet-level,
+.character-page-v2 .clean-sheet-edit,
 .character-page-v2 .clean-sheet-inspiration,
 .character-page-v2 .clean-sheet-rest-button,
 .character-page-v2 .clean-sheet-condition-toggle,
 .character-page-v2 .clean-sheet-roll-history-toggle,
 .character-page-v2 .clean-sheet-death-actions button,
 .character-page-v2 .clean-sheet-roll-mode-group button,
-.character-page-v2 .clean-sheet-skill-filter-row button,
 .character-page-v2 .clean-sheet-hp-actions button,
 .character-page-v2 .clean-sheet-hp-bulk-row button,
 .character-page-v2 .clean-sheet-temp-hp-bulk-row button,
 .character-page-v2 .clean-sheet-hitdice-row button,
 .character-page-v2 .clean-sheet-slot-actions button,
 .character-page-v2 .clean-sheet-roll-chip {
-  background:
-    linear-gradient(var(--cs-panel), var(--cs-panel)) padding-box,
-    var(--cs-sunset) border-box !important;
-  color: var(--cs-text) !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 0 11px !important;
+  border: 1px solid var(--cs-border) !important;
+  border-left: 1px solid var(--cs-border) !important;
   border-radius: 8px !important;
+  background: var(--cs-card) !important;
+  background-image: none !important;
+  color: var(--cs-text) !important;
+  font-weight: 850 !important;
+  cursor: pointer;
 }
 
-.character-page-v2 button:hover,
+.character-page-v2 .clean-sheet-level,
+.character-page-v2 .clean-sheet-inspiration.active,
+.character-page-v2 .clean-sheet-roll-mode-group button.active,
+.character-page-v2 .clean-sheet-condition-picker button.active {
+  background: var(--cs-accent) !important;
+  border-color: var(--cs-accent) !important;
+  color: #fff !important;
+}
+
+.character-page-v2 button:hover:not(:disabled),
+.character-page-v2 .clean-sheet-clickable:hover {
+  background-color: #193149 !important;
+  border-color: var(--cs-border-strong) !important;
+  filter: none !important;
+  transform: none !important;
+}
+
 .character-page-v2 button:focus-visible,
-.character-page-v2 .clean-sheet-clickable:hover,
-.character-page-v2 .clean-sheet-save-card:hover,
-.character-page-v2 .clean-sheet-skill-card:hover,
-.character-page-v2 .clean-sheet-spell-card:hover,
-.character-page-v2 .clean-sheet-slot-card:hover {
-  filter: brightness(1.06);
-  outline: none !important;
-}
-
-.character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save > em,
-.character-page-v2 .clean-sheet-skill-tags small,
-.character-page-v2 .clean-sheet-condition-chip {
-  background:
-    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
-    var(--cs-sunset) border-box !important;
-  color: var(--cs-text) !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 8px !important;
-}
-
-.character-page-v2 .clean-sheet-hp-bar,
-.character-page-v2 .clean-sheet-slot-pips i,
-.character-page-v2 .clean-sheet-death-track button {
-  background: var(--cs-input) !important;
-  border-color: rgba(255, 255, 255, 0.16) !important;
-}
-
-.character-page-v2 .clean-sheet-hp-bar div,
-.character-page-v2 .clean-sheet-slot-pips i.filled,
-.character-page-v2 .clean-sheet-death-track button.marked {
-  background: var(--cs-sunset) !important;
-  border-color: transparent !important;
+.character-page-v2 input:focus-visible,
+.character-page-v2 select:focus-visible,
+.character-page-v2 textarea:focus-visible {
+  outline: 2px solid rgba(208, 0, 0, .48) !important;
+  outline-offset: 2px !important;
 }
 
 .character-page-v2 input,
@@ -228,111 +218,55 @@
 .character-page-v2 .clean-sheet-hp-bulk-row input,
 .character-page-v2 .clean-sheet-temp-hp-bulk-row input,
 .character-page-v2 .clean-sheet-roll-controls input {
-  background:
-    linear-gradient(var(--cs-input), var(--cs-input)) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.72), rgba(255, 149, 66, 0.42)) border-box !important;
-  color: var(--cs-text) !important;
-  border: 1px solid transparent !important;
+  min-height: 40px !important;
+  border: 1px solid var(--cs-border) !important;
   border-radius: 8px !important;
+  background: var(--cs-input) !important;
+  background-image: none !important;
+  color: var(--cs-text) !important;
   color-scheme: dark;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
   display: grid !important;
-  grid-template-columns: minmax(160px, 0.35fr) minmax(280px, 0.65fr) !important;
+  grid-template-columns: minmax(180px, .35fr) minmax(300px, .65fr) !important;
   gap: 12px !important;
   align-items: center !important;
+  margin: 10px auto !important;
+}
+
+.character-page-v2 .clean-sheet-compact-stat,
+.character-page-v2 .clean-sheet-compact-hp-actions,
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card,
+.character-page-v2 .clean-sheet-compact-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-skills-summary > div,
+.character-page-v2 .clean-sheet-readiness-grid > div,
+.character-page-v2 .clean-sheet-proficiency-lists > div,
+.character-page-v2 .clean-sheet-note-field {
+  background: var(--cs-card) !important;
+  background-image: none !important;
+  border: 1px solid var(--cs-border) !important;
+  border-left: 1px solid var(--cs-border) !important;
+  border-radius: 8px !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-compact-hp-actions {
-  background:
-    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
-    var(--cs-sunset) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 9px !important;
   padding: 10px 12px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-hp-actions {
   display: grid !important;
-  grid-template-columns: minmax(86px, 0.65fr) 1fr 1fr !important;
+  grid-template-columns: 86px 1fr 1fr !important;
   gap: 8px !important;
-}
-
-.character-page-v2 .clean-sheet-hp-wheel {
-  display: grid !important;
-  gap: 4px !important;
-}
-
-.character-page-v2 .clean-sheet-hp-wheel span {
-  color: var(--cs-muted) !important;
-  font-size: 10px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
-}
-
-.character-page-v2 .clean-sheet-header--simple {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
-  gap: 10px !important;
-  align-items: stretch !important;
-  padding: 12px !important;
-}
-
-.character-page-v2 .clean-sheet-identity {
-  min-width: 0 !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
-  gap: 6px !important;
-  align-items: center !important;
-  padding: 14px 16px !important;
-}
-
-.character-page-v2 .clean-sheet-portrait {
-  width: 54px !important;
-  height: 54px !important;
-  display: grid !important;
-  place-items: center !important;
-  border-left: 1px solid transparent !important;
-  overflow: hidden !important;
-}
-
-.character-page-v2 .clean-sheet-portrait img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-}
-
-.character-page-v2 .clean-sheet-identity h1 {
-  margin: 0 !important;
-  font-size: clamp(2rem, 8.8vw, 3rem) !important;
-  line-height: 0.96 !important;
-  overflow-wrap: anywhere !important;
-}
-
-.character-page-v2 .clean-sheet-identity p:last-child {
-  margin: 6px 0 0 !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  line-height: 1.35 !important;
-}
-
-.character-page-v2 .clean-sheet-header-actions {
-  display: grid !important;
-  gap: 8px !important;
-}
-
-.character-page-v2 .clean-sheet-header-actions button,
-.character-page-v2 .clean-sheet-compact-hp-actions button {
-  min-height: 42px !important;
-  border-left: 1px solid transparent !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.04em !important;
-  font-size: 12px !important;
-  font-weight: 950 !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp {
@@ -340,21 +274,10 @@
   grid-template-columns: minmax(0, 1fr) auto !important;
   gap: 8px !important;
   align-items: center !important;
-  border-left: 1px solid transparent !important;
-}
-
-.character-page-v2 .clean-sheet-compact-stat--hp > span {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-  font-size: 10px !important;
-  font-weight: 950 !important;
-  letter-spacing: 0.1em !important;
-  text-transform: uppercase !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp strong {
-  font-size: clamp(1.7rem, 6.5vw, 2.35rem) !important;
+  font-size: clamp(1.8rem, 5vw, 2.4rem) !important;
   line-height: 1 !important;
 }
 
@@ -362,61 +285,77 @@
   grid-column: 1 / -1 !important;
   width: fit-content !important;
   justify-self: end !important;
-  padding: 4px 7px !important;
-  background:
-    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
-    var(--cs-sunset) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 4px solid #d84df1 !important;
-  border-radius: 8px !important;
+  padding: 5px 8px !important;
+  border: 1px solid var(--cs-border) !important;
+  border-left: 4px solid var(--cs-accent) !important;
+  border-radius: 7px !important;
+  background: var(--cs-input) !important;
   color: var(--cs-text-soft) !important;
-  font-size: 10px !important;
+  font-size: .68rem !important;
   font-style: normal !important;
-  font-weight: 900 !important;
+  font-weight: 850 !important;
   text-transform: uppercase !important;
 }
 
-.character-page-v2 .clean-sheet-hp-wheel select,
-.character-page-v2 .clean-sheet-compact-hp-actions button {
-  width: 100% !important;
-  min-height: 42px !important;
+.character-page-v2 .clean-sheet-hp-bar,
+.character-page-v2 .clean-sheet-slot-pips i,
+.character-page-v2 .clean-sheet-death-track button {
+  background: var(--cs-input) !important;
+  border-color: var(--cs-border) !important;
 }
 
-@media (max-width: 780px) {
-  .character-page-v2 .clean-sheet-header--simple,
-  .character-page-v2 .clean-sheet-compact-status--hp-only {
-    grid-template-columns: 1fr !important;
-  }
-
-  .character-page-v2 .clean-sheet-header-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
+.character-page-v2 .clean-sheet-hp-bar div {
+  background: var(--cs-success) !important;
 }
 
-@media (max-width: 760px) {
-  .character-page-v2 .clean-sheet-compact-status--hp-only {
-    grid-template-columns: 1fr !important;
-  }
-
-  .character-page-v2 .clean-sheet-compact-hp-actions {
-    grid-template-columns: minmax(80px, 0.7fr) 1fr 1fr !important;
-  }
+.character-page-v2 .clean-sheet-slot-pips i.filled {
+  background: var(--cs-accent) !important;
 }
 
-@media (max-width: 520px) {
-  .character-page-v2 .clean-sheet-header--simple,
-  .character-page-v2 .clean-sheet-compact-status--hp-only,
-  .character-page-v2 .clean-sheet-header-actions {
-    grid-template-columns: 1fr 1fr !important;
-  }
+.character-page-v2 .clean-sheet-tabs {
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 10px !important;
+  background: var(--cs-panel) !important;
+  background-image: none !important;
+}
 
-  .character-page-v2 .clean-sheet-header--simple,
-  .character-page-v2 .clean-sheet-compact-status--hp-only {
-    grid-template-columns: 1fr !important;
-  }
+.character-page-v2 .clean-sheet-tabs button.active svg {
+  background: var(--cs-accent) !important;
+  color: #fff !important;
+}
 
-  .character-page-v2 .clean-sheet-identity {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 10px !important;
+.character-page-v2 .clean-sheet-condition-chip,
+.character-page-v2 .clean-sheet-skill-tags em,
+.character-page-v2 .clean-sheet-skill-tags small,
+.character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save > em {
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 999px !important;
+  background: var(--cs-input) !important;
+  color: var(--cs-text-soft) !important;
+}
+
+.character-page-v2 .clean-sheet-snapshot-warning,
+.character-page-v2 .clean-sheet-spell-warning {
+  border: 1px solid rgba(245, 158, 11, .42) !important;
+  border-left: 4px solid var(--cs-warning) !important;
+  border-radius: 8px !important;
+  background: rgba(245, 158, 11, .08) !important;
+  color: var(--cs-text) !important;
+}
+
+.character-page-v2 .clean-sheet-content,
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-header-actions,
+.character-page-v2 .clean-sheet-compact-status {
+  max-width: 1180px !important;
+  min-width: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .character-page-v2 *,
+  .character-page-v2 *::before,
+  .character-page-v2 *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }
