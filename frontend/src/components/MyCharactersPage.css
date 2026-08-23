@@ -1,5 +1,6 @@
-/* Character library component-level repairs.
-   Keeps the saved-character card aligned with the current sunset mobile design. */
+/* Character library presentation. Phone-only geometry lives in the mobile lane. */
+
+@import '../layouts/mobile/charactersLibrary.css';
 
 #root .characters-library-page .library-card-grid,
 #root .characters-library-page .characters-card-grid {
@@ -15,11 +16,18 @@
   padding: 12px !important;
   display: grid !important;
   gap: 12px !important;
-  background: linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border: 1px solid transparent !important;
+  background: var(--rq-card, #14283e) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
   border-radius: var(--rq-radius, 10px) !important;
   overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+#root .characters-library-page .library-card.character-library-card:hover,
+#root .characters-library-page .library-card.character-library-card:focus-within {
+  background: var(--rq-card-hover, #1a314b) !important;
+  border-color: var(--rq-line-strong, rgba(181, 203, 226, 0.28)) !important;
 }
 
 #root .characters-library-page .character-card-main {
@@ -42,39 +50,30 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: #ffffff !important;
-  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  font-family: inherit !important;
   font-size: 0.82rem !important;
   line-height: 1 !important;
-  font-weight: 950 !important;
+  font-weight: 800 !important;
   white-space: nowrap !important;
-  background: linear-gradient(#14061f, #14061f) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border: 1px solid transparent !important;
+  background: var(--rq-button, #0e1d30) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line-strong, rgba(181, 203, 226, 0.28)) !important;
   border-radius: var(--rq-inner-radius, 8px) !important;
 }
 
 #root .characters-library-page .character-library-card h2 {
   margin: 0 !important;
   min-width: 0 !important;
-  color: #ffffff !important;
-  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
-  font-size: clamp(2rem, 9vw, 2.85rem) !important;
-  line-height: 0.96 !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  font-family: inherit !important;
+  font-size: clamp(1.3rem, 2.3vw, 1.8rem) !important;
+  line-height: 1.1 !important;
+  font-weight: 800 !important;
   overflow-wrap: anywhere !important;
 }
 
-#root .characters-library-page .character-card-identity-row::after {
-  content: '' !important;
-  grid-column: 1 / -1 !important;
-  display: block !important;
-  width: 100% !important;
-  height: 3px !important;
-  margin-top: 2px !important;
-  border-radius: 999px !important;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
-}
-
+#root .characters-library-page .character-card-identity-row::after,
 #root .characters-library-page .character-library-card h2::after {
   display: none !important;
   content: none !important;
@@ -87,21 +86,21 @@
 
 #root .characters-library-page .character-library-card p {
   margin: 0 !important;
-  color: #ffffff !important;
+  color: var(--rq-muted, rgba(229, 237, 247, 0.74)) !important;
 }
 
 #root .characters-library-page .character-card-primary-line {
-  color: rgba(255, 255, 255, 0.9) !important;
-  font-size: clamp(1rem, 4vw, 1.18rem) !important;
-  line-height: 1.15 !important;
-  font-weight: 850 !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  font-size: 0.98rem !important;
+  line-height: 1.25 !important;
+  font-weight: 750 !important;
 }
 
 #root .characters-library-page .character-card-subclass-line {
-  color: rgba(255, 255, 255, 0.72) !important;
-  font-size: 0.92rem !important;
-  line-height: 1.2 !important;
-  font-weight: 800 !important;
+  color: var(--rq-muted, rgba(229, 237, 247, 0.74)) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
 }
 
 #root .characters-library-page .library-card-kicker {
@@ -125,11 +124,18 @@
   gap: 8px !important;
   white-space: nowrap !important;
   line-height: 1 !important;
-  color: #ffffff !important;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #fff !important;
+  background: var(--rq-primary, #d00000) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-primary, #d00000) !important;
   border-radius: var(--rq-inner-radius, 8px) !important;
   text-decoration: none !important;
+}
+
+#root .characters-library-page .character-card-open:hover,
+#root .characters-library-page .character-card-open:focus-visible {
+  background: var(--rq-primary-hover, #ef2b2b) !important;
+  border-color: var(--rq-primary-hover, #ef2b2b) !important;
 }
 
 #root .characters-library-page .character-card-secondary-actions {
@@ -149,16 +155,23 @@
   align-items: center !important;
   justify-content: center !important;
   gap: 7px !important;
-  color: #ffffff !important;
+  color: var(--rq-text, #f7f9fc) !important;
   font-size: 0.86rem !important;
-  font-weight: 900 !important;
+  font-weight: 800 !important;
   line-height: 1 !important;
   white-space: nowrap !important;
   text-decoration: none !important;
-  background: linear-gradient(#1b0b2d, #1b0b2d) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border: 1px solid transparent !important;
+  background: var(--rq-button, #0e1d30) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
   border-radius: var(--rq-inner-radius, 8px) !important;
+  box-shadow: none !important;
+}
+
+#root .characters-library-page .character-card-secondary-actions > *:hover,
+#root .characters-library-page .character-card-secondary-actions > *:focus-visible {
+  background: var(--rq-button-hover, #172d47) !important;
+  border-color: var(--rq-line-strong, rgba(181, 203, 226, 0.28)) !important;
 }
 
 #root .characters-library-page .character-card-secondary-actions svg {
@@ -168,42 +181,15 @@
 }
 
 #root .characters-library-page .character-card-secondary-actions .library-page-button-danger {
-  background: linear-gradient(#221025, #221025) padding-box,
-    linear-gradient(135deg, rgba(255, 79, 129, 0.72), rgba(255, 149, 66, 0.62)) border-box !important;
-  opacity: 0.9 !important;
+  background: rgba(208, 0, 0, 0.12) !important;
+  border-color: rgba(239, 43, 43, 0.32) !important;
+  color: #ffb4b4 !important;
+  opacity: 1 !important;
 }
 
 #root .characters-library-page .library-page-action-secondary .library-page-button-secondary {
-  background: linear-gradient(#1b0b2d, #1b0b2d) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border: 1px solid transparent !important;
-  color: #ffffff !important;
-}
-
-@media (max-width: 520px) {
-  #root .characters-library-page .character-card-secondary-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  #root .characters-library-page .character-card-secondary-actions .library-page-button-danger {
-    grid-column: 1 / -1 !important;
-  }
-}
-
-@media (max-width: 380px) {
-  #root .characters-library-page .character-card-identity-row {
-    grid-template-columns: 1fr !important;
-  }
-
-  #root .characters-library-page .character-card-level-badge {
-    width: fit-content !important;
-  }
-
-  #root .characters-library-page .character-card-secondary-actions {
-    grid-template-columns: 1fr !important;
-  }
-
-  #root .characters-library-page .character-card-secondary-actions .library-page-button-danger {
-    grid-column: auto !important;
-  }
+  background: var(--rq-button, #0e1d30) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
+  color: var(--rq-text, #f7f9fc) !important;
 }

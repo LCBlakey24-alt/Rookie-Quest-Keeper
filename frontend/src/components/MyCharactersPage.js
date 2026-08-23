@@ -131,13 +131,17 @@ export default function MyCharactersPage() {
     Math.max(highest, Number(character?.level || 1))
   ), 0), [sortedCharacters]);
 
-  const loadCharacters = async () => {
+  const loadCharacters = async ({ notifyFailure = true } = {}) => {
     try {
       const response = await apiClient.get('/characters');
       const records = Array.isArray(response.data) ? response.data : response.data?.characters || [];
       setCharacters(records.filter((item) => item && typeof item === 'object'));
+      return { ok: true };
     } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load characters');
+      if (notifyFailure) {
+        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load characters');
+      }
+      return { ok: false, error };
     } finally {
       setLoading(false);
     }
@@ -150,8 +154,8 @@ export default function MyCharactersPage() {
   const refresh = async () => {
     setRefreshing(true);
     try {
-      await loadCharacters();
-      toast.success('Characters refreshed');
+      const result = await loadCharacters();
+      if (result.ok) toast.success('Characters refreshed');
     } finally {
       setRefreshing(false);
     }

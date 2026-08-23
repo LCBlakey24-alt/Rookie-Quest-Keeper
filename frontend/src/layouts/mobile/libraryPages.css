@@ -1,0 +1,82 @@
+/* Shared library geometry for the mobile lane only. */
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page {
+  padding: 10px !important;
+  gap: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-hero {
+  grid-template-columns: 1fr !important;
+  align-items: start !important;
+  gap: 8px !important;
+  padding: 14px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-hero > div,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-card > div {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-hero > button,
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-create-hero-button {
+  justify-self: start !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-card-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .characters-card-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-card-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-stat-grid {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-hero,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-toolbar,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-card,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-empty {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page button,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page .library-page-button,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page .library-page-button-secondary {
+  min-width: 0 !important;
+  min-height: 44px !important;
+  text-align: center !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page h1,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page h2,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page p,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page strong,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-card-meta {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-actions,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-card-secondary-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-actions > *,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-card-secondary-actions > * {
+  width: 100% !important;
+}
+
+@media (max-width: 390px) {
+  #root .rqk-app-shell[data-rq-device='mobile'] .library-page-actions,
+  #root .rqk-app-shell[data-rq-device='mobile'] .library-page-card-secondary-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .library-page h1 {
+    font-size: clamp(26px, 9vw, 36px) !important;
+  }
+}
