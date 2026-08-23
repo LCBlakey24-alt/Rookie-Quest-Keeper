@@ -3,6 +3,10 @@ import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
 import { defaultSiteSettings } from './dashboardConfig';
+import {
+  describeHomeDashboardFailures,
+  fetchHomeDashboardSections,
+} from './homeDashboardData';
 
 function getSmallScreen() {
   if (typeof window === 'undefined') return false;
@@ -17,16 +21,6 @@ function safeRecords(value) {
   return [];
 }
 
-function flattenHomebrew(value) {
-  const library = value?.homebrew || value || {};
-  if (Array.isArray(library)) return safeRecords(library);
-  if (!library || typeof library !== 'object') return [];
-
-  return Object.entries(library).flatMap(([contentType, records]) => (
-    safeRecords(records).map((record) => ({ ...record, content_type: record.content_type || contentType }))
-  ));
-}
-
 export default function useDashboardData() {
   const [characters, setCharacters] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
@@ -39,31 +33,40 @@ export default function useDashboardData() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [smallScreen, setSmallScreen] = useState(getSmallScreen);
   const [mobileTab, setMobileTab] = useState('player');
+  const [dashboardWarning, setDashboardWarning] = useState('');
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(async ({ notifyFailure = true } = {}) => {
     try {
       setRefreshing(true);
-      const [charsRes, campsRes, adminRes, settingsRes, homebrewRes] = await Promise.all([
-        apiClient.get('/characters').catch(() => ({ data: [] })),
-        apiClient.get('/campaigns').catch(() => ({ data: [] })),
-        apiClient.get('/admin/check').catch(() => ({ data: { is_admin: false } })),
-        apiClient.get('/site-settings').catch(() => ({ data: {} })),
-        apiClient.get('/homebrew').catch(() => ({ data: { homebrew: {} } })),
-      ]);
+      const result = await fetchHomeDashboardSections(apiClient);
 
-      const nextIsAdmin = !!adminRes.data?.is_admin;
-      const overviewRes = nextIsAdmin
-        ? await apiClient.get('/admin/mission-overview').catch(() => ({ data: {} }))
-        : { data: {} };
+      if (result.characters !== null) setCharacters(result.characters);
+      if (result.campaigns !== null) setCampaigns(result.campaigns);
+      if (result.homebrewItems !== null) setHomebrewItems(result.homebrewItems);
+      if (result.adminOverview !== null) setAdminOverview(result.adminOverview);
+      if (typeof result.isAdmin === 'boolean') setIsAdmin(result.isAdmin);
+      if (result.siteSettings !== null) {
+        setSiteSettings((previous) => ({ ...previous, ...result.siteSettings }));
+      }
 
-      setCharacters(safeRecords(charsRes.data));
-      setCampaigns(safeRecords(campsRes.data));
-      setHomebrewItems(flattenHomebrew(homebrewRes.data));
-      setAdminOverview(overviewRes.data || {});
-      setIsAdmin(nextIsAdmin);
-      setSiteSettings(prev => ({ ...prev, ...(settingsRes.data || {}) }));
+      if (result.ok) {
+        setDashboardWarning('');
+      } else {
+        const description = describeHomeDashboardFailures(result.failures);
+        setDashboardWarning(description);
+        if (notifyFailure) {
+          toast.warning('Some dashboard data could not be refreshed', { description });
+        }
+      }
+
+      return result;
     } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load dashboard');
+      const description = error?.formattedDetail
+        || error?.response?.data?.detail
+        || 'Could not refresh the dashboard. Showing last known data where available.';
+      setDashboardWarning(description);
+      if (notifyFailure) toast.error('Dashboard could not be refreshed', { description });
+      return { ok: false, failures: ['dashboard'] };
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -117,6 +120,7 @@ export default function useDashboardData() {
     recentCharacters,
     recentCampaigns,
     recentHomebrew,
+    dashboardWarning,
     loadDashboard,
   };
 }
