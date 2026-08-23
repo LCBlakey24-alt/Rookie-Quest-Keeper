@@ -1,0 +1,42 @@
+/* Character Sheet navigation rail — desktop geometry only. */
+
+[data-rq-device='desktop'] .character-page-v2 {
+  padding-left: 228px !important;
+  padding-right: 18px !important;
+  padding-bottom: 44px !important;
+}
+
+[data-rq-device='desktop'] .character-page-v2 .clean-sheet-tabs {
+  position: fixed !important;
+  left: 14px !important;
+  top: 16px !important;
+  width: 196px !important;
+  max-width: 196px !important;
+  max-height: calc(100dvh - 32px) !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+  padding: 10px !important;
+  overflow-y: auto !important;
+}
+
+[data-rq-device='desktop'] .character-page-v2 .clean-sheet-tabs button,
+[data-rq-device='desktop'] .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+[data-rq-device='desktop'] .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 48px !important;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) !important;
+  justify-items: start !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 9px !important;
+  text-align: left !important;
+}
+
+[data-rq-device='desktop'] .character-page-v2 .clean-sheet-tabs button span,
+[data-rq-device='desktop'] .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+[data-rq-device='desktop'] .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+  display: block !important;
+}
