@@ -2,16 +2,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
-import { defaultSiteSettings } from './dashboardConfig';
 import {
   describeHomeDashboardFailures,
   fetchHomeDashboardSections,
 } from './homeDashboardData';
 
-function getSmallScreen() {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia('(max-width: 900px)').matches;
-}
+const DEFAULT_SITE_SETTINGS = {
+  campaign_creation_enabled: true,
+  character_creation_enabled: true,
+  uploads_enabled: true,
+  reviews_enabled: true,
+  feedback_enabled: true,
+  rook_text_enabled: true,
+  beta_tools_enabled: true,
+};
 
 function safeRecords(value) {
   if (Array.isArray(value)) return value.filter(item => item && typeof item === 'object');
@@ -26,13 +30,11 @@ export default function useDashboardData() {
   const [campaigns, setCampaigns] = useState([]);
   const [homebrewItems, setHomebrewItems] = useState([]);
   const [adminOverview, setAdminOverview] = useState({});
-  const [siteSettings, setSiteSettings] = useState(defaultSiteSettings);
+  const [siteSettings, setSiteSettings] = useState(DEFAULT_SITE_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [slowLoad, setSlowLoad] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [smallScreen, setSmallScreen] = useState(getSmallScreen);
-  const [mobileTab, setMobileTab] = useState('player');
   const [dashboardWarning, setDashboardWarning] = useState('');
 
   const loadDashboard = useCallback(async ({ notifyFailure = true } = {}) => {
@@ -84,14 +86,6 @@ export default function useDashboardData() {
     return () => window.clearTimeout(timeoutId);
   }, [loading]);
 
-  useEffect(() => {
-    const media = window.matchMedia('(max-width: 900px)');
-    const onChange = () => setSmallScreen(media.matches);
-    onChange();
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
-  }, []);
-
   const recentCharacters = useMemo(() => safeRecords(characters)
     .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
     .slice(0, 4), [characters]);
@@ -114,9 +108,6 @@ export default function useDashboardData() {
     slowLoad,
     refreshing,
     isAdmin,
-    smallScreen,
-    mobileTab,
-    setMobileTab,
     recentCharacters,
     recentCampaigns,
     recentHomebrew,
