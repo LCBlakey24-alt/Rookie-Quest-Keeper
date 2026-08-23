@@ -1,0 +1,205 @@
+/* Account Settings owns its presentation here. Device geometry is delegated to
+   the explicit tablet/mobile layout lanes. */
+
+@import '../layouts/tablet/account.css';
+@import '../layouts/mobile/account.css';
+
+#root .account-settings-page {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 100dvh !important;
+  padding: clamp(12px, 2vw, 22px) !important;
+  background: var(--rq-bg, #0a1728) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f7f9fc) !important;
+}
+
+#root .account-settings-page *,
+#root .account-settings-page *::before,
+#root .account-settings-page *::after {
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root .account-settings-container {
+  width: min(100%, 820px) !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+}
+
+#root .account-settings-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+}
+
+#root .account-settings-page h1,
+#root .account-settings-page h2 {
+  color: var(--rq-text, #f7f9fc) !important;
+  font-family: inherit !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+#root .account-settings-page h1 {
+  margin: 0 !important;
+  font-size: clamp(2.1rem, 4vw, 3rem) !important;
+  font-weight: 850 !important;
+  line-height: 1.05 !important;
+}
+
+#root .account-settings-page h2 {
+  margin: 0 !important;
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}
+
+#root .account-settings-page h1::after,
+#root .account-settings-page h2::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root .account-settings-page p,
+#root .account-settings-page label {
+  color: var(--rq-muted, rgba(229, 237, 247, 0.74)) !important;
+}
+
+#root .account-settings-panel {
+  min-width: 0 !important;
+  margin-bottom: 12px !important;
+  padding: clamp(15px, 2.4vw, 20px) !important;
+  background: var(--rq-surface, #102238) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  color: var(--rq-text, #f7f9fc) !important;
+}
+
+#root .account-settings-panel > div:first-child {
+  min-width: 0 !important;
+  margin-bottom: 18px !important;
+}
+
+#root .account-settings-page input {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  padding: 9px 48px 9px 10px !important;
+  background: var(--rq-bg-deep, #06101c) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  font: inherit !important;
+  outline: none !important;
+}
+
+#root .account-settings-page input:focus {
+  border-color: var(--rq-primary, #d00000) !important;
+  box-shadow: 0 0 0 1px rgba(208, 0, 0, .18) !important;
+}
+
+#root .account-settings-page input:disabled {
+  opacity: .68 !important;
+}
+
+#root .account-settings-page button {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 0 11px !important;
+  background: var(--rq-button, #0e1d30) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f7f9fc) !important;
+  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+#root .account-settings-page button:hover:not(:disabled),
+#root .account-settings-page button:focus-visible {
+  background: var(--rq-button-hover, #172d47) !important;
+  border-color: var(--rq-line-strong, rgba(181, 203, 226, .28)) !important;
+  outline: none !important;
+}
+
+#root .account-settings-primary {
+  width: fit-content !important;
+  background: var(--rq-primary, #d00000) !important;
+  border-color: var(--rq-primary, #d00000) !important;
+  color: #fff !important;
+}
+
+#root .account-settings-primary:hover:not(:disabled),
+#root .account-settings-primary:focus-visible {
+  background: var(--rq-primary-hover, #ef2b2b) !important;
+  border-color: var(--rq-primary-hover, #ef2b2b) !important;
+}
+
+#root .account-settings-page button:disabled {
+  opacity: .5 !important;
+  cursor: not-allowed !important;
+}
+
+#root .account-settings-back {
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  flex: 0 0 42px !important;
+}
+
+#root .account-password-wrap {
+  min-width: 0 !important;
+}
+
+#root .account-password-toggle {
+  position: absolute !important;
+  top: 50% !important;
+  right: 3px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  transform: translateY(-50%) !important;
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--rq-text-muted, rgba(202, 216, 233, .58)) !important;
+}
+
+#root .account-password-toggle:hover:not(:disabled),
+#root .account-password-toggle:focus-visible {
+  background: transparent !important;
+  color: var(--rq-text, #f7f9fc) !important;
+}
+
+#root .account-settings-danger {
+  background: rgba(208, 0, 0, .08) !important;
+  border-color: rgba(239, 43, 43, .28) !important;
+}
+
+#root .account-settings-danger h2,
+#root .account-settings-danger svg {
+  color: #ff8d8d !important;
+}
+
+#root .account-settings-danger-button {
+  background: rgba(208, 0, 0, .12) !important;
+  border-color: rgba(239, 43, 43, .38) !important;
+  color: #ffb4b4 !important;
+}
+
+#root .account-settings-danger-button:hover:not(:disabled),
+#root .account-settings-danger-button:focus-visible {
+  background: rgba(208, 0, 0, .2) !important;
+  border-color: rgba(239, 43, 43, .52) !important;
+}
