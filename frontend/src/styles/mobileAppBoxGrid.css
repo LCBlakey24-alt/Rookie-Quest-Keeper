@@ -1,15 +1,13 @@
-/* Legacy shared mobile polish for library and utility pages.
-   Home dashboard geometry now lives in the explicit mobile device layout lane.
+/* Legacy shared mobile polish for utility pages and creator touch affordances.
+   Home and library geometry now live in explicit mobile device layout lanes.
    Keep shrinking this file as the remaining feature families migrate. */
 
 @media (max-width: 760px) {
-  .library-page,
   .uploads-dashboard-page,
   [data-testid="homebrew-workshop"] {
     gap: 10px !important;
   }
 
-  .library-page-grid,
   .uploads-dashboard-grid,
   [data-testid="homebrew-workshop"] section[style*="grid"] {
     width: 100% !important;
@@ -20,10 +18,6 @@
     border: 0 !important;
   }
 
-  .library-page-hero,
-  .library-page-toolbar,
-  .library-page-card,
-  .library-page-empty,
   .uploads-dashboard-hero,
   .uploads-dashboard-dropzone,
   .uploads-dashboard-card,
@@ -41,13 +35,11 @@
     padding-right: max(10px, 0.75rem) !important;
   }
 
-  .library-page-card,
   .uploads-dashboard-card,
   [data-testid="homebrew-workshop"] [data-testid^="hb-type-"] {
     background: var(--rq-bg-card, #151515) !important;
   }
 
-  .library-page-hero,
   .uploads-dashboard-dropzone,
   [data-testid="homebrew-workshop"] header {
     display: grid !important;
@@ -55,7 +47,6 @@
     gap: 8px !important;
   }
 
-  .library-page-hero > div,
   .uploads-dashboard-hero > div,
   .uploads-dashboard-dropzone > div,
   [data-testid="homebrew-workshop"] header > div {
@@ -64,8 +55,6 @@
     box-sizing: border-box !important;
   }
 
-  .library-page button,
-  .library-page .library-page-button,
   .uploads-dashboard-page button,
   [data-testid="homebrew-workshop"] button,
   [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
@@ -81,7 +70,6 @@
     text-overflow: ellipsis !important;
   }
 
-  .library-page-card > div,
   .uploads-dashboard-card > div,
   .uploads-dashboard-next > div,
   [data-testid="homebrew-workshop"] article > div,
@@ -89,10 +77,6 @@
     min-width: 0 !important;
   }
 
-  .library-page h1,
-  .library-page h2,
-  .library-page-card-meta,
-  .library-page-card p,
   .uploads-dashboard-page h1,
   .uploads-dashboard-page h2,
   .uploads-dashboard-page p,
@@ -107,15 +91,12 @@
     text-overflow: ellipsis !important;
   }
 
-  .library-page button span,
-  .library-page .library-page-button,
   .uploads-dashboard-page button,
   [data-testid="homebrew-workshop"] button,
   [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
     white-space: nowrap !important;
   }
 
-  .library-page-actions,
   [data-testid="homebrew-workshop"] div[style*="flex"] {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -123,8 +104,6 @@
     width: 100% !important;
   }
 
-  .library-page-actions button:first-child,
-  .library-page-actions .library-page-button:first-child,
   [data-testid="homebrew-workshop"] button[data-testid="hb-parse-text-btn"],
   [data-testid="homebrew-workshop"] button[data-testid="hb-save-btn"] {
     border-left-color: var(--rq-accent-primary, #c30000) !important;
@@ -132,12 +111,10 @@
 }
 
 @media (max-width: 390px) {
-  .library-page-actions,
   [data-testid="homebrew-workshop"] div[style*="flex"] {
     grid-template-columns: 1fr !important;
   }
 
-  .library-page h1,
   .uploads-dashboard-page h1,
   [data-testid="homebrew-workshop"] h1 {
     font-size: clamp(26px, 9vw, 36px) !important;
