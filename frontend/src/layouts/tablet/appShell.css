@@ -1,0 +1,10 @@
+/* Tablet-only app-shell layout contract.
+   Keep every rule scoped to data-rq-device="tablet". */
+
+.rqk-app-shell[data-rq-device='tablet'] {
+  --rq-layout-lane: tablet;
+  --rq-layout-page-gutter: 16px;
+  --rq-layout-section-gap: 14px;
+  --rq-layout-control-min-height: 42px;
+  --rq-layout-content-max-width: 1180px;
+}

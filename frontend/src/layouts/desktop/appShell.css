@@ -1,0 +1,10 @@
+/* Desktop-only app-shell layout contract.
+   Keep every rule scoped to data-rq-device="desktop". */
+
+.rqk-app-shell[data-rq-device='desktop'] {
+  --rq-layout-lane: desktop;
+  --rq-layout-page-gutter: clamp(20px, 2vw, 32px);
+  --rq-layout-section-gap: 18px;
+  --rq-layout-control-min-height: 40px;
+  --rq-layout-content-max-width: 1600px;
+}
