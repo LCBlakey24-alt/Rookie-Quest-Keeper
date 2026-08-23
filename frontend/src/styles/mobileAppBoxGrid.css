@@ -1,14 +1,12 @@
-/* Legacy shared mobile polish for utility pages and creator touch affordances.
-   Home and library geometry now live in explicit mobile device layout lanes.
+/* Legacy shared mobile polish for Homebrew and creator touch affordances.
+   Home, library, and Uploads geometry now live in explicit mobile device lanes.
    Keep shrinking this file as the remaining feature families migrate. */
 
 @media (max-width: 760px) {
-  .uploads-dashboard-page,
   [data-testid="homebrew-workshop"] {
     gap: 10px !important;
   }
 
-  .uploads-dashboard-grid,
   [data-testid="homebrew-workshop"] section[style*="grid"] {
     width: 100% !important;
     display: grid !important;
@@ -18,10 +16,6 @@
     border: 0 !important;
   }
 
-  .uploads-dashboard-hero,
-  .uploads-dashboard-dropzone,
-  .uploads-dashboard-card,
-  .uploads-dashboard-next,
   [data-testid="homebrew-workshop"] header,
   [data-testid="homebrew-workshop"] aside,
   [data-testid="homebrew-workshop"] section,
@@ -35,27 +29,22 @@
     padding-right: max(10px, 0.75rem) !important;
   }
 
-  .uploads-dashboard-card,
   [data-testid="homebrew-workshop"] [data-testid^="hb-type-"] {
     background: var(--rq-bg-card, #151515) !important;
   }
 
-  .uploads-dashboard-dropzone,
   [data-testid="homebrew-workshop"] header {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 8px !important;
   }
 
-  .uploads-dashboard-hero > div,
-  .uploads-dashboard-dropzone > div,
   [data-testid="homebrew-workshop"] header > div {
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
   }
 
-  .uploads-dashboard-page button,
   [data-testid="homebrew-workshop"] button,
   [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
     min-width: 0 !important;
@@ -70,16 +59,11 @@
     text-overflow: ellipsis !important;
   }
 
-  .uploads-dashboard-card > div,
-  .uploads-dashboard-next > div,
   [data-testid="homebrew-workshop"] article > div,
   [data-testid="homebrew-workshop"] section > div {
     min-width: 0 !important;
   }
 
-  .uploads-dashboard-page h1,
-  .uploads-dashboard-page h2,
-  .uploads-dashboard-page p,
   [data-testid="homebrew-workshop"] h1,
   [data-testid="homebrew-workshop"] h2,
   [data-testid="homebrew-workshop"] strong,
@@ -89,12 +73,6 @@
     min-width: 0 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-  }
-
-  .uploads-dashboard-page button,
-  [data-testid="homebrew-workshop"] button,
-  [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
-    white-space: nowrap !important;
   }
 
   [data-testid="homebrew-workshop"] div[style*="flex"] {
@@ -115,14 +93,12 @@
     grid-template-columns: 1fr !important;
   }
 
-  .uploads-dashboard-page h1,
   [data-testid="homebrew-workshop"] h1 {
     font-size: clamp(26px, 9vw, 36px) !important;
   }
 }
 
-/* Creator spell picker touch polish.
-   The creator already has spell selection logic; this makes selection obvious on mobile. */
+/* Creator spell picker touch polish. */
 .full-creator-page .full-creator-spell-chip {
   position: relative !important;
   min-height: 88px !important;

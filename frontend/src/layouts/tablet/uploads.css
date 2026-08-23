@@ -1,0 +1,17 @@
+/* Uploads geometry for the tablet lane only. */
+
+#root .rqk-app-shell[data-rq-device='tablet'] .uploads-dashboard-hero,
+#root .rqk-app-shell[data-rq-device='tablet'] .uploads-dashboard-dropzone,
+#root .rqk-app-shell[data-rq-device='tablet'] .uploads-dashboard-next {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .uploads-dashboard-action-row {
+  justify-content: flex-start !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .uploads-dashboard-route-grid,
+#root .rqk-app-shell[data-rq-device='tablet'] .uploads-dashboard-grid,
+#root .rqk-app-shell[data-rq-device='tablet'] .uploads-dashboard-safety-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
