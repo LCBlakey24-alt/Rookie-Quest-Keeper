@@ -5,6 +5,11 @@ function read(relativePath) {
   return fs.readFileSync(path.join(__dirname, relativePath), 'utf8');
 }
 
+function readIfExists(relativePath) {
+  const filePath = path.join(__dirname, relativePath);
+  return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+}
+
 describe('Homebrew presentation ownership', () => {
   test('Homebrew uses a route-owned navy presentation', () => {
     const css = read('homebrewWorkshop.css');
@@ -31,7 +36,7 @@ describe('Homebrew presentation ownership', () => {
     ['homeHubFinalPolish.css'],
     ['utilityPagesFinalFixes.css'],
   ])('%s no longer owns Homebrew selectors', (relativePath) => {
-    expect(read(relativePath)).not.toMatch(/homebrew-workshop/i);
+    expect(readIfExists(relativePath)).not.toMatch(/homebrew-workshop/i);
   });
 
   test('the deleted mixed utility layer is no longer globally imported', () => {
