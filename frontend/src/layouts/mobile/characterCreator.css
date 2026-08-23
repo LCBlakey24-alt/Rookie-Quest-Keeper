@@ -1,0 +1,153 @@
+/* Character Creator — phone geometry and touch affordances only. */
+
+[data-rq-device='mobile'] .full-creator-page {
+  padding: 10px;
+  gap: 10px;
+}
+
+[data-rq-device='mobile'] .full-creator-header {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px;
+}
+
+[data-rq-device='mobile'] .full-creator-header button,
+[data-rq-device='mobile'] .full-creator-footer button,
+[data-rq-device='mobile'] .full-creator-preset-banner button {
+  width: 100%;
+  min-height: 44px;
+}
+
+[data-rq-device='mobile'] .full-creator-progress-card {
+  padding: 11px;
+}
+
+[data-rq-device='mobile'] .full-creator-progress-heading {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 5px;
+}
+
+[data-rq-device='mobile'] .full-creator-workspace {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps {
+  position: static;
+  width: calc(100% + 20px) !important;
+  margin: 0 -10px !important;
+  padding: 4px 10px 8px !important;
+  display: flex !important;
+  grid-template-columns: none !important;
+  gap: 6px !important;
+  overflow-x: auto !important;
+  border-inline: 0;
+  border-radius: 0;
+  scrollbar-width: thin;
+}
+
+[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: 78px !important;
+  min-height: 52px !important;
+  padding: 6px 8px !important;
+}
+
+[data-rq-device='mobile'] .full-creator-workspace .full-creator-layout {
+  grid-template-columns: 1fr !important;
+}
+
+[data-rq-device='mobile'] .full-creator-panel,
+[data-rq-device='mobile'] .full-creator-preview,
+[data-rq-device='mobile'] .full-creator-footer {
+  padding: 12px;
+}
+
+[data-rq-device='mobile'] .full-creator-preview {
+  position: static;
+  order: initial;
+}
+
+[data-rq-device='mobile'] .full-creator-form-grid,
+[data-rq-device='mobile'] .full-creator-score-editor,
+[data-rq-device='mobile'] .full-creator-review-grid,
+[data-rq-device='mobile'] .full-creator-equipment-modes,
+[data-rq-device='mobile'] .full-creator-equipment-list,
+[data-rq-device='mobile'] .full-creator-panel .full-creator-choice-block > div:has(.full-creator-spell-chip) {
+  grid-template-columns: 1fr;
+}
+
+[data-rq-device='mobile'] .full-creator-footer {
+  display: grid;
+  grid-template-columns: 1fr;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+[data-rq-device='mobile'] .full-creator-preset-banner {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+[data-rq-device='mobile'] .full-creator-spell-chip {
+  position: relative;
+  min-height: 74px !important;
+  padding: 9px 10px !important;
+  touch-action: manipulation;
+}
+
+[data-rq-device='mobile'] .full-creator-spell-chip::after {
+  content: 'Tap to add';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 6px;
+  border: 1px solid var(--rqk-creator-line);
+  border-radius: 999px;
+  background: var(--rqk-creator-deep);
+  color: var(--rqk-creator-muted);
+  font-size: .58rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  pointer-events: none;
+}
+
+[data-rq-device='mobile'] .full-creator-spell-chip.active::after {
+  content: 'Selected';
+  color: #fff;
+  border-color: var(--rqk-creator-red);
+  background: var(--rqk-creator-red);
+}
+
+[data-rq-device='mobile'] .full-creator-spell-chip strong,
+[data-rq-device='mobile'] .full-creator-spell-chip span,
+[data-rq-device='mobile'] .full-creator-spell-chip em {
+  max-width: calc(100% - 78px);
+}
+
+[data-rq-device='mobile'] .full-creator-spell-chip strong {
+  padding-right: 78px;
+}
+
+[data-rq-device='mobile'] .full-creator-spell-chip em {
+  -webkit-line-clamp: 2;
+  font-size: .7rem;
+}
+
+[data-rq-device='mobile'] .full-creator-choice-block:has(.full-creator-spell-chip) h3::after {
+  content: ' · tap a card to select or remove';
+}
+
+@media (max-width: 390px) {
+  [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
+    min-width: 58px !important;
+  }
+
+  [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button span {
+    display: none !important;
+  }
+}
