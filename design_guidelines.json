@@ -1,50 +1,49 @@
 {
   "theme": {
-    "name": "Rookie Quest Sunset Gradient",
+    "name": "Rookie Minimal Navy",
     "mode": "dark-only",
-    "description": "A dark blue-purple fantasy UI system using deep indigo surfaces, white text, subtle pale borders, and a purple-pink-orange sunset gradient for active states, primary actions, selected navigation, and focus highlights.",
-    "fonts": {
-      "heading": "Fraunces or existing display token",
-      "body": "Manrope",
-      "logo": "Fraunces or existing brand token"
-    }
+    "description": "A quiet navy workspace with slate surfaces, white text, Rookie red for primary actions, and amber reserved for warnings/status. No sunset, purple, pink, fantasy-glow, coffee, parchment, or gradient skinning."
   },
   "colors": {
-    "core": {
-      "background": "#070713",
-      "backgroundDeep": "#0b0718",
-      "rail": "#0d0617",
-      "panel": "#13081f",
-      "card": "#1b0b2d",
-      "raised": "#24103a",
-      "sunsetGradient": "linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%)",
-      "primary": "#eb3fe9",
-      "primaryHover": "#ff9542",
-      "selectedSupport": "#7357ff",
-      "foreground": "#ffffff",
-      "foregroundSecondary": "rgba(255, 255, 255, 0.82)",
-      "muted": "rgba(255, 255, 255, 0.62)",
-      "border": "rgba(255, 255, 255, 0.14)",
-      "borderHover": "rgba(255, 149, 66, 0.30)",
-      "success": "#7A9B66",
-      "warning": "#D4953C",
-      "danger": "#B44732"
+    "background": "#0a1728",
+    "backgroundDeep": "#06101c",
+    "panel": "#102238",
+    "card": "#14283e",
+    "cardHover": "#1a314b",
+    "primary": "#d00000",
+    "primaryHover": "#ef2b2b",
+    "foreground": "#f7f9fc",
+    "foregroundSecondary": "rgba(229, 237, 247, 0.74)",
+    "muted": "rgba(202, 216, 233, 0.58)",
+    "border": "rgba(181, 203, 226, 0.16)",
+    "warning": "#f59e0b"
+  },
+  "architecture": {
+    "principle": "One shared product brain, isolated presentation layers.",
+    "backend": "API, persistence, authentication, sync, campaign/character data and server-side business logic.",
+    "frontendCore": "API client, auth, shared state, routing and data hooks. Device-independent.",
+    "features": "Campaigns, characters, quests, combat, dice, NPCs, maps and Rook logic. Device-independent where possible.",
+    "layouts": {
+      "desktop": "Wide workspace, permanent navigation, multi-panel tools when space allows.",
+      "tablet": "Touch-first layout with portrait/landscape adaptations and reduced navigation footprint.",
+      "mobile": "Bottom/compact navigation, one primary task at a time, sheets/drawers instead of desktop floating windows."
     }
   },
-  "implementation_status": {
-    "global_tokens": "Protected by the late-loaded responsiveSunsetLayouts.css token lock and app shell rail styles.",
-    "known_gaps": [
-      "Some older docs and component-level styles may still reference coffee, velvet, espresso, leather, parchment, brown-tabletop, or one-off colour treatments.",
-      "Each route should be visually checked at desktop, tablet, and mobile widths before calling the rebrand complete.",
-      "Screenshots or a preview URL are needed for agent-side visual verification beyond source review."
-    ]
-  },
-  "rules": [
-    "Use a shared dark blue-purple sunset shell across player, GM, and character-builder pages.",
-    "Use the sunset gradient for primary actions and selected states.",
-    "Keep unselected rail and tab states quiet, dark, and readable.",
-    "Reserve red for destructive actions and errors.",
-    "Avoid coffee, velvet, espresso, leather, parchment, brown-tabletop, candlelit, and rustic theme language.",
-    "Prefer sharp, minimal cards with readable white text."
+  "cssRules": [
+    "Global CSS may define reset, typography, design tokens, accessibility and true app-shell foundations only.",
+    "Feature/page styling must be imported by that feature or layout rather than App.js.",
+    "Prefer CSS Modules or otherwise tightly scoped selectors for new layout work.",
+    "Do not use global !important layers to recolour or resize unrelated screens.",
+    "Do not reintroduce sunset, twilight, velvet, Blue Eclipse, coffee, parchment, purple/pink/orange gradient or cinematic-fantasy skins.",
+    "A theme change must not alter workspace geometry, rail width, card columns or page flow.",
+    "Desktop, tablet and mobile may render different presentation components while sharing the same hooks, data and actions."
+  ],
+  "productRules": [
+    "Prep builds the campaign library; Live Play uses and updates it.",
+    "Sessions are not mandatory structure.",
+    "Multiple quests may be active; a focused/current quest is a convenience only.",
+    "Rook suggests; the GM decides. Rook must not silently change canon or state.",
+    "Create Character and Import Character are the only supported character-entry paths.",
+    "Failed refreshes must preserve last-known-good data and must never masquerade as valid empty data or successful actions."
   ]
 }

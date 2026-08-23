@@ -2,34 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
-import { DICE_ROLLER_MODES, loadDiceRollerMode, normaliseDiceRollerMode } from '@/lib/diceRollerPreferences';
-import CinematicDiceOverlay from '@/components/CinematicDiceOverlay';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
-import './DiceRollFlicker.css';
 
 const characterCache = new Map();
-
-const palette = {
-  player: {
-    className: 'rq-dice-flicker--player',
-    accent: 'var(--rq-accent-primary, #D6A84F)',
-    accentHover: 'var(--rq-accent-hover, #F0CF75)',
-    magic: 'var(--rq-accent-magic, #59C8FF)',
-    success: 'var(--rq-success, #2DD4BF)',
-    danger: 'var(--rq-danger, #E25A54)',
-  },
-  gm: {
-    className: 'rq-dice-flicker--gm',
-    accent: 'var(--rq-accent-primary, #D6A84F)',
-    accentHover: 'var(--rq-accent-hover, #F0CF75)',
-    magic: 'var(--rq-accent-active, #6E78FF)',
-    success: 'var(--rq-success, #2DD4BF)',
-    danger: 'var(--rq-danger, #E25A54)',
-  },
-};
-
-const CINEMATIC_REVEAL_DELAY = 2300;
-const TWO_D_REVEAL_DELAY = 360;
+const REVEAL_DELAY = 360;
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 3100;
 
@@ -44,7 +20,7 @@ const clampSides = (value) => Math.max(2, Math.min(100, Math.floor(Number(value)
 function normalizeDice(rolls, fallbackTotal) {
   const dice = Array.isArray(rolls)
     ? rolls
-      .filter(roll => roll && Number.isFinite(Number(typeof roll === 'object' ? roll.result : roll)))
+      .filter((roll) => roll && Number.isFinite(Number(typeof roll === 'object' ? roll.result : roll)))
       .map((roll, index) => {
         const raw = typeof roll === 'object' ? roll : { result: roll };
         const sides = clampSides(raw.sides);
@@ -101,39 +77,22 @@ export default function DiceRollFlicker({
   isCrit = false,
   isFumble = false,
   theme = 'player',
-  rollMode,
 }) {
-  const colors = palette[theme] || palette.player;
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
   const recordedKeyRef = useRef('');
-  const effectiveRollMode = normaliseDiceRollerMode(rollMode || loadDiceRollerMode());
-  const usesCinematic = effectiveRollMode === DICE_ROLLER_MODES.THREE_D;
   const numericTotal = Number(total);
   const numericAnimationValue = Number(animationValue);
-  const finalTotal = Number.isFinite(numericTotal) ? numericTotal : Number.isFinite(numericAnimationValue) ? numericAnimationValue : 0;
-  const naturalFocus = Number.isFinite(numericAnimationValue) && numericAnimationValue !== finalTotal ? numericAnimationValue : null;
+  const finalTotal = Number.isFinite(numericTotal)
+    ? numericTotal
+    : Number.isFinite(numericAnimationValue)
+      ? numericAnimationValue
+      : 0;
   const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
   const [showTotal, setShowTotal] = useState(false);
-  const [fading, setFading] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
-
-  useEffect(() => {
-    if (!visible || !usesCinematic || typeof document === 'undefined') return undefined;
-    const { body } = document;
-    const previousOverflow = body.style.overflow;
-    const previousOverscroll = body.style.overscrollBehavior;
-
-    body.style.overflow = 'hidden';
-    body.style.overscrollBehavior = 'contain';
-
-    return () => {
-      body.style.overflow = previousOverflow;
-      body.style.overscrollBehavior = previousOverscroll;
-    };
-  }, [visible, usesCinematic]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
@@ -145,7 +104,7 @@ export default function DiceRollFlicker({
   }, []);
 
   const keptDice = useMemo(() => {
-    const kept = dice.filter(die => !die.dropped);
+    const kept = dice.filter((die) => !die.dropped);
     return kept.length ? kept : dice;
   }, [dice]);
 
@@ -159,11 +118,10 @@ export default function DiceRollFlicker({
   }, [modifier, dice]);
 
   const diceSubtotal = useMemo(() => keptDice.reduce((sum, die) => sum + Number(die.result || 0), 0), [keptDice]);
-  const natural20 = useMemo(() => keptDice.some(die => die.sides === 20 && die.result === 20), [keptDice]);
-  const natural1 = useMemo(() => keptDice.some(die => die.sides === 20 && die.result === 1), [keptDice]);
+  const natural20 = useMemo(() => keptDice.some((die) => die.sides === 20 && die.result === 20), [keptDice]);
+  const natural1 = useMemo(() => keptDice.some((die) => die.sides === 20 && die.result === 1), [keptDice]);
   const finalCrit = Boolean(isCrit || natural20);
   const finalFumble = Boolean(!finalCrit && (isFumble || natural1));
-  const cinematicResult = naturalFocus ?? finalTotal;
 
   useEffect(() => {
     if (!visible || theme !== 'player') return undefined;
@@ -174,7 +132,7 @@ export default function DiceRollFlicker({
     recordedKeyRef.current = rollKey;
 
     let cancelled = false;
-    getCharacterForRoll(characterId).then(character => {
+    getCharacterForRoll(characterId).then((character) => {
       if (cancelled || !character) return;
       const campaignId = character.campaign_id || character.campaignId || character.campaign?.id || character.current_campaign_id || '';
       if (!campaignId) return;
@@ -189,10 +147,10 @@ export default function DiceRollFlicker({
         total: finalTotal,
         modifier,
         rolls,
-        visibleRolls: rolls.filter?.(roll => !roll?.dropped) || rolls,
+        visibleRolls: rolls.filter?.((roll) => !roll?.dropped) || rolls,
         isCrit: finalCrit,
         isFumble: finalFumble,
-        explosionCount: rolls.filter?.(roll => roll?.exploded).length || 0,
+        explosionCount: rolls.filter?.((roll) => roll?.exploded).length || 0,
       });
     });
     return () => { cancelled = true; };
@@ -200,30 +158,18 @@ export default function DiceRollFlicker({
 
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
-
     setShowTotal(false);
-    setFading(false);
-
-    const revealDelay = prefersReducedMotion
-      ? REDUCED_MOTION_REVEAL_DELAY
-      : usesCinematic
-        ? CINEMATIC_REVEAL_DELAY
-        : TWO_D_REVEAL_DELAY;
-    const revealTimer = window.setTimeout(() => setShowTotal(true), revealDelay);
-
+    const revealTimer = window.setTimeout(
+      () => setShowTotal(true),
+      prefersReducedMotion ? REDUCED_MOTION_REVEAL_DELAY : REVEAL_DELAY,
+    );
     return () => window.clearTimeout(revealTimer);
-  }, [visible, dice, finalTotal, prefersReducedMotion, usesCinematic]);
+  }, [visible, dice, finalTotal, prefersReducedMotion]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
-
-    const fadeTimer = window.setTimeout(() => setFading(true), HOLD_AFTER_REVEAL - 360);
     const closeTimer = window.setTimeout(() => { onCloseRef.current?.(); }, HOLD_AFTER_REVEAL);
-
-    return () => {
-      window.clearTimeout(fadeTimer);
-      window.clearTimeout(closeTimer);
-    };
+    return () => window.clearTimeout(closeTimer);
   }, [visible, showTotal, finalTotal]);
 
   useEffect(() => {
@@ -231,8 +177,7 @@ export default function DiceRollFlicker({
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        setFading(true);
-        window.setTimeout(() => onCloseRef.current?.(), 90);
+        onCloseRef.current?.();
       }
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
@@ -245,60 +190,21 @@ export default function DiceRollFlicker({
 
   if (!visible || typeof document === 'undefined') return null;
 
-  const outcomeClass = showTotal && finalCrit ? 'is-critical' : showTotal && finalFumble ? 'is-fumble' : showTotal ? 'is-complete' : 'is-rolling';
   const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
-  const closeNow = () => {
-    setFading(true);
-    window.setTimeout(() => onCloseRef.current?.(), 90);
-  };
-
-  if (!usesCinematic) {
-    return createPortal(
-      <FlatDiceResultOverlay
-        total={finalTotal}
-        label={label}
-        rollDetail={rollDetail}
-        formulaText={formulaText}
-        rolls={dice}
-        isRevealed={showTotal}
-        isCrit={finalCrit}
-        isFumble={finalFumble}
-        onRevealNow={() => setShowTotal(true)}
-        onClose={closeNow}
-      />,
-      document.body
-    );
-  }
 
   return createPortal(
-    <div
-      className={`rq-dice-flicker rq-dice-flicker--cinematic ${colors.className} rq-dice-flicker--${effectiveRollMode} ${outcomeClass} ${fading ? 'is-fading' : ''}`}
-      role="status"
-      aria-live="polite"
-      style={{
-        '--rq-roll-accent': colors.accent,
-        '--rq-roll-accent-hover': colors.accentHover,
-        '--rq-roll-magic': colors.magic,
-        '--rq-roll-success': colors.success,
-        '--rq-roll-danger': colors.danger,
-      }}
-    >
-      <CinematicDiceOverlay
-        result={cinematicResult}
-        total={finalTotal}
-        label={label}
-        rollDetail={rollDetail}
-        formulaText={formulaText}
-        isRevealed={showTotal}
-        isCrit={finalCrit}
-        isFumble={finalFumble}
-        diceCount={dice.length}
-        rolls={dice}
-        rollMode={effectiveRollMode}
-        onRevealNow={() => setShowTotal(true)}
-        onClose={closeNow}
-      />
-    </div>,
-    document.body
+    <FlatDiceResultOverlay
+      total={finalTotal}
+      label={label}
+      rollDetail={rollDetail}
+      formulaText={formulaText}
+      rolls={dice}
+      isRevealed={showTotal}
+      isCrit={finalCrit}
+      isFumble={finalFumble}
+      onRevealNow={() => setShowTotal(true)}
+      onClose={() => onCloseRef.current?.()}
+    />,
+    document.body,
   );
 }

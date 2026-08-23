@@ -1,10 +1,9 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
-// Style layering: base design/feature styles first, current unified Rookie theme
-// and layout safety layers after that. Historical colour skins are intentionally
-// no longer loaded globally; responsive presentation is owned by the current
-// mobile/tablet/desktop layers instead.
+
+// Only true shared foundations belong here. Feature/page presentation is owned
+// by the component that renders it and will migrate into isolated layout layers.
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
@@ -14,7 +13,6 @@ import '@/styles/abilitiesStepTap.css';
 import '@/styles/brandPolish.css';
 import '@/styles/authBrandOverrides.css';
 import '@/styles/professionalLanding.css';
-import '@/styles/professionalDashboard.css';
 import '@/styles/cleanCharacterSheet.css';
 import '@/styles/cleanCombatTab.css';
 import '@/styles/mobileSheetPolish.css';
@@ -25,17 +23,12 @@ import '@/styles/cleanSpellsTab.css';
 import '@/styles/cleanNotesTab.css';
 import '@/styles/levelUpCleanStyle.css';
 import '@/styles/landingSafeFix.css';
-import '@/styles/simpleTheme.css';
 import '@/styles/landingFinal.css';
 import '@/styles/actionFillAnimations.css';
 import '@/styles/scrollFixes.css';
-import '@/styles/rqkUnifiedTheme.css';
-import '@/styles/rqkBoardSystem.css';
-import '@/styles/appBoardOverrides.css';
 import '@/styles/appUtilityPagesPolish.css';
 import '@/styles/mobileAppBoxGrid.css';
 import '@/styles/homeHubFinalPolish.css';
-import '@/styles/homeHubSurfacePolish.css';
 import '@/styles/utilityPagesFinalFixes.css';
 import '@/styles/fullCreatorReadiness.css';
 import '@/styles/characterSheetRailAndHeroFix.css';
@@ -51,7 +44,6 @@ import '@/styles/characterSheetStatsTabFinalPolish.css';
 import '@/styles/brandedLoading.css';
 import '@/styles/loadingExperiencePolish.css';
 import '@/styles/authExperiencePolish.css';
-import '@/styles/homeHubConsistencySweep.css';
 import '@/styles/adminMissionControlHooks.css';
 import '@/styles/rookAssistantPlaybook.css';
 import '@/data/applyTestBackgrounds';
@@ -108,10 +100,6 @@ const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/Campaign
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
 const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
-const PrototypeHub = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeHub'));
-const PrototypeMobileLab = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeMobileLab'));
-const TiaKartaGmPrototype = lazyWithChunkRetry(() => import('@/components/prototype/TiaKartaGmPrototype'));
-const ClassProgressionLab = lazyWithChunkRetry(() => import('@/components/prototype/ClassProgressionLab'));
 const MobilePlayerCampaignView = lazyWithChunkRetry(() => import('@/components/MobilePlayerCampaignView'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
@@ -120,14 +108,8 @@ const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSet
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
-const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridge'));
+const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridge'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
-
-const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
-
-function PrototypeRoute({ children }) {
-  return ENABLE_PROTOTYPE_ROUTES ? children : <Navigate to="/home" replace />;
-}
 
 function CampaignLiveRedirect() {
   const { campaignId } = useParams();
@@ -162,8 +144,7 @@ function ThemeRouter() {
   useEffect(() => {
     const path = location.pathname;
     if (path === '/' || path.startsWith('/auth')) setTheme(THEMES.LANDING);
-    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) setTheme(THEMES.GM);
-    else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) setTheme(THEMES.PLAYER);
+    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display')) setTheme(THEMES.GM);
     else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
 
@@ -210,10 +191,6 @@ function AppRoutes() {
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
-        <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
-        <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
-        <Route path="/prototype-progressions" element={<PrototypeRoute><ClassProgressionLab /></PrototypeRoute>} />
         <Route path="/mobile/:campaignId" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
         <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <Navigate to="/auth" replace />} />
         <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
@@ -222,8 +199,8 @@ function AppRoutes() {
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
 
-        {/* One character creator. Legacy creator URLs remain redirects so old links and installed PWAs stay safe. */}
-        <Route path="/characters/new" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
+        {/* One character creator. Legacy URLs remain redirects so old links and installed PWAs stay safe. */}
+        <Route path="/characters/new" element={isAuthenticated ? <AppShell><CharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/full" element={<Navigate to="/characters/new" replace />} />
         <Route path="/characters/new/basic" element={<Navigate to="/characters/new" replace />} />
         <Route path="/characters/new/premade" element={<Navigate to="/characters/new" replace />} />
@@ -238,7 +215,7 @@ function AppRoutes() {
         <Route path="/characters/create/rook" element={<Navigate to="/characters/new" replace />} />
 
         <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><CharacterCreator editMode /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
