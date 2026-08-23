@@ -2,49 +2,14 @@ import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 
-// Only true shared foundations belong here. Feature/page presentation is owned
-// by the component that renders it and will migrate into isolated layout layers.
+// App-wide foundations only. Route/page presentation is loaded with the route
+// family that owns it so one feature cannot become the default skin for another.
 import '@/styles/designSystem.css';
-import '@/styles/characterBuilderResponsive.css';
-import '@/styles/characterBuilderUXFoundation.css';
-import '@/styles/builderUI.css';
-import '@/styles/builderAbilityScoresTouch.css';
-import '@/styles/abilitiesStepTap.css';
 import '@/styles/brandPolish.css';
-import '@/styles/authBrandOverrides.css';
-import '@/styles/professionalLanding.css';
-import '@/styles/cleanCharacterSheet.css';
-import '@/styles/cleanCombatTab.css';
-import '@/styles/mobileSheetPolish.css';
-import '@/styles/cleanSheetInteractions.css';
-import '@/styles/cleanSheetRecovery.css';
-import '@/styles/cleanInventoryTab.css';
-import '@/styles/cleanSpellsTab.css';
-import '@/styles/cleanNotesTab.css';
-import '@/styles/levelUpCleanStyle.css';
-import '@/styles/landingSafeFix.css';
-import '@/styles/landingFinal.css';
 import '@/styles/actionFillAnimations.css';
 import '@/styles/scrollFixes.css';
-import '@/styles/appUtilityPagesPolish.css';
-import '@/styles/mobileAppBoxGrid.css';
-import '@/styles/homeHubFinalPolish.css';
-import '@/styles/utilityPagesFinalFixes.css';
-import '@/styles/fullCreatorReadiness.css';
-import '@/styles/characterSheetRailAndHeroFix.css';
-import '@/styles/characterSheetColumnAlignmentFix.css';
-import '@/styles/characterSheetHeroBadgeFix.css';
-import '@/styles/characterSheetSpellUnavailableState.css';
-import '@/styles/characterSheetPlayHeaderCompact.css';
-import '@/styles/characterSheetUnifiedMobileHeader.css';
-import '@/styles/characterSheetSavingThrowsCompact.css';
-import '@/styles/characterSheetSkillsCompact.css';
-import '@/styles/characterSheetStatsFinalMobileTweaks.css';
-import '@/styles/characterSheetStatsTabFinalPolish.css';
 import '@/styles/brandedLoading.css';
 import '@/styles/loadingExperiencePolish.css';
-import '@/styles/authExperiencePolish.css';
-import '@/styles/adminMissionControlHooks.css';
 import '@/styles/rookAssistantPlaybook.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
@@ -91,10 +56,62 @@ function lazyWithChunkRetry(importer) {
   });
 }
 
-const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
-const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
-const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
-const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
+function lazyStyledRoute(componentImporter, styleImporters = []) {
+  return lazyWithChunkRetry(async () => {
+    await Promise.all(styleImporters.map(loadStyle => loadStyle()));
+    return componentImporter();
+  });
+}
+
+const HUB_STYLES = [
+  () => import('@/styles/mobileAppBoxGrid.css'),
+  () => import('@/styles/homeHubFinalPolish.css'),
+];
+
+const UTILITY_STYLES = [
+  () => import('@/styles/appUtilityPagesPolish.css'),
+  () => import('@/styles/utilityPagesFinalFixes.css'),
+];
+
+const CREATOR_STYLES = [
+  () => import('@/styles/characterBuilderResponsive.css'),
+  () => import('@/styles/characterBuilderUXFoundation.css'),
+  () => import('@/styles/builderUI.css'),
+  () => import('@/styles/builderAbilityScoresTouch.css'),
+  () => import('@/styles/abilitiesStepTap.css'),
+  () => import('@/styles/fullCreatorReadiness.css'),
+  () => import('@/styles/mobileAppBoxGrid.css'),
+];
+
+const SHEET_STYLES = [
+  () => import('@/styles/cleanCharacterSheet.css'),
+  () => import('@/styles/cleanCombatTab.css'),
+  () => import('@/styles/mobileSheetPolish.css'),
+  () => import('@/styles/cleanSheetInteractions.css'),
+  () => import('@/styles/cleanSheetRecovery.css'),
+  () => import('@/styles/cleanInventoryTab.css'),
+  () => import('@/styles/cleanSpellsTab.css'),
+  () => import('@/styles/cleanNotesTab.css'),
+  () => import('@/styles/levelUpCleanStyle.css'),
+  () => import('@/styles/characterSheetRailAndHeroFix.css'),
+  () => import('@/styles/characterSheetColumnAlignmentFix.css'),
+  () => import('@/styles/characterSheetHeroBadgeFix.css'),
+  () => import('@/styles/characterSheetSpellUnavailableState.css'),
+  () => import('@/styles/characterSheetPlayHeaderCompact.css'),
+  () => import('@/styles/characterSheetUnifiedMobileHeader.css'),
+  () => import('@/styles/characterSheetSavingThrowsCompact.css'),
+  () => import('@/styles/characterSheetSkillsCompact.css'),
+  () => import('@/styles/characterSheetStatsFinalMobileTweaks.css'),
+  () => import('@/styles/characterSheetStatsTabFinalPolish.css'),
+];
+
+const AuthPage = lazyStyledRoute(() => import('@/components/AuthPage'), [
+  () => import('@/styles/authBrandOverrides.css'),
+  () => import('@/styles/authExperiencePolish.css'),
+]);
+const UnifiedDashboard = lazyStyledRoute(() => import('@/components/UnifiedDashboard'), HUB_STYLES);
+const MyCharactersPage = lazyStyledRoute(() => import('@/components/MyCharactersPage'), HUB_STYLES);
+const MyCampaignsPage = lazyStyledRoute(() => import('@/components/MyCampaignsPage'), HUB_STYLES);
 const PlayerDashboard = lazyWithChunkRetry(() => import('@/components/PlayerDashboard'));
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
@@ -102,14 +119,28 @@ const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/Playe
 const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
 const MobilePlayerCampaignView = lazyWithChunkRetry(() => import('@/components/MobilePlayerCampaignView'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
-const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
-const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
-const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
-const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
-const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
+const AdminPage = lazyStyledRoute(() => import('@/components/AdminPage'), [
+  () => import('@/styles/adminMissionControlHooks.css'),
+]);
+const LandingPage = lazyStyledRoute(() => import('@/components/LandingPage'), [
+  () => import('@/styles/professionalLanding.css'),
+  () => import('@/styles/landingSafeFix.css'),
+  () => import('@/styles/landingFinal.css'),
+]);
+const AccountSettings = lazyStyledRoute(() => import('@/components/AccountSettings'), [
+  () => import('@/styles/utilityPagesFinalFixes.css'),
+]);
+const HomebrewWorkshop = lazyStyledRoute(() => import('@/components/HomebrewWorkshop'), [
+  ...HUB_STYLES,
+  ...UTILITY_STYLES,
+]);
+const UploadsDashboard = lazyStyledRoute(() => import('@/components/UploadsDashboard'), [
+  ...HUB_STYLES,
+  ...UTILITY_STYLES,
+]);
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
-const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridge'));
-const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
+const CharacterCreator = lazyStyledRoute(() => import('@/components/CharacterRulesBridge'), CREATOR_STYLES);
+const CleanCharacterSheet = lazyStyledRoute(() => import('@/components/CleanCharacterSheet'), SHEET_STYLES);
 
 function CampaignLiveRedirect() {
   const { campaignId } = useParams();
