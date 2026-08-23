@@ -1,0 +1,134 @@
+/* Clean Character Sheet — phone geometry and touch sizing only. */
+
+[data-rq-device='mobile'] .character-page-v2.clean-sheet-page {
+  padding: 10px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-content {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-header--simple,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-compact-status--hp-only {
+  grid-template-columns: 1fr !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-header-actions {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-header-actions button,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-level,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-edit {
+  width: 100% !important;
+  min-height: 44px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-action-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-spell-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-item-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-equipped-slot-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-feature-lanes,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-caster-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-slot-grid {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-core-stat-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-passive-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-compact-abilities,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readable-saves,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-skills-summary,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-spell-summary,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-inventory-summary,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-currency-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-proficiency-lists,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readable-skills,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-compact-skills {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-panel,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-feature-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-spell-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-item-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-core-stat-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-passive-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-ability,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-save-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-skill-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-caster-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-slot-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-action-card,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-empty-slot,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-skills-summary > div,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-spell-summary > div,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-inventory-summary > div,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-currency-grid > div,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-proficiency-lists > div,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-equipment-preview > div {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-skill-card {
+  min-height: 44px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  justify-items: stretch !important;
+  padding: 8px 9px !important;
+  gap: 6px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-skill-filter-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-roll-chip,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-panel button,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-item-actions button,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-spell-actions button,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-slot-actions button,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-compact-hp-actions button {
+  min-width: 0 !important;
+  min-height: 40px !important;
+  touch-action: manipulation;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-compact-hp-actions {
+  grid-template-columns: 82px minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 7px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-tabs {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 390px) {
+  [data-rq-device='mobile'] .character-page-v2 .clean-sheet-readable-skills,
+  [data-rq-device='mobile'] .character-page-v2 .clean-sheet-compact-skills,
+  [data-rq-device='mobile'] .character-page-v2 .clean-sheet-core-stat-grid,
+  [data-rq-device='mobile'] .character-page-v2 .clean-sheet-passive-grid,
+  [data-rq-device='mobile'] .character-page-v2 .clean-sheet-readable-saves {
+    gap: 6px !important;
+  }
+}
