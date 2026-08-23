@@ -1,11 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, FileText, MapPin, Search, Swords, UserPlus, Users, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, Check, ChevronDown, ChevronRight, FileText, MapPin, RefreshCw, Search, Swords, UserPlus, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import {
+  describeLiveNpcLookupFailures,
+  fetchLiveNpcLookupSections,
+} from '@/components/gm/liveNpcLookupData';
 
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
-  text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: '#0a1728', panel: '#102238', card: '#14283e', red: '#d00000',
+  text: '#f7f9fc', soft: 'rgba(229,237,247,0.74)', muted: 'rgba(202,216,233,0.58)', line: 'rgba(181,203,226,0.16)',
 };
 
 const safeArray = value => Array.isArray(value) ? value : [];
@@ -36,40 +40,74 @@ export default function LiveNpcLookup({ campaignId }) {
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [savingId, setSavingId] = useState('');
+  const [loadWarning, setLoadWarning] = useState('');
+  const activeCampaignRef = useRef('');
+
+  const load = useCallback(async ({ notifyFailure = true } = {}) => {
+    if (!campaignId) return { ok: false, failures: ['campaign'] };
+    const requestedCampaign = campaignId;
+    const result = await fetchLiveNpcLookupSections(apiClient, requestedCampaign);
+    if (activeCampaignRef.current !== requestedCampaign) return { ...result, stale: true };
+
+    if (result.npcs !== null) setNpcs(result.npcs);
+    if (result.locations !== null) setLocations(result.locations);
+    if (result.companionIds !== null) setCompanionIds(result.companionIds);
+
+    if (result.ok) {
+      setLoadWarning('');
+    } else {
+      const description = describeLiveNpcLookupFailures(result.failures);
+      setLoadWarning(description);
+      if (notifyFailure) toast.warning('Some NPC lookup data could not be refreshed', { description });
+    }
+
+    return result;
+  }, [campaignId]);
 
   useEffect(() => {
-    if (!campaignId) return;
-    const load = async () => {
-      setLoading(true);
-      setNpcs([]);
-      setLocations([]);
-      setCompanionIds([]);
-      try {
-        const [npcRes, locationRes, stateRes] = await Promise.all([
-          apiClient.get(`/campaigns/${campaignId}/npcs`),
-          apiClient.get(`/campaigns/${campaignId}/locations`).catch(() => ({ data: [] })),
-          apiClient.get(`/campaigns/${campaignId}/live-state`).catch(() => ({ data: { companion_npc_ids: [] } })),
-        ]);
-        setNpcs(safeArray(npcRes.data));
-        setLocations(safeArray(locationRes.data));
-        setCompanionIds(safeArray(stateRes.data?.companion_npc_ids));
-        try {
-          const requested = localStorage.getItem(`gm.liveNpcSearch.${campaignId}`) || '';
-          if (requested) {
-            setSearch(requested);
-            localStorage.removeItem(`gm.liveNpcSearch.${campaignId}`);
-          }
-        } catch { /* ignore */ }
-      } catch (error) {
-        setNpcs([]);
-        toast.error(error?.response?.data?.detail || 'Could not load NPCs');
-      } finally {
-        setLoading(false);
+    if (!campaignId) return undefined;
+    let alive = true;
+    activeCampaignRef.current = campaignId;
+
+    // Campaign switches intentionally clear campaign-bound state. Same-campaign
+    // retries preserve the last successful data instead.
+    setNpcs([]);
+    setLocations([]);
+    setCompanionIds([]);
+    setExpandedId('');
+    setLoadWarning('');
+    setLoading(true);
+
+    try {
+      const requested = localStorage.getItem(`gm.liveNpcSearch.${campaignId}`) || '';
+      if (requested) {
+        setSearch(requested);
+        localStorage.removeItem(`gm.liveNpcSearch.${campaignId}`);
+      } else {
+        setSearch('');
       }
-    };
-    load();
-  }, [campaignId]);
+    } catch {
+      setSearch('');
+    }
+
+    load({ notifyFailure: true }).finally(() => {
+      if (alive && activeCampaignRef.current === campaignId) setLoading(false);
+    });
+
+    return () => { alive = false; };
+  }, [campaignId, load]);
+
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      const result = await load({ notifyFailure: true });
+      if (result?.ok && !result?.stale) toast.success('NPC lookup refreshed');
+    } finally {
+      if (activeCampaignRef.current === campaignId) setRefreshing(false);
+    }
+  };
 
   const locationFor = npc => {
     if (npc.location_id) {
@@ -138,10 +176,22 @@ export default function LiveNpcLookup({ campaignId }) {
   return (
     <div data-testid="live-npc-lookup" style={shellStyle}>
       <label style={searchStyle}><Search size={15} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Find NPC by name, role or location" style={searchInputStyle} /></label>
-      <div style={summaryStyle}><Users size={14} /><strong>{companionIds.length}</strong> travelling · <strong>{filtered.length}</strong> shown</div>
+      <div style={summaryStyle}>
+        <span style={summaryCopyStyle}><Users size={14} /><strong>{companionIds.length}</strong> travelling · <strong>{filtered.length}</strong> shown</span>
+        <button type="button" onClick={refresh} disabled={refreshing} style={refreshStyle} aria-label="Refresh NPC lookup">
+          <RefreshCw size={12} /> {refreshing ? 'Refreshing…' : 'Refresh'}
+        </button>
+      </div>
+
+      {loadWarning && (
+        <div data-testid="live-npc-load-warning" role="status" style={warningStyle}>
+          <AlertTriangle size={14} style={{ flex: '0 0 auto' }} />
+          <span>{loadWarning}</span>
+        </div>
+      )}
 
       <div style={listStyle}>
-        {filtered.length === 0 && <div style={emptyStyle}>No matching NPCs.</div>}
+        {filtered.length === 0 && <div style={emptyStyle}>{loadWarning ? 'No matching NPCs in the last known data.' : 'No matching NPCs.'}</div>}
         {filtered.map(npc => {
           const open = expandedId === npc.id;
           const travelling = companionIds.includes(npc.id);
@@ -179,7 +229,10 @@ export default function LiveNpcLookup({ campaignId }) {
 const shellStyle = { display: 'grid', gap: 6, color: rq.text };
 const searchStyle = { minHeight: 40, display: 'flex', alignItems: 'center', gap: 7, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.muted, padding: '0 9px' };
 const searchInputStyle = { minWidth: 0, flex: 1, minHeight: 38, border: 0, outline: 0, background: 'transparent', color: rq.text, fontSize: 12 };
-const summaryStyle = { minHeight: 28, display: 'flex', alignItems: 'center', gap: 5, color: rq.muted, fontSize: 10, padding: '0 3px' };
+const summaryStyle = { minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 7, color: rq.muted, fontSize: 10, padding: '0 3px' };
+const summaryCopyStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0 };
+const refreshStyle = { minHeight: 28, border: `1px solid ${rq.line}`, background: rq.panel, color: rq.soft, padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 9, fontWeight: 850 };
+const warningStyle = { minHeight: 38, display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 9px', border: '1px solid rgba(245,158,11,0.42)', borderLeft: '4px solid #f59e0b', background: 'rgba(245,158,11,0.08)', color: '#f6c25b', fontSize: 10, lineHeight: 1.4 };
 const listStyle = { display: 'grid', gap: 4 };
 const cardStyle = travelling => ({ background: rq.panel, border: `1px solid ${travelling ? rq.red : rq.line}`, borderLeft: travelling ? `4px solid ${rq.red}` : `1px solid ${rq.line}` });
 const headerStyle = { width: '100%', minHeight: 48, border: 0, background: rq.card, color: rq.text, padding: '6px 8px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr) auto', alignItems: 'center', gap: 5, cursor: 'pointer' };
