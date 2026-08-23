@@ -1,0 +1,9 @@
+/* Account Settings geometry for the tablet lane only. */
+
+#root .rqk-app-shell[data-rq-device='tablet'] .account-settings-container {
+  width: min(100%, 760px) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .account-settings-panel {
+  padding: 18px !important;
+}

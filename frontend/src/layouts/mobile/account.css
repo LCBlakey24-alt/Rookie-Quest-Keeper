@@ -1,0 +1,36 @@
+/* Account Settings geometry for the mobile lane only. */
+
+#root .rqk-app-shell[data-rq-device='mobile'] .account-settings-page {
+  padding: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .account-settings-header {
+  gap: 10px !important;
+  margin-bottom: 14px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .account-settings-header > div:last-child {
+  min-width: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .account-settings-page h1 {
+  font-size: clamp(2rem, 10vw, 2.7rem) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .account-settings-panel {
+  padding: 14px !important;
+  margin-bottom: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .account-settings-panel button:not(.account-settings-back):not(.account-password-toggle) {
+  width: 100% !important;
+  min-height: 44px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .account-settings-back,
+#root .rqk-app-shell[data-rq-device='mobile'] .account-password-toggle {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+}
