@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Clipboard, RefreshCw, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -52,35 +52,95 @@ function serializeAIContext(overview) {
   ].join('\n');
 }
 
+function responseObject(result) {
+  if (result?.status !== 'fulfilled') return null;
+  const data = result.value?.data;
+  return data && typeof data === 'object' && !Array.isArray(data) ? data : null;
+}
+
 export default function CampaignSettingTab({ campaignId }) {
+  const loadRequestRef = useRef(0);
   const [overview, setOverview] = useState(emptyOverview);
   const [worldSetting, setWorldSetting] = useState('custom');
   const [availableSettings, setAvailableSettings] = useState([]);
+  const [settingLoaded, setSettingLoaded] = useState(false);
+  const [worldLoaded, setWorldLoaded] = useState(false);
+  const [loadWarning, setLoadWarning] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { loadOverview(); }, [campaignId]);
+  useEffect(() => {
+    loadOverview({ reset: true, notifyFailure: false });
+    return () => { loadRequestRef.current += 1; };
+  }, [campaignId]);
 
-  const loadOverview = async () => {
-    try {
-      setLoading(true);
-      const [settingRes, worldRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}/setting`).catch(() => ({ data: {} })),
-        apiClient.get(`/campaigns/${campaignId}/world-setting`).catch(() => ({ data: {} })),
-      ]);
-      setOverview(parseOverview(settingRes.data?.content || '', worldRes.data?.world_setting_notes || ''));
-      setWorldSetting(worldRes.data?.world_setting || 'custom');
-      setAvailableSettings(Array.isArray(worldRes.data?.available_settings) ? worldRes.data.available_settings : []);
-    } catch {
-      toast.error('Failed to load world notes');
-    } finally {
-      setLoading(false);
+  const loadOverview = async ({ reset = false, notifyFailure = true } = {}) => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
+    const hadPriorData = reset ? false : settingLoaded || worldLoaded;
+
+    if (reset) {
+      setOverview(emptyOverview);
+      setWorldSetting('custom');
+      setAvailableSettings([]);
+      setSettingLoaded(false);
+      setWorldLoaded(false);
+      setLoadWarning('');
     }
+
+    setLoading(true);
+
+    const [settingResult, worldResult] = await Promise.allSettled([
+      apiClient.get(`/campaigns/${campaignId}/setting`),
+      apiClient.get(`/campaigns/${campaignId}/world-setting`),
+    ]);
+
+    if (requestId !== loadRequestRef.current) return { ok: false, stale: true };
+
+    const settingData = responseObject(settingResult);
+    const worldData = responseObject(worldResult);
+    const settingOk = Boolean(settingData);
+    const worldOk = Boolean(worldData);
+
+    if (settingOk) {
+      const content = typeof settingData.content === 'string' ? settingData.content : '';
+      setOverview(prev => {
+        const worldNotes = worldOk && typeof worldData.world_setting_notes === 'string'
+          ? worldData.world_setting_notes
+          : prev.importParking;
+        return parseOverview(content, worldNotes);
+      });
+      setSettingLoaded(true);
+    }
+
+    if (worldOk) {
+      setWorldSetting(typeof worldData.world_setting === 'string' ? worldData.world_setting : 'custom');
+      setAvailableSettings(Array.isArray(worldData.available_settings) ? worldData.available_settings : []);
+      setWorldLoaded(true);
+    }
+
+    if (settingOk && worldOk) {
+      setLoadWarning('');
+    } else {
+      const message = hadPriorData
+        ? 'Some world notes could not refresh. Showing the last loaded data for anything that failed.'
+        : 'Some world notes could not be loaded. Retry before editing or saving.';
+      setLoadWarning(message);
+      if (notifyFailure) toast.error(message);
+    }
+
+    setLoading(false);
+    return { ok: settingOk && worldOk, partial: settingOk || worldOk };
   };
 
   const setField = (field, value) => setOverview(prev => ({ ...prev, [field]: value }));
 
   const saveOverview = async () => {
+    if (!settingLoaded || !worldLoaded) {
+      toast.error('Reload world notes successfully before saving');
+      return;
+    }
+
     try {
       setSaving(true);
       await Promise.all([
@@ -104,44 +164,46 @@ export default function CampaignSettingTab({ campaignId }) {
     }
   };
 
-  if (loading) return <div style={loadingStyle}><div className="loading-spinner" /></div>;
+  if (loading && !settingLoaded && !worldLoaded) return <div style={loadingStyle}><div className="loading-spinner" /></div>;
 
   const settingOptions = availableSettings.length
     ? availableSettings.map(setting => [setting.id, setting.name])
     : WORLD_SETTINGS;
+  const saveBlocked = saving || loading || !settingLoaded || !worldLoaded;
 
   return (
-    <section style={pageStyle}>
+    <section style={pageStyle} data-testid="campaign-setting-tab">
+      {loadWarning && <div role="status" style={warningStyle} data-testid="campaign-setting-warning">{loadWarning}</div>}
       <header style={toolbarStyle}>
         <label style={toneStyle}>
           <span>World tone</span>
-          <select value={worldSetting} onChange={event => setWorldSetting(event.target.value)} style={inputStyle}>
+          <select value={worldSetting} onChange={event => setWorldSetting(event.target.value)} style={inputStyle} disabled={!worldLoaded}>
             {settingOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
         <div style={actionsStyle}>
-          <Button type="button" onClick={loadOverview} style={secondaryButtonStyle}><RefreshCw size={14} /> Reload</Button>
+          <Button type="button" onClick={() => loadOverview()} disabled={loading} style={secondaryButtonStyle} data-testid="campaign-setting-reload"><RefreshCw size={14} /> {loading ? 'Reloading…' : 'Reload'}</Button>
           <Button type="button" onClick={copyOverview} style={secondaryButtonStyle}><Clipboard size={14} /> Copy</Button>
-          <Button type="button" onClick={saveOverview} disabled={saving} style={primaryButtonStyle}><Save size={14} /> {saving ? 'Saving…' : 'Save'}</Button>
+          <Button type="button" onClick={saveOverview} disabled={saveBlocked} style={primaryButtonStyle} data-testid="campaign-setting-save"><Save size={14} /> {saving ? 'Saving…' : 'Save'}</Button>
         </div>
       </header>
 
       <div style={fieldGridStyle}>
-        <OverviewField label="Public Overview" value={overview.publicOverview} onChange={value => setField('publicOverview', value)} placeholder="What can the players safely know about the campaign and world?" tall />
-        <OverviewField label="Current Situation" value={overview.currentSituation} onChange={value => setField('currentSituation', value)} placeholder="What is happening in the world right now?" tall />
-        <OverviewField label="Tone & Themes" value={overview.toneThemes} onChange={value => setField('toneThemes', value)} placeholder="Political, dangerous, hopeful, mysterious…" />
-        <OverviewField label="GM Truths & Secrets" value={overview.gmTruths} onChange={value => setField('gmTruths', value)} placeholder="Hidden truths and unrevealed campaign information." />
-        <OverviewField label="Unsorted Notes" value={overview.importParking} onChange={value => setField('importParking', value)} placeholder="Drop rough material here and sort it later." wide tall />
+        <OverviewField label="Public Overview" value={overview.publicOverview} onChange={value => setField('publicOverview', value)} placeholder="What can the players safely know about the campaign and world?" tall disabled={!settingLoaded} />
+        <OverviewField label="Current Situation" value={overview.currentSituation} onChange={value => setField('currentSituation', value)} placeholder="What is happening in the world right now?" tall disabled={!settingLoaded} />
+        <OverviewField label="Tone & Themes" value={overview.toneThemes} onChange={value => setField('toneThemes', value)} placeholder="Political, dangerous, hopeful, mysterious…" disabled={!settingLoaded} />
+        <OverviewField label="GM Truths & Secrets" value={overview.gmTruths} onChange={value => setField('gmTruths', value)} placeholder="Hidden truths and unrevealed campaign information." disabled={!settingLoaded} />
+        <OverviewField label="Unsorted Notes" value={overview.importParking} onChange={value => setField('importParking', value)} placeholder="Drop rough material here and sort it later." wide tall disabled={!settingLoaded} />
       </div>
     </section>
   );
 }
 
-function OverviewField({ label, value, onChange, placeholder, wide = false, tall = false }) {
+function OverviewField({ label, value, onChange, placeholder, wide = false, tall = false, disabled = false }) {
   return (
     <label style={{ ...fieldStyle, gridColumn: wide ? '1 / -1' : undefined }}>
       <span style={fieldTopStyle}>{label}</span>
-      <textarea value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} style={{ ...textareaStyle, minHeight: tall ? 150 : 105 }} />
+      <textarea value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} style={{ ...textareaStyle, minHeight: tall ? 150 : 105 }} disabled={disabled} />
     </label>
   );
 }
@@ -149,6 +211,7 @@ function OverviewField({ label, value, onChange, placeholder, wide = false, tall
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const pageStyle = { display: 'grid', gap: 8, fontFamily: fontStack };
 const loadingStyle = { minHeight: 220, display: 'grid', placeItems: 'center', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)' };
+const warningStyle = { padding: '9px 10px', background: 'rgba(217,146,34,0.1)', border: '1px solid #d99222', color: '#ffd28a', fontSize: 12, fontWeight: 850, lineHeight: 1.4 };
 const toolbarStyle = { minHeight: 48, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', padding: 7 };
 const toneStyle = { display: 'flex', alignItems: 'center', gap: 7, color: 'rgba(255,255,255,0.62)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase' };
 const inputStyle = { minHeight: 34, background: '#242424', border: '1px solid rgba(255,255,255,0.18)', color: '#fff', padding: '0 8px', fontFamily: fontStack, fontWeight: 800, colorScheme: 'dark' };
