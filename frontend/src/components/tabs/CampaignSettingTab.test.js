@@ -53,6 +53,9 @@ const worldResponse = {
   },
 };
 
+const initialLoadWarning = 'Some world notes could not be loaded. Failed sections are locked; retry before saving.';
+const refreshWarning = 'Some world notes could not refresh. Showing the last loaded data for anything that failed.';
+
 describe('CampaignSettingTab reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -63,9 +66,7 @@ describe('CampaignSettingTab reliability', () => {
 
     render(<CampaignSettingTab campaignId="campaign-1" />);
 
-    expect(await screen.findByTestId('campaign-setting-warning')).toHaveTextContent(
-      'Some world notes could not be loaded. Retry before editing or saving.'
-    );
+    expect(await screen.findByTestId('campaign-setting-warning')).toHaveTextContent(initialLoadWarning);
     expect(screen.getByTestId('campaign-setting-save')).toBeDisabled();
     expect(screen.getByLabelText('Public Overview')).toBeDisabled();
     expect(screen.getByLabelText('World tone')).toBeDisabled();
@@ -88,17 +89,13 @@ describe('CampaignSettingTab reliability', () => {
     fireEvent.click(screen.getByTestId('campaign-setting-reload'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('campaign-setting-warning')).toHaveTextContent(
-        'Some world notes could not refresh. Showing the last loaded data for anything that failed.'
-      );
+      expect(screen.getByTestId('campaign-setting-warning')).toHaveTextContent(refreshWarning);
     });
 
     expect(screen.getByLabelText('Public Overview')).toHaveValue('Baldering is being rebuilt.');
     expect(screen.getByLabelText('World tone')).toHaveValue('high_fantasy');
     expect(screen.getByTestId('campaign-setting-save')).not.toBeDisabled();
-    expect(toast.error).toHaveBeenCalledWith(
-      'Some world notes could not refresh. Showing the last loaded data for anything that failed.'
-    );
+    expect(toast.error).toHaveBeenCalledWith(refreshWarning);
   });
 
   test('allows a partial load to be read without allowing it to overwrite the missing source', async () => {
@@ -108,12 +105,23 @@ describe('CampaignSettingTab reliability', () => {
 
     render(<CampaignSettingTab campaignId="campaign-1" />);
 
-    expect(await screen.findByTestId('campaign-setting-warning')).toHaveTextContent(
-      'Some world notes could not be loaded. Retry before editing or saving.'
-    );
+    expect(await screen.findByTestId('campaign-setting-warning')).toHaveTextContent(initialLoadWarning);
     expect(screen.getByLabelText('Public Overview')).toHaveValue('Baldering is being rebuilt.');
     expect(screen.getByLabelText('Public Overview')).not.toBeDisabled();
     expect(screen.getByLabelText('World tone')).toBeDisabled();
+    expect(screen.getByTestId('campaign-setting-save')).toBeDisabled();
+  });
+
+  test('treats malformed successful payloads as failed sources', async () => {
+    apiClient.get
+      .mockResolvedValueOnce({ data: {} })
+      .mockResolvedValueOnce(worldResponse);
+
+    render(<CampaignSettingTab campaignId="campaign-1" />);
+
+    expect(await screen.findByTestId('campaign-setting-warning')).toHaveTextContent(initialLoadWarning);
+    expect(screen.getByLabelText('Public Overview')).toBeDisabled();
+    expect(screen.getByLabelText('World tone')).not.toBeDisabled();
     expect(screen.getByTestId('campaign-setting-save')).toBeDisabled();
   });
 });
