@@ -16,11 +16,11 @@ import { registerPwaServiceWorker } from "@/pwa/registerServiceWorker";
 import { installQueuedCombatPartyOverlay } from "@/offline/queuedCombatPartyOverlay";
 import { installRookAiConsentGate } from "@/privacy/rookAiConsent";
 import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCleanup";
-// Current product guardrails load after App and all feature-level styles.
+
+// One final product-level visual authority. App Store usability fixes load first;
+// the three-mode design then owns palette and desktop/tablet/mobile geometry.
 import "@/styles/appStoreMobilePolish.css";
-import "@/styles/rookieResponsiveSystem.css";
-import "@/styles/minimalistNavyTheme.css";
-import "@/styles/desktopShellCleanup.css";
+import "@/styles/threeModeMinimalist.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
