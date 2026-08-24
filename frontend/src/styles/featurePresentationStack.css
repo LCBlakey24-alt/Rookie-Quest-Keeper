@@ -1,14 +1,13 @@
 /*
   Transitional feature presentation stack.
 
-  These imports intentionally preserve the exact historical cascade order that
-  existed in App.js before the frontend de-bloat. The current minimalist navy
-  theme still loads after this stack from index.js and therefore remains the
-  final product-level visual authority.
+  These imports preserve route-specific behaviour while the app is simplified.
+  They load before threeModeMinimalist.css, which is the single final authority
+  for the signed-in navy/red visual language and desktop/tablet/mobile shell.
 
-  New feature/layout CSS must NOT be added here. As each route family is moved
-  into its desktop/tablet/mobile presentation layer, remove its old imports from
-  this file and delete any superseded stylesheets.
+  New global responsive or theme layers must NOT be added here. As route families
+  are moved into their explicit device layouts, retire their superseded files
+  rather than stacking another override on top.
 */
 
 @import './characterBuilderResponsive.css';
