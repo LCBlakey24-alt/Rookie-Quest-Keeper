@@ -1,0 +1,871 @@
+/*
+ * Rookie Quest Keeper — one visual system, three deliberate layouts.
+ *
+ * Palette: navy background, white text, red accent.
+ * Breakpoints come from deviceLayout.js:
+ *   mobile  <= 719px
+ *   tablet  720px - 1180px
+ *   desktop >= 1181px
+ *
+ * This file intentionally loads last. It replaces the previous overlapping
+ * shell/theme guardrails and is the final authority for the signed-in frame.
+ */
+
+:root {
+  --rq-bg: #0a1728;
+  --rq-bg-main: #0a1728;
+  --rq-bg-deep: #06111f;
+  --rq-bg-rail: #06111f;
+  --rq-surface: #102238;
+  --rq-bg-panel: #102238;
+  --rq-card: #142a43;
+  --rq-bg-card: #142a43;
+  --rq-card-hover: #19324e;
+  --rq-bg-input: #081827;
+  --rq-button: #11263d;
+  --rq-bg-button: #11263d;
+  --rq-button-hover: #19334f;
+
+  --rq-primary: #d11f2a;
+  --rq-primary-hover: #ed3340;
+  --rq-primary-soft: rgba(209, 31, 42, 0.16);
+  --rq-accent-primary: #d11f2a;
+  --rq-accent-soft: rgba(209, 31, 42, 0.16);
+
+  --rq-text: #f8fbff;
+  --rq-text-primary: #f8fbff;
+  --rq-muted: #b8c7d8;
+  --rq-text-secondary: #b8c7d8;
+  --rq-text-muted: #8295aa;
+  --rq-faint: #72859a;
+
+  --rq-line: #213a54;
+  --rq-line-strong: #31516f;
+  --rq-border-default: #213a54;
+  --rq-border-strong: #31516f;
+
+  --rq-radius: 8px;
+  --rq-inner-radius: 6px;
+  --rq-control-mobile: 46px;
+  --rq-control-tablet: 44px;
+  --rq-control-desktop: 40px;
+
+  /* Compatibility aliases so retired theme files cannot leak old gradients. */
+  --rq-sunset-copper: var(--rq-primary);
+  --rq-sunset-gold: var(--rq-primary);
+  --rq-sunset-orange: var(--rq-primary);
+  --rq-sunset-cream: var(--rq-text);
+  --rq-sunset-muted: var(--rq-muted);
+  --rq-sunset-faint: var(--rq-faint);
+  --rq-sunset-line: var(--rq-line);
+  --rq-sunset-line-strong: var(--rq-line-strong);
+  --rq-sunset-gradient: var(--rq-primary);
+  --rq-sunset-gradient-soft: var(--rq-primary-soft);
+}
+
+html[data-theme='gm'],
+html[data-theme='player'] {
+  --rq-app-bg: var(--rq-bg);
+  --rq-app-bg-deep: var(--rq-bg-deep);
+  --rq-app-panel: var(--rq-surface);
+  --rq-app-card: var(--rq-card);
+  --rq-app-input: var(--rq-bg-input);
+  --rq-app-line: var(--rq-line);
+  --rq-app-line-strong: var(--rq-line-strong);
+  --rq-app-text: var(--rq-text);
+  --rq-app-muted: var(--rq-muted);
+  --rq-app-faint: var(--rq-faint);
+  --rq-app-red: var(--rq-primary);
+  --rq-app-red-hover: var(--rq-primary-hover);
+  --rq-app-red-soft: var(--rq-primary-soft);
+}
+
+html,
+body,
+#root,
+#root > div {
+  min-height: 100%;
+  background: var(--rq-bg) !important;
+  background-image: none !important;
+  color: var(--rq-text) !important;
+}
+
+body {
+  margin: 0;
+  color-scheme: dark;
+}
+
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) *,
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) *::before,
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) *::after {
+  text-shadow: none !important;
+}
+
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) :where(
+  .card,
+  .panel,
+  .rqk-themed-card,
+  .rqk-themed-panel,
+  .clean-sheet-card,
+  .clean-sheet-panel,
+  [data-rqk-theme-surface='card'],
+  [data-rqk-theme-surface='panel']
+) {
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: var(--rq-line) !important;
+}
+
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) input,
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) select,
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) textarea {
+  background: var(--rq-bg-input) !important;
+  background-image: none !important;
+  color: var(--rq-text) !important;
+  border: 1px solid var(--rq-line) !important;
+  border-radius: var(--rq-inner-radius) !important;
+  box-shadow: none !important;
+}
+
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--rq-text) !important;
+  text-shadow: none !important;
+}
+
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) :where(p, small, .muted, .helper-text) {
+  color: var(--rq-muted);
+}
+
+#root :where(.rqk-app-shell, .character-page-v2, .clean-sheet-page) :where(
+  .btn-primary,
+  .library-page-button-primary,
+  .dashboard-primary-button,
+  [data-rqk-primary='true']
+) {
+  background: var(--rq-primary) !important;
+  background-image: none !important;
+  border-color: var(--rq-primary) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Signed-in shell: common                                                     */
+/* -------------------------------------------------------------------------- */
+
+#root .rqk-app-shell {
+  width: 100%;
+  min-height: 100dvh;
+  display: grid;
+  overflow-x: clip;
+  background: var(--rq-bg) !important;
+  background-image: none !important;
+  color: var(--rq-text);
+}
+
+#root .rqk-app-workspace {
+  min-width: 0;
+  min-height: 100dvh;
+  background: var(--rq-bg) !important;
+}
+
+#root .rqk-app-shell-content {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+  background: transparent !important;
+  background-image: none !important;
+  overflow-x: clip;
+}
+
+#root .rqk-app-shell-content::before {
+  content: none !important;
+  display: none !important;
+}
+
+#root .rqk-app-rail {
+  z-index: 80;
+  background: var(--rq-bg-deep) !important;
+  background-image: none !important;
+  border-color: var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail::after,
+#root .rqk-app-rail-brand::before,
+#root .rqk-app-rail-link::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root .rqk-app-rail-brand {
+  color: var(--rq-text) !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius) !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+#root .rqk-app-rail-brand-mark {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail-brand-mark img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+#root .rqk-app-rail-brand-copy strong {
+  color: var(--rq-text) !important;
+}
+
+#root .rqk-app-rail-brand-copy small,
+#root .rqk-app-rail-section-label {
+  color: var(--rq-text-muted) !important;
+}
+
+#root .rqk-app-rail-link {
+  position: relative;
+  min-width: 0;
+  color: var(--rq-muted) !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius) !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  transform: none !important;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease !important;
+}
+
+#root .rqk-app-rail-link svg,
+#root .rqk-app-rail-link span {
+  color: currentColor !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail-link:hover,
+#root .rqk-app-rail-link:focus-visible {
+  color: var(--rq-text) !important;
+  background: var(--rq-surface) !important;
+  border-color: var(--rq-line) !important;
+  outline: none !important;
+  transform: none !important;
+}
+
+#root .rqk-app-rail-link.is-active {
+  color: #fff !important;
+  background: var(--rq-primary-soft) !important;
+  border-color: rgba(209, 31, 42, 0.42) !important;
+}
+
+#root .rqk-app-rail-link.is-active::before {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  background: var(--rq-primary) !important;
+  box-shadow: none !important;
+  border-radius: 99px !important;
+}
+
+#root .rqk-app-rail-link.is-active svg {
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #fff !important;
+  box-sizing: border-box !important;
+}
+
+#root .rqk-app-topbar {
+  min-width: 0;
+  background: var(--rq-bg) !important;
+  background-image: none !important;
+  border-bottom: 1px solid var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-topbar-title span {
+  color: var(--rq-text-muted) !important;
+}
+
+#root .rqk-app-topbar-title strong {
+  color: var(--rq-text) !important;
+}
+
+#root .rqk-app-mobile-more-panel {
+  background: var(--rq-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line-strong) !important;
+  border-radius: var(--rq-radius) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-mobile-more-panel::before {
+  content: none !important;
+  display: none !important;
+}
+
+#root .rqk-app-mobile-more-item,
+#root .rqk-app-mobile-more-close {
+  background: var(--rq-card) !important;
+  background-image: none !important;
+  color: var(--rq-text) !important;
+  border: 1px solid var(--rq-line) !important;
+  border-radius: var(--rq-inner-radius) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-mobile-more-item.is-active,
+#root .rqk-app-mobile-more-item--rook {
+  background: var(--rq-primary-soft) !important;
+  border-color: rgba(209, 31, 42, 0.42) !important;
+}
+
+/* Common signed-in page wrappers. */
+#root .rqk-app-shell :where(
+  .unified-dashboard-page,
+  .library-page,
+  .campaign-dashboard,
+  .account-settings-page,
+  .uploads-dashboard-page,
+  .uploads-dashboard,
+  .character-builder-page,
+  .character-import-page,
+  [data-testid='homebrew-workshop']
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--rq-text) !important;
+}
+
+/* Homebrew was still carrying grey inline surfaces. Keep its structure but put
+   it into the same navy system. */
+#root [data-testid='homebrew-workshop'] > section > :where(header, section, aside),
+#root [data-testid='homebrew-workshop'] > section > section > :where(section, aside),
+#root [data-testid='homebrew-workshop'] article {
+  background-color: var(--rq-surface) !important;
+  background-image: none !important;
+  border-color: var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] article {
+  background-color: var(--rq-card) !important;
+}
+
+/* Shared library/dashboard cards already have strong semantic classes. */
+#root :where(
+  .unified-dashboard-header,
+  .unified-dashboard-board,
+  .dashboard-command-card,
+  .dashboard-info-card,
+  .dashboard-update-card,
+  .dashboard-activity-item,
+  .dashboard-readiness-card,
+  .library-page-hero,
+  .library-page-toolbar,
+  .library-page-empty,
+  .library-page-stat-card,
+  .library-card,
+  .character-library-card,
+  .campaign-library-card
+) {
+  background-image: none !important;
+  border-color: var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root :where(.dashboard-eyebrow, .library-page-eyebrow) {
+  color: var(--rq-primary-hover) !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Character sheet stays outside AppShell, but uses exactly the same palette. */
+html[data-theme='player'] .character-page-v2.clean-sheet-page {
+  --cs-bg: var(--rq-bg) !important;
+  --cs-panel: var(--rq-surface) !important;
+  --cs-card: var(--rq-card) !important;
+  --cs-input: var(--rq-bg-input) !important;
+  --cs-text: var(--rq-text) !important;
+  --cs-text-soft: var(--rq-muted) !important;
+  --cs-muted: var(--rq-text-muted) !important;
+  --cs-accent: var(--rq-primary) !important;
+  --cs-accent-soft: var(--rq-primary-soft) !important;
+  --cs-border: var(--rq-line) !important;
+  --cs-border-strong: var(--rq-line-strong) !important;
+  --sheet-bg: var(--rq-bg) !important;
+  --sheet-rail: var(--rq-bg-deep) !important;
+  --sheet-panel: var(--rq-surface) !important;
+  --sheet-card: var(--rq-card) !important;
+  --sheet-input: var(--rq-bg-input) !important;
+  --sheet-sunset: var(--rq-primary) !important;
+  background: var(--rq-bg) !important;
+  background-image: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* MOBILE — <= 719px: single task + bottom dock                              */
+/* -------------------------------------------------------------------------- */
+
+#root .rqk-app-shell[data-rq-device='mobile'] {
+  display: block !important;
+  min-height: 100dvh !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-workspace {
+  width: 100% !important;
+  min-height: 100dvh !important;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 60 !important;
+  min-height: 54px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 12px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar-title {
+  display: grid !important;
+  gap: 1px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar-title span {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar-title strong {
+  font-size: 16px !important;
+  line-height: 1.15 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-shell-content {
+  padding: 12px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail {
+  position: fixed !important;
+  inset: auto 0 0 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 58px !important;
+  align-items: stretch !important;
+  gap: 4px !important;
+  padding: 5px 8px calc(5px + env(safe-area-inset-bottom, 0px)) !important;
+  border: 0 !important;
+  border-top: 1px solid var(--rq-line) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-brand,
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-section-label,
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-support-link,
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link--mobile-secondary {
+  display: none !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-nav {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-bottom {
+  min-width: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 54px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  place-items: center !important;
+  gap: 2px !important;
+  padding: 4px 2px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-nav > .rqk-app-rail-link {
+  min-width: 0 !important;
+  min-height: 54px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 3px !important;
+  padding: 4px 2px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link span,
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger span {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link.is-active::before {
+  inset: auto 9px 2px !important;
+  width: auto !important;
+  height: 3px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-panel {
+  position: fixed !important;
+  z-index: 90 !important;
+  left: 8px !important;
+  right: 8px !important;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  max-height: min(62dvh, 420px) !important;
+  overflow: auto !important;
+  padding: 12px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-item {
+  min-height: 48px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] :where(button, [role='button'], select) {
+  min-height: var(--rq-control-mobile);
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] :where(input, select, textarea) {
+  min-height: var(--rq-control-mobile);
+  font-size: 16px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] :where(.unified-dashboard-page, .library-page) {
+  padding: 0 !important;
+  gap: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] :where(
+  .unified-dashboard-header,
+  .unified-dashboard-board,
+  .library-page-hero,
+  .library-page-toolbar,
+  .library-page-empty,
+  .library-page-stat-card,
+  .library-card,
+  .character-library-card,
+  .campaign-library-card
+) {
+  border-radius: 6px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-header,
+#root .rqk-app-shell[data-rq-device='mobile'] .library-page-hero {
+  grid-template-columns: 1fr !important;
+  padding: 14px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] :where(
+  .dashboard-command-grid,
+  .dashboard-live-grid,
+  .dashboard-readiness-grid,
+  .library-card-grid,
+  .characters-card-grid,
+  .campaigns-card-grid,
+  .library-page-stat-grid
+) {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] :where(h1, .page-title) {
+  font-size: clamp(1.65rem, 8vw, 2rem) !important;
+  line-height: 1.08 !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* TABLET — 720px to 1180px: compact icon rail + sticky section bar           */
+/* -------------------------------------------------------------------------- */
+
+#root .rqk-app-shell[data-rq-device='tablet'] {
+  grid-template-columns: 92px minmax(0, 1fr) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail {
+  position: sticky !important;
+  top: 0 !important;
+  width: 92px !important;
+  height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 10px 8px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--rq-line) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-brand {
+  min-height: 54px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 6px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-brand-mark {
+  width: 38px !important;
+  height: 38px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-brand-copy,
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-section-label,
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-mobile-more-trigger {
+  display: none !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-nav,
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-bottom {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-bottom {
+  margin-top: auto !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-link {
+  min-height: 58px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 4px !important;
+  padding: 5px 3px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-link span {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.05 !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-link.is-active::before {
+  inset: 9px auto 9px 1px !important;
+  width: 3px !important;
+  height: auto !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-topbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  min-height: 58px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 9px 18px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-topbar-title {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-topbar-title span {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-topbar-title strong {
+  font-size: 17px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-shell-content {
+  max-width: 1180px !important;
+  margin-inline: auto !important;
+  padding: 18px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] :where(button, [role='button'], select, input) {
+  min-height: var(--rq-control-tablet);
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .unified-dashboard-header {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] :where(
+  .dashboard-command-grid,
+  .library-card-grid,
+  .characters-card-grid,
+  .campaigns-card-grid
+) {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .library-page-stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* DESKTOP — >= 1181px: labelled rail + roomy workspace                       */
+/* -------------------------------------------------------------------------- */
+
+#root .rqk-app-shell[data-rq-device='desktop'] {
+  grid-template-columns: 220px minmax(0, 1fr) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail {
+  position: sticky !important;
+  top: 0 !important;
+  width: 220px !important;
+  height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 14px 12px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--rq-line) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-brand {
+  min-height: 60px !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-brand-mark {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-brand-copy,
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-section-label,
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-link span {
+  display: block !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-nav,
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-bottom {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-bottom {
+  margin-top: auto !important;
+  padding-top: 10px !important;
+  border-top: 1px solid var(--rq-line) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-link {
+  min-height: 44px !important;
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 6px 9px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-link span {
+  overflow: hidden !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-link.is-active::before {
+  inset: 8px auto 8px 2px !important;
+  width: 3px !important;
+  height: auto !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-mobile-more-trigger,
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-topbar {
+  display: none !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-shell-content {
+  width: 100% !important;
+  max-width: 1480px !important;
+  margin-inline: auto !important;
+  padding: 24px 28px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] :where(button, [role='button'], select, input) {
+  min-height: var(--rq-control-desktop);
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .dashboard-command-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] :where(
+  .library-card-grid,
+  .characters-card-grid,
+  .campaigns-card-grid
+) {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+}
+
+/* Avoid the old animated / gradient chrome regardless of device. */
+#root .rqk-app-shell :where(button, a, [role='button']) {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root .rqk-app-shell :where(button, a, [role='button']):focus-visible {
+  outline: 2px solid var(--rq-primary-hover) !important;
+  outline-offset: 2px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-app-shell *,
+  #root .rqk-app-shell *::before,
+  #root .rqk-app-shell *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
