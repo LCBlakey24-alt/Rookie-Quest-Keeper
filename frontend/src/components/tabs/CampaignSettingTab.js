@@ -58,6 +58,16 @@ function responseObject(result) {
   return data && typeof data === 'object' && !Array.isArray(data) ? data : null;
 }
 
+function settingResponseData(result) {
+  const data = responseObject(result);
+  return data && typeof data.content === 'string' ? data : null;
+}
+
+function worldResponseData(result) {
+  const data = responseObject(result);
+  return data && typeof data.world_setting === 'string' && Array.isArray(data.available_settings) ? data : null;
+}
+
 export default function CampaignSettingTab({ campaignId }) {
   const loadRequestRef = useRef(0);
   const [overview, setOverview] = useState(emptyOverview);
@@ -97,25 +107,24 @@ export default function CampaignSettingTab({ campaignId }) {
 
     if (requestId !== loadRequestRef.current) return { ok: false, stale: true };
 
-    const settingData = responseObject(settingResult);
-    const worldData = responseObject(worldResult);
+    const settingData = settingResponseData(settingResult);
+    const worldData = worldResponseData(worldResult);
     const settingOk = Boolean(settingData);
     const worldOk = Boolean(worldData);
 
     if (settingOk) {
-      const content = typeof settingData.content === 'string' ? settingData.content : '';
       setOverview(prev => {
         const worldNotes = worldOk && typeof worldData.world_setting_notes === 'string'
           ? worldData.world_setting_notes
           : prev.importParking;
-        return parseOverview(content, worldNotes);
+        return parseOverview(settingData.content, worldNotes);
       });
       setSettingLoaded(true);
     }
 
     if (worldOk) {
-      setWorldSetting(typeof worldData.world_setting === 'string' ? worldData.world_setting : 'custom');
-      setAvailableSettings(Array.isArray(worldData.available_settings) ? worldData.available_settings : []);
+      setWorldSetting(worldData.world_setting);
+      setAvailableSettings(worldData.available_settings);
       setWorldLoaded(true);
     }
 
@@ -124,7 +133,7 @@ export default function CampaignSettingTab({ campaignId }) {
     } else {
       const message = hadPriorData
         ? 'Some world notes could not refresh. Showing the last loaded data for anything that failed.'
-        : 'Some world notes could not be loaded. Retry before editing or saving.';
+        : 'Some world notes could not be loaded. Failed sections are locked; retry before saving.';
       setLoadWarning(message);
       if (notifyFailure) toast.error(message);
     }
