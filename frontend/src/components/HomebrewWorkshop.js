@@ -82,6 +82,21 @@ function normaliseDraft(type, value = {}) {
   if (type === 'feat' && !draft.category) draft.category = 'general';
   return draft;
 }
+function normaliseLibraryPayload(data) {
+  const homebrew = data?.homebrew;
+  if (!homebrew || typeof homebrew !== 'object' || Array.isArray(homebrew)) {
+    throw new Error('Invalid Homebrew library response');
+  }
+
+  const entries = Object.entries(homebrew);
+  const hasInvalidCollection = entries.some(([, value]) => !Array.isArray(value));
+  const hasInvalidRecord = entries.some(([, value]) => value.some(item => !item || typeof item !== 'object' || Array.isArray(item)));
+  if (hasInvalidCollection || hasInvalidRecord) {
+    throw new Error('Invalid Homebrew library response');
+  }
+
+  return Object.fromEntries(entries.map(([key, value]) => [key, value]));
+}
 function formatType(type) { return typeMeta(type).label; }
 function formatLibraryChip(value = '') { return String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase()); }
 
@@ -295,6 +310,9 @@ export default function HomebrewWorkshop() {
   const [draft, setDraft] = useState(emptyDraft('subclass'));
   const [missing, setMissing] = useState(findMissing('subclass', emptyDraft('subclass')));
   const [library, setLibrary] = useState({});
+  const [libraryLoading, setLibraryLoading] = useState(true);
+  const [libraryLoaded, setLibraryLoaded] = useState(false);
+  const [libraryError, setLibraryError] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [parsing, setParsing] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -306,16 +324,31 @@ export default function HomebrewWorkshop() {
   const localMissing = useMemo(() => findMissing(type, draft), [type, draft]);
   const shownMissing = missing.length ? missing : localMissing;
 
-  const fetchLibrary = async () => {
+  const fetchLibrary = async ({ notifyFailure = true } = {}) => {
+    setLibraryLoading(true);
     try {
       const { data } = await apiClient.get('/homebrew');
-      setLibrary(data?.homebrew || {});
-    } catch {
-      setLibrary({});
+      const nextLibrary = normaliseLibraryPayload(data);
+      setLibrary(nextLibrary);
+      setLibraryLoaded(true);
+      setLibraryError('');
+      return { ok: true };
+    } catch (error) {
+      const message = error?.formattedDetail || error?.response?.data?.detail || 'Could not refresh your Homebrew library.';
+      setLibraryError(message);
+      if (notifyFailure) toast.error(message);
+      return { ok: false, error };
+    } finally {
+      setLibraryLoading(false);
     }
   };
 
-  useEffect(() => { fetchLibrary(); }, []);
+  useEffect(() => { fetchLibrary({ notifyFailure: false }); }, []);
+
+  const handleLibraryRefresh = async () => {
+    const result = await fetchLibrary();
+    if (result.ok) toast.success('Homebrew library refreshed');
+  };
 
   const reset = (nextType = type) => {
     const empty = emptyDraft(nextType);
@@ -479,8 +512,15 @@ export default function HomebrewWorkshop() {
       </section>
 
       <section style={libraryStyle}>
-        <div style={libraryHeaderStyle}><h2 style={sectionTitleStyle}>My {currentMeta.label} Library <span style={countStyle}>({items.length})</span></h2><span style={helpStyle}>Saved homebrew is stored in your Homebrew Workshop library and can be loaded by builder integrations.</span></div>
-        {items.length === 0 ? <p style={emptyStyle}>No saved {currentMeta.label.toLowerCase()} yet.</p> : <div style={libraryGridStyle}>{items.map(item => <LibraryCard key={item.id} item={item} onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item)} />)}</div>}
+        <div style={libraryHeaderStyle}>
+          <h2 style={sectionTitleStyle}>My {currentMeta.label} Library <span style={countStyle}>({items.length})</span></h2>
+          <div style={libraryHeaderActionsStyle}>
+            <span style={helpStyle}>Saved homebrew is stored in your Homebrew Workshop library and can be loaded by builder integrations.</span>
+            <button type="button" onClick={handleLibraryRefresh} disabled={libraryLoading} style={smallButtonStyle} data-testid="hb-refresh-library">{libraryLoading ? <Loader2 size={13} className="rq-spin" /> : <RefreshCw size={13} />} {libraryLoading ? 'Refreshing…' : 'Refresh library'}</button>
+          </div>
+        </div>
+        {libraryError && <div role="status" style={libraryWarningStyle} data-testid="hb-library-warning"><AlertTriangle size={15} /><span>{libraryLoaded ? 'Library refresh failed. Showing your last loaded homebrew.' : 'Homebrew library could not be loaded. Retry before assuming it is empty.'}</span></div>}
+        {!libraryLoaded && libraryLoading ? <p style={emptyStyle}>Loading saved {currentMeta.label.toLowerCase()}…</p> : !libraryLoaded && libraryError ? null : items.length === 0 ? <p style={emptyStyle}>No saved {currentMeta.label.toLowerCase()} yet.</p> : <div style={libraryGridStyle}>{items.map(item => <LibraryCard key={item.id} item={item} onEdit={() => handleEdit(item)} onDelete={() => handleDelete(item)} />)}</div>}
       </section>
     </section>
   </main>;
@@ -528,6 +568,8 @@ const saveOptionsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fi
 const footerActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', marginTop: 14, paddingTop: 12, borderTop: `1px solid ${rq.line}` };
 const libraryStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 14 };
 const libraryHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 };
+const libraryHeaderActionsStyle = { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap', minWidth: 0 };
+const libraryWarningStyle = { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '9px 10px', color: '#ffd28a', background: 'rgba(217,146,34,0.1)', border: `1px solid ${rq.warn}`, fontSize: 12, fontWeight: 850 };
 const countStyle = { color: rq.muted, fontSize: 12 };
 const emptyStyle = { color: rq.muted, margin: 0 };
 const libraryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 };
