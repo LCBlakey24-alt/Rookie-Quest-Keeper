@@ -13,6 +13,7 @@ import {
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
 import '@/styles/campaignSetupModal.css';
+import './MyCampaignsPage.css';
 
 function recordId(record) {
   return record?.id || record?._id || record?.campaign_id || record?.campaignId || '';
@@ -25,7 +26,7 @@ function campaignTitle(campaign) {
 function campaignMeta(campaign) {
   const linkedCount = campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0;
   const system = campaign?.system || rulesSystemOptions[campaign?.rules_edition] || 'Campaign';
-  return `${system} · ${linkedCount} linked character${linkedCount === 1 ? '' : 's'}`;
+  return `${system} • ${linkedCount} character${linkedCount === 1 ? '' : 's'}`;
 }
 
 function campaignTypeLabel(campaign) {
@@ -33,11 +34,7 @@ function campaignTypeLabel(campaign) {
 }
 
 function campaignDescription(campaign) {
-  return campaign?.description || campaign?.world_name || campaign?.world_setting_notes || 'No table brief yet. Open the GM workspace to add the world, notes, players, and session tools.';
-}
-
-function campaignVisibility(campaign) {
-  return campaign?.visibility || campaign?.join_mode || campaign?.status || 'Private prep';
+  return campaign?.description || campaign?.world_name || campaign?.world_setting_notes || 'Campaign workspace ready for prep.';
 }
 
 function formatDate(value) {
@@ -66,10 +63,6 @@ export default function MyCampaignsPage() {
   const sortedCampaigns = useMemo(() => [...campaigns].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
   )), [campaigns]);
-
-  const linkedCharacterCount = useMemo(() => sortedCampaigns.reduce((total, campaign) => (
-    total + Number(campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0)
-  ), 0), [sortedCampaigns]);
 
   const loadCampaigns = async ({ notifyFailure = true } = {}) => {
     try {
@@ -186,11 +179,8 @@ export default function MyCampaignsPage() {
       <main className="library-page library-page-loading">
         <section className="loading-screen library-page-branded-loading" role="status" aria-live="polite" aria-busy="true">
           <div className="loading-card">
-            <div className="loading-brand-mark" aria-hidden="true">GM</div>
             <div className="loading-spinner" aria-hidden="true" />
-            <p className="loading-kicker">Campaign library</p>
-            <h1 className="loading-title">Opening My Campaigns…</h1>
-            <p className="loading-tip">Loading the tables you run, player links, and latest campaign prep.</p>
+            <h1 className="loading-title">Opening campaigns…</h1>
           </div>
         </section>
       </main>
@@ -198,69 +188,72 @@ export default function MyCampaignsPage() {
   }
 
   return (
-    <main className="library-page campaigns-library-page">
+    <main className="library-page campaigns-library-page campaigns-library-page--simple">
       <section className="library-page-hero campaigns-library-hero">
         <div>
-          <p className="library-page-eyebrow">GM workspace</p>
+          <p className="library-page-eyebrow">Campaigns</p>
           <h1>My Campaigns</h1>
-          <p>Open a campaign to run prep, world notes, NPCs, locations, combat, player links, and live-table tools from one clean workspace.</p>
+          <p>{sortedCampaigns.length} saved campaign{sortedCampaigns.length === 1 ? '' : 's'}</p>
         </div>
-        <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary campaign-create-hero-button">
-          <Plus size={16} />
-          Create Campaign
-        </button>
-      </section>
 
-      <section className="library-page-stat-grid" aria-label="Campaign library overview">
-        <LibraryStat label="Campaigns" value={sortedCampaigns.length} note="Saved tables" />
-        <LibraryStat label="Linked characters" value={linkedCharacterCount} note="Across campaigns" />
-        <LibraryStat label="Latest update" value={formatDate(sortedCampaigns[0]?.updated_at || sortedCampaigns[0]?.created_at)} note="Most recent table" />
-      </section>
-
-      <section className="library-page-toolbar" aria-label="GM campaign tools">
-        <div>
-          <p className="library-page-count">
-            {sortedCampaigns.length} campaign{sortedCampaigns.length === 1 ? '' : 's'} saved
-          </p>
-          <p className="library-page-toolbar-note">Keep prep tidy, then open the GM workspace when it is time to run.</p>
+        <div className="campaigns-library-actions" aria-label="Campaign actions">
+          <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary">
+            <Plus size={16} />
+            Create
+          </button>
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={refreshing}
+            className="library-page-button-secondary library-page-loading-button"
+            aria-busy={refreshing ? 'true' : 'false'}
+          >
+            <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
-        <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary library-page-loading-button" aria-busy={refreshing ? 'true' : 'false'}>
-          <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
-          {refreshing ? 'Refreshing campaigns…' : 'Refresh'}
-        </button>
       </section>
 
       {sortedCampaigns.length === 0 ? (
         <section className="library-page-empty campaign-library-empty">
           <h2>No campaigns yet</h2>
-          <p>Create a campaign, then use the GM workspace for My World, NPCs, combat, locations, notes, players, and live play.</p>
+          <p>Create your first campaign to start building the world.</p>
           <div className="library-page-actions">
-            <button type="button" onClick={() => setShowCreateCampaign(true)}>Create Campaign</button>
+            <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary">Create Campaign</button>
           </div>
         </section>
       ) : (
-        <section className="library-page-grid campaigns-card-grid" aria-label="Saved GM campaigns">
+        <section className="library-page-grid campaigns-card-grid" aria-label="Saved campaigns">
           {sortedCampaigns.map((campaign, index) => {
             const id = recordId(campaign);
             const deleting = deletingId === id;
 
             return (
-              <article key={id || `campaign-${index}`} className="library-page-card campaign-library-card">
+              <article key={id || `campaign-${index}`} className="library-page-card campaign-library-card campaign-library-card--simple">
                 <div className="campaign-card-main">
-                  <div className="campaign-card-meta-row">
-                    <p className="library-page-card-meta">{campaignTypeLabel(campaign)}</p>
-                    <span className="campaign-card-status">{campaignVisibility(campaign)}</span>
+                  <div className="campaign-card-title-row">
+                    <h2>{campaignTitle(campaign)}</h2>
+                    <span className="campaign-card-type">{campaignTypeLabel(campaign)}</span>
                   </div>
-                  <h2>{campaignTitle(campaign)}</h2>
-                  <p>{campaignMeta(campaign)}</p>
-                  <p className="library-page-card-note">{campaignDescription(campaign)}</p>
+                  <p className="campaign-card-primary-line">{campaignMeta(campaign)}</p>
+                  <p className="campaign-card-description">{campaignDescription(campaign)}</p>
+                  <p className="campaign-card-meta-line">Updated {formatDate(campaign?.updated_at || campaign?.created_at)}</p>
                 </div>
-                <div className="library-page-actions campaign-card-actions">
-                  <button type="button" onClick={() => id && navigate(`/campaign/${id}`)} disabled={!id}>
-                    Open GM Workspace <ChevronRight size={16} />
+
+                <div className="campaign-card-actions campaign-card-actions--simple">
+                  <button type="button" onClick={() => id && navigate(`/campaign/${id}`)} disabled={!id} className="campaign-card-open">
+                    Open Campaign <ChevronRight size={16} />
                   </button>
-                  <button type="button" onClick={() => deleteCampaign(campaign)} disabled={!id || deleting} className="library-page-danger-button library-page-loading-button" aria-busy={deleting ? 'true' : 'false'}>
-                    {deleting ? <RefreshCw size={15} className="library-page-spin-icon" /> : <Trash2 size={15} />} {deleting ? 'Deleting campaign…' : 'Delete'}
+                  <button
+                    type="button"
+                    onClick={() => deleteCampaign(campaign)}
+                    disabled={!id || deleting}
+                    className="library-page-danger-button library-page-loading-button campaign-card-delete"
+                    aria-label={`Delete ${campaignTitle(campaign)}`}
+                    aria-busy={deleting ? 'true' : 'false'}
+                    title="Delete campaign"
+                  >
+                    {deleting ? <RefreshCw size={15} className="library-page-spin-icon" /> : <Trash2 size={15} />}
                   </button>
                 </div>
               </article>
@@ -279,15 +272,5 @@ export default function MyCampaignsPage() {
         />
       )}
     </main>
-  );
-}
-
-function LibraryStat({ label, value, note }) {
-  return (
-    <article className="library-page-stat-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{note}</small>
-    </article>
   );
 }
