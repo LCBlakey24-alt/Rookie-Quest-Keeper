@@ -1,0 +1,465 @@
+/* Campaign Dashboard — one compact header, one navigation system, then content. */
+
+#root .campaign-dashboard-simple {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 100% !important;
+  display: block !important;
+  background: transparent !important;
+  color: var(--rq-text, #f8fbff) !important;
+  box-sizing: border-box !important;
+}
+
+#root .campaign-dashboard-simple *,
+#root .campaign-dashboard-simple *::before,
+#root .campaign-dashboard-simple *::after {
+  box-sizing: border-box !important;
+  text-shadow: none !important;
+}
+
+/* Header */
+#root .campaign-dashboard-header {
+  position: sticky !important;
+  z-index: 35 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  padding: 8px 10px !important;
+  background: var(--rq-surface, #102238) !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--rq-line, #213a54) !important;
+  box-shadow: none !important;
+}
+
+#root .campaign-dashboard-title-row {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 40px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+#root .campaign-icon-button {
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  background: var(--rq-button, #11263d) !important;
+  color: var(--rq-text, #f8fbff) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  box-shadow: none !important;
+}
+
+#root .campaign-dashboard-title-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+#root .campaign-dashboard-title-copy h1 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: var(--rq-text, #f8fbff) !important;
+  font-family: inherit !important;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .campaign-dashboard-title-copy h1::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root .campaign-dashboard-title-copy > span {
+  color: var(--rq-text-muted, #8295aa) !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+}
+
+#root .campaign-dashboard-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+}
+
+#root .campaign-button {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 0 11px !important;
+  background: var(--rq-button, #11263d) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f8fbff) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+#root .campaign-button-primary {
+  background: var(--rq-primary, #d11f2a) !important;
+  border-color: var(--rq-primary, #d11f2a) !important;
+  color: #fff !important;
+}
+
+#root .campaign-button:hover,
+#root .campaign-button:focus-visible,
+#root .campaign-icon-button:hover,
+#root .campaign-icon-button:focus-visible {
+  background: var(--rq-button-hover, #19334f) !important;
+  border-color: var(--rq-line-strong, #31516f) !important;
+}
+
+#root .campaign-button-primary:hover,
+#root .campaign-button-primary:focus-visible {
+  background: var(--rq-primary-hover, #ed3340) !important;
+  border-color: var(--rq-primary-hover, #ed3340) !important;
+}
+
+/* Two-row campaign navigation */
+#root .campaign-dashboard-nav {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  background: var(--rq-bg-deep, #06111f) !important;
+  background-image: none !important;
+  border-bottom: 1px solid var(--rq-line, #213a54) !important;
+  box-shadow: none !important;
+}
+
+#root .campaign-dashboard-group-row,
+#root .campaign-dashboard-tab-row {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  overflow-x: auto !important;
+  scrollbar-width: thin !important;
+  overscroll-behavior-inline: contain !important;
+}
+
+#root .campaign-dashboard-group-row {
+  padding: 5px 8px 0 !important;
+  gap: 3px !important;
+}
+
+#root .campaign-dashboard-tab-row {
+  padding: 5px 8px 7px !important;
+  gap: 5px !important;
+}
+
+#root .campaign-dashboard-group,
+#root .campaign-dashboard-tab {
+  flex: 0 0 auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-weight: 750 !important;
+  white-space: nowrap !important;
+}
+
+#root .campaign-dashboard-group {
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  color: var(--rq-text-muted, #8295aa) !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+}
+
+#root .campaign-dashboard-tab {
+  min-height: 38px !important;
+  padding: 0 10px !important;
+  background: var(--rq-surface, #102238) !important;
+  border-color: var(--rq-line, #213a54) !important;
+  font-size: 11px !important;
+}
+
+#root .campaign-dashboard-group:hover,
+#root .campaign-dashboard-group:focus-visible,
+#root .campaign-dashboard-tab:hover,
+#root .campaign-dashboard-tab:focus-visible {
+  color: var(--rq-text, #f8fbff) !important;
+  border-color: var(--rq-line-strong, #31516f) !important;
+  outline: none !important;
+}
+
+#root .campaign-dashboard-group.is-active {
+  color: #fff !important;
+  background: var(--rq-primary-soft, rgba(209, 31, 42, .16)) !important;
+  border-color: rgba(209, 31, 42, .34) !important;
+}
+
+#root .campaign-dashboard-tab.is-active {
+  color: #fff !important;
+  background: var(--rq-primary, #d11f2a) !important;
+  border-color: var(--rq-primary, #d11f2a) !important;
+}
+
+/* Workspace intentionally has no extra panel chrome. */
+#root .campaign-dashboard-workspace {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 14px !important;
+  background: transparent !important;
+}
+
+#root .campaign-dashboard-panel {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 420px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* GM Home is only a launcher now; campaign identity already lives in header. */
+#root .campaign-home-simple {
+  width: min(100%, 980px) !important;
+  display: grid !important;
+  gap: 14px !important;
+}
+
+#root .campaign-home-section {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 9px !important;
+}
+
+#root .campaign-home-section > h2 {
+  margin: 0 !important;
+  color: var(--rq-text, #f8fbff) !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+}
+
+#root .campaign-home-section > h2::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root .campaign-home-quick-grid {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .campaign-home-quick-card {
+  min-width: 0 !important;
+  min-height: 66px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+  padding: 10px 12px !important;
+  background: var(--rq-card, #142a43) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f8fbff) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+#root .campaign-home-quick-card svg {
+  flex: 0 0 auto !important;
+  color: var(--rq-primary-hover, #ed3340) !important;
+}
+
+#root .campaign-home-quick-card strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .campaign-home-quick-card:hover,
+#root .campaign-home-quick-card:focus-visible {
+  background: var(--rq-card-hover, #19324e) !important;
+  border-color: var(--rq-line-strong, #31516f) !important;
+}
+
+#root .campaign-home-join-code {
+  width: min(100%, 620px) !important;
+  background: var(--rq-surface, #102238) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  overflow: hidden !important;
+}
+
+#root .campaign-home-join-code > summary {
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 11px !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+
+#root .campaign-home-join-code > div {
+  padding: 10px !important;
+  border-top: 1px solid var(--rq-line, #213a54) !important;
+}
+
+/* Error and loading states */
+#root .campaign-dashboard-loading,
+#root .campaign-dashboard-error {
+  min-height: 320px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 9px !important;
+  padding: 20px !important;
+  background: transparent !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+}
+
+#root .campaign-dashboard-error-card {
+  width: min(100%, 460px) !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 9px !important;
+  padding: 18px !important;
+  background: var(--rq-surface, #102238) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  text-align: center !important;
+}
+
+#root .campaign-dashboard-error-card svg {
+  color: var(--rq-primary-hover, #ed3340) !important;
+}
+
+#root .campaign-dashboard-error-card h1,
+#root .campaign-dashboard-error-card p {
+  margin: 0 !important;
+}
+
+#root .campaign-dashboard-error-card h1 {
+  color: var(--rq-text, #f8fbff) !important;
+  font-size: 1.2rem !important;
+}
+
+#root .campaign-dashboard-error-card p {
+  color: var(--rq-muted, #b8c7d8) !important;
+  font-size: 12px !important;
+}
+
+#root .campaign-dashboard-error-actions {
+  display: flex !important;
+  gap: 7px !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+}
+
+/* Mobile — keep campaign controls visible without another drawer. */
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-header {
+  top: 54px !important;
+  min-height: 56px !important;
+  padding: 7px 8px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-title-row {
+  grid-template-columns: 40px minmax(0, 1fr) auto !important;
+  gap: 7px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .campaign-button:not(.campaign-button-primary) {
+  display: none !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .campaign-button-primary {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding-inline: 8px !important;
+  font-size: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-group-row,
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-tab-row {
+  padding-inline: 8px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-group {
+  min-height: 38px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-tab {
+  min-height: 44px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-workspace {
+  padding: 10px 0 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-home-quick-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-home-quick-card {
+  min-height: 62px !important;
+  padding: 9px !important;
+}
+
+/* Tablet — global tablet topbar sits above the campaign header. */
+#root .rqk-app-shell[data-rq-device='tablet'] .campaign-dashboard-header {
+  top: 58px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .campaign-dashboard-workspace {
+  padding: 14px 0 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .campaign-home-quick-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* Desktop — global app rail is already the only vertical navigation. */
+#root .rqk-app-shell[data-rq-device='desktop'] .campaign-dashboard-header {
+  top: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .campaign-dashboard-workspace {
+  padding: 18px 0 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .campaign-dashboard-simple * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
