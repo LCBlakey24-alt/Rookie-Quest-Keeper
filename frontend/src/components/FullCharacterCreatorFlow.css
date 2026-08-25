@@ -1,143 +1,362 @@
-/* Character Creator flow — desktop/tablet-independent structure only.
-   Tablet and phone geometry live in layouts/{tablet,mobile}/characterCreator.css. */
+/* Character Creator flow — final structural layer.
+   One horizontal journey on every device; no second vertical rail. */
 
-.full-creator-progress-card {
-  padding: 12px;
-  color: var(--rqk-creator-text);
+/* The bridge controls above the creator are compact context, not another hero. */
+#root .rqk-app-shell-content > .full-creator-progress-card {
+  width: min(1180px, 100%) !important;
+  margin: 12px auto 0 !important;
+  padding: 10px 12px !important;
+  display: grid !important;
+  gap: 8px !important;
+  background: var(--rq-surface, #102238) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  box-shadow: none !important;
 }
 
-.full-creator-progress-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
+#root .rqk-app-shell-content > .full-creator-progress-card > p {
+  display: none !important;
 }
 
-.full-creator-progress-heading span {
-  color: var(--rqk-creator-muted);
-  font-size: .68rem;
-  font-weight: 900;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-
-.full-creator-progress-heading strong {
-  color: var(--rqk-creator-text);
-  font-size: 1rem;
-  font-weight: 900;
-  line-height: 1.1;
-}
-
-.full-creator-progress-track {
-  width: 100%;
-  height: 8px;
-  overflow: hidden;
-  border: 1px solid var(--rqk-creator-line);
-  border-radius: 999px;
-  background: var(--rqk-creator-deep);
-}
-
-.full-creator-progress-track span {
-  display: block;
-  height: 100%;
-  min-width: 0;
-  border-radius: inherit;
-  background: var(--rqk-creator-red);
-  transition: width 180ms ease;
-}
-
-.full-creator-progress-card p {
-  margin: 8px 0 0;
-  color: var(--rqk-creator-muted);
-  font-size: .82rem;
-  line-height: 1.4;
-}
-
-.full-creator-workspace {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.full-creator-workspace .full-creator-steps {
-  width: 100% !important;
+#root .rqk-app-shell-content > .full-creator-progress-card .full-creator-progress-heading {
   margin: 0 !important;
-  padding: 8px !important;
-  position: sticky;
-  top: 12px;
+}
+
+#root .rqk-app-shell-content > .full-creator-progress-card .full-creator-progress-heading span {
+  color: var(--rq-text-muted, #8295aa) !important;
+}
+
+#root .rqk-app-shell-content > .full-creator-progress-card .full-creator-progress-heading strong {
+  color: var(--rq-text, #f8fbff) !important;
+}
+
+#root .rqk-app-shell-content > .full-creator-progress-card .full-creator-form-grid {
+  margin-top: 0 !important;
+}
+
+/* Remove the second page-sized background/padding layer inside AppShell. */
+#root .full-creator-page {
+  min-height: 0 !important;
+  padding: 12px 0 18px !important;
+  gap: 10px !important;
+  background: transparent !important;
+}
+
+/* Header and progress read visually as one compact block. */
+#root .full-creator-header {
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 10px !important;
+  padding: 13px 14px !important;
+  border-radius: var(--rq-radius, 8px) var(--rq-radius, 8px) 0 0 !important;
+  border-bottom: 0 !important;
+}
+
+#root .full-creator-header > button:last-child {
+  display: none !important;
+}
+
+#root .full-creator-header > div > span {
+  display: none !important;
+}
+
+#root .full-creator-header p {
+  margin: 0 0 3px !important;
+  font-size: 9px !important;
+  color: var(--rq-text-muted, #8295aa) !important;
+}
+
+#root .full-creator-header h1 {
+  font-size: clamp(1.55rem, 3.3vw, 2.15rem) !important;
+}
+
+#root .full-creator-page > .full-creator-progress-card {
+  margin-top: -10px !important;
+  padding: 0 14px 10px !important;
+  background: var(--rq-surface, #102238) !important;
+  border-top: 0 !important;
+  border-radius: 0 0 var(--rq-radius, 8px) var(--rq-radius, 8px) !important;
+}
+
+#root .full-creator-page > .full-creator-progress-card .full-creator-progress-heading {
+  min-height: 24px !important;
+  margin: 0 0 4px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+}
+
+#root .full-creator-page > .full-creator-progress-card .full-creator-progress-heading span,
+#root .full-creator-page > .full-creator-progress-card .full-creator-progress-heading strong {
+  font-size: 10px !important;
+}
+
+#root .full-creator-page > .full-creator-progress-card p {
+  display: none !important;
+}
+
+#root .full-creator-progress-track {
+  height: 4px !important;
+  border: 0 !important;
+  background: var(--rq-bg-deep, #06111f) !important;
+}
+
+/* One journey strip. This replaces the old desktop/tablet step rail. */
+#root .full-creator-workspace {
+  width: min(1180px, 100%) !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
   display: grid !important;
   grid-template-columns: 1fr !important;
-  gap: 7px !important;
-  overflow: visible !important;
-  border: 1px solid var(--rqk-creator-line);
-  border-radius: 10px;
-  background: var(--rqk-creator-panel);
+  gap: 9px !important;
 }
 
-.full-creator-workspace .full-creator-steps button {
+#root .full-creator-workspace .full-creator-steps {
+  position: static !important;
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 58px !important;
-  display: grid !important;
-  place-items: center !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  display: flex !important;
+  grid-template-columns: none !important;
   gap: 5px !important;
-  padding: 7px 5px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
   border: 1px solid var(--rqk-creator-line) !important;
-  border-radius: 8px !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  background: var(--rqk-creator-panel) !important;
+  scrollbar-width: thin !important;
+  overscroll-behavior-inline: contain !important;
+}
+
+#root .full-creator-workspace .full-creator-steps button {
+  position: relative !important;
+  flex: 1 0 82px !important;
+  width: auto !important;
+  min-width: 82px !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  place-items: initial !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 5px 8px !important;
+  background: transparent !important;
+  color: var(--rqk-creator-muted) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+#root .full-creator-workspace .full-creator-steps button:hover:not(:disabled),
+#root .full-creator-workspace .full-creator-steps button:focus-visible {
   background: var(--rqk-creator-card) !important;
   color: var(--rqk-creator-text) !important;
-  font-size: .66rem !important;
-  font-weight: 900 !important;
-  line-height: 1 !important;
-  text-align: center !important;
-  cursor: pointer;
+  border-color: var(--rqk-creator-line) !important;
 }
 
-.full-creator-workspace .full-creator-steps button:hover:not(:disabled) {
-  background: var(--rqk-creator-card-hover) !important;
-  border-color: var(--rqk-creator-line-strong) !important;
-}
-
-.full-creator-workspace .full-creator-steps button.active {
+#root .full-creator-workspace .full-creator-steps button.active {
   background: var(--rqk-creator-red) !important;
-  border-color: var(--rqk-creator-red) !important;
   color: #fff !important;
+  border-color: var(--rqk-creator-red) !important;
 }
 
-.full-creator-workspace .full-creator-steps button svg {
+#root .full-creator-workspace .full-creator-steps button svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex: 0 0 auto !important;
+}
+
+#root .full-creator-workspace .full-creator-steps button.is-complete:not(.active)::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 5px !important;
+  right: 5px !important;
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 999px !important;
+  background: var(--rqk-creator-success) !important;
+}
+
+/* Form first, preview second only where there is enough room. */
+#root .full-creator-workspace .full-creator-layout {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 260px !important;
+  gap: 10px !important;
+  align-items: start !important;
+}
+
+#root .full-creator-panel {
+  min-width: 0 !important;
+  padding: 14px !important;
+}
+
+#root .full-creator-preview {
+  min-width: 0 !important;
+  padding: 13px !important;
+  top: 10px !important;
+}
+
+#root .full-creator-swipe-hint {
+  display: none !important;
+}
+
+/* Footer is navigation, not another content card. */
+#root .full-creator-footer {
+  bottom: 8px !important;
+  padding: 8px !important;
+  background: var(--rq-bg-deep, #06111f) !important;
+  border: 1px solid var(--rqk-creator-line) !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  box-shadow: none !important;
+}
+
+#root .full-creator-footer button {
+  min-height: 40px !important;
+}
+
+/* Tablet: one content column; no side preview competing with choices. */
+#root .rqk-app-shell[data-rq-device='tablet'] .full-creator-page {
+  padding: 10px 0 16px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .full-creator-workspace .full-creator-layout {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .full-creator-preview {
+  display: none !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .full-creator-workspace .full-creator-steps button {
+  flex-basis: 88px !important;
+  min-width: 88px !important;
+  min-height: 44px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .full-creator-form-grid,
+#root .rqk-app-shell[data-rq-device='tablet'] .full-creator-score-editor,
+#root .rqk-app-shell[data-rq-device='tablet'] .full-creator-review-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* Mobile: one task at a time, compact controls, no duplicate live preview. */
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-page {
+  padding: 8px 0 14px !important;
+  gap: 8px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-header {
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 8px !important;
+  padding: 10px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-header > button:first-child {
+  width: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  font-size: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-header > button:first-child svg {
   width: 18px !important;
   height: 18px !important;
 }
 
-.full-creator-workspace .full-creator-steps button.is-complete:not(.active)::after {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--rqk-creator-success);
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-header h1 {
+  font-size: 1.45rem !important;
 }
 
-.full-creator-workspace .full-creator-layout {
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-page > .full-creator-progress-card {
+  padding: 0 10px 9px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps {
+  width: calc(100% + 20px) !important;
+  margin-inline: -10px !important;
+  padding-inline: 10px !important;
+  border-inline: 0 !important;
+  border-radius: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
+  flex: 0 0 72px !important;
+  min-width: 72px !important;
+  min-height: 44px !important;
+  padding-inline: 6px !important;
+  font-size: 9px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-workspace .full-creator-layout {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-preview {
+  display: none !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-panel {
+  padding: 11px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-form-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-score-editor,
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-review-grid,
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-equipment-modes,
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-equipment-list,
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-panel .full-creator-choice-block > div:has(.full-creator-spell-chip) {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-footer {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .full-creator-footer button {
   width: 100% !important;
-  margin: 0 !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
 }
 
-.full-creator-swipe-hint {
-  margin: 0 0 10px;
-  color: var(--rqk-creator-muted);
-  font-size: .74rem;
-  font-weight: 700;
-  text-align: center;
+/* Direct supervisor cards match the device gutter instead of creating a new page. */
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-shell-content > .full-creator-progress-card {
+  margin-top: 8px !important;
+  padding: 9px 10px !important;
 }
 
-.full-creator-footer button:disabled {
-  opacity: .48;
-  cursor: not-allowed;
+#root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-shell-content > .full-creator-progress-card .full-creator-form-grid {
+  grid-template-columns: 1fr !important;
 }
 
-.full-creator-form-grid select:disabled {
-  opacity: .72;
-  cursor: not-allowed;
+@media (max-width: 390px) {
+  #root .rqk-app-shell[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button span {
+    display: none !important;
+  }
+
+  #root .rqk-app-shell[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
+    flex-basis: 48px !important;
+    min-width: 48px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .full-creator-page *,
+  #root .full-creator-page *::before,
+  #root .full-creator-page *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
 }
