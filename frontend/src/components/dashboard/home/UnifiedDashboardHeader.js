@@ -5,20 +5,18 @@ export default function UnifiedDashboardHeader({
   onLogout,
 }) {
   return (
-    <header className="unified-dashboard-board unified-dashboard-header">
+    <header className="unified-dashboard-header unified-dashboard-header--simple">
       <div className="dashboard-brand-row">
-        <div>
-          <p className="dashboard-eyebrow">Rookie Quest Keeper</p>
-          <h1>Dashboard</h1>
-          <p className="dashboard-muted">
-            Welcome back, <strong>{username || 'User'}</strong>. Check site updates, account information, and app status here.
-          </p>
-        </div>
+        <p className="dashboard-eyebrow">Rookie Quest Keeper</p>
+        <h1>Dashboard</h1>
+        <p className="dashboard-muted">
+          Welcome back, <strong>{username || 'User'}</strong>. Pick up where you left off.
+        </p>
       </div>
 
       <div className="dashboard-header-buttons">
         <DashboardButton onClick={onRefresh} disabled={refreshing}>
-          {refreshing ? 'Refreshing...' : 'Refresh'}
+          {refreshing ? 'Refreshing…' : 'Refresh'}
         </DashboardButton>
         <DashboardButton onClick={onLogout}>Logout</DashboardButton>
       </div>
@@ -34,7 +32,7 @@ function DashboardButton({ children, onClick, disabled = false }) {
       disabled={disabled}
       className="unified-dashboard-button"
     >
-      <span>{children}</span>
+      {children}
     </button>
   );
 }
