@@ -1,381 +1,305 @@
-/* Rookie dashboard — one layout, one theme.
-   Structural base styles may still exist in unifiedDashboardBoard.css, but this
-   file is the single final dashboard presentation. No legacy sunset gradients,
-   configurable forced column counts, or oversized display typography. */
+/* Home Dashboard — intentionally small.
+   The app shell owns device navigation; this file only presents the home page. */
 
-@import '../layouts/tablet/home.css';
-@import '../layouts/mobile/home.css';
-
-#root .unified-dashboard-page {
-  width: 100% !important;
-  max-width: 1360px !important;
+#root .unified-dashboard-page--simple {
+  width: min(100%, 1120px) !important;
   min-width: 0 !important;
   min-height: 100% !important;
   margin: 0 auto !important;
-  padding: clamp(16px, 2vw, 26px) !important;
+  padding: 0 !important;
   display: grid !important;
   align-content: start !important;
-  gap: 18px !important;
-  overflow-x: clip !important;
+  gap: 16px !important;
+  background: transparent !important;
+  color: var(--rq-text, #f8fbff) !important;
   box-sizing: border-box !important;
-  background: var(--rq-bg, #0a1728) !important;
-  color: var(--rq-text, #f7f9fc) !important;
 }
 
-#root .unified-dashboard-page *,
-#root .unified-dashboard-page *::before,
-#root .unified-dashboard-page *::after {
+#root .unified-dashboard-page--simple *,
+#root .unified-dashboard-page--simple *::before,
+#root .unified-dashboard-page--simple *::after {
   box-sizing: border-box !important;
   text-shadow: none !important;
 }
 
-#root .dashboard-layout-section {
+/* -------------------------------------------------------------------------- */
+/* Welcome                                                                    */
+/* -------------------------------------------------------------------------- */
+
+#root .unified-dashboard-header--simple {
   width: 100% !important;
-  max-width: none !important;
   min-width: 0 !important;
-  margin: 0 !important;
-}
-
-#root .unified-dashboard-board,
-#root .unified-dashboard-header,
-#root .dashboard-info-card,
-#root .dashboard-update-card,
-#root .dashboard-command-card,
-#root .dashboard-activity-item,
-#root .dashboard-readiness-card,
-#root .dashboard-system-panel {
-  min-width: 0 !important;
-  background: var(--rq-surface, #102238) !important;
-  background-image: none !important;
-  color: var(--rq-text, #f7f9fc) !important;
-  border: 1px solid var(--rq-line, rgba(181,203,226,.16)) !important;
-  border-left: 1px solid var(--rq-line, rgba(181,203,226,.16)) !important;
-  border-radius: var(--rq-radius, 10px) !important;
-  box-shadow: none !important;
-}
-
-#root .unified-dashboard-header::before,
-#root .unified-dashboard-board::before,
-#root .dashboard-info-card::before,
-#root .dashboard-update-card::before,
-#root .dashboard-command-card::before,
-#root .dashboard-activity-panel::before,
-#root .dashboard-readiness-panel::before,
-#root .dashboard-system-panel::before {
-  content: none !important;
-  display: none !important;
-}
-
-/* Header */
-#root .unified-dashboard-header {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: center !important;
   gap: 18px !important;
-  padding: clamp(18px, 2.2vw, 24px) !important;
+  padding: 20px !important;
+  background: var(--rq-surface, #102238) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  box-shadow: none !important;
 }
 
-#root .dashboard-brand-row {
-  display: block !important;
-  min-width: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-}
-
-#root .dashboard-logo-tile {
-  display: none !important;
-}
-
-#root .dashboard-eyebrow {
-  margin: 0 0 6px !important;
-  color: var(--rq-primary-hover, #ef2b2b) !important;
-  font-family: inherit !important;
-  font-size: 11px !important;
-  font-weight: 850 !important;
-  letter-spacing: .1em !important;
-  text-transform: uppercase !important;
-}
-
-#root .unified-dashboard-header h1,
-#root .dashboard-section-heading h2,
-#root .dashboard-panel-heading-row h2,
-#root .dashboard-info-card h3,
-#root .dashboard-update-card h3 {
-  margin: 0 !important;
-  color: var(--rq-text, #f7f9fc) !important;
-  font-family: inherit !important;
-  font-weight: 800 !important;
-  letter-spacing: 0 !important;
-  line-height: 1.15 !important;
-  overflow-wrap: anywhere !important;
-}
-
-#root .unified-dashboard-header h1 {
-  font-size: clamp(2rem, 3vw, 2.7rem) !important;
-}
-
-#root .dashboard-section-heading h2,
-#root .dashboard-panel-heading-row h2 {
-  font-size: clamp(1.35rem, 2vw, 1.75rem) !important;
-}
-
-#root .dashboard-info-card h3,
-#root .dashboard-update-card h3 {
-  font-size: 1.05rem !important;
-}
-
-#root .unified-dashboard-header h1::after,
-#root .dashboard-section-heading h2::after,
-#root .dashboard-info-card h3::after,
-#root .dashboard-update-card h3::after {
+#root .unified-dashboard-header--simple::before,
+#root .unified-dashboard-header--simple::after {
   content: none !important;
   display: none !important;
 }
 
-#root .dashboard-muted,
-#root .dashboard-info-card p,
-#root .dashboard-update-card p {
+#root .dashboard-brand-row {
+  min-width: 0 !important;
+}
+
+#root .dashboard-eyebrow {
+  margin: 0 0 5px !important;
+  padding: 0 !important;
+  color: var(--rq-primary-hover, #ed3340) !important;
+  background: transparent !important;
+  border: 0 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .09em !important;
+  text-transform: uppercase !important;
+}
+
+#root .unified-dashboard-header--simple h1 {
   margin: 0 !important;
-  color: var(--rq-muted, rgba(229,237,247,.74)) !important;
-  font-size: 14px !important;
-  line-height: 1.5 !important;
+  color: var(--rq-text, #f8fbff) !important;
+  font-family: inherit !important;
+  font-size: clamp(1.9rem, 4vw, 2.6rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.05 !important;
+}
+
+#root .unified-dashboard-header--simple h1::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root .dashboard-muted {
+  margin: 7px 0 0 !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+#root .dashboard-muted strong {
+  color: var(--rq-text, #f8fbff) !important;
 }
 
 #root .dashboard-header-buttons {
   display: flex !important;
-  flex-wrap: wrap !important;
+  align-items: center !important;
   justify-content: flex-end !important;
-  gap: 8px !important;
+  gap: 7px !important;
+  flex-wrap: wrap !important;
 }
 
-#root .unified-dashboard-button,
-#root .dashboard-link-button,
-#root .dashboard-small-button,
-#root .dashboard-primary-button,
-#root .dashboard-danger-small,
-#root .dashboard-danger-button {
+#root .unified-dashboard-button {
   min-height: 40px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 7px !important;
-  padding: 0 13px !important;
-  border-radius: 8px !important;
-  background: var(--rq-button, #0e1d30) !important;
+  padding: 0 12px !important;
+  background: var(--rq-button, #11263d) !important;
   background-image: none !important;
-  border: 1px solid var(--rq-line, rgba(181,203,226,.16)) !important;
-  color: var(--rq-text, #f7f9fc) !important;
-  font-family: inherit !important;
-  font-size: 13px !important;
-  font-weight: 750 !important;
-  white-space: nowrap !important;
+  color: var(--rq-text, #f8fbff) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
   box-shadow: none !important;
+  font: inherit !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
 }
 
-#root .unified-dashboard-button:hover,
-#root .dashboard-link-button:hover,
-#root .dashboard-small-button:hover,
-#root .unified-dashboard-button:focus-visible,
-#root .dashboard-link-button:focus-visible,
-#root .dashboard-small-button:focus-visible {
-  background: var(--rq-button-hover, #172d47) !important;
-  border-color: var(--rq-line-strong, rgba(181,203,226,.28)) !important;
-  outline: none !important;
-  filter: none !important;
+#root .unified-dashboard-button:hover:not(:disabled),
+#root .unified-dashboard-button:focus-visible {
+  background: var(--rq-button-hover, #19334f) !important;
+  border-color: var(--rq-line-strong, #31516f) !important;
 }
 
-/* The old four-cell status strip duplicated information and looked like an
-   extra navigation bar. Backend status remains in the system card below. */
-#root .unified-dashboard-status,
-#root .dashboard-layout-section--status-bar {
+#root .unified-dashboard-button:disabled {
+  opacity: .55 !important;
+  cursor: progress !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Two simple sections                                                        */
+/* -------------------------------------------------------------------------- */
+
+#root .dashboard-simple-section {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 10px !important;
+}
+
+#root .dashboard-simple-heading {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-width: 0 !important;
+  padding: 0 2px !important;
+}
+
+#root .dashboard-simple-heading h2 {
+  margin: 0 !important;
+  color: var(--rq-text, #f8fbff) !important;
+  font-family: inherit !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}
+
+#root .dashboard-simple-heading h2::after {
+  content: none !important;
   display: none !important;
 }
 
-/* Primary actions */
-#root .dashboard-command-panel,
-#root .dashboard-updates-panel,
-#root .dashboard-activity-panel,
-#root .dashboard-readiness-panel {
-  display: grid !important;
-  gap: 14px !important;
-  padding: clamp(16px, 2vw, 20px) !important;
-}
+/* -------------------------------------------------------------------------- */
+/* Main destinations                                                          */
+/* -------------------------------------------------------------------------- */
 
-#root .dashboard-section-heading {
-  display: grid !important;
-  gap: 5px !important;
+#root .dashboard-command-grid--simple {
+  width: 100% !important;
   min-width: 0 !important;
-}
-
-#root .dashboard-command-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 10px !important;
+}
+
+#root .dashboard-command-card--simple {
   min-width: 0 !important;
-}
-
-#root .dashboard-command-card {
-  position: relative !important;
+  min-height: 112px !important;
   display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) !important;
-  grid-template-areas:
-    "icon label"
-    "icon title"
-    "icon copy"
-    "icon stat" !important;
-  align-content: start !important;
-  gap: 4px 11px !important;
-  min-height: 150px !important;
+  grid-template-columns: 38px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
   padding: 15px !important;
-  text-align: left !important;
+  background: var(--rq-card, #142a43) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f8fbff) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  box-shadow: none !important;
   text-decoration: none !important;
-  cursor: pointer !important;
-  overflow: hidden !important;
-  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease !important;
+  transform: none !important;
+  transition: background-color 120ms ease, border-color 120ms ease !important;
 }
 
-#root .dashboard-command-card:hover,
-#root .dashboard-command-card:focus-visible {
-  background: var(--rq-card-hover, #1a314b) !important;
-  border-color: var(--rq-line-strong, rgba(181,203,226,.28)) !important;
-  transform: translateY(-1px) !important;
-  outline: none !important;
+#root .dashboard-command-card--simple:hover,
+#root .dashboard-command-card--simple:focus-visible {
+  background: var(--rq-card-hover, #19324e) !important;
+  border-color: var(--rq-line-strong, #31516f) !important;
+  transform: none !important;
 }
 
-#root .dashboard-command-label {
-  grid-area: label !important;
-  color: var(--rq-text-muted, rgba(202,216,233,.58)) !important;
-  font-size: 10px !important;
-  font-weight: 850 !important;
-  letter-spacing: .08em !important;
-  text-transform: uppercase !important;
+#root .dashboard-command-card--simple.is-primary {
+  border-color: rgba(209, 31, 42, .55) !important;
+}
+
+#root .dashboard-command-card--simple.is-primary .dashboard-command-icon {
+  background: var(--rq-primary, #d11f2a) !important;
+  border-color: var(--rq-primary, #d11f2a) !important;
 }
 
 #root .dashboard-command-icon {
-  grid-area: icon !important;
   width: 38px !important;
   height: 38px !important;
   display: grid !important;
   place-items: center !important;
-  align-self: start !important;
-  border-radius: 8px !important;
-  background: var(--rq-primary-soft, rgba(208,0,0,.18)) !important;
+  align-self: center !important;
+  background: var(--rq-primary-soft, rgba(209, 31, 42, .16)) !important;
   color: #fff !important;
-  border: 1px solid rgba(208,0,0,.28) !important;
+  border: 1px solid rgba(209, 31, 42, .34) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
   box-shadow: none !important;
 }
 
-#root .dashboard-command-card > strong {
-  grid-area: title !important;
+#root .dashboard-command-copy {
   min-width: 0 !important;
-  color: var(--rq-text, #f7f9fc) !important;
-  font-size: 15px !important;
+  display: grid !important;
+  gap: 3px !important;
+}
+
+#root .dashboard-command-copy strong {
+  color: var(--rq-text, #f8fbff) !important;
+  font-size: 14px !important;
   font-weight: 800 !important;
+  line-height: 1.2 !important;
 }
 
-#root .dashboard-command-card > span:not(.dashboard-command-label):not(.dashboard-command-icon) {
-  grid-area: copy !important;
-  min-width: 0 !important;
-  color: var(--rq-muted, rgba(229,237,247,.74)) !important;
-  font-size: 12px !important;
-  line-height: 1.4 !important;
+#root .dashboard-command-copy > span {
+  color: var(--rq-muted, #b8c7d8) !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
 }
 
-#root .dashboard-command-card > em {
-  grid-area: stat !important;
-  justify-self: start !important;
-  margin-top: 5px !important;
-  color: var(--rq-text-muted, rgba(202,216,233,.58)) !important;
+#root .dashboard-command-card--simple > em {
+  justify-self: end !important;
+  color: var(--rq-text-muted, #8295aa) !important;
   font-size: 10px !important;
   font-style: normal !important;
   font-weight: 800 !important;
+  letter-spacing: .04em !important;
   text-transform: uppercase !important;
-  letter-spacing: .05em !important;
-  border: 0 !important;
-  background: transparent !important;
-  padding: 0 !important;
+  white-space: nowrap !important;
 }
 
-/* Recent activity and readiness. Auto-fit means the layout responds to actual
-   workspace width, not the full browser width or a saved admin column count. */
-#root .dashboard-live-grid {
-  width: 100% !important;
+/* -------------------------------------------------------------------------- */
+/* Recent activity                                                            */
+/* -------------------------------------------------------------------------- */
+
+#root .dashboard-activity-list {
   min-width: 0 !important;
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 390px), 1fr)) !important;
-  gap: 12px !important;
-  align-items: start !important;
-}
-
-#root .dashboard-panel-heading-row {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  min-width: 0 !important;
-}
-
-#root .dashboard-panel-heading-row > svg {
-  flex: 0 0 auto !important;
-  width: 34px !important;
-  height: 34px !important;
-  padding: 7px !important;
-  border-radius: 8px !important;
-  background: var(--rq-card, #14283e) !important;
-  color: var(--rq-muted, rgba(229,237,247,.74)) !important;
-  border: 1px solid var(--rq-line, rgba(181,203,226,.16)) !important;
-}
-
-#root .dashboard-activity-list,
-#root .dashboard-readiness-grid {
-  display: grid !important;
-  gap: 8px !important;
-  min-width: 0 !important;
-}
-
-#root .dashboard-readiness-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)) !important;
+  gap: 7px !important;
 }
 
 #root .dashboard-activity-item {
+  min-width: 0 !important;
+  min-height: 58px !important;
   display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-columns: 32px minmax(0, 1fr) auto !important;
   align-items: center !important;
   gap: 10px !important;
-  min-height: 58px !important;
-  padding: 10px 11px !important;
-  background: var(--rq-card, #14283e) !important;
+  padding: 10px 12px !important;
+  background: var(--rq-surface, #102238) !important;
+  background-image: none !important;
+  color: var(--rq-text, #f8fbff) !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  box-shadow: none !important;
   text-decoration: none !important;
 }
 
 #root .dashboard-activity-item:hover,
 #root .dashboard-activity-item:focus-visible {
-  background: var(--rq-card-hover, #1a314b) !important;
-  outline: none !important;
+  background: var(--rq-card, #142a43) !important;
+  border-color: var(--rq-line-strong, #31516f) !important;
 }
 
-#root .dashboard-activity-icon,
-#root .dashboard-readiness-icon {
+#root .dashboard-activity-icon {
   width: 32px !important;
   height: 32px !important;
   display: grid !important;
   place-items: center !important;
-  border-radius: 7px !important;
-  background: var(--rq-primary-soft, rgba(208,0,0,.18)) !important;
+  background: var(--rq-primary-soft, rgba(209, 31, 42, .16)) !important;
   color: #fff !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
 }
 
 #root .dashboard-activity-copy {
+  min-width: 0 !important;
   display: grid !important;
   gap: 2px !important;
-  min-width: 0 !important;
 }
 
 #root .dashboard-activity-copy strong {
   overflow: hidden !important;
-  color: var(--rq-text, #f7f9fc) !important;
-  font-size: 13px !important;
+  color: var(--rq-text, #f8fbff) !important;
+  font-size: 12px !important;
   font-weight: 800 !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
@@ -383,8 +307,14 @@
 
 #root .dashboard-activity-copy span,
 #root .dashboard-activity-item time {
-  color: var(--rq-text-muted, rgba(202,216,233,.58)) !important;
-  font-size: 11px !important;
+  color: var(--rq-text-muted, #8295aa) !important;
+  font-size: 10px !important;
+}
+
+#root .dashboard-activity-copy span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 #root .dashboard-activity-item time {
@@ -392,132 +322,113 @@
 }
 
 #root .dashboard-empty-compact {
-  min-height: 130px !important;
+  min-height: 92px !important;
   display: grid !important;
   place-items: center !important;
   align-content: center !important;
-  gap: 8px !important;
-  padding: 18px !important;
+  gap: 7px !important;
+  padding: 16px !important;
+  background: var(--rq-surface, #102238) !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+  border: 1px dashed var(--rq-line-strong, #31516f) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
   text-align: center !important;
-  border: 1px dashed var(--rq-line-strong, rgba(181,203,226,.28)) !important;
-  border-radius: 8px !important;
-  background: var(--rq-card, #14283e) !important;
 }
 
-#root .dashboard-readiness-card {
-  display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) !important;
-  gap: 9px !important;
-  min-height: 100px !important;
-  padding: 11px !important;
-  background: var(--rq-card, #14283e) !important;
-}
-
-#root .dashboard-readiness-card > div {
-  display: grid !important;
-  gap: 3px !important;
-  min-width: 0 !important;
-}
-
-#root .dashboard-readiness-card span:not(.dashboard-readiness-icon) {
-  color: var(--rq-text-muted, rgba(202,216,233,.58)) !important;
-  font-size: 10px !important;
-  font-weight: 800 !important;
-  letter-spacing: .06em !important;
-  text-transform: uppercase !important;
-}
-
-#root .dashboard-readiness-card strong {
-  color: var(--rq-text, #f7f9fc) !important;
-  font-family: inherit !important;
-  font-size: 1.15rem !important;
-  font-weight: 800 !important;
-}
-
-#root .dashboard-readiness-card p {
+#root .dashboard-empty-compact p {
   margin: 0 !important;
-  color: var(--rq-muted, rgba(229,237,247,.74)) !important;
-  font-size: 11px !important;
-  line-height: 1.4 !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+  font-size: 12px !important;
 }
 
-#root .dashboard-readiness-card--warn {
-  border-color: rgba(245, 158, 11, .42) !important;
-}
+/* -------------------------------------------------------------------------- */
+/* Loading                                                                    */
+/* -------------------------------------------------------------------------- */
 
-/* Updates and information */
-#root .dashboard-updates-grid,
-#root .dashboard-info-grid {
+#root .dashboard-loading {
+  min-height: 220px !important;
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important;
-  gap: 10px !important;
-  min-width: 0 !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 9px !important;
+  color: var(--rq-muted, #b8c7d8) !important;
 }
 
-#root .dashboard-update-card,
-#root .dashboard-info-card {
-  display: grid !important;
-  align-content: start !important;
-  gap: 8px !important;
-  min-height: 0 !important;
-  padding: 13px !important;
-  background: var(--rq-card, #14283e) !important;
+#root .dashboard-loading p {
+  margin: 0 !important;
 }
 
-#root .dashboard-update-label {
-  justify-self: start !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  min-height: 24px !important;
-  padding: 0 8px !important;
-  border: 1px solid rgba(208,0,0,.26) !important;
-  border-radius: 999px !important;
-  background: var(--rq-primary-soft, rgba(208,0,0,.18)) !important;
-  color: #fff !important;
-  font-size: 9px !important;
-  font-weight: 850 !important;
-  letter-spacing: .07em !important;
-  text-transform: uppercase !important;
+/* -------------------------------------------------------------------------- */
+/* Explicit device geometry                                                   */
+/* -------------------------------------------------------------------------- */
+
+#root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-page--simple {
+  gap: 14px !important;
 }
 
-#root .dashboard-system-panel {
-  min-height: 64px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
+#root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-header--simple {
+  grid-template-columns: 1fr !important;
   gap: 12px !important;
-  flex-wrap: wrap !important;
-  padding: 12px 14px !important;
+  padding: 14px !important;
 }
 
-#root .dashboard-system-panel > div {
-  min-width: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-header-buttons {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  width: 100% !important;
 }
 
-/* Ignore legacy Admin Layout Studio geometry. It may still control visibility
-   and order through React, but it cannot force unsafe card widths/columns. */
-#root .unified-dashboard-page .dashboard-command-grid,
-#root .unified-dashboard-page .dashboard-updates-grid,
-#root .unified-dashboard-page .dashboard-info-grid,
-#root .unified-dashboard-page .dashboard-readiness-grid {
-  gap: 10px !important;
+#root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-button {
+  width: 100% !important;
+  min-height: 46px !important;
 }
 
-#root .unified-dashboard-page.dashboard-layout-showcase .unified-dashboard-header h1,
-#root .unified-dashboard-page.dashboard-layout-showcase .dashboard-section-heading h2 {
-  font-size: inherit !important;
+#root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-page--simple .dashboard-command-grid--simple {
+  grid-template-columns: 1fr !important;
 }
 
-#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-command-card,
-#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-command-card,
-#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-update-card,
-#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-update-card,
-#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-info-card,
-#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-info-card,
-#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-readiness-card,
-#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-readiness-card {
-  min-height: 0 !important;
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple {
+  min-height: 88px !important;
+  grid-template-columns: 38px minmax(0, 1fr) !important;
+  grid-template-areas:
+    'icon copy'
+    'icon stat' !important;
+  align-items: center !important;
+  padding: 12px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple .dashboard-command-icon {
+  grid-area: icon !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple .dashboard-command-copy {
+  grid-area: copy !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple > em {
+  grid-area: stat !important;
+  justify-self: start !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-activity-item {
+  grid-template-columns: 32px minmax(0, 1fr) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-activity-item time {
+  grid-column: 2 !important;
+  justify-self: start !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .unified-dashboard-page--simple .dashboard-command-grid--simple {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .unified-dashboard-page--simple .dashboard-command-grid--simple {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .unified-dashboard-page--simple * {
+    transition: none !important;
+  }
 }
