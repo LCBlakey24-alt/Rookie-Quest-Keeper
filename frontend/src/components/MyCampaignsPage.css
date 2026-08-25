@@ -1,0 +1,219 @@
+/* My Campaigns — compact library presentation across all three device lanes. */
+
+#root .campaigns-library-page--simple {
+  width: min(100%, 1180px) !important;
+  margin-inline: auto !important;
+}
+
+#root .campaigns-library-page--simple .campaigns-library-hero {
+  align-items: center !important;
+  min-height: 0 !important;
+  padding: 18px 20px !important;
+}
+
+#root .campaigns-library-page--simple .campaigns-library-hero h1 {
+  font-size: clamp(1.9rem, 3.2vw, 2.6rem) !important;
+}
+
+#root .campaigns-library-page--simple .campaigns-library-hero h1 + p {
+  margin-top: 5px !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+  font-size: 12px !important;
+}
+
+#root .campaigns-library-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  flex-wrap: wrap !important;
+}
+
+#root .campaigns-library-page--simple .campaigns-card-grid {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)) !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+#root .campaigns-library-page--simple .campaign-library-card--simple {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  padding: 14px !important;
+  background: var(--rq-card, #142a43) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line, #213a54) !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  box-shadow: none !important;
+}
+
+#root .campaigns-library-page--simple .campaign-library-card--simple:hover,
+#root .campaigns-library-page--simple .campaign-library-card--simple:focus-within {
+  background: var(--rq-card-hover, #19324e) !important;
+  border-color: var(--rq-line-strong, #31516f) !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-main {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 6px !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-title-row {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 10px !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-title-row h2 {
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: var(--rq-text, #f8fbff) !important;
+  font-family: inherit !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  overflow-wrap: anywhere !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-title-row h2::after {
+  content: none !important;
+  display: none !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-type {
+  min-height: 27px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 8px !important;
+  background: var(--rq-primary-soft, rgba(209, 31, 42, .16)) !important;
+  color: #fff !important;
+  border: 1px solid rgba(209, 31, 42, .34) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  font-size: 9.5px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-primary-line,
+#root .campaigns-library-page--simple .campaign-card-description,
+#root .campaigns-library-page--simple .campaign-card-meta-line {
+  margin: 0 !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-primary-line {
+  color: var(--rq-text, #f8fbff) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-description {
+  display: -webkit-box !important;
+  overflow: hidden !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  color: var(--rq-muted, #b8c7d8) !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-meta-line {
+  margin-top: 2px !important;
+  color: var(--rq-text-muted, #8295aa) !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-actions--simple {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin-top: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 40px !important;
+  gap: 6px !important;
+  align-items: stretch !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-open {
+  min-width: 0 !important;
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 0 11px !important;
+  background: var(--rq-primary, #d11f2a) !important;
+  color: #fff !important;
+  border: 1px solid var(--rq-primary, #d11f2a) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-open:hover:not(:disabled),
+#root .campaigns-library-page--simple .campaign-card-open:focus-visible {
+  background: var(--rq-primary-hover, #ed3340) !important;
+  border-color: var(--rq-primary-hover, #ed3340) !important;
+}
+
+#root .campaigns-library-page--simple .campaign-card-delete {
+  width: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  display: inline-grid !important;
+  place-items: center !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaigns-library-hero {
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  padding: 14px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  width: 100% !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-actions > * {
+  width: 100% !important;
+  min-height: 46px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaigns-card-grid {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-card-actions--simple {
+  grid-template-columns: minmax(0, 1fr) 46px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-card-open,
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-card-delete {
+  min-height: 46px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-card-delete {
+  width: 46px !important;
+  min-width: 46px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='tablet'] .campaigns-library-page--simple .campaigns-card-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+#root .rqk-app-shell[data-rq-device='desktop'] .campaigns-library-page--simple .campaigns-card-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
