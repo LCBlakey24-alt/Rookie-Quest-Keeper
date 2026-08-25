@@ -35,6 +35,29 @@ describe('Character Creator presentation ownership', () => {
     expect(read(relativePath)).toContain(`[data-rq-device='${device}']`);
   });
 
+  test('final flow uses one horizontal step journey instead of a second vertical rail', () => {
+    const flow = read('../components/FullCharacterCreatorFlow.css');
+
+    expect(flow).toContain('grid-template-columns: 1fr !important;');
+    expect(flow).toContain('display: flex !important;');
+    expect(flow).toContain('overflow-x: auto !important;');
+    expect(flow).not.toContain('grid-template-columns: 104px minmax(0, 1fr)');
+  });
+
+  test('tablet and mobile remove the competing live preview card', () => {
+    const flow = read('../components/FullCharacterCreatorFlow.css');
+
+    expect(flow).toContain("[data-rq-device='tablet'] .full-creator-preview");
+    expect(flow).toContain("[data-rq-device='mobile'] .full-creator-preview");
+    expect(flow.match(/\.full-creator-preview \{\n  display: none !important;/g)?.length || 0).toBeGreaterThanOrEqual(2);
+  });
+
+  test('creator header drops duplicate Dashboard navigation in the final flow', () => {
+    const flow = read('../components/FullCharacterCreatorFlow.css');
+    expect(flow).toContain('.full-creator-header > button:last-child');
+    expect(flow).toContain('display: none !important;');
+  });
+
   test('retired mixed creator presentation files are deleted and not globally imported', () => {
     const stack = read('featurePresentationStack.css');
     expect(exists('mobileAppBoxGrid.css')).toBe(false);
