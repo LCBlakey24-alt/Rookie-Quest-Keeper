@@ -10,7 +10,7 @@ from models import (
     InGameNote, InGameNoteCreate, SessionRecap, PlayerNote,
     PlayerNoteCreate, PlayerNoteUpdate, TimelineEvent, TimelineEventCreate, GMNoteSync
 )
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import uuid
 from datetime import datetime, timezone
 from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
@@ -235,15 +235,23 @@ async def delete_player_note(note_id: str, username: str = Depends(get_current_u
 
 # ==================== CAMPAIGN TIMELINE ====================
 
+def _public_timeline_event(event: Dict[str, Any]) -> Dict[str, Any]:
+    """Return a stable timeline shape for the GM/player UIs across legacy records."""
+    public_event = dict(event or {})
+    public_event.pop('_id', None)
+    public_event['type'] = public_event.get('type') or public_event.get('event_type') or 'session'
+    public_event['in_game_date'] = public_event.get('in_game_date') or ''
+    return public_event
+
+
 @router.get("/campaigns/{campaign_id}/timeline")
 async def get_campaign_timeline(campaign_id: str, username: str = Depends(get_current_user)):
-    """Get timeline events for a campaign (accessible to GMs and linked players)"""
-    # Check if user is GM or has character in campaign
-    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'owner_id': 1})
+    """Get timeline events for a campaign (accessible to GMs and linked players)."""
+    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'dm_user_id': 1})
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     
-    is_gm = campaign.get('owner_id') == username
+    is_gm = campaign.get('dm_user_id') == username
     has_character = await db.player_characters.find_one({'campaign_id': campaign_id, 'user_id': username})
     
     if not is_gm and not has_character:
@@ -254,28 +262,55 @@ async def get_campaign_timeline(campaign_id: str, username: str = Depends(get_cu
         {'_id': 0}
     ).sort('timestamp', -1).to_list(200)
     
-    return events
+    return {'events': [_public_timeline_event(event) for event in events]}
 
 
 @router.post("/campaigns/{campaign_id}/timeline", status_code=status.HTTP_201_CREATED)
-async def create_timeline_event(campaign_id: str, event_data: TimelineEventCreate, username: str = Depends(get_current_user)):
-    """GM creates a timeline event"""
+async def create_timeline_event(campaign_id: str, event_data: Dict[str, Any], username: str = Depends(get_current_user)):
+    """GM creates a timeline event using the stable public timeline contract."""
     await verify_campaign_ownership(campaign_id, username)
-    
+
+    title = str(event_data.get('title') or '').strip()
+    if not title:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Timeline event title is required")
+
+    event_type = str(event_data.get('type') or event_data.get('event_type') or 'session').strip() or 'session'
+    try:
+        session_number = int(event_data.get('session_number') or 0)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Session number must be a number")
+
+    related_character_ids = event_data.get('related_character_ids')
+    if not isinstance(related_character_ids, list):
+        related_character_ids = []
+
     event = TimelineEvent(
         campaign_id=campaign_id,
-        event_type=event_data.event_type,
-        title=event_data.title,
-        description=event_data.description,
-        session_number=event_data.session_number,
-        related_npc_id=event_data.related_npc_id,
-        related_location_id=event_data.related_location_id,
-        related_character_ids=event_data.related_character_ids,
+        event_type=event_type,
+        title=title,
+        description=str(event_data.get('description') or ''),
+        session_number=session_number,
+        related_npc_id=event_data.get('related_npc_id'),
+        related_location_id=event_data.get('related_location_id'),
+        related_character_ids=related_character_ids,
         created_by=username
     )
-    
-    await db.timeline_events.insert_one(event.model_dump())
-    return event.model_dump()
+
+    event_doc = event.model_dump()
+    event_doc['type'] = event_type
+    event_doc['in_game_date'] = str(event_data.get('in_game_date') or '').strip()
+    await db.timeline_events.insert_one(event_doc)
+    return _public_timeline_event(event_doc)
+
+
+@router.delete("/campaigns/{campaign_id}/timeline/{event_id}")
+async def delete_timeline_event(campaign_id: str, event_id: str, username: str = Depends(get_current_user)):
+    """Delete a timeline event. Only the campaign GM may delete chronicle history."""
+    await verify_campaign_ownership(campaign_id, username)
+    result = await db.timeline_events.delete_one({'id': event_id, 'campaign_id': campaign_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Timeline event not found")
+    return {'message': 'Timeline event deleted successfully'}
 
 
 @router.post("/campaigns/{campaign_id}/sync-note")
@@ -364,7 +399,7 @@ async def get_player_timeline(username: str = Depends(get_current_user)):
         {'_id': 0}
     ).sort('timestamp', -1).to_list(200)
     
-    return events
+    return [_public_timeline_event(event) for event in events]
 
 
 # ==================== PLAYER ROUTES ====================

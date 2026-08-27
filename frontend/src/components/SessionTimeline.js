@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
   MapPin,
   Milestone,
   Plus,
+  RefreshCw,
   Save,
   Search,
   Skull,
@@ -37,6 +38,7 @@ const theme = {
   line: 'rgba(255,255,255,0.16)',
   lineStrong: 'rgba(255,255,255,0.22)',
   primary: '#d00000',
+  warn: '#d99222',
 };
 
 const EVENT_TYPES = [
@@ -65,39 +67,89 @@ function typeDetails(typeId) {
   return EVENT_TYPES.find(type => type.id === typeId) || EVENT_TYPES[0];
 }
 
+function normaliseEvent(event) {
+  if (!event || typeof event !== 'object' || Array.isArray(event)) {
+    throw new Error('Invalid timeline event');
+  }
+  return {
+    ...event,
+    type: event.type || event.event_type || 'session',
+    in_game_date: event.in_game_date || '',
+    created_at: event.created_at || event.timestamp || '',
+  };
+}
+
 function sortEvents(events) {
   return [...events].sort((a, b) => {
     const sessionA = Number(a.session_number) || 0;
     const sessionB = Number(b.session_number) || 0;
     if (sessionB !== sessionA) return sessionB - sessionA;
-    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    return new Date(b.created_at || b.timestamp || 0).getTime() - new Date(a.created_at || a.timestamp || 0).getTime();
   });
 }
 
+function parseTimelinePayload(data) {
+  const rawEvents = Array.isArray(data) ? data : data?.events;
+  if (!Array.isArray(rawEvents)) throw new Error('Invalid timeline response');
+  return sortEvents(rawEvents.map(normaliseEvent));
+}
+
+function timelineError(error, fallback) {
+  return error?.formattedDetail || error?.response?.data?.detail || fallback;
+}
+
 export default function SessionTimeline({ campaignId }) {
+  const loadRequestRef = useRef(0);
   const [events, setEvents] = useState([]);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [newEvent, setNewEvent] = useState(emptyEvent);
+  const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
-    fetchEvents();
+    setEvents([]);
+    setEventsLoaded(false);
+    setLoadError('');
+    setShowAddForm(false);
+    setFilter('all');
+    setSearchTerm('');
+    setNewEvent(emptyEvent);
+    setDeletingId(null);
+    fetchEvents({ notifyFailure: false });
+    return () => { loadRequestRef.current += 1; };
   }, [campaignId]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = async ({ notifyFailure = true } = {}) => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await apiClient.get(`/campaigns/${campaignId}/timeline`);
-      const nextEvents = Array.isArray(response.data?.events) ? response.data.events : [];
-      setEvents(sortEvents(nextEvents));
-    } catch {
-      setEvents([]);
+      const nextEvents = parseTimelinePayload(response.data);
+      if (requestId !== loadRequestRef.current) return { ok: false, stale: true };
+      setEvents(nextEvents);
+      setEventsLoaded(true);
+      setLoadError('');
+      return { ok: true };
+    } catch (error) {
+      if (requestId !== loadRequestRef.current) return { ok: false, stale: true };
+      const message = timelineError(error, 'Could not load the campaign timeline.');
+      setLoadError(message);
+      if (notifyFailure) toast.error(message);
+      return { ok: false, error };
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestRef.current) setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    const result = await fetchEvents();
+    if (result.ok) toast.success('Timeline refreshed');
   };
 
   const filteredEvents = useMemo(() => {
@@ -149,47 +201,54 @@ export default function SessionTimeline({ campaignId }) {
       title: newEvent.title.trim(),
       description: newEvent.description.trim(),
       in_game_date: newEvent.in_game_date.trim(),
-      campaign_id: campaignId,
-      created_at: new Date().toISOString(),
     };
 
+    setSaving(true);
     try {
       const response = await apiClient.post(`/campaigns/${campaignId}/timeline`, eventData);
-      setEvents(prev => sortEvents([...prev, response.data]));
+      const savedEvent = normaliseEvent(response.data);
+      if (!savedEvent.id || !savedEvent.title) throw new Error('Invalid timeline save response');
+      setEvents(prev => sortEvents([...prev.filter(event => event.id !== savedEvent.id), savedEvent]));
+      setEventsLoaded(true);
+      setLoadError('');
       toast.success('Timeline event saved');
-    } catch {
-      const localEvent = { id: Date.now().toString(), ...eventData };
-      setEvents(prev => sortEvents([...prev, localEvent]));
-      toast.info('Timeline event added locally');
-    } finally {
       resetForm();
+    } catch (error) {
+      toast.error(timelineError(error, 'Timeline event was not saved. Your draft is still here.'));
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDeleteEvent = async (eventId) => {
     if (deletingId !== eventId) {
       setDeletingId(eventId);
-      setTimeout(() => setDeletingId(null), 5000);
+      setTimeout(() => setDeletingId(current => current === eventId ? null : current), 5000);
       return;
     }
 
     try {
       await apiClient.delete(`/campaigns/${campaignId}/timeline/${eventId}`);
-      toast.success('Timeline event deleted');
-    } catch {
-      toast.info('Timeline event removed locally');
-    } finally {
       setEvents(prev => prev.filter(event => event.id !== eventId));
+      toast.success('Timeline event deleted');
+    } catch (error) {
+      toast.error(timelineError(error, 'Timeline event was not deleted.'));
+    } finally {
       setDeletingId(null);
     }
   };
 
-  if (loading) {
+  if (loading && !eventsLoaded) {
     return <section style={loadingStyle}>Loading campaign timeline...</section>;
   }
 
   return (
-    <section style={shellStyle}>
+    <section style={shellStyle} data-testid="session-timeline">
+      {loadError && (
+        <div role="status" style={warningStyle} data-testid="timeline-load-warning">
+          {eventsLoaded ? 'Timeline refresh failed. Showing the last loaded events.' : 'Timeline could not be loaded. Retry before assuming it is empty.'}
+        </div>
+      )}
       <header style={headerStyle}>
         <div style={headerIconStyle}><Clock size={22} /></div>
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -197,10 +256,15 @@ export default function SessionTimeline({ campaignId }) {
           <h3 style={titleStyle}>Campaign Timeline</h3>
           <p style={subtitleStyle}>Track sessions, reveals, consequences, discoveries, losses, rewards, and world changes.</p>
         </div>
-        <Button onClick={() => setShowAddForm(prev => !prev)} style={primaryButtonStyle}>
-          {showAddForm ? <X size={16} /> : <Plus size={16} />}
-          {showAddForm ? 'Close' : 'Add Event'}
-        </Button>
+        <div style={headerActionsStyle}>
+          <Button onClick={handleRefresh} disabled={loading} style={secondaryButtonStyle} data-testid="timeline-refresh-btn">
+            <RefreshCw size={16} /> {loading ? 'Refreshing…' : 'Refresh'}
+          </Button>
+          <Button onClick={() => setShowAddForm(prev => !prev)} style={primaryButtonStyle}>
+            {showAddForm ? <X size={16} /> : <Plus size={16} />}
+            {showAddForm ? 'Close' : 'Add Event'}
+          </Button>
+        </div>
       </header>
 
       <section style={statsStyle}>
@@ -238,7 +302,7 @@ export default function SessionTimeline({ campaignId }) {
           </label>
           <div style={formActionsStyle}>
             <Button onClick={resetForm} style={secondaryButtonStyle}>Cancel</Button>
-            <Button onClick={handleAddEvent} style={primaryButtonStyle}><Save size={16} /> Save Event</Button>
+            <Button onClick={handleAddEvent} disabled={saving} style={primaryButtonStyle} data-testid="timeline-save-btn"><Save size={16} /> {saving ? 'Saving…' : 'Save Event'}</Button>
           </div>
         </section>
       )}
@@ -255,7 +319,13 @@ export default function SessionTimeline({ campaignId }) {
       </section>
 
       <section style={timelineStyle}>
-        {events.length === 0 ? (
+        {!eventsLoaded ? (
+          <div style={emptyStyle} data-testid="timeline-unavailable">
+            <RefreshCw size={38} />
+            <h4 style={emptyTitleStyle}>Timeline unavailable</h4>
+            <p style={emptyTextStyle}>The timeline has not loaded successfully, so this screen will not pretend the campaign has no history.</p>
+          </div>
+        ) : events.length === 0 ? (
           <div style={emptyStyle}>
             <Clock size={42} />
             <h4 style={emptyTitleStyle}>No timeline events yet</h4>
@@ -329,11 +399,13 @@ function TimelineEvent({ event, deleting, onDelete, onCancelDelete }) {
 
 const shellStyle = { display: 'grid', gap: 14, background: theme.panel, border: `1px solid ${theme.line}`, padding: 16, fontFamily: fontStack };
 const loadingStyle = { minHeight: 180, display: 'grid', placeItems: 'center', color: theme.soft, background: theme.panel, border: `1px solid ${theme.line}`, fontFamily: fontStack };
+const warningStyle = { padding: '9px 10px', background: 'rgba(217,146,34,0.1)', border: `1px solid ${theme.warn}`, color: '#ffd28a', fontSize: 12, fontWeight: 850, lineHeight: 1.4 };
 const headerStyle = { display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', borderBottom: `1px solid ${theme.line}`, paddingBottom: 14 };
 const headerIconStyle = { width: 44, height: 44, display: 'grid', placeItems: 'center', background: theme.bg, color: theme.text, borderLeft: `6px solid ${theme.primary}` };
 const eyebrowStyle = { margin: 0, color: theme.muted, fontSize: 11, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: '2px 0 5px', color: theme.text, fontSize: 25, fontWeight: 950, letterSpacing: '-0.02em' };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 14, lineHeight: 1.45 };
+const headerActionsStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
 const primaryButtonStyle = { minHeight: 40, border: 0, borderRadius: 0, background: theme.primary, color: theme.text, padding: '0 13px', fontWeight: 950, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 40, border: 0, borderRadius: 0, background: theme.card, color: theme.text, padding: '0 13px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', borderTop: `1px solid ${theme.line}`, borderBottom: `1px solid ${theme.line}` };
