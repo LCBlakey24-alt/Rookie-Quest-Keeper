@@ -4,8 +4,9 @@ import LiveEncounterLauncher from './LiveEncounterLauncher';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444', red: '#d00000',
-  text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: '#071522', panel: '#0C2234', card: '#102B40', hover: '#14344C',
+  pink: '#FF2DAA', blue: '#7CCBFF', red: '#FF2DAA',
+  text: '#FFFFFF', soft: '#FFFFFF', muted: '#FFFFFF', line: 'rgba(255,45,170,0.18)',
 };
 
 export const LIVE_GRID_DEFAULTS = ['overview', 'story', 'combat', 'notes'];
@@ -209,7 +210,7 @@ function EmptyTool({ title }) {
 
 const shellStyle = { display: 'grid', gap: 8, minWidth: 0, fontFamily: fontStack };
 const primaryNavStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 1, background: rq.line, border: `1px solid ${rq.line}` };
-const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: 0, background: active ? rq.red : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
+const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: active ? `1px solid ${rq.pink}` : '1px solid transparent', background: active ? 'rgba(124,203,255,0.10)' : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
 const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}` };
 const toolHeaderStyle = { minHeight: 48, padding: '0 11px', borderBottom: `1px solid ${rq.line}`, background: rq.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 };
 const toolTitleStyle = { display: 'flex', alignItems: 'center', gap: 7, color: rq.text, fontSize: 15 };
@@ -219,11 +220,11 @@ const runScreenStyle = { display: 'grid', gap: 10 };
 const runHeaderStyle = { padding: '10px 4px 3px' };
 const eyebrowStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const runTitleStyle = { margin: '2px 0 0', color: rq.text, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1, fontWeight: 950 };
-const continueStyle = { display: 'grid', gap: 5, padding: 8, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `4px solid ${rq.red}` };
+const continueStyle = { display: 'grid', gap: 5, padding: 8, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}` };
 const continueRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
-const continueButtonStyle = { minHeight: 34, border: `1px solid ${rq.red}`, background: 'rgba(208,0,0,0.14)', color: rq.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 950 };
+const continueButtonStyle = { minHeight: 34, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 950 };
 const coreGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 7 };
-const coreCardStyle = { minHeight: 104, border: `1px solid ${rq.line}`, borderLeft: `5px solid ${rq.red}`, background: rq.card, color: rq.text, padding: 12, display: 'grid', justifyItems: 'start', alignContent: 'center', gap: 5, textAlign: 'left', cursor: 'pointer', fontFamily: fontStack };
+const coreCardStyle = { minHeight: 104, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: 12, display: 'grid', justifyItems: 'start', alignContent: 'center', gap: 5, textAlign: 'left', cursor: 'pointer', fontFamily: fontStack };
 const recentStyle = { display: 'grid', gap: 6, paddingTop: 2 };
 const sectionLabelStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.09em' };
 const recentRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
