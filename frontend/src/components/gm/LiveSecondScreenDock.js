@@ -8,14 +8,16 @@ import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  bg: '#242424',
-  line: 'rgba(255,255,255,0.16)',
-  red: '#d00000',
-  text: '#ffffff',
-  soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.58)',
+  panel: '#0C2234',
+  card: '#102B40',
+  bg: '#071522',
+  line: 'rgba(255,45,170,0.18)',
+  pink: '#FF2DAA',
+  blue: '#7CCBFF',
+  red: '#FF2DAA',
+  text: '#FFFFFF',
+  soft: '#FFFFFF',
+  muted: '#FFFFFF',
 };
 
 function imageFrom(item) {
@@ -211,7 +213,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
   );
 }
 
-const dockStyle = { width: 320, minWidth: 280, maxHeight: 'calc(100dvh - 106px)', position: 'sticky', top: 86, alignSelf: 'start', overflowY: 'auto', display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `6px solid ${theme.red}`, padding: 9, color: theme.text, fontFamily: fontStack };
+const dockStyle = { width: 320, minWidth: 280, maxHeight: 'calc(100dvh - 106px)', position: 'sticky', top: 86, alignSelf: 'start', overflowY: 'auto', display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.pink}`, padding: 9, color: theme.text, fontFamily: fontStack };
 const dockHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 };
 const eyebrowStyle = { margin: '0 0 3px', color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: 0, color: theme.text, fontSize: 16, fontWeight: 950, display: 'flex', alignItems: 'center', gap: 6 };
@@ -230,6 +232,6 @@ const smallButtonStyle = { minHeight: 30, border: 0, background: theme.card, col
 const warningStyle = { display: 'flex', alignItems: 'flex-start', gap: 6, padding: 7, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.45)', color: theme.soft, fontSize: 10, lineHeight: 1.4 };
 const buttonGroupStyle = { display: 'grid', gap: 6, borderTop: `1px solid ${theme.line}`, paddingTop: 8 };
 const sectionLabelStyle = { margin: 0, color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
-const revealButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 6, textAlign: 'left', justifyContent: 'flex-start', fontSize: 12, fontWeight: 900, cursor: 'pointer' };
+const revealButtonStyle = { minHeight: 34, border: `1px solid ${theme.pink}`, background: theme.card, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 6, textAlign: 'left', justifyContent: 'flex-start', fontSize: 12, fontWeight: 900, cursor: 'pointer' };
 const mediaButtonStyle = { minHeight: 32, border: 0, background: theme.card, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 6, textAlign: 'left', justifyContent: 'flex-start', fontSize: 12, fontWeight: 850, cursor: 'pointer', overflow: 'hidden' };
 const mutedStyle = { margin: 0, color: theme.muted, fontSize: 12, lineHeight: 1.35 };
