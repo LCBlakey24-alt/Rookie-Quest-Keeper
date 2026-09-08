@@ -258,7 +258,7 @@ export function subscribeDisplayState(campaignId, onState) {
   return () => handlers.forEach(cleanup => cleanup());
 }
 
-export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 1000 } = {}) {
+export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 5000 } = {}) {
   const runtimeWindow = getWindow();
   if (!runtimeWindow) return safeNoop;
 
@@ -267,8 +267,10 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   let socket = null;
   let reconnectTimer = null;
   let pingTimer = null;
+  let pollingTimer = null;
   let reconnectAttempts = 0;
   let remoteReadInFlight = false;
+  let socketReady = false;
 
   const applyRemoteState = (state) => {
     if (cancelled || !state?.updated_at) return;
@@ -295,6 +297,19 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
     }
   };
 
+  const stopPolling = () => {
+    if (pollingTimer) runtimeWindow.clearInterval(pollingTimer);
+    pollingTimer = null;
+  };
+
+  const startPolling = () => {
+    if (cancelled || pollingTimer || socketReady) return;
+    readRemoteState();
+    pollingTimer = runtimeWindow.setInterval(() => {
+      if (!socketReady) readRemoteState();
+    }, Math.max(2500, intervalMs));
+  };
+
   const clearSocketTimers = () => {
     if (pingTimer) runtimeWindow.clearInterval(pingTimer);
     pingTimer = null;
@@ -302,6 +317,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
 
   const scheduleReconnect = () => {
     if (cancelled || reconnectTimer) return;
+    startPolling();
     const delay = Math.min(15000, 1500 * (2 ** Math.min(reconnectAttempts, 3)));
     reconnectAttempts += 1;
     reconnectTimer = runtimeWindow.setTimeout(() => {
@@ -311,14 +327,24 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   };
 
   const connectSocket = () => {
-    if (cancelled || !runtimeWindow.WebSocket) return;
+    if (cancelled) return;
+    if (!runtimeWindow.WebSocket) {
+      startPolling();
+      return;
+    }
+
     const url = websocketUrl(campaignId);
-    if (!url) return;
+    if (!url) {
+      startPolling();
+      return;
+    }
 
     try {
       socket = new runtimeWindow.WebSocket(url);
       socket.onopen = () => {
+        socketReady = true;
         reconnectAttempts = 0;
+        stopPolling();
         clearSocketTimers();
         pingTimer = runtimeWindow.setInterval(() => {
           try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
@@ -338,27 +364,32 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
         try { socket?.close(); } catch { /* ignore */ }
       };
       socket.onclose = () => {
+        socketReady = false;
         clearSocketTimers();
         scheduleReconnect();
       };
     } catch {
+      socketReady = false;
       scheduleReconnect();
     }
   };
 
+  // One initial read hydrates state for a fresh tab. After that, WebSocket is
+  // authoritative while healthy; HTTP polling is only a reconnect fallback.
   readRemoteState();
   connectSocket();
-  const interval = runtimeWindow.setInterval(readRemoteState, intervalMs);
 
   const runtimeDocument = getDocument();
-  const onWake = () => readRemoteState();
+  const onWake = () => {
+    if (!socketReady) readRemoteState();
+  };
   runtimeWindow.addEventListener('focus', onWake);
   runtimeWindow.addEventListener('online', onWake);
   if (runtimeDocument) runtimeDocument.addEventListener('visibilitychange', onWake);
 
   return () => {
     cancelled = true;
-    runtimeWindow.clearInterval(interval);
+    stopPolling();
     if (reconnectTimer) runtimeWindow.clearTimeout(reconnectTimer);
     clearSocketTimers();
     try { socket?.close(); } catch { /* ignore */ }
