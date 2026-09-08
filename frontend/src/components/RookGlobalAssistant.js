@@ -58,6 +58,14 @@ export default function RookGlobalAssistant() {
     let active = true;
     setPageDataContext('');
 
+    // Rook is intentionally demand-loaded: campaign/character context is only
+    // hydrated after the user opens the assistant, not on every route visit.
+    if (!isOpen) {
+      return () => {
+        active = false;
+      };
+    }
+
     if (characterId) {
       apiClient.get(`/characters/${characterId}`)
         .then((response) => {
@@ -87,7 +95,7 @@ export default function RookGlobalAssistant() {
     return () => {
       active = false;
     };
-  }, [characterId, campaignId, playerFacingCampaign]);
+  }, [characterId, campaignId, isOpen, playerFacingCampaign]);
 
   useEffect(() => {
     const openRook = () => {
