@@ -7,15 +7,17 @@ import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDispl
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
-  bg: '#242424',
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  line: 'rgba(255,255,255,0.16)',
-  lineStrong: 'rgba(255,255,255,0.26)',
-  red: '#d00000',
-  text: '#ffffff',
-  soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.58)',
+  bg: '#071522',
+  panel: '#0C2234',
+  card: '#102B40',
+  line: 'rgba(255,45,170,0.18)',
+  lineStrong: 'rgba(255,45,170,0.42)',
+  pink: '#FF2DAA',
+  blue: '#7CCBFF',
+  red: '#FF2DAA',
+  text: '#FFFFFF',
+  soft: '#FFFFFF',
+  muted: '#FFFFFF',
 };
 
 const CATEGORY_OPTIONS = [
@@ -739,22 +741,22 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
 }
 
 const shellStyle = { display: 'grid', gap: 10, color: theme.text, fontFamily: fontStack };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap', background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `6px solid ${theme.red}`, padding: 12 };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap', background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.pink}`, padding: 12 };
 const eyebrowStyle = { margin: 0, color: theme.red, fontSize: 10, fontWeight: 950, letterSpacing: '0.12em', textTransform: 'uppercase' };
 const titleStyle = { margin: '3px 0 4px', color: theme.text, fontSize: 22, lineHeight: 1.08, fontWeight: 950 };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeight: 1.45 };
 const statusStyle = (ready) => ({ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', background: ready ? 'rgba(22, 101, 52, 0.16)' : 'rgba(180, 83, 9, 0.16)', border: `1px solid ${ready ? 'rgba(74, 222, 128, 0.35)' : 'rgba(251, 191, 36, 0.35)'}`, color: theme.soft, padding: '8px 10px', fontSize: 12 });
 const layoutStyle = { display: 'grid', gridTemplateColumns: 'minmax(240px, 0.36fr) minmax(0, 1fr)', gap: 10 };
 const tableListStyle = { display: 'grid', gap: 7, alignSelf: 'start', maxHeight: '72vh', overflowY: 'auto', paddingRight: 4 };
-const tableButtonStyle = (active) => ({ minHeight: 66, display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left', border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(208,0,0,0.18)' : theme.card, color: theme.text, padding: 10, cursor: 'pointer', fontFamily: fontStack });
+const tableButtonStyle = (active) => ({ minHeight: 66, display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left', border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(124,203,255,0.10)' : theme.card, color: theme.text, padding: 10, cursor: 'pointer', fontFamily: fontStack });
 const rollerStyle = { display: 'grid', gap: 10, background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, minWidth: 0 };
 const activeHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' };
 const activeTitleStyle = { margin: '2px 0 5px', color: theme.text, fontSize: 20, fontWeight: 950 };
-const rollButtonStyle = { minHeight: 74, border: 0, background: theme.red, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontSize: 18, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const rollButtonStyle = { minHeight: 74, border: `1px solid ${theme.pink}`, background: theme.card, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontSize: 18, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const referenceOnlyStyle = { minHeight: 46, display: 'flex', alignItems: 'center', background: theme.bg, border: `1px solid ${theme.line}`, color: theme.soft, padding: '0 12px', fontSize: 13, fontWeight: 800 };
 const resultStyle = { display: 'grid', gap: 8, background: theme.bg, border: `1px solid ${theme.lineStrong}`, padding: 14 };
 const resultMetaStyle = { margin: 0, color: theme.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
-const rollNumberStyle = { display: 'inline-grid', placeItems: 'center', width: 58, height: 58, background: theme.red, color: theme.text, fontSize: 30, fontWeight: 950 };
+const rollNumberStyle = { display: 'inline-grid', placeItems: 'center', width: 58, height: 58, background: 'rgba(124,203,255,0.10)', border: `1px solid ${theme.pink}`, color: theme.text, fontSize: 30, fontWeight: 950 };
 const resultTextStyle = { margin: 0, color: theme.text, fontSize: 17, lineHeight: 1.45, fontWeight: 850 };
 const emptyResultStyle = { minHeight: 100, display: 'grid', placeItems: 'center', textAlign: 'center', background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 20 };
 const noResultsStyle = { display: 'grid', gap: 4, background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 12, fontSize: 12, lineHeight: 1.35 };
@@ -767,20 +769,20 @@ const inputStyle = { minHeight: 36, background: theme.bg, color: theme.text, bor
 const textareaStyle = { minHeight: 130, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: 9, outline: 'none', fontFamily: fontStack, resize: 'vertical' };
 const bulkTextareaStyle = { ...textareaStyle, minHeight: 210 };
 const filterRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
-const filterChipStyle = (active) => ({ minHeight: 30, border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(208,0,0,0.22)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 11, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack });
+const filterChipStyle = (active) => ({ minHeight: 30, border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(124,203,255,0.10)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 11, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack });
 const searchBoxStyle = { display: 'flex', alignItems: 'center', gap: 7, minHeight: 38, background: theme.bg, border: `1px solid ${theme.line}`, color: theme.muted, padding: '0 9px' };
 const searchInputStyle = { flex: 1, minWidth: 0, background: 'transparent', border: 0, outline: 'none', color: theme.text, fontFamily: fontStack };
 const rowSearchBoxStyle = { display: 'flex', alignItems: 'center', gap: 7, minHeight: 34, minWidth: 'min(100%, 320px)', background: theme.card, border: `1px solid ${theme.line}`, color: theme.muted, padding: '0 8px', textTransform: 'none', letterSpacing: 0 };
 const rowSearchInputStyle = { flex: 1, minWidth: 0, background: 'transparent', border: 0, outline: 'none', color: theme.text, fontFamily: fontStack, fontSize: 12 };
 const buttonRowStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' };
-const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const primaryButtonStyle = { minHeight: 34, border: `1px solid ${theme.pink}`, background: theme.card, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 34, border: 0, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 32, border: 0, background: '#661111', color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const mutedTextStyle = { margin: 0, color: theme.muted, fontSize: 12 };
 const entriesStyle = { display: 'grid', gap: 8, background: theme.bg, border: `1px solid ${theme.line}`, padding: 10 };
 const entriesHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', color: theme.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', flexWrap: 'wrap' };
 const entriesListStyle = { display: 'grid', gap: 5, maxHeight: 360, overflowY: 'auto' };
-const entryRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 0.18fr) minmax(0, 1fr) auto', gap: 8, alignItems: 'start', background: theme.card, borderLeft: `4px solid ${theme.red}`, padding: '7px 9px', color: theme.soft, fontSize: 12, lineHeight: 1.35 };
+const entryRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 0.18fr) minmax(0, 1fr) auto', gap: 8, alignItems: 'start', background: theme.card, borderLeft: `1px solid ${theme.pink}`, padding: '7px 9px', color: theme.soft, fontSize: 12, lineHeight: 1.35 };
 const structuredTableWrapStyle = { overflowX: 'auto', maxHeight: 420, border: `1px solid ${theme.line}`, background: theme.card };
 const structuredTableStyle = { width: '100%', borderCollapse: 'collapse', minWidth: 720, fontSize: 12, color: theme.soft };
 const tableHeaderCellStyle = { position: 'sticky', top: 0, zIndex: 1, textAlign: 'left', background: theme.bg, color: theme.text, padding: '8px 9px', borderBottom: `1px solid ${theme.lineStrong}`, whiteSpace: 'nowrap', fontWeight: 950 };
