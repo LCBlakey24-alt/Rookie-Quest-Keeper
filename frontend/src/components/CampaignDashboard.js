@@ -37,10 +37,10 @@ import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campa
 import './CampaignDashboard.css';
 
 const uploadTheme = {
-  bg: { black: '#0a1728', panel: '#102238', card: '#142a43', hover: '#19324e' },
-  accent: { primary: '#d11f2a', subtle: 'rgba(209,31,42,0.16)' },
-  text: { white: '#f8fbff', primary: '#f8fbff', secondary: '#b8c7d8', muted: '#8295aa' },
-  border: '#213a54',
+  bg: { black: '#071522', panel: '#0C2234', card: '#102B40', hover: '#14344C' },
+  accent: { primary: '#FF2DAA', secondary: '#7CCBFF', subtle: 'rgba(255,45,170,0.08)' },
+  text: { white: '#FFFFFF', primary: '#FFFFFF', secondary: '#FFFFFF', muted: '#FFFFFF' },
+  border: 'rgba(255,45,170,0.18)',
 };
 
 function tabFromHash() {
