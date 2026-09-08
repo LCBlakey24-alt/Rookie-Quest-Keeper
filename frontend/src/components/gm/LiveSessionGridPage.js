@@ -34,11 +34,11 @@ const GMHandoutsTab = React.lazy(() => import('@/components/tabs/HandoutsTab').t
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
-  bg: { primary: '#242424', surface: '#2f2f2f', elevated: '#3a3a3a', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
-  accent: { primary: '#d00000', secondary: '#d00000', gold: '#d00000', orange: '#ff3b3b', hover: '#ff3b3b', subtle: 'rgba(208,0,0,0.18)', glow: 'none', gm: '#d00000', gmSubtle: 'rgba(208,0,0,0.18)' },
-  text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
-  border: 'rgba(255,255,255,0.16)',
-  gradient: '#d00000',
+  bg: { primary: '#071522', surface: '#0C2234', elevated: '#102B40', panel: '#0C2234', card: '#102B40', hover: '#14344C' },
+  accent: { primary: '#FF2DAA', secondary: '#7CCBFF', gold: '#7CCBFF', orange: '#FF2DAA', hover: '#FF2DAA', subtle: 'rgba(255,45,170,0.08)', glow: 'none', gm: '#FF2DAA', gmSubtle: 'rgba(255,45,170,0.08)' },
+  text: { primary: '#FFFFFF', secondary: '#FFFFFF', muted: '#FFFFFF' },
+  border: 'rgba(255,45,170,0.18)',
+  gradient: '#FF2DAA',
 };
 
 export default function LiveSessionGridPage() {
