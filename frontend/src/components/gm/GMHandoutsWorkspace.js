@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000', good: '#1f9d66',
-  text: '#fff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: '#071522', panel: '#0C2234', card: '#102B40',
+  pink: '#FF2DAA', blue: '#7CCBFF', red: '#FF2DAA', good: '#7CCBFF',
+  text: '#FFFFFF', soft: '#FFFFFF', muted: '#FFFFFF', line: 'rgba(255,45,170,0.18)',
 };
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const CATEGORIES = ['lore', 'secret', 'clue', 'letter', 'map', 'item', 'recap', 'other'];
@@ -239,9 +240,9 @@ const toolbarStyle = { display: 'grid', gridTemplateColumns: 'minmax(160px,1fr) 
 const searchStyle = { minHeight: 38, display: 'flex', alignItems: 'center', gap: 6, background: rq.panel, border: `1px solid ${rq.line}`, padding: '0 8px', color: rq.muted, minWidth: 0 };
 const searchInputStyle = { minWidth: 0, flex: 1, minHeight: 36, border: 0, outline: 0, background: 'transparent', color: rq.text, fontSize: 11 };
 const selectStyle = { minHeight: 38, background: rq.panel, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 7px' };
-const primaryButtonStyle = { minHeight: 38, border: 0, background: rq.red, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontWeight: 950, whiteSpace: 'nowrap' };
+const primaryButtonStyle = { minHeight: 38, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontWeight: 950, whiteSpace: 'nowrap' };
 const secondaryButtonStyle = { minHeight: 36, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, padding: '0 9px', cursor: 'pointer', fontWeight: 850 };
-const editorStyle = { display: 'grid', gap: 7, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `4px solid ${rq.red}`, padding: 8 };
+const editorStyle = { display: 'grid', gap: 7, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 8 };
 const editorHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'minmax(180px,1fr) minmax(130px,.5fr)', gap: 6 };
 const fieldStyle = { display: 'grid', gap: 3, color: rq.muted, fontSize: 9, fontWeight: 900, textTransform: 'uppercase' };
@@ -253,7 +254,7 @@ const shareToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 5,
 const editorActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 5 };
 const iconButtonStyle = { width: 30, height: 30, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, display: 'grid', placeItems: 'center', cursor: 'pointer' };
 const listStyle = { display: 'grid', gap: 4 };
-const cardStyle = { background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `4px solid ${rq.red}` };
+const cardStyle = { background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}` };
 const cardToggleStyle = { width: '100%', minHeight: 50, border: 0, background: 'transparent', color: rq.text, padding: 7, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' };
 const categoryStyle = { minWidth: 52, padding: '3px 5px', background: rq.bg, color: rq.muted, fontSize: 8, fontWeight: 950, textTransform: 'uppercase', textAlign: 'center' };
 const titleStyle = { display: 'block', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
@@ -262,11 +263,11 @@ const detailsStyle = { display: 'grid', gap: 7, padding: '0 8px 8px', borderTop:
 const contentStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 11, lineHeight: 1.45, whiteSpace: 'pre-wrap' };
 const actionRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
 const smallButtonStyle = { minHeight: 31, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 9, fontWeight: 850 };
-const revealButtonStyle = { ...smallButtonStyle, background: rq.good, color: '#fff', border: 0 };
-const deleteButtonStyle = { ...smallButtonStyle, color: '#ff8b8b' };
+const revealButtonStyle = { ...smallButtonStyle, background: rq.card, color: '#FFFFFF', border: `1px solid ${rq.blue}` };
+const deleteButtonStyle = { ...smallButtonStyle, color: '#FFFFFF', borderColor: rq.pink };
 const recipientSectionStyle = { display: 'grid', gap: 5, background: rq.panel, border: `1px solid ${rq.line}`, padding: 6 };
 const recipientHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, fontSize: 10 };
-const primaryMiniStyle = { minHeight: 28, border: 0, background: rq.red, color: '#fff', padding: '0 7px', fontSize: 9, fontWeight: 900, cursor: 'pointer' };
+const primaryMiniStyle = { minHeight: 28, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 7px', fontSize: 9, fontWeight: 900, cursor: 'pointer' };
 const recipientGridStyle = { display: 'flex', gap: 4, flexWrap: 'wrap' };
 const recipientChipStyle = (known, selected) => ({ minHeight: 28, display: 'inline-flex', alignItems: 'center', gap: 4, background: known ? 'rgba(31,157,102,0.16)' : selected ? 'rgba(208,0,0,0.16)' : rq.bg, border: `1px solid ${known ? 'rgba(31,157,102,.45)' : selected ? 'rgba(208,0,0,.45)' : rq.line}`, color: rq.soft, padding: '0 6px', fontSize: 9, cursor: 'pointer' });
 const fileLinkStyle = { minHeight: 34, display: 'inline-flex', alignItems: 'center', gap: 5, color: rq.text, background: rq.bg, border: `1px solid ${rq.line}`, padding: '0 8px', fontSize: 10, textDecoration: 'none' };
