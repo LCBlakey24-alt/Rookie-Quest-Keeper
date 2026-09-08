@@ -1024,3 +1024,107 @@ body,
   background-image: none !important;
   box-shadow: none !important;
 }
+
+
+/* RQK 1.0 character-sheet authority */
+#root .character-page-v2 *,
+#root .character-page-v2 *::before,
+#root .character-page-v2 *::after {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root .character-page-v2 {
+  background: #071522 !important;
+  color: #FFFFFF !important;
+}
+
+#root .character-page-v2 :where(
+  h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,
+  button,a,th,td,legend,summary
+) {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+#root .character-page-v2 :where(
+  .clean-sheet-header,
+  .clean-sheet-status,
+  .clean-sheet-compact-status,
+  .clean-sheet-tabs,
+  .clean-sheet-content,
+  .clean-sheet-card,
+  .clean-sheet-panel,
+  .clean-sheet-section,
+  .clean-sheet-stat-card,
+  .clean-sheet-feature-card,
+  .clean-sheet-action-card,
+  .clean-sheet-spell-card,
+  .clean-sheet-inventory-card,
+  .clean-sheet-note-card,
+  .clean-sheet-skill-card,
+  .clean-sheet-save-card
+) {
+  background-color: #0C2234 !important;
+  border-color: rgba(255,45,170,.18) !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 :where(
+  button,
+  [role='button'],
+  [role='tab'],
+  input,
+  textarea,
+  select
+) {
+  background-color: #102B40 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255,45,170,.18) !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 :where(
+  button,
+  [role='button'],
+  [role='tab'],
+  input,
+  textarea,
+  select
+):focus-visible {
+  outline: 1px solid #FF2DAA !important;
+  outline-offset: 2px !important;
+  border-color: #FF2DAA !important;
+}
+
+#root .character-page-v2 :where(
+  .is-active,
+  .active,
+  [aria-selected='true'],
+  [aria-pressed='true']
+) {
+  background-color: rgba(124,203,255,.10) !important;
+  border-color: #FF2DAA !important;
+}
+
+#root .character-page-v2 :where(svg, .icon, [data-icon]) {
+  color: #7CCBFF;
+}
+
+#root .character-page-v2 :where(
+  .hp-bar,
+  .progress-bar,
+  [role='progressbar']
+) {
+  background-color: #102B40 !important;
+  border-color: rgba(255,45,170,.18) !important;
+}
+
+#root .character-page-v2 :where(
+  .hp-bar-fill,
+  .progress-bar-fill,
+  [role='progressbar'] > *
+) {
+  background-color: #7CCBFF !important;
+}
