@@ -298,3 +298,79 @@
     transition-duration: 1ms !important;
   }
 }
+
+
+/* RQK 1.0 flat dice authority */
+.rq-floating-dice__toggle,
+.rq-floating-dice__panel,
+.rq-floating-dice__button,
+.rq-floating-dice__mode,
+.rq-floating-dice__custom-button,
+.rq-floating-dice__close,
+.rq-floating-dice__custom input,
+.rq-floating-dice__empty,
+.rq-floating-dice__result {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.rq-floating-dice__toggle::after {
+  display: none !important;
+}
+
+.rq-floating-dice__toggle {
+  background: #0C2234 !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 7px !important;
+  color: #7CCBFF !important;
+}
+
+.rq-floating-dice__panel {
+  background: #071522 !important;
+  border: 1px solid rgba(255, 45, 170, 0.28) !important;
+  border-radius: 9px !important;
+  backdrop-filter: none !important;
+}
+
+.rq-floating-dice__header {
+  border-color: rgba(255, 45, 170, 0.18) !important;
+}
+
+.rq-floating-dice__button,
+.rq-floating-dice__mode,
+.rq-floating-dice__custom-button,
+.rq-floating-dice__close,
+.rq-floating-dice__custom input,
+.rq-floating-dice__empty,
+.rq-floating-dice__result {
+  background: #102B40 !important;
+  border: 1px solid rgba(255, 45, 170, 0.18) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+}
+
+.rq-floating-dice__button:hover,
+.rq-floating-dice__mode:hover,
+.rq-floating-dice__custom-button:hover,
+.rq-floating-dice__close:hover,
+.rq-floating-dice__button:focus-visible,
+.rq-floating-dice__mode:focus-visible,
+.rq-floating-dice__custom-button:focus-visible,
+.rq-floating-dice__close:focus-visible,
+.rq-floating-dice__custom input:focus {
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
+  outline: 1px solid #FF2DAA !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+.rq-floating-dice__title strong,
+.rq-floating-dice__title span,
+.rq-floating-dice__history-title,
+.rq-floating-dice__empty,
+.rq-floating-dice__result span,
+.rq-floating-dice__result strong {
+  color: #FFFFFF !important;
+}
