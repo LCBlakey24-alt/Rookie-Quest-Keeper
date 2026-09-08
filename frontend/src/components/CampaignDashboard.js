@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -13,25 +13,26 @@ import {
   Users,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
-import CampaignRulesTab from '@/components/tabs/CampaignRulesTab';
-import GodsTab from '@/components/tabs/GodsTab';
-import InGameNotesTab from '@/components/tabs/InGameNotesTab';
-import StoryArcTracker from '@/components/gm/StoryArcTracker';
-import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
-import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
-import NPCsConsolidatedTab from '@/components/tabs/NPCsConsolidatedTab';
-import InventoryConsolidatedTab from '@/components/tabs/InventoryConsolidatedTab';
-import ChronicleConsolidatedTab from '@/components/tabs/ChronicleConsolidatedTab';
-import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
-import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
-import UploadTab from '@/components/gm/UploadTab';
-import PlayerInvitePanel from '@/components/gm/PlayerInvitePanel';
-import GMPartyWorkspace from '@/components/gm/GMPartyWorkspace';
-import GMHandoutsWorkspace from '@/components/gm/GMHandoutsWorkspace';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
-import TiaKartaCampaignPackPanel from '@/components/gm/TiaKartaCampaignPackPanel';
-import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
+
+const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
+const CampaignRulesTab = React.lazy(() => import('@/components/tabs/CampaignRulesTab'));
+const GodsTab = React.lazy(() => import('@/components/tabs/GodsTab'));
+const InGameNotesTab = React.lazy(() => import('@/components/tabs/InGameNotesTab'));
+const StoryArcTracker = React.lazy(() => import('@/components/gm/StoryArcTracker'));
+const WorldBuilderTab = React.lazy(() => import('@/components/tabs/WorldBuilderTab'));
+const MapsConsolidatedTab = React.lazy(() => import('@/components/tabs/MapsConsolidatedTab'));
+const NPCsConsolidatedTab = React.lazy(() => import('@/components/tabs/NPCsConsolidatedTab'));
+const InventoryConsolidatedTab = React.lazy(() => import('@/components/tabs/InventoryConsolidatedTab'));
+const ChronicleConsolidatedTab = React.lazy(() => import('@/components/tabs/ChronicleConsolidatedTab'));
+const CombatConsolidatedTab = React.lazy(() => import('@/components/tabs/CombatConsolidatedTab'));
+const ToolsConsolidatedTab = React.lazy(() => import('@/components/tabs/ToolsConsolidatedTab'));
+const UploadTab = React.lazy(() => import('@/components/gm/UploadTab'));
+const PlayerInvitePanel = React.lazy(() => import('@/components/gm/PlayerInvitePanel'));
+const GMPartyWorkspace = React.lazy(() => import('@/components/gm/GMPartyWorkspace'));
+const GMHandoutsWorkspace = React.lazy(() => import('@/components/gm/GMHandoutsWorkspace'));
+const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKartaCampaignPackPanel'));
+const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 import './CampaignDashboard.css';
 
@@ -55,7 +56,6 @@ export default function CampaignDashboard() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [activeTab, setActiveTab] = useState(tabFromHash);
-  const [workspaceKey, setWorkspaceKey] = useState(0);
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
 
@@ -93,7 +93,6 @@ export default function CampaignDashboard() {
       const nextTab = tabFromHash();
       if (!validTabIds.has(nextTab)) return;
       setActiveTab(nextTab);
-      setWorkspaceKey((prev) => prev + 1);
     };
 
     window.addEventListener('hashchange', onHashChange);
@@ -105,7 +104,6 @@ export default function CampaignDashboard() {
   const handleTabClick = useCallback((tabId) => {
     if (!validTabIds.has(tabId)) return;
     setActiveTab(tabId);
-    setWorkspaceKey((prev) => prev + 1);
 
     if (typeof window !== 'undefined') {
       const nextHash = `#tab-${tabId}`;
@@ -304,8 +302,10 @@ export default function CampaignDashboard() {
       </nav>
 
       <main className="campaign-dashboard-workspace">
-        <section key={`${activeTab}-${workspaceKey}`} className="campaign-dashboard-panel" data-testid="gm-active-workspace">
-          {renderActiveTab()}
+        <section className="campaign-dashboard-panel" data-testid="gm-active-workspace">
+          <Suspense fallback={<div className="campaign-dashboard-loading" role="status">Loading workspace…</div>}>
+            {renderActiveTab()}
+          </Suspense>
         </section>
       </main>
     </div>
