@@ -10,8 +10,9 @@ const STATUS_OPTIONS = ['draft', 'available', 'active', 'completed', 'failed', '
 const OPEN_STATUSES = new Set(['draft', 'available', 'active']);
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444', red: '#d00000',
-  text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: '#071522', panel: '#0C2234', card: '#102B40', hover: '#14344C',
+  pink: '#FF2DAA', blue: '#7CCBFF', red: '#FF2DAA',
+  text: '#FFFFFF', soft: '#FFFFFF', muted: '#FFFFFF', line: 'rgba(255,45,170,0.18)',
 };
 
 const EMPTY_QUEST = {
@@ -321,12 +322,12 @@ function QuestLinks({ quest, resources, onPatch, onOpen }) {
 }
 
 const shellStyle = { display: 'grid', gap: 9, color: rq.text, fontFamily: fontStack, minWidth: 0 };
-const headerStyle = { background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${rq.red}`, padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' };
+const headerStyle = { background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' };
 const eyebrowStyle = { margin: 0, color: rq.muted, fontSize: 9, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: '2px 0 0', fontSize: 'clamp(25px, 4vw, 38px)', lineHeight: 1, color: rq.text, fontWeight: 950 };
 const subtitleStyle = { margin: '5px 0 0', color: rq.soft, fontSize: 12, lineHeight: 1.35 };
 const headerActionsStyle = { display: 'flex', gap: 6, flexWrap: 'wrap' };
-const primaryButtonStyle = { minHeight: 34, border: 0, background: rq.red, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer' };
+const primaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer' };
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.line}`, background: rq.panel, color: rq.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
 const toolbarStyle = { display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) minmax(110px, 180px)', gap: 6 };
 const searchStyle = { minHeight: 36, display: 'flex', alignItems: 'center', gap: 7, background: rq.panel, border: `1px solid ${rq.line}`, padding: '0 9px' };
@@ -346,8 +347,8 @@ const questBodyStyle = { display: 'grid', gap: 8, padding: 8 };
 const compactActionsStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
 const smallSelectStyle = { minHeight: 31, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 7px', fontSize: 11, fontWeight: 850 };
 const compactButtonStyle = { minHeight: 31, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 850 };
-const dangerButtonStyle = { ...compactButtonStyle, color: '#ffb4b4' };
-const infoStripStyle = { background: rq.bg, borderLeft: `4px solid ${rq.red}`, padding: 8, display: 'grid', gap: 3 };
+const dangerButtonStyle = { ...compactButtonStyle, borderColor: rq.pink, color: rq.text };
+const infoStripStyle = { background: rq.bg, borderLeft: `1px solid ${rq.pink}`, padding: 8, display: 'grid', gap: 3 };
 const infoTextStyle = { margin: 0, color: rq.text, fontSize: 12, lineHeight: 1.35 };
 const mutedTextStyle = { margin: 0, color: rq.muted, fontSize: 11, lineHeight: 1.35 };
 const sectionStyle = { display: 'grid', gap: 6, background: rq.panel, border: `1px solid ${rq.line}`, padding: 8 };
