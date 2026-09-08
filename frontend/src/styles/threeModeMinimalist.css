@@ -12,50 +12,52 @@
  */
 
 :root {
-  --rq-bg: #0a1728;
-  --rq-bg-main: #0a1728;
-  --rq-bg-deep: #06111f;
-  --rq-bg-rail: #06111f;
-  --rq-surface: #102238;
-  --rq-bg-panel: #102238;
-  --rq-card: #142a43;
-  --rq-bg-card: #142a43;
-  --rq-card-hover: #19324e;
-  --rq-bg-input: #081827;
-  --rq-button: #11263d;
-  --rq-bg-button: #11263d;
-  --rq-button-hover: #19334f;
+  --rq-bg: #071522;
+  --rq-bg-main: #071522;
+  --rq-bg-deep: #06111C;
+  --rq-bg-rail: #06111C;
+  --rq-surface: #0C2234;
+  --rq-bg-panel: #0C2234;
+  --rq-card: #102B40;
+  --rq-bg-card: #102B40;
+  --rq-card-hover: #14344C;
+  --rq-bg-input: #081B2A;
+  --rq-button: #0C2234;
+  --rq-bg-button: #0C2234;
+  --rq-button-hover: #14344C;
 
-  --rq-primary: #d11f2a;
-  --rq-primary-hover: #ed3340;
-  --rq-primary-soft: rgba(209, 31, 42, 0.16);
-  --rq-accent-primary: #d11f2a;
-  --rq-accent-soft: rgba(209, 31, 42, 0.16);
+  --rq-secondary: #7CCBFF;
+  --rq-secondary-soft: rgba(124, 203, 255, 0.10);
 
-  --rq-text: #f8fbff;
-  --rq-text-primary: #f8fbff;
-  --rq-muted: #b8c7d8;
-  --rq-text-secondary: #b8c7d8;
-  --rq-text-muted: #8295aa;
-  --rq-faint: #72859a;
+  --rq-primary: #FF2DAA;
+  --rq-primary-hover: #FF2DAA;
+  --rq-primary-soft: rgba(255, 45, 170, 0.08);
+  --rq-accent-primary: #FF2DAA;
+  --rq-accent-soft: rgba(255, 45, 170, 0.08);
 
-  --rq-line: #213a54;
-  --rq-line-strong: #31516f;
-  --rq-border-default: #213a54;
-  --rq-border-strong: #31516f;
+  --rq-text: #FFFFFF;
+  --rq-text-primary: #FFFFFF;
+  --rq-muted: #FFFFFF;
+  --rq-text-secondary: #FFFFFF;
+  --rq-text-muted: #FFFFFF;
+  --rq-faint: rgba(255, 255, 255, 0.52);
 
-  --rq-radius: 8px;
-  --rq-inner-radius: 6px;
+  --rq-line: rgba(255, 45, 170, 0.18);
+  --rq-line-strong: rgba(255, 45, 170, 0.42);
+  --rq-border-default: rgba(255, 45, 170, 0.18);
+  --rq-border-strong: rgba(255, 45, 170, 0.42);
+
+  --rq-radius: 7px;
+  --rq-inner-radius: 5px;
   --rq-control-mobile: 46px;
   --rq-control-tablet: 44px;
   --rq-control-desktop: 40px;
 
-  /* Compatibility aliases so retired theme files cannot leak old gradients. */
   --rq-sunset-copper: var(--rq-primary);
-  --rq-sunset-gold: var(--rq-primary);
+  --rq-sunset-gold: var(--rq-secondary);
   --rq-sunset-orange: var(--rq-primary);
-  --rq-sunset-cream: var(--rq-text);
-  --rq-sunset-muted: var(--rq-muted);
+  --rq-sunset-cream: #FFFFFF;
+  --rq-sunset-muted: #FFFFFF;
   --rq-sunset-faint: var(--rq-faint);
   --rq-sunset-line: var(--rq-line);
   --rq-sunset-line-strong: var(--rq-line-strong);
@@ -868,4 +870,157 @@ html[data-theme='player'] .character-page-v2.clean-sheet-page {
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* RQK 1.0 final visual authority: flat navy, white type, blue UI, pink lines */
+/* -------------------------------------------------------------------------- */
+
+html,
+body,
+#root,
+#root > div,
+.App {
+  background-color: #071522 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+}
+
+#root * {
+  text-shadow: none !important;
+}
+
+#root :where(
+  h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,
+  button,a,th,td,legend,summary,option
+) {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+#root :where(
+  .rqk-auth-page,
+  .rqk-auth-page::before,
+  .rqk-auth-page::after,
+  .rqk-auth-ambient,
+  .rqk-auth-ambient span,
+  .rqk-auth-shell,
+  .rqk-auth-layout,
+  .rqk-auth-hero,
+  .rqk-auth-card,
+  .rqk-auth-feature-card,
+  .rqk-auth-note,
+  .rqk-auth-assurance,
+  .rqk-auth-next-steps,
+  .rqk-auth-preview-card
+) {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-auth-page {
+  background: #071522 !important;
+}
+
+#root .rqk-auth-ambient {
+  display: none !important;
+}
+
+#root :where(
+  .rqk-auth-hero,
+  .rqk-auth-card,
+  .rqk-auth-feature-card,
+  .rqk-auth-note,
+  .rqk-auth-assurance,
+  .rqk-auth-next-steps,
+  .rqk-auth-preview-card,
+  .card,.panel,.rq-card,.rq-panel,
+  .rqk-themed-card,.rqk-themed-panel,
+  .dashboard-command-card,.dashboard-info-card,.dashboard-update-card,
+  .library-page-hero,.library-page-toolbar,.library-page-empty,.library-card,
+  .character-library-card,.campaign-library-card
+) {
+  background-color: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  box-shadow: none !important;
+}
+
+#root :where(
+  .rqk-auth-feature-card,
+  .dashboard-info-card,
+  .dashboard-update-card,
+  .library-card,
+  .character-library-card,
+  .campaign-library-card
+) {
+  background-color: #102B40 !important;
+}
+
+#root :where(input,textarea,select) {
+  background: #081B2A !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.20) !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+#root :where(input,textarea)::placeholder {
+  color: rgba(255,255,255,.62) !important;
+  -webkit-text-fill-color: rgba(255,255,255,.62) !important;
+}
+
+#root :where(input,textarea,select,button,a,[role='button']):focus-visible {
+  outline: 1px solid #FF2DAA !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+#root :where(
+  .btn-primary,.rq-button-primary,.dashboard-primary-button,
+  .rqk-auth-primary,[data-rqk-primary='true']
+) {
+  background: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid #FF2DAA !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+#root :where(
+  .btn-primary,.rq-button-primary,.dashboard-primary-button,
+  .rqk-auth-primary,[data-rqk-primary='true']
+):hover {
+  background: #102B40 !important;
+  border-color: #FF2DAA !important;
+}
+
+#root :where(
+  .rqk-app-rail-link.is-active,
+  .tab.active,
+  [aria-selected='true']
+) {
+  background: rgba(124,203,255,.10) !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
+}
+
+#root :where(
+  .rqk-app-rail-link svg,
+  .rqk-auth-feature-icon,
+  .rqk-auth-preview-dot
+) {
+  color: #7CCBFF !important;
+}
+
+#root :where(
+  .rqk-app-topbar,
+  .rqk-app-rail,
+  .rqk-app-mobile-more-panel,
+  .campaign-dashboard-header
+) {
+  background-image: none !important;
+  box-shadow: none !important;
 }
