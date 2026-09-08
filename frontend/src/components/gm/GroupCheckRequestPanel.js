@@ -6,15 +6,17 @@ import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDispl
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const theme = {
-  bg: '#242424',
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  red: '#d00000',
-  text: '#ffffff',
-  soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.55)',
-  line: 'rgba(255,255,255,0.16)',
-  lineStrong: 'rgba(255,255,255,0.26)',
+  bg: '#071522',
+  panel: '#0C2234',
+  card: '#102B40',
+  pink: '#FF2DAA',
+  blue: '#7CCBFF',
+  red: '#FF2DAA',
+  text: '#FFFFFF',
+  soft: '#FFFFFF',
+  muted: '#FFFFFF',
+  line: 'rgba(255,45,170,0.18)',
+  lineStrong: 'rgba(255,45,170,0.42)',
 };
 
 const QUICK_CHECKS = [
@@ -163,23 +165,23 @@ export default function GroupCheckRequestPanel({ campaignId, players = [] }) {
   );
 }
 
-const shellStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.18), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `7px solid ${theme.red}`, color: theme.text, padding: 10, display: 'grid', gap: 10, fontFamily: fontStack, boxShadow: '0 18px 54px rgba(0,0,0,0.22)' };
+const shellStyle = { background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.pink}`, color: theme.text, padding: 10, display: 'grid', gap: 10, fontFamily: fontStack, boxShadow: 'none' };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' };
 const titleBlockStyle = { display: 'flex', alignItems: 'flex-start', gap: 10, minWidth: 0 };
-const iconStyle = { width: 36, height: 36, display: 'grid', placeItems: 'center', background: theme.red, color: theme.text, boxShadow: '0 0 28px rgba(208,0,0,0.24)' };
+const iconStyle = { width: 36, height: 36, display: 'grid', placeItems: 'center', background: theme.card, color: theme.blue, border: `1px solid ${theme.line}`, boxShadow: 'none' };
 const eyebrowStyle = { margin: 0, color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: '1px 0 3px', color: theme.text, fontSize: 18, fontWeight: 950, lineHeight: 1.08 };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeight: 1.35, maxWidth: 780 };
 const bodyStyle = { display: 'grid', gap: 9 };
 const checkGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 7 };
-const checkButtonStyle = (active) => ({ minHeight: 46, display: 'grid', gap: 2, textAlign: 'left', border: `1px solid ${active ? theme.red : theme.line}`, background: active ? theme.red : theme.card, color: theme.text, padding: '7px 9px', cursor: 'pointer', fontFamily: fontStack, boxShadow: active ? '0 14px 34px rgba(208,0,0,0.22)' : 'none' });
+const checkButtonStyle = (active) => ({ minHeight: 46, display: 'grid', gap: 2, textAlign: 'left', border: `1px solid ${active ? theme.pink : theme.line}`, background: active ? 'rgba(124,203,255,0.10)' : theme.card, color: theme.text, padding: '7px 9px', cursor: 'pointer', fontFamily: fontStack, boxShadow: 'none' });
 const controlRowStyle = { display: 'grid', gridTemplateColumns: '120px minmax(180px, 1fr) auto', gap: 7, alignItems: 'end' };
 const fieldStyle = { display: 'grid', gap: 4, color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const inputStyle = { minHeight: 36, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: '0 8px', outline: 'none', fontFamily: fontStack };
-const primaryButtonStyle = { minHeight: 36, border: 0, background: theme.red, color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const primaryButtonStyle = { minHeight: 36, border: `1px solid ${theme.pink}`, background: theme.card, color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const summaryStyle = { minHeight: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 10px', background: theme.bg, border: `1px solid ${theme.line}`, color: theme.text, fontSize: 12, fontWeight: 950, textTransform: 'uppercase' };
-const playerGridStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', maxHeight: 116, overflowY: 'auto', padding: 8, background: 'rgba(0,0,0,0.18)', border: `1px solid ${theme.line}` };
-const playerPillStyle = (active) => ({ minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${active ? theme.red : theme.line}`, background: active ? theme.red : theme.bg, color: theme.text, padding: '0 9px', fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack });
+const playerGridStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', maxHeight: 116, overflowY: 'auto', padding: 8, background: theme.bg, border: `1px solid ${theme.line}` };
+const playerPillStyle = (active) => ({ minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${active ? theme.pink : theme.line}`, background: active ? 'rgba(124,203,255,0.10)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack });
 const mutedStyle = { margin: 0, color: theme.muted, fontSize: 12 };
 
 if (typeof document !== 'undefined' && !document.getElementById('rqk-group-check-request-css')) {
@@ -188,7 +190,7 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-group-check
   style.textContent = `
     [data-testid="group-check-request-panel"] button { transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease; }
     [data-testid="group-check-request-panel"] button:hover { transform: translateY(-1px); filter: brightness(1.08); }
-    [data-testid="group-check-request-panel"] button span { color: rgba(255,255,255,0.72); font-size: 11px; }
+    [data-testid="group-check-request-panel"] button span { color: #FFFFFF; font-size: 11px; }
     @media (max-width: 720px) { [data-testid="group-check-request-panel"] div[style*="grid-template-columns: 120px"] { grid-template-columns: 1fr !important; } }
   `;
   document.head.appendChild(style);
