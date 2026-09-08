@@ -1,105 +1,103 @@
 /**
- * ROOK shared design theme.
- * Sunset Gradient: very dark blue-purple backgrounds, deep panels,
- * white text, sunset-gradient actions, and meaningful state colours.
- * Import via: import { theme } from '@/lib/theme';
+ * Rookie Quest Keeper 1.0 shared theme.
+ * Flat deep navy surfaces, flat white type, light-blue secondary UI,
+ * and neon-pink hairline accents. No gradients or glow effects.
  */
 
 export const theme = {
-  // Backgrounds
   bg: {
-    primary: 'var(--rq-bg-main)',
-    surface: 'var(--rq-bg-panel)',
-    elevated: 'var(--rq-card-hover)',
-    deep: 'rgba(7, 7, 19, 0.92)',
-    panel: 'var(--rq-bg-panel)',
-    card: 'var(--rq-bg-panel-alt)',
+    primary: 'var(--rq-bg-main, #071522)',
+    surface: 'var(--rq-bg-panel, #0C2234)',
+    elevated: 'var(--rq-card-hover, #14344C)',
+    deep: 'var(--rq-bg-rail, #06111C)',
+    panel: 'var(--rq-bg-panel, #0C2234)',
+    card: 'var(--rq-bg-panel-alt, #102B40)',
   },
-  // Text
   text: {
-    primary: 'var(--rq-text-primary)',
-    secondary: 'var(--rq-text-secondary)',
-    muted: 'var(--rq-text-muted)',
-    accent: 'var(--rq-accent-primary)'
+    primary: '#FFFFFF',
+    secondary: '#FFFFFF',
+    muted: '#FFFFFF',
+    accent: '#FFFFFF',
   },
-  // Accents - sunset-gradient theme
   accent: {
-    primary: 'var(--rq-accent-primary)',
-    hover: 'var(--rq-accent-hover)',
-    soft: 'var(--rq-accent-soft)',
-    line: 'var(--rq-accent-border)',
-    secondary: 'var(--rq-accent-active)',
-    highlight: 'var(--rq-accent-hover)',
-    pink: 'var(--rq-accent-primary)'
+    primary: 'var(--rq-accent-primary, #FF2DAA)',
+    hover: 'var(--rq-accent-primary, #FF2DAA)',
+    soft: 'var(--rq-accent-soft, rgba(255,45,170,0.08))',
+    line: 'var(--rq-accent-border, rgba(255,45,170,0.28))',
+    secondary: 'var(--rq-secondary, #7CCBFF)',
+    highlight: 'var(--rq-secondary, #7CCBFF)',
+    pink: 'var(--rq-accent-primary, #FF2DAA)',
   },
-  // Borders use subtle pale/sunset tint
-  border: 'var(--rq-border-default)',
-  borderActive: 'var(--rq-accent-primary)',
-  // State colors (kept meaningful)
-  success: 'var(--rq-success, #7A9B66)',
-  danger: 'var(--rq-danger, #B44732)',
-  warning: 'var(--rq-warning, #D4953C)',
-  // Legacy compatibility shims (so existing `theme.sunset.xxx` lookups keep rendering)
+  border: 'var(--rq-border-default, rgba(255,45,170,0.18))',
+  borderActive: 'var(--rq-accent-primary, #FF2DAA)',
+  success: 'var(--rq-secondary, #7CCBFF)',
+  danger: 'var(--rq-accent-primary, #FF2DAA)',
+  warning: '#FFFFFF',
+
+  // Compatibility aliases for older components. These deliberately resolve to
+  // flat RQK 1.0 colours so legacy lookups cannot restore the old palette.
   sunset: {
-    purple: 'var(--rq-accent-active)',
-    pink: 'var(--rq-accent-primary)',
-    gold: 'var(--rq-accent-hover)'
+    purple: 'var(--rq-secondary, #7CCBFF)',
+    pink: 'var(--rq-accent-primary, #FF2DAA)',
+    gold: 'var(--rq-secondary, #7CCBFF)',
   },
-  gradient: 'var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542))',
-  glow: '0 12px 34px rgba(255, 79, 129, 0.20)',
-  player:  { primary: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-hover)', secondary: 'var(--rq-accent-active)' },
-  gm:      { primary: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-hover)', secondary: 'var(--rq-accent-active)' },
+  gradient: 'var(--rq-accent-primary, #FF2DAA)',
+  glow: 'none',
+  player: {
+    primary: 'var(--rq-accent-primary, #FF2DAA)',
+    hover: 'var(--rq-secondary, #7CCBFF)',
+    secondary: 'var(--rq-secondary, #7CCBFF)',
+  },
+  gm: {
+    primary: 'var(--rq-accent-primary, #FF2DAA)',
+    hover: 'var(--rq-secondary, #7CCBFF)',
+    secondary: 'var(--rq-secondary, #7CCBFF)',
+  },
 };
 
-/** Common panel style: dark panel surface + subtle outline. */
 export const panelStyle = {
   background: theme.bg.surface,
   border: `1px solid ${theme.accent.line}`,
-  borderRadius: 10,
+  borderRadius: 7,
   padding: 16,
+  boxShadow: 'none',
 };
 
 export const buttonStyle = {
-  background: theme.gradient,
-  border: `1px solid ${theme.accent.hover}`,
-  borderRadius: 8,
-  color: 'var(--rq-text-primary, #ffffff)',
+  background: theme.bg.card,
+  border: `1px solid ${theme.accent.primary}`,
+  borderRadius: 5,
+  color: '#FFFFFF',
   padding: '8px 14px',
   fontWeight: 800,
   cursor: 'pointer',
+  boxShadow: 'none',
 };
 
-/**
- * Per-class accent palette - subtle border / icon tint within Sunset Gradient.
- * `tint` = used as a soft border-shadow / left-border accent
- * `icon` = used for the class crest dot next to character name + section headers
- */
+const BLUE = { tint: 'rgba(124,203,255,0.24)', icon: '#7CCBFF' };
+const PINK = { tint: 'rgba(255,45,170,0.22)', icon: '#FF2DAA' };
+
 export const CLASS_ACCENTS = {
-  Barbarian: { tint: 'rgba(255, 149, 66, 0.34)',  icon: '#ff9542', label: 'Barbarian' },
-  Bard:      { tint: 'rgba(216, 77, 241, 0.34)', icon: '#d84df1', label: 'Bard' },
-  Cleric:    { tint: 'rgba(255, 255, 255, 0.28)',icon: '#ffffff', label: 'Cleric' },
-  Druid:     { tint: 'rgba(122, 155, 102, 0.42)', icon: '#7A9B66', label: 'Druid' },
-  Fighter:   { tint: 'rgba(255, 79, 129, 0.34)',icon: '#ff4f81', label: 'Fighter' },
-  Monk:      { tint: 'rgba(255, 149, 66, 0.30)', icon: '#ff9542', label: 'Monk' },
-  Paladin:   { tint: 'rgba(255, 255, 255, 0.32)', icon: '#ffffff', label: 'Paladin' },
-  Ranger:    { tint: 'rgba(122, 155, 102, 0.40)',  icon: '#7A9B66', label: 'Ranger' },
-  Rogue:     { tint: 'rgba(115, 87, 255, 0.34)',   icon: '#7357ff', label: 'Rogue' },
-  Sorcerer:  { tint: 'rgba(235, 63, 233, 0.34)', icon: '#eb3fe9', label: 'Sorcerer' },
-  Warlock:   { tint: 'rgba(115, 87, 255, 0.38)', icon: '#7357ff', label: 'Warlock' },
-  Wizard:    { tint: 'rgba(216, 77, 241, 0.34)', icon: '#d84df1', label: 'Wizard' },
+  Barbarian: { ...PINK, label: 'Barbarian' },
+  Bard:      { ...BLUE, label: 'Bard' },
+  Cleric:    { ...BLUE, label: 'Cleric' },
+  Druid:     { ...BLUE, label: 'Druid' },
+  Fighter:   { ...PINK, label: 'Fighter' },
+  Monk:      { ...BLUE, label: 'Monk' },
+  Paladin:   { ...PINK, label: 'Paladin' },
+  Ranger:    { ...BLUE, label: 'Ranger' },
+  Rogue:     { ...PINK, label: 'Rogue' },
+  Sorcerer:  { ...PINK, label: 'Sorcerer' },
+  Warlock:   { ...BLUE, label: 'Warlock' },
+  Wizard:    { ...BLUE, label: 'Wizard' },
 };
 
-/**
- * Helper: returns class accent object for a character (handles multiclass — picks primary class).
- * Falls back to sunset-gradient accent when class is unknown.
- */
 export function getClassAccent(character) {
-  if (!character) return { tint: theme.border, icon: theme.accent.primary, label: '' };
-  // Multiclass: pick the highest-level class as primary
+  if (!character) return { tint: theme.border, icon: theme.accent.secondary, label: '' };
   const ml = character.multiclass_levels || character.class_levels;
   let primary = character.character_class;
   if (ml && Object.keys(ml).length > 1) {
     primary = Object.entries(ml).sort((a, b) => b[1] - a[1])[0][0];
   }
-  return CLASS_ACCENTS[primary] || { tint: theme.border, icon: theme.accent.primary, label: primary || '' };
+  return CLASS_ACCENTS[primary] || { tint: theme.border, icon: theme.accent.secondary, label: primary || '' };
 }
