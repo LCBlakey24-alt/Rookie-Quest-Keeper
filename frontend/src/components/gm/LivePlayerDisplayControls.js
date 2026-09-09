@@ -19,9 +19,9 @@ const theme = {
   pink: 'var(--rq-primary, #FF2DAA)',
   blue: 'var(--rq-secondary, #7CCBFF)',
   red: 'var(--rq-primary, #FF2DAA)',
-  text: '#FFFFFF',
-  soft: '#FFFFFF',
-  muted: '#FFFFFF',
+  text: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
 };
 
 const DISPLAY_TARGETS = [

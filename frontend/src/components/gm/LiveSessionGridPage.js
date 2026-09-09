@@ -34,11 +34,11 @@ const GMHandoutsTab = React.lazy(() => import('@/components/tabs/HandoutsTab').t
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
-  bg: { primary: '#071522', surface: '#0C2234', elevated: '#102B40', panel: '#0C2234', card: '#102B40', hover: '#14344C' },
-  accent: { primary: '#FF2DAA', secondary: '#7CCBFF', gold: '#7CCBFF', orange: '#FF2DAA', hover: '#FF2DAA', subtle: 'rgba(255,45,170,0.08)', glow: 'none', gm: '#FF2DAA', gmSubtle: 'rgba(255,45,170,0.08)' },
-  text: { primary: '#FFFFFF', secondary: '#FFFFFF', muted: '#FFFFFF' },
-  border: 'rgba(255,45,170,0.18)',
-  gradient: '#FF2DAA',
+  bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', hover: 'var(--rq-card-hover)' },
+  accent: { primary: 'var(--rq-accent-primary)', secondary: 'var(--rq-secondary)', gold: 'var(--rq-secondary)', orange: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-primary)', subtle: 'var(--rq-accent-soft)', glow: 'none', gm: 'var(--rq-accent-primary)', gmSubtle: 'var(--rq-accent-soft)' },
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)',
+  gradient: 'var(--rq-card)',
 };
 
 export default function LiveSessionGridPage() {

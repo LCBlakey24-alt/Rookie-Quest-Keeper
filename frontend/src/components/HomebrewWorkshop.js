@@ -29,7 +29,7 @@ import ImageUploadPanel from '@/components/ImageUploadPanel';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
-const rq = { bg: '#071522', panel: '#0C2234', card: '#102B40', pink: '#FF2DAA', blue: '#7CCBFF', red: '#FF2DAA', text: '#FFFFFF', soft: '#FFFFFF', muted: '#FFFFFF', line: 'rgba(255,45,170,0.18)', warn: '#7CCBFF' };
+const rq = { bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)', text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)', warn: 'var(--rq-accent-primary)' };
 
 const TYPES = [
   { key: 'subclass', label: 'Subclass', icon: BookOpen, help: 'Create subclass features tied to a parent class, including resources, actions, and scaling.' },

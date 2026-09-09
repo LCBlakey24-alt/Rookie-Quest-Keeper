@@ -33,18 +33,18 @@ import apiClient from '@/lib/apiClient';
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const rq = {
-  bg: '#071522',
-  panel: '#0C2234',
-  card: '#102B40',
-  input: '#081B2A',
-  line: 'rgba(255,45,170,0.18)',
-  lineStrong: 'rgba(255,45,170,0.42)',
-  accent: '#FF2DAA',
-  accentHover: '#FF2DAA',
-  blue: '#7CCBFF',
-  text: '#FFFFFF',
-  muted: '#FFFFFF',
-  soft: '#FFFFFF',
+  bg: 'var(--rq-bg-main)',
+  panel: 'var(--rq-bg-panel)',
+  card: 'var(--rq-card)',
+  input: 'var(--rq-bg-input)',
+  line: 'var(--rq-border-default)',
+  lineStrong: 'var(--rq-border-strong)',
+  accent: 'var(--rq-accent-primary)',
+  accentHover: 'var(--rq-accent-primary)',
+  blue: 'var(--rq-secondary)',
+  text: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
 };
 
 const LOCATION_TYPES = [

@@ -14,6 +14,15 @@
 /* Important declarations in a layer outrank legacy unlayered !important rules,
  * even when a lazy-loaded tool mounts later. Include portal controls as well. */
 @layer rq-controls {
+  :where(#root, [role='dialog'], [role='alertdialog']) :where(h1, h2, h3, h4, h5, h6, p, span, label, small, strong, em, li, dt, dd, a, th, td, legend, summary) {
+    color: var(--rq-text-primary) !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: none !important;
+  }
+  :where(#root, [role='dialog'], [role='alertdialog']) :where([style*='linear-gradient('], [style*='radial-gradient('], [class*='bg-gradient-']) {
+    background-image: none !important;
+    background-color: var(--rq-bg-panel) !important;
+  }
   :where(button, input, textarea, select, [role='button'], [role='tab'], [role='menuitem']) {
     color: var(--rq-text-primary) !important;
     -webkit-text-fill-color: currentColor !important;

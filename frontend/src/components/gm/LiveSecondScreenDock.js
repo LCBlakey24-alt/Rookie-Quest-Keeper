@@ -8,16 +8,16 @@ import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
-  panel: '#0C2234',
-  card: '#102B40',
-  bg: '#071522',
-  line: 'rgba(255,45,170,0.18)',
-  pink: '#FF2DAA',
-  blue: '#7CCBFF',
-  red: '#FF2DAA',
-  text: '#FFFFFF',
-  soft: '#FFFFFF',
-  muted: '#FFFFFF',
+  panel: 'var(--rq-bg-panel)',
+  card: 'var(--rq-card)',
+  bg: 'var(--rq-bg-main)',
+  line: 'var(--rq-border-default)',
+  pink: 'var(--rq-accent-primary)',
+  blue: 'var(--rq-secondary)',
+  red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
 };
 
 function imageFrom(item) {

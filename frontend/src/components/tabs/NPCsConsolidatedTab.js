@@ -6,8 +6,8 @@ import QuickNpcGenerator from '../gm/QuickNpcGenerator';
 
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
-  bg: '#071522', panel: '#0C2234', card: '#102B40', text: '#FFFFFF',
-  soft: '#FFFFFF', primary: '#FF2DAA', blue: '#7CCBFF', border: 'rgba(255,45,170,0.18)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', text: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)', primary: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', border: 'var(--rq-border-default)',
 };
 
 function NPCsConsolidatedTab({ campaignId }) {

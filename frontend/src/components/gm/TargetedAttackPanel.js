@@ -2,9 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { Check, Dices, Shield, Swords, Target, X } from 'lucide-react';
 
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
-  text: '#ffffff', soft: 'rgba(255,255,255,0.76)', muted: 'rgba(255,255,255,0.56)', line: 'rgba(255,255,255,0.16)',
-  green: '#22c55e', danger: '#ef4444', amber: '#f59e0b',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
+  green: 'var(--rq-secondary)', danger: 'var(--rq-accent-primary)', amber: 'var(--rq-accent-primary)',
 };
 
 function numberOr(value, fallback = 0) {

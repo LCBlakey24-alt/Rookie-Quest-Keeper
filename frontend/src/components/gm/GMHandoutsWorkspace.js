@@ -4,9 +4,9 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
-  bg: '#071522', panel: '#0C2234', card: '#102B40',
-  pink: '#FF2DAA', blue: '#7CCBFF', red: '#FF2DAA', good: '#7CCBFF',
-  text: '#FFFFFF', soft: '#FFFFFF', muted: '#FFFFFF', line: 'rgba(255,45,170,0.18)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)',
+  pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)', good: 'var(--rq-secondary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
 };
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const CATEGORIES = ['lore', 'secret', 'clue', 'letter', 'map', 'item', 'recap', 'other'];
