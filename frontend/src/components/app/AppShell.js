@@ -13,10 +13,14 @@ import '@/styles/appShellExperiencePolish.css';
 import '@/layouts/desktop/appShell.css';
 import '@/layouts/tablet/appShell.css';
 import '@/layouts/mobile/appShell.css';
+import { isLocalPreview } from '@/preview/previewMode';
+import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
+import '@/preview/previewWorkspace.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
   { label: 'Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
+  { label: 'Player home', to: '/player', icon: UsersRound, matches: ['/player'], mobilePrimary: false },
   { label: 'Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'], mobilePrimary: true },
   { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
   { label: 'Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
@@ -230,10 +234,10 @@ export default function AppShell({ children }) {
 
       <div className="rqk-app-workspace">
         <header className="rqk-app-topbar" aria-label="Workspace controls">
-          <div className="rqk-app-topbar-title">
+          {isLocalPreview() ? <PreviewWorkspaceControls /> : <div className="rqk-app-topbar-title">
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
-          </div>
+          </div>}
         </header>
 
         <div className="rqk-app-shell-content">

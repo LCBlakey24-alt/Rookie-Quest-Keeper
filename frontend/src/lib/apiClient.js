@@ -4,6 +4,8 @@ import { clearAuthToken, getAuthToken } from '@/lib/auth';
 import { readOfflineApiResponse, storeOfflineApiResponse } from '@/offline/offlineApiCache';
 
 import { formatApiErrorDetail } from '@/lib/apiErrors';
+import { isLocalPreview } from '@/preview/previewMode';
+import { previewAdapter } from '@/preview/previewTransport';
 
 const LEGACY_ACCOUNT_ROUTES = {
   'get:/account/profile': { method: 'get', url: '/auth/me' },
@@ -25,6 +27,7 @@ export function applyLoginTimeoutPolicy(config = {}) {
 }
 
 export async function wakeBackend() {
+  if (isLocalPreview()) return false;
   if (typeof fetch !== 'function') return false;
   try {
     await fetch(`${API_BASE}/health`, { method: 'GET', cache: 'no-store' });
@@ -45,6 +48,7 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((incomingConfig) => {
+  if (isLocalPreview()) return { ...incomingConfig, adapter: previewAdapter };
   let config = applyLegacyApiCompatibility(incomingConfig);
   config = applyLoginTimeoutPolicy(config);
   const token = getAuthToken();
@@ -55,6 +59,7 @@ apiClient.interceptors.request.use((incomingConfig) => {
 
 apiClient.interceptors.response.use(
   (response) => {
+    if (isLocalPreview()) return response;
     storeOfflineApiResponse(response.config, response).catch(() => {});
     return response;
   },

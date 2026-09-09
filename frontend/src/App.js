@@ -23,6 +23,7 @@ import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
+import { isLocalPreview, PREVIEW_USER } from '@/preview/previewMode';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
 
@@ -112,9 +113,10 @@ function ThemeRouter() {
   return null;
 }
 
-function AppRoutes() {
+export function AppRoutes() {
+  const preview = isLocalPreview();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
-  const [username, setUsername] = useState(() => localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const [username, setUsername] = useState(() => preview ? PREVIEW_USER : localStorage.getItem(AUTH_USERNAME_KEY) || '');
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
     setAuthToken(token);
@@ -123,26 +125,27 @@ function AppRoutes() {
   }, []);
 
   const handleLogout = useCallback(() => {
+    if (isLocalPreview()) { window.location.assign('/home'); return; }
     setAuthToken('');
     setUsername('');
     setIsAuthenticated(false);
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || preview) return;
     apiClient.get('/auth/me').catch(() => handleLogout());
-  }, [isAuthenticated, handleLogout]);
+  }, [isAuthenticated, handleLogout, preview]);
 
   return (
     <>
       <ThemeRouter />
-      <ImpersonationBanner />
+      {!preview && <ImpersonationBanner />}
       <GlobalActionFillEffects />
       <GlobalScrollRecovery />
       <Routes>
         <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
         <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
-        <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />

@@ -1,0 +1,6 @@
+#root .rqk-app-topbar:has(.rqk-preview-controls) { height: auto !important; min-height: 72px !important; padding: 12px 20px !important; }
+.rqk-preview-controls { display: flex; width: 100%; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; color: white; }
+.rqk-preview-controls strong { display: block; font-size: 1rem; }
+.rqk-preview-controls span { display: block; font-size: .875rem; line-height: 1.5; margin-top: 4px; }
+.rqk-preview-controls nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.rqk-preview-controls a, .rqk-preview-controls button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 12px; font-size: .875rem; background: var(--rq-card); color: white; border: 1px solid var(--rq-border-strong); border-radius: 5px; text-decoration: none; cursor: pointer; }

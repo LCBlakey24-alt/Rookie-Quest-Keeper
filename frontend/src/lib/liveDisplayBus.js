@@ -1,3 +1,4 @@
+import { isLocalPreview } from '@/preview/previewMode';
 import { BACKEND_URL } from '@/lib/api';
 import { getAuthToken } from '@/lib/auth';
 
@@ -328,7 +329,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
 
   const connectSocket = () => {
     if (cancelled) return;
-    if (!runtimeWindow.WebSocket) {
+    if (isLocalPreview() || !runtimeWindow.WebSocket) {
       startPolling();
       return;
     }
