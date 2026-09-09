@@ -62,7 +62,9 @@
   }
 }
 
-:root {
+:root,
+html[data-theme='gm'],
+html[data-theme='player'] {
   --rq-bg: #071522;
   --rq-bg-main: #071522;
   --rq-bg-deep: #06111C;
@@ -133,10 +135,11 @@ html[data-theme='player'] {
   --rq-app-red-soft: var(--rq-primary-soft);
 }
 
+/* Floating tools are siblings of the page under #root. Do not give those
+ * containers a page-height minimum or an opaque page background. */
 html,
 body,
-#root,
-#root > div {
+#root {
   min-height: 100%;
   background: var(--rq-bg) !important;
   background-image: none !important;
@@ -931,7 +934,6 @@ html[data-theme='player'] .character-page-v2.clean-sheet-page {
 html,
 body,
 #root,
-#root > div,
 .App {
   background-color: #071522 !important;
   background-image: none !important;
