@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
   MapPin,
   Milestone,
   Plus,
+  RefreshCw,
   Save,
   Search,
   Skull,
@@ -27,17 +28,11 @@ import {
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const theme = {
-  bg: '#071522',
-  panel: '#0C2234',
-  card: '#102B40',
-  input: '#081B2A',
-  text: '#FFFFFF',
-  muted: '#FFFFFF',
-  soft: '#FFFFFF',
-  line: 'rgba(255,45,170,0.18)',
-  lineStrong: 'rgba(255,45,170,0.42)',
-  primary: '#FF2DAA',
-  blue: '#7CCBFF',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)',
+  card: 'var(--rq-card)', input: 'var(--rq-bg-input)',
+  text: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)',
+  line: 'var(--rq-border-default)', lineStrong: 'var(--rq-border-strong)',
+  primary: 'var(--rq-accent-primary)', warn: 'var(--rq-accent-primary)',
 };
 
 const EVENT_TYPES = [
@@ -66,39 +61,96 @@ function typeDetails(typeId) {
   return EVENT_TYPES.find(type => type.id === typeId) || EVENT_TYPES[0];
 }
 
+function normaliseEvent(event) {
+  if (!event || typeof event !== 'object' || Array.isArray(event)) {
+    throw new Error('Invalid timeline event');
+  }
+  return {
+    ...event,
+    type: event.type || event.event_type || 'session',
+    in_game_date: event.in_game_date || '',
+    created_at: event.created_at || event.timestamp || '',
+  };
+}
+
 function sortEvents(events) {
   return [...events].sort((a, b) => {
     const sessionA = Number(a.session_number) || 0;
     const sessionB = Number(b.session_number) || 0;
     if (sessionB !== sessionA) return sessionB - sessionA;
-    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    return new Date(b.created_at || b.timestamp || 0).getTime() - new Date(a.created_at || a.timestamp || 0).getTime();
   });
 }
 
-export default function SessionTimeline({ campaignId }) {
+function parseTimelinePayload(data) {
+  const rawEvents = Array.isArray(data) ? data : data?.events;
+  if (!Array.isArray(rawEvents)) throw new Error('Invalid timeline response');
+  return sortEvents(rawEvents.map(normaliseEvent));
+}
+
+function timelineError(error, fallback) {
+  return error?.formattedDetail || error?.response?.data?.detail || fallback;
+}
+
+export default function SessionTimeline({ campaignId, readOnly = false }) {
+  return <CampaignTimeline key={`${campaignId}:${readOnly}`} campaignId={campaignId} readOnly={readOnly} />;
+}
+
+function CampaignTimeline({ campaignId, readOnly }) {
+  const mountedRef = useRef(true);
+  const mutationRef = useRef(false);
+  const loadRequestRef = useRef(0);
   const [events, setEvents] = useState([]);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [newEvent, setNewEvent] = useState(emptyEvent);
+  const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
-    fetchEvents();
+    mountedRef.current = true;
+    setEvents([]);
+    setEventsLoaded(false);
+    setLoadError('');
+    setShowAddForm(false);
+    setFilter('all');
+    setSearchTerm('');
+    setNewEvent(emptyEvent);
+    setDeletingId(null);
+    fetchEvents({ notifyFailure: false });
+    return () => { mountedRef.current = false; loadRequestRef.current += 1; };
   }, [campaignId]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = async ({ notifyFailure = true } = {}) => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await apiClient.get(`/campaigns/${campaignId}/timeline`);
-      const nextEvents = Array.isArray(response.data?.events) ? response.data.events : [];
-      setEvents(sortEvents(nextEvents));
-    } catch {
-      setEvents([]);
+      const response = await apiClient.get(readOnly ? '/player/timeline' : `/campaigns/${campaignId}/timeline`);
+      const nextEvents = parseTimelinePayload(response.data).filter(event => !readOnly || event.campaign_id === campaignId);
+      if (requestId !== loadRequestRef.current) return { ok: false, stale: true };
+      setEvents(nextEvents);
+      setEventsLoaded(true);
+      setLoadError('');
+      return { ok: true };
+    } catch (error) {
+      if (requestId !== loadRequestRef.current) return { ok: false, stale: true };
+      const message = timelineError(error, 'Could not load the campaign timeline.');
+      setLoadError(message);
+      if (notifyFailure) toast.error(message);
+      return { ok: false, error };
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestRef.current) setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    const result = await fetchEvents();
+    if (result.ok) toast.success('Timeline refreshed');
   };
 
   const filteredEvents = useMemo(() => {
@@ -140,6 +192,7 @@ export default function SessionTimeline({ campaignId }) {
   };
 
   const handleAddEvent = async () => {
+    if (readOnly || mutationRef.current) return;
     if (!newEvent.title.trim()) {
       toast.error('Add a timeline title first');
       return;
@@ -150,47 +203,66 @@ export default function SessionTimeline({ campaignId }) {
       title: newEvent.title.trim(),
       description: newEvent.description.trim(),
       in_game_date: newEvent.in_game_date.trim(),
-      campaign_id: campaignId,
-      created_at: new Date().toISOString(),
     };
 
+    mutationRef.current = true;
+    setSaving(true);
     try {
       const response = await apiClient.post(`/campaigns/${campaignId}/timeline`, eventData);
-      setEvents(prev => sortEvents([...prev, response.data]));
+      if (!mountedRef.current) return;
+      const savedEvent = normaliseEvent(response.data);
+      if (!savedEvent.id || !savedEvent.title) throw new Error('Invalid timeline save response');
+      loadRequestRef.current += 1;
+      setLoading(false);
+      setEvents(prev => sortEvents([...prev.filter(event => event.id !== savedEvent.id), savedEvent]));
+      setEventsLoaded(true);
+      setLoadError('');
       toast.success('Timeline event saved');
-    } catch {
-      const localEvent = { id: Date.now().toString(), ...eventData };
-      setEvents(prev => sortEvents([...prev, localEvent]));
-      toast.info('Timeline event added locally');
-    } finally {
       resetForm();
+    } catch (error) {
+      if (mountedRef.current) toast.error(timelineError(error, 'Timeline event was not saved. Your draft is still here.'));
+    } finally {
+      mutationRef.current = false;
+      if (mountedRef.current) setSaving(false);
     }
   };
 
   const handleDeleteEvent = async (eventId) => {
+    if (readOnly || mutationRef.current) return;
     if (deletingId !== eventId) {
       setDeletingId(eventId);
-      setTimeout(() => setDeletingId(null), 5000);
+      setTimeout(() => setDeletingId(current => current === eventId ? null : current), 5000);
       return;
     }
 
+    mutationRef.current = true;
+    setSaving(true);
     try {
       await apiClient.delete(`/campaigns/${campaignId}/timeline/${eventId}`);
-      toast.success('Timeline event deleted');
-    } catch {
-      toast.info('Timeline event removed locally');
-    } finally {
+      if (!mountedRef.current) return;
+      loadRequestRef.current += 1;
+      setLoading(false);
       setEvents(prev => prev.filter(event => event.id !== eventId));
-      setDeletingId(null);
+      toast.success('Timeline event deleted');
+    } catch (error) {
+      if (mountedRef.current) toast.error(timelineError(error, 'Timeline event was not deleted.'));
+    } finally {
+      mutationRef.current = false;
+      if (mountedRef.current) { setDeletingId(null); setSaving(false); }
     }
   };
 
-  if (loading) {
+  if (loading && !eventsLoaded) {
     return <section style={loadingStyle}>Loading campaign timeline...</section>;
   }
 
   return (
-    <section style={shellStyle}>
+    <section style={shellStyle} data-testid="session-timeline">
+      {loadError && (
+        <div role="status" style={warningStyle} data-testid="timeline-load-warning">
+          {eventsLoaded ? 'Timeline refresh failed. Showing the last loaded events.' : 'Timeline could not be loaded. Retry before assuming it is empty.'}
+        </div>
+      )}
       <header style={headerStyle}>
         <div style={headerIconStyle}><Clock size={22} /></div>
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -198,10 +270,15 @@ export default function SessionTimeline({ campaignId }) {
           <h3 style={titleStyle}>Campaign Timeline</h3>
           <p style={subtitleStyle}>Track sessions, reveals, consequences, discoveries, losses, rewards, and world changes.</p>
         </div>
-        <Button onClick={() => setShowAddForm(prev => !prev)} style={primaryButtonStyle}>
-          {showAddForm ? <X size={16} /> : <Plus size={16} />}
-          {showAddForm ? 'Close' : 'Add Event'}
-        </Button>
+        <div style={headerActionsStyle}>
+          <Button onClick={handleRefresh} disabled={loading || saving} style={secondaryButtonStyle} data-testid="timeline-refresh-btn">
+            <RefreshCw size={16} /> {loading ? 'Refreshing…' : 'Refresh'}
+          </Button>
+          {!readOnly && <Button onClick={() => setShowAddForm(prev => !prev)} disabled={saving || !eventsLoaded} style={primaryButtonStyle}>
+            {showAddForm ? <X size={16} /> : <Plus size={16} />}
+            {showAddForm ? 'Close' : 'Add Event'}
+          </Button>}
+        </div>
       </header>
 
       <section style={statsStyle}>
@@ -210,7 +287,7 @@ export default function SessionTimeline({ campaignId }) {
         <Stat label="Sessions" value={new Set(events.map(event => event.session_number).filter(Boolean)).size} />
       </section>
 
-      {showAddForm && (
+      {!readOnly && showAddForm && (
         <section style={formPanelStyle}>
           <p style={formTitleStyle}>New Chronicle Event</p>
           <div style={topFormGridStyle}>
@@ -238,8 +315,8 @@ export default function SessionTimeline({ campaignId }) {
             <textarea value={newEvent.description} onChange={(event) => updateNewEvent('description', event.target.value)} placeholder="What happened, why does it matter, and what might come back later?" style={textareaStyle} />
           </label>
           <div style={formActionsStyle}>
-            <Button onClick={resetForm} style={secondaryButtonStyle}>Cancel</Button>
-            <Button onClick={handleAddEvent} style={primaryButtonStyle}><Save size={16} /> Save Event</Button>
+            <Button onClick={resetForm} disabled={saving} style={secondaryButtonStyle}>Cancel</Button>
+            <Button onClick={handleAddEvent} disabled={saving} style={primaryButtonStyle} data-testid="timeline-save-btn"><Save size={16} /> {saving ? 'Saving…' : 'Save Event'}</Button>
           </div>
         </section>
       )}
@@ -256,7 +333,13 @@ export default function SessionTimeline({ campaignId }) {
       </section>
 
       <section style={timelineStyle}>
-        {events.length === 0 ? (
+        {!eventsLoaded ? (
+          <div style={emptyStyle} data-testid="timeline-unavailable">
+            <RefreshCw size={38} />
+            <h4 style={emptyTitleStyle}>Timeline unavailable</h4>
+            <p style={emptyTextStyle}>The timeline has not loaded successfully, so this screen will not pretend the campaign has no history.</p>
+          </div>
+        ) : events.length === 0 ? (
           <div style={emptyStyle}>
             <Clock size={42} />
             <h4 style={emptyTitleStyle}>No timeline events yet</h4>
@@ -272,7 +355,7 @@ export default function SessionTimeline({ campaignId }) {
           Object.entries(groupedEvents)
             .sort(([a], [b]) => (Number(b) || 0) - (Number(a) || 0))
             .map(([session, sessionEvents]) => (
-              <SessionGroup key={session} session={session} events={sessionEvents} deletingId={deletingId} onDelete={handleDeleteEvent} onCancelDelete={() => setDeletingId(null)} />
+              <SessionGroup key={session} session={session} events={sessionEvents} deletingId={deletingId} onDelete={readOnly ? null : handleDeleteEvent} onCancelDelete={() => setDeletingId(null)} />
             ))
         )}
       </section>
@@ -295,7 +378,7 @@ function SessionGroup({ session, events, deletingId, onDelete, onCancelDelete })
       <div style={{ minWidth: 0, flex: 1 }}>
         <h4 style={sessionTitleStyle}>{session === 'Unassigned' ? 'Unassigned Events' : `Session ${session}`}</h4>
         <div style={eventsListStyle}>
-          {events.map(event => <TimelineEvent key={event.id} event={event} deleting={deletingId === event.id} onDelete={() => onDelete(event.id)} onCancelDelete={onCancelDelete} />)}
+          {events.map(event => <TimelineEvent key={event.id} event={event} deleting={deletingId === event.id} onDelete={onDelete ? () => onDelete(event.id) : null} onCancelDelete={onCancelDelete} />)}
         </div>
       </div>
     </article>
@@ -313,7 +396,7 @@ function TimelineEvent({ event, deleting, onDelete, onCancelDelete }) {
       </div>
       <h5 style={eventTitleStyle}>{event.title}</h5>
       {event.description && <p style={eventDescriptionStyle}>{event.description}</p>}
-      <div style={eventActionsStyle}>
+      {onDelete && <div style={eventActionsStyle}>
         {deleting ? (
           <>
             <span style={deleteTextStyle}>Delete?</span>
@@ -323,19 +406,21 @@ function TimelineEvent({ event, deleting, onDelete, onCancelDelete }) {
         ) : (
           <button type="button" onClick={onDelete} style={smallButtonStyle}><Trash2 size={13} /> Delete</button>
         )}
-      </div>
+      </div>}
     </article>
   );
 }
 
 const shellStyle = { display: 'grid', gap: 14, background: theme.panel, border: `1px solid ${theme.line}`, padding: 16, fontFamily: fontStack };
 const loadingStyle = { minHeight: 180, display: 'grid', placeItems: 'center', color: theme.soft, background: theme.panel, border: `1px solid ${theme.line}`, fontFamily: fontStack };
+const warningStyle = { padding: '9px 10px', background: theme.card, border: `1px solid ${theme.warn}`, color: theme.text, fontSize: 14, fontWeight: 850, lineHeight: 1.4 };
 const headerStyle = { display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', borderBottom: `1px solid ${theme.line}`, paddingBottom: 14 };
 const headerIconStyle = { width: 44, height: 44, display: 'grid', placeItems: 'center', background: theme.bg, color: theme.text, borderLeft: `1px solid ${theme.primary}` };
-const eyebrowStyle = { margin: 0, color: theme.muted, fontSize: 11, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
+const eyebrowStyle = { margin: 0, color: theme.muted, fontSize: 14, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: '2px 0 5px', color: theme.text, fontSize: 25, fontWeight: 950, letterSpacing: '-0.02em' };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 14, lineHeight: 1.45 };
-const primaryButtonStyle = { minHeight: 40, border: `1px solid ${theme.primary}`, borderRadius: 5, background: theme.card, color: theme.text, padding: '0 13px', fontWeight: 950, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
+const headerActionsStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
+const primaryButtonStyle = { minHeight: 40, border: 0, borderRadius: 0, background: theme.card, color: theme.text, padding: '0 13px', fontWeight: 950, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 40, border: 0, borderRadius: 0, background: theme.card, color: theme.text, padding: '0 13px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', borderTop: `1px solid ${theme.line}`, borderBottom: `1px solid ${theme.line}` };
 const statStyle = { minHeight: 58, display: 'grid', alignContent: 'center', gap: 3, padding: '10px 12px', borderRight: `1px solid ${theme.line}`, color: theme.text };
@@ -343,7 +428,7 @@ const formPanelStyle = { display: 'grid', gap: 12, background: theme.bg, borderL
 const formTitleStyle = { margin: 0, color: theme.text, fontSize: 15, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const topFormGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 };
 const fieldStyle = { display: 'grid', gap: 6 };
-const labelStyle = { color: theme.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 950 };
+const labelStyle = { color: theme.muted, fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 950 };
 const inputStyle = { minHeight: 42, width: '100%', background: theme.card, border: `1px solid ${theme.lineStrong}`, color: theme.text, borderRadius: 0, padding: '0 11px', fontFamily: fontStack, colorScheme: 'dark' };
 const textareaStyle = { width: '100%', minHeight: 100, background: theme.card, border: `1px solid ${theme.lineStrong}`, color: theme.text, borderRadius: 0, padding: 11, fontFamily: fontStack, lineHeight: 1.45, resize: 'vertical', colorScheme: 'dark' };
 const formActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', borderTop: `1px solid ${theme.line}`, paddingTop: 12 };
@@ -352,22 +437,22 @@ const searchWrapStyle = { position: 'relative' };
 const searchIconStyle = { position: 'absolute', top: '50%', left: 12, transform: 'translateY(-50%)', color: theme.muted, zIndex: 1 };
 const searchInputStyle = { ...inputStyle, paddingLeft: 38 };
 const filtersStyle = { display: 'flex', flexWrap: 'wrap', gap: 8 };
-const filterButtonStyle = (active) => ({ minHeight: 34, border: 0, borderRadius: 0, background: active ? 'rgba(124,203,255,0.10)' : theme.card, color: theme.text, border: `1px solid ${active ? theme.primary : theme.line}`, padding: '0 10px', fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack });
+const filterButtonStyle = (active) => ({ minHeight: 44, border: 0, borderRadius: 0, background: active ? 'var(--rq-secondary-soft)' : theme.card, color: theme.text, padding: '0 10px', fontSize: 14, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack });
 const timelineStyle = { display: 'grid', gap: 14, position: 'relative' };
 const emptyStyle = { display: 'grid', justifyItems: 'center', gap: 9, textAlign: 'center', background: theme.bg, border: `1px solid ${theme.line}`, padding: '42px 16px', color: theme.muted };
 const emptyTitleStyle = { margin: 0, color: theme.text, fontSize: 18, fontWeight: 950 };
 const emptyTextStyle = { margin: 0, color: theme.soft, lineHeight: 1.4, maxWidth: 460 };
 const sessionGroupStyle = { display: 'flex', gap: 12, alignItems: 'flex-start' };
-const sessionMarkerStyle = { width: 44, height: 44, display: 'grid', placeItems: 'center', flex: '0 0 auto', background: 'rgba(124,203,255,0.10)', border: `1px solid ${theme.primary}`, color: theme.text, fontWeight: 950, fontSize: 15 };
+const sessionMarkerStyle = { width: 44, height: 44, display: 'grid', placeItems: 'center', flex: '0 0 auto', background: theme.card, color: theme.text, fontWeight: 950, fontSize: 15 };
 const sessionTitleStyle = { margin: '0 0 10px', color: theme.text, fontSize: 17, fontWeight: 950 };
 const eventsListStyle = { display: 'grid', gap: 9 };
 const eventCardStyle = { background: theme.bg, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.primary}`, padding: 13 };
 const eventTopStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 7 };
-const eventTypeStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 950 };
-const dateStyle = { color: theme.muted, fontSize: 12, fontWeight: 850 };
+const eventTypeStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 950 };
+const dateStyle = { color: theme.muted, fontSize: 14, fontWeight: 850 };
 const eventTitleStyle = { margin: '0 0 6px', color: theme.text, fontSize: 16, fontWeight: 950 };
 const eventDescriptionStyle = { margin: 0, color: theme.soft, lineHeight: 1.5, whiteSpace: 'pre-wrap' };
 const eventActionsStyle = { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 7, flexWrap: 'wrap', borderTop: `1px solid ${theme.line}`, marginTop: 11, paddingTop: 9 };
-const smallButtonStyle = { minHeight: 32, border: 0, borderRadius: 0, background: theme.card, color: theme.text, padding: '0 9px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontFamily: fontStack };
-const dangerButtonStyle = { ...smallButtonStyle, background: theme.card, border: `1px solid ${theme.primary}` };
-const deleteTextStyle = { color: theme.muted, fontSize: 12, fontWeight: 900 };
+const smallButtonStyle = { minHeight: 44, border: 0, borderRadius: 0, background: theme.card, color: theme.text, padding: '0 9px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontFamily: fontStack };
+const dangerButtonStyle = { ...smallButtonStyle, background: theme.card };
+const deleteTextStyle = { color: theme.muted, fontSize: 14, fontWeight: 900 };
