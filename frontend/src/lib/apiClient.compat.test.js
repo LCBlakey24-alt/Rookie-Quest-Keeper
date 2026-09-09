@@ -1,4 +1,14 @@
-import { applyLegacyApiCompatibility, applyLoginTimeoutPolicy, wakeBackend } from './apiClient';
+import apiClient, { applyLegacyApiCompatibility, applyLoginTimeoutPolicy, wakeBackend } from './apiClient';
+
+test('spell-slot updates stay partial PATCH requests', async () => {
+  const adapter = jest.fn(async config => ({ data: {}, status: 200, headers: {}, config }));
+  await apiClient.patch('/characters/character-1', { spell_slots_remaining: { '1': 0 } }, { adapter });
+  expect(adapter).toHaveBeenCalledWith(expect.objectContaining({
+    method: 'patch',
+    url: '/characters/character-1',
+    data: JSON.stringify({ spell_slots_remaining: { '1': 0 } }),
+  }));
+});
 
 describe('legacy account API compatibility', () => {
   test.each([

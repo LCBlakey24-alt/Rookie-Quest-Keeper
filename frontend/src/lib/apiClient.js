@@ -5,34 +5,12 @@ import { readOfflineApiResponse, storeOfflineApiResponse } from '@/offline/offli
 
 import { formatApiErrorDetail } from '@/lib/apiErrors';
 
-const CHARACTER_PUT_ONLY_FIELDS = new Set([
-  'spell_slots_remaining',
-]);
-
 const LEGACY_ACCOUNT_ROUTES = {
   'get:/account/profile': { method: 'get', url: '/auth/me' },
   'put:/account/update': { method: 'patch', url: '/auth/me' },
   'post:/account/change-password': { method: 'post', url: '/auth/change-password' },
   'delete:/account/delete': { method: 'delete', url: '/auth/me' },
 };
-
-function parseBody(data) {
-  if (!data) return {};
-  if (typeof data === 'string') {
-    try { return JSON.parse(data); } catch { return {}; }
-  }
-  return typeof data === 'object' ? data : {};
-}
-
-function shouldUseCharacterPut(config) {
-  const method = String(config?.method || '').toLowerCase();
-  const url = String(config?.url || '');
-  if (method !== 'patch') return false;
-  if (!/^\/characters\/[^/]+$/.test(url)) return false;
-
-  const body = parseBody(config.data);
-  return Object.keys(body).some(key => CHARACTER_PUT_ONLY_FIELDS.has(key));
-}
 
 export function applyLegacyApiCompatibility(config = {}) {
   const key = `${String(config.method || 'get').toLowerCase()}:${String(config.url || '')}`;
@@ -71,10 +49,6 @@ apiClient.interceptors.request.use((incomingConfig) => {
   config = applyLoginTimeoutPolicy(config);
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
-
-  if (shouldUseCharacterPut(config)) {
-    config.method = 'put';
-  }
 
   return config;
 });

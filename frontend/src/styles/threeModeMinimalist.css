@@ -1,7 +1,7 @@
 /*
  * Rookie Quest Keeper — one visual system, three deliberate layouts.
  *
- * Palette: navy background, white text, red accent.
+ * Palette: navy background, sky blue secondary, hot pink lines, white text.
  * Breakpoints come from deviceLayout.js:
  *   mobile  <= 719px
  *   tablet  720px - 1180px
@@ -10,6 +10,48 @@
  * This file intentionally loads last. It replaces the previous overlapping
  * shell/theme guardrails and is the final authority for the signed-in frame.
  */
+
+/* Important declarations in a layer outrank legacy unlayered !important rules,
+ * even when a lazy-loaded tool mounts later. Include portal controls as well. */
+@layer rq-controls {
+  :where(button, input, textarea, select, [role='button'], [role='tab'], [role='menuitem']) {
+    color: var(--rq-text-primary) !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+  }
+  :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]) {
+    background-color: var(--rq-card) !important;
+    border-color: var(--rq-line-strong) !important;
+  }
+  :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]):hover {
+    background-color: var(--rq-card-hover) !important;
+  }
+  :where([role='tab'][data-state='active'], [aria-selected='true'], [aria-pressed='true']) {
+    background-color: var(--rq-secondary-soft) !important;
+    border-color: var(--rq-accent-primary) !important;
+  }
+  :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']), textarea, select) {
+    background-color: var(--rq-bg-input) !important;
+    border-color: var(--rq-line-strong) !important;
+  }
+  :where([role='dialog'], [role='alertdialog'], [role='menu'], [role='listbox'], [data-sonner-toast]) {
+    background: var(--rq-bg-panel) !important;
+    color: var(--rq-text-primary) !important;
+    border-color: var(--rq-line-strong) !important;
+    box-shadow: none !important;
+  }
+  :where([role='dialog'], [role='alertdialog'], [role='menu'], [role='listbox'], [data-sonner-toast]) * {
+    color: var(--rq-text-primary) !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: none !important;
+  }
+  :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--rq-secondary) !important;
+    outline-offset: 2px !important;
+  }
+}
 
 :root {
   --rq-bg: #071522;
@@ -144,7 +186,7 @@ body {
   .dashboard-primary-button,
   [data-rqk-primary='true']
 ) {
-  background: var(--rq-primary) !important;
+  background: var(--rq-card) !important;
   background-image: none !important;
   border-color: var(--rq-primary) !important;
   color: #fff !important;
