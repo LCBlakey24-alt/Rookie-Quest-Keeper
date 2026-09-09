@@ -9,7 +9,7 @@ export default function PlayerCharactersPanel({ characters, onCreateCharacter, o
       {characters.length === 0 ? (
         <PlayerNoContentPanel
           title="No characters yet"
-          message="Create a character with Full Creator, start quick with Basic Creator, or ask Rook Character Matchmaker to suggest a hero."
+          message="Create a character to get started, or import an existing sheet from My Characters."
           buttonLabel="Create Character"
           onButtonClick={onCreateCharacter}
         />

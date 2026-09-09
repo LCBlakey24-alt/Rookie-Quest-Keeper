@@ -61,7 +61,7 @@ const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/Campaign
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
 const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
-const MobilePlayerCampaignView = lazyWithChunkRetry(() => import('@/components/MobilePlayerCampaignView'));
+const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/PlayerCampaignPage'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
@@ -152,7 +152,8 @@ function AppRoutes() {
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/mobile/:campaignId" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
+        <Route path="/player/campaign/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/mobile/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <Navigate to="/auth" replace />} />
         <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
         <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <Navigate to="/auth" replace />} />

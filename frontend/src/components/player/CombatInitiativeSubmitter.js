@@ -4,8 +4,11 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
 const theme = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
-  text: '#ffffff', muted: 'rgba(255,255,255,.72)', soft: 'rgba(255,255,255,.55)', line: 'rgba(255,255,255,.16)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', input: 'var(--rq-bg-input)',
+  text: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)',
+  line: 'var(--rq-border-default)', lineStrong: 'var(--rq-border-strong)',
+  red: 'var(--rq-accent-primary)', accent: 'var(--rq-accent-primary)',
+  good: 'var(--rq-secondary)', warn: 'var(--rq-accent-primary)',
 };
 
 export default function CombatInitiativeSubmitter({ campaignId, compact = false }) {
@@ -113,15 +116,15 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
   );
 }
 
-const shellStyle = { background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `5px solid ${theme.red}`, color: theme.text, display: 'grid', gap: 8 };
+const shellStyle = { background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.red}`, color: theme.text, display: 'grid', gap: 8 };
 const headerStyle = { display: 'flex', gap: 8, alignItems: 'center' };
-const iconWrapStyle = { width: 32, height: 32, background: 'rgba(208,0,0,.14)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 32px' };
+const iconWrapStyle = { width: 32, height: 32, background: 'var(--rq-secondary-soft)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 32px' };
 const titleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 950 };
-const subtitleStyle = { display: 'block', marginTop: 1, color: theme.soft, fontSize: 9 };
+const subtitleStyle = { display: 'block', marginTop: 1, color: theme.soft, fontSize: 14 };
 const iconButtonStyle = { width: 30, height: 30, border: `1px solid ${theme.line}`, background: theme.bg, color: theme.muted, display: 'grid', placeItems: 'center', cursor: 'pointer' };
 const controlsStyle = { display: 'grid', gridTemplateColumns: 'minmax(80px,1fr) auto auto', gap: 5, alignItems: 'end' };
-const fieldStyle = { display: 'grid', gap: 2, color: theme.soft, fontSize: 8, fontWeight: 900, textTransform: 'uppercase' };
+const fieldStyle = { display: 'grid', gap: 2, color: theme.soft, fontSize: 14, fontWeight: 900, textTransform: 'uppercase' };
 const inputStyle = { width: '100%', minWidth: 0, height: 36, boxSizing: 'border-box', background: theme.bg, border: `1px solid ${theme.line}`, color: theme.text, padding: '0 8px', fontSize: 13 };
-const submitStyle = { height: 36, border: 0, background: theme.red, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 950 };
-const rollStyle = { height: 36, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 900 };
-const statusStyle = { color: theme.soft, fontSize: 9, lineHeight: 1.35 };
+const submitStyle = { height: 36, border: 0, background: theme.red, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 14, fontWeight: 950 };
+const rollStyle = { height: 36, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 14, fontWeight: 900 };
+const statusStyle = { color: theme.soft, fontSize: 14, lineHeight: 1.35 };

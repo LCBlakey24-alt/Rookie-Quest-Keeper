@@ -1,4 +1,4 @@
-/* Player dashboard board theme: off-black surfaces, white text, red left rails. */
+/* Player dashboard board theme: navy surfaces, white text, sky blue secondary colour and thin pink lines. */
 
 .player-dashboard-page {
   min-height: 100vh;
@@ -16,8 +16,8 @@
 .player-dashboard-tab-shell {
   background: var(--rq-bg-panel, #101010);
   border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  border-left: 5px solid var(--rq-accent-primary, #d00000);
-  border-radius: 0;
+  border-left: 1px solid var(--rq-accent-primary, #d00000);
+  border-radius: 7px;
   box-shadow: none;
 }
 
@@ -63,10 +63,10 @@
 
 .player-dashboard-eyebrow {
   margin: 0;
-  color: var(--rq-accent-hover, #ff3b3b);
+  color: var(--rq-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 900;
 }
 
@@ -77,7 +77,7 @@
 }
 
 .player-dashboard-action-button {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex !important;
   align-items: center;
   gap: 8px;
@@ -103,11 +103,11 @@
 .player-join-strip label {
   color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   font-weight: 800;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .player-join-strip select {
-  min-height: 40px;
+  min-height: 44px;
   min-width: 220px;
   background: var(--rq-bg-input, #0b0b0b) !important;
   color: var(--rq-text-primary, #ffffff);
@@ -147,12 +147,12 @@
   align-items: flex-start;
   background: var(--rq-bg-card, #0d0d0d);
   border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  border-radius: 0;
+  border-radius: 7px;
   padding: 12px;
 }
 
 .player-dashboard-summary-icon {
-  color: var(--rq-accent-hover, #ff3b3b);
+  color: var(--rq-text-primary);
 }
 
 .player-dashboard-summary-copy {
@@ -162,7 +162,7 @@
 .player-dashboard-summary-copy p {
   margin: 0;
   color: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
-  font-size: 11px;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 900;
@@ -181,7 +181,7 @@
 .player-dashboard-summary-copy span {
   display: block;
   color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
-  font-size: 12px;
+  font-size: 14px;
   margin-top: 2px;
 }
 
@@ -213,7 +213,7 @@
 .player-dashboard-tab-active {
   background: var(--rq-bg-panel, #101010) !important;
   color: var(--rq-text-primary, #ffffff);
-  border-left: 4px solid var(--rq-accent-primary, #d00000);
+  border-left: 1px solid var(--rq-accent-primary, #d00000);
 }
 
 .player-dashboard-tab-content {
@@ -222,15 +222,15 @@
 
 .player-dashboard-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: 14px;
 }
 
 .player-dashboard-card {
   background: var(--rq-bg-card, #0d0d0d) !important;
   border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
-  border-left: 4px solid var(--rq-accent-primary, #d00000) !important;
-  border-radius: 0 !important;
+  border-left: 1px solid var(--rq-accent-primary, #d00000) !important;
+  border-radius: 7px !important;
   box-shadow: none !important;
 }
 
@@ -252,8 +252,8 @@
 .player-dashboard-empty-state {
   background: var(--rq-bg-card, #0d0d0d);
   border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  border-left: 4px solid var(--rq-accent-primary, #d00000);
-  border-radius: 0;
+  border-left: 1px solid var(--rq-accent-primary, #d00000);
+  border-radius: 7px;
   padding: 24px;
   text-align: center;
 }
@@ -261,7 +261,7 @@
 /* Buttons and inputs */
 .player-dashboard-page .btn-primary,
 .player-dashboard-page .btn-outline {
-  border-radius: 0 !important;
+  border-radius: 7px !important;
   box-shadow: none !important;
   background-image: none !important;
 }
@@ -279,7 +279,7 @@
 }
 
 .player-dashboard-page select {
-  border-radius: 0 !important;
+  border-radius: 7px !important;
 }
 
 .player-dashboard-loading.loading-screen {
@@ -341,3 +341,6 @@
     grid-template-columns: 1fr;
   }
 }
+
+.player-dashboard-tab-list { height: auto; }
+.player-dashboard-tab[data-state="active"] { border-color: var(--rq-accent-primary); }

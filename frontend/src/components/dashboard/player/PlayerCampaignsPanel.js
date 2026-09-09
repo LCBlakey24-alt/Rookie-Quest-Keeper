@@ -20,9 +20,9 @@ export default function PlayerCampaignsPanel({ campaigns, onJoinCampaign, onOpen
               <p className="player-dashboard-eyebrow">{campaign.member_role ? 'Joined Campaign' : 'Campaign'}</p>
               <h2>{campaign.name || 'Linked Campaign'}</h2>
               <p>
-                {campaign.description || campaign.from_character
+                {campaign.description || (campaign.from_character
                   ? `Linked via ${campaign.from_character || 'your character'}`
-                  : 'Campaign linked to your player account.'}
+                  : 'Campaign linked to your player account.')}
               </p>
             </div>
             <Button onClick={() => onOpenCampaign(campaign)} className="btn-outline player-dashboard-action-button">

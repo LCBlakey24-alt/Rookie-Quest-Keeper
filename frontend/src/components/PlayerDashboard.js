@@ -195,12 +195,12 @@ export default function PlayerDashboard() {
           <PlayerCampaignsPanel
             campaigns={linkedCampaigns}
             onJoinCampaign={openJoinFlow}
-            onOpenCampaign={(campaign) => navigate(`/campaign/${campaign.id}`)}
+            onOpenCampaign={(campaign) => navigate(`/player/campaign/${campaign.id}`)}
           />
         )}
 
         {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
-        {activeTab === 'handouts' && <PlayerHandoutsPanel />}
+        {activeTab === 'handouts' && <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />}
       </PlayerDashboardTabs>
 
       <JoinCampaignModal

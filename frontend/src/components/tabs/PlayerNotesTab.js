@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,34 +26,42 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
 
-function PlayerNotesTab({ campaigns = [] }) {
+function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
+  const requestRef = useRef(0);
+  const [loadError, setLoadError] = useState('');
   const [sessionRecaps, setSessionRecaps] = useState([]);
   const [playerNotes, setPlayerNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
-  const [noteForm, setNoteForm] = useState({ title: '', content: '', campaign_id: '' });
+  const [noteForm, setNoteForm] = useState({ title: '', content: '', campaign_id: campaignId });
   const [saving, setSaving] = useState(false);
   const [expandedRecaps, setExpandedRecaps] = useState({});
 
+  const fetchData = useCallback(async () => {
+    const request = ++requestRef.current;
+    setLoading(true);
+    const results = await Promise.allSettled([
+      apiClient.get('/player/session-recaps'), apiClient.get('/player/notes'),
+    ]);
+    if (request !== requestRef.current) return;
+    const failures = [];
+    results.forEach((result, index) => {
+      if (result.status !== 'fulfilled' || !Array.isArray(result.value.data)) {
+        failures.push(index === 0 ? 'session recaps' : 'notes');
+        return;
+      }
+      const rows = result.value.data.filter(row => row && (!campaignId || row.campaign_id === campaignId));
+      (index === 0 ? setSessionRecaps : setPlayerNotes)(rows);
+    });
+    setLoadError(failures.length ? `Could not refresh ${failures.join(' and ')}. Previously loaded entries remain visible.` : '');
+    setLoading(false);
+  }, [campaignId]);
+
   useEffect(() => {
     fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [recapsRes, notesRes] = await Promise.all([
-        apiClient.get('/player/session-recaps'),
-        apiClient.get('/player/notes')
-      ]);
-      setSessionRecaps(recapsRes.data);
-      setPlayerNotes(notesRes.data);
-    } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load notes');
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => { requestRef.current += 1; };
+  }, [fetchData]);
 
   const handleSaveNote = async (e) => {
     e.preventDefault();
@@ -80,7 +88,7 @@ function PlayerNotesTab({ campaigns = [] }) {
       }
       setShowNoteDialog(false);
       setEditingNote(null);
-      setNoteForm({ title: '', content: '', campaign_id: '' });
+      setNoteForm({ title: '', content: '', campaign_id: campaignId });
       fetchData();
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save note');
@@ -119,10 +127,10 @@ function PlayerNotesTab({ campaigns = [] }) {
 
   const resetNoteForm = () => {
     setEditingNote(null);
-    setNoteForm({ title: '', content: '', campaign_id: '' });
+    setNoteForm({ title: '', content: '', campaign_id: campaignId });
   };
 
-  if (loading) {
+  if (loading && !sessionRecaps.length && !playerNotes.length) {
     return (
       <div className="loading-screen" style={{ minHeight: '400px' }}>
         <div className="loading-spinner"></div>
@@ -132,18 +140,20 @@ function PlayerNotesTab({ campaigns = [] }) {
 
   return (
     <div style={{ padding: '24px 0' }}>
+      {loadError && <div role="status" style={{ border: `1px solid ${rq.accent}`, padding: 16, marginBottom: 16 }}>{loadError}</div>}
+      <Button onClick={fetchData} disabled={loading}>Refresh notes</Button>
       <section style={{ marginBottom: '48px' }}>
         <SectionTitle icon={Scroll} title="Session Recaps" count={sessionRecaps.length} />
 
         {sessionRecaps.length === 0 ? (
-          <EmptyCard icon={Scroll} title="No Session Recaps Yet" text="When your Game Master drafts a session recap, it will automatically appear here." />
+          <EmptyCard icon={Scroll} title={loadError.includes('session recaps') ? 'Session recaps could not be confirmed' : 'No Session Recaps Yet'} text="Recaps shared by your Game Master appear here." />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {sessionRecaps.map(recap => (
               <Card key={recap.id} data-testid={`session-recap-${recap.id}`} style={cardStyle}>
                 <div style={topBarStyle} />
                 <CardContent style={{ padding: '20px' }}>
-                  <div style={clickHeaderStyle} onClick={() => toggleRecapExpanded(recap.id)}>
+                  <div style={clickHeaderStyle}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <span style={campaignBadgeStyle}>
@@ -156,7 +166,7 @@ function PlayerNotesTab({ campaigns = [] }) {
                         <span style={metaItemStyle}><User size={14} />From: {recap.created_by}</span>
                       </div>
                     </div>
-                    <Button className="btn-icon" style={{ padding: '8px' }}>
+                    <Button className="btn-icon" style={{ padding: '8px' }} aria-label="Toggle recap" aria-expanded={Boolean(expandedRecaps[recap.id])} onClick={() => toggleRecapExpanded(recap.id)}>
                       {expandedRecaps[recap.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                     </Button>
                   </div>
@@ -185,7 +195,7 @@ function PlayerNotesTab({ campaigns = [] }) {
         </div>
 
         {playerNotes.length === 0 ? (
-          <EmptyCard icon={FileText} title="No Personal Notes Yet" text="Create your own notes to track character ideas, session thoughts, or anything else!">
+          <EmptyCard icon={FileText} title={loadError.includes('notes') ? 'Notes could not be confirmed' : 'No Personal Notes Yet'} text="Create your own notes to track character ideas, session thoughts, or anything else!">
             <Button onClick={() => { resetNoteForm(); setShowNoteDialog(true); }} className="btn-primary">
               <Plus size={18} style={{ marginRight: '8px' }} />
               Create First Note
@@ -236,7 +246,7 @@ function PlayerNotesTab({ campaigns = [] }) {
               <Input value={noteForm.title} onChange={(e) => setNoteForm(prev => ({ ...prev, title: e.target.value }))} placeholder="Note title..." className="input" data-testid="note-title-input" />
             </div>
 
-            {!editingNote && campaigns.length > 0 && (
+            {!editingNote && !campaignId && campaigns.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
                 <FormLabel text="Link to Campaign (optional)" />
                 <select value={noteForm.campaign_id} onChange={(e) => setNoteForm(prev => ({ ...prev, campaign_id: e.target.value }))} className="input" style={selectStyle} data-testid="note-campaign-select">
