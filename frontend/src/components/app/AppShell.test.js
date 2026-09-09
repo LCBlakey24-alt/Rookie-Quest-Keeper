@@ -1,6 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import apiClient from '@/lib/apiClient';
 import AppShell from './AppShell';
 
 jest.mock('react-router-dom', () => ({
@@ -17,6 +18,10 @@ jest.mock('@/styles/railFeedbackButtons.css', () => ({}), { virtual: true });
 
 describe('AppShell', () => {
   const originalWidth = window.innerWidth;
+
+  beforeEach(() => {
+    apiClient.get.mockResolvedValue({ data: { is_admin: false } });
+  });
 
   afterEach(() => {
     window.innerWidth = originalWidth;
