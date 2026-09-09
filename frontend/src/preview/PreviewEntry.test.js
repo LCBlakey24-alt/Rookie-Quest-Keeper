@@ -10,7 +10,7 @@ jest.mock('@/components/AuthPage', () => () => <div>Sign in screen</div>);
 jest.mock('@/components/RookGlobalAssistant', () => () => null);
 jest.mock('@/components/FloatingDiceRoller', () => () => null);
 jest.mock('@/components/GlobalFeedbackButton', () => () => null);
-jest.mock('@/components/GlobalScrollRecovery', () => () => null);
+jest.mock('@/components/ui/GlobalScrollRecovery', () => () => null);
 jest.mock('@/components/ui/GlobalActionFillEffects', () => () => null);
 
 // Keep theme switching independent of this route/authentication integration test.
