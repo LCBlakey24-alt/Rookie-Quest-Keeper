@@ -13,6 +13,7 @@ import { combineLinkedCampaigns } from '@/components/dashboard/player/playerDash
 import {
   describePlayerDashboardFailures,
   fetchPlayerDashboardSections,
+  fetchPlayerHandoutSummary,
 } from '@/components/dashboard/player/playerDashboardData';
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
@@ -86,11 +87,10 @@ export default function PlayerDashboard() {
 
   const loadPlayerData = useCallback(async ({ notifyFailure = true } = {}) => {
     try {
-      const result = await fetchPlayerDashboardSections(apiClient);
+      const result = await fetchPlayerDashboardSections(apiClient, { includeHandouts: false });
 
       if (result.characters !== null) setCharacters(result.characters);
       if (result.campaigns !== null) setCampaigns(result.campaigns);
-      if (result.handoutSummary !== null) setHandoutSummary(result.handoutSummary);
 
       if (result.ok) {
         setLoadWarning('');
@@ -114,9 +114,20 @@ export default function PlayerDashboard() {
     }
   }, []);
 
+  const refreshHandouts = useCallback(async () => {
+    try {
+      const summary = await fetchPlayerHandoutSummary(apiClient);
+      setHandoutSummary(summary);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
     loadPlayerData();
-  }, [loadPlayerData]);
+    refreshHandouts();
+  }, [loadPlayerData, refreshHandouts]);
 
   useEffect(() => {
     if (characters.length === 0) {
@@ -131,8 +142,9 @@ export default function PlayerDashboard() {
   const refresh = async () => {
     setRefreshing(true);
     try {
-      const result = await loadPlayerData();
-      if (result.ok) toast.success('Player dashboard refreshed');
+      const [result, handoutsOk] = await Promise.all([loadPlayerData(), refreshHandouts()]);
+      if (result.ok && handoutsOk) toast.success('Player dashboard refreshed');
+      else if (result.ok) toast.warning('Dashboard refreshed, but the received-handout count could not update.');
     } finally {
       setRefreshing(false);
     }
@@ -148,6 +160,11 @@ export default function PlayerDashboard() {
     }
 
     setJoinOpen(true);
+  };
+
+  const refreshAfterJoin = () => {
+    loadPlayerData();
+    refreshHandouts();
   };
 
   if (loading) return <PlayerDashboardLoading />;
@@ -221,7 +238,7 @@ export default function PlayerDashboard() {
         characterName={selectedCharacter?.name || 'Selected character'}
         open={joinOpen}
         onOpenChange={setJoinOpen}
-        onSuccess={() => loadPlayerData()}
+        onSuccess={refreshAfterJoin}
       />
     </main>
   );
