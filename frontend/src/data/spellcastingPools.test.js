@@ -17,7 +17,7 @@ describe('source-aware spellcasting pools', () => {
       pactMagic: { slots: 4, level: 5 },
     });
 
-    expect(pool).toMatchObject({ available: true, level: 5, total: 3, current: 1, restore: 'short-rest' });
+    expect(pool).toMatchObject({ available: true, level: 5, total: 3, current: 1, restore: 'short-rest', legacy: false });
   });
 
   test('falls back to derived pact pool for older characters', () => {
@@ -26,6 +26,24 @@ describe('source-aware spellcasting pools', () => {
       level: 3,
       total: 2,
       current: 2,
+      legacy: false,
+    });
+  });
+
+  test('hydrates spent legacy Pact Magic from legacy spell slot remaining state', () => {
+    const pool = getPactMagicPool({
+      spell_slots: { 3: 2 },
+      spell_slots_remaining: { 3: 1 },
+    }, {
+      pactMagic: { slots: 2, level: 3 },
+    });
+
+    expect(pool).toMatchObject({
+      available: true,
+      level: 3,
+      total: 2,
+      current: 1,
+      legacy: true,
     });
   });
 
