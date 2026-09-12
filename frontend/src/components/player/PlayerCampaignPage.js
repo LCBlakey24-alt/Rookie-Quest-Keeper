@@ -10,6 +10,7 @@ import { fetchPlayerHandoutSummary } from '@/components/dashboard/player/playerD
 import '@/styles/playerCampaign.css';
 import '@/styles/playerCampaignCharacterStatus.css';
 import '@/styles/playerCampaignTabBadge.css';
+import '@/styles/playerCampaignMembership.css';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
