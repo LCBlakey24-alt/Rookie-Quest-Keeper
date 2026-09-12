@@ -13,6 +13,17 @@ const toNumber = (value, fallback = 0) => {
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const hasItems = (value = {}) => Object.keys(value || {}).length > 0;
 
+function legacyPactRemaining(character = {}, derived = null) {
+  if (!derived) return null;
+  const level = String(toNumber(derived.level, 0));
+  const total = Math.max(0, toNumber(derived.slots, 0));
+  const saved = normaliseSpellSlots(character?.spell_slots || {});
+  const remaining = normaliseSpellSlots(character?.spell_slots_remaining || {});
+  const entries = Object.entries(saved).filter(([, count]) => toNumber(count, 0) > 0);
+  if (entries.length !== 1 || entries[0][0] !== level || toNumber(entries[0][1], 0) !== total) return null;
+  return clamp(toNumber(remaining[level], total), 0, total);
+}
+
 export function getPactMagicPool(character = {}, slotMath = {}) {
   const derived = slotMath?.pactMagic || null;
   const tracker = character?.resources?.pact_magic;
@@ -29,9 +40,10 @@ export function getPactMagicPool(character = {}, slotMath = {}) {
       toNumber(derived?.slots, 0),
     ),
   );
+  const legacyCurrent = hasTracker ? null : legacyPactRemaining(character, derived);
   const current = clamp(
     toNumber(
-      hasTracker ? (tracker.current ?? tracker.remaining) : undefined,
+      hasTracker ? (tracker.current ?? tracker.remaining) : legacyCurrent,
       total,
     ),
     0,
@@ -45,6 +57,7 @@ export function getPactMagicPool(character = {}, slotMath = {}) {
     current,
     restore: String(hasTracker ? (tracker.restore || tracker.recovery || 'short-rest') : 'short-rest'),
     tracker: hasTracker ? tracker : null,
+    legacy: !hasTracker && legacyCurrent !== null,
   };
 }
 
