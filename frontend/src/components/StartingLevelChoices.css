@@ -80,7 +80,7 @@
   display: grid;
   align-content: center;
   justify-items: start;
-  gap: 2px;
+  gap: 3px;
   border: 1px solid var(--rqk-creator-line);
   border-radius: 5px;
   background: var(--rqk-creator-card);
@@ -114,7 +114,8 @@
 }
 
 .full-creator-toggle-option span,
-.full-creator-toggle-option small {
+.full-creator-toggle-option small,
+.full-creator-toggle-option em {
   color: #FFFFFF;
 }
 
@@ -124,9 +125,22 @@
   line-height: 1.2;
 }
 
+.full-creator-toggle-option em {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: .62rem;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.3;
+  opacity: .86;
+}
+
 .full-creator-toggle-option small {
   font-size: .6rem;
   line-height: 1.15;
+  font-weight: 850;
 }
 
 .full-creator-toggle-option.active small {
