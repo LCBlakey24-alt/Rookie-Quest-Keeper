@@ -58,6 +58,14 @@ export default function RookGlobalAssistant() {
     let active = true;
     setPageDataContext('');
 
+    // Rook is intentionally demand-loaded: campaign/character context is only
+    // hydrated after the user opens the assistant, not on every route visit.
+    if (!isOpen) {
+      return () => {
+        active = false;
+      };
+    }
+
     if (characterId) {
       apiClient.get(`/characters/${characterId}`)
         .then((response) => {
@@ -87,7 +95,7 @@ export default function RookGlobalAssistant() {
     return () => {
       active = false;
     };
-  }, [characterId, campaignId, playerFacingCampaign]);
+  }, [characterId, campaignId, isOpen, playerFacingCampaign]);
 
   useEffect(() => {
     const openRook = () => {
@@ -158,6 +166,12 @@ export default function RookGlobalAssistant() {
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 1200);
   };
+
+  // Character sheets already expose Rook as a dedicated rail tab. Keeping a
+  // second closed/minimised global launcher on top of that rail wastes scarce
+  // phone space and was visibly covering the sheet. The full global assistant
+  // can still be opened through the app's More menu/event when explicitly asked.
+  if (characterId && (!isOpen || isMinimized)) return null;
 
   if (!isOpen) {
     return (
@@ -314,5 +328,13 @@ export default function RookGlobalAssistant() {
   );
 }
 
-const modeTabsStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, padding: '6px 8px 0', background: 'var(--rook-panel, #242424)' };
-const modeTabStyle = active => ({ minHeight: 34, border: `1px solid ${active ? '#d00000' : 'rgba(255,255,255,.14)'}`, background: active ? 'rgba(208,0,0,.14)' : '#2f2f2f', color: active ? '#fff' : 'rgba(255,255,255,.58)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 900 });
+const modeTabsStyle = {
+  display: 'flex', gap: 5, padding: '8px 12px 0',
+};
+const modeTabStyle = (active) => ({
+  border: `1px solid ${active ? 'rgba(255,45,170,0.7)' : 'rgba(255,45,170,0.18)'}`,
+  background: active ? 'rgba(124,203,255,0.10)' : '#102B40',
+  color: '#FFFFFF',
+  padding: '5px 9px', borderRadius: 5, fontWeight: 800, fontSize: 11,
+  display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+});

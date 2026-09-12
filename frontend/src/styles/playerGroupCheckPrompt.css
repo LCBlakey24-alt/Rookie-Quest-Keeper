@@ -1,0 +1,120 @@
+.player-group-check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(143, 217, 255, 0.34);
+  border-left: 3px solid #8fd9ff;
+  background: #0b2234;
+  color: #fff;
+}
+
+.player-group-check__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 77, 166, 0.3);
+  background: #102d43;
+  color: #ff7fbc;
+}
+
+.player-group-check__copy {
+  min-width: 0;
+}
+
+.player-group-check__copy > span,
+.player-group-check__result span {
+  display: block;
+  color: #8fd9ff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.player-group-check__copy h3 {
+  margin: 2px 0 3px;
+  font-size: 1.05rem;
+  line-height: 1.15;
+}
+
+.player-group-check__copy p {
+  margin: 0;
+  color: #c8d9e6;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.player-group-check__roll {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid #ff4da6;
+  background: #13314a;
+  color: #fff;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.player-group-check__roll:hover:not(:disabled),
+.player-group-check__roll:focus-visible {
+  background: #193b57;
+  outline: 2px solid #8fd9ff;
+  outline-offset: 2px;
+}
+
+.player-group-check__roll:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.player-group-check__result {
+  min-width: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #9ce7bd;
+}
+
+.player-group-check__result div {
+  text-align: right;
+}
+
+.player-group-check__result strong {
+  display: block;
+  font-size: 1.45rem;
+  line-height: 1;
+  color: #fff;
+}
+
+.player-group-check__spin {
+  animation: rqk-player-check-spin 0.8s linear infinite;
+}
+
+@keyframes rqk-player-check-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 620px) {
+  .player-group-check {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .player-group-check__roll,
+  .player-group-check__result {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .player-group-check__result div {
+    text-align: left;
+  }
+}

@@ -4,8 +4,8 @@ import { X } from 'lucide-react';
 const theme = {
   accent: 'var(--rq-accent-primary, #C08A3D)',
   bg: { dark: 'var(--rq-bg-main, #120C08)', card: 'var(--rq-bg-panel-alt, #2E1D13)', panel: 'var(--rq-bg-panel, #21150E)' },
-  text: { white: 'var(--rq-text-primary, #F5E6C8)', secondary: 'var(--rq-text-muted, #CDBA98)', muted: '#8D7453' },
-  border: 'rgba(192, 138, 61, 0.22)'
+  text: { white: 'var(--rq-text-primary, #F5E6C8)', secondary: 'var(--rq-text-muted, #CDBA98)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)'
 };
 
 const shortcuts = [

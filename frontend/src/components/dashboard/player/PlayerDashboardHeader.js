@@ -24,7 +24,7 @@ export default function PlayerDashboardHeader({
           <p className="player-dashboard-eyebrow">Player Dashboard</p>
           <h1>Your Characters, Campaigns & Notes</h1>
           <p>
-            Create a character with Full Creator, Basic Creator, or Rook Character Matchmaker, then join a GM campaign and keep player-facing notes in one place.
+            Create or import a character, join your GM’s campaign, and keep your notes and handouts together.
           </p>
         </div>
       </div>

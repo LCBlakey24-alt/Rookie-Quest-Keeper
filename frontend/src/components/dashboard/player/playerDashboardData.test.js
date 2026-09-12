@@ -1,6 +1,7 @@
 import {
   describePlayerDashboardFailures,
   fetchPlayerDashboardSections,
+  fetchPlayerHandoutSummary,
   resolvePlayerDashboardSettledResults,
 } from './playerDashboardData';
 
@@ -23,6 +24,22 @@ describe('playerDashboardData', () => {
       campaigns: [{ id: 'c1', name: 'Joined copy' }, { id: 'c2', name: 'Joined campaign' }],
       handoutSummary: { total: 2, unread: 1, saved: 1 },
     });
+  });
+
+  test('hides removed and retired campaign memberships from the current player list', () => {
+    const result = resolvePlayerDashboardSettledResults([
+      fulfilled([]),
+      fulfilled([]),
+      fulfilled([
+        { id: 'active', name: 'Active', member_status: 'active' },
+        { id: 'pending', name: 'Pending', member_status: 'pending' },
+        { id: 'removed', name: 'Removed', member_status: 'removed' },
+        { id: 'retired', name: 'Retired', member_status: 'retired' },
+      ]),
+      fulfilled([]),
+    ]);
+
+    expect(result.campaigns.map(campaign => campaign.id)).toEqual(['active', 'pending']);
   });
 
   test('treats owned and joined campaign requests as one logical section', () => {
@@ -68,7 +85,7 @@ describe('playerDashboardData', () => {
     expect(result.handoutSummary).toBeNull();
   });
 
-  test('fetches every dashboard source independently', async () => {
+  test('fetches every dashboard source independently by default', async () => {
     const client = {
       get: jest.fn((path) => {
         if (path === '/characters') return Promise.resolve({ data: [] });
@@ -84,6 +101,61 @@ describe('playerDashboardData', () => {
     expect(client.get).toHaveBeenCalledTimes(4);
     expect(result.ok).toBe(false);
     expect(result.failures).toEqual(['campaigns']);
+  });
+
+  test('core dashboard load does not wait for the handout collection', async () => {
+    const client = {
+      get: jest.fn((path) => {
+        if (path === '/characters') return Promise.resolve({ data: [] });
+        if (path === '/campaigns') return Promise.resolve({ data: [] });
+        if (path === '/campaign-invites/joined/list') return Promise.resolve({ data: [] });
+        return Promise.reject(new Error(`Unexpected path ${path}`));
+      }),
+    };
+
+    const result = await fetchPlayerDashboardSections(client, { includeHandouts: false });
+
+    expect(client.get).toHaveBeenCalledTimes(3);
+    expect(client.get).not.toHaveBeenCalledWith('/player/handouts');
+    expect(result).toEqual({
+      ok: true,
+      failures: [],
+      characters: [],
+      campaigns: [],
+      handoutSummary: null,
+    });
+  });
+
+  test('handout summary uses the lightweight count endpoint after the dashboard is visible', async () => {
+    const client = {
+      get: jest.fn().mockResolvedValue({
+        data: { total: 3, unread: 2, saved: 1 },
+      }),
+    };
+
+    await expect(fetchPlayerHandoutSummary(client)).resolves.toEqual({ total: 3, unread: 2, saved: 1 });
+    expect(client.get).toHaveBeenCalledWith('/player/handouts/summary');
+  });
+
+  test('campaign handout summary sends a campaign filter', async () => {
+    const client = {
+      get: jest.fn().mockResolvedValue({
+        data: { total: 2, unread: 1, saved: 0 },
+      }),
+    };
+
+    await expect(fetchPlayerHandoutSummary(client, 'campaign-1')).resolves.toEqual({ total: 2, unread: 1, saved: 0 });
+    expect(client.get).toHaveBeenCalledWith('/player/handouts/summary', {
+      params: { campaign_id: 'campaign-1' },
+    });
+  });
+
+  test('rejects malformed handout summary data instead of showing fake zeroes', async () => {
+    const client = {
+      get: jest.fn().mockResolvedValue({ data: { total: 'many' } }),
+    };
+
+    await expect(fetchPlayerHandoutSummary(client)).rejects.toThrow('Malformed received handout summary response');
   });
 
   test('describes partial failures without claiming a full refresh succeeded', () => {

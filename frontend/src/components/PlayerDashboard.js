@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, BookOpen, FileText, Mail, Shield, Users } from 'lucide-react';
+import { AlertTriangle, BookOpen, FileText, Mail, MessageSquare, Shield, Users } from 'lucide-react';
 import PlayerDashboardHeader from '@/components/dashboard/player/PlayerDashboardHeader';
 import PlayerDashboardLoading from '@/components/dashboard/player/PlayerDashboardLoading';
 import PlayerJoinStrip from '@/components/dashboard/player/PlayerJoinStrip';
@@ -9,16 +9,39 @@ import PlayerDashboardContext from '@/components/dashboard/player/PlayerDashboar
 import PlayerDashboardTabs from '@/components/dashboard/player/PlayerDashboardTabs';
 import PlayerCharactersPanel from '@/components/dashboard/player/PlayerCharactersPanel';
 import PlayerCampaignsPanel from '@/components/dashboard/player/PlayerCampaignsPanel';
+import PlayerSuggestionBox from '@/components/dashboard/player/PlayerSuggestionBox';
 import { combineLinkedCampaigns } from '@/components/dashboard/player/playerDashboardUtils';
 import {
   describePlayerDashboardFailures,
   fetchPlayerDashboardSections,
+  fetchPlayerHandoutSummary,
 } from '@/components/dashboard/player/playerDashboardData';
 import apiClient from '@/lib/apiClient';
+import { isPlayerBeta } from '@/beta/playerBetaSession';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
-import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
-import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 import '@/styles/playerDashboardBoard.css';
+import '@/styles/playerHandoutsPanel.css';
+
+const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
+const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
+const ACTIVE_CHARACTER_KEY = 'rqk.player.active-character';
+
+function readRememberedCharacterId() {
+  try {
+    return localStorage.getItem(ACTIVE_CHARACTER_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function rememberCharacterId(characterId) {
+  try {
+    if (characterId) localStorage.setItem(ACTIVE_CHARACTER_KEY, characterId);
+    else localStorage.removeItem(ACTIVE_CHARACTER_KEY);
+  } catch {
+    // Storage can be unavailable in locked-down browsers; selection still works for this visit.
+  }
+}
 
 const tabs = [
   { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
@@ -29,13 +52,14 @@ const tabs = [
 
 export default function PlayerDashboard() {
   const navigate = useNavigate();
+  const playerBeta = isPlayerBeta();
   const [activeTab, setActiveTab] = useState('characters');
   const [characters, setCharacters] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
-  const [selectedCharacterId, setSelectedCharacterId] = useState('');
+  const [selectedCharacterId, setSelectedCharacterId] = useState(readRememberedCharacterId);
   const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
   const [loadWarning, setLoadWarning] = useState('');
 
@@ -46,7 +70,7 @@ export default function PlayerDashboard() {
 
   const dashboardTabs = useMemo(() => tabs.map((tab) => {
     if (tab.id !== 'handouts' || handoutSummary.unread <= 0) return tab;
-    return { ...tab, label: `Received (${handoutSummary.unread})` };
+    return { ...tab, badge: handoutSummary.unread };
   }), [handoutSummary.unread]);
 
   const activeTabMeta = useMemo(
@@ -84,11 +108,10 @@ export default function PlayerDashboard() {
 
   const loadPlayerData = useCallback(async ({ notifyFailure = true } = {}) => {
     try {
-      const result = await fetchPlayerDashboardSections(apiClient);
+      const result = await fetchPlayerDashboardSections(apiClient, { includeHandouts: false });
 
       if (result.characters !== null) setCharacters(result.characters);
       if (result.campaigns !== null) setCampaigns(result.campaigns);
-      if (result.handoutSummary !== null) setHandoutSummary(result.handoutSummary);
 
       if (result.ok) {
         setLoadWarning('');
@@ -112,25 +135,45 @@ export default function PlayerDashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    loadPlayerData();
-  }, [loadPlayerData]);
+  const refreshHandouts = useCallback(async () => {
+    try {
+      const summary = await fetchPlayerHandoutSummary(apiClient);
+      setHandoutSummary(summary);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
+    loadPlayerData();
+    refreshHandouts();
+  }, [loadPlayerData, refreshHandouts]);
+
+  useEffect(() => {
+    if (loading) return;
+
     if (characters.length === 0) {
       if (selectedCharacterId) setSelectedCharacterId('');
+      rememberCharacterId('');
       return;
     }
 
     const selectionStillExists = characters.some((character) => character.id === selectedCharacterId);
-    if (!selectionStillExists) setSelectedCharacterId(characters[0].id);
-  }, [characters, selectedCharacterId]);
+    if (!selectionStillExists) {
+      setSelectedCharacterId(characters[0].id);
+      return;
+    }
+
+    rememberCharacterId(selectedCharacterId);
+  }, [characters, loading, selectedCharacterId]);
 
   const refresh = async () => {
     setRefreshing(true);
     try {
-      const result = await loadPlayerData();
-      if (result.ok) toast.success('Player dashboard refreshed');
+      const [result, handoutsOk] = await Promise.all([loadPlayerData(), refreshHandouts()]);
+      if (result.ok && handoutsOk) toast.success('Player dashboard refreshed');
+      else if (result.ok) toast.warning('Dashboard refreshed, but the received-handout count could not update.');
     } finally {
       setRefreshing(false);
     }
@@ -148,17 +191,38 @@ export default function PlayerDashboard() {
     setJoinOpen(true);
   };
 
+  const refreshAfterJoin = () => {
+    loadPlayerData();
+    refreshHandouts();
+  };
+
+  const openFeedback = () => {
+    window.dispatchEvent(new Event('rook-feedback-open'));
+  };
+
   if (loading) return <PlayerDashboardLoading />;
 
   return (
     <main className="player-dashboard-page">
       <PlayerDashboardHeader
         refreshing={refreshing}
-        onBack={() => navigate('/home')}
+        onBack={() => navigate(playerBeta ? '/player' : '/home')}
         onRefresh={refresh}
         onCreateCharacter={() => navigate('/characters/new')}
         onJoinCampaign={openJoinFlow}
       />
+
+      {playerBeta && (
+        <aside data-testid="player-beta-notice" style={betaNoticeStyle}>
+          <div style={betaNoticeCopyStyle}>
+            <strong>PLAYER BETA</strong>
+            <span>Use RQK normally. If something breaks, feels confusing, or is missing, tell us — that feedback directly helps improve the player side.</span>
+          </div>
+          <button type="button" onClick={openFeedback} style={betaFeedbackButtonStyle}>
+            <MessageSquare size={16} aria-hidden="true" /> Report an issue
+          </button>
+        </aside>
+      )}
 
       {loadWarning && (
         <aside data-testid="player-dashboard-load-warning" role="status" style={loadWarningStyle}>
@@ -187,6 +251,7 @@ export default function PlayerDashboard() {
           <PlayerCharactersPanel
             characters={characters}
             onCreateCharacter={() => navigate('/characters/new')}
+            onImportCharacter={() => navigate('/characters/import')}
             onOpenCharacter={(character) => navigate(`/characters/${character.id}`)}
           />
         )}
@@ -195,32 +260,97 @@ export default function PlayerDashboard() {
           <PlayerCampaignsPanel
             campaigns={linkedCampaigns}
             onJoinCampaign={openJoinFlow}
-            onOpenCampaign={(campaign) => navigate(`/campaign/${campaign.id}`)}
+            onOpenCampaign={(campaign) => navigate(`/player/campaign/${campaign.id}`)}
           />
         )}
 
-        {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
-        {activeTab === 'handouts' && <PlayerHandoutsPanel />}
+        {activeTab === 'notes' && (
+          <Suspense fallback={<div style={tabLoadingStyle}>Loading notes…</div>}>
+            <PlayerNotesTab campaigns={linkedCampaigns} />
+          </Suspense>
+        )}
+        {activeTab === 'handouts' && (
+          <Suspense fallback={<div style={tabLoadingStyle}>Loading received handouts…</div>}>
+            <div className="player-handouts-surface">
+              <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />
+            </div>
+          </Suspense>
+        )}
       </PlayerDashboardTabs>
+
+      <PlayerSuggestionBox />
 
       <JoinCampaignModal
         characterId={selectedCharacter?.id}
         characterName={selectedCharacter?.name || 'Selected character'}
         open={joinOpen}
         onOpenChange={setJoinOpen}
-        onSuccess={() => loadPlayerData()}
+        onSuccess={refreshAfterJoin}
       />
     </main>
   );
 }
+
+const betaNoticeStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  flexWrap: 'wrap',
+  gap: 10,
+  padding: '11px 13px',
+  marginBottom: 10,
+  border: '1px solid rgba(124,203,255,.30)',
+  borderLeft: '2px solid #7CCBFF',
+  borderRadius: 6,
+  background: '#0C2234',
+  color: '#FFFFFF',
+};
+
+const betaNoticeCopyStyle = {
+  display: 'grid',
+  gap: 3,
+  minWidth: 0,
+  flex: '1 1 260px',
+  fontSize: 12,
+  lineHeight: 1.4,
+};
+
+const betaFeedbackButtonStyle = {
+  minHeight: 40,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 7,
+  padding: '0 12px',
+  border: '1px solid #FF2DAA',
+  borderRadius: 5,
+  background: '#102B40',
+  color: '#FFFFFF',
+  fontWeight: 850,
+  cursor: 'pointer',
+};
 
 const loadWarningStyle = {
   display: 'flex',
   alignItems: 'flex-start',
   gap: 10,
   padding: '12px 14px',
-  border: '1px solid rgba(245, 158, 11, 0.45)',
-  borderLeft: '4px solid #f59e0b',
-  background: 'rgba(245, 158, 11, 0.08)',
-  color: 'var(--rq-text-primary, #ffffff)',
+  border: '1px solid rgba(255, 45, 170, 0.28)',
+  borderLeft: '1px solid #FF2DAA',
+  borderRadius: 5,
+  background: '#102B40',
+  color: '#FFFFFF',
+};
+
+const tabLoadingStyle = {
+  minHeight: 96,
+  display: 'grid',
+  placeItems: 'center',
+  padding: 12,
+  border: '1px solid rgba(255,45,170,.18)',
+  borderRadius: 7,
+  background: '#0C2234',
+  color: '#FFFFFF',
+  fontSize: 12,
+  fontWeight: 800,
 };

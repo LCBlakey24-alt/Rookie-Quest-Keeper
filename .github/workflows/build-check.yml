@@ -9,6 +9,24 @@ on:
       - main
 
 jobs:
+  player-workspace-api:
+    name: Player access and timeline persistence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install route test dependencies
+        run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart resend
+      - name: Test player access, timeline persistence and handout summary
+        run: |
+          python -m unittest discover -s backend/tests -p test_player_workspace.py -v
+          python -m unittest discover -s backend/tests -p test_player_handout_summary.py -v
+          python -m unittest discover -s backend/tests -p test_campaign_invite_routes.py -v
+          python -m unittest discover -s backend/tests -p test_level_up_state_preservation.py -v
+          python -m unittest discover -s backend/tests -p test_character_class_choice_persistence.py -v
+
   frontend-build:
     name: Frontend tests and build
     runs-on: ubuntu-latest

@@ -9,17 +9,32 @@ function readList(result, objectKey) {
   return null;
 }
 
+function readHandoutSummary(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+  const total = Number(data.total);
+  const unread = Number(data.unread);
+  const saved = Number(data.saved);
+  if (![total, unread, saved].every(Number.isFinite)) return null;
+  if (total < 0 || unread < 0 || saved < 0) return null;
+  return { total, unread, saved };
+}
+
+function isCurrentPlayerMembership(campaign = {}) {
+  const status = String(campaign.member_status || 'active').trim().toLowerCase();
+  return status === 'active' || status === 'pending';
+}
+
 function mergeCampaignSources(gmCampaigns, joinedCampaigns) {
   const campaignMap = new Map();
 
-  [...gmCampaigns, ...joinedCampaigns].forEach((campaign) => {
+  [...gmCampaigns, ...joinedCampaigns.filter(isCurrentPlayerMembership)].forEach((campaign) => {
     if (campaign?.id) campaignMap.set(campaign.id, campaign);
   });
 
   return Array.from(campaignMap.values());
 }
 
-export function resolvePlayerDashboardSettledResults(results = []) {
+export function resolvePlayerDashboardSettledResults(results = [], { includeHandouts = true } = {}) {
   const [charactersResult, gmCampaignsResult, joinedCampaignsResult, handoutsResult] = results;
   const failures = [];
 
@@ -33,9 +48,12 @@ export function resolvePlayerDashboardSettledResults(results = []) {
     : null;
   if (loadedCampaigns === null) failures.push('campaigns');
 
-  const handouts = readList(handoutsResult, 'handouts');
-  const handoutSummary = handouts === null ? null : summarizeHandouts(handouts);
-  if (handoutSummary === null) failures.push('handouts');
+  let handoutSummary = null;
+  if (includeHandouts) {
+    const handouts = readList(handoutsResult, 'handouts');
+    handoutSummary = handouts === null ? null : summarizeHandouts(handouts);
+    if (handoutSummary === null) failures.push('handouts');
+  }
 
   return {
     ok: failures.length === 0,
@@ -46,15 +64,27 @@ export function resolvePlayerDashboardSettledResults(results = []) {
   };
 }
 
-export async function fetchPlayerDashboardSections(client) {
-  const results = await Promise.allSettled([
+export async function fetchPlayerDashboardSections(client, { includeHandouts = true } = {}) {
+  const requests = [
     client.get('/characters'),
     client.get('/campaigns'),
     client.get('/campaign-invites/joined/list'),
-    client.get('/player/handouts'),
-  ]);
+  ];
 
-  return resolvePlayerDashboardSettledResults(results);
+  if (includeHandouts) requests.push(client.get('/player/handouts'));
+
+  const results = await Promise.allSettled(requests);
+  return resolvePlayerDashboardSettledResults(results, { includeHandouts });
+}
+
+export async function fetchPlayerHandoutSummary(client, campaignId = '') {
+  const config = campaignId ? { params: { campaign_id: campaignId } } : undefined;
+  const response = config
+    ? await client.get('/player/handouts/summary', config)
+    : await client.get('/player/handouts/summary');
+  const summary = readHandoutSummary(response?.data);
+  if (summary === null) throw new Error('Malformed received handout summary response');
+  return summary;
 }
 
 export function describePlayerDashboardFailures(failures = []) {

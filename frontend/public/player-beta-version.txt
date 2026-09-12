@@ -1,0 +1,3 @@
+Rookie Quest Keeper Player Beta v4
+Source: 89511430123844d0f1b6e3488945803fadb188eb
+Purpose: compact beta welcome + automatic beta account access

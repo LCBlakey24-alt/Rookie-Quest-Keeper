@@ -27,6 +27,7 @@ import {
   SHEET_TABS,
   calculateHpDamage,
   calculateHpHealing,
+  calculatePassiveSkill,
   clampDeathCount,
   featureTypeLabel,
   getCurrentHp,
@@ -113,12 +114,16 @@ export default function CleanCharacterSheet() {
   const hitDiceRemaining = Number(character?.hit_dice_remaining ?? character?.level ?? hitDieInfo.total) || 0;
   const showDeathSaves = currentHp <= 0 || deathSaveSuccesses > 0 || deathSaveFailures > 0;
 
-  const passiveScores = useMemo(() => {
-    return PASSIVE_SKILLS.map(([skill, ability]) => {
-      const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
-      return [skill, 10 + mod(character?.[ability]) + (proficient ? proficiencyBonus : 0)];
-    });
-  }, [character, proficiencyBonus, skillProficiencies]);
+  const passiveScores = useMemo(() => PASSIVE_SKILLS.map(([skill, ability]) => [
+    skill,
+    calculatePassiveSkill({
+      character,
+      skill,
+      ability,
+      proficiencyBonus,
+      skillProficiencies,
+    }),
+  ]), [character, proficiencyBonus, skillProficiencies]);
 
   const rulesEdition = String(character?.rules_edition || character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
   const personalityMissing = !hasAnyText(
@@ -407,6 +412,19 @@ export default function CleanCharacterSheet() {
     setActiveTab(tab?.id || tab);
   };
 
+  const refreshAfterLevelUp = async () => {
+    setShowLevelUpWizard(false);
+    try {
+      const response = await apiClient.get(`/characters/${characterId}`);
+      const updated = response.data?.character || response.data;
+      if (updated && typeof updated === 'object') setCharacter(updated);
+    } catch (error) {
+      toast.warning('Level saved, but the sheet could not refresh automatically.', {
+        description: error?.response?.data?.detail || 'Reopen the character if the new level is not visible yet.',
+      });
+    }
+  };
+
   const playTools = (
     <CleanSheetPlayTools
       activeConditions={activeConditions}
@@ -496,10 +514,7 @@ export default function CleanCharacterSheet() {
           character={character}
           isOpen={showLevelUpWizard}
           onClose={() => setShowLevelUpWizard(false)}
-          onLevelUp={() => {
-            setShowLevelUpWizard(false);
-            setTimeout(() => window.location.reload(), 500);
-          }}
+          onLevelUp={refreshAfterLevelUp}
         />
       )}
 
@@ -569,7 +584,6 @@ export default function CleanCharacterSheet() {
           <CleanSheetOverviewTab
             character={character}
             proficiencyBonus={proficiencyBonus}
-            passiveScores={passiveScores}
             saveProficiencies={saveProficiencies}
             skillProficiencies={skillProficiencies}
             onRoll={makeRoll}
