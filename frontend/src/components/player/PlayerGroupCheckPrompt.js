@@ -77,10 +77,11 @@ export default function PlayerGroupCheckPrompt({ campaignId, characters = [] }) 
 
     setRolling(true);
     setLocalResult(event);
-    recordSessionRoll(campaignId, event);
     try {
       const response = await apiClient.post(`/campaigns/${campaignId}/roll-events`, event);
-      if (response?.data) setLocalResult(response.data);
+      const accepted = response?.data || event;
+      setLocalResult(accepted);
+      recordSessionRoll(campaignId, accepted);
       toast.success(`${checkName}: ${total}`, {
         description: `d20 ${d20}${modifier ? ` ${formatSigned(modifier)}` : ''}${payload.dc ? ` · DC ${payload.dc}` : ''}`,
       });
