@@ -29,6 +29,11 @@ function optionLabel(option) {
   return option?.name || String(option || '');
 }
 
+function optionDescription(option) {
+  if (!option || typeof option === 'string') return '';
+  return option.description || option.summary || option.prerequisite || '';
+}
+
 function ToggleChoiceList({ label, value, options, max, onChange }) {
   const [query, setQuery] = React.useState('');
   if (!max) return null;
@@ -38,7 +43,10 @@ function ToggleChoiceList({ label, value, options, max, onChange }) {
   const searchable = choices.length > 12;
   const normalisedQuery = query.trim().toLowerCase();
   const visibleChoices = choices
-    .filter((option) => !normalisedQuery || optionLabel(option).toLowerCase().includes(normalisedQuery))
+    .filter((option) => {
+      if (!normalisedQuery) return true;
+      return `${optionLabel(option)} ${optionDescription(option)}`.toLowerCase().includes(normalisedQuery);
+    })
     .sort((left, right) => {
       const leftSelected = selected.includes(optionValue(left));
       const rightSelected = selected.includes(optionValue(right));
@@ -68,6 +76,7 @@ function ToggleChoiceList({ label, value, options, max, onChange }) {
           const valueKey = optionValue(option);
           const active = selected.includes(valueKey);
           const unavailable = !active && selected.length >= max;
+          const description = optionDescription(option);
           return (
             <button
               key={`${option?.level ?? 'choice'}-${valueKey}`}
@@ -81,6 +90,7 @@ function ToggleChoiceList({ label, value, options, max, onChange }) {
               }}
             >
               <span>{optionLabel(option)}</span>
+              {description && <em>{description}</em>}
               <small>{active ? 'Selected' : unavailable ? 'Limit reached' : 'Choose'}</small>
             </button>
           );
@@ -108,12 +118,13 @@ export function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
         </select>
       </label>
       {current.mode === 'feat' ? (
-        <label>
-          <span>Feat</span>
-          <select value={current.featName || firstFeat} onChange={(event) => update({ featName: event.target.value })}>
-            {featOptions.map((feat) => <option key={getFeatName(feat)} value={getFeatName(feat)}>{getFeatName(feat)}</option>)}
-          </select>
-        </label>
+        <ToggleChoiceList
+          label="Feat"
+          value={current.featName ? [current.featName] : firstFeat ? [firstFeat] : []}
+          options={featOptions}
+          max={1}
+          onChange={(featNames) => update({ featName: featNames[0] || '' })}
+        />
       ) : (
         <>
           <label>
