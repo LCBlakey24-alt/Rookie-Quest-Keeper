@@ -1,3 +1,4 @@
+import { mergeCharacterClassResources } from '@/data/characterClassResources';
 import { ASI_LEVELS, HIT_DICE } from '@/data/levelUpData';
 import { CANTRIPS_KNOWN, SPELLS_KNOWN, getMulticlassSpellSlots } from '@/data/spellDatabase';
 import { buildPactMagicResource, getNormalSpellPool, getPactMagicPool } from '@/data/spellcastingPools';
@@ -297,6 +298,12 @@ export function applyPreviewCharacterLevelUp(character = {}, payload = {}, { mul
     };
     next.resources = buildPactMagicResource(character.resources || {}, pactPool, pactPool.current);
   }
+
+  next.resources = mergeCharacterClassResources(
+    { ...next, resources: next.resources || character.resources || {} },
+    nextClassLevels,
+    { initialiseMissing: true },
+  );
 
   const progression = { ...(character.level_progression || {}) };
   progression[String(requestedLevel)] = {
