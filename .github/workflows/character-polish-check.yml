@@ -62,10 +62,10 @@ jobs:
       - name: Install frontend dependencies
         run: yarn install --frozen-lockfile --non-interactive
 
-      - name: Run focused spell pool tests
+      - name: Run focused character state tests
         env:
           CI: true
-        run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/spellCastingRules.test.js src/data/spellcastingPools.test.js
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/spellCastingRules.test.js src/data/spellcastingPools.test.js src/data/characterRestRules.test.js
 
       - name: Build frontend
         env:
