@@ -179,6 +179,120 @@ class TestCharacterProgressionState(unittest.TestCase):
         self.assertEqual(tracker["slot_level"], 1)
         self.assertEqual(tracker["restore"], "short-rest")
 
+    def test_spent_monk_resource_does_not_refill_when_levelling(self):
+        existing = {
+            "character_class": "Monk",
+            "level": 2,
+            "class_levels": {"Monk": 2},
+            "max_hit_points": 16,
+            "current_hit_points": 10,
+            "hit_dice_remaining": 1,
+            "spell_slots": {},
+            "spell_slots_remaining": {},
+            "resources": {
+                "ki": {
+                    "label": "Ki",
+                    "current": 0,
+                    "remaining": 0,
+                    "max": 2,
+                    "restore": "short-rest",
+                }
+            },
+        }
+        legacy_update = {
+            "level": 3,
+            "max_hit_points": 23,
+            "current_hit_points": 23,
+            "hit_dice_remaining": 3,
+            "spell_slots": {},
+            "spell_slots_remaining": {},
+            "class_levels": {"Monk": 3},
+        }
+
+        fixed = preserve_level_up_live_state(existing, legacy_update)
+        self.assertEqual(fixed["resources"]["ki"]["max"], 3)
+        self.assertEqual(fixed["resources"]["ki"]["current"], 1)
+        self.assertEqual(fixed["resources"]["ki"]["remaining"], 1)
+
+    def test_newly_unlocked_fighter_resource_is_added_without_refilling_old_one(self):
+        existing = {
+            "character_class": "Fighter",
+            "level": 1,
+            "class_levels": {"Fighter": 1},
+            "max_hit_points": 12,
+            "current_hit_points": 8,
+            "hit_dice_remaining": 0,
+            "spell_slots": {},
+            "spell_slots_remaining": {},
+            "resources": {
+                "second_wind": {
+                    "label": "Second Wind",
+                    "current": 0,
+                    "remaining": 0,
+                    "max": 1,
+                    "restore": "short-rest",
+                }
+            },
+        }
+        legacy_update = {
+            "level": 2,
+            "max_hit_points": 20,
+            "current_hit_points": 20,
+            "hit_dice_remaining": 2,
+            "spell_slots": {},
+            "spell_slots_remaining": {},
+            "class_levels": {"Fighter": 2},
+        }
+
+        fixed = preserve_level_up_live_state(existing, legacy_update)
+        self.assertEqual(fixed["resources"]["second_wind"]["current"], 0)
+        self.assertEqual(fixed["resources"]["action_surge"]["current"], 1)
+        self.assertEqual(fixed["resources"]["action_surge"]["max"], 1)
+
+    def test_homebrew_resource_survives_level_up_unchanged(self):
+        scarab = {
+            "label": "Scarab Charges",
+            "current": 2,
+            "remaining": 2,
+            "max": 8,
+            "restore": "long-rest",
+            "custom_note": "Akara",
+        }
+        existing = {
+            "character_class": "Warlock",
+            "level": 8,
+            "class_levels": {"Warlock": 8},
+            "max_hit_points": 50,
+            "current_hit_points": 41,
+            "hit_dice_remaining": 4,
+            "spell_slots": {"4": 2},
+            "spell_slots_remaining": {"4": 1},
+            "resources": {
+                "scarab_charges": scarab,
+                "pact_magic": {
+                    "current": 1,
+                    "remaining": 1,
+                    "max": 2,
+                    "slot_level": 4,
+                    "restore": "short-rest",
+                },
+            },
+        }
+        legacy_update = {
+            "level": 9,
+            "max_hit_points": 57,
+            "current_hit_points": 57,
+            "hit_dice_remaining": 9,
+            "spell_slots": {"5": 2},
+            "spell_slots_remaining": {"5": 2},
+            "class_levels": {"Warlock": 9},
+        }
+
+        fixed = preserve_level_up_live_state(existing, legacy_update)
+        self.assertEqual(fixed["resources"]["scarab_charges"], scarab)
+        self.assertEqual(fixed["resources"]["pact_magic"]["current"], 1)
+        self.assertEqual(fixed["resources"]["pact_magic"]["slot_level"], 5)
+
     def test_existing_secondary_class_can_gain_a_level_without_changing_primary_class(self):
         existing = {
             "character_class": "Fighter",
