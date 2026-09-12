@@ -4,7 +4,6 @@ import {
   ABILITY_OPTIONS,
   defaultAsiSelection,
   getFeatName,
-  normaliseClassSpecificSelection,
   normaliseSpellSelection,
   normaliseWarlockSelection,
 } from '@/data/startingLevelChoiceEngine';
@@ -132,49 +131,8 @@ export function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
   );
 }
 
-export function ClassSpecificChoiceSection({ plan, selection, onChange }) {
-  if (!plan?.hasChoices) return null;
-  const current = normaliseClassSpecificSelection(selection, plan);
-  const update = (patch) => onChange({ ...current, ...patch });
-
-  return (
-    <section className="full-creator-auto-box" aria-label="Class-specific starting level choices">
-      <strong>Class-specific choices</strong>
-      <span>These are saved onto the character for the sheet to use: Fighting Style, Expertise, Metamagic, and maneuvers.</span>
-      <ToggleChoiceList
-        label="Fighting Style"
-        value={current.fightingStyles}
-        options={plan.fightingStyleOptions}
-        max={plan.fightingStyleCount}
-        onChange={(fightingStyles) => update({ fightingStyles })}
-      />
-      <ToggleChoiceList
-        label="Expertise"
-        value={current.expertise}
-        options={plan.expertiseOptions}
-        max={plan.expertiseCount}
-        onChange={(expertise) => update({ expertise })}
-      />
-      <ToggleChoiceList
-        label="Metamagic"
-        value={current.metamagic}
-        options={plan.metamagicOptions}
-        max={plan.metamagicCount}
-        onChange={(metamagic) => update({ metamagic })}
-      />
-      <ToggleChoiceList
-        label="Battle Master maneuvers"
-        value={current.maneuvers}
-        options={plan.maneuverOptions}
-        max={plan.maneuverCount}
-        onChange={(maneuvers) => update({ maneuvers })}
-      />
-    </section>
-  );
-}
-
 export function SpellChoiceSection({ plan, selection, onChange }) {
-  if (!plan?.hasKnownSpellPicker && !plan?.hasPreparedSpellPicker && !plan?.cantripTarget && !plan?.classChoicePlan?.hasChoices) return null;
+  if (!plan?.hasKnownSpellPicker && !plan?.hasPreparedSpellPicker && !plan?.cantripTarget) return null;
   const current = normaliseSpellSelection(selection, plan);
   const update = (patch) => onChange({ ...current, ...patch });
   const cantripTarget = Number(plan.cantripTarget || 0);
@@ -182,50 +140,41 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
   const preparedTarget = Number(plan.preparedTarget || 0);
 
   return (
-    <>
-      {(plan?.hasKnownSpellPicker || plan?.hasPreparedSpellPicker || plan?.cantripTarget) && (
-        <section className="full-creator-auto-box" aria-label="Higher-level spell choices">
-          <strong>Higher-level spells</strong>
-          <span>
-            Choose the spell options for this starting level. Known spells are saved as known spells;
-            prepared spells are saved as the character’s prepared list.
-          </span>
+    <section className="full-creator-auto-box" aria-label="Higher-level spell choices">
+      <strong>Higher-level spells</strong>
+      <span>
+        Choose the spell options for this starting level. Known spells are saved as known spells;
+        prepared spells are saved as the character’s prepared list.
+      </span>
 
-          <ToggleChoiceList
-            label="Cantrips"
-            value={current.cantrips}
-            options={plan.cantripOptions}
-            max={cantripTarget}
-            onChange={(cantrips) => update({ cantrips })}
-          />
-
-          <ToggleChoiceList
-            label="Known spells"
-            value={current.spells}
-            options={plan.spellOptions}
-            max={knownTarget}
-            onChange={(spells) => update({ spells })}
-          />
-
-          <ToggleChoiceList
-            label="Prepared spells"
-            value={current.prepared}
-            options={plan.spellOptions}
-            max={preparedTarget}
-            onChange={(prepared) => update({ prepared })}
-          />
-
-          {arr(plan.arcanumLevels).length > 0 && (
-            <small>Mystic Arcanum is tracked on save when matching high-level spell options are available in the spell database.</small>
-          )}
-        </section>
-      )}
-      <ClassSpecificChoiceSection
-        plan={plan.classChoicePlan}
-        selection={current.classChoices}
-        onChange={(classChoices) => update({ classChoices })}
+      <ToggleChoiceList
+        label="Cantrips"
+        value={current.cantrips}
+        options={plan.cantripOptions}
+        max={cantripTarget}
+        onChange={(cantrips) => update({ cantrips })}
       />
-    </>
+
+      <ToggleChoiceList
+        label="Known spells"
+        value={current.spells}
+        options={plan.spellOptions}
+        max={knownTarget}
+        onChange={(spells) => update({ spells })}
+      />
+
+      <ToggleChoiceList
+        label="Prepared spells"
+        value={current.prepared}
+        options={plan.spellOptions}
+        max={preparedTarget}
+        onChange={(prepared) => update({ prepared })}
+      />
+
+      {arr(plan.arcanumLevels).length > 0 && (
+        <small>Mystic Arcanum is tracked on save when matching high-level spell options are available in the spell database.</small>
+      )}
+    </section>
   );
 }
 
