@@ -17,8 +17,10 @@ os.environ.setdefault("APP_URL", "http://localhost:3000")
 os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 
 from routes.character_recovery import (  # noqa: E402
+    has_non_pact_spell_slots,
     long_rest_hit_dice,
     restore_resource_trackers,
+    spell_slots_are_pact_pool,
 )
 
 
@@ -78,6 +80,61 @@ class TestCharacterRecoveryHelpers(unittest.TestCase):
             "hit_dice_remaining": 1,
         }
         self.assertEqual(long_rest_hit_dice(character), 5)
+
+    def test_single_class_warlock_spell_slots_are_pact_pool(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 5,
+            "class_levels": {"Warlock": 5},
+            "spell_slots": {"3": 2},
+            "resources": {
+                "pact_magic": {"current": 0, "remaining": 0, "max": 2, "slot_level": 3}
+            },
+        }
+        self.assertTrue(spell_slots_are_pact_pool(character))
+
+    def test_warlock_fighter_without_eldritch_knight_still_uses_pact_pool(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 6,
+            "class_levels": {"Warlock": 5, "Fighter": 1},
+            "spell_slots": {"3": 2},
+        }
+        self.assertFalse(has_non_pact_spell_slots(character))
+        self.assertTrue(spell_slots_are_pact_pool(character))
+
+    def test_warlock_wizard_keeps_pact_and_shared_slots_separate(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 6,
+            "class_levels": {"Warlock": 5, "Wizard": 1},
+            "spell_slots": {"1": 2},
+            "resources": {
+                "pact_magic": {"current": 1, "remaining": 1, "max": 2, "slot_level": 3}
+            },
+        }
+        self.assertTrue(has_non_pact_spell_slots(character))
+        self.assertFalse(spell_slots_are_pact_pool(character))
+
+    def test_warlock_paladin_level_one_has_no_shared_slots_yet(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 6,
+            "class_levels": {"Warlock": 5, "Paladin": 1},
+            "spell_slots": {"3": 2},
+        }
+        self.assertFalse(has_non_pact_spell_slots(character))
+        self.assertTrue(spell_slots_are_pact_pool(character))
+
+    def test_warlock_paladin_level_two_has_shared_slots(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 7,
+            "class_levels": {"Warlock": 5, "Paladin": 2},
+            "spell_slots": {"1": 2},
+        }
+        self.assertTrue(has_non_pact_spell_slots(character))
+        self.assertFalse(spell_slots_are_pact_pool(character))
 
 
 if __name__ == "__main__":
