@@ -1,10 +1,10 @@
 /* Historical compatibility import retained because CleanCharacterSheet still loads
-   this file last. The sunset skin is retired; final authority is flat navy/red. */
+   this file last. The sunset skin is retired; final authority is flat navy/blue/pink. */
 
 .character-page-v2.clean-sheet-page {
-  background: var(--cs-bg, #0a1728) !important;
+  background: var(--cs-bg, #071522) !important;
   background-image: none !important;
-  color: var(--cs-text, #f7f9fc) !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-header,
@@ -44,4 +44,25 @@
 .character-page-v2 .clean-sheet-feature-lane h3,
 .character-page-v2 .clean-sheet-spell-level-group h3 {
   font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+  color: #FFFFFF !important;
+}
+
+/* This file is loaded last, so selected controls can never fall back to the old
+   solid pink/sunset fill from historical mobile polish layers. */
+.character-page-v2 .clean-sheet-skill-filter-row button.active,
+.character-page-v2 .clean-sheet-tabs button.active,
+.character-page-v2 button[aria-selected='true'],
+.character-page-v2 button[aria-pressed='true'] {
+  background: rgba(124,203,255,.10) !important;
+  background-image: none !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-skill-filter-row button.active svg,
+.character-page-v2 .clean-sheet-tabs button.active svg,
+.character-page-v2 button[aria-selected='true'] svg,
+.character-page-v2 button[aria-pressed='true'] svg {
+  color: #7CCBFF !important;
 }
