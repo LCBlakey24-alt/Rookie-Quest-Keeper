@@ -9,6 +9,7 @@ import PlayerDashboardContext from '@/components/dashboard/player/PlayerDashboar
 import PlayerDashboardTabs from '@/components/dashboard/player/PlayerDashboardTabs';
 import PlayerCharactersPanel from '@/components/dashboard/player/PlayerCharactersPanel';
 import PlayerCampaignsPanel from '@/components/dashboard/player/PlayerCampaignsPanel';
+import PlayerSuggestionBox from '@/components/dashboard/player/PlayerSuggestionBox';
 import { combineLinkedCampaigns } from '@/components/dashboard/player/playerDashboardUtils';
 import {
   describePlayerDashboardFailures,
@@ -258,6 +259,8 @@ export default function PlayerDashboard() {
           </Suspense>
         )}
       </PlayerDashboardTabs>
+
+      <PlayerSuggestionBox />
 
       <JoinCampaignModal
         characterId={selectedCharacter?.id}
