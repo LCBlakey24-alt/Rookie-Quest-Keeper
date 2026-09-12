@@ -106,11 +106,9 @@ def _warlock_level(class_levels: Dict[str, int]) -> int:
 
 
 def derive_creation_spell_slots(primary_class: str, subclass: str, class_levels: Dict[str, int]) -> Dict[str, int]:
-    if len(class_levels) <= 1:
-        level = next(iter(class_levels.values()), 1)
-        return calculate_spell_slots(primary_class, level)
-
-    shared = compute_multiclass_spell_slots(_class_entries(class_levels, primary_class, subclass))
+    """Derive shared slots, including half/third casters, with Pact Magic separate."""
+    entries = _class_entries(class_levels, primary_class, subclass)
+    shared = compute_multiclass_spell_slots(entries)
     if shared:
         return {str(slot_level): _int(count, 0) for slot_level, count in shared.items()}
 
@@ -118,6 +116,12 @@ def derive_creation_spell_slots(primary_class: str, subclass: str, class_levels:
     if warlock_level:
         slot_level, slots = _warlock_shape(warlock_level)
         return {str(slot_level): slots}
+
+    # Fallback keeps compatibility for any legacy/core single-class shape that
+    # is supported by calculate_spell_slots but not by the multiclass adapter.
+    if len(class_levels) == 1:
+        level = next(iter(class_levels.values()), 1)
+        return calculate_spell_slots(primary_class, level)
     return {}
 
 
@@ -186,9 +190,10 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
     supplied_slots = payload.get("spell_slots") if isinstance(payload.get("spell_slots"), dict) else {}
     derived_slots = derive_creation_spell_slots(primary_class, character.get("subclass") or "", class_levels)
     spell_slots = supplied_slots or derived_slots
-    # For multiclass characters, prefer the backend shared-slot calculation so
-    # an imported flat sheet cannot accidentally use one class's slot table.
-    if len(class_levels) > 1:
+    # For supported multiclass combinations, prefer the shared backend table.
+    # If the class mix is homebrew/unknown and cannot be derived, preserve the
+    # explicit supplied slot map instead of wiping it.
+    if len(class_levels) > 1 and derived_slots:
         spell_slots = derived_slots
     character["spell_slots"] = {str(level): max(0, _int(count, 0)) for level, count in spell_slots.items()}
     character["spell_slots_remaining"] = clamp_slot_state(
