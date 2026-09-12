@@ -4,10 +4,16 @@ export default function PlayerDashboardTabs({ tabs, activeTab, setActiveTab, chi
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="player-dashboard-board player-dashboard-tab-shell">
       <TabsList className="player-dashboard-tab-list" aria-label="Player dashboard tabs">
-        {tabs.map(({ id, testId, label, icon: Icon }) => (
+        {tabs.map(({ id, testId, label, badge, icon: Icon }) => (
           <TabsTrigger key={id} value={id} data-testid={testId}
             className={activeTab === id ? 'player-dashboard-tab player-dashboard-tab-active' : 'player-dashboard-tab'}>
-            <Icon size={16} /> {label}
+            <Icon size={16} />
+            <span className="player-dashboard-tab-label">{label}</span>
+            {badge > 0 && (
+              <span className="player-dashboard-tab-badge" aria-label={`${badge} unread`}>
+                {badge > 99 ? '99+' : badge}
+              </span>
+            )}
           </TabsTrigger>
         ))}
       </TabsList>
