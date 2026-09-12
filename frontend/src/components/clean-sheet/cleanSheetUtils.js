@@ -155,20 +155,24 @@ export function parseHitDie(hitDice = '1d8') {
 }
 
 export function rollD20(modifier = 0, rollMode = 'normal') {
+  const options = rollMode && typeof rollMode === 'object' ? rollMode : { mode: rollMode };
+  const mode = options.mode || 'normal';
+  const totalModifier = (Number(modifier) || 0) + (Number(options.bonus) || 0);
   const first = Math.floor(Math.random() * 20) + 1;
-  if (rollMode !== 'advantage' && rollMode !== 'disadvantage') {
+
+  if (mode !== 'advantage' && mode !== 'disadvantage') {
     const rolls = [{ sides: 20, result: first }];
-    return { d20: first, modifier, total: first + modifier, mode: 'normal', allRolls: [first], rolls, visibleRolls: rolls };
+    return { d20: first, modifier: totalModifier, total: first + totalModifier, mode: 'normal', allRolls: [first], rolls, visibleRolls: rolls };
   }
 
   const second = Math.floor(Math.random() * 20) + 1;
-  const keepFirst = rollMode === 'advantage' ? first >= second : first <= second;
+  const keepFirst = mode === 'advantage' ? first >= second : first <= second;
   const kept = keepFirst ? first : second;
   const rolls = [
     { sides: 20, result: first, dropped: !keepFirst },
     { sides: 20, result: second, dropped: keepFirst },
   ];
-  return { d20: kept, modifier, total: kept + modifier, mode: rollMode, allRolls: [first, second], rolls, visibleRolls: rolls.filter(roll => !roll.dropped) };
+  return { d20: kept, modifier: totalModifier, total: kept + totalModifier, mode, allRolls: [first, second], rolls, visibleRolls: rolls.filter(roll => !roll.dropped) };
 }
 
 export function rollHitDie(sides = 8, modifier = 0) {
