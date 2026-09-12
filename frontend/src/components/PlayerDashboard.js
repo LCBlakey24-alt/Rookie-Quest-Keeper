@@ -22,6 +22,24 @@ import '@/styles/playerHandoutsPanel.css';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
+const ACTIVE_CHARACTER_KEY = 'rqk.player.active-character';
+
+function readRememberedCharacterId() {
+  try {
+    return localStorage.getItem(ACTIVE_CHARACTER_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function rememberCharacterId(characterId) {
+  try {
+    if (characterId) localStorage.setItem(ACTIVE_CHARACTER_KEY, characterId);
+    else localStorage.removeItem(ACTIVE_CHARACTER_KEY);
+  } catch {
+    // Storage can be unavailable in locked-down browsers; selection still works for this visit.
+  }
+}
 
 const tabs = [
   { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
@@ -38,7 +56,7 @@ export default function PlayerDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
-  const [selectedCharacterId, setSelectedCharacterId] = useState('');
+  const [selectedCharacterId, setSelectedCharacterId] = useState(readRememberedCharacterId);
   const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
   const [loadWarning, setLoadWarning] = useState('');
 
@@ -130,14 +148,22 @@ export default function PlayerDashboard() {
   }, [loadPlayerData, refreshHandouts]);
 
   useEffect(() => {
+    if (loading) return;
+
     if (characters.length === 0) {
       if (selectedCharacterId) setSelectedCharacterId('');
+      rememberCharacterId('');
       return;
     }
 
     const selectionStillExists = characters.some((character) => character.id === selectedCharacterId);
-    if (!selectionStillExists) setSelectedCharacterId(characters[0].id);
-  }, [characters, selectedCharacterId]);
+    if (!selectionStillExists) {
+      setSelectedCharacterId(characters[0].id);
+      return;
+    }
+
+    rememberCharacterId(selectedCharacterId);
+  }, [characters, loading, selectedCharacterId]);
 
   const refresh = async () => {
     setRefreshing(true);
