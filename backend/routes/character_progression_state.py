@@ -5,11 +5,14 @@ it also refilled HP, Hit Dice, and every spell slot when a level was gained.
 That makes levelling in the middle of an adventuring day silently behave like a
 rest. These focused routes reuse the existing progression rules while preserving
 spent resources and current damage.
+
+This module also keeps Warlock Pact Magic separate from the shared multiclass
+spell-slot table whenever a character has another spellcasting class.
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -17,6 +20,7 @@ from config import db
 from models import LevelUpRequest
 from routes.characters import (
     build_level_up_update,
+    compute_multiclass_spell_slots,
     display_class_name,
     get_owned_character,
     initial_class_levels,
@@ -36,10 +40,70 @@ def _int(value: Any, default: int = 0) -> int:
         return default
 
 
+def _normalise_name(value: Any) -> str:
+    return str(value or "").strip().lower().replace(" ", "_").replace("-", "_")
+
+
 def _slot_map(value: Any) -> Dict[str, int]:
     if not isinstance(value, dict):
         return {}
     return {str(level): max(0, _int(count, 0)) for level, count in value.items()}
+
+
+def _warlock_level(class_levels: Dict[str, Any]) -> int:
+    for class_name, level in (class_levels or {}).items():
+        if _normalise_name(class_name) == "warlock":
+            return max(0, _int(level, 0))
+    return 0
+
+
+def _pact_magic_slot_shape(warlock_level: int) -> Dict[str, int]:
+    level = max(0, min(20, _int(warlock_level, 0)))
+    if level <= 0:
+        return {}
+    slot_level = 1 if level <= 2 else 2 if level <= 4 else 3 if level <= 6 else 4 if level <= 8 else 5
+    slot_count = 1 if level == 1 else 2 if level <= 10 else 3 if level <= 16 else 4
+    return {str(slot_level): slot_count}
+
+
+def _class_entries(existing: Dict[str, Any], class_levels: Dict[str, int]) -> List[Dict[str, Any]]:
+    """Adapt saved class-level shapes to the backend shared-slot calculator."""
+    saved_entries = existing.get("classes") if isinstance(existing.get("classes"), list) else []
+    primary_name = display_class_name(existing.get("character_class", ""))
+    primary_subclass = existing.get("subclass") or ""
+    entries: List[Dict[str, Any]] = []
+
+    for class_name, level in class_levels.items():
+        canonical = display_class_name(class_name)
+        saved = next(
+            (
+                entry
+                for entry in saved_entries
+                if _normalise_name(entry.get("name") or entry.get("class_name") or entry.get("character_class") or entry.get("class"))
+                == _normalise_name(canonical)
+            ),
+            {},
+        )
+        subclass = saved.get("subclass") or (primary_subclass if _normalise_name(canonical) == _normalise_name(primary_name) else "")
+        entries.append({"name": canonical, "level": max(0, _int(level, 0)), "subclass": subclass})
+    return entries
+
+
+def progression_spell_slot_totals(existing: Dict[str, Any], class_levels: Dict[str, int]) -> Dict[str, int]:
+    """Return the normal spell-slot pool appropriate for a post-level-up class mix.
+
+    For a Warlock-only (or Warlock + non-caster) character, keep Pact Magic in
+    the legacy spell_slots field for compatibility with the current Spells tab.
+    Once another spellcasting class contributes shared slots, spell_slots holds
+    only that shared table and Pact Magic is tracked through resources.pact_magic.
+    """
+    shared_slots = _slot_map(compute_multiclass_spell_slots(_class_entries(existing, class_levels)))
+    warlock_level = _warlock_level(class_levels)
+    if shared_slots:
+        return shared_slots
+    if warlock_level > 0:
+        return _pact_magic_slot_shape(warlock_level)
+    return {}
 
 
 def preserve_spell_slot_state(
@@ -77,8 +141,58 @@ def preserve_spell_slot_state(
     return remaining
 
 
+def _tracker_number(tracker: Dict[str, Any], key: str, fallback: int) -> int:
+    return max(0, _int(tracker.get(key), fallback))
+
+
+def preserve_pact_magic_resource(existing: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+    """Scale Pact Magic to Warlock level while keeping already-spent uses spent."""
+    class_levels = update.get("class_levels") if isinstance(update.get("class_levels"), dict) else initial_class_levels(existing)
+    warlock_level = _warlock_level(class_levels)
+    resources = dict(existing.get("resources") or {}) if isinstance(existing.get("resources"), dict) else {}
+
+    if warlock_level <= 0:
+        return resources
+
+    new_shape = _pact_magic_slot_shape(warlock_level)
+    new_max = sum(new_shape.values())
+    new_slot_level = max((_int(level, 0) for level in new_shape), default=1)
+    old_tracker = resources.get("pact_magic") if isinstance(resources.get("pact_magic"), dict) else {}
+
+    if old_tracker:
+        old_max = _tracker_number(old_tracker, "max", new_max)
+        old_current = _tracker_number(old_tracker, "current", _tracker_number(old_tracker, "remaining", old_max))
+    else:
+        old_levels = initial_class_levels(existing)
+        old_warlock_level = _warlock_level(old_levels)
+        old_shape = _pact_magic_slot_shape(old_warlock_level)
+        old_max = sum(old_shape.values())
+        # For a legacy single-class Warlock, saved spell_slots_remaining is the
+        # best available record of spent Pact Magic. For mixed casters without
+        # a tracker, default to full rather than guessing that slots were spent.
+        if old_warlock_level > 0 and len(old_levels) == 1:
+            old_current = sum(_slot_map(existing.get("spell_slots_remaining") or old_shape).values())
+        else:
+            old_current = old_max
+
+    spent = max(0, old_max - min(old_max, old_current))
+    new_current = max(0, min(new_max, new_max - spent))
+    resources["pact_magic"] = {
+        **old_tracker,
+        "label": old_tracker.get("label") or "Pact Magic",
+        "current": new_current,
+        "remaining": new_current,
+        "max": new_max,
+        "slot_level": new_slot_level,
+        "restore": "short-rest",
+        "min_level": 1,
+        "className": "Warlock",
+    }
+    return resources
+
+
 def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Correct rest-like side effects in the legacy level-up update payload."""
+    """Correct rest-like side effects and multiclass slot math in level-up output."""
     update = dict(update_data)
 
     old_max = max(1, _int(existing.get("max_hit_points"), 1))
@@ -92,15 +206,21 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
     old_hit_dice_remaining = max(0, min(old_level, _int(existing.get("hit_dice_remaining"), old_level)))
     update["hit_dice_remaining"] = min(new_level, old_hit_dice_remaining + 1)
 
-    primary_class = str(existing.get("character_class") or "").strip().lower()
+    primary_class = _normalise_name(existing.get("character_class"))
     class_levels = update.get("class_levels") if isinstance(update.get("class_levels"), dict) else initial_class_levels(existing)
-    single_class_warlock = primary_class == "warlock" and len(class_levels) == 1
+    warlock_level = _warlock_level(class_levels)
+    single_pool_is_pact = primary_class == "warlock" and len(class_levels) == 1
+
+    # Replace legacy single-class slot math with the shared multiclass table
+    # when applicable. Pact Magic remains separate when shared slots exist.
+    update["spell_slots"] = progression_spell_slot_totals(existing, class_levels)
     update["spell_slots_remaining"] = preserve_spell_slot_state(
         existing.get("spell_slots"),
         existing.get("spell_slots_remaining"),
         update.get("spell_slots"),
-        pact_style=single_class_warlock,
+        pact_style=single_pool_is_pact and warlock_level > 0,
     )
+    update["resources"] = preserve_pact_magic_resource(existing, update)
 
     return update
 
