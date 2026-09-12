@@ -66,3 +66,8 @@ jobs:
         env:
           CI: true
         run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/spellCastingRules.test.js src/data/spellcastingPools.test.js
+
+      - name: Build frontend
+        env:
+          CI: true
+        run: yarn build
