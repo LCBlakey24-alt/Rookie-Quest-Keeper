@@ -28,6 +28,7 @@ from routes.offline_inventory_sync import router as offline_inventory_sync_route
 from routes.user_content import router as user_content_router
 from routes.player_rules import router as player_rules_router
 from routes.character_import import router as character_import_router
+from routes.character_recovery import router as character_recovery_router
 from routes.character_patch import router as character_patch_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
@@ -79,6 +80,8 @@ all_routers = [
     player_rules_router,
     # Player-side review-first extraction for uploaded PDF/image character sheets.
     character_import_router,
+    # Server-authoritative short/long rest recovery must win before legacy character routes.
+    character_recovery_router,
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,
