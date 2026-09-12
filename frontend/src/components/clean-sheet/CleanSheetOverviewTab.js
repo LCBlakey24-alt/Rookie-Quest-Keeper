@@ -1,8 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { Eye } from 'lucide-react';
 
-import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
-import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
+import {
+  ABILITIES,
+  PASSIVE_SKILLS,
+  SKILLS,
+  calculatePassiveSkill,
+  calculateSkillModifier,
+  fmt,
+  getSkillProficiencyMultiplier,
+  mod,
+} from './cleanSheetUtils';
 import './CleanSheetOverviewCompact.css';
 import './CleanSheetOverviewSpacing.css';
 import './CleanSheetStatsMobileOverrides.css';
@@ -29,22 +37,56 @@ const ABILITY_FULL_NAMES = {
   charisma: 'Charisma',
 };
 
-function skillMatchesFilter(ability, activeFilter, proficient) {
+function skillMatchesFilter(ability, activeFilter, proficiencyMultiplier) {
   if (activeFilter === 'all') return true;
-  if (activeFilter === 'prof') return proficient;
+  if (activeFilter === 'prof') return proficiencyMultiplier > 0;
   return ability === activeFilter;
 }
 
 export default function CleanSheetOverviewTab({
   character,
   proficiencyBonus,
-  passiveScores,
   saveProficiencies,
   skillProficiencies,
   onRoll,
 }) {
   const [skillFilter, setSkillFilter] = useState('all');
-  const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
+
+  const skillRows = useMemo(() => SKILLS.map(([skill, ability]) => {
+    const proficiencyMultiplier = getSkillProficiencyMultiplier(character, skill, skillProficiencies);
+    const modifier = calculateSkillModifier({
+      character,
+      skill,
+      ability,
+      proficiencyBonus,
+      skillProficiencies,
+    });
+    return { skill, ability, proficiencyMultiplier, modifier };
+  }), [character, proficiencyBonus, skillProficiencies]);
+
+  const visibleSkills = useMemo(
+    () => skillRows.filter(({ ability, proficiencyMultiplier }) => skillMatchesFilter(ability, skillFilter, proficiencyMultiplier)),
+    [skillRows, skillFilter],
+  );
+
+  const bestSkill = useMemo(() => {
+    if (!skillRows.length) return null;
+    return [...skillRows].sort((left, right) => right.modifier - left.modifier || left.skill.localeCompare(right.skill))[0];
+  }, [skillRows]);
+
+  const proficientCount = skillRows.filter(({ proficiencyMultiplier }) => proficiencyMultiplier > 0).length;
+  const expertiseCount = skillRows.filter(({ proficiencyMultiplier }) => proficiencyMultiplier === 2).length;
+
+  const passiveScores = useMemo(() => PASSIVE_SKILLS.map(([skill, ability]) => [
+    skill,
+    calculatePassiveSkill({
+      character,
+      skill,
+      ability,
+      proficiencyBonus,
+      skillProficiencies,
+    }),
+  ]), [character, proficiencyBonus, skillProficiencies]);
 
   return (
     <div className="clean-sheet-grid clean-sheet-stats-tab clean-sheet-stats-tab--compact">
@@ -87,12 +129,12 @@ export default function CleanSheetOverviewTab({
       <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-skills-panel">
         <div className="clean-sheet-section-heading-row">
           <h2>Skills</h2>
-          <span>{SKILLS.filter(([skill, ability]) => skillMatchesFilter(ability, skillFilter, skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase()))).length}/{SKILLS.length} shown</span>
+          <span>{visibleSkills.length}/{SKILLS.length} shown</span>
         </div>
         <div className="clean-sheet-skills-summary">
-          <div><span>Proficient</span><strong>{skillProficiencies.length}</strong></div>
-          <div><span>Best Skill</span><strong>{snapshot.skills?.topSkill || '—'}</strong></div>
-          <div><span>Filter</span><strong>{SKILL_FILTERS.find(([id]) => id === skillFilter)?.[1] || 'All'}</strong></div>
+          <div><span>Proficient</span><strong>{proficientCount}</strong></div>
+          <div><span>Expertise</span><strong>{expertiseCount}</strong></div>
+          <div><span>Best Skill</span><strong>{bestSkill ? `${bestSkill.skill} ${fmt(bestSkill.modifier)}` : '—'}</strong></div>
         </div>
         <div className="clean-sheet-skill-filter-row" role="group" aria-label="Filter skills">
           {SKILL_FILTERS.map(([id, label]) => (
@@ -100,24 +142,22 @@ export default function CleanSheetOverviewTab({
           ))}
         </div>
         <div className="clean-sheet-readable-skills">
-          {SKILLS
-            .filter(([skill, ability]) => skillMatchesFilter(ability, skillFilter, skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase())))
-            .map(([skill, ability]) => {
-              const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
-              const modifier = mod(character?.[ability]) + (proficient ? proficiencyBonus : 0);
-              return (
-                <div className={`clean-sheet-compact-skill ${proficient ? 'is-proficient' : ''}`} key={skill}>
-                  <div className="clean-sheet-skill-name">
-                    <span className="clean-sheet-skill-label" title={skill}>{skill}</span>
-                    <div className="clean-sheet-skill-tags">
-                      {proficient && <small>Prof</small>}
-                      <em>{ability.slice(0, 3).toUpperCase()}</em>
-                    </div>
+          {visibleSkills.map(({ skill, ability, proficiencyMultiplier, modifier }) => {
+            const proficient = proficiencyMultiplier > 0;
+            const expertise = proficiencyMultiplier === 2;
+            return (
+              <div className={`clean-sheet-compact-skill ${proficient ? 'is-proficient' : ''} ${expertise ? 'is-expertise' : ''}`} key={skill}>
+                <div className="clean-sheet-skill-name">
+                  <span className="clean-sheet-skill-label" title={skill}>{skill}</span>
+                  <div className="clean-sheet-skill-tags">
+                    {expertise ? <small>Expertise</small> : proficient && <small>Prof</small>}
+                    <em>{ability.slice(0, 3).toUpperCase()}</em>
                   </div>
-                  <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(skill, modifier)}>{fmt(modifier)}</button>
                 </div>
-              );
-            })}
+                <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(skill, modifier)}>{fmt(modifier)}</button>
+              </div>
+            );
+          })}
         </div>
       </section>
 
