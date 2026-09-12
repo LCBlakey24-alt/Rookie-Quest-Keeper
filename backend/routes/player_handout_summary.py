@@ -8,10 +8,17 @@ router = APIRouter()
 
 
 @router.get("/player/handouts/summary")
-async def get_player_handout_summary(current_user: str = Depends(get_current_user)):
-    """Return only the counts Player Home needs without loading handout bodies."""
+async def get_player_handout_summary(
+    campaign_id: str = "",
+    current_user: str = Depends(get_current_user),
+):
+    """Return handout counts without loading bodies, optionally scoped to one campaign."""
+    match = {"username": current_user}
+    if campaign_id:
+        match["campaign_id"] = campaign_id
+
     pipeline = [
-        {"$match": {"username": current_user}},
+        {"$match": match},
         {
             "$group": {
                 "_id": None,
