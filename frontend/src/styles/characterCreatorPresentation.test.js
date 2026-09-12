@@ -51,4 +51,10 @@ describe('Character Creator presentation ownership', () => {
     expect(base).toContain('.full-creator-readiness-panel');
     expect(base).toContain('.full-creator-readiness-list.priority');
   });
+
+  test('base fixed Level 1 control is hidden because the bridge owns starting level', () => {
+    const flow = read('../components/FullCharacterCreatorFlow.css');
+    expect(flow).toContain("label:has(> select:disabled)");
+    expect(flow).toContain('display: none');
+  });
 });
