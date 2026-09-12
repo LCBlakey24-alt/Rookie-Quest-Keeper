@@ -15,8 +15,9 @@ function storage(values = {}) {
   };
 }
 
-test('recognises only the dedicated Player Beta branch alias', () => {
+test('recognises dedicated Player Beta branch aliases only', () => {
   expect(isPlayerBeta('rookie-quest-keeper-git-player-be-7fd992-lewis-blakeys-projects.vercel.app')).toBe(true);
+  expect(isPlayerBeta('rookie-quest-keeper-git-player-beta-v2-lewis-blakeys-projects.vercel.app')).toBe(true);
   expect(isPlayerBeta('rookiequestkeeper.com')).toBe(false);
   expect(isPlayerBeta('rookie-quest-keeper-git-main-lewis-blakeys-projects.vercel.app')).toBe(false);
 });
