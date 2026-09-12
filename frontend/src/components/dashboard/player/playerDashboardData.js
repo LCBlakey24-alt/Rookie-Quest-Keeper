@@ -72,8 +72,11 @@ export async function fetchPlayerDashboardSections(client, { includeHandouts = t
   return resolvePlayerDashboardSettledResults(results, { includeHandouts });
 }
 
-export async function fetchPlayerHandoutSummary(client) {
-  const response = await client.get('/player/handouts/summary');
+export async function fetchPlayerHandoutSummary(client, campaignId = '') {
+  const config = campaignId ? { params: { campaign_id: campaignId } } : undefined;
+  const response = config
+    ? await client.get('/player/handouts/summary', config)
+    : await client.get('/player/handouts/summary');
   const summary = readHandoutSummary(response?.data);
   if (summary === null) throw new Error('Malformed received handout summary response');
   return summary;
