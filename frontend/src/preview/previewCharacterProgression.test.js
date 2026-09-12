@@ -80,6 +80,49 @@ describe('local preview character progression', () => {
     expect(updated.class_levels).toEqual({ Fighter: 4 });
   });
 
+  test('spent core resources stay spent while newly gained capacity becomes usable', () => {
+    const updated = applyPreviewCharacterLevelUp({
+      character_class: 'Monk',
+      level: 2,
+      constitution: 12,
+      max_hit_points: 15,
+      current_hit_points: 9,
+      hit_dice_remaining: 1,
+      class_levels: { Monk: 2 },
+      resources: {
+        ki: { label: 'Ki', current: 0, remaining: 0, max: 2, restore: 'short-rest' },
+      },
+    }, {
+      new_level: 3,
+      new_class: 'Monk',
+      hp_method: 'average',
+    });
+
+    expect(updated.resources.ki).toMatchObject({ max: 3, current: 1, remaining: 1 });
+  });
+
+  test('newly unlocked class resources appear without refilling existing spent trackers', () => {
+    const updated = applyPreviewCharacterLevelUp({
+      character_class: 'Fighter',
+      level: 1,
+      constitution: 14,
+      max_hit_points: 12,
+      current_hit_points: 8,
+      hit_dice_remaining: 0,
+      class_levels: { Fighter: 1 },
+      resources: {
+        second_wind: { current: 0, remaining: 0, max: 1, restore: 'short-rest' },
+      },
+    }, {
+      new_level: 2,
+      new_class: 'Fighter',
+      hp_method: 'average',
+    });
+
+    expect(updated.resources.second_wind).toMatchObject({ max: 1, current: 0, remaining: 0 });
+    expect(updated.resources.action_surge).toMatchObject({ max: 1, current: 1, remaining: 1 });
+  });
+
   test('ASI choices update ability scores without passing 20', () => {
     const updated = applyPreviewCharacterLevelUp({
       character_class: 'Fighter',
@@ -203,6 +246,35 @@ describe('local preview character progression', () => {
       slot_level: 1,
       restore: 'short-rest',
     });
+  });
+
+  test('homebrew resources survive preview level-up unchanged', () => {
+    const scarab = {
+      label: 'Scarab Charges', current: 2, remaining: 2, max: 8, restore: 'long-rest', custom_note: 'Akara',
+    };
+    const updated = applyPreviewCharacterLevelUp({
+      character_class: 'Warlock',
+      level: 8,
+      charisma: 18,
+      constitution: 12,
+      max_hit_points: 50,
+      current_hit_points: 41,
+      hit_dice_remaining: 4,
+      class_levels: { Warlock: 8 },
+      spell_slots: { 4: 2 },
+      spell_slots_remaining: { 4: 1 },
+      resources: {
+        scarab_charges: scarab,
+        pact_magic: { current: 1, remaining: 1, max: 2, slot_level: 4, restore: 'short-rest' },
+      },
+    }, {
+      new_level: 9,
+      new_class: 'Warlock',
+      hp_method: 'average',
+    });
+
+    expect(updated.resources.scarab_charges).toEqual(scarab);
+    expect(updated.resources.pact_magic).toMatchObject({ current: 1, max: 2, slot_level: 5 });
   });
 
   test('rejects attempts to skip levels', () => {
