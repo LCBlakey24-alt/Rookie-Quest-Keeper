@@ -49,7 +49,7 @@ export default function PlayerDashboard() {
 
   const dashboardTabs = useMemo(() => tabs.map((tab) => {
     if (tab.id !== 'handouts' || handoutSummary.unread <= 0) return tab;
-    return { ...tab, label: `Received (${handoutSummary.unread})` };
+    return { ...tab, badge: handoutSummary.unread };
   }), [handoutSummary.unread]);
 
   const activeTabMeta = useMemo(
