@@ -1,10 +1,10 @@
 """State-safe wrappers around character level-up routes.
 
 The legacy progression builder contains the rules/choice logic, but historically
-it also refilled HP, Hit Dice, and every spell slot when a level was gained.
-That makes levelling in the middle of an adventuring day silently behave like a
-rest. These focused routes reuse the existing progression rules while preserving
-spent resources and current damage.
+it also refilled HP, Hit Dice, spell slots, and class resources when a level was
+gained. That makes levelling in the middle of an adventuring day silently behave
+like a rest. These focused routes reuse the existing progression rules while
+preserving spent resources and current damage.
 
 This module also keeps Warlock Pact Magic separate from the shared multiclass
 spell-slot table whenever a character has another spellcasting class, and lets
@@ -19,6 +19,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import db
+from data.character_resources import merge_character_resources
 from models import LevelUpRequest
 from routes.characters import (
     build_level_up_update,
@@ -229,7 +230,7 @@ def _normalised_classes_state(
 
 
 def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Correct rest-like side effects and multiclass slot math in level-up output."""
+    """Correct rest-like side effects and multiclass slot/resource math in level-up output."""
     update = dict(update_data)
 
     old_max = max(1, _int(existing.get("max_hit_points"), 1))
@@ -255,7 +256,24 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
         update.get("spell_slots"),
         pact_style=single_pool_is_pact and warlock_level > 0,
     )
-    update["resources"] = preserve_pact_magic_resource(existing, update)
+
+    # Pact Magic needs a legacy-slot fallback for older Warlock saves, so fix it
+    # first. Then scale every persisted core-class resource from the post-level
+    # class map. Existing spent uses stay spent; only genuinely new capacity is
+    # granted, while newly unlocked trackers start ready to use.
+    pact_resources = preserve_pact_magic_resource(existing, update)
+    post_level_character = {
+        **existing,
+        **update,
+        "class_levels": class_levels,
+        "resources": pact_resources,
+    }
+    update["resources"] = merge_character_resources(
+        post_level_character,
+        class_levels,
+        initialise_missing=True,
+    )
+
     update["multiclass_levels"] = dict(class_levels) if len(class_levels) > 1 else {}
     update["multiclass_classes"] = list(class_levels.keys())
 
@@ -359,7 +377,7 @@ async def multiclass_character_state_safe(
     level_up: LevelUpRequest,
     username: str = Depends(get_current_user),
 ):
-    """Add a new class while preserving current HP, Hit Dice, and spent slots."""
+    """Add a new class while preserving current HP, Hit Dice, spell slots, and resources."""
     existing = await get_owned_character(character_id, username)
     new_class = display_class_name(level_up.new_class or "")
     if not level_up.new_class or not str(level_up.new_class).strip():
