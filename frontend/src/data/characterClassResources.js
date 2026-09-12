@@ -61,7 +61,7 @@ function resourceSpecs(character = {}, classLevels = {}) {
     const maximum = edition === '2024'
       ? Math.max(2, Math.ceil(cleric / 2))
       : cleric >= 18 ? 3 : cleric >= 6 ? 2 : 1;
-    specs.channel_divinity_cleric = {
+    specs.channel_divinity = {
       label: 'Channel Divinity', max: maximum, restore: 'short-rest', className: 'Cleric', min_level: 2,
     };
   }
@@ -114,7 +114,10 @@ function resourceSpecs(character = {}, classLevels = {}) {
     };
   }
   if (paladin >= 3) {
-    specs.channel_divinity_paladin = {
+    // The clean-sheet resource engine intentionally uses one stable
+    // Channel Divinity key. Keep that shape here so preview and backend saves
+    // do not sprout duplicate Cleric/Paladin counters.
+    specs.channel_divinity = {
       label: 'Channel Divinity',
       max: edition === '2024' ? pb : 1,
       restore: edition === '2024' ? 'long-rest' : 'short-rest',
@@ -168,8 +171,8 @@ export function mergeCharacterClassResources(character = {}, classLevels = {}, {
   const specs = resourceSpecs(character, classLevels);
 
   Object.entries(specs).forEach(([resourceKey, spec]) => {
-    const old = existing[resourceKey] && typeof existing[resourceKey] === 'object' && !Array.isArray(existing[resourceKey])
-      ? existing[resourceKey]
+    const old = merged[resourceKey] && typeof merged[resourceKey] === 'object' && !Array.isArray(merged[resourceKey])
+      ? merged[resourceKey]
       : null;
     const nextMax = Math.max(0, toNumber(spec.max, 0));
     if (!nextMax) return;
