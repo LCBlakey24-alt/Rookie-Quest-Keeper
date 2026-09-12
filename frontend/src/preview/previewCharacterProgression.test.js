@@ -27,6 +27,33 @@ describe('local preview character progression', () => {
     });
   });
 
+  test('preview can target an already-owned secondary class', () => {
+    const options = getPreviewLevelUpOptions({
+      id: 'multi-one',
+      name: 'Rook',
+      character_class: 'Fighter',
+      subclass: 'Champion',
+      level: 5,
+      edition: '2014',
+      class_levels: { Fighter: 3, Wizard: 2 },
+      classes: [
+        { name: 'Fighter', level: 3, subclass: 'Champion' },
+        { name: 'Wizard', level: 2, subclass: '' },
+      ],
+    }, { targetClass: 'Wizard' });
+
+    expect(options).toMatchObject({
+      character_class: 'Wizard',
+      current_level: 5,
+      target_level: 6,
+      class_level_before: 2,
+      class_level_after: 3,
+      hit_die: 6,
+      can_choose_subclass: true,
+    });
+    expect(options.next_class_levels).toEqual({ Fighter: 3, Wizard: 3 });
+  });
+
   test('level-up preserves damage and adds one usable hit die', () => {
     const updated = applyPreviewCharacterLevelUp({
       id: 'fighter-one',
@@ -42,6 +69,7 @@ describe('local preview character progression', () => {
       spell_slots_remaining: {},
     }, {
       new_level: 4,
+      new_class: 'Fighter',
       hp_method: 'average',
     });
 
@@ -64,6 +92,7 @@ describe('local preview character progression', () => {
       class_levels: { Fighter: 3 },
     }, {
       new_level: 4,
+      new_class: 'Fighter',
       choice_type: 'asi',
       asi_choices: { ability1: 'strength', ability2: 'strength' },
       hp_method: 'average',
@@ -85,11 +114,42 @@ describe('local preview character progression', () => {
       spell_slots_remaining: { 1: 1 },
     }, {
       new_level: 3,
+      new_class: 'Wizard',
       hp_method: 'average',
     });
 
     expect(updated.spell_slots).toEqual({ 1: 4, 2: 2 });
     expect(updated.spell_slots_remaining).toEqual({ 1: 2, 2: 2 });
+  });
+
+  test('an existing secondary class can gain the next level', () => {
+    const updated = applyPreviewCharacterLevelUp({
+      character_class: 'Fighter',
+      subclass: 'Champion',
+      level: 5,
+      intelligence: 16,
+      constitution: 12,
+      max_hit_points: 34,
+      current_hit_points: 20,
+      hit_dice_remaining: 2,
+      class_levels: { Fighter: 3, Wizard: 2 },
+      classes: [
+        { name: 'Fighter', level: 3, subclass: 'Champion' },
+        { name: 'Wizard', level: 2, subclass: '' },
+      ],
+      spell_slots: { 1: 3 },
+      spell_slots_remaining: { 1: 1 },
+    }, {
+      new_level: 6,
+      new_class: 'Wizard',
+      subclass: 'Evocation',
+      hp_method: 'average',
+    });
+
+    expect(updated.class_levels).toEqual({ Fighter: 3, Wizard: 3 });
+    expect(updated.subclass).toBe('Champion');
+    expect(updated.classes.find((entry) => entry.name === 'Wizard').subclass).toBe('Evocation');
+    expect(updated.classes.find((entry) => entry.name === 'Fighter').subclass).toBe('Champion');
   });
 
   test('multiclass Wizard and Cleric use the shared caster slot table', () => {
@@ -107,10 +167,12 @@ describe('local preview character progression', () => {
     }, {
       new_level: 4,
       new_class: 'Cleric',
+      subclass: 'Life',
       hp_method: 'average',
     }, { multiclass: true });
 
     expect(updated.class_levels).toEqual({ Wizard: 3, Cleric: 1 });
+    expect(updated.classes.find((entry) => entry.name === 'Cleric').subclass).toBe('Life');
     expect(updated.spell_slots).toEqual({ 1: 4, 2: 3 });
     expect(updated.spell_slots_remaining).toEqual({ 1: 3, 2: 2 });
   });
@@ -128,10 +190,12 @@ describe('local preview character progression', () => {
     }, {
       new_level: 4,
       new_class: 'Warlock',
+      subclass: 'Fiend',
       hp_method: 'average',
     }, { multiclass: true });
 
     expect(updated.class_levels).toEqual({ Fighter: 3, Warlock: 1 });
+    expect(updated.classes.find((entry) => entry.name === 'Warlock').subclass).toBe('Fiend');
     expect(updated.resources.pact_magic).toMatchObject({
       current: 1,
       remaining: 1,
@@ -149,6 +213,7 @@ describe('local preview character progression', () => {
       current_hit_points: 20,
     }, {
       new_level: 5,
+      new_class: 'Fighter',
       hp_method: 'average',
     })).toThrow('Can only level up from 3 to 4');
   });
