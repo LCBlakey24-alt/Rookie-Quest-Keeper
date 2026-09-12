@@ -11,6 +11,7 @@ const toNumber = (value, fallback = 0) => {
 };
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const hasItems = (value = {}) => Object.keys(value || {}).length > 0;
 
 export function getPactMagicPool(character = {}, slotMath = {}) {
   const derived = slotMath?.pactMagic || null;
@@ -47,12 +48,28 @@ export function getPactMagicPool(character = {}, slotMath = {}) {
   };
 }
 
+export function isLegacyPactSlotMap(character = {}, slotMath = {}, pactPool = null) {
+  const pact = pactPool || getPactMagicPool(character, slotMath);
+  const saved = normaliseSpellSlots(character?.spell_slots || {});
+  const derivedShared = normaliseSpellSlots(slotMath?.slots || {});
+  if (!pact.available || hasItems(derivedShared) || !hasItems(saved)) return false;
+
+  const entries = Object.entries(saved).filter(([, count]) => toNumber(count, 0) > 0);
+  if (entries.length !== 1) return false;
+  const [level, count] = entries[0];
+  return toNumber(level, 0) === pact.level && toNumber(count, 0) === pact.total;
+}
+
 export function getNormalSpellPool(character = {}, slotMath = {}) {
+  const pactPool = getPactMagicPool(character, slotMath);
   const saved = normaliseSpellSlots(character?.spell_slots || {});
   const derived = normaliseSpellSlots(slotMath?.slots || {});
-  const totals = Object.keys(saved).length ? saved : derived;
+  const savedIsLegacyPact = isLegacyPactSlotMap(character, slotMath, pactPool);
+  const usableSaved = savedIsLegacyPact ? {} : saved;
+  const totals = hasItems(usableSaved) ? usableSaved : derived;
   const savedRemaining = normaliseSpellSlots(character?.spell_slots_remaining || {});
-  const remaining = Object.keys(savedRemaining).length ? savedRemaining : { ...totals };
+  const usableRemaining = savedIsLegacyPact ? {} : savedRemaining;
+  const remaining = hasItems(usableRemaining) ? usableRemaining : { ...totals };
 
   return {
     totals,
@@ -62,7 +79,8 @@ export function getNormalSpellPool(character = {}, slotMath = {}) {
         clamp(toNumber(remaining[level], total), 0, total),
       ]),
     ),
-    source: Object.keys(saved).length ? 'saved' : Object.keys(derived).length ? 'derived' : 'none',
+    source: hasItems(usableSaved) ? 'saved' : hasItems(derived) ? 'derived' : 'none',
+    legacyPactExcluded: savedIsLegacyPact,
   };
 }
 
