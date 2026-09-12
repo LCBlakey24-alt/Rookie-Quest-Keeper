@@ -150,3 +150,9 @@
   opacity: .72;
   cursor: not-allowed;
 }
+
+/* The bridge above the base builder owns Starting Level. Hide the base builder's
+   old fixed Level 1 field so higher-level creation never shows conflicting values. */
+.full-creator-panel .full-creator-form-grid label:has(> select:disabled) {
+  display: none;
+}
