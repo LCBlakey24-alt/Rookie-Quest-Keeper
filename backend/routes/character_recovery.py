@@ -35,6 +35,9 @@ CORE_HIT_DICE = {
     "wizard": 6,
 }
 
+FULL_CASTERS = {"bard", "cleric", "druid", "sorcerer", "wizard"}
+HALF_CASTERS = {"paladin", "ranger"}
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -64,13 +67,22 @@ def _ability_mod(score: Any) -> int:
     return (_int(score, 10) - 10) // 2
 
 
+def _class_levels(character: Dict[str, Any]) -> Dict[str, int]:
+    stored = character.get("class_levels") or character.get("multiclass_levels") or {}
+    if isinstance(stored, dict) and stored:
+        return {
+            _class_key(name): max(0, _int(level, 0))
+            for name, level in stored.items()
+            if _int(level, 0) > 0
+        }
+    primary = _class_key(character.get("character_class"))
+    return {primary: max(1, _int(character.get("level"), 1))} if primary else {}
+
+
 def _total_hit_dice(character: Dict[str, Any]) -> int:
-    class_levels = character.get("class_levels") or character.get("multiclass_levels") or {}
-    if isinstance(class_levels, dict):
-        total = sum(max(0, _int(level, 0)) for level in class_levels.values())
-        if total > 0:
-            return total
-    return max(1, _int(character.get("level"), 1))
+    levels = _class_levels(character)
+    total = sum(levels.values())
+    return total if total > 0 else max(1, _int(character.get("level"), 1))
 
 
 def _tracker_max(tracker: Dict[str, Any]) -> int:
@@ -127,6 +139,57 @@ def long_rest_hit_dice(character: Dict[str, Any]) -> int:
         return total
     regained = max(1, total // 2)
     return min(total, remaining + regained)
+
+
+def _subclass_for(character: Dict[str, Any], class_name: str) -> str:
+    class_name = _class_key(class_name)
+    for entry in character.get("classes") or []:
+        if not isinstance(entry, dict):
+            continue
+        entry_name = _class_key(entry.get("name") or entry.get("class_name") or entry.get("character_class") or entry.get("class"))
+        if entry_name == class_name:
+            return str(entry.get("subclass") or "")
+    if _class_key(character.get("character_class")) == class_name:
+        return str(character.get("subclass") or "")
+    return ""
+
+
+def has_non_pact_spell_slots(character: Dict[str, Any]) -> bool:
+    """Whether any class contributes ordinary shared spellcasting slots."""
+    for class_name, level in _class_levels(character).items():
+        if class_name == "warlock":
+            continue
+        if class_name in FULL_CASTERS and level > 0:
+            return True
+        if class_name in HALF_CASTERS and level >= 2:
+            return True
+        if class_name == "fighter" and level >= 3 and _class_key(_subclass_for(character, class_name)) == "eldritch_knight":
+            return True
+        if class_name == "rogue" and level >= 3 and _class_key(_subclass_for(character, class_name)) == "arcane_trickster":
+            return True
+    return False
+
+
+def spell_slots_are_pact_pool(character: Dict[str, Any]) -> bool:
+    """True when spell_slots represents Pact Magic rather than shared slots."""
+    levels = _class_levels(character)
+    if levels.get("warlock", 0) <= 0 or has_non_pact_spell_slots(character):
+        return False
+
+    slots = character.get("spell_slots") if isinstance(character.get("spell_slots"), dict) else {}
+    if not slots:
+        return False
+
+    tracker = (character.get("resources") or {}).get("pact_magic") if isinstance(character.get("resources"), dict) else None
+    if isinstance(tracker, dict):
+        slot_level = str(_int(tracker.get("slot_level"), 0))
+        maximum = _tracker_max(tracker)
+        if slot_level != "0" and len(slots) == 1:
+            return _int(slots.get(slot_level), -1) == maximum
+
+    # Legacy Warlocks did not always have a tracker. If no other class provides
+    # ordinary spell slots, their saved spell_slots are the Pact Magic pool.
+    return True
 
 
 async def _owned_character(character_id: str, username: str) -> Dict[str, Any]:
@@ -189,6 +252,11 @@ async def short_rest_character(
         "last_rest_type": "short-rest",
         "last_rest_at": _now(),
     }
+    if spell_slots_are_pact_pool(character):
+        spell_slots = character.get("spell_slots") if isinstance(character.get("spell_slots"), dict) else {}
+        updates["spell_slots_remaining"] = dict(spell_slots)
+        updates["used_spell_slots"] = {}
+
     updates.update(_spend_hit_dice(character, hit_dice_to_spend))
     return await _save(character_id, username, updates)
 
@@ -215,11 +283,9 @@ async def long_rest_character(
         "used_spell_slots": {},
         "hit_dice_remaining": long_rest_hit_dice(character),
         "resources": restore_resource_trackers(character.get("resources"), "long-rest"),
+        "exhaustion_level": max(0, _int(character.get("exhaustion_level"), 0) - 1),
         "last_rest_type": "long-rest",
         "last_rest_at": _now(),
     }
-
-    if _edition(character) == "2024":
-        updates["exhaustion_level"] = max(0, _int(character.get("exhaustion_level"), 0) - 1)
 
     return await _save(character_id, username, updates)
