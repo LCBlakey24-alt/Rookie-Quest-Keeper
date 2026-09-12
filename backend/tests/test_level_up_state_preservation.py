@@ -11,10 +11,19 @@ os.environ.setdefault('CORS_ORIGINS', 'http://localhost:3000')
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from routes import all_routers
+from routes.character_level_up import router as safe_level_up_router
 from routes.character_level_up import preserve_level_up_state, preserve_spell_slot_usage
+from routes.characters import router as legacy_character_router
 
 
 class LevelUpStatePreservationTests(unittest.TestCase):
+    def test_safe_level_up_router_precedes_legacy_character_router(self):
+        self.assertLess(
+            all_routers.index(safe_level_up_router),
+            all_routers.index(legacy_character_router),
+        )
+
     def test_damaged_character_gains_new_hp_without_becoming_fully_healed(self):
         existing = {
             'level': 4,
