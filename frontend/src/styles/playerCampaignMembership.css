@@ -1,0 +1,33 @@
+.player-campaign-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-campaign-header .player-campaign-leave {
+  border-color: rgba(255, 115, 115, 0.5) !important;
+  color: #ffd9d9 !important;
+}
+
+.player-campaign-header .player-campaign-leave:hover,
+.player-campaign-header .player-campaign-leave:focus-visible {
+  border-color: #ff7373 !important;
+  background: rgba(117, 28, 38, 0.28) !important;
+}
+
+@media (max-width: 719px) {
+  .player-campaign-header-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .player-campaign-header-actions > button {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 10px !important;
+    font-size: 0.72rem;
+  }
+}
