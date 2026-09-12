@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AlertTriangle, BookOpen, FileText, Mail, Shield, Users } from 'lucide-react';
@@ -16,10 +16,11 @@ import {
 } from '@/components/dashboard/player/playerDashboardData';
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
-import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
-import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 import '@/styles/playerDashboardBoard.css';
 import '@/styles/playerHandoutsPanel.css';
+
+const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
+const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
 
 const tabs = [
   { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
@@ -200,11 +201,17 @@ export default function PlayerDashboard() {
           />
         )}
 
-        {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
+        {activeTab === 'notes' && (
+          <Suspense fallback={<div style={tabLoadingStyle}>Loading notes…</div>}>
+            <PlayerNotesTab campaigns={linkedCampaigns} />
+          </Suspense>
+        )}
         {activeTab === 'handouts' && (
-          <div className="player-handouts-surface">
-            <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />
-          </div>
+          <Suspense fallback={<div style={tabLoadingStyle}>Loading received handouts…</div>}>
+            <div className="player-handouts-surface">
+              <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />
+            </div>
+          </Suspense>
         )}
       </PlayerDashboardTabs>
 
@@ -229,4 +236,17 @@ const loadWarningStyle = {
   borderRadius: 5,
   background: '#102B40',
   color: '#FFFFFF',
+};
+
+const tabLoadingStyle = {
+  minHeight: 96,
+  display: 'grid',
+  placeItems: 'center',
+  padding: 12,
+  border: '1px solid rgba(255,45,170,.18)',
+  borderRadius: 7,
+  background: '#0C2234',
+  color: '#FFFFFF',
+  fontSize: 12,
+  fontWeight: 800,
 };
