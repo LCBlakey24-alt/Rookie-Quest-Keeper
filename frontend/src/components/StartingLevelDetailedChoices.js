@@ -74,8 +74,11 @@ function ToggleChoiceList({ label, value, options, max, onChange }) {
               type="button"
               className={`full-creator-toggle-option${active ? ' active' : ''}`}
               aria-pressed={active}
-              disabled={unavailable}
-              onClick={() => onChange(toggleValue(selected, valueKey, max))}
+              aria-disabled={unavailable}
+              onClick={() => {
+                if (unavailable) return;
+                onChange(toggleValue(selected, valueKey, max));
+              }}
             >
               <span>{optionLabel(option)}</span>
               <small>{active ? 'Selected' : unavailable ? 'Limit reached' : 'Choose'}</small>
