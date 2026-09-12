@@ -1,13 +1,31 @@
 import asyncio
+import importlib.util
 import os
+from pathlib import Path
+import sys
+import unittest
+from unittest.mock import patch
 
-os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
-os.environ.setdefault("DB_NAME", "rookiequestkeeper_test")
-os.environ.setdefault("JWT_SECRET_KEY", "unit-test-secret")
-os.environ.setdefault("APP_URL", "http://localhost:3000")
-os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+for key, value in {
+    'MONGO_URL': 'mongodb://localhost:27017',
+    'DB_NAME': 'rookiequestkeeper_test',
+    'JWT_SECRET_KEY': 'unit-test-secret',
+    'APP_URL': 'http://localhost:3000',
+    'CORS_ORIGINS': 'http://localhost:3000',
+}.items():
+    os.environ.setdefault(key, value)
 
-from routes import player_handout_summary as summary_routes  # noqa: E402
+
+def route_module(name):
+    spec = importlib.util.spec_from_file_location('summary_' + name, ROOT / 'routes' / (name + '.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+summary_routes = route_module('player_handout_summary')
 
 
 class FakeCursor:
@@ -37,19 +55,21 @@ def run_async(coro):
     return asyncio.run(coro)
 
 
-def test_player_handout_summary_returns_counts(monkeypatch):
-    fake_db = FakeDb([{"_id": None, "total": 7, "unread": 3, "saved": 2}])
-    monkeypatch.setattr(summary_routes, "db", fake_db)
+class PlayerHandoutSummaryTests(unittest.TestCase):
+    def test_returns_counts(self):
+        fake_db = FakeDb([{'_id': None, 'total': 7, 'unread': 3, 'saved': 2}])
+        with patch.object(summary_routes, 'db', fake_db):
+            result = run_async(summary_routes.get_player_handout_summary(current_user='player-one'))
 
-    result = run_async(summary_routes.get_player_handout_summary(current_user="player-one"))
+        self.assertEqual(result, {'total': 7, 'unread': 3, 'saved': 2})
+        self.assertEqual(fake_db.player_handouts.pipeline[0], {'$match': {'username': 'player-one'}})
 
-    assert result == {"total": 7, "unread": 3, "saved": 2}
-    assert fake_db.player_handouts.pipeline[0] == {"$match": {"username": "player-one"}}
+    def test_returns_zeroes_when_player_has_none(self):
+        with patch.object(summary_routes, 'db', FakeDb([])):
+            result = run_async(summary_routes.get_player_handout_summary(current_user='player-one'))
+
+        self.assertEqual(result, {'total': 0, 'unread': 0, 'saved': 0})
 
 
-def test_player_handout_summary_returns_zeroes_when_player_has_none(monkeypatch):
-    monkeypatch.setattr(summary_routes, "db", FakeDb([]))
-
-    result = run_async(summary_routes.get_player_handout_summary(current_user="player-one"))
-
-    assert result == {"total": 0, "unread": 0, "saved": 0}
+if __name__ == '__main__':
+    unittest.main()
