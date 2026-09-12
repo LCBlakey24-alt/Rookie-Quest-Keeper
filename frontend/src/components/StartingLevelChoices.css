@@ -154,6 +154,72 @@
   text-align: center;
 }
 
+/* Review screen: make required, later and ready states scan like a checklist. */
+.full-creator-readiness-panel {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.full-creator-readiness-hero {
+  grid-column: 1 / -1;
+  background: rgba(124,203,255,.08);
+  border-color: rgba(255,45,170,.28);
+}
+
+.full-creator-readiness-list {
+  min-width: 0;
+  align-content: start;
+}
+
+.full-creator-readiness-list.priority {
+  background: rgba(255,45,170,.04);
+}
+
+.full-creator-readiness-list.ready {
+  background: rgba(124,203,255,.05);
+}
+
+.full-creator-readiness-list ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.full-creator-readiness-list li {
+  position: relative;
+  padding-left: 12px;
+  color: #FFFFFF;
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.full-creator-readiness-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .5em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7CCBFF;
+}
+
+.full-creator-readiness-list.priority li::before {
+  background: #FF2DAA;
+}
+
+@media (max-width: 760px) {
+  .full-creator-readiness-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .full-creator-readiness-hero {
+    grid-column: auto;
+  }
+}
+
 @media (max-width: 560px) {
   .full-creator-toggle-field {
     margin-top: 8px;
@@ -171,6 +237,11 @@
 
   .full-creator-toggle-search input {
     min-height: 42px;
+  }
+
+  .full-creator-readiness-list,
+  .full-creator-readiness-hero {
+    padding: 8px;
   }
 }
 
