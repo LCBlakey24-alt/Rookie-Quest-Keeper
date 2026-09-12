@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, FileText, Mail, Clock, RefreshCw } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, BookOpen, FileText, Mail, Clock, LogOut, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -39,9 +40,11 @@ export default function PlayerCampaignPage() {
 }
 
 export function PlayerCampaignWorkspace({ campaignId }) {
+  const navigate = useNavigate();
   const requestRef = useRef(0);
   const [data, setData] = useState({ campaign: null, party: null, characters: null });
   const [loading, setLoading] = useState(true);
+  const [leaving, setLeaving] = useState(false);
   const [failures, setFailures] = useState([]);
   const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
 
@@ -81,6 +84,21 @@ export function PlayerCampaignWorkspace({ campaignId }) {
     return () => { requestRef.current += 1; };
   }, [refresh]);
 
+  const leaveCampaign = async () => {
+    const campaignName = data.campaign?.name || 'this campaign';
+    if (!window.confirm(`Leave ${campaignName}? Your character will be unlinked, but the GM's campaign data will not be deleted.`)) return;
+    setLeaving(true);
+    try {
+      await apiClient.delete(`/campaign-invites/${campaignId}/membership`);
+      toast.success(`Left ${campaignName}`, { description: 'You can join again later with a GM join code.' });
+      navigate('/player', { replace: true });
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not leave the campaign');
+    } finally {
+      setLeaving(false);
+    }
+  };
+
   const { campaign, party, characters } = data;
   const environment = campaign?.environment || {};
   const campaignTabs = tabs.map(tab => tab.id === 'handouts' && handoutSummary.unread > 0
@@ -95,7 +113,10 @@ export function PlayerCampaignWorkspace({ campaignId }) {
           <h1>{campaign?.name || 'Your campaign'}</h1>
           {campaign?.system && <p>{campaign.system}{campaign.rules_edition ? ` · ${campaign.rules_edition}` : ''}</p>}
         </div>
-        <Button onClick={refresh} disabled={loading}><RefreshCw size={16} /> {loading ? 'Loading…' : 'Refresh'}</Button>
+        <div className="player-campaign-header-actions">
+          <Button onClick={refresh} disabled={loading || leaving}><RefreshCw size={16} /> {loading ? 'Loading…' : 'Refresh'}</Button>
+          <Button className="player-campaign-leave" onClick={leaveCampaign} disabled={leaving || loading}><LogOut size={16} /> {leaving ? 'Leaving…' : 'Leave campaign'}</Button>
+        </div>
       </header>
       {failures.length > 0 && <div role="status" className="player-campaign-warning">
         Could not refresh {failures.join(', ')}. Previously loaded information remains visible. Try Refresh to check again.
