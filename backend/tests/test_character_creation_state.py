@@ -59,12 +59,13 @@ class TestCharacterCreationState(unittest.TestCase):
         self.assertEqual(character["spell_save_dc"], 16)
         self.assertEqual(character["spell_attack_bonus"], 8)
 
-    def test_imported_multiclass_caster_gets_shared_slot_table(self):
+    def test_imported_multiclass_caster_gets_shared_slot_table_and_class_entries(self):
         character = normalise_created_character(
             {
                 "name": "Dual Caster",
                 "race": "Human",
                 "character_class": "Wizard 3 / Cleric 2",
+                "subclass": "Evocation",
                 "level": 5,
                 "intelligence": 16,
                 "wisdom": 16,
@@ -75,7 +76,14 @@ class TestCharacterCreationState(unittest.TestCase):
         self.assertEqual(character["character_class"], "Wizard")
         self.assertEqual(character["level"], 5)
         self.assertEqual(character["class_levels"], {"Wizard": 3, "Cleric": 2})
+        self.assertEqual(character["multiclass_classes"], ["Wizard", "Cleric"])
         self.assertEqual(character["spell_slots"], {"1": 4, "2": 3, "3": 2})
+        wizard = next(entry for entry in character["classes"] if entry["name"] == "Wizard")
+        cleric = next(entry for entry in character["classes"] if entry["name"] == "Cleric")
+        self.assertEqual(wizard["subclass"], "Evocation")
+        self.assertEqual(cleric["subclass"], "")
+        self.assertEqual(character["resources"]["arcane_recovery"]["max"], 1)
+        self.assertEqual(character["resources"]["channel_divinity"]["max"], 1)
 
     def test_warlock_plus_wizard_keeps_shared_slots_and_pact_resource(self):
         character = normalise_created_character(
@@ -93,6 +101,57 @@ class TestCharacterCreationState(unittest.TestCase):
         self.assertEqual(character["spell_slots"], {"1": 3})
         self.assertEqual(character["resources"]["pact_magic"]["max"], 2)
         self.assertEqual(character["resources"]["pact_magic"]["slot_level"], 2)
+        self.assertEqual(character["resources"]["arcane_recovery"]["max"], 1)
+
+    def test_imported_fighter_gets_persisted_core_resource_trackers(self):
+        character = normalise_created_character(
+            {
+                "name": "Shield",
+                "race": "Human",
+                "character_class": "Fighter",
+                "level": 9,
+                "constitution": 16,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["resources"]["second_wind"]["current"], 1)
+        self.assertEqual(character["resources"]["action_surge"]["current"], 1)
+        self.assertEqual(character["resources"]["indomitable"]["current"], 1)
+        self.assertEqual(character["resources"]["second_wind"]["restore"], "short-rest")
+
+    def test_imported_monk_gets_level_scaled_ki(self):
+        character = normalise_created_character(
+            {
+                "name": "Still Water",
+                "race": "Human",
+                "character_class": "Monk",
+                "level": 7,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["resources"]["ki"]["current"], 7)
+        self.assertEqual(character["resources"]["ki"]["max"], 7)
+        self.assertEqual(character["resources"]["ki"]["restore"], "short-rest")
+
+    def test_existing_resource_state_is_preserved_when_builder_supplies_it(self):
+        character = normalise_created_character(
+            {
+                "name": "Spent Fighter",
+                "race": "Human",
+                "character_class": "Fighter",
+                "level": 5,
+                "resources": {
+                    "second_wind": {"label": "Second Wind", "current": 0, "remaining": 0, "max": 1, "restore": "short-rest"},
+                    "homebrew_charge": {"label": "Homebrew Charge", "current": 2, "remaining": 2, "max": 3},
+                },
+            },
+            "player-one",
+        )
+        self.assertEqual(character["resources"]["second_wind"]["current"], 0)
+        self.assertEqual(character["resources"]["homebrew_charge"]["current"], 2)
+        self.assertIn("action_surge", character["resources"])
 
     def test_multiclass_hit_dice_string_tracks_each_class(self):
         character = normalise_created_character(
