@@ -204,13 +204,13 @@ export function WarlockChoiceSection({ plan, selection, onChange }) {
       <span>Pact Boon and Eldritch Invocations are applied to the saved sheet.</span>
 
       {plan.pactBoonRequired && (
-        <label className="full-creator-wide-label">
-          <span>Pact Boon</span>
-          <select value={current.pactBoon} onChange={(event) => update({ pactBoon: event.target.value })}>
-            <option value="">Choose…</option>
-            {arr(plan.pactBoonOptions).map((option) => <option key={option.name} value={option.name}>{option.name}</option>)}
-          </select>
-        </label>
+        <ToggleChoiceList
+          label="Pact Boon"
+          value={current.pactBoon ? [current.pactBoon] : []}
+          options={plan.pactBoonOptions}
+          max={1}
+          onChange={(boons) => update({ pactBoon: boons[0] || '' })}
+        />
       )}
 
       <ToggleChoiceList
