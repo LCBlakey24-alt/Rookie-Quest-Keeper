@@ -12,15 +12,15 @@ import {
 } from '@/components/mobilePlayerCampaignData';
 
 const theme = {
-  bg: '#0a1728',
-  panel: '#102238',
-  panelAlt: '#14283e',
-  border: 'rgba(181,203,226,0.16)',
-  red: '#d00000',
-  redBright: '#ef2b2b',
-  text: '#f7f9fc',
-  muted: 'rgba(229,237,247,0.74)',
-  soft: 'rgba(202,216,233,0.58)',
+  bg: 'var(--rq-bg-main)',
+  panel: 'var(--rq-bg-panel)',
+  panelAlt: 'var(--rq-card)',
+  border: 'var(--rq-border-default)',
+  red: 'var(--rq-accent-primary)',
+  redBright: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
 };
 
 function mergeCampaigns(...groups) {

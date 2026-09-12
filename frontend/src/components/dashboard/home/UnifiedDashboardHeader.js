@@ -18,7 +18,7 @@ export default function UnifiedDashboardHeader({
         <DashboardButton onClick={onRefresh} disabled={refreshing}>
           {refreshing ? 'Refreshing…' : 'Refresh'}
         </DashboardButton>
-        <DashboardButton onClick={onLogout}>Logout</DashboardButton>
+        {onLogout && <DashboardButton onClick={onLogout}>Logout</DashboardButton>}
       </div>
     </header>
   );

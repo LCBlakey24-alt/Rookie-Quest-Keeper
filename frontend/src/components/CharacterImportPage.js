@@ -272,7 +272,7 @@ function TextField({ label, value, onChange, type = 'text', multiline = false, p
         value={value ?? ''}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        style={{ ...styles.input, minHeight: multiline ? 96 : 42, resize: multiline ? 'vertical' : undefined }}
+        style={{ ...styles.input, minHeight: multiline ? 84 : 40, resize: multiline ? 'vertical' : undefined }}
       />
     </label>
   );
@@ -352,7 +352,7 @@ export default function CharacterImportPage() {
     <main style={styles.page}>
       <header style={styles.header}>
         <button type="button" onClick={() => navigate('/characters')} style={styles.ghostButton}>
-          <ArrowLeft size={16} /> Characters
+          <ArrowLeft size={16} color="#7CCBFF" /> Characters
         </button>
         <div>
           <p style={styles.eyebrow}>Player tools</p>
@@ -362,20 +362,20 @@ export default function CharacterImportPage() {
       </header>
 
       <section style={styles.notice}>
-        <Wand2 size={19} />
+        <Wand2 size={19} color="#7CCBFF" />
         <div>
-          <strong>Homebrew-friendly path</strong>
-          <p>Race/species, class, subclass, feats, traits, spells, equipment, and features are saved as written. This is the safer route for custom classes and uploaded sheets while the guided builder catches up.</p>
+          <strong style={styles.sectionTitle}>Homebrew-friendly path</strong>
+          <p style={styles.bodyCopy}>Race/species, class, subclass, feats, traits, spells, equipment, and features are saved as written. This is the safer route for custom classes and uploaded sheets while the guided builder catches up.</p>
         </div>
       </section>
 
       <section style={styles.gridTwo}>
         <article style={styles.card}>
           <div style={styles.cardHeader}>
-            <UploadCloud size={22} />
+            <UploadCloud size={22} color="#7CCBFF" />
             <div>
-              <h2>Upload a sheet file</h2>
-              <p>JSON, TXT, and MD can be read automatically. PDF/images can be received as the source file and filled manually for now.</p>
+              <h2 style={styles.sectionTitle}>Upload a sheet file</h2>
+              <p style={styles.bodyCopy}>JSON, TXT, and MD can be read automatically. PDF/images can be received as the source file and filled manually for now.</p>
             </div>
           </div>
           <input
@@ -385,27 +385,27 @@ export default function CharacterImportPage() {
             onChange={handleFile}
             style={styles.fileInput}
           />
-          {character.source_file_name && <p style={styles.fileNote}><FileText size={14} /> Source: {character.source_file_name}</p>}
+          {character.source_file_name && <p style={styles.fileNote}><FileText size={14} color="#7CCBFF" /> Source: {character.source_file_name}</p>}
         </article>
 
         <article style={styles.card}>
           <div style={styles.cardHeader}>
-            <FileText size={22} />
+            <FileText size={22} color="#7CCBFF" />
             <div>
-              <h2>Paste sheet text</h2>
-              <p>Works best with JSON or lines like <em>Name: Javen</em>, <em>Class: Warlock</em>, <em>STR: 11</em>.</p>
+              <h2 style={styles.sectionTitle}>Paste sheet text</h2>
+              <p style={styles.bodyCopy}>Works best with JSON or lines like <em>Name: Javen</em>, <em>Class: Warlock</em>, <em>STR: 11</em>.</p>
             </div>
           </div>
-          <textarea value={rawText} onChange={(event) => setRawText(event.target.value)} placeholder="Paste sheet text or JSON here..." style={{ ...styles.input, minHeight: 150 }} />
+          <textarea value={rawText} onChange={(event) => setRawText(event.target.value)} placeholder="Paste sheet text or JSON here..." style={{ ...styles.input, minHeight: 120, resize: 'vertical' }} />
           <div style={styles.rowActions}>
             <button type="button" onClick={() => applyRawText(rawText)} style={styles.primaryButton}>Use pasted text</button>
-            <button type="button" onClick={reset} style={styles.secondaryButton}><RefreshCw size={15} /> Reset</button>
+            <button type="button" onClick={reset} style={styles.secondaryButton}><RefreshCw size={15} color="#7CCBFF" /> Reset</button>
           </div>
         </article>
       </section>
 
       <section style={styles.card}>
-        <h2>Core character</h2>
+        <h2 style={styles.sectionTitle}>Core character</h2>
         <div style={styles.formGrid}>
           <TextField label="Character name" value={character.name} onChange={(value) => update('name', value)} placeholder="Name" />
           <TextField label="Race / Species" value={character.race} onChange={(value) => update('race', value)} />
@@ -434,7 +434,7 @@ export default function CharacterImportPage() {
       </section>
 
       <section style={styles.card}>
-        <h2>Stats and combat basics</h2>
+        <h2 style={styles.sectionTitle}>Stats and combat basics</h2>
         <div style={styles.abilityGrid}>
           {ABILITIES.map((ability) => (
             <NumberField key={ability} label={ABILITY_LABELS[ability]} value={character[ability]} onChange={(value) => update(ability, value)} />
@@ -450,7 +450,7 @@ export default function CharacterImportPage() {
       </section>
 
       <section style={styles.card}>
-        <h2>Homebrew, features, and play data</h2>
+        <h2 style={styles.sectionTitle}>Homebrew, features, and play data</h2>
         <div style={styles.gridTwo}>
           <TextField label="Skills" value={character.skills_text} onChange={(value) => update('skills_text', value)} multiline placeholder="Athletics, Perception..." />
           <TextField label="Saving throws" value={character.saving_throws_text} onChange={(value) => update('saving_throws_text', value)} multiline placeholder="strength, constitution..." />
@@ -467,11 +467,11 @@ export default function CharacterImportPage() {
 
       <section style={styles.footerCard}>
         <div>
-          <strong>{canSave ? 'Ready to save' : 'Needs name, race/species, and class'}</strong>
-          <p>Preview: {payloadPreview.name || 'Unnamed'} • {payloadPreview.race} • {payloadPreview.character_class} • Level {payloadPreview.level}</p>
+          <strong style={styles.sectionTitle}>{canSave ? 'Ready to save' : 'Needs name, race/species, and class'}</strong>
+          <p style={styles.bodyCopy}>Preview: {payloadPreview.name || 'Unnamed'} • {payloadPreview.race} • {payloadPreview.character_class} • Level {payloadPreview.level}</p>
         </div>
         <button type="button" onClick={saveCharacter} disabled={saving || !canSave} style={{ ...styles.primaryButton, opacity: saving || !canSave ? 0.55 : 1 }}>
-          <Save size={16} /> {saving ? 'Saving…' : 'Save Imported Character'}
+          <Save size={16} color="#7CCBFF" /> {saving ? 'Saving…' : 'Save Imported Character'}
         </button>
       </section>
     </main>
@@ -481,164 +481,210 @@ export default function CharacterImportPage() {
 const styles = {
   page: {
     minHeight: '100vh',
-    padding: '28px clamp(16px, 4vw, 48px)',
-    background: 'var(--rq-bg, #242424)',
-    color: 'var(--rq-text, #fff)',
+    boxSizing: 'border-box',
+    padding: 'clamp(10px, 2.5vw, 24px)',
+    background: '#071522',
+    color: '#FFFFFF',
     fontFamily: 'var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)',
   },
   header: {
     display: 'grid',
-    gap: 18,
-    marginBottom: 22,
+    gap: 10,
+    maxWidth: 1180,
+    margin: '0 auto 10px',
+    padding: 'clamp(10px, 2vw, 14px)',
+    background: '#0C2234',
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 7,
   },
   eyebrow: {
     margin: 0,
-    color: 'rgba(255,255,255,0.6)',
-    letterSpacing: '0.12em',
+    color: '#FFFFFF',
+    letterSpacing: '0.1em',
     textTransform: 'uppercase',
-    fontSize: 12,
-    fontWeight: 800,
+    fontSize: 10,
+    fontWeight: 900,
   },
   title: {
-    margin: '4px 0 8px',
-    fontSize: 'clamp(32px, 7vw, 64px)',
-    lineHeight: 0.95,
-    fontFamily: 'var(--rq-title-font, Georgia, serif)',
+    margin: '2px 0 5px',
+    fontSize: 'clamp(1.75rem, 4vw, 2.45rem)',
+    lineHeight: 1.02,
+    fontFamily: 'inherit',
+    fontWeight: 900,
+    letterSpacing: '-0.025em',
+    color: '#FFFFFF',
   },
   subtitle: {
     margin: 0,
-    maxWidth: 860,
-    color: 'rgba(255,255,255,0.72)',
-    lineHeight: 1.6,
+    maxWidth: 820,
+    color: '#FFFFFF',
+    fontSize: 13,
+    lineHeight: 1.45,
   },
   gridTwo: {
+    width: 'min(1180px, 100%)',
+    margin: '0 auto',
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: 16,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+    gap: 8,
   },
   card: {
-    background: 'rgba(255,255,255,0.065)',
-    border: '1px solid rgba(255,255,255,0.14)',
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 16,
-    boxShadow: '0 18px 50px rgba(0,0,0,0.22)',
+    width: 'min(1180px, 100%)',
+    boxSizing: 'border-box',
+    margin: '0 auto 8px',
+    background: '#102B40',
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 7,
+    padding: 'clamp(10px, 2vw, 13px)',
+    boxShadow: 'none',
   },
   notice: {
+    width: 'min(1180px, 100%)',
+    boxSizing: 'border-box',
     display: 'flex',
-    gap: 12,
+    gap: 9,
     alignItems: 'flex-start',
-    background: 'rgba(208,0,0,0.16)',
-    border: '1px solid rgba(255,255,255,0.16)',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
+    margin: '0 auto 8px',
+    background: 'rgba(124,203,255,.08)',
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 7,
+    padding: 11,
   },
   cardHeader: {
     display: 'flex',
-    gap: 12,
+    gap: 9,
     alignItems: 'flex-start',
-    marginBottom: 14,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    display: 'block',
+    margin: '0 0 5px',
+    color: '#FFFFFF',
+    fontSize: 15,
+    lineHeight: 1.2,
+    fontWeight: 900,
+    fontFamily: 'inherit',
+  },
+  bodyCopy: {
+    margin: 0,
+    color: '#FFFFFF',
+    fontSize: 12,
+    lineHeight: 1.45,
   },
   formGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-    gap: 12,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
+    gap: 8,
   },
   abilityGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-    gap: 12,
-    marginBottom: 12,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))',
+    gap: 7,
+    marginBottom: 8,
   },
   field: {
     display: 'grid',
-    gap: 6,
-    color: 'rgba(255,255,255,0.72)',
-    fontSize: 13,
-    fontWeight: 800,
+    gap: 4,
+    color: '#FFFFFF',
+    fontSize: 11,
+    lineHeight: 1.2,
+    fontWeight: 850,
   },
   input: {
     width: '100%',
     boxSizing: 'border-box',
-    borderRadius: 12,
-    border: '1px solid rgba(255,255,255,0.16)',
-    background: 'rgba(0,0,0,0.28)',
-    color: '#fff',
-    padding: '11px 12px',
+    borderRadius: 5,
+    border: '1px solid rgba(255,45,170,.18)',
+    background: '#081B2A',
+    color: '#FFFFFF',
+    padding: '8px 9px',
     font: 'inherit',
+    outline: 'none',
+    boxShadow: 'none',
   },
   fileInput: {
     width: '100%',
-    padding: 12,
-    borderRadius: 14,
-    border: '1px dashed rgba(255,255,255,0.24)',
-    background: 'rgba(0,0,0,0.18)',
-    color: '#fff',
+    boxSizing: 'border-box',
+    padding: 9,
+    borderRadius: 5,
+    border: '1px dashed rgba(255,45,170,.32)',
+    background: '#081B2A',
+    color: '#FFFFFF',
   },
   fileNote: {
     display: 'flex',
     alignItems: 'center',
-    gap: 8,
-    color: 'rgba(255,255,255,0.7)',
+    gap: 6,
+    margin: '8px 0 0',
+    color: '#FFFFFF',
+    fontSize: 11,
   },
   rowActions: {
     display: 'flex',
-    gap: 10,
+    gap: 6,
     flexWrap: 'wrap',
-    marginTop: 12,
+    marginTop: 8,
   },
   primaryButton: {
+    minHeight: 40,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    border: 0,
-    borderRadius: 999,
-    padding: '11px 16px',
-    background: 'var(--rq-red, #d00000)',
-    color: '#fff',
+    gap: 7,
+    border: '1px solid #FF2DAA',
+    borderRadius: 5,
+    padding: '0 11px',
+    background: '#102B40',
+    color: '#FFFFFF',
     fontWeight: 900,
     cursor: 'pointer',
+    boxShadow: 'none',
   },
   secondaryButton: {
+    minHeight: 40,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    border: '1px solid rgba(255,255,255,0.18)',
-    borderRadius: 999,
-    padding: '11px 16px',
-    background: 'rgba(255,255,255,0.07)',
-    color: '#fff',
-    fontWeight: 800,
+    gap: 7,
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 5,
+    padding: '0 11px',
+    background: '#102B40',
+    color: '#FFFFFF',
+    fontWeight: 850,
     cursor: 'pointer',
+    boxShadow: 'none',
   },
   ghostButton: {
     justifySelf: 'start',
+    minHeight: 38,
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 8,
-    border: '1px solid rgba(255,255,255,0.16)',
-    borderRadius: 999,
-    padding: '9px 13px',
-    background: 'rgba(255,255,255,0.07)',
-    color: '#fff',
-    fontWeight: 800,
+    gap: 7,
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 5,
+    padding: '0 10px',
+    background: '#102B40',
+    color: '#FFFFFF',
+    fontWeight: 850,
     cursor: 'pointer',
+    boxShadow: 'none',
   },
   footerCard: {
     position: 'sticky',
-    bottom: 16,
+    bottom: 8,
+    width: 'min(1180px, 100%)',
+    boxSizing: 'border-box',
+    margin: '0 auto',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 14,
+    gap: 8,
     flexWrap: 'wrap',
-    background: 'rgba(23,23,23,0.92)',
-    border: '1px solid rgba(255,255,255,0.18)',
-    borderRadius: 18,
-    padding: 16,
-    backdropFilter: 'blur(14px)',
+    background: '#0C2234',
+    border: '1px solid rgba(255,45,170,.28)',
+    borderRadius: 7,
+    padding: 10,
+    boxShadow: 'none',
   },
 };

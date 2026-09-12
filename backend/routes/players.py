@@ -1,13 +1,25 @@
 """Player routes: CRUD for campaign players (GM-managed)."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
-from utils.auth import get_current_user, verify_campaign_ownership
+from utils.auth import get_current_user, verify_campaign_ownership, verify_campaign_membership
+from utils.player_views import player_campaign_summary, player_party_member, PARTY_FIELDS
 from models import Player, PlayerCreate, PlayerUpdate, PlayerStats
 from typing import List
 import uuid
 from datetime import datetime, timezone
 
 router = APIRouter()
+
+
+@router.get("/player/campaign/{campaign_id}")
+async def get_player_campaign(campaign_id: str, username: str = Depends(get_current_user)):
+    campaign = await verify_campaign_membership(campaign_id, username)
+    projection = {'_id': 0, **{field: 1 for field in PARTY_FIELDS}}
+    characters = await db.player_characters.find({'campaign_id': campaign_id}, projection).to_list(1000)
+    legacy_players = await db.players.find({'campaign_id': campaign_id}, projection).to_list(1000)
+    linked_names = {(item.get('name') or item.get('character_name') or '').casefold() for item in characters}
+    party = characters + [item for item in legacy_players if (item.get('character_name') or item.get('name') or '').casefold() not in linked_names]
+    return {**player_campaign_summary(campaign), 'party': [player_party_member(item) for item in party]}
 
 @router.post("/campaigns/{campaign_id}/players", response_model=Player, status_code=status.HTTP_201_CREATED)
 async def create_player(campaign_id: str, player_data: PlayerCreate, username: str = Depends(get_current_user)):

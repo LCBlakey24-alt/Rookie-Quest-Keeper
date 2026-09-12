@@ -230,3 +230,71 @@
     transform: none !important;
   }
 }
+
+
+/* RQK 1.0 app shell authority */
+#root .rqk-app-shell,
+#root .rqk-app-rail,
+#root .rqk-app-shell-content,
+#root .rqk-app-mobile-more-panel,
+#root .rqk-app-rail-rook,
+#root .rqk-app-rail-feedback {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-shell {
+  background: #071522 !important;
+}
+
+#root .rqk-app-rail {
+  background: #06111C !important;
+  border-color: rgba(255,45,170,.18) !important;
+}
+
+#root .rqk-app-rail::after,
+#root .rqk-app-rail-brand::before,
+#root .rqk-app-rail-link::after,
+#root .rqk-app-shell-content::before,
+#root .rqk-app-mobile-more-panel::before {
+  content: none !important;
+  display: none !important;
+}
+
+#root .rqk-app-rail-link,
+#root .rqk-app-rail-feedback,
+#root .rqk-app-rail-rook,
+#root .rqk-app-mobile-more-trigger,
+#root .rqk-app-mobile-more-item {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail-link:hover,
+#root .rqk-app-rail-link:focus-visible,
+#root .rqk-app-rail-rook:hover,
+#root .rqk-app-rail-feedback:hover,
+#root .rqk-app-mobile-more-item:hover,
+#root .rqk-app-mobile-more-item:focus-visible {
+  background: #0C2234 !important;
+  border-color: rgba(255,45,170,.18) !important;
+}
+
+#root .rqk-app-rail-link.is-active,
+#root .rqk-app-mobile-more-trigger.is-active,
+#root .rqk-app-mobile-more-item.is-active {
+  background: rgba(124,203,255,.10) !important;
+  border-color: #FF2DAA !important;
+}
+
+#root .rqk-app-rail-link.is-active::before {
+  background: #FF2DAA !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail-rook svg,
+#root .rqk-app-rail-link svg {
+  color: #7CCBFF !important;
+}

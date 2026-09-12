@@ -8,8 +8,8 @@ import {
 } from '@/components/gm/liveNpcLookupData';
 
 const rq = {
-  bg: '#0a1728', panel: '#102238', card: '#14283e', red: '#d00000',
-  text: '#f7f9fc', soft: 'rgba(229,237,247,0.74)', muted: 'rgba(202,216,233,0.58)', line: 'rgba(181,203,226,0.16)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
 };
 
 const safeArray = value => Array.isArray(value) ? value : [];

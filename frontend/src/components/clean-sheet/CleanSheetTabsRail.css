@@ -5,8 +5,9 @@
   grid-template-columns: none !important;
   grid-template-areas: none !important;
   gap: 0 !important;
-  background: var(--rq-bg-main, #070713) !important;
-  color: #ffffff !important;
+  background: #071522 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-header,
@@ -40,9 +41,10 @@
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
   scrollbar-width: none !important;
-  background: var(--rq-bg-rail, #0d0617) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: var(--rq-radius, 10px) !important;
+  background: #06111C !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
@@ -65,9 +67,10 @@
   place-items: center !important;
   gap: 0 !important;
   background: transparent !important;
+  background-image: none !important;
   border: 1px solid transparent !important;
-  border-radius: var(--rq-inner-radius, 8px) !important;
-  color: #ffffff !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
   box-shadow: none !important;
 }
 
@@ -77,7 +80,8 @@
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:focus-visible,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:hover,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:focus-visible {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: #0C2234 !important;
+  border-color: rgba(255,45,170,.18) !important;
   outline: none !important;
 }
 
@@ -86,26 +90,34 @@
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
   width: 20px !important;
   height: 20px !important;
-  color: #ffffff !important;
+  color: #7CCBFF !important;
   background: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active {
+  background: rgba(124,203,255,.10) !important;
+  border-color: #FF2DAA !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active svg {
   width: 20px !important;
   height: 20px !important;
-  padding: 8px !important;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
-  border-radius: var(--rq-inner-radius, 8px) !important;
-  box-sizing: content-box !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: #7CCBFF !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button span,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
   display: none !important;
-  color: #ffffff !important;
-  font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
+  color: #FFFFFF !important;
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
   font-size: 14px !important;
   font-weight: 700 !important;
   letter-spacing: 0.02em !important;
@@ -113,13 +125,8 @@
 }
 
 .character-page-v2 .clean-sheet-tabs button.active span::after {
-  content: '';
-  display: block;
-  width: min(100%, 86px);
-  height: 2px;
-  margin-top: 5px;
-  border-radius: 999px;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+  content: none !important;
+  display: none !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
@@ -129,11 +136,10 @@
   gap: 8px !important;
   margin: 6px auto 10px !important;
   padding: 8px !important;
-  background:
-    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border: 1px solid transparent !important;
-  border-radius: var(--rq-radius, 10px) !important;
+  background: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
   box-shadow: none !important;
 }
 

@@ -1,80 +1,109 @@
 # Rookie Quest Keeper UI Design System
 
-This is the design lock for Rookie Quest Keeper while the UI is being stripped back and rebuilt consistently.
+This document is the visual lock for Rookie Quest Keeper 1.0.
 
-## Chosen direction: Sunset Gradient
+## Chosen direction: Flat Navy / Blue / Neon Pink
 
-The app should feel like a polished fantasy campaign keeper with a very dark blue-purple base and a purple-pink-orange sunset gradient running through selected states, primary actions, active tabs, icons, focus rings, and key highlights. Individual tools should not introduce their own page-wide colour themes.
+RQK uses one minimalist interface across the entire product:
 
-Avoid coffee, velvet, espresso, leather, parchment, brown-tabletop, candlelit, or rustic theme language in new UI work.
+- **Deep navy canvas:** `#071522`
+- **Panel navy:** `#0C2234`
+- **Card/control navy:** `#102B40`
+- **Hover navy:** `#14344C`
+- **Flat white text:** `#FFFFFF`
+- **Secondary light blue:** `#7CCBFF`
+- **Neon pink accent:** `#FF2DAA`
 
-## Core palette
+There are **no gradients** in the product design.
 
-| Role | Use | Colour |
+## Colour placement
+
+| Role | Colour | Rule |
 | --- | --- | --- |
-| App background | Whole app shell | `#070713` |
-| Deep page | Page sections | `#0b0718` |
-| Rail | Main app navigation | `#0d0617` |
-| Surface | Page panels | `#13081f` |
-| Card | Cards, lists, tool blocks | `#1b0b2d` |
-| Raised | Hover/selected surfaces | `#24103a` |
-| Sunset gradient | Primary CTAs, active nav, selected states | `linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)` |
-| Main action fallback | Primary accent when gradient is not practical | `#eb3fe9` |
-| Main action hover | Hover/focus accent | `#ff9542` |
-| Selected support | Active marker support accent | `#7357ff` |
-| Main text | Primary readable text | `#ffffff` |
-| Muted text | Secondary text, helper copy, inactive labels | `rgba(255,255,255,0.62)` |
-| Homebrew/imported | Private content, imports, safe creation | `#7A9B66` |
-| Warning | Warnings, attention, risk | `#D4953C` |
-| Danger | High-risk actions and error states | `#B44732` |
-| Success | Saved, read, completed, ready | `#7A9B66` |
+| App canvas | `#071522` | Default page background |
+| Deep rail | `#06111C` | Navigation / deepest chrome |
+| Panel | `#0C2234` | Main grouped surfaces |
+| Card/control | `#102B40` | Cards, buttons, inputs |
+| Hover | `#14344C` | Hover/raised interactive state |
+| Text | `#FFFFFF` | All readable text |
+| Secondary UI | `#7CCBFF` | Icons, progress, subtle selected support |
+| Accent | `#FF2DAA` | Hairline borders, focus, active markers |
+| Hairline | `rgba(255,45,170,0.18)` | Default border |
+| Strong line | `rgba(255,45,170,0.42)` | Active/focus border |
 
-## Placement rules
+## Global rules
 
-1. **No page-specific full colour themes.** Maps, Chronicles, NPCs, Inventory, Handouts, Homebrew, Combat, Player pages, and character builders should share the same dark blue-purple sunset shell.
-2. **The sunset gradient is the primary app action treatment.** Use it for active tabs, Create, Save, Share, Import, Start, Live Play actions, selected icons, and selected navigation markers.
-3. **Unselected navigation stays quiet.** Keep inactive rail items transparent or deep-surface, with white icons/text and no heavy glow.
-4. **White text is the default readable layer.** Use white for headings/body text and soft-white for helper copy, inactive states, and small labels.
-5. **Green means done or safe creation.** Use it for read, saved, ready, imported, completed, success, or safe homebrew/imported content.
-6. **Orange/pink/purple are not warnings by default.** Use stronger warning treatment only when attention is genuinely needed.
-7. **Red is reserved.** Use red only for high-risk actions and error states; avoid using it as a page colour.
+1. No gradients of any kind.
+2. No coloured text hierarchy: readable text remains white.
+3. No purple/sunset/orange/gold visual treatment.
+4. No broad red or grey page themes.
+5. No glow shadows, text glow, haze or decorative bloom.
+6. Neon pink should normally be thin, not a large filled block.
+7. Light blue is secondary UI support, not body text.
+8. Panels should use flat navy steps rather than shadows for depth.
+9. Rounded corners stay restrained: generally 5–9px.
+10. Every route family uses this same visual system.
 
-## Character builder styling
+## Layout language
 
-All character builders should use the Sunset Gradient palette rather than introducing separate mode colours.
+### GM Prep
+Information-first. The default view should surface the current quest, last-session recap, current location, next planned scene, important NPCs and upcoming events before exposing deep campaign tools.
 
-- **Full Creation:** detailed, workshop-like, with gradient active step states, deep panels, and a clear live-preview sheet.
-- **Basic Build:** guided, compact, and approachable, with dark preview cards, gradient primary actions, and short helper text.
-- **Premade Characters:** card-gallery style, like hero cards with role/class badges.
-- **Kids Mode:** softer and simpler, with bigger dark choice cards, fewer numbers, friendlier labels, and less visual density.
+### Live Play
+Dense but calm. Core session information stays visible while tools open on demand. Avoid decorative chrome that competes with table information.
 
-Builder pages should still feel distinct through layout and language, not through totally different colour themes.
+### Player / Character
+Flatter than GM Prep. Put character status and actions near the top, keep tabs simple, and avoid stacked decorative cards.
 
-## Layout rules
+### Auth / Landing
+Use the same product palette as the signed-in experience. Do not create a separate marketing theme.
 
-- Desktop GM pages should use a sidebar + content workspace.
-- Desktop player pages should be flatter than GM pages: compact hero, tabs directly near the top, and cards that do not force long scrolling.
-- Long tool pages must scroll vertically; avoid trapping the page with `overflow: hidden` unless the internal panel provides its own scroll area.
-- Live Play Mode may use a fixed viewport, but every panel inside it must have its own scroll area.
-- Cards should use `8px` to `10px` radii, subtle pale/sunset borders, compact spacing, and clear section headers.
-- Buttons should be visually consistent: sunset-gradient primary, dark/gradient-outline secondary, red reserved, green success/safe creation.
-- Tabs and nav should follow the app rail pattern: quiet unselected states, gradient selected icon/marker/underline.
+## Buttons
 
-## Font rules
+- Default: flat navy card fill.
+- Primary: flat navy fill + 1px neon-pink border.
+- Hover: slightly lighter navy.
+- Focus: 1px neon-pink outline.
+- Text: always white.
+- Icons: white or light blue.
 
-- Use the existing UI font for all functional UI.
-- Do not use decorative/fantasy fonts for form labels, dense tables, or controls.
-- Keep body text readable at 12–15px depending on density.
+## Cards and panels
 
-## Near-term cleanup order
+- Background: `#0C2234` or `#102B40`.
+- Border: 1px low-opacity pink.
+- Shadow: none.
+- Gradient: never.
+- Use whitespace and headings to separate content instead of decorative effects.
 
-1. Global tokens and scroll safety.
-2. Campaign Dashboard shell.
-3. Player Dashboard desktop layout.
-4. Tonight's Session and Live Play Mode.
-5. World Builder, Maps, Chronicle.
-6. NPCs and relationship tools.
-7. Handouts and player clue library.
-8. Inventory and item assignment.
-9. Homebrew / private playtest creation.
-10. Character builders: Full Creation, Basic Build, Premades, and Kids Mode.
+## Inputs
+
+- Background: `#081B2A`.
+- Text: white.
+- Placeholder: white at reduced opacity.
+- Border: low-opacity pink.
+- Focus: neon-pink border/outline.
+
+## Navigation and tabs
+
+- Unselected: transparent or flat navy; white label.
+- Icon: light blue.
+- Selected: subtle light-blue fill + neon-pink border/marker.
+- No gradient active states.
+
+## Loading and empty states
+
+Loading, error, empty and setup screens use exactly the same flat palette. They must not fall back to old purple/gold/red designs.
+
+## Cleanup order
+
+1. Global tokens and shell.
+2. Landing and auth.
+3. Home/dashboard and libraries.
+4. Campaign Prep.
+5. Live Play.
+6. Character sheet/player views.
+7. Rook and global utilities.
+8. Maps, NPCs, inventory, handouts and other GM tools.
+9. Character creator/homebrew.
+10. Admin and low-frequency utilities.
+11. Remove retired CSS and update visual regression tests.

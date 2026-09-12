@@ -1,4 +1,4 @@
-/* Clean, practical sheet hero: title card first, actions below. */
+/* Clean, practical RQK 1.0 sheet hero: title card first, actions below. */
 
 .character-page-v2 .clean-sheet-header--simple {
   width: 100% !important;
@@ -7,11 +7,10 @@
   margin: 0 auto 8px !important;
   padding: clamp(14px, 2.4vw, 24px) !important;
   display: block !important;
-  background:
-    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border: 1px solid transparent !important;
-  border-radius: var(--rq-radius, 10px) !important;
+  background: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
   box-shadow: none !important;
 }
 
@@ -25,13 +24,11 @@
 }
 
 .character-page-v2 .clean-sheet-portrait,
-.character-page-v2 .clean-sheet-kicker {
-  display: none !important;
-}
+.character-page-v2 .clean-sheet-kicker { display: none !important; }
 
 .character-page-v2 .clean-sheet-identity h1 {
   margin: 0 !important;
-  color: #ffffff !important;
+  color: #FFFFFF !important;
   font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
   font-size: clamp(1.85rem, 4.6vw, 3rem) !important;
   font-weight: 700 !important;
@@ -43,18 +40,19 @@
 }
 
 .character-page-v2 .clean-sheet-identity h1::after {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 2px;
-  margin-top: 10px;
-  border-radius: 999px;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+  content: '' !important;
+  display: block !important;
+  width: 100% !important;
+  height: 1px !important;
+  margin-top: 10px !important;
+  border-radius: 0 !important;
+  background: #FF2DAA !important;
+  background-image: none !important;
 }
 
 .character-page-v2 .clean-sheet-identity p:last-child {
   margin: 0 !important;
-  color: #ffffff !important;
+  color: #FFFFFF !important;
   font-size: clamp(0.88rem, 2.1vw, 1rem) !important;
   font-weight: 600 !important;
   line-height: 1.35 !important;
@@ -83,36 +81,30 @@
   align-items: center !important;
   justify-content: center !important;
   gap: 7px !important;
-  color: #ffffff !important;
-  border-radius: var(--rq-inner-radius, 8px) !important;
+  color: #FFFFFF !important;
+  border-radius: 5px !important;
   box-shadow: none !important;
   font-size: 0.92rem !important;
   font-weight: 800 !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.20) !important;
 }
 
-.character-page-v2 .clean-sheet-header-actions .clean-sheet-level {
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-}
-
+.character-page-v2 .clean-sheet-header-actions .clean-sheet-level,
 .character-page-v2 .clean-sheet-header-actions .clean-sheet-edit {
-  background:
-    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
-  border: 1px solid transparent !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid #FF2DAA !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions button svg {
   width: 16px !important;
   height: 16px !important;
+  color: #7CCBFF !important;
 }
 
 @media (max-width: 520px) {
-  .character-page-v2 .clean-sheet-header--simple {
-    padding: 13px !important;
-  }
-
-  .character-page-v2 .clean-sheet-header-actions {
-    justify-content: flex-start !important;
-  }
+  .character-page-v2 .clean-sheet-header--simple { padding: 13px !important; }
+  .character-page-v2 .clean-sheet-header-actions { justify-content: flex-start !important; }
 }

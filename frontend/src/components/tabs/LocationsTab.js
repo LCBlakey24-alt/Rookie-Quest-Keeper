@@ -33,17 +33,18 @@ import apiClient from '@/lib/apiClient';
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const rq = {
-  bg: '#242424',
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  input: '#242424',
-  line: 'rgba(255,255,255,0.16)',
-  lineStrong: 'rgba(255,255,255,0.22)',
-  accent: '#d00000',
-  accentHover: '#ff3b3b',
-  text: '#ffffff',
-  muted: 'rgba(255,255,255,0.62)',
-  soft: 'rgba(255,255,255,0.74)',
+  bg: 'var(--rq-bg-main)',
+  panel: 'var(--rq-bg-panel)',
+  card: 'var(--rq-card)',
+  input: 'var(--rq-bg-input)',
+  line: 'var(--rq-border-default)',
+  lineStrong: 'var(--rq-border-strong)',
+  accent: 'var(--rq-accent-primary)',
+  accentHover: 'var(--rq-accent-primary)',
+  blue: 'var(--rq-secondary)',
+  text: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
 };
 
 const LOCATION_TYPES = [
@@ -770,10 +771,10 @@ const headerStyle = { display: 'flex', justifyContent: 'space-between', alignIte
 const eyebrowStyle = { margin: '0 0 5px', color: rq.muted, fontSize: 11, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: 0, color: rq.text, fontSize: 'clamp(26px, 4vw, 42px)', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1.02 };
 const subtitleStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 14, lineHeight: 1.45, maxWidth: 780 };
-const primaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: rq.accent, color: rq.text, padding: '0 14px', fontWeight: 950, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
+const primaryButtonStyle = { minHeight: 42, border: `1px solid ${rq.accent}`, borderRadius: 5, background: rq.card, color: rq.text, padding: '0 14px', fontWeight: 950, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: rq.card, color: rq.text, padding: '0 14px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const smallButtonStyle = { ...secondaryButtonStyle, minHeight: 34, padding: '0 10px', fontSize: 12 };
-const importRuleStyle = { background: rq.panel, borderLeft: `6px solid ${rq.accent}`, padding: 14, display: 'grid', gap: 4 };
+const importRuleStyle = { background: rq.panel, borderLeft: `1px solid ${rq.accent}`, padding: 14, display: 'grid', gap: 4 };
 const ruleLabelStyle = { margin: 0, color: rq.text, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 950 };
 const ruleTextStyle = { margin: 0, color: rq.soft, lineHeight: 1.45, fontSize: 14 };
 const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', borderTop: `1px solid ${rq.line}`, borderBottom: `1px solid ${rq.line}` };
@@ -802,17 +803,17 @@ const hintTextStyle = { margin: '-4px 0 2px', color: rq.muted, fontSize: 12, lin
 const formActionsStyle = { display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', borderTop: `1px solid ${rq.line}`, paddingTop: 12, marginTop: 4 };
 const locationCardStyle = { background: rq.card, border: `1px solid ${rq.line}`, padding: 0, color: rq.text };
 const locationHeaderStyle = { display: 'flex', alignItems: 'flex-start', gap: 12, padding: 14, borderBottom: `1px solid ${rq.line}` };
-const locationIconStyle = { width: 42, height: 42, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `5px solid ${rq.accent}`, flex: '0 0 auto' };
+const locationIconStyle = { width: 42, height: 42, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `1px solid ${rq.accent}`, flex: '0 0 auto' };
 const titleRowStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
 const locationTitleStyle = { margin: 0, color: rq.text, fontSize: 21, fontWeight: 950, letterSpacing: '-0.02em' };
 const typeTextStyle = { margin: '4px 0 0', color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900 };
 const cardActionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' };
 const iconButtonStyle = { minWidth: 34, minHeight: 34, border: 0, borderRadius: 0, background: rq.panel, color: rq.text, padding: 0, display: 'grid', placeItems: 'center' };
-const dangerIconStyle = { ...iconButtonStyle, background: 'rgba(208,0,0,0.28)' };
-const dangerMiniStyle = { ...iconButtonStyle, background: rq.accent };
+const dangerIconStyle = { ...iconButtonStyle, background: rq.panel, border: `1px solid ${rq.accent}` };
+const dangerMiniStyle = { ...iconButtonStyle, background: rq.panel, border: `1px solid ${rq.accent}` };
 const deleteConfirmStyle = { display: 'flex', alignItems: 'center', gap: 6, background: rq.panel, padding: 4 };
 const deleteTextStyle = { color: rq.text, fontSize: 11, fontWeight: 900 };
-const newBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, background: rq.accent, color: rq.text, padding: '4px 7px', fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const newBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(124,203,255,0.10)', border: `1px solid ${rq.accent}`, color: rq.text, padding: '4px 7px', fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const descriptionStyle = { margin: 0, padding: 14, color: rq.soft, lineHeight: 1.5, borderBottom: `1px solid ${rq.line}` };
 const infoGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0 };
 const infoBoxStyle = { padding: 14, borderBottom: `1px solid ${rq.line}`, borderRight: `1px solid ${rq.line}` };
@@ -824,7 +825,7 @@ const toggleButtonStyle = { border: 0, background: 'transparent', color: rq.text
 const placesListStyle = { display: 'grid', gap: 10 };
 const emptyPlacesStyle = { margin: 0, color: rq.muted, lineHeight: 1.4, fontSize: 13 };
 const placeCardStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: rq.panel, border: `1px solid ${rq.line}`, padding: 12 };
-const placeIconStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `4px solid ${rq.accent}`, flex: '0 0 auto' };
+const placeIconStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `1px solid ${rq.accent}`, flex: '0 0 auto' };
 const placeTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950 };
 const placeMetaStyle = { margin: '3px 0 0', color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900 };
 const placeTextStyle = { margin: '8px 0 0', color: rq.soft, lineHeight: 1.42, fontSize: 13 };
@@ -837,6 +838,6 @@ const sideTitleStyle = { margin: 0, color: rq.text, fontSize: 18, fontWeight: 95
 const sideTextStyle = { margin: '4px 0 0', color: rq.soft, lineHeight: 1.4, fontSize: 13 };
 const generationToggleStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: `1px solid ${rq.line}` };
 const toggleChoiceStyle = (active) => ({ border: 0, borderRight: `1px solid ${rq.line}`, background: active ? rq.accent : rq.panel, color: rq.text, padding: '10px 8px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack });
-const generatedBoxStyle = { background: rq.panel, borderLeft: `5px solid ${rq.accent}`, padding: 10 };
+const generatedBoxStyle = { background: rq.panel, borderLeft: `1px solid ${rq.accent}`, padding: 10 };
 
 export default LocationsTab;

@@ -35,6 +35,7 @@ from routes.rule_systems import router as rule_systems_router
 from routes.events import router as events_router
 from routes.character_templates import router as character_templates_router
 from routes.homebrew import router as homebrew_router
+from routes.player_handout_summary import router as player_handout_summary_router
 from routes.handouts import router as handouts_router
 from routes.story_arcs import router as story_arcs_router
 from routes.quests import router as quests_router
@@ -86,6 +87,9 @@ all_routers = [
     character_templates_router,
     # Paid image-generation routes intentionally not registered for now.
     homebrew_router,
+    # Lightweight summary sits beside the full handout routes so Player Home
+    # can render unread counts without downloading handout bodies.
+    player_handout_summary_router,
     handouts_router,
     story_arcs_router,
     quests_router,

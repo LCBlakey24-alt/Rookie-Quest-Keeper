@@ -10,10 +10,10 @@ import {
 } from "../../data/srdEquipment";
 
 const theme = {
-  gold: "#D4A017",
-  bg: { surface: "#0F2440", elevated: "#14304F", primary: "#0A1628" },
-  text: { primary: "#F8FAFC", secondary: "#94A3B8", muted: "#64748B" },
-  border: "rgba(212, 160, 23, 0.35)"
+  gold: 'var(--rq-secondary)',
+  bg: { surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)', primary: 'var(--rq-bg-main)' },
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)'
 };
 
 const tabBtn = (active) => ({
