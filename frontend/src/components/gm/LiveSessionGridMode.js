@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
+import './LiveSessionGridMode.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
@@ -72,8 +73,8 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   };
 
   return (
-    <div data-testid="live-session-grid" style={shellStyle}>
-      <nav style={primaryNavStyle} aria-label="Live Play">
+    <div data-testid="live-session-grid" className="rqk-live-grid" style={shellStyle}>
+      <nav className="rqk-live-grid__primary-nav" style={primaryNavStyle} aria-label="Live Play">
         {LIVE_GRID_TOOLS.filter(tool => tool.primary).map(tool => {
           const Icon = tool.icon;
           const selected = primaryActiveId === tool.id;
@@ -83,6 +84,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
               type="button"
               onClick={() => selectTool(tool.id)}
               data-testid={`live-tool-${tool.id}`}
+              className={selected ? 'rqk-live-grid__nav-button is-active' : 'rqk-live-grid__nav-button'}
               style={navButtonStyle(selected)}
             >
               <Icon size={17} />
@@ -92,14 +94,14 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
         })}
       </nav>
 
-      <main style={mainStyle} key={`${refreshKey}-${activeTool}`}>
+      <main className="rqk-live-grid__main" style={mainStyle} key={`${refreshKey}-${activeTool}`}>
         {activeTool !== 'overview' && activeTool !== 'more' && (
-          <header style={toolHeaderStyle}>
+          <header className="rqk-live-grid__tool-header" style={toolHeaderStyle}>
             <div style={toolTitleStyle}><ActiveIcon size={18} /><strong>{active.label}</strong></div>
-            <span style={livePillStyle}>Live Play</span>
+            <span className="rqk-live-grid__live-pill" style={livePillStyle}>Live Play</span>
           </header>
         )}
-        <section style={toolBodyStyle}>
+        <section className="rqk-live-grid__tool-body" style={toolBodyStyle}>
           {activeTool === 'overview' ? (
             <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} />
           ) : activeTool === 'more' ? (
@@ -136,14 +138,14 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
   } catch { /* ignore */ }
 
   return (
-    <div style={runScreenStyle}>
+    <div className="rqk-live-grid__run" style={runScreenStyle}>
       <header style={runHeaderStyle}>
         <p style={eyebrowStyle}>Live Play</p>
         <h2 style={runTitleStyle}>What do you need?</h2>
       </header>
 
       {continueItems.length > 0 && (
-        <section style={continueStyle}>
+        <section className="rqk-live-grid__continue" style={continueStyle}>
           <p style={sectionLabelStyle}>Continue</p>
           <div style={continueRowStyle}>
             {continueItems.map(item => {
@@ -154,10 +156,10 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
         </section>
       )}
 
-      <section style={coreGridStyle}>
+      <section className="rqk-live-grid__core-grid" style={coreGridStyle}>
         {core.map(item => {
           const Icon = item.icon;
-          return <button key={item.id} type="button" onClick={() => onSelect(item.id)} style={coreCardStyle}><Icon size={21} /><strong>{item.label}</strong><span>{item.detail}</span></button>;
+          return <button key={item.id} type="button" onClick={() => onSelect(item.id)} className="rqk-live-grid__core-card" style={coreCardStyle}><Icon size={21} /><strong>{item.label}</strong><span>{item.detail}</span></button>;
         })}
       </section>
 
@@ -168,7 +170,7 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
         </section>
       )}
 
-      <section style={quickStripStyle}>
+      <section className="rqk-live-grid__quick-strip" style={quickStripStyle}>
         <button type="button" onClick={() => onSelect('quick-dice')} style={quickButtonStyle}><Dices size={15} /> Dice</button>
         <button type="button" onClick={() => onSelect('maps')} style={quickButtonStyle}><Map size={15} /> Maps</button>
         <button type="button" onClick={() => onSelect('handouts')} style={quickButtonStyle}><Mail size={15} /> Handouts</button>
@@ -183,7 +185,7 @@ function MorePanel({ onSelect }) {
   return (
     <div style={moreStyle}>
       <header style={runHeaderStyle}><p style={eyebrowStyle}>More Tools</p><h2 style={runTitleStyle}>Everything else</h2></header>
-      <div style={moreGridStyle}>
+      <div className="rqk-live-grid__more-grid" style={moreGridStyle}>
         {tools.map(tool => {
           const Icon = tool.icon;
           return <button key={tool.id} type="button" onClick={() => onSelect(tool.id)} data-testid={`live-tool-${tool.id}`} style={moreButtonStyle}><Icon size={18} /><strong>{tool.label}</strong></button>;
@@ -197,7 +199,7 @@ function QuickDicePanel({ onRollDice }) {
   return (
     <div style={dicePanelStyle}>
       <h3 style={{ margin: 0, color: rq.text }}>Quick Dice</h3>
-      <div style={diceGridStyle}>
+      <div className="rqk-live-grid__dice-grid" style={diceGridStyle}>
         {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={diceButtonStyle}>{die.toUpperCase()}</button>)}
       </div>
     </div>
