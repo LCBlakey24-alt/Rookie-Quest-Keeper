@@ -10,8 +10,8 @@ export default function PlayerJoinStrip({
   if (characters.length === 0) return null;
 
   return (
-    <section className="player-dashboard-board player-join-strip">
-      <label htmlFor="player-join-character">Join as</label>
+    <section className="player-dashboard-board player-join-strip" aria-label="Join a campaign">
+      <label htmlFor="player-join-character">Join a campaign as</label>
       <select
         id="player-join-character"
         value={selectedCharacterId}
@@ -27,7 +27,7 @@ export default function PlayerJoinStrip({
 
       <Button onClick={onJoinCampaign} className="btn-outline player-dashboard-action-button">
         <Link2 size={16} />
-        Use Join Code
+        Enter Join Code
       </Button>
     </section>
   );
