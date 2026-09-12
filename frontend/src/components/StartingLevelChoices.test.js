@@ -46,6 +46,24 @@ describe('starting level choice cards', () => {
     }));
   });
 
+  test('long class choice lists can be searched', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 3, subclassName: 'Battle Master' });
+
+    render(
+      <StartingLevelClassSpecificChoices
+        plan={plan}
+        selection={{}}
+        onChange={jest.fn()}
+      />,
+    );
+
+    const search = screen.getByRole('searchbox', { name: /Search battle master maneuvers/i });
+    fireEvent.change(search, { target: { value: 'Riposte' } });
+
+    expect(screen.getByRole('button', { name: /Riposte Choose/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Trip Attack Choose/i })).not.toBeInTheDocument();
+  });
+
   test('warlock invocations use the same capped card interaction', () => {
     const onChange = jest.fn();
     const plan = {
