@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import StartingLevelClassSpecificChoices from './StartingLevelClassSpecificChoices';
-import { WarlockChoiceSection } from './StartingLevelDetailedChoices';
+import { SpellChoiceSection, WarlockChoiceSection } from './StartingLevelDetailedChoices';
 import { buildClassSpecificChoicePlan } from '@/data/classSpecificChoiceEngine';
 
 describe('starting level choice cards', () => {
@@ -62,6 +62,37 @@ describe('starting level choice cards', () => {
 
     expect(screen.getByRole('button', { name: /Riposte Choose/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Trip Attack Choose/i })).not.toBeInTheDocument();
+  });
+
+  test('legacy spell class choices no longer render a duplicate chooser', () => {
+    const { container } = render(
+      <SpellChoiceSection
+        plan={{
+          hasKnownSpellPicker: false,
+          hasPreparedSpellPicker: false,
+          cantripTarget: 0,
+          classChoicePlan: { hasChoices: true },
+        }}
+        selection={{}}
+        onChange={jest.fn()}
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  test('non-Battle-Master fighters do not get maneuver choices', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 3, subclassName: 'Champion' });
+
+    render(
+      <StartingLevelClassSpecificChoices
+        plan={plan}
+        selection={{}}
+        onChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByText('Battle Master maneuvers')).not.toBeInTheDocument();
   });
 
   test('warlock invocations use the same capped card interaction', () => {
