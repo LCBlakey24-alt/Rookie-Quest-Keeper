@@ -2,6 +2,7 @@ import { ChevronRight, Heart, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import PlayerNoContentPanel from './PlayerNoContentPanel';
+import '@/styles/playerDashboardCharacterCards.css';
 
 function firstValue(...values) {
   return values.find(value => value !== undefined && value !== null && value !== '');
