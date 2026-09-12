@@ -1,40 +1,43 @@
-/* Character Creator flow — desktop/tablet-independent structure only.
-   Tablet and phone geometry live in layouts/{tablet,mobile}/characterCreator.css. */
+/* Character Creator flow — structure and RQK 1.0 state language. */
 
 .full-creator-progress-card {
-  padding: 12px;
-  color: var(--rqk-creator-text);
+  padding: 10px;
+  color: #FFFFFF;
 }
 
 .full-creator-progress-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.full-creator-progress-heading span,
+.full-creator-progress-heading strong,
+.full-creator-progress-card p {
+  color: #FFFFFF;
 }
 
 .full-creator-progress-heading span {
-  color: var(--rqk-creator-muted);
-  font-size: .68rem;
+  font-size: .6rem;
   font-weight: 900;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
 
 .full-creator-progress-heading strong {
-  color: var(--rqk-creator-text);
-  font-size: 1rem;
+  font-size: .9rem;
   font-weight: 900;
   line-height: 1.1;
 }
 
 .full-creator-progress-track {
   width: 100%;
-  height: 8px;
+  height: 5px;
   overflow: hidden;
   border: 1px solid var(--rqk-creator-line);
-  border-radius: 999px;
+  border-radius: 3px;
   background: var(--rqk-creator-deep);
 }
 
@@ -43,80 +46,86 @@
   height: 100%;
   min-width: 0;
   border-radius: inherit;
-  background: var(--rqk-creator-red);
+  background: var(--rqk-creator-blue);
+  background-image: none;
   transition: width 180ms ease;
 }
 
 .full-creator-progress-card p {
-  margin: 8px 0 0;
-  color: var(--rqk-creator-muted);
-  font-size: .82rem;
-  line-height: 1.4;
+  margin: 6px 0 0;
+  font-size: .72rem;
+  line-height: 1.35;
 }
 
 .full-creator-workspace {
   display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 10px;
   align-items: start;
 }
 
 .full-creator-workspace .full-creator-steps {
   width: 100% !important;
   margin: 0 !important;
-  padding: 8px !important;
+  padding: 6px !important;
   position: sticky;
-  top: 12px;
+  top: 10px;
   display: grid !important;
   grid-template-columns: 1fr !important;
-  gap: 7px !important;
+  gap: 5px !important;
   overflow: visible !important;
   border: 1px solid var(--rqk-creator-line);
-  border-radius: 10px;
+  border-radius: 7px;
   background: var(--rqk-creator-panel);
+  background-image: none;
+  box-shadow: none;
 }
 
 .full-creator-workspace .full-creator-steps button {
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 58px !important;
+  min-height: 52px !important;
   display: grid !important;
   place-items: center !important;
-  gap: 5px !important;
-  padding: 7px 5px !important;
+  gap: 4px !important;
+  padding: 6px 4px !important;
   border: 1px solid var(--rqk-creator-line) !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--rqk-creator-card) !important;
-  color: var(--rqk-creator-text) !important;
-  font-size: .66rem !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  font-size: .6rem !important;
   font-weight: 900 !important;
   line-height: 1 !important;
   text-align: center !important;
   cursor: pointer;
+  box-shadow: none !important;
 }
 
 .full-creator-workspace .full-creator-steps button:hover:not(:disabled) {
   background: var(--rqk-creator-card-hover) !important;
-  border-color: var(--rqk-creator-line-strong) !important;
+  border-color: var(--rqk-creator-pink) !important;
 }
 
 .full-creator-workspace .full-creator-steps button.active {
-  background: var(--rqk-creator-red) !important;
-  border-color: var(--rqk-creator-red) !important;
-  color: #fff !important;
+  background: rgba(124,203,255,.10) !important;
+  border-color: var(--rqk-creator-pink) !important;
+  color: #FFFFFF !important;
+  box-shadow: inset 2px 0 0 var(--rqk-creator-pink) !important;
 }
 
 .full-creator-workspace .full-creator-steps button svg {
-  width: 18px !important;
-  height: 18px !important;
+  width: 17px !important;
+  height: 17px !important;
+  color: var(--rqk-creator-blue) !important;
 }
 
 .full-creator-workspace .full-creator-steps button.is-complete:not(.active)::after {
   content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--rqk-creator-success);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rqk-creator-blue);
 }
 
 .full-creator-workspace .full-creator-layout {
@@ -125,9 +134,9 @@
 }
 
 .full-creator-swipe-hint {
-  margin: 0 0 10px;
-  color: var(--rqk-creator-muted);
-  font-size: .74rem;
+  margin: 0 0 8px;
+  color: #FFFFFF;
+  font-size: .66rem;
   font-weight: 700;
   text-align: center;
 }
