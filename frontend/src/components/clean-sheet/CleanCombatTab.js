@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 import { getClassResourceRules } from '../../data/classResourceRules';
 import { getCharacterActionFeatures } from '../../data/characterFeatureSelectors';
+import { buildCharacterSpellCastUpdate } from '../../data/characterSpellCastingActions';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
 import { ActionSection, AttackCard, SimpleActionCard } from './CleanCombatTabCards';
 import {
@@ -130,15 +131,6 @@ function gatherActionFeatures(character = {}) {
     });
 }
 
-function lowestUsableSlot(slots = {}, remaining = {}, spellLevel = 1) {
-  const keys = Array.from(new Set([...Object.keys(slots || {}), ...Object.keys(remaining || {})]))
-    .map(Number)
-    .filter((level) => level >= Number(spellLevel || 1))
-    .sort((a, b) => a - b);
-
-  return keys.find((level) => Number(remaining[level] ?? slots[level] ?? 0) > 0) || null;
-}
-
 export default function CleanCombatTab({ character, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult }) {
   const [pendingDamage, setPendingDamage] = useState(null);
   const [lastDamage, setLastDamage] = useState(null);
@@ -253,40 +245,35 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     toast.success(`${damage.label || 'Damage'}: ${result.total} ${damage.damageType || ''}`.trim());
   };
 
-  const handleSlotChange = async (nextRemaining) => {
-    if (!onCharacterUpdate) return false;
-    return onCharacterUpdate(
-      { spell_slots_remaining: nextRemaining },
-      { error: 'Could not update spell slots' },
-    );
-  };
-
   const castSpell = async (spell) => {
-    const level = Number(spell.level || 0);
     const spellName = spell.name || 'Spell';
+    const cast = buildCharacterSpellCastUpdate(character, spell);
 
-    if (level <= 0) {
+    if (!cast.ok) {
+      toast.error(cast.reason || `No spell slot available for ${spellName}`);
+      return;
+    }
+
+    if (cast.option?.source === 'cantrip') {
       toast.success(`${spellName} used`, { description: 'Cantrips do not spend spell slots.' });
       return;
     }
 
-    const slots = character?.spell_slots || {};
-    const remaining = character?.spell_slots_remaining && Object.keys(character.spell_slots_remaining).length
-      ? character.spell_slots_remaining
-      : slots;
-    const slotLevel = lowestUsableSlot(slots, remaining, level);
-
-    if (!slotLevel) {
-      toast.error(`No level ${level}+ spell slots left`);
+    if (!onCharacterUpdate) {
+      toast.error('Open a saved character before spending spell slots.');
       return;
     }
 
-    const nextRemaining = {
-      ...(remaining || {}),
-      [slotLevel]: Math.max(0, Number(remaining[slotLevel] ?? slots[slotLevel] ?? 0) - 1),
-    };
-    const ok = await handleSlotChange(nextRemaining);
-    if (ok !== false) toast.success(`${spellName} cast`, { description: `Spent a level ${slotLevel} spell slot.` });
+    const ok = await onCharacterUpdate(
+      cast.updates,
+      { error: cast.option?.source === 'pact' ? 'Could not update Pact Magic' : 'Could not update spell slots' },
+    );
+    if (ok === false) return;
+
+    const description = cast.option?.source === 'pact'
+      ? `Spent a level ${cast.option.level} Pact Magic slot.`
+      : `Spent a level ${cast.option?.level} spell slot.`;
+    toast.success(`${spellName} cast`, { description });
   };
 
   const useConsumable = async (item) => {
