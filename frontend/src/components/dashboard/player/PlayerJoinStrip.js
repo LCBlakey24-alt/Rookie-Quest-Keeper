@@ -1,6 +1,13 @@
 import { Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+function characterJoinLabel(character) {
+  const name = character?.name || 'Unnamed Character';
+  const level = Number(character?.level || 1);
+  const className = character?.character_class || character?.class || 'Adventurer';
+  return `${name} — Lv ${level} ${className}`;
+}
+
 export default function PlayerJoinStrip({
   characters,
   selectedCharacterId,
@@ -20,7 +27,7 @@ export default function PlayerJoinStrip({
       >
         {characters.map((character) => (
           <option key={character.id} value={character.id}>
-            {character.name || 'Unnamed Character'}
+            {characterJoinLabel(character)}
           </option>
         ))}
       </select>
