@@ -9,6 +9,12 @@ function readList(result, objectKey) {
   return null;
 }
 
+function readHandoutList(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.handouts)) return data.handouts;
+  return null;
+}
+
 function mergeCampaignSources(gmCampaigns, joinedCampaigns) {
   const campaignMap = new Map();
 
@@ -19,7 +25,7 @@ function mergeCampaignSources(gmCampaigns, joinedCampaigns) {
   return Array.from(campaignMap.values());
 }
 
-export function resolvePlayerDashboardSettledResults(results = []) {
+export function resolvePlayerDashboardSettledResults(results = [], { includeHandouts = true } = {}) {
   const [charactersResult, gmCampaignsResult, joinedCampaignsResult, handoutsResult] = results;
   const failures = [];
 
@@ -33,9 +39,12 @@ export function resolvePlayerDashboardSettledResults(results = []) {
     : null;
   if (loadedCampaigns === null) failures.push('campaigns');
 
-  const handouts = readList(handoutsResult, 'handouts');
-  const handoutSummary = handouts === null ? null : summarizeHandouts(handouts);
-  if (handoutSummary === null) failures.push('handouts');
+  let handoutSummary = null;
+  if (includeHandouts) {
+    const handouts = readList(handoutsResult, 'handouts');
+    handoutSummary = handouts === null ? null : summarizeHandouts(handouts);
+    if (handoutSummary === null) failures.push('handouts');
+  }
 
   return {
     ok: failures.length === 0,
@@ -46,15 +55,24 @@ export function resolvePlayerDashboardSettledResults(results = []) {
   };
 }
 
-export async function fetchPlayerDashboardSections(client) {
-  const results = await Promise.allSettled([
+export async function fetchPlayerDashboardSections(client, { includeHandouts = true } = {}) {
+  const requests = [
     client.get('/characters'),
     client.get('/campaigns'),
     client.get('/campaign-invites/joined/list'),
-    client.get('/player/handouts'),
-  ]);
+  ];
 
-  return resolvePlayerDashboardSettledResults(results);
+  if (includeHandouts) requests.push(client.get('/player/handouts'));
+
+  const results = await Promise.allSettled(requests);
+  return resolvePlayerDashboardSettledResults(results, { includeHandouts });
+}
+
+export async function fetchPlayerHandoutSummary(client) {
+  const response = await client.get('/player/handouts');
+  const handouts = readHandoutList(response?.data);
+  if (handouts === null) throw new Error('Malformed received handouts response');
+  return summarizeHandouts(handouts);
 }
 
 export function describePlayerDashboardFailures(failures = []) {
