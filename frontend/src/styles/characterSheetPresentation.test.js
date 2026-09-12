@@ -31,6 +31,8 @@ describe('Clean Character Sheet presentation ownership', () => {
       '../components/clean-sheet/CleanSheetHeaderCompact.css',
       '../components/clean-sheet/CleanSheetStatsMobileOverrides.css',
       '../components/clean-sheet/CleanSheetMobileTidyFixes.css',
+      '../components/FloatingDiceRoller.css',
+      '../components/FloatingDiceRollerExperience.css',
       './characterSheetRailAndHeroFix.css',
       './characterSheetPlayHeaderCompact.css',
       './characterSheetUnifiedMobileHeader.css',
