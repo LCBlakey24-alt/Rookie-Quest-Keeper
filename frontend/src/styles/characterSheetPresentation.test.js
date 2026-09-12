@@ -6,7 +6,7 @@ function read(relativePath) {
 }
 
 describe('Clean Character Sheet presentation ownership', () => {
-  test('direct live-sheet presentation files no longer contain the retired sunset palette', () => {
+  test('direct live-sheet presentation files use the RQK 1.0 palette and no retired sunset palette', () => {
     const files = [
       '../components/clean-sheet/CleanCharacterSheetPolish.css',
       '../components/clean-sheet/CleanSheetListPolish.css',
@@ -18,8 +18,11 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
     expect(css).not.toMatch(/cs-sunset|sheet-sunset|rq-sunset-gradient/i);
     expect(css).not.toMatch(/Cinzel/i);
-    expect(css).toContain('var(--rq-bg, #0a1728)');
-    expect(css).toContain('var(--rq-primary, #d00000)');
+    expect(css).not.toMatch(/#d00000|rgba\(208\s*,\s*0\s*,\s*0/i);
+    expect(css).toContain('#071522');
+    expect(css).toContain('#7CCBFF');
+    expect(css).toContain('#FF2DAA');
+    expect(css).toContain('#FFFFFF');
   });
 
   test('late-loaded live character styles cannot restore gradients or sunset colours', () => {
