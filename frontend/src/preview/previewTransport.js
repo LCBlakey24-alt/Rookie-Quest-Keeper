@@ -47,6 +47,23 @@ async function dispatchCharacterProgressionPreview({ method, url, params, body, 
   return { handled: false, data: null };
 }
 
+async function dispatchStateSafeBuilderEdit({ method, url, body, previewRequest }) {
+  if (method !== 'patch') return { handled: false, data: null };
+  const match = previewPath(url).match(/^\/characters\/([^/]+)$/);
+  if (!match) return { handled: false, data: null };
+
+  const { isPreviewFullBuilderEdit, stateSafePreviewBuilderEdit } = await import('./previewCharacterEdit');
+  if (!isPreviewFullBuilderEdit(body)) return { handled: false, data: null };
+
+  const characterId = decodeURIComponent(match[1]);
+  const existing = previewRequest('get', `/characters/${characterId}`);
+  const safeUpdate = stateSafePreviewBuilderEdit(existing, body);
+  return {
+    handled: true,
+    data: previewRequest('patch', `/characters/${characterId}`, safeUpdate),
+  };
+}
+
 function guardIsolatedPreviewFeature(method, url) {
   const path = previewPath(url);
   if (method === 'post' && path === '/character-import/extract') {
@@ -66,6 +83,12 @@ export async function previewAdapter(config) {
     const method = String(config.method || 'get').toLowerCase();
     guardIsolatedPreviewFeature(method, config.url);
     const body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {};
+
+    const safeEdit = await dispatchStateSafeBuilderEdit({ method, url: config.url, body, previewRequest });
+    if (safeEdit.handled) {
+      return { data: safeEdit.data, status: 200, statusText: 'OK', headers: {}, config };
+    }
+
     const progression = await dispatchCharacterProgressionPreview({
       method,
       url: config.url,
