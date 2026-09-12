@@ -61,6 +61,53 @@ export const getCurrentHp = (character) => Number(character?.current_hit_points 
 export const getTempHp = (character) => Number(character?.temporary_hit_points ?? character?.temp_hp ?? 0) || 0;
 export const clampDeathCount = (value) => Math.max(0, Math.min(3, Number(value) || 0));
 
+export const toArray = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (!value) return [];
+  if (typeof value === 'string') return value.split(',').map(item => item.trim()).filter(Boolean);
+  return [];
+};
+
+const choiceName = (value) => {
+  if (value && typeof value === 'object') return value.name || value.skill || value.label || value.title || '';
+  return String(value || '');
+};
+
+export const normaliseSkillKey = (value) => choiceName(value).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+
+export function getExpertiseSkills(character = {}) {
+  const values = [
+    ...toArray(character?.expertise),
+    ...toArray(character?.expertise_choices),
+    ...toArray(character?.expertise_skills),
+  ];
+  const seen = new Set();
+  return values.filter((value) => {
+    const key = normaliseSkillKey(value);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map(choiceName);
+}
+
+export function getSkillProficiencyMultiplier(character = {}, skill = '', skillProficiencies = character?.skill_proficiencies) {
+  const key = normaliseSkillKey(skill);
+  if (!key) return 0;
+  const expertise = getExpertiseSkills(character).some((entry) => normaliseSkillKey(entry) === key);
+  if (expertise) return 2;
+  const proficient = toArray(skillProficiencies).some((entry) => normaliseSkillKey(entry) === key);
+  return proficient ? 1 : 0;
+}
+
+export function calculateSkillModifier({ character = {}, skill = '', ability = '', proficiencyBonus = 0, skillProficiencies } = {}) {
+  const multiplier = getSkillProficiencyMultiplier(character, skill, skillProficiencies);
+  return mod(character?.[ability]) + (Number(proficiencyBonus) || 0) * multiplier;
+}
+
+export function calculatePassiveSkill(args = {}) {
+  return 10 + calculateSkillModifier(args);
+}
+
 export function calculateHpDamage({ currentHp = 0, tempHp = 0, maxHp = 1, amount = 0 } = {}) {
   const safeAmount = Math.max(0, Number(amount) || 0);
   const safeTempHp = Math.max(0, Number(tempHp) || 0);
@@ -91,13 +138,6 @@ export function calculateHpHealing({ currentHp = 0, maxHp = 1, amount = 0 } = {}
     healed: nextCurrentHp - safeCurrentHp,
   };
 }
-
-export const toArray = (value) => {
-  if (Array.isArray(value)) return value.filter(Boolean);
-  if (!value) return [];
-  if (typeof value === 'string') return value.split(',').map(item => item.trim()).filter(Boolean);
-  return [];
-};
 
 export const featureTypeLabel = (type) => {
   if (type === 'bonus_action') return 'Bonus action';
