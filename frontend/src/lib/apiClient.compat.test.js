@@ -60,17 +60,19 @@ describe('higher-level character creation request guard', () => {
     edition: '2014',
   };
 
-  test('blocks a full higher-level character when required choices are missing', () => {
+  test('blocks a full higher-level character when required choices are missing', async () => {
     const storage = mockStorage({
       'rqk.full_character_creator_v2.level_choices': '{}',
       'rqk.full_character_creator_v2.detail_choices': '{}',
     });
 
-    expect(() => applyCharacterCreationReadinessPolicy({ method: 'post', url: '/characters', data: payload }, storage))
-      .toThrow(/Complete the required starting-level choices/i);
+    await expect(applyCharacterCreationReadinessPolicy(
+      { method: 'post', url: '/characters', data: payload },
+      storage,
+    )).rejects.toThrow(/Complete the required starting-level choices/i);
   });
 
-  test('allows the request once the required choices are complete', () => {
+  test('allows the request once the required choices are complete', async () => {
     const storage = mockStorage({
       'rqk.full_character_creator_v2.level_choices': JSON.stringify({
         'asi-4': { mode: 'asi', abilityOne: 'strength', abilityTwo: 'constitution' },
@@ -81,18 +83,18 @@ describe('higher-level character creation request guard', () => {
     });
     const config = { method: 'post', url: '/characters', data: payload };
 
-    expect(applyCharacterCreationReadinessPolicy(config, storage)).toBe(config);
+    await expect(applyCharacterCreationReadinessPolicy(config, storage)).resolves.toBe(config);
   });
 
-  test('does not affect imports, edits, or level 1 creation', () => {
+  test('does not affect imports, edits, or level 1 creation', async () => {
     const storage = mockStorage();
     const imported = { method: 'post', url: '/characters', data: { creation_mode: 'import', level: 10 } };
     const levelOne = { method: 'post', url: '/characters', data: { creation_mode: 'full', level: 1 } };
     const edit = { method: 'patch', url: '/characters/c1', data: payload };
 
-    expect(applyCharacterCreationReadinessPolicy(imported, storage)).toBe(imported);
-    expect(applyCharacterCreationReadinessPolicy(levelOne, storage)).toBe(levelOne);
-    expect(applyCharacterCreationReadinessPolicy(edit, storage)).toBe(edit);
+    await expect(applyCharacterCreationReadinessPolicy(imported, storage)).resolves.toBe(imported);
+    await expect(applyCharacterCreationReadinessPolicy(levelOne, storage)).resolves.toBe(levelOne);
+    await expect(applyCharacterCreationReadinessPolicy(edit, storage)).resolves.toBe(edit);
   });
 });
 
