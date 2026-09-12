@@ -1,0 +1,182 @@
+.player-suggestion-box {
+  margin-top: 12px;
+  background: #0C2234;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 7px;
+  color: #FFFFFF;
+  box-shadow: none;
+}
+
+.player-suggestion-box__intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+
+.player-suggestion-box__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: #102B40;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 5px;
+  color: #7CCBFF;
+}
+
+.player-suggestion-box__intro > div:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.player-suggestion-box__intro span,
+.player-suggestion-box__intro strong,
+.player-suggestion-box__intro p,
+.player-suggestion-box__form span,
+.player-suggestion-box__form small {
+  color: #FFFFFF;
+}
+
+.player-suggestion-box__intro span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.player-suggestion-box__intro strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.player-suggestion-box__intro p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.player-suggestion-box__toggle,
+.player-suggestion-box__actions button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: #102B40;
+  border: 1px solid #FF2DAA;
+  border-radius: 5px;
+  color: #FFFFFF;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.player-suggestion-box__toggle svg,
+.player-suggestion-box__actions button svg {
+  color: #7CCBFF;
+}
+
+.player-suggestion-box__toggle:hover,
+.player-suggestion-box__toggle:focus-visible,
+.player-suggestion-box__actions button:hover:not(:disabled),
+.player-suggestion-box__actions button:focus-visible:not(:disabled) {
+  background: #14344C;
+  outline: none;
+}
+
+.player-suggestion-box__form {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(255,45,170,.18);
+  background: #071522;
+}
+
+.player-suggestion-box__form label {
+  display: grid;
+  gap: 4px;
+}
+
+.player-suggestion-box__form label > span {
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.player-suggestion-box__form :where(input, select, textarea) {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 8px 9px;
+  background: #081B2A;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 5px;
+  color: #FFFFFF;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  box-shadow: none;
+}
+
+.player-suggestion-box__form textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.player-suggestion-box__form :where(input, select, textarea):focus {
+  border-color: #FF2DAA;
+  outline: 1px solid #FF2DAA;
+  outline-offset: 1px;
+}
+
+.player-suggestion-box__form :where(input, textarea)::placeholder {
+  color: rgba(255,255,255,.58);
+}
+
+.player-suggestion-box__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.player-suggestion-box__actions small {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.player-suggestion-box__actions button:disabled {
+  opacity: .58;
+  cursor: progress;
+}
+
+@media (max-width: 640px) {
+  .player-suggestion-box__intro {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .player-suggestion-box__toggle {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .player-suggestion-box__form {
+    padding: 10px;
+  }
+
+  .player-suggestion-box__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .player-suggestion-box__actions button {
+    width: 100%;
+  }
+}
