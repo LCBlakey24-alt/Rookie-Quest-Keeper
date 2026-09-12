@@ -1,9 +1,11 @@
 const BETA_CREDENTIALS_KEY = 'rqk.playerBeta.credentials.v1';
 
-const BETA_HOST_RE = /^rookie-quest-keeper-git-player-be-[a-z0-9]+-lewis-blakeys-projects\.vercel\.app$/i;
+const BETA_HOST_PREFIX = 'rookie-quest-keeper-git-player-be';
+const BETA_HOST_SUFFIX = '-lewis-blakeys-projects.vercel.app';
 
 export function isPlayerBeta(hostname = typeof window === 'undefined' ? '' : window.location.hostname) {
-  return BETA_HOST_RE.test(String(hostname || '').trim());
+  const host = String(hostname || '').trim().toLowerCase();
+  return host.startsWith(BETA_HOST_PREFIX) && host.endsWith(BETA_HOST_SUFFIX);
 }
 
 function randomId() {
