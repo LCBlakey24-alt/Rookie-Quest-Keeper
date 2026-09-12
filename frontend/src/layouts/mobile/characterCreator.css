@@ -1,47 +1,51 @@
 /* Character Creator — phone geometry and touch affordances only. */
 
 [data-rq-device='mobile'] .full-creator-page {
-  padding: 10px;
-  gap: 10px;
+  padding: 8px;
+  gap: 8px;
 }
 
 [data-rq-device='mobile'] .full-creator-header {
   grid-template-columns: 1fr;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
+}
+
+[data-rq-device='mobile'] .full-creator-header h1 {
+  font-size: 1.6rem;
 }
 
 [data-rq-device='mobile'] .full-creator-header button,
 [data-rq-device='mobile'] .full-creator-footer button,
 [data-rq-device='mobile'] .full-creator-preset-banner button {
   width: 100%;
-  min-height: 44px;
+  min-height: 42px;
 }
 
 [data-rq-device='mobile'] .full-creator-progress-card {
-  padding: 11px;
+  padding: 9px;
 }
 
 [data-rq-device='mobile'] .full-creator-progress-heading {
   align-items: flex-start;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 [data-rq-device='mobile'] .full-creator-workspace {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 7px;
 }
 
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps {
   position: static;
-  width: calc(100% + 20px) !important;
-  margin: 0 -10px !important;
-  padding: 4px 10px 8px !important;
+  width: calc(100% + 16px) !important;
+  margin: 0 -8px !important;
+  padding: 4px 8px 7px !important;
   display: flex !important;
   grid-template-columns: none !important;
-  gap: 6px !important;
+  gap: 5px !important;
   overflow-x: auto !important;
   border-inline: 0;
   border-radius: 0;
@@ -51,9 +55,13 @@
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
   flex: 0 0 auto;
   width: auto !important;
-  min-width: 78px !important;
-  min-height: 52px !important;
-  padding: 6px 8px !important;
+  min-width: 72px !important;
+  min-height: 48px !important;
+  padding: 5px 7px !important;
+}
+
+[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button.active {
+  box-shadow: inset 0 -2px 0 var(--rqk-creator-pink) !important;
 }
 
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-layout {
@@ -63,12 +71,20 @@
 [data-rq-device='mobile'] .full-creator-panel,
 [data-rq-device='mobile'] .full-creator-preview,
 [data-rq-device='mobile'] .full-creator-footer {
-  padding: 12px;
+  padding: 10px;
 }
 
 [data-rq-device='mobile'] .full-creator-preview {
   position: static;
   order: initial;
+}
+
+[data-rq-device='mobile'] .full-creator-section-title h2 {
+  font-size: 1.25rem;
+}
+
+[data-rq-device='mobile'] .full-creator-section-title p {
+  font-size: .76rem;
 }
 
 [data-rq-device='mobile'] .full-creator-form-grid,
@@ -82,7 +98,7 @@
 
 [data-rq-device='mobile'] .full-creator-footer {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -93,22 +109,22 @@
 
 [data-rq-device='mobile'] .full-creator-spell-chip {
   position: relative;
-  min-height: 74px !important;
-  padding: 9px 10px !important;
+  min-height: 70px !important;
+  padding: 8px 9px !important;
   touch-action: manipulation;
 }
 
 [data-rq-device='mobile'] .full-creator-spell-chip::after {
   content: 'Tap to add';
   position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 4px 6px;
+  top: 7px;
+  right: 7px;
+  padding: 3px 5px;
   border: 1px solid var(--rqk-creator-line);
-  border-radius: 999px;
+  border-radius: 4px;
   background: var(--rqk-creator-deep);
-  color: var(--rqk-creator-muted);
-  font-size: .58rem;
+  color: #FFFFFF;
+  font-size: .54rem;
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
@@ -118,24 +134,24 @@
 
 [data-rq-device='mobile'] .full-creator-spell-chip.active::after {
   content: 'Selected';
-  color: #fff;
-  border-color: var(--rqk-creator-red);
-  background: var(--rqk-creator-red);
+  color: #FFFFFF;
+  border-color: var(--rqk-creator-pink);
+  background: rgba(124,203,255,.10);
 }
 
 [data-rq-device='mobile'] .full-creator-spell-chip strong,
 [data-rq-device='mobile'] .full-creator-spell-chip span,
 [data-rq-device='mobile'] .full-creator-spell-chip em {
-  max-width: calc(100% - 78px);
+  max-width: calc(100% - 74px);
 }
 
 [data-rq-device='mobile'] .full-creator-spell-chip strong {
-  padding-right: 78px;
+  padding-right: 74px;
 }
 
 [data-rq-device='mobile'] .full-creator-spell-chip em {
   -webkit-line-clamp: 2;
-  font-size: .7rem;
+  font-size: .68rem;
 }
 
 [data-rq-device='mobile'] .full-creator-choice-block:has(.full-creator-spell-chip) h3::after {
@@ -144,10 +160,14 @@
 
 @media (max-width: 390px) {
   [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
-    min-width: 58px !important;
+    min-width: 54px !important;
   }
 
   [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button span {
     display: none !important;
+  }
+
+  [data-rq-device='mobile'] .full-creator-footer {
+    gap: 5px;
   }
 }
