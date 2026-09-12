@@ -1,6 +1,7 @@
 import {
   describePlayerDashboardFailures,
   fetchPlayerDashboardSections,
+  fetchPlayerHandoutSummary,
   resolvePlayerDashboardSettledResults,
 } from './playerDashboardData';
 
@@ -68,7 +69,7 @@ describe('playerDashboardData', () => {
     expect(result.handoutSummary).toBeNull();
   });
 
-  test('fetches every dashboard source independently', async () => {
+  test('fetches every dashboard source independently by default', async () => {
     const client = {
       get: jest.fn((path) => {
         if (path === '/characters') return Promise.resolve({ data: [] });
@@ -84,6 +85,44 @@ describe('playerDashboardData', () => {
     expect(client.get).toHaveBeenCalledTimes(4);
     expect(result.ok).toBe(false);
     expect(result.failures).toEqual(['campaigns']);
+  });
+
+  test('core dashboard load does not wait for the handout collection', async () => {
+    const client = {
+      get: jest.fn((path) => {
+        if (path === '/characters') return Promise.resolve({ data: [] });
+        if (path === '/campaigns') return Promise.resolve({ data: [] });
+        if (path === '/campaign-invites/joined/list') return Promise.resolve({ data: [] });
+        return Promise.reject(new Error(`Unexpected path ${path}`));
+      }),
+    };
+
+    const result = await fetchPlayerDashboardSections(client, { includeHandouts: false });
+
+    expect(client.get).toHaveBeenCalledTimes(3);
+    expect(client.get).not.toHaveBeenCalledWith('/player/handouts');
+    expect(result).toEqual({
+      ok: true,
+      failures: [],
+      characters: [],
+      campaigns: [],
+      handoutSummary: null,
+    });
+  });
+
+  test('handout summary can load separately after the dashboard is visible', async () => {
+    const client = {
+      get: jest.fn().mockResolvedValue({
+        data: [
+          { id: 'h1', read: false, saved: true },
+          { id: 'h2', read: true, saved: false },
+          { id: 'h3', read: false, saved: false },
+        ],
+      }),
+    };
+
+    await expect(fetchPlayerHandoutSummary(client)).resolves.toEqual({ total: 3, unread: 2, saved: 1 });
+    expect(client.get).toHaveBeenCalledWith('/player/handouts');
   });
 
   test('describes partial failures without claiming a full refresh succeeded', () => {
