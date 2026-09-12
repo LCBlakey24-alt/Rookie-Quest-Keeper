@@ -24,7 +24,7 @@ describe('starting level choice cards', () => {
     }));
   });
 
-  test('options beyond the maximum are disabled but selected options can still be removed', () => {
+  test('options beyond the maximum stay focusable but cannot be selected', () => {
     const onChange = jest.fn();
     const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 3 });
 
@@ -36,9 +36,14 @@ describe('starting level choice cards', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /Twinned Spell Limit reached/i })).toBeDisabled();
+    const capped = screen.getByRole('button', { name: /Twinned Spell Limit reached/i });
+    expect(capped).toHaveAttribute('aria-disabled', 'true');
+    expect(capped).not.toBeDisabled();
+    fireEvent.click(capped);
+    expect(onChange).not.toHaveBeenCalled();
+
     const selected = screen.getByRole('button', { name: /Quickened Spell Selected/i });
-    expect(selected).not.toBeDisabled();
+    expect(selected).not.toHaveAttribute('aria-disabled', 'true');
 
     fireEvent.click(selected);
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
