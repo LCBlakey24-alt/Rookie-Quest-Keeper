@@ -44,7 +44,8 @@ describe('preview character creation state', () => {
     expect(character.character_class).toBe('Wizard');
     expect(character.level).toBe(5);
     expect(character.class_levels).toEqual({ Wizard: 3, Cleric: 2 });
-    expect(character.hit_dice).toContain('5d6');
+    expect(character.hit_dice).toContain('2d8');
+    expect(character.hit_dice).toContain('3d6');
     expect(character.spell_slots).toEqual({ 1: 4, 2: 3, 3: 2 });
     expect(character.spell_slots_remaining).toEqual({ 1: 4, 2: 3, 3: 2 });
     expect(character.resources.channel_divinity_cleric).toMatchObject({ max: 1, current: 1 });
