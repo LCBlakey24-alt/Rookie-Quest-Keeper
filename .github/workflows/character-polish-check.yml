@@ -1,0 +1,41 @@
+name: Character polish check
+
+on:
+  push:
+    branches:
+      - player-character-polish-batch
+  workflow_dispatch:
+
+jobs:
+  character-state:
+    name: Character creation, progression and recovery
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Compile focused character modules
+        run: |
+          python -m py_compile \
+            backend/routes/character_import.py \
+            backend/routes/character_creation_state.py \
+            backend/routes/character_progression_state.py \
+            backend/routes/character_recovery.py
+
+      - name: Run focused character state tests
+        run: |
+          python -m unittest backend.tests.test_character_import -v
+          python -m unittest backend.tests.test_character_creation_state -v
+          python -m unittest backend.tests.test_character_progression_state -v
+          python -m unittest backend.tests.test_character_recovery -v
