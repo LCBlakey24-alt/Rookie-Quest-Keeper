@@ -26,6 +26,22 @@ describe('playerDashboardData', () => {
     });
   });
 
+  test('hides removed and retired campaign memberships from the current player list', () => {
+    const result = resolvePlayerDashboardSettledResults([
+      fulfilled([]),
+      fulfilled([]),
+      fulfilled([
+        { id: 'active', name: 'Active', member_status: 'active' },
+        { id: 'pending', name: 'Pending', member_status: 'pending' },
+        { id: 'removed', name: 'Removed', member_status: 'removed' },
+        { id: 'retired', name: 'Retired', member_status: 'retired' },
+      ]),
+      fulfilled([]),
+    ]);
+
+    expect(result.campaigns.map(campaign => campaign.id)).toEqual(['active', 'pending']);
+  });
+
   test('treats owned and joined campaign requests as one logical section', () => {
     const result = resolvePlayerDashboardSettledResults([
       fulfilled([{ id: 'hero-1' }]),
