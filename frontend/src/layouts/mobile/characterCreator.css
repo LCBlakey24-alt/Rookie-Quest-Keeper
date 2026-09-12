@@ -116,6 +116,27 @@
   grid-template-columns: 1fr;
 }
 
+/* Normal creator choices become touch cards rather than a wall of little pills. */
+[data-rq-device='mobile'] .full-creator-choice-block > div:not(:has(.full-creator-spell-chip)) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 6px;
+}
+
+[data-rq-device='mobile'] .full-creator-choice-block > div:not(:has(.full-creator-spell-chip)) > button {
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 9px;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
+}
+
+[data-rq-device='mobile'] .full-creator-choice-block > div:not(:has(.full-creator-spell-chip)) > button.active {
+  background: rgba(124,203,255,.12) !important;
+  border-color: var(--rqk-creator-pink) !important;
+}
+
 /* Previous / Next stays reachable while the form scrolls. */
 [data-rq-device='mobile'] .full-creator-footer {
   display: grid;
@@ -194,6 +215,10 @@
   [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button span {
     display: inline !important;
     font-size: .56rem !important;
+  }
+
+  [data-rq-device='mobile'] .full-creator-choice-block > div:not(:has(.full-creator-spell-chip)) {
+    grid-template-columns: 1fr;
   }
 
   [data-rq-device='mobile'] .full-creator-footer {
