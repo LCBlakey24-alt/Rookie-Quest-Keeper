@@ -2,10 +2,6 @@ import axios from 'axios';
 import { API_BASE } from '@/lib/api';
 import { clearAuthToken, getAuthToken } from '@/lib/auth';
 import { readOfflineApiResponse, storeOfflineApiResponse } from '@/offline/offlineApiCache';
-import {
-  readHigherLevelCreationSelections,
-  validateHigherLevelCharacterCreation,
-} from '@/data/startingLevelRequestValidation';
 
 import { formatApiErrorDetail } from '@/lib/apiErrors';
 import { isLocalPreview } from '@/preview/previewMode';
@@ -40,7 +36,7 @@ function parseRequestData(data) {
   }
 }
 
-export function applyCharacterCreationReadinessPolicy(config = {}, storage) {
+export async function applyCharacterCreationReadinessPolicy(config = {}, storage) {
   const method = String(config.method || 'get').toLowerCase();
   const url = String(config.url || '');
   if (method !== 'post' || url !== '/characters') return config;
@@ -48,6 +44,10 @@ export function applyCharacterCreationReadinessPolicy(config = {}, storage) {
   const payload = parseRequestData(config.data);
   if (payload.creation_mode !== 'full' || Number(payload.level || 1) <= 1) return config;
 
+  const {
+    readHigherLevelCreationSelections,
+    validateHigherLevelCharacterCreation,
+  } = await import('@/data/startingLevelRequestValidation');
   const { levelChoices, detailChoices } = readHigherLevelCreationSelections(storage);
   const readiness = validateHigherLevelCharacterCreation({ payload, levelChoices, detailChoices });
   if (readiness.ready) return config;
@@ -87,10 +87,10 @@ const apiClient = axios.create({
   timeout: 20000,
 });
 
-apiClient.interceptors.request.use((incomingConfig) => {
+apiClient.interceptors.request.use(async (incomingConfig) => {
   let config = applyLegacyApiCompatibility(incomingConfig);
   config = applyLoginTimeoutPolicy(config);
-  config = applyCharacterCreationReadinessPolicy(config);
+  config = await applyCharacterCreationReadinessPolicy(config);
   if (isLocalPreview()) return { ...config, adapter: previewAdapter };
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
