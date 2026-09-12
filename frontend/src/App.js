@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import '@/App.css';
 
 // App.js owns routing and app-wide foundations only. The ordered feature style
@@ -24,6 +24,7 @@ import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 import { isLocalPreview, PREVIEW_USER } from '@/preview/previewMode';
+import { ensurePlayerBetaSession, isPlayerBeta } from '@/beta/playerBetaSession';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
 
@@ -66,6 +67,7 @@ const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
+const PlayerBetaLandingPage = lazyWithChunkRetry(() => import('@/components/PlayerBetaLandingPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
@@ -115,8 +117,12 @@ function ThemeRouter() {
 
 export function AppRoutes() {
   const preview = isLocalPreview();
+  const playerBeta = isPlayerBeta();
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
   const [username, setUsername] = useState(() => preview ? PREVIEW_USER : localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const [betaEntering, setBetaEntering] = useState(false);
+  const [betaError, setBetaError] = useState('');
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
     setAuthToken(token);
@@ -131,6 +137,20 @@ export function AppRoutes() {
     setIsAuthenticated(false);
   }, []);
 
+  const enterPlayerBeta = useCallback(async () => {
+    setBetaEntering(true);
+    setBetaError('');
+    try {
+      const session = await ensurePlayerBetaSession(apiClient, { existingToken: getAuthToken() || '' });
+      handleAuthLogin(session.token, session.username);
+      navigate('/player');
+    } catch (error) {
+      setBetaError(error?.response?.data?.detail || error?.formattedDetail || error?.message || 'Could not start the Player Beta. Try again in a moment.');
+    } finally {
+      setBetaEntering(false);
+    }
+  }, [handleAuthLogin, navigate]);
+
   useEffect(() => {
     if (!isAuthenticated || preview) return;
     apiClient.get('/auth/me').catch(() => handleLogout());
@@ -143,29 +163,33 @@ export function AppRoutes() {
       <GlobalActionFillEffects />
       <GlobalScrollRecovery />
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
-        <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
-        <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboardRoute /> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <Navigate to="/auth" replace />} />
-        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
-        <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/player/campaign/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/mobile/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <Navigate to="/auth" replace />} />
-        <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/" element={playerBeta
+          ? <PlayerBetaLandingPage onEnter={enterPlayerBeta} entering={betaEntering} error={betaError} />
+          : isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
+        <Route path="/auth" element={playerBeta
+          ? <Navigate to="/" replace />
+          : isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
+        <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboardRoute /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/player/campaign/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/mobile/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
 
         {/* One character creator. Legacy URLs remain redirects so old links and installed PWAs stay safe. */}
-        <Route path="/characters/new" element={isAuthenticated ? <AppShell><CharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new" element={isAuthenticated ? <AppShell><CharacterCreator /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
         <Route path="/characters/new/full" element={<Navigate to="/characters/new" replace />} />
         <Route path="/characters/new/basic" element={<Navigate to="/characters/new" replace />} />
         <Route path="/characters/new/premade" element={<Navigate to="/characters/new" replace />} />
@@ -179,10 +203,10 @@ export function AppRoutes() {
         <Route path="/characters/create/kids" element={<Navigate to="/characters/new" replace />} />
         <Route path="/characters/create/rook" element={<Navigate to="/characters/new" replace />} />
 
-        <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><CharacterCreator editMode /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
-        <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
+        <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><CharacterCreator editMode /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="*" element={<Navigate to={playerBeta ? '/' : isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
       {isAuthenticated && <RookGlobalAssistant />}
       {isAuthenticated && <FloatingDiceRoller />}
