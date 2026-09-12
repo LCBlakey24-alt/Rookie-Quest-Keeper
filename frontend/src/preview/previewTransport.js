@@ -7,7 +7,13 @@ function previewPath(url = '') {
     .replace(/\/$/, '') || '/';
 }
 
-async function dispatchCharacterProgressionPreview({ method, url, body, previewRequest }) {
+function previewParams(url = '', params = {}) {
+  const parsed = new URL(url, 'https://preview.invalid');
+  const query = Object.fromEntries(parsed.searchParams.entries());
+  return { ...query, ...(params || {}) };
+}
+
+async function dispatchCharacterProgressionPreview({ method, url, params, body, previewRequest }) {
   const path = previewPath(url);
   const match = path.match(/^\/characters\/([^/]+)\/(level-up-options|level-up|multiclass)$/);
   if (!match) return { handled: false, data: null };
@@ -21,7 +27,11 @@ async function dispatchCharacterProgressionPreview({ method, url, body, previewR
   } = await import('./previewCharacterProgression');
 
   if (action === 'level-up-options' && method === 'get') {
-    return { handled: true, data: getPreviewLevelUpOptions(character) };
+    const query = previewParams(url, params);
+    return {
+      handled: true,
+      data: getPreviewLevelUpOptions(character, { targetClass: query.target_class || '' }),
+    };
   }
 
   if (action === 'level-up' && method === 'post') {
@@ -44,7 +54,13 @@ export async function previewAdapter(config) {
   try {
     const method = String(config.method || 'get').toLowerCase();
     const body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {};
-    const progression = await dispatchCharacterProgressionPreview({ method, url: config.url, body, previewRequest });
+    const progression = await dispatchCharacterProgressionPreview({
+      method,
+      url: config.url,
+      params: config.params,
+      body,
+      previewRequest,
+    });
     const data = progression.handled
       ? progression.data
       : previewRequest(method, config.url, body);
