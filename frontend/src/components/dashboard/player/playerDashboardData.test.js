@@ -121,6 +121,19 @@ describe('playerDashboardData', () => {
     expect(client.get).toHaveBeenCalledWith('/player/handouts/summary');
   });
 
+  test('campaign handout summary sends a campaign filter', async () => {
+    const client = {
+      get: jest.fn().mockResolvedValue({
+        data: { total: 2, unread: 1, saved: 0 },
+      }),
+    };
+
+    await expect(fetchPlayerHandoutSummary(client, 'campaign-1')).resolves.toEqual({ total: 2, unread: 1, saved: 0 });
+    expect(client.get).toHaveBeenCalledWith('/player/handouts/summary', {
+      params: { campaign_id: 'campaign-1' },
+    });
+  });
+
   test('rejects malformed handout summary data instead of showing fake zeroes', async () => {
     const client = {
       get: jest.fn().mockResolvedValue({ data: { total: 'many' } }),
