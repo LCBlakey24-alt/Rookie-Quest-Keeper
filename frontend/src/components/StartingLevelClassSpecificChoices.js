@@ -13,9 +13,21 @@ function toggleValue(list, value, max = Infinity) {
 }
 
 function MultiSelectField({ label, value, options, target, onChange }) {
+  const [query, setQuery] = React.useState('');
   if (!target) return null;
+
   const selected = arr(value);
   const choices = arr(options);
+  const searchable = choices.length > 12;
+  const normalisedQuery = query.trim().toLowerCase();
+  const visibleChoices = choices
+    .filter((option) => !normalisedQuery || option.toLowerCase().includes(normalisedQuery))
+    .sort((left, right) => {
+      const leftSelected = selected.includes(left);
+      const rightSelected = selected.includes(right);
+      if (leftSelected === rightSelected) return 0;
+      return leftSelected ? -1 : 1;
+    });
 
   return (
     <fieldset className="full-creator-toggle-field">
@@ -23,8 +35,19 @@ function MultiSelectField({ label, value, options, target, onChange }) {
         <span>{label}</span>
         <strong>{selected.length}/{target} selected</strong>
       </legend>
+      {searchable && (
+        <label className="full-creator-toggle-search">
+          <span>Search {label.toLowerCase()}</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={`Search ${label.toLowerCase()}…`}
+          />
+        </label>
+      )}
       <div className="full-creator-toggle-grid">
-        {choices.map((option) => {
+        {visibleChoices.map((option) => {
           const active = selected.includes(option);
           const unavailable = !active && selected.length >= target;
           return (
@@ -42,6 +65,9 @@ function MultiSelectField({ label, value, options, target, onChange }) {
           );
         })}
       </div>
+      {searchable && visibleChoices.length === 0 && (
+        <p className="full-creator-toggle-empty">No matching options.</p>
+      )}
     </fieldset>
   );
 }
