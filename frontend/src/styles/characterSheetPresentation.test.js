@@ -22,6 +22,35 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(css).toContain('var(--rq-primary, #d00000)');
   });
 
+  test('late-loaded live character styles cannot restore gradients or sunset colours', () => {
+    const files = [
+      '../components/clean-sheet/CleanSheetFinalHammer.css',
+      '../components/clean-sheet/CleanSheetDicePolish.css',
+      '../components/clean-sheet/CleanSheetTabsRail.css',
+      '../components/clean-sheet/CleanSheetMobileRail.css',
+      '../components/clean-sheet/CleanSheetHeaderCompact.css',
+      '../components/clean-sheet/CleanSheetStatsMobileOverrides.css',
+      '../components/clean-sheet/CleanSheetMobileTidyFixes.css',
+      './characterSheetRailAndHeroFix.css',
+      './characterSheetPlayHeaderCompact.css',
+      './characterSheetUnifiedMobileHeader.css',
+      './characterSheetSavingThrowsCompact.css',
+      './characterSheetSkillsCompact.css',
+      './characterSheetStatsFinalMobileTweaks.css',
+      './characterSheetStatsTabFinalPolish.css',
+      './characterSheetSpellUnavailableState.css',
+    ];
+    const css = files.map(read).join('\n');
+
+    expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
+    expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#190728|#150721|#12051c/i);
+    expect(css).not.toMatch(/sunset-gradient|stats-sunset|mobile-sunset/i);
+    expect(css).toContain('#071522');
+    expect(css).toContain('#7CCBFF');
+    expect(css).toContain('#FF2DAA');
+    expect(css).toContain('#FFFFFF');
+  });
+
   test('historical mobile import delegates to the explicit mobile lane', () => {
     const bridge = read('../components/clean-sheet/CleanSheetMobileBoxGrid.css');
     expect(bridge).toContain("@import '../../layouts/mobile/characterSheet.css';");
