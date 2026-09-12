@@ -1,16 +1,16 @@
 /* Install, update and offline controls.
- * The shared frame and palette belong to threeModeMinimalist.css.
- * Do not reintroduce app-shell navigation or reverse token aliases here. */
+ * Shared palette belongs to threeModeMinimalist.css.
+ * These controls stay flat: navy surfaces, white type, blue support and pink lines.
+ */
 
-/* Install/update/offline prompt: intentionally understated and touch friendly. */
 .rqk-pwa-banner {
   border: 1px solid var(--rq-line) !important;
-  border-left: 0 !important;
-  border-top: 3px solid var(--rq-primary) !important;
-  border-radius: 12px !important;
+  border-top-color: var(--rq-primary) !important;
+  border-radius: 7px !important;
   background: var(--rq-surface) !important;
+  background-image: none !important;
   color: #fff !important;
-  box-shadow: 0 16px 48px rgba(0,0,0,.42) !important;
+  box-shadow: none !important;
 }
 
 .rqk-pwa-banner--offline { border-top-color: var(--rq-secondary) !important; }
@@ -19,24 +19,44 @@
 
 .rqk-pwa-banner__icon,
 .rqk-pwa-banner__close {
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--rq-card) !important;
-  border-color: var(--rq-line) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.rqk-pwa-banner__icon svg,
+.rqk-pwa-banner__close svg {
+  color: var(--rq-secondary) !important;
 }
 
 .rqk-pwa-banner__action {
   min-height: 38px !important;
-  border: 0 !important;
-  border-radius: 8px !important;
-  background: var(--rq-primary) !important;
+  border: 1px solid var(--rq-primary) !important;
+  border-radius: 5px !important;
+  background: var(--rq-card) !important;
+  background-image: none !important;
   color: #fff !important;
   padding-inline: 14px !important;
   font-size: 11px !important;
+  box-shadow: none !important;
 }
 
-.rqk-pwa-banner--offline .rqk-pwa-banner__action { background: var(--rq-card-hover) !important; }
+.rqk-pwa-banner__action:hover,
+.rqk-pwa-banner__action:focus-visible {
+  background: var(--rq-card-hover) !important;
+  border-color: var(--rq-primary) !important;
+  outline: 1px solid var(--rq-primary) !important;
+  outline-offset: 2px !important;
+}
 
-/* Offline campaign controls use the same visual language. */
+.rqk-pwa-banner--offline .rqk-pwa-banner__action {
+  border-color: var(--rq-secondary) !important;
+}
+
+/* Offline campaign controls use the same flat visual language. */
 .rqk-offline-launcher,
 .rqk-offline-card,
 .rqk-offline-card__header {
@@ -44,22 +64,32 @@
   background-image: none !important;
   color: #fff !important;
   border-color: var(--rq-line) !important;
+  box-shadow: none !important;
 }
 
 .rqk-offline-launcher {
-  border-left: 3px solid var(--rq-primary) !important;
-  border-radius: 9px !important;
+  border-left: 1px solid var(--rq-primary) !important;
+  border-radius: 7px !important;
 }
 
 .rqk-offline-launcher[data-tone='ready'] { border-left-color: var(--rq-secondary) !important; }
 .rqk-offline-launcher[data-tone='warning'] { border-left-color: var(--rq-secondary) !important; }
 .rqk-offline-status--working { border-color: var(--rq-line-strong) !important; color: var(--rq-text) !important; }
-.rqk-offline-progress i { background: var(--rq-primary) !important; }
+.rqk-offline-progress i { background: var(--rq-secondary) !important; }
 .rqk-offline-primary {
-  background: var(--rq-primary) !important;
+  background: var(--rq-card) !important;
   background-image: none !important;
-  border-color: var(--rq-primary) !important;
-  border-radius: 8px !important;
+  border: 1px solid var(--rq-primary) !important;
+  color: #fff !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+}
+
+.rqk-offline-primary:hover,
+.rqk-offline-primary:focus-visible {
+  background: var(--rq-card-hover) !important;
+  outline: 1px solid var(--rq-primary) !important;
+  outline-offset: 2px !important;
 }
 
 @media (max-width: 719px) {
@@ -78,7 +108,7 @@
     grid-template-columns: 32px minmax(0,1fr) auto auto !important;
     gap: 7px !important;
     padding: 8px !important;
-    border-radius: 10px !important;
+    border-radius: 7px !important;
   }
 
   .rqk-pwa-banner__copy strong { font-size: 11px !important; }
@@ -101,7 +131,7 @@
     bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
     width: auto !important;
     max-height: min(66dvh, 560px) !important;
-    border-radius: 12px !important;
+    border-radius: 7px !important;
   }
 
   .rqk-offline-card__body { padding: 9px !important; gap: 7px !important; }
