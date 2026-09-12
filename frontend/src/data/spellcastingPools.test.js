@@ -3,6 +3,7 @@ import {
   getCastOptionsForSpell,
   getNormalSpellPool,
   getPactMagicPool,
+  isLegacyPactSlotMap,
   spendCastOption,
 } from './spellcastingPools';
 
@@ -38,6 +39,45 @@ describe('source-aware spellcasting pools', () => {
       totals: { 1: 4, 2: 2 },
       remaining: { 1: 4, 2: 0 },
       source: 'saved',
+      legacyPactExcluded: false,
+    });
+  });
+
+  test('single-class legacy Warlock slot map is excluded from ordinary slots', () => {
+    const character = {
+      spell_slots: { 3: 2 },
+      spell_slots_remaining: { 3: 1 },
+      resources: {
+        pact_magic: { current: 1, remaining: 1, max: 2, slot_level: 3 },
+      },
+    };
+    const slotMath = { slots: {}, pactMagic: { level: 3, slots: 2 } };
+
+    expect(isLegacyPactSlotMap(character, slotMath)).toBe(true);
+    expect(getNormalSpellPool(character, slotMath)).toEqual({
+      totals: {},
+      remaining: {},
+      source: 'none',
+      legacyPactExcluded: true,
+    });
+  });
+
+  test('Warlock plus shared caster keeps saved ordinary slots separate from Pact Magic', () => {
+    const character = {
+      spell_slots: { 1: 3 },
+      spell_slots_remaining: { 1: 2 },
+      resources: {
+        pact_magic: { current: 1, remaining: 1, max: 2, slot_level: 2 },
+      },
+    };
+    const slotMath = { slots: { 1: 3 }, pactMagic: { level: 2, slots: 2 } };
+
+    expect(isLegacyPactSlotMap(character, slotMath)).toBe(false);
+    expect(getNormalSpellPool(character, slotMath)).toMatchObject({
+      totals: { 1: 3 },
+      remaining: { 1: 2 },
+      source: 'saved',
+      legacyPactExcluded: false,
     });
   });
 
