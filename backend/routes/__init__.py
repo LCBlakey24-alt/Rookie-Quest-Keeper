@@ -27,6 +27,7 @@ from routes.inventory import router as inventory_router
 from routes.offline_inventory_sync import router as offline_inventory_sync_router
 from routes.user_content import router as user_content_router
 from routes.player_rules import router as player_rules_router
+from routes.character_import import router as character_import_router
 from routes.character_patch import router as character_patch_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
@@ -35,6 +36,7 @@ from routes.rule_systems import router as rule_systems_router
 from routes.events import router as events_router
 from routes.character_templates import router as character_templates_router
 from routes.homebrew import router as homebrew_router
+from routes.player_handout_summary import router as player_handout_summary_router
 from routes.handouts import router as handouts_router
 from routes.story_arcs import router as story_arcs_router
 from routes.quests import router as quests_router
@@ -75,6 +77,8 @@ all_routers = [
     user_content_router,
     # Player rules feeds sit beside user content so builders can consume uploaded options.
     player_rules_router,
+    # Player-side review-first extraction for uploaded PDF/image character sheets.
+    character_import_router,
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,
@@ -86,6 +90,9 @@ all_routers = [
     character_templates_router,
     # Paid image-generation routes intentionally not registered for now.
     homebrew_router,
+    # Lightweight summary sits beside the full handout routes so Player Home
+    # can render unread counts without downloading handout bodies.
+    player_handout_summary_router,
     handouts_router,
     story_arcs_router,
     quests_router,

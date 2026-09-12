@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
+import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
@@ -13,10 +13,14 @@ import '@/styles/appShellExperiencePolish.css';
 import '@/layouts/desktop/appShell.css';
 import '@/layouts/tablet/appShell.css';
 import '@/layouts/mobile/appShell.css';
+import { isLocalPreview } from '@/preview/previewMode';
+import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
+import '@/preview/previewWorkspace.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
   { label: 'Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
+  { label: 'Player home', to: '/player', icon: UsersRound, matches: ['/player'], mobilePrimary: false },
   { label: 'Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'], mobilePrimary: true },
   { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
   { label: 'Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
@@ -50,6 +54,7 @@ function RailLink({ item, pathname, className = '', onClick }) {
       className={classes}
       aria-label={item.label}
       title={item.label}
+      aria-current={active ? 'page' : undefined}
       onClick={onClick}
     >
       <Icon size={20} aria-hidden="true" />
@@ -66,13 +71,17 @@ function openRook() {
   window.dispatchEvent(new Event('rook-assistant-open'));
 }
 
-function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
+function openDice() {
+  window.dispatchEvent(new Event('rq-dice-open'));
+}
+
+function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice }) {
   return (
     <div id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
-          <span>Rook, uploads, settings, feedback, and owner tools.</span>
+          <span>Rook, dice, player home, uploads, settings, and feedback.</span>
         </div>
         <button type="button" className="rqk-app-mobile-more-close" onClick={onClose} aria-label="Close more tools">
           <X size={18} aria-hidden="true" />
@@ -85,6 +94,15 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
           if (item.kind === 'rook') {
             return (
               <button key={item.label} type="button" className="rqk-app-mobile-more-item rqk-app-mobile-more-item--rook" onClick={onRook} role="menuitem">
+                <Icon size={18} aria-hidden="true" />
+                <span>{item.label}</span>
+              </button>
+            );
+          }
+
+          if (item.kind === 'dice') {
+            return (
+              <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onDice} role="menuitem">
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
@@ -116,6 +134,10 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
 export default function AppShell({ children }) {
   const location = useLocation();
   const deviceLayout = useDeviceLayout();
+  const isMobile = deviceLayout === 'mobile';
+  const visibleNavItems = isMobile
+    ? mainNavItems.filter((item) => item.mobilePrimary)
+    : mainNavItems;
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
@@ -137,7 +159,7 @@ export default function AppShell({ children }) {
 
   useEffect(() => {
     setIsMoreOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, deviceLayout]);
 
   useEffect(() => {
     if (!isMoreOpen) return undefined;
@@ -153,6 +175,7 @@ export default function AppShell({ children }) {
   const mobileMoreItems = useMemo(() => {
     const tools = [
       { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
+      { label: 'Dice roller', icon: Dices, kind: 'dice' },
       ...mainNavItems.filter((item) => item.mobilePrimary === false),
       { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
     ];
@@ -166,6 +189,11 @@ export default function AppShell({ children }) {
     openRook();
   };
 
+  const handleDice = () => {
+    setIsMoreOpen(false);
+    openDice();
+  };
+
   const handleFeedback = () => {
     setIsMoreOpen(false);
     openFeedback();
@@ -174,7 +202,7 @@ export default function AppShell({ children }) {
   return (
     <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout}>
       <aside className="rqk-app-rail" aria-label="App navigation">
-        <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
+        {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
             <BrandMiniLogo size={36} alt="" />
           </span>
@@ -182,29 +210,31 @@ export default function AppShell({ children }) {
             <strong>Rookie Quest</strong>
             <small>Keeper Hub</small>
           </span>
-        </Link>
+        </Link>}
 
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
-          <p className="rqk-app-rail-section-label">Workspace</p>
-          {mainNavItems.map((item) => (
+          {!isMobile && <p className="rqk-app-rail-section-label">Workspace</p>}
+          {visibleNavItems.map((item) => (
             <RailLink key={item.label} item={item} pathname={location.pathname} />
           ))}
         </nav>
 
         <div className="rqk-app-rail-bottom">
-          <p className="rqk-app-rail-section-label">Support</p>
-          <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook}>
-            <Sparkles size={20} aria-hidden="true" />
-            <span>Ask Rook</span>
-          </button>
-          <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback}>
-            <MessageSquare size={20} aria-hidden="true" />
-            <span>Feedback</span>
-          </button>
+          {!isMobile && <>
+            <p className="rqk-app-rail-section-label">Support</p>
+            <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook}>
+              <Sparkles size={20} aria-hidden="true" />
+              <span>Ask Rook</span>
+            </button>
+            <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback}>
+              <MessageSquare size={20} aria-hidden="true" />
+              <span>Feedback</span>
+            </button>
 
-          {isAdmin && <RailLink item={adminNavItem} pathname={location.pathname} className="rqk-app-rail-support-link" />}
+            {isAdmin && <RailLink item={adminNavItem} pathname={location.pathname} className="rqk-app-rail-support-link" />}
+          </>}
 
-          <button
+          {isMobile && <button
             type="button"
             className={isMoreOpen ? 'rqk-app-rail-link rqk-app-mobile-more-trigger is-active' : 'rqk-app-rail-link rqk-app-mobile-more-trigger'}
             onClick={() => setIsMoreOpen((value) => !value)}
@@ -214,15 +244,16 @@ export default function AppShell({ children }) {
           >
             <MoreHorizontal size={20} aria-hidden="true" />
             <span>More</span>
-          </button>
+          </button>}
         </div>
 
-        {isMoreOpen && (
+        {isMobile && isMoreOpen && (
           <MobileMorePanel
             items={mobileMoreItems}
             pathname={location.pathname}
             onClose={() => setIsMoreOpen(false)}
             onRook={handleRook}
+            onDice={handleDice}
             onFeedback={handleFeedback}
           />
         )}
@@ -230,10 +261,10 @@ export default function AppShell({ children }) {
 
       <div className="rqk-app-workspace">
         <header className="rqk-app-topbar" aria-label="Workspace controls">
-          <div className="rqk-app-topbar-title">
+          {isLocalPreview() ? <PreviewWorkspaceControls /> : <div className="rqk-app-topbar-title">
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
-          </div>
+          </div>}
         </header>
 
         <div className="rqk-app-shell-content">

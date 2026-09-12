@@ -9,11 +9,11 @@ import {
 } from "../../lib/characterRules";
 
 const theme = {
-  bg: { primary: '#0A1628', surface: '#0F2440', elevated: '#14304F' },
-  gold: '#D4A017',
-  text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
-  border: 'rgba(212, 160, 23, 0.35)',
-  borderActive: '#D4A017'
+  bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)' },
+  gold: 'var(--rq-secondary)',
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)',
+  borderActive: 'var(--rq-border-default)'
 };
 
 const formatAbility = (a) => a.slice(0, 3).toUpperCase();

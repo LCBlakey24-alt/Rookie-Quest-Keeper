@@ -1,5 +1,5 @@
 """All Pydantic models for the ROOK backend."""
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, ConfigDict, EmailStr, AliasChoices, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import uuid
@@ -925,6 +925,7 @@ class TimelineEvent(BaseModel):
     title: str
     description: str = ""
     session_number: int = 0
+    in_game_date: str = ""
     related_npc_id: Optional[str] = None
     related_location_id: Optional[str] = None
     related_character_ids: List[str] = []  # Characters this event involves
@@ -932,13 +933,24 @@ class TimelineEvent(BaseModel):
     created_by: str = ""  # GM username
 
 class TimelineEventCreate(BaseModel):
-    event_type: str
-    title: str
+    event_type: str = Field(default="session", validation_alias=AliasChoices("type", "event_type"), min_length=1)
+    title: str = Field(min_length=1)
     description: str = ""
-    session_number: int = 0
+    session_number: int = Field(default=0, ge=0)
+    in_game_date: str = ""
     related_npc_id: Optional[str] = None
     related_location_id: Optional[str] = None
     related_character_ids: List[str] = []
+
+    @field_validator("title", "event_type", "in_game_date", mode="before")
+    @classmethod
+    def strip_text(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("session_number", mode="before")
+    @classmethod
+    def optional_session(cls, value):
+        return 0 if value in (None, "") else value
 
 class GMNoteSync(BaseModel):
     """Model for syncing GM notes to player characters"""

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import {
@@ -27,18 +27,11 @@ import RookFormFillPanel from '@/components/RookFormFillPanel';
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const rq = {
-  bg: '#242424',
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  input: '#242424',
-  line: 'rgba(255,255,255,0.16)',
-  lineStrong: 'rgba(255,255,255,0.22)',
-  accent: '#d00000',
-  good: '#1f9d66',
-  warn: '#d99222',
-  text: '#ffffff',
-  soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.62)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', input: 'var(--rq-bg-input)',
+  text: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)',
+  line: 'var(--rq-border-default)', lineStrong: 'var(--rq-border-strong)',
+  red: 'var(--rq-accent-primary)', accent: 'var(--rq-accent-primary)',
+  good: 'var(--rq-secondary)', warn: 'var(--rq-accent-primary)',
 };
 
 const CATEGORY_OPTIONS = [
@@ -415,7 +408,10 @@ function GMEntryCard({ handout, recipients, selected, sharing, editing, editDraf
   );
 }
 
-function PlayerHandoutsPanel({ onSummaryChange } = {}) {
+function PlayerHandoutsPanel({ onSummaryChange, campaignId = '' } = {}) {
+  const requestRef = useRef(0);
+  const [loadError, setLoadError] = useState('');
+  const [loaded, setLoaded] = useState(false);
   const [handouts, setHandouts] = useState([]);
   const [activeFilter, setActiveFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -424,21 +420,36 @@ function PlayerHandoutsPanel({ onSummaryChange } = {}) {
   const [selectedShares, setSelectedShares] = useState({});
   const [sharingHandout, setSharingHandout] = useState(null);
 
-  useEffect(() => {
-    apiClient.get('/player/handouts')
-      .then(response => setHandouts(response.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const loadHandouts = useCallback(async () => {
+    const request = ++requestRef.current;
+    setLoading(true);
+    try {
+      const response = await apiClient.get('/player/handouts');
+      if (!Array.isArray(response.data)) throw new Error('Invalid handout response');
+      if (request !== requestRef.current) return;
+      setHandouts(response.data.filter(item => item && (!campaignId || item.campaign_id === campaignId)));
+      setLoaded(true);
+      setLoadError('');
+    } catch {
+      if (request === requestRef.current) setLoadError('Handouts could not be refreshed. Previously loaded entries remain visible.');
+    } finally {
+      if (request === requestRef.current) setLoading(false);
+    }
+  }, [campaignId]);
 
   useEffect(() => {
-    if (!onSummaryChange) return;
+    loadHandouts();
+    return () => { requestRef.current += 1; };
+  }, [loadHandouts]);
+
+  useEffect(() => {
+    if (!onSummaryChange || !loaded) return;
     onSummaryChange({
       total: handouts.length,
       unread: handouts.filter(handout => !handout.read).length,
       saved: handouts.filter(handout => handout.saved).length,
     });
-  }, [handouts, onSummaryChange]);
+  }, [handouts, onSummaryChange, loaded]);
 
   const markRead = async (handout) => {
     if (handout.read) return;
@@ -514,11 +525,13 @@ function PlayerHandoutsPanel({ onSummaryChange } = {}) {
   const unreadCount = handouts.filter(handout => !handout.read).length;
   const savedCount = handouts.filter(handout => handout.saved).length;
 
-  if (loading) return null;
-  if (handouts.length === 0) return <div style={playerEmptyStyle}><Mail size={24} />No handouts yet</div>;
+  if (loading && !loaded) return <p role="status">Loading handouts…</p>;
 
   return (
     <section style={playerPanelStyle}>
+      {loadError && <div role="status" style={{ padding: 16, border: `1px solid ${rq.accent}` }}>{loadError}</div>}
+      <Button onClick={loadHandouts} disabled={loading}>Refresh handouts</Button>
+      {loaded && !handouts.length && <div style={playerEmptyStyle}><Mail size={24} />No handouts yet</div>}
       {unreadCount > 0 && <div style={playerAlertStyle}><Mail size={16} /><span>You have {unreadCount} new reveal{unreadCount === 1 ? '' : 's'}.</span></div>}
       <h4 style={playerTitleStyle}><Mail size={15} /> Handouts & Reveals {savedCount > 0 && <span style={miniBadgeStyle}>{savedCount} saved</span>}</h4>
       <div style={playerFiltersStyle}>
@@ -529,14 +542,14 @@ function PlayerHandoutsPanel({ onSummaryChange } = {}) {
         const id = handout.id || handout.handout_id;
         const isExpanded = expanded === id;
         return (
-          <article key={id} onClick={() => handleExpand(handout)} style={playerCardStyle(!handout.read)}>
-            <div style={playerCardTopStyle}>
+          <article key={id} style={playerCardStyle(!handout.read)}>
+            <button type="button" onClick={() => handleExpand(handout)} aria-expanded={isExpanded} style={{ ...playerCardTopStyle, width: '100%', textAlign: 'left', padding: 12, cursor: 'pointer' }}>
               {handout.read ? <MailOpen size={14} /> : <Mail size={14} />}
               <strong>{handout.title}</strong>
               <span style={miniBadgeStyle}>{categoryLabel(handout.category || 'clue')}</span>
               {getAttachmentUrl(handout) && <AttachmentIcon handout={handout} size={12} />}
               {handout.saved && <Bookmark size={12} style={{ fill: rq.text }} />}
-            </div>
+            </button>
             {isExpanded && (handout.content || getAttachmentUrl(handout)) && (
               <div style={playerContentStyle}>
                 {getAttachmentUrl(handout) && <AttachmentPreview handout={handout} />}
@@ -672,14 +685,14 @@ function AttachmentPreview({ handout, compact = false }) {
 const shellStyle = { display: 'grid', gap: 16, fontFamily: fontStack };
 const loadingStyle = { minHeight: 180, display: 'grid', placeItems: 'center', color: rq.soft, background: rq.panel, border: `1px solid ${rq.line}`, fontFamily: fontStack };
 const heroStyle = { display: 'flex', alignItems: 'flex-start', gap: 14, justifyContent: 'space-between', flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, padding: 16 };
-const heroIconStyle = { width: 48, height: 48, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `6px solid ${rq.accent}`, flex: '0 0 auto' };
-const eyebrowStyle = { margin: '0 0 5px', color: rq.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.1em' };
+const heroIconStyle = { width: 48, height: 48, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `1px solid ${rq.accent}`, flex: '0 0 auto' };
+const eyebrowStyle = { margin: '0 0 5px', color: rq.muted, fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.1em' };
 const titleStyle = { margin: 0, color: rq.text, fontSize: 'clamp(26px, 4vw, 42px)', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1.02 };
 const subtitleStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 14, lineHeight: 1.45, maxWidth: 820 };
 const primaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: rq.accent, color: rq.text, padding: '0 14px', fontWeight: 950, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: rq.panel, color: rq.text, padding: '0 14px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
-const ruleStyle = { background: rq.panel, borderLeft: `6px solid ${rq.accent}`, padding: 14, display: 'grid', gap: 4 };
-const ruleLabelStyle = { margin: 0, color: rq.text, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 950 };
+const ruleStyle = { background: rq.panel, borderLeft: `1px solid ${rq.accent}`, padding: 14, display: 'grid', gap: 4 };
+const ruleLabelStyle = { margin: 0, color: rq.text, fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 950 };
 const ruleTextStyle = { margin: 0, color: rq.soft, lineHeight: 1.45, fontSize: 14 };
 const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', borderTop: `1px solid ${rq.line}`, borderBottom: `1px solid ${rq.line}` };
 const statStyle = { minHeight: 64, padding: '10px 12px', display: 'grid', alignContent: 'center', gap: 3, borderRight: `1px solid ${rq.line}`, color: rq.text };
@@ -690,12 +703,12 @@ const inputStyle = { width: '100%', minHeight: 44, background: rq.input, border:
 const searchInputStyle = { ...inputStyle, paddingLeft: 40 };
 const selectStyle = { ...inputStyle, appearance: 'auto' };
 const textareaStyle = { width: '100%', minHeight: 120, background: rq.input, border: `1px solid ${rq.lineStrong}`, color: rq.text, padding: 12, fontFamily: fontStack, lineHeight: 1.45, outline: 'none', resize: 'vertical', colorScheme: 'dark', borderRadius: 0 };
-const formPanelStyle = { display: 'grid', gap: 12, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${rq.accent}`, padding: 14 };
+const formPanelStyle = { display: 'grid', gap: 12, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.accent}`, padding: 14 };
 const formTitleStyle = { margin: 0, color: rq.text, fontSize: 18, fontWeight: 950 };
 const formHelpStyle = { margin: 0, color: rq.soft, fontSize: 13, lineHeight: 1.45 };
 const twoColumnStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 };
 const fieldStyle = { display: 'grid', gap: 6 };
-const labelStyle = { color: rq.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const labelStyle = { color: rq.muted, fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const categoryHelpStyle = { margin: '-4px 0 0', color: rq.muted, fontSize: 12 };
 const formActionsStyle = { display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', borderTop: `1px solid ${rq.line}`, paddingTop: 12 };
 const listStyle = { display: 'grid', gap: 14 };
@@ -704,8 +717,8 @@ const entryCardStyle = (isLore) => ({ background: rq.card, border: `1px solid ${
 const entryHeaderStyle = { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: 14, borderBottom: `1px solid ${rq.line}`, flexWrap: 'wrap' };
 const entryTitleRowStyle = { display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' };
 const entryTitleStyle = { margin: 0, color: rq.text, fontSize: 19, fontWeight: 950 };
-const categoryBadgeStyle = (active) => ({ background: active ? rq.accent : rq.panel, color: rq.text, padding: '4px 8px', fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' });
-const loreBadgeStyle = { background: rq.panel, color: rq.soft, padding: '4px 8px', fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em', border: `1px solid ${rq.line}` };
+const categoryBadgeStyle = (active) => ({ background: active ? rq.accent : rq.panel, color: rq.text, padding: '4px 8px', fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' });
+const loreBadgeStyle = { background: rq.panel, color: rq.soft, padding: '4px 8px', fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em', border: `1px solid ${rq.line}` };
 const entryPreviewStyle = { margin: '8px 0 0', color: rq.soft, fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap' };
 const entryMetaStyle = { margin: '8px 0 0', color: rq.muted, fontSize: 12 };
 const entryActionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' };
@@ -725,27 +738,27 @@ const deliveryChipStyle = (read) => ({ color: read ? '#bbf7d0' : rq.soft, border
 const shareToggleStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: 10, border: `1px solid ${rq.lineStrong}`, background: rq.panel, color: rq.soft, fontSize: 12, lineHeight: 1.45 };
 const attachmentPanelStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 12 };
 const attachmentHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 };
-const uploadLabelStyle = { color: rq.text, border: `1px solid ${rq.lineStrong}`, background: rq.bg, padding: '7px 10px', fontSize: 11, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' };
+const uploadLabelStyle = { color: rq.text, border: `1px solid ${rq.lineStrong}`, background: rq.bg, padding: '7px 10px', fontSize: 14, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' };
 const noAttachmentStyle = { color: rq.muted, border: `1px dashed ${rq.lineStrong}`, padding: 10, fontSize: 11 };
-const clearAttachmentStyle = { marginTop: 8, background: 'transparent', border: `1px solid rgba(208,0,0,0.55)`, color: rq.text, padding: '5px 9px', fontSize: 11, cursor: 'pointer' };
+const clearAttachmentStyle = { marginTop: 8, background: 'transparent', border: `1px solid rgba(208,0,0,0.55)`, color: rq.text, padding: '5px 9px', fontSize: 14, cursor: 'pointer' };
 const pdfPreviewStyle = (compact) => ({ marginTop: compact ? 8 : 0, border: `1px solid ${rq.line}`, padding: 10, background: rq.bg, display: 'grid', gap: 4, color: rq.text });
 const imagePreviewStyle = (compact) => compact ? { width: 96, height: 64, objectFit: 'cover', border: `1px solid ${rq.line}`, marginTop: 8, display: 'block' } : { width: '100%', maxHeight: 320, objectFit: 'contain', border: `1px solid ${rq.line}`, background: rq.bg, marginBottom: 8 };
 const playerPanelStyle = { display: 'flex', flexDirection: 'column', gap: 8, padding: 12, fontFamily: fontStack };
 const playerEmptyStyle = { padding: 16, color: rq.muted, textAlign: 'center', fontSize: 12, display: 'grid', justifyItems: 'center', gap: 6 };
 const playerAlertStyle = { display: 'flex', gap: 8, alignItems: 'center', padding: '10px 12px', border: `1px solid ${rq.lineStrong}`, background: rq.panel, color: rq.text };
 const playerTitleStyle = { fontSize: 14, color: rq.text, margin: 0, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' };
-const miniBadgeStyle = { background: rq.accent, color: rq.text, fontSize: 9, fontWeight: 900, padding: '2px 6px', textTransform: 'uppercase', letterSpacing: '0.06em' };
+const miniBadgeStyle = { background: rq.accent, color: rq.text, fontSize: 14, fontWeight: 900, padding: '2px 6px', textTransform: 'uppercase', letterSpacing: '0.06em' };
 const playerFiltersStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', padding: '2px 0 4px' };
-const playerFilterButtonStyle = (active) => ({ background: active ? rq.accent : rq.panel, border: 0, color: rq.text, cursor: 'pointer', fontSize: 10, fontWeight: 900, padding: '5px 8px', fontFamily: fontStack });
+const playerFilterButtonStyle = (active) => ({ background: active ? rq.accent : rq.panel, border: 0, color: rq.text, cursor: 'pointer', fontSize: 14, fontWeight: 900, padding: '5px 8px', fontFamily: fontStack });
 const playerCardStyle = (unread) => ({ padding: '9px 12px', cursor: 'pointer', border: `1px solid ${rq.line}`, borderLeft: `5px solid ${unread ? rq.accent : rq.lineStrong}`, background: unread ? rq.card : rq.panel, color: rq.text });
 const playerCardTopStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' };
 const playerContentStyle = { marginTop: 8, borderTop: `1px solid ${rq.line}`, paddingTop: 8, color: rq.soft, lineHeight: 1.6, whiteSpace: 'pre-wrap', fontSize: 12 };
 const playerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 };
-const savePlayerButtonStyle = (saved) => ({ background: saved ? rq.accent : rq.card, border: 0, color: rq.text, cursor: 'pointer', padding: '5px 9px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 5, fontFamily: fontStack });
-const sharePlayerButtonStyle = { background: rq.good, border: 0, color: rq.text, cursor: 'pointer', padding: '5px 9px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 5, fontFamily: fontStack };
+const savePlayerButtonStyle = (saved) => ({ background: saved ? rq.accent : rq.card, border: 0, color: rq.text, cursor: 'pointer', padding: '5px 9px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 5, fontFamily: fontStack });
+const sharePlayerButtonStyle = { background: rq.good, border: 0, color: rq.text, cursor: 'pointer', padding: '5px 9px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 5, fontFamily: fontStack };
 const lockedStyle = { border: `1px solid ${rq.lineStrong}`, color: rq.muted, padding: '5px 9px', fontSize: 11 };
 const shareOptionsStyle = { marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' };
-const playerRecipientStyle = { display: 'flex', alignItems: 'center', gap: 5, color: rq.soft, fontSize: 11, border: `1px solid ${rq.lineStrong}`, padding: '4px 8px', background: rq.bg };
+const playerRecipientStyle = { display: 'flex', alignItems: 'center', gap: 5, color: rq.soft, fontSize: 14, border: `1px solid ${rq.lineStrong}`, padding: '4px 8px', background: rq.bg };
 
 export { GMHandoutsTab, PlayerHandoutsPanel };
 export default GMHandoutsTab;
