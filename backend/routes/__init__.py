@@ -28,6 +28,7 @@ from routes.offline_inventory_sync import router as offline_inventory_sync_route
 from routes.user_content import router as user_content_router
 from routes.player_rules import router as player_rules_router
 from routes.character_patch import router as character_patch_router
+import routes.character_choice_fields as _character_choice_fields  # noqa: F401 - extends explicit safe field allow-lists
 from routes.character_level_up import router as character_level_up_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
