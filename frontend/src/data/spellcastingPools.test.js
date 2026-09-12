@@ -113,9 +113,23 @@ describe('source-aware spellcasting pools', () => {
     ]);
   });
 
-  test('pact choice is omitted when its slot level is not valid for the spell', () => {
+  test('ordinary spells can use a higher-level Pact Magic slot', () => {
     const options = getCastOptionsForSpell({
-      spell: { name: 'Exact Level Spell', level: 2 },
+      spell: { name: 'Misty Step', level: 2 },
+      normalSlots: { 2: 1 },
+      normalRemaining: { 2: 1 },
+      pactPool: { available: true, level: 3, total: 2, current: 2 },
+    });
+
+    expect(options).toEqual([
+      { source: 'spell', level: 2, label: 'L2 Slot', remaining: 1, total: 1 },
+      { source: 'pact', level: 3, label: 'Pact L3', remaining: 2, total: 2 },
+    ]);
+  });
+
+  test('explicit casting restrictions can omit Pact Magic at a disallowed level', () => {
+    const options = getCastOptionsForSpell({
+      spell: { name: 'Exact Level Homebrew', level: 2, allowed_slot_levels: [2] },
       normalSlots: { 2: 1 },
       normalRemaining: { 2: 1 },
       pactPool: { available: true, level: 3, total: 2, current: 2 },
