@@ -28,6 +28,7 @@ jobs:
       - name: Compile focused character modules
         run: |
           python -m py_compile \
+            backend/data/character_resources.py \
             backend/routes/character_import.py \
             backend/routes/character_creation_state.py \
             backend/routes/character_progression_preflight.py \
@@ -37,6 +38,7 @@ jobs:
       - name: Run focused character state tests
         run: |
           python -m unittest backend.tests.test_character_import -v
+          python -m unittest backend.tests.test_character_resources -v
           python -m unittest backend.tests.test_character_creation_state -v
           python -m unittest backend.tests.test_character_progression_preflight -v
           python -m unittest backend.tests.test_character_progression_state -v
