@@ -1,37 +1,36 @@
 @import '../../layouts/tablet/characterSheet.css';
 
-/* Clean Character Sheet — route-owned visual foundation.
-   Existing foundational sheet CSS still provides behaviour/structure; this file
-   owns the live palette and surface language. Phone geometry lives separately. */
+/* Clean Character Sheet — RQK 1.0 route-owned visual foundation.
+   Phone geometry lives separately; this file owns the shared palette and surfaces. */
 
 .character-page-v2.clean-sheet-page {
-  --cs-bg: var(--rq-bg, #0a1728);
-  --cs-panel: var(--rq-surface, #102238);
-  --cs-card: var(--rq-card, #14283e);
-  --cs-input: var(--rq-bg-deep, #06101c);
-  --cs-text: var(--rq-text, #f7f9fc);
-  --cs-text-soft: #d3dfeb;
-  --cs-muted: var(--rq-muted, #9fb2c8);
-  --cs-border: var(--rq-line, rgba(181, 203, 226, .16));
-  --cs-border-strong: rgba(181, 203, 226, .28);
-  --cs-accent: var(--rq-primary, #d00000);
-  --cs-accent-soft: rgba(208, 0, 0, .12);
-  --cs-accent-border: rgba(208, 0, 0, .42);
-  --cs-accent-ghost-border: rgba(208, 0, 0, .28);
-  --cs-accent-hover-border: rgba(208, 0, 0, .62);
-  --cs-accent-hover-bg: rgba(208, 0, 0, .14);
-  --cs-blue-soft: rgba(181, 203, 226, .08);
-  --cs-success: #22c55e;
-  --cs-warning: #f59e0b;
-  --cs-danger: #ef4444;
+  --cs-bg: #071522;
+  --cs-panel: #0C2234;
+  --cs-card: #102B40;
+  --cs-card-hover: #14344C;
+  --cs-input: #081B2A;
+  --cs-text: #FFFFFF;
+  --cs-text-soft: #FFFFFF;
+  --cs-muted: #FFFFFF;
+  --cs-border: rgba(255,45,170,.18);
+  --cs-border-strong: rgba(255,45,170,.42);
+  --cs-accent: #FF2DAA;
+  --cs-accent-soft: rgba(124,203,255,.10);
+  --cs-accent-border: #FF2DAA;
+  --cs-blue: #7CCBFF;
+  --cs-blue-soft: rgba(124,203,255,.10);
+  --cs-success: #7CCBFF;
+  --cs-warning: #FF2DAA;
+  --cs-danger: #FF2DAA;
 
   width: 100% !important;
   max-width: 100vw !important;
   min-height: 100dvh !important;
-  padding: clamp(12px, 1.8vw, 20px) !important;
+  padding: clamp(10px, 1.8vw, 18px) !important;
   overflow-x: hidden !important;
   background: var(--cs-bg) !important;
-  color: var(--cs-text) !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
   font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
 }
 
@@ -41,6 +40,11 @@
   box-sizing: border-box !important;
   text-shadow: none !important;
   box-shadow: none !important;
+}
+
+.character-page-v2 :where(h1,h2,h3,h4,h5,h6,p,span,strong,small,label,em,b,i,li,dt,dd,button,a,th,td,legend,summary) {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: currentColor !important;
 }
 
 .character-page-v2 button,
@@ -67,8 +71,8 @@
   background-image: none !important;
   border: 1px solid var(--cs-border) !important;
   border-left: 1px solid var(--cs-border) !important;
-  border-radius: 10px !important;
-  color: var(--cs-text) !important;
+  border-radius: 7px !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-header::before,
@@ -86,13 +90,13 @@
 .character-page-v2 .clean-sheet-header,
 .character-page-v2 .clean-sheet-compact-status,
 .character-page-v2 .clean-sheet-panel {
-  padding: 14px !important;
+  padding: 12px !important;
 }
 
 .character-page-v2 .clean-sheet-header--simple {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) !important;
-  gap: 10px !important;
+  gap: 8px !important;
   margin-bottom: 0 !important;
 }
 
@@ -100,12 +104,13 @@
   min-width: 0 !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) !important;
-  gap: 5px !important;
+  gap: 4px !important;
   align-items: center !important;
-  padding: 14px 16px !important;
+  padding: 12px 14px !important;
   border: 1px solid var(--cs-border) !important;
-  border-radius: 9px !important;
+  border-radius: 7px !important;
   background: var(--cs-card) !important;
+  background-image: none !important;
 }
 
 .character-page-v2 .clean-sheet-identity h1,
@@ -117,23 +122,20 @@
 .character-page-v2 .clean-sheet-core-stat-card strong,
 .character-page-v2 .clean-sheet-stat-value,
 .character-page-v2 .clean-sheet-compact-ability > strong {
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
   font-family: inherit !important;
   font-weight: 900 !important;
 }
 
 .character-page-v2 .clean-sheet-identity h1 {
   margin: 0 !important;
-  font-size: clamp(1.9rem, 5vw, 2.7rem) !important;
+  font-size: clamp(1.8rem, 5vw, 2.55rem) !important;
   line-height: 1 !important;
   letter-spacing: -.025em !important;
   overflow-wrap: anywhere !important;
 }
 
-.character-page-v2 .clean-sheet-identity p {
-  color: var(--cs-text-soft) !important;
-}
-
+.character-page-v2 .clean-sheet-identity p,
 .character-page-v2 .clean-sheet-kicker,
 .character-page-v2 .clean-sheet-stat-label,
 .character-page-v2 .clean-sheet-note-field span,
@@ -142,17 +144,17 @@
 .character-page-v2 .clean-sheet-muted,
 .character-page-v2 small,
 .character-page-v2 em {
-  color: var(--cs-muted) !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions {
   width: 100% !important;
   max-width: 1180px !important;
-  margin: 10px auto !important;
+  margin: 8px auto !important;
   display: flex !important;
   justify-content: flex-end !important;
   flex-wrap: wrap !important;
-  gap: 8px !important;
+  gap: 6px !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions button,
@@ -175,14 +177,14 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 7px !important;
-  padding: 0 11px !important;
+  gap: 6px !important;
+  padding: 0 10px !important;
   border: 1px solid var(--cs-border) !important;
   border-left: 1px solid var(--cs-border) !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--cs-card) !important;
   background-image: none !important;
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
   font-weight: 850 !important;
   cursor: pointer;
 }
@@ -191,15 +193,15 @@
 .character-page-v2 .clean-sheet-inspiration.active,
 .character-page-v2 .clean-sheet-roll-mode-group button.active,
 .character-page-v2 .clean-sheet-condition-picker button.active {
-  background: var(--cs-accent) !important;
+  background: var(--cs-blue-soft) !important;
   border-color: var(--cs-accent) !important;
-  color: #fff !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 button:hover:not(:disabled),
 .character-page-v2 .clean-sheet-clickable:hover {
-  background-color: #193149 !important;
-  border-color: var(--cs-border-strong) !important;
+  background-color: var(--cs-card-hover) !important;
+  border-color: var(--cs-accent) !important;
   filter: none !important;
   transform: none !important;
 }
@@ -208,7 +210,7 @@
 .character-page-v2 input:focus-visible,
 .character-page-v2 select:focus-visible,
 .character-page-v2 textarea:focus-visible {
-  outline: 2px solid rgba(208, 0, 0, .48) !important;
+  outline: 1px solid var(--cs-accent) !important;
   outline-offset: 2px !important;
 }
 
@@ -220,19 +222,24 @@
 .character-page-v2 .clean-sheet-roll-controls input {
   min-height: 40px !important;
   border: 1px solid var(--cs-border) !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--cs-input) !important;
   background-image: none !important;
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
   color-scheme: dark;
+}
+
+.character-page-v2 input::placeholder,
+.character-page-v2 textarea::placeholder {
+  color: rgba(255,255,255,.62) !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
   display: grid !important;
   grid-template-columns: minmax(180px, .35fr) minmax(300px, .65fr) !important;
-  gap: 12px !important;
+  gap: 10px !important;
   align-items: center !important;
-  margin: 10px auto !important;
+  margin: 8px auto !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat,
@@ -249,35 +256,55 @@
 .character-page-v2 .clean-sheet-skills-summary > div,
 .character-page-v2 .clean-sheet-readiness-grid > div,
 .character-page-v2 .clean-sheet-proficiency-lists > div,
-.character-page-v2 .clean-sheet-note-field {
+.character-page-v2 .clean-sheet-note-field,
+.character-page-v2 .clean-sheet-rook-card,
+.character-page-v2 .clean-sheet-rook-ai-card {
   background: var(--cs-card) !important;
   background-image: none !important;
   border: 1px solid var(--cs-border) !important;
   border-left: 1px solid var(--cs-border) !important;
-  border-radius: 8px !important;
-  color: var(--cs-text) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-note-field,
+.character-page-v2 .clean-sheet-rook-card,
+.character-page-v2 .clean-sheet-rook-ai-card {
+  padding: 9px !important;
+}
+
+.character-page-v2 .clean-sheet-feature-topline span,
+.character-page-v2 .clean-sheet-feature-topline em,
+.character-page-v2 .clean-sheet-chip-list > span,
+.character-page-v2 .clean-sheet-rook-card > div > span {
+  background: var(--cs-blue-soft) !important;
+  background-image: none !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 4px !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-compact-hp-actions {
-  padding: 10px 12px !important;
+  padding: 9px 10px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-hp-actions {
   display: grid !important;
   grid-template-columns: 86px 1fr 1fr !important;
-  gap: 8px !important;
+  gap: 6px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
-  gap: 8px !important;
+  gap: 7px !important;
   align-items: center !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp strong {
-  font-size: clamp(1.8rem, 5vw, 2.4rem) !important;
+  font-size: clamp(1.75rem, 5vw, 2.3rem) !important;
   line-height: 1 !important;
 }
 
@@ -285,13 +312,13 @@
   grid-column: 1 / -1 !important;
   width: fit-content !important;
   justify-self: end !important;
-  padding: 5px 8px !important;
+  padding: 4px 7px !important;
   border: 1px solid var(--cs-border) !important;
-  border-left: 4px solid var(--cs-accent) !important;
-  border-radius: 7px !important;
+  border-left: 1px solid var(--cs-accent) !important;
+  border-radius: 5px !important;
   background: var(--cs-input) !important;
-  color: var(--cs-text-soft) !important;
-  font-size: .68rem !important;
+  color: #FFFFFF !important;
+  font-size: .64rem !important;
   font-style: normal !important;
   font-weight: 850 !important;
   text-transform: uppercase !important;
@@ -304,24 +331,28 @@
   border-color: var(--cs-border) !important;
 }
 
-.character-page-v2 .clean-sheet-hp-bar div {
-  background: var(--cs-success) !important;
-}
-
+.character-page-v2 .clean-sheet-hp-bar div,
 .character-page-v2 .clean-sheet-slot-pips i.filled {
-  background: var(--cs-accent) !important;
+  background: var(--cs-blue) !important;
 }
 
 .character-page-v2 .clean-sheet-tabs {
   border: 1px solid var(--cs-border) !important;
-  border-radius: 10px !important;
+  border-radius: 7px !important;
   background: var(--cs-panel) !important;
   background-image: none !important;
 }
 
+.character-page-v2 .clean-sheet-tabs button.active,
+.character-page-v2 .clean-sheet-tabs button[aria-current='page'],
+.character-page-v2 .clean-sheet-tabs button[aria-selected='true'] {
+  background: var(--cs-blue-soft) !important;
+  border-color: var(--cs-accent) !important;
+}
+
 .character-page-v2 .clean-sheet-tabs button.active svg {
-  background: var(--cs-accent) !important;
-  color: #fff !important;
+  background: transparent !important;
+  color: var(--cs-blue) !important;
 }
 
 .character-page-v2 .clean-sheet-condition-chip,
@@ -329,18 +360,51 @@
 .character-page-v2 .clean-sheet-skill-tags small,
 .character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save > em {
   border: 1px solid var(--cs-border) !important;
-  border-radius: 999px !important;
-  background: var(--cs-input) !important;
-  color: var(--cs-text-soft) !important;
+  border-radius: 4px !important;
+  background: var(--cs-blue-soft) !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-snapshot-warning,
-.character-page-v2 .clean-sheet-spell-warning {
-  border: 1px solid rgba(245, 158, 11, .42) !important;
-  border-left: 4px solid var(--cs-warning) !important;
-  border-radius: 8px !important;
-  background: rgba(245, 158, 11, .08) !important;
-  color: var(--cs-text) !important;
+.character-page-v2 .clean-sheet-spell-warning,
+.character-page-v2 .clean-sheet-detail-warning {
+  border: 1px solid var(--cs-border-strong) !important;
+  border-left: 1px solid var(--cs-accent) !important;
+  border-radius: 5px !important;
+  background: var(--cs-card) !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+}
+
+.character-page-v2 .clean-sheet-notes-textarea {
+  min-height: clamp(210px, 38vh, 420px) !important;
+  width: 100% !important;
+  padding: 10px !important;
+  line-height: 1.45 !important;
+  resize: vertical !important;
+}
+
+.character-page-v2 .clean-sheet-notes-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin-top: 7px !important;
+}
+
+.character-page-v2 .clean-sheet-notes-actions button,
+.character-page-v2 .clean-sheet-rook-actions button {
+  min-height: 40px !important;
+  background: var(--cs-card) !important;
+  color: #FFFFFF !important;
+  border: 1px solid var(--cs-accent) !important;
+  border-radius: 5px !important;
+}
+
+.character-page-v2 .clean-sheet-rook-mark,
+.character-page-v2 .clean-sheet-rook-hero svg,
+.character-page-v2 .clean-sheet-section-heading-row svg,
+.character-page-v2 .clean-sheet-panel-heading svg,
+.character-page-v2 .clean-sheet-core-stat-card svg {
+  color: var(--cs-blue) !important;
 }
 
 .character-page-v2 .clean-sheet-content,
@@ -349,6 +413,50 @@
 .character-page-v2 .clean-sheet-compact-status {
   max-width: 1180px !important;
   min-width: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .character-page-v2.clean-sheet-page {
+    padding: 7px !important;
+  }
+
+  .character-page-v2 .clean-sheet-panel {
+    padding: 9px !important;
+  }
+
+  .character-page-v2 .clean-sheet-feature-grid,
+  .character-page-v2 .clean-sheet-character-detail-grid,
+  .character-page-v2 .clean-sheet-readiness-grid,
+  .character-page-v2 .clean-sheet-rook-grid,
+  .character-page-v2 .clean-sheet-chip-list {
+    gap: 5px !important;
+  }
+
+  .character-page-v2 .clean-sheet-feature-card,
+  .character-page-v2 .clean-sheet-note-field,
+  .character-page-v2 .clean-sheet-rook-card,
+  .character-page-v2 .clean-sheet-rook-ai-card {
+    padding: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-feature-card p,
+  .character-page-v2 .clean-sheet-note-field p,
+  .character-page-v2 .clean-sheet-rook-card p,
+  .character-page-v2 .clean-sheet-rook-ai-card p,
+  .character-page-v2 .clean-sheet-backstory-text {
+    font-size: .72rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .character-page-v2 .clean-sheet-notes-textarea {
+    min-height: 42vh !important;
+  }
+
+  .character-page-v2 .clean-sheet-notes-actions button,
+  .character-page-v2 .clean-sheet-rook-actions button {
+    width: 100% !important;
+    min-height: 42px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
