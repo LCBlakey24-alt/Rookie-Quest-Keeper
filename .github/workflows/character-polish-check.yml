@@ -30,6 +30,7 @@ jobs:
           python -m py_compile \
             backend/routes/character_import.py \
             backend/routes/character_creation_state.py \
+            backend/routes/character_progression_preflight.py \
             backend/routes/character_progression_state.py \
             backend/routes/character_recovery.py
 
@@ -37,6 +38,7 @@ jobs:
         run: |
           python -m unittest backend.tests.test_character_import -v
           python -m unittest backend.tests.test_character_creation_state -v
+          python -m unittest backend.tests.test_character_progression_preflight -v
           python -m unittest backend.tests.test_character_progression_state -v
           python -m unittest backend.tests.test_character_recovery -v
 
