@@ -1,30 +1,26 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  Plus, Trash2, Edit3, Save, FileText, BookOpen,
-  Scroll, Calendar, User, ChevronDown, ChevronUp, Loader
+  BookOpen,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
+  FileText,
+  Loader,
+  Plus,
+  RefreshCw,
+  Save,
+  Scroll,
+  Trash2,
+  User,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-
-const rq = {
-  bg: 'var(--rq-bg-main, #1A1A1A)',
-  panel: 'var(--rq-bg-panel, #242424)',
-  input: 'var(--rq-bg-input, #1F1F1F)',
-  border: 'var(--rq-accent-border, rgba(193,18,31,0.35))',
-  borderDefault: 'var(--rq-border-default, #3A3A3A)',
-  accent: 'var(--rq-accent-primary, #C1121F)',
-  accentHover: 'var(--rq-accent-hover, #D62839)',
-  accentSoft: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
-  text: 'var(--rq-text-primary, #FFFFFF)',
-  textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
-  muted: 'var(--rq-text-muted, #A0A0A0)',
-  radius: 'var(--rq-radius-md, 6px)',
-  radiusSm: 'var(--rq-radius-sm, 4px)',
-};
+import './PlayerNotesTab.css';
 
 function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
   const requestRef = useRef(0);
@@ -42,9 +38,11 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
     const request = ++requestRef.current;
     setLoading(true);
     const results = await Promise.allSettled([
-      apiClient.get('/player/session-recaps'), apiClient.get('/player/notes'),
+      apiClient.get('/player/session-recaps'),
+      apiClient.get('/player/notes'),
     ]);
     if (request !== requestRef.current) return;
+
     const failures = [];
     results.forEach((result, index) => {
       if (result.status !== 'fulfilled' || !Array.isArray(result.value.data)) {
@@ -54,6 +52,7 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
       const rows = result.value.data.filter(row => row && (!campaignId || row.campaign_id === campaignId));
       (index === 0 ? setSessionRecaps : setPlayerNotes)(rows);
     });
+
     setLoadError(failures.length ? `Could not refresh ${failures.join(' and ')}. Previously loaded entries remain visible.` : '');
     setLoading(false);
   }, [campaignId]);
@@ -63,8 +62,8 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
     return () => { requestRef.current += 1; };
   }, [fetchData]);
 
-  const handleSaveNote = async (e) => {
-    e.preventDefault();
+  const handleSaveNote = async (event) => {
+    event.preventDefault();
     if (!noteForm.content.trim()) {
       toast.error('Note content cannot be empty');
       return;
@@ -75,14 +74,14 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
       if (editingNote) {
         await apiClient.put(`/player/notes/${editingNote.id}`, {
           title: noteForm.title,
-          content: noteForm.content
+          content: noteForm.content,
         });
         toast.success('Note updated!');
       } else {
         await apiClient.post('/player/notes', {
           title: noteForm.title,
           content: noteForm.content,
-          campaign_id: noteForm.campaign_id || null
+          campaign_id: noteForm.campaign_id || null,
         });
         toast.success('Note created!');
       }
@@ -115,13 +114,17 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
   };
 
   const toggleRecapExpanded = (recapId) => {
-    setExpandedRecaps(prev => ({ ...prev, [recapId]: !prev[recapId] }));
+    setExpandedRecaps(previous => ({ ...previous, [recapId]: !previous[recapId] }));
   };
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    return date.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -130,100 +133,139 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
     setNoteForm({ title: '', content: '', campaign_id: campaignId });
   };
 
+  const openNewNote = () => {
+    resetNoteForm();
+    setShowNoteDialog(true);
+  };
+
   if (loading && !sessionRecaps.length && !playerNotes.length) {
     return (
-      <div className="loading-screen" style={{ minHeight: '400px' }}>
-        <div className="loading-spinner"></div>
+      <div className="loading-screen" style={{ minHeight: '320px' }}>
+        <div className="loading-spinner" />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '24px 0' }}>
-      {loadError && <div role="status" style={{ border: `1px solid ${rq.accent}`, padding: 16, marginBottom: 16 }}>{loadError}</div>}
-      <Button onClick={fetchData} disabled={loading}>Refresh notes</Button>
-      <section style={{ marginBottom: '48px' }}>
+    <div className="player-notes-tab">
+      {loadError && <div role="status" className="player-notes-error">{loadError}</div>}
+
+      <div className="player-notes-toolbar">
+        <Button className="player-notes-button" onClick={fetchData} disabled={loading} aria-label="Refresh notes">
+          <RefreshCw size={15} />
+          Refresh notes
+        </Button>
+      </div>
+
+      <section className="player-notes-section">
         <SectionTitle icon={Scroll} title="Session Recaps" count={sessionRecaps.length} />
 
         {sessionRecaps.length === 0 ? (
-          <EmptyCard icon={Scroll} title={loadError.includes('session recaps') ? 'Session recaps could not be confirmed' : 'No Session Recaps Yet'} text="Recaps shared by your Game Master appear here." />
+          <EmptyCard
+            icon={Scroll}
+            title={loadError.includes('session recaps') ? 'Session recaps could not be confirmed' : 'No Session Recaps Yet'}
+            text="Recaps shared by your Game Master appear here."
+          />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {sessionRecaps.map(recap => (
-              <Card key={recap.id} data-testid={`session-recap-${recap.id}`} style={cardStyle}>
-                <div style={topBarStyle} />
-                <CardContent style={{ padding: '20px' }}>
-                  <div style={clickHeaderStyle}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                        <span style={campaignBadgeStyle}>
-                          <BookOpen size={14} />
+          <div className="player-notes-list">
+            {sessionRecaps.map(recap => {
+              const expanded = Boolean(expandedRecaps[recap.id]);
+              return (
+                <Card key={recap.id} data-testid={`session-recap-${recap.id}`} className="player-notes-card">
+                  <CardContent className="player-notes-card-content">
+                    <div className="player-notes-recap-head">
+                      <div className="player-notes-recap-copy">
+                        <span className="player-notes-badge">
+                          <BookOpen size={13} />
                           {recap.campaign_name || 'Campaign'}
                         </span>
+                        <div className="player-notes-meta">
+                          <span><Calendar size={13} />{formatDate(recap.session_date)}</span>
+                          <span><User size={13} />From: {recap.created_by}</span>
+                        </div>
                       </div>
-                      <div style={metaRowStyle}>
-                        <span style={metaItemStyle}><Calendar size={14} />{formatDate(recap.session_date)}</span>
-                        <span style={metaItemStyle}><User size={14} />From: {recap.created_by}</span>
-                      </div>
+                      <Button
+                        className="player-notes-icon-button"
+                        aria-label={expanded ? 'Collapse recap' : 'Expand recap'}
+                        aria-expanded={expanded}
+                        onClick={() => toggleRecapExpanded(recap.id)}
+                      >
+                        {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+                      </Button>
                     </div>
-                    <Button className="btn-icon" style={{ padding: '8px' }} aria-label="Toggle recap" aria-expanded={Boolean(expandedRecaps[recap.id])} onClick={() => toggleRecapExpanded(recap.id)}>
-                      {expandedRecaps[recap.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </Button>
-                  </div>
 
-                  {expandedRecaps[recap.id] ? (
-                    <div style={expandedContentStyle}>
-                      <div style={recapTextStyle}>{recap.content}</div>
-                    </div>
-                  ) : (
-                    <p style={previewTextStyle}>{recap.content}</p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    {expanded ? (
+                      <div className="player-notes-recap-expanded">
+                        <p className="player-notes-recap-text">{recap.content}</p>
+                      </div>
+                    ) : (
+                      <p className="player-notes-preview">{recap.content}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </section>
 
-      <section>
-        <div style={sectionHeaderStyle}>
-          <SectionTitle icon={FileText} title="My Notes" count={playerNotes.length} compact />
-          <Button onClick={() => { resetNoteForm(); setShowNoteDialog(true); }} data-testid="add-player-note-btn" style={addButtonStyle}>
-            <Plus size={18} />
+      <section className="player-notes-section">
+        <div className="player-notes-section-header">
+          <SectionTitle icon={FileText} title="My Notes" count={playerNotes.length} />
+          <Button onClick={openNewNote} data-testid="add-player-note-btn" className="player-notes-button player-notes-button--primary">
+            <Plus size={16} />
             Add Note
           </Button>
         </div>
 
         {playerNotes.length === 0 ? (
-          <EmptyCard icon={FileText} title={loadError.includes('notes') ? 'Notes could not be confirmed' : 'No Personal Notes Yet'} text="Create your own notes to track character ideas, session thoughts, or anything else!">
-            <Button onClick={() => { resetNoteForm(); setShowNoteDialog(true); }} className="btn-primary">
-              <Plus size={18} style={{ marginRight: '8px' }} />
+          <EmptyCard
+            icon={FileText}
+            title={loadError.includes('notes') ? 'Notes could not be confirmed' : 'No Personal Notes Yet'}
+            text="Create your own notes to track character ideas, session thoughts, or anything else."
+          >
+            <Button onClick={openNewNote} className="player-notes-button player-notes-button--primary">
+              <Plus size={16} />
               Create First Note
             </Button>
           </EmptyCard>
         ) : (
-          <div style={notesGridStyle}>
+          <div className="player-notes-grid">
             {playerNotes.map(note => (
-              <Card key={note.id} data-testid={`player-note-${note.id}`} style={cardStyle}>
-                <div style={topBarStyle} />
-                <CardContent style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: 12 }}>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={noteTitleStyle}>{note.title || 'Untitled Note'}</h3>
-                      {note.campaign_name && <span style={campaignBadgeStyle}><BookOpen size={10} />{note.campaign_name}</span>}
+              <Card key={note.id} data-testid={`player-note-${note.id}`} className="player-notes-card">
+                <CardContent className="player-notes-card-content">
+                  <div className="player-notes-note-head">
+                    <div className="player-notes-note-copy">
+                      <h3 className="player-notes-note-title">{note.title || 'Untitled Note'}</h3>
+                      {note.campaign_name && (
+                        <span className="player-notes-badge">
+                          <BookOpen size={11} />
+                          {note.campaign_name}
+                        </span>
+                      )}
                     </div>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      <Button onClick={() => handleEditNote(note)} className="btn-icon" style={{ padding: '6px' }} data-testid={`edit-note-${note.id}`}>
-                        <Edit3 size={16} />
+                    <div className="player-notes-note-actions">
+                      <Button
+                        onClick={() => handleEditNote(note)}
+                        className="player-notes-icon-button"
+                        data-testid={`edit-note-${note.id}`}
+                        aria-label={`Edit ${note.title || 'note'}`}
+                      >
+                        <Edit3 size={15} />
                       </Button>
-                      <Button onClick={() => handleDeleteNote(note.id)} className="btn-icon" style={{ padding: '6px', color: rq.accent }} data-testid={`delete-note-${note.id}`}>
-                        <Trash2 size={16} />
+                      <Button
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="player-notes-icon-button"
+                        data-testid={`delete-note-${note.id}`}
+                        aria-label={`Delete ${note.title || 'note'}`}
+                      >
+                        <Trash2 size={15} />
                       </Button>
                     </div>
                   </div>
 
-                  <p style={notePreviewStyle}>{note.content}</p>
-                  <p style={updatedStyle}>Updated {formatDate(note.updated_at)}</p>
+                  <p className="player-notes-preview">{note.content}</p>
+                  <p className="player-notes-updated">Updated {formatDate(note.updated_at)}</p>
                 </CardContent>
               </Card>
             ))}
@@ -232,41 +274,68 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
       </section>
 
       <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
-        <DialogContent className="modal" style={{ maxWidth: '600px', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius }}>
+        <DialogContent className="player-notes-dialog">
           <DialogHeader>
-            <DialogTitle style={dialogTitleStyle}>{editingNote ? 'Edit Note' : 'Create New Note'}</DialogTitle>
-            <DialogDescription style={{ color: rq.muted, marginTop: '8px' }}>
+            <DialogTitle className="player-notes-dialog-title">{editingNote ? 'Edit Note' : 'Create New Note'}</DialogTitle>
+            <DialogDescription>
               {editingNote ? 'Make changes to your note below.' : 'Write down your thoughts, character ideas, or session notes.'}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveNote} style={{ marginTop: '20px' }}>
-            <div style={{ marginBottom: '16px' }}>
-              <FormLabel text="Title (optional)" />
-              <Input value={noteForm.title} onChange={(e) => setNoteForm(prev => ({ ...prev, title: e.target.value }))} placeholder="Note title..." className="input" data-testid="note-title-input" />
+          <form onSubmit={handleSaveNote} className="player-notes-form">
+            <div className="player-notes-field">
+              <label htmlFor="player-note-title">Title (optional)</label>
+              <Input
+                id="player-note-title"
+                value={noteForm.title}
+                onChange={(event) => setNoteForm(previous => ({ ...previous, title: event.target.value }))}
+                placeholder="Note title..."
+                data-testid="note-title-input"
+              />
             </div>
 
             {!editingNote && !campaignId && campaigns.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <FormLabel text="Link to Campaign (optional)" />
-                <select value={noteForm.campaign_id} onChange={(e) => setNoteForm(prev => ({ ...prev, campaign_id: e.target.value }))} className="input" style={selectStyle} data-testid="note-campaign-select">
+              <div className="player-notes-field">
+                <label htmlFor="player-note-campaign">Link to Campaign (optional)</label>
+                <select
+                  id="player-note-campaign"
+                  value={noteForm.campaign_id}
+                  onChange={(event) => setNoteForm(previous => ({ ...previous, campaign_id: event.target.value }))}
+                  data-testid="note-campaign-select"
+                >
                   <option value="">No campaign</option>
                   {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.name}</option>)}
                 </select>
               </div>
             )}
 
-            <div style={{ marginBottom: '24px' }}>
-              <FormLabel text="Content" />
-              <textarea value={noteForm.content} onChange={(e) => setNoteForm(prev => ({ ...prev, content: e.target.value }))} placeholder="Write your note here..." className="input" style={textareaStyle} data-testid="note-content-input" required />
+            <div className="player-notes-field">
+              <label htmlFor="player-note-content">Content</label>
+              <textarea
+                id="player-note-content"
+                value={noteForm.content}
+                onChange={(event) => setNoteForm(previous => ({ ...previous, content: event.target.value }))}
+                placeholder="Write your note here..."
+                data-testid="note-content-input"
+                required
+              />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <Button type="button" onClick={() => { setShowNoteDialog(false); resetNoteForm(); }} className="btn-secondary" style={{ flex: 1 }}>
+            <div className="player-notes-dialog-actions">
+              <Button
+                type="button"
+                onClick={() => { setShowNoteDialog(false); resetNoteForm(); }}
+                className="player-notes-button"
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={saving || !noteForm.content.trim()} className="btn-primary" style={saveButtonStyle} data-testid="save-note-btn">
-                {saving ? <><Loader size={18} className="spin" />Saving...</> : <><Save size={18} />{editingNote ? 'Update Note' : 'Save Note'}</>}
+              <Button
+                type="submit"
+                disabled={saving || !noteForm.content.trim()}
+                className="player-notes-button player-notes-button--primary"
+                data-testid="save-note-btn"
+              >
+                {saving ? <><Loader size={16} className="spin" />Saving...</> : <><Save size={16} />{editingNote ? 'Update Note' : 'Save Note'}</>}
               </Button>
             </div>
           </form>
@@ -276,55 +345,25 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
   );
 }
 
-function SectionTitle({ icon: Icon, title, count, compact = false }) {
+function SectionTitle({ icon: Icon, title, count }) {
   return (
-    <h2 style={{ ...titleStyle, marginBottom: compact ? 0 : '20px' }}>
-      <Icon size={24} style={{ color: rq.accent }} />
+    <h2 className="player-notes-section-title">
+      <Icon size={18} />
       {title}
-      <span style={countStyle}>({count})</span>
+      <span className="player-notes-count">{count}</span>
     </h2>
   );
 }
 
 function EmptyCard({ icon: Icon, title, text, children }) {
   return (
-    <Card style={emptyCardStyle}>
-      <Icon size={48} style={{ color: rq.muted, opacity: 0.4, marginBottom: '16px' }} />
-      <h3 style={emptyTitleStyle}>{title}</h3>
-      <p style={emptyTextStyle}>{text}</p>
+    <Card className="player-notes-empty">
+      <Icon size={28} />
+      <h3>{title}</h3>
+      <p>{text}</p>
       {children}
     </Card>
   );
 }
-
-function FormLabel({ text }) {
-  return <label style={formLabelStyle}>{text}</label>;
-}
-
-const titleStyle = { fontSize: '22px', fontWeight: 900, color: rq.text, display: 'flex', alignItems: 'center', gap: '12px' };
-const countStyle = { fontSize: '14px', color: rq.muted, fontWeight: 700 };
-const cardStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, overflow: 'hidden' };
-const topBarStyle = { height: '4px', background: rq.accent };
-const clickHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', cursor: 'pointer', gap: 12 };
-const campaignBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: rq.accentSoft, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, fontSize: '12px', color: rq.textSecondary, fontWeight: 800 };
-const metaRowStyle = { display: 'flex', alignItems: 'center', gap: '16px', color: rq.muted, fontSize: '13px', flexWrap: 'wrap' };
-const metaItemStyle = { display: 'flex', alignItems: 'center', gap: '6px' };
-const expandedContentStyle = { marginTop: '16px', padding: '20px', background: rq.input, borderRadius: rq.radiusSm, border: `1px solid ${rq.borderDefault}` };
-const recapTextStyle = { color: rq.textSecondary, fontSize: '15px', lineHeight: '1.8', whiteSpace: 'pre-wrap' };
-const previewTextStyle = { marginTop: '12px', color: rq.muted, fontSize: '14px', lineHeight: '1.6', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' };
-const sectionHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: 16, flexWrap: 'wrap' };
-const addButtonStyle = { padding: '10px 20px', background: rq.accent, border: `1px solid ${rq.accent}`, borderRadius: rq.radiusSm, display: 'flex', alignItems: 'center', gap: '8px', color: rq.text, fontWeight: 900, fontSize: '14px', cursor: 'pointer' };
-const emptyCardStyle = { background: rq.panel, border: `2px dashed ${rq.borderDefault}`, borderRadius: rq.radius, padding: '40px', textAlign: 'center' };
-const emptyTitleStyle = { color: rq.textSecondary, fontSize: '18px', marginBottom: '8px', fontWeight: 900 };
-const emptyTextStyle = { color: rq.muted, maxWidth: '400px', margin: '0 auto 20px' };
-const notesGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' };
-const noteTitleStyle = { fontSize: '16px', fontWeight: 900, color: rq.text, marginBottom: '6px' };
-const notePreviewStyle = { color: rq.muted, fontSize: '14px', lineHeight: '1.6', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', whiteSpace: 'pre-wrap' };
-const updatedStyle = { marginTop: '12px', fontSize: '11px', color: rq.muted };
-const dialogTitleStyle = { fontSize: '24px', fontWeight: 900, color: rq.text };
-const formLabelStyle = { display: 'block', marginBottom: '8px', color: rq.accentHover, fontSize: '14px', fontWeight: 900 };
-const selectStyle = { width: '100%', padding: '10px 12px', borderRadius: rq.radiusSm };
-const textareaStyle = { minHeight: '200px', resize: 'vertical', lineHeight: '1.6', borderRadius: rq.radiusSm };
-const saveButtonStyle = { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' };
 
 export default PlayerNotesTab;
