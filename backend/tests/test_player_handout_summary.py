@@ -64,6 +64,17 @@ class PlayerHandoutSummaryTests(unittest.TestCase):
         self.assertEqual(result, {'total': 7, 'unread': 3, 'saved': 2})
         self.assertEqual(fake_db.player_handouts.pipeline[0], {'$match': {'username': 'player-one'}})
 
+    def test_campaign_scope_is_added_to_match(self):
+        fake_db = FakeDb([{'_id': None, 'total': 2, 'unread': 1, 'saved': 1}])
+        with patch.object(summary_routes, 'db', fake_db):
+            result = run_async(summary_routes.get_player_handout_summary(campaign_id='campaign-1', current_user='player-one'))
+
+        self.assertEqual(result, {'total': 2, 'unread': 1, 'saved': 1})
+        self.assertEqual(
+            fake_db.player_handouts.pipeline[0],
+            {'$match': {'username': 'player-one', 'campaign_id': 'campaign-1'}},
+        )
+
     def test_returns_zeroes_when_player_has_none(self):
         with patch.object(summary_routes, 'db', FakeDb([])):
             result = run_async(summary_routes.get_player_handout_summary(current_user='player-one'))
