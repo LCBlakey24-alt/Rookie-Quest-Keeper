@@ -386,3 +386,44 @@
     animation: none !important;
   }
 }
+
+
+/* RQK 1.0 flat loading authority */
+.loading-screen,
+.clean-sheet-loading,
+.loading-screen::before,
+.clean-sheet-loading::before,
+.loading-card,
+.loading-brand-mark,
+.loading-screen .loading-spinner {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.loading-screen,
+.clean-sheet-loading {
+  background: #071522 !important;
+  color: #FFFFFF !important;
+}
+
+.loading-screen::before,
+.clean-sheet-loading::before {
+  background: #0C2234 !important;
+  border: 1px solid rgba(255, 45, 170, 0.22) !important;
+  border-left: 1px solid #FF2DAA !important;
+  border-radius: 7px !important;
+}
+
+.loading-brand-mark,
+.loading-screen .loading-spinner {
+  background: #102B40 !important;
+  border: 1px solid rgba(255, 45, 170, 0.28) !important;
+  color: #FFFFFF !important;
+  border-radius: 5px !important;
+}
+
+.loading-screen :where(h1,h2,h3,p,span,strong,small),
+.clean-sheet-loading :where(h1,h2,h3,p,span,strong,small) {
+  color: #FFFFFF !important;
+}

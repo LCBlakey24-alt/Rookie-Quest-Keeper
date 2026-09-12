@@ -11,13 +11,17 @@ function readIfPresent(relativePath) {
 }
 
 describe('Uploads presentation ownership', () => {
-  test('Uploads uses the navy palette without retired sunset styling', () => {
+  test('Uploads uses the flat RQK 1.0 player palette', () => {
     const css = read('uploadsDashboardExperience.css');
 
-    expect(css).not.toMatch(/rq-sunset-gradient|rq-sunset-cream/i);
-    expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
-    expect(css).toContain('var(--rq-bg, #0a1728)');
-    expect(css).toContain('var(--rq-primary, #d00000)');
+    expect(css).not.toMatch(/rq-sunset-gradient|rq-sunset-cream|linear-gradient|radial-gradient|conic-gradient/i);
+    expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#d00000/i);
+    expect(css).toContain('#071522');
+    expect(css).toContain('#0C2234');
+    expect(css).toContain('#102B40');
+    expect(css).toContain('#7CCBFF');
+    expect(css).toContain('#FF2DAA');
+    expect(css).toContain('#FFFFFF');
   });
 
   test.each([

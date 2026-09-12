@@ -2,11 +2,11 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, Save } from 'lucide-react';
 
 const theme = {
-  bg: { primary: '#1F1F23', surface: '#27272B', elevated: '#323235' },
-  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239, 68, 68, 0.35)',
-  accent: { primary: '#EF4444', soft: 'rgba(239, 68, 68, 0.12)' },
-  success: '#10B981'
+  bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)' },
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)',
+  accent: { primary: 'var(--rq-accent-primary)', soft: 'var(--rq-accent-soft)' },
+  success: 'var(--rq-secondary)'
 };
 
 export function BuilderShell({ children, title = 'Create Character', subtitle, actions }) {

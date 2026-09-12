@@ -420,3 +420,119 @@
     display: none;
   }
 }
+
+
+/* RQK 1.0 flat Rook authority */
+.rook-assistant-fab,
+.rook-assistant-pill,
+.rook-assistant-panel,
+.rook-assistant-orb,
+.rook-assistant-header,
+.rook-assistant-chip-row,
+.rook-assistant-empty__icon,
+.rook-assistant-starters button,
+.rook-assistant-message__bubble,
+.rook-assistant-compose,
+.rook-assistant-compose textarea,
+.rook-assistant-compose button,
+.rook-assistant-copy,
+.rook-assistant-actions button {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.rook-assistant-fab,
+.rook-assistant-pill,
+.rook-assistant-panel {
+  border-color: rgba(255, 45, 170, 0.28) !important;
+}
+
+.rook-assistant-fab,
+.rook-assistant-pill {
+  background: #0C2234 !important;
+  color: #FFFFFF !important;
+}
+
+.rook-assistant-fab {
+  border-radius: 7px !important;
+}
+
+.rook-assistant-fab__glow {
+  display: none !important;
+}
+
+.rook-assistant-panel {
+  background: #071522 !important;
+  border-radius: 9px !important;
+  backdrop-filter: none !important;
+}
+
+.rook-assistant-header,
+.rook-assistant-compose {
+  background: #0C2234 !important;
+  border-color: rgba(255, 45, 170, 0.18) !important;
+}
+
+.rook-assistant-orb,
+.rook-assistant-compose button {
+  background: #102B40 !important;
+  color: #7CCBFF !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
+}
+
+.rook-assistant-chip-row button,
+.rook-assistant-starters button,
+.rook-assistant-message__bubble,
+.rook-assistant-copy,
+.rook-assistant-actions button,
+.rook-assistant-compose textarea,
+.rook-assistant-empty__icon,
+.rook-assistant-empty .rook-assistant-context-note {
+  background: #102B40 !important;
+  border-color: rgba(255, 45, 170, 0.18) !important;
+  color: #FFFFFF !important;
+  border-radius: 5px !important;
+}
+
+.rook-assistant-message.is-user .rook-assistant-message__bubble {
+  background: rgba(124, 203, 255, 0.10) !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
+}
+
+.rook-assistant-message.is-assistant .rook-assistant-message__bubble {
+  background: #102B40 !important;
+  color: #FFFFFF !important;
+}
+
+.rook-assistant-title span,
+.rook-assistant-title strong,
+.rook-assistant-title small,
+.rook-assistant-empty h3,
+.rook-assistant-empty p,
+.rook-assistant-thinking,
+.rook-assistant-chip-row button,
+.rook-assistant-compose textarea,
+.rook-assistant-pill svg,
+.rook-assistant-pill strong {
+  color: #FFFFFF !important;
+}
+
+.rook-assistant-empty__icon,
+.rook-assistant-orb svg,
+.rook-assistant-compose button svg {
+  color: #7CCBFF !important;
+}
+
+.rook-assistant-compose textarea:focus,
+.rook-assistant-actions button:focus-visible,
+.rook-assistant-copy:focus-visible,
+.rook-assistant-chip-row button:focus-visible,
+.rook-assistant-starters button:focus-visible {
+  border-color: #FF2DAA !important;
+  outline: 1px solid #FF2DAA !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}

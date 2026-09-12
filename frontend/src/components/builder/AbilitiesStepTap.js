@@ -4,11 +4,11 @@ import { Dices, Heart, Minus, Plus, RotateCcw, Shield, User, Zap } from 'lucide-
 import { ABILITIES, STANDARD_ARRAY, POINT_BUY_TOTAL, calculatePointBuyCost } from '../../lib/characterRules';
 
 const theme = {
-  bg: { primary: '#0B0B0C', surface: '#141414', elevated: '#1F1F23' },
-  red: '#EF4444',
-  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(255,255,255,0.12)',
-  redBorder: 'rgba(239,68,68,0.36)'
+  bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)' },
+  red: 'var(--rq-accent-primary)',
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)',
+  redBorder: 'var(--rq-border-default)'
 };
 
 const formatAbility = (ability) => ability.slice(0, 3).toUpperCase();

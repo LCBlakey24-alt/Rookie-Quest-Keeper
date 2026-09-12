@@ -14,11 +14,14 @@ import {
 } from '@/offline/offlinePlayerCampaignPack';
 import '@/styles/offlineCampaignControl.css';
 
-function campaignContextFromPath(pathname = '') {
+export function campaignContextFromPath(pathname = '') {
   const gmMatch = pathname.match(/^\/(?:campaign|gm-screen)\/([^/?#]+)/);
   if (gmMatch) return { campaignId: decodeURIComponent(gmMatch[1]), audience: 'gm' };
-  const playerMatch = pathname.match(/^\/mobile\/([^/?#]+)/);
+
+  const playerMatch = pathname.match(/^\/player\/campaign\/([^/?#]+)/)
+    || pathname.match(/^\/mobile\/([^/?#]+)/);
   if (playerMatch) return { campaignId: decodeURIComponent(playerMatch[1]), audience: 'player' };
+
   return { campaignId: '', audience: '' };
 }
 

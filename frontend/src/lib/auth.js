@@ -1,3 +1,5 @@
+import { isLocalPreview, PREVIEW_TOKEN } from '@/preview/previewMode';
+
 export const AUTH_TOKEN_KEY = 'dm_token';
 export const AUTH_USERNAME_KEY = 'dm_username';
 
@@ -8,6 +10,7 @@ function notifyAuthScopeChanged() {
 }
 
 export function getAuthToken() {
+  if (isLocalPreview()) return PREVIEW_TOKEN;
   const primary = localStorage.getItem(AUTH_TOKEN_KEY);
   if (primary) return primary;
 
@@ -24,6 +27,7 @@ export function getAuthToken() {
 }
 
 export function clearAuthToken() {
+  if (isLocalPreview()) return;
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USERNAME_KEY);
   for (const key of LEGACY_TOKEN_KEYS) localStorage.removeItem(key);
@@ -31,6 +35,7 @@ export function clearAuthToken() {
 }
 
 export function setAuthToken(token) {
+  if (isLocalPreview()) return;
   if (!token) {
     clearAuthToken();
     return;

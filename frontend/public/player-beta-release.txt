@@ -1,0 +1,3 @@
+Rookie Quest Keeper — Player Beta Release
+Source: rqk-1-0-staging-performance @ 25bcf25c71e680bcaee66db49f32e54484e4678d
+Status: Player release candidate passed Build Check, Character Audit, Homebrew Regression, and backend player tests.

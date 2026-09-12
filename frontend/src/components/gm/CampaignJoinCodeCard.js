@@ -5,7 +5,7 @@ const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system,
 
 const theme = {
   bg: 'var(--rq-bg-panel, #21150e)',
-  panel: 'rgba(18, 12, 8, 0.58)',
+  panel: 'var(--rq-bg-panel)',
   card: 'var(--rq-button, #2e1d13)',
   line: 'var(--rq-line, rgba(255,248,239,0.16))',
   lineStrong: 'var(--rq-line-strong, rgba(255,248,239,0.24))',
@@ -13,7 +13,7 @@ const theme = {
   primaryHover: 'var(--rq-primary-hover, #e0b15c)',
   text: 'var(--rq-text, #f5e6c8)',
   soft: 'var(--rq-muted, rgba(255,248,239,0.74))',
-  muted: 'rgba(255,248,239,0.58)',
+  muted: 'var(--rq-text-primary)',
   gradient: 'var(--rq-sunset-gradient, linear-gradient(135deg, #a45a32, #c08a3d, #e0b15c))',
 };
 

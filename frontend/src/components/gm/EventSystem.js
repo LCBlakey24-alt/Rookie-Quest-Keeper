@@ -195,7 +195,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
             onClick={() => { setSelectedLocation(loc); setView('events'); }}
             style={{
               padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s',
-              background: selectedLocation?.location_id === loc.location_id ? theme.accent?.primary + '25' : 'rgba(255,255,255,0.03)',
+              background: selectedLocation?.location_id === loc.location_id ? 'var(--rq-accent-soft)' : 'rgba(255,255,255,0.03)',
               border: `1px solid ${selectedLocation?.location_id === loc.location_id ? theme.accent?.primary : theme.border}`,
               color: selectedLocation?.location_id === loc.location_id ? theme.accent?.primary : theme.text.secondary,
               display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600,
@@ -442,7 +442,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
           {selectedLocation && view !== 'create' && (
             <>
               <button data-testid="create-major-event-btn" onClick={() => { setView('create'); setEventForm({ event_type: 'major', name: '', category: 'custom', description: '', skill_checks: [], config: { entry_fee: 25, venue_cost: 100, prize_pool: 300, marketing_cost: 50, staff_cost: 30, security_cost: 20, expected_participants: 20, quality_level: 'medium' } }); }}
-                style={{ padding: '8px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', background: theme.accent?.primary + '20', color: theme.accent?.primary, border: `1px solid ${theme.accent?.primary}40`, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                style={{ padding: '8px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', background: 'var(--rq-accent-soft)', color: theme.accent?.primary, border: '1px solid var(--rq-border-strong)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Plus size={12} /> Major Event
               </button>
               <button data-testid="create-minor-event-btn" onClick={() => { setView('create'); setEventForm({ event_type: 'minor', name: '', category: 'custom', description: '', skill_checks: [], config: { entry_fee: 5, venue_cost: 0, prize_pool: 20, marketing_cost: 0, staff_cost: 0, security_cost: 0, expected_participants: 6, quality_level: 'low' } }); }}
@@ -470,7 +470,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
             {(eventForm.event_type === 'major' ? MAJOR_TEMPLATES : MINOR_TEMPLATES).map(t => (
               <button key={t.category} data-testid={`template-${t.category}`}
                 onClick={() => setEventForm(prev => ({ ...prev, name: t.name, category: t.category, description: t.description, skill_checks: t.skill_checks, config: { ...t.config } }))}
-                style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', background: eventForm.category === t.category ? theme.accent?.primary + '25' : 'rgba(255,255,255,0.04)', color: eventForm.category === t.category ? theme.accent?.primary : theme.text.secondary, border: `1px solid ${eventForm.category === t.category ? theme.accent?.primary + '60' : theme.border}`, transition: 'all 0.15s' }}>
+                style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', background: eventForm.category === t.category ? 'var(--rq-accent-soft)' : 'rgba(255,255,255,0.04)', color: eventForm.category === t.category ? theme.accent?.primary : theme.text.secondary, border: `1px solid ${eventForm.category === t.category ? 'var(--rq-border-strong)' : theme.border}`, transition: 'all 0.15s' }}>
                 {t.name}
               </button>
             ))}
@@ -594,7 +594,7 @@ function EventCard({ evt, theme, onPreview, onDelete, onRun, completed }) {
         <div>
           <div style={{ fontSize: '13px', fontWeight: 700, color: theme.text.primary }}>{evt.name}</div>
           <div style={{ fontSize: '10px', color: theme.text.muted, display: 'flex', gap: '6px', marginTop: '2px' }}>
-            <span style={{ background: isMinor ? 'rgba(245,158,11,0.1)' : theme.accent?.primary + '15', color: isMinor ? '#F59E0B' : theme.accent?.primary, padding: '1px 6px', borderRadius: '3px', fontWeight: 600 }}>
+            <span style={{ background: isMinor ? 'rgba(245,158,11,0.1)' : 'var(--rq-accent-soft)', color: isMinor ? '#F59E0B' : theme.accent?.primary, padding: '1px 6px', borderRadius: '3px', fontWeight: 600 }}>
               {isMinor ? 'MINOR' : 'MAJOR'}
             </span>
             <span style={{ background: qualColor + '20', color: qualColor, padding: '1px 6px', borderRadius: '3px', fontWeight: 600 }}>
