@@ -28,7 +28,8 @@ describe('library presentation ownership', () => {
 
     expect(shared).not.toMatch(/rq-sunset-gradient|linear-gradient|radial-gradient|conic-gradient/i);
     expect(shared).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#d00000/i);
-    expect(shared).toContain('#071522');
+    // The app shell owns the #071522 canvas; the library owns its panel/card/UI palette.
+    expect(shared).toContain('#0C2234');
     expect(shared).toContain('#102B40');
     expect(shared).toContain('#7CCBFF');
     expect(shared).toContain('#FF2DAA');
