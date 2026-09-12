@@ -16,7 +16,9 @@ os.environ.setdefault("JWT_SECRET_KEY", "character-progression-state-test-secret
 os.environ.setdefault("APP_URL", "http://localhost:3000")
 os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 
+from models import LevelUpRequest  # noqa: E402
 from routes.character_progression_state import (  # noqa: E402
+    build_state_safe_level_up_update,
     preserve_level_up_live_state,
     preserve_pact_magic_resource,
     preserve_spell_slot_state,
@@ -176,6 +178,77 @@ class TestCharacterProgressionState(unittest.TestCase):
         self.assertEqual(tracker["current"], 1)
         self.assertEqual(tracker["slot_level"], 1)
         self.assertEqual(tracker["restore"], "short-rest")
+
+    def test_existing_secondary_class_can_gain_a_level_without_changing_primary_class(self):
+        existing = {
+            "character_class": "Fighter",
+            "subclass": "Champion",
+            "level": 5,
+            "class_levels": {"Fighter": 3, "Wizard": 2},
+            "multiclass_levels": {"Fighter": 3, "Wizard": 2},
+            "classes": [
+                {"name": "Fighter", "level": 3, "subclass": "Champion"},
+                {"name": "Wizard", "level": 2, "subclass": ""},
+            ],
+            "constitution": 14,
+            "max_hit_points": 38,
+            "current_hit_points": 20,
+            "hit_dice_remaining": 2,
+            "spell_slots": {"1": 3},
+            "spell_slots_remaining": {"1": 1},
+            "resources": {},
+            "feats": [],
+            "level_progression": {},
+        }
+        request = LevelUpRequest(new_level=6, new_class="Wizard", hp_method="average")
+
+        update = build_state_safe_level_up_update(existing, request, "Wizard", "standard")
+
+        self.assertEqual(update["class_levels"], {"Fighter": 3, "Wizard": 3})
+        self.assertEqual(update["multiclass_levels"], {"Fighter": 3, "Wizard": 3})
+        self.assertEqual(update["classes"][0]["subclass"], "Champion")
+        self.assertEqual(update["classes"][1]["level"], 3)
+        self.assertEqual(update["hit_dice"], "3d10 + 3d6")
+        self.assertEqual(update["spell_slots"], {"1": 4, "2": 2})
+        self.assertEqual(update["spell_slots_remaining"], {"1": 2, "2": 2})
+        self.assertNotIn("character_class", update)
+
+    def test_secondary_subclass_is_saved_on_that_class_not_primary_top_level_subclass(self):
+        existing = {
+            "character_class": "Fighter",
+            "subclass": "Champion",
+            "level": 5,
+            "class_levels": {"Fighter": 3, "Wizard": 2},
+            "multiclass_levels": {"Fighter": 3, "Wizard": 2},
+            "classes": [
+                {"name": "Fighter", "level": 3, "subclass": "Champion"},
+                {"name": "Wizard", "level": 2, "subclass": ""},
+            ],
+            "constitution": 12,
+            "max_hit_points": 30,
+            "current_hit_points": 30,
+            "hit_dice_remaining": 5,
+            "spell_slots": {"1": 3},
+            "spell_slots_remaining": {"1": 3},
+            "resources": {},
+            "feats": [],
+            "level_progression": {},
+            "edition": "2014",
+        }
+        request = LevelUpRequest(
+            new_level=6,
+            new_class="Wizard",
+            subclass="Evocation",
+            hp_method="average",
+        )
+
+        update = build_state_safe_level_up_update(existing, request, "Wizard", "standard")
+
+        wizard = next(entry for entry in update["classes"] if entry["name"] == "Wizard")
+        fighter = next(entry for entry in update["classes"] if entry["name"] == "Fighter")
+        self.assertEqual(wizard["subclass"], "Evocation")
+        self.assertEqual(fighter["subclass"], "Champion")
+        self.assertNotIn("subclass", update)
 
 
 if __name__ == "__main__":
