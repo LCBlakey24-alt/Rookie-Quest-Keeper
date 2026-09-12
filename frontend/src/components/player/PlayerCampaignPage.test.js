@@ -8,6 +8,7 @@ import { PlayerCampaignWorkspace } from './PlayerCampaignPage';
 jest.mock('./playerCampaignData', () => ({ fetchPlayerCampaignSections: jest.fn() }));
 jest.mock('@/components/dashboard/player/playerDashboardData', () => ({ fetchPlayerHandoutSummary: jest.fn() }));
 jest.mock('./CombatInitiativeSubmitter', () => () => null);
+jest.mock('./PlayerGroupCheckPrompt', () => () => null);
 
 const data = {
   campaign: { id: 'c1', name: 'Test table', description: 'Shared description' },
