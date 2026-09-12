@@ -19,6 +19,7 @@ import JoinCampaignModal from '@/components/JoinCampaignModal';
 import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
 import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 import '@/styles/playerDashboardBoard.css';
+import '@/styles/playerHandoutsPanel.css';
 
 const tabs = [
   { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
@@ -200,7 +201,11 @@ export default function PlayerDashboard() {
         )}
 
         {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
-        {activeTab === 'handouts' && <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />}
+        {activeTab === 'handouts' && (
+          <div className="player-handouts-surface">
+            <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />
+          </div>
+        )}
       </PlayerDashboardTabs>
 
       <JoinCampaignModal
@@ -219,8 +224,9 @@ const loadWarningStyle = {
   alignItems: 'flex-start',
   gap: 10,
   padding: '12px 14px',
-  border: '1px solid rgba(245, 158, 11, 0.45)',
-  borderLeft: '4px solid #f59e0b',
-  background: 'rgba(245, 158, 11, 0.08)',
-  color: 'var(--rq-text-primary, #ffffff)',
+  border: '1px solid rgba(255, 45, 170, 0.28)',
+  borderLeft: '1px solid #FF2DAA',
+  borderRadius: 5,
+  background: '#102B40',
+  color: '#FFFFFF',
 };
