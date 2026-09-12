@@ -1,3 +1,4 @@
+import { buildLongRestUpdates, buildShortRestUpdates } from '../data/characterRestRules';
 import { createPreviewSeed } from './previewSeed';
 import { PREVIEW_STORAGE_KEY, PREVIEW_USER } from './previewMode';
 
@@ -26,6 +27,7 @@ export function createPreviewApi(storage = typeof localStorage === 'undefined' ?
   if (!state) state = createPreviewSeed();
 
   const findCampaign = id => state.campaigns.find(item => item.id === id) || fail('Preview campaign not found.', 404);
+  const findCharacter = id => state.characters.find(item => item.id === id) || fail('Preview character not found.', 404);
   const party = id => state.characters.filter(character => character.campaign_id === id);
   const records = (id, collection) => {
     findCampaign(id);
@@ -54,6 +56,18 @@ export function createPreviewApi(storage = typeof localStorage === 'undefined' ?
     fail('This action is not available in the local preview.');
   }
 
+  function applyCharacterRest(characterId, restType) {
+    const character = findCharacter(characterId);
+    const updates = restType === 'long'
+      ? buildLongRestUpdates(character)
+      : buildShortRestUpdates(character);
+    Object.assign(character, updates, {
+      updated_at: new Date().toISOString(),
+      last_rest_at: new Date().toISOString(),
+    });
+    return character;
+  }
+
   function dispatch(method, path, body) {
     const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
     if (parts.some(part => ['__proto__', 'prototype', 'constructor'].includes(part))) fail('Invalid preview path.', 400);
@@ -66,6 +80,9 @@ export function createPreviewApi(storage = typeof localStorage === 'undefined' ?
     if (method === 'get' && ['/updates', '/updates/global', '/uploads', '/custom-rulesets', '/rulesets', '/notifications'].includes(path)) return [];
     if (method === 'get' && path === '/homebrew') return state.homebrew;
 
+    if (parts[0] === 'characters' && parts.length === 3 && method === 'post' && ['short-rest', 'long-rest'].includes(parts[2])) {
+      return applyCharacterRest(parts[1], parts[2] === 'long-rest' ? 'long' : 'short');
+    }
     if (parts[0] === 'characters' && parts.length <= 2) {
       if (method === 'post' && !String(body.name || '').trim()) fail('Give the character a name.', 400);
       return crud(state.characters, method, parts[1], body, { user_id: PREVIEW_USER });
