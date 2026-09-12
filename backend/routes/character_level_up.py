@@ -32,13 +32,13 @@ def _safe_int(value: Any, fallback: int = 0) -> int:
         return fallback
 
 
-def _slot_dict(value: Any) -> Dict[str, int]:
+def _slot_dict(value: Any, *, keep_zero: bool = False) -> Dict[str, int]:
     if not isinstance(value, dict):
         return {}
     result: Dict[str, int] = {}
     for raw_level, raw_count in value.items():
         count = max(0, _safe_int(raw_count, 0))
-        if count > 0:
+        if count > 0 or keep_zero:
             result[str(raw_level)] = count
     return result
 
@@ -57,7 +57,7 @@ def preserve_spell_slot_usage(
     slots spent even when that dictionary key changes on level-up.
     """
     old_max = _slot_dict(previous_max)
-    old_remaining = _slot_dict(previous_remaining) if isinstance(previous_remaining, dict) else dict(old_max)
+    old_remaining = _slot_dict(previous_remaining, keep_zero=True) if isinstance(previous_remaining, dict) else dict(old_max)
     new_max = _slot_dict(next_max)
 
     if not new_max:
@@ -73,8 +73,7 @@ def preserve_spell_slot_usage(
         result: Dict[str, int] = {}
         for level, capacity in sorted(new_max.items(), key=lambda item: _safe_int(item[0], 0), reverse=True):
             available = min(capacity, next_remaining_total)
-            if available > 0:
-                result[level] = available
+            result[level] = available
             next_remaining_total -= available
         return result
 
