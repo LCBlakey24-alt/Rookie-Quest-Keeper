@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import './PlayerDashboardTabs.css';
 
 export default function PlayerDashboardTabs({ tabs, activeTab, setActiveTab, children }) {
   return (
