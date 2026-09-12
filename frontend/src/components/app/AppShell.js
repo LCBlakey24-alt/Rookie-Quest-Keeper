@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
+import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
@@ -71,13 +71,17 @@ function openRook() {
   window.dispatchEvent(new Event('rook-assistant-open'));
 }
 
-function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
+function openDice() {
+  window.dispatchEvent(new Event('rq-dice-open'));
+}
+
+function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice }) {
   return (
     <div id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
-          <span>Player home, Rook, uploads, settings, and feedback.</span>
+          <span>Rook, dice, player home, uploads, settings, and feedback.</span>
         </div>
         <button type="button" className="rqk-app-mobile-more-close" onClick={onClose} aria-label="Close more tools">
           <X size={18} aria-hidden="true" />
@@ -90,6 +94,15 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
           if (item.kind === 'rook') {
             return (
               <button key={item.label} type="button" className="rqk-app-mobile-more-item rqk-app-mobile-more-item--rook" onClick={onRook} role="menuitem">
+                <Icon size={18} aria-hidden="true" />
+                <span>{item.label}</span>
+              </button>
+            );
+          }
+
+          if (item.kind === 'dice') {
+            return (
+              <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onDice} role="menuitem">
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
@@ -162,6 +175,7 @@ export default function AppShell({ children }) {
   const mobileMoreItems = useMemo(() => {
     const tools = [
       { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
+      { label: 'Dice roller', icon: Dices, kind: 'dice' },
       ...mainNavItems.filter((item) => item.mobilePrimary === false),
       { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
     ];
@@ -173,6 +187,11 @@ export default function AppShell({ children }) {
   const handleRook = () => {
     setIsMoreOpen(false);
     openRook();
+  };
+
+  const handleDice = () => {
+    setIsMoreOpen(false);
+    openDice();
   };
 
   const handleFeedback = () => {
@@ -234,6 +253,7 @@ export default function AppShell({ children }) {
             pathname={location.pathname}
             onClose={() => setIsMoreOpen(false)}
             onRook={handleRook}
+            onDice={handleDice}
             onFeedback={handleFeedback}
           />
         )}
