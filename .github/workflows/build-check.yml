@@ -23,6 +23,7 @@ jobs:
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
           python -m unittest discover -s backend/tests -p test_player_handout_summary.py -v
+          python -m unittest discover -s backend/tests -p test_campaign_invite_routes.py -v
 
   frontend-build:
     name: Frontend tests and build
