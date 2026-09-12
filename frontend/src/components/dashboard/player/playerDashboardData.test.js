@@ -110,19 +110,23 @@ describe('playerDashboardData', () => {
     });
   });
 
-  test('handout summary can load separately after the dashboard is visible', async () => {
+  test('handout summary uses the lightweight count endpoint after the dashboard is visible', async () => {
     const client = {
       get: jest.fn().mockResolvedValue({
-        data: [
-          { id: 'h1', read: false, saved: true },
-          { id: 'h2', read: true, saved: false },
-          { id: 'h3', read: false, saved: false },
-        ],
+        data: { total: 3, unread: 2, saved: 1 },
       }),
     };
 
     await expect(fetchPlayerHandoutSummary(client)).resolves.toEqual({ total: 3, unread: 2, saved: 1 });
-    expect(client.get).toHaveBeenCalledWith('/player/handouts');
+    expect(client.get).toHaveBeenCalledWith('/player/handouts/summary');
+  });
+
+  test('rejects malformed handout summary data instead of showing fake zeroes', async () => {
+    const client = {
+      get: jest.fn().mockResolvedValue({ data: { total: 'many' } }),
+    };
+
+    await expect(fetchPlayerHandoutSummary(client)).rejects.toThrow('Malformed received handout summary response');
   });
 
   test('describes partial failures without claiming a full refresh succeeded', () => {
