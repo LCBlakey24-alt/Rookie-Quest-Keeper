@@ -94,7 +94,7 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             channel_max = 2
         else:
             channel_max = 1
-        yield "channel_divinity_cleric", {"label": "Channel Divinity", "max": channel_max, "restore": "short-rest", "className": "Cleric", "min_level": 2}
+        yield "channel_divinity", {"label": "Channel Divinity", "max": channel_max, "restore": "short-rest", "className": "Cleric", "min_level": 2}
 
     druid = class_level(class_levels, "Druid")
     if druid >= 2:
@@ -129,7 +129,7 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
     if paladin >= 1:
         yield "lay_on_hands", {"label": "Lay on Hands", "max": paladin * 5, "restore": "long-rest", "className": "Paladin", "min_level": 1}
     if paladin >= 3:
-        yield "channel_divinity_paladin", {
+        yield "channel_divinity", {
             "label": "Channel Divinity",
             "max": pb if edition == "2024" else 1,
             "restore": "long-rest" if edition == "2024" else "short-rest",
@@ -172,13 +172,17 @@ def merge_character_resources(
 
     When a maximum grows, only the newly-gained capacity is added to current
     uses. Existing spent uses stay spent. Homebrew/unknown resource keys pass
-    through untouched.
+    through untouched. The keys deliberately match the frontend resource engine
+    so the clean sheet and server-side rest routes operate on the same counters.
     """
     existing_resources = character.get("resources") if isinstance(character.get("resources"), dict) else {}
     merged: Dict[str, Any] = dict(existing_resources)
 
     for key, spec in _rule_specs(character, class_levels):
-        old = existing_resources.get(key) if isinstance(existing_resources.get(key), dict) else None
+        # Use a previously-derived tracker when two owned classes intentionally
+        # share a frontend key (currently Channel Divinity). This mirrors the
+        # existing frontend reduce behaviour while keeping the shape stable.
+        old = merged.get(key) if isinstance(merged.get(key), dict) else None
         new_max = max(0, _int(spec.get("max"), 0))
         if new_max <= 0:
             continue
