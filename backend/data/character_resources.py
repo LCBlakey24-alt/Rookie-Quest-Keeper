@@ -197,7 +197,7 @@ def merge_character_resources(
             continue
 
         merged[key] = {
-            ...(old or {}),
+            **(old or {}),
             **spec,
             "current": current,
             "remaining": current,
