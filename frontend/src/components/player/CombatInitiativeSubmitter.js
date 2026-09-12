@@ -24,6 +24,7 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const combatActive = Boolean(state?.combat_active);
 
   const load = useCallback(async () => {
     if (!campaignId) return;
@@ -48,7 +49,7 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
   useEffect(() => {
     if (!campaignId) return undefined;
 
-    const pollMs = state?.combat_active ? ACTIVE_POLL_MS : IDLE_POLL_MS;
+    const pollMs = combatActive ? ACTIVE_POLL_MS : IDLE_POLL_MS;
     const refreshIfVisible = () => {
       if (document.visibilityState !== 'hidden') load();
     };
@@ -62,10 +63,10 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
       window.clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [campaignId, load, state?.combat_active]);
+  }, [campaignId, combatActive, load]);
 
   const character = state?.character || null;
-  const active = Boolean(state?.combat_active && character);
+  const active = Boolean(combatActive && character);
   const bonus = Number(character?.initiative_bonus || 0);
   const submitted = state?.submission || null;
 
