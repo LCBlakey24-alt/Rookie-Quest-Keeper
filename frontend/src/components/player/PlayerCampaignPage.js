@@ -19,6 +19,16 @@ const tabs = [
   { id: 'timeline', label: 'Timeline', icon: Clock },
 ];
 
+function characterHp(character) {
+  const current = character.current_hit_points ?? character.current_hp ?? character.stats?.current_hp;
+  const maximum = character.max_hit_points ?? character.max_hp ?? character.stats?.max_hp;
+  return `${current ?? '—'} / ${maximum ?? '—'}`;
+}
+
+function characterAc(character) {
+  return character.armor_class ?? character.ac ?? character.stats?.armor_class ?? character.stats?.ac ?? '—';
+}
+
 export default function PlayerCampaignPage() {
   const { campaignId } = useParams();
   return <PlayerCampaignWorkspace key={campaignId} campaignId={campaignId} />;
@@ -80,11 +90,15 @@ export function PlayerCampaignWorkspace({ campaignId }) {
                 {characters === null ? <p>{loading ? 'Loading characters…' : 'Your characters could not be loaded.'}</p>
                   : characters.length === 0 ? <p>No character is linked to this campaign. <Link to="/player">Choose a character and join with your GM’s code.</Link></p>
                     : <ul className="player-campaign-list">{characters.map(character => <li key={character.id}>
-                      <div><h3>{character.name || character.character_name || 'Character'}</h3>
-                        <p>Level {character.level || 1} {character.character_class || character.class_name || ''}</p>
-                        <p>HP {character.current_hit_points ?? character.current_hp ?? character.stats?.current_hp ?? '—'} / {character.max_hit_points ?? character.max_hp ?? character.stats?.max_hp ?? '—'}</p>
+                      <div className="player-campaign-character-copy">
+                        <h3>{character.name || character.character_name || 'Character'}</h3>
+                        <div className="player-campaign-character-status">
+                          <span>Lv {character.level || 1} {character.character_class || character.class_name || 'Adventurer'}</span>
+                          <span>HP {characterHp(character)}</span>
+                          <span>AC {characterAc(character)}</span>
+                        </div>
                       </div>
-                      <Link className="player-campaign-action" to={`/characters/${character.id}`}>Open Sheet</Link>
+                      <Link className="player-campaign-action" aria-label={`Open ${character.name || character.character_name || 'character'} sheet`} to={`/characters/${character.id}`}>Open Sheet</Link>
                     </li>)}</ul>}
               </section>
               <section className="player-campaign-card">
