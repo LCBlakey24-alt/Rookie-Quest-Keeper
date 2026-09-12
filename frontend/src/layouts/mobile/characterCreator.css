@@ -41,6 +41,27 @@
   margin-top: 7px;
 }
 
+/* The starting-level supervisor is setup chrome, not a second full builder. */
+[data-rq-device='mobile'] [aria-label='Starting level controls'] {
+  display: grid;
+  gap: 7px;
+}
+
+[data-rq-device='mobile'] [aria-label='Starting level controls'] > .full-creator-progress-heading {
+  margin-bottom: 0;
+}
+
+[data-rq-device='mobile'] [aria-label='Starting level controls'] > .full-creator-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 0;
+}
+
+[data-rq-device='mobile'] [aria-label='Starting level controls'] > .full-creator-auto-box {
+  margin: 0;
+  padding: 8px;
+}
+
 [data-rq-device='mobile'] .full-creator-workspace {
   display: grid;
   grid-template-columns: 1fr;
@@ -207,6 +228,10 @@
 }
 
 @media (max-width: 390px) {
+  [data-rq-device='mobile'] [aria-label='Starting level controls'] > .full-creator-form-grid {
+    grid-template-columns: 1fr;
+  }
+
   [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
     min-width: 68px !important;
     padding-inline: 6px !important;
