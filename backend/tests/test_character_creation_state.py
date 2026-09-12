@@ -118,6 +118,34 @@ class TestCharacterCreationState(unittest.TestCase):
     def test_non_caster_has_no_derived_spell_slots(self):
         self.assertEqual(derive_creation_spell_slots("Fighter", "Champion", {"Fighter": 5}), {})
 
+    def test_eldritch_knight_uses_third_caster_slot_progression(self):
+        self.assertEqual(
+            derive_creation_spell_slots("Fighter", "Eldritch Knight", {"Fighter": 6}),
+            {"1": 3},
+        )
+
+    def test_arcane_trickster_uses_third_caster_slot_progression(self):
+        self.assertEqual(
+            derive_creation_spell_slots("Rogue", "Arcane Trickster", {"Rogue": 6}),
+            {"1": 3},
+        )
+
+    def test_unknown_multiclass_preserves_explicit_homebrew_slot_map(self):
+        character = normalise_created_character(
+            {
+                "name": "Homebrew Hybrid",
+                "race": "Human",
+                "character_class": "Scarlet Engineer 3 / Void Knight 2",
+                "level": 5,
+                "spell_slots": {"1": 2, "2": 1},
+                "spell_slots_remaining": {"1": 1, "2": 1},
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["spell_slots"], {"1": 2, "2": 1})
+        self.assertEqual(character["spell_slots_remaining"], {"1": 1, "2": 1})
+
 
 if __name__ == "__main__":
     unittest.main()
