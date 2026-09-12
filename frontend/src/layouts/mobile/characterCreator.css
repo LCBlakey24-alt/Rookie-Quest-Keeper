@@ -22,14 +22,23 @@
   min-height: 42px;
 }
 
+/* Keep the starting-level helper useful without making it the first screenful. */
 [data-rq-device='mobile'] .full-creator-progress-card {
   padding: 9px;
 }
 
 [data-rq-device='mobile'] .full-creator-progress-heading {
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  flex-direction: row;
+  gap: 6px;
+}
+
+[data-rq-device='mobile'] .full-creator-progress-card > p {
+  display: none;
+}
+
+[data-rq-device='mobile'] .full-creator-progress-card .full-creator-form-grid {
+  margin-top: 7px;
 }
 
 [data-rq-device='mobile'] .full-creator-workspace {
@@ -38,6 +47,7 @@
   gap: 7px;
 }
 
+/* Horizontal step rail: keep labels visible and let each step snap into place. */
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps {
   position: static;
   width: calc(100% + 16px) !important;
@@ -47,6 +57,9 @@
   grid-template-columns: none !important;
   gap: 5px !important;
   overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 8px;
   border-inline: 0;
   border-radius: 0;
   scrollbar-width: thin;
@@ -55,13 +68,20 @@
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
   flex: 0 0 auto;
   width: auto !important;
-  min-width: 72px !important;
-  min-height: 48px !important;
-  padding: 5px 7px !important;
+  min-width: 76px !important;
+  min-height: 50px !important;
+  padding: 5px 8px !important;
+  scroll-snap-align: center;
 }
 
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button.active {
-  box-shadow: inset 0 -2px 0 var(--rqk-creator-pink) !important;
+  background: rgba(124,203,255,.12) !important;
+  border-color: var(--rqk-creator-pink) !important;
+  box-shadow: inset 0 -3px 0 var(--rqk-creator-pink) !important;
+}
+
+[data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button.is-complete:not(.active) {
+  border-color: rgba(124,203,255,.32) !important;
 }
 
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-layout {
@@ -96,10 +116,17 @@
   grid-template-columns: 1fr;
 }
 
+/* Previous / Next stays reachable while the form scrolls. */
 [data-rq-device='mobile'] .full-creator-footer {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  background: var(--rqk-creator-panel);
+  border-color: rgba(255,45,170,.28);
+}
+
+[data-rq-device='mobile'] .full-creator-footer button:last-child:not(:disabled) {
+  border-color: var(--rqk-creator-pink) !important;
 }
 
 [data-rq-device='mobile'] .full-creator-preset-banner {
@@ -160,11 +187,13 @@
 
 @media (max-width: 390px) {
   [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
-    min-width: 54px !important;
+    min-width: 68px !important;
+    padding-inline: 6px !important;
   }
 
   [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button span {
-    display: none !important;
+    display: inline !important;
+    font-size: .56rem !important;
   }
 
   [data-rq-device='mobile'] .full-creator-footer {
