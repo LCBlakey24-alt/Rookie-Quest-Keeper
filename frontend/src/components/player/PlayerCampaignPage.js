@@ -5,8 +5,10 @@ import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchPlayerCampaignSections } from './playerCampaignData';
+import { fetchPlayerHandoutSummary } from '@/components/dashboard/player/playerDashboardData';
 import '@/styles/playerCampaign.css';
 import '@/styles/playerCampaignCharacterStatus.css';
+import '@/styles/playerCampaignTabBadge.css';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
@@ -40,11 +42,25 @@ export function PlayerCampaignWorkspace({ campaignId }) {
   const [data, setData] = useState({ campaign: null, party: null, characters: null });
   const [loading, setLoading] = useState(true);
   const [failures, setFailures] = useState([]);
+  const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
+
+  const refreshHandoutSummary = useCallback(async () => {
+    try {
+      const summary = await fetchPlayerHandoutSummary(apiClient, campaignId);
+      setHandoutSummary(summary);
+    } catch {
+      // Handout counts are secondary; the full Handouts tab still has its own error state.
+    }
+  }, [campaignId]);
+
   const refresh = useCallback(async () => {
     const request = ++requestRef.current;
     setLoading(true);
     try {
-      const result = await fetchPlayerCampaignSections(apiClient, campaignId);
+      const [result] = await Promise.all([
+        fetchPlayerCampaignSections(apiClient, campaignId),
+        refreshHandoutSummary(),
+      ]);
       if (request !== requestRef.current) return;
       setData(previous => ({
         campaign: result.campaign ?? previous.campaign,
@@ -57,7 +73,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
     } finally {
       if (request === requestRef.current) setLoading(false);
     }
-  }, [campaignId]);
+  }, [campaignId, refreshHandoutSummary]);
 
   useEffect(() => {
     refresh();
@@ -66,6 +82,10 @@ export function PlayerCampaignWorkspace({ campaignId }) {
 
   const { campaign, party, characters } = data;
   const environment = campaign?.environment || {};
+  const campaignTabs = tabs.map(tab => tab.id === 'handouts' && handoutSummary.unread > 0
+    ? { ...tab, badge: handoutSummary.unread }
+    : tab);
+
   return (
     <main className="player-campaign-page">
       <header className="player-campaign-header">
@@ -81,7 +101,11 @@ export function PlayerCampaignWorkspace({ campaignId }) {
       </div>}
       <Tabs defaultValue="campaign">
         <TabsList className="player-campaign-tabs" aria-label="Campaign sections">
-          {tabs.map(({ id, label, icon: Icon }) => <TabsTrigger key={id} value={id}><Icon size={16} /> {label}</TabsTrigger>)}
+          {campaignTabs.map(({ id, label, badge, icon: Icon }) => <TabsTrigger key={id} value={id}>
+            <Icon size={16} />
+            <span>{label}</span>
+            {badge > 0 && <span className="player-campaign-tab-badge" aria-label={`${badge} unread`}>{badge > 99 ? '99+' : badge}</span>}
+          </TabsTrigger>)}
         </TabsList>
         <TabsContent value="campaign">
           <div className="player-campaign-grid">
@@ -127,7 +151,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
           </div>
         </TabsContent>
         <TabsContent value="notes"><Suspense fallback={<p>Loading notes…</p>}><PlayerNotesTab campaignId={campaignId} /></Suspense></TabsContent>
-        <TabsContent value="handouts"><Suspense fallback={<p>Loading handouts…</p>}><PlayerHandoutsPanel campaignId={campaignId} /></Suspense></TabsContent>
+        <TabsContent value="handouts"><Suspense fallback={<p>Loading handouts…</p>}><PlayerHandoutsPanel campaignId={campaignId} onSummaryChange={setHandoutSummary} /></Suspense></TabsContent>
         <TabsContent value="timeline"><Suspense fallback={<p>Loading timeline…</p>}><SessionTimeline campaignId={campaignId} readOnly /></Suspense></TabsContent>
       </Tabs>
     </main>
