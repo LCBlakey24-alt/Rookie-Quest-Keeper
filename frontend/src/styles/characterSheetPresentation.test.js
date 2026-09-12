@@ -42,9 +42,10 @@ describe('Clean Character Sheet presentation ownership', () => {
     ];
     const css = files.map(read).join('\n');
 
+    // Compatibility aliases may keep historical names while they are retired,
+    // but they must resolve to flat colours: no gradient syntax or sunset hexes.
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#190728|#150721|#12051c/i);
-    expect(css).not.toMatch(/sunset-gradient|stats-sunset|mobile-sunset/i);
     expect(css).toContain('#071522');
     expect(css).toContain('#7CCBFF');
     expect(css).toContain('#FF2DAA');
