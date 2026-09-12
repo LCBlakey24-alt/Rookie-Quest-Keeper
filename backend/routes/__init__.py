@@ -28,6 +28,7 @@ from routes.offline_inventory_sync import router as offline_inventory_sync_route
 from routes.user_content import router as user_content_router
 from routes.player_rules import router as player_rules_router
 from routes.character_patch import router as character_patch_router
+from routes.character_level_up import router as character_level_up_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
 from routes.progression import router as progression_router
@@ -79,6 +80,9 @@ all_routers = [
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,
+    # Keep state-preserving level-up routes before the legacy character router.
+    # Progression should increase capacity without silently acting like a long rest.
+    character_level_up_router,
     characters_router,
     srd_router,
     progression_router,
