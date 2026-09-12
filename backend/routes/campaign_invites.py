@@ -115,7 +115,7 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
         if has_live_character and changing_character:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail='You already have an active or pending character in this campaign. Ask the GM to mark it Dead, Retired, or Removed before linking a new one.'
+                detail='You already have an active or pending character in this campaign. Leave the campaign first, or ask the GM to mark the old character Dead, Retired, or Removed.'
             )
 
         update_data = {
@@ -191,6 +191,40 @@ async def get_joined_campaigns(username: str = Depends(get_current_user)):
             'member_status': member.get('status', 'active'),
         })
     return results
+
+
+@router.delete('/campaign-invites/{campaign_id}/membership')
+async def leave_campaign(campaign_id: str, username: str = Depends(get_current_user)):
+    """Allow a player to leave a joined campaign without requiring GM intervention."""
+    member = await db.campaign_members.find_one(
+        {'campaign_id': campaign_id, 'user_id': username},
+        {'_id': 0},
+    )
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign membership not found')
+
+    now = datetime.now(timezone.utc).isoformat()
+    await db.campaign_members.update_one(
+        {'id': member.get('id'), 'campaign_id': campaign_id, 'user_id': username},
+        {'$set': {'status': 'removed', 'left_at': now, 'updated_at': now}},
+    )
+
+    character_id = member.get('character_id')
+    if character_id:
+        await db.player_characters.update_one(
+            {'id': character_id, 'user_id': username, 'campaign_id': campaign_id},
+            {
+                '$set': {'campaign_join_status': 'removed', 'updated_at': now},
+                '$unset': {'campaign_id': '', 'campaign_name': ''},
+            },
+        )
+
+    return {
+        'message': 'You left the campaign',
+        'status': 'removed',
+        'campaign_id': campaign_id,
+        'character_id': character_id,
+    }
 
 
 @router.get('/campaign-invites/{campaign_id}/members')
