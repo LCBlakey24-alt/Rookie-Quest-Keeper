@@ -3,12 +3,20 @@ import { Check, Dices, RefreshCw, Swords } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
+const ACTIVE_POLL_MS = 4000;
+const IDLE_POLL_MS = 15000;
+
 const theme = {
-  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', input: 'var(--rq-bg-input)',
-  text: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)',
-  line: 'var(--rq-border-default)', lineStrong: 'var(--rq-border-strong)',
-  red: 'var(--rq-accent-primary)', accent: 'var(--rq-accent-primary)',
-  good: 'var(--rq-secondary)', warn: 'var(--rq-accent-primary)',
+  bg: '#071522',
+  panel: '#0C2234',
+  card: '#102B40',
+  cardHover: '#14344C',
+  input: '#081B2A',
+  text: '#FFFFFF',
+  line: 'rgba(255,45,170,.18)',
+  lineStrong: '#FF2DAA',
+  blue: '#7CCBFF',
+  blueSoft: 'rgba(124,203,255,.10)',
 };
 
 export default function CombatInitiativeSubmitter({ campaignId, compact = false }) {
@@ -35,9 +43,26 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 4000);
-    return () => window.clearInterval(timer);
   }, [load]);
+
+  useEffect(() => {
+    if (!campaignId) return undefined;
+
+    const pollMs = state?.combat_active ? ACTIVE_POLL_MS : IDLE_POLL_MS;
+    const refreshIfVisible = () => {
+      if (document.visibilityState !== 'hidden') load();
+    };
+    const timer = window.setInterval(refreshIfVisible, pollMs);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [campaignId, load, state?.combat_active]);
 
   const character = state?.character || null;
   const active = Boolean(state?.combat_active && character);
@@ -84,12 +109,12 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
   return (
     <section data-testid="player-combat-initiative" style={{ ...shellStyle, padding: compact ? 9 : 11 }}>
       <header style={headerStyle}>
-        <span style={iconWrapStyle}><Swords size={16} /></span>
+        <span style={iconWrapStyle}><Swords size={16} color={theme.blue} /></span>
         <span style={{ minWidth: 0, flex: 1 }}>
           <strong style={titleStyle}>Initiative</strong>
           <small style={subtitleStyle}>Combat is active · enter your total or roll here</small>
         </span>
-        <button type="button" onClick={load} style={iconButtonStyle} title="Refresh initiative status"><RefreshCw size={13} /></button>
+        <button type="button" onClick={load} style={iconButtonStyle} title="Refresh initiative status"><RefreshCw size={13} color={theme.blue} /></button>
       </header>
 
       <div style={controlsStyle}>
@@ -105,10 +130,10 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
           />
         </label>
         <button type="button" onClick={() => submit(value, 'manual')} disabled={submitting || String(value).trim() === ''} style={submitStyle}>
-          <Check size={14} /> Submit
+          <Check size={14} color={theme.blue} /> Submit
         </button>
         <button type="button" onClick={roll} disabled={submitting} style={rollStyle}>
-          <Dices size={14} /> Roll {bonus ? `(${bonus >= 0 ? '+' : ''}${bonus})` : ''}
+          <Dices size={14} color={theme.blue} /> Roll {bonus ? `(${bonus >= 0 ? '+' : ''}${bonus})` : ''}
         </button>
       </div>
       <span style={statusStyle}>{statusText}</span>
@@ -116,15 +141,25 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
   );
 }
 
-const shellStyle = { background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.red}`, color: theme.text, display: 'grid', gap: 8 };
+const shellStyle = {
+  background: theme.panel,
+  backgroundImage: 'none',
+  border: `1px solid ${theme.line}`,
+  borderLeft: `1px solid ${theme.lineStrong}`,
+  borderRadius: 7,
+  color: theme.text,
+  display: 'grid',
+  gap: 8,
+  boxShadow: 'none',
+};
 const headerStyle = { display: 'flex', gap: 8, alignItems: 'center' };
-const iconWrapStyle = { width: 32, height: 32, background: 'var(--rq-secondary-soft)', color: '#fff', display: 'grid', placeItems: 'center', flex: '0 0 32px' };
-const titleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 950 };
-const subtitleStyle = { display: 'block', marginTop: 1, color: theme.soft, fontSize: 14 };
-const iconButtonStyle = { width: 30, height: 30, border: `1px solid ${theme.line}`, background: theme.bg, color: theme.muted, display: 'grid', placeItems: 'center', cursor: 'pointer' };
-const controlsStyle = { display: 'grid', gridTemplateColumns: 'minmax(80px,1fr) auto auto', gap: 5, alignItems: 'end' };
-const fieldStyle = { display: 'grid', gap: 2, color: theme.soft, fontSize: 14, fontWeight: 900, textTransform: 'uppercase' };
-const inputStyle = { width: '100%', minWidth: 0, height: 36, boxSizing: 'border-box', background: theme.bg, border: `1px solid ${theme.line}`, color: theme.text, padding: '0 8px', fontSize: 13 };
-const submitStyle = { height: 36, border: 0, background: theme.red, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 14, fontWeight: 950 };
-const rollStyle = { height: 36, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 14, fontWeight: 900 };
-const statusStyle = { color: theme.soft, fontSize: 14, lineHeight: 1.35 };
+const iconWrapStyle = { width: 32, height: 32, background: theme.blueSoft, border: `1px solid ${theme.line}`, borderRadius: 5, display: 'grid', placeItems: 'center', flex: '0 0 32px' };
+const titleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 900 };
+const subtitleStyle = { display: 'block', marginTop: 1, color: theme.text, fontSize: 11, lineHeight: 1.3 };
+const iconButtonStyle = { width: 32, height: 32, border: `1px solid ${theme.line}`, borderRadius: 5, background: theme.card, color: theme.text, display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'none' };
+const controlsStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 1fr) auto auto', gap: 5, alignItems: 'end' };
+const fieldStyle = { display: 'grid', gap: 3, color: theme.text, fontSize: 9, fontWeight: 900, letterSpacing: '.06em', textTransform: 'uppercase' };
+const inputStyle = { width: '100%', minWidth: 0, height: 38, boxSizing: 'border-box', background: theme.input, border: `1px solid ${theme.line}`, borderRadius: 5, color: theme.text, padding: '0 8px', fontSize: 13, outline: 'none', boxShadow: 'none' };
+const submitStyle = { height: 38, border: `1px solid ${theme.lineStrong}`, borderRadius: 5, background: theme.card, color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 900, boxShadow: 'none' };
+const rollStyle = { height: 38, border: `1px solid ${theme.line}`, borderRadius: 5, background: theme.card, color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 850, boxShadow: 'none' };
+const statusStyle = { color: theme.text, fontSize: 11, lineHeight: 1.35 };
