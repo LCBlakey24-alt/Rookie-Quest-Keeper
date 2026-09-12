@@ -31,9 +31,21 @@ function optionLabel(option) {
 }
 
 function ToggleChoiceList({ label, value, options, max, onChange }) {
+  const [query, setQuery] = React.useState('');
   if (!max) return null;
+
   const selected = arr(value);
   const choices = arr(options);
+  const searchable = choices.length > 12;
+  const normalisedQuery = query.trim().toLowerCase();
+  const visibleChoices = choices
+    .filter((option) => !normalisedQuery || optionLabel(option).toLowerCase().includes(normalisedQuery))
+    .sort((left, right) => {
+      const leftSelected = selected.includes(optionValue(left));
+      const rightSelected = selected.includes(optionValue(right));
+      if (leftSelected === rightSelected) return 0;
+      return leftSelected ? -1 : 1;
+    });
 
   return (
     <fieldset className="full-creator-toggle-field">
@@ -41,8 +53,19 @@ function ToggleChoiceList({ label, value, options, max, onChange }) {
         <span>{label}</span>
         <strong>{selected.length}/{max} selected</strong>
       </legend>
+      {searchable && (
+        <label className="full-creator-toggle-search">
+          <span>Search {label.toLowerCase()}</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={`Search ${label.toLowerCase()}…`}
+          />
+        </label>
+      )}
       <div className="full-creator-toggle-grid">
-        {choices.map((option) => {
+        {visibleChoices.map((option) => {
           const valueKey = optionValue(option);
           const active = selected.includes(valueKey);
           const unavailable = !active && selected.length >= max;
@@ -61,6 +84,9 @@ function ToggleChoiceList({ label, value, options, max, onChange }) {
           );
         })}
       </div>
+      {searchable && visibleChoices.length === 0 && (
+        <p className="full-creator-toggle-empty">No matching options.</p>
+      )}
     </fieldset>
   );
 }
@@ -89,13 +115,13 @@ export function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
       ) : (
         <>
           <label>
-            <span>+1 / +2 ability</span>
+            <span>First +1</span>
             <select value={current.abilityOne} onChange={(event) => update({ abilityOne: event.target.value })}>
               {ABILITY_OPTIONS.map(([ability, label]) => <option key={ability} value={ability}>{label}</option>)}
             </select>
           </label>
           <label>
-            <span>Second +1</span>
+            <span>Second +1 (same ability = +2)</span>
             <select value={current.abilityTwo} onChange={(event) => update({ abilityTwo: event.target.value })}>
               {ABILITY_OPTIONS.map(([ability, label]) => <option key={ability} value={ability}>{label}</option>)}
             </select>
