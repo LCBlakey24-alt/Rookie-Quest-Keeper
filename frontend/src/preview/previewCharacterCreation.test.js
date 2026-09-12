@@ -48,7 +48,7 @@ describe('preview character creation state', () => {
     expect(character.hit_dice).toContain('3d6');
     expect(character.spell_slots).toEqual({ 1: 4, 2: 3, 3: 2 });
     expect(character.spell_slots_remaining).toEqual({ 1: 4, 2: 3, 3: 2 });
-    expect(character.resources.channel_divinity_cleric).toMatchObject({ max: 1, current: 1 });
+    expect(character.resources.channel_divinity).toMatchObject({ max: 1, current: 1 });
   });
 
   test('warlock creation exposes pact slots and a short-rest tracker', () => {
