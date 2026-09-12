@@ -56,8 +56,11 @@ function MultiSelectField({ label, value, options, target, onChange }) {
               type="button"
               className={`full-creator-toggle-option${active ? ' active' : ''}`}
               aria-pressed={active}
-              disabled={unavailable}
-              onClick={() => onChange(toggleValue(selected, option, target))}
+              aria-disabled={unavailable}
+              onClick={() => {
+                if (unavailable) return;
+                onChange(toggleValue(selected, option, target));
+              }}
             >
               <span>{option}</span>
               <small>{active ? 'Selected' : unavailable ? 'Limit reached' : 'Choose'}</small>
