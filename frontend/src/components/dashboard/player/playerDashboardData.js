@@ -19,10 +19,15 @@ function readHandoutSummary(data) {
   return { total, unread, saved };
 }
 
+function isCurrentPlayerMembership(campaign = {}) {
+  const status = String(campaign.member_status || 'active').trim().toLowerCase();
+  return status === 'active' || status === 'pending';
+}
+
 function mergeCampaignSources(gmCampaigns, joinedCampaigns) {
   const campaignMap = new Map();
 
-  [...gmCampaigns, ...joinedCampaigns].forEach((campaign) => {
+  [...gmCampaigns, ...joinedCampaigns.filter(isCurrentPlayerMembership)].forEach((campaign) => {
     if (campaign?.id) campaignMap.set(campaign.id, campaign);
   });
 
