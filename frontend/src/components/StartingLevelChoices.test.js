@@ -100,6 +100,27 @@ describe('starting level choice cards', () => {
     expect(screen.queryByText('Battle Master maneuvers')).not.toBeInTheDocument();
   });
 
+  test('Pact Boon cards keep the same saved boon name as the old selector', () => {
+    const onChange = jest.fn();
+    const plan = {
+      invocationsRequired: false,
+      pactBoonRequired: true,
+      invocationCount: 0,
+      invocationOptions: [],
+      pactBoonOptions: [
+        { key: 'blade', name: 'Pact of the Blade', summary: 'Weapon-focused pact option.' },
+        { key: 'chain', name: 'Pact of the Chain', summary: 'Companion-focused pact option.' },
+      ],
+    };
+
+    render(<WarlockChoiceSection plan={plan} selection={{}} onChange={onChange} />);
+    fireEvent.click(screen.getByRole('button', { name: /Pact of the Blade.*Weapon-focused pact option.*Choose/i }));
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      pactBoon: 'Pact of the Blade',
+    }));
+  });
+
   test('warlock invocations use the same capped card interaction', () => {
     const onChange = jest.fn();
     const plan = {
