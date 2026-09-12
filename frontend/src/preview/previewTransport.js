@@ -47,12 +47,24 @@ async function dispatchCharacterProgressionPreview({ method, url, params, body, 
   return { handled: false, data: null };
 }
 
+function guardIsolatedPreviewFeature(method, url) {
+  const path = previewPath(url);
+  if (method === 'post' && path === '/character-import/extract') {
+    const error = new Error(
+      'Automatic PDF/photo scanning is disabled in this isolated no-login preview because preview files never leave your browser. JSON, TXT, pasted text, and manual character import still work here. Use a signed-in test deployment to test real PDF/photo scanning.'
+    );
+    error.status = 400;
+    throw error;
+  }
+}
+
 // Every preview API call terminates locally. Unsupported routes fail explicitly;
 // there is deliberately no fallback to a real API or shared account.
 export async function previewAdapter(config) {
   const { previewRequest } = await import('./previewApi');
   try {
     const method = String(config.method || 'get').toLowerCase();
+    guardIsolatedPreviewFeature(method, config.url);
     const body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {};
     const progression = await dispatchCharacterProgressionPreview({
       method,
