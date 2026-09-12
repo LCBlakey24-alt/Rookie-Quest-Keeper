@@ -18,7 +18,9 @@ os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 
 from routes.character_progression_state import (  # noqa: E402
     preserve_level_up_live_state,
+    preserve_pact_magic_resource,
     preserve_spell_slot_state,
+    progression_spell_slot_totals,
 )
 
 
@@ -103,6 +105,77 @@ class TestCharacterProgressionState(unittest.TestCase):
             pact_style=True,
         )
         self.assertEqual(remaining, {"5": 1})
+
+    def test_multiclass_full_casters_use_shared_caster_level_table(self):
+        existing = {
+            "character_class": "Wizard",
+            "subclass": "Evocation",
+        }
+        totals = progression_spell_slot_totals(existing, {"Wizard": 3, "Cleric": 2})
+        self.assertEqual(totals, {"1": 4, "2": 3, "3": 2})
+
+    def test_warlock_plus_wizard_keeps_shared_slots_out_of_pact_pool(self):
+        existing = {
+            "character_class": "Warlock",
+            "subclass": "Fiend",
+        }
+        totals = progression_spell_slot_totals(existing, {"Warlock": 3, "Wizard": 2})
+        self.assertEqual(totals, {"1": 3})
+
+    def test_warlock_without_other_caster_keeps_legacy_pact_slot_shape(self):
+        totals = progression_spell_slot_totals(
+            {"character_class": "Warlock"},
+            {"Warlock": 11, "Fighter": 1},
+        )
+        self.assertEqual(totals, {"5": 3})
+
+    def test_pact_magic_resource_scales_at_levels_11_and_17(self):
+        existing = {
+            "character_class": "Warlock",
+            "level": 10,
+            "class_levels": {"Warlock": 10},
+            "spell_slots_remaining": {"5": 1},
+            "resources": {
+                "pact_magic": {
+                    "label": "Pact Magic",
+                    "current": 1,
+                    "remaining": 1,
+                    "max": 2,
+                    "restore": "short-rest",
+                }
+            },
+        }
+        level_11 = preserve_pact_magic_resource(existing, {"class_levels": {"Warlock": 11}})
+        self.assertEqual(level_11["pact_magic"]["max"], 3)
+        self.assertEqual(level_11["pact_magic"]["current"], 2)
+        self.assertEqual(level_11["pact_magic"]["slot_level"], 5)
+
+        existing_16 = {
+            **existing,
+            "level": 16,
+            "class_levels": {"Warlock": 16},
+            "resources": {"pact_magic": {"current": 2, "remaining": 2, "max": 3}},
+        }
+        level_17 = preserve_pact_magic_resource(existing_16, {"class_levels": {"Warlock": 17}})
+        self.assertEqual(level_17["pact_magic"]["max"], 4)
+        self.assertEqual(level_17["pact_magic"]["current"], 3)
+
+    def test_adding_first_warlock_level_creates_short_rest_pact_tracker(self):
+        existing = {
+            "character_class": "Fighter",
+            "level": 3,
+            "class_levels": {"Fighter": 3},
+            "resources": {},
+        }
+        resources = preserve_pact_magic_resource(
+            existing,
+            {"class_levels": {"Fighter": 3, "Warlock": 1}},
+        )
+        tracker = resources["pact_magic"]
+        self.assertEqual(tracker["max"], 1)
+        self.assertEqual(tracker["current"], 1)
+        self.assertEqual(tracker["slot_level"], 1)
+        self.assertEqual(tracker["restore"], "short-rest")
 
 
 if __name__ == "__main__":
