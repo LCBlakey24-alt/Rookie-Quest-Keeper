@@ -3,7 +3,7 @@
 The active lenient creator accepts standard-builder, imported, and homebrew
 payloads. This focused wrapper keeps that flexibility while filling the pieces a
 playable digital sheet needs immediately: class-level structure, hit dice,
-spell-slot state, basic spellcasting math, and Pact Magic tracking.
+spell-slot state, basic spellcasting math, and persisted class resources.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Tuple
 from fastapi import APIRouter, Depends, status
 
 from config import db
+from data.character_resources import merge_character_resources, warlock_shape
 from routes.character_patch import _clean_create
 from routes.characters import (
     calculate_spell_slots,
@@ -72,8 +73,6 @@ def parse_class_breakdown(raw_class: Any, total_level: Any) -> Tuple[str, Dict[s
             levels[name] = levels.get(name, 0) + level
         return parsed[0][0], levels, True
 
-    # A simple class name is the normal builder shape. Keep it verbatim enough
-    # for custom/homebrew classes while canonicalising core-class casing.
     primary = display_class_name(parts[0] if parts else raw)
     return primary, {primary: fallback_level}, False
 
@@ -87,15 +86,6 @@ def _class_entries(class_levels: Dict[str, int], primary_class: str, subclass: s
         }
         for class_name, level in class_levels.items()
     ]
-
-
-def _warlock_shape(level: int) -> Tuple[int, int]:
-    level = max(0, min(20, _int(level, 0)))
-    if level <= 0:
-        return 0, 0
-    slot_level = 1 if level <= 2 else 2 if level <= 4 else 3 if level <= 6 else 4 if level <= 8 else 5
-    slots = 1 if level == 1 else 2 if level <= 10 else 3 if level <= 16 else 4
-    return slot_level, slots
 
 
 def _warlock_level(class_levels: Dict[str, int]) -> int:
@@ -114,11 +104,9 @@ def derive_creation_spell_slots(primary_class: str, subclass: str, class_levels:
 
     warlock_level = _warlock_level(class_levels)
     if warlock_level:
-        slot_level, slots = _warlock_shape(warlock_level)
+        slot_level, slots = warlock_shape(warlock_level)
         return {str(slot_level): slots}
 
-    # Fallback keeps compatibility for any legacy/core single-class shape that
-    # is supported by calculate_spell_slots but not by the multiclass adapter.
     if len(class_levels) == 1:
         level = next(iter(class_levels.values()), 1)
         return calculate_spell_slots(primary_class, level)
@@ -150,6 +138,36 @@ def _ability_modifier(score: Any) -> int:
     return (_int(score, 10) - 10) // 2
 
 
+def _normalised_classes(
+    payload: Dict[str, Any],
+    class_levels: Dict[str, int],
+    primary_class: str,
+    primary_subclass: str,
+) -> List[Dict[str, Any]]:
+    saved = payload.get("classes") if isinstance(payload.get("classes"), list) else []
+    output: List[Dict[str, Any]] = []
+    for class_name, level in class_levels.items():
+        previous = next(
+            (
+                entry for entry in saved
+                if isinstance(entry, dict)
+                and _normalise_name(entry.get("name") or entry.get("class_name") or entry.get("character_class") or entry.get("class"))
+                == _normalise_name(class_name)
+            ),
+            {},
+        )
+        subclass = previous.get("subclass") or (
+            primary_subclass if _normalise_name(class_name) == _normalise_name(primary_class) else ""
+        )
+        output.append({
+            **previous,
+            "name": class_name,
+            "level": level,
+            "subclass": subclass,
+        })
+    return output
+
+
 def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[str, Any]:
     """Build the persisted character and fill safe derivable play-state fields."""
     character = _clean_create(payload, username)
@@ -160,8 +178,6 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
         character["level"] = sum(parsed_levels.values())
     total_level = max(1, _int(character.get("level"), 1))
 
-    # If the source did not provide explicit per-class levels, prefer a valid
-    # saved map (builder/homebrew) before falling back to the primary class.
     saved_levels = payload.get("class_levels") or payload.get("multiclass_levels")
     if not explicit_breakdown and isinstance(saved_levels, dict) and saved_levels:
         class_levels = {
@@ -180,6 +196,13 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
     character["character_class"] = primary_class
     character["class_levels"] = class_levels
     character["multiclass_levels"] = dict(class_levels) if len(class_levels) > 1 else {}
+    character["multiclass_classes"] = list(class_levels.keys())
+    character["classes"] = _normalised_classes(
+        payload,
+        class_levels,
+        primary_class,
+        character.get("subclass") or "",
+    )
     if str(source_class or "").strip() != primary_class:
         character["imported_class_text"] = str(source_class or "").strip()
 
@@ -190,9 +213,6 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
     supplied_slots = payload.get("spell_slots") if isinstance(payload.get("spell_slots"), dict) else {}
     derived_slots = derive_creation_spell_slots(primary_class, character.get("subclass") or "", class_levels)
     spell_slots = supplied_slots or derived_slots
-    # For supported multiclass combinations, prefer the shared backend table.
-    # If the class mix is homebrew/unknown and cannot be derived, preserve the
-    # explicit supplied slot map instead of wiping it.
     if len(class_levels) > 1 and derived_slots:
         spell_slots = derived_slots
     character["spell_slots"] = {str(level): max(0, _int(count, 0)) for level, count in spell_slots.items()}
@@ -208,23 +228,13 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
         character["spell_save_dc"] = _int(character.get("spell_save_dc"), 0) or (8 + character["proficiency_bonus"] + modifier)
         character["spell_attack_bonus"] = _int(character.get("spell_attack_bonus"), 0) or (character["proficiency_bonus"] + modifier)
 
-    resources = dict(character.get("resources") or {}) if isinstance(character.get("resources"), dict) else {}
-    warlock_level = _warlock_level(class_levels)
-    if warlock_level > 0:
-        slot_level, pact_slots = _warlock_shape(warlock_level)
-        existing_pact = resources.get("pact_magic") if isinstance(resources.get("pact_magic"), dict) else {}
-        resources["pact_magic"] = {
-            **existing_pact,
-            "label": existing_pact.get("label") or "Pact Magic",
-            "current": min(pact_slots, max(0, _int(existing_pact.get("current", existing_pact.get("remaining", pact_slots)), pact_slots))),
-            "remaining": min(pact_slots, max(0, _int(existing_pact.get("remaining", existing_pact.get("current", pact_slots)), pact_slots))),
-            "max": pact_slots,
-            "slot_level": slot_level,
-            "restore": "short-rest",
-            "min_level": 1,
-            "className": "Warlock",
-        }
-    character["resources"] = resources
+    # Persist core counters even when the client did not send them (notably
+    # imports). Existing builder/homebrew resource metadata is preserved.
+    character["resources"] = merge_character_resources(
+        character,
+        class_levels,
+        initialise_missing=True,
+    )
 
     return character
 
