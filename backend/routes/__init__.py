@@ -32,6 +32,7 @@ from routes.character_recovery import router as character_recovery_router
 from routes.character_progression_preflight import router as character_progression_preflight_router
 from routes.character_progression_state import router as character_progression_state_router
 from routes.character_creation_state import router as character_creation_state_router
+from routes.character_edit_state import router as character_edit_state_router
 from routes.character_patch import router as character_patch_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
@@ -91,6 +92,8 @@ all_routers = [
     character_progression_state_router,
     # Canonicalize builder/import payloads into immediately playable sheet state.
     character_creation_state_router,
+    # Prevent the creation-shaped full builder from refilling/overwriting a live character on edit.
+    character_edit_state_router,
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,
