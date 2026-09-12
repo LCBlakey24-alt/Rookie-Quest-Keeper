@@ -27,6 +27,7 @@ from routes.inventory import router as inventory_router
 from routes.offline_inventory_sync import router as offline_inventory_sync_router
 from routes.user_content import router as user_content_router
 from routes.player_rules import router as player_rules_router
+from routes.character_import import router as character_import_router
 from routes.character_patch import router as character_patch_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
@@ -76,6 +77,8 @@ all_routers = [
     user_content_router,
     # Player rules feeds sit beside user content so builders can consume uploaded options.
     player_rules_router,
+    # Player-side review-first extraction for uploaded PDF/image character sheets.
+    character_import_router,
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,
