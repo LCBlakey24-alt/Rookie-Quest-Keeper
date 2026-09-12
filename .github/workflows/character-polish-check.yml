@@ -73,7 +73,7 @@ jobs:
       - name: Run focused character state tests
         env:
           CI: true
-        run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/spellCastingRules.test.js src/data/spellcastingPools.test.js src/data/characterRestRules.test.js src/data/levelUpProgressionRules.test.js src/preview/previewCharacterProgression.test.js
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/spellCastingRules.test.js src/data/spellcastingPools.test.js src/data/characterRestRules.test.js src/data/characterClassResources.test.js src/data/levelUpProgressionRules.test.js src/preview/previewCharacterProgression.test.js
 
       - name: Build frontend
         env:
