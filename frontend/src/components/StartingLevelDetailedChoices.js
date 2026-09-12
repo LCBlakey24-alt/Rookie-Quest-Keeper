@@ -8,9 +8,9 @@ import {
   normaliseSpellSelection,
   normaliseWarlockSelection,
 } from '@/data/startingLevelChoiceEngine';
+import './StartingLevelChoices.css';
 
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
-const selectValues = (event, max = Infinity) => Array.from(event.target.selectedOptions).map((option) => option.value).slice(0, max);
 
 function toggleValue(list, value, max = Infinity) {
   const current = arr(list);
@@ -19,15 +19,49 @@ function toggleValue(list, value, max = Infinity) {
   return [...current, value];
 }
 
-function MultiSelectChoice({ label, value, options, max, onChange, size = 6 }) {
+function optionValue(option) {
+  if (typeof option === 'string') return option;
+  return option?.name || String(option || '');
+}
+
+function optionLabel(option) {
+  if (typeof option === 'string') return option;
+  if (option?.level !== undefined && option?.level !== null) return `Level ${option.level}: ${option.name}`;
+  return option?.name || String(option || '');
+}
+
+function ToggleChoiceList({ label, value, options, max, onChange }) {
   if (!max) return null;
+  const selected = arr(value);
+  const choices = arr(options);
+
   return (
-    <label className="full-creator-wide-label">
-      <span>{label} {arr(value).length}/{max}</span>
-      <select multiple size={Math.min(size, Math.max(4, arr(options).length))} value={arr(value)} onChange={(event) => onChange(selectValues(event, max))}>
-        {arr(options).map((name) => <option key={name} value={name}>{name}</option>)}
-      </select>
-    </label>
+    <fieldset className="full-creator-toggle-field">
+      <legend>
+        <span>{label}</span>
+        <strong>{selected.length}/{max} selected</strong>
+      </legend>
+      <div className="full-creator-toggle-grid">
+        {choices.map((option) => {
+          const valueKey = optionValue(option);
+          const active = selected.includes(valueKey);
+          const unavailable = !active && selected.length >= max;
+          return (
+            <button
+              key={`${option?.level ?? 'choice'}-${valueKey}`}
+              type="button"
+              className={`full-creator-toggle-option${active ? ' active' : ''}`}
+              aria-pressed={active}
+              disabled={unavailable}
+              onClick={() => onChange(toggleValue(selected, valueKey, max))}
+            >
+              <span>{optionLabel(option)}</span>
+              <small>{active ? 'Selected' : unavailable ? 'Limit reached' : 'Choose'}</small>
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 
@@ -81,35 +115,33 @@ export function ClassSpecificChoiceSection({ plan, selection, onChange }) {
     <section className="full-creator-auto-box" aria-label="Class-specific starting level choices">
       <strong>Class-specific choices</strong>
       <span>These are saved onto the character for the sheet to use: Fighting Style, Expertise, Metamagic, and maneuvers.</span>
-      <MultiSelectChoice
+      <ToggleChoiceList
         label="Fighting Style"
         value={current.fightingStyles}
         options={plan.fightingStyleOptions}
         max={plan.fightingStyleCount}
         onChange={(fightingStyles) => update({ fightingStyles })}
       />
-      <MultiSelectChoice
+      <ToggleChoiceList
         label="Expertise"
         value={current.expertise}
         options={plan.expertiseOptions}
         max={plan.expertiseCount}
         onChange={(expertise) => update({ expertise })}
-        size={10}
       />
-      <MultiSelectChoice
+      <ToggleChoiceList
         label="Metamagic"
         value={current.metamagic}
         options={plan.metamagicOptions}
         max={plan.metamagicCount}
         onChange={(metamagic) => update({ metamagic })}
       />
-      <MultiSelectChoice
+      <ToggleChoiceList
         label="Battle Master maneuvers"
         value={current.maneuvers}
         options={plan.maneuverOptions}
         max={plan.maneuverCount}
         onChange={(maneuvers) => update({ maneuvers })}
-        size={8}
       />
     </section>
   );
@@ -133,45 +165,29 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
             prepared spells are saved as the character’s prepared list.
           </span>
 
-          {cantripTarget > 0 && (
-            <div>
-              <p className="full-creator-swipe-hint">Cantrips {current.cantrips.length}/{cantripTarget}</p>
-              <div className="full-creator-equipment-list">
-                {arr(plan.cantripOptions).map((spell) => (
-                  <button
-                    type="button"
-                    key={spell.name}
-                    className={current.cantrips.includes(spell.name) ? 'active' : ''}
-                    onClick={() => update({ cantrips: toggleValue(current.cantrips, spell.name, cantripTarget) })}
-                  >
-                    {spell.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <ToggleChoiceList
+            label="Cantrips"
+            value={current.cantrips}
+            options={plan.cantripOptions}
+            max={cantripTarget}
+            onChange={(cantrips) => update({ cantrips })}
+          />
 
-          {knownTarget > 0 && (
-            <label className="full-creator-wide-label">
-              <span>Known spells {current.spells.length}/{knownTarget}</span>
-              <select multiple size={Math.min(10, Math.max(4, arr(plan.spellOptions).length))} value={current.spells} onChange={(event) => update({ spells: selectValues(event, knownTarget) })}>
-                {arr(plan.spellOptions).map((spell) => (
-                  <option key={`${spell.level}-${spell.name}`} value={spell.name}>Level {spell.level}: {spell.name}</option>
-                ))}
-              </select>
-            </label>
-          )}
+          <ToggleChoiceList
+            label="Known spells"
+            value={current.spells}
+            options={plan.spellOptions}
+            max={knownTarget}
+            onChange={(spells) => update({ spells })}
+          />
 
-          {preparedTarget > 0 && (
-            <label className="full-creator-wide-label">
-              <span>Prepared spells {current.prepared.length}/{preparedTarget}</span>
-              <select multiple size={Math.min(12, Math.max(5, arr(plan.spellOptions).length))} value={current.prepared} onChange={(event) => update({ prepared: selectValues(event, preparedTarget) })}>
-                {arr(plan.spellOptions).map((spell) => (
-                  <option key={`prepared-${spell.level}-${spell.name}`} value={spell.name}>Level {spell.level}: {spell.name}</option>
-                ))}
-              </select>
-            </label>
-          )}
+          <ToggleChoiceList
+            label="Prepared spells"
+            value={current.prepared}
+            options={plan.spellOptions}
+            max={preparedTarget}
+            onChange={(prepared) => update({ prepared })}
+          />
 
           {arr(plan.arcanumLevels).length > 0 && (
             <small>Mystic Arcanum is tracked on save when matching high-level spell options are available in the spell database.</small>
@@ -208,14 +224,13 @@ export function WarlockChoiceSection({ plan, selection, onChange }) {
         </label>
       )}
 
-      {count > 0 && (
-        <label className="full-creator-wide-label">
-          <span>Eldritch Invocations {current.invocations.length}/{count}</span>
-          <select multiple size={8} value={current.invocations} onChange={(event) => update({ invocations: selectValues(event, count) })}>
-            {arr(plan.invocationOptions).map((name) => <option key={name} value={name}>{name}</option>)}
-          </select>
-        </label>
-      )}
+      <ToggleChoiceList
+        label="Eldritch Invocations"
+        value={current.invocations}
+        options={plan.invocationOptions}
+        max={count}
+        onChange={(invocations) => update({ invocations })}
+      />
     </section>
   );
 }
