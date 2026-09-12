@@ -66,6 +66,33 @@ function subclassUnlockLevel(className, edition) {
   return 3;
 }
 
+function subclassForClass(character = {}, className = '') {
+  const key = normaliseName(className);
+  const entry = (Array.isArray(character.classes) ? character.classes : []).find((item) => (
+    normaliseName(item?.name || item?.class_name || item?.character_class || item?.class) === key
+  ));
+  if (entry?.subclass) return String(entry.subclass);
+
+  const map = character.class_subclasses && typeof character.class_subclasses === 'object'
+    ? character.class_subclasses
+    : {};
+  const mapped = Object.entries(map).find(([name]) => normaliseName(name) === key)?.[1];
+  if (mapped) return String(mapped);
+
+  return normaliseName(character.character_class) === key ? String(character.subclass || '') : '';
+}
+
+function withClassesState(character, classLevels, targetClass, selectedSubclass = '') {
+  const saved = Array.isArray(character.classes) ? character.classes : [];
+  return Object.entries(classLevels).map(([className, level]) => {
+    const previous = saved.find((entry) => normaliseName(entry?.name || entry?.class_name || entry?.class) === normaliseName(className)) || {};
+    const subclass = normaliseName(className) === normaliseName(targetClass) && selectedSubclass
+      ? selectedSubclass
+      : previous.subclass || subclassForClass(character, className);
+    return { ...previous, name: className, level: Number(level), subclass: subclass || '' };
+  });
+}
+
 function preserveSlotState(oldTotals = {}, oldRemaining = {}, newTotals = {}) {
   const next = {};
   Object.entries(newTotals || {}).forEach(([level, rawTotal]) => {
@@ -80,7 +107,7 @@ function preserveSlotState(oldTotals = {}, oldRemaining = {}, newTotals = {}) {
 
 function appendUniqueSpells(existing = [], additions = []) {
   const output = Array.isArray(existing) ? [...existing] : [];
-  const seen = new Set(output.map(item => normaliseName(item?.name || item)));
+  const seen = new Set(output.map((item) => normaliseName(item?.name || item)));
   (Array.isArray(additions) ? additions : []).forEach((item) => {
     const key = normaliseName(item?.name || item);
     if (!key || seen.has(key)) return;
@@ -90,51 +117,70 @@ function appendUniqueSpells(existing = [], additions = []) {
   return output;
 }
 
-function progressionTargetClass(character, payload, multiclass) {
-  return displayClass(multiclass ? payload.new_class : character.character_class || 'Fighter');
+function existingClassName(classLevels, requested) {
+  const key = normaliseName(requested);
+  return Object.keys(classLevels).find((name) => normaliseName(name) === key) || '';
 }
 
-export function getPreviewLevelUpOptions(character = {}) {
+function progressionTargetClass(character, payload, multiclass) {
+  return displayClass(multiclass ? payload.new_class : (payload.new_class || character.character_class || 'Fighter'));
+}
+
+export function getPreviewLevelUpOptions(character = {}, { targetClass = '' } = {}) {
   const currentLevel = Math.max(1, toNumber(character.level, 1));
   const targetLevel = currentLevel + 1;
   const classLevels = normalisePreviewClassLevels(character);
-  const characterClass = displayClass(character.character_class || Object.keys(classLevels)[0] || 'Fighter');
-  const classLevelBefore = Math.max(1, toNumber(classLevels[characterClass], currentLevel));
+  const requested = displayClass(targetClass || character.character_class || Object.keys(classLevels)[0] || 'Fighter');
+  const characterClass = existingClassName(classLevels, requested);
+  if (!characterClass) {
+    const error = new Error(`${requested} is not currently on this character. Use multiclass to add it first.`);
+    error.status = 400;
+    throw error;
+  }
+
+  const classLevelBefore = Math.max(1, toNumber(classLevels[characterClass], 1));
   const classLevelAfter = classLevelBefore + 1;
   const edition = editionFor(character);
   const unlockLevel = subclassUnlockLevel(characterClass, edition);
+  const nextClassLevels = { ...classLevels, [characterClass]: classLevelAfter };
   const nextCharacter = {
     ...character,
     level: targetLevel,
-    class_levels: { ...classLevels, [characterClass]: classLevelAfter },
+    class_levels: nextClassLevels,
+    classes: withClassesState(character, nextClassLevels, characterClass),
   };
-  const slotMath = getMulticlassSpellSlots(nextCharacter.class_levels, nextCharacter);
+  const slotMath = getMulticlassSpellSlots(nextClassLevels, nextCharacter);
+  const previousSlotMath = getMulticlassSpellSlots(classLevels, character);
   const asiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default || [];
 
   return {
     character_id: character.id,
     character_name: character.name || '',
     character_class: characterClass,
+    target_class: characterClass,
     edition,
     ruleset_id: character.ruleset_id || `dnd5e_${edition}`,
     current_level: currentLevel,
     target_level: targetLevel,
+    class_level_before: classLevelBefore,
+    class_level_after: classLevelAfter,
     hit_die: HIT_DICE[characterClass] || 8,
     proficiency_bonus: proficiencyFor(targetLevel),
     previous_proficiency_bonus: proficiencyFor(currentLevel),
     spell_slots: slotMath?.slots || {},
-    previous_spell_slots: character.spell_slots || {},
+    previous_spell_slots: previousSlotMath?.slots || {},
     spells_to_learn: learnedBetween(SPELLS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter),
     cantrips_to_learn: learnedBetween(CANTRIPS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter),
     is_asi_level: asiLevels.includes(classLevelAfter),
     asi_levels: asiLevels,
-    can_choose_subclass: !character.subclass && classLevelAfter >= unlockLevel,
+    can_choose_subclass: !subclassForClass(character, characterClass) && classLevelAfter >= unlockLevel,
     subclass_unlock_level: unlockLevel,
     subclass_options: [],
     feat_options: [],
     general_feat_options: [],
     origin_feat_options: [],
     class_levels: classLevels,
+    next_class_levels: nextClassLevels,
     progression_reference: { source: 'local-preview' },
   };
 }
@@ -156,14 +202,19 @@ export function applyPreviewCharacterLevelUp(character = {}, payload = {}, { mul
   }
 
   const oldClassLevels = normalisePreviewClassLevels(character);
-  if (multiclass && Object.keys(oldClassLevels).some(name => normaliseName(name) === normaliseName(targetClass))) {
+  const existingTargetName = existingClassName(oldClassLevels, targetClass);
+  if (multiclass && existingTargetName) {
     const error = new Error(`${targetClass} is already on this character. Continue that class through normal level up.`);
+    error.status = 400;
+    throw error;
+  }
+  if (!multiclass && !existingTargetName) {
+    const error = new Error(`${targetClass} is not currently on this character. Use multiclass to add it first.`);
     error.status = 400;
     throw error;
   }
 
   const nextClassLevels = { ...oldClassLevels };
-  const existingTargetName = Object.keys(nextClassLevels).find(name => normaliseName(name) === normaliseName(targetClass));
   const targetKey = existingTargetName || targetClass;
   nextClassLevels[targetKey] = Math.max(0, toNumber(nextClassLevels[targetKey], 0)) + 1;
 
@@ -180,6 +231,7 @@ export function applyPreviewCharacterLevelUp(character = {}, payload = {}, { mul
   const oldMaxHp = Math.max(1, toNumber(character.max_hit_points, 1));
   const oldCurrentHp = Math.max(0, Math.min(oldMaxHp, toNumber(character.current_hit_points, oldMaxHp)));
   const newMaxHp = oldMaxHp + hpGain;
+  const classes = withClassesState(character, nextClassLevels, targetClass, payload.subclass || '');
 
   const next = {
     ...copy(character),
@@ -187,6 +239,7 @@ export function applyPreviewCharacterLevelUp(character = {}, payload = {}, { mul
     class_levels: nextClassLevels,
     multiclass_levels: Object.keys(nextClassLevels).length > 1 ? { ...nextClassLevels } : {},
     multiclass_classes: Object.keys(nextClassLevels),
+    classes,
     proficiency_bonus: proficiencyFor(requestedLevel),
     max_hit_points: newMaxHp,
     current_hit_points: Math.min(newMaxHp, oldCurrentHp + hpGain),
@@ -195,7 +248,9 @@ export function applyPreviewCharacterLevelUp(character = {}, payload = {}, { mul
     updated_at: new Date().toISOString(),
   };
 
-  if (!multiclass && payload.subclass) next.subclass = payload.subclass;
+  if (!multiclass && normaliseName(targetClass) === normaliseName(character.character_class) && payload.subclass) {
+    next.subclass = payload.subclass;
+  }
 
   if (payload.choice_type === 'asi' && payload.asi_choices) {
     [payload.asi_choices.ability1, payload.asi_choices.ability2].forEach((ability) => {
