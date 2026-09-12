@@ -14,6 +14,7 @@ const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
 const SessionTimeline = lazy(() => import('@/components/SessionTimeline'));
 const CombatInitiativeSubmitter = lazy(() => import('./CombatInitiativeSubmitter'));
+const PlayerGroupCheckPrompt = lazy(() => import('./PlayerGroupCheckPrompt'));
 
 const tabs = [
   { id: 'campaign', label: 'Campaign', icon: BookOpen },
@@ -99,6 +100,11 @@ export function PlayerCampaignWorkspace({ campaignId }) {
       {failures.length > 0 && <div role="status" className="player-campaign-warning">
         Could not refresh {failures.join(', ')}. Previously loaded information remains visible. Try Refresh to check again.
       </div>}
+      {characters?.length > 0 && (
+        <Suspense fallback={null}>
+          <PlayerGroupCheckPrompt campaignId={campaignId} characters={characters} />
+        </Suspense>
+      )}
       <Tabs defaultValue="campaign">
         <TabsList className="player-campaign-tabs" aria-label="Campaign sections">
           {campaignTabs.map(({ id, label, badge, icon: Icon }) => <TabsTrigger key={id} value={id}>
