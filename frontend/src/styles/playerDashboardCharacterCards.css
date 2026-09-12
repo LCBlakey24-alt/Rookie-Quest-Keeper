@@ -1,3 +1,36 @@
+.player-dashboard-character-section {
+  display: grid;
+  gap: 8px;
+}
+
+.player-dashboard-character-tools,
+.player-dashboard-empty-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-dashboard-character-tools {
+  min-height: 42px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 5px;
+  background: #0C2234;
+}
+
+.player-dashboard-character-tools > span {
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.player-dashboard-empty-actions {
+  justify-content: center;
+  margin-top: 12px;
+}
+
 .player-dashboard-character-main {
   min-width: 0;
   display: flex;
@@ -40,12 +73,38 @@
   font-weight: 850;
 }
 
-.player-dashboard-vital svg {
+.player-dashboard-vital svg,
+.player-dashboard-character-tools svg {
   color: #7CCBFF;
   flex: 0 0 auto;
 }
 
 @media (max-width: 560px) {
+  .player-dashboard-character-tools {
+    padding: 6px 7px;
+  }
+
+  .player-dashboard-character-tools .player-dashboard-action-button {
+    width: auto !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    padding: 0 9px !important;
+    font-size: 10px !important;
+  }
+
+  .player-dashboard-empty-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .player-dashboard-empty-actions .player-dashboard-action-button {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    font-size: 11px !important;
+  }
+
   .player-dashboard-character-avatar {
     width: 46px;
     height: 46px;
