@@ -67,7 +67,6 @@ const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
-const PlayerBetaLandingPage = lazyWithChunkRetry(() => import('@/components/PlayerBetaLandingPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
@@ -115,13 +114,33 @@ function ThemeRouter() {
   return null;
 }
 
+function PlayerBetaBootstrap({ error, retrying, onRetry }) {
+  return (
+    <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 20, background: '#071A2A', color: '#FFFFFF' }}>
+      <section style={{ width: 'min(100%, 420px)', display: 'grid', justifyItems: 'center', gap: 12, textAlign: 'center', padding: 22, background: '#0C2234', border: '1px solid rgba(255,45,170,.24)', borderRadius: 8 }}>
+        <img src="/brand/rqk-logo-mini.svg" alt="Rookie Quest Keeper" width="64" height="64" />
+        <strong style={{ fontSize: 20 }}>Starting Player Beta</strong>
+        {!error && <span style={{ fontSize: 13, lineHeight: 1.45 }}>Opening your player workspace…</span>}
+        {error && <>
+          <span role="alert" style={{ fontSize: 13, lineHeight: 1.45 }}>{error}</span>
+          <button type="button" onClick={onRetry} disabled={retrying} style={{ minHeight: 42, padding: '0 16px', background: '#102B40', color: '#FFFFFF', border: '1px solid #FF2DAA', borderRadius: 5, fontWeight: 800 }}>
+            {retrying ? 'Trying again…' : 'Try again'}
+          </button>
+        </>}
+      </section>
+    </main>
+  );
+}
+
 export function AppRoutes() {
   const preview = isLocalPreview();
   const playerBeta = isPlayerBeta();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
   const [username, setUsername] = useState(() => preview ? PREVIEW_USER : localStorage.getItem(AUTH_USERNAME_KEY) || '');
   const [betaEntering, setBetaEntering] = useState(false);
+  const [betaAttempted, setBetaAttempted] = useState(false);
   const [betaError, setBetaError] = useState('');
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
@@ -138,38 +157,66 @@ export function AppRoutes() {
   }, []);
 
   const enterPlayerBeta = useCallback(async () => {
+    if (betaEntering) return;
     setBetaEntering(true);
     setBetaError('');
     try {
       const session = await ensurePlayerBetaSession(apiClient, { existingToken: getAuthToken() || '' });
       handleAuthLogin(session.token, session.username);
-      navigate('/player');
+      const requestedPath = location.pathname && location.pathname !== '/' && !location.pathname.startsWith('/auth')
+        ? `${location.pathname}${location.search || ''}`
+        : '/player';
+      navigate(requestedPath, { replace: true });
     } catch (error) {
       setBetaError(error?.response?.data?.detail || error?.formattedDetail || error?.message || 'Could not start the Player Beta. Try again in a moment.');
     } finally {
       setBetaEntering(false);
     }
-  }, [handleAuthLogin, navigate]);
+  }, [betaEntering, handleAuthLogin, location.pathname, location.search, navigate]);
+
+  useEffect(() => {
+    if (!playerBeta || isAuthenticated || betaAttempted) return;
+    setBetaAttempted(true);
+    enterPlayerBeta();
+  }, [playerBeta, isAuthenticated, betaAttempted, enterPlayerBeta]);
 
   useEffect(() => {
     if (!isAuthenticated || preview) return;
-    apiClient.get('/auth/me').catch(() => handleLogout());
-  }, [isAuthenticated, handleLogout, preview]);
+    apiClient.get('/auth/me').catch(() => {
+      if (playerBeta) {
+        setAuthToken('');
+        setUsername('');
+        setIsAuthenticated(false);
+        setBetaAttempted(false);
+        return;
+      }
+      handleLogout();
+    });
+  }, [isAuthenticated, handleLogout, playerBeta, preview]);
+
+  const retryPlayerBeta = () => {
+    setBetaAttempted(false);
+    setBetaError('');
+  };
 
   return (
     <>
       <ThemeRouter />
-      {!preview && <ImpersonationBanner />}
+      {!preview && !playerBeta && <ImpersonationBanner />}
       <GlobalActionFillEffects />
       <GlobalScrollRecovery />
       <Routes>
         <Route path="/" element={playerBeta
-          ? <PlayerBetaLandingPage onEnter={enterPlayerBeta} entering={betaEntering} error={betaError} />
+          ? isAuthenticated
+            ? <Navigate to="/player" replace />
+            : <PlayerBetaBootstrap error={betaError} retrying={betaEntering} onRetry={retryPlayerBeta} />
           : isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
         <Route path="/auth" element={playerBeta
-          ? <Navigate to="/" replace />
+          ? <Navigate to={isAuthenticated ? '/player' : '/'} replace />
           : isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
-        <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/home" element={isAuthenticated
+          ? playerBeta ? <Navigate to="/player" replace /> : <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell>
+          : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
         <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
@@ -184,7 +231,9 @@ export function AppRoutes() {
         <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
         <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
         <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
-        <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
+        <Route path="/account" element={playerBeta
+          ? <Navigate to="/player" replace />
+          : isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
         <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to={playerBeta ? '/' : '/auth'} replace />} />
 
