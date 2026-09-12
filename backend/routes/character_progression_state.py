@@ -7,7 +7,9 @@ rest. These focused routes reuse the existing progression rules while preserving
 spent resources and current damage.
 
 This module also keeps Warlock Pact Magic separate from the shared multiclass
-spell-slot table whenever a character has another spellcasting class.
+spell-slot table whenever a character has another spellcasting class, and lets
+multiclass characters continue any class they already possess rather than being
+locked to their original primary class forever.
 """
 
 from __future__ import annotations
@@ -66,25 +68,42 @@ def _pact_magic_slot_shape(warlock_level: int) -> Dict[str, int]:
     return {str(slot_level): slot_count}
 
 
+def _saved_class_entry(existing: Dict[str, Any], class_name: str) -> Dict[str, Any]:
+    saved_entries = existing.get("classes") if isinstance(existing.get("classes"), list) else []
+    return next(
+        (
+            entry
+            for entry in saved_entries
+            if _normalise_name(entry.get("name") or entry.get("class_name") or entry.get("character_class") or entry.get("class"))
+            == _normalise_name(class_name)
+        ),
+        {},
+    )
+
+
+def _subclass_for_class(existing: Dict[str, Any], class_name: str) -> str:
+    saved = _saved_class_entry(existing, class_name)
+    if saved.get("subclass"):
+        return str(saved.get("subclass"))
+
+    subclass_map = existing.get("class_subclasses") if isinstance(existing.get("class_subclasses"), dict) else {}
+    for key, value in subclass_map.items():
+        if _normalise_name(key) == _normalise_name(class_name) and value:
+            return str(value)
+
+    primary = display_class_name(existing.get("character_class", ""))
+    if _normalise_name(primary) == _normalise_name(class_name):
+        return str(existing.get("subclass") or "")
+    return ""
+
+
 def _class_entries(existing: Dict[str, Any], class_levels: Dict[str, int]) -> List[Dict[str, Any]]:
     """Adapt saved class-level shapes to the backend shared-slot calculator."""
-    saved_entries = existing.get("classes") if isinstance(existing.get("classes"), list) else []
-    primary_name = display_class_name(existing.get("character_class", ""))
-    primary_subclass = existing.get("subclass") or ""
     entries: List[Dict[str, Any]] = []
-
     for class_name, level in class_levels.items():
         canonical = display_class_name(class_name)
-        saved = next(
-            (
-                entry
-                for entry in saved_entries
-                if _normalise_name(entry.get("name") or entry.get("class_name") or entry.get("character_class") or entry.get("class"))
-                == _normalise_name(canonical)
-            ),
-            {},
-        )
-        subclass = saved.get("subclass") or (primary_subclass if _normalise_name(canonical) == _normalise_name(primary_name) else "")
+        saved = _saved_class_entry(existing, canonical)
+        subclass = saved.get("subclass") or _subclass_for_class(existing, canonical)
         entries.append({"name": canonical, "level": max(0, _int(level, 0)), "subclass": subclass})
     return entries
 
@@ -93,7 +112,7 @@ def progression_spell_slot_totals(existing: Dict[str, Any], class_levels: Dict[s
     """Return the normal spell-slot pool appropriate for a post-level-up class mix.
 
     For a Warlock-only (or Warlock + non-caster) character, keep Pact Magic in
-    the legacy spell_slots field for compatibility with the current Spells tab.
+    the legacy spell_slots field for compatibility with older saved sheets.
     Once another spellcasting class contributes shared slots, spell_slots holds
     only that shared table and Pact Magic is tracked through resources.pact_magic.
     """
@@ -127,8 +146,6 @@ def preserve_spell_slot_state(
         spent = max(0, old_total - old_left)
         new_total = sum(new_total_map.values())
         new_left = max(0, new_total - spent)
-        # Pact Magic uses one slot level at a time, so put the preserved count on
-        # the new pact slot level when that level advances.
         pact_level = max(new_total_map, key=lambda level: _int(level, 0))
         return {level: (min(new_total_map[level], new_left) if level == pact_level else 0) for level in new_total_map}
 
@@ -167,9 +184,6 @@ def preserve_pact_magic_resource(existing: Dict[str, Any], update: Dict[str, Any
         old_warlock_level = _warlock_level(old_levels)
         old_shape = _pact_magic_slot_shape(old_warlock_level)
         old_max = sum(old_shape.values())
-        # For a legacy single-class Warlock, saved spell_slots_remaining is the
-        # best available record of spent Pact Magic. For mixed casters without
-        # a tracker, default to full rather than guessing that slots were spent.
         if old_warlock_level > 0 and len(old_levels) == 1:
             old_current = sum(_slot_map(existing.get("spell_slots_remaining") or old_shape).values())
         else:
@@ -189,6 +203,29 @@ def preserve_pact_magic_resource(existing: Dict[str, Any], update: Dict[str, Any
         "className": "Warlock",
     }
     return resources
+
+
+def _normalised_classes_state(
+    existing: Dict[str, Any],
+    class_levels: Dict[str, int],
+    leveled_class: str,
+    selected_subclass: str = "",
+) -> List[Dict[str, Any]]:
+    """Persist per-class levels/subclasses so frontend multiclass reads cannot go stale."""
+    result: List[Dict[str, Any]] = []
+    for class_name, level in class_levels.items():
+        canonical = display_class_name(class_name)
+        saved = dict(_saved_class_entry(existing, canonical))
+        subclass = _subclass_for_class(existing, canonical)
+        if selected_subclass and _normalise_name(canonical) == _normalise_name(leveled_class):
+            subclass = selected_subclass
+        result.append({
+            **saved,
+            "name": canonical,
+            "level": max(1, _int(level, 1)),
+            "subclass": subclass,
+        })
+    return result
 
 
 def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -211,8 +248,6 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
     warlock_level = _warlock_level(class_levels)
     single_pool_is_pact = primary_class == "warlock" and len(class_levels) == 1
 
-    # Replace legacy single-class slot math with the shared multiclass table
-    # when applicable. Pact Magic remains separate when shared slots exist.
     update["spell_slots"] = progression_spell_slot_totals(existing, class_levels)
     update["spell_slots_remaining"] = preserve_spell_slot_state(
         existing.get("spell_slots"),
@@ -221,8 +256,56 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
         pact_style=single_pool_is_pact and warlock_level > 0,
     )
     update["resources"] = preserve_pact_magic_resource(existing, update)
+    update["multiclass_levels"] = dict(class_levels) if len(class_levels) > 1 else {}
+    update["multiclass_classes"] = list(class_levels.keys())
 
     return update
+
+
+def build_state_safe_level_up_update(
+    existing: Dict[str, Any],
+    level_up: LevelUpRequest,
+    leveled_class: str,
+    progression_type: str,
+) -> Dict[str, Any]:
+    """Build a level-up payload for primary or already-owned secondary classes."""
+    leveled_class = display_class_name(leveled_class)
+    primary_class = display_class_name(existing.get("character_class", leveled_class))
+    class_levels = initial_class_levels(existing)
+    existing_class = next((name for name in class_levels if _normalise_name(name) == _normalise_name(leveled_class)), None)
+
+    if progression_type != "multiclass" and existing_class is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{leveled_class} is not currently on this character. Use multiclass to add it first.",
+        )
+
+    rules_existing = existing
+    levelling_secondary = progression_type != "multiclass" and _normalise_name(leveled_class) != _normalise_name(primary_class)
+    if levelling_secondary:
+        rules_existing = dict(existing)
+        rules_existing["character_class"] = leveled_class
+        rules_existing["subclass"] = _subclass_for_class(existing, leveled_class)
+
+    update_data = build_level_up_update(rules_existing, level_up, leveled_class, progression_type)
+
+    if levelling_secondary:
+        # A secondary subclass belongs on its class entry, not in the legacy
+        # top-level subclass field that represents the primary class.
+        update_data.pop("subclass", None)
+
+    update_data = preserve_level_up_live_state(existing, update_data)
+    updated_levels = update_data.get("class_levels") if isinstance(update_data.get("class_levels"), dict) else class_levels
+    update_data["classes"] = _normalised_classes_state(
+        existing,
+        updated_levels,
+        leveled_class,
+        level_up.subclass or "",
+    )
+    if not levelling_secondary and level_up.subclass:
+        update_data["subclass"] = level_up.subclass
+
+    return update_data
 
 
 async def _apply_level_up(
@@ -234,8 +317,7 @@ async def _apply_level_up(
     progression_type: str,
 ) -> Dict[str, Any]:
     existing = await get_owned_character(character_id, username)
-    update_data = build_level_up_update(existing, level_up, leveled_class, progression_type)
-    update_data = preserve_level_up_live_state(existing, update_data)
+    update_data = build_state_safe_level_up_update(existing, level_up, leveled_class, progression_type)
     await db.player_characters.update_one(
         {"id": character_id, "user_id": username},
         {"$set": update_data},
@@ -249,9 +331,19 @@ async def level_up_character_state_safe(
     level_up: LevelUpRequest,
     username: str = Depends(get_current_user),
 ):
-    """Level the primary class without treating level-up as a free rest."""
+    """Level any class already owned by the character without granting a free rest."""
     existing = await get_owned_character(character_id, username)
-    leveled_class = display_class_name(existing.get("character_class", "Fighter"))
+    class_levels = initial_class_levels(existing)
+    requested = display_class_name(level_up.new_class or existing.get("character_class", "Fighter"))
+    leveled_class = next(
+        (class_name for class_name in class_levels if _normalise_name(class_name) == _normalise_name(requested)),
+        None,
+    )
+    if not leveled_class:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{requested} is not currently on this character. Use multiclass to add it first.",
+        )
     return await _apply_level_up(
         character_id,
         level_up,
@@ -274,7 +366,7 @@ async def multiclass_character_state_safe(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="new_class is required for multiclassing")
 
     class_levels = initial_class_levels(existing)
-    if new_class in class_levels:
+    if any(_normalise_name(name) == _normalise_name(new_class) for name in class_levels):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"{new_class} is already on this character. Continue that class through the normal level-up path.",
