@@ -189,6 +189,7 @@ export default function PlayerDashboard() {
           <PlayerCharactersPanel
             characters={characters}
             onCreateCharacter={() => navigate('/characters/new')}
+            onImportCharacter={() => navigate('/characters/import')}
             onOpenCharacter={(character) => navigate(`/characters/${character.id}`)}
           />
         )}
