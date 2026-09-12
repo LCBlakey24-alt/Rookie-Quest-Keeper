@@ -8,6 +8,7 @@ client for confirmation before a character is created.
 
 import base64
 import json
+import mimetypes
 import os
 from pathlib import Path
 from typing import Dict, List
@@ -68,6 +69,23 @@ def _safe_filename(filename: str) -> str:
     """Keep a harmless display filename for model context and the response."""
     cleaned = Path(filename or "character-sheet").name.strip()
     return cleaned[:180] or "character-sheet"
+
+
+def _resolved_content_type(upload: UploadFile) -> str:
+    """Resolve browser MIME quirks without accepting arbitrary file types."""
+    declared = (upload.content_type or "").lower().split(";")[0].strip()
+    if declared in ALLOWED_CHARACTER_SHEET_TYPES:
+        return declared
+
+    guessed, _ = mimetypes.guess_type(upload.filename or "")
+    guessed = (guessed or "").lower()
+    if guessed in ALLOWED_CHARACTER_SHEET_TYPES:
+        return guessed
+
+    # Some clients still label JPEGs as image/jpg.
+    if declared == "image/jpg":
+        return "image/jpeg"
+    return declared
 
 
 def _character_schema() -> Dict:
@@ -188,7 +206,7 @@ async def extract_character_sheet(
     """Extract reviewable character data from a player-supplied PDF or image."""
     del username  # Authentication is required; no account data is sent to the model.
 
-    content_type = (file.content_type or "").lower().split(";")[0].strip()
+    content_type = _resolved_content_type(file)
     if content_type not in ALLOWED_CHARACTER_SHEET_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
