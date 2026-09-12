@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, BookOpen, FileText, Mail, Shield, Users } from 'lucide-react';
+import { AlertTriangle, BookOpen, FileText, Mail, MessageSquare, Shield, Users } from 'lucide-react';
 import PlayerDashboardHeader from '@/components/dashboard/player/PlayerDashboardHeader';
 import PlayerDashboardLoading from '@/components/dashboard/player/PlayerDashboardLoading';
 import PlayerJoinStrip from '@/components/dashboard/player/PlayerJoinStrip';
@@ -17,6 +17,7 @@ import {
   fetchPlayerHandoutSummary,
 } from '@/components/dashboard/player/playerDashboardData';
 import apiClient from '@/lib/apiClient';
+import { isPlayerBeta } from '@/beta/playerBetaSession';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import '@/styles/playerDashboardBoard.css';
 import '@/styles/playerHandoutsPanel.css';
@@ -51,6 +52,7 @@ const tabs = [
 
 export default function PlayerDashboard() {
   const navigate = useNavigate();
+  const playerBeta = isPlayerBeta();
   const [activeTab, setActiveTab] = useState('characters');
   const [characters, setCharacters] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
@@ -194,17 +196,33 @@ export default function PlayerDashboard() {
     refreshHandouts();
   };
 
+  const openFeedback = () => {
+    window.dispatchEvent(new Event('rook-feedback-open'));
+  };
+
   if (loading) return <PlayerDashboardLoading />;
 
   return (
     <main className="player-dashboard-page">
       <PlayerDashboardHeader
         refreshing={refreshing}
-        onBack={() => navigate('/home')}
+        onBack={() => navigate(playerBeta ? '/player' : '/home')}
         onRefresh={refresh}
         onCreateCharacter={() => navigate('/characters/new')}
         onJoinCampaign={openJoinFlow}
       />
+
+      {playerBeta && (
+        <aside data-testid="player-beta-notice" style={betaNoticeStyle}>
+          <div style={betaNoticeCopyStyle}>
+            <strong>PLAYER BETA</strong>
+            <span>Use RQK normally. If something breaks, feels confusing, or is missing, tell us — that feedback directly helps improve the player side.</span>
+          </div>
+          <button type="button" onClick={openFeedback} style={betaFeedbackButtonStyle}>
+            <MessageSquare size={16} aria-hidden="true" /> Report an issue
+          </button>
+        </aside>
+      )}
 
       {loadWarning && (
         <aside data-testid="player-dashboard-load-warning" role="status" style={loadWarningStyle}>
@@ -272,6 +290,45 @@ export default function PlayerDashboard() {
     </main>
   );
 }
+
+const betaNoticeStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  flexWrap: 'wrap',
+  gap: 10,
+  padding: '11px 13px',
+  marginBottom: 10,
+  border: '1px solid rgba(124,203,255,.30)',
+  borderLeft: '2px solid #7CCBFF',
+  borderRadius: 6,
+  background: '#0C2234',
+  color: '#FFFFFF',
+};
+
+const betaNoticeCopyStyle = {
+  display: 'grid',
+  gap: 3,
+  minWidth: 0,
+  flex: '1 1 260px',
+  fontSize: 12,
+  lineHeight: 1.4,
+};
+
+const betaFeedbackButtonStyle = {
+  minHeight: 40,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 7,
+  padding: '0 12px',
+  border: '1px solid #FF2DAA',
+  borderRadius: 5,
+  background: '#102B40',
+  color: '#FFFFFF',
+  fontWeight: 850,
+  cursor: 'pointer',
+};
 
 const loadWarningStyle = {
   display: 'flex',

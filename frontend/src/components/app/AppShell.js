@@ -14,6 +14,7 @@ import '@/layouts/desktop/appShell.css';
 import '@/layouts/tablet/appShell.css';
 import '@/layouts/mobile/appShell.css';
 import { isLocalPreview } from '@/preview/previewMode';
+import { isPlayerBeta } from '@/beta/playerBetaSession';
 import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
 import '@/preview/previewWorkspace.css';
 
@@ -27,14 +28,20 @@ const mainNavItems = [
   { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'], mobilePrimary: false },
 ];
 
+const betaNavItems = [
+  { label: 'Player home', to: '/player', icon: Home, matches: ['/player'], mobilePrimary: true },
+  { label: 'Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
+  { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
+];
+
 const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches: ['/admin'], mobilePrimary: false };
 
 function isActive(pathname, item) {
   return item.matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
 }
 
-function sectionLabel(pathname) {
-  const item = [...mainNavItems, adminNavItem].find((candidate) => isActive(pathname, candidate));
+function sectionLabel(pathname, items = mainNavItems) {
+  const item = [...items, adminNavItem].find((candidate) => isActive(pathname, candidate));
   return item?.label || 'Workspace';
 }
 
@@ -75,13 +82,13 @@ function openDice() {
   window.dispatchEvent(new Event('rq-dice-open'));
 }
 
-function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice }) {
+function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice, playerBeta }) {
   return (
     <div id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
-          <span>Rook, dice, player home, uploads, settings, and feedback.</span>
+          <span>{playerBeta ? 'Rook, dice, and beta feedback.' : 'Rook, dice, player home, uploads, settings, and feedback.'}</span>
         </div>
         <button type="button" className="rqk-app-mobile-more-close" onClick={onClose} aria-label="Close more tools">
           <X size={18} aria-hidden="true" />
@@ -135,15 +142,21 @@ export default function AppShell({ children }) {
   const location = useLocation();
   const deviceLayout = useDeviceLayout();
   const isMobile = deviceLayout === 'mobile';
+  const playerBeta = isPlayerBeta();
+  const navItems = playerBeta ? betaNavItems : mainNavItems;
   const visibleNavItems = isMobile
-    ? mainNavItems.filter((item) => item.mobilePrimary)
-    : mainNavItems;
+    ? navItems.filter((item) => item.mobilePrimary)
+    : navItems;
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    if (playerBeta) {
+      setIsAdmin(false);
+      return undefined;
+    }
 
+    let active = true;
     apiClient.get('/admin/check')
       .then((response) => {
         if (active) setIsAdmin(Boolean(response.data?.is_admin));
@@ -155,7 +168,7 @@ export default function AppShell({ children }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [playerBeta]);
 
   useEffect(() => {
     setIsMoreOpen(false);
@@ -176,13 +189,13 @@ export default function AppShell({ children }) {
     const tools = [
       { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
       { label: 'Dice roller', icon: Dices, kind: 'dice' },
-      ...mainNavItems.filter((item) => item.mobilePrimary === false),
-      { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
+      ...navItems.filter((item) => item.mobilePrimary === false),
+      { label: playerBeta ? 'Beta feedback' : 'Feedback', icon: MessageSquare, kind: 'feedback' },
     ];
 
-    if (isAdmin) tools.push(adminNavItem);
+    if (isAdmin && !playerBeta) tools.push(adminNavItem);
     return tools;
-  }, [isAdmin]);
+  }, [isAdmin, navItems, playerBeta]);
 
   const handleRook = () => {
     setIsMoreOpen(false);
@@ -199,21 +212,23 @@ export default function AppShell({ children }) {
     openFeedback();
   };
 
+  const homePath = playerBeta ? '/player' : '/home';
+
   return (
     <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout}>
       <aside className="rqk-app-rail" aria-label="App navigation">
-        {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
+        {!isMobile && <Link to={homePath} className="rqk-app-rail-brand" aria-label={playerBeta ? 'Rookie Quest Keeper Player Beta home' : 'Rookie Quest Keeper dashboard'}>
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
             <BrandMiniLogo size={36} alt="" />
           </span>
           <span className="rqk-app-rail-brand-copy">
             <strong>Rookie Quest</strong>
-            <small>Keeper Hub</small>
+            <small>{playerBeta ? 'Player Beta' : 'Keeper Hub'}</small>
           </span>
         </Link>}
 
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
-          {!isMobile && <p className="rqk-app-rail-section-label">Workspace</p>}
+          {!isMobile && <p className="rqk-app-rail-section-label">{playerBeta ? 'Player Beta' : 'Workspace'}</p>}
           {visibleNavItems.map((item) => (
             <RailLink key={item.label} item={item} pathname={location.pathname} />
           ))}
@@ -228,10 +243,10 @@ export default function AppShell({ children }) {
             </button>
             <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback}>
               <MessageSquare size={20} aria-hidden="true" />
-              <span>Feedback</span>
+              <span>{playerBeta ? 'Beta feedback' : 'Feedback'}</span>
             </button>
 
-            {isAdmin && <RailLink item={adminNavItem} pathname={location.pathname} className="rqk-app-rail-support-link" />}
+            {isAdmin && !playerBeta && <RailLink item={adminNavItem} pathname={location.pathname} className="rqk-app-rail-support-link" />}
           </>}
 
           {isMobile && <button
@@ -255,6 +270,7 @@ export default function AppShell({ children }) {
             onRook={handleRook}
             onDice={handleDice}
             onFeedback={handleFeedback}
+            playerBeta={playerBeta}
           />
         )}
       </aside>
@@ -262,8 +278,8 @@ export default function AppShell({ children }) {
       <div className="rqk-app-workspace">
         <header className="rqk-app-topbar" aria-label="Workspace controls">
           {isLocalPreview() ? <PreviewWorkspaceControls /> : <div className="rqk-app-topbar-title">
-            <span>Rookie Quest Keeper</span>
-            <strong>{sectionLabel(location.pathname)}</strong>
+            <span>{playerBeta ? 'Rookie Quest Keeper · Beta' : 'Rookie Quest Keeper'}</span>
+            <strong>{sectionLabel(location.pathname, navItems)}</strong>
           </div>}
         </header>
 
