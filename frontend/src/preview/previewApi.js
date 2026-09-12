@@ -1,4 +1,5 @@
 import { buildLongRestUpdates, buildShortRestUpdates } from '../data/characterRestRules';
+import { canonicalisePreviewCreatedCharacter } from './previewCharacterCreation';
 import { createPreviewSeed } from './previewSeed';
 import { PREVIEW_STORAGE_KEY, PREVIEW_USER } from './previewMode';
 
@@ -85,7 +86,10 @@ export function createPreviewApi(storage = typeof localStorage === 'undefined' ?
     }
     if (parts[0] === 'characters' && parts.length <= 2) {
       if (method === 'post' && !String(body.name || '').trim()) fail('Give the character a name.', 400);
-      return crud(state.characters, method, parts[1], body, { user_id: PREVIEW_USER });
+      const characterBody = method === 'post' && !parts[1]
+        ? canonicalisePreviewCreatedCharacter(body)
+        : body;
+      return crud(state.characters, method, parts[1], characterBody, { user_id: PREVIEW_USER });
     }
     if (parts[0] === 'campaigns' && parts.length <= 2) {
       if (method === 'post' && !String(body.name || '').trim()) fail('Give the campaign a name.', 400);
