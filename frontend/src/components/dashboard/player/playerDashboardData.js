@@ -9,10 +9,14 @@ function readList(result, objectKey) {
   return null;
 }
 
-function readHandoutList(data) {
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.handouts)) return data.handouts;
-  return null;
+function readHandoutSummary(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+  const total = Number(data.total);
+  const unread = Number(data.unread);
+  const saved = Number(data.saved);
+  if (![total, unread, saved].every(Number.isFinite)) return null;
+  if (total < 0 || unread < 0 || saved < 0) return null;
+  return { total, unread, saved };
 }
 
 function mergeCampaignSources(gmCampaigns, joinedCampaigns) {
@@ -69,10 +73,10 @@ export async function fetchPlayerDashboardSections(client, { includeHandouts = t
 }
 
 export async function fetchPlayerHandoutSummary(client) {
-  const response = await client.get('/player/handouts');
-  const handouts = readHandoutList(response?.data);
-  if (handouts === null) throw new Error('Malformed received handouts response');
-  return summarizeHandouts(handouts);
+  const response = await client.get('/player/handouts/summary');
+  const summary = readHandoutSummary(response?.data);
+  if (summary === null) throw new Error('Malformed received handout summary response');
+  return summary;
 }
 
 export function describePlayerDashboardFailures(failures = []) {
