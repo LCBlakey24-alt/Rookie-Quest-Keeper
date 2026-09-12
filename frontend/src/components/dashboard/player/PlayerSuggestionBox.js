@@ -7,6 +7,7 @@ import '@/styles/playerSuggestionBox.css';
 const REQUEST_TYPES = [
   { id: 'feature', label: 'New feature', category: 'feature', area: 'player-feature' },
   { id: 'class', label: 'Class / subclass / species', category: 'feature', area: 'rules-content' },
+  { id: 'rules', label: 'Spells / feats / rules content', category: 'feature', area: 'rules-content' },
   { id: 'creator', label: 'Character creation', category: 'improvement', area: 'character-creation' },
   { id: 'sheet', label: 'Character sheet', category: 'improvement', area: 'character-sheet' },
   { id: 'campaign', label: 'Player campaign tools', category: 'feature', area: 'player-campaign' },
