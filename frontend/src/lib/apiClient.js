@@ -2,6 +2,10 @@ import axios from 'axios';
 import { API_BASE } from '@/lib/api';
 import { clearAuthToken, getAuthToken } from '@/lib/auth';
 import { readOfflineApiResponse, storeOfflineApiResponse } from '@/offline/offlineApiCache';
+import {
+  readHigherLevelCreationSelections,
+  validateHigherLevelCharacterCreation,
+} from '@/data/startingLevelRequestValidation';
 
 import { formatApiErrorDetail } from '@/lib/apiErrors';
 import { isLocalPreview } from '@/preview/previewMode';
@@ -26,6 +30,42 @@ export function applyLoginTimeoutPolicy(config = {}) {
   return { ...config, timeout: 0 };
 }
 
+function parseRequestData(data) {
+  if (!data || typeof data === 'object') return data || {};
+  if (typeof data !== 'string') return {};
+  try {
+    return JSON.parse(data) || {};
+  } catch {
+    return {};
+  }
+}
+
+export function applyCharacterCreationReadinessPolicy(config = {}, storage) {
+  const method = String(config.method || 'get').toLowerCase();
+  const url = String(config.url || '');
+  if (method !== 'post' || url !== '/characters') return config;
+
+  const payload = parseRequestData(config.data);
+  if (payload.creation_mode !== 'full' || Number(payload.level || 1) <= 1) return config;
+
+  const { levelChoices, detailChoices } = readHigherLevelCreationSelections(storage);
+  const readiness = validateHigherLevelCharacterCreation({ payload, levelChoices, detailChoices });
+  if (readiness.ready) return config;
+
+  const firstBlockers = readiness.blockers.slice(0, 3);
+  const remaining = readiness.blockers.length - firstBlockers.length;
+  const message = [
+    'Complete the required starting-level choices before creating this character.',
+    ...firstBlockers,
+    remaining > 0 ? `Plus ${remaining} more required choice${remaining === 1 ? '' : 's'}.` : '',
+  ].filter(Boolean).join(' ');
+  const error = new Error(message);
+  error.formattedDetail = message;
+  error.rqkValidation = true;
+  error.validationBlockers = readiness.blockers;
+  throw error;
+}
+
 export async function wakeBackend() {
   if (isLocalPreview()) return false;
   if (typeof fetch !== 'function') return false;
@@ -48,9 +88,10 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((incomingConfig) => {
-  if (isLocalPreview()) return { ...incomingConfig, adapter: previewAdapter };
   let config = applyLegacyApiCompatibility(incomingConfig);
   config = applyLoginTimeoutPolicy(config);
+  config = applyCharacterCreationReadinessPolicy(config);
+  if (isLocalPreview()) return { ...config, adapter: previewAdapter };
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
