@@ -124,3 +124,24 @@
     bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+
+/* RQK 1.0 Rook playbook authority */
+.rook-assistant-playbook {
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+}
+
+.rook-assistant-playbook > span,
+.rook-assistant-playbook li {
+  color: #FFFFFF !important;
+}
+
+.rook-assistant-playbook li::before {
+  background: #7CCBFF !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}

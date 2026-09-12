@@ -156,6 +156,39 @@ function getPasswordStrength(checks, password) {
   return { score, tone: 'high', label: 'Table-ready' };
 }
 
+const STAGING_BRANCH_HOST = 'git-rqk-1-0-s-14f145';
+const STAGING_CREDENTIALS_KEY = 'rqk.stagingTestCredentials';
+
+function isStagingPreview() {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname.includes(STAGING_BRANCH_HOST);
+}
+
+function createStagingCredentials() {
+  if (!isStagingPreview()) return null;
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(STAGING_CREDENTIALS_KEY) || 'null');
+    if (saved?.username && saved?.password) return saved;
+  } catch {
+    // Generate a fresh throwaway account if stored preview credentials are malformed.
+  }
+
+  const values = new Uint32Array(2);
+  window.crypto.getRandomValues(values);
+  const username = `RQKTest${String(values[0] % 1000000).padStart(6, '0')}`;
+  const password = `RookTest-${values[0].toString(16)}${values[1].toString(16)}!`;
+  const credentials = { username, password };
+
+  try {
+    localStorage.setItem(STAGING_CREDENTIALS_KEY, JSON.stringify(credentials));
+  } catch {
+    // Preview credentials can still be used for the current tab.
+  }
+
+  return credentials;
+}
+
 export default function AuthPage({ onLogin = () => {} }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -173,6 +206,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [stagingCredentials] = useState(() => createStagingCredentials());
 
   useEffect(() => {
     if (initialToken) {
@@ -241,6 +275,40 @@ export default function AuthPage({ onLogin = () => {} }) {
       navigate('/home', { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Login failed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStagingAccess = async () => {
+    if (!stagingCredentials) return;
+
+    setLoading(true);
+    try {
+      let response;
+
+      try {
+        response = await apiClient.post('/auth/login', stagingCredentials);
+      } catch (loginError) {
+        if (loginError?.response?.status !== 401) throw loginError;
+
+        try {
+          response = await apiClient.post('/auth/register', stagingCredentials);
+        } catch (registerError) {
+          const detail = String(registerError?.response?.data?.detail || '');
+          if (registerError?.response?.status === 400 && /username already taken/i.test(detail)) {
+            response = await apiClient.post('/auth/login', stagingCredentials);
+          } else {
+            throw registerError;
+          }
+        }
+      }
+
+      toast.success('Staging test account ready');
+      onLogin(response.data.token, response.data.username || stagingCredentials.username);
+      navigate('/home', { replace: true });
+    } catch (error) {
+      toast.error(getErrorMessage(error, 'Could not open the staging test account'));
     } finally {
       setLoading(false);
     }
@@ -447,6 +515,23 @@ export default function AuthPage({ onLogin = () => {} }) {
 
             <AuthNotice>{copy.notice}</AuthNotice>
             <AuthAssurancePanel {...assurance} />
+
+            {mode === 'login' && stagingCredentials && (
+              <section className="rqk-staging-access" aria-label="Staging test account">
+                <div>
+                  <span>Preview only</span>
+                  <strong>Test account</strong>
+                  <p>This throwaway login is isolated to its own account records. Use it for testing instead of your real campaign account.</p>
+                </div>
+                <dl>
+                  <div><dt>Username</dt><dd>{stagingCredentials.username}</dd></div>
+                  <div><dt>Password</dt><dd>{stagingCredentials.password}</dd></div>
+                </dl>
+                <button type="button" onClick={handleStagingAccess} disabled={loading} className="rqk-staging-access__button">
+                  {loading ? 'Opening test workspace…' : 'Create / enter test workspace'}
+                </button>
+              </section>
+            )}
 
             {mode === 'login' && (
               <form

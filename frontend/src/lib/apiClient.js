@@ -4,10 +4,8 @@ import { clearAuthToken, getAuthToken } from '@/lib/auth';
 import { readOfflineApiResponse, storeOfflineApiResponse } from '@/offline/offlineApiCache';
 
 import { formatApiErrorDetail } from '@/lib/apiErrors';
-
-const CHARACTER_PUT_ONLY_FIELDS = new Set([
-  'spell_slots_remaining',
-]);
+import { isLocalPreview } from '@/preview/previewMode';
+import { previewAdapter } from '@/preview/previewTransport';
 
 const LEGACY_ACCOUNT_ROUTES = {
   'get:/account/profile': { method: 'get', url: '/auth/me' },
@@ -15,24 +13,6 @@ const LEGACY_ACCOUNT_ROUTES = {
   'post:/account/change-password': { method: 'post', url: '/auth/change-password' },
   'delete:/account/delete': { method: 'delete', url: '/auth/me' },
 };
-
-function parseBody(data) {
-  if (!data) return {};
-  if (typeof data === 'string') {
-    try { return JSON.parse(data); } catch { return {}; }
-  }
-  return typeof data === 'object' ? data : {};
-}
-
-function shouldUseCharacterPut(config) {
-  const method = String(config?.method || '').toLowerCase();
-  const url = String(config?.url || '');
-  if (method !== 'patch') return false;
-  if (!/^\/characters\/[^/]+$/.test(url)) return false;
-
-  const body = parseBody(config.data);
-  return Object.keys(body).some(key => CHARACTER_PUT_ONLY_FIELDS.has(key));
-}
 
 export function applyLegacyApiCompatibility(config = {}) {
   const key = `${String(config.method || 'get').toLowerCase()}:${String(config.url || '')}`;
@@ -46,7 +26,48 @@ export function applyLoginTimeoutPolicy(config = {}) {
   return { ...config, timeout: 0 };
 }
 
+function parseRequestData(data) {
+  if (!data || typeof data === 'object') return data || {};
+  if (typeof data !== 'string') return {};
+  try {
+    return JSON.parse(data) || {};
+  } catch {
+    return {};
+  }
+}
+
+export async function applyCharacterCreationReadinessPolicy(config = {}, storage) {
+  const method = String(config.method || 'get').toLowerCase();
+  const url = String(config.url || '');
+  if (method !== 'post' || url !== '/characters') return config;
+
+  const payload = parseRequestData(config.data);
+  if (payload.creation_mode !== 'full' || Number(payload.level || 1) <= 1) return config;
+
+  const {
+    readHigherLevelCreationSelections,
+    validateHigherLevelCharacterCreation,
+  } = await import('@/data/startingLevelRequestValidation');
+  const { levelChoices, detailChoices } = readHigherLevelCreationSelections(storage);
+  const readiness = validateHigherLevelCharacterCreation({ payload, levelChoices, detailChoices });
+  if (readiness.ready) return config;
+
+  const firstBlockers = readiness.blockers.slice(0, 3);
+  const remaining = readiness.blockers.length - firstBlockers.length;
+  const message = [
+    'Complete the required starting-level choices before creating this character.',
+    ...firstBlockers,
+    remaining > 0 ? `Plus ${remaining} more required choice${remaining === 1 ? '' : 's'}.` : '',
+  ].filter(Boolean).join(' ');
+  const error = new Error(message);
+  error.formattedDetail = message;
+  error.rqkValidation = true;
+  error.validationBlockers = readiness.blockers;
+  throw error;
+}
+
 export async function wakeBackend() {
+  if (isLocalPreview()) return false;
   if (typeof fetch !== 'function') return false;
   try {
     await fetch(`${API_BASE}/health`, { method: 'GET', cache: 'no-store' });
@@ -66,21 +87,20 @@ const apiClient = axios.create({
   timeout: 20000,
 });
 
-apiClient.interceptors.request.use((incomingConfig) => {
+apiClient.interceptors.request.use(async (incomingConfig) => {
   let config = applyLegacyApiCompatibility(incomingConfig);
   config = applyLoginTimeoutPolicy(config);
+  config = await applyCharacterCreationReadinessPolicy(config);
+  if (isLocalPreview()) return { ...config, adapter: previewAdapter };
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
-
-  if (shouldUseCharacterPut(config)) {
-    config.method = 'put';
-  }
 
   return config;
 });
 
 apiClient.interceptors.response.use(
   (response) => {
+    if (isLocalPreview()) return response;
     storeOfflineApiResponse(response.config, response).catch(() => {});
     return response;
   },

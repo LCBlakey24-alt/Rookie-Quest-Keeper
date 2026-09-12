@@ -992,3 +992,116 @@
     transform: none;
   }
 }
+
+
+/* RQK 1.0 flat landing authority */
+.landing-page-final {
+  --landing-bg: #071522;
+  --landing-bg-deep: #06111C;
+  --landing-surface: #0C2234;
+  --landing-card: #102B40;
+  --landing-card-hover: #14344C;
+  --landing-line: rgba(255,45,170,0.18);
+  --landing-line-strong: rgba(255,45,170,0.42);
+  --landing-red: #FF2DAA;
+  --landing-red-bright: #FF2DAA;
+  --landing-red-soft: rgba(255,45,170,0.08);
+  --landing-text: #FFFFFF;
+  --landing-muted: #FFFFFF;
+  --landing-faint: #FFFFFF;
+
+  background: #071522 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+}
+
+.landing-page-final :where(
+  .landing-final-nav,
+  .landing-final-main,
+  .landing-final-footer,
+  .landing-preview-panel,
+  .landing-preview-spotlight,
+  .landing-section-heading,
+  .landing-marketing-block,
+  .landing-final-cta,
+  .landing-final-features,
+  .landing-benefit-grid,
+  .landing-two-columns,
+  .landing-roadmap,
+  .landing-final-strip,
+  .landing-start-paths,
+  .landing-proof-strip,
+  .landing-preview-row,
+  .landing-card-action,
+  .landing-button
+) {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.landing-final-nav,
+.landing-preview-panel,
+.landing-preview-spotlight,
+.landing-section-heading,
+.landing-marketing-block,
+.landing-final-cta,
+.landing-final-features,
+.landing-benefit-grid,
+.landing-two-columns,
+.landing-roadmap,
+.landing-final-strip,
+.landing-start-paths,
+.landing-proof-strip {
+  border-color: rgba(255,45,170,0.18) !important;
+}
+
+.landing-final-nav {
+  background: #071522 !important;
+  backdrop-filter: none !important;
+}
+
+.landing-preview-panel,
+.landing-preview-spotlight,
+.landing-marketing-block,
+.landing-final-cta,
+.landing-section-heading {
+  background: #0C2234 !important;
+}
+
+.landing-preview-row,
+.landing-card-action,
+#root .landing-page-final .landing-button,
+.landing-roadmap article > span {
+  background: #102B40 !important;
+}
+
+#root .landing-page-final .landing-button-primary,
+.landing-card-action:hover:not(:disabled),
+.landing-card-action:focus-visible:not(:disabled) {
+  background: #102B40 !important;
+  border-color: #FF2DAA !important;
+}
+
+.landing-page-final :where(h1,h2,h3,h4,p,span,strong,small,li,a,button) {
+  color: #FFFFFF !important;
+}
+
+.landing-page-final :where(
+  .landing-final-feature svg,
+  .landing-benefit-card svg,
+  .landing-two-columns svg,
+  .landing-final-strip svg,
+  .landing-final-cta svg,
+  .landing-logo-button svg,
+  .landing-start-card svg,
+  .landing-preview-row svg
+) {
+  color: #7CCBFF !important;
+}
+
+.landing-check-list li::before,
+.landing-two-columns li::before,
+.landing-preview-dots span {
+  background: #FF2DAA !important;
+}

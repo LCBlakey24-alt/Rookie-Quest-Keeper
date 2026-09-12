@@ -1,0 +1,279 @@
+/* Player Received handouts only. This file is deliberately scoped to the Player Dashboard
+   so the GM handout workspace in HandoutsTab.js is unaffected. */
+
+.player-handouts-surface {
+  min-width: 0;
+  color: #FFFFFF;
+}
+
+.player-handouts-surface > section {
+  gap: 7px !important;
+  padding: 0 !important;
+  color: #FFFFFF !important;
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+}
+
+.player-handouts-surface :where(h1,h2,h3,h4,p,span,strong,small,label,button) {
+  color: #FFFFFF !important;
+  text-shadow: none !important;
+}
+
+.player-handouts-surface :where(button,article,div,label) {
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* Refresh / action buttons */
+.player-handouts-surface button {
+  min-height: 38px !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  background: #102B40 !important;
+  color: #FFFFFF !important;
+  font-weight: 850 !important;
+}
+
+.player-handouts-surface button:hover:not(:disabled),
+.player-handouts-surface button:focus-visible {
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
+  outline: none !important;
+}
+
+.player-handouts-surface button svg,
+.player-handouts-surface > section > h4 svg,
+.player-handouts-surface article > button > svg,
+.player-handouts-surface [role='status'] svg {
+  color: #7CCBFF !important;
+}
+
+/* Error / unread notice */
+.player-handouts-surface [role='status'] {
+  padding: 9px 10px !important;
+  margin: 0 !important;
+  background: #102B40 !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+.player-handouts-surface > section > div:has(> svg + span) {
+  gap: 7px !important;
+  padding: 8px 9px !important;
+  background: rgba(124,203,255,.08) !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+  font-size: 11px !important;
+}
+
+/* Heading / saved badge */
+.player-handouts-surface > section > h4 {
+  margin: 3px 0 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  color: #FFFFFF !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+}
+
+.player-handouts-surface > section > h4 > span,
+.player-handouts-surface article > button > span {
+  min-height: 22px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 6px !important;
+  background: rgba(124,203,255,.10) !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 4px !important;
+  color: #FFFFFF !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  letter-spacing: .04em !important;
+  text-transform: uppercase !important;
+}
+
+/* Filter row. Old inline accent fills are neutralised; selected filter keeps the pink hairline. */
+.player-handouts-surface > section > div:has(> button) {
+  gap: 5px !important;
+}
+
+.player-handouts-surface > section > div:has(> button) > button {
+  min-height: 32px !important;
+  padding: 0 8px !important;
+  background: #102B40 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+  font-size: 10px !important;
+}
+
+.player-handouts-surface > section > div:has(> button) > button[style*="--rq-accent-primary"],
+.player-handouts-surface > section > div:has(> button) > button[style*="#FF2DAA"],
+.player-handouts-surface > section > div:has(> button) > button[style*="#ff2daa"] {
+  background: rgba(124,203,255,.10) !important;
+  border-color: #FF2DAA !important;
+}
+
+/* Handout cards */
+.player-handouts-surface article {
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #102B40 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-left: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
+  color: #FFFFFF !important;
+}
+
+.player-handouts-surface article:has(> button svg:first-child:not(:only-child)) {
+  min-height: 0 !important;
+}
+
+.player-handouts-surface article > button:first-child {
+  width: 100% !important;
+  min-height: 48px !important;
+  padding: 9px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  text-align: left !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.player-handouts-surface article > button:first-child:hover,
+.player-handouts-surface article > button:first-child:focus-visible {
+  background: rgba(124,203,255,.06) !important;
+  outline: none !important;
+}
+
+.player-handouts-surface article > button:first-child strong {
+  min-width: 0 !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: #FFFFFF !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+.player-handouts-surface article > div {
+  margin-top: 0 !important;
+  padding: 9px !important;
+  border-top: 1px solid rgba(255,45,170,.14) !important;
+  color: #FFFFFF !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+}
+
+.player-handouts-surface article > div > p {
+  margin: 0 !important;
+  color: #FFFFFF !important;
+  line-height: 1.45 !important;
+  white-space: pre-wrap !important;
+}
+
+.player-handouts-surface article img {
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  background: #081B2A !important;
+}
+
+/* Save / share row */
+.player-handouts-surface article > div > div:has(> button) {
+  gap: 5px !important;
+  margin-top: 8px !important;
+}
+
+.player-handouts-surface article > div > div:has(> button) > button {
+  min-height: 34px !important;
+  padding: 0 8px !important;
+  background: #102B40 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #FFFFFF !important;
+  font-size: 10px !important;
+}
+
+.player-handouts-surface article > div > div:has(> button) > button[style*="--rq-accent-primary"],
+.player-handouts-surface article > div > div:has(> button) > button[style*="#FF2DAA"] {
+  background: rgba(124,203,255,.10) !important;
+  border-color: #FF2DAA !important;
+}
+
+.player-handouts-surface article > div > div:has(> button) > span {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 8px !important;
+  background: #081B2A !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+  font-size: 9px !important;
+}
+
+/* Re-share recipients */
+.player-handouts-surface article label {
+  min-height: 32px !important;
+  padding: 5px 7px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  background: #081B2A !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+  font-size: 10px !important;
+}
+
+.player-handouts-surface article input[type='checkbox'] {
+  accent-color: #7CCBFF !important;
+}
+
+/* Empty state */
+.player-handouts-surface > section > div:has(> svg):not(:has(> span)) {
+  padding: 18px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 6px !important;
+  background: #102B40 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
+  color: #FFFFFF !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 719px) {
+  .player-handouts-surface > section > button:first-of-type {
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    font-size: 0 !important;
+  }
+
+  .player-handouts-surface > section > button:first-of-type::before {
+    content: '↻';
+    color: #7CCBFF;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .player-handouts-surface > section > div:has(> button) {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 2px !important;
+  }
+
+  .player-handouts-surface > section > div:has(> button) > button {
+    flex: 0 0 auto !important;
+  }
+}

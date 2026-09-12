@@ -163,3 +163,65 @@
     animation: none !important;
   }
 }
+
+
+/* RQK 1.0 loading polish authority */
+#root .loading-screen,
+#root .clean-sheet-loading,
+#root .full-creator-loading,
+#root .loading-screen::before,
+#root .clean-sheet-loading::before,
+#root .loading-screen .loading-spinner,
+#root .loading-brand-mark,
+#root .route-loading-steps li {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root .loading-screen,
+#root .clean-sheet-loading {
+  background: #071522 !important;
+  color: #FFFFFF !important;
+}
+
+#root .loading-screen::before,
+#root .clean-sheet-loading::before,
+#root .full-creator-loading {
+  background: #0C2234 !important;
+  border: 1px solid rgba(255,45,170,.22) !important;
+  border-radius: 7px !important;
+}
+
+#root .loading-card::before,
+#root .loading-screen .loading-title::after,
+#root .clean-sheet-loading p:first-of-type::after,
+#root .full-creator-loading::after {
+  background: #FF2DAA !important;
+  background-image: none !important;
+}
+
+#root .loading-screen .loading-spinner {
+  background: #102B40 !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
+}
+
+#root .loading-screen .loading-spinner::before,
+#root .clean-sheet-loading::after,
+#root .full-creator-loading::before {
+  background: #7CCBFF !important;
+  background-image: none !important;
+}
+
+#root .route-loading-steps li {
+  background: #102B40 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+}
+
+#root :where(.loading-kicker,.loading-title,.loading-tip,.loading-brand-mark),
+#root .clean-sheet-loading :where(p,span,strong,small) {
+  color: #FFFFFF !important;
+}

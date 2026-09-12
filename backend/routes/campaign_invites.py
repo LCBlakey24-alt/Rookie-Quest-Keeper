@@ -180,12 +180,17 @@ async def get_joined_campaigns(username: str = Depends(get_current_user)):
         return []
     campaigns = await db.campaigns.find({'id': {'$in': campaign_ids}}, {'_id': 0}).to_list(100)
     membership_by_campaign = {member.get('campaign_id'): member for member in memberships}
+    from utils.player_views import player_campaign_summary
+    results = []
     for campaign in campaigns:
         member = membership_by_campaign.get(campaign.get('id'), {})
-        campaign['member_role'] = member.get('role', 'player')
-        campaign['character_id'] = member.get('character_id')
-        campaign['member_status'] = member.get('status', 'active')
-    return campaigns
+        results.append({
+            **player_campaign_summary(campaign),
+            'member_role': member.get('role', 'player'),
+            'character_id': member.get('character_id'),
+            'member_status': member.get('status', 'active'),
+        })
+    return results
 
 
 @router.get('/campaign-invites/{campaign_id}/members')

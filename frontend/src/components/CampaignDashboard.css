@@ -463,3 +463,308 @@
     transition: none !important;
   }
 }
+
+
+/* RQK 1.0 GM Home authority */
+#root .campaign-dashboard-simple,
+#root .campaign-dashboard-header,
+#root .campaign-dashboard-nav,
+#root .campaign-home-command,
+#root .campaign-home-focus-card,
+#root .campaign-home-detail,
+#root .campaign-home-quick-card,
+#root .campaign-home-join-code {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root .campaign-dashboard-header {
+  background: #071522 !important;
+  border-bottom: 1px solid rgba(255,45,170,.18) !important;
+}
+
+#root .campaign-dashboard-nav {
+  background: #06111C !important;
+  border-bottom: 1px solid rgba(255,45,170,.18) !important;
+}
+
+#root .campaign-icon-button,
+#root .campaign-button,
+#root .campaign-dashboard-tab,
+#root .campaign-home-quick-card {
+  background: #102B40 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #FFFFFF !important;
+}
+
+#root .campaign-button-primary {
+  background: #102B40 !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
+}
+
+#root .campaign-button:hover,
+#root .campaign-button:focus-visible,
+#root .campaign-icon-button:hover,
+#root .campaign-icon-button:focus-visible,
+#root .campaign-dashboard-tab:hover,
+#root .campaign-dashboard-tab:focus-visible,
+#root .campaign-home-quick-card:hover,
+#root .campaign-home-quick-card:focus-visible {
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
+  outline: none !important;
+}
+
+#root .campaign-dashboard-group,
+#root .campaign-dashboard-tab,
+#root .campaign-dashboard-title-copy > span,
+#root .campaign-home-section-heading > span {
+  color: #FFFFFF !important;
+}
+
+#root .campaign-dashboard-group.is-active,
+#root .campaign-dashboard-tab.is-active {
+  background: rgba(124,203,255,.10) !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
+}
+
+#root .campaign-dashboard-group svg,
+#root .campaign-dashboard-tab svg,
+#root .campaign-home-quick-card svg,
+#root .campaign-home-focus-card > svg {
+  color: #7CCBFF !important;
+}
+
+#root .campaign-home-simple {
+  width: min(100%, 1120px) !important;
+  gap: 12px !important;
+}
+
+#root .campaign-home-command {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  padding: 14px !important;
+  background: #0C2234 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
+}
+
+#root .campaign-home-command-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+#root .campaign-home-command-copy > p,
+#root .campaign-home-command-copy > h2,
+#root .campaign-home-command-copy > span {
+  margin: 0 !important;
+  color: #FFFFFF !important;
+}
+
+#root .campaign-home-command-copy > p,
+#root .campaign-home-focus-label,
+#root .campaign-home-detail-heading > span {
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+}
+
+#root .campaign-home-command-copy > h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem) !important;
+  line-height: 1.05 !important;
+}
+
+#root .campaign-home-command-copy > span {
+  font-size: 12px !important;
+}
+
+#root .campaign-home-command-actions {
+  display: flex !important;
+  gap: 7px !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+}
+
+#root .campaign-home-focus-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .campaign-home-focus-card {
+  min-width: 0 !important;
+  min-height: 132px !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 7px !important;
+  padding: 13px !important;
+  background: #0C2234 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
+  color: #FFFFFF !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+#root .campaign-home-focus-card--wide {
+  grid-column: span 2 !important;
+}
+
+#root .campaign-home-focus-card:hover,
+#root .campaign-home-focus-card:focus-visible {
+  background: #102B40 !important;
+  border-color: #FF2DAA !important;
+  outline: none !important;
+}
+
+#root .campaign-home-focus-card :where(strong,p,small,span) {
+  color: #FFFFFF !important;
+}
+
+#root .campaign-home-focus-card strong {
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+}
+
+#root .campaign-home-focus-card p {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+#root .campaign-home-focus-card small {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+
+#root .campaign-home-detail-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .campaign-home-detail {
+  min-width: 0 !important;
+  min-height: 116px !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 10px !important;
+  padding: 13px !important;
+  background: #0C2234 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
+}
+
+#root .campaign-home-detail-heading {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+}
+
+#root .campaign-home-detail-heading > span,
+#root .campaign-home-detail-heading > button,
+#root .campaign-home-detail > p,
+#root .campaign-home-npc-list span {
+  color: #FFFFFF !important;
+}
+
+#root .campaign-home-detail-heading > button {
+  min-height: 30px !important;
+  padding: 0 8px !important;
+  background: #102B40 !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+
+#root .campaign-home-detail-heading > button:hover,
+#root .campaign-home-detail-heading > button:focus-visible {
+  border-color: #FF2DAA !important;
+  outline: none !important;
+}
+
+#root .campaign-home-detail > p {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  white-space: pre-wrap !important;
+}
+
+#root .campaign-home-npc-list {
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+#root .campaign-home-npc-list span {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 8px !important;
+  background: rgba(124,203,255,.08) !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+#root .campaign-home-section-heading {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+#root .campaign-home-section-heading > h2 {
+  margin: 0 !important;
+  color: #FFFFFF !important;
+  font-size: 1rem !important;
+}
+
+#root .campaign-home-quick-card {
+  border-radius: 5px !important;
+}
+
+#root .campaign-home-join-code {
+  background: #0C2234 !important;
+  border-color: rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+}
+
+#root .campaign-home-join-code > summary,
+#root .campaign-home-join-code > div {
+  color: #FFFFFF !important;
+  border-color: rgba(255,45,170,.18) !important;
+}
+
+@media (max-width: 760px) {
+  #root .campaign-home-command {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  #root .campaign-home-command-actions {
+    justify-content: stretch !important;
+  }
+
+  #root .campaign-home-command-actions .campaign-button {
+    flex: 1 1 0 !important;
+  }
+
+  #root .campaign-home-focus-grid,
+  #root .campaign-home-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .campaign-home-focus-card--wide {
+    grid-column: auto !important;
+  }
+}
