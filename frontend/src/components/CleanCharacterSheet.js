@@ -21,7 +21,7 @@ import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerHelperTab from '@/components/clean-sheet/RookPlayerHelperTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
 import { getClassFeatures } from '@/data/classFeatures';
-import { restoreClassResources } from '@/data/classResourceRules';
+import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
 import {
   PASSIVE_SKILLS,
   SHEET_TABS,
@@ -358,20 +358,11 @@ export default function CleanCharacterSheet() {
     setSavingQuickState(false);
   };
 
-  const buildRestFallback = (restType) => {
-    const restoreType = restType === 'long' ? 'long-rest' : 'short-rest';
-    const updates = { resources: restoreClassResources(character, restoreType) };
-    if (restType === 'long') {
-      updates.current_hit_points = maxHp;
-      updates.temporary_hit_points = 0;
-      updates.temp_hp = 0;
-      updates.death_saves_successes = 0;
-      updates.death_saves_failures = 0;
-      updates.spell_slots_remaining = character?.spell_slots || {};
-      updates.hit_dice_remaining = Number(character?.level || hitDieInfo.total);
-    }
-    return updates;
-  };
+  const buildRestFallback = (restType) => (
+    restType === 'long'
+      ? buildLongRestUpdates(character)
+      : buildShortRestUpdates(character)
+  );
 
   const handleRest = async (restType) => {
     if (!character || savingQuickState) return;
