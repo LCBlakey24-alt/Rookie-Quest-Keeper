@@ -59,9 +59,20 @@ function trackerMax(tracker = {}) {
   ));
 }
 
+function trackerCurrent(tracker = {}, maximum = trackerMax(tracker)) {
+  return Math.max(0, Math.min(maximum, toNumber(tracker.current ?? tracker.remaining, maximum)));
+}
+
 function trackerRestType(tracker = {}) {
   const raw = String(tracker.restore || tracker.recovery || tracker.refresh || 'long-rest').toLowerCase();
   return raw.includes('short') ? 'short-rest' : 'long-rest';
+}
+
+function trackerShortRestRestore(tracker = {}) {
+  return Math.max(0, toNumber(
+    tracker.short_rest_restore ?? tracker.shortRestRestore ?? tracker.short_rest_regain,
+    0,
+  ));
 }
 
 export function restoreResourceTrackers(resources = {}, restType = 'long-rest') {
@@ -70,12 +81,20 @@ export function restoreResourceTrackers(resources = {}, restType = 'long-rest') 
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return [key, raw];
     const tracker = { ...raw };
     const maximum = trackerMax(tracker);
-    const shouldRestore = restType === 'long-rest' || trackerRestType(tracker) === 'short-rest';
-    if (shouldRestore && maximum > 0) {
-      tracker.current = maximum;
-      tracker.remaining = maximum;
-      tracker.max = maximum;
-    }
+    if (maximum <= 0) return [key, tracker];
+
+    const current = trackerCurrent(tracker, maximum);
+    const fullShortRestore = trackerRestType(tracker) === 'short-rest';
+    const partialShortRestore = restType === 'short-rest' ? trackerShortRestRestore(tracker) : 0;
+    const shouldTouch = restType === 'long-rest' || fullShortRestore || partialShortRestore > 0;
+    if (!shouldTouch) return [key, tracker];
+
+    const nextCurrent = restType === 'long-rest' || fullShortRestore
+      ? maximum
+      : Math.min(maximum, current + partialShortRestore);
+    tracker.current = nextCurrent;
+    tracker.remaining = nextCurrent;
+    tracker.max = maximum;
     return [key, tracker];
   }));
 }
