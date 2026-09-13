@@ -16,6 +16,8 @@ const normaliseName = (value = '') => String(value || '')
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, '');
 
+const hasItems = (value = {}) => Object.keys(value || {}).length > 0;
+
 export function getCharacterEdition(character = {}) {
   const raw = character.rules_edition || character.edition || character.ruleset_id || '2014';
   return String(raw).includes('2024') ? '2024' : '2014';
@@ -130,6 +132,15 @@ function pactSlotShape(resources = {}) {
   return slotLevel > 0 && maximum > 0 ? { [String(slotLevel)]: maximum } : {};
 }
 
+function shouldMirrorPactSlots(character = {}, slotMath = {}, normalPool = {}) {
+  if (normalPool?.legacyPactExcluded) return true;
+  const classLevels = getCharacterClassLevels(character);
+  const hasWarlock = Object.keys(classLevels).some((name) => normaliseName(name) === 'warlock');
+  const pactPool = getPactMagicPool(character, slotMath);
+  const sharedSlots = slotMath?.slots || {};
+  return hasWarlock && pactPool.available && !hasItems(sharedSlots);
+}
+
 export function buildShortRestUpdates(character = {}) {
   const slotMath = getSlotMath(character);
   const canonicalResources = canonicalResourcesForRest(character);
@@ -137,15 +148,18 @@ export function buildShortRestUpdates(character = {}) {
   const normalPool = getNormalSpellPool(workingCharacter, slotMath);
   let resources = restoreResourceTrackers(canonicalResources, 'short-rest');
   resources = withPactRestored(workingCharacter, resources, slotMath);
+  const mirrorPactSlots = shouldMirrorPactSlots(workingCharacter, slotMath, normalPool);
 
   const updates = {
     resources,
     last_rest_type: 'short-rest',
   };
 
-  // Older single-class Warlocks stored Pact Magic in spell_slots. Keep that
-  // compatibility field synchronized while also migrating to resources.
-  if (normalPool.legacyPactExcluded) {
+  // Older single-pool Warlocks (including Warlock + non-caster combinations)
+  // stored Pact Magic in spell_slots. Keep that compatibility mirror canonical
+  // even when the saved slot map is stale and no longer matches the real Pact
+  // tracker shape.
+  if (mirrorPactSlots) {
     const pactSlots = pactSlotShape(resources);
     const slots = Object.keys(pactSlots).length ? pactSlots : { ...(character.spell_slots || {}) };
     updates.spell_slots = slots;
@@ -164,7 +178,8 @@ export function buildLongRestUpdates(character = {}) {
   const normalPool = getNormalSpellPool(workingCharacter, slotMath);
   let resources = restoreResourceTrackers(canonicalResources, 'long-rest');
   resources = withPactRestored(workingCharacter, resources, slotMath);
-  const pactSlots = normalPool.legacyPactExcluded ? pactSlotShape(resources) : {};
+  const mirrorPactSlots = shouldMirrorPactSlots(workingCharacter, slotMath, normalPool);
+  const pactSlots = mirrorPactSlots ? pactSlotShape(resources) : {};
   const spellSlots = Object.keys(pactSlots).length ? pactSlots : { ...(character.spell_slots || {}) };
 
   return {
@@ -175,7 +190,7 @@ export function buildLongRestUpdates(character = {}) {
     death_saves_failures: 0,
     concentrating_on: null,
     concentration: null,
-    ...(normalPool.legacyPactExcluded ? { spell_slots: spellSlots } : {}),
+    ...(mirrorPactSlots ? { spell_slots: spellSlots } : {}),
     spell_slots_remaining: spellSlots,
     used_spell_slots: {},
     hit_dice_remaining: getLongRestHitDiceRemaining(character),
