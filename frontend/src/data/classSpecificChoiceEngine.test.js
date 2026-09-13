@@ -27,7 +27,7 @@ describe('class specific choice engine', () => {
       hasChoices: true,
     });
 
-    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10 })).toMatchObject({
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2014' })).toMatchObject({
       metamagicTarget: 3,
       hasChoices: true,
     });
@@ -37,6 +37,44 @@ describe('class specific choice engine', () => {
       maneuverTarget: 5,
       hasChoices: true,
     });
+  });
+
+  test('Bard Expertise follows the selected rules edition', () => {
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 2, edition: '2014' }).expertiseTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 3, edition: '2014' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 9, edition: '2014' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 10, edition: '2014' }).expertiseTarget).toBe(4);
+
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 1, edition: '2024' }).expertiseTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 2, edition: '2024' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 8, edition: '2024' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 9, edition: '2024' }).expertiseTarget).toBe(4);
+  });
+
+  test('2024 Ranger and Wizard expose their core Expertise choices', () => {
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 1, edition: '2024' }).expertiseTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' }).expertiseTarget).toBe(1);
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 9, edition: '2024' }).expertiseTarget).toBe(3);
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 9, edition: '2014' }).expertiseTarget).toBe(0);
+
+    const wizard = buildClassSpecificChoicePlan({ className: 'Wizard', level: 2, edition: '2024' });
+    expect(wizard.expertiseTarget).toBe(1);
+    expect(wizard.options.expertiseSkills).toEqual([
+      'Arcana', 'History', 'Investigation', 'Medicine', 'Nature', 'Religion',
+    ]);
+    expect(buildClassSpecificChoicePlan({ className: 'Wizard', level: 2, edition: '2014' }).expertiseTarget).toBe(0);
+  });
+
+  test('Sorcerer Metamagic count follows 2014 and 2024 progression', () => {
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2, edition: '2014' }).metamagicTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 3, edition: '2014' }).metamagicTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2014' }).metamagicTarget).toBe(3);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 17, edition: '2014' }).metamagicTarget).toBe(4);
+
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 1, edition: '2024' }).metamagicTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2, edition: '2024' }).metamagicTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2024' }).metamagicTarget).toBe(4);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 17, edition: '2024' }).metamagicTarget).toBe(6);
   });
 
   test('normalises class-specific selections to their plan limits', () => {
@@ -68,15 +106,15 @@ describe('class specific choice engine', () => {
     expect(payload.class_features.map((feature) => feature.name)).toEqual(expect.arrayContaining(['Fighting Style: Defense', 'Combat Superiority']));
   });
 
-  test('applies Sorcerer metamagic and resource counters to a payload', () => {
-    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10 });
+  test('applies 2024 Sorcerer metamagic and resource counters to a payload', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2024' });
     const payload = applyClassSpecificChoicesToPayload(
-      basePayload({ character_class: 'Sorcerer', level: 10 }),
-      { metamagic: ['Quickened Spell', 'Subtle Spell', 'Twinned Spell'] },
+      basePayload({ character_class: 'Sorcerer', level: 10, rules_edition: '2024' }),
+      { metamagic: ['Quickened Spell', 'Subtle Spell', 'Twinned Spell', 'Careful Spell'] },
       plan,
     );
 
-    expect(payload.metamagic_options).toEqual(['Quickened Spell', 'Subtle Spell', 'Twinned Spell']);
+    expect(payload.metamagic_options).toEqual(['Quickened Spell', 'Subtle Spell', 'Twinned Spell', 'Careful Spell']);
     expect(payload.sorcery_points).toBe(10);
     expect(payload.sorcery_points_remaining).toBe(10);
   });
@@ -96,7 +134,7 @@ describe('class specific choice engine', () => {
   });
 
   test('clears stale class-specific fields when the current plan has no matching choices', () => {
-    const plan = buildClassSpecificChoicePlan({ className: 'Wizard', level: 7 });
+    const plan = buildClassSpecificChoicePlan({ className: 'Wizard', level: 7, edition: '2014' });
     const payload = applyClassSpecificChoicesToPayload(
       basePayload({
         character_class: 'Wizard',
@@ -144,7 +182,7 @@ describe('class specific choice engine', () => {
   });
 
   test('preserves Sorcerer points when only Metamagic choices are empty for a Sorcerer plan', () => {
-    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2 });
+    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2, edition: '2014' });
     const payload = applyClassSpecificChoicesToPayload(
       basePayload({ character_class: 'Sorcerer', level: 2, sorcery_points: 2, sorcery_points_remaining: 1 }),
       { metamagic: ['Quickened Spell'] },
