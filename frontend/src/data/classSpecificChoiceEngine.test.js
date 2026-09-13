@@ -77,6 +77,45 @@ describe('class specific choice engine', () => {
     expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 17, edition: '2024' }).metamagicTarget).toBe(6);
   });
 
+  test('2024 Ranger Deft Explorer offers two class language choices and preserves existing languages', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' });
+    expect(plan.languageTarget).toBe(2);
+    expect(plan.options.languages).toEqual(expect.arrayContaining(['Elvish', 'Sylvan', 'Undercommon']));
+
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({ character_class: 'Ranger', level: 2, rules_edition: '2024', languages: ['Common', 'Dwarvish'] }),
+      { expertise: ['Survival'], languages: ['Elvish', 'Sylvan'] },
+      plan,
+    );
+
+    expect(payload.class_language_choices).toEqual(['Elvish', 'Sylvan']);
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Elvish', 'Sylvan']);
+  });
+
+  test('2024 Rogue Thieves Cant is automatic and one additional language is selected', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Rogue', level: 1, edition: '2024' });
+    expect(plan.languageTarget).toBe(1);
+    expect(plan.fixedLanguages).toEqual(['Thieves’ Cant']);
+    expect(plan.options.languages).not.toContain('Thieves’ Cant');
+
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({ character_class: 'Rogue', level: 1, rules_edition: '2024', languages: ['Common'] }),
+      { expertise: ['Stealth', 'Sleight of Hand'], languages: ['Goblin'] },
+      plan,
+    );
+
+    expect(payload.class_language_choices).toEqual(['Goblin']);
+    expect(payload.languages).toEqual(['Common', 'Thieves’ Cant', 'Goblin']);
+  });
+
+  test('normalises class language choices to valid unique options and target limits', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' });
+    const selection = normaliseClassSpecificSelection({
+      languages: ['Elvish', 'Elvish', 'Sylvan', 'Not A Language'],
+    }, plan);
+    expect(selection.languages).toEqual(['Elvish', 'Sylvan']);
+  });
+
   test('normalises class-specific selections to their plan limits', () => {
     const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 7, subclassName: 'Battle Master' });
     const selection = normaliseClassSpecificSelection({
@@ -147,6 +186,7 @@ describe('class specific choice engine', () => {
         metamagic_options: ['Quickened Spell'],
         sorcery_points: 7,
         sorcery_points_remaining: 4,
+        class_language_choices: ['Elvish'],
         combat_maneuvers: ['Trip Attack'],
         battle_master_maneuvers: ['Trip Attack'],
         maneuvers: ['Trip Attack'],
@@ -161,6 +201,7 @@ describe('class specific choice engine', () => {
         fightingStyles: ['Defense'],
         expertise: ['Stealth'],
         metamagic: ['Quickened Spell'],
+        languages: ['Elvish'],
         maneuvers: ['Trip Attack'],
       },
       plan,
@@ -174,6 +215,7 @@ describe('class specific choice engine', () => {
     expect(payload.metamagic_options).toBeUndefined();
     expect(payload.sorcery_points).toBeUndefined();
     expect(payload.sorcery_points_remaining).toBeUndefined();
+    expect(payload.class_language_choices).toBeUndefined();
     expect(payload.combat_maneuvers).toBeUndefined();
     expect(payload.battle_master_maneuvers).toBeUndefined();
     expect(payload.maneuvers).toBeUndefined();
