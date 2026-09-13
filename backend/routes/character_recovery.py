@@ -95,6 +95,10 @@ def _tracker_max(tracker: Dict[str, Any]) -> int:
     )
 
 
+def _tracker_current(tracker: Dict[str, Any], maximum: int) -> int:
+    return max(0, min(maximum, _int(tracker.get("current", tracker.get("remaining", maximum)), maximum)))
+
+
 def _tracker_restore_type(tracker: Dict[str, Any]) -> str:
     raw = str(
         tracker.get("restore")
@@ -105,8 +109,18 @@ def _tracker_restore_type(tracker: Dict[str, Any]) -> str:
     return "short-rest" if "short" in raw else "long-rest"
 
 
+def _tracker_short_rest_restore(tracker: Dict[str, Any]) -> int:
+    return max(
+        0,
+        _int(
+            tracker.get("short_rest_restore", tracker.get("shortRestRestore", tracker.get("short_rest_regain", 0))),
+            0,
+        ),
+    )
+
+
 def restore_resource_trackers(resources: Any, rest_type: str) -> Dict[str, Any]:
-    """Restore persisted resource trackers without inventing missing resources."""
+    """Restore persisted resource trackers, including 2024 partial Short Rest recovery."""
     if not isinstance(resources, dict):
         return {}
 
@@ -118,10 +132,20 @@ def restore_resource_trackers(resources: Any, rest_type: str) -> Dict[str, Any]:
 
         tracker = dict(raw)
         maximum = _tracker_max(tracker)
-        should_restore = rest_type == "long-rest" or _tracker_restore_type(tracker) == "short-rest"
-        if should_restore and maximum > 0:
-            tracker["current"] = maximum
-            tracker["remaining"] = maximum
+        if maximum <= 0:
+            restored[key] = tracker
+            continue
+
+        current = _tracker_current(tracker, maximum)
+        if rest_type == "long-rest" or _tracker_restore_type(tracker) == "short-rest":
+            next_current = maximum
+        else:
+            partial = _tracker_short_rest_restore(tracker) if rest_type == "short-rest" else 0
+            next_current = min(maximum, current + partial)
+
+        if next_current != current or rest_type == "long-rest" or _tracker_restore_type(tracker) == "short-rest":
+            tracker["current"] = next_current
+            tracker["remaining"] = next_current
             tracker["max"] = maximum
         restored[key] = tracker
     return restored
