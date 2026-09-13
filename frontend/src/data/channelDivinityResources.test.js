@@ -177,6 +177,8 @@ describe('clean-sheet resource rules', () => {
 
     expect(restored.channel_divinity).toBeUndefined();
     expect(restored.cleric_channel_divinity).toMatchObject({ current: 1, remaining: 1, migration_source: 'legacy_channel_divinity' });
-    expect(restored.paladin_channel_divinity).toMatchObject({ current: 1, remaining: 1 });
+    // The old save had no Paladin tracker at all. Repair creates that missing
+    // class pool at full capacity; a Short Rest should not spend a use from it.
+    expect(restored.paladin_channel_divinity).toMatchObject({ current: 2, remaining: 2 });
   });
 });
