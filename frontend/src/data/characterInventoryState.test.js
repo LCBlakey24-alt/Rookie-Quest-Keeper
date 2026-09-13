@@ -3,6 +3,7 @@ import {
   buildCurrencyUpdate,
   clearInventorySlotState,
   equipInventoryState,
+  findInventoryItemIndex,
   getCanonicalEquippedItem,
   inventoryItemIdentity,
   normaliseCurrencyState,
@@ -57,6 +58,37 @@ describe('character inventory state', () => {
     expect(state.inventory[0].equip_slot).toBeUndefined();
   });
 
+  test('stable ids select the exact inventory instance immediately', () => {
+    expect(findInventoryItemIndex(
+      [{ id: 'a', name: 'Dagger' }, { id: 'b', name: 'Dagger' }],
+      { id: 'b', name: 'Dagger' },
+      {},
+    )).toBe(1);
+  });
+
+  test('legacy duplicate selection resolves the off-hand instance rather than the first name match', () => {
+    const inventory = [
+      { name: 'Dagger', note: 'first' },
+      { name: 'Dagger', note: 'second' },
+    ];
+    const equipped = {
+      mainHand: { name: 'Dagger' },
+      offHand: { name: 'Dagger' },
+    };
+
+    expect(findInventoryItemIndex(inventory, { name: 'Dagger', equipped: true, equip_slot: 'offHand' }, equipped)).toBe(1);
+  });
+
+  test('legacy duplicate selection can target the unequipped sibling', () => {
+    const inventory = [
+      { name: 'Dagger', note: 'equipped copy' },
+      { name: 'Dagger', note: 'spare copy' },
+    ];
+    const equipped = { mainHand: { name: 'Dagger' } };
+
+    expect(findInventoryItemIndex(inventory, { name: 'Dagger', equipped: false }, equipped)).toBe(1);
+  });
+
   test('removing an equipped backpack item also clears its equipment slot', () => {
     const state = removeInventoryItemState({
       inventory: [
@@ -71,9 +103,12 @@ describe('character inventory state', () => {
     expect(state.equipped.offHand).toBeUndefined();
   });
 
-  test('removing one equipped legacy duplicate clears only that represented slot', () => {
+  test('removing one equipped legacy duplicate clears only that represented slot and instance', () => {
     const state = removeInventoryItemState({
-      inventory: [{ name: 'Dagger' }, { name: 'Dagger' }],
+      inventory: [
+        { name: 'Dagger', note: 'main hand copy' },
+        { name: 'Dagger', note: 'off hand copy' },
+      ],
       equipped: {
         mainHand: { name: 'Dagger' },
         offHand: { name: 'Dagger' },
@@ -82,6 +117,7 @@ describe('character inventory state', () => {
     });
 
     expect(state.inventory).toHaveLength(1);
+    expect(state.inventory[0].note).toBe('main hand copy');
     expect(state.equipped.mainHand).toBeDefined();
     expect(state.equipped.offHand).toBeUndefined();
     expect(state.inventory[0]).toMatchObject({ name: 'Dagger', equipped: true, equip_slot: 'mainHand' });
@@ -89,12 +125,16 @@ describe('character inventory state', () => {
 
   test('removing an unequipped legacy duplicate leaves its equipped sibling alone', () => {
     const state = removeInventoryItemState({
-      inventory: [{ name: 'Dagger' }, { name: 'Dagger' }],
+      inventory: [
+        { name: 'Dagger', note: 'equipped copy' },
+        { name: 'Dagger', note: 'spare copy' },
+      ],
       equipped: { mainHand: { name: 'Dagger' } },
       item: { name: 'Dagger', equipped: false },
     });
 
     expect(state.inventory).toHaveLength(1);
+    expect(state.inventory[0].note).toBe('equipped copy');
     expect(state.equipped.mainHand).toBeDefined();
     expect(state.inventory[0]).toMatchObject({ name: 'Dagger', equipped: true, equip_slot: 'mainHand' });
   });
