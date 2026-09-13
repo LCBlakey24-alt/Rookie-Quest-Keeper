@@ -1,11 +1,16 @@
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const clamp = (value, max = Infinity) => arr(value).slice(0, max);
 const lower = (value = '') => String(value || '').toLowerCase();
+const editionFor = (edition = '2014') => String(edition || '2014').includes('2024') ? '2024' : '2014';
 
 export const SKILL_OPTIONS = [
   'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History',
   'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception',
   'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival',
+];
+
+export const WIZARD_SCHOLAR_SKILLS = [
+  'Arcana', 'History', 'Investigation', 'Medicine', 'Nature', 'Religion',
 ];
 
 export const FIGHTING_STYLE_OPTIONS = [
@@ -33,14 +38,41 @@ function fightingStyleTarget(className, level) {
   return 0;
 }
 
-function expertiseTarget(className, level) {
+function expertiseTarget(className, level, edition) {
+  const rulesEdition = editionFor(edition);
+
   if (className === 'Rogue') return level >= 6 ? 4 : level >= 1 ? 2 : 0;
-  if (className === 'Bard') return level >= 10 ? 4 : level >= 3 ? 2 : 0;
+
+  if (className === 'Bard') {
+    if (rulesEdition === '2024') return level >= 9 ? 4 : level >= 2 ? 2 : 0;
+    return level >= 10 ? 4 : level >= 3 ? 2 : 0;
+  }
+
+  if (rulesEdition === '2024' && className === 'Ranger') {
+    return level >= 9 ? 3 : level >= 2 ? 1 : 0;
+  }
+
+  if (rulesEdition === '2024' && className === 'Wizard') {
+    return level >= 2 ? 1 : 0;
+  }
+
   return 0;
 }
 
-function metamagicTarget(className, level) {
-  if (className !== 'Sorcerer' || level < 3) return 0;
+function expertiseOptions(className, edition) {
+  if (editionFor(edition) === '2024' && className === 'Wizard') return WIZARD_SCHOLAR_SKILLS;
+  return SKILL_OPTIONS;
+}
+
+function metamagicTarget(className, level, edition) {
+  if (className !== 'Sorcerer') return 0;
+  if (editionFor(edition) === '2024') {
+    if (level < 2) return 0;
+    if (level >= 17) return 6;
+    if (level >= 10) return 4;
+    return 2;
+  }
+  if (level < 3) return 0;
   if (level >= 17) return 4;
   if (level >= 10) return 3;
   return 2;
@@ -69,16 +101,18 @@ function removeGeneratedClassChoiceFeatures(features, removers = []) {
   });
 }
 
-export function buildClassSpecificChoicePlan({ className = '', level = 1, subclassName = '' } = {}) {
+export function buildClassSpecificChoicePlan({ className = '', level = 1, subclassName = '', edition = '2014' } = {}) {
   const numericLevel = Math.max(1, Math.min(20, Number(level || 1)));
+  const rulesEdition = editionFor(edition);
   const fightingStyles = fightingStyleTarget(className, numericLevel);
-  const expertise = expertiseTarget(className, numericLevel);
-  const metamagic = metamagicTarget(className, numericLevel);
+  const expertise = expertiseTarget(className, numericLevel, rulesEdition);
+  const metamagic = metamagicTarget(className, numericLevel, rulesEdition);
   const maneuvers = maneuverTarget(className, numericLevel, subclassName);
 
   return {
     className,
     level: numericLevel,
+    edition: rulesEdition,
     subclassName,
     fightingStyleTarget: fightingStyles,
     expertiseTarget: expertise,
@@ -87,7 +121,7 @@ export function buildClassSpecificChoicePlan({ className = '', level = 1, subcla
     hasChoices: Boolean(fightingStyles || expertise || metamagic || maneuvers),
     options: {
       fightingStyles: FIGHTING_STYLE_OPTIONS,
-      expertiseSkills: SKILL_OPTIONS,
+      expertiseSkills: expertiseOptions(className, rulesEdition),
       metamagic: METAMAGIC_OPTIONS,
       maneuvers: MANEUVER_OPTIONS,
     },
