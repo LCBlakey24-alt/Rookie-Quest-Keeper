@@ -71,6 +71,34 @@ describe('character inventory state', () => {
     expect(state.equipped.offHand).toBeUndefined();
   });
 
+  test('removing one equipped legacy duplicate clears only that represented slot', () => {
+    const state = removeInventoryItemState({
+      inventory: [{ name: 'Dagger' }, { name: 'Dagger' }],
+      equipped: {
+        mainHand: { name: 'Dagger' },
+        offHand: { name: 'Dagger' },
+      },
+      item: { name: 'Dagger', equipped: true, equip_slot: 'offHand' },
+    });
+
+    expect(state.inventory).toHaveLength(1);
+    expect(state.equipped.mainHand).toBeDefined();
+    expect(state.equipped.offHand).toBeUndefined();
+    expect(state.inventory[0]).toMatchObject({ name: 'Dagger', equipped: true, equip_slot: 'mainHand' });
+  });
+
+  test('removing an unequipped legacy duplicate leaves its equipped sibling alone', () => {
+    const state = removeInventoryItemState({
+      inventory: [{ name: 'Dagger' }, { name: 'Dagger' }],
+      equipped: { mainHand: { name: 'Dagger' } },
+      item: { name: 'Dagger', equipped: false },
+    });
+
+    expect(state.inventory).toHaveLength(1);
+    expect(state.equipped.mainHand).toBeDefined();
+    expect(state.inventory[0]).toMatchObject({ name: 'Dagger', equipped: true, equip_slot: 'mainHand' });
+  });
+
   test('carried view overlays equipment state instead of showing a duplicate equipped card', () => {
     const view = buildCarriedInventoryView({
       inventory: [{ id: 'blade-1', name: 'Longsword', quantity: 1 }],
