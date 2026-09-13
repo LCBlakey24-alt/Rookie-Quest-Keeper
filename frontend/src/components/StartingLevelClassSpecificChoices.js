@@ -12,7 +12,7 @@ function toggleValue(list, value, max = Infinity) {
   return [...current, value];
 }
 
-function MultiSelectField({ label, value, options, target, onChange }) {
+function MultiSelectField({ label, value, options, target, onChange, help = '' }) {
   const [query, setQuery] = React.useState('');
   if (!target) return null;
 
@@ -35,6 +35,7 @@ function MultiSelectField({ label, value, options, target, onChange }) {
         <span>{label}</span>
         <strong>{selected.length}/{target} selected</strong>
       </legend>
+      {help && <p className="full-creator-toggle-help">{help}</p>}
       {searchable && (
         <label className="full-creator-toggle-search">
           <span>Search {label.toLowerCase()}</span>
@@ -79,32 +80,51 @@ export default function StartingLevelClassSpecificChoices({ plan, selection, onC
   if (!plan?.hasChoices) return null;
   const current = normaliseClassSpecificSelection(selection, plan);
   const update = (patch) => onChange({ ...current, ...patch });
+  const fixedOrigin = arr(plan.fixedOriginLanguages);
+  const fixedClass = arr(plan.fixedLanguages);
 
   return (
-    <section className="full-creator-progress-card" aria-label="Class-specific starting level choices">
+    <section className="full-creator-progress-card" aria-label="Starting level character choices">
       <div className="full-creator-progress-heading">
-        <span>Class-specific choices</span>
+        <span>Starting-level choices</span>
         <strong>{plan.className} level {plan.level}</strong>
       </div>
-      <p>Choose the class details that unlock as this character starts above level 1. These are applied to the saved sheet.</p>
+      <p>Choose the origin and class details that apply at this starting level. These choices are written directly to the saved character sheet.</p>
 
       <div className="full-creator-auto-box">
-        <strong>Unlocked choices</strong>
+        <strong>Choices to finish</strong>
         <span>
           {[
+            plan.originLanguageTarget ? 'Starting languages' : '',
             plan.fightingStyleTarget ? 'Fighting Style' : '',
             plan.expertiseTarget ? 'Expertise' : '',
             plan.metamagicTarget ? 'Metamagic' : '',
-            plan.languageTarget || arr(plan.fixedLanguages).length ? 'Languages' : '',
+            plan.languageTarget || fixedClass.length ? 'Class languages' : '',
             plan.maneuverTarget ? 'Battle Master maneuvers' : '',
           ].filter(Boolean).join(' • ')}
         </span>
       </div>
 
-      {arr(plan.fixedLanguages).length > 0 && (
+      {fixedOrigin.length > 0 && (
         <div className="full-creator-auto-box">
-          <strong>Granted language</strong>
-          <span>{plan.fixedLanguages.join(' • ')}</span>
+          <strong>Language everyone starts with</strong>
+          <span>{fixedOrigin.join(' • ')}</span>
+        </div>
+      )}
+
+      <MultiSelectField
+        label="Starting languages"
+        value={current.originLanguages}
+        options={plan.options?.originLanguages}
+        target={plan.originLanguageTarget}
+        help={plan.edition === '2024' ? 'Choose two Standard Languages in addition to Common.' : ''}
+        onChange={(originLanguages) => update({ originLanguages })}
+      />
+
+      {fixedClass.length > 0 && (
+        <div className="full-creator-auto-box">
+          <strong>Granted class language</strong>
+          <span>{fixedClass.join(' • ')}</span>
         </div>
       )}
 
@@ -134,6 +154,7 @@ export default function StartingLevelClassSpecificChoices({ plan, selection, onC
         value={current.languages}
         options={plan.options?.languages}
         target={plan.languageTarget}
+        help={plan.languageTarget ? 'Class-granted languages are added on top of your starting languages.' : ''}
         onChange={(languages) => update({ languages })}
       />
       <MultiSelectField
