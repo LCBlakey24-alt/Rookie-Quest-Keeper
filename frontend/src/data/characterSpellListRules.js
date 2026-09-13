@@ -12,11 +12,17 @@ function normaliseSpell(spell = {}) {
   };
 }
 
+function rawSpellSource(spell = {}) {
+  return spell?.sourceClass || spell?.source_class || spell?.className || spell?.class_name || '';
+}
+
 function uniqueSpells(spells = []) {
   const seen = new Set();
   return toArray(spells).map(normaliseSpell).filter((spell) => {
-    const key = normaliseName(spell.name);
-    if (!key || seen.has(key)) return false;
+    const nameKey = normaliseName(spell.name);
+    const sourceKey = normaliseName(rawSpellSource(spell)) || 'legacy';
+    const key = `${sourceKey}:${nameKey}`;
+    if (!nameKey || seen.has(key)) return false;
     seen.add(key);
     return true;
   });
@@ -70,7 +76,7 @@ export function tagSpellSource(spell = {}, className = '') {
 }
 
 export function spellBelongsToClass(spell = {}, className = '') {
-  const source = spell?.sourceClass || spell?.source_class || spell?.className || spell?.class_name;
+  const source = rawSpellSource(spell);
   if (!source) return true; // Legacy saves did not persist source class.
   return normaliseName(source) === normaliseName(canonicalSpellClassName(className));
 }
@@ -95,7 +101,7 @@ export function normaliseCharacterClassLevels(character = {}) {
 }
 
 function sourceClassOf(spell = {}) {
-  return canonicalSpellClassName(spell?.sourceClass || spell?.source_class || spell?.className || spell?.class_name || '');
+  return canonicalSpellClassName(rawSpellSource(spell));
 }
 
 function spellsExplicitlyForClass(spells = [], className = '') {
