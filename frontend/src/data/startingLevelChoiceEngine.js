@@ -1,5 +1,6 @@
 import { getAsiLevels, getChoicesForStartingLevel } from './classLevelRules';
-import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getMaxSpellLevel, getSpellsForClass } from './spellDatabase';
+import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellsForClass } from './spellDatabase';
+import { classHasEditionSpellcasting, getEditionMaxSpellLevel } from './editionSpellSlotRules';
 import { getWarlockBuilderOptions } from './warlockBuilderOptions';
 import { getWarlockMysticArcanumLevels } from './warlockProgression';
 
@@ -77,6 +78,13 @@ const ABILITY_ALIASES = {
   charisma: ['cha', 'CHA', 'Charisma'],
 };
 
+// 2024 Paladin and Ranger use the same Prepared Spells progression table.
+// Unlike the 2014 ability-modifier formula, these are fixed class-table counts.
+const HALF_CASTER_PREPARED_2024 = {
+  1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 6, 7: 7, 8: 7, 9: 9, 10: 9,
+  11: 10, 12: 10, 13: 11, 14: 11, 15: 12, 16: 12, 17: 14, 18: 14, 19: 15, 20: 15,
+};
+
 function targetFromTable(table = {}, level = 1) {
   const numericLevel = Math.max(1, Number(level || 1));
   return Object.entries(table)
@@ -143,10 +151,23 @@ function readAbilityScore(source = {}, ability) {
   return directKey ? scoreFromValue(source[directKey]) : 10;
 }
 
-function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
+function preparedSpellTarget({ className, level = 1, abilities = {}, edition = '2014' } = {}) {
   const classInfo = SPELLCASTING_CLASSES[className];
-  if (!classInfo || classInfo.type !== 'prepared') return 0;
+  if (!classInfo) return 0;
+
   const numericLevel = Math.max(1, Number(level || 1));
+  const rulesCharacter = {
+    character_class: className,
+    class_levels: { [className]: numericLevel },
+    level: numericLevel,
+    rules_edition: String(edition),
+  };
+  if (!classHasEditionSpellcasting(rulesCharacter, className, numericLevel)) return 0;
+
+  const is2024HalfCaster = String(edition) === '2024' && ['Paladin', 'Ranger'].includes(className);
+  if (is2024HalfCaster) return targetFromTable(HALF_CASTER_PREPARED_2024, numericLevel);
+  if (classInfo.type !== 'prepared') return 0;
+
   const abilityScore = readAbilityScore(abilities, classInfo.ability);
   const baseLevel = classInfo.halfCaster ? Math.max(1, Math.floor(numericLevel / 2)) : numericLevel;
   return Math.max(1, baseLevel + abilityMod(abilityScore));
@@ -266,13 +287,26 @@ export function getFeatOptions({ edition = '2014', level = 1, registryFeats = []
     .sort((a, b) => getFeatName(a).localeCompare(getFeatName(b)));
 }
 
-export function getSpellChoicePlan({ className, level = 1, abilities = {} } = {}) {
-  const maxSpellLevel = getMaxSpellLevel(className, level);
+export function getSpellChoicePlan({ className, level = 1, edition = '2014', abilities = {} } = {}) {
+  const numericLevel = Math.max(1, Number(level || 1));
+  const rulesCharacter = {
+    character_class: className,
+    class_levels: { [className]: numericLevel },
+    level: numericLevel,
+    rules_edition: String(edition),
+  };
+  const hasSpellcasting = classHasEditionSpellcasting(rulesCharacter, className, numericLevel);
+  const maxSpellLevel = hasSpellcasting
+    ? getEditionMaxSpellLevel(rulesCharacter, className, numericLevel)
+    : 0;
   const spellLists = getSpellsForClass(className) || {};
   const classInfo = SPELLCASTING_CLASSES[className] || null;
-  const cantripTarget = targetFromTable(CANTRIPS_KNOWN[className] || {}, level);
-  const knownTarget = targetFromTable(SPELLS_KNOWN[className] || {}, level);
-  const preparedTarget = preparedSpellTarget({ className, level, abilities });
+  const is2024Ranger = String(edition) === '2024' && className === 'Ranger';
+  const cantripTarget = targetFromTable(CANTRIPS_KNOWN[className] || {}, numericLevel);
+  const knownTarget = hasSpellcasting && !is2024Ranger
+    ? targetFromTable(SPELLS_KNOWN[className] || {}, numericLevel)
+    : 0;
+  const preparedTarget = preparedSpellTarget({ className, level: numericLevel, abilities, edition });
   const leveledSpells = [];
 
   for (let spellLevel = 1; spellLevel <= maxSpellLevel; spellLevel += 1) {
@@ -281,9 +315,10 @@ export function getSpellChoicePlan({ className, level = 1, abilities = {} } = {}
 
   return {
     className,
-    level: Math.max(1, Number(level || 1)),
+    level: numericLevel,
+    edition: String(edition),
     maxSpellLevel,
-    spellcastingType: classInfo?.type || null,
+    spellcastingType: is2024Ranger ? 'prepared' : classInfo?.type || null,
     spellcastingAbility: classInfo?.ability || null,
     cantripTarget,
     knownTarget,
@@ -292,8 +327,8 @@ export function getSpellChoicePlan({ className, level = 1, abilities = {} } = {}
     hasPreparedSpellPicker: preparedTarget > 0,
     cantripOptions: arr(spellLists.cantrips).map((spell) => spellEntry(spell, 0)),
     spellOptions: leveledSpells,
-    arcanumLevels: className === 'Warlock' ? getWarlockMysticArcanumLevels(level) : [],
-    classChoicePlan: getClassSpecificChoicePlan({ className, level }),
+    arcanumLevels: className === 'Warlock' ? getWarlockMysticArcanumLevels(numericLevel) : [],
+    classChoicePlan: getClassSpecificChoicePlan({ className, level: numericLevel }),
   };
 }
 
@@ -309,7 +344,7 @@ export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edi
   const level = Math.max(1, Math.min(20, Number(startingLevel || 1)));
   const baseChoices = getChoicesForStartingLevel({ className, startingLevel: level, edition });
   const asiLevels = getAsiLevels(className).filter((asiLevel) => asiLevel <= level);
-  const spellPlan = getSpellChoicePlan({ className, level, abilities });
+  const spellPlan = getSpellChoicePlan({ className, level, edition, abilities });
   const warlockPlan = className === 'Warlock' ? getWarlockChoicePlan({ level, edition }) : null;
   const manualHooks = [];
 
