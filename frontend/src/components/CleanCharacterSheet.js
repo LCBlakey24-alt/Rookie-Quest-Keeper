@@ -20,6 +20,12 @@ import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerHelperTab from '@/components/clean-sheet/RookPlayerHelperTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
+import {
+  getConcentrationName,
+  getConcentrationSaveDc,
+  getConcentrationSaveModifier,
+  needsConcentrationReplacement,
+} from '@/data/characterConcentrationRules';
 import { getClassFeatures } from '@/data/classFeatures';
 import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
 import {
@@ -96,6 +102,7 @@ export default function CleanCharacterSheet() {
   const tempHp = getTempHp(character);
   const conMod = mod(character?.constitution);
   const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
+  const concentrationSaveModifier = getConcentrationSaveModifier(character, proficiencyBonus);
   const ac = deriveArmorClass(character);
   const speed = Number(character?.speed ?? 30);
   const initiative = mod(character?.dexterity);
@@ -107,7 +114,7 @@ export default function CleanCharacterSheet() {
   const deathSaveFailures = clampDeathCount(character?.death_saves_failures);
   const hasInspiration = Boolean(character?.inspiration || character?.has_inspiration);
   const concentratingOn = character?.concentrating_on || character?.concentration || null;
-  const concentratingName = concentratingOn ? (typeof concentratingOn === 'string' ? concentratingOn : concentratingOn?.name || String(concentratingOn)) : null;
+  const concentratingName = getConcentrationName(concentratingOn) || null;
   const hitDice = character?.hit_dice || `${character?.level || 1}d8`;
   const hitDieInfo = parseHitDie(hitDice);
   const hitDiceRemaining = Number(character?.hit_dice_remaining ?? character?.level ?? hitDieInfo.total) || 0;
@@ -223,6 +230,62 @@ export default function CleanCharacterSheet() {
     }
   };
 
+  const patchCharacterWithConcentrationGuard = async (updates, options = {}) => {
+    const nextConcentration = updates?.concentrating_on ?? updates?.concentration;
+    if (!needsConcentrationReplacement(concentratingOn, nextConcentration)) {
+      return patchCharacter(updates, options);
+    }
+
+    const nextName = getConcentrationName(nextConcentration);
+    const currentName = concentratingName || 'your current spell';
+    toast.warning(`Already concentrating on ${currentName}`, {
+      description: `Starting concentration on ${nextName} will end ${currentName}.`,
+      duration: 10000,
+      action: {
+        label: `Switch to ${nextName}`,
+        onClick: () => patchCharacter(updates, { ...options, success: `Concentrating on ${nextName}` }),
+      },
+      cancel: {
+        label: `Keep ${currentName}`,
+        onClick: () => {},
+      },
+    });
+    return false;
+  };
+
+  const rollConcentrationSave = async (dc, spellName = concentratingName) => {
+    const result = rollD20(concentrationSaveModifier, {
+      mode: rollMode,
+      bonus: getRollBonus(),
+      label: 'Concentration Save',
+    });
+    const entry = {
+      id: `${Date.now()}-concentration`,
+      label: `Concentration Save DC ${dc}`,
+      d20: result.d20,
+      rolls: result.rolls,
+      allRolls: result.allRolls,
+      modifier: result.modifier,
+      total: result.total,
+      mode: result.mode,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setRollBurst(entry);
+    setRollHistory(prev => [entry, ...prev].slice(0, 12));
+
+    if (result.total >= dc) {
+      toast.success(`Concentration held on ${spellName}`, { description: `${result.total} vs DC ${dc}` });
+      return true;
+    }
+
+    await patchCharacter(
+      { concentrating_on: null, concentration: null },
+      { error: 'Could not clear failed concentration' },
+    );
+    toast.error(`Concentration lost on ${spellName}`, { description: `${result.total} vs DC ${dc}` });
+    return false;
+  };
+
   const updateHp = async (delta) => {
     if (!character || savingHp) return;
     const amount = Math.abs(Number(delta) || 0);
@@ -240,14 +303,23 @@ export default function CleanCharacterSheet() {
       updates.death_saves_failures = 0;
     }
     setSavingHp(true);
-    await patchCharacter(updates, { error: 'Could not save HP' });
+    const saved = await patchCharacter(updates, { error: 'Could not save HP' });
     setSavingHp(false);
 
-    if (delta < 0 && character?.concentrating_on && result.hpDamage > 0) {
-      const damageTaken = result.hpDamage;
-      const concentrationDC = Math.max(10, Math.floor(damageTaken / 2));
-      const spellName = character.concentrating_on?.name || character.concentrating_on;
-      toast.warning(`Concentration check! Concentrating on ${spellName} — DC ${concentrationDC} Constitution save`, { duration: 8000 });
+    if (saved !== false && delta < 0 && concentratingName && amount > 0) {
+      const concentrationDC = getConcentrationSaveDc(amount);
+      toast.warning(`You took ${amount} damage — concentration check`, {
+        description: `You are concentrating on ${concentratingName}. Make a Constitution save, DC ${concentrationDC}, to keep the spell.`,
+        duration: 12000,
+        action: {
+          label: 'Roll CON Save',
+          onClick: () => rollConcentrationSave(concentrationDC, concentratingName),
+        },
+        cancel: {
+          label: 'Later',
+          onClick: () => {},
+        },
+      });
     }
   };
 
@@ -381,7 +453,11 @@ export default function CleanCharacterSheet() {
   };
 
   const saveConcentration = async (spellName) => {
-    await patchCharacter({ concentrating_on: spellName, concentration: spellName }, { success: `Concentrating on ${spellName}` });
+    const saved = await patchCharacterWithConcentrationGuard(
+      { concentrating_on: spellName, concentration: spellName },
+      { success: `Concentrating on ${spellName}` },
+    );
+    if (saved === false) return;
     setConcentrationInput('');
     setShowConcentrationInput(false);
   };
@@ -569,7 +645,7 @@ export default function CleanCharacterSheet() {
         {activeTab === 'turn' && playTools}
         {activeTab === 'combat' && combatTools}
         {activeTab === 'rook' && <RookPlayerHelperTab character={character} />}
-        {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
+        {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacterWithConcentrationGuard} />}
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
         {activeTab === 'class' && (
           <CleanSheetFeaturesTab
