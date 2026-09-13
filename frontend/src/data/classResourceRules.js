@@ -243,8 +243,39 @@ const resourceLevelOf = (character, className) => {
   return classLevelOf(character, className);
 };
 
+function normaliseChannelDivinityRules(rules = [], character = {}) {
+  const channelRules = rules.filter(rule => rule.key === 'channel_divinity');
+  if (channelRules.length <= 1) return rules;
+  const otherRules = rules.filter(rule => rule.key !== 'channel_divinity');
+
+  if (!is2024Rules(character)) {
+    const maximum = Math.max(...channelRules.map(rule => Number(rule.maxValue || 0)));
+    return [
+      ...otherRules,
+      {
+        ...channelRules.find(rule => Number(rule.maxValue || 0) === maximum),
+        key: 'channel_divinity',
+        label: 'Channel Divinity',
+        className: 'Cleric / Paladin',
+        maxValue: maximum,
+        restore: 'short-rest',
+        shortRestRestoreValue: 0,
+      },
+    ];
+  }
+
+  return [
+    ...otherRules,
+    ...channelRules.map(rule => ({
+      ...rule,
+      key: `${normalizeName(rule.className)}_channel_divinity`,
+      label: `${rule.className} Channel Divinity`,
+    })),
+  ];
+}
+
 export function getClassResourceRules(character) {
-  return resourceClassNamesFor(character).flatMap(className => {
+  const rules = resourceClassNamesFor(character).flatMap(className => {
     const level = resourceLevelOf(character, className);
     return (CLASS_RESOURCE_RULES[className] || [])
       .filter(rule => level >= (rule.minLevel || 1))
@@ -265,6 +296,8 @@ export function getClassResourceRules(character) {
       })
       .filter(rule => rule.maxValue > 0);
   });
+
+  return normaliseChannelDivinityRules(rules, character);
 }
 
 function restoreTypeFrom(value = '') {
@@ -325,6 +358,36 @@ export function buildHomebrewResourceTrackers(character = {}) {
   }, {});
 }
 
+function legacyChannelTarget(legacy = {}, rules = []) {
+  const scopedRules = rules.filter(rule => ['cleric_channel_divinity', 'paladin_channel_divinity'].includes(rule.key));
+  if (!scopedRules.length) return '';
+
+  const source = normalizeName(legacy.className || legacy.class_name || '');
+  const sourceTarget = `${source}_channel_divinity`;
+  if (scopedRules.some(rule => rule.key === sourceTarget)) return sourceTarget;
+
+  const legacyMax = Math.max(0, Number(legacy.max ?? legacy.maximum ?? 0));
+  const matching = scopedRules.filter(rule => Number(rule.maxValue || 0) === legacyMax && legacyMax > 0);
+  if (matching.length === 1) return matching[0].key;
+
+  const paladin = scopedRules.find(rule => rule.key === 'paladin_channel_divinity');
+  return paladin?.key || scopedRules[0]?.key || '';
+}
+
+function migrateLegacyChannelDivinity(resources = {}, rules = []) {
+  const legacy = resources.channel_divinity;
+  if (!legacy || typeof legacy !== 'object' || Array.isArray(legacy)) return resources;
+  const target = legacyChannelTarget(legacy, rules);
+  if (!target) return resources;
+
+  const migrated = { ...resources };
+  if (!migrated[target] || typeof migrated[target] !== 'object' || Array.isArray(migrated[target])) {
+    migrated[target] = { ...legacy, migration_source: 'legacy_channel_divinity' };
+  }
+  delete migrated.channel_divinity;
+  return migrated;
+}
+
 export function buildInitialClassResources(character) {
   const classResources = getClassResourceRules(character).reduce((resources, rule) => {
     resources[rule.key] = {
@@ -349,8 +412,10 @@ export function buildInitialClassResources(character) {
 
 export function restoreClassResources(character, restType = 'long-rest') {
   const currentResources = character?.resources || {};
-  const restored = { ...currentResources };
-  getClassResourceRules(character).forEach(rule => {
+  const rules = getClassResourceRules(character);
+  let restored = migrateLegacyChannelDivinity({ ...currentResources }, rules);
+
+  rules.forEach(rule => {
     const existing = restored[rule.key] || {};
     const maximum = rule.maxValue;
     const current = Math.max(0, Math.min(maximum, Number(existing.current ?? existing.remaining ?? maximum) || 0));
