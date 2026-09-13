@@ -1,6 +1,7 @@
 import {
   buildCharacterSpellCastUpdate,
   characterClassLevels,
+  chooseCharacterCastOption,
   getCharacterCastOptions,
 } from './characterSpellCastingActions';
 
@@ -85,6 +86,49 @@ describe('character spell casting actions', () => {
     expect(result.updates.resources).toBeUndefined();
   });
 
+  test('multiclass caster can explicitly spend Pact Magic instead of a normal slot', () => {
+    const character = {
+      character_class: 'Wizard',
+      level: 6,
+      class_levels: { Wizard: 3, Warlock: 3 },
+      classes: [
+        { name: 'Wizard', level: 3, subclass: 'Evocation' },
+        { name: 'Warlock', level: 3, subclass: 'Fiend' },
+      ],
+      spell_slots: { 1: 4, 2: 2 },
+      spell_slots_remaining: { 1: 2, 2: 1 },
+      resources: {
+        pact_magic: { current: 2, remaining: 2, max: 2, slot_level: 2, restore: 'short-rest' },
+      },
+    };
+
+    const result = buildCharacterSpellCastUpdate(
+      character,
+      { name: 'Misty Step', level: 2 },
+      { explicitOption: { source: 'pact', level: 2 } },
+    );
+
+    expect(result.option).toMatchObject({ source: 'pact', level: 2 });
+    expect(result.updates.resources.pact_magic).toMatchObject({ current: 1, remaining: 1 });
+    expect(result.updates.spell_slots_remaining).toBeUndefined();
+  });
+
+  test('explicit option fails safely if the chosen pool changed before save', () => {
+    const result = buildCharacterSpellCastUpdate({
+      character_class: 'Wizard',
+      level: 3,
+      class_levels: { Wizard: 3 },
+      spell_slots: { 1: 4, 2: 2 },
+      spell_slots_remaining: { 1: 1, 2: 0 },
+    }, { name: 'Magic Missile', level: 1 }, {
+      explicitOption: { source: 'spell', level: 2 },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.reason).toContain('no longer available');
+    expect(result.updates).toEqual({});
+  });
+
   test('multiclass caster falls back to Pact Magic when eligible normal slots are empty', () => {
     const result = buildCharacterSpellCastUpdate({
       character_class: 'Wizard',
@@ -123,7 +167,7 @@ describe('character spell casting actions', () => {
     expect(result.reason).toContain('No level 1+ spell slots left');
   });
 
-  test('exposes both normal and Pact Magic options for future explicit player choice', () => {
+  test('exposes both normal and Pact Magic options for explicit player choice', () => {
     const result = getCharacterCastOptions({
       character_class: 'Wizard',
       level: 6,
@@ -139,5 +183,16 @@ describe('character spell casting actions', () => {
       expect.objectContaining({ source: 'spell', level: 2 }),
       expect.objectContaining({ source: 'pact', level: 2 }),
     ]));
+  });
+
+  test('explicit chooser matches source and level instead of trusting a stale object', () => {
+    const options = [
+      { source: 'spell', level: 2, remaining: 1 },
+      { source: 'pact', level: 2, remaining: 2 },
+    ];
+
+    expect(chooseCharacterCastOption(options, {
+      explicitOption: { source: 'pact', level: 2, remaining: 99 },
+    })).toEqual(options[1]);
   });
 });
