@@ -7,9 +7,10 @@ like a rest. These focused routes reuse the existing progression rules while
 preserving spent resources and current damage.
 
 This module also keeps Warlock Pact Magic separate from the shared multiclass
-spell-slot table whenever a character has another spellcasting class, and lets
-multiclass characters continue any class they already possess rather than being
-locked to their original primary class forever.
+spell-slot table whenever a character has another spellcasting class, lets
+multiclass characters continue any class they already possess, and routes new
+spell choices to known/prepared/spellbook state according to the character's
+rules edition.
 """
 
 from __future__ import annotations
@@ -20,11 +21,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import db
 from data.character_resources import merge_character_resources
+from data.class_progression import spell_selection_mode
 from data.spell_slot_rules import shared_spell_slots
 from models import LevelUpRequest
 from routes.characters import (
     build_level_up_update,
     display_class_name,
+    edition_for,
     get_owned_character,
     initial_class_levels,
     meets_multiclass_requirements,
@@ -96,6 +99,76 @@ def _subclass_for_class(existing: Dict[str, Any], class_name: str) -> str:
     if _normalise_name(primary) == _normalise_name(class_name):
         return str(existing.get("subclass") or "")
     return ""
+
+
+def _spell_key(spell: Any) -> str:
+    if isinstance(spell, dict):
+        return _normalise_name(spell.get("name") or spell.get("spell_name") or spell.get("title"))
+    return _normalise_name(spell)
+
+
+def _normalise_spell_entry(spell: Any) -> Dict[str, Any]:
+    if isinstance(spell, dict):
+        entry = dict(spell)
+        entry["name"] = str(entry.get("name") or entry.get("spell_name") or entry.get("title") or "").strip()
+        return entry
+    return {"name": str(spell or "").strip()}
+
+
+def _merge_unique_spells(existing: Any, additions: Any) -> List[Dict[str, Any]]:
+    """Append spell choices without duplicating names already on that list."""
+    output: List[Dict[str, Any]] = []
+    seen = set()
+    for raw in list(existing or []) + list(additions or []):
+        entry = _normalise_spell_entry(raw)
+        key = _spell_key(entry)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        output.append(entry)
+    return output
+
+
+def route_level_up_spell_choices(
+    existing: Dict[str, Any],
+    update_data: Dict[str, Any],
+    level_up: LevelUpRequest,
+    leveled_class: str,
+) -> Dict[str, Any]:
+    """Persist `new_spells` in the class/edition-appropriate spell container.
+
+    The legacy builder always writes new level-up spells to `spells_known`.
+    That is correct for 2014 Bard/Ranger/Sorcerer/Warlock, but not for Wizard
+    spellbook additions or the fixed prepared lists used by revised 2024 casters.
+    """
+    additions = list(level_up.new_spells or [])
+    if not additions:
+        return update_data
+
+    update = dict(update_data)
+    mode = spell_selection_mode(display_class_name(leveled_class), edition_for(existing))
+    destination = "spells_known"
+
+    if mode == "spellbook":
+        update.pop("spells_known", None)
+        update["spellbook"] = _merge_unique_spells(existing.get("spellbook") or [], additions)
+        destination = "spellbook"
+    elif mode == "prepared":
+        update.pop("spells_known", None)
+        current_prepared = existing.get("spells_prepared") or existing.get("prepared_spells") or []
+        update["spells_prepared"] = _merge_unique_spells(current_prepared, additions)
+        destination = "spells_prepared"
+
+    progression = dict(update.get("level_progression") or {})
+    progression_key = str(level_up.new_level)
+    if isinstance(progression.get(progression_key), dict):
+        progression_entry = dict(progression[progression_key])
+        progression_entry["spell_selection_mode"] = mode
+        progression_entry["spell_destination"] = destination
+        progression[progression_key] = progression_entry
+        update["level_progression"] = progression
+
+    return update
 
 
 def progression_spell_slot_totals(existing: Dict[str, Any], class_levels: Dict[str, int]) -> Dict[str, int]:
@@ -298,6 +371,7 @@ def build_state_safe_level_up_update(
         rules_existing["subclass"] = _subclass_for_class(existing, leveled_class)
 
     update_data = build_level_up_update(rules_existing, level_up, leveled_class, progression_type)
+    update_data = route_level_up_spell_choices(existing, update_data, level_up, leveled_class)
 
     if levelling_secondary:
         # A secondary subclass belongs on its class entry, not in the legacy
