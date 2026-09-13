@@ -10,7 +10,6 @@ const editionFor = (character = {}) => {
   return String(raw).includes('2024') ? '2024' : '2014';
 };
 
-const proficiencyBonus = (level = 1) => 2 + Math.floor((Math.max(1, toNumber(level, 1)) - 1) / 4);
 const abilityModifier = (score = 10) => Math.floor((toNumber(score, 10) - 10) / 2);
 
 const classLevel = (classLevels = {}, className = '') => {
@@ -18,11 +17,6 @@ const classLevel = (classLevels = {}, className = '') => {
   const match = Object.entries(classLevels || {}).find(([name]) => key(name) === wanted);
   return match ? Math.max(0, toNumber(match[1], 0)) : 0;
 };
-
-function totalLevel(classLevels = {}, character = {}) {
-  const total = Object.values(classLevels || {}).reduce((sum, level) => sum + Math.max(0, toNumber(level, 0)), 0);
-  return total || Math.max(1, toNumber(character.level, 1));
-}
 
 function warlockShape(level = 0) {
   const safeLevel = Math.max(0, Math.min(20, toNumber(level, 0)));
@@ -34,7 +28,6 @@ function warlockShape(level = 0) {
 
 function resourceSpecs(character = {}, classLevels = {}) {
   const edition = editionFor(character);
-  const pb = proficiencyBonus(totalLevel(classLevels, character));
   const specs = {};
 
   const barbarian = classLevel(classLevels, 'Barbarian');
@@ -42,7 +35,14 @@ function resourceSpecs(character = {}, classLevels = {}) {
     const maximum = edition === '2014' && barbarian >= 20
       ? 99
       : barbarian >= 17 ? 6 : barbarian >= 12 ? 5 : barbarian >= 6 ? 4 : barbarian >= 3 ? 3 : 2;
-    specs.rage = { label: 'Rage', max: maximum, restore: 'long-rest', className: 'Barbarian', min_level: 1 };
+    specs.rage = {
+      label: 'Rage',
+      max: maximum,
+      restore: 'long-rest',
+      ...(edition === '2024' ? { short_rest_restore: 1 } : {}),
+      className: 'Barbarian',
+      min_level: 1,
+    };
   }
 
   const bard = classLevel(classLevels, 'Bard');
@@ -59,24 +59,43 @@ function resourceSpecs(character = {}, classLevels = {}) {
   const cleric = classLevel(classLevels, 'Cleric');
   if (cleric >= 2) {
     const maximum = edition === '2024'
-      ? Math.max(2, Math.ceil(cleric / 2))
+      ? cleric >= 18 ? 4 : cleric >= 6 ? 3 : 2
       : cleric >= 18 ? 3 : cleric >= 6 ? 2 : 1;
     specs.channel_divinity = {
-      label: 'Channel Divinity', max: maximum, restore: 'short-rest', className: 'Cleric', min_level: 2,
+      label: 'Channel Divinity',
+      max: maximum,
+      restore: edition === '2024' ? 'long-rest' : 'short-rest',
+      ...(edition === '2024' ? { short_rest_restore: 1 } : {}),
+      className: 'Cleric',
+      min_level: 2,
     };
   }
 
   const druid = classLevel(classLevels, 'Druid');
   if (druid >= 2) {
-    specs.wild_shape = { label: 'Wild Shape', max: 2, restore: 'short-rest', className: 'Druid', min_level: 2 };
+    const maximum = edition === '2024'
+      ? druid >= 17 ? 4 : druid >= 6 ? 3 : 2
+      : druid >= 20 ? 99 : 2;
+    specs.wild_shape = {
+      label: 'Wild Shape',
+      max: maximum,
+      restore: edition === '2024' ? 'long-rest' : 'short-rest',
+      ...(edition === '2024' ? { short_rest_restore: 1 } : {}),
+      className: 'Druid',
+      min_level: 2,
+    };
   }
 
   const fighter = classLevel(classLevels, 'Fighter');
   if (fighter >= 1) {
+    const secondWindMax = edition === '2024'
+      ? fighter >= 10 ? 4 : fighter >= 4 ? 3 : 2
+      : 1;
     specs.second_wind = {
       label: 'Second Wind',
-      max: edition === '2024' ? pb : 1,
+      max: secondWindMax,
       restore: edition === '2024' ? 'long-rest' : 'short-rest',
+      ...(edition === '2024' ? { short_rest_restore: 1 } : {}),
       className: 'Fighter',
       min_level: 1,
     };
@@ -99,7 +118,7 @@ function resourceSpecs(character = {}, classLevels = {}) {
   const monk = classLevel(classLevels, 'Monk');
   if (monk >= 2) {
     specs.ki = {
-      label: edition === '2024' ? 'Discipline Points' : 'Ki',
+      label: edition === '2024' ? 'Focus Points' : 'Ki',
       max: monk,
       restore: 'short-rest',
       className: 'Monk',
@@ -119,8 +138,9 @@ function resourceSpecs(character = {}, classLevels = {}) {
     // do not sprout duplicate Cleric/Paladin counters.
     specs.channel_divinity = {
       label: 'Channel Divinity',
-      max: edition === '2024' ? pb : 1,
+      max: edition === '2024' ? (paladin >= 11 ? 3 : 2) : 1,
       restore: edition === '2024' ? 'long-rest' : 'short-rest',
+      ...(edition === '2024' ? { short_rest_restore: 1 } : {}),
       className: 'Paladin',
       min_level: 3,
     };
@@ -128,8 +148,9 @@ function resourceSpecs(character = {}, classLevels = {}) {
 
   const ranger = classLevel(classLevels, 'Ranger');
   if (ranger >= 1 && edition === '2024') {
+    const favoredEnemyMax = ranger >= 17 ? 6 : ranger >= 13 ? 5 : ranger >= 9 ? 4 : ranger >= 5 ? 3 : 2;
     specs.favored_enemy = {
-      label: 'Favored Enemy', max: Math.max(2, Math.ceil(ranger / 2)), restore: 'long-rest', className: 'Ranger', min_level: 1,
+      label: 'Favored Enemy', max: favoredEnemyMax, restore: 'long-rest', className: 'Ranger', min_level: 1,
     };
   }
 
