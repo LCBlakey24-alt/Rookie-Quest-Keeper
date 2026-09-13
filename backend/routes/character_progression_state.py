@@ -15,13 +15,17 @@ rules edition.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import db
 from data.character_resources import merge_character_resources
-from data.class_progression import spell_selection_mode
+from data.class_progression import (
+    prepared_spell_capacity,
+    prepared_spell_change_rule,
+    spell_selection_mode,
+)
 from data.spell_slot_rules import shared_spell_slots
 from models import LevelUpRequest
 from routes.characters import (
@@ -59,6 +63,14 @@ def _slot_map(value: Any) -> Dict[str, int]:
 def _warlock_level(class_levels: Dict[str, Any]) -> int:
     for class_name, level in (class_levels or {}).items():
         if _normalise_name(class_name) == "warlock":
+            return max(0, _int(level, 0))
+    return 0
+
+
+def _class_level(class_levels: Dict[str, Any], class_name: str) -> int:
+    key = _normalise_name(class_name)
+    for saved_name, level in (class_levels or {}).items():
+        if _normalise_name(saved_name) == key:
             return max(0, _int(level, 0))
     return 0
 
@@ -115,6 +127,13 @@ def _normalise_spell_entry(spell: Any) -> Dict[str, Any]:
     return {"name": str(spell or "").strip()}
 
 
+def _tag_spell_source(spell: Any, class_name: str) -> Dict[str, Any]:
+    entry = _normalise_spell_entry(spell)
+    if entry.get("name") and not (entry.get("sourceClass") or entry.get("source_class")):
+        entry["sourceClass"] = display_class_name(class_name)
+    return entry
+
+
 def _merge_unique_spells(existing: Any, additions: Any) -> List[Dict[str, Any]]:
     """Append spell choices without duplicating names already on that list."""
     output: List[Dict[str, Any]] = []
@@ -129,6 +148,130 @@ def _merge_unique_spells(existing: Any, additions: Any) -> List[Dict[str, Any]]:
     return output
 
 
+def _replacement_name(spell: Any) -> str:
+    if not isinstance(spell, dict):
+        return ""
+    return str(spell.get("replaces") or spell.get("replaces_name") or spell.get("replace") or "").strip()
+
+
+def _strip_replacement_metadata(spell: Any, class_name: str) -> Dict[str, Any]:
+    entry = _tag_spell_source(spell, class_name)
+    entry.pop("replaces", None)
+    entry.pop("replaces_name", None)
+    entry.pop("replace", None)
+    return entry
+
+
+def _prepared_list_for_progression(existing: Dict[str, Any], class_name: str, edition: str) -> Tuple[List[Dict[str, Any]], bool]:
+    """Return the canonical prepared list, with a safe legacy fallback.
+
+    Early revised-rule saves sometimes stored Bard/Sorcerer/Warlock choices in
+    `spells_known`. If a 2024 prepared caster has no canonical prepared list, use
+    that legacy list as the starting point during the next level-up rather than
+    silently losing the player's spells. The legacy field itself is left intact
+    so this migration remains non-destructive.
+    """
+    prepared = existing.get("spells_prepared") or existing.get("prepared_spells") or []
+    if prepared:
+        return [_normalise_spell_entry(spell) for spell in prepared], False
+
+    if edition == "2024" and spell_selection_mode(display_class_name(class_name), edition) == "prepared":
+        legacy = existing.get("spells_known") or existing.get("known_spells") or []
+        if legacy:
+            return [_normalise_spell_entry(spell) for spell in legacy], True
+
+    return [], False
+
+
+def _apply_prepared_spell_changes(
+    existing: Dict[str, Any],
+    update: Dict[str, Any],
+    additions: List[Any],
+    leveled_class: str,
+    edition: str,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    canonical_class = display_class_name(leveled_class)
+    current_prepared, legacy_migrated = _prepared_list_for_progression(existing, canonical_class, edition)
+    growth: List[Dict[str, Any]] = []
+    replacements: List[Tuple[str, Dict[str, Any]]] = []
+
+    for raw in additions:
+        replacement = _replacement_name(raw)
+        clean = _strip_replacement_metadata(raw, canonical_class)
+        if not _spell_key(clean):
+            continue
+        if replacement:
+            replacements.append((replacement, clean))
+        else:
+            growth.append(clean)
+
+    rule = prepared_spell_change_rule(canonical_class, edition)
+    if replacements:
+        max_replacements = rule.get("max_replacements")
+        if rule.get("cadence") != "level-up" or max_replacements in (None, 0):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{canonical_class} cannot replace prepared spells during level-up under {edition} rules.",
+            )
+        if len(replacements) > int(max_replacements):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{canonical_class} can replace at most {max_replacements} prepared spell during this level-up.",
+            )
+
+    result = list(current_prepared)
+    replacement_records: List[Dict[str, str]] = []
+    for old_name, new_spell in replacements:
+        old_key = _normalise_name(old_name)
+        index = next((i for i, spell in enumerate(result) if _spell_key(spell) == old_key), -1)
+        if index < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot replace {old_name}: it is not on the current prepared spell list.",
+            )
+        new_key = _spell_key(new_spell)
+        if any(_spell_key(spell) == new_key for i, spell in enumerate(result) if i != index):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot replace {old_name} with {new_spell.get('name')}: that spell is already prepared.",
+            )
+        result[index] = new_spell
+        replacement_records.append({"from": old_name, "to": new_spell.get("name", "")})
+
+    before_levels = initial_class_levels(existing)
+    after_levels = update.get("class_levels") if isinstance(update.get("class_levels"), dict) else before_levels
+    before_level = _class_level(before_levels, canonical_class)
+    after_level = _class_level(after_levels, canonical_class)
+    before_capacity = prepared_spell_capacity(canonical_class, before_level, edition)
+    after_capacity = prepared_spell_capacity(canonical_class, after_level, edition)
+
+    if edition == "2024" and after_capacity > 0:
+        available_room = max(0, after_capacity - len(result))
+        if len(growth) > available_room:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"{canonical_class} has room for {available_room} additional prepared spell"
+                    f"{'s' if available_room != 1 else ''} at class level {after_level}, but {len(growth)} were submitted."
+                ),
+            )
+
+    result = _merge_unique_spells(result, growth)
+    if edition == "2024" and after_capacity > 0 and len(result) > after_capacity:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Prepared spell list exceeds {canonical_class}'s capacity of {after_capacity}.",
+        )
+
+    metadata = {
+        "prepared_capacity_before": before_capacity,
+        "prepared_capacity_after": after_capacity,
+        "prepared_replacements": replacement_records,
+        "legacy_spell_list_migrated": legacy_migrated,
+    }
+    return result, metadata
+
+
 def route_level_up_spell_choices(
     existing: Dict[str, Any],
     update_data: Dict[str, Any],
@@ -137,27 +280,46 @@ def route_level_up_spell_choices(
 ) -> Dict[str, Any]:
     """Persist `new_spells` in the class/edition-appropriate spell container.
 
-    The legacy builder always writes new level-up spells to `spells_known`.
-    That is correct for 2014 Bard/Ranger/Sorcerer/Warlock, but not for Wizard
-    spellbook additions or the fixed prepared lists used by revised 2024 casters.
+    Replacement choices are encoded as ordinary `new_spells` entries with a
+    `replaces` field. This keeps the public request model backward-compatible
+    while allowing revised Bard/Sorcerer/Warlock level-ups to swap one prepared
+    spell without confusing that swap with newly gained prepared capacity.
     """
     additions = list(level_up.new_spells or [])
     if not additions:
         return update_data
 
     update = dict(update_data)
-    mode = spell_selection_mode(display_class_name(leveled_class), edition_for(existing))
+    canonical_class = display_class_name(leveled_class)
+    edition = edition_for(existing)
+    mode = spell_selection_mode(canonical_class, edition)
     destination = "spells_known"
+    metadata: Dict[str, Any] = {}
+
+    tagged_additions = [_tag_spell_source(spell, canonical_class) for spell in additions]
 
     if mode == "spellbook":
+        if any(_replacement_name(spell) for spell in additions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Wizard level-up spellbook additions cannot use prepared-spell replacement markers.",
+            )
         update.pop("spells_known", None)
-        update["spellbook"] = _merge_unique_spells(existing.get("spellbook") or [], additions)
+        clean_additions = [_strip_replacement_metadata(spell, canonical_class) for spell in additions]
+        update["spellbook"] = _merge_unique_spells(existing.get("spellbook") or [], clean_additions)
         destination = "spellbook"
     elif mode == "prepared":
         update.pop("spells_known", None)
-        current_prepared = existing.get("spells_prepared") or existing.get("prepared_spells") or []
-        update["spells_prepared"] = _merge_unique_spells(current_prepared, additions)
+        prepared, metadata = _apply_prepared_spell_changes(existing, update, additions, canonical_class, edition)
+        update["spells_prepared"] = prepared
         destination = "spells_prepared"
+    else:
+        if any(_replacement_name(spell) for spell in additions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{canonical_class} uses a known-spell list under {edition} rules; replacement markers are not accepted here.",
+            )
+        update["spells_known"] = _merge_unique_spells(existing.get("spells_known") or [], tagged_additions)
 
     progression = dict(update.get("level_progression") or {})
     progression_key = str(level_up.new_level)
@@ -165,6 +327,7 @@ def route_level_up_spell_choices(
         progression_entry = dict(progression[progression_key])
         progression_entry["spell_selection_mode"] = mode
         progression_entry["spell_destination"] = destination
+        progression_entry.update(metadata)
         progression[progression_key] = progression_entry
         update["level_progression"] = progression
 
