@@ -1,6 +1,7 @@
 import {
   buildLongRestUpdates,
   buildShortRestUpdates,
+  canonicalResourcesForRest,
   getLongRestHitDiceRemaining,
   getTotalHitDice,
   restoreResourceTrackers,
@@ -61,6 +62,28 @@ describe('character rest state helpers', () => {
     expect(second.second_wind.current).toBe(2);
     expect(second.channel_divinity.current).toBe(3);
     expect(second.wild_shape.current).toBe(4);
+  });
+
+  test('preview rest reconciliation repairs stale core resource maxima', () => {
+    const repaired = canonicalResourcesForRest({
+      character_class: 'Fighter',
+      level: 10,
+      rules_edition: '2024',
+      class_levels: { Fighter: 10 },
+      resources: {
+        second_wind: { current: 0, remaining: 0, max: 3, restore: 'long-rest' },
+        custom_charge: { current: 2, remaining: 2, max: 2, restore: 'long-rest' },
+      },
+    });
+
+    expect(repaired.second_wind).toMatchObject({
+      current: 1,
+      remaining: 1,
+      max: 4,
+      restore: 'long-rest',
+      short_rest_restore: 1,
+    });
+    expect(repaired.custom_charge).toMatchObject({ current: 2, max: 2 });
   });
 
   test('long rest resets combat state, slots, resources and one exhaustion level', () => {
@@ -130,6 +153,7 @@ describe('character rest state helpers', () => {
       resources: {},
     });
 
+    expect(updates.spell_slots).toEqual({ 3: 2 });
     expect(updates.spell_slots_remaining).toEqual({ 3: 2 });
     expect(updates.resources.pact_magic).toMatchObject({
       current: 2,
@@ -138,5 +162,27 @@ describe('character rest state helpers', () => {
       slot_level: 3,
       restore: 'short-rest',
     });
+  });
+
+  test('stale high-level Warlock legacy slot mirror is repaired on rest', () => {
+    const updates = buildShortRestUpdates({
+      character_class: 'Warlock',
+      class_levels: { Warlock: 17 },
+      level: 17,
+      spell_slots: { 4: 2 },
+      spell_slots_remaining: { 4: 0 },
+      resources: {
+        pact_magic: { current: 0, remaining: 0, max: 2, slot_level: 4, restore: 'short-rest' },
+      },
+    });
+
+    expect(updates.resources.pact_magic).toMatchObject({
+      current: 4,
+      remaining: 4,
+      max: 4,
+      slot_level: 5,
+    });
+    expect(updates.spell_slots).toEqual({ 5: 4 });
+    expect(updates.spell_slots_remaining).toEqual({ 5: 4 });
   });
 });
