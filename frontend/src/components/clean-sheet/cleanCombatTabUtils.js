@@ -70,6 +70,35 @@ export function getItemQuantity(item) {
   return item.quantity ?? item.qty ?? item.count ?? null;
 }
 
+export function consumeConsumableState(character = {}, item) {
+  const inventory = [...(character?.inventory || [])];
+  const equipment = [...(character?.equipment || [])];
+  const inInventory = inventory.includes(item);
+  const inEquipment = equipment.includes(item);
+  const source = inInventory ? inventory : inEquipment ? equipment : null;
+
+  if (!source) return { inventory, equipment, consumed: false };
+
+  const sourceIndex = source.findIndex(entry => entry === item);
+  if (sourceIndex < 0) return { inventory, equipment, consumed: false };
+
+  const stored = source[sourceIndex];
+  if (stored && typeof stored === 'object') {
+    const quantity = Number(getItemQuantity(stored));
+    if (Number.isFinite(quantity) && quantity > 1) {
+      source[sourceIndex] = { ...stored, quantity: quantity - 1, qty: quantity - 1 };
+    } else {
+      source.splice(sourceIndex, 1);
+    }
+  } else {
+    // Legacy characters can store consumables as plain strings. Removing one
+    // matching entry prevents those old potions from becoming infinitely reusable.
+    source.splice(sourceIndex, 1);
+  }
+
+  return { inventory, equipment, consumed: true };
+}
+
 function isWeaponLike(item) {
   const type = normaliseName(item?.type || item?.category || item?.item_type || '');
   return Boolean(
