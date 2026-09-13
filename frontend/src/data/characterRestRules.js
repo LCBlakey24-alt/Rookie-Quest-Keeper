@@ -1,3 +1,4 @@
+import { mergeCharacterClassResources } from './characterClassResources';
 import { getMulticlassSpellSlots } from './spellDatabase';
 import {
   buildPactMagicResource,
@@ -108,17 +109,34 @@ function getSlotMath(character = {}) {
   }
 }
 
+export function canonicalResourcesForRest(character = {}) {
+  return mergeCharacterClassResources(
+    character,
+    getCharacterClassLevels(character),
+    { initialiseMissing: true },
+  );
+}
+
 function withPactRestored(character, resources, slotMath) {
   const pactPool = getPactMagicPool({ ...character, resources }, slotMath);
   if (!pactPool.available) return resources;
   return buildPactMagicResource(resources, pactPool, pactPool.total);
 }
 
+function pactSlotShape(resources = {}) {
+  const tracker = resources?.pact_magic;
+  const slotLevel = Math.max(0, toNumber(tracker?.slot_level, 0));
+  const maximum = Math.max(0, toNumber(tracker?.max, 0));
+  return slotLevel > 0 && maximum > 0 ? { [String(slotLevel)]: maximum } : {};
+}
+
 export function buildShortRestUpdates(character = {}) {
   const slotMath = getSlotMath(character);
-  const normalPool = getNormalSpellPool(character, slotMath);
-  let resources = restoreResourceTrackers(character.resources || {}, 'short-rest');
-  resources = withPactRestored(character, resources, slotMath);
+  const canonicalResources = canonicalResourcesForRest(character);
+  const workingCharacter = { ...character, resources: canonicalResources };
+  const normalPool = getNormalSpellPool(workingCharacter, slotMath);
+  let resources = restoreResourceTrackers(canonicalResources, 'short-rest');
+  resources = withPactRestored(workingCharacter, resources, slotMath);
 
   const updates = {
     resources,
@@ -128,7 +146,10 @@ export function buildShortRestUpdates(character = {}) {
   // Older single-class Warlocks stored Pact Magic in spell_slots. Keep that
   // compatibility field synchronized while also migrating to resources.
   if (normalPool.legacyPactExcluded) {
-    updates.spell_slots_remaining = { ...(character.spell_slots || {}) };
+    const pactSlots = pactSlotShape(resources);
+    const slots = Object.keys(pactSlots).length ? pactSlots : { ...(character.spell_slots || {}) };
+    updates.spell_slots = slots;
+    updates.spell_slots_remaining = slots;
     updates.used_spell_slots = {};
   }
 
@@ -138,8 +159,13 @@ export function buildShortRestUpdates(character = {}) {
 export function buildLongRestUpdates(character = {}) {
   const maxHp = Math.max(1, toNumber(character.max_hit_points, 1));
   const slotMath = getSlotMath(character);
-  let resources = restoreResourceTrackers(character.resources || {}, 'long-rest');
-  resources = withPactRestored(character, resources, slotMath);
+  const canonicalResources = canonicalResourcesForRest(character);
+  const workingCharacter = { ...character, resources: canonicalResources };
+  const normalPool = getNormalSpellPool(workingCharacter, slotMath);
+  let resources = restoreResourceTrackers(canonicalResources, 'long-rest');
+  resources = withPactRestored(workingCharacter, resources, slotMath);
+  const pactSlots = normalPool.legacyPactExcluded ? pactSlotShape(resources) : {};
+  const spellSlots = Object.keys(pactSlots).length ? pactSlots : { ...(character.spell_slots || {}) };
 
   return {
     current_hit_points: maxHp,
@@ -149,7 +175,8 @@ export function buildLongRestUpdates(character = {}) {
     death_saves_failures: 0,
     concentrating_on: null,
     concentration: null,
-    spell_slots_remaining: { ...(character.spell_slots || {}) },
+    ...(normalPool.legacyPactExcluded ? { spell_slots: spellSlots } : {}),
+    spell_slots_remaining: spellSlots,
     used_spell_slots: {},
     hit_dice_remaining: getLongRestHitDiceRemaining(character),
     exhaustion_level: Math.max(0, toNumber(character.exhaustion_level, 0) - 1),
