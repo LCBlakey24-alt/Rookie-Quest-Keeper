@@ -9,6 +9,7 @@ import {
   buildCurrencyUpdate,
   clearInventorySlotState,
   equipInventoryState,
+  findInventoryItemIndex,
   getCanonicalEquippedItem,
   inventoryItemIdentity,
   normaliseCurrencyState,
@@ -58,7 +59,6 @@ const blankItem = {
 };
 
 const toArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
-const normaliseText = (value = '') => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 function itemName(item) {
   if (!item) return 'Unknown item';
@@ -152,7 +152,7 @@ function normaliseItem(item, source = '') {
     equip_slot: equipSlot,
     equipped_slot: equipSlot,
     attack_bonus: Number(item?.attack_bonus ?? 0) || 0,
-    ac_bonus: Number(item?.ac_bonus ?? 0) || 0,
+    ac_bonus: Number(item?.ac_bonus ?? item?.acBonus ?? 0) || 0,
     damage_dice: item?.damage_dice || item?.damage || '',
     damage_type: item?.damage_type || item?.damageType || '',
   };
@@ -185,7 +185,7 @@ function normaliseReferenceItem(entry) {
     damage_type: damageParts && isWeapon ? item.damageType || damageParts[2] || '' : '',
     properties: Array.isArray(item.properties) ? item.properties.join(', ') : item.properties || '',
     range: item.range || '',
-    ac_bonus: isShield ? 2 : Number(item.ac_bonus || 0),
+    ac_bonus: Number(item.ac_bonus ?? item.acBonus ?? (isShield ? 2 : 0)) || 0,
   }, 'inventory');
 }
 
@@ -417,7 +417,7 @@ export default function CleanInventoryTabV2({ character, onCharacterUpdate, onRo
   };
 
   const itemActions = (item) => {
-    const inInventory = inventory.some((candidate) => inventoryItemIdentity(candidate) === inventoryItemIdentity(item));
+    const inInventory = findInventoryItemIndex(inventory, item, equipped) >= 0;
     const slot = inferEquipSlot(item);
     return (
       <>
