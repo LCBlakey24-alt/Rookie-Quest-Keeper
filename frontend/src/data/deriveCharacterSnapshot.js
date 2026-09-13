@@ -6,12 +6,13 @@ import { getClassResourceRules } from './classResourceRules';
 import { resourceActionCards, resourceValue } from './actionEconomyCards';
 import {
   SPELLCASTING_CLASSES,
-  classHasSpellcasting,
   getCharacterClassLevel,
-  getCharacterSpellcastingInfo,
-  getMulticlassSpellSlots,
-  getSpellSlotsForCaster,
 } from './spellDatabase';
+import {
+  classHasEditionSpellcasting,
+  getEditionMulticlassSpellSlots,
+  getEditionSpellSlotsForClass,
+} from './editionSpellSlotRules';
 
 export const CORE_CLASS_NAMES = [
   'Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk',
@@ -68,26 +69,30 @@ function getRaceTraits(character = {}, edition = '2014') {
 }
 
 function getSpellcastingBlocks(character = {}, classLevels = {}) {
-  const primaryInfo = getCharacterSpellcastingInfo(character);
   const blocks = [];
   Object.keys(classLevels).forEach(className => {
     const info = SPELLCASTING_CLASSES[className];
-    if (!info || !classHasSpellcasting(character, className)) return;
+    if (!info) return;
     const level = getCharacterClassLevel(character, className);
+    if (!classHasEditionSpellcasting(character, className, level)) return;
     blocks.push({
       className,
       level,
       ability: info.ability,
       type: info.pactMagic ? 'pact_magic' : info.type,
       ritual: Boolean(info.ritual),
-      slots: getSpellSlotsForCaster(info, level),
+      slots: getEditionSpellSlotsForClass(character, className, level),
       spellSaveDc: Number(character?.spell_save_dc || 0),
       spellAttackBonus: Number(character?.spell_attack_bonus || 0),
     });
   });
 
-  const multiclass = getMulticlassSpellSlots(classLevels, character);
-  return { primary: primaryInfo?.className || null, blocks, multiclass };
+  const primaryClass = getCanonicalCoreClassName(character?.character_class || '');
+  const primary = blocks.find(block => normalizeKey(block.className) === normalizeKey(primaryClass))?.className
+    || blocks[0]?.className
+    || null;
+  const multiclass = getEditionMulticlassSpellSlots(classLevels, character);
+  return { primary, blocks, multiclass };
 }
 
 function getActionCards(character = {}, resources = []) {
