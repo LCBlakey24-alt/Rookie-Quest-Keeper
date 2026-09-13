@@ -228,9 +228,11 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
         class_levels,
         character,
     )
-    spell_slots = supplied_slots or derived_slots
-    if len(class_levels) > 1 and derived_slots:
-        spell_slots = derived_slots
+    # Core class progression is deterministic, so canonical edition-aware slot
+    # math wins over stale or malformed builder payloads. Unknown/homebrew
+    # classes still keep explicitly supplied slot maps because no canonical
+    # progression can be derived for them.
+    spell_slots = derived_slots if derived_slots else supplied_slots
     character["spell_slots"] = {str(level): max(0, _int(count, 0)) for level, count in spell_slots.items()}
     character["spell_slots_remaining"] = clamp_slot_state(
         character["spell_slots"],
