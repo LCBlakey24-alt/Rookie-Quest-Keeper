@@ -1,6 +1,7 @@
 import { mergeCharacterClassResources } from '@/data/characterClassResources';
+import { clampSpellSlotsRemaining, deriveCanonicalSpellSlots } from '@/data/canonicalSpellSlotState';
 import { HIT_DICE } from '@/data/levelUpData';
-import { SPELLCASTING_CLASSES, getMulticlassSpellSlots } from '@/data/spellDatabase';
+import { SPELLCASTING_CLASSES } from '@/data/spellDatabase';
 
 const toNumber = (value, fallback = 0) => {
   const number = Number(value);
@@ -80,16 +81,6 @@ function hitDiceString(classLevels = {}) {
     .join(' + ') || '1d8';
 }
 
-function clampSlots(totals = {}, remaining) {
-  const normalizedTotals = Object.fromEntries(Object.entries(totals || {})
-    .map(([level, count]) => [String(level), Math.max(0, toNumber(count, 0))]));
-  if (!remaining || typeof remaining !== 'object' || Array.isArray(remaining)) return { ...normalizedTotals };
-  return Object.fromEntries(Object.entries(normalizedTotals).map(([level, total]) => [
-    level,
-    Math.min(total, Math.max(0, toNumber(remaining[level] ?? remaining[Number(level)], total))),
-  ]));
-}
-
 function spellcastingAbility(primaryClass = '', classLevels = {}) {
   const primary = SPELLCASTING_CLASSES[displayClass(primaryClass)];
   if (primary?.ability) return primary.ability;
@@ -130,24 +121,15 @@ export function canonicalisePreviewCreatedCharacter(payload = {}) {
 
   if (String(sourceClass).trim() !== primaryClass) base.imported_class_text = String(sourceClass).trim();
 
-  let slotMath = {};
-  try {
-    slotMath = getMulticlassSpellSlots(classLevels, base) || {};
-  } catch {
-    slotMath = {};
-  }
-  const sharedSlots = slotMath.slots && Object.keys(slotMath.slots).length ? slotMath.slots : {};
-  const pact = slotMath.pactMagic;
-  const pactSlots = pact?.slots > 0 && pact?.level > 0 ? { [String(pact.level)]: pact.slots } : {};
   const suppliedSlots = payload.spell_slots && typeof payload.spell_slots === 'object' && !Array.isArray(payload.spell_slots)
     ? payload.spell_slots
     : {};
-  const derivedSlots = Object.keys(sharedSlots).length ? sharedSlots : pactSlots;
+  const derivedSlots = deriveCanonicalSpellSlots(base, classLevels);
   const spellSlots = Object.keys(derivedSlots).length ? derivedSlots : suppliedSlots;
 
   base.spell_slots = Object.fromEntries(Object.entries(spellSlots || {})
     .map(([slotLevel, count]) => [String(slotLevel), Math.max(0, toNumber(count, 0))]));
-  base.spell_slots_remaining = clampSlots(base.spell_slots, payload.spell_slots_remaining);
+  base.spell_slots_remaining = clampSpellSlotsRemaining(base.spell_slots, payload.spell_slots_remaining);
 
   const castingAbility = payload.spellcasting_ability || spellcastingAbility(primaryClass, classLevels);
   base.spellcasting_ability = castingAbility;
