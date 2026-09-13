@@ -15,6 +15,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from config import db
+from data.character_resources import merge_character_resources
 from utils.auth import get_current_user
 
 
@@ -151,6 +152,32 @@ def restore_resource_trackers(resources: Any, rest_type: str) -> Dict[str, Any]:
     return restored
 
 
+def canonical_resources_for_rest(character: Dict[str, Any]) -> Dict[str, Any]:
+    """Repair stale core counters before applying recovery.
+
+    Older saved sheets may contain pre-audit maxima (for example old 2024
+    Second Wind or Pact Magic counts). A rest is a safe point to reconcile the
+    tracker shape against the character's saved class levels while preserving
+    spent uses and any homebrew counters.
+    """
+    return merge_character_resources(
+        character,
+        _class_levels(character),
+        initialise_missing=True,
+    )
+
+
+def _pact_slot_shape(resources: Dict[str, Any]) -> Dict[str, int]:
+    tracker = resources.get("pact_magic") if isinstance(resources, dict) else None
+    if not isinstance(tracker, dict):
+        return {}
+    slot_level = max(0, _int(tracker.get("slot_level"), 0))
+    maximum = _tracker_max(tracker)
+    if slot_level <= 0 or maximum <= 0:
+        return {}
+    return {str(slot_level): maximum}
+
+
 def long_rest_hit_dice(character: Dict[str, Any]) -> int:
     """Apply edition-aware Hit Point Dice recovery.
 
@@ -271,13 +298,18 @@ async def short_rest_character(
 ):
     """Restore short-rest resources and optionally spend Hit Dice."""
     character = await _owned_character(character_id, username)
+    canonical_resources = canonical_resources_for_rest(character)
+    working_character = {**character, "resources": canonical_resources}
+    restored_resources = restore_resource_trackers(canonical_resources, "short-rest")
     updates: Dict[str, Any] = {
-        "resources": restore_resource_trackers(character.get("resources"), "short-rest"),
+        "resources": restored_resources,
         "last_rest_type": "short-rest",
         "last_rest_at": _now(),
     }
-    if spell_slots_are_pact_pool(character):
-        spell_slots = character.get("spell_slots") if isinstance(character.get("spell_slots"), dict) else {}
+    if spell_slots_are_pact_pool(working_character):
+        pact_slots = _pact_slot_shape(restored_resources)
+        spell_slots = pact_slots or (character.get("spell_slots") if isinstance(character.get("spell_slots"), dict) else {})
+        updates["spell_slots"] = dict(spell_slots)
         updates["spell_slots_remaining"] = dict(spell_slots)
         updates["used_spell_slots"] = {}
 
@@ -293,7 +325,13 @@ async def long_rest_character(
     """Apply long-rest recovery while respecting the character's rules edition."""
     character = await _owned_character(character_id, username)
     max_hp = max(1, _int(character.get("max_hit_points"), 1))
+    canonical_resources = canonical_resources_for_rest(character)
+    working_character = {**character, "resources": canonical_resources}
+    restored_resources = restore_resource_trackers(canonical_resources, "long-rest")
     spell_slots = character.get("spell_slots") if isinstance(character.get("spell_slots"), dict) else {}
+    pact_only = spell_slots_are_pact_pool(working_character)
+    if pact_only:
+        spell_slots = _pact_slot_shape(restored_resources) or spell_slots
 
     updates: Dict[str, Any] = {
         "current_hit_points": max_hp,
@@ -306,10 +344,12 @@ async def long_rest_character(
         "spell_slots_remaining": dict(spell_slots),
         "used_spell_slots": {},
         "hit_dice_remaining": long_rest_hit_dice(character),
-        "resources": restore_resource_trackers(character.get("resources"), "long-rest"),
+        "resources": restored_resources,
         "exhaustion_level": max(0, _int(character.get("exhaustion_level"), 0) - 1),
         "last_rest_type": "long-rest",
         "last_rest_at": _now(),
     }
+    if pact_only:
+        updates["spell_slots"] = dict(spell_slots)
 
     return await _save(character_id, username, updates)
