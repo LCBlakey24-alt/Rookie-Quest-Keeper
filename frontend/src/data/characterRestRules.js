@@ -23,6 +23,12 @@ export function getCharacterEdition(character = {}) {
   return String(raw).includes('2024') ? '2024' : '2014';
 }
 
+export function canStartRest(character = {}) {
+  if (getCharacterEdition(character) !== '2024') return true;
+  const currentHp = toNumber(character.current_hit_points ?? character.hp, 0);
+  return currentHp > 0;
+}
+
 export function getCharacterClassLevels(character = {}) {
   const fromMap = character.class_levels || character.multiclass_levels || {};
   const entries = Object.entries(fromMap).filter(([, level]) => toNumber(level, 0) > 0);
@@ -155,10 +161,6 @@ export function buildShortRestUpdates(character = {}) {
     last_rest_type: 'short-rest',
   };
 
-  // Older single-pool Warlocks (including Warlock + non-caster combinations)
-  // stored Pact Magic in spell_slots. Keep that compatibility mirror canonical
-  // even when the saved slot map is stale and no longer matches the real Pact
-  // tracker shape.
   if (mirrorPactSlots) {
     const pactSlots = pactSlotShape(resources);
     const slots = Object.keys(pactSlots).length ? pactSlots : { ...(character.spell_slots || {}) };
