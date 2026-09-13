@@ -1,0 +1,96 @@
+name: Character polish check
+
+on:
+  push:
+    branches:
+      - player-character-polish-batch
+  pull_request:
+    branches:
+      - player-character-polish-batch
+  workflow_dispatch:
+
+jobs:
+  character-state:
+    name: Character creation, progression and recovery
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Compile focused character modules
+        run: |
+          python -m py_compile \
+            backend/data/character_resources.py \
+            backend/data/class_progression.py \
+            backend/data/spell_slot_rules.py \
+            backend/routes/character_import.py \
+            backend/routes/character_creation_state.py \
+            backend/routes/character_edit_state.py \
+            backend/routes/character_patch.py \
+            backend/routes/character_spell_migration.py \
+            backend/routes/character_progression_preflight.py \
+            backend/routes/character_progression_state.py \
+            backend/routes/character_recovery.py
+
+      - name: Run focused character state tests
+        run: |
+          python -m unittest backend.tests.test_character_import -v
+          python -m unittest backend.tests.test_character_resources -v
+          python -m unittest backend.tests.test_channel_divinity_multiclass -v
+          python -m unittest backend.tests.test_spell_slot_rules -v
+          python -m unittest backend.tests.test_character_creation_state -v
+          python -m unittest backend.tests.test_character_edit_state -v
+          python -m unittest backend.tests.test_character_patch_state -v
+          python -m unittest backend.tests.test_character_spell_migration -v
+          python -m unittest backend.tests.test_character_progression_preflight -v
+          python -m unittest backend.tests.test_character_progression_state -v
+          python -m unittest backend.tests.test_character_spell_progression_state -v
+          python -m unittest backend.tests.test_character_recovery -v
+          python -m unittest backend.tests.test_character_recovery_edition_rules -v
+
+  character-frontend:
+    name: Character sheet spell and rules helpers
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      # A few test dependencies were added before this character batch without
+      # a matching lockfile refresh. Do not let that old packaging mismatch hide
+      # character regressions; the final dependency-cleanup pass will regenerate
+      # and commit the lockfile before release.
+      - name: Install frontend dependencies
+        run: yarn install --non-interactive
+
+      - name: Run focused character state tests
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/components/clean-sheet/cleanSheetUtils.test.js src/components/clean-sheet/cleanSheetSessionFlow.test.js src/components/clean-sheet/cleanCombatTabUtils.test.js src/data/restEditionRules.test.js src/data/spellCastingRules.test.js src/data/spellcastingPools.test.js src/data/editionSpellSlotRules.test.js src/data/spellPreparationRules.test.js src/data/characterSpellCastingActions.test.js src/data/characterRestRules.test.js src/data/characterConcentrationRules.test.js src/data/classLevelRules.test.js src/data/classResourceRules.test.js src/data/classResourcePactScaling.test.js src/data/characterClassResources.test.js src/data/classResourceParity.test.js src/data/actionEconomyCards.test.js src/data/channelDivinityResources.test.js src/data/characterCombatDerivations.test.js src/data/characterProfileEdit.test.js src/data/deriveCharacterSnapshot.test.js src/data/startingLevelChoiceEngine.test.js src/data/startingLevelSpellPreparation.test.js src/data/levelUpSpellChangeRules.test.js src/data/levelUpProgressionRules.test.js src/data/progressionAudit.test.js src/data/characterAuditReport.test.js src/data/characterSpellListRules.test.js src/data/characterInventoryState.test.js src/data/classSpecificChoiceEngine.test.js src/data/warlockProgression.test.js src/data/warlockBuilderOptions.test.js src/preview/previewCharacterCreation.test.js src/preview/previewCharacterEdit.test.js src/preview/previewCharacterProgression.test.js src/preview/previewCharacterProgressionEdition.test.js
+
+      - name: Build frontend
+        env:
+          CI: true
+        run: yarn build

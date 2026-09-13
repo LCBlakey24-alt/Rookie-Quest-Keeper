@@ -1,0 +1,229 @@
+"""Focused tests for edition-aware player character recovery."""
+
+import os
+import sys
+import unittest
+from pathlib import Path
+
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
+os.environ.setdefault("DB_NAME", "rookie_quest_keeper_test")
+os.environ.setdefault("JWT_SECRET_KEY", "character-recovery-test-secret")
+os.environ.setdefault("APP_URL", "http://localhost:3000")
+os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
+
+from routes.character_recovery import (  # noqa: E402
+    _pact_slot_shape,
+    canonical_resources_for_rest,
+    has_non_pact_spell_slots,
+    long_rest_hit_dice,
+    restore_resource_trackers,
+    spell_slots_are_pact_pool,
+)
+
+
+class TestCharacterRecoveryHelpers(unittest.TestCase):
+    def test_short_rest_restores_only_short_rest_trackers(self):
+        resources = {
+            "action_surge": {"current": 0, "remaining": 0, "max": 1, "restore": "short-rest"},
+            "sorcery_points": {"current": 1, "remaining": 1, "max": 5, "restore": "long-rest"},
+            "note": "keep me",
+        }
+
+        restored = restore_resource_trackers(resources, "short-rest")
+        self.assertEqual(restored["action_surge"]["current"], 1)
+        self.assertEqual(restored["action_surge"]["remaining"], 1)
+        self.assertEqual(restored["sorcery_points"]["current"], 1)
+        self.assertEqual(restored["sorcery_points"]["remaining"], 1)
+        self.assertEqual(restored["note"], "keep me")
+
+    def test_short_rest_can_restore_one_use_without_refilling_whole_pool(self):
+        resources = {
+            "second_wind": {
+                "current": 0,
+                "remaining": 0,
+                "max": 4,
+                "restore": "long-rest",
+                "short_rest_restore": 1,
+            },
+            "channel_divinity": {
+                "current": 1,
+                "remaining": 1,
+                "max": 4,
+                "restore": "long-rest",
+                "short_rest_restore": 1,
+            },
+        }
+
+        first = restore_resource_trackers(resources, "short-rest")
+        self.assertEqual(first["second_wind"]["current"], 1)
+        self.assertEqual(first["channel_divinity"]["current"], 2)
+
+        second = restore_resource_trackers(first, "short-rest")
+        self.assertEqual(second["second_wind"]["current"], 2)
+        self.assertEqual(second["channel_divinity"]["current"], 3)
+
+    def test_partial_short_rest_recovery_never_exceeds_maximum(self):
+        restored = restore_resource_trackers({
+            "rage": {
+                "current": 5,
+                "remaining": 5,
+                "max": 6,
+                "restore": "long-rest",
+                "short_rest_restore": 1,
+            },
+        }, "short-rest")
+
+        self.assertEqual(restored["rage"]["current"], 6)
+        self.assertEqual(restored["rage"]["remaining"], 6)
+
+    def test_long_rest_restores_all_persisted_trackers(self):
+        resources = {
+            "pact_magic": {"current": 0, "remaining": 0, "max": 2, "restore": "short-rest"},
+            "rage": {"current": 1, "remaining": 1, "max": 3, "restore": "long-rest", "short_rest_restore": 1},
+        }
+
+        restored = restore_resource_trackers(resources, "long-rest")
+        self.assertEqual(restored["pact_magic"]["remaining"], 2)
+        self.assertEqual(restored["rage"]["remaining"], 3)
+
+    def test_rest_repair_upgrades_stale_2024_resource_shape_without_losing_spent_state(self):
+        character = {
+            "character_class": "Fighter",
+            "level": 10,
+            "rules_edition": "2024",
+            "class_levels": {"Fighter": 10},
+            "resources": {
+                "second_wind": {
+                    "label": "Second Wind",
+                    "current": 0,
+                    "remaining": 0,
+                    "max": 3,
+                    "restore": "long-rest",
+                },
+                "custom_charge": {"current": 2, "remaining": 2, "max": 2, "restore": "long-rest"},
+            },
+        }
+
+        repaired = canonical_resources_for_rest(character)
+        self.assertEqual(repaired["second_wind"]["max"], 4)
+        self.assertEqual(repaired["second_wind"]["current"], 1)
+        self.assertEqual(repaired["second_wind"]["short_rest_restore"], 1)
+        self.assertEqual(repaired["custom_charge"]["current"], 2)
+
+    def test_rest_repair_builds_current_warlock_pact_shape_for_old_sheets(self):
+        repaired = canonical_resources_for_rest({
+            "character_class": "Warlock",
+            "level": 17,
+            "rules_edition": "2014",
+            "class_levels": {"Warlock": 17},
+            "resources": {
+                "pact_magic": {
+                    "current": 0,
+                    "remaining": 0,
+                    "max": 2,
+                    "slot_level": 4,
+                    "restore": "short-rest",
+                },
+            },
+        })
+
+        self.assertEqual(repaired["pact_magic"]["max"], 4)
+        self.assertEqual(repaired["pact_magic"]["current"], 2)
+        self.assertEqual(repaired["pact_magic"]["slot_level"], 5)
+        self.assertEqual(_pact_slot_shape(repaired), {"5": 4})
+
+    def test_2014_long_rest_regains_half_total_hit_dice_minimum_one(self):
+        character = {
+            "edition": "2014",
+            "level": 7,
+            "hit_dice_remaining": 1,
+        }
+        self.assertEqual(long_rest_hit_dice(character), 4)
+
+        level_one = {
+            "rules_edition": "2014",
+            "level": 1,
+            "hit_dice_remaining": 0,
+        }
+        self.assertEqual(long_rest_hit_dice(level_one), 1)
+
+    def test_2024_long_rest_restores_all_hit_point_dice(self):
+        character = {
+            "ruleset_id": "dnd5e_2024",
+            "level": 9,
+            "hit_dice_remaining": 2,
+        }
+        self.assertEqual(long_rest_hit_dice(character), 9)
+
+    def test_multiclass_total_hit_dice_uses_class_level_sum(self):
+        character = {
+            "edition": "2014",
+            "level": 8,
+            "class_levels": {"Fighter": 5, "Wizard": 3},
+            "hit_dice_remaining": 1,
+        }
+        self.assertEqual(long_rest_hit_dice(character), 5)
+
+    def test_single_class_warlock_spell_slots_are_pact_pool(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 5,
+            "class_levels": {"Warlock": 5},
+            "spell_slots": {"3": 2},
+            "resources": {
+                "pact_magic": {"current": 0, "remaining": 0, "max": 2, "slot_level": 3}
+            },
+        }
+        self.assertTrue(spell_slots_are_pact_pool(character))
+
+    def test_warlock_fighter_without_eldritch_knight_still_uses_pact_pool(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 6,
+            "class_levels": {"Warlock": 5, "Fighter": 1},
+            "spell_slots": {"3": 2},
+        }
+        self.assertFalse(has_non_pact_spell_slots(character))
+        self.assertTrue(spell_slots_are_pact_pool(character))
+
+    def test_warlock_wizard_keeps_pact_and_shared_slots_separate(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 6,
+            "class_levels": {"Warlock": 5, "Wizard": 1},
+            "spell_slots": {"1": 2},
+            "resources": {
+                "pact_magic": {"current": 1, "remaining": 1, "max": 2, "slot_level": 3}
+            },
+        }
+        self.assertTrue(has_non_pact_spell_slots(character))
+        self.assertFalse(spell_slots_are_pact_pool(character))
+
+    def test_warlock_paladin_level_one_has_no_shared_slots_yet(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 6,
+            "class_levels": {"Warlock": 5, "Paladin": 1},
+            "spell_slots": {"3": 2},
+        }
+        self.assertFalse(has_non_pact_spell_slots(character))
+        self.assertTrue(spell_slots_are_pact_pool(character))
+
+    def test_warlock_paladin_level_two_has_shared_slots(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 7,
+            "class_levels": {"Warlock": 5, "Paladin": 2},
+            "spell_slots": {"1": 2},
+        }
+        self.assertTrue(has_non_pact_spell_slots(character))
+        self.assertFalse(spell_slots_are_pact_pool(character))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -3,8 +3,9 @@ import { Coffee, Dices, History, Moon, RotateCcw, Skull, Sparkles, Star } from '
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
+import { canStartRest, getCharacterEdition } from '@/data/characterRestRules';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
-import { COMMON_CONDITIONS, fmt, parseHitDie } from './cleanSheetUtils';
+import { COMMON_CONDITIONS, fmt, mod, parseHitDie, rollHitDie } from './cleanSheetUtils';
 import { DeathSaveTrack } from './CleanSheetCommon';
 
 function getCharacterIdFromPath() {
@@ -17,11 +18,13 @@ export default function CleanSheetPlayTools({
   activeConditions,
   concentratingName,
   concentrationInput,
+  currentHp,
   deathSaveFailures,
   deathSaveSuccesses,
   exhaustionLevel,
   hitDice,
   hitDiceRemaining,
+  maxHp,
   passiveScores,
   rollBonus,
   rollHistory,
@@ -52,6 +55,8 @@ export default function CleanSheetPlayTools({
   const [manualD20, setManualD20] = useState('');
   const [manualTotal, setManualTotal] = useState('');
   const [loggingManualRoll, setLoggingManualRoll] = useState(false);
+  const [spendingHitDie, setSpendingHitDie] = useState(false);
+  const [checkingRest, setCheckingRest] = useState(false);
 
   const hitDieInfo = parseHitDie(hitDice);
   const hitDiceTotal = hitDieInfo.total;
@@ -64,6 +69,79 @@ export default function CleanSheetPlayTools({
     const spellName = concentrationInput.trim();
     if (!spellName) return;
     onSaveConcentration(spellName);
+  };
+
+  const fetchCurrentCharacter = async () => {
+    const characterId = getCharacterIdFromPath();
+    if (!characterId) throw new Error('Could not find this character sheet');
+    const response = await apiClient.get(`/characters/${characterId}`);
+    return { characterId, character: response.data?.character || response.data || {} };
+  };
+
+  const runRest = async (type) => {
+    const handler = type === 'long' ? onLongRest : onShortRest;
+    if (!handler || checkingRest || savingQuickState) return;
+
+    if (Number(currentHp) > 0) {
+      handler();
+      return;
+    }
+
+    setCheckingRest(true);
+    try {
+      const { character } = await fetchCurrentCharacter();
+      if (!canStartRest(character)) {
+        toast.error('2024 rules require at least 1 HP to start a rest.');
+        return;
+      }
+      handler();
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || error?.message || 'Could not verify rest eligibility');
+    } finally {
+      setCheckingRest(false);
+    }
+  };
+
+  const spendHitDie = async () => {
+    if (spendingHitDie || savingQuickState) return;
+    setSpendingHitDie(true);
+    try {
+      const { characterId, character } = await fetchCurrentCharacter();
+      if (!canStartRest(character)) {
+        toast.error('2024 rules require at least 1 HP before you can spend a Hit Point Die during a rest.');
+        return;
+      }
+
+      const maxHitPoints = Math.max(1, Number(character.max_hit_points ?? character.max_hp ?? maxHp ?? 1) || 1);
+      const rawCurrent = character.current_hit_points ?? character.hp ?? currentHp ?? maxHitPoints;
+      const currentHitPoints = Math.max(0, Math.min(maxHitPoints, Number(rawCurrent) || 0));
+      const remaining = Math.max(0, Number(character.hit_dice_remaining ?? hitDiceRemaining) || 0);
+      if (remaining <= 0) {
+        toast.error('No Hit Dice remaining');
+        return;
+      }
+      if (currentHitPoints >= maxHitPoints) {
+        toast.info('Already at full HP');
+        return;
+      }
+
+      const savedHitDice = character.hit_dice || hitDice || `${character.level || 1}d8`;
+      const dieInfo = parseHitDie(savedHitDice);
+      const minimum = getCharacterEdition(character) === '2024' ? 1 : 0;
+      const result = rollHitDie(dieInfo.sides, mod(character.constitution), { minimum });
+      const nextHp = Math.min(maxHitPoints, currentHitPoints + result.total);
+
+      await apiClient.patch(`/characters/${characterId}`, {
+        current_hit_points: nextHp,
+        hit_dice_remaining: Math.max(0, remaining - 1),
+      });
+      toast.success(`Hit Die d${dieInfo.sides}: recovered ${nextHp - currentHitPoints} HP`);
+      if (typeof window !== 'undefined') window.location.reload();
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || error?.message || 'Could not spend Hit Die');
+    } finally {
+      setSpendingHitDie(false);
+    }
   };
 
   const logManualRoll = async () => {
@@ -157,15 +235,23 @@ export default function CleanSheetPlayTools({
             <strong>{safeHitDiceRemaining}/{hitDiceTotal} {hitDieLabel}</strong>
           </div>
           <div className="clean-sheet-recovery-actions clean-sheet-recovery-actions--rests">
-            <button type="button" onClick={onShortRest} disabled={savingQuickState} data-testid="short-rest-btn">
+            <button type="button" onClick={() => runRest('short')} disabled={savingQuickState || checkingRest} data-testid="short-rest-btn">
               <Coffee size={17} /> Short Rest
             </button>
-            <button type="button" onClick={onLongRest} disabled={savingQuickState} data-testid="long-rest-btn">
+            <button type="button" onClick={() => runRest('long')} disabled={savingQuickState || checkingRest} data-testid="long-rest-btn">
               <Moon size={17} /> Long Rest
+            </button>
+            <button
+              type="button"
+              onClick={spendHitDie}
+              disabled={savingQuickState || spendingHitDie || safeHitDiceRemaining <= 0 || Number(currentHp) >= Number(maxHp)}
+              data-testid="spend-hit-die-btn"
+            >
+              <Dices size={17} /> {spendingHitDie ? 'Spending...' : `Spend ${hitDieLabel}`}
             </button>
           </div>
           <p className="clean-sheet-recovery-help">
-            Short rest keeps HP as-is. Long rest restores HP, clears temp HP, and recovers rest resources.
+            Short rest keeps HP as-is unless you spend Hit Dice. Long rest restores HP, clears temp HP, and recovers rest resources.
           </p>
         </div>
 

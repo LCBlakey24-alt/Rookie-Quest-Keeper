@@ -37,6 +37,39 @@ export function findArmorRule(itemOrName) {
   return null;
 }
 
+function namedEnhancementBonus(item) {
+  if (!item || typeof item !== 'object') return null;
+  const name = String(item.name || item.item_name || item.label || item.title || '');
+  const match = name.match(/(?:^|\s)\+(\d+)\b/);
+  return match ? Number(match[1]) : null;
+}
+
+function extraAcBonus(item, rule) {
+  if (!item || typeof item !== 'object') return 0;
+
+  // Newer/custom records can state the magical/enhancement bonus explicitly.
+  const explicitEnhancement = item.magic_ac_bonus
+    ?? item.magicAcBonus
+    ?? item.enhancement_bonus
+    ?? item.enhancementBonus;
+  if (explicitEnhancement !== undefined && explicitEnhancement !== null && explicitEnhancement !== '') {
+    return Number(explicitEnhancement) || 0;
+  }
+
+  // A conventional name such as "Shield +1" is also unambiguous.
+  const nameBonus = namedEnhancementBonus(item);
+  if (nameBonus !== null) return nameBonus;
+
+  const stored = Number(item.ac_bonus ?? item.acBonus ?? 0) || 0;
+
+  // Older/reference Shield records store the normal +2 shield AC in ac_bonus.
+  // The rule above already grants that +2, so do not add the same inherent
+  // value a second time. Other values remain useful for custom magic items.
+  if (rule?.category === 'shield' && stored === Number(rule.acBonus || 2)) return 0;
+
+  return stored;
+}
+
 export function calculateArmorAc({ armor, shield, dexMod = 0, unarmoredAc = 10 }) {
   const armorRule = findArmorRule(armor);
   const shieldRule = findArmorRule(shield);
@@ -48,9 +81,9 @@ export function calculateArmorAc({ armor, shield, dexMod = 0, unarmoredAc = 10 }
 
   if (shieldRule?.category === 'shield') ac += shieldRule.acBonus || 2;
 
-  // Add magic item bonuses (+1 Armour of Protection, +2 Shield, etc.)
-  if (typeof armor === 'object' && armor !== null) ac += Number(armor.ac_bonus || 0);
-  if (typeof shield === 'object' && shield !== null) ac += Number(shield.ac_bonus || 0);
+  // Add only enhancement/magic bonuses beyond the armour rule itself.
+  ac += extraAcBonus(armor, armorRule);
+  ac += extraAcBonus(shield, shieldRule);
 
   return ac;
 }

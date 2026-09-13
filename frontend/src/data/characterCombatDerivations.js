@@ -36,6 +36,17 @@ function isWeaponLike(item) {
   );
 }
 
+function isShieldLike(item) {
+  if (!item) return false;
+  const name = getItemName(item).toLowerCase();
+  const type = typeof item === 'string'
+    ? ''
+    : `${item?.type || ''} ${item?.category || ''} ${item?.item_type || ''}`.toLowerCase();
+  const armorRule = findArmorRule(item);
+  const ruleText = `${armorRule?.name || ''} ${armorRule?.category || ''} ${armorRule?.type || ''}`.toLowerCase();
+  return name.includes('shield') || type.includes('shield') || ruleText.includes('shield');
+}
+
 function getEquippedCandidates(character) {
   const candidates = [];
   const equipped = character?.equipped || {};
@@ -51,7 +62,6 @@ function getEquippedCandidates(character) {
 export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
   const strengthMod = mod(character?.strength);
   const dexterityMod = mod(character?.dexterity);
-  const bestAbilityMod = Math.max(strengthMod, dexterityMod);
   const rule = findWeaponRule(item);
   const name = rule?.name || getItemName(item) || 'Weapon Attack';
 
@@ -115,13 +125,25 @@ export function deriveArmorClass(character, options = {}) {
   const dexMod = mod(character?.dexterity);
   const equipped = character?.equipped || {};
   const armor = equipped.armor || equipped.armour;
-  const shield = equipped.shield;
+  const offHand = equipped.offHand || equipped.off_hand;
+  // The canonical inventory model stores shields in the off-hand slot. Keep the
+  // legacy `equipped.shield` alias readable so old characters and new characters
+  // derive the same AC.
+  const shield = equipped.shield || (isShieldLike(offHand) ? offHand : null);
   const explicitAc = options.ignoreStoredAc ? 0 : Number(character?.armor_class ?? character?.ac ?? 0);
-  const unarmoredAc = explicitAc || 10 + dexMod;
 
+  // Equipping/unequipping gear explicitly calls this helper with
+  // `ignoreStoredAc: true`, then persists the newly derived AC. On ordinary
+  // sheet renders that persisted value is therefore already the final result.
+  // Re-running shield/custom-item bonuses on top of it double-counts equipment
+  // (for example an unarmoured DEX 16 character can save 15 AC with a shield,
+  // then incorrectly display 17 on the next render).
+  if (explicitAc > 0) return explicitAc;
+
+  const unarmoredAc = 10 + dexMod;
   const hasArmorRule = Boolean(findArmorRule(armor) || findArmorRule(shield));
   if (!hasArmorRule) {
-    // No named armour rule, but equipped items may still carry ac_bonus
+    // No named armour rule, but equipped items may still carry ac_bonus.
     const armorBonus = typeof armor === 'object' && armor ? Number(armor.ac_bonus || 0) : 0;
     const shieldBonus = typeof shield === 'object' && shield ? Math.max(Number(shield.ac_bonus || 0), 2) : 0;
     return unarmoredAc + armorBonus + shieldBonus;

@@ -31,15 +31,29 @@ function optionLabel(option) {
 
 function optionDescription(option) {
   if (!option || typeof option === 'string') return '';
+  if (option.prerequisiteNote) return option.prerequisiteNote;
+  if (option.requiresInvocation) return `Requires ${option.requiresInvocation}.`;
   return option.description || option.summary || option.prerequisite || '';
 }
 
 function ToggleChoiceList({ label, value, options, max, onChange }) {
   const [query, setQuery] = React.useState('');
+  const rawSelected = arr(value);
+  const choices = arr(options);
+  const allowedValues = React.useMemo(() => new Set(choices.map(optionValue)), [choices]);
+  const selected = choices.length
+    ? rawSelected.filter((selectedValue) => allowedValues.has(selectedValue)).slice(0, max || Infinity)
+    : rawSelected.slice(0, max || Infinity);
+
+  React.useEffect(() => {
+    if (!choices.length || !max) return;
+    const changed = rawSelected.length !== selected.length
+      || rawSelected.some((selectedValue, index) => selectedValue !== selected[index]);
+    if (changed) onChange(selected);
+  }, [choices, max, onChange, rawSelected, selected]);
+
   if (!max) return null;
 
-  const selected = arr(value);
-  const choices = arr(options);
   const searchable = choices.length > 12;
   const normalisedQuery = query.trim().toLowerCase();
   const visibleChoices = choices
@@ -146,20 +160,27 @@ export function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
 }
 
 export function SpellChoiceSection({ plan, selection, onChange }) {
-  if (!plan?.hasKnownSpellPicker && !plan?.hasPreparedSpellPicker && !plan?.cantripTarget) return null;
+  if (!plan?.hasKnownSpellPicker && !plan?.hasSpellbookPicker && !plan?.hasPreparedSpellPicker && !plan?.cantripTarget) return null;
   const current = normaliseSpellSelection(selection, plan);
   const update = (patch) => onChange({ ...current, ...patch });
   const cantripTarget = Number(plan.cantripTarget || 0);
-  const knownTarget = Number(plan.knownTarget || 0);
+  const isSpellbook = plan.spellSelectionMode === 'spellbook';
+  const permanentTarget = isSpellbook ? Number(plan.spellbookTarget || 0) : Number(plan.knownTarget || 0);
   const preparedTarget = Number(plan.preparedTarget || 0);
+  const preparedOptions = isSpellbook
+    ? arr(plan.spellOptions).filter((option) => current.spells.includes(optionValue(option)))
+    : plan.spellOptions;
+  const permanentLabel = isSpellbook ? 'Spellbook spells' : 'Known spells';
+  const description = isSpellbook
+    ? 'Choose the spells written in the Wizard spellbook, then choose the prepared list from those spellbook entries.'
+    : plan.spellSelectionMode === 'prepared'
+      ? 'Choose the character’s prepared spell list for this class and level.'
+      : 'Choose the permanent known-spell list for this class and level.';
 
   return (
     <section className="full-creator-auto-box" aria-label="Higher-level spell choices">
       <strong>Higher-level spells</strong>
-      <span>
-        Choose the spell options for this starting level. Known spells are saved as known spells;
-        prepared spells are saved as the character’s prepared list.
-      </span>
+      <span>{description}</span>
 
       <ToggleChoiceList
         label="Cantrips"
@@ -170,20 +191,27 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
       />
 
       <ToggleChoiceList
-        label="Known spells"
+        label={permanentLabel}
         value={current.spells}
         options={plan.spellOptions}
-        max={knownTarget}
-        onChange={(spells) => update({ spells })}
+        max={permanentTarget}
+        onChange={(spells) => {
+          const prepared = isSpellbook ? current.prepared.filter((name) => spells.includes(name)) : current.prepared;
+          update({ spells, prepared });
+        }}
       />
 
       <ToggleChoiceList
         label="Prepared spells"
         value={current.prepared}
-        options={plan.spellOptions}
+        options={preparedOptions}
         max={preparedTarget}
         onChange={(prepared) => update({ prepared })}
       />
+
+      {isSpellbook && permanentTarget > 0 && preparedTarget > 0 && current.spells.length < permanentTarget && (
+        <small>Finish choosing the spellbook before the full prepared list will be available.</small>
+      )}
 
       {arr(plan.arcanumLevels).length > 0 && (
         <small>Mystic Arcanum is tracked on save when matching high-level spell options are available in the spell database.</small>
@@ -193,15 +221,42 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
 }
 
 export function WarlockChoiceSection({ plan, selection, onChange }) {
-  if (!plan?.invocationsRequired && !plan?.pactBoonRequired) return null;
-  const current = normaliseWarlockSelection(selection, plan);
+  const active = Boolean(plan?.invocationsRequired || plan?.pactBoonRequired);
+  const rawCurrent = normaliseWarlockSelection(selection, plan || {});
+  const invocationOptions = arr(plan?.invocationOptionDetails).length
+    ? plan.invocationOptionDetails
+    : arr(plan?.eligibleInvocationOptions).length
+      ? plan.eligibleInvocationOptions
+      : plan?.invocationOptions;
+  const eligibleInvocationNames = new Set(arr(invocationOptions).map(optionValue));
+  const current = {
+    ...rawCurrent,
+    pactBoon: plan?.pactBoonRequired ? rawCurrent.pactBoon : '',
+    invocations: eligibleInvocationNames.size
+      ? arr(rawCurrent.invocations).filter((name) => eligibleInvocationNames.has(name))
+      : arr(rawCurrent.invocations),
+  };
+  const count = Number(plan?.invocationCount || 0);
+  const is2024 = String(plan?.edition || '').includes('2024');
+
+  React.useEffect(() => {
+    if (!active) return;
+    const changed = rawCurrent.pactBoon !== current.pactBoon
+      || rawCurrent.invocations.length !== current.invocations.length
+      || rawCurrent.invocations.some((name, index) => name !== current.invocations[index]);
+    if (changed) onChange(current);
+  }, [active, current, onChange, rawCurrent]);
+
+  if (!active) return null;
+
   const update = (patch) => onChange({ ...current, ...patch });
-  const count = Number(plan.invocationCount || 0);
 
   return (
     <section className="full-creator-auto-box" aria-label="Warlock choices">
       <strong>Warlock choices</strong>
-      <span>Pact Boon and Eldritch Invocations are applied to the saved sheet.</span>
+      <span>{is2024
+        ? 'Choose Eldritch Invocations available at this Warlock level. Pact of the Blade, Chain, and Tome are invocations in the 2024 rules.'
+        : 'Pact Boon and Eldritch Invocations are applied to the saved sheet.'}</span>
 
       {plan.pactBoonRequired && (
         <ToggleChoiceList
@@ -216,7 +271,7 @@ export function WarlockChoiceSection({ plan, selection, onChange }) {
       <ToggleChoiceList
         label="Eldritch Invocations"
         value={current.invocations}
-        options={plan.invocationOptions}
+        options={invocationOptions}
         max={count}
         onChange={(invocations) => update({ invocations })}
       />

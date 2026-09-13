@@ -1,5 +1,13 @@
 import { getAsiLevels, getChoicesForStartingLevel } from './classLevelRules';
-import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getMaxSpellLevel, getSpellsForClass } from './spellDatabase';
+import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, getSpellsForClass } from './spellDatabase';
+import { classHasEditionSpellcasting, getEditionMaxSpellLevel } from './editionSpellSlotRules';
+import {
+  getKnownSpellTarget,
+  getPreparedSpellCapacity,
+  getPreparedSpellChangeRule,
+  getSpellSelectionMode,
+  getWizardSpellbookTarget,
+} from './spellPreparationRules';
 import { getWarlockBuilderOptions } from './warlockBuilderOptions';
 import { getWarlockMysticArcanumLevels } from './warlockProgression';
 
@@ -66,7 +74,6 @@ export const WARLOCK_INVOCATION_OPTIONS = [
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const clampScore = (value) => Math.max(3, Math.min(20, Number(value || 10)));
-const abilityMod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const ABILITY_CONTAINER_KEYS = ['abilityScores', 'abilities', 'scores'];
 const ABILITY_ALIASES = {
   strength: ['str', 'STR', 'Strength'],
@@ -141,15 +148,6 @@ function readAbilityScore(source = {}, ability) {
   }
   const directKey = findAbilityKey(source, ability);
   return directKey ? scoreFromValue(source[directKey]) : 10;
-}
-
-function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
-  const classInfo = SPELLCASTING_CLASSES[className];
-  if (!classInfo || classInfo.type !== 'prepared') return 0;
-  const numericLevel = Math.max(1, Number(level || 1));
-  const abilityScore = readAbilityScore(abilities, classInfo.ability);
-  const baseLevel = classInfo.halfCaster ? Math.max(1, Math.floor(numericLevel / 2)) : numericLevel;
-  return Math.max(1, baseLevel + abilityMod(abilityScore));
 }
 
 function fightingStyleTarget(className, level) {
@@ -266,13 +264,30 @@ export function getFeatOptions({ edition = '2014', level = 1, registryFeats = []
     .sort((a, b) => getFeatName(a).localeCompare(getFeatName(b)));
 }
 
-export function getSpellChoicePlan({ className, level = 1, abilities = {} } = {}) {
-  const maxSpellLevel = getMaxSpellLevel(className, level);
+export function getSpellChoicePlan({ className, level = 1, edition = '2014', abilities = {} } = {}) {
+  const numericLevel = Math.max(1, Number(level || 1));
+  const rulesCharacter = {
+    character_class: className,
+    class_levels: { [className]: numericLevel },
+    level: numericLevel,
+    rules_edition: String(edition),
+  };
+  const hasSpellcasting = classHasEditionSpellcasting(rulesCharacter, className, numericLevel);
+  const maxSpellLevel = hasSpellcasting
+    ? getEditionMaxSpellLevel(rulesCharacter, className, numericLevel)
+    : 0;
   const spellLists = getSpellsForClass(className) || {};
   const classInfo = SPELLCASTING_CLASSES[className] || null;
-  const cantripTarget = targetFromTable(CANTRIPS_KNOWN[className] || {}, level);
-  const knownTarget = targetFromTable(SPELLS_KNOWN[className] || {}, level);
-  const preparedTarget = preparedSpellTarget({ className, level, abilities });
+  const selectionMode = hasSpellcasting ? getSpellSelectionMode({ className, edition }) : 'none';
+  const cantripTarget = hasSpellcasting ? targetFromTable(CANTRIPS_KNOWN[className] || {}, numericLevel) : 0;
+  const knownTarget = hasSpellcasting ? getKnownSpellTarget({ className, level: numericLevel, edition }) : 0;
+  const spellbookTarget = hasSpellcasting && selectionMode === 'spellbook' ? getWizardSpellbookTarget(numericLevel) : 0;
+  const preparedTarget = hasSpellcasting ? getPreparedSpellCapacity({
+    className,
+    level: numericLevel,
+    edition,
+    abilityScore: classInfo?.ability ? readAbilityScore(abilities, classInfo.ability) : 10,
+  }) : 0;
   const leveledSpells = [];
 
   for (let spellLevel = 1; spellLevel <= maxSpellLevel; spellLevel += 1) {
@@ -281,19 +296,24 @@ export function getSpellChoicePlan({ className, level = 1, abilities = {} } = {}
 
   return {
     className,
-    level: Math.max(1, Number(level || 1)),
+    level: numericLevel,
+    edition: String(edition).includes('2024') ? '2024' : '2014',
     maxSpellLevel,
-    spellcastingType: classInfo?.type || null,
+    spellcastingType: selectionMode,
+    spellSelectionMode: selectionMode,
     spellcastingAbility: classInfo?.ability || null,
     cantripTarget,
     knownTarget,
+    spellbookTarget,
     preparedTarget,
+    preparedSpellChange: getPreparedSpellChangeRule({ className, edition }),
     hasKnownSpellPicker: knownTarget > 0,
+    hasSpellbookPicker: spellbookTarget > 0,
     hasPreparedSpellPicker: preparedTarget > 0,
     cantripOptions: arr(spellLists.cantrips).map((spell) => spellEntry(spell, 0)),
     spellOptions: leveledSpells,
-    arcanumLevels: className === 'Warlock' ? getWarlockMysticArcanumLevels(level) : [],
-    classChoicePlan: getClassSpecificChoicePlan({ className, level }),
+    arcanumLevels: className === 'Warlock' && hasSpellcasting ? getWarlockMysticArcanumLevels(numericLevel) : [],
+    classChoicePlan: getClassSpecificChoicePlan({ className, level: numericLevel }),
   };
 }
 
@@ -309,7 +329,7 @@ export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edi
   const level = Math.max(1, Math.min(20, Number(startingLevel || 1)));
   const baseChoices = getChoicesForStartingLevel({ className, startingLevel: level, edition });
   const asiLevels = getAsiLevels(className).filter((asiLevel) => asiLevel <= level);
-  const spellPlan = getSpellChoicePlan({ className, level, abilities });
+  const spellPlan = getSpellChoicePlan({ className, level, edition, abilities });
   const warlockPlan = className === 'Warlock' ? getWarlockChoicePlan({ level, edition }) : null;
   const manualHooks = [];
 
@@ -322,7 +342,13 @@ export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edi
     spellPlan,
     warlockPlan,
     manualHooks,
-    hasChoices: baseChoices.length > 0 || manualHooks.length > 0 || spellPlan.hasKnownSpellPicker || spellPlan.hasPreparedSpellPicker || spellPlan.classChoicePlan.hasChoices || Boolean(warlockPlan?.invocationsRequired),
+    hasChoices: baseChoices.length > 0
+      || manualHooks.length > 0
+      || spellPlan.hasKnownSpellPicker
+      || spellPlan.hasSpellbookPicker
+      || spellPlan.hasPreparedSpellPicker
+      || spellPlan.classChoicePlan.hasChoices
+      || Boolean(warlockPlan?.invocationsRequired),
   };
 }
 
@@ -345,9 +371,12 @@ export function normaliseClassSpecificSelection(selection = {}, classPlan = {}) 
 }
 
 export function normaliseSpellSelection(selection = {}, spellPlan = {}) {
+  const permanentTarget = spellPlan.spellSelectionMode === 'spellbook'
+    ? Number(spellPlan.spellbookTarget || 0)
+    : Number(spellPlan.knownTarget || 0);
   return {
     cantrips: arr(selection.cantrips).slice(0, spellPlan.cantripTarget || 0),
-    spells: arr(selection.spells).slice(0, spellPlan.knownTarget || 0),
+    spells: arr(selection.spells).slice(0, permanentTarget),
     prepared: arr(selection.prepared).slice(0, spellPlan.preparedTarget || 0),
     classChoices: normaliseClassSpecificSelection(selection.classChoices, spellPlan.classChoicePlan),
     arcanum: selection.arcanum || {},
@@ -409,11 +438,18 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
   const warlockPlan = detailSelections.warlockPlan || null;
   const prunedDetailSelections = pruneStartingLevelDetailSelections(detailSelections, { spellPlan, warlockPlan });
   const spellSelection = prunedDetailSelections.spells;
+  const selectionMode = spellPlan.spellSelectionMode || spellPlan.spellcastingType || 'none';
+  const permanentTarget = selectionMode === 'spellbook'
+    ? Number(spellPlan.spellbookTarget || 0)
+    : Number(spellPlan.knownTarget || 0);
 
   if (!spellPlan.cantripTarget && !spellSelection.cantrips.length) {
     clearFields(next, ['cantrips_known', 'cantrips']);
   }
-  if (!(spellPlan.knownTarget || spellSelection.spells.length)) {
+  if (selectionMode === 'spellbook') {
+    clearFields(next, ['spells_known', 'known_spells']);
+    if (!(permanentTarget || spellSelection.spells.length)) clearFields(next, ['spellbook']);
+  } else if (!(permanentTarget || spellSelection.spells.length)) {
     clearFields(next, ['spells_known', 'known_spells']);
   }
   if (!(spellPlan.preparedTarget || spellSelection.prepared.length)) {
@@ -437,7 +473,9 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
   }
 
   if (spellSelection.spells.length) {
-    const existing = arr(next.spells_known || next.known_spells).map((spell) => spellEntry(spell, spell.level || 1));
+    const isSpellbook = selectionMode === 'spellbook';
+    const existing = arr(isSpellbook ? next.spellbook : next.spells_known || next.known_spells)
+      .map((spell) => spellEntry(spell, spell.level || 1));
     const names = new Set(existing.map((spell) => spell.name));
     spellSelection.spells.forEach((name) => {
       if (!name || names.has(name)) return;
@@ -445,15 +483,25 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
       const spell = spellPlan.spellOptions?.find((item) => item.name === name) || { name, level: 1 };
       existing.push(spellEntry(spell, spell.level || 1));
     });
-    next.spells_known = existing;
-    next.known_spells = existing;
+    if (isSpellbook) {
+      next.spellbook = existing;
+      clearFields(next, ['spells_known', 'known_spells']);
+    } else {
+      next.spells_known = existing;
+      next.known_spells = existing;
+    }
   }
 
   if (spellSelection.prepared.length) {
-    const prepared = spellSelection.prepared.map((name) => {
-      const spell = spellPlan.spellOptions?.find((item) => item.name === name) || { name, level: 1 };
-      return spellEntry(spell, spell.level || 1);
-    });
+    const allowedPreparedNames = selectionMode === 'spellbook'
+      ? new Set(spellSelection.spells.map((name) => String(name)))
+      : null;
+    const prepared = spellSelection.prepared
+      .filter((name) => !allowedPreparedNames || allowedPreparedNames.has(String(name)))
+      .map((name) => {
+        const spell = spellPlan.spellOptions?.find((item) => item.name === name) || { name, level: 1 };
+        return spellEntry(spell, spell.level || 1);
+      });
     next.prepared_spells = prepared;
     next.spells_prepared = prepared;
     next.preparedSpells = prepared;

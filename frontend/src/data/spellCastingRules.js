@@ -27,7 +27,16 @@ export function getAllowedSlotLevelsForSpell(spell = {}) {
   if (baseLevel <= 0) return [0];
 
   const explicitLevels = getExplicitAllowedSlotLevels(spell).filter((level) => level >= baseLevel);
-  return explicitLevels.length ? explicitLevels : [baseLevel];
+  if (explicitLevels.length) return explicitLevels;
+
+  // Standard 5e spells can be cast using a slot of the spell's level or any
+  // higher level, even when the spell gains no extra effect from upcasting.
+  // Homebrew that intentionally restricts casting levels can still provide an
+  // explicit allowed_slot_levels/cast_slot_levels list above.
+  if (baseLevel <= 9) {
+    return Array.from({ length: 10 - baseLevel }, (_, index) => baseLevel + index);
+  }
+  return [baseLevel];
 }
 
 export function normaliseSpellSlots(slots = {}) {

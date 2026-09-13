@@ -57,7 +57,12 @@ export const SHEET_TABS = [
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 export const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 export const getMaxHp = (character) => Number(character?.max_hit_points ?? character?.max_hp ?? 10) || 10;
-export const getCurrentHp = (character) => Number(character?.current_hit_points ?? character?.hp ?? getMaxHp(character)) || getMaxHp(character);
+export const getCurrentHp = (character) => {
+  const raw = character?.current_hit_points ?? character?.hp;
+  if (raw === undefined || raw === null || raw === '') return getMaxHp(character);
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : getMaxHp(character);
+};
 export const getTempHp = (character) => Number(character?.temporary_hit_points ?? character?.temp_hp ?? 0) || 0;
 export const clampDeathCount = (value) => Math.max(0, Math.min(3, Number(value) || 0));
 
@@ -114,24 +119,54 @@ export function parseHitDie(hitDice = '1d8') {
   return { total: Number(match[1]) || 1, sides: Number(match[2]) || 8 };
 }
 
-export function rollD20(modifier = 0, rollMode = 'normal') {
+export function rollD20(modifier = 0, rollOptions = 'normal') {
+  const options = typeof rollOptions === 'string'
+    ? { mode: rollOptions }
+    : (rollOptions && typeof rollOptions === 'object' ? rollOptions : {});
+  const requestedMode = options.mode || 'normal';
+  const mode = requestedMode === 'advantage' || requestedMode === 'disadvantage' ? requestedMode : 'normal';
+  const baseModifier = Number(modifier) || 0;
+  const bonus = Number(options.bonus) || 0;
+  const totalModifier = baseModifier + bonus;
   const first = Math.floor(Math.random() * 20) + 1;
-  if (rollMode !== 'advantage' && rollMode !== 'disadvantage') {
+
+  if (mode === 'normal') {
     const rolls = [{ sides: 20, result: first }];
-    return { d20: first, modifier, total: first + modifier, mode: 'normal', allRolls: [first], rolls, visibleRolls: rolls };
+    return {
+      d20: first,
+      modifier: totalModifier,
+      baseModifier,
+      bonus,
+      total: first + totalModifier,
+      mode,
+      allRolls: [first],
+      rolls,
+      visibleRolls: rolls,
+    };
   }
 
   const second = Math.floor(Math.random() * 20) + 1;
-  const keepFirst = rollMode === 'advantage' ? first >= second : first <= second;
+  const keepFirst = mode === 'advantage' ? first >= second : first <= second;
   const kept = keepFirst ? first : second;
   const rolls = [
     { sides: 20, result: first, dropped: !keepFirst },
     { sides: 20, result: second, dropped: keepFirst },
   ];
-  return { d20: kept, modifier, total: kept + modifier, mode: rollMode, allRolls: [first, second], rolls, visibleRolls: rolls.filter(roll => !roll.dropped) };
+  return {
+    d20: kept,
+    modifier: totalModifier,
+    baseModifier,
+    bonus,
+    total: kept + totalModifier,
+    mode,
+    allRolls: [first, second],
+    rolls,
+    visibleRolls: rolls.filter(roll => !roll.dropped),
+  };
 }
 
-export function rollHitDie(sides = 8, modifier = 0) {
+export function rollHitDie(sides = 8, modifier = 0, options = {}) {
   const die = Math.floor(Math.random() * sides) + 1;
-  return { die, total: Math.max(1, die + modifier) };
+  const minimum = Math.max(0, Number(options?.minimum ?? 0) || 0);
+  return { die, total: Math.max(minimum, die + modifier) };
 }

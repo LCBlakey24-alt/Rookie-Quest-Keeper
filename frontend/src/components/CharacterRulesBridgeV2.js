@@ -473,7 +473,8 @@ export default function CharacterRulesBridgeV2(props) {
     className: currentClassName,
     level: targetLevel,
     subclassName: currentSelectedSubclass,
-  }), [currentClassName, targetLevel, currentSelectedSubclass]);
+    edition: currentEdition,
+  }), [currentClassName, currentEdition, targetLevel, currentSelectedSubclass]);
   const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition }), [currentEdition, options?.feats?.length]);
   const featOptions = useMemo(() => getFeatOptions({ edition: currentEdition, level: targetLevel, registryFeats, uploadedFeats: options?.feats }), [currentEdition, targetLevel, registryFeats, options]);
   const asiChoiceSignature = choicePlan.asiChoices.map((choice) => choice.id).join('|');
@@ -492,6 +493,7 @@ export default function CharacterRulesBridgeV2(props) {
     : 'no-warlock';
   const classSpecificChoiceSignature = [
     currentClassName,
+    currentEdition,
     targetLevel,
     currentSelectedSubclass,
     classSpecificPlan.fightingStyleTarget,

@@ -43,7 +43,11 @@ describe('Warlock progression helpers', () => {
 
     expect(getWarlockInvocationCount(1, '2024')).toBe(1);
     expect(getWarlockInvocationCount(2, '2024')).toBe(3);
+    expect(getWarlockInvocationCount(5, '2024')).toBe(5);
+    expect(getWarlockInvocationCount(7, '2024')).toBe(6);
     expect(getWarlockInvocationCount(9, '2024')).toBe(7);
+    expect(getWarlockInvocationCount(12, '2024')).toBe(8);
+    expect(getWarlockInvocationCount(15, '2024')).toBe(9);
     expect(getWarlockInvocationCount(18, '2024')).toBe(10);
   });
 
@@ -73,11 +77,18 @@ describe('Warlock progression helpers', () => {
     expect(getNextWarlockFeatures(3, '2014').map(feature => feature.key)).toEqual(['ability_score_improvement_4']);
   });
 
-  test('returns 2024 Warlock level features and choices', () => {
+  test('returns 2024 Warlock level features without a separate Pact Boon', () => {
     expect(getWarlockFeaturesForLevel(1, '2024').map(feature => feature.key)).toEqual(['pact_magic', 'eldritch_invocations']);
     expect(getWarlockChoicesForLevel(1, '2024').map(feature => feature.choiceType)).toEqual(['eldritch_invocations']);
-    expect(getWarlockFeaturesForLevel(3, '2024').map(feature => feature.key)).toEqual(['warlock_subclass', 'pact_boon']);
-    expect(getWarlockChoicesForLevel(3, '2024').map(feature => feature.choiceType)).toEqual(['subclass', 'pact_boon']);
+    expect(getWarlockFeaturesForLevel(3, '2024').map(feature => feature.key)).toEqual(['warlock_subclass']);
+    expect(getWarlockChoicesForLevel(3, '2024').map(feature => feature.choiceType)).toEqual(['subclass']);
+    expect(getActiveWarlockFeatures(20, '2024').map(feature => feature.key)).not.toContain('pact_boon');
+  });
+
+  test('2024 Warlock has Contact Patron at 9, Epic Boon at 19, and Eldritch Master at 20', () => {
+    expect(getWarlockFeaturesForLevel(9, '2024').map(feature => feature.key)).toContain('contact_patron');
+    expect(getWarlockFeaturesForLevel(19, '2024').map(feature => feature.key)).toContain('epic_boon_or_asi');
+    expect(getWarlockFeaturesForLevel(20, '2024').map(feature => feature.key)).toEqual(['eldritch_master']);
   });
 
   test('summarises 2014 Warlock progression', () => {
@@ -99,20 +110,20 @@ describe('Warlock progression helpers', () => {
   });
 
   test('summarises 2024 Warlock progression', () => {
-    const summary = getWarlockProgressionSummary(6, '2024');
+    const summary = getWarlockProgressionSummary(7, '2024');
 
     expect(summary).toMatchObject({
       className: 'Warlock',
       edition: '2024',
-      level: 6,
+      level: 7,
       pactMagicSlots: 2,
-      pactMagicSlotLevel: 3,
-      invocationCount: 5,
+      pactMagicSlotLevel: 4,
+      invocationCount: 6,
       mysticArcanumLevels: [],
       subclassChoiceLevel: 3,
       subclassFeatureLevels: [3, 6, 10, 14],
     });
-    expect(summary.currentLevelFeatures.map(feature => feature.key)).toContain('subclass_feature_6');
+    expect(summary.activeFeatures.map(feature => feature.key)).not.toContain('pact_boon');
     expect(summary.nextFeatures.map(feature => feature.key)).toEqual(['ability_score_improvement_8']);
   });
 });

@@ -71,6 +71,7 @@ const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorks
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
 const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridgeV2'));
+const CharacterProfileEditor = lazyWithChunkRetry(() => import('@/components/CharacterProfileEditor'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
 
 function CampaignLiveRedirect() {
@@ -180,7 +181,7 @@ export function AppRoutes() {
         <Route path="/characters/create/rook" element={<Navigate to="/characters/new" replace />} />
 
         <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><CharacterCreator editMode /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><CharacterProfileEditor /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>

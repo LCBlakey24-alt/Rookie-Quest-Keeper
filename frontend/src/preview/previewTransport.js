@@ -1,13 +1,104 @@
 import axios from 'axios';
 import { isLocalPreview } from './previewMode';
 
+function previewPath(url = '') {
+  return new URL(url, 'https://preview.invalid').pathname
+    .replace(/^\/api(?=\/|$)/, '')
+    .replace(/\/$/, '') || '/';
+}
+
+function previewParams(url = '', params = {}) {
+  const parsed = new URL(url, 'https://preview.invalid');
+  const query = Object.fromEntries(parsed.searchParams.entries());
+  return { ...query, ...(params || {}) };
+}
+
+async function dispatchCharacterProgressionPreview({ method, url, params, body, previewRequest }) {
+  const path = previewPath(url);
+  const match = path.match(/^\/characters\/([^/]+)\/(level-up-options|level-up|multiclass)$/);
+  if (!match) return { handled: false, data: null };
+
+  const [, rawCharacterId, action] = match;
+  const characterId = decodeURIComponent(rawCharacterId);
+  const character = previewRequest('get', `/characters/${characterId}`);
+  const {
+    applyPreviewCharacterLevelUp,
+    getPreviewLevelUpOptions,
+  } = await import('./previewCharacterProgression');
+
+  if (action === 'level-up-options' && method === 'get') {
+    const query = previewParams(url, params);
+    return {
+      handled: true,
+      data: getPreviewLevelUpOptions(character, { targetClass: query.target_class || '' }),
+    };
+  }
+
+  if (action === 'level-up' && method === 'post') {
+    const updated = applyPreviewCharacterLevelUp(character, body, { multiclass: false });
+    return { handled: true, data: previewRequest('patch', `/characters/${characterId}`, updated) };
+  }
+
+  if (action === 'multiclass' && method === 'post') {
+    const updated = applyPreviewCharacterLevelUp(character, body, { multiclass: true });
+    return { handled: true, data: previewRequest('patch', `/characters/${characterId}`, updated) };
+  }
+
+  return { handled: false, data: null };
+}
+
+async function dispatchStateSafeBuilderEdit({ method, url, body, previewRequest }) {
+  if (method !== 'patch') return { handled: false, data: null };
+  const match = previewPath(url).match(/^\/characters\/([^/]+)$/);
+  if (!match) return { handled: false, data: null };
+
+  const { isPreviewFullBuilderEdit, stateSafePreviewBuilderEdit } = await import('./previewCharacterEdit');
+  if (!isPreviewFullBuilderEdit(body)) return { handled: false, data: null };
+
+  const characterId = decodeURIComponent(match[1]);
+  const existing = previewRequest('get', `/characters/${characterId}`);
+  const safeUpdate = stateSafePreviewBuilderEdit(existing, body);
+  return {
+    handled: true,
+    data: previewRequest('patch', `/characters/${characterId}`, safeUpdate),
+  };
+}
+
+function guardIsolatedPreviewFeature(method, url) {
+  const path = previewPath(url);
+  if (method === 'post' && path === '/character-import/extract') {
+    const error = new Error(
+      'Automatic PDF/photo scanning is disabled in this isolated no-login preview because preview files never leave your browser. JSON, TXT, pasted text, and manual character import still work here. Use a signed-in test deployment to test real PDF/photo scanning.'
+    );
+    error.status = 400;
+    throw error;
+  }
+}
+
 // Every preview API call terminates locally. Unsupported routes fail explicitly;
 // there is deliberately no fallback to a real API or shared account.
 export async function previewAdapter(config) {
   const { previewRequest } = await import('./previewApi');
   try {
+    const method = String(config.method || 'get').toLowerCase();
+    guardIsolatedPreviewFeature(method, config.url);
     const body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {};
-    const data = previewRequest(config.method, config.url, body);
+
+    const safeEdit = await dispatchStateSafeBuilderEdit({ method, url: config.url, body, previewRequest });
+    if (safeEdit.handled) {
+      return { data: safeEdit.data, status: 200, statusText: 'OK', headers: {}, config };
+    }
+
+    const progression = await dispatchCharacterProgressionPreview({
+      method,
+      url: config.url,
+      params: config.params,
+      body,
+      previewRequest,
+    });
+    const data = progression.handled
+      ? progression.data
+      : previewRequest(method, config.url, body);
     return { data, status: 200, statusText: 'OK', headers: {}, config };
   } catch (error) {
     const response = { data: { detail: error.message }, status: error.status || 400, statusText: 'Preview request failed', headers: {}, config };
