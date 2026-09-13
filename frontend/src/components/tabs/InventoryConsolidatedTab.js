@@ -4,8 +4,8 @@ import ItemCreatorTab from './ItemCreatorTab';
 import PartyInventoryTab from './PartyInventoryTab';
 
 const theme = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', text: '#ffffff',
-  primary: '#d00000', border: 'rgba(255,255,255,0.16)'
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', text: 'var(--rq-text-primary)',
+  primary: 'var(--rq-accent-primary)', border: 'var(--rq-border-default)'
 };
 
 function InventoryConsolidatedTab({ campaignId }) {

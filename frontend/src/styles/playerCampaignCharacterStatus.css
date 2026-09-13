@@ -1,0 +1,40 @@
+.player-campaign-character-copy {
+  min-width: 0;
+}
+
+.player-campaign-character-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.player-campaign-character-status span {
+  min-height: 27px;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 4px;
+  background: #081B2A;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.player-campaign-character-status span:first-child {
+  background: rgba(124,203,255,.08);
+}
+
+@media (max-width: 560px) {
+  .player-campaign-character-status {
+    gap: 4px;
+  }
+
+  .player-campaign-character-status span {
+    min-height: 25px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+}

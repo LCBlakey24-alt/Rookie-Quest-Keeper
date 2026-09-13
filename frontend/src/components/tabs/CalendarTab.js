@@ -108,16 +108,16 @@ export default function CalendarTab({ campaignId }) {
           <h2 style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}><CalendarIcon size={22} /> Campaign Calendar</h2>
         </header>
 
-        <section className="parchment-dark" style={{ padding: 20, textAlign: 'center', marginBottom: 16 }}>
-          <h3 style={{ color: '#EF4444', fontSize: 34, margin: '0 0 6px' }}>{currentMonth} {calendar?.current_day || 1}, {calendar?.current_year || 1}</h3>
-          <p style={{ color: '#D1D5DB', margin: '0 0 14px' }}>Current in-game date</p>
+        <section className="rqk-calendar-panel" style={{ padding: 20, textAlign: 'center', marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
+          <h3 style={{ color: '#FFFFFF', fontSize: 34, margin: '0 0 6px' }}>{currentMonth} {calendar?.current_day || 1}, {calendar?.current_year || 1}</h3>
+          <p style={{ color: '#FFFFFF', margin: '0 0 14px' }}>Current in-game date</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <input data-testid="advance-days-input" type="number" min="1" value={advanceDays} onChange={e => setAdvanceDays(parseInt(e.target.value, 10) || 1)} className="input" style={{ width: 80, textAlign: 'center' }} />
             <button data-testid="advance-time-btn" type="button" onClick={advanceTime} className="btn-primary"><ChevronRight size={16} /> Advance Time</button>
           </div>
         </section>
 
-        <section className="parchment-dark" style={{ padding: 18, marginBottom: 16 }}>
+        <section className="rqk-calendar-panel" style={{ padding: 18, marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
           <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>{editingEvent ? 'Edit Event' : 'Add Event'}</h3>
           <form onSubmit={saveEvent} style={{ display: 'grid', gap: 10 }}>
             <input data-testid="event-name-input" className="input" placeholder="Event name" value={eventForm.name} onChange={e => setEventForm({ ...eventForm, name: e.target.value })} required />
@@ -134,21 +134,21 @@ export default function CalendarTab({ campaignId }) {
           </form>
         </section>
 
-        <section className="parchment-dark" style={{ padding: 18 }}>
+        <section className="rqk-calendar-panel" style={{ padding: 18, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
           <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>All Events</h3>
-          {sortedEvents.length === 0 ? <p style={{ color: '#D1D5DB' }}>No events scheduled.</p> : sortedEvents.map(event => {
+          {sortedEvents.length === 0 ? <p style={{ color: '#FFFFFF' }}>No events scheduled.</p> : sortedEvents.map(event => {
             const monthName = calendar?.custom_months?.[event.month - 1]?.name || `Month ${event.month}`;
             return (
               <article key={event.id} data-testid={`event-${event.id}`} className="initiative-entry" style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
                   <div>
                     <h4 style={{ color: '#FFFFFF', margin: '0 0 4px' }}>{event.name}</h4>
-                    <p style={{ color: '#D1D5DB', margin: 0 }}>{monthName} {event.day}, {event.year}</p>
+                    <p style={{ color: '#FFFFFF', margin: 0 }}>{monthName} {event.day}, {event.year}</p>
                     {event.description && <p style={{ color: '#FFFFFF', margin: '6px 0 0' }}>{event.description}</p>}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button data-testid={`edit-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => editEvent(event)}><Edit size={14} /></button>
-                    <button data-testid={`delete-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => deleteEvent(event.id)} style={{ color: '#EF4444' }}><Trash2 size={14} /></button>
+                    <button data-testid={`delete-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => deleteEvent(event.id)} style={{ color: '#FFFFFF' }}><Trash2 size={14} /></button>
                   </div>
                 </div>
               </article>
@@ -157,12 +157,12 @@ export default function CalendarTab({ campaignId }) {
         </section>
       </main>
 
-      <aside className="parchment-dark" style={{ padding: 16, height: 'fit-content' }}>
+      <aside className="rqk-calendar-panel" style={{ padding: 16, height: 'fit-content', background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
         <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>Upcoming 30 Days</h3>
-        {upcomingEvents.length === 0 ? <p style={{ color: '#D1D5DB' }}>No upcoming events.</p> : upcomingEvents.map(event => (
-          <div key={event.id} style={{ border: '1px solid rgba(239,68,68,0.35)', padding: 10, marginBottom: 8 }}>
+        {upcomingEvents.length === 0 ? <p style={{ color: '#FFFFFF' }}>No upcoming events.</p> : upcomingEvents.map(event => (
+          <div key={event.id} style={{ border: '1px solid rgba(255,45,170,0.18)', background: '#102B40', padding: 10, marginBottom: 8 }}>
             <strong style={{ color: '#FFFFFF' }}>{event.name}</strong>
-            <p style={{ color: '#EF4444', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
+            <p style={{ color: '#FFFFFF', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
           </div>
         ))}
       </aside>

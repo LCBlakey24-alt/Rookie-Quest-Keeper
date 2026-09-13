@@ -9,17 +9,17 @@ import { toast } from 'sonner';
 
 // GM Theme - Red (Tron Aries)
 const theme = {
-  primary: '#F59E0B',
-  hover: '#D97706',
-  subtle: 'rgba(225, 29, 72, 0.15)',
+  primary: 'var(--rq-accent-primary)',
+  hover: 'var(--rq-card-hover)',
+  subtle: 'var(--rq-accent-soft)',
   glow: '0 0 20px rgba(225, 29, 72, 0.3)',
-  bg: '#0B0F19',
-  card: '#111827',
-  panel: '#111827',
-  text: '#FFFFFF',
-  textSecondary: '#B3B3B3',
-  muted: '#808080',
-  border: 'rgba(212, 175, 55, 0.15)'
+  bg: 'var(--rq-bg-main)',
+  card: 'var(--rq-card)',
+  panel: 'var(--rq-bg-panel)',
+  text: 'var(--rq-text-primary)',
+  textSecondary: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
+  border: 'var(--rq-border-default)'
 };
 
 // Random data tables

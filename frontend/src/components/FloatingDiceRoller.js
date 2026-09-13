@@ -86,6 +86,13 @@ export default function FloatingDiceRoller() {
   const [rollFlicker, setRollFlicker] = useState(null);
   const [playerContext, setPlayerContext] = useState(null);
   const [displayState, setDisplayState] = useState(null);
+  const isCharacterSheet = Boolean(characterIdFromPath(location.pathname || ''));
+
+  useEffect(() => {
+    const openDice = () => setOpen(true);
+    window.addEventListener('rq-dice-open', openDice);
+    return () => window.removeEventListener('rq-dice-open', openDice);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,7 +183,7 @@ export default function FloatingDiceRoller() {
   };
 
   return (
-    <div className={`rq-floating-dice ${requestedCheck ? 'has-group-check-request' : ''}`} aria-label="Floating dice roller">
+    <div className={`rq-floating-dice ${isCharacterSheet ? 'is-character-sheet' : 'is-app-shell'} ${requestedCheck ? 'has-group-check-request' : ''}`} aria-label="Floating dice roller">
       {open && (
         <section className="rq-floating-dice__panel" data-testid="dice-roller-panel" aria-label="Dice roller panel">
           <header className="rq-floating-dice__header">

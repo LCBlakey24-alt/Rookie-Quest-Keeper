@@ -5,8 +5,9 @@ import apiClient from '@/lib/apiClient';
 import PlayersTab from '@/components/tabs/PlayersTab';
 
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
-  text: '#fff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)',
+  pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
 };
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const STATUSES = ['pending', 'active', 'dead', 'retired', 'removed'];
@@ -185,16 +186,16 @@ const countStyle = { color: rq.muted, fontSize: 10 };
 const smallButtonStyle = { minHeight: 30, border: `1px solid ${rq.line}`, background: rq.card, color: rq.soft, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 850 };
 const warningStyle = { minHeight: 36, display: 'flex', alignItems: 'flex-start', gap: 7, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.45)', color: rq.soft, padding: 8, fontSize: 10, lineHeight: 1.4 };
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 };
-const cardStyle = pending => ({ display: 'grid', gap: 7, background: rq.card, border: `1px solid ${pending ? rq.red : rq.line}`, borderLeft: `4px solid ${pending ? rq.red : rq.line}`, padding: 8, minWidth: 0 });
+const cardStyle = pending => ({ display: 'grid', gap: 7, background: rq.card, border: `1px solid ${pending ? rq.red : rq.line}`, borderLeft: `1px solid ${pending ? rq.pink : rq.line}`, padding: 8, minWidth: 0 });
 const cardTopStyle = { display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 };
 const avatarStyle = { width: 30, height: 30, display: 'grid', placeItems: 'center', background: rq.bg, flex: '0 0 30px' };
 const nameStyle = { display: 'block', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const metaStyle = { display: 'block', color: rq.muted, fontSize: 9, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
-const statusPillStyle = pending => ({ padding: '3px 5px', background: pending ? rq.red : rq.bg, color: '#fff', fontSize: 8, fontWeight: 950, textTransform: 'uppercase', whiteSpace: 'nowrap' });
+const statusPillStyle = pending => ({ padding: '3px 5px', background: pending ? 'rgba(124,203,255,0.10)' : rq.bg, color: '#FFFFFF', border: pending ? `1px solid ${rq.pink}` : `1px solid ${rq.line}`, fontSize: 8, fontWeight: 950, textTransform: 'uppercase', whiteSpace: 'nowrap' });
 const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 };
 const statStyle = { minHeight: 38, background: rq.bg, border: `1px solid ${rq.line}`, display: 'grid', placeItems: 'center', alignContent: 'center', gap: 1, fontSize: 11 };
 const actionsStyle = { display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' };
-const approveButtonStyle = { minHeight: 30, border: 0, background: rq.red, color: '#fff', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 900, cursor: 'pointer' };
+const approveButtonStyle = { minHeight: 30, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 900, cursor: 'pointer' };
 const statusSelectStyle = { minHeight: 30, flex: 1, minWidth: 100, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.text, padding: '0 6px', fontSize: 10 };
 const legacyNoticeStyle = { display: 'flex', alignItems: 'center', gap: 6, background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, padding: 7, fontSize: 10 };
 const legacyToggleStyle = { minHeight: 38, border: `1px solid ${rq.line}`, background: rq.panel, color: rq.soft, padding: '0 9px', display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 6, cursor: 'pointer', fontWeight: 850, fontSize: 10 };

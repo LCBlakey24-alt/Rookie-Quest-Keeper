@@ -15,7 +15,7 @@ Core user goals:
 - Players can open and use character sheets at the table.
 - GMs can build a campaign library, prepare encounters, and run Live Play.
 - The app should feel polished, compact, clear, and beginner-friendly.
-- The visual direction is Rookie Quest charcoal/red/white, not the older blue/gold/purple/sunset skins.
+- The visual direction is flat dark navy, sky blue secondary colour, hot pink thin lines and accents, and white text. No gradients.
 
 ## Product principles
 
@@ -81,10 +81,10 @@ Do not create placeholder/probe files in the repository. Delete accidental files
 
 Use the current Rookie Quest direction:
 
-- Charcoal backgrounds.
-- Red accents.
+- Dark navy backgrounds.
+- Sky blue secondary colour and hot pink thin lines and accents.
 - White text.
-- Muted grey secondary text.
+- White secondary text.
 - Sharp/minimal cards.
 - Compact information density without tiny touch targets.
 - Responsive phone/tablet/desktop layouts.

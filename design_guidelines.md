@@ -1,136 +1,116 @@
-# Rookie Quest Keeper - Sunset Gradient Design System
+# Rookie Quest Keeper — RQK 1.0 Minimalist Design System
 
 ## Overview
 
-Rookie Quest Keeper uses a dark fantasy sunset-gradient identity: very dark blue-purple foundations, deep indigo panels, white readable text, and a purple-pink-orange sunset gradient for primary actions, selected navigation, focus states, and key highlights. The app should feel polished, beginner-friendly, slightly game-like, and consistent across player, GM, admin, character, homebrew, and upload pages.
+Rookie Quest Keeper 1.0 uses one flat visual language across the whole product: a very dark navy canvas, flat white text, light-blue secondary UI, and neon-pink hairline accents. The product must not use gradients, glow effects, purple sunset styling, broad red themes, parchment, brown fantasy styling, or page-specific colour systems.
 
-Avoid coffee, velvet, espresso, leather, brown-tabletop, parchment, candlelit, or overly rustic theme language in new design work. Those words push the UI toward the wrong look.
-
-## Implementation status
-
-The active app still has several older CSS layers, so the final loaded styles should protect the intended direction: dark blue-purple surfaces, white text, subtle pale borders, and the sunset gradient for active/selected UI. When a page is touched, check the component and its imported styles for hard-coded brown, parchment, coffee, velvet, or one-off theme values.
+The interface should feel clean, modern, fast, game-ready, and deliberately restrained. Layout and hierarchy should create personality; colour should not be doing all the work.
 
 ## Core palette
 
-| Token | Hex / value | Usage |
+| Token | Value | Usage |
 | --- | --- | --- |
-| `--rq-bg-main` | `#070713` | Whole app background |
-| `--rq-bg-page` | `#0b0718` | Deep page sections |
-| `--rq-bg-rail` | `#0d0617` | App rail / left navigation |
-| `--rq-bg-panel` | `#13081f` | Primary panels and app shell surfaces |
-| `--rq-bg-card` | `#1b0b2d` | Cards, lists, tool blocks |
-| `--rq-card-hover` | `#24103a` | Raised, selected, or hover surfaces |
-| `--rq-sunset-gradient` | `linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)` | Primary brand gradient |
-| `--rq-accent-primary` | `#eb3fe9` | Main action / active accent fallback |
-| `--rq-accent-hover` | `#ff9542` | Hover/focus accent fallback |
-| `--rq-accent-active` | `#7357ff` | Selected-state support accent |
-| `--rq-text-primary` | `#ffffff` | Main readable text |
-| `--rq-text-secondary` | `rgba(255,255,255,0.82)` | Secondary readable text |
-| `--rq-text-muted` | `rgba(255,255,255,0.62)` | Helper copy and inactive labels |
-| `--success` | `#7A9B66` | Saved, ready, safe creation, and success states |
-| `--warning` | `#D4953C` | True warning states |
-| `--danger` | `#B44732` | Errors and destructive actions |
+| `--rq-bg-main` | `#071522` | Main app canvas |
+| `--rq-bg-rail` | `#06111C` | Navigation rail / deepest surface |
+| `--rq-bg-panel` | `#0C2234` | Main panels |
+| `--rq-bg-panel-alt` | `#102B40` | Cards and controls |
+| `--rq-card-hover` | `#14344C` | Hover / raised interaction surface |
+| `--rq-secondary` | `#7CCBFF` | Secondary UI, icons and supporting states |
+| `--rq-accent-primary` | `#FF2DAA` | Neon-pink active marker / border |
+| `--rq-text-primary` | `#FFFFFF` | All readable text |
+| `--rq-border-default` | `rgba(255,45,170,0.18)` | Hairline border |
+| `--rq-border-strong` | `rgba(255,45,170,0.42)` | Stronger active/focus border |
 
-## Placement rules
+## Non-negotiable rules
 
-1. Use one shared dark blue-purple sunset shell across player, GM, and character-builder pages.
-2. Use the sunset gradient for primary actions, selected navigation, selected tabs, focus states, and helpful highlights.
-3. Keep unselected navigation quiet: transparent/deep surface, white icon/text, no heavy glow.
-4. Reserve red for destructive actions and errors; do not use red as a broad page theme.
-5. Keep text white or soft-white on dark surfaces for readability.
-6. Avoid coffee, velvet, espresso, leather, brown-tabletop, parchment, candlelit, and rustic styling.
-7. Prefer sharp/minimal cards and restrained glow over bubbly, over-rounded styling.
+1. **No gradients.** Do not add `linear-gradient`, `radial-gradient`, `conic-gradient`, gradient text, or gradient borders.
+2. **All readable text is flat white.** Do not use blue, pink, grey, purple, gold, orange, or red for normal text hierarchy.
+3. **Neon pink is a line/accent colour, not a page fill.** Use it for thin borders, active markers, focus outlines, dividers, selected states, and tiny accents.
+4. **Light blue is secondary UI.** Use it for icons, restrained selected-state fills, secondary controls, progress/support indicators, and occasional non-text affordances.
+5. **No glow effects.** Avoid coloured box-shadows, text-shadows, bloom, neon haze, or soft gradient washes.
+6. **Use flat surfaces.** Build depth with `#071522`, `#0C2234`, `#102B40`, and `#14344C`.
+7. **Keep radii restrained.** Default to 5–9px. Avoid pill-shaped controls unless the control genuinely benefits from that shape.
+8. **No page-specific colour themes.** GM, player, character, homebrew, maps, inventory, admin, auth, and landing all use the same palette.
+9. **Semantic exceptions must be functional, not decorative.** Destructive/error states may use a dedicated warning treatment, but never as a theme colour.
+10. **Do not add another global polish layer.** Retire or rewrite superseded CSS instead of stacking more visual systems.
 
 ## Component guidance
 
-### Buttons
+### Primary action
 
 ```css
 .btn-primary {
-  background: var(--rq-sunset-gradient);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.btn-primary:hover,
-.btn-primary:focus-visible {
-  filter: brightness(1.08);
-  box-shadow: 0 0 0 2px rgba(255, 149, 66, 0.22);
+  background: #102B40;
+  color: #FFFFFF;
+  border: 1px solid #FF2DAA;
+  border-radius: 5px;
+  box-shadow: none;
 }
 ```
 
-### Cards
+### Card
 
 ```css
 .card {
-  background: var(--rq-card);
-  border: 1px solid var(--rq-border-default);
-  color: var(--rq-text-primary);
-  border-radius: var(--rq-radius);
-}
-
-.card:hover {
-  background: var(--rq-card-hover);
-  border-color: var(--rq-accent-border);
+  background: #0C2234;
+  color: #FFFFFF;
+  border: 1px solid rgba(255,45,170,0.18);
+  border-radius: 7px;
+  box-shadow: none;
 }
 ```
 
-### Inputs
+### Input
 
 ```css
 .input {
-  background: var(--rq-bg-input);
-  border: 1px solid var(--rq-border-default);
-  color: var(--rq-text-primary);
+  background: #081B2A;
+  color: #FFFFFF;
+  border: 1px solid rgba(255,45,170,0.20);
+  border-radius: 5px;
+  box-shadow: none;
 }
 
-.input:focus {
-  border-color: var(--rq-accent-hover);
-  box-shadow: 0 0 0 2px rgba(255, 149, 66, 0.18);
+.input:focus-visible {
+  border-color: #FF2DAA;
+  outline: 1px solid #FF2DAA;
+  outline-offset: 2px;
 }
 ```
 
-### Rail selected state
+### Active navigation
 
 ```css
-.rqk-app-rail-link {
-  background: transparent;
-  color: #ffffff;
-}
-
-.rqk-app-rail-link.is-active svg {
-  background: var(--rq-sunset-gradient);
-}
-
-.rqk-app-rail-link.is-active::before,
-.rqk-app-rail-link.is-active span::after {
-  background: var(--rq-sunset-gradient);
+.nav-item.is-active {
+  background: rgba(124,203,255,0.10);
+  color: #FFFFFF;
+  border: 1px solid #FF2DAA;
 }
 ```
 
-## Rebrand review checklist
+## Product hierarchy
 
-Use this quick pass when touching a page:
+Use whitespace, typography, grouping and information priority instead of extra colours:
 
-- Page background uses very dark blue-purple rather than brown, white, or parchment.
-- Primary actions use the sunset gradient and remain readable.
-- Cards use deep indigo/purple surfaces with subtle pale or sunset borders.
-- Empty, loading, and error states are styled for the dark sunset shell.
-- Text remains readable at mobile widths.
-- Selected tabs/nav follow the app rail selected/unselected pattern.
-- No copy calls a creation path “best”, “default”, or “recommended”.
-- No component introduces a separate full-page colour theme without a product reason.
+- Main heading: white, high weight.
+- Body/helper copy: still white, but smaller/lighter weight.
+- Secondary icon: light blue.
+- Active/focus marker: neon pink.
+- Panels: flat navy family.
+- Disabled controls: white at reduced opacity.
 
-## How to let Codex visually review the site
+## Review checklist
 
-Codex can inspect source files directly, but it needs one of the following to visually verify the running site:
+When touching any screen, confirm:
 
-1. **Committed screenshots** of target routes in docs or an issue, ideally desktop and mobile widths.
-2. **A local screenshot command** checked into the repo, such as a Playwright script that starts the frontend and saves route screenshots.
-3. **A temporary preview URL** that does not require private credentials, plus test login details if auth is required.
-4. **Route-specific acceptance notes**, such as “check `/characters/new/premade` at 390px and 1440px”.
-
-Never commit real secrets, production tokens, or private user data for visual review.
+- Flat deep navy canvas.
+- All readable text is white.
+- Light blue appears only as secondary UI support.
+- Neon pink appears primarily as thin lines/active markers.
+- No gradients, glow shadows, purple sunset colours, broad red theme, gold/orange accents, parchment, brown, or grey page themes.
+- Components use the same spacing/radius language as the rest of RQK.
+- Mobile/tablet/desktop all preserve the same design system.
+- Old CSS is removed or neutralised rather than given a new competing polish layer.
 
 ---
-Last Updated: July 9, 2026
+Last Updated: September 8, 2026

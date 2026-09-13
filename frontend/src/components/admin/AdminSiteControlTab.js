@@ -55,7 +55,7 @@ const rq = {
   textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
   muted: 'var(--rq-text-muted, #A0A0A0)',
   inverse: 'var(--rq-text-inverse, #120912)',
-  warning: '#F59E0B',
+  warning: 'var(--rq-accent-primary)',
   radius: 'var(--rq-radius-md, 10px)',
   radiusSm: 'var(--rq-radius-sm, 8px)',
 };

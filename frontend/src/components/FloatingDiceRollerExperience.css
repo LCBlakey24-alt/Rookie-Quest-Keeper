@@ -1,42 +1,10 @@
-/* Floating dice roller: compact navy utility panel. This is the final component
-   skin and intentionally removes the retired sunset/purple treatment. */
-
-.rq-floating-dice {
-  --dice-card: var(--rq-surface, #102238);
-  --dice-card-deep: var(--rq-bg-deep, #06101c);
-  --dice-card-raised: var(--rq-card, #14283e);
-  --dice-text: var(--rq-text, #f7f9fc);
-  --dice-muted: var(--rq-muted, rgba(229, 237, 247, .74));
-  --dice-faint: var(--rq-text-muted, rgba(202, 216, 233, .58));
-  --dice-line: var(--rq-line, rgba(181, 203, 226, .16));
-  --dice-line-strong: var(--rq-line-strong, rgba(181, 203, 226, .28));
-}
+/* Floating dice roller compact experience layer.
+   Layout/touch sizing only; palette ownership lives in FloatingDiceRoller.css. */
 
 .rq-floating-dice__toggle {
   width: 50px !important;
   height: 50px !important;
   min-height: 50px !important;
-  border: 1px solid var(--dice-line-strong) !important;
-  border-radius: 10px !important;
-  background: var(--dice-card) !important;
-  background-image: none !important;
-  color: var(--dice-text) !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .34) !important;
-}
-
-.rq-floating-dice__toggle::before,
-.rq-floating-dice__toggle::after {
-  content: none !important;
-  display: none !important;
-}
-
-.rq-floating-dice__toggle:hover,
-.rq-floating-dice__toggle:focus-visible {
-  background: var(--rq-card-hover, #1a314b) !important;
-  border-color: rgba(239, 43, 43, .48) !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .34) !important;
-  transform: translateY(-1px) !important;
-  outline: none !important;
 }
 
 .rq-floating-dice__panel {
@@ -44,37 +12,21 @@
   width: min(340px, calc(100vw - 24px)) !important;
   max-height: min(70dvh, 540px) !important;
   overflow: auto !important;
-  border: 1px solid var(--dice-line-strong) !important;
-  border-radius: 12px !important;
-  background: var(--dice-card) !important;
-  background-image: none !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, .42) !important;
-  backdrop-filter: none !important;
-}
-
-.rq-floating-dice__panel::before {
-  content: none !important;
-  display: none !important;
 }
 
 .rq-floating-dice__header {
   padding: 12px 12px 10px !important;
-  border-bottom: 1px solid var(--dice-line) !important;
 }
 
 .rq-floating-dice__title strong {
-  color: var(--dice-text) !important;
-  font-family: inherit !important;
   font-size: 12px !important;
-  font-weight: 850 !important;
+  font-weight: 900 !important;
   letter-spacing: .08em !important;
 }
 
 .rq-floating-dice__title span {
   max-width: 245px !important;
-  color: var(--dice-muted) !important;
   font-size: 10px !important;
-  font-weight: 650 !important;
   line-height: 1.35 !important;
 }
 
@@ -82,17 +34,6 @@
   width: 32px !important;
   height: 32px !important;
   min-height: 32px !important;
-  border: 1px solid var(--dice-line) !important;
-  border-radius: 8px !important;
-  background: var(--dice-card-raised) !important;
-  color: var(--dice-muted) !important;
-}
-
-.rq-floating-dice__close:hover,
-.rq-floating-dice__close:focus-visible {
-  background: var(--rq-card-hover, #1a314b) !important;
-  border-color: var(--dice-line-strong) !important;
-  color: var(--dice-text) !important;
 }
 
 .rq-floating-dice__body {
@@ -104,41 +45,6 @@
   display: none !important;
 }
 
-.rq-floating-dice__group-check,
-.rq-floating-dice__empty,
-.rq-floating-dice__result {
-  border: 1px solid var(--dice-line) !important;
-  border-radius: 8px !important;
-  background: var(--dice-card-raised) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-.rq-floating-dice__group-check {
-  border-left: 3px solid var(--rq-primary, #d00000) !important;
-}
-
-.rq-floating-dice__group-check span,
-.rq-floating-dice__group-check small,
-.rq-floating-dice__empty,
-.rq-floating-dice__result span {
-  color: var(--dice-muted) !important;
-}
-
-.rq-floating-dice__group-check strong,
-.rq-floating-dice__history-title {
-  color: var(--dice-text) !important;
-}
-
-.rq-floating-dice__group-check button,
-.rq-floating-dice__custom-button {
-  background: var(--rq-primary, #d00000) !important;
-  background-image: none !important;
-  border-color: var(--rq-primary, #d00000) !important;
-  color: #fff !important;
-  box-shadow: none !important;
-}
-
 .rq-floating-dice__quick-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 7px !important;
@@ -146,71 +52,26 @@
 
 .rq-floating-dice__button,
 .rq-floating-dice__mode,
-.rq-floating-dice__custom-button {
+.rq-floating-dice__custom-button,
+.rq-floating-dice__group-check button {
   min-height: 38px !important;
-  border: 1px solid var(--dice-line) !important;
-  border-radius: 8px !important;
-  background: var(--dice-card-raised) !important;
-  background-image: none !important;
-  color: var(--dice-text) !important;
-  font-family: inherit !important;
   font-size: 12px !important;
-  font-weight: 750 !important;
-  letter-spacing: 0 !important;
-  box-shadow: none !important;
 }
 
-.rq-floating-dice__button::before {
-  content: none !important;
-  display: none !important;
-}
-
-.rq-floating-dice__button:hover,
-.rq-floating-dice__button:focus-visible,
-.rq-floating-dice__mode:hover,
-.rq-floating-dice__mode:focus-visible {
-  background: var(--rq-card-hover, #1a314b) !important;
-  border-color: var(--dice-line-strong) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.rq-floating-dice__custom-button:hover,
-.rq-floating-dice__custom-button:focus-visible,
-.rq-floating-dice__group-check button:hover,
-.rq-floating-dice__group-check button:focus-visible {
-  background: var(--rq-primary-hover, #ef2b2b) !important;
-  border-color: var(--rq-primary-hover, #ef2b2b) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.rq-floating-dice__modes {
+.rq-floating-dice__modes,
+.rq-floating-dice__custom {
   gap: 7px !important;
 }
 
 .rq-floating-dice__custom {
   grid-template-columns: minmax(0, 1fr) auto !important;
-  gap: 7px !important;
 }
 
 .rq-floating-dice__custom input {
   min-height: 38px !important;
-  border: 1px solid var(--dice-line) !important;
-  border-radius: 8px !important;
-  background: var(--dice-card-deep) !important;
-  color: var(--dice-text) !important;
-  box-shadow: none !important;
-}
-
-.rq-floating-dice__custom input:focus {
-  border-color: var(--dice-line-strong) !important;
-  box-shadow: none !important;
 }
 
 .rq-floating-dice__history-title {
-  padding-left: 0 !important;
-  color: var(--dice-faint) !important;
   font-size: 9px !important;
   letter-spacing: .08em !important;
 }
@@ -224,16 +85,7 @@
   min-width: 34px !important;
   display: inline-flex !important;
   justify-content: flex-end !important;
-  color: var(--dice-text) !important;
-  font-family: inherit !important;
   font-size: 1rem !important;
-  line-height: 1 !important;
-}
-
-.rq-floating-dice.has-group-check-request .rq-floating-dice__toggle {
-  border-color: rgba(239, 43, 43, .55) !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .34) !important;
-  animation: none !important;
 }
 
 @media (max-width: 719px) {

@@ -1,7 +1,17 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ArrowLeft, FileText, RefreshCw, Save, UploadCloud, Wand2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle2,
+  FileText,
+  LoaderCircle,
+  RefreshCw,
+  Save,
+  UploadCloud,
+  Wand2,
+} from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
 
@@ -17,11 +27,11 @@ const ABILITY_LABELS = {
 
 const DEFAULT_IMPORT = {
   name: '',
-  race: 'Human',
+  race: '',
   subrace: '',
-  character_class: 'Fighter',
+  character_class: '',
   subclass: '',
-  background: 'Custom',
+  background: '',
   level: 1,
   edition: '2014',
   hit_die: 'd8',
@@ -50,28 +60,36 @@ const DEFAULT_IMPORT = {
   source_warning: '',
 };
 
+const EMPTY_SCAN = {
+  status: 'idle',
+  confidence: null,
+  warnings: [],
+  needsReview: [],
+  message: '',
+};
+
 const fieldAliases = {
-  name: ['name', 'charactername', 'character'],
+  name: ['name', 'charactername', 'character_name', 'character'],
   race: ['race', 'species', 'ancestry'],
   subrace: ['subrace', 'subspecies', 'lineage'],
   character_class: ['class', 'characterclass', 'character_class'],
   subclass: ['subclass', 'archetype', 'patron', 'domain', 'path', 'college', 'circle'],
   background: ['background', 'origin'],
   level: ['level', 'lvl'],
-  armor_class: ['ac', 'armorclass', 'armourclass'],
+  armor_class: ['ac', 'armorclass', 'armor_class', 'armourclass'],
   speed: ['speed', 'movement'],
-  max_hit_points: ['maxhp', 'hitpoints', 'hitpointmaximum', 'maximumhp', 'hpmax'],
-  current_hit_points: ['currenthp', 'hp', 'currenthitpoints'],
-  temporary_hit_points: ['temphp', 'temporaryhp', 'temporaryhitpoints'],
-  skills_text: ['skills', 'skillproficiencies', 'skillprofs'],
-  saving_throws_text: ['savingthrows', 'saves', 'savingthrowproficiencies'],
-  languages_text: ['languages'],
-  racial_traits_text: ['traits', 'racialtraits', 'speciestraits'],
-  class_features_text: ['features', 'classfeatures'],
-  feats_text: ['feats'],
-  equipment_text: ['equipment', 'inventory', 'items'],
-  spells_text: ['spells', 'spellsknown', 'spellsprepared'],
-  cantrips_text: ['cantrips', 'cantripsknown'],
+  max_hit_points: ['maxhp', 'max_hp', 'hitpoints', 'hitpointmaximum', 'maximumhp', 'hpmax'],
+  current_hit_points: ['currenthp', 'current_hp', 'hp', 'currenthitpoints'],
+  temporary_hit_points: ['temphp', 'temp_hp', 'temporaryhp', 'temporaryhitpoints'],
+  skills_text: ['skills', 'skills_text', 'skillproficiencies', 'skillprofs'],
+  saving_throws_text: ['savingthrows', 'saving_throws', 'saving_throws_text', 'saves', 'savingthrowproficiencies'],
+  languages_text: ['languages', 'languages_text'],
+  racial_traits_text: ['traits', 'racialtraits', 'racial_traits', 'racial_traits_text', 'speciestraits'],
+  class_features_text: ['features', 'classfeatures', 'class_features', 'class_features_text'],
+  feats_text: ['feats', 'feats_text'],
+  equipment_text: ['equipment', 'inventory', 'items', 'equipment_text'],
+  spells_text: ['spells', 'spellsknown', 'spellsprepared', 'spells_text'],
+  cantrips_text: ['cantrips', 'cantripsknown', 'cantrips_text'],
   backstory: ['backstory', 'notes', 'personality'],
 };
 
@@ -81,7 +99,35 @@ const numberOr = (value, fallback) => {
 };
 
 const normaliseKey = (key) => String(key || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
-const cleanText = (value) => Array.isArray(value) ? value.join('\n') : String(value ?? '').trim();
+
+function listFrom(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'string') return item;
+        return item?.name || item?.title || item?.label || item?.description || '';
+      })
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value)
+      .map((item) => typeof item === 'string' ? item : item?.name || item?.title || '')
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
+
+  return String(value || '')
+    .split(/\r?\n|,|;/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function cleanText(value) {
+  if (Array.isArray(value) || (value && typeof value === 'object')) return listFrom(value).join('\n');
+  return String(value ?? '').trim();
+}
 
 function toLookup(source = {}) {
   const lookup = {};
@@ -99,6 +145,12 @@ function firstValue(lookup, aliases, fallback = '') {
   return fallback;
 }
 
+function unwrapCharacterSource(source) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) return {};
+  const candidates = [source.character, source.data, source.character_data, source.characterData];
+  return candidates.find((item) => item && typeof item === 'object' && !Array.isArray(item)) || source;
+}
+
 function parseKeyValueText(text) {
   const out = {};
   String(text || '').split(/\r?\n/).forEach((line) => {
@@ -114,7 +166,7 @@ function parseJsonOrText(text) {
   if (!trimmed) return {};
   try {
     const parsed = JSON.parse(trimmed);
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    return unwrapCharacterSource(parsed);
   } catch {
     return parseKeyValueText(trimmed);
   }
@@ -122,12 +174,7 @@ function parseJsonOrText(text) {
 
 function scoreFrom(source = {}, lookup = {}, ability) {
   const short = ABILITY_LABELS[ability].toLowerCase();
-  const abilitySources = [
-    source?.abilities,
-    source?.ability_scores,
-    source?.stats,
-    source?.scores,
-  ].filter(Boolean);
+  const abilitySources = [source?.abilities, source?.ability_scores, source?.stats, source?.scores].filter(Boolean);
 
   for (const block of abilitySources) {
     const blockLookup = toLookup(block);
@@ -136,19 +183,6 @@ function scoreFrom(source = {}, lookup = {}, ability) {
   }
 
   return numberOr(firstValue(lookup, [ability, short], 10), 10);
-}
-
-function listFrom(value) {
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => typeof item === 'string' ? item : item?.name || item?.title || '')
-      .map((item) => String(item).trim())
-      .filter(Boolean);
-  }
-  return String(value || '')
-    .split(/\r?\n|,|;/)
-    .map((item) => item.trim())
-    .filter(Boolean);
 }
 
 function featureEntries(value, source = 'import') {
@@ -180,7 +214,8 @@ function spellEntries(value, fallbackLevel = 1) {
   return listFrom(value).map((name) => ({ name, level: fallbackLevel }));
 }
 
-function deriveImport(source, sourceFileName = '') {
+function deriveImport(inputSource, sourceFileName = '') {
+  const source = unwrapCharacterSource(inputSource);
   const lookup = toLookup(source);
   const next = { ...DEFAULT_IMPORT, source_file_name: sourceFileName };
 
@@ -194,7 +229,8 @@ function deriveImport(source, sourceFileName = '') {
   });
 
   next.level = Math.max(1, Math.min(30, numberOr(next.level, 1)));
-  next.edition = String(firstValue(lookup, ['edition', 'rulesedition', 'rules_edition', 'ruleset'], next.edition)).includes('2024') ? '2024' : '2014';
+  const edition = String(firstValue(lookup, ['edition', 'rulesedition', 'rules_edition', 'ruleset'], next.edition));
+  next.edition = edition.includes('2024') ? '2024' : '2014';
   next.armor_class = numberOr(next.armor_class, 10);
   next.speed = numberOr(next.speed, 30);
   next.max_hit_points = Math.max(1, numberOr(next.max_hit_points, 10));
@@ -213,7 +249,7 @@ function buildPayload(character) {
   const hitDie = String(character.hit_die || 'd8').replace(/^d?/i, 'd');
   const inventory = listFrom(character.equipment_text).map((name) => ({ name, equipped: false, source: 'import' }));
   const sourceNote = character.source_file_name
-    ? `\n\nImported from player upload: ${character.source_file_name}. ${character.source_warning || ''}`.trim()
+    ? `Imported from player upload: ${character.source_file_name}.${character.source_warning ? ` ${character.source_warning}` : ''}`
     : '';
 
   return {
@@ -272,7 +308,7 @@ function TextField({ label, value, onChange, type = 'text', multiline = false, p
         value={value ?? ''}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        style={{ ...styles.input, minHeight: multiline ? 96 : 42, resize: multiline ? 'vertical' : undefined }}
+        style={{ ...styles.input, minHeight: multiline ? 84 : 40, resize: multiline ? 'vertical' : undefined }}
       />
     </label>
   );
@@ -282,12 +318,67 @@ function NumberField({ label, value, onChange }) {
   return <TextField label={label} value={value} type="number" onChange={(next) => onChange(numberOr(next, 0))} />;
 }
 
+function ScanSummary({ scan }) {
+  if (scan.status === 'idle') return null;
+
+  if (scan.status === 'scanning') {
+    return (
+      <div style={styles.scanPanel} role="status" aria-live="polite">
+        <LoaderCircle size={18} color="#7CCBFF" />
+        <div>
+          <strong style={styles.sectionTitle}>Reading your character sheet…</strong>
+          <p style={styles.bodyCopy}>Rook is extracting the details. Nothing is saved until you review the result and press save.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (scan.status === 'error') {
+    return (
+      <div style={styles.scanPanel} role="alert">
+        <AlertTriangle size={18} color="#FF2DAA" />
+        <div>
+          <strong style={styles.sectionTitle}>Automatic scan did not finish</strong>
+          <p style={styles.bodyCopy}>{scan.message || 'You can still fill the character in manually below.'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const confidence = scan.confidence === null ? null : Math.round(scan.confidence * 100);
+  return (
+    <div style={styles.scanPanel} role="status" aria-live="polite">
+      <CheckCircle2 size={18} color="#7CCBFF" />
+      <div style={{ minWidth: 0 }}>
+        <strong style={styles.sectionTitle}>Sheet scanned — now give it a quick review</strong>
+        <p style={styles.bodyCopy}>
+          {confidence === null ? 'Extraction complete.' : `Overall read confidence: ${confidence}%.`} Check anything highlighted below before saving.
+        </p>
+        {scan.warnings.length > 0 && (
+          <div style={styles.warningList}>
+            {scan.warnings.map((warning, index) => <span key={`${warning}-${index}`}>• {warning}</span>)}
+          </div>
+        )}
+        {scan.needsReview.length > 0 && (
+          <div style={styles.reviewRow}>
+            <span style={styles.reviewLabel}>Double-check:</span>
+            {scan.needsReview.map((field) => (
+              <span key={field} style={styles.reviewPill}>{String(field).replaceAll('_', ' ')}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function CharacterImportPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [rawText, setRawText] = useState('');
   const [character, setCharacter] = useState(DEFAULT_IMPORT);
   const [saving, setSaving] = useState(false);
+  const [scan, setScan] = useState(EMPTY_SCAN);
 
   const payloadPreview = useMemo(() => buildPayload(character), [character]);
   const canSave = Boolean(character.name.trim() && character.race.trim() && character.character_class.trim());
@@ -298,6 +389,7 @@ export default function CharacterImportPage() {
     const parsed = parseJsonOrText(text);
     const derived = deriveImport(parsed, sourceFileName);
     setCharacter((prev) => ({ ...prev, ...derived }));
+    setScan(EMPTY_SCAN);
     toast.success('Character details pulled into the importer');
   };
 
@@ -308,24 +400,72 @@ export default function CharacterImportPage() {
     const lowerName = file.name.toLowerCase();
     const canReadAsText = lowerName.endsWith('.json') || lowerName.endsWith('.txt') || lowerName.endsWith('.md') || file.type.startsWith('text/');
 
-    if (!canReadAsText) {
-      setCharacter((prev) => ({
-        ...prev,
-        source_file_name: file.name,
-        source_warning: 'PDF/image parsing is not automated yet; core fields were entered manually from the upload screen.',
-      }));
-      toast.info('PDF/image received. Fill the core fields manually, then save the character.');
+    if (canReadAsText) {
+      const text = await file.text();
+      setRawText(text);
+      applyRawText(text, file.name);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
-    const text = await file.text();
-    setRawText(text);
-    applyRawText(text, file.name);
+    const canScan = lowerName.endsWith('.pdf')
+      || /\.(png|jpe?g|webp)$/.test(lowerName)
+      || file.type === 'application/pdf'
+      || file.type.startsWith('image/');
+
+    if (!canScan) {
+      toast.error('Upload a PDF, image, JSON, TXT, or MD character sheet.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setCharacter((prev) => ({ ...prev, source_file_name: file.name, source_warning: '' }));
+    setScan({ ...EMPTY_SCAN, status: 'scanning' });
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await apiClient.post('/character-import/extract', formData);
+      const result = response.data || {};
+      const derived = deriveImport(result.character || {}, file.name);
+      const warnings = Array.isArray(result.warnings) ? result.warnings.filter(Boolean) : [];
+      const needsReview = Array.isArray(result.needs_review) ? result.needs_review.filter(Boolean) : [];
+      const confidence = Number.isFinite(Number(result.confidence)) ? Number(result.confidence) : null;
+      const sourceWarning = [
+        ...warnings,
+        needsReview.length ? `Fields marked for review: ${needsReview.join(', ')}.` : '',
+      ].filter(Boolean).join(' ');
+
+      setCharacter({ ...derived, source_warning: sourceWarning });
+      setScan({
+        status: 'complete',
+        confidence,
+        warnings,
+        needsReview,
+        message: '',
+      });
+      toast.success('Character sheet scanned — review the details before saving');
+    } catch (error) {
+      const consentCancelled = error?.code === 'RQK_AI_CONSENT_CANCELLED';
+      const detail = error?.formattedDetail || error?.response?.data?.detail || error?.message;
+      setScan({
+        ...EMPTY_SCAN,
+        status: 'error',
+        message: consentCancelled
+          ? 'Automatic scanning was cancelled. The manual importer is still available below.'
+          : detail || 'The sheet could not be scanned automatically. You can still enter it manually below.',
+      });
+      if (consentCancelled) toast.info('Automatic sheet scanning cancelled');
+      else toast.error(detail || 'Could not scan that character sheet');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const reset = () => {
     setRawText('');
     setCharacter(DEFAULT_IMPORT);
+    setScan(EMPTY_SCAN);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -339,7 +479,7 @@ export default function CharacterImportPage() {
       setSaving(true);
       const response = await apiClient.post('/characters', payloadPreview);
       const id = response.data?.character_id || response.data?.character?.id || response.data?.id;
-      toast.success('Imported character saved');
+      toast.success('Character saved to your digital library');
       navigate(id ? `/characters/${id}` : '/characters');
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not save imported character');
@@ -352,65 +492,76 @@ export default function CharacterImportPage() {
     <main style={styles.page}>
       <header style={styles.header}>
         <button type="button" onClick={() => navigate('/characters')} style={styles.ghostButton}>
-          <ArrowLeft size={16} /> Characters
+          <ArrowLeft size={16} color="#7CCBFF" /> Characters
         </button>
         <div>
           <p style={styles.eyebrow}>Player tools</p>
-          <h1 style={styles.title}>Import or free-build a character</h1>
-          <p style={styles.subtitle}>Bring in an existing sheet, paste text/JSON, or manually enter a homebrew character without being boxed into the standard builder.</p>
+          <h1 style={styles.title}>Turn an existing sheet into a digital character</h1>
+          <p style={styles.subtitle}>Upload a PDF or photo and Rook will read the sheet into Rookie Quest Keeper. You review the result first, then save it as a normal editable character.</p>
         </div>
       </header>
 
       <section style={styles.notice}>
-        <Wand2 size={19} />
+        <Wand2 size={19} color="#7CCBFF" />
         <div>
-          <strong>Homebrew-friendly path</strong>
-          <p>Race/species, class, subclass, feats, traits, spells, equipment, and features are saved as written. This is the safer route for custom classes and uploaded sheets while the guided builder catches up.</p>
+          <strong style={styles.sectionTitle}>Upload → scan → review → save</strong>
+          <p style={styles.bodyCopy}>Nothing from the scan is saved automatically. Homebrew names and unusual character options are kept as written wherever possible.</p>
         </div>
       </section>
 
       <section style={styles.gridTwo}>
         <article style={styles.card}>
           <div style={styles.cardHeader}>
-            <UploadCloud size={22} />
+            <UploadCloud size={22} color="#7CCBFF" />
             <div>
-              <h2>Upload a sheet file</h2>
-              <p>JSON, TXT, and MD can be read automatically. PDF/images can be received as the source file and filled manually for now.</p>
+              <h2 style={styles.sectionTitle}>Upload a character sheet</h2>
+              <p style={styles.bodyCopy}>PDF, PNG, JPG, and WEBP sheets are scanned automatically. JSON, TXT, and MD files are read directly.</p>
             </div>
           </div>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"
+            accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp"
             onChange={handleFile}
-            style={styles.fileInput}
+            disabled={scan.status === 'scanning'}
+            aria-busy={scan.status === 'scanning'}
+            style={{ ...styles.fileInput, opacity: scan.status === 'scanning' ? 0.65 : 1 }}
           />
-          {character.source_file_name && <p style={styles.fileNote}><FileText size={14} /> Source: {character.source_file_name}</p>}
+          {character.source_file_name && (
+            <p style={styles.fileNote}><FileText size={14} color="#7CCBFF" /> Source: {character.source_file_name}</p>
+          )}
+          <ScanSummary scan={scan} />
         </article>
 
         <article style={styles.card}>
           <div style={styles.cardHeader}>
-            <FileText size={22} />
+            <FileText size={22} color="#7CCBFF" />
             <div>
-              <h2>Paste sheet text</h2>
-              <p>Works best with JSON or lines like <em>Name: Javen</em>, <em>Class: Warlock</em>, <em>STR: 11</em>.</p>
+              <h2 style={styles.sectionTitle}>Paste character data instead</h2>
+              <p style={styles.bodyCopy}>Useful for exports or notes. JSON works best, or use lines such as <em>Name: Javen</em>, <em>Class: Warlock</em>, <em>STR: 11</em>.</p>
             </div>
           </div>
-          <textarea value={rawText} onChange={(event) => setRawText(event.target.value)} placeholder="Paste sheet text or JSON here..." style={{ ...styles.input, minHeight: 150 }} />
+          <textarea
+            value={rawText}
+            onChange={(event) => setRawText(event.target.value)}
+            placeholder="Paste sheet text or JSON here..."
+            style={{ ...styles.input, minHeight: 120, resize: 'vertical' }}
+          />
           <div style={styles.rowActions}>
             <button type="button" onClick={() => applyRawText(rawText)} style={styles.primaryButton}>Use pasted text</button>
-            <button type="button" onClick={reset} style={styles.secondaryButton}><RefreshCw size={15} /> Reset</button>
+            <button type="button" onClick={reset} style={styles.secondaryButton}><RefreshCw size={15} color="#7CCBFF" /> Reset</button>
           </div>
         </article>
       </section>
 
       <section style={styles.card}>
-        <h2>Core character</h2>
+        <h2 style={styles.sectionTitle}>Core character</h2>
+        <p style={{ ...styles.bodyCopy, marginBottom: 10 }}>These are the three fields required to save. If Rook was unsure about anything, correct it here.</p>
         <div style={styles.formGrid}>
           <TextField label="Character name" value={character.name} onChange={(value) => update('name', value)} placeholder="Name" />
-          <TextField label="Race / Species" value={character.race} onChange={(value) => update('race', value)} />
+          <TextField label="Race / Species" value={character.race} onChange={(value) => update('race', value)} placeholder="Race or species" />
           <TextField label="Subrace / Lineage" value={character.subrace} onChange={(value) => update('subrace', value)} />
-          <TextField label="Class" value={character.character_class} onChange={(value) => update('character_class', value)} />
+          <TextField label="Class" value={character.character_class} onChange={(value) => update('character_class', value)} placeholder="Class or multiclass breakdown" />
           <TextField label="Subclass" value={character.subclass} onChange={(value) => update('subclass', value)} />
           <TextField label="Background" value={character.background} onChange={(value) => update('background', value)} />
           <NumberField label="Level" value={character.level} onChange={(value) => update('level', Math.max(1, Math.min(30, value)))} />
@@ -434,7 +585,7 @@ export default function CharacterImportPage() {
       </section>
 
       <section style={styles.card}>
-        <h2>Stats and combat basics</h2>
+        <h2 style={styles.sectionTitle}>Stats and combat basics</h2>
         <div style={styles.abilityGrid}>
           {ABILITIES.map((ability) => (
             <NumberField key={ability} label={ABILITY_LABELS[ability]} value={character[ability]} onChange={(value) => update(ability, value)} />
@@ -450,10 +601,10 @@ export default function CharacterImportPage() {
       </section>
 
       <section style={styles.card}>
-        <h2>Homebrew, features, and play data</h2>
+        <h2 style={styles.sectionTitle}>Features, equipment, spells, and notes</h2>
         <div style={styles.gridTwo}>
           <TextField label="Skills" value={character.skills_text} onChange={(value) => update('skills_text', value)} multiline placeholder="Athletics, Perception..." />
-          <TextField label="Saving throws" value={character.saving_throws_text} onChange={(value) => update('saving_throws_text', value)} multiline placeholder="strength, constitution..." />
+          <TextField label="Saving throws" value={character.saving_throws_text} onChange={(value) => update('saving_throws_text', value)} multiline placeholder="Strength, Constitution..." />
           <TextField label="Languages" value={character.languages_text} onChange={(value) => update('languages_text', value)} multiline />
           <TextField label="Race/species traits" value={character.racial_traits_text} onChange={(value) => update('racial_traits_text', value)} multiline />
           <TextField label="Class/subclass features" value={character.class_features_text} onChange={(value) => update('class_features_text', value)} multiline />
@@ -467,11 +618,16 @@ export default function CharacterImportPage() {
 
       <section style={styles.footerCard}>
         <div>
-          <strong>{canSave ? 'Ready to save' : 'Needs name, race/species, and class'}</strong>
-          <p>Preview: {payloadPreview.name || 'Unnamed'} • {payloadPreview.race} • {payloadPreview.character_class} • Level {payloadPreview.level}</p>
+          <strong style={styles.sectionTitle}>{canSave ? 'Ready to become a digital character' : 'Needs name, race/species, and class'}</strong>
+          <p style={styles.bodyCopy}>Preview: {payloadPreview.name || 'Unnamed'} • {payloadPreview.race} • {payloadPreview.character_class} • Level {payloadPreview.level}</p>
         </div>
-        <button type="button" onClick={saveCharacter} disabled={saving || !canSave} style={{ ...styles.primaryButton, opacity: saving || !canSave ? 0.55 : 1 }}>
-          <Save size={16} /> {saving ? 'Saving…' : 'Save Imported Character'}
+        <button
+          type="button"
+          onClick={saveCharacter}
+          disabled={saving || !canSave || scan.status === 'scanning'}
+          style={{ ...styles.primaryButton, opacity: saving || !canSave || scan.status === 'scanning' ? 0.55 : 1 }}
+        >
+          <Save size={16} color="#7CCBFF" /> {saving ? 'Saving…' : 'Save Reviewed Character'}
         </button>
       </section>
     </main>
@@ -481,164 +637,251 @@ export default function CharacterImportPage() {
 const styles = {
   page: {
     minHeight: '100vh',
-    padding: '28px clamp(16px, 4vw, 48px)',
-    background: 'var(--rq-bg, #242424)',
-    color: 'var(--rq-text, #fff)',
+    boxSizing: 'border-box',
+    padding: 'clamp(10px, 2.5vw, 24px)',
+    background: '#071522',
+    color: '#FFFFFF',
     fontFamily: 'var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)',
   },
   header: {
     display: 'grid',
-    gap: 18,
-    marginBottom: 22,
+    gap: 10,
+    maxWidth: 1180,
+    margin: '0 auto 10px',
+    padding: 'clamp(10px, 2vw, 14px)',
+    background: '#0C2234',
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 7,
   },
   eyebrow: {
     margin: 0,
-    color: 'rgba(255,255,255,0.6)',
-    letterSpacing: '0.12em',
+    color: '#FFFFFF',
+    letterSpacing: '0.1em',
     textTransform: 'uppercase',
-    fontSize: 12,
-    fontWeight: 800,
+    fontSize: 10,
+    fontWeight: 900,
   },
   title: {
-    margin: '4px 0 8px',
-    fontSize: 'clamp(32px, 7vw, 64px)',
-    lineHeight: 0.95,
-    fontFamily: 'var(--rq-title-font, Georgia, serif)',
+    margin: '2px 0 5px',
+    fontSize: 'clamp(1.75rem, 4vw, 2.45rem)',
+    lineHeight: 1.02,
+    fontFamily: 'inherit',
+    fontWeight: 900,
+    letterSpacing: '-0.025em',
+    color: '#FFFFFF',
   },
   subtitle: {
     margin: 0,
-    maxWidth: 860,
-    color: 'rgba(255,255,255,0.72)',
-    lineHeight: 1.6,
+    maxWidth: 850,
+    color: '#FFFFFF',
+    fontSize: 13,
+    lineHeight: 1.45,
   },
   gridTwo: {
+    width: 'min(1180px, 100%)',
+    margin: '0 auto',
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: 16,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+    gap: 8,
   },
   card: {
-    background: 'rgba(255,255,255,0.065)',
-    border: '1px solid rgba(255,255,255,0.14)',
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 16,
-    boxShadow: '0 18px 50px rgba(0,0,0,0.22)',
+    width: 'min(1180px, 100%)',
+    boxSizing: 'border-box',
+    margin: '0 auto 8px',
+    background: '#102B40',
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 7,
+    padding: 'clamp(10px, 2vw, 13px)',
+    boxShadow: 'none',
   },
   notice: {
+    width: 'min(1180px, 100%)',
+    boxSizing: 'border-box',
     display: 'flex',
-    gap: 12,
+    gap: 9,
     alignItems: 'flex-start',
-    background: 'rgba(208,0,0,0.16)',
-    border: '1px solid rgba(255,255,255,0.16)',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
+    margin: '0 auto 8px',
+    background: 'rgba(124,203,255,.08)',
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 7,
+    padding: 11,
   },
   cardHeader: {
     display: 'flex',
-    gap: 12,
+    gap: 9,
     alignItems: 'flex-start',
-    marginBottom: 14,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    display: 'block',
+    margin: '0 0 5px',
+    color: '#FFFFFF',
+    fontSize: 15,
+    lineHeight: 1.2,
+    fontWeight: 900,
+    fontFamily: 'inherit',
+  },
+  bodyCopy: {
+    margin: 0,
+    color: '#FFFFFF',
+    fontSize: 12,
+    lineHeight: 1.45,
   },
   formGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-    gap: 12,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
+    gap: 8,
   },
   abilityGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-    gap: 12,
-    marginBottom: 12,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))',
+    gap: 7,
+    marginBottom: 8,
   },
   field: {
     display: 'grid',
-    gap: 6,
-    color: 'rgba(255,255,255,0.72)',
-    fontSize: 13,
-    fontWeight: 800,
+    gap: 4,
+    color: '#FFFFFF',
+    fontSize: 11,
+    lineHeight: 1.2,
+    fontWeight: 850,
   },
   input: {
     width: '100%',
     boxSizing: 'border-box',
-    borderRadius: 12,
-    border: '1px solid rgba(255,255,255,0.16)',
-    background: 'rgba(0,0,0,0.28)',
-    color: '#fff',
-    padding: '11px 12px',
+    borderRadius: 5,
+    border: '1px solid rgba(255,45,170,.18)',
+    background: '#081B2A',
+    color: '#FFFFFF',
+    padding: '8px 9px',
     font: 'inherit',
+    outline: 'none',
+    boxShadow: 'none',
   },
   fileInput: {
     width: '100%',
-    padding: 12,
-    borderRadius: 14,
-    border: '1px dashed rgba(255,255,255,0.24)',
-    background: 'rgba(0,0,0,0.18)',
-    color: '#fff',
+    boxSizing: 'border-box',
+    padding: 9,
+    borderRadius: 5,
+    border: '1px dashed rgba(255,45,170,.32)',
+    background: '#081B2A',
+    color: '#FFFFFF',
   },
   fileNote: {
     display: 'flex',
     alignItems: 'center',
+    gap: 6,
+    margin: '8px 0 0',
+    color: '#FFFFFF',
+    fontSize: 11,
+  },
+  scanPanel: {
+    display: 'flex',
     gap: 8,
-    color: 'rgba(255,255,255,0.7)',
+    alignItems: 'flex-start',
+    marginTop: 9,
+    padding: 10,
+    borderRadius: 5,
+    border: '1px solid rgba(124,203,255,.28)',
+    background: '#081B2A',
+    color: '#FFFFFF',
+  },
+  warningList: {
+    display: 'grid',
+    gap: 3,
+    marginTop: 7,
+    color: '#FFFFFF',
+    fontSize: 11,
+    lineHeight: 1.4,
+  },
+  reviewRow: {
+    display: 'flex',
+    gap: 5,
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  reviewLabel: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: 900,
+  },
+  reviewPill: {
+    border: '1px solid #FF2DAA',
+    borderRadius: 999,
+    padding: '3px 7px',
+    color: '#FFFFFF',
+    background: '#102B40',
+    fontSize: 10,
+    fontWeight: 850,
+    textTransform: 'capitalize',
   },
   rowActions: {
     display: 'flex',
-    gap: 10,
+    gap: 6,
     flexWrap: 'wrap',
-    marginTop: 12,
+    marginTop: 8,
   },
   primaryButton: {
+    minHeight: 40,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    border: 0,
-    borderRadius: 999,
-    padding: '11px 16px',
-    background: 'var(--rq-red, #d00000)',
-    color: '#fff',
+    gap: 7,
+    border: '1px solid #FF2DAA',
+    borderRadius: 5,
+    padding: '0 11px',
+    background: '#102B40',
+    color: '#FFFFFF',
     fontWeight: 900,
     cursor: 'pointer',
+    boxShadow: 'none',
   },
   secondaryButton: {
+    minHeight: 40,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    border: '1px solid rgba(255,255,255,0.18)',
-    borderRadius: 999,
-    padding: '11px 16px',
-    background: 'rgba(255,255,255,0.07)',
-    color: '#fff',
-    fontWeight: 800,
+    gap: 7,
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 5,
+    padding: '0 11px',
+    background: '#102B40',
+    color: '#FFFFFF',
+    fontWeight: 850,
     cursor: 'pointer',
+    boxShadow: 'none',
   },
   ghostButton: {
     justifySelf: 'start',
+    minHeight: 38,
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 8,
-    border: '1px solid rgba(255,255,255,0.16)',
-    borderRadius: 999,
-    padding: '9px 13px',
-    background: 'rgba(255,255,255,0.07)',
-    color: '#fff',
-    fontWeight: 800,
+    gap: 7,
+    border: '1px solid rgba(255,45,170,.18)',
+    borderRadius: 5,
+    padding: '0 10px',
+    background: '#102B40',
+    color: '#FFFFFF',
+    fontWeight: 850,
     cursor: 'pointer',
+    boxShadow: 'none',
   },
   footerCard: {
     position: 'sticky',
-    bottom: 16,
+    bottom: 8,
+    width: 'min(1180px, 100%)',
+    boxSizing: 'border-box',
+    margin: '0 auto',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 14,
+    gap: 8,
     flexWrap: 'wrap',
-    background: 'rgba(23,23,23,0.92)',
-    border: '1px solid rgba(255,255,255,0.18)',
-    borderRadius: 18,
-    padding: 16,
-    backdropFilter: 'blur(14px)',
+    background: '#0C2234',
+    border: '1px solid rgba(255,45,170,.28)',
+    borderRadius: 7,
+    padding: 10,
+    boxShadow: 'none',
   },
 };

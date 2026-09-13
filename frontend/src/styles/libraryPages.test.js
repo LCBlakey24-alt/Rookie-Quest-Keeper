@@ -22,13 +22,18 @@ describe('library presentation ownership', () => {
     expect(mixedMobile).not.toMatch(/\.library-page/);
   });
 
-  test('character library owns one navy three-mode presentation', () => {
+  test('character library owns one flat RQK 1.0 presentation', () => {
     const shared = read('../components/MyCharactersPage.css');
     const retiredMobile = readIfExists('../layouts/mobile/charactersLibrary.css');
 
-    expect(shared).not.toMatch(/rq-sunset-gradient/i);
-    expect(shared).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
-    expect(shared).toContain('var(--rq-card, #142a43)');
+    expect(shared).not.toMatch(/rq-sunset-gradient|linear-gradient|radial-gradient|conic-gradient/i);
+    expect(shared).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#d00000/i);
+    // The app shell owns the #071522 canvas; the library owns its panel/card/UI palette.
+    expect(shared).toContain('#0C2234');
+    expect(shared).toContain('#102B40');
+    expect(shared).toContain('#7CCBFF');
+    expect(shared).toContain('#FF2DAA');
+    expect(shared).toContain('#FFFFFF');
     expect(shared).toContain("[data-rq-device='mobile']");
     expect(shared).toContain("[data-rq-device='tablet']");
     expect(shared).toContain("[data-rq-device='desktop']");

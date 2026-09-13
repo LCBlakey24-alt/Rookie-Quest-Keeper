@@ -25,7 +25,8 @@ function requiresExternalAiConsent(config = {}) {
   return url === '/rook/draft'
     || url.startsWith('/rook/generate')
     || url.startsWith('/unseen-servant/generate')
-    || url.startsWith('/ai/');
+    || url.startsWith('/ai/')
+    || url.startsWith('/character-import/extract');
 }
 
 export function ensureRookAiConsent() {
@@ -33,7 +34,7 @@ export function ensureRookAiConsent() {
   if (typeof window === 'undefined') return false;
 
   const allowed = window.confirm(
-    'Use Rook AI?\n\nRook sends your request and relevant saved campaign context to OpenAI to generate the response. Passwords are not included.\n\nChoose OK to allow Rook AI on this device. You can revoke this later in Account Settings.'
+    'Use Rook AI?\n\nRook may send your request, relevant saved campaign context, or files you choose to process to OpenAI to generate a response or extract information. Passwords are not included.\n\nChoose OK to allow Rook AI on this device. You can revoke this later in Account Settings.'
   );
   if (allowed) grantRookAiConsent();
   return allowed;

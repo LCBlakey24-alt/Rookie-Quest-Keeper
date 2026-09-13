@@ -1,43 +1,66 @@
 /* ============================================
    ROOKIE QUEST KEEPER - DESIGN SYSTEM v4.1
-   Current app-wide direction: Sunset Gradient
-   Dark blue-purple surfaces, white text, sunset-gradient actions
+   Flat navy surfaces, sky blue secondary colour, hot pink lines, white text
    ============================================ */
 
 :root {
-  --rq-bg-main: #070713;
-  --rq-bg-page: #0b0718;
-  --rq-bg-rail: #0d0617;
-  --rq-bg-panel: #13081f;
-  --rq-bg-panel-alt: #1b0b2d;
-  --rq-bg-elevated: #24103a;
-  --rq-bg-input: #0b0614;
-  --rq-card: #1b0b2d;
-  --rq-card-hover: #24103a;
+  /* Shared Radix/Tailwind surfaces, including menus rendered outside #root. */
+  --background: 208 66% 8%;
+  --foreground: 0 0% 100%;
+  --card: 206 60% 16%;
+  --card-foreground: 0 0% 100%;
+  --popover: 207 60% 13%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 206 60% 16%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 206 58% 19%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 207 60% 13%;
+  --muted-foreground: 0 0% 100%;
+  --accent: 206 58% 19%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 206 60% 16%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 324 100% 59% / 0.28;
+  --input: 324 100% 59% / 0.28;
+  --ring: 204 100% 74%;
+  --radius: 7px;
+  --rq-bg-main: #071522;
+  --rq-bg-page: #071522;
+  --rq-bg-rail: #06111C;
+  --rq-bg-panel: #0C2234;
+  --rq-bg-panel-alt: #102B40;
+  --rq-bg-elevated: #14344C;
+  --rq-bg-input: #081B2A;
+  --rq-card: #102B40;
+  --rq-card-hover: #14344C;
 
-  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
-  --rq-accent-primary: #eb3fe9;
-  --rq-accent-hover: #ff9542;
-  --rq-accent-active: #7357ff;
-  --rq-accent-soft: rgba(235, 63, 233, 0.14);
-  --rq-accent-border: rgba(255, 149, 66, 0.30);
-  --rq-accent-strong-border: rgba(255, 149, 66, 0.48);
+  --rq-secondary: #7CCBFF;
+  --rq-secondary-soft: rgba(124, 203, 255, 0.10);
+  --rq-secondary-border: rgba(124, 203, 255, 0.30);
 
-  --rq-text-primary: #ffffff;
-  --rq-text-secondary: rgba(255, 255, 255, 0.82);
-  --rq-text-muted: rgba(255, 255, 255, 0.62);
-  --rq-text-disabled: rgba(255, 255, 255, 0.40);
-  --rq-text-inverse: #070713;
+  --rq-accent-primary: #FF2DAA;
+  --rq-accent-hover: #FF2DAA;
+  --rq-accent-active: #FF2DAA;
+  --rq-accent-soft: rgba(255, 45, 170, 0.08);
+  --rq-accent-border: rgba(255, 45, 170, 0.28);
+  --rq-accent-strong-border: rgba(255, 45, 170, 0.70);
 
-  --rq-border-default: rgba(255, 255, 255, 0.14);
-  --rq-border-strong: rgba(255, 149, 66, 0.34);
-  --rq-border-accent: #ff9542;
+  --rq-text-primary: #FFFFFF;
+  --rq-text-secondary: #FFFFFF;
+  --rq-text-muted: #FFFFFF;
+  --rq-text-disabled: rgba(255, 255, 255, 0.48);
+  --rq-text-inverse: #071522;
 
-  --rq-radius-sm: 6px;
-  --rq-radius-md: 8px;
-  --rq-radius-lg: 10px;
-  --rq-radius: 10px;
-  --rq-inner-radius: 8px;
+  --rq-border-default: rgba(255, 45, 170, 0.18);
+  --rq-border-strong: rgba(255, 45, 170, 0.36);
+  --rq-border-accent: #FF2DAA;
+
+  --rq-radius-sm: 5px;
+  --rq-radius-md: 7px;
+  --rq-radius-lg: 9px;
+  --rq-radius: 7px;
+  --rq-inner-radius: 5px;
 
   --rq-space-1: 4px;
   --rq-space-2: 8px;
@@ -52,71 +75,70 @@
   --rq-shadow-heavy: none;
 
   --bg-black: var(--rq-bg-main);
-  --bg-dark: var(--rq-bg-page);
+  --bg-dark: var(--rq-bg-main);
   --bg-primary: var(--rq-bg-main);
   --bg-secondary: var(--rq-bg-panel-alt);
   --bg-panel: var(--rq-bg-panel);
   --bg-card: var(--rq-bg-panel-alt);
   --bg-elevated: var(--rq-bg-elevated);
   --bg-hover: var(--rq-bg-elevated);
-  --bg-overlay: rgba(7, 7, 19, 0.90);
-  --bg-light: #24103a;
+  --bg-overlay: rgba(7, 21, 34, 0.94);
+  --bg-light: var(--rq-bg-elevated);
 
-  --text-primary: var(--rq-text-primary);
-  --text-secondary: var(--rq-text-secondary);
-  --text-muted: var(--rq-text-muted);
-  --text-dim: var(--rq-text-disabled);
-  --text-disabled: var(--rq-text-disabled);
+  --text-primary: #FFFFFF;
+  --text-secondary: #FFFFFF;
+  --text-muted: #FFFFFF;
+  --text-dim: rgba(255, 255, 255, 0.48);
+  --text-disabled: rgba(255, 255, 255, 0.48);
 
   --accent-red: var(--rq-accent-primary);
-  --accent-red-hover: var(--rq-accent-hover);
+  --accent-red-hover: var(--rq-accent-primary);
   --accent-red-subtle: var(--rq-accent-soft);
   --accent-red-border: var(--rq-accent-border);
 
   --rq-red: var(--rq-accent-primary);
-  --rq-red-bright: var(--rq-accent-hover);
-  --rq-red-dark: var(--rq-accent-active);
+  --rq-red-bright: var(--rq-accent-primary);
+  --rq-red-dark: var(--rq-accent-primary);
   --rq-red-soft: var(--rq-accent-soft);
   --rq-red-border: var(--rq-accent-border);
   --rq-red-border-strong: var(--rq-accent-strong-border);
 
-  --rq-gold: var(--rq-accent-hover);
-  --rq-gold-bright: var(--rq-accent-hover);
-  --rq-gold-soft: rgba(255, 149, 66, 0.14);
-  --rq-gold-border: rgba(255, 149, 66, 0.30);
-  --rq-gold-border-strong: rgba(255, 149, 66, 0.48);
+  --rq-gold: var(--rq-secondary);
+  --rq-gold-bright: var(--rq-secondary);
+  --rq-gold-soft: var(--rq-secondary-soft);
+  --rq-gold-border: var(--rq-secondary-border);
+  --rq-gold-border-strong: rgba(124, 203, 255, 0.52);
   --rq-charcoal: var(--rq-bg-main);
   --rq-charcoal-soft: var(--rq-bg-panel);
   --rq-navy: var(--rq-bg-main);
   --rq-navy-soft: var(--rq-bg-panel);
 
-  --rq-role-gm: var(--rq-accent-hover);
-  --rq-role-player: var(--rq-accent-primary);
-  --rq-role-rook: var(--rq-accent-active);
-  --rq-role-homebrew: #7A9B66;
-  --rq-role-lore: #D4953C;
-  --rq-surface-soft: rgba(255, 255, 255, 0.06);
+  --rq-role-gm: var(--rq-secondary);
+  --rq-role-player: var(--rq-secondary);
+  --rq-role-rook: var(--rq-accent-primary);
+  --rq-role-homebrew: var(--rq-secondary);
+  --rq-role-lore: var(--rq-secondary);
+  --rq-surface-soft: rgba(124, 203, 255, 0.06);
 
   --gm-primary: var(--rq-accent-primary);
-  --gm-hover: var(--rq-accent-hover);
-  --gm-active: var(--rq-accent-active);
+  --gm-hover: var(--rq-accent-primary);
+  --gm-active: var(--rq-accent-primary);
   --gm-subtle: var(--rq-accent-soft);
   --gm-border: var(--rq-accent-border);
-  --gm-glow: rgba(255, 79, 129, 0.18);
+  --gm-glow: transparent;
 
   --player-primary: var(--rq-accent-primary);
-  --player-hover: var(--rq-accent-hover);
-  --player-active: var(--rq-accent-active);
+  --player-hover: var(--rq-accent-primary);
+  --player-active: var(--rq-accent-primary);
   --player-subtle: var(--rq-accent-soft);
   --player-border: var(--rq-accent-border);
-  --player-glow: rgba(255, 79, 129, 0.18);
+  --player-glow: transparent;
 
-  --border-dark: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(255, 255, 255, 0.12);
-  --border-default: rgba(255, 255, 255, 0.16);
-  --rq-border-default: rgba(255, 255, 255, 0.16);
-  --border-hover: rgba(255, 149, 66, 0.34);
-  --border-strong: rgba(255, 149, 66, 0.34);
+  --border-dark: rgba(255, 45, 170, 0.10);
+  --border-subtle: rgba(255, 45, 170, 0.16);
+  --border-default: rgba(255, 45, 170, 0.22);
+  --border-hover: rgba(255, 45, 170, 0.46);
+  --border-strong: rgba(255, 45, 170, 0.46);
 
   --shadow-sm: none;
   --shadow-md: none;
@@ -131,9 +153,13 @@
   --font-display: var(--rq-font-display, 'Recoleta', 'RQKDisplay', Georgia, serif);
 
   --rq-bg-panel-soft: var(--rq-bg-panel-alt);
-  --rq-text-main: var(--rq-text-primary);
-  --rq-text-soft: var(--rq-text-secondary);
+  --rq-text-main: #FFFFFF;
+  --rq-text-soft: #FFFFFF;
   --rq-border: var(--border-subtle);
+
+  /* Legacy aliases are deliberately flat so old CSS cannot recreate gradients. */
+  --rq-sunset-gradient: #FF2DAA;
+  --rq-sunset-gradient-soft: rgba(255, 45, 170, 0.08);
 }
 
 * { box-sizing: border-box; }
@@ -142,11 +168,9 @@ html,
 body,
 #root,
 .App {
-  background:
-    radial-gradient(circle at top left, rgba(115, 87, 255, 0.16), transparent 34%),
-    radial-gradient(circle at top right, rgba(255, 79, 129, 0.14), transparent 34%),
-    linear-gradient(180deg, var(--rq-bg-main), var(--rq-bg-page));
-  color: var(--rq-text-primary);
+  background: #071522 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
 }
 
 body {
@@ -211,9 +235,9 @@ select {
 .btn-gm,
 .btn-player,
 .rq-button-primary {
-  background: var(--rq-sunset-gradient);
+  background: var(--rq-card);
   color: var(--rq-text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--rq-accent-primary);
 }
 
 .btn-gm:hover,
@@ -292,7 +316,9 @@ select:focus {
   outline: none;
   border-color: var(--rq-red-bright);
   background: var(--bg-elevated);
-  box-shadow: 0 0 0 2px rgba(255, 149, 66, 0.18);
+  outline: 2px solid var(--rq-secondary);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .rq-panel {
@@ -302,14 +328,13 @@ select:focus {
 
 .panel-gm,
 .panel-player {
-  border-left: 3px solid var(--rq-red);
+  border-left: 1px solid var(--rq-accent-primary);
 }
 
 .glass,
 .glass-gm,
 .glass-player {
-  background: rgba(19, 8, 31, 0.82);
-  backdrop-filter: blur(12px);
+  background: var(--rq-bg-panel);
 }
 
 .section-header,
@@ -331,7 +356,7 @@ select:focus {
 
 .section-header-gm,
 .section-header-player {
-  color: var(--rq-red-bright);
+  color: var(--rq-text-primary);
 }
 
 .divider {

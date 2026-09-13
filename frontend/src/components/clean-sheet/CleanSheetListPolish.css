@@ -14,7 +14,7 @@
 .character-page-v2 .clean-sheet-passive-grid,
 .character-page-v2 .clean-sheet-core-stat-grid,
 .character-page-v2 .clean-sheet-action-grid {
-  gap: 10px !important;
+  gap: 8px !important;
 }
 
 .character-page-v2 .clean-sheet-panel-heading,
@@ -22,8 +22,8 @@
 .character-page-v2 .clean-sheet-inventory-header,
 .character-page-v2 .clean-sheet-spellcasting-heading,
 .character-page-v2 .clean-sheet-spell-section-heading {
-  margin-bottom: 10px !important;
-  padding-bottom: 8px !important;
+  margin-bottom: 8px !important;
+  padding-bottom: 7px !important;
   border-bottom: 1px solid var(--cs-border) !important;
 }
 
@@ -36,7 +36,7 @@
 .character-page-v2 .clean-sheet-feature-lane h3,
 .character-page-v2 .clean-sheet-spell-level-group h3 {
   margin: 0 !important;
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
   font-family: inherit !important;
   font-weight: 900 !important;
   letter-spacing: -.01em !important;
@@ -49,7 +49,7 @@
 .character-page-v2 .clean-sheet-feature-empty,
 .character-page-v2 .clean-sheet-empty-note,
 .character-page-v2 .clean-sheet-muted {
-  color: var(--cs-muted) !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
@@ -73,10 +73,10 @@
   min-width: 0 !important;
   border: 1px solid var(--cs-border) !important;
   border-left: 1px solid var(--cs-border) !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--cs-card) !important;
   background-image: none !important;
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
   box-shadow: none !important;
 }
 
@@ -86,7 +86,7 @@
 .character-page-v2 .clean-sheet-caster-card,
 .character-page-v2 .clean-sheet-slot-card,
 .character-page-v2 .clean-sheet-damage-result {
-  padding: 12px !important;
+  padding: 10px !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card:hover,
@@ -95,8 +95,8 @@
 .character-page-v2 .clean-sheet-skill-card:hover,
 .character-page-v2 .clean-sheet-save-card:hover,
 .character-page-v2 .clean-sheet-core-stat-card:hover {
-  border-color: var(--cs-border-strong) !important;
-  background: #193149 !important;
+  border-color: var(--cs-accent) !important;
+  background: var(--cs-card-hover) !important;
   filter: none !important;
   transform: none !important;
 }
@@ -108,8 +108,32 @@
 .character-page-v2 .clean-sheet-slot-card strong,
 .character-page-v2 .clean-sheet-skill-card strong,
 .character-page-v2 .clean-sheet-save-card strong,
+.character-page-v2 .clean-sheet-core-stat-card strong,
+.character-page-v2 .clean-sheet-feature-card p,
+.character-page-v2 .clean-sheet-spell-card p,
+.character-page-v2 .clean-sheet-item-card p,
+.character-page-v2 .clean-sheet-caster-card p,
+.character-page-v2 .clean-sheet-slot-card p,
+.character-page-v2 .clean-sheet-pact-card p,
+.character-page-v2 .clean-sheet-feature-card em,
+.character-page-v2 .clean-sheet-spell-card em,
+.character-page-v2 .clean-sheet-item-card em,
+.character-page-v2 .clean-sheet-caster-card em,
+.character-page-v2 .clean-sheet-slot-card em,
+.character-page-v2 .clean-sheet-save-card em,
+.character-page-v2 .clean-sheet-skill-tags em,
+.character-page-v2 .clean-sheet-skill-tags small {
+  color: #FFFFFF !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card strong,
+.character-page-v2 .clean-sheet-spell-card strong,
+.character-page-v2 .clean-sheet-item-card strong,
+.character-page-v2 .clean-sheet-caster-card strong,
+.character-page-v2 .clean-sheet-slot-card strong,
+.character-page-v2 .clean-sheet-skill-card strong,
+.character-page-v2 .clean-sheet-save-card strong,
 .character-page-v2 .clean-sheet-core-stat-card strong {
-  color: var(--cs-text) !important;
   font-weight: 900 !important;
   overflow-wrap: anywhere !important;
 }
@@ -120,8 +144,7 @@
 .character-page-v2 .clean-sheet-caster-card p,
 .character-page-v2 .clean-sheet-slot-card p,
 .character-page-v2 .clean-sheet-pact-card p {
-  color: var(--cs-text-soft) !important;
-  line-height: 1.45 !important;
+  line-height: 1.42 !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card em,
@@ -132,7 +155,6 @@
 .character-page-v2 .clean-sheet-save-card em,
 .character-page-v2 .clean-sheet-skill-tags em,
 .character-page-v2 .clean-sheet-skill-tags small {
-  color: var(--cs-muted) !important;
   font-style: normal !important;
   font-weight: 800 !important;
 }
@@ -145,7 +167,7 @@
 .character-page-v2 .clean-sheet-core-stat-card--rollable,
 .character-page-v2 .clean-sheet-slot-card:has(.filled),
 .character-page-v2 .clean-sheet-caster-card {
-  border-color: var(--cs-accent-border) !important;
+  border-color: var(--cs-accent) !important;
 }
 
 .character-page-v2 .clean-sheet-spell-card.cantrip,
@@ -162,17 +184,17 @@
 .character-page-v2 .clean-sheet-spell-section-heading > span,
 .character-page-v2 .clean-sheet-spellcasting-heading > span {
   border: 1px solid var(--cs-border) !important;
-  border-radius: 999px !important;
-  background: var(--cs-input) !important;
-  color: var(--cs-text-soft) !important;
+  border-radius: 4px !important;
+  background: var(--cs-blue-soft) !important;
+  color: #FFFFFF !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-item-actions,
 .character-page-v2 .clean-sheet-spell-actions,
 .character-page-v2 .clean-sheet-slot-actions {
-  gap: 6px !important;
-  padding-top: 8px !important;
+  gap: 5px !important;
+  padding-top: 6px !important;
 }
 
 .character-page-v2 .clean-sheet-item-actions button,
@@ -183,47 +205,51 @@
 .character-page-v2 .clean-sheet-skill-filter-row button {
   min-height: 38px !important;
   border: 1px solid var(--cs-border) !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--cs-card) !important;
   background-image: none !important;
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-skill-filter-row button.active,
 .character-page-v2 .clean-sheet-item-actions button.active,
-.character-page-v2 .clean-sheet-spell-actions button.active {
-  background: var(--cs-accent) !important;
+.character-page-v2 .clean-sheet-spell-actions button.active,
+.character-page-v2 .clean-sheet-slot-actions button.active,
+.character-page-v2 .clean-sheet-panel button.active,
+.character-page-v2 .clean-sheet-panel button[aria-pressed='true'],
+.character-page-v2 .clean-sheet-panel button[aria-selected='true'] {
+  background: var(--cs-blue-soft) !important;
   border-color: var(--cs-accent) !important;
-  color: #fff !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-panel input,
 .character-page-v2 .clean-sheet-panel select,
 .character-page-v2 .clean-sheet-panel textarea {
   border: 1px solid var(--cs-border) !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--cs-input) !important;
   background-image: none !important;
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-spell-search,
 .character-page-v2 .clean-sheet-equipment-tools label {
   border: 1px solid var(--cs-border) !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   background: var(--cs-input) !important;
-  color: var(--cs-text) !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i {
-  border-radius: 999px !important;
-  background: rgba(181, 203, 226, .16) !important;
+  border-radius: 3px !important;
+  background: rgba(124,203,255,.12) !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i.filled {
-  background: var(--cs-accent) !important;
+  background: var(--cs-blue) !important;
 }
 
 .character-page-v2 .clean-sheet-stats-tab .clean-sheet-panel,
@@ -234,10 +260,12 @@
 .character-page-v2 .clean-sheet-class-tab .clean-sheet-panel,
 .character-page-v2 .clean-sheet-species-tab .clean-sheet-panel,
 .character-page-v2 .clean-sheet-feats-tab .clean-sheet-panel,
-.character-page-v2 .clean-sheet-character-tab .clean-sheet-panel {
+.character-page-v2 .clean-sheet-character-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-notes-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-rook-helper-tab .clean-sheet-panel {
   border: 1px solid var(--cs-border) !important;
   border-left: 1px solid var(--cs-border) !important;
-  border-radius: 10px !important;
+  border-radius: 7px !important;
   background: var(--cs-panel) !important;
   background-image: none !important;
 }

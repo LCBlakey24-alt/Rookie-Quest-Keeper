@@ -9,18 +9,18 @@ const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system,
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
 
 const rq = {
-  bg: '#242424',
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  line: 'rgba(255,255,255,0.16)',
-  lineStrong: 'rgba(255,255,255,0.22)',
-  accent: '#d00000',
-  accentSoft: 'rgba(208,0,0,0.18)',
-  good: '#1f9d66',
-  warn: '#d99222',
-  text: '#ffffff',
-  soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.62)',
+  bg: 'var(--rq-bg-main)',
+  panel: 'var(--rq-bg-panel)',
+  card: 'var(--rq-card)',
+  line: 'var(--rq-border-default)',
+  lineStrong: 'var(--rq-border-strong)',
+  accent: 'var(--rq-accent-primary)',
+  accentSoft: 'var(--rq-accent-soft)',
+  good: 'var(--rq-secondary)',
+  warn: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
 };
 
 const readinessLabels = {

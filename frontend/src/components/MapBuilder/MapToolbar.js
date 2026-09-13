@@ -138,6 +138,7 @@ function MapToolbar({
       {tool === 'terrain' && (
         <div style={{ position: 'relative' }}>
           <button
+            data-rq-colour-swatch
             onClick={() => setShowTerrainPicker(!showTerrainPicker)}
             style={{
               padding: '8px 12px',
@@ -180,6 +181,7 @@ function MapToolbar({
             }}>
               {Object.entries(TERRAIN_TYPES).map(([key, terrain]) => (
                 <button
+                  data-rq-colour-swatch
                   key={key}
                   onClick={() => {
                     setSelectedTerrain(key);
@@ -205,6 +207,7 @@ function MapToolbar({
       {tool === 'wall' && (
         <div style={{ position: 'relative' }}>
           <button
+            data-rq-colour-swatch
             onClick={() => setShowWallPicker(!showWallPicker)}
             style={{
               padding: '8px 12px',
@@ -237,6 +240,7 @@ function MapToolbar({
             }}>
               {Object.entries(WALL_COLORS).map(([key, color]) => (
                 <button
+                  data-rq-colour-swatch
                   key={key}
                   onClick={() => {
                     setSelectedWallType(key);

@@ -1,5 +1,4 @@
-/* Final spell tab unavailable state.
-   Shows a clear banner for characters with no spellcasting access yet, without changing caster layouts. */
+/* Spell tab unavailable state in the flat RQK 1.0 language. */
 
 #root .character-page-v2 .clean-sheet-spells-tab:has(.clean-sheet-spell-search input:placeholder-shown):not(:has(.clean-sheet-spell-level-group)):not(:has(.clean-sheet-spell-card)):not(:has(.clean-sheet-slot-card)):not(:has(.clean-sheet-caster-card)) > .clean-spell-board {
   display: none !important;
@@ -13,10 +12,11 @@
   padding: 28px 20px !important;
   white-space: pre-line !important;
   text-align: center !important;
-  color: rgba(255, 255, 255, 0.78) !important;
-  background: linear-gradient(#160722, #160722) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
-  border-radius: 10px !important;
+  color: #FFFFFF !important;
+  background: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.24) !important;
+  border-radius: 7px !important;
   font-size: 1rem !important;
   line-height: 1.5 !important;
   box-shadow: none !important;
@@ -29,11 +29,14 @@
   width: 44px !important;
   height: 44px !important;
   margin: -78px auto 34px !important;
-  color: #ffffff !important;
-  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
-  border-radius: 8px !important;
+  color: #7CCBFF !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
   font-size: 1.35rem !important;
   line-height: 1 !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 759px) {

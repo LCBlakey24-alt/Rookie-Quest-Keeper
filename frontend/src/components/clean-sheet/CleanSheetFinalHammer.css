@@ -1,35 +1,54 @@
-/* Last-mile clean sheet override.
-   Imported after legacy sheet CSS inside the sheet child components so old
-   brown/copper panels and red left bars cannot win. */
+/* RQK 1.0 final character-sheet authority.
+   Flat navy surfaces, white text, sky-blue secondary UI and thin neon-pink accents. */
 
 .character-page-v2.clean-sheet-page,
 .clean-sheet-page.character-page-v2 {
-  --cs-bg: #070513 !important;
-  --cs-panel: #1a0b2d !important;
-  --cs-card: #10051d !important;
-  --cs-text: #ffffff !important;
-  --cs-text-soft: rgba(255, 255, 255, 0.88) !important;
-  --cs-muted: rgba(255, 255, 255, 0.66) !important;
-  --cs-border: transparent !important;
-  --cs-border-strong: transparent !important;
-  --cs-accent: transparent !important;
-  --rq-bg-main: #070513 !important;
-  --rq-bg-panel: #1a0b2d !important;
-  --rq-bg-card: #10051d !important;
-  --rq-bg-input: #090313 !important;
-  --rq-bg-button: #1a0b2d !important;
-  --rq-card: #1a0b2d !important;
-  --rq-panel: #1a0b2d !important;
-  --rq-surface: #10051d !important;
-  --rq-border-default: transparent !important;
-  --rq-accent-primary: #d84df1 !important;
-  --rq-sunset-gradient: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(115, 87, 255, 0.15), transparent 22rem),
-    radial-gradient(circle at 95% 12%, rgba(255, 79, 129, 0.09), transparent 18rem),
-    #070513 !important;
-  color: #ffffff !important;
+  --cs-bg: #071522 !important;
+  --cs-panel: #0C2234 !important;
+  --cs-card: #102B40 !important;
+  --cs-input: #081B2A !important;
+  --cs-text: #FFFFFF !important;
+  --cs-text-soft: #FFFFFF !important;
+  --cs-muted: #FFFFFF !important;
+  --cs-border: rgba(255, 45, 170, 0.18) !important;
+  --cs-border-strong: rgba(255, 45, 170, 0.42) !important;
+  --cs-accent: #FF2DAA !important;
+  --cs-accent-soft: rgba(255, 45, 170, 0.08) !important;
+  --cs-blue: #7CCBFF !important;
+  --cs-blue-soft: rgba(124, 203, 255, 0.10) !important;
+  --cs-success: #7CCBFF !important;
+  --cs-warning: #7CCBFF !important;
+  --cs-danger: #FF2DAA !important;
+
+  --rq-bg-main: #071522 !important;
+  --rq-bg-panel: #0C2234 !important;
+  --rq-bg-card: #102B40 !important;
+  --rq-bg-input: #081B2A !important;
+  --rq-bg-button: #102B40 !important;
+  --rq-card: #102B40 !important;
+  --rq-panel: #0C2234 !important;
+  --rq-surface: #0C2234 !important;
+  --rq-border-default: rgba(255, 45, 170, 0.18) !important;
+  --rq-accent-primary: #FF2DAA !important;
+  --rq-secondary: #7CCBFF !important;
+  --rq-sunset-gradient: #FF2DAA !important;
+
+  background: #071522 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
   overflow-x: hidden !important;
+}
+
+.character-page-v2 *,
+.character-page-v2 *::before,
+.character-page-v2 *::after {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 :where(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,button,a,th,td) {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: currentColor !important;
 }
 
 .character-page-v2 .clean-sheet-header,
@@ -45,34 +64,14 @@
 .character-page-v2 .clean-sheet-condition-panel,
 .character-page-v2 .clean-sheet-roll-history-panel,
 .character-page-v2 .clean-sheet-turn-strip,
-.character-page-v2 .clean-sheet-identity,
-.character-page-v2 .clean-sheet-core-stat-card,
-.character-page-v2 .clean-sheet-passive-card,
-.character-page-v2 .clean-sheet-compact-ability,
-.character-page-v2 .clean-sheet-save-card,
-.character-page-v2 .clean-sheet-skill-card,
-.character-page-v2 .clean-sheet-spell-card,
-.character-page-v2 .clean-sheet-slot-card,
-.character-page-v2 .clean-sheet-feature-card,
-.character-page-v2 .clean-sheet-item-card,
 .character-page-v2 .clean-sheet-skills-summary,
-.character-page-v2 .clean-sheet-skills-summary > div,
 .character-page-v2 .clean-sheet-readable-saves,
-.character-page-v2 .clean-sheet-readable-skills,
-.character-page-v2 .clean-sheet-readiness-grid > div,
-.character-page-v2 .clean-sheet-proficiency-lists > div,
-.character-page-v2 .clean-sheet-note-field,
-.character-page-v2 .clean-sheet-compact-stat,
-.character-page-v2 .clean-sheet-compact-stat--hp {
-  background:
-    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
-    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
-  border-left-width: 1px !important;
-  border-left-color: transparent !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-  color: #ffffff !important;
+.character-page-v2 .clean-sheet-readable-skills {
+  background: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 45, 170, 0.18) !important;
+  border-radius: 7px !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-identity,
@@ -91,9 +90,12 @@
 .character-page-v2 .clean-sheet-note-field,
 .character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-compact-stat--hp {
-  background:
-    linear-gradient(#10051d, #10051d) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.9), rgba(216, 77, 241, 0.8), rgba(255, 149, 66, 0.55)) border-box !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 45, 170, 0.18) !important;
+  border-left-width: 1px !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-header::before,
@@ -108,11 +110,6 @@
 .character-page-v2 .clean-sheet-compact-stat--hp::after {
   display: none !important;
   content: none !important;
-  width: 0 !important;
-}
-
-.character-page-v2 [class*="clean-sheet"] {
-  box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions {
@@ -132,20 +129,51 @@
 .character-page-v2 .clean-sheet-item-actions button,
 .character-page-v2 .clean-sheet-roll-chip {
   min-height: 42px !important;
-  border: 1px solid transparent !important;
-  border-left-width: 1px !important;
-  border-left-color: transparent !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
-  color: #ffffff !important;
-  background:
-    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
-    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid rgba(255, 45, 170, 0.18) !important;
+  border-radius: 5px !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-level,
-.character-page-v2 .clean-sheet-notes-actions button {
-  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+.character-page-v2 .clean-sheet-inspiration.active,
+.character-page-v2 .clean-sheet-roll-mode-group button.active,
+.character-page-v2 .clean-sheet-condition-picker button.active,
+.character-page-v2 .clean-sheet-skill-filter-row button.active {
+  background: rgba(124, 203, 255, 0.10) !important;
+  background-image: none !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
+}
+
+.character-page-v2 button:hover:not(:disabled),
+.character-page-v2 button:focus-visible,
+.character-page-v2 .clean-sheet-clickable:hover {
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.character-page-v2 button:focus-visible,
+.character-page-v2 input:focus-visible,
+.character-page-v2 select:focus-visible,
+.character-page-v2 textarea:focus-visible {
+  outline: 1px solid #FF2DAA !important;
+  outline-offset: 2px !important;
+}
+
+.character-page-v2 .clean-sheet-hp-wheel select,
+.character-page-v2 input,
+.character-page-v2 select,
+.character-page-v2 textarea {
+  background: #081B2A !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 45, 170, 0.20) !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
@@ -161,52 +189,76 @@
   border: 0 !important;
 }
 
-.character-page-v2 .clean-sheet-hp-wheel select,
-.character-page-v2 input,
-.character-page-v2 select,
-.character-page-v2 textarea {
-  background:
-    linear-gradient(#090313, #090313) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(255, 149, 66, 0.45)) border-box !important;
-  border: 1px solid transparent !important;
-  border-radius: 8px !important;
-  color: #ffffff !important;
+.character-page-v2 .clean-sheet-hp-bar,
+.character-page-v2 .clean-sheet-slot-pips i,
+.character-page-v2 .clean-sheet-death-track button {
+  background: #081B2A !important;
+  border-color: rgba(255, 45, 170, 0.18) !important;
+}
+
+.character-page-v2 .clean-sheet-hp-bar div,
+.character-page-v2 .clean-sheet-slot-pips i.filled {
+  background: #7CCBFF !important;
+  background-image: none !important;
 }
 
 .character-page-v2 .clean-sheet-tabs {
-  background:
-    linear-gradient(#10051d, #10051d) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.75), rgba(216, 77, 241, 0.75), rgba(255, 149, 66, 0.5)) border-box !important;
-  border: 1px solid transparent !important;
-  border-left-width: 1px !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
+  background: #06111C !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 45, 170, 0.18) !important;
+  border-radius: 7px !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
   background: transparent !important;
+  background-image: none !important;
   border: 1px solid transparent !important;
-  border-left-width: 1px !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button svg,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
+  color: #7CCBFF !important;
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active {
+  background: rgba(124, 203, 255, 0.10) !important;
+  border-color: #FF2DAA !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active svg {
-  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
-  border-radius: 8px !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: #7CCBFF !important;
+}
+
+.character-page-v2 .clean-sheet-tab-warning,
+.character-page-v2 .clean-sheet-save-prof-marker,
+.character-page-v2 .clean-sheet-compact-skill.is-proficient::before {
+  background: #FF2DAA !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient {
+  border-left: 1px solid #FF2DAA !important;
 }
 
 .character-page-v2 .clean-sheet-attention-section,
 .character-page-v2 .clean-sheet-snapshot-warning,
-.character-page-v2 .clean-sheet-detail-warning {
-  background:
-    linear-gradient(#10051d, #10051d) padding-box,
-    linear-gradient(135deg, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
-  border-left-width: 1px !important;
-  border-radius: 9px !important;
+.character-page-v2 .clean-sheet-detail-warning,
+.character-page-v2 .clean-sheet-spell-warning {
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
 }
 
 @media (min-width: 760px) {

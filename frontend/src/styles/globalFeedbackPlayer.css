@@ -1,0 +1,139 @@
+/* Player/global feedback presentation. This deliberately overrides the older
+   admin feedback experience without changing the Admin feedback workspace. */
+
+#root [data-testid='global-feedback-btn'][data-testid] {
+  min-height: 40px !important;
+  padding: 0 11px !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+#root [data-testid='global-feedback-btn'][data-testid] svg {
+  color: #7CCBFF !important;
+}
+
+#root [data-testid='global-feedback-btn'][data-testid]:hover,
+#root [data-testid='global-feedback-btn'][data-testid]:focus-visible {
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
+  outline: 1px solid #FF2DAA !important;
+  outline-offset: 2px !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] {
+  position: relative !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(255,45,170,.28) !important;
+  border-radius: 7px !important;
+  background: #071522 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid]::before {
+  content: none !important;
+  display: none !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] :where(h2,p,label,span,strong) {
+  color: #FFFFFF !important;
+  font-family: inherit !important;
+  text-shadow: none !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] h2 {
+  font-size: 20px !important;
+  line-height: 1.08 !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] p:first-child {
+  display: block !important;
+  width: auto !important;
+  margin: 0 0 3px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #FFFFFF !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] input,
+#root [data-testid='global-feedback-modal'][data-testid] select,
+#root [data-testid='global-feedback-modal'][data-testid] textarea {
+  min-height: 40px !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  background: #081B2A !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  padding: 8px 9px !important;
+  box-shadow: none !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] textarea {
+  min-height: 112px !important;
+  line-height: 1.45 !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] input:focus,
+#root [data-testid='global-feedback-modal'][data-testid] select:focus,
+#root [data-testid='global-feedback-modal'][data-testid] textarea:focus {
+  border-color: #FF2DAA !important;
+  outline: 1px solid #FF2DAA !important;
+  outline-offset: 1px !important;
+  box-shadow: none !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] button {
+  min-height: 40px !important;
+  border-radius: 5px !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  box-shadow: none !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] button svg {
+  color: #7CCBFF !important;
+}
+
+#root [data-testid='global-feedback-modal'][data-testid] button:hover:not(:disabled),
+#root [data-testid='global-feedback-modal'][data-testid] button:focus-visible {
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
+  outline: none !important;
+}
+
+#root [data-testid='global-submit-feedback-btn'][data-testid] {
+  background: #102B40 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  border: 1px solid #FF2DAA !important;
+  font-weight: 900 !important;
+}
+
+@media (max-width: 760px) {
+  #root [data-testid='global-feedback-btn'][data-testid] {
+    right: 10px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #root [data-testid='global-feedback-modal'][data-testid] {
+    max-height: calc(100dvh - 20px) !important;
+    padding: 12px !important;
+  }
+}

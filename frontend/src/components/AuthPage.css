@@ -836,3 +836,84 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Staging-only test access uses the same flat RQK 1.0 language. */
+.rqk-staging-access {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  background: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 45, 170, 0.24);
+  border-radius: 7px;
+  box-shadow: none !important;
+}
+
+.rqk-staging-access > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.rqk-staging-access span,
+.rqk-staging-access strong,
+.rqk-staging-access p,
+.rqk-staging-access dt,
+.rqk-staging-access dd {
+  color: #FFFFFF !important;
+}
+
+.rqk-staging-access span {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.rqk-staging-access p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.rqk-staging-access dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.rqk-staging-access dl > div {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 10px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255, 45, 170, 0.16);
+}
+
+.rqk-staging-access dt {
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.rqk-staging-access dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+#root .rqk-staging-access__button {
+  min-height: 42px;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+#root .rqk-staging-access__button:hover {
+  background: #14344C !important;
+}

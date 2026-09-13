@@ -28,8 +28,8 @@ import {
 import ImageUploadPanel from '@/components/ImageUploadPanel';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
-const rq = { bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000', text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)', warn: '#d99222' };
+const titleFont = fontStack;
+const rq = { bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)', text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)', warn: 'var(--rq-accent-primary)' };
 
 const TYPES = [
   { key: 'subclass', label: 'Subclass', icon: BookOpen, help: 'Create subclass features tied to a parent class, including resources, actions, and scaling.' },
@@ -539,11 +539,11 @@ function LibraryCard({ item, onEdit, onDelete }) {
 const pageStyle = { minHeight: '100dvh', background: rq.bg, color: rq.text, fontFamily: fontStack, padding: 'clamp(12px, 2vw, 24px)' };
 const wrapStyle = { maxWidth: 1240, margin: '0 auto', display: 'grid', gap: 14 };
 const headerStyle = { display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.line}`, padding: 14 };
-const eyebrowStyle = { margin: '0 0 4px', color: rq.red, fontSize: 11, fontWeight: 950, letterSpacing: '0.12em', textTransform: 'uppercase' };
+const eyebrowStyle = { margin: '0 0 4px', color: rq.text, fontSize: 11, fontWeight: 950, letterSpacing: '0.12em', textTransform: 'uppercase' };
 const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 'clamp(36px, 5vw, 64px)', lineHeight: 0.92, display: 'flex', alignItems: 'center', gap: 10 };
 const subtitleStyle = { margin: '8px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 900 };
 const typeGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 };
-const typeCardStyle = (active) => ({ display: 'grid', gap: 6, minHeight: 104, textAlign: 'left', background: active ? rq.red : rq.card, color: rq.text, border: `1px solid ${active ? rq.red : rq.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack });
+const typeCardStyle = (active) => ({ display: 'grid', gap: 6, minHeight: 104, textAlign: 'left', background: active ? 'rgba(124,203,255,0.10)' : rq.card, color: rq.text, border: `1px solid ${active ? rq.pink : rq.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack });
 const builderGridStyle = { display: 'grid', gridTemplateColumns: 'minmax(min(360px, 100%), 0.82fr) minmax(min(420px, 100%), 1.18fr)', gap: 12 };
 const panelStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 14, minWidth: 0 };
 const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950, display: 'flex', gap: 8, alignItems: 'center' };
@@ -555,7 +555,7 @@ const formStackStyle = { display: 'grid', gap: 11 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 };
 const checkRowStyle = { display: 'flex', alignItems: 'center', gap: 8, color: rq.soft, fontWeight: 850, minHeight: 34 };
 const actionRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 };
-const primaryButtonStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 38, border: `1px solid ${rq.red}`, background: rq.red, color: rq.text, padding: '0 12px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const primaryButtonStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 38, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: '0 12px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 38, border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, padding: '0 12px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const downloadButtonStyle = { ...secondaryButtonStyle, width: '100%', marginTop: 12 };
 const selectButtonStyle = { ...secondaryButtonStyle, minWidth: 132 };

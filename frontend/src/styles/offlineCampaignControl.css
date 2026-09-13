@@ -295,3 +295,156 @@
   .rqk-offline-actions { grid-template-columns: 1fr; }
   .rqk-offline-remove { min-height: 36px; }
 }
+
+/* Player-only RQK 1.0 authority. The GM offline control keeps its existing skin. */
+.rqk-offline-control[data-audience='player'] .rqk-offline-launcher {
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid #FF2DAA;
+  border-left-width: 1px;
+  border-radius: 5px;
+  background: #102B40;
+  color: #FFFFFF;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-launcher svg {
+  color: #7CCBFF;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-launcher[data-tone='ready'] {
+  border-color: rgba(34,197,94,.55);
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-launcher[data-tone='warning'] {
+  border-color: rgba(245,158,11,.6);
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-card {
+  border: 1px solid rgba(255,45,170,.28);
+  border-radius: 7px;
+  background: #071522;
+  color: #FFFFFF;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-card__header {
+  min-height: 44px;
+  background: #0C2234;
+  border-bottom: 1px solid rgba(255,45,170,.18);
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-card__title,
+.rqk-offline-control[data-audience='player'] .rqk-offline-card__title strong,
+.rqk-offline-control[data-audience='player'] .rqk-offline-copy strong,
+.rqk-offline-control[data-audience='player'] .rqk-offline-copy p,
+.rqk-offline-control[data-audience='player'] .rqk-offline-status-row > small,
+.rqk-offline-control[data-audience='player'] .rqk-offline-progress strong,
+.rqk-offline-control[data-audience='player'] .rqk-offline-progress small,
+.rqk-offline-control[data-audience='player'] .rqk-offline-metrics strong,
+.rqk-offline-control[data-audience='player'] .rqk-offline-metrics small,
+.rqk-offline-control[data-audience='player'] .rqk-offline-note {
+  color: #FFFFFF;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-card__title svg,
+.rqk-offline-control[data-audience='player'] .rqk-offline-icon-button svg,
+.rqk-offline-control[data-audience='player'] .rqk-offline-primary svg {
+  color: #7CCBFF;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-icon-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 5px;
+  background: #102B40;
+  color: #FFFFFF;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-status {
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 4px;
+  background: #102B40;
+  color: #FFFFFF;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-status--ready {
+  border-color: rgba(34,197,94,.45);
+  color: #86efac;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-status--warning {
+  border-color: rgba(245,158,11,.5);
+  color: #fbbf24;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-status--working {
+  border-color: rgba(255,45,170,.42);
+  color: #FFFFFF;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-note {
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 5px;
+  background: #102B40;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-progress > div {
+  height: 5px;
+  background: #081B2A;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 3px;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-progress i {
+  background: #7CCBFF;
+  background-image: none;
+  border-radius: inherit;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-metrics span {
+  min-height: 48px;
+  border: 1px solid rgba(255,45,170,.18);
+  border-radius: 5px;
+  background: #102B40;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-primary {
+  min-height: 40px;
+  border: 1px solid #FF2DAA;
+  border-radius: 5px;
+  background: #102B40;
+  background-image: none;
+  color: #FFFFFF;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-primary:hover:not(:disabled),
+.rqk-offline-control[data-audience='player'] .rqk-offline-primary:focus-visible,
+.rqk-offline-control[data-audience='player'] .rqk-offline-icon-button:hover,
+.rqk-offline-control[data-audience='player'] .rqk-offline-icon-button:focus-visible {
+  background: #14344C;
+  border-color: #FF2DAA;
+  outline: none;
+}
+
+.rqk-offline-control[data-audience='player'] .rqk-offline-remove {
+  min-height: 40px;
+  border-radius: 5px;
+}
+
+@media (max-width: 560px) {
+  .rqk-offline-control[data-audience='player'] .rqk-offline-card {
+    max-height: min(70vh, 560px);
+  }
+
+  .rqk-offline-control[data-audience='player'] .rqk-offline-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

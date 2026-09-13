@@ -6,6 +6,8 @@ import {
 import { getWarlockBuilderChoiceSummary } from './warlockBuilderChoiceSummary';
 import { getWarlockBuilderReadiness } from './warlockBuilderReadiness';
 
+const VALID_2024_INVOCATIONS = ['Pact of the Chain', 'Eldritch Mind', 'Armor of Shadows'];
+
 describe('Warlock builder options and readiness', () => {
   test('returns 2014 builder options with patron and pact timing', () => {
     const levelOne = getWarlockBuilderOptions({ level: 1, edition: '2014' });
@@ -26,7 +28,7 @@ describe('Warlock builder options and readiness', () => {
     expect(levelThree.subclassOptions.map(option => option.key)).toContain('fiend');
   });
 
-  test('returns 2024 builder options with staged choices', () => {
+  test('returns 2024 builder options with pact options folded into invocations', () => {
     const levelOne = getWarlockBuilderOptions({ level: 1, edition: '2024' });
     expect(levelOne).toMatchObject({
       edition: '2024',
@@ -36,10 +38,11 @@ describe('Warlock builder options and readiness', () => {
       invocationCount: 1,
       invocationsRequired: true,
     });
+    expect(levelOne.eligibleInvocationOptions).toEqual(expect.arrayContaining(['Pact of the Blade', 'Pact of the Chain', 'Pact of the Tome']));
 
     const levelThree = getWarlockBuilderOptions({ level: 3, edition: '2024' });
     expect(levelThree.subclassRequired).toBe(true);
-    expect(levelThree.pactBoonRequired).toBe(true);
+    expect(levelThree.pactBoonRequired).toBe(false);
     expect(levelThree.subclassOptions.map(option => option.key)).toEqual(expect.arrayContaining(['archfey', 'fiend', 'great_old_one', 'celestial']));
   });
 
@@ -61,39 +64,38 @@ describe('Warlock builder options and readiness', () => {
     });
   });
 
-  test('validates required 2024 choices', () => {
+  test('validates required 2024 choices without a separate Pact Boon field', () => {
     const missing = validateWarlockBuilderSelections({ level: 3, edition: '2024' });
 
     expect(missing.ready).toBe(false);
     expect(missing.errors).toEqual(expect.arrayContaining([
       'Choose a Warlock patron.',
-      'Choose a Pact Boon.',
       'Choose 3 Eldritch Invocations.',
     ]));
+    expect(missing.errors).not.toContain('Choose a Pact Boon.');
 
     expect(validateWarlockBuilderSelections({
       level: 3,
       edition: '2024',
       subclass: 'Archfey Patron',
-      pactBoon: 'Pact of the Chain',
-      invocations: ['One', 'Two', 'Three'],
+      invocations: VALID_2024_INVOCATIONS,
     })).toMatchObject({ ready: true, errors: [] });
   });
 
-  test('rejects invalid selections', () => {
+  test('rejects invalid 2024 selections', () => {
     const result = validateWarlockBuilderSelections({
       level: 3,
       edition: '2024',
       subclass: 'Genie Patron',
       pactBoon: 'Pact of the Spoon',
-      invocations: ['One'],
+      invocations: ['Pact of the Chain'],
     });
 
     expect(result.errors).toEqual(expect.arrayContaining([
       'Choose a Warlock patron available in this ruleset.',
-      'Choose a valid Pact Boon.',
       'Choose 3 Eldritch Invocations.',
     ]));
+    expect(result.errors).not.toContain('Choose a valid Pact Boon.');
   });
 
   test('rejects too many or duplicate invocations', () => {
@@ -101,8 +103,7 @@ describe('Warlock builder options and readiness', () => {
       level: 3,
       edition: '2024',
       subclass: 'Archfey Patron',
-      pactBoon: 'Pact of the Chain',
-      invocations: ['One', 'Two', 'Three', 'Four'],
+      invocations: [...VALID_2024_INVOCATIONS, 'Agonizing Blast'],
     });
     expect(tooMany.errors).toContain('Choose only 3 Eldritch Invocations.');
 
@@ -110,8 +111,7 @@ describe('Warlock builder options and readiness', () => {
       level: 3,
       edition: '2024',
       subclass: 'Archfey Patron',
-      pactBoon: 'Pact of the Chain',
-      invocations: ['Agonizing Blast', 'agonizing   blast', 'Eldritch Sight'],
+      invocations: ['Agonizing Blast', 'agonizing   blast', 'Eldritch Mind'],
     });
     expect(duplicate.errors).toContain('Choose each Eldritch Invocation only once.');
   });
@@ -122,8 +122,7 @@ describe('Warlock builder options and readiness', () => {
       edition: '2024',
       selections: {
         subclass: 'Great Old One Patron',
-        pactBoon: 'Pact of the Tome',
-        invocations: ['One', 'Two', 'Three'],
+        invocations: VALID_2024_INVOCATIONS,
       },
     });
 
@@ -131,16 +130,16 @@ describe('Warlock builder options and readiness', () => {
       className: 'Warlock',
       edition: '2024',
       level: 3,
+      pactBoon: null,
       invocationCount: 3,
       requiredChoices: {
         subclass: true,
-        pactBoon: true,
+        pactBoon: false,
         invocations: true,
       },
     });
     expect(summary.subclass.key).toBe('great_old_one');
-    expect(summary.pactBoon.key).toBe('tome');
-    expect(summary.invocations).toEqual(['One', 'Two', 'Three']);
+    expect(summary.invocations).toEqual(VALID_2024_INVOCATIONS);
   });
 
   test('normalises selection aliases', () => {
@@ -160,8 +159,7 @@ describe('Warlock builder options and readiness', () => {
       level: 3,
       edition: '2024',
       subclass: 'Celestial Patron',
-      pactBoon: 'Pact of the Chain',
-      invocations: ['One', 'Two', 'Three'],
+      invocations: VALID_2024_INVOCATIONS,
     });
 
     expect(readiness).toMatchObject({
@@ -172,6 +170,6 @@ describe('Warlock builder options and readiness', () => {
       errors: [],
     });
     expect(readiness.choiceSummary.subclass.key).toBe('celestial');
-    expect(readiness.choiceSummary.pactBoon.key).toBe('chain');
+    expect(readiness.choiceSummary.pactBoon).toBeNull();
   });
 });

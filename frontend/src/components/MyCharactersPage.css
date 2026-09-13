@@ -1,4 +1,4 @@
-/* My Characters — compact library presentation on top of the shared three-mode shell. */
+/* My Characters — compact RQK 1.0 library presentation. */
 
 #root .characters-library-page--simple {
   width: min(100%, 1180px) !important;
@@ -8,38 +8,83 @@
 #root .characters-library-page--simple .characters-library-hero {
   align-items: center !important;
   min-height: 0 !important;
-  padding: 18px 20px !important;
+  padding: 16px !important;
+  background: #0C2234 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
 }
 
 #root .characters-library-page--simple .characters-library-hero h1 {
-  font-size: clamp(1.9rem, 3.2vw, 2.6rem) !important;
+  margin: 2px 0 4px !important;
+  color: #FFFFFF !important;
+  font-size: clamp(1.75rem, 3vw, 2.35rem) !important;
+  line-height: 1.03 !important;
+}
+
+#root .characters-library-page--simple .characters-library-hero h1 + p,
+#root .characters-library-page--simple .library-page-eyebrow {
+  color: #FFFFFF !important;
 }
 
 #root .characters-library-page--simple .characters-library-hero h1 + p {
-  margin-top: 5px !important;
-  color: var(--rq-muted, #b8c7d8) !important;
-  font-size: 12px !important;
+  margin-top: 3px !important;
+  font-size: 11px !important;
+}
+
+#root .characters-library-page--simple .library-page-eyebrow {
+  margin: 0 !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
 }
 
 #root .characters-library-actions {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  gap: 7px !important;
+  gap: 6px !important;
   flex-wrap: wrap !important;
 }
 
-#root .characters-library-actions > * {
+#root .characters-library-actions > *,
+#root .characters-library-page--simple .library-page-button,
+#root .characters-library-page--simple .library-page-button-secondary {
   min-height: 40px !important;
   white-space: nowrap !important;
+  color: #FFFFFF !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+}
+
+#root .characters-library-page--simple .library-page-button-primary {
+  background: #102B40 !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
+}
+
+#root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary):hover,
+#root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary):focus-visible {
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
+  outline: none !important;
+}
+
+#root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary) svg {
+  color: #7CCBFF !important;
 }
 
 #root .characters-library-page--simple .characters-card-grid {
   width: 100% !important;
   min-width: 0 !important;
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)) !important;
-  gap: 10px !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important;
+  gap: 8px !important;
   align-items: stretch !important;
 }
 
@@ -48,25 +93,25 @@
   min-height: 0 !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 14px !important;
-  padding: 14px !important;
-  background: var(--rq-card, #142a43) !important;
+  gap: 10px !important;
+  padding: 12px !important;
+  background: #102B40 !important;
   background-image: none !important;
-  border: 1px solid var(--rq-line, #213a54) !important;
-  border-radius: var(--rq-radius, 8px) !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
   box-shadow: none !important;
 }
 
 #root .characters-library-page--simple .character-library-card--simple:hover,
 #root .characters-library-page--simple .character-library-card--simple:focus-within {
-  background: var(--rq-card-hover, #19324e) !important;
-  border-color: var(--rq-line-strong, #31516f) !important;
+  background: #14344C !important;
+  border-color: rgba(255,45,170,.42) !important;
 }
 
 #root .characters-library-page--simple .character-card-main {
   min-width: 0 !important;
   display: grid !important;
-  gap: 6px !important;
+  gap: 4px !important;
 }
 
 #root .characters-library-page--simple .character-card-identity-row {
@@ -74,7 +119,7 @@
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: start !important;
-  gap: 10px !important;
+  gap: 8px !important;
 }
 
 #root .characters-library-page--simple .character-card-identity-row::after,
@@ -86,25 +131,25 @@
 #root .characters-library-page--simple .character-library-card h2 {
   min-width: 0 !important;
   margin: 0 !important;
-  color: var(--rq-text, #f8fbff) !important;
+  color: #FFFFFF !important;
   font-family: inherit !important;
-  font-size: 1.25rem !important;
+  font-size: 1.08rem !important;
   font-weight: 800 !important;
-  line-height: 1.1 !important;
+  line-height: 1.12 !important;
   overflow-wrap: anywhere !important;
 }
 
 #root .characters-library-page--simple .character-card-level-badge {
-  min-height: 27px !important;
+  min-height: 26px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 0 8px !important;
-  background: var(--rq-primary-soft, rgba(209, 31, 42, .16)) !important;
-  color: #fff !important;
-  border: 1px solid rgba(209, 31, 42, .34) !important;
-  border-radius: var(--rq-inner-radius, 6px) !important;
-  font-size: 10px !important;
+  padding: 0 7px !important;
+  background: rgba(124,203,255,.10) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255,45,170,.28) !important;
+  border-radius: 5px !important;
+  font-size: 9px !important;
   font-weight: 800 !important;
   white-space: nowrap !important;
 }
@@ -113,26 +158,24 @@
 #root .characters-library-page--simple .character-card-subclass-line,
 #root .characters-library-page--simple .character-card-meta-line {
   margin: 0 !important;
+  color: #FFFFFF !important;
 }
 
 #root .characters-library-page--simple .character-card-primary-line {
-  color: var(--rq-text, #f8fbff) !important;
-  font-size: 12px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
   line-height: 1.3 !important;
 }
 
 #root .characters-library-page--simple .character-card-subclass-line {
-  color: var(--rq-muted, #b8c7d8) !important;
-  font-size: 11px !important;
+  font-size: 10px !important;
   font-weight: 650 !important;
   line-height: 1.3 !important;
 }
 
 #root .characters-library-page--simple .character-card-meta-line {
-  margin-top: 3px !important;
-  color: var(--rq-text-muted, #8295aa) !important;
-  font-size: 9.5px !important;
+  margin-top: 2px !important;
+  font-size: 9px !important;
   font-weight: 700 !important;
   line-height: 1.3 !important;
 }
@@ -143,7 +186,7 @@
   margin-top: auto !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto 40px 40px !important;
-  gap: 6px !important;
+  gap: 5px !important;
   align-items: stretch !important;
 }
 
@@ -153,20 +196,20 @@
   margin: 0 !important;
 }
 
-#root .characters-library-page--simple .character-card-open {
-  width: 100% !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-}
-
+#root .characters-library-page--simple .character-card-open,
 #root .characters-library-page--simple .character-card-edit {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 5px !important;
-  padding-inline: 10px !important;
+}
+
+#root .characters-library-page--simple .character-card-open {
+  width: 100% !important;
+}
+
+#root .characters-library-page--simple .character-card-edit {
+  padding-inline: 9px !important;
   white-space: nowrap !important;
 }
 
@@ -183,55 +226,79 @@
 }
 
 #root .characters-library-page--simple .library-page-button-danger {
-  background: rgba(209, 31, 42, .10) !important;
-  color: #ffb4b4 !important;
-  border-color: rgba(237, 51, 64, .32) !important;
+  background: #102B40 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255,45,170,.28) !important;
 }
 
 #root .characters-library-page--simple .library-page-button-danger:hover,
 #root .characters-library-page--simple .library-page-button-danger:focus-visible {
-  background: rgba(209, 31, 42, .18) !important;
-  border-color: rgba(237, 51, 64, .5) !important;
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
 }
 
-/* Mobile: one card per row and actions stay finger-friendly. */
+/* Mobile: compact hero, one card per row, finger-friendly actions. */
 #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .characters-library-hero {
   grid-template-columns: 1fr !important;
-  gap: 12px !important;
-  padding: 14px !important;
+  gap: 9px !important;
+  padding: 11px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .characters-library-hero h1 {
+  font-size: 1.75rem !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-actions {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   width: 100% !important;
+  gap: 5px !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-actions > * {
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 46px !important;
-  padding-inline: 7px !important;
-  font-size: 11px !important;
+  min-height: 42px !important;
+  padding-inline: 5px !important;
+  font-size: 10px !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .characters-card-grid {
   grid-template-columns: 1fr !important;
+  gap: 7px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-library-card--simple {
+  gap: 9px !important;
+  padding: 11px !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-actions--simple {
-  grid-template-columns: minmax(0, 1fr) auto 46px 46px !important;
+  grid-template-columns: minmax(0, 1fr) 42px 42px 42px !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-actions--simple > * {
-  min-height: 46px !important;
+  min-height: 42px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-edit {
+  width: 42px !important;
+  min-width: 42px !important;
+  padding: 0 !important;
+  font-size: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-edit svg {
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-icon-action {
-  width: 46px !important;
+  width: 42px !important;
 }
 
-/* Tablet keeps two deliberate columns instead of auto-squeezing three. */
+/* Tablet keeps two deliberate columns. */
 #root .rqk-app-shell[data-rq-device='tablet'] .characters-library-page--simple .characters-card-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }

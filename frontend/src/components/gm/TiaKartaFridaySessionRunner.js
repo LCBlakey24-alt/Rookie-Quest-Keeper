@@ -13,8 +13,8 @@ const rq = {
   text: 'var(--rq-text-primary, #fff6ea)',
   soft: 'var(--rq-text-secondary, rgba(255,246,234,0.76))',
   muted: 'var(--rq-text-muted, rgba(255,246,234,0.56))',
-  warn: '#fbbf24',
-  good: '#34d399',
+  warn: 'var(--rq-accent-primary)',
+  good: 'var(--rq-secondary)',
 };
 
 const RUN_STEPS = [

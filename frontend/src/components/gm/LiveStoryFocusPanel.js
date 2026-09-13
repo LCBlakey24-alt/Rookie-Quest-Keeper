@@ -6,13 +6,15 @@ import LiveSecondScreenDock from '@/components/gm/LiveSecondScreenDock';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  red: '#d00000',
-  text: '#ffffff',
-  soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.58)',
-  line: 'rgba(255,255,255,0.16)',
+  panel: 'var(--rq-bg-panel)',
+  card: 'var(--rq-card)',
+  pink: 'var(--rq-accent-primary)',
+  blue: 'var(--rq-secondary)',
+  red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
+  line: 'var(--rq-border-default)',
 };
 
 function asList(value) {
@@ -80,10 +82,10 @@ export default function LiveStoryFocusPanel({ campaignId }) {
 }
 
 const stackStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 8, alignItems: 'start' };
-const shellStyle = { display: 'flex', alignItems: 'center', gap: 10, background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${rq.red}`, padding: '8px 10px', color: rq.text, fontFamily: fontStack, flexWrap: 'wrap', minHeight: 96 };
-const iconTileStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.card, color: rq.red, flex: '0 0 auto' };
+const shellStyle = { display: 'flex', alignItems: 'center', gap: 10, background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: '8px 10px', color: rq.text, fontFamily: fontStack, flexWrap: 'wrap', minHeight: 96 };
+const iconTileStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.card, color: rq.blue, flex: '0 0 auto' };
 const eyebrowStyle = { margin: '0 0 2px', color: rq.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.11em', textTransform: 'uppercase' };
 const titleStyle = { display: 'block', color: rq.text, fontSize: 15, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 const textStyle = { margin: '3px 0 0', color: rq.soft, fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 5, lineHeight: 1.3 };
 const nextStyle = { margin: '5px 0 0', color: rq.text, fontSize: 13, fontWeight: 900, lineHeight: 1.3 };
-const secondaryButtonStyle = { minHeight: 34, border: 0, background: rq.card, color: rq.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };

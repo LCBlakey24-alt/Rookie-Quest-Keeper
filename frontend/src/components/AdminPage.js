@@ -34,7 +34,7 @@ const theme = {
   border: 'var(--rq-border-default)',
   borderStrong: 'var(--rq-accent-border)',
   danger: 'var(--rq-danger)',
-  dangerSoft: 'rgba(180, 71, 50, 0.15)',
+  dangerSoft: 'var(--rq-accent-soft)',
 };
 
 const adminTabIds = ['testing', 'updates', 'layout', 'audit', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];

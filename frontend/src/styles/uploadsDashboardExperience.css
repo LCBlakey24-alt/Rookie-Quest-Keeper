@@ -4,16 +4,16 @@
 @import '../layouts/mobile/uploads.css';
 
 #root .uploads-dashboard-page {
-  width: min(100%, 1320px) !important;
+  width: min(100%, 1180px) !important;
   min-width: 0 !important;
   margin-inline: auto !important;
   display: grid !important;
   align-content: start !important;
-  gap: clamp(12px, 1.8vw, 18px) !important;
-  padding: clamp(12px, 2.4vw, 24px) !important;
-  background: var(--rq-bg, #0a1728) !important;
+  gap: 8px !important;
+  padding: clamp(10px, 2vw, 20px) !important;
+  background: #071522 !important;
   background-image: none !important;
-  color: var(--rq-text, #f7f9fc) !important;
+  color: #FFFFFF !important;
   box-sizing: border-box !important;
 }
 
@@ -21,6 +21,8 @@
 #root .uploads-dashboard-page *::before,
 #root .uploads-dashboard-page *::after {
   box-sizing: border-box !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 #root .uploads-dashboard-hero,
@@ -32,22 +34,21 @@
   min-width: 0 !important;
   position: relative !important;
   overflow: hidden !important;
-  background: var(--rq-card, #14283e) !important;
+  background: #102B40 !important;
   background-image: none !important;
-  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
-  border-radius: var(--rq-radius, 10px) !important;
-  color: var(--rq-text, #f7f9fc) !important;
-  box-shadow: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 7px !important;
+  color: #FFFFFF !important;
 }
 
 #root .uploads-dashboard-hero {
   min-height: 0 !important;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px) !important;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px) !important;
   align-items: center !important;
-  gap: clamp(14px, 2.4vw, 26px) !important;
-  padding: clamp(18px, 2.8vw, 26px) !important;
-  background: var(--rq-surface, #102238) !important;
+  gap: 14px !important;
+  padding: clamp(13px, 2vw, 18px) !important;
+  background: #0C2234 !important;
 }
 
 #root .uploads-dashboard-eyebrow,
@@ -57,15 +58,15 @@
   width: fit-content !important;
   align-items: center !important;
   margin: 0 !important;
-  color: var(--rq-primary-hover, #ef2b2b) !important;
-  font-size: 10px !important;
-  font-weight: 850 !important;
-  letter-spacing: .08em !important;
+  color: #FFFFFF !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  letter-spacing: .09em !important;
   text-transform: uppercase !important;
 }
 
 #root .uploads-dashboard-eyebrow {
-  margin-bottom: 7px !important;
+  margin-bottom: 5px !important;
 }
 
 #root .uploads-dashboard-hero h1,
@@ -76,16 +77,15 @@
 #root .uploads-dashboard-route-card strong,
 #root .uploads-dashboard-hero-card strong {
   margin: 0 !important;
-  color: var(--rq-text, #f7f9fc) !important;
+  color: #FFFFFF !important;
   font-family: inherit !important;
-  font-weight: 800 !important;
+  font-weight: 850 !important;
   letter-spacing: 0 !important;
   line-height: 1.12 !important;
-  text-shadow: none !important;
 }
 
 #root .uploads-dashboard-hero h1 {
-  font-size: clamp(2.1rem, 4vw, 3.3rem) !important;
+  font-size: clamp(1.75rem, 4vw, 2.5rem) !important;
 }
 
 #root .uploads-dashboard-dropzone h2,
@@ -93,7 +93,7 @@
 #root .uploads-dashboard-next h2,
 #root .uploads-dashboard-safety-grid h2,
 #root .uploads-dashboard-route-card strong {
-  font-size: clamp(1.15rem, 2vw, 1.45rem) !important;
+  font-size: clamp(1rem, 2vw, 1.25rem) !important;
 }
 
 #root .uploads-dashboard-hero p,
@@ -105,29 +105,30 @@
 #root .uploads-dashboard-route-card > span:not(.uploads-dashboard-route-icon):not(.uploads-dashboard-route-label),
 #root .uploads-dashboard-hero-card span {
   margin: 0 !important;
-  color: var(--rq-muted, rgba(229, 237, 247, 0.74)) !important;
-  line-height: 1.5 !important;
+  color: #FFFFFF !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
 }
 
 #root .uploads-dashboard-hero > div:first-child > p:last-child {
   max-width: 72ch !important;
-  margin-top: 8px !important;
+  margin-top: 6px !important;
 }
 
 #root .uploads-dashboard-hero-card {
   min-width: 0 !important;
-  min-height: 132px !important;
+  min-height: 104px !important;
   display: grid !important;
   align-content: center !important;
-  gap: 9px !important;
-  padding: 14px !important;
-  background: var(--rq-bg-deep, #06101c) !important;
-  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
-  border-radius: var(--rq-inner-radius, 8px) !important;
+  gap: 6px !important;
+  padding: 11px !important;
+  background: #081B2A !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
 }
 
 #root .uploads-dashboard-hero-card strong {
-  font-size: 1.15rem !important;
+  font-size: 1rem !important;
 }
 
 #root .uploads-dashboard-hero-card svg,
@@ -136,25 +137,25 @@
 #root .uploads-dashboard-next > svg,
 #root .uploads-dashboard-safety-grid article > svg,
 #root .uploads-dashboard-dropzone > svg {
-  width: 40px !important;
-  height: 40px !important;
+  width: 36px !important;
+  height: 36px !important;
   display: inline-grid !important;
   place-items: center !important;
-  padding: 9px !important;
-  border: 1px solid var(--rq-primary, #d00000) !important;
-  border-radius: var(--rq-inner-radius, 8px) !important;
-  background: var(--rq-primary, #d00000) !important;
+  padding: 8px !important;
+  border: 1px solid rgba(255,45,170,.28) !important;
+  border-radius: 5px !important;
+  background: rgba(124,203,255,.10) !important;
   background-image: none !important;
-  color: #fff !important;
+  color: #7CCBFF !important;
 }
 
 #root .uploads-dashboard-dropzone {
   display: grid !important;
   grid-template-columns: auto minmax(0, 1fr) auto !important;
   align-items: center !important;
-  gap: 14px !important;
-  padding: 16px !important;
-  background: var(--rq-surface, #102238) !important;
+  gap: 10px !important;
+  padding: 12px !important;
+  background: #0C2234 !important;
   border-style: dashed !important;
 }
 
@@ -163,7 +164,7 @@
   display: flex !important;
   flex-wrap: wrap !important;
   justify-content: flex-end !important;
-  gap: 8px !important;
+  gap: 6px !important;
 }
 
 #root .uploads-dashboard-action-row a,
@@ -172,25 +173,28 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 7px !important;
-  padding: 0 12px !important;
-  border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16)) !important;
-  border-radius: var(--rq-inner-radius, 8px) !important;
-  background: var(--rq-button, #0e1d30) !important;
+  gap: 6px !important;
+  padding: 0 10px !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
+  background: #102B40 !important;
   background-image: none !important;
-  color: var(--rq-text, #f7f9fc) !important;
+  color: #FFFFFF !important;
   font: inherit !important;
-  font-size: 13px !important;
-  font-weight: 800 !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
   text-decoration: none !important;
-  box-shadow: none !important;
+}
+
+#root .uploads-dashboard-action-row a svg {
+  color: #7CCBFF !important;
 }
 
 #root .uploads-dashboard-action-row .library-page-button-primary,
 #root .uploads-dashboard-route-card em {
-  background: var(--rq-primary, #d00000) !important;
-  border-color: var(--rq-primary, #d00000) !important;
-  color: #fff !important;
+  background: #102B40 !important;
+  border-color: #FF2DAA !important;
+  color: #FFFFFF !important;
 }
 
 #root .uploads-dashboard-action-row a:hover,
@@ -201,8 +205,8 @@
 #root .uploads-dashboard-card:focus-within,
 #root .uploads-dashboard-safety-grid article:hover,
 #root .uploads-dashboard-safety-grid article:focus-within {
-  background: var(--rq-card-hover, #1a314b) !important;
-  border-color: var(--rq-line-strong, rgba(181, 203, 226, .28)) !important;
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
   outline: none !important;
   transform: none !important;
   filter: none !important;
@@ -212,8 +216,8 @@
 #root .uploads-dashboard-action-row .library-page-button-primary:focus-visible,
 #root .uploads-dashboard-route-card:hover em,
 #root .uploads-dashboard-route-card:focus-visible em {
-  background: var(--rq-primary-hover, #ef2b2b) !important;
-  border-color: var(--rq-primary-hover, #ef2b2b) !important;
+  background: #14344C !important;
+  border-color: #FF2DAA !important;
 }
 
 #root .uploads-dashboard-route-grid,
@@ -222,16 +226,16 @@
   width: 100% !important;
   min-width: 0 !important;
   display: grid !important;
-  gap: 10px !important;
+  gap: 8px !important;
 }
 
 #root .uploads-dashboard-route-grid,
 #root .uploads-dashboard-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)) !important;
 }
 
 #root .uploads-dashboard-safety-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)) !important;
 }
 
 #root .uploads-dashboard-route-card,
@@ -240,8 +244,8 @@
   min-height: 0 !important;
   display: grid !important;
   align-content: start !important;
-  gap: 10px !important;
-  padding: 14px !important;
+  gap: 7px !important;
+  padding: 11px !important;
   text-decoration: none !important;
 }
 
@@ -258,23 +262,23 @@
 #root .uploads-dashboard-card div {
   min-width: 0 !important;
   display: grid !important;
-  gap: 7px !important;
+  gap: 5px !important;
 }
 
 #root .uploads-dashboard-next {
   display: grid !important;
   grid-template-columns: auto minmax(0, 1fr) !important;
-  gap: 14px !important;
-  padding: 16px !important;
+  gap: 10px !important;
+  padding: 12px !important;
 }
 
 #root .uploads-dashboard-next ul,
 #root .uploads-dashboard-safety-grid ul {
-  margin: 8px 0 0 !important;
-  padding-left: 1.2rem !important;
+  margin: 6px 0 0 !important;
+  padding-left: 1.15rem !important;
 }
 
 #root .uploads-dashboard-next li,
 #root .uploads-dashboard-safety-grid li {
-  margin: .3rem 0 !important;
+  margin: .2rem 0 !important;
 }

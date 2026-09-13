@@ -235,26 +235,24 @@ async def delete_player_note(note_id: str, username: str = Depends(get_current_u
 
 # ==================== CAMPAIGN TIMELINE ====================
 
+def public_timeline_event(event):
+    result = {key: value for key, value in event.items() if key != '_id'}
+    result['type'] = result.get('type') or result.get('event_type') or 'session'
+    result['created_at'] = result.get('created_at') or result.get('timestamp') or ''
+    result['in_game_date'] = result.get('in_game_date') or ''
+    return result
+
 @router.get("/campaigns/{campaign_id}/timeline")
 async def get_campaign_timeline(campaign_id: str, username: str = Depends(get_current_user)):
     """Get timeline events for a campaign (accessible to GMs and linked players)"""
-    # Check if user is GM or has character in campaign
-    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'owner_id': 1})
-    if not campaign:
-        raise HTTPException(status_code=404, detail="Campaign not found")
-    
-    is_gm = campaign.get('owner_id') == username
-    has_character = await db.player_characters.find_one({'campaign_id': campaign_id, 'user_id': username})
-    
-    if not is_gm and not has_character:
-        raise HTTPException(status_code=403, detail="You must be the GM or have a character in this campaign")
+    await verify_campaign_membership(campaign_id, username)
     
     events = await db.timeline_events.find(
         {'campaign_id': campaign_id},
         {'_id': 0}
     ).sort('timestamp', -1).to_list(200)
     
-    return events
+    return {'events': [public_timeline_event(event) for event in events]}
 
 
 @router.post("/campaigns/{campaign_id}/timeline", status_code=status.HTTP_201_CREATED)
@@ -268,6 +266,7 @@ async def create_timeline_event(campaign_id: str, event_data: TimelineEventCreat
         title=event_data.title,
         description=event_data.description,
         session_number=event_data.session_number,
+        in_game_date=event_data.in_game_date,
         related_npc_id=event_data.related_npc_id,
         related_location_id=event_data.related_location_id,
         related_character_ids=event_data.related_character_ids,
@@ -275,7 +274,16 @@ async def create_timeline_event(campaign_id: str, event_data: TimelineEventCreat
     )
     
     await db.timeline_events.insert_one(event.model_dump())
-    return event.model_dump()
+    return public_timeline_event(event.model_dump())
+
+
+@router.delete("/campaigns/{campaign_id}/timeline/{event_id}")
+async def delete_timeline_event(campaign_id: str, event_id: str, username: str = Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, username)
+    result = await db.timeline_events.delete_one({'id': event_id, 'campaign_id': campaign_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Timeline event not found")
+    return {'message': 'Timeline event deleted'}
 
 
 @router.post("/campaigns/{campaign_id}/sync-note")
@@ -364,7 +372,7 @@ async def get_player_timeline(username: str = Depends(get_current_user)):
         {'_id': 0}
     ).sort('timestamp', -1).to_list(200)
     
-    return events
+    return [public_timeline_event(event) for event in events]
 
 
 # ==================== PLAYER ROUTES ====================

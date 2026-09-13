@@ -74,7 +74,7 @@ const NPCNode = ({ npc, position, isSelected, isConnecting, onSelect, onDrag, th
         border: `2px solid ${isSelected ? theme.accent.primary : (isConnecting ? '#22C55E' : theme.border)}`,
         borderRadius: '12px', cursor: isDragging ? 'grabbing' : 'grab', zIndex: isSelected ? 100 : 10,
         transition: isDragging ? 'none' : 'border-color 0.2s, background 0.2s',
-        boxShadow: isSelected ? `0 0 20px ${theme.accent.primary}40` : '0 4px 12px rgba(0,0,0,0.3)'
+        boxShadow: isSelected ? 'none' : '0 4px 12px rgba(0,0,0,0.3)'
       }}
     >
       <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: theme.bg.elevated, margin: '0 auto 6px',
@@ -806,7 +806,7 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
           <button onClick={() => startConnection(selectedNPC.id)} style={{ padding: '8px 14px', background: '#22C55E20', border: '1px solid #22C55E50', borderRadius: '8px', color: '#22C55E', cursor: 'pointer', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Link2 size={14} /> Connect
           </button>
-          <button onClick={() => setShowEditModal(selectedNPC)} style={{ padding: '8px 14px', background: theme.accent.subtle, border: `1px solid ${theme.accent.primary}50`, borderRadius: '8px', color: theme.accent.primary, cursor: 'pointer', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button onClick={() => setShowEditModal(selectedNPC)} style={{ padding: '8px 14px', background: theme.accent.subtle, border: '1px solid var(--rq-border-strong)', borderRadius: '8px', color: theme.accent.primary, cursor: 'pointer', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Edit2 size={14} /> Edit
           </button>
           <button onClick={() => handleDeleteNPC(selectedNPC.id)} style={{ padding: '8px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#EF4444', cursor: 'pointer', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>

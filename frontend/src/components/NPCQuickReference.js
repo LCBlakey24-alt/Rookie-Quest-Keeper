@@ -10,19 +10,19 @@ import { Input } from '@/components/ui/input';
 
 // GM Theme
 const theme = {
-  primary: '#F59E0B',
-  hover: '#D97706',
-  subtle: 'rgba(225, 29, 72, 0.15)',
-  bg: '#0B0F19',
-  card: '#111827',
-  panel: '#111827',
-  text: '#FFFFFF',
-  textSecondary: '#B3B3B3',
-  muted: '#808080',
-  border: 'rgba(212, 175, 55, 0.15)',
-  success: '#22C55E',
-  warning: '#F59E0B',
-  cyan: '#06B6D4'
+  primary: 'var(--rq-accent-primary)',
+  hover: 'var(--rq-card-hover)',
+  subtle: 'var(--rq-accent-soft)',
+  bg: 'var(--rq-bg-main)',
+  card: 'var(--rq-card)',
+  panel: 'var(--rq-bg-panel)',
+  text: 'var(--rq-text-primary)',
+  textSecondary: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
+  border: 'var(--rq-border-default)',
+  success: 'var(--rq-secondary)',
+  warning: 'var(--rq-accent-primary)',
+  cyan: 'var(--rq-secondary)'
 };
 
 function NPCQuickReference({ campaignId, currentLocationId }) {

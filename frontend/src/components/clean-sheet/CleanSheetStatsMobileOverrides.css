@@ -1,4 +1,4 @@
-/* Mobile Stats tab polish using the sunset sheet language. */
+/* Mobile Stats tab geometry for the flat RQK 1.0 character sheet. */
 
 @media (max-width: 760px) {
   .character-page-v2 .clean-sheet-stats-tab--compact {
@@ -8,12 +8,10 @@
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-panel {
     padding: 10px !important;
     overflow: hidden !important;
-    background:
-      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
-      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
-    border-left: 1px solid transparent !important;
-    border-radius: 10px !important;
+    background: #0C2234 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
+    border-radius: 7px !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-grid,
@@ -53,16 +51,15 @@
     min-width: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    background:
-      linear-gradient(#10051d, #10051d) padding-box,
-      linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.75), rgba(255, 149, 66, 0.5)) border-box !important;
-    color: #ffffff !important;
-    border: 1px solid transparent !important;
-    border-left: 1px solid transparent !important;
-    border-radius: 9px !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
+    border-radius: 5px !important;
     padding-left: 9px !important;
     padding-right: 8px !important;
     overflow: hidden !important;
+    box-shadow: none !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-card,
@@ -74,8 +71,7 @@
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-skill {
     min-height: 36px !important;
-    padding-top: 5px !important;
-    padding-bottom: 5px !important;
+    padding: 5px 8px 5px 9px !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) 34px !important;
     align-items: center !important;
@@ -83,7 +79,8 @@
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-skill.is-proficient {
-    padding-left: 9px !important;
+    padding-left: 10px !important;
+    border-left: 1px solid #FF2DAA !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-name {
@@ -99,7 +96,7 @@
     min-width: 0 !important;
     max-width: 100% !important;
     display: block !important;
-    color: #ffffff !important;
+    color: #FFFFFF !important;
     font-size: 9px !important;
     line-height: 1 !important;
     font-weight: 950 !important;
@@ -122,13 +119,11 @@
     padding: 0 !important;
     display: grid !important;
     place-items: center !important;
-    background:
-      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
-      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    color: #ffffff !important;
-    border: 1px solid transparent !important;
-    border-left: 1px solid transparent !important;
-    border-radius: 8px !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255,45,170,.20) !important;
+    border-radius: 5px !important;
     font-size: 10px !important;
     line-height: 1 !important;
     font-weight: 950 !important;
@@ -149,8 +144,8 @@
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row button.active {
-    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
-    border-left-color: transparent !important;
+    background: rgba(124,203,255,.10) !important;
+    border-color: #FF2DAA !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact span,
@@ -161,6 +156,7 @@
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+    color: #FFFFFF !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-save-label span {

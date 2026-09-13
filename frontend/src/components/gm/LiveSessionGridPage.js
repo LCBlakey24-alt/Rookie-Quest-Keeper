@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
@@ -8,36 +8,37 @@ import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { generateCombatReadyNpc } from '@/lib/npcStatBlockFactory';
-import LootGenerator from '@/components/LootGenerator';
-import PartyLocationTracker from '@/components/PartyLocationTracker';
-import CombatTab from '@/components/gm/CombatTab';
-import NpcsTab from '@/components/gm/NpcsTab';
-import PartyTab from '@/components/gm/PartyTab';
-import NotesTab from '@/components/gm/NotesTab';
-import MonstersTab from '@/components/gm/MonstersTab';
-import Soundboard from '@/components/gm/Soundboard';
-import StoryArcTracker from '@/components/gm/StoryArcTracker';
-import NPCRelationshipMap from '@/components/gm/NPCRelationshipMap';
-import AISessionPlanner from '@/components/gm/AISessionPlanner';
-import EventSystem from '@/components/gm/EventSystem';
-import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
-import EnvironmentControl from '@/components/gm/EnvironmentControl';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
-import LivePlayerDisplayControls from '@/components/gm/LivePlayerDisplayControls';
-import EndSessionReviewModal from '@/components/gm/EndSessionReviewModal';
 import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
 import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
-import LiveRollTablesPanel from '@/components/gm/LiveRollTablesPanel';
-import MapsTab from '@/components/tabs/MapsTab';
-import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
+
+const LootGenerator = React.lazy(() => import('@/components/LootGenerator'));
+const PartyLocationTracker = React.lazy(() => import('@/components/PartyLocationTracker'));
+const CombatTab = React.lazy(() => import('@/components/gm/CombatTab'));
+const NpcsTab = React.lazy(() => import('@/components/gm/NpcsTab'));
+const PartyTab = React.lazy(() => import('@/components/gm/PartyTab'));
+const NotesTab = React.lazy(() => import('@/components/gm/NotesTab'));
+const MonstersTab = React.lazy(() => import('@/components/gm/MonstersTab'));
+const Soundboard = React.lazy(() => import('@/components/gm/Soundboard'));
+const StoryArcTracker = React.lazy(() => import('@/components/gm/StoryArcTracker'));
+const NPCRelationshipMap = React.lazy(() => import('@/components/gm/NPCRelationshipMap'));
+const AISessionPlanner = React.lazy(() => import('@/components/gm/AISessionPlanner'));
+const EventSystem = React.lazy(() => import('@/components/gm/EventSystem'));
+const UnifiedReferenceCenter = React.lazy(() => import('@/components/gm/UnifiedReferenceCenter'));
+const EnvironmentControl = React.lazy(() => import('@/components/gm/EnvironmentControl'));
+const LivePlayerDisplayControls = React.lazy(() => import('@/components/gm/LivePlayerDisplayControls'));
+const EndSessionReviewModal = React.lazy(() => import('@/components/gm/EndSessionReviewModal'));
+const LiveRollTablesPanel = React.lazy(() => import('@/components/gm/LiveRollTablesPanel'));
+const MapsTab = React.lazy(() => import('@/components/tabs/MapsTab'));
+const GMHandoutsTab = React.lazy(() => import('@/components/tabs/HandoutsTab').then((module) => ({ default: module.GMHandoutsTab })));
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
-  bg: { primary: '#242424', surface: '#2f2f2f', elevated: '#3a3a3a', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
-  accent: { primary: '#d00000', secondary: '#d00000', gold: '#d00000', orange: '#ff3b3b', hover: '#ff3b3b', subtle: 'rgba(208,0,0,0.18)', glow: 'none', gm: '#d00000', gmSubtle: 'rgba(208,0,0,0.18)' },
-  text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
-  border: 'rgba(255,255,255,0.16)',
-  gradient: '#d00000',
+  bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', hover: 'var(--rq-card-hover)' },
+  accent: { primary: 'var(--rq-accent-primary)', secondary: 'var(--rq-secondary)', gold: 'var(--rq-secondary)', orange: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-primary)', subtle: 'var(--rq-accent-soft)', glow: 'none', gm: 'var(--rq-accent-primary)', gmSubtle: 'var(--rq-accent-soft)' },
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)',
+  gradient: 'var(--rq-card)',
 };
 
 export default function LiveSessionGridPage() {
@@ -228,25 +229,31 @@ export default function LiveSessionGridPage() {
   };
 
   const renderTool = (toolId) => {
+    const lazyTool = (content) => (
+      <Suspense fallback={<div style={toolLoadingStyle}>Loading tool…</div>}>
+        {content}
+      </Suspense>
+    );
+
     switch (toolId) {
-      case 'combat': return <CombatTab theme={theme} campaignId={campaignId} scenarios={scenarios} selectedScenario={selectedScenario} setSelectedScenario={setSelectedScenario} launchCombat={launchCombat} quickStartCombat={quickStartCombat} players={players} setShowQuickCombat={() => {}} />;
-      case 'party': return <PartyTab theme={theme} players={players} />;
-      case 'notes': return <NotesTab theme={theme} campaignId={campaignId} quickNote={quickNote} setQuickNote={setQuickNote} processingNote={processingNote} handleSubmitNote={handleSubmitNote} sessionNotes={sessionNotes} setSessionNotes={setSessionNotes} />;
-      case 'handouts': return <GMHandoutsTab campaignId={campaignId} />;
-      case 'player-display': return <LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />;
-      case 'maps': return <MapsTab campaignId={campaignId} />;
-      case 'npcs': return <NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />;
-      case 'monsters': return <MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={openMonsterEncounterInCombat} />;
-      case 'location': return <PartyLocationTracker campaignId={campaignId} />;
-      case 'environment': return <EnvironmentControl campaignId={campaignId} campaign={campaign} onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)} />;
-      case 'reference-hub': return <UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />;
-      case 'tables': return <LiveRollTablesPanel campaignId={campaignId} onSaveAsNote={addLiveResultToNotes} />;
-      case 'loot': return <LootGenerator />;
-      case 'story': return <StoryArcTracker theme={theme} campaignId={campaignId} />;
-      case 'planner': return <AISessionPlanner theme={theme} campaignId={campaignId} />;
-      case 'sound': return <Soundboard theme={theme} campaignId={campaignId} />;
-      case 'events': return <EventSystem theme={theme} campaignId={campaignId} />;
-      case 'network': return <NPCRelationshipMap theme={theme} campaignId={campaignId} />;
+      case 'combat': return lazyTool(<CombatTab theme={theme} campaignId={campaignId} scenarios={scenarios} selectedScenario={selectedScenario} setSelectedScenario={setSelectedScenario} launchCombat={launchCombat} quickStartCombat={quickStartCombat} players={players} setShowQuickCombat={() => {}} />);
+      case 'party': return lazyTool(<PartyTab theme={theme} players={players} />);
+      case 'notes': return lazyTool(<NotesTab theme={theme} campaignId={campaignId} quickNote={quickNote} setQuickNote={setQuickNote} processingNote={processingNote} handleSubmitNote={handleSubmitNote} sessionNotes={sessionNotes} setSessionNotes={setSessionNotes} />);
+      case 'handouts': return lazyTool(<GMHandoutsTab campaignId={campaignId} />);
+      case 'player-display': return lazyTool(<LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />);
+      case 'maps': return lazyTool(<MapsTab campaignId={campaignId} />);
+      case 'npcs': return lazyTool(<NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />);
+      case 'monsters': return lazyTool(<MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={openMonsterEncounterInCombat} />);
+      case 'location': return lazyTool(<PartyLocationTracker campaignId={campaignId} />);
+      case 'environment': return lazyTool(<EnvironmentControl campaignId={campaignId} campaign={campaign} onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)} />);
+      case 'reference-hub': return lazyTool(<UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />);
+      case 'tables': return lazyTool(<LiveRollTablesPanel campaignId={campaignId} onSaveAsNote={addLiveResultToNotes} />);
+      case 'loot': return lazyTool(<LootGenerator />);
+      case 'story': return lazyTool(<StoryArcTracker theme={theme} campaignId={campaignId} />);
+      case 'planner': return lazyTool(<AISessionPlanner theme={theme} campaignId={campaignId} />);
+      case 'sound': return lazyTool(<Soundboard theme={theme} campaignId={campaignId} />);
+      case 'events': return lazyTool(<EventSystem theme={theme} campaignId={campaignId} />);
+      case 'network': return lazyTool(<NPCRelationshipMap theme={theme} campaignId={campaignId} />);
       default: return null;
     }
   };
@@ -280,7 +287,11 @@ export default function LiveSessionGridPage() {
 
         <DiceRollFlicker show={showDiceFlicker} rolls={diceRolls} label={diceLabel} modifier={diceModifier} total={diceTotal} animationValue={diceAnimationValue} isCrit={diceCrit} isFumble={diceFumble} theme="gm" onComplete={() => setShowDiceFlicker(false)} />
       </main>
-      {showEndSessionReview && <EndSessionReviewModal campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} onClose={() => setShowEndSessionReview(false)} />}
+      {showEndSessionReview && (
+        <Suspense fallback={null}>
+          <EndSessionReviewModal campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} onClose={() => setShowEndSessionReview(false)} />
+        </Suspense>
+      )}
     </>
   );
 }
@@ -293,4 +304,5 @@ const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize
 const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 900 };
 const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12, fontFamily: fontStack };
 const gridShellStyle = { flex: 1, minHeight: 360, display: 'flex', flexDirection: 'column', overflow: 'visible' };
+const toolLoadingStyle = { minHeight: 150, display: 'grid', placeItems: 'center', color: theme.text.secondary, fontSize: 12, fontWeight: 800 };
 const explodingToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '6px 10px', background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };

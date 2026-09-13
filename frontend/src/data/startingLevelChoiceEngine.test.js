@@ -47,6 +47,53 @@ describe('starting level choice engine', () => {
     }).preparedTarget).toBe(6);
   });
 
+  test('2024 Paladin gets level-one slots and two prepared-spell choices', () => {
+    const plan = getSpellChoicePlan({
+      className: 'Paladin',
+      level: 1,
+      edition: '2024',
+      abilities: { charisma: 16 },
+    });
+
+    expect(plan.maxSpellLevel).toBe(1);
+    expect(plan.spellcastingType).toBe('prepared');
+    expect(plan.preparedTarget).toBe(2);
+    expect(plan.hasPreparedSpellPicker).toBe(true);
+    expect(plan.spellOptions.length).toBeGreaterThan(0);
+  });
+
+  test('2024 Ranger is a level-one prepared caster rather than using the 2014 known-spell table', () => {
+    const plan = buildStartingLevelChoicePlan({
+      className: 'Ranger',
+      startingLevel: 1,
+      edition: '2024',
+      abilities: { wisdom: 16 },
+    });
+
+    expect(plan.spellPlan.maxSpellLevel).toBe(1);
+    expect(plan.spellPlan.spellcastingType).toBe('prepared');
+    expect(plan.spellPlan.preparedTarget).toBe(2);
+    expect(plan.spellPlan.knownTarget).toBe(0);
+    expect(plan.spellPlan.hasPreparedSpellPicker).toBe(true);
+  });
+
+  test('2014 Paladin and Ranger still do not expose level-one spell pickers', () => {
+    const paladin = getSpellChoicePlan({ className: 'Paladin', level: 1, edition: '2014', abilities: { charisma: 16 } });
+    const ranger = getSpellChoicePlan({ className: 'Ranger', level: 1, edition: '2014', abilities: { wisdom: 16 } });
+
+    expect(paladin.maxSpellLevel).toBe(0);
+    expect(paladin.preparedTarget).toBe(0);
+    expect(paladin.hasPreparedSpellPicker).toBe(false);
+    expect(ranger.maxSpellLevel).toBe(0);
+    expect(ranger.knownTarget).toBe(0);
+    expect(ranger.hasKnownSpellPicker).toBe(false);
+  });
+
+  test('2024 half-caster prepared counts follow the class table at higher levels', () => {
+    expect(getSpellChoicePlan({ className: 'Paladin', level: 5, edition: '2024', abilities: { charisma: 20 } }).preparedTarget).toBe(6);
+    expect(getSpellChoicePlan({ className: 'Ranger', level: 9, edition: '2024', abilities: { wisdom: 20 } }).preparedTarget).toBe(9);
+  });
+
   test('creates known spell and Warlock choice plans for higher-level Warlocks', () => {
     const plan = buildStartingLevelChoicePlan({ className: 'Warlock', startingLevel: 5, edition: '2014', abilities: { charisma: 16 } });
 

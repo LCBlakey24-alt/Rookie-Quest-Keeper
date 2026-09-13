@@ -62,4 +62,49 @@ describe('deriveCharacterSnapshot', () => {
     expect(deriveCharacterSnapshot(baseCharacter({ character_class: 'Warlock', level: 2 })).spellcasting.blocks[0]).toMatchObject({ className: 'Warlock', type: 'pact_magic' });
     expect(deriveCharacterSnapshot(baseCharacter({ character_class: 'Fighter', level: 3, subclass: 'Eldritch Knight' })).spellcasting.blocks[0]).toMatchObject({ className: 'Fighter', type: 'known' });
   });
+
+  test('2024 Paladin and Ranger expose level-one spellcasting while 2014 versions do not', () => {
+    const modernPaladin = deriveCharacterSnapshot(baseCharacter({
+      character_class: 'Paladin',
+      level: 1,
+      rules_edition: '2024',
+    }));
+    const modernRanger = deriveCharacterSnapshot(baseCharacter({
+      character_class: 'Ranger',
+      level: 1,
+      rules_edition: '2024',
+    }));
+    const legacyPaladin = deriveCharacterSnapshot(baseCharacter({
+      character_class: 'Paladin',
+      level: 1,
+      rules_edition: '2014',
+    }));
+
+    expect(modernPaladin.spellcasting.blocks[0]).toMatchObject({
+      className: 'Paladin',
+      slots: { 1: 2 },
+    });
+    expect(modernRanger.spellcasting.blocks[0]).toMatchObject({
+      className: 'Ranger',
+      slots: { 1: 2 },
+    });
+    expect(legacyPaladin.spellcasting.blocks).toEqual([]);
+  });
+
+  test('2024 multiclass snapshot rounds half-caster contribution up', () => {
+    const snapshot = deriveCharacterSnapshot(baseCharacter({
+      character_class: 'Wizard',
+      level: 2,
+      rules_edition: '2024',
+      class_levels: { Wizard: 1, Paladin: 1 },
+      classes: [
+        { name: 'Wizard', level: 1, subclass: '' },
+        { name: 'Paladin', level: 1, subclass: '' },
+      ],
+    }));
+
+    expect(snapshot.spellcasting.multiclass.multiclassLevel).toBe(2);
+    expect(snapshot.spellcasting.multiclass.slots).toEqual({ 1: 3 });
+    expect(snapshot.spellcasting.blocks.map(block => block.className)).toEqual(expect.arrayContaining(['Wizard', 'Paladin']));
+  });
 });

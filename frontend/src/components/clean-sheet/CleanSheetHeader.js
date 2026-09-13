@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Edit3, Moon, Settings, Sun, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
+import { canStartRest, getCharacterEdition } from '@/data/characterRestRules';
 import './CleanSheetHeaderCompact.css';
 import './CleanSheetFinalHammer.css';
 
@@ -53,8 +55,13 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
   const primaryLine = subtitleParts.slice(0, 2).join(' • ');
   const secondaryLine = subtitleParts[2] || '';
   const levelLabel = `Level ${character?.level || 1}`;
+  const restBlocked = getCharacterEdition(character) === '2024' && !canStartRest(character);
 
   const confirmRest = (type) => {
+    if (restBlocked) {
+      toast.error('2024 rules require at least 1 HP to start a rest.');
+      return;
+    }
     const isLongRest = type === 'long';
     const message = isLongRest
       ? 'Take a Long Rest? This may restore HP, reset temporary HP, restore spell slots/resources, reset death saves, and recover hit dice where the sheet supports it.'

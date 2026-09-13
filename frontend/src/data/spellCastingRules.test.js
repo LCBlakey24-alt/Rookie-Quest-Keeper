@@ -13,15 +13,16 @@ describe('spell casting rules helpers', () => {
     expect(canCastSpellWithSlot({ spell: { name: 'Fire Bolt', level: 0 }, slotLevel: 1 })).toBe(false);
   });
 
-  test('levelled spells default to exact-level casting only', () => {
+  test('levelled spells can use their own level or any higher standard slot', () => {
     const spell = { name: 'Shield', level: 1 };
 
-    expect(getAllowedSlotLevelsForSpell(spell)).toEqual([1]);
+    expect(getAllowedSlotLevelsForSpell(spell)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(canCastSpellWithSlot({ spell, slotLevel: 1 })).toBe(true);
-    expect(canCastSpellWithSlot({ spell, slotLevel: 2 })).toBe(false);
+    expect(canCastSpellWithSlot({ spell, slotLevel: 2 })).toBe(true);
+    expect(canCastSpellWithSlot({ spell, slotLevel: 9 })).toBe(true);
   });
 
-  test('explicit upcast metadata controls allowed slot levels', () => {
+  test('explicit casting metadata can intentionally restrict allowed slot levels', () => {
     const spell = { name: 'Custom Rift', level: 1, allowed_slot_levels: [1, 4, 6] };
 
     expect(getAllowedSlotLevelsForSpell(spell)).toEqual([1, 4, 6]);
@@ -37,6 +38,14 @@ describe('spell casting rules helpers', () => {
       slots: { 1: 4, 4: 1, 6: 1 },
       remaining: { 1: 0, 4: 1, 6: 0 },
     })).toEqual([4]);
+  });
+
+  test('ordinary spells can fall back to the next higher slot when lower slots are empty', () => {
+    expect(getAvailableCastSlotLevels({
+      spell: { name: 'Magic Missile', level: 1 },
+      slots: { 1: 4, 2: 3, 3: 2 },
+      remaining: { 1: 0, 2: 1, 3: 2 },
+    })).toEqual([2, 3]);
   });
 
   test('spending a spell slot only spends the chosen level', () => {

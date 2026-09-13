@@ -27,7 +27,7 @@ describe('class specific choice engine', () => {
       hasChoices: true,
     });
 
-    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10 })).toMatchObject({
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2014' })).toMatchObject({
       metamagicTarget: 3,
       hasChoices: true,
     });
@@ -37,6 +37,143 @@ describe('class specific choice engine', () => {
       maneuverTarget: 5,
       hasChoices: true,
     });
+  });
+
+  test('Bard Expertise follows the selected rules edition', () => {
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 2, edition: '2014' }).expertiseTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 3, edition: '2014' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 9, edition: '2014' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 10, edition: '2014' }).expertiseTarget).toBe(4);
+
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 1, edition: '2024' }).expertiseTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 2, edition: '2024' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 8, edition: '2024' }).expertiseTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 9, edition: '2024' }).expertiseTarget).toBe(4);
+  });
+
+  test('2024 Ranger and Wizard expose their core Expertise choices', () => {
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 1, edition: '2024' }).expertiseTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' }).expertiseTarget).toBe(1);
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 9, edition: '2024' }).expertiseTarget).toBe(3);
+    expect(buildClassSpecificChoicePlan({ className: 'Ranger', level: 9, edition: '2014' }).expertiseTarget).toBe(0);
+
+    const wizard = buildClassSpecificChoicePlan({ className: 'Wizard', level: 2, edition: '2024' });
+    expect(wizard.expertiseTarget).toBe(1);
+    expect(wizard.options.expertiseSkills).toEqual([
+      'Arcana', 'History', 'Investigation', 'Medicine', 'Nature', 'Religion',
+    ]);
+    expect(buildClassSpecificChoicePlan({ className: 'Wizard', level: 2, edition: '2014' }).expertiseTarget).toBe(0);
+  });
+
+  test('Sorcerer Metamagic count follows 2014 and 2024 progression', () => {
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2, edition: '2014' }).metamagicTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 3, edition: '2014' }).metamagicTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2014' }).metamagicTarget).toBe(3);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 17, edition: '2014' }).metamagicTarget).toBe(4);
+
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 1, edition: '2024' }).metamagicTarget).toBe(0);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2, edition: '2024' }).metamagicTarget).toBe(2);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2024' }).metamagicTarget).toBe(4);
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 17, edition: '2024' }).metamagicTarget).toBe(6);
+  });
+
+  test('2024 origin languages grant Common plus two Standard Language choices', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2024' });
+
+    expect(plan.originLanguageTarget).toBe(2);
+    expect(plan.fixedOriginLanguages).toEqual(['Common']);
+    expect(plan.options.originLanguages).toEqual(expect.arrayContaining(['Elvish', 'Dwarvish', 'Orc']));
+    expect(plan.options.originLanguages).not.toEqual(expect.arrayContaining(['Abyssal', 'Celestial', 'Infernal']));
+    expect(buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2014' }).originLanguageTarget).toBe(0);
+  });
+
+  test('2024 origin language save replaces bundled legacy species languages', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2024' });
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({
+        race: 'Elf',
+        rules_edition: '2024',
+        languages: ['Common', 'Elvish'],
+      }),
+      { originLanguages: ['Dwarvish', 'Orc'] },
+      plan,
+    );
+
+    expect(payload.origin_language_choices).toEqual(['Dwarvish', 'Orc']);
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Orc']);
+  });
+
+  test('2024 origin language save preserves extra non-legacy language grants', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2024' });
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({
+        race: 'Elf',
+        rules_edition: '2024',
+        languages: ['Common', 'Elvish', 'Sylvan'],
+      }),
+      { originLanguages: ['Dwarvish', 'Orc'] },
+      plan,
+    );
+
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Orc', 'Sylvan']);
+  });
+
+  test('2024 Ranger Deft Explorer offers two class language choices and preserves existing languages', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' });
+    expect(plan.languageTarget).toBe(2);
+    expect(plan.options.languages).toEqual(expect.arrayContaining(['Elvish', 'Sylvan', 'Undercommon']));
+
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({ character_class: 'Ranger', level: 2, rules_edition: '2024', languages: ['Common', 'Dwarvish'] }),
+      { expertise: ['Survival'], languages: ['Elvish', 'Sylvan'] },
+      plan,
+    );
+
+    expect(payload.class_language_choices).toEqual(['Elvish', 'Sylvan']);
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Elvish', 'Sylvan']);
+  });
+
+  test('2024 Ranger class languages stack on origin choices without duplicates', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' });
+    const selection = normaliseClassSpecificSelection({
+      originLanguages: ['Dwarvish', 'Orc'],
+      languages: ['Orc', 'Sylvan', 'Undercommon'],
+    }, plan);
+
+    expect(selection.originLanguages).toEqual(['Dwarvish', 'Orc']);
+    expect(selection.languages).toEqual(['Sylvan', 'Undercommon']);
+
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({ character_class: 'Ranger', level: 2, rules_edition: '2024' }),
+      selection,
+      plan,
+    );
+
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Orc', 'Sylvan', 'Undercommon']);
+  });
+
+  test('2024 Rogue Thieves Cant is automatic and one additional language is selected', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Rogue', level: 1, edition: '2024' });
+    expect(plan.languageTarget).toBe(1);
+    expect(plan.fixedLanguages).toEqual(['Thieves’ Cant']);
+    expect(plan.options.languages).not.toContain('Thieves’ Cant');
+
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({ character_class: 'Rogue', level: 1, rules_edition: '2024', languages: ['Common'] }),
+      { expertise: ['Stealth', 'Sleight of Hand'], languages: ['Goblin'] },
+      plan,
+    );
+
+    expect(payload.class_language_choices).toEqual(['Goblin']);
+    expect(payload.languages).toEqual(['Common', 'Thieves’ Cant', 'Goblin']);
+  });
+
+  test('normalises class language choices to valid unique options and target limits', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' });
+    const selection = normaliseClassSpecificSelection({
+      languages: ['Elvish', 'Elvish', 'Sylvan', 'Not A Language'],
+    }, plan);
+    expect(selection.languages).toEqual(['Elvish', 'Sylvan']);
   });
 
   test('normalises class-specific selections to their plan limits', () => {
@@ -68,15 +205,15 @@ describe('class specific choice engine', () => {
     expect(payload.class_features.map((feature) => feature.name)).toEqual(expect.arrayContaining(['Fighting Style: Defense', 'Combat Superiority']));
   });
 
-  test('applies Sorcerer metamagic and resource counters to a payload', () => {
-    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10 });
+  test('applies 2024 Sorcerer metamagic and resource counters to a payload', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 10, edition: '2024' });
     const payload = applyClassSpecificChoicesToPayload(
-      basePayload({ character_class: 'Sorcerer', level: 10 }),
-      { metamagic: ['Quickened Spell', 'Subtle Spell', 'Twinned Spell'] },
+      basePayload({ character_class: 'Sorcerer', level: 10, rules_edition: '2024' }),
+      { metamagic: ['Quickened Spell', 'Subtle Spell', 'Twinned Spell', 'Careful Spell'] },
       plan,
     );
 
-    expect(payload.metamagic_options).toEqual(['Quickened Spell', 'Subtle Spell', 'Twinned Spell']);
+    expect(payload.metamagic_options).toEqual(['Quickened Spell', 'Subtle Spell', 'Twinned Spell', 'Careful Spell']);
     expect(payload.sorcery_points).toBe(10);
     expect(payload.sorcery_points_remaining).toBe(10);
   });
@@ -96,7 +233,7 @@ describe('class specific choice engine', () => {
   });
 
   test('clears stale class-specific fields when the current plan has no matching choices', () => {
-    const plan = buildClassSpecificChoicePlan({ className: 'Wizard', level: 7 });
+    const plan = buildClassSpecificChoicePlan({ className: 'Wizard', level: 7, edition: '2014' });
     const payload = applyClassSpecificChoicesToPayload(
       basePayload({
         character_class: 'Wizard',
@@ -109,6 +246,7 @@ describe('class specific choice engine', () => {
         metamagic_options: ['Quickened Spell'],
         sorcery_points: 7,
         sorcery_points_remaining: 4,
+        class_language_choices: ['Elvish'],
         combat_maneuvers: ['Trip Attack'],
         battle_master_maneuvers: ['Trip Attack'],
         maneuvers: ['Trip Attack'],
@@ -123,6 +261,7 @@ describe('class specific choice engine', () => {
         fightingStyles: ['Defense'],
         expertise: ['Stealth'],
         metamagic: ['Quickened Spell'],
+        languages: ['Elvish'],
         maneuvers: ['Trip Attack'],
       },
       plan,
@@ -136,6 +275,7 @@ describe('class specific choice engine', () => {
     expect(payload.metamagic_options).toBeUndefined();
     expect(payload.sorcery_points).toBeUndefined();
     expect(payload.sorcery_points_remaining).toBeUndefined();
+    expect(payload.class_language_choices).toBeUndefined();
     expect(payload.combat_maneuvers).toBeUndefined();
     expect(payload.battle_master_maneuvers).toBeUndefined();
     expect(payload.maneuvers).toBeUndefined();
@@ -144,7 +284,7 @@ describe('class specific choice engine', () => {
   });
 
   test('preserves Sorcerer points when only Metamagic choices are empty for a Sorcerer plan', () => {
-    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2 });
+    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2, edition: '2014' });
     const payload = applyClassSpecificChoicesToPayload(
       basePayload({ character_class: 'Sorcerer', level: 2, sorcery_points: 2, sorcery_points_remaining: 1 }),
       { metamagic: ['Quickened Spell'] },

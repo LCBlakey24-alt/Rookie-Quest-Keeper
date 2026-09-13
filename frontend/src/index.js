@@ -1,3 +1,4 @@
+import '@/preview/bootstrap';
 import React from "react";
 import ReactDOM from "react-dom/client";
 import '@fontsource/cinzel/400.css';
@@ -16,6 +17,7 @@ import { registerPwaServiceWorker } from "@/pwa/registerServiceWorker";
 import { installQueuedCombatPartyOverlay } from "@/offline/queuedCombatPartyOverlay";
 import { installRookAiConsentGate } from "@/privacy/rookAiConsent";
 import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCleanup";
+import { isLocalPreview } from '@/preview/previewMode';
 
 // One final product-level visual authority. App Store usability fixes load first;
 // the three-mode design then owns palette and desktop/tablet/mobile geometry.
@@ -24,7 +26,7 @@ import "@/styles/threeModeMinimalist.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
-installRookAiConsentGate();
+if (!isLocalPreview()) installRookAiConsentGate();
 installAccountDeletionLocalCleanup();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

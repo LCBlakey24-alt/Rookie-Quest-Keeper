@@ -12,19 +12,19 @@ import {
 
 // GM Theme - Midnight Neon
 const theme = {
-  primary: '#8A2BE2',
-  hover: '#9932CC',
-  subtle: 'rgba(138, 43, 226, 0.15)',
-  bg: '#0B0B0D',
-  card: 'rgba(15, 10, 30, 0.9)',
-  panel: 'rgba(15, 10, 30, 0.95)',
-  text: '#F8F8FF',
-  textSecondary: '#9EB0D0',
-  muted: '#6B7B9B',
-  border: 'rgba(138, 43, 226, 0.2)',
-  success: '#22C55E',
-  cyan: '#4DD0E1',
-  warning: '#F59E0B'
+  primary: 'var(--rq-accent-primary)',
+  hover: 'var(--rq-card-hover)',
+  subtle: 'var(--rq-accent-soft)',
+  bg: 'var(--rq-bg-main)',
+  card: 'var(--rq-card)',
+  panel: 'var(--rq-bg-panel)',
+  text: 'var(--rq-text-primary)',
+  textSecondary: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
+  border: 'var(--rq-border-default)',
+  success: 'var(--rq-secondary)',
+  cyan: 'var(--rq-secondary)',
+  warning: 'var(--rq-accent-primary)'
 };
 
 const PIN_TYPES = {

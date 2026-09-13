@@ -10,16 +10,18 @@ import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const theme = {
-  bg: 'var(--rq-bg, #242424)',
-  panel: 'var(--rq-surface, #2f2f2f)',
-  card: 'var(--rq-card, #3a3a3a)',
-  hover: 'var(--rq-card-hover, #444444)',
-  line: 'var(--rq-line, rgba(255,255,255,0.16))',
-  lineStrong: 'var(--rq-line-strong, rgba(255,255,255,0.26))',
-  red: 'var(--rq-primary, #d00000)',
-  text: 'var(--rq-text, #ffffff)',
-  soft: 'var(--rq-muted, rgba(255,255,255,0.74))',
-  muted: 'var(--rq-faint, rgba(255,255,255,0.52))',
+  bg: 'var(--rq-bg, #071522)',
+  panel: 'var(--rq-surface, #0C2234)',
+  card: 'var(--rq-card, #102B40)',
+  hover: 'var(--rq-card-hover, #14344C)',
+  line: 'var(--rq-line, rgba(255,45,170,0.18))',
+  lineStrong: 'var(--rq-line-strong, rgba(255,45,170,0.42))',
+  pink: 'var(--rq-primary, #FF2DAA)',
+  blue: 'var(--rq-secondary, #7CCBFF)',
+  red: 'var(--rq-primary, #FF2DAA)',
+  text: 'var(--rq-text-primary)',
+  soft: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)',
 };
 
 const DISPLAY_TARGETS = [
@@ -599,13 +601,13 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 }
 
 const shellStyle = { background: theme.card, border: `1px solid ${theme.line}`, color: theme.text, fontFamily: fontStack, flexShrink: 0, boxShadow: '0 18px 54px rgba(0,0,0,0.22)' };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', padding: 12, background: `linear-gradient(135deg, ${theme.panel}, ${theme.card})` };
-const iconStyle = { width: 38, height: 38, display: 'grid', placeItems: 'center', background: theme.bg, borderLeft: `5px solid ${theme.red}`, color: theme.text };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', padding: 12, background: theme.panel };
+const iconStyle = { width: 38, height: 38, display: 'grid', placeItems: 'center', background: theme.bg, borderLeft: `1px solid ${theme.pink}`, color: theme.text };
 const eyebrowStyle = { margin: 0, color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: '2px 0 3px', color: theme.text, fontSize: 19, fontWeight: 950, lineHeight: 1.05 };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeight: 1.4, maxWidth: 760 };
 const actionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' };
-const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const primaryButtonStyle = { minHeight: 34, border: `1px solid ${theme.pink}`, background: theme.card, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${theme.line}`, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 34, border: `1px solid ${theme.red}`, background: '#090909', color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const statusStripStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 12px', borderTop: `1px solid ${theme.line}`, borderBottom: `1px solid ${theme.line}`, background: theme.panel, color: theme.soft, fontSize: 11, lineHeight: 1.35 };
@@ -613,16 +615,16 @@ const warningStyle = { display: 'flex', alignItems: 'flex-start', gap: 7, paddin
 const bodyStyle = { display: 'grid', gap: 10, padding: 12 };
 const commandDeckStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10, alignItems: 'stretch' };
 const targetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 };
-const targetButtonStyle = (active) => ({ minHeight: 116, display: 'grid', gridTemplateColumns: '26px minmax(0, 1fr)', gap: '4px 9px', alignItems: 'start', textAlign: 'left', background: active ? theme.red : theme.bg, color: theme.text, border: active ? `1px solid ${theme.red}` : `1px solid ${theme.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack, fontWeight: 900, boxShadow: active ? '0 16px 38px rgba(208,0,0,0.22)' : 'none' });
-const previewPanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `6px solid ${theme.red}`, padding: 12, display: 'grid', alignContent: 'start', gap: 7, minWidth: 0 };
+const targetButtonStyle = (active) => ({ minHeight: 116, display: 'grid', gridTemplateColumns: '26px minmax(0, 1fr)', gap: '4px 9px', alignItems: 'start', textAlign: 'left', background: active ? theme.red : theme.bg, color: theme.text, border: active ? `1px solid ${theme.red}` : `1px solid ${theme.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack, fontWeight: 900, boxShadow: 'none' });
+const previewPanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.pink}`, padding: 12, display: 'grid', alignContent: 'start', gap: 7, minWidth: 0 };
 const previewTitleStyle = { color: theme.text, fontSize: 18, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 const previewTextStyle = { color: theme.soft, fontSize: 12, lineHeight: 1.35 };
 const previewMetaStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4, color: theme.text, fontSize: 11, fontWeight: 900 };
 const quickSendPanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
-const flowPanelStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.16), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `6px solid ${theme.red}`, padding: 10, display: 'grid', gap: 9 };
-const messagePanelStyle = { background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(36,36,36,0.96))', border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
-const bannerPanelStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.12), rgba(0,0,0,0.2), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `6px solid ${theme.red}`, padding: 10, display: 'grid', gap: 9 };
-const combatCommanderStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.2), rgba(8,8,8,0.34), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `7px solid ${theme.red}`, padding: 10, display: 'grid', gap: 9 };
+const flowPanelStyle = { background: theme.panel, border: `1px solid ${theme.lineStrong}`, borderLeft: `1px solid ${theme.pink}`, padding: 10, display: 'grid', gap: 9 };
+const messagePanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
+const bannerPanelStyle = { background: theme.panel, border: `1px solid ${theme.lineStrong}`, borderLeft: `1px solid ${theme.pink}`, padding: 10, display: 'grid', gap: 9 };
+const combatCommanderStyle = { background: theme.panel, border: `1px solid ${theme.lineStrong}`, borderLeft: `1px solid ${theme.pink}`, padding: 10, display: 'grid', gap: 9 };
 const quickSendHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', color: theme.text };
 const safeBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: 26, padding: '0 8px', color: theme.text, background: theme.bg, border: `1px solid ${theme.line}`, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const presetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7 };

@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
-  text: '#fff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)',
+  pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
 };
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -158,17 +159,17 @@ export default function GMNotesWorkspace({ campaignId }) {
 }
 
 const shellStyle = { display: 'grid', gap: 8, minWidth: 0, color: rq.text, fontFamily: fontStack };
-const composerStyle = { background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `4px solid ${rq.red}`, padding: 8 };
+const composerStyle = { background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 8 };
 const textareaStyle = { width: '100%', minHeight: 120, boxSizing: 'border-box', resize: 'vertical', background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: 9, fontFamily: fontStack, fontSize: 12, lineHeight: 1.45, outline: 0 };
 const composerFooterStyle = { marginTop: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
 const hintStyle = { color: rq.muted, fontSize: 9 };
-const primaryButtonStyle = { minHeight: 34, border: 0, background: rq.red, color: '#fff', padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 950, cursor: 'pointer' };
+const primaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 950, cursor: 'pointer' };
 const suggestionListStyle = { display: 'grid', gap: 5 };
 const sectionLabelStyle = { color: rq.muted, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em' };
-const suggestionStyle = { display: 'flex', alignItems: 'center', gap: 6, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `4px solid ${rq.red}`, padding: 7 };
+const suggestionStyle = { display: 'flex', alignItems: 'center', gap: 6, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 7 };
 const suggestionTitleStyle = { display: 'block', fontSize: 11 };
 const suggestionMetaStyle = { display: 'block', color: rq.muted, marginTop: 2, fontSize: 9 };
-const applyButtonStyle = { minHeight: 30, border: 0, background: rq.red, color: '#fff', padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 10, fontWeight: 900 };
+const applyButtonStyle = { minHeight: 30, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 10, fontWeight: 900 };
 const iconButtonStyle = { width: 30, height: 30, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, display: 'grid', placeItems: 'center', cursor: 'pointer' };
 const listHeaderStyle = { minHeight: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, background: rq.panel, border: `1px solid ${rq.line}`, padding: '0 8px' };
 const listTitleStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 950 };

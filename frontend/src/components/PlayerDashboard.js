@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AlertTriangle, BookOpen, FileText, Mail, Shield, Users } from 'lucide-react';
@@ -9,16 +9,38 @@ import PlayerDashboardContext from '@/components/dashboard/player/PlayerDashboar
 import PlayerDashboardTabs from '@/components/dashboard/player/PlayerDashboardTabs';
 import PlayerCharactersPanel from '@/components/dashboard/player/PlayerCharactersPanel';
 import PlayerCampaignsPanel from '@/components/dashboard/player/PlayerCampaignsPanel';
+import PlayerSuggestionBox from '@/components/dashboard/player/PlayerSuggestionBox';
 import { combineLinkedCampaigns } from '@/components/dashboard/player/playerDashboardUtils';
 import {
   describePlayerDashboardFailures,
   fetchPlayerDashboardSections,
+  fetchPlayerHandoutSummary,
 } from '@/components/dashboard/player/playerDashboardData';
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
-import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
-import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 import '@/styles/playerDashboardBoard.css';
+import '@/styles/playerHandoutsPanel.css';
+
+const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
+const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
+const ACTIVE_CHARACTER_KEY = 'rqk.player.active-character';
+
+function readRememberedCharacterId() {
+  try {
+    return localStorage.getItem(ACTIVE_CHARACTER_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function rememberCharacterId(characterId) {
+  try {
+    if (characterId) localStorage.setItem(ACTIVE_CHARACTER_KEY, characterId);
+    else localStorage.removeItem(ACTIVE_CHARACTER_KEY);
+  } catch {
+    // Storage can be unavailable in locked-down browsers; selection still works for this visit.
+  }
+}
 
 const tabs = [
   { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
@@ -35,7 +57,7 @@ export default function PlayerDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
-  const [selectedCharacterId, setSelectedCharacterId] = useState('');
+  const [selectedCharacterId, setSelectedCharacterId] = useState(readRememberedCharacterId);
   const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
   const [loadWarning, setLoadWarning] = useState('');
 
@@ -46,7 +68,7 @@ export default function PlayerDashboard() {
 
   const dashboardTabs = useMemo(() => tabs.map((tab) => {
     if (tab.id !== 'handouts' || handoutSummary.unread <= 0) return tab;
-    return { ...tab, label: `Received (${handoutSummary.unread})` };
+    return { ...tab, badge: handoutSummary.unread };
   }), [handoutSummary.unread]);
 
   const activeTabMeta = useMemo(
@@ -84,11 +106,10 @@ export default function PlayerDashboard() {
 
   const loadPlayerData = useCallback(async ({ notifyFailure = true } = {}) => {
     try {
-      const result = await fetchPlayerDashboardSections(apiClient);
+      const result = await fetchPlayerDashboardSections(apiClient, { includeHandouts: false });
 
       if (result.characters !== null) setCharacters(result.characters);
       if (result.campaigns !== null) setCampaigns(result.campaigns);
-      if (result.handoutSummary !== null) setHandoutSummary(result.handoutSummary);
 
       if (result.ok) {
         setLoadWarning('');
@@ -112,25 +133,45 @@ export default function PlayerDashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    loadPlayerData();
-  }, [loadPlayerData]);
+  const refreshHandouts = useCallback(async () => {
+    try {
+      const summary = await fetchPlayerHandoutSummary(apiClient);
+      setHandoutSummary(summary);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
+    loadPlayerData();
+    refreshHandouts();
+  }, [loadPlayerData, refreshHandouts]);
+
+  useEffect(() => {
+    if (loading) return;
+
     if (characters.length === 0) {
       if (selectedCharacterId) setSelectedCharacterId('');
+      rememberCharacterId('');
       return;
     }
 
     const selectionStillExists = characters.some((character) => character.id === selectedCharacterId);
-    if (!selectionStillExists) setSelectedCharacterId(characters[0].id);
-  }, [characters, selectedCharacterId]);
+    if (!selectionStillExists) {
+      setSelectedCharacterId(characters[0].id);
+      return;
+    }
+
+    rememberCharacterId(selectedCharacterId);
+  }, [characters, loading, selectedCharacterId]);
 
   const refresh = async () => {
     setRefreshing(true);
     try {
-      const result = await loadPlayerData();
-      if (result.ok) toast.success('Player dashboard refreshed');
+      const [result, handoutsOk] = await Promise.all([loadPlayerData(), refreshHandouts()]);
+      if (result.ok && handoutsOk) toast.success('Player dashboard refreshed');
+      else if (result.ok) toast.warning('Dashboard refreshed, but the received-handout count could not update.');
     } finally {
       setRefreshing(false);
     }
@@ -146,6 +187,11 @@ export default function PlayerDashboard() {
     }
 
     setJoinOpen(true);
+  };
+
+  const refreshAfterJoin = () => {
+    loadPlayerData();
+    refreshHandouts();
   };
 
   if (loading) return <PlayerDashboardLoading />;
@@ -187,6 +233,7 @@ export default function PlayerDashboard() {
           <PlayerCharactersPanel
             characters={characters}
             onCreateCharacter={() => navigate('/characters/new')}
+            onImportCharacter={() => navigate('/characters/import')}
             onOpenCharacter={(character) => navigate(`/characters/${character.id}`)}
           />
         )}
@@ -195,20 +242,32 @@ export default function PlayerDashboard() {
           <PlayerCampaignsPanel
             campaigns={linkedCampaigns}
             onJoinCampaign={openJoinFlow}
-            onOpenCampaign={(campaign) => navigate(`/campaign/${campaign.id}`)}
+            onOpenCampaign={(campaign) => navigate(`/player/campaign/${campaign.id}`)}
           />
         )}
 
-        {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
-        {activeTab === 'handouts' && <PlayerHandoutsPanel />}
+        {activeTab === 'notes' && (
+          <Suspense fallback={<div style={tabLoadingStyle}>Loading notes…</div>}>
+            <PlayerNotesTab campaigns={linkedCampaigns} />
+          </Suspense>
+        )}
+        {activeTab === 'handouts' && (
+          <Suspense fallback={<div style={tabLoadingStyle}>Loading received handouts…</div>}>
+            <div className="player-handouts-surface">
+              <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />
+            </div>
+          </Suspense>
+        )}
       </PlayerDashboardTabs>
+
+      <PlayerSuggestionBox />
 
       <JoinCampaignModal
         characterId={selectedCharacter?.id}
         characterName={selectedCharacter?.name || 'Selected character'}
         open={joinOpen}
         onOpenChange={setJoinOpen}
-        onSuccess={() => loadPlayerData()}
+        onSuccess={refreshAfterJoin}
       />
     </main>
   );
@@ -219,8 +278,22 @@ const loadWarningStyle = {
   alignItems: 'flex-start',
   gap: 10,
   padding: '12px 14px',
-  border: '1px solid rgba(245, 158, 11, 0.45)',
-  borderLeft: '4px solid #f59e0b',
-  background: 'rgba(245, 158, 11, 0.08)',
-  color: 'var(--rq-text-primary, #ffffff)',
+  border: '1px solid rgba(255, 45, 170, 0.28)',
+  borderLeft: '1px solid #FF2DAA',
+  borderRadius: 5,
+  background: '#102B40',
+  color: '#FFFFFF',
+};
+
+const tabLoadingStyle = {
+  minHeight: 96,
+  display: 'grid',
+  placeItems: 'center',
+  padding: 12,
+  border: '1px solid rgba(255,45,170,.18)',
+  borderRadius: 7,
+  background: '#0C2234',
+  color: '#FFFFFF',
+  fontSize: 12,
+  fontWeight: 800,
 };

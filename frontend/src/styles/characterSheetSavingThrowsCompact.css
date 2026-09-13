@@ -1,13 +1,12 @@
-/* Mobile-only compact Saving Throws strip.
-   Mirrors the Ability Scores strip while keeping each modifier tappable for rolls. */
+/* Mobile-only compact Saving Throws strip for RQK 1.0. */
 
 @media (max-width: 759px) {
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throws-panel {
     padding: 10px !important;
-    background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
-    border-left: 1px solid transparent !important;
-    border-radius: 10px !important;
+    background: #0C2234 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
+    border-radius: 7px !important;
     box-shadow: none !important;
   }
 
@@ -19,6 +18,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throws-panel h2 {
     margin-bottom: 7px !important;
+    color: #FFFFFF !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip {
@@ -41,9 +41,9 @@
     align-content: start !important;
     gap: 4px !important;
     text-align: center !important;
-    background: transparent !important;
-    border: 0 !important;
-    border-radius: 0 !important;
+    background: #102B40 !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
+    border-radius: 5px !important;
     box-shadow: none !important;
     position: relative !important;
     overflow: visible !important;
@@ -62,7 +62,7 @@
     font-size: 0.62rem !important;
     line-height: 1 !important;
     letter-spacing: 0.04em !important;
-    color: rgba(255, 255, 255, 0.78) !important;
+    color: #FFFFFF !important;
     text-align: center !important;
   }
 
@@ -81,11 +81,12 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-marker {
-    width: 4px !important;
+    width: 3px !important;
     height: 24px !important;
-    flex: 0 0 4px !important;
-    border-radius: 999px !important;
-    background: linear-gradient(180deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%) !important;
+    flex: 0 0 3px !important;
+    border-radius: 2px !important;
+    background: #FF2DAA !important;
+    background-image: none !important;
     box-shadow: none !important;
   }
 
@@ -103,11 +104,18 @@
     font-size: 0.72rem !important;
     line-height: 1 !important;
     font-weight: 950 !important;
-    border-radius: 7px !important;
-    color: #ffffff !important;
-    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
+    border-radius: 5px !important;
+    color: #FFFFFF !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.20) !important;
     box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip:hover,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip:focus-visible {
+    background: #14344C !important;
+    border-color: #FF2DAA !important;
   }
 }
 

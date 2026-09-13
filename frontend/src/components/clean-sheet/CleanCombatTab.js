@@ -3,9 +3,12 @@ import { toast } from 'sonner';
 
 import { getClassResourceRules } from '../../data/classResourceRules';
 import { getCharacterActionFeatures } from '../../data/characterFeatureSelectors';
+import { buildCharacterSpellCastUpdate } from '../../data/characterSpellCastingActions';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
+import CombatSpellActionCard from './CombatSpellActionCard';
 import { ActionSection, AttackCard, SimpleActionCard } from './CleanCombatTabCards';
 import {
+  buildConsumableUseUpdate,
   fmt,
   gatherConsumables,
   gatherEquippedWeapons,
@@ -43,12 +46,6 @@ function actionTypeFromText(text = '', fallback = 'action') {
   if (/minute|hour|ritual|special/.test(normalised)) return null;
   if (/action/.test(normalised)) return 'action';
   return fallback;
-}
-
-function spellLevelLabel(level) {
-  if (Number(level) === 0) return 'Cantrip';
-  if (!level && level !== 0) return 'Spell';
-  return `Level ${level}`;
 }
 
 function normaliseSpell(spell, fallbackLevel = null, source = '') {
@@ -128,15 +125,6 @@ function gatherActionFeatures(character = {}) {
       seen.add(key);
       return true;
     });
-}
-
-function lowestUsableSlot(slots = {}, remaining = {}, spellLevel = 1) {
-  const keys = Array.from(new Set([...Object.keys(slots || {}), ...Object.keys(remaining || {})]))
-    .map(Number)
-    .filter((level) => level >= Number(spellLevel || 1))
-    .sort((a, b) => a - b);
-
-  return keys.find((level) => Number(remaining[level] ?? slots[level] ?? 0) > 0) || null;
 }
 
 export default function CleanCombatTab({ character, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult }) {
@@ -253,40 +241,35 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     toast.success(`${damage.label || 'Damage'}: ${result.total} ${damage.damageType || ''}`.trim());
   };
 
-  const handleSlotChange = async (nextRemaining) => {
-    if (!onCharacterUpdate) return false;
-    return onCharacterUpdate(
-      { spell_slots_remaining: nextRemaining },
-      { error: 'Could not update spell slots' },
-    );
-  };
-
-  const castSpell = async (spell) => {
-    const level = Number(spell.level || 0);
+  const castSpell = async (spell, explicitOption = null) => {
     const spellName = spell.name || 'Spell';
+    const cast = buildCharacterSpellCastUpdate(character, spell, { explicitOption });
 
-    if (level <= 0) {
+    if (!cast.ok) {
+      toast.error(cast.reason || `No spell slot available for ${spellName}`);
+      return;
+    }
+
+    if (cast.option?.source === 'cantrip') {
       toast.success(`${spellName} used`, { description: 'Cantrips do not spend spell slots.' });
       return;
     }
 
-    const slots = character?.spell_slots || {};
-    const remaining = character?.spell_slots_remaining && Object.keys(character.spell_slots_remaining).length
-      ? character.spell_slots_remaining
-      : slots;
-    const slotLevel = lowestUsableSlot(slots, remaining, level);
-
-    if (!slotLevel) {
-      toast.error(`No level ${level}+ spell slots left`);
+    if (!onCharacterUpdate) {
+      toast.error('Open a saved character before spending spell slots.');
       return;
     }
 
-    const nextRemaining = {
-      ...(remaining || {}),
-      [slotLevel]: Math.max(0, Number(remaining[slotLevel] ?? slots[slotLevel] ?? 0) - 1),
-    };
-    const ok = await handleSlotChange(nextRemaining);
-    if (ok !== false) toast.success(`${spellName} cast`, { description: `Spent a level ${slotLevel} spell slot.` });
+    const ok = await onCharacterUpdate(
+      cast.updates,
+      { error: cast.option?.source === 'pact' ? 'Could not update Pact Magic' : 'Could not update spell slots' },
+    );
+    if (ok === false) return;
+
+    const description = cast.option?.source === 'pact'
+      ? `Spent a level ${cast.option.level} Pact Magic slot.`
+      : `Spent a level ${cast.option?.level} spell slot.`;
+    toast.success(`${spellName} cast`, { description });
   };
 
   const useConsumable = async (item) => {
@@ -294,19 +277,15 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     const result = rollDice(heal.count, heal.sides, heal.modifier);
     toast.success(`${getItemName(item)} heals ${result.total} HP`);
     if (!onCharacterUpdate) return;
-    const inventory = [...(character?.inventory || [])];
-    const equipment = [...(character?.equipment || [])];
-    const source = inventory.includes(item) ? inventory : equipment;
-    const sourceIndex = source.findIndex(entry => entry === item);
-    if (sourceIndex >= 0 && typeof source[sourceIndex] === 'object') {
-      const qty = getItemQuantity(source[sourceIndex]);
-      if (qty && qty > 1) source[sourceIndex] = { ...source[sourceIndex], quantity: qty - 1, qty: qty - 1 };
-      else source.splice(sourceIndex, 1);
+    const updates = buildConsumableUseUpdate(character, item, result.total);
+    if (!updates.consumed) {
+      toast.error(`Could not find ${getItemName(item)} in this character's inventory.`);
+      return;
     }
     await onCharacterUpdate({
-      current_hit_points: Math.min(Number(character?.max_hit_points || 10), Number(character?.current_hit_points || 0) + result.total),
-      inventory,
-      equipment,
+      current_hit_points: updates.current_hit_points,
+      inventory: updates.inventory,
+      equipment: updates.equipment,
     }, { error: 'Could not use consumable' });
   };
 
@@ -320,12 +299,12 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   ));
 
   const spellCards = (spellList, typeLabel) => spellList.map((spell) => (
-    <SimpleActionCard
+    <CombatSpellActionCard
       key={`${typeLabel}-${spell.name}`}
-      title={spell.name}
-      type={spellLevelLabel(spell.level)}
-      description={`${spell.source || 'Spell'}${spell.castingTime ? ` • ${spell.castingTime}` : ''}${spell.description ? ` — ${spell.description.slice(0, 120)}${spell.description.length > 120 ? '…' : ''}` : ''}`}
-      onClick={() => castSpell(spell)}
+      character={character}
+      spell={spell}
+      typeLabel={typeLabel}
+      onCast={castSpell}
     />
   ));
 

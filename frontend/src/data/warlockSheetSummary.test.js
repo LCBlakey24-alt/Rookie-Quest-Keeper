@@ -32,14 +32,14 @@ describe('Warlock sheet summary helper', () => {
     expect(summary.nextSubclassFeatures.map(feature => feature.level)).toEqual([14]);
   });
 
-  test('summarises a 2024 Warlock with staged choices', () => {
+  test('summarises a 2024 Warlock with pact invocation choices', () => {
+    const invocations = ['Pact of the Chain', 'Eldritch Mind', 'Armor of Shadows', 'Agonizing Blast', 'Devil’s Sight'];
     const summary = getWarlockSheetSummary({
       character_class: 'Warlock',
       level: 6,
       rules_edition: '2024',
       subclass: 'Archfey Patron',
-      pact_boon: 'Pact of the Chain',
-      eldritch_invocations: ['One', 'Two', 'Three', 'Four', 'Five'],
+      eldritch_invocations: invocations,
     });
 
     expect(summary).toMatchObject({
@@ -51,17 +51,18 @@ describe('Warlock sheet summary helper', () => {
       pactMagicSlots: 2,
       pactMagicSlotLevel: 3,
       invocationCount: 5,
-      invocationsLabel: 'One, Two, Three, Four, Five',
+      invocationsLabel: invocations.join(', '),
     });
     expect(summary.subclassFeatures.map(feature => feature.level)).toEqual([3, 6]);
-    expect(summary.choices.map(choice => choice.choiceType)).toEqual(expect.arrayContaining(['eldritch_invocations', 'subclass', 'pact_boon']));
+    expect(summary.choices.map(choice => choice.choiceType)).toEqual(expect.arrayContaining(['eldritch_invocations', 'subclass', 'asi_or_feat']));
+    expect(summary.choices.map(choice => choice.choiceType)).not.toContain('pact_boon');
   });
 
-  test('prompts for missing choices', () => {
+  test('prompts for missing 2024 choices without requiring a separate pact boon', () => {
     const summary = getWarlockSheetSummary({ character_class: 'Warlock', level: 3, rules_edition: '2024' });
 
     expect(summary.subclassLabel).toBe('Choose/record Warlock Patron');
-    expect(summary.pactBoonLabel).toBe('Choose Pact Boon');
+    expect(summary.pactBoonLabel).toBe('No Pact Invocation selected');
     expect(summary.invocationsLabel).toBe('Choose 3 Eldritch Invocations');
   });
 

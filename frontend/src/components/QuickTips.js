@@ -3,11 +3,11 @@ import { Lightbulb, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Dark Minimalist Theme Colors - #C54B2C
 const theme = {
-  accent: '#C54B2C',
-  accentSubtle: 'rgba(225, 29, 72, 0.15)',
-  accentBorder: 'rgba(225, 29, 72, 0.3)',
-  text: '#FFFFFF',
-  muted: '#808080'
+  accent: 'var(--rq-accent-primary)',
+  accentSubtle: 'var(--rq-accent-soft)',
+  accentBorder: 'var(--rq-border-default)',
+  text: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-primary)'
 };
 
 function QuickTips({ tips, pageId, title = "Quick Tips" }) {

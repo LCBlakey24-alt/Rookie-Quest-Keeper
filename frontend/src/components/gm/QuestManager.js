@@ -6,8 +6,8 @@ import apiClient from '@/lib/apiClient';
 const STATUS_OPTIONS = ['draft', 'available', 'active', 'completed', 'failed', 'archived'];
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444', red: '#d00000',
-  text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', hover: 'var(--rq-card-hover)', red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
 };
 
 const emptyQuest = { title: '', summary: '', hook: '', status: 'available', gm_notes: '', objectives: [], linked_encounter_ids: [], is_pinned: false };

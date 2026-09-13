@@ -10,8 +10,8 @@ import { MONSTER_DATABASE } from '@/data/monsterDatabase';
 import { monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
-const rq = { bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000', text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)' };
+const titleFont = fontStack;
+const rq = { bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)', text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)' };
 
 function normaliseCreatures(data) {
   if (Array.isArray(data)) return data;
@@ -253,21 +253,21 @@ function CreatureCard({ creature, count, onAdjust }) {
 
 const shellStyle = { display: 'grid', gap: 14, color: rq.text, fontFamily: fontStack };
 const heroStyle = { display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, padding: 16 };
-const eyebrowStyle = { margin: '0 0 5px', color: rq.red, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.11em' };
+const eyebrowStyle = { margin: '0 0 5px', color: rq.text, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.11em' };
 const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 0.95, display: 'flex', gap: 10, alignItems: 'center' };
 const subtitleStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 760 };
-const noticeStyle = { background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${rq.red}`, color: rq.soft, padding: 12, lineHeight: 1.45, fontSize: 13 };
-const handoffStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, padding: 12 };
+const noticeStyle = { background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, color: rq.soft, padding: 12, lineHeight: 1.45, fontSize: 13 };
+const handoffStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 12 };
 const statGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(100px, 1fr))', gap: 8, minWidth: 'min(100%, 420px)' };
 const statStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, display: 'grid', gap: 3, textAlign: 'center' };
-const encounterBuilderStyle = { display: 'grid', gap: 12, background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, padding: 14 };
+const encounterBuilderStyle = { display: 'grid', gap: 12, background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 14 };
 const builderHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' };
 const builderActionStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950, display: 'flex', gap: 8, alignItems: 'center' };
 const smallHelpStyle = { margin: '5px 0 0', color: rq.muted, fontSize: 12, lineHeight: 1.4 };
-const primaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: rq.red, color: rq.text, fontWeight: 950, display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: fontStack };
+const primaryButtonStyle = { minHeight: 38, border: `1px solid ${rq.pink}`, borderRadius: 5, background: rq.card, color: rq.text, fontWeight: 950, display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: rq.card, color: rq.text, fontWeight: 900, display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: fontStack };
-const tinyButtonStyle = { minHeight: 30, border: 0, background: rq.red, color: rq.text, padding: '0 8px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const tinyButtonStyle = { minHeight: 30, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: '0 8px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const filtersStyle = { display: 'grid', gridTemplateColumns: 'minmax(220px, 1.4fr) minmax(140px, 0.6fr) 120px 120px minmax(190px, 1fr) auto', gap: 8, alignItems: 'center' };
 const searchWrapStyle = { display: 'flex', alignItems: 'center', gap: 7, background: rq.bg, border: `1px solid ${rq.line}`, padding: '0 8px' };
 const selectWrapStyle = { display: 'flex', alignItems: 'center', gap: 7, background: rq.bg, border: `1px solid ${rq.line}`, padding: '0 8px' };
@@ -275,15 +275,15 @@ const inputStyle = { minHeight: 36, background: rq.bg, border: `1px solid ${rq.l
 const selectStyle = { minHeight: 36, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 8px', borderRadius: 0 };
 const selectedPanelStyle = { display: 'grid', gap: 6, background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, color: rq.soft };
 const selectedChipRowStyle = { display: 'flex', gap: 6, flexWrap: 'wrap' };
-const selectedChipStyle = { background: 'rgba(208,0,0,0.18)', color: rq.text, border: `1px solid ${rq.line}`, padding: '4px 7px', fontSize: 12, fontWeight: 900 };
+const selectedChipStyle = { background: 'rgba(124,203,255,0.10)', color: rq.text, border: `1px solid ${rq.line}`, padding: '4px 7px', fontSize: 12, fontWeight: 900 };
 const creatureGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 8 };
-const creatureCardStyle = (active) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, background: active ? 'rgba(208,0,0,0.18)' : rq.card, border: `1px solid ${active ? rq.red : rq.line}`, borderLeft: `5px solid ${active ? rq.red : rq.line}`, padding: 10 });
+const creatureCardStyle = (active) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, background: active ? 'rgba(124,203,255,0.10)' : rq.card, border: `1px solid ${active ? rq.red : rq.line}`, borderLeft: `1px solid ${active ? rq.pink : rq.line}`, padding: 10 });
 const creatureTopStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' };
 const crPillStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: '3px 6px', fontSize: 11, fontWeight: 950, whiteSpace: 'nowrap' };
 const creatureMetaStyle = { margin: '5px 0 0', color: rq.muted, fontSize: 12 };
 const creatureDescStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 12, lineHeight: 1.35 };
 const countControlStyle = { display: 'grid', gridTemplateRows: '28px 24px 28px', alignItems: 'center', justifyItems: 'center' };
-const countButtonStyle = { width: 30, height: 28, border: 0, background: rq.red, color: rq.text, fontWeight: 950, cursor: 'pointer' };
+const countButtonStyle = { width: 30, height: 28, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, fontWeight: 950, cursor: 'pointer' };
 const emptyStyle = { margin: 0, color: rq.muted, background: rq.bg, border: `1px dashed ${rq.line}`, padding: 14, lineHeight: 1.4 };
 const lowerGridStyle = { display: 'grid', gridTemplateColumns: 'minmax(min(320px, 100%), 0.85fr) minmax(min(320px, 100%), 1.15fr)', gap: 12 };
 const panelStyle = { background: rq.card, border: `1px solid ${rq.line}`, padding: 14, minWidth: 0 };

@@ -1,14 +1,14 @@
-/* Mobile-only unified play header.
-   Visually joins the character hero and combat dashboard into one practical top card. */
+/* Mobile-only unified play header for RQK 1.0. */
 
 @media (max-width: 759px) {
   #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple {
     margin-bottom: 0 !important;
     padding-bottom: 8px !important;
-    background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
+    background: #0C2234 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
     border-bottom: 0 !important;
-    border-radius: 10px 10px 0 0 !important;
+    border-radius: 7px 7px 0 0 !important;
     box-shadow: none !important;
   }
 
@@ -16,10 +16,11 @@
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
     margin-top: 0 !important;
     padding-top: 8px !important;
-    background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
+    background: #0C2234 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
     border-top: 0 !important;
-    border-radius: 0 0 10px 10px !important;
+    border-radius: 0 0 7px 7px !important;
     box-shadow: none !important;
   }
 
@@ -52,8 +53,11 @@
     min-width: 32px !important;
     height: 32px !important;
     min-height: 32px !important;
-    border-radius: 7px !important;
-    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    border-radius: 5px !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    border: 1px solid #FF2DAA !important;
+    color: #7CCBFF !important;
   }
 
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
@@ -61,50 +65,39 @@
     padding: 8px 11px 11px !important;
   }
 
-  #root .character-page-v2 .clean-sheet-combat-dashboard-topline {
-    gap: 7px !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-combat-hp-title {
-    gap: 5px !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-combat-hp-title span {
-    font-size: 0.82rem !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-combat-hp-title strong {
-    font-size: 1.1rem !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-combat-top-actions {
-    gap: 5px !important;
-  }
+  #root .character-page-v2 .clean-sheet-combat-dashboard-topline { gap: 7px !important; }
+  #root .character-page-v2 .clean-sheet-combat-hp-title { gap: 5px !important; }
+  #root .character-page-v2 .clean-sheet-combat-hp-title span { font-size: 0.82rem !important; color: #FFFFFF !important; }
+  #root .character-page-v2 .clean-sheet-combat-hp-title strong { font-size: 1.1rem !important; color: #FFFFFF !important; }
+  #root .character-page-v2 .clean-sheet-combat-top-actions { gap: 5px !important; }
 
   #root .character-page-v2 .clean-sheet-combat-temp-pill,
   #root .character-page-v2 .clean-sheet-combat-rest-toggle {
     min-height: 26px !important;
     padding-inline: 7px !important;
     font-size: 0.58rem !important;
-    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.20) !important;
+    color: #FFFFFF !important;
   }
 
   #root .character-page-v2 .clean-sheet-inspiration-toggle {
     width: 28px !important;
     min-width: 28px !important;
     min-height: 26px !important;
-    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.20) !important;
+    color: #7CCBFF !important;
   }
 
   #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active {
-    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    background: rgba(124,203,255,.10) !important;
+    border-color: #FF2DAA !important;
   }
 
-  #root .character-page-v2 .clean-sheet-hp-progress {
-    height: 4px !important;
-  }
+  #root .character-page-v2 .clean-sheet-hp-progress { height: 4px !important; }
 
   #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls {
     grid-template-columns: 0.9fr 0.56fr 0.9fr 0.88fr 0.88fr !important;
@@ -116,9 +109,12 @@
     min-height: 28px !important;
     padding: 4px 3px !important;
     font-size: 0.56rem !important;
-    background: linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.20) !important;
+    border-radius: 5px !important;
     box-shadow: none !important;
+    color: #FFFFFF !important;
   }
 
   #root .character-page-v2 .clean-sheet-quick-stat-strip {
@@ -132,7 +128,6 @@
     min-height: 42px !important;
     padding: 3px 2px !important;
     background: transparent !important;
-    background-color: transparent !important;
     background-image: none !important;
     border: 0 !important;
     box-shadow: none !important;
@@ -145,33 +140,22 @@
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar button.clean-sheet-quick-stat.clean-sheet-quick-stat--rollable::after {
     display: none !important;
     content: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
   }
 
-  #root .character-page-v2 .clean-sheet-quick-stat svg {
-    width: 12px !important;
-    height: 12px !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-quick-stat span {
-    font-size: 0.58rem !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-quick-stat strong {
-    font-size: clamp(1.22rem, 6.5vw, 1.72rem) !important;
-  }
+  #root .character-page-v2 .clean-sheet-quick-stat svg { width: 12px !important; height: 12px !important; color: #7CCBFF !important; }
+  #root .character-page-v2 .clean-sheet-quick-stat span { font-size: 0.58rem !important; color: #FFFFFF !important; }
+  #root .character-page-v2 .clean-sheet-quick-stat strong { font-size: clamp(1.22rem, 6.5vw, 1.72rem) !important; color: #FFFFFF !important; }
 }
 
-/* Character-sheet colour cleanup: stop old brown/orange surfaces leaking through. */
 #root .character-page-v2 .clean-sheet-panel,
 #root .character-page-v2 .clean-sheet-stat-card,
 #root .character-page-v2 .clean-sheet-compact-ability,
 #root .character-page-v2 .clean-sheet-compact-save,
 #root .character-page-v2 .clean-sheet-compact-skill,
 #root .character-page-v2 .clean-sheet-passive-card {
-  background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.9), rgba(216, 77, 241, 0.9), rgba(255, 79, 129, 0.86), rgba(255, 149, 66, 0.86)) border-box !important;
-  border: 1px solid transparent !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
   box-shadow: none !important;
 }
 
@@ -190,10 +174,11 @@
 #root .character-page-v2 .clean-sheet-compact-save .clean-sheet-roll-chip,
 #root .character-page-v2 .clean-sheet-compact-skill .clean-sheet-roll-chip,
 #root .character-page-v2 .clean-sheet-panel button.clean-sheet-roll-chip {
-  color: #ffffff !important;
-  background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
-  border-radius: 8px !important;
+  color: #FFFFFF !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.20) !important;
+  border-radius: 5px !important;
   box-shadow: none !important;
 }
 
@@ -204,31 +189,17 @@
 }
 
 @media (max-width: 759px) {
-  #root .character-page-v2 .clean-sheet-identity {
-    gap: 4px !important;
-  }
+  #root .character-page-v2 .clean-sheet-identity { gap: 4px !important; }
+  #root .character-page-v2 .clean-sheet-identity h1 { margin-bottom: 0 !important; }
+  #root .character-page-v2 .clean-sheet-identity h1::after { display: none !important; content: none !important; }
+  #root .character-page-v2 .clean-sheet-hero-subtitle { margin-top: 0 !important; line-height: 1.25 !important; }
 
-  #root .character-page-v2 .clean-sheet-identity h1 {
-    margin-bottom: 0 !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-identity h1::after {
-    margin-top: 7px !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-hero-subtitle {
-    margin-top: 0 !important;
-    line-height: 1.25 !important;
-  }
-}
-
-@media (max-width: 759px) {
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-scores-panel {
     padding: 10px !important;
-    background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
-    border-left: 1px solid transparent !important;
-    border-radius: 10px !important;
+    background: #0C2234 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
+    border-radius: 7px !important;
     box-shadow: none !important;
   }
 
@@ -240,6 +211,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-scores-panel h2 {
     margin-bottom: 7px !important;
+    color: #FFFFFF !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip {
@@ -272,17 +244,16 @@
     font-size: 0.58rem !important;
     line-height: 1 !important;
     letter-spacing: 0.04em !important;
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: #FFFFFF !important;
     text-align: center !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip .clean-sheet-compact-ability > strong {
     width: 100% !important;
-    font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
     font-size: clamp(1.35rem, 7vw, 1.85rem) !important;
     line-height: 0.95 !important;
     font-weight: 900 !important;
-    color: #ffffff !important;
+    color: #FFFFFF !important;
     text-align: center !important;
   }
 
@@ -296,28 +267,24 @@
     height: 23px !important;
     padding: 0 5px !important;
     font-size: 0.7rem !important;
-    border-radius: 7px !important;
-    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-    border: 1px solid transparent !important;
+    border-radius: 5px !important;
+    background: #102B40 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.20) !important;
     box-shadow: none !important;
   }
 }
 
 @media (max-width: 390px) {
-  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip {
-    gap: 3px !important;
-  }
-
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip { gap: 3px !important; }
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip .clean-sheet-compact-ability {
     min-height: 61px !important;
     padding-left: 1px !important;
     padding-right: 1px !important;
   }
-
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip .clean-sheet-compact-ability > strong {
     font-size: clamp(1.18rem, 6.5vw, 1.55rem) !important;
   }
-
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip .clean-sheet-compact-ability .clean-sheet-roll-chip {
     min-width: 27px !important;
     max-width: 36px !important;

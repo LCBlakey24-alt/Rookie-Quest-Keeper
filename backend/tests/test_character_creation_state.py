@@ -1,0 +1,289 @@
+"""Regression tests for canonical character creation state."""
+
+import os
+import sys
+import unittest
+from pathlib import Path
+
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
+os.environ.setdefault("DB_NAME", "rookie_quest_keeper_test")
+os.environ.setdefault("JWT_SECRET_KEY", "character-creation-state-test-secret")
+os.environ.setdefault("APP_URL", "http://localhost:3000")
+os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
+
+from routes.character_creation_state import (  # noqa: E402
+    clamp_slot_state,
+    derive_creation_spell_slots,
+    normalise_created_character,
+    parse_class_breakdown,
+)
+
+
+class TestCharacterCreationState(unittest.TestCase):
+    def test_imported_multiclass_text_becomes_real_class_levels(self):
+        primary, levels, explicit = parse_class_breakdown("Fighter 3 / Rogue 2", 5)
+        self.assertTrue(explicit)
+        self.assertEqual(primary, "Fighter")
+        self.assertEqual(levels, {"Fighter": 3, "Rogue": 2})
+
+    def test_single_class_name_uses_total_level_without_destroying_homebrew_name(self):
+        primary, levels, explicit = parse_class_breakdown("Scarlet Engineer", 6)
+        self.assertFalse(explicit)
+        self.assertEqual(primary, "Scarlet Engineer")
+        self.assertEqual(levels, {"Scarlet Engineer": 6})
+
+    def test_imported_warlock_gets_pact_slots_and_tracker(self):
+        character = normalise_created_character(
+            {
+                "name": "Javen",
+                "race": "Human",
+                "character_class": "Warlock 11",
+                "level": 11,
+                "charisma": 18,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["character_class"], "Warlock")
+        self.assertEqual(character["class_levels"], {"Warlock": 11})
+        self.assertEqual(character["spell_slots"], {"5": 3})
+        self.assertEqual(character["spell_slots_remaining"], {"5": 3})
+        self.assertEqual(character["resources"]["pact_magic"]["max"], 3)
+        self.assertEqual(character["resources"]["pact_magic"]["slot_level"], 5)
+        self.assertEqual(character["spellcasting_ability"], "charisma")
+        self.assertEqual(character["spell_save_dc"], 16)
+        self.assertEqual(character["spell_attack_bonus"], 8)
+
+    def test_imported_multiclass_caster_gets_shared_slot_table_and_class_entries(self):
+        character = normalise_created_character(
+            {
+                "name": "Dual Caster",
+                "race": "Human",
+                "character_class": "Wizard 3 / Cleric 2",
+                "subclass": "Evocation",
+                "level": 5,
+                "intelligence": 16,
+                "wisdom": 16,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["character_class"], "Wizard")
+        self.assertEqual(character["level"], 5)
+        self.assertEqual(character["class_levels"], {"Wizard": 3, "Cleric": 2})
+        self.assertEqual(character["multiclass_classes"], ["Wizard", "Cleric"])
+        self.assertEqual(character["spell_slots"], {"1": 4, "2": 3, "3": 2})
+        wizard = next(entry for entry in character["classes"] if entry["name"] == "Wizard")
+        cleric = next(entry for entry in character["classes"] if entry["name"] == "Cleric")
+        self.assertEqual(wizard["subclass"], "Evocation")
+        self.assertEqual(cleric["subclass"], "")
+        self.assertEqual(character["resources"]["arcane_recovery"]["max"], 1)
+        self.assertEqual(character["resources"]["channel_divinity"]["max"], 1)
+
+    def test_warlock_plus_wizard_keeps_shared_slots_and_pact_resource(self):
+        character = normalise_created_character(
+            {
+                "name": "Split Caster",
+                "race": "Human",
+                "character_class": "Warlock 3 / Wizard 2",
+                "level": 5,
+                "charisma": 16,
+                "intelligence": 16,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["spell_slots"], {"1": 3})
+        self.assertEqual(character["resources"]["pact_magic"]["max"], 2)
+        self.assertEqual(character["resources"]["pact_magic"]["slot_level"], 2)
+        self.assertEqual(character["resources"]["arcane_recovery"]["max"], 1)
+
+    def test_2024_paladin_gets_spellcasting_and_slots_at_level_one(self):
+        character = normalise_created_character(
+            {
+                "name": "Dawn Shield",
+                "race": "Human",
+                "character_class": "Paladin",
+                "level": 1,
+                "rules_edition": "2024",
+                "charisma": 16,
+            },
+            "player-one",
+        )
+        self.assertEqual(character["spell_slots"], {"1": 2})
+        self.assertEqual(character["spell_slots_remaining"], {"1": 2})
+        self.assertEqual(character["spellcasting_ability"], "charisma")
+
+    def test_2014_paladin_still_starts_spellcasting_at_level_two(self):
+        self.assertEqual(
+            derive_creation_spell_slots(
+                "Paladin",
+                "",
+                {"Paladin": 1},
+                {"rules_edition": "2014", "character_class": "Paladin", "level": 1},
+            ),
+            {},
+        )
+        self.assertEqual(
+            derive_creation_spell_slots(
+                "Paladin",
+                "",
+                {"Paladin": 2},
+                {"rules_edition": "2014", "character_class": "Paladin", "level": 2},
+            ),
+            {"1": 2},
+        )
+
+    def test_2024_ranger_gets_spellcasting_and_slots_at_level_one(self):
+        character = normalise_created_character(
+            {
+                "name": "Trail",
+                "race": "Human",
+                "character_class": "Ranger",
+                "level": 1,
+                "rules_edition": "2024",
+                "wisdom": 16,
+            },
+            "player-one",
+        )
+        self.assertEqual(character["spell_slots"], {"1": 2})
+        self.assertEqual(character["spellcasting_ability"], "wisdom")
+
+    def test_2024_multiclass_half_caster_rounds_up_but_2014_rounds_down(self):
+        modern = normalise_created_character(
+            {
+                "name": "Modern Hybrid",
+                "race": "Human",
+                "character_class": "Wizard 1 / Paladin 1",
+                "level": 2,
+                "rules_edition": "2024",
+                "intelligence": 16,
+                "charisma": 16,
+            },
+            "player-one",
+        )
+        legacy = normalise_created_character(
+            {
+                "name": "Legacy Hybrid",
+                "race": "Human",
+                "character_class": "Wizard 1 / Paladin 1",
+                "level": 2,
+                "rules_edition": "2014",
+                "intelligence": 16,
+                "charisma": 16,
+            },
+            "player-one",
+        )
+        self.assertEqual(modern["spell_slots"], {"1": 3})
+        self.assertEqual(legacy["spell_slots"], {"1": 2})
+
+    def test_imported_fighter_gets_persisted_core_resource_trackers(self):
+        character = normalise_created_character(
+            {
+                "name": "Shield",
+                "race": "Human",
+                "character_class": "Fighter",
+                "level": 9,
+                "constitution": 16,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["resources"]["second_wind"]["current"], 1)
+        self.assertEqual(character["resources"]["action_surge"]["current"], 1)
+        self.assertEqual(character["resources"]["indomitable"]["current"], 1)
+        self.assertEqual(character["resources"]["second_wind"]["restore"], "short-rest")
+
+    def test_imported_monk_gets_level_scaled_ki(self):
+        character = normalise_created_character(
+            {
+                "name": "Still Water",
+                "race": "Human",
+                "character_class": "Monk",
+                "level": 7,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["resources"]["ki"]["current"], 7)
+        self.assertEqual(character["resources"]["ki"]["max"], 7)
+        self.assertEqual(character["resources"]["ki"]["restore"], "short-rest")
+
+    def test_existing_resource_state_is_preserved_when_builder_supplies_it(self):
+        character = normalise_created_character(
+            {
+                "name": "Spent Fighter",
+                "race": "Human",
+                "character_class": "Fighter",
+                "level": 5,
+                "resources": {
+                    "second_wind": {"label": "Second Wind", "current": 0, "remaining": 0, "max": 1, "restore": "short-rest"},
+                    "homebrew_charge": {"label": "Homebrew Charge", "current": 2, "remaining": 2, "max": 3},
+                },
+            },
+            "player-one",
+        )
+        self.assertEqual(character["resources"]["second_wind"]["current"], 0)
+        self.assertEqual(character["resources"]["homebrew_charge"]["current"], 2)
+        self.assertIn("action_surge", character["resources"])
+
+    def test_multiclass_hit_dice_string_tracks_each_class(self):
+        character = normalise_created_character(
+            {
+                "name": "Mixed Dice",
+                "race": "Human",
+                "character_class": "Fighter 3 / Wizard 2",
+                "level": 5,
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertIn("3d10", character["hit_dice"])
+        self.assertIn("2d6", character["hit_dice"])
+        self.assertEqual(character["hit_dice_remaining"], 5)
+
+    def test_slot_remaining_values_are_clamped_to_capacity(self):
+        self.assertEqual(
+            clamp_slot_state({"1": 4, "2": 2}, {"1": 99, "2": -3, "3": 5}),
+            {"1": 4, "2": 0},
+        )
+
+    def test_non_caster_has_no_derived_spell_slots(self):
+        self.assertEqual(derive_creation_spell_slots("Fighter", "Champion", {"Fighter": 5}), {})
+
+    def test_eldritch_knight_uses_third_caster_slot_progression(self):
+        self.assertEqual(
+            derive_creation_spell_slots("Fighter", "Eldritch Knight", {"Fighter": 6}),
+            {"1": 3},
+        )
+
+    def test_arcane_trickster_uses_third_caster_slot_progression(self):
+        self.assertEqual(
+            derive_creation_spell_slots("Rogue", "Arcane Trickster", {"Rogue": 6}),
+            {"1": 3},
+        )
+
+    def test_unknown_multiclass_preserves_explicit_homebrew_slot_map(self):
+        character = normalise_created_character(
+            {
+                "name": "Homebrew Hybrid",
+                "race": "Human",
+                "character_class": "Scarlet Engineer 3 / Void Knight 2",
+                "level": 5,
+                "spell_slots": {"1": 2, "2": 1},
+                "spell_slots_remaining": {"1": 1, "2": 1},
+                "creation_mode": "imported",
+            },
+            "player-one",
+        )
+        self.assertEqual(character["spell_slots"], {"1": 2, "2": 1})
+        self.assertEqual(character["spell_slots_remaining"], {"1": 1, "2": 1})
+
+
+if __name__ == "__main__":
+    unittest.main()

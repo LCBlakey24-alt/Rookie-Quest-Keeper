@@ -7,11 +7,11 @@ import CombatTab from '@/components/gm/CombatTab';
 import MonstersTab from '@/components/gm/MonstersTab';
 
 const theme = {
-  bg: { primary: '#242424', surface: '#2f2f2f', elevated: '#3a3a3a', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
-  accent: { primary: '#d00000', secondary: '#d00000', gold: '#d00000', orange: '#ff3b3b', hover: '#ff3b3b', subtle: 'rgba(208,0,0,0.18)', glow: 'none', gm: '#d00000', gmSubtle: 'rgba(208,0,0,0.18)' },
-  text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', white: '#ffffff' },
-  border: 'rgba(255,255,255,0.16)',
-  gradient: '#d00000',
+  bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', hover: 'var(--rq-card-hover)' },
+  accent: { primary: 'var(--rq-accent-primary)', secondary: 'var(--rq-secondary)', gold: 'var(--rq-secondary)', orange: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-primary)', subtle: 'var(--rq-accent-soft)', glow: 'none', gm: 'var(--rq-accent-primary)', gmSubtle: 'var(--rq-accent-soft)' },
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', white: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)',
+  gradient: 'var(--rq-card)',
 };
 
 function dexMod(stats = {}) {

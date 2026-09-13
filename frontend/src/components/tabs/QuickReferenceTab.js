@@ -8,11 +8,11 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Theme colors
 const theme = {
-  accent: '#8A2BE2',
-  accentSubtle: 'rgba(225, 29, 72, 0.15)',
-  bg: { card: '#1F1F1F', dark: '#141414', hover: '#2A2A2A', panel: '#1A1A1A' },
-  text: { white: '#FFFFFF', secondary: '#B3B3B3', muted: '#808080' },
-  border: 'rgba(255, 255, 255, 0.1)'
+  accent: 'var(--rq-accent-primary)',
+  accentSubtle: 'var(--rq-accent-soft)',
+  bg: { card: 'var(--rq-card)', dark: 'var(--rq-bg-main)', hover: 'var(--rq-card-hover)', panel: 'var(--rq-bg-panel)' },
+  text: { white: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  border: 'var(--rq-border-default)'
 };
 
 // TTRPG 5e Difficulty Classes

@@ -1,5 +1,4 @@
-/* Focused mobile tidy pass for the character sheet.
-   Keeps controls compact without side bars or brown cards. */
+/* Focused mobile tidy pass for the flat RQK 1.0 character sheet. */
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
   gap: 8px !important;
@@ -12,31 +11,33 @@
   padding: 8px 10px !important;
   grid-template-columns: auto minmax(0, 1fr) auto !important;
   gap: 8px !important;
-  background: linear-gradient(#10051d, #10051d) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 9px !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp > span,
 .character-page-v2 .clean-sheet-compact-stat--hp em {
   white-space: nowrap !important;
   font-size: 0.72rem !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp strong {
   font-size: clamp(1.5rem, 7vw, 2.35rem) !important;
   text-align: right !important;
+  color: #FFFFFF !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp em {
   grid-column: auto !important;
   justify-self: end !important;
   padding: 4px 7px !important;
-  background: linear-gradient(#160722, #160722) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 8px !important;
+  background: rgba(124,203,255,.10) !important;
+  background-image: none !important;
+  border: 1px solid #FF2DAA !important;
+  border-radius: 5px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-hp-actions {
@@ -58,20 +59,18 @@
   display: grid !important;
   place-items: center !important;
   text-align: center !important;
-  background: linear-gradient(#1a0b2d, #1a0b2d) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  color: #ffffff !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 8px !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255,45,170,.20) !important;
+  border-radius: 5px !important;
   font-size: 0.82rem !important;
   font-weight: 950 !important;
   line-height: 1 !important;
   white-space: nowrap !important;
 }
 
-.character-page-v2 .clean-sheet-hp-amount-select {
-  appearance: auto !important;
-}
+.character-page-v2 .clean-sheet-hp-amount-select { appearance: auto !important; }
 
 .character-page-v2 .clean-sheet-content,
 .character-page-v2 .clean-sheet-grid,
@@ -93,15 +92,13 @@
 
 .character-page-v2 .clean-sheet-skill-card {
   overflow: hidden !important;
-  background: linear-gradient(#10051d, #10051d) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
-  border: 1px solid transparent !important;
-  border-left: 1px solid transparent !important;
-  border-radius: 9px !important;
+  background: #102B40 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,45,170,.18) !important;
+  border-radius: 5px !important;
 }
 
-.character-page-v2 .clean-sheet-skill-name {
-  overflow: hidden !important;
-}
+.character-page-v2 .clean-sheet-skill-name { overflow: hidden !important; }
 
 .character-page-v2 .clean-sheet-skill-label,
 .character-page-v2 .clean-sheet-skill-label-word {
@@ -111,13 +108,11 @@
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  color: #FFFFFF !important;
 }
 
 @media (max-width: 760px) {
-  .character-page-v2 .clean-sheet-compact-status--hp-only {
-    grid-template-columns: 1fr !important;
-  }
-
+  .character-page-v2 .clean-sheet-compact-status--hp-only { grid-template-columns: 1fr !important; }
   .character-page-v2 .clean-sheet-core-stat-grid,
   .character-page-v2 .clean-sheet-passive-grid,
   .character-page-v2 .clean-sheet-compact-abilities,
@@ -154,7 +149,5 @@
   }
 
   .character-page-v2 .clean-sheet-skill-label,
-  .character-page-v2 .clean-sheet-skill-label-word {
-    font-size: 8.5px !important;
-  }
+  .character-page-v2 .clean-sheet-skill-label-word { font-size: 8.5px !important; }
 }

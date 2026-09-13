@@ -17,9 +17,10 @@ import {
 } from '@/offline/offlineCombatSyncQueue';
 
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
-  text: '#ffffff', soft: 'rgba(255,255,255,0.76)', muted: 'rgba(255,255,255,0.56)', line: 'rgba(255,255,255,0.16)',
-  green: '#22c55e', amber: '#f59e0b', danger: '#ef4444',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)',
+  pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
+  green: 'var(--rq-secondary)', amber: 'var(--rq-accent-primary)', danger: 'var(--rq-accent-primary)',
 };
 
 const CONDITIONS = [
@@ -880,10 +881,10 @@ const combatCss = `
   .combat-title-wrap { min-width: 0; display: grid; gap: 1px; }
   .combat-title-wrap strong { display: flex; align-items: center; gap: 6px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .combat-title-wrap span { color: ${rq.muted}; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .combat-round { min-width: 54px; height: 38px; border: 1px solid ${rq.red}; background: rgba(208,0,0,.12); display: grid; place-items: center; align-content: center; line-height: 1; }
+  .combat-round { min-width: 54px; height: 38px; border: 1px solid ${rq.red}; background: rgba(124,203,255,.10); display: grid; place-items: center; align-content: center; line-height: 1; }
   .combat-round span { color: ${rq.muted}; text-transform: uppercase; font-size: 7px; letter-spacing: .08em; }
   .combat-round strong { font-size: 16px; }
-  .combat-next-top { min-height: 38px; border: 0; background: ${rq.red}; color: #fff; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 950; cursor: pointer; }
+  .combat-next-top { min-height: 38px; border: 1px solid ${rq.pink}; background: ${rq.card}; color: #fff; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 950; cursor: pointer; }
   .combat-view-tabs { max-width: 920px; margin: 8px auto 0; padding: 0 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
   .combat-view-tabs button { min-height: 38px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.muted}; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 900; cursor: pointer; }
   .combat-view-tabs button[data-active="true"] { background: ${rq.card}; color: ${rq.text}; border-color: ${rq.red}; }
@@ -898,7 +899,7 @@ const combatCss = `
   .combat-initiative-body, .combat-add-panel > div { padding: 7px; border-top: 1px solid ${rq.line}; display: grid; gap: 6px; }
   .combat-initiative-tools { display: flex; justify-content: space-between; align-items: center; gap: 7px; flex-wrap: wrap; }
   .combat-initiative-tools span { color: ${rq.muted}; font-size: 9px; }
-  .combat-initiative-tools button { min-height: 30px; border: 1px solid ${rq.red}; background: rgba(208,0,0,.12); color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
+  .combat-initiative-tools button { min-height: 30px; border: 1px solid ${rq.red}; background: rgba(124,203,255,.10); color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
   .combat-initiative-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 4px; }
   .combat-initiative-row { min-height: 38px; display: grid; grid-template-columns: minmax(0,1fr) 58px 32px; gap: 4px; align-items: center; background: ${rq.bg}; border: 1px solid ${rq.line}; padding: 4px; }
   .combat-initiative-row > span { min-width: 0; display: grid; gap: 1px; }
@@ -938,8 +939,8 @@ const combatCss = `
   .combat-death-saves strong { font-size: 10px; }
   .combat-death-saves .successes { color: ${rq.green}; } .combat-death-saves .failures { color: ${rq.danger}; }
   .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 32px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
-  .combat-attack-button { border-color: ${rq.red}; background: rgba(208,0,0,.14); }
-  .combat-collect-loot, .combat-loot-save { border-color: #ca8a04; background: rgba(202,138,4,.14); color: #fde68a; }
+  .combat-attack-button { border-color: ${rq.red}; background: rgba(124,203,255,.10); }
+  .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(124,203,255,.10); color: ${rq.text}; }
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }
   .combat-order-tools button { min-height: 34px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.soft}; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
   .combat-order-tools .remove { color: #fca5a5; }
@@ -955,7 +956,7 @@ const combatCss = `
   .combat-bottom-bar > span { min-width: 0; display: grid; gap: 1px; }
   .combat-bottom-bar strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
   .combat-bottom-bar small { color: ${rq.muted}; font-size: 9px; }
-  .combat-bottom-bar button { min-height: 42px; border: 0; background: ${rq.red}; color: #fff; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; font-weight: 950; cursor: pointer; }
+  .combat-bottom-bar button { min-height: 42px; border: 1px solid ${rq.pink}; background: ${rq.card}; color: #fff; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; font-weight: 950; cursor: pointer; }
   @media (max-width: 680px) {
     .combat-table-header { grid-template-columns: 36px minmax(0,1fr) 48px 36px; }
     .combat-table-header .combat-round { grid-column: 3; grid-row: 1; min-width: 48px; }

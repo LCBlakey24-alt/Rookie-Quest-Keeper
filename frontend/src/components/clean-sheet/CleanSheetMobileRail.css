@@ -1,4 +1,4 @@
-/* Mobile character sheet rail: symbols only, selected icon gets the sunset square. */
+/* Mobile character-sheet rail for the flat RQK 1.0 system. */
 
 @media (max-width: 520px) {
   .character-page-v2 {
@@ -17,9 +17,11 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 6px !important;
-    background: var(--rq-bg-rail, #0d0617) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-radius: var(--rq-radius, 10px) !important;
+    background: #06111C !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,45,170,.18) !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
   }
 
   .character-page-v2 .clean-sheet-tabs button,
@@ -33,9 +35,11 @@
     display: grid !important;
     place-items: center !important;
     background: transparent !important;
-    color: #ffffff !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
     border: 1px solid transparent !important;
-    border-radius: var(--rq-inner-radius, 8px) !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
   }
 
   .character-page-v2 .clean-sheet-tabs button span,
@@ -49,7 +53,9 @@
   .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
     width: 18px !important;
     height: 18px !important;
-    color: #ffffff !important;
+    color: #7CCBFF !important;
+    background: transparent !important;
+    background-image: none !important;
   }
 
   .character-page-v2 .clean-sheet-tabs button:hover,
@@ -58,22 +64,25 @@
   .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:focus-visible,
   .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:hover,
   .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:focus-visible {
-    background: rgba(255,255,255,0.05) !important;
+    background: #0C2234 !important;
+    border-color: rgba(255,45,170,.18) !important;
     outline: none !important;
   }
 
   .character-page-v2 .clean-sheet-tabs button.active {
-    background: transparent !important;
-    border-color: transparent !important;
+    background: rgba(124,203,255,.10) !important;
+    border-color: #FF2DAA !important;
   }
 
   .character-page-v2 .clean-sheet-tabs button.active svg {
     width: 18px !important;
     height: 18px !important;
-    padding: 8px !important;
-    background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
-    border-radius: var(--rq-inner-radius, 8px) !important;
-    box-sizing: content-box !important;
+    padding: 0 !important;
+    color: #7CCBFF !important;
+    background: transparent !important;
+    background-image: none !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back {

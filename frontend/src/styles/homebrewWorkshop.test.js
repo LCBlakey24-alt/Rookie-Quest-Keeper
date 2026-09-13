@@ -11,15 +11,20 @@ function readIfExists(relativePath) {
 }
 
 describe('Homebrew presentation ownership', () => {
-  test('Homebrew uses a route-owned navy presentation', () => {
+  test('Homebrew uses the flat RQK 1.0 player presentation', () => {
     const css = read('homebrewWorkshop.css');
     const route = read('../routes/HomebrewWorkshopRoute.js');
     const app = read('../App.js');
 
-    expect(css).not.toMatch(/rq-sunset-gradient|rq-sunset-cream/i);
+    expect(css).not.toMatch(/rq-sunset-gradient|rq-sunset-cream|linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
-    expect(css).toContain('var(--rq-bg, #0a1728)');
-    expect(css).toContain('var(--rq-primary, #d00000)');
+    expect(css).not.toMatch(/background:\s*(?:var\([^;]*#d00000[^;]*\)|#d00000)\s*!important/i);
+    expect(css).toContain('#071522');
+    expect(css).toContain('#0C2234');
+    expect(css).toContain('#102B40');
+    expect(css).toContain('#7CCBFF');
+    expect(css).toContain('#FF2DAA');
+    expect(css).toContain('rgba(124,203,255,.10)');
     expect(route).toContain("@/styles/homebrewWorkshop.css");
     expect(app).toContain("import('@/routes/HomebrewWorkshopRoute')");
   });

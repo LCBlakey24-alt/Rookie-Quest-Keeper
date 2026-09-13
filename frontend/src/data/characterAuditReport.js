@@ -1,12 +1,14 @@
 import { CORE_CLASS_NAMES, deriveCharacterSnapshot } from './deriveCharacterSnapshot';
 import { DEMO_CHARACTER_FIXTURES } from './demoCharacterFixtures';
 import {
-  classHasSpellcasting,
-  getMaxSpellLevel,
-  getMulticlassSpellSlots,
   getSpellsForClass,
   SPELLCASTING_CLASSES,
 } from './spellDatabase';
+import {
+  classHasEditionSpellcasting,
+  getEditionMaxSpellLevel,
+  getEditionMulticlassSpellSlots,
+} from './editionSpellSlotRules';
 
 const normalizeKey = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
@@ -71,20 +73,31 @@ export function getEquippedItems(character = {}) {
 
 export function makeAuditCharacter(className, level, overrides = {}) {
   const subclass = overrides.subclass ?? SPELLCASTER_SUBCLASS_FIXTURES[className] ?? '';
+  const rulesEdition = String(overrides.rules_edition || overrides.edition || overrides.ruleset_id || '2014').includes('2024') ? '2024' : '2014';
+  const baseCharacter = {
+    character_class: className,
+    subclass,
+    level,
+    class_levels: { [className]: level },
+    rules_edition: rulesEdition,
+    ruleset_id: rulesEdition === '2024' ? 'dnd5e_2024' : 'dnd5e_2014',
+    ...overrides,
+  };
   const casterInfo = SPELLCASTING_CLASSES[className];
-  const isCasterAtLevel = Boolean(casterInfo) && classHasSpellcasting({ character_class: className, subclass, level }, className);
-  const spellSlots = isCasterAtLevel ? getMulticlassSpellSlots({ [className]: level }, { character_class: className, subclass, level }) : null;
+  const isCasterAtLevel = Boolean(casterInfo) && classHasEditionSpellcasting(baseCharacter, className, level);
+  const spellSlots = isCasterAtLevel ? getEditionMulticlassSpellSlots({ [className]: level }, baseCharacter) : null;
 
   return {
     __auditGenerated: true,
-    name: `Audit ${className} L${level}`,
+    name: `Audit ${className} L${level} ${rulesEdition}`,
     character_class: className,
     subclass,
     level,
     race: 'Human',
     background: 'Soldier',
-    rules_edition: '2014',
-    ruleset_id: 'dnd5e_2014',
+    rules_edition: rulesEdition,
+    ruleset_id: rulesEdition === '2024' ? 'dnd5e_2024' : 'dnd5e_2014',
+    class_levels: { [className]: level },
     ...ABILITY_BASELINE,
     max_hit_points: Math.max(1, 8 + level * 4),
     current_hit_points: Math.max(1, 8 + level * 4),
@@ -124,7 +137,7 @@ export function auditCharacter(character = {}, label = character.name || 'Unname
   const generated = Boolean(character.__auditGenerated);
   let caster = false;
   try {
-    caster = classHasSpellcasting(character, className);
+    caster = classHasEditionSpellcasting(character, className, level);
   } catch (error) {
     problems.push(safeProblemLabel(label, `spellcasting check failed: ${error?.message || String(error)}`));
   }
@@ -154,7 +167,7 @@ export function auditCharacter(character = {}, label = character.name || 'Unname
     let classSpellList = {};
     const spellListClass = getSpellListClass(className);
     try {
-      maxSpellLevel = getMaxSpellLevel(className, level);
+      maxSpellLevel = getEditionMaxSpellLevel(character, className, level);
       classSpellList = getSpellsForClass(spellListClass) || {};
     } catch (error) {
       problems.push(safeProblemLabel(label, `spell library check failed: ${error?.message || String(error)}`));
@@ -194,11 +207,15 @@ export function auditDemoCharacters(fixtures = DEMO_CHARACTER_FIXTURES) {
   return fixtures.map((fixture) => auditCharacter(fixture.character, fixture.slug));
 }
 
-export function auditClassProgression(classNames = CORE_CLASS_NAMES, levels = Array.from({ length: 20 }, (_, index) => index + 1)) {
-  return classNames.flatMap((className) => levels.map((level) => {
-    const character = makeAuditCharacter(className, level);
-    return auditCharacter(character, `${className} L${level}`);
-  }));
+export function auditClassProgression(
+  classNames = CORE_CLASS_NAMES,
+  levels = Array.from({ length: 20 }, (_, index) => index + 1),
+  editions = ['2014', '2024'],
+) {
+  return editions.flatMap((edition) => classNames.flatMap((className) => levels.map((level) => {
+    const character = makeAuditCharacter(className, level, { rules_edition: edition });
+    return auditCharacter(character, `${edition} ${className} L${level}`);
+  })));
 }
 
 export function buildCharacterAuditReport(results = []) {

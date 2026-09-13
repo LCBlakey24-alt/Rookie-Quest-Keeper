@@ -50,17 +50,17 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
       <DialogContent className="modal" style={modalStyle}>
         <DialogHeader>
           <DialogTitle style={titleStyle}>
-            <Link2 size={22} color="#d00000" />
+            <Link2 size={21} color="#7CCBFF" />
             Join Campaign
           </DialogTitle>
         </DialogHeader>
 
-        <div style={{ marginTop: 18 }}>
+        <div style={{ marginTop: 12 }}>
           <p style={bodyTextStyle}>
             Enter the 6-character join code provided by your Game Master to link <strong style={strongStyle}>{characterName || 'your character'}</strong> to their campaign.
           </p>
 
-          <div style={{ marginBottom: 18 }}>
+          <div style={{ marginBottom: 12 }}>
             <label style={labelStyle}>Campaign Join Code</label>
             <div style={{ position: 'relative' }}>
               <Input
@@ -72,7 +72,7 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
                 maxLength={6}
                 autoFocus
               />
-              <Key size={20} color="rgba(255,255,255,0.68)" style={keyIconStyle} />
+              <Key size={18} color="#7CCBFF" style={keyIconStyle} />
             </div>
             <p style={helpTextStyle}>The code is case-insensitive and exactly 6 characters.</p>
           </div>
@@ -83,10 +83,10 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={actionsStyle}>
             <Button onClick={() => onOpenChange(false)} className="btn-outline" style={secondaryButtonStyle}>Cancel</Button>
             <Button onClick={handleJoin} disabled={joining || cleanCode.length !== 6} className="btn-primary" style={primaryButtonStyle}>
-              {joining ? <><Loader className="spin" size={18} /> Joining...</> : <><Check size={18} /> Join Campaign</>}
+              {joining ? <><Loader className="spin" size={17} /> Joining...</> : <><Check size={17} /> Join Campaign</>}
             </Button>
           </div>
         </div>
@@ -95,44 +95,47 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
   );
 }
 
-const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const modalStyle = {
+  width: 'min(500px, calc(100vw - 20px))',
   maxWidth: 500,
-  background: '#242424',
-  backgroundColor: '#242424',
-  border: '1px solid rgba(255,255,255,0.18)',
-  borderRadius: 0,
-  color: '#ffffff',
+  background: '#0C2234',
+  backgroundColor: '#0C2234',
+  backgroundImage: 'none',
+  border: '1px solid rgba(255,45,170,0.28)',
+  borderRadius: 7,
+  color: '#FFFFFF',
   boxShadow: 'none',
   fontFamily: fontStack,
 };
 
 const titleStyle = {
-  fontSize: 24,
-  color: '#ffffff',
+  margin: 0,
+  fontSize: 22,
+  color: '#FFFFFF',
   display: 'flex',
   alignItems: 'center',
-  gap: 10,
-  fontWeight: 950,
+  gap: 8,
+  fontWeight: 900,
   fontFamily: fontStack,
 };
 
 const bodyTextStyle = {
-  color: 'rgba(255,255,255,0.72)',
-  fontSize: 14,
-  marginBottom: 18,
-  lineHeight: 1.5,
+  color: '#FFFFFF',
+  fontSize: 13,
+  marginBottom: 12,
+  lineHeight: 1.45,
   fontFamily: fontStack,
 };
 
-const strongStyle = { color: '#ffffff', fontWeight: 950 };
+const strongStyle = { color: '#FFFFFF', fontWeight: 900 };
 
 const labelStyle = {
   display: 'block',
-  marginBottom: 8,
-  color: 'rgba(255,255,255,0.68)',
-  fontSize: 12,
+  marginBottom: 6,
+  color: '#FFFFFF',
+  fontSize: 10,
   fontWeight: 900,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
@@ -140,66 +143,82 @@ const labelStyle = {
 };
 
 const codeInputStyle = {
-  fontSize: 24,
-  fontWeight: 950,
+  minHeight: 48,
+  fontSize: 22,
+  fontWeight: 900,
   textAlign: 'center',
   letterSpacing: 4,
-  paddingLeft: 48,
-  borderRadius: 0,
-  background: '#3a3a3a',
-  color: '#ffffff',
-  border: '1px solid rgba(255,255,255,0.18)',
+  paddingLeft: 42,
+  borderRadius: 5,
+  background: '#081B2A',
+  backgroundImage: 'none',
+  color: '#FFFFFF',
+  border: '1px solid rgba(255,45,170,0.18)',
+  boxShadow: 'none',
   fontFamily: fontStack,
 };
 
 const keyIconStyle = {
   position: 'absolute',
-  left: 16,
+  left: 13,
   top: '50%',
   transform: 'translateY(-50%)'
 };
 
 const helpTextStyle = {
-  color: 'rgba(255,255,255,0.58)',
-  fontSize: 12,
-  marginTop: 8,
+  color: '#FFFFFF',
+  fontSize: 10,
+  marginTop: 6,
   fontFamily: fontStack,
 };
 
 const tipBoxStyle = {
-  padding: 12,
-  background: '#3a3a3a',
-  border: '1px solid rgba(255,255,255,0.16)',
-  borderRadius: 0,
-  marginBottom: 18,
+  padding: 9,
+  background: '#102B40',
+  backgroundImage: 'none',
+  border: '1px solid rgba(255,45,170,0.18)',
+  borderLeft: '1px solid #FF2DAA',
+  borderRadius: 5,
+  marginBottom: 12,
 };
 
 const tipTextStyle = {
-  color: 'rgba(255,255,255,0.72)',
-  fontSize: 13,
-  lineHeight: 1.45,
+  color: '#FFFFFF',
+  fontSize: 11,
+  lineHeight: 1.4,
   margin: 0,
   fontFamily: fontStack,
 };
 
+const actionsStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: 6,
+};
+
 const secondaryButtonStyle = {
-  border: 0,
-  borderRadius: 0,
-  background: '#3a3a3a',
-  color: '#ffffff',
-  fontWeight: 900,
+  minHeight: 42,
+  border: '1px solid rgba(255,45,170,0.18)',
+  borderRadius: 5,
+  background: '#102B40',
+  color: '#FFFFFF',
+  fontWeight: 850,
+  boxShadow: 'none',
   fontFamily: fontStack,
 };
 
 const primaryButtonStyle = {
-  border: 0,
-  borderRadius: 0,
-  background: '#d00000',
-  color: '#ffffff',
-  fontWeight: 950,
+  minHeight: 42,
+  border: '1px solid #FF2DAA',
+  borderRadius: 5,
+  background: '#102B40',
+  color: '#FFFFFF',
+  fontWeight: 900,
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 8,
+  justifyContent: 'center',
+  gap: 7,
+  boxShadow: 'none',
   fontFamily: fontStack,
 };
 

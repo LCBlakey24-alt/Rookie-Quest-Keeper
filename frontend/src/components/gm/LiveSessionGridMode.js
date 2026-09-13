@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
+import './LiveSessionGridMode.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444', red: '#d00000',
-  text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)',
+  bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', hover: 'var(--rq-card-hover)',
+  pink: 'var(--rq-accent-primary)', blue: 'var(--rq-secondary)', red: 'var(--rq-accent-primary)',
+  text: 'var(--rq-text-primary)', soft: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)', line: 'var(--rq-border-default)',
 };
 
 export const LIVE_GRID_DEFAULTS = ['overview', 'story', 'combat', 'notes'];
@@ -71,8 +73,8 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   };
 
   return (
-    <div data-testid="live-session-grid" style={shellStyle}>
-      <nav style={primaryNavStyle} aria-label="Live Play">
+    <div data-testid="live-session-grid" className="rqk-live-grid" style={shellStyle}>
+      <nav className="rqk-live-grid__primary-nav" style={primaryNavStyle} aria-label="Live Play">
         {LIVE_GRID_TOOLS.filter(tool => tool.primary).map(tool => {
           const Icon = tool.icon;
           const selected = primaryActiveId === tool.id;
@@ -82,6 +84,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
               type="button"
               onClick={() => selectTool(tool.id)}
               data-testid={`live-tool-${tool.id}`}
+              className={selected ? 'rqk-live-grid__nav-button is-active' : 'rqk-live-grid__nav-button'}
               style={navButtonStyle(selected)}
             >
               <Icon size={17} />
@@ -91,14 +94,14 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
         })}
       </nav>
 
-      <main style={mainStyle} key={`${refreshKey}-${activeTool}`}>
+      <main className="rqk-live-grid__main" style={mainStyle} key={`${refreshKey}-${activeTool}`}>
         {activeTool !== 'overview' && activeTool !== 'more' && (
-          <header style={toolHeaderStyle}>
+          <header className="rqk-live-grid__tool-header" style={toolHeaderStyle}>
             <div style={toolTitleStyle}><ActiveIcon size={18} /><strong>{active.label}</strong></div>
-            <span style={livePillStyle}>Live Play</span>
+            <span className="rqk-live-grid__live-pill" style={livePillStyle}>Live Play</span>
           </header>
         )}
-        <section style={toolBodyStyle}>
+        <section className="rqk-live-grid__tool-body" style={toolBodyStyle}>
           {activeTool === 'overview' ? (
             <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} />
           ) : activeTool === 'more' ? (
@@ -135,14 +138,14 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
   } catch { /* ignore */ }
 
   return (
-    <div style={runScreenStyle}>
+    <div className="rqk-live-grid__run" style={runScreenStyle}>
       <header style={runHeaderStyle}>
         <p style={eyebrowStyle}>Live Play</p>
         <h2 style={runTitleStyle}>What do you need?</h2>
       </header>
 
       {continueItems.length > 0 && (
-        <section style={continueStyle}>
+        <section className="rqk-live-grid__continue" style={continueStyle}>
           <p style={sectionLabelStyle}>Continue</p>
           <div style={continueRowStyle}>
             {continueItems.map(item => {
@@ -153,10 +156,10 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
         </section>
       )}
 
-      <section style={coreGridStyle}>
+      <section className="rqk-live-grid__core-grid" style={coreGridStyle}>
         {core.map(item => {
           const Icon = item.icon;
-          return <button key={item.id} type="button" onClick={() => onSelect(item.id)} style={coreCardStyle}><Icon size={21} /><strong>{item.label}</strong><span>{item.detail}</span></button>;
+          return <button key={item.id} type="button" onClick={() => onSelect(item.id)} className="rqk-live-grid__core-card" style={coreCardStyle}><Icon size={21} /><strong>{item.label}</strong><span>{item.detail}</span></button>;
         })}
       </section>
 
@@ -167,7 +170,7 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
         </section>
       )}
 
-      <section style={quickStripStyle}>
+      <section className="rqk-live-grid__quick-strip" style={quickStripStyle}>
         <button type="button" onClick={() => onSelect('quick-dice')} style={quickButtonStyle}><Dices size={15} /> Dice</button>
         <button type="button" onClick={() => onSelect('maps')} style={quickButtonStyle}><Map size={15} /> Maps</button>
         <button type="button" onClick={() => onSelect('handouts')} style={quickButtonStyle}><Mail size={15} /> Handouts</button>
@@ -182,7 +185,7 @@ function MorePanel({ onSelect }) {
   return (
     <div style={moreStyle}>
       <header style={runHeaderStyle}><p style={eyebrowStyle}>More Tools</p><h2 style={runTitleStyle}>Everything else</h2></header>
-      <div style={moreGridStyle}>
+      <div className="rqk-live-grid__more-grid" style={moreGridStyle}>
         {tools.map(tool => {
           const Icon = tool.icon;
           return <button key={tool.id} type="button" onClick={() => onSelect(tool.id)} data-testid={`live-tool-${tool.id}`} style={moreButtonStyle}><Icon size={18} /><strong>{tool.label}</strong></button>;
@@ -196,7 +199,7 @@ function QuickDicePanel({ onRollDice }) {
   return (
     <div style={dicePanelStyle}>
       <h3 style={{ margin: 0, color: rq.text }}>Quick Dice</h3>
-      <div style={diceGridStyle}>
+      <div className="rqk-live-grid__dice-grid" style={diceGridStyle}>
         {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={diceButtonStyle}>{die.toUpperCase()}</button>)}
       </div>
     </div>
@@ -209,7 +212,7 @@ function EmptyTool({ title }) {
 
 const shellStyle = { display: 'grid', gap: 8, minWidth: 0, fontFamily: fontStack };
 const primaryNavStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 1, background: rq.line, border: `1px solid ${rq.line}` };
-const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: 0, background: active ? rq.red : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
+const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: active ? `1px solid ${rq.pink}` : '1px solid transparent', background: active ? 'rgba(124,203,255,0.10)' : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
 const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}` };
 const toolHeaderStyle = { minHeight: 48, padding: '0 11px', borderBottom: `1px solid ${rq.line}`, background: rq.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 };
 const toolTitleStyle = { display: 'flex', alignItems: 'center', gap: 7, color: rq.text, fontSize: 15 };
@@ -219,11 +222,11 @@ const runScreenStyle = { display: 'grid', gap: 10 };
 const runHeaderStyle = { padding: '10px 4px 3px' };
 const eyebrowStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const runTitleStyle = { margin: '2px 0 0', color: rq.text, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1, fontWeight: 950 };
-const continueStyle = { display: 'grid', gap: 5, padding: 8, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `4px solid ${rq.red}` };
+const continueStyle = { display: 'grid', gap: 5, padding: 8, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}` };
 const continueRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
-const continueButtonStyle = { minHeight: 34, border: `1px solid ${rq.red}`, background: 'rgba(208,0,0,0.14)', color: rq.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 950 };
+const continueButtonStyle = { minHeight: 34, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 950 };
 const coreGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 7 };
-const coreCardStyle = { minHeight: 104, border: `1px solid ${rq.line}`, borderLeft: `5px solid ${rq.red}`, background: rq.card, color: rq.text, padding: 12, display: 'grid', justifyItems: 'start', alignContent: 'center', gap: 5, textAlign: 'left', cursor: 'pointer', fontFamily: fontStack };
+const coreCardStyle = { minHeight: 104, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: 12, display: 'grid', justifyItems: 'start', alignContent: 'center', gap: 5, textAlign: 'left', cursor: 'pointer', fontFamily: fontStack };
 const recentStyle = { display: 'grid', gap: 6, paddingTop: 2 };
 const sectionLabelStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.09em' };
 const recentRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };

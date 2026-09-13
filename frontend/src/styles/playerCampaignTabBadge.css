@@ -1,0 +1,32 @@
+.player-campaign-tab-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid #FF2DAA;
+  border-radius: 10px;
+  background: rgba(124,203,255,.10);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+@media (max-width: 719px) {
+  .player-campaign-page .player-campaign-tabs button {
+    position: relative;
+  }
+
+  .player-campaign-tab-badge {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    font-size: 8px;
+  }
+}
