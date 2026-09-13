@@ -70,6 +70,8 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   if (byKey.indomitable || fighterLevel >= 9) add('reaction', 'indomitable', 'Indomitable', 'Reroll a failed saving throw when this feature applies.', () => handlers.spendResource('indomitable', 'Indomitable'));
   if (byKey.wild_shape || className === 'druid') add('action', 'wild_shape', 'Wild Shape', 'Transform using a Wild Shape use.', () => handlers.spendResource('wild_shape', 'Wild Shape'));
   if (byKey.channel_divinity) add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
+  if (byKey.cleric_channel_divinity) add('action', 'cleric_channel_divinity', 'Cleric Channel Divinity', 'Use a Cleric Channel Divinity option.', () => handlers.spendResource('cleric_channel_divinity', 'Cleric Channel Divinity'));
+  if (byKey.paladin_channel_divinity) add('action', 'paladin_channel_divinity', 'Paladin Channel Divinity', 'Use a Paladin Channel Divinity option.', () => handlers.spendResource('paladin_channel_divinity', 'Paladin Channel Divinity'));
   if (byKey.lay_on_hands || className === 'paladin') add('action', 'lay_on_hands', 'Lay on Hands', 'Spend points from your healing pool.', () => handlers.spendResource('lay_on_hands', 'Lay on Hands'));
   if (byKey.arcane_recovery || className === 'wizard') add('action', 'arcane_recovery', 'Arcane Recovery', 'Recover spell slots during a short rest when this applies.', () => handlers.spendResource('arcane_recovery', 'Arcane Recovery'));
   if (byKey.favored_enemy || (className === 'ranger' && (is2024Rules(character) || classLevelOf(character, 'ranger') >= 2))) {
