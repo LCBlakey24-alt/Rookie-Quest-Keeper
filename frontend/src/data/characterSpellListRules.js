@@ -2,6 +2,25 @@ import { SPELLCASTING_CLASSES } from './spellDatabase';
 import { getPreparedSpellCapacity, getSpellSelectionMode, normaliseSpellEdition } from './spellPreparationRules';
 
 const normaliseName = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+const toArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
+
+function normaliseSpell(spell = {}) {
+  if (typeof spell === 'string') return { name: spell };
+  return {
+    ...spell,
+    name: spell?.name || spell?.spell_name || spell?.title || '',
+  };
+}
+
+function uniqueSpells(spells = []) {
+  const seen = new Set();
+  return toArray(spells).map(normaliseSpell).filter((spell) => {
+    const key = normaliseName(spell.name);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 export function characterRulesEdition(character = {}) {
   return normaliseSpellEdition(character.rules_edition || character.edition || character.ruleset_id || '2014');
@@ -54,4 +73,108 @@ export function spellBelongsToClass(spell = {}, className = '') {
   const source = spell?.sourceClass || spell?.source_class || spell?.className || spell?.class_name;
   if (!source) return true; // Legacy saves did not persist source class.
   return normaliseName(source) === normaliseName(canonicalSpellClassName(className));
+}
+
+export function normaliseCharacterClassLevels(character = {}) {
+  const fromMap = character.class_levels || character.multiclass_levels || character.classLevels || {};
+  const mapped = Object.entries(fromMap)
+    .filter(([, level]) => Number(level) > 0)
+    .map(([name, level]) => [canonicalSpellClassName(name), Number(level)]);
+  if (mapped.length) return Object.fromEntries(mapped);
+
+  const fromArray = toArray(character.classes)
+    .map((entry) => [
+      canonicalSpellClassName(entry?.name || entry?.class_name || entry?.character_class || entry?.class),
+      Number(entry?.level || entry?.class_level || 0),
+    ])
+    .filter(([name, level]) => name && level > 0);
+  if (fromArray.length) return Object.fromEntries(fromArray);
+
+  const primary = canonicalSpellClassName(character.character_class || character.class_name || '');
+  return primary ? { [primary]: Number(character.level || 1) || 1 } : {};
+}
+
+function sourceClassOf(spell = {}) {
+  return canonicalSpellClassName(spell?.sourceClass || spell?.source_class || spell?.className || spell?.class_name || '');
+}
+
+function spellsExplicitlyForClass(spells = [], className = '') {
+  const wanted = normaliseName(className);
+  return uniqueSpells(spells).filter((spell) => {
+    const source = sourceClassOf(spell);
+    return source && normaliseName(source) === wanted;
+  });
+}
+
+/**
+ * Build a non-destructive migration plan for old 2024 saves that still keep
+ * revised prepared-caster spells in `spells_known`.
+ *
+ * Untagged legacy entries are only assigned automatically when there is exactly
+ * one prepared-list class on the character. Multiclass ambiguity is surfaced to
+ * the UI instead of guessing. The old known-spell list is never deleted.
+ */
+export function buildLegacyPreparedMigrationPlan(character = {}, suppliedClassLevels = null) {
+  if (characterRulesEdition(character) !== '2024') {
+    return { candidates: [], safeCandidates: [], effectivePrepared: uniqueSpells(character.spells_prepared || character.prepared_spells), ambiguous: false, hasMigration: false };
+  }
+
+  const classLevels = suppliedClassLevels || normaliseCharacterClassLevels(character);
+  const preparedClasses = Object.entries(classLevels)
+    .map(([name, level]) => ({ className: canonicalSpellClassName(name), level: Number(level) || 0 }))
+    .filter(({ className, level }) => level > 0 && getCharacterSpellListMode(character, className) === 'prepared');
+  const known = uniqueSpells(character.spells_known || character.known_spells);
+  const prepared = uniqueSpells(character.spells_prepared || character.prepared_spells || character.preparedSpells);
+  const untaggedKnown = known.filter((spell) => !sourceClassOf(spell));
+  const candidates = [];
+  let ambiguous = false;
+
+  preparedClasses.forEach(({ className, level }) => {
+    const alreadyPrepared = prepared.filter((spell) => spellBelongsToClass(spell, className));
+    if (alreadyPrepared.length) return;
+
+    const taggedLegacy = spellsExplicitlyForClass(known, className);
+    let legacy = taggedLegacy;
+    if (!legacy.length && untaggedKnown.length) {
+      if (preparedClasses.length === 1) legacy = untaggedKnown;
+      else ambiguous = true;
+    }
+    if (!legacy.length) return;
+
+    const capacity = getCharacterPreparedCapacity(character, className, level);
+    const tagged = legacy.map((spell) => tagSpellSource(spell, className));
+    candidates.push({
+      className,
+      level,
+      capacity,
+      spells: tagged,
+      count: tagged.length,
+      safe: capacity <= 0 || tagged.length <= capacity,
+      overflow: capacity > 0 ? Math.max(0, tagged.length - capacity) : 0,
+    });
+  });
+
+  const safeCandidates = candidates.filter((candidate) => candidate.safe);
+  const migratedSpells = safeCandidates.flatMap((candidate) => candidate.spells);
+  const effectivePrepared = uniqueSpells([...prepared, ...migratedSpells]);
+
+  return {
+    candidates,
+    safeCandidates,
+    effectivePrepared,
+    ambiguous,
+    hasMigration: safeCandidates.length > 0,
+    hasOverflow: candidates.some((candidate) => !candidate.safe),
+  };
+}
+
+export function buildLegacyPreparedMigrationUpdates(character = {}, suppliedClassLevels = null) {
+  const plan = buildLegacyPreparedMigrationPlan(character, suppliedClassLevels);
+  if (!plan.hasMigration) return null;
+  const prepared = plan.effectivePrepared;
+  return {
+    spells_prepared: prepared,
+    prepared_spells: prepared,
+    preparedSpells: prepared,
+  };
 }
