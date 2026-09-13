@@ -5,10 +5,13 @@ import { AlertTriangle, Search, Wand2 } from 'lucide-react';
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import {
   SPELLCASTING_CLASSES,
-  getMaxSpellLevel,
-  getMulticlassSpellSlots,
   getSpellsForClass,
 } from '@/data/spellDatabase';
+import {
+  classHasEditionSpellcasting,
+  getEditionMaxSpellLevel,
+  getEditionMulticlassSpellSlots,
+} from '@/data/editionSpellSlotRules';
 import {
   buildPactMagicResource,
   getCastOptionsForSpell,
@@ -83,21 +86,8 @@ function canonicalSpellClass(className = '') {
   ) || className;
 }
 
-function subclassFor(character = {}, className = '') {
-  const canonical = canonicalSpellClass(className);
-  const matching = (character?.classes || []).find((cls) => (
-    normalizeName(cls?.name || cls?.class_name || cls?.character_class) === normalizeName(canonical)
-  ));
-  if (matching?.subclass) return matching.subclass;
-
-  const primary = canonicalSpellClass(character?.character_class || character?.class_name || '');
-  return normalizeName(primary) === normalizeName(canonical) ? character?.subclass || '' : '';
-}
-
 function classHasSpellcasting(character = {}, className = '') {
   const canonical = canonicalSpellClass(className);
-  const info = SPELLCASTING_CLASSES[canonical];
-  if (!info) return false;
   const classLevels = getClassLevels(character);
   const level = Number(
     classLevels[className]
@@ -105,12 +95,11 @@ function classHasSpellcasting(character = {}, className = '') {
     ?? Object.entries(classLevels).find(([name]) => normalizeName(name) === normalizeName(canonical))?.[1]
     ?? 0,
   );
-  if (level <= 0) return false;
-  if (info.halfCaster && level < 2) return false;
-  if (info.subclassOnly) {
-    return level >= 3 && normalizeName(subclassFor(character, canonical)) === normalizeName(info.subclassOnly);
-  }
-  return true;
+  return classHasEditionSpellcasting(
+    { ...character, class_levels: classLevels },
+    canonical,
+    level,
+  );
 }
 
 function spellLevelLabel(level) {
@@ -477,7 +466,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     return hasItems(snapshotLevels) ? snapshotLevels : getClassLevels(character);
   }, [character, snapshot.identity?.classLevels]);
   const slotMath = useMemo(
-    () => snapshot.spellcasting?.multiclass || getMulticlassSpellSlots(classLevels, character),
+    () => snapshot.spellcasting?.multiclass || getEditionMulticlassSpellSlots(classLevels, character),
     [classLevels, character, snapshot.spellcasting?.multiclass],
   );
   const normalPool = useMemo(() => getNormalSpellPool(character, slotMath), [character, slotMath]);
@@ -493,6 +482,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       const info = SPELLCASTING_CLASSES[canonical];
       if (!info || !classHasSpellcasting(character, className)) return null;
       const modifier = abilityMod(character?.[info.ability]);
+      const is2024Ranger = snapshot.identity?.edition === '2024' && canonical === 'Ranger';
       return {
         className: canonical,
         level,
@@ -500,10 +490,10 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         abilityLabel: ABILITY_LABELS[info.ability] || info.ability,
         saveDc: 8 + proficiencyBonus + modifier,
         attackBonus: proficiencyBonus + modifier,
-        castingType: info.pactMagic ? 'Pact Magic' : info.type === 'prepared' ? 'Prepared' : 'Known',
+        castingType: info.pactMagic ? 'Pact Magic' : info.type === 'prepared' || is2024Ranger ? 'Prepared' : 'Known',
       };
     })
-    .filter(Boolean), [character, classLevels, proficiencyBonus]);
+    .filter(Boolean), [character, classLevels, proficiencyBonus, snapshot.identity?.edition]);
 
   const primaryCaster = spellcastingRows[0];
   const effectiveSlots = normalPool.totals;
@@ -562,7 +552,11 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       .flatMap(([className, level]) => {
         const canonical = canonicalSpellClass(className);
         if (!classHasSpellcasting(character, canonical)) return [];
-        const maxSpellLevel = getMaxSpellLevel(canonical, Number(level) || 0);
+        const maxSpellLevel = getEditionMaxSpellLevel(
+          { ...character, class_levels: classLevels },
+          canonical,
+          Number(level) || 0,
+        );
         return flattenClassSpellGroups(canonical, getSpellsForClass(canonical), maxSpellLevel);
       })
       .filter((spell) => {
