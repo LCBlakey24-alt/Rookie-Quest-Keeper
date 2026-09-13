@@ -141,9 +141,26 @@ export function removeInventoryItemState({ inventory = [], equipped = {}, item }
   });
 
   let nextEquipped = { ...(equipped || {}) };
-  equippedAssignments(equipped).forEach(({ slot, identity: equippedIdentity }) => {
-    if (identity && equippedIdentity === identity) nextEquipped = setCanonicalInventorySlot(nextEquipped, slot, null);
-  });
+  const matchingAssignments = equippedAssignments(equipped)
+    .filter(({ identity: equippedIdentity }) => identity && equippedIdentity === identity);
+
+  if (identity.startsWith('id:')) {
+    // A stable item id represents one concrete instance. If stale data put that
+    // same id in more than one slot, clear every impossible duplicate.
+    matchingAssignments.forEach(({ slot }) => {
+      nextEquipped = setCanonicalInventorySlot(nextEquipped, slot, null);
+    });
+  } else if (identity.startsWith('name:')) {
+    // Name-only legacy items may be legitimate duplicates. Only clear the slot
+    // represented by the clicked carried card; removing one Dagger must not
+    // unequip its same-name sibling from the other hand.
+    const preferredSlot = canonicalInventorySlot(item?.equip_slot || item?.equipped_slot || '');
+    const preferred = preferredSlot
+      ? matchingAssignments.find(({ slot }) => slot === preferredSlot)
+      : null;
+    const selected = preferred || ((item?.equipped || item?.is_equipped) ? matchingAssignments[0] : null);
+    if (selected) nextEquipped = setCanonicalInventorySlot(nextEquipped, selected.slot, null);
+  }
 
   return {
     inventory: syncInventoryWithEquipment(nextInventory, nextEquipped),
