@@ -22,9 +22,10 @@ describe("creatorEquipmentPayload", () => {
       expect.objectContaining({ name: "Shield", equipped_slot: "shield" }),
     );
     expect(payload.equipped.offHand).toBeNull();
+    // DEX 14 with no armour is 12 AC; the equipped shield adds +2.
     expect(
       calculateCreatedCharacterArmorClass({ dexterity: 14 }, payload),
-    ).toBe(16);
+    ).toBe(14);
   });
 
   it("keeps ambiguous custom equipment carried but not auto-equipped", () => {

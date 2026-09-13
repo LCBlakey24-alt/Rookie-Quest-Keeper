@@ -11,6 +11,10 @@ const joinSelectionOrFallback = (value, fallback = '') => {
   return joined || fallback;
 };
 const getSubclassName = (character = {}) => character?.subclass || character?.warlock_subclass || character?.warlockSubclass || character?.patron || character?.warlockPatron || '';
+const getPactInvocation = (invocations = []) => (
+  (Array.isArray(invocations) ? invocations : [invocations])
+    .find((invocation) => /^pact of the (blade|chain|tome)$/i.test(String(invocation || '').trim())) || ''
+);
 
 function getPactMagicLabel(progression = {}) {
   const slots = progression.pactMagicSlots || 0;
@@ -32,6 +36,10 @@ export function getWarlockSheetSummary(character = {}) {
   const subclass = getWarlockSubclassSummary(subclassName, level || 1, edition);
   const selections = getWarlockBuilderSelectionList(character);
   const choiceSummary = getWarlockBuilderChoiceSummary({ level: level || 1, edition, selections: character });
+  const pactInvocation = edition === '2024' ? getPactInvocation(selections.invocations) : '';
+  const pactBoonLabel = edition === '2024'
+    ? pactInvocation || selections.pactBoon || 'No Pact Invocation selected'
+    : choiceSummary.pactBoon?.name || selections.pactBoon || (level >= 3 ? 'Choose Pact Boon' : 'None yet');
 
   return {
     className: 'Warlock',
@@ -44,7 +52,7 @@ export function getWarlockSheetSummary(character = {}) {
     subclassSupportedInRuleset: subclass?.supportedInRuleset ?? true,
     subclassFeatures: subclass?.activeFeatures || [],
     nextSubclassFeatures: subclass?.nextFeatures || [],
-    pactBoonLabel: choiceSummary.pactBoon?.name || selections.pactBoon || (level >= 3 ? 'Choose Pact Boon' : 'None yet'),
+    pactBoonLabel,
     pactMagicSlots: progression.pactMagicSlots,
     pactMagicSlotLevel: progression.pactMagicSlotLevel,
     pactMagicLabel: getPactMagicLabel(progression),
