@@ -95,10 +95,18 @@ export default function StartingLevelClassSpecificChoices({ plan, selection, onC
             plan.fightingStyleTarget ? 'Fighting Style' : '',
             plan.expertiseTarget ? 'Expertise' : '',
             plan.metamagicTarget ? 'Metamagic' : '',
+            plan.languageTarget || arr(plan.fixedLanguages).length ? 'Languages' : '',
             plan.maneuverTarget ? 'Battle Master maneuvers' : '',
           ].filter(Boolean).join(' • ')}
         </span>
       </div>
+
+      {arr(plan.fixedLanguages).length > 0 && (
+        <div className="full-creator-auto-box">
+          <strong>Granted language</strong>
+          <span>{plan.fixedLanguages.join(' • ')}</span>
+        </div>
+      )}
 
       <MultiSelectField
         label="Fighting Style"
@@ -120,6 +128,13 @@ export default function StartingLevelClassSpecificChoices({ plan, selection, onC
         options={plan.options?.metamagic}
         target={plan.metamagicTarget}
         onChange={(metamagic) => update({ metamagic })}
+      />
+      <MultiSelectField
+        label="Class languages"
+        value={current.languages}
+        options={plan.options?.languages}
+        target={plan.languageTarget}
+        onChange={(languages) => update({ languages })}
       />
       <MultiSelectField
         label="Battle Master maneuvers"
