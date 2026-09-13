@@ -7,7 +7,7 @@ routes even when the frontend did not explicitly send resource trackers.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
 
 
 def _int(value: Any, default: int = 0) -> int:
@@ -74,10 +74,103 @@ def _resource_spec(
     return spec
 
 
+def _cleric_channel_max(level: int, edition: str) -> int:
+    if level < 2:
+        return 0
+    if edition == "2024":
+        return 4 if level >= 18 else 3 if level >= 6 else 2
+    return 3 if level >= 18 else 2 if level >= 6 else 1
+
+
+def _paladin_channel_max(level: int, edition: str) -> int:
+    if level < 3:
+        return 0
+    if edition == "2024":
+        return 3 if level >= 11 else 2
+    return 1
+
+
+def _channel_divinity_specs(
+    edition: str,
+    cleric_level: int,
+    paladin_level: int,
+) -> List[Tuple[str, Dict[str, Any]]]:
+    cleric_max = _cleric_channel_max(cleric_level, edition)
+    paladin_max = _paladin_channel_max(paladin_level, edition)
+    has_cleric = cleric_max > 0
+    has_paladin = paladin_max > 0
+    if not has_cleric and not has_paladin:
+        return []
+
+    # 2014 multiclassing explicitly shares one Channel Divinity use pool. The
+    # available effects expand across classes, but the uses do not add together.
+    if edition == "2014":
+        if has_cleric and has_paladin:
+            class_name = "Cleric / Paladin"
+            min_level = 2
+        elif has_cleric:
+            class_name = "Cleric"
+            min_level = 2
+        else:
+            class_name = "Paladin"
+            min_level = 3
+        return [(
+            "channel_divinity",
+            _resource_spec(
+                label="Channel Divinity",
+                maximum=max(cleric_max, paladin_max),
+                restore="short-rest",
+                class_name=class_name,
+                min_level=min_level,
+            ),
+        )]
+
+    # 2024 class text makes each class's Channel Divinity a class-scoped pool.
+    # Keep the historical unscoped key for single-class characters so existing
+    # saves stay stable, and scope the keys only when both classes own the feature.
+    dual_pool = has_cleric and has_paladin
+    specs: List[Tuple[str, Dict[str, Any]]] = []
+    if has_cleric:
+        specs.append((
+            "cleric_channel_divinity" if dual_pool else "channel_divinity",
+            _resource_spec(
+                label="Cleric Channel Divinity" if dual_pool else "Channel Divinity",
+                maximum=cleric_max,
+                restore="long-rest",
+                short_rest_restore=1,
+                class_name="Cleric",
+                min_level=2,
+            ),
+        ))
+    if has_paladin:
+        specs.append((
+            "paladin_channel_divinity" if dual_pool else "channel_divinity",
+            _resource_spec(
+                label="Paladin Channel Divinity" if dual_pool else "Channel Divinity",
+                maximum=paladin_max,
+                restore="long-rest",
+                short_rest_restore=1,
+                class_name="Paladin",
+                min_level=3,
+            ),
+        ))
+    return specs
+
+
 def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iterable[Tuple[str, Dict[str, Any]]]:
     edition = _edition(character)
-
     barbarian = class_level(class_levels, "Barbarian")
+    bard = class_level(class_levels, "Bard")
+    cleric = class_level(class_levels, "Cleric")
+    druid = class_level(class_levels, "Druid")
+    fighter = class_level(class_levels, "Fighter")
+    monk = class_level(class_levels, "Monk")
+    paladin = class_level(class_levels, "Paladin")
+    ranger = class_level(class_levels, "Ranger")
+    sorcerer = class_level(class_levels, "Sorcerer")
+    warlock = class_level(class_levels, "Warlock")
+    wizard = class_level(class_levels, "Wizard")
+
     if barbarian:
         if edition == "2014" and barbarian >= 20:
             rage_max = 99
@@ -100,7 +193,6 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             min_level=1,
         )
 
-    bard = class_level(class_levels, "Bard")
     if bard:
         bardic_max = max(1, ability_modifier(character.get("charisma")))
         yield "bardic_inspiration", _resource_spec(
@@ -111,26 +203,9 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             min_level=1,
         )
 
-    cleric = class_level(class_levels, "Cleric")
-    if cleric >= 2:
-        if edition == "2024":
-            channel_max = 4 if cleric >= 18 else 3 if cleric >= 6 else 2
-            channel_restore = "long-rest"
-            channel_short_restore = 1
-        else:
-            channel_max = 3 if cleric >= 18 else 2 if cleric >= 6 else 1
-            channel_restore = "short-rest"
-            channel_short_restore = 0
-        yield "channel_divinity", _resource_spec(
-            label="Channel Divinity",
-            maximum=channel_max,
-            restore=channel_restore,
-            short_rest_restore=channel_short_restore,
-            class_name="Cleric",
-            min_level=2,
-        )
+    for channel_key, channel_spec in _channel_divinity_specs(edition, cleric, paladin):
+        yield channel_key, channel_spec
 
-    druid = class_level(class_levels, "Druid")
     if druid >= 2:
         if edition == "2024":
             wild_shape_max = 4 if druid >= 17 else 3 if druid >= 6 else 2
@@ -149,7 +224,6 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             min_level=2,
         )
 
-    fighter = class_level(class_levels, "Fighter")
     if fighter >= 1:
         if edition == "2024":
             second_wind_max = 4 if fighter >= 10 else 3 if fighter >= 4 else 2
@@ -185,7 +259,6 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             min_level=9,
         )
 
-    monk = class_level(class_levels, "Monk")
     if monk >= 2:
         yield "ki", _resource_spec(
             label="Focus Points" if edition == "2024" else "Ki",
@@ -195,7 +268,6 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             min_level=2,
         )
 
-    paladin = class_level(class_levels, "Paladin")
     if paladin >= 1:
         yield "lay_on_hands", _resource_spec(
             label="Lay on Hands",
@@ -204,25 +276,7 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             class_name="Paladin",
             min_level=1,
         )
-    if paladin >= 3:
-        if edition == "2024":
-            paladin_channel_max = 3 if paladin >= 11 else 2
-            paladin_channel_restore = "long-rest"
-            paladin_channel_short_restore = 1
-        else:
-            paladin_channel_max = 1
-            paladin_channel_restore = "short-rest"
-            paladin_channel_short_restore = 0
-        yield "channel_divinity", _resource_spec(
-            label="Channel Divinity",
-            maximum=paladin_channel_max,
-            restore=paladin_channel_restore,
-            short_rest_restore=paladin_channel_short_restore,
-            class_name="Paladin",
-            min_level=3,
-        )
 
-    ranger = class_level(class_levels, "Ranger")
     if ranger >= 1 and edition == "2024":
         favored_enemy_max = 6 if ranger >= 17 else 5 if ranger >= 13 else 4 if ranger >= 9 else 3 if ranger >= 5 else 2
         yield "favored_enemy", _resource_spec(
@@ -233,7 +287,6 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             min_level=1,
         )
 
-    sorcerer = class_level(class_levels, "Sorcerer")
     if sorcerer >= 2:
         yield "sorcery_points", _resource_spec(
             label="Sorcery Points",
@@ -243,7 +296,6 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             min_level=2,
         )
 
-    warlock = class_level(class_levels, "Warlock")
     if warlock >= 1:
         slot_level, slots = warlock_shape(warlock)
         yield "pact_magic", _resource_spec(
@@ -255,7 +307,6 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             slot_level=slot_level,
         )
 
-    wizard = class_level(class_levels, "Wizard")
     if wizard >= 1:
         yield "arcane_recovery", _resource_spec(
             label="Arcane Recovery",
@@ -264,6 +315,54 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             class_name="Wizard",
             min_level=1,
         )
+
+
+def _legacy_channel_target(
+    legacy: Dict[str, Any],
+    specs: List[Tuple[str, Dict[str, Any]]],
+) -> str:
+    scoped = [(resource_key, spec) for resource_key, spec in specs if resource_key in {
+        "cleric_channel_divinity",
+        "paladin_channel_divinity",
+    }]
+    if not scoped:
+        return ""
+
+    source = _key(legacy.get("className") or legacy.get("class_name"))
+    if source in {"cleric", "paladin"}:
+        expected = f"{source}_channel_divinity"
+        if any(resource_key == expected for resource_key, _ in scoped):
+            return expected
+
+    legacy_max = max(0, _int(legacy.get("max", legacy.get("maximum", 0)), 0))
+    matching = [resource_key for resource_key, spec in scoped if _int(spec.get("max"), 0) == legacy_max and legacy_max > 0]
+    if len(matching) == 1:
+        return matching[0]
+
+    # The old canonical generator processed Paladin after Cleric, so ambiguous
+    # legacy dual-class saves were overwritten by the Paladin tracker. Prefer it
+    # when no stronger signal exists; this preserves the state our old code wrote.
+    if any(resource_key == "paladin_channel_divinity" for resource_key, _ in scoped):
+        return "paladin_channel_divinity"
+    return scoped[0][0]
+
+
+def _migrate_legacy_channel_divinity(
+    resources: Dict[str, Any],
+    specs: List[Tuple[str, Dict[str, Any]]],
+) -> None:
+    legacy = resources.get("channel_divinity")
+    if not isinstance(legacy, dict):
+        return
+    target = _legacy_channel_target(legacy, specs)
+    if not target:
+        return
+    if not isinstance(resources.get(target), dict):
+        resources[target] = {
+            **legacy,
+            "migration_source": "legacy_channel_divinity",
+        }
+    resources.pop("channel_divinity", None)
 
 
 def merge_character_resources(
@@ -281,12 +380,11 @@ def merge_character_resources(
     """
     existing_resources = character.get("resources") if isinstance(character.get("resources"), dict) else {}
     merged: Dict[str, Any] = dict(existing_resources)
+    specs = list(_rule_specs(character, class_levels))
+    _migrate_legacy_channel_divinity(merged, specs)
 
-    for key, spec in _rule_specs(character, class_levels):
-        # Use a previously-derived tracker when two owned classes intentionally
-        # share a frontend key (currently Channel Divinity). This mirrors the
-        # existing frontend reduce behaviour while keeping the shape stable.
-        old = merged.get(key) if isinstance(merged.get(key), dict) else None
+    for resource_key, spec in specs:
+        old = merged.get(resource_key) if isinstance(merged.get(resource_key), dict) else None
         new_max = max(0, _int(spec.get("max"), 0))
         if new_max <= 0:
             continue
@@ -300,7 +398,7 @@ def merge_character_resources(
         else:
             continue
 
-        merged[key] = {
+        merged[resource_key] = {
             **(old or {}),
             **spec,
             "current": current,
