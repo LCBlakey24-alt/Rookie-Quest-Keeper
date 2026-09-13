@@ -14,10 +14,15 @@ function itemName(item) {
   return item?.name || item?.item_name || item?.label || item?.title || '';
 }
 
+function stableItemId(item = {}) {
+  if (!item || typeof item === 'string') return '';
+  return item.id || item.item_id || item.itemId || item.uuid || item.instance_id || item.instanceId || '';
+}
+
 export function inventoryItemIdentity(item = {}) {
   if (!item) return '';
   if (typeof item === 'string') return `name:${normaliseKey(item)}`;
-  const id = item.id || item.item_id || item.itemId || item.uuid || item.instance_id || item.instanceId;
+  const id = stableItemId(item);
   if (id) return `id:${String(id)}`;
   const name = normaliseKey(itemName(item));
   return name ? `name:${name}` : '';
@@ -70,13 +75,30 @@ function equippedAssignments(equipped = {}) {
   });
 }
 
+function clearEquippedFlags(raw) {
+  if (!raw || typeof raw === 'string') return raw;
+  if (raw?.equipped || raw?.is_equipped || raw?.equip_slot || raw?.equipped_slot) {
+    const next = { ...raw, equipped: false, is_equipped: false };
+    delete next.equip_slot;
+    delete next.equipped_slot;
+    return next;
+  }
+  return raw;
+}
+
 export function syncInventoryWithEquipment(inventory = [], equipped = {}) {
   const assignments = equippedAssignments(equipped);
+  const usedAssignments = new Set();
+
   return toArray(inventory).map((raw) => {
     if (typeof raw === 'string') return raw;
     const identity = inventoryItemIdentity(raw);
-    const assignment = assignments.find((entry) => entry.identity && entry.identity === identity);
-    if (assignment) {
+    const assignmentIndex = assignments.findIndex((entry, index) => (
+      !usedAssignments.has(index) && entry.identity && entry.identity === identity
+    ));
+    if (assignmentIndex >= 0) {
+      usedAssignments.add(assignmentIndex);
+      const assignment = assignments[assignmentIndex];
       return {
         ...raw,
         equipped: true,
@@ -85,13 +107,7 @@ export function syncInventoryWithEquipment(inventory = [], equipped = {}) {
         equipped_slot: assignment.slot,
       };
     }
-    if (raw?.equipped || raw?.is_equipped || raw?.equip_slot || raw?.equipped_slot) {
-      const next = { ...raw, equipped: false, is_equipped: false };
-      delete next.equip_slot;
-      delete next.equipped_slot;
-      return next;
-    }
-    return raw;
+    return clearEquippedFlags(raw);
   });
 }
 
@@ -136,41 +152,88 @@ export function removeInventoryItemState({ inventory = [], equipped = {}, item }
   };
 }
 
+function nameIdentityCounts(items = []) {
+  return toArray(items).reduce((counts, item) => {
+    const identity = inventoryItemIdentity(item);
+    if (!identity.startsWith('name:')) return counts;
+    counts.set(identity, (counts.get(identity) || 0) + 1);
+    return counts;
+  }, new Map());
+}
+
+function mergeMaxCounts(target, source) {
+  source.forEach((count, identity) => {
+    target.set(identity, Math.max(target.get(identity) || 0, count));
+  });
+  return target;
+}
+
 export function buildCarriedInventoryView({ inventory = [], equipment = [], starting = [], equipped = {} } = {}) {
-  const carried = [
-    ...toArray(inventory).map((item) => ({ item, source: 'inventory' })),
-    ...toArray(equipment).map((item) => ({ item, source: 'equipment' })),
-    ...toArray(starting).map((item) => ({ item, source: 'starting' })),
+  const sources = [
+    { source: 'inventory', items: toArray(inventory) },
+    { source: 'equipment', items: toArray(equipment) },
+    { source: 'starting', items: toArray(starting) },
   ];
   const assignments = equippedAssignments(equipped);
-  const seen = new Set();
+
+  // Older saves often copied the same name-only item into inventory, equipment,
+  // and starting_equipment. Use the largest occurrence count from any one source
+  // instead of summing all three, while still preserving legitimate duplicates
+  // such as two legacy Daggers in the same backpack.
+  const desiredNameCounts = new Map();
+  sources.forEach(({ items }) => mergeMaxCounts(desiredNameCounts, nameIdentityCounts(items)));
+  mergeMaxCounts(desiredNameCounts, nameIdentityCounts(assignments.map((entry) => entry.item)));
+
+  const seenIds = new Set();
+  const emittedNameCounts = new Map();
   const output = [];
 
-  carried.forEach(({ item, source }) => {
-    const identity = inventoryItemIdentity(item);
-    const assignment = assignments.find((entry) => entry.identity && entry.identity === identity);
-    const key = identity || `${source}:${output.length}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    const base = typeof item === 'string' ? { name: item } : { ...item };
-    output.push({
-      ...base,
-      source: base.source || source,
-      ...(assignment ? {
-        equipped: true,
-        is_equipped: true,
-        equip_slot: assignment.slot,
-        equipped_slot: assignment.slot,
-      } : {}),
+  sources.forEach(({ source, items }) => {
+    items.forEach((item) => {
+      const identity = inventoryItemIdentity(item);
+      if (!identity) {
+        const base = typeof item === 'string' ? { name: item } : { ...item };
+        output.push({ ...base, source: base.source || source });
+        return;
+      }
+
+      if (identity.startsWith('id:')) {
+        if (seenIds.has(identity)) return;
+        seenIds.add(identity);
+      } else {
+        const emitted = emittedNameCounts.get(identity) || 0;
+        const desired = desiredNameCounts.get(identity) || 1;
+        if (emitted >= desired) return;
+        emittedNameCounts.set(identity, emitted + 1);
+      }
+
+      const base = typeof item === 'string' ? { name: item } : { ...item };
+      output.push({ ...base, source: base.source || source });
     });
   });
 
-  assignments.forEach(({ slot, item, identity }) => {
-    const key = identity || `equipped:${slot}`;
-    if (seen.has(key)) return;
-    seen.add(key);
+  const usedAssignments = new Set();
+  const overlaid = output.map((item) => {
+    const identity = inventoryItemIdentity(item);
+    const assignmentIndex = assignments.findIndex((entry, index) => (
+      !usedAssignments.has(index) && entry.identity && entry.identity === identity
+    ));
+    if (assignmentIndex < 0) return clearEquippedFlags(item);
+    usedAssignments.add(assignmentIndex);
+    const assignment = assignments[assignmentIndex];
+    return {
+      ...item,
+      equipped: true,
+      is_equipped: true,
+      equip_slot: assignment.slot,
+      equipped_slot: assignment.slot,
+    };
+  });
+
+  assignments.forEach(({ slot, item }, index) => {
+    if (usedAssignments.has(index)) return;
     const base = typeof item === 'string' ? { name: item } : { ...item };
-    output.push({
+    overlaid.push({
       ...base,
       source: base.source || 'equipped',
       equipped: true,
@@ -180,7 +243,7 @@ export function buildCarriedInventoryView({ inventory = [], equipment = [], star
     });
   });
 
-  return output;
+  return overlaid;
 }
 
 export function normaliseCurrencyState(character = {}) {
