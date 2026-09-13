@@ -148,6 +148,27 @@ describe('character sheet spell list rules', () => {
     ]);
   });
 
+  test('same spell name remains distinct when two prepared classes own it', () => {
+    const character = {
+      rules_edition: '2024',
+      character_class: 'Bard',
+      level: 5,
+      class_levels: { Bard: 3, Warlock: 2 },
+      charisma: 16,
+      spells_known: [
+        { name: 'Charm Person', level: 1, sourceClass: 'Bard' },
+        { name: 'Charm Person', level: 1, sourceClass: 'Warlock' },
+      ],
+      spells_prepared: [],
+    };
+    const plan = buildLegacyPreparedMigrationPlan(character);
+    expect(plan.effectivePrepared).toHaveLength(2);
+    expect(plan.effectivePrepared.map((spell) => `${spell.sourceClass}:${spell.name}`)).toEqual([
+      'Bard:Charm Person',
+      'Warlock:Charm Person',
+    ]);
+  });
+
   test('2014 known-spell saves never produce revised prepared migration work', () => {
     const plan = buildLegacyPreparedMigrationPlan({
       rules_edition: '2014',
