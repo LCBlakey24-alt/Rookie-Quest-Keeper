@@ -165,7 +165,8 @@ export function rollD20(modifier = 0, rollOptions = 'normal') {
   };
 }
 
-export function rollHitDie(sides = 8, modifier = 0) {
+export function rollHitDie(sides = 8, modifier = 0, options = {}) {
   const die = Math.floor(Math.random() * sides) + 1;
-  return { die, total: Math.max(1, die + modifier) };
+  const minimum = Math.max(0, Number(options?.minimum ?? 0) || 0);
+  return { die, total: Math.max(minimum, die + modifier) };
 }
