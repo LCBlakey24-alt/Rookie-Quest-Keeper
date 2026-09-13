@@ -25,6 +25,12 @@ import {
   getSpellSelectionMode,
   getWizardSpellbookTarget,
 } from '@/data/spellPreparationRules';
+import {
+  buildLevelUpSpellChanges,
+  getLevelUpPreparedReplacementRule,
+  legacyPreparedFallback,
+  spellNameSet,
+} from '@/data/levelUpSpellChangeRules';
 import { ABILITIES, ABILITY_SHORT, ASI_LEVELS, HIT_DICE } from '@/data/levelUpData';
 import {
   needsSubclassChoice,
@@ -181,6 +187,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const [selectedFeat, setSelectedFeat] = useState(null);
   const [selectedNewSpells, setSelectedNewSpells] = useState([]);
   const [selectedNewCantrips, setSelectedNewCantrips] = useState([]);
+  const [replacementFrom, setReplacementFrom] = useState('');
+  const [replacementTo, setReplacementTo] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const isMulticlass = mode === 'new';
@@ -209,6 +217,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     setSelectedFeat(null);
     setSelectedNewSpells([]);
     setSelectedNewCantrips([]);
+    setReplacementFrom('');
+    setReplacementTo(null);
     setHpMethod('average');
     setHpRoll(null);
     setManualHpRoll('');
@@ -321,8 +331,19 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     ? Number(preflight.spells_to_learn || 0)
     : spellChoiceMode === 'spellbook' ? localSpellbookGain : localKnownGain;
   const spellChoiceGain = spellChoiceMode === 'prepared' ? preparedCapacityGain : permanentSpellGain;
-  const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellChoiceGain > 0);
   const preparedCapacityNote = spellChoiceMode === 'spellbook' && preparedCapacityAfter > preparedCapacityBefore;
+
+  const replacementRule = getLevelUpPreparedReplacementRule({
+    className: characterClass,
+    edition,
+    preflight: isMulticlass ? null : preflight,
+  });
+  const preparedFallback = legacyPreparedFallback(character, characterClass);
+  const canReplacePrepared = !isMulticlass
+    && spellChoiceMode === 'prepared'
+    && replacementRule.allowed
+    && preparedFallback.spells.length > 0;
+  const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellChoiceGain > 0 || canReplacePrepared);
 
   const localAsiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default || [];
   const localIsAsiLevel = localAsiLevels.includes(classLevelAfter);
@@ -332,6 +353,10 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const featOptions = normaliseFeatOptions(preflight, character);
   const existingSpellNames = new Set(namesFrom([...(character.spells_known || []), ...(character.spells_prepared || []), ...(character.spellbook || [])]));
   const existingCantripNames = new Set(namesFrom(character.cantrips_known || character.cantrips || []));
+  const growthBlockedSpellNames = new Set(existingSpellNames);
+  if (replacementTo?.name) spellNameSet([replacementTo]).forEach((name) => growthBlockedSpellNames.add(name));
+  const replacementBlockedSpellNames = new Set(existingSpellNames);
+  spellNameSet(selectedNewSpells).forEach((name) => replacementBlockedSpellNames.add(name));
 
   const steps = [
     { id: 'class', label: 'Class' },
@@ -358,7 +383,11 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     if (activeStep === 'overview') return isMulticlass || !preflightLoading;
     if (activeStep === 'hp') return hpMethod === 'average' || (hpMethod === 'roll' && hpRoll) || (hpMethod === 'manual' && validManualRoll);
     if (activeStep === 'subclass') return Boolean(selectedSubclass);
-    if (activeStep === 'spells') return selectedNewCantrips.length >= cantripGain && selectedNewSpells.length >= spellChoiceGain;
+    if (activeStep === 'spells') {
+      const requiredGrowthComplete = selectedNewCantrips.length >= cantripGain && selectedNewSpells.length >= spellChoiceGain;
+      const replacementComplete = !replacementFrom || Boolean(replacementTo);
+      return requiredGrowthComplete && replacementComplete;
+    }
     if (activeStep === 'asi') {
       if (choiceType === 'asi') return Boolean(asiChoices.ability1 && asiChoices.ability2);
       if (choiceType === 'feat') return Boolean(selectedFeat);
@@ -384,8 +413,14 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         payload.feat_choice = { name: selectedFeat.name, description: selectedFeat.description || '' };
       }
     }
-    if (selectedNewSpells.length) payload.new_spells = selectedNewSpells.map((spell) => ({ name: spell.name, level: spell.level || 1, school: spell.school || '' }));
-    if (selectedNewCantrips.length) payload.new_cantrips = selectedNewCantrips.map((spell) => ({ name: spell.name, level: 0, school: spell.school || '' }));
+    const spellChanges = buildLevelUpSpellChanges({
+      className: characterClass,
+      additions: selectedNewSpells.map((spell) => ({ name: spell.name, level: spell.level || 1, school: spell.school || '' })),
+      replacementFrom,
+      replacementTo: replacementTo ? { name: replacementTo.name, level: replacementTo.level || 1, school: replacementTo.school || '' } : null,
+    });
+    if (spellChanges.length) payload.new_spells = spellChanges;
+    if (selectedNewCantrips.length) payload.new_cantrips = selectedNewCantrips.map((spell) => ({ name: spell.name, level: 0, school: spell.school || '', sourceClass: characterClass }));
 
     try {
       setSaving(true);
@@ -490,6 +525,12 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 <CheckLine active={needsSubclass} text={needsSubclass ? 'Subclass choice is required at this class level.' : 'No new subclass choice required.'} />
                 <CheckLine active={isAsiLevel} text={isAsiLevel ? 'ASI or feat choice is due for this class.' : 'No ASI or feat choice at this class level.'} />
                 <CheckLine active={hasSpellChoices} text={spellChoiceSummary(spellChoiceMode, cantripGain, spellChoiceGain)} />
+                {canReplacePrepared && (
+                  <CheckLine active text={`You may replace up to ${replacementRule.maxReplacements} prepared spell during this level-up.`} />
+                )}
+                {preparedFallback.migrated && (
+                  <CheckLine active text="This older 2024 save still stores this class’s spells in the legacy known-spells field; the level-up will seed the canonical prepared list without deleting the old data." />
+                )}
                 {preparedCapacityNote && (
                   <CheckLine
                     active
@@ -564,7 +605,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   title={spellChoiceLabel(spellChoiceMode, spellChoiceGain)}
                   spells={spells}
                   selected={selectedNewSpells}
-                  existingNames={existingSpellNames}
+                  existingNames={growthBlockedSpellNames}
                   limit={spellChoiceGain}
                   onToggle={(spell) => toggleSpell(spell, setSelectedNewSpells, spell, spellChoiceGain)}
                 />
@@ -574,6 +615,42 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               )}
               {spellChoiceMode === 'spellbook' && spellChoiceGain > 0 && (
                 <p style={styles.copy}>These spells are added to the Wizard spellbook. Prepared spells remain a separate loadout chosen from that book.</p>
+              )}
+
+              {canReplacePrepared && (
+                <section style={styles.spellPicker} aria-label="Optional prepared spell replacement">
+                  <div style={styles.pickerHeader}>
+                    <strong>Optional prepared-spell replacement</strong>
+                    <span>0–{replacementRule.maxReplacements}</span>
+                  </div>
+                  <p style={styles.copy}>You can swap one existing {characterClass} prepared spell without using the new-capacity choices above.</p>
+                  <label style={styles.field}>
+                    <span>Spell to replace</span>
+                    <select
+                      value={replacementFrom}
+                      onChange={(event) => {
+                        setReplacementFrom(event.target.value);
+                        setReplacementTo(null);
+                      }}
+                      style={styles.input}
+                    >
+                      <option value="">Keep current prepared spells</option>
+                      {preparedFallback.spells.map((spell) => (
+                        <option key={`replace-${spell.name}`} value={spell.name}>{spell.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  {replacementFrom && (
+                    <SpellPicker
+                      title="Replacement spell · choose 1"
+                      spells={spells}
+                      selected={replacementTo ? [replacementTo] : []}
+                      existingNames={replacementBlockedSpellNames}
+                      limit={1}
+                      onToggle={(spell) => setReplacementTo((current) => normaliseName(current?.name) === normaliseName(spell.name) ? null : spell)}
+                    />
+                  )}
+                </section>
               )}
             </section>
           )}
@@ -625,6 +702,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 {choiceType === 'asi' && <Summary label="ASI" value={`${abilityLabel(asiChoices.ability1)} +1, ${abilityLabel(asiChoices.ability2)} +1`} />}
                 {!!selectedNewCantrips.length && <Summary label="Cantrips" value={selectedNewCantrips.map((spell) => spell.name).join(', ')} />}
                 {!!selectedNewSpells.length && <Summary label={spellChoiceMode === 'spellbook' ? 'Spellbook' : spellChoiceMode === 'prepared' ? 'Prepared' : 'Spells'} value={selectedNewSpells.map((spell) => spell.name).join(', ')} />}
+                {replacementFrom && replacementTo && <Summary label="Prepared swap" value={`${replacementFrom} → ${replacementTo.name}`} />}
                 {preparedCapacityNote && <Summary label="Prepared capacity" value={`${preparedCapacityBefore} → ${preparedCapacityAfter}`} />}
               </div>
             </section>
