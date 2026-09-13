@@ -129,6 +129,47 @@ class TestCharacterResources(unittest.TestCase):
 
         self.assertEqual(resources, {})
 
+    def test_2024_fighter_second_wind_uses_class_table_and_partial_short_rest_metadata(self):
+        level_one = merge_character_resources({"edition": "2024"}, {"Fighter": 1})["second_wind"]
+        level_four = merge_character_resources({"edition": "2024"}, {"Fighter": 4})["second_wind"]
+        level_ten = merge_character_resources({"edition": "2024"}, {"Fighter": 10})["second_wind"]
+        level_seventeen = merge_character_resources({"edition": "2024"}, {"Fighter": 17})["second_wind"]
+
+        self.assertEqual(level_one["max"], 2)
+        self.assertEqual(level_four["max"], 3)
+        self.assertEqual(level_ten["max"], 4)
+        self.assertEqual(level_seventeen["max"], 4)
+        self.assertEqual(level_seventeen["restore"], "long-rest")
+        self.assertEqual(level_seventeen["short_rest_restore"], 1)
+
+    def test_2024_channel_divinity_tables_are_class_level_aware(self):
+        cleric = merge_character_resources({"edition": "2024"}, {"Cleric": 18})["channel_divinity"]
+        paladin = merge_character_resources({"edition": "2024"}, {"Paladin": 11})["channel_divinity"]
+
+        self.assertEqual(cleric["max"], 4)
+        self.assertEqual(cleric["short_rest_restore"], 1)
+        self.assertEqual(paladin["max"], 3)
+        self.assertEqual(paladin["short_rest_restore"], 1)
+
+    def test_2024_druid_wild_shape_and_ranger_favored_enemy_follow_tables(self):
+        druid_six = merge_character_resources({"edition": "2024"}, {"Druid": 6})["wild_shape"]
+        druid_seventeen = merge_character_resources({"edition": "2024"}, {"Druid": 17})["wild_shape"]
+        ranger_five = merge_character_resources({"edition": "2024"}, {"Ranger": 5})["favored_enemy"]
+        ranger_seventeen = merge_character_resources({"edition": "2024"}, {"Ranger": 17})["favored_enemy"]
+
+        self.assertEqual(druid_six["max"], 3)
+        self.assertEqual(druid_seventeen["max"], 4)
+        self.assertEqual(druid_seventeen["short_rest_restore"], 1)
+        self.assertEqual(ranger_five["max"], 3)
+        self.assertEqual(ranger_seventeen["max"], 6)
+
+    def test_2024_rage_regains_one_on_short_rest_while_2014_does_not(self):
+        revised = merge_character_resources({"edition": "2024"}, {"Barbarian": 5})["rage"]
+        legacy = merge_character_resources({"edition": "2014"}, {"Barbarian": 5})["rage"]
+
+        self.assertEqual(revised["short_rest_restore"], 1)
+        self.assertNotIn("short_rest_restore", legacy)
+
 
 if __name__ == "__main__":
     unittest.main()
