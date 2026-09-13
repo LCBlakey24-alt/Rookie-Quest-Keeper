@@ -36,6 +36,30 @@ describe('character combat derivations', () => {
     expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(17);
   });
 
+  test('named enhanced shield adds only its magical bonus beyond the normal shield rule', () => {
+    const character = {
+      ...baseCharacter,
+      equipped: {
+        armor: { name: 'Studded Leather', type: 'armor' },
+        offHand: { name: 'Shield +1', type: 'shield', ac_bonus: 2 },
+      },
+    };
+
+    expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(18);
+  });
+
+  test('explicit shield enhancement metadata is not confused with inherent shield AC', () => {
+    const character = {
+      ...baseCharacter,
+      equipped: {
+        armor: { name: 'Studded Leather', type: 'armor' },
+        offHand: { name: 'Guardian Shield', type: 'shield', ac_bonus: 2, magic_ac_bonus: 2 },
+      },
+    };
+
+    expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(19);
+  });
+
   test('non-shield off-hand weapon does not accidentally grant shield AC', () => {
     const character = {
       ...baseCharacter,
