@@ -13,6 +13,14 @@ import {
   getEditionMulticlassSpellSlots,
 } from '@/data/editionSpellSlotRules';
 import {
+  canonicalSpellClassName,
+  getCharacterPreparedCapacity,
+  getCharacterSpellListMode,
+  getSpellListDestination,
+  getSpellListLabel,
+  tagSpellSource,
+} from '@/data/characterSpellListRules';
+import {
   buildPactMagicResource,
   getCastOptionsForSpell,
   getNormalSpellPool,
@@ -80,15 +88,8 @@ function getClassLevels(character = {}) {
     : {};
 }
 
-function canonicalSpellClass(className = '') {
-  return Object.keys(SPELLCASTING_CLASSES).find(
-    (cls) => normalizeName(cls) === normalizeName(className),
-  ) || className;
-}
-
-function classHasSpellcasting(character = {}, className = '') {
-  const canonical = canonicalSpellClass(className);
-  const classLevels = getClassLevels(character);
+function classHasSpellcasting(character = {}, className = '', classLevels = getClassLevels(character)) {
+  const canonical = canonicalSpellClassName(className);
   const level = Number(
     classLevels[className]
     ?? classLevels[canonical]
@@ -136,6 +137,26 @@ function savedSpellNameSet(...groups) {
 function withoutSpell(spells = [], spellName = '') {
   const key = normalizeName(spellName);
   return toArray(spells).filter((spell) => normalizeName(normaliseSpell(spell).name) !== key);
+}
+
+function sourceClassFor(spell = {}, fallback = '') {
+  return canonicalSpellClassName(spell.sourceClass || spell.source_class || fallback || '');
+}
+
+function spellsForSource(spells = [], className = '', { legacyFallback = false } = {}) {
+  const wanted = normalizeName(className);
+  const tagged = spells.filter((spell) => spell?.sourceClass || spell?.source_class);
+  if (!tagged.length && legacyFallback) return spells;
+  return spells.filter((spell) => normalizeName(sourceClassFor(spell)) === wanted);
+}
+
+function listUpdate(field, list) {
+  if (field === 'cantrips_known') return { cantrips_known: list, cantrips: list };
+  if (field === 'spells_known') return { spells_known: list, known_spells: list };
+  if (field === 'spells_prepared') {
+    return { spells_prepared: list, prepared_spells: list, preparedSpells: list };
+  }
+  return { [field]: list };
 }
 
 function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
@@ -296,6 +317,7 @@ function SpellCard({
       <div className="clean-sheet-spell-card-top">
         <span className="clean-sheet-spell-level">{spellLevelLabel(spell.level)}</span>
         {prepared && <span className="clean-sheet-spell-state">Prepared</span>}
+        {spell.sourceClass && <span className="clean-sheet-spell-state">{spell.sourceClass}</span>}
         {!castable && !cantrip && <span className="clean-sheet-spell-state">Not prepared</span>}
       </div>
       <strong>{spell.name}</strong>
@@ -354,7 +376,7 @@ function SpellLibraryCard({ spell, saved, onAdd }) {
       {spell.description && <p>{spell.description}</p>}
       <div className="clean-sheet-spell-library-actions">
         <button type="button" onClick={() => onAdd(spell)} disabled={saved}>
-          {saved ? 'Added' : Number(spell.level || 0) === 0 ? 'Add Cantrip' : 'Add Spell'}
+          {saved ? 'Added' : Number(spell.level || 0) === 0 ? 'Add Cantrip' : `Add to ${spell.listLabel || 'Spells'}`}
         </button>
       </div>
     </article>
@@ -435,7 +457,7 @@ function SpellGroup({
               const rules = getCardRules(spell);
               return (
                 <SpellCard
-                  key={`${title}-${spell.name}`}
+                  key={`${title}-${spell.sourceClass || 'legacy'}-${spell.name}`}
                   spell={spell}
                   cantrip={rules.cantrip}
                   prepared={rules.prepared}
@@ -478,11 +500,12 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
 
   const spellcastingRows = useMemo(() => Object.entries(classLevels)
     .map(([className, level]) => {
-      const canonical = canonicalSpellClass(className);
+      const canonical = canonicalSpellClassName(className);
       const info = SPELLCASTING_CLASSES[canonical];
-      if (!info || !classHasSpellcasting(character, className)) return null;
+      if (!info || !classHasSpellcasting(character, className, classLevels)) return null;
       const modifier = abilityMod(character?.[info.ability]);
-      const is2024Ranger = snapshot.identity?.edition === '2024' && canonical === 'Ranger';
+      const listMode = getCharacterSpellListMode(character, canonical);
+      const listLabel = getSpellListLabel(character, canonical);
       return {
         className: canonical,
         level,
@@ -490,15 +513,36 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         abilityLabel: ABILITY_LABELS[info.ability] || info.ability,
         saveDc: 8 + proficiencyBonus + modifier,
         attackBonus: proficiencyBonus + modifier,
-        castingType: info.pactMagic ? 'Pact Magic' : info.type === 'prepared' || is2024Ranger ? 'Prepared' : 'Known',
+        listMode,
+        listLabel,
+        preparedCapacity: getCharacterPreparedCapacity(character, canonical, level),
+        castingType: info.pactMagic ? `Pact Magic · ${listLabel}` : listLabel,
       };
     })
-    .filter(Boolean), [character, classLevels, proficiencyBonus, snapshot.identity?.edition]);
+    .filter(Boolean), [character, classLevels, proficiencyBonus]);
 
-  const primaryCaster = spellcastingRows[0];
+  const primaryClass = canonicalSpellClassName(character?.character_class || character?.class_name || '');
+  const primaryCaster = spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(primaryClass)) || spellcastingRows[0];
   const effectiveSlots = normalPool.totals;
   const effectiveRemaining = normalPool.remaining;
   const hasPactMagic = pactPool.available;
+  const hasKnownModel = spellcastingRows.some((row) => row.listMode === 'known');
+  const hasPreparedModel = spellcastingRows.some((row) => row.listMode === 'prepared');
+  const hasSpellbookModel = spellcastingRows.some((row) => row.listMode === 'spellbook');
+
+  const cantrips = uniqueSpells(character?.cantrips_known || character?.cantrips, 0);
+  const known = uniqueSpells(character?.spells_known || character?.known_spells, null);
+  const spellbook = uniqueSpells(character?.spellbook, null);
+  const prepared = uniqueSpells(character?.spells_prepared || character?.prepared_spells || character?.preparedSpells, null);
+  const preparedNames = new Set(prepared.map((spell) => normalizeName(spell.name)));
+  const savedNames = savedSpellNameSet(cantrips, known, spellbook, prepared);
+  const lowerSearch = spellSearch.trim().toLowerCase();
+  const filterSpells = (spells) => !lowerSearch
+    ? spells
+    : spells.filter((spell) => `${spell.name} ${spell.school} ${spell.description} ${spell.sourceClass || ''}`
+      .toLowerCase()
+      .includes(lowerSearch));
+
   const spellWarnings = useMemo(() => {
     const warnings = [...(snapshot.warnings || [])];
     if (spellcastingRows.length && !hasItems(effectiveSlots) && !hasPactMagic) {
@@ -507,60 +551,32 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     if (normalPool.legacyPactExcluded) {
       warnings.push('Legacy Warlock slots were separated into the Pact Magic pool so they no longer collide with ordinary slots.');
     }
-    if (spellcastingRows.length
-      && !character?.cantrips_known?.length
-      && !character?.cantrips?.length
-      && !character?.spells_known?.length
-      && !character?.known_spells?.length
-      && !character?.spellbook?.length
-      && !character?.spells_prepared?.length
-      && !character?.prepared_spells?.length) {
+    if (spellcastingRows.length && !cantrips.length && !known.length && !spellbook.length && !prepared.length) {
       warnings.push('Caster has spellcasting math but no saved spell list yet.');
     }
+    if (spellcastingRows.length > 1 && [...known, ...spellbook, ...prepared].some((spell) => !spell.sourceClass && !spell.source_class)) {
+      warnings.push('Some legacy multiclass spells do not record their source class yet; they remain visible but should be reviewed when edited.');
+    }
     return warnings;
-  }, [snapshot.warnings, spellcastingRows.length, effectiveSlots, hasPactMagic, normalPool.legacyPactExcluded, character]);
-
-  const primaryClass = canonicalSpellClass(character?.character_class || character?.class_name || '');
-  const isWizard = primaryClass === 'Wizard';
-  const isPreparedCaster = primaryCaster?.castingType === 'Prepared' || isWizard;
-
-  const cantrips = uniqueSpells(character?.cantrips_known || character?.cantrips, 0);
-  const known = uniqueSpells(
-    isWizard
-      ? character?.spellbook
-      : character?.spells_known || character?.known_spells || character?.spellbook,
-    null,
-  );
-  const prepared = uniqueSpells(character?.spells_prepared || character?.prepared_spells, null);
-  const preparedNames = new Set(prepared.map((spell) => normalizeName(spell.name)));
-  const savedNames = savedSpellNameSet(cantrips, known, prepared);
-  const knownWithoutPrepared = known.filter((spell) => !preparedNames.has(normalizeName(spell.name)));
-  const secondaryLeveled = isPreparedCaster ? knownWithoutPrepared : known;
-  const secondaryTitle = isWizard ? 'Spellbook' : 'Known Spells';
-  const secondaryEmpty = isWizard ? 'No spellbook entries found.' : 'No known spells found.';
-  const secondaryMode = isPreparedCaster ? 'spellbook' : 'known';
-  const lowerSearch = spellSearch.trim().toLowerCase();
-  const filterSpells = (spells) => !lowerSearch
-    ? spells
-    : spells.filter((spell) => `${spell.name} ${spell.school} ${spell.description} ${spell.sourceClass || ''}`
-      .toLowerCase()
-      .includes(lowerSearch));
+  }, [snapshot.warnings, spellcastingRows.length, effectiveSlots, hasPactMagic, normalPool.legacyPactExcluded, cantrips.length, known, spellbook, prepared]);
 
   const availableClassSpells = useMemo(() => {
     const seen = new Set();
     return Object.entries(classLevels)
       .flatMap(([className, level]) => {
-        const canonical = canonicalSpellClass(className);
-        if (!classHasSpellcasting(character, canonical)) return [];
+        const canonical = canonicalSpellClassName(className);
+        if (!classHasSpellcasting(character, canonical, classLevels)) return [];
         const maxSpellLevel = getEditionMaxSpellLevel(
           { ...character, class_levels: classLevels },
           canonical,
           Number(level) || 0,
         );
-        return flattenClassSpellGroups(canonical, getSpellsForClass(canonical), maxSpellLevel);
+        const listLabel = getSpellListLabel(character, canonical);
+        return flattenClassSpellGroups(canonical, getSpellsForClass(canonical), maxSpellLevel)
+          .map((spell) => ({ ...spell, listLabel }));
       })
       .filter((spell) => {
-        const key = `${normalizeName(spell.name)}-${spell.level}`;
+        const key = `${normalizeName(spell.sourceClass)}-${normalizeName(spell.name)}-${spell.level}`;
         if (!key || seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -598,32 +614,40 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
 
   const addSpellFromLibrary = async (spell) => {
     if (!onCharacterUpdate) return false;
-    const normalised = normaliseSpell(spell, spell.level);
+    const normalised = tagSpellSource(normaliseSpell(spell, spell.level), spell.sourceClass);
     const level = Number(normalised.level || 0);
-    let field = 'spells_known';
-    let existing = known;
-
-    if (level === 0) {
-      field = 'cantrips_known';
-      existing = cantrips;
-    } else if (isWizard) {
-      field = 'spellbook';
-      existing = known;
-    } else if (isPreparedCaster) {
-      field = 'spells_prepared';
-      existing = prepared;
-    }
+    const sourceClass = sourceClassFor(normalised, primaryCaster?.className || primaryClass);
+    const field = getSpellListDestination(character, sourceClass, level);
+    const existing = field === 'cantrips_known'
+      ? cantrips
+      : field === 'spellbook'
+        ? spellbook
+        : field === 'spells_prepared'
+          ? prepared
+          : known;
 
     if (existing.some((entry) => normalizeName(entry.name) === normalizeName(normalised.name))) {
       toast.info(`${normalised.name} is already on this sheet.`);
       return false;
     }
 
+    if (field === 'spells_prepared') {
+      const sourceRow = spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(sourceClass));
+      const capacity = Number(sourceRow?.preparedCapacity || 0);
+      const legacyFallback = spellcastingRows.filter((row) => row.listMode === 'prepared').length === 1;
+      const sourcePrepared = spellsForSource(prepared, sourceClass, { legacyFallback });
+      if (capacity > 0 && sourcePrepared.length >= capacity) {
+        toast.error(`${sourceClass} already has ${capacity}/${capacity} prepared spells. Unprepare one before adding another.`);
+        return false;
+      }
+    }
+
+    const nextList = [...existing, normalised];
     const ok = await onCharacterUpdate(
-      { [field]: [...existing, normalised] },
+      listUpdate(field, nextList),
       { error: `Could not add ${normalised.name}` },
     );
-    if (ok !== false) toast.success(`${normalised.name} added`);
+    if (ok !== false) toast.success(`${normalised.name} added to ${level === 0 ? 'cantrips' : getSpellListLabel(character, sourceClass)}`);
     return ok;
   };
 
@@ -636,8 +660,20 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       return false;
     }
 
+    const sourceClass = sourceClassFor(normalised, 'Wizard');
+    const sourceRow = spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(sourceClass));
+    const capacity = Number(sourceRow?.preparedCapacity || 0);
+    const wizardRows = spellcastingRows.filter((row) => row.listMode === 'spellbook');
+    const sourcePrepared = spellsForSource(prepared, sourceClass, { legacyFallback: wizardRows.length === 1 });
+    if (capacity > 0 && sourcePrepared.length >= capacity) {
+      toast.error(`${sourceClass} already has ${capacity}/${capacity} prepared spells. Unprepare one first.`);
+      return false;
+    }
+
+    const tagged = tagSpellSource(normalised, sourceClass);
+    const nextPrepared = [...prepared, tagged];
     const ok = await onCharacterUpdate(
-      { spells_prepared: [...prepared, normalised] },
+      listUpdate('spells_prepared', nextPrepared),
       { error: `Could not prepare ${normalised.name}` },
     );
     if (ok !== false) toast.success(`${normalised.name} prepared`);
@@ -651,7 +687,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     if (nextPrepared.length === prepared.length) return false;
 
     const ok = await onCharacterUpdate(
-      { spells_prepared: nextPrepared },
+      listUpdate('spells_prepared', nextPrepared),
       { error: `Could not unprepare ${normalised.name}` },
     );
     if (ok !== false) toast.success(`${normalised.name} unprepared`);
@@ -710,6 +746,12 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     hasPactMagic ? 'Pact Magic' : '',
   ].filter(Boolean).join(' + ') || 'None';
 
+  const listSummary = [
+    known.length ? `${known.length} known` : '',
+    spellbook.length ? `${spellbook.length} book` : '',
+    prepared.length ? `${prepared.length} prepared` : '',
+  ].filter(Boolean).join(' · ') || 'No levelled spells';
+
   return (
     <div className="clean-sheet-grid clean-sheet-spells-tab">
       <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-summary-board">
@@ -717,7 +759,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <div>
             <h2>Spellcasting</h2>
             <p>
-              Cast prepared or known spells, choose the exact slot pool, manage spellbook preparation, and add spells from your class list.
+              Cast prepared or known spells, choose the exact slot pool, manage Wizard preparation, and add spells to the correct class list.
             </p>
           </div>
           <span>{spellcastingRows.length ? 'Caster' : 'No caster data'}</span>
@@ -740,10 +782,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
                 : primaryCaster ? formatBonus(primaryCaster.attackBonus) : '—'}
             </strong>
           </div>
-          <div>
-            <span>{isWizard ? 'Book/Prepared' : 'Known/Prepared'}</span>
-            <strong>{known.length}/{prepared.length}</strong>
-          </div>
+          <div><span>Lists</span><strong>{listSummary}</strong></div>
         </div>
         <label className="clean-sheet-spell-search">
           <Search size={16} />
@@ -799,6 +838,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
                   <div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong></div>
                   <div><span>Style</span><strong>{row.castingType}</strong></div>
                 </div>
+                {row.preparedCapacity > 0 && <p className="clean-sheet-muted">Prepared capacity: {row.preparedCapacity}</p>}
               </article>
             ))}
           </div>
@@ -825,34 +865,53 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         onPrepare={prepareSpell}
         onUnprepare={unprepareSpell}
       />
-      {isPreparedCaster && (
+
+      {(hasPreparedModel || hasSpellbookModel || prepared.length > 0) && (
         <SpellGroup
           title="Prepared Spells"
           spells={filterSpells(prepared)}
           preparedNames={preparedNames}
           groupMode="prepared"
           getCastOptions={castOptionsForSpell}
-          emptyText="No prepared spells found. Prepare one from your spellbook or add one from the class spell library above."
+          emptyText="No prepared spells found. Add a prepared-class spell or prepare one from a Wizard spellbook."
           onCast={castSpell}
           onConcentrate={concentrateOn}
           onPrepare={prepareSpell}
           onUnprepare={unprepareSpell}
         />
       )}
-      <SpellGroup
-        title={secondaryTitle}
-        spells={filterSpells(secondaryLeveled)}
-        preparedNames={preparedNames}
-        groupMode={secondaryMode}
-        getCastOptions={castOptionsForSpell}
-        emptyText={`${secondaryEmpty} Add one from the class spell library above.`}
-        onCast={castSpell}
-        onConcentrate={concentrateOn}
-        onPrepare={prepareSpell}
-        onUnprepare={unprepareSpell}
-      />
 
-      {!cantrips.length && !known.length && !prepared.length && (
+      {(hasSpellbookModel || spellbook.length > 0) && (
+        <SpellGroup
+          title="Spellbook"
+          spells={filterSpells(spellbook.filter((spell) => !preparedNames.has(normalizeName(spell.name))))}
+          preparedNames={preparedNames}
+          groupMode="spellbook"
+          getCastOptions={castOptionsForSpell}
+          emptyText="No unprepared spellbook entries found. Add Wizard spells from the class library above."
+          onCast={castSpell}
+          onConcentrate={concentrateOn}
+          onPrepare={prepareSpell}
+          onUnprepare={unprepareSpell}
+        />
+      )}
+
+      {(hasKnownModel || known.length > 0) && (
+        <SpellGroup
+          title="Known Spells"
+          spells={filterSpells(known)}
+          preparedNames={preparedNames}
+          groupMode="known"
+          getCastOptions={castOptionsForSpell}
+          emptyText="No known spells found. Add one from the class spell library above."
+          onCast={castSpell}
+          onConcentrate={concentrateOn}
+          onPrepare={prepareSpell}
+          onUnprepare={unprepareSpell}
+        />
+      )}
+
+      {!cantrips.length && !known.length && !spellbook.length && !prepared.length && (
         <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-empty">
           <Wand2 size={22} />
           <h2>No spells saved yet</h2>
