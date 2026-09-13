@@ -4,7 +4,9 @@ legal option set (subclasses, spells/cantrips gained, feats) so the LevelUpWizar
 can render only valid choices instead of computing them client-side.
 
 The 2014 spells-known tables stay separate from 2024 prepared-spell capacity so
-a revised Ranger is never accidentally treated as a legacy known-spells caster.
+revised casters are never accidentally treated as legacy known-spells casters.
+Wizard spellbook growth remains a separate permanent-learning path in both
+editions.
 """
 from typing import List, Dict, Any
 
@@ -25,7 +27,8 @@ _CLASS_SUBCLASSES: Dict[str, List[str]] = {
 }
 
 # 2014 spells known at each level (for "spells known" casters: Bard / Ranger / Sorcerer / Warlock).
-# Wizard entries represent spellbook additions used by the existing level-up flow.
+# Wizard entries represent cumulative spellbook size from class progression alone:
+# six spells at Wizard 1, then two additional spells for every Wizard level gained.
 _SPELLS_KNOWN_PROGRESSION: Dict[str, Dict[int, int]] = {
     'Bard':     {1:4,2:5,3:6,4:7,5:8,6:9,7:10,8:11,9:12,10:14,11:15,12:15,13:16,14:18,15:19,16:19,17:20,18:22,19:22,20:22},
     'Ranger':   {2:2,3:3,4:3,5:4,6:4,7:5,8:5,9:6,10:6,11:7,12:7,13:8,14:8,15:9,16:9,17:10,18:10,19:11,20:11},
@@ -34,15 +37,49 @@ _SPELLS_KNOWN_PROGRESSION: Dict[str, Dict[int, int]] = {
     'Wizard':   {1:6,2:8,3:10,4:12,5:14,6:16,7:18,8:20,9:22,10:24,11:26,12:28,13:30,14:32,15:34,16:36,17:38,18:40,19:42,20:44},
 }
 
-# Revised 2024 Paladin/Ranger Prepared Spells column. These characters prepare
-# from their class lists instead of permanently learning spells from the 2014
-# Ranger table, so this capacity must not be surfaced as spells_to_learn.
+# 2024 Prepared Spells columns. Unlike the 2014 prepared-caster formula, these
+# are fixed class-table values and therefore must not be derived from ability
+# modifiers. Wizard still learns two spellbook spells per class level; this table
+# controls only how many of those spellbook spells can be prepared at once.
+_FULL_PREPARED_2024: Dict[int, int] = {
+    1:4,2:5,3:6,4:7,5:9,6:10,7:11,8:12,9:14,10:15,
+    11:16,12:16,13:17,14:17,15:18,16:18,17:19,18:20,19:21,20:22,
+}
+
+_SORCERER_PREPARED_2024: Dict[int, int] = {
+    1:2,2:4,3:6,4:7,5:9,6:10,7:11,8:12,9:14,10:15,
+    11:16,12:16,13:17,14:17,15:18,16:18,17:19,18:20,19:21,20:22,
+}
+
+_WARLOCK_PREPARED_2024: Dict[int, int] = {
+    1:2,2:3,3:4,4:5,5:6,6:7,7:8,8:9,9:10,10:10,
+    11:11,12:11,13:12,14:12,15:13,16:13,17:14,18:14,19:15,20:15,
+}
+
+_WIZARD_PREPARED_2024: Dict[int, int] = {
+    1:4,2:5,3:6,4:7,5:9,6:10,7:11,8:12,9:14,10:15,
+    11:16,12:16,13:17,14:18,15:19,16:21,17:22,18:23,19:24,20:25,
+}
+
 _HALF_CASTER_PREPARED_2024: Dict[int, int] = {
     1:2,2:3,3:4,4:5,5:6,6:6,7:7,8:7,9:9,10:9,
     11:10,12:10,13:11,14:11,15:12,16:12,17:14,18:14,19:15,20:15,
 }
 
-# Cantrips known at each level.
+_PREPARED_2024_BY_CLASS: Dict[str, Dict[int, int]] = {
+    'Bard': _FULL_PREPARED_2024,
+    'Cleric': _FULL_PREPARED_2024,
+    'Druid': _FULL_PREPARED_2024,
+    'Paladin': _HALF_CASTER_PREPARED_2024,
+    'Ranger': _HALF_CASTER_PREPARED_2024,
+    'Sorcerer': _SORCERER_PREPARED_2024,
+    'Warlock': _WARLOCK_PREPARED_2024,
+    'Wizard': _WIZARD_PREPARED_2024,
+}
+
+# Cantrips known at each level. These tables currently describe the shared SRD
+# progression used by the existing builder; edition-specific cantrip differences
+# can be split here when the remaining 2024 class audit reaches them.
 _CANTRIPS_KNOWN_PROGRESSION: Dict[str, Dict[int, int]] = {
     'Bard':     {1:2,4:3,10:4},
     'Cleric':   {1:3,4:4,10:5},
@@ -105,14 +142,49 @@ def subclasses_for(class_name: str) -> List[str]:
     return list(_CLASS_SUBCLASSES.get(class_name, []))
 
 
-def spells_to_learn(class_name: str, current_level: int, target_level: int, edition: str = '2014') -> int:
-    """Net permanently learned/spellbook additions for a level transition.
+def spell_selection_mode(class_name: str, edition: str = '2014') -> str:
+    """Return the persistent spell-list model used by a class/edition.
 
-    The old Ranger table is specifically 2014 known-spell progression. 2024
-    Ranger and Paladin are prepared casters, so returning those deltas as
-    `spells_to_learn` would make the wizard save prepared choices as known spells.
+    `known` means level-up choices permanently extend spells_known.
+    `prepared` means choices belong in the active prepared list.
+    `spellbook` means permanent additions belong in the Wizard spellbook and the
+    prepared list is selected separately from that book.
     """
-    if _edition(edition) == '2024' and class_name in {'Ranger', 'Paladin'}:
+    if class_name == 'Wizard':
+        return 'spellbook'
+    if _edition(edition) == '2024' and class_name in _PREPARED_2024_BY_CLASS:
+        return 'prepared'
+    if class_name in {'Cleric', 'Druid', 'Paladin'}:
+        return 'prepared'
+    if class_name in {'Bard', 'Ranger', 'Sorcerer', 'Warlock'}:
+        return 'known'
+    return 'none'
+
+
+def prepared_spell_change_rule(class_name: str, edition: str = '2014') -> Dict[str, Any]:
+    """Describe how an already-prepared list can be changed in 2024 rules.
+
+    This is metadata for the UI; it does not itself rewrite a saved loadout.
+    `max_replacements=None` means any number of prepared spells may be changed.
+    """
+    if _edition(edition) != '2024' or class_name not in _PREPARED_2024_BY_CLASS:
+        return {'cadence': 'legacy', 'max_replacements': None}
+    if class_name in {'Bard', 'Sorcerer', 'Warlock'}:
+        return {'cadence': 'level-up', 'max_replacements': 1}
+    if class_name in {'Paladin', 'Ranger'}:
+        return {'cadence': 'long-rest', 'max_replacements': 1}
+    return {'cadence': 'long-rest', 'max_replacements': None}
+
+
+def spells_to_learn(class_name: str, current_level: int, target_level: int, edition: str = '2014') -> int:
+    """Net permanent spell-list additions for a level transition.
+
+    2024 Bard/Sorcerer/Warlock/Ranger/Paladin and the full prepared casters use
+    fixed prepared capacities rather than the old known-spell deltas. Wizard is
+    the exception: it still gains two spellbook spells on each Wizard level, so
+    its cumulative spellbook table remains valid in both editions.
+    """
+    if _edition(edition) == '2024' and class_name != 'Wizard':
         return 0
     table = _SPELLS_KNOWN_PROGRESSION.get(class_name)
     if not table:
@@ -123,15 +195,11 @@ def spells_to_learn(class_name: str, current_level: int, target_level: int, edit
 
 
 def prepared_spell_capacity(class_name: str, level: int, edition: str = '2014') -> int:
-    """Return fixed prepared capacity where the edition has a class-table value.
-
-    For now this intentionally covers the revised 2024 half casters. Other
-    prepared casters still depend on their edition/class-specific preparation
-    rules elsewhere in the character engine.
-    """
-    if _edition(edition) == '2024' and class_name in {'Ranger', 'Paladin'}:
-        return _table_value(_HALF_CASTER_PREPARED_2024, level)
-    return 0
+    """Return fixed prepared capacity where the edition has a class-table value."""
+    if _edition(edition) != '2024':
+        return 0
+    table = _PREPARED_2024_BY_CLASS.get(class_name)
+    return _table_value(table, level) if table else 0
 
 
 def cantrips_to_learn(class_name: str, current_level: int, target_level: int) -> int:
@@ -142,10 +210,22 @@ def cantrips_to_learn(class_name: str, current_level: int, target_level: int) ->
 
 
 def spells_known_table(class_name: str, edition: str = '2014') -> Dict[int, int]:
-    """Public accessor for permanent spells-known progression."""
-    if _edition(edition) == '2024' and class_name in {'Ranger', 'Paladin'}:
+    """Public accessor for permanent spells-known progression.
+
+    Wizard is intentionally excluded because its permanent list is a spellbook,
+    exposed separately by `spellbook_spells_table`.
+    """
+    if class_name == 'Wizard':
+        return {}
+    if _edition(edition) == '2024':
         return {}
     return dict(_SPELLS_KNOWN_PROGRESSION.get(class_name, {}))
+
+
+def spellbook_spells_table(class_name: str, edition: str = '2014') -> Dict[int, int]:
+    """Cumulative class-granted spellbook spells (Wizard only)."""
+    del edition  # Wizard class-granted spellbook growth is shared here.
+    return dict(_SPELLS_KNOWN_PROGRESSION['Wizard']) if class_name == 'Wizard' else {}
 
 
 def cantrips_known_table(class_name: str) -> Dict[int, int]:
@@ -155,12 +235,15 @@ def cantrips_known_table(class_name: str) -> Dict[int, int]:
 
 def class_progression_summary(class_name: str, edition: str) -> Dict[str, Any]:
     """All level-up reference data for one class — frontend uses this for the wizard."""
-    prepared_table = dict(_HALF_CASTER_PREPARED_2024) if _edition(edition) == '2024' and class_name in {'Ranger', 'Paladin'} else {}
+    prepared_table = dict(_PREPARED_2024_BY_CLASS.get(class_name, {})) if _edition(edition) == '2024' else {}
     return {
         'class_name': class_name,
         'edition': _edition(edition),
         'subclasses': subclasses_for(class_name),
+        'spell_selection_mode': spell_selection_mode(class_name, edition),
+        'prepared_spell_change': prepared_spell_change_rule(class_name, edition),
         'spells_known_table': spells_known_table(class_name, edition),
+        'spellbook_spells_table': spellbook_spells_table(class_name, edition),
         'cantrips_known_table': _CANTRIPS_KNOWN_PROGRESSION.get(class_name, {}),
         'prepared_spells_table': prepared_table,
         'origin_feats': feats_for_edition(edition, 'origin'),
