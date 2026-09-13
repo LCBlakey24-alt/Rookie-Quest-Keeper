@@ -39,6 +39,15 @@ const rangerLevelOf = (character) => classLevelOf(character, 'ranger');
 const sorcererLevelOf = (character) => classLevelOf(character, 'sorcerer');
 const warlockLevelOf = (character) => classLevelOf(character, 'warlock');
 
+const warlockPactShape = (character) => {
+  const level = Math.max(0, Math.min(20, warlockLevelOf(character)));
+  if (!level) return { slots: 0, slotLevel: 0 };
+  return {
+    slots: level === 1 ? 1 : level <= 10 ? 2 : level <= 16 ? 3 : 4,
+    slotLevel: level <= 2 ? 1 : level <= 4 ? 2 : level <= 6 ? 3 : level <= 8 ? 4 : 5,
+  };
+};
+
 const proficiencyBonusOf = (character) => {
   const explicitBonus = Number(character?.proficiency_bonus || character?.proficiencyBonus || 0);
   if (explicitBonus > 0) return explicitBonus;
@@ -137,7 +146,14 @@ export const CLASS_RESOURCE_RULES = {
     { key: 'sorcery_points', label: 'Sorcery Points', minLevel: 2, restore: 'long-rest', max: (character) => sorcererLevelOf(character) },
   ],
   Warlock: [
-    { key: 'pact_magic', label: 'Pact Magic', minLevel: 1, restore: 'short-rest', max: (character) => warlockLevelOf(character) >= 2 ? 2 : 1 },
+    {
+      key: 'pact_magic',
+      label: 'Pact Magic',
+      minLevel: 1,
+      restore: 'short-rest',
+      max: (character) => warlockPactShape(character).slots,
+      slotLevel: (character) => warlockPactShape(character).slotLevel,
+    },
   ],
   Wizard: [
     { key: 'arcane_recovery', label: 'Arcane Recovery', minLevel: 1, restore: 'long-rest', max: () => 1 },
@@ -198,11 +214,13 @@ export function getClassResourceRules(character) {
       .filter(rule => level >= (rule.minLevel || 1))
       .map(rule => {
         const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
+        const slotLevelValue = typeof rule.slotLevel === 'function' ? rule.slotLevel(character) : Number(rule.slotLevel || 0);
         return {
           ...rule,
           className,
           restore,
           maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
+          slotLevelValue: Math.max(0, Number(slotLevelValue || 0)),
         };
       })
       .filter(rule => rule.maxValue > 0);
@@ -275,6 +293,8 @@ export function buildInitialClassResources(character) {
       max: rule.maxValue,
       restore: rule.restore || 'long-rest',
       min_level: rule.minLevel || 1,
+      ...(rule.slotLevelValue > 0 ? { slot_level: rule.slotLevelValue } : {}),
+      ...(rule.className ? { className: rule.className } : {}),
     };
     return resources;
   }, {});
@@ -300,6 +320,8 @@ export function restoreClassResources(character, restType = 'long-rest') {
       max: rule.maxValue,
       restore: rule.restore || existing.restore || 'long-rest',
       min_level: rule.minLevel || existing.min_level || 1,
+      ...(rule.slotLevelValue > 0 ? { slot_level: rule.slotLevelValue } : {}),
+      ...(rule.className ? { className: rule.className } : {}),
     };
   });
 
@@ -320,3 +342,5 @@ export function restoreClassResources(character, restType = 'long-rest') {
 
   return restored;
 }
+
+export { warlockPactShape };
