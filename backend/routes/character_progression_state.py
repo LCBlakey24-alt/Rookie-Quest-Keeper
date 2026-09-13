@@ -20,10 +20,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import db
 from data.character_resources import merge_character_resources
+from data.spell_slot_rules import shared_spell_slots
 from models import LevelUpRequest
 from routes.characters import (
     build_level_up_update,
-    compute_multiclass_spell_slots,
     display_class_name,
     get_owned_character,
     initial_class_levels,
@@ -98,26 +98,15 @@ def _subclass_for_class(existing: Dict[str, Any], class_name: str) -> str:
     return ""
 
 
-def _class_entries(existing: Dict[str, Any], class_levels: Dict[str, int]) -> List[Dict[str, Any]]:
-    """Adapt saved class-level shapes to the backend shared-slot calculator."""
-    entries: List[Dict[str, Any]] = []
-    for class_name, level in class_levels.items():
-        canonical = display_class_name(class_name)
-        saved = _saved_class_entry(existing, canonical)
-        subclass = saved.get("subclass") or _subclass_for_class(existing, canonical)
-        entries.append({"name": canonical, "level": max(0, _int(level, 0)), "subclass": subclass})
-    return entries
-
-
 def progression_spell_slot_totals(existing: Dict[str, Any], class_levels: Dict[str, int]) -> Dict[str, int]:
     """Return the normal spell-slot pool appropriate for a post-level-up class mix.
 
-    For a Warlock-only (or Warlock + non-caster) character, keep Pact Magic in
-    the legacy spell_slots field for compatibility with older saved sheets.
-    Once another spellcasting class contributes shared slots, spell_slots holds
-    only that shared table and Pact Magic is tracked through resources.pact_magic.
+    The shared-slot helper is edition-aware: 2014 Paladin/Ranger levels are
+    halved and rounded down, while 2024 levels are halved and rounded up because
+    those classes gain Spellcasting at level 1. Warlock Pact Magic remains a
+    separate pool.
     """
-    shared_slots = _slot_map(compute_multiclass_spell_slots(_class_entries(existing, class_levels)))
+    shared_slots = _slot_map(shared_spell_slots(existing, class_levels))
     warlock_level = _warlock_level(class_levels)
     if shared_slots:
         return shared_slots
@@ -249,7 +238,10 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
     warlock_level = _warlock_level(class_levels)
     single_pool_is_pact = primary_class == "warlock" and len(class_levels) == 1
 
-    update["spell_slots"] = progression_spell_slot_totals(existing, class_levels)
+    slot_character = dict(existing)
+    if update.get("subclass"):
+        slot_character["subclass"] = update.get("subclass")
+    update["spell_slots"] = progression_spell_slot_totals(slot_character, class_levels)
     update["spell_slots_remaining"] = preserve_spell_slot_state(
         existing.get("spell_slots"),
         existing.get("spell_slots_remaining"),
