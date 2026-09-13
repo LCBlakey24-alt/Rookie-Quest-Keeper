@@ -1,5 +1,7 @@
 import * as warlockPackage from './warlockPackage';
 
+const VALID_2024_INVOCATIONS = ['Pact of the Chain', 'Eldritch Mind', 'Armor of Shadows'];
+
 describe('Warlock package exports', () => {
   test('exports the full Warlock package helper surface', () => {
     expect(typeof warlockPackage.isWarlockCharacter).toBe('function');
@@ -12,19 +14,20 @@ describe('Warlock package exports', () => {
   });
 
   test('returns final ready state for a completed 2014 Warlock selection', () => {
+    const invocations = ['Agonizing Blast', 'Eldritch Sight'];
     const status = warlockPackage.getWarlockFinalStatus({
       level: 3,
       edition: '2014',
       subclass: 'Fiend Patron',
       pactBoon: 'Pact of the Blade',
-      invocations: ['One', 'Two'],
+      invocations,
       character: {
         character_class: 'Warlock',
         level: 3,
         rules_edition: '2014',
         patron: 'Fiend Patron',
         pactBoon: 'Pact of the Blade',
-        invocations: ['One', 'Two'],
+        invocations,
       },
     });
 
@@ -45,23 +48,22 @@ describe('Warlock package exports', () => {
       level: 3,
       edition: '2024',
       subclass: 'Archfey Patron',
-      pactBoon: 'Pact of the Chain',
-      invocations: ['One', 'Two', 'Three'],
+      invocations: VALID_2024_INVOCATIONS,
       character: {
         character_class: 'Warlock',
         level: 3,
         rules_edition: '2024',
         subclass: 'Archfey Patron',
-        pact_boon: 'Pact of the Chain',
-        eldritch_invocations: ['One', 'Two', 'Three'],
+        eldritch_invocations: VALID_2024_INVOCATIONS,
       },
     });
 
     expect(status.ready).toBe(true);
     expect(status.errors).toEqual([]);
     expect(status.choiceSummary.subclass.key).toBe('archfey');
-    expect(status.choiceSummary.pactBoon.key).toBe('chain');
+    expect(status.choiceSummary.pactBoon).toBeNull();
     expect(status.sheetSummary.subclassKey).toBe('archfey');
+    expect(status.sheetSummary.pactBoonLabel).toBe('Pact of the Chain');
   });
 
   test('reports missing selections for incomplete 2024 Warlock builds', () => {
@@ -70,12 +72,13 @@ describe('Warlock package exports', () => {
     expect(status.ready).toBe(false);
     expect(status.errors).toEqual(expect.arrayContaining([
       'Choose a Warlock patron.',
-      'Choose a Pact Boon.',
       'Choose 3 Eldritch Invocations.',
     ]));
+    expect(status.errors).not.toContain('Choose a Pact Boon.');
   });
 
   test('uses Warlock class level for multiclass final status defaults', () => {
+    const invocations = ['Agonizing Blast', 'Eldritch Sight', 'Devil’s Sight'];
     const status = warlockPackage.getWarlockFinalStatus({
       character: {
         character_class: 'Fighter',
@@ -84,7 +87,7 @@ describe('Warlock package exports', () => {
         rules_edition: '2014',
         patron: 'Celestial Patron',
         pactBoon: 'Pact of the Tome',
-        invocations: ['One', 'Two', 'Three'],
+        invocations,
       },
     });
 
