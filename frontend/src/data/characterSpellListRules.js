@@ -16,13 +16,37 @@ function rawSpellSource(spell = {}) {
   return spell?.sourceClass || spell?.source_class || spell?.className || spell?.class_name || '';
 }
 
+export function characterSpellIdentity(spell = {}) {
+  const normalised = normaliseSpell(spell);
+  const nameKey = normaliseName(normalised.name);
+  if (!nameKey) return '';
+  const sourceKey = normaliseName(rawSpellSource(normalised));
+  return `${sourceKey || 'legacy'}:${nameKey}`;
+}
+
+export function spellListContains(spells = [], spell = {}) {
+  const candidate = normaliseSpell(spell);
+  const nameKey = normaliseName(candidate.name);
+  if (!nameKey) return false;
+  const candidateSource = normaliseName(rawSpellSource(candidate));
+
+  return toArray(spells).some((saved) => {
+    const savedSpell = normaliseSpell(saved);
+    if (normaliseName(savedSpell.name) !== nameKey) return false;
+    const savedSource = normaliseName(rawSpellSource(savedSpell));
+    // Untagged legacy data is ambiguous, so treat it as occupying this spell
+    // name until the character is reviewed/migrated rather than creating a
+    // duplicate under a guessed class.
+    if (!savedSource || !candidateSource) return true;
+    return savedSource === candidateSource;
+  });
+}
+
 function uniqueSpells(spells = []) {
   const seen = new Set();
   return toArray(spells).map(normaliseSpell).filter((spell) => {
-    const nameKey = normaliseName(spell.name);
-    const sourceKey = normaliseName(rawSpellSource(spell)) || 'legacy';
-    const key = `${sourceKey}:${nameKey}`;
-    if (!nameKey || seen.has(key)) return false;
+    const key = characterSpellIdentity(spell);
+    if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
   });
