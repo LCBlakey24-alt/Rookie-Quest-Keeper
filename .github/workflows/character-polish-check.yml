@@ -29,6 +29,7 @@ jobs:
         run: |
           python -m py_compile \
             backend/data/character_resources.py \
+            backend/data/class_progression.py \
             backend/data/spell_slot_rules.py \
             backend/routes/character_import.py \
             backend/routes/character_creation_state.py \
@@ -46,6 +47,7 @@ jobs:
           python -m unittest backend.tests.test_character_edit_state -v
           python -m unittest backend.tests.test_character_progression_preflight -v
           python -m unittest backend.tests.test_character_progression_state -v
+          python -m unittest backend.tests.test_character_spell_progression_state -v
           python -m unittest backend.tests.test_character_recovery -v
 
   character-frontend:
