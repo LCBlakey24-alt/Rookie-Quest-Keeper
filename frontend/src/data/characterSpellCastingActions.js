@@ -58,9 +58,19 @@ export function getCharacterCastOptions(character = {}, spell = {}) {
   return { ...pools, options };
 }
 
-function chooseAutomaticOption(options = [], preferredSource = 'spell') {
+function sameCastOption(left = {}, right = {}) {
+  return left.source === right.source && toNumber(left.level, 0) === toNumber(right.level, 0);
+}
+
+export function chooseCharacterCastOption(options = [], { preferredSource = 'spell', explicitOption = null } = {}) {
   if (!options.length) return null;
   if (options[0]?.source === 'cantrip') return options[0];
+
+  if (explicitOption) {
+    const exact = options.find((option) => sameCastOption(option, explicitOption));
+    if (exact) return exact;
+    return null;
+  }
 
   return [...options].sort((left, right) => {
     const levelDelta = toNumber(left.level, 0) - toNumber(right.level, 0);
@@ -72,15 +82,22 @@ function chooseAutomaticOption(options = [], preferredSource = 'spell') {
   })[0];
 }
 
-export function buildCharacterSpellCastUpdate(character = {}, spell = {}, { preferredSource = 'spell' } = {}) {
+export function buildCharacterSpellCastUpdate(
+  character = {},
+  spell = {},
+  { preferredSource = 'spell', explicitOption = null } = {},
+) {
   const pools = getCharacterCastOptions(character, spell);
-  const option = chooseAutomaticOption(pools.options, preferredSource);
+  const option = chooseCharacterCastOption(pools.options, { preferredSource, explicitOption });
   const spellLevel = Math.max(0, toNumber(spell?.level ?? spell?.spell_level, 0));
 
   if (!option) {
+    const explicitMissing = Boolean(explicitOption && pools.options.length);
     return {
       ok: false,
-      reason: `No level ${spellLevel}+ spell slots left`,
+      reason: explicitMissing
+        ? 'That spell slot pool is no longer available.'
+        : `No level ${spellLevel}+ spell slots left`,
       option: null,
       options: pools.options,
       updates: {},
