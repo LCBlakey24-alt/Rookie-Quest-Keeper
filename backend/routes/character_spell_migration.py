@@ -46,12 +46,21 @@ def _spell_entry(spell: Any, class_name: str = "") -> Dict[str, Any]:
 
 
 def _unique_spells(spells: Any) -> List[Dict[str, Any]]:
+    """Deduplicate one class copy without collapsing multiclass ownership.
+
+    A Bard and Warlock can legitimately both carry the same spell on one
+    character. Once sourceClass exists, source + name is the identity. Legacy
+    untagged copies keep their own ``legacy`` identity rather than silently
+    deleting a sourced class copy.
+    """
     output: List[Dict[str, Any]] = []
     seen = set()
     for raw in list(spells or []):
         entry = _spell_entry(raw)
-        key = _normalise(entry.get("name"))
-        if not key or key in seen:
+        name_key = _normalise(entry.get("name"))
+        source_key = _normalise(_spell_source(entry)) or "legacy"
+        key = (source_key, name_key)
+        if not name_key or key in seen:
             continue
         seen.add(key)
         output.append(entry)
