@@ -56,6 +56,25 @@ def _edition(character: Dict[str, Any]) -> str:
     return "2024" if "2024" in str(raw) else "2014"
 
 
+def _current_hp(character: Dict[str, Any]) -> int:
+    max_hp = max(1, _int(character.get("max_hit_points", character.get("max_hp")), 1))
+    raw = character.get("current_hit_points", character.get("hp"))
+    return max(0, min(max_hp, _int(raw, max_hp)))
+
+
+def can_start_rest(character: Dict[str, Any]) -> bool:
+    """2024 rests require at least 1 HP; preserve 2014 behaviour."""
+    return _edition(character) != "2024" or _current_hp(character) > 0
+
+
+def _require_rest_eligibility(character: Dict[str, Any]) -> None:
+    if not can_start_rest(character):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2024 rules require at least 1 HP to start a Short or Long Rest",
+        )
+
+
 def _class_key(value: Any) -> str:
     return str(value or "").strip().lower().replace(" ", "_").replace("-", "_")
 
@@ -153,13 +172,7 @@ def restore_resource_trackers(resources: Any, rest_type: str) -> Dict[str, Any]:
 
 
 def canonical_resources_for_rest(character: Dict[str, Any]) -> Dict[str, Any]:
-    """Repair stale core counters before applying recovery.
-
-    Older saved sheets may contain pre-audit maxima (for example old 2024
-    Second Wind or Pact Magic counts). A rest is a safe point to reconcile the
-    tracker shape against the character's saved class levels while preserving
-    spent uses and any homebrew counters.
-    """
+    """Repair stale core counters before applying recovery."""
     return merge_character_resources(
         character,
         _class_levels(character),
@@ -238,8 +251,6 @@ def spell_slots_are_pact_pool(character: Dict[str, Any]) -> bool:
         if slot_level != "0" and len(slots) == 1:
             return _int(slots.get(slot_level), -1) == maximum
 
-    # Legacy Warlocks did not always have a tracker. If no other class provides
-    # ordinary spell slots, their saved spell_slots are the Pact Magic pool.
     return True
 
 
@@ -277,10 +288,11 @@ def _spend_hit_dice(character: Dict[str, Any], requested: int) -> Dict[str, Any]
     current_hp = max(0, min(max_hp, _int(character.get("current_hit_points"), max_hp)))
     die = _hit_die_sides(character)
     con_mod = _ability_mod(character.get("constitution"))
+    minimum = 1 if _edition(character) == "2024" else 0
 
     healed = 0
     for _ in range(spend):
-        healed += max(0, random.randint(1, die) + con_mod)
+        healed += max(minimum, random.randint(1, die) + con_mod)
 
     return {
         "current_hit_points": min(max_hp, current_hp + healed),
@@ -298,6 +310,7 @@ async def short_rest_character(
 ):
     """Restore short-rest resources and optionally spend Hit Dice."""
     character = await _owned_character(character_id, username)
+    _require_rest_eligibility(character)
     canonical_resources = canonical_resources_for_rest(character)
     working_character = {**character, "resources": canonical_resources}
     restored_resources = restore_resource_trackers(canonical_resources, "short-rest")
@@ -324,6 +337,7 @@ async def long_rest_character(
 ):
     """Apply long-rest recovery while respecting the character's rules edition."""
     character = await _owned_character(character_id, username)
+    _require_rest_eligibility(character)
     max_hp = max(1, _int(character.get("max_hit_points"), 1))
     canonical_resources = canonical_resources_for_rest(character)
     working_character = {**character, "resources": canonical_resources}
