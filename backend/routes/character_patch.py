@@ -74,6 +74,14 @@ DICT_FIELDS = {
     "resources", "class_levels", "multiclass_levels", "level_progression", "asi_increases",
 }
 
+EQUIPPED_SLOT_ALIASES = {
+    "mainHand": ("mainHand", "main_hand", "weapon"),
+    "offHand": ("offHand", "off_hand", "shield"),
+    "armor": ("armor", "armour"),
+    "gauntlets": ("gauntlets", "gloves", "bracers"),
+    "boots": ("boots", "shoes", "sandals"),
+}
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -135,16 +143,95 @@ def _normalise_spell_list(value: Any) -> List[Dict[str, Any]]:
     return spells
 
 
+def _normalise_equipment_item(item: Any, *, equipped_slot: str = "") -> Dict[str, Any] | None:
+    if isinstance(item, dict):
+        name = item.get("name") or item.get("item_name") or item.get("title")
+        if not name:
+            return None
+        equipped = bool(item.get("equipped") or item.get("is_equipped") or equipped_slot)
+        result = {
+            **item,
+            "name": str(name),
+            "equipped": equipped,
+            "is_equipped": equipped,
+        }
+        quantity = item.get("quantity", item.get("qty", item.get("count")))
+        if quantity is not None:
+            safe_quantity = max(0, _int(quantity, 0))
+            result["quantity"] = safe_quantity
+            result["qty"] = safe_quantity
+        if equipped_slot:
+            result["equip_slot"] = equipped_slot
+            result["equipped_slot"] = equipped_slot
+        return result
+
+    text = str(item or "").strip()
+    if not text:
+        return None
+    result = {"name": text, "equipped": bool(equipped_slot), "is_equipped": bool(equipped_slot)}
+    if equipped_slot:
+        result["equip_slot"] = equipped_slot
+        result["equipped_slot"] = equipped_slot
+    return result
+
+
 def _normalise_equipment_list(value: Any) -> List[Dict[str, Any]]:
     items = []
     for item in _list(value):
-        if isinstance(item, dict):
-            name = item.get("name") or item.get("item_name") or item.get("title")
-            if name:
-                items.append({**item, "name": str(name), "equipped": bool(item.get("equipped", False))})
-        elif str(item).strip():
-            items.append({"name": str(item).strip(), "equipped": False})
+        normalised = _normalise_equipment_item(item)
+        if normalised:
+            items.append(normalised)
     return items
+
+
+def _normalise_equip_slot(value: Any) -> str:
+    raw = str(value or "").strip()
+    key = raw.lower().replace("_", "").replace("-", "").replace(" ", "")
+    if key in {"mainhand", "weapon"}:
+        return "mainHand"
+    if key in {"offhand", "shield"}:
+        return "offHand"
+    if key in {"armor", "armour"}:
+        return "armor"
+    if key in {"gauntlets", "gloves", "bracers"}:
+        return "gauntlets"
+    if key in {"boots", "shoes", "sandals"}:
+        return "boots"
+    return raw
+
+
+def _normalise_equipped_map(value: Any) -> Dict[str, Any]:
+    incoming = _dict(value)
+    result: Dict[str, Any] = {}
+    consumed = set()
+
+    # Canonical keys win, then their legacy aliases in declared order.
+    for canonical, aliases in EQUIPPED_SLOT_ALIASES.items():
+        selected = None
+        for alias in aliases:
+            if alias in incoming and incoming.get(alias):
+                selected = incoming.get(alias)
+                consumed.add(alias)
+                break
+        # Consume all aliases so stale duplicates cannot survive under a second key.
+        consumed.update(alias for alias in aliases if alias in incoming)
+        if selected:
+            normalised = _normalise_equipment_item(selected, equipped_slot=canonical)
+            if normalised:
+                result[canonical] = normalised
+
+    # Preserve custom/homebrew equipment slots rather than deleting them.
+    for slot, item in incoming.items():
+        if slot in consumed or not item:
+            continue
+        canonical = _normalise_equip_slot(slot)
+        if canonical in result:
+            continue
+        normalised = _normalise_equipment_item(item, equipped_slot=canonical)
+        if normalised:
+            result[canonical] = normalised
+
+    return result
 
 
 def _compute_item_effects(equipped: dict) -> dict:
@@ -156,13 +243,14 @@ def _compute_item_effects(equipped: dict) -> dict:
             'intelligence': 0, 'wisdom': 0, 'charisma': 0,
         }
     }
-    for item in (equipped or {}).values():
+    canonical_equipped = _normalise_equipped_map(equipped)
+    for item in canonical_equipped.values():
         if not isinstance(item, dict):
             continue
-        effects['attack_bonus'] += int(item.get('attack_bonus') or 0)
-        effects['ac_bonus'] += int(item.get('ac_bonus') or 0)
+        effects['attack_bonus'] += _int(item.get('attack_bonus'), 0)
+        effects['ac_bonus'] += _int(item.get('ac_bonus'), 0)
         for stat in effects['stat_bonuses']:
-            effects['stat_bonuses'][stat] += int((item.get('stat_bonuses') or {}).get(stat) or 0)
+            effects['stat_bonuses'][stat] += _int((item.get('stat_bonuses') or {}).get(stat), 0)
     return effects
 
 
@@ -219,20 +307,22 @@ def _clean_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
     if "cantrips_known" in update:
         update["cantrips_known"] = _normalise_spell_list(update["cantrips_known"])
 
-    if "starting_equipment" in update and "equipment" not in update:
-        update["equipment"] = _normalise_equipment_list(update["starting_equipment"])
+    # Patch only the carried collection the caller actually sent. Creation has
+    # its own fallbacks below; an equipment-only edit must never overwrite an
+    # established backpack inventory or vice versa.
+    if "starting_equipment" in update:
+        update["starting_equipment"] = _normalise_equipment_list(update["starting_equipment"])
     if "equipment" in update:
         update["equipment"] = _normalise_equipment_list(update["equipment"])
     if "inventory" in update:
         update["inventory"] = _normalise_equipment_list(update["inventory"])
-    elif "equipment" in update:
-        update["inventory"] = update["equipment"]
+
+    if "equipped" in update:
+        update["equipped"] = _normalise_equipped_map(update["equipped"])
+        update["item_effects"] = _compute_item_effects(update["equipped"])
 
     if "level" in update:
         update["proficiency_bonus"] = _proficiency_for(update["level"])
-
-    if 'equipped' in update:
-        update['item_effects'] = _compute_item_effects(update['equipped'])
 
     update["updated_at"] = _now()
     return update
@@ -253,10 +343,10 @@ def _clean_create(payload: Dict[str, Any], username: str) -> Dict[str, Any]:
     edition = "2024" if "2024" in str(data.get("edition") or data.get("rules_edition") or data.get("ruleset_id") or "") else "2014"
     max_hp = _int(data.get("max_hit_points"), max(1, hit_die + _ability_mod(constitution)))
     temp_hp = _int(data.get("temporary_hit_points", data.get("temp_hp", 0)), 0)
-    starting_equipment = _list(data.get("starting_equipment"))
-    equipment = _normalise_equipment_list(data.get("equipment")) or _normalise_equipment_list(starting_equipment)
-    inventory = _normalise_equipment_list(data.get("inventory")) or equipment
-    equipped = _dict(data.get("equipped"))
+    starting_equipment = _normalise_equipment_list(data.get("starting_equipment"))
+    equipment = _normalise_equipment_list(data.get("equipment")) or list(starting_equipment)
+    inventory = _normalise_equipment_list(data.get("inventory")) or list(equipment)
+    equipped = _normalise_equipped_map(data.get("equipped"))
     currency = _dict(data.get("currency")) or {"copper": 0, "silver": 0, "electrum": 0, "gold": _int(data.get("gold"), 0), "platinum": 0}
 
     return {
@@ -309,7 +399,7 @@ def _clean_create(payload: Dict[str, Any], username: str) -> Dict[str, Any]:
         "equipped": equipped,
         "item_effects": _compute_item_effects(equipped),
         "currency": currency,
-        "gold": _int(currency.get("gold"), _int(data.get("gold"), 0)),
+        "gold": _int(currency.get("gold", currency.get("gp")), _int(data.get("gold"), 0)),
         "resources": _dict(data.get("resources")),
         "conditions": _list(data.get("conditions")),
         "inspiration": bool(data.get("inspiration", False)),
