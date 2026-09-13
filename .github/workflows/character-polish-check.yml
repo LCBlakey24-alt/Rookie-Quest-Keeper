@@ -34,6 +34,7 @@ jobs:
             backend/routes/character_import.py \
             backend/routes/character_creation_state.py \
             backend/routes/character_edit_state.py \
+            backend/routes/character_patch.py \
             backend/routes/character_spell_migration.py \
             backend/routes/character_progression_preflight.py \
             backend/routes/character_progression_state.py \
@@ -46,6 +47,7 @@ jobs:
           python -m unittest backend.tests.test_spell_slot_rules -v
           python -m unittest backend.tests.test_character_creation_state -v
           python -m unittest backend.tests.test_character_edit_state -v
+          python -m unittest backend.tests.test_character_patch_state -v
           python -m unittest backend.tests.test_character_spell_migration -v
           python -m unittest backend.tests.test_character_progression_preflight -v
           python -m unittest backend.tests.test_character_progression_state -v
