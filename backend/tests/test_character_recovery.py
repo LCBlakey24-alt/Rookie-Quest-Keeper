@@ -39,10 +39,50 @@ class TestCharacterRecoveryHelpers(unittest.TestCase):
         self.assertEqual(restored["sorcery_points"]["remaining"], 1)
         self.assertEqual(restored["note"], "keep me")
 
+    def test_short_rest_can_restore_one_use_without_refilling_whole_pool(self):
+        resources = {
+            "second_wind": {
+                "current": 0,
+                "remaining": 0,
+                "max": 4,
+                "restore": "long-rest",
+                "short_rest_restore": 1,
+            },
+            "channel_divinity": {
+                "current": 1,
+                "remaining": 1,
+                "max": 4,
+                "restore": "long-rest",
+                "short_rest_restore": 1,
+            },
+        }
+
+        first = restore_resource_trackers(resources, "short-rest")
+        self.assertEqual(first["second_wind"]["current"], 1)
+        self.assertEqual(first["channel_divinity"]["current"], 2)
+
+        second = restore_resource_trackers(first, "short-rest")
+        self.assertEqual(second["second_wind"]["current"], 2)
+        self.assertEqual(second["channel_divinity"]["current"], 3)
+
+    def test_partial_short_rest_recovery_never_exceeds_maximum(self):
+        restored = restore_resource_trackers({
+            "rage": {
+                "current": 5,
+                "remaining": 5,
+                "max": 6,
+                "restore": "long-rest",
+                "short_rest_restore": 1,
+            },
+        }, "short-rest")
+
+        self.assertEqual(restored["rage"]["current"], 6)
+        self.assertEqual(restored["rage"]["remaining"], 6)
+
     def test_long_rest_restores_all_persisted_trackers(self):
         resources = {
             "pact_magic": {"current": 0, "remaining": 0, "max": 2, "restore": "short-rest"},
-            "rage": {"current": 1, "remaining": 1, "max": 3, "restore": "long-rest"},
+            "rage": {"current": 1, "remaining": 1, "max": 3, "restore": "long-rest", "short_rest_restore": 1},
         }
 
         restored = restore_resource_trackers(resources, "long-rest")
