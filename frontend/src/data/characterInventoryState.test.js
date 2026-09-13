@@ -11,6 +11,7 @@ import {
   sameInventoryItem,
   setCanonicalInventorySlot,
   syncInventoryWithEquipment,
+  updateInventoryItemState,
 } from './characterInventoryState';
 
 describe('character inventory state', () => {
@@ -87,6 +88,58 @@ describe('character inventory state', () => {
     const equipped = { mainHand: { name: 'Dagger' } };
 
     expect(findInventoryItemIndex(inventory, { name: 'Dagger', equipped: false }, equipped)).toBe(1);
+  });
+
+  test('editing an equipped stable-id item updates both backpack and equipped copy', () => {
+    const state = updateInventoryItemState({
+      inventory: [{ id: 'blade-1', name: 'Longsword', favorite: false, quantity: 1 }],
+      equipped: { mainHand: { id: 'blade-1', name: 'Longsword', favorite: false, quantity: 1 } },
+      item: { id: 'blade-1', name: 'Longsword', equipped: true, equip_slot: 'mainHand' },
+      updates: { favorite: true, favourite: true, quantity: 2, qty: 2 },
+    });
+
+    expect(state.updated).toBe(true);
+    expect(state.inventory[0]).toMatchObject({ favorite: true, quantity: 2, equipped: true, equip_slot: 'mainHand' });
+    expect(state.equipped.mainHand).toMatchObject({ favorite: true, quantity: 2, equipped: true, equip_slot: 'mainHand' });
+  });
+
+  test('editing an off-hand legacy duplicate updates that exact sibling and equipped slot', () => {
+    const state = updateInventoryItemState({
+      inventory: [
+        { name: 'Dagger', note: 'main copy', quantity: 1 },
+        { name: 'Dagger', note: 'off copy', quantity: 1 },
+      ],
+      equipped: {
+        mainHand: { name: 'Dagger', note: 'main copy', quantity: 1 },
+        offHand: { name: 'Dagger', note: 'off copy', quantity: 1 },
+      },
+      item: { name: 'Dagger', equipped: true, equip_slot: 'offHand' },
+      updates: { quantity: 3, qty: 3 },
+    });
+
+    expect(state.updated).toBe(true);
+    expect(state.index).toBe(1);
+    expect(state.inventory[0]).toMatchObject({ note: 'main copy', quantity: 1, equip_slot: 'mainHand' });
+    expect(state.inventory[1]).toMatchObject({ note: 'off copy', quantity: 3, equip_slot: 'offHand' });
+    expect(state.equipped.mainHand).toMatchObject({ note: 'main copy', quantity: 1 });
+    expect(state.equipped.offHand).toMatchObject({ note: 'off copy', quantity: 3 });
+  });
+
+  test('editing an unequipped legacy duplicate does not mutate its equipped sibling', () => {
+    const state = updateInventoryItemState({
+      inventory: [
+        { name: 'Dagger', note: 'equipped copy', favorite: false },
+        { name: 'Dagger', note: 'spare copy', favorite: false },
+      ],
+      equipped: { mainHand: { name: 'Dagger', note: 'equipped copy', favorite: false } },
+      item: { name: 'Dagger', equipped: false },
+      updates: { favorite: true },
+    });
+
+    expect(state.index).toBe(1);
+    expect(state.inventory[0]).toMatchObject({ note: 'equipped copy', favorite: false, equipped: true });
+    expect(state.inventory[1]).toMatchObject({ note: 'spare copy', favorite: true, equipped: false });
+    expect(state.equipped.mainHand).toMatchObject({ note: 'equipped copy', favorite: false });
   });
 
   test('removing an equipped backpack item also clears its equipment slot', () => {
