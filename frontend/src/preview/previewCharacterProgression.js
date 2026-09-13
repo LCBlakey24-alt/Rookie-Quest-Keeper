@@ -1,6 +1,7 @@
 import { mergeCharacterClassResources } from '@/data/characterClassResources';
 import { ASI_LEVELS, HIT_DICE } from '@/data/levelUpData';
-import { CANTRIPS_KNOWN, SPELLS_KNOWN, getMulticlassSpellSlots } from '@/data/spellDatabase';
+import { CANTRIPS_KNOWN, SPELLS_KNOWN } from '@/data/spellDatabase';
+import { getEditionMulticlassSpellSlots } from '@/data/editionSpellSlotRules';
 import { buildPactMagicResource, getNormalSpellPool, getPactMagicPool } from '@/data/spellcastingPools';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
@@ -57,6 +58,16 @@ function learnedBetween(table = {}, before = 1, after = before + 1) {
 function editionFor(character = {}) {
   const raw = character.rules_edition || character.edition || character.ruleset_id || '2014';
   return String(raw).includes('2024') ? '2024' : '2014';
+}
+
+function spellGainForPreview(character = {}, className = '', before = 1, after = before + 1) {
+  const key = normaliseName(className);
+  // The legacy local table represents 2014 Ranger spells-known progression.
+  // 2024 Paladins/Rangers are prepared casters and their preparation capacity
+  // is managed separately, so do not turn those table entries into fake known
+  // spell picks in preview mode.
+  if (editionFor(character) === '2024' && ['paladin', 'ranger'].includes(key)) return 0;
+  return learnedBetween(SPELLS_KNOWN[className] || {}, before, after);
 }
 
 function subclassUnlockLevel(className, edition) {
@@ -150,8 +161,8 @@ export function getPreviewLevelUpOptions(character = {}, { targetClass = '' } = 
     class_levels: nextClassLevels,
     classes: withClassesState(character, nextClassLevels, characterClass),
   };
-  const slotMath = getMulticlassSpellSlots(nextClassLevels, nextCharacter);
-  const previousSlotMath = getMulticlassSpellSlots(classLevels, character);
+  const slotMath = getEditionMulticlassSpellSlots(nextClassLevels, nextCharacter);
+  const previousSlotMath = getEditionMulticlassSpellSlots(classLevels, character);
   const asiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default || [];
 
   return {
@@ -170,7 +181,7 @@ export function getPreviewLevelUpOptions(character = {}, { targetClass = '' } = 
     previous_proficiency_bonus: proficiencyFor(currentLevel),
     spell_slots: slotMath?.slots || {},
     previous_spell_slots: previousSlotMath?.slots || {},
-    spells_to_learn: learnedBetween(SPELLS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter),
+    spells_to_learn: spellGainForPreview(character, characterClass, classLevelBefore, classLevelAfter),
     cantrips_to_learn: learnedBetween(CANTRIPS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter),
     is_asi_level: asiLevels.includes(classLevelAfter),
     asi_levels: asiLevels,
@@ -274,8 +285,8 @@ export function applyPreviewCharacterLevelUp(character = {}, payload = {}, { mul
   next.spells_known = appendUniqueSpells(character.spells_known, payload.new_spells);
   next.cantrips_known = appendUniqueSpells(character.cantrips_known, payload.new_cantrips);
 
-  const oldSlotMath = getMulticlassSpellSlots(oldClassLevels, character);
-  const newSlotMath = getMulticlassSpellSlots(nextClassLevels, next);
+  const oldSlotMath = getEditionMulticlassSpellSlots(oldClassLevels, character);
+  const newSlotMath = getEditionMulticlassSpellSlots(nextClassLevels, next);
   const oldNormalPool = getNormalSpellPool(character, oldSlotMath);
   const newNormalTotals = newSlotMath?.slots || {};
   next.spell_slots = { ...newNormalTotals };
