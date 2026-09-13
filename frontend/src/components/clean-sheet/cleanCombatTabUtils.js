@@ -99,6 +99,23 @@ export function consumeConsumableState(character = {}, item) {
   return { inventory, equipment, consumed: true };
 }
 
+export function buildConsumableUseUpdate(character = {}, item, healingTotal = 0) {
+  const consumed = consumeConsumableState(character, item);
+  const maxHp = Math.max(1, Number(character?.max_hit_points ?? character?.max_hp ?? 10) || 10);
+  const rawCurrent = character?.current_hit_points ?? character?.hp;
+  const currentHp = rawCurrent === undefined || rawCurrent === null || rawCurrent === ''
+    ? maxHp
+    : Math.max(0, Math.min(maxHp, Number(rawCurrent) || 0));
+  const healing = Math.max(0, Number(healingTotal) || 0);
+
+  return {
+    current_hit_points: Math.min(maxHp, currentHp + healing),
+    inventory: consumed.inventory,
+    equipment: consumed.equipment,
+    consumed: consumed.consumed,
+  };
+}
+
 function isWeaponLike(item) {
   const type = normaliseName(item?.type || item?.category || item?.item_type || '');
   return Boolean(
