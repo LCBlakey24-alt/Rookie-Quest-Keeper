@@ -15,6 +15,7 @@ import {
   removeInventoryItemState,
   setCanonicalInventorySlot,
   syncInventoryWithEquipment,
+  updateInventoryItemState,
 } from '@/data/characterInventoryState';
 import {
   ADVENTURING_GEAR,
@@ -358,16 +359,12 @@ export default function CleanInventoryTabV2({ character, onCharacterUpdate, onRo
   };
 
   const updateInventoryItem = async (item, updates, success = 'Item updated') => {
-    const identity = inventoryItemIdentity(item);
-    const index = inventory.findIndex((candidate) => inventoryItemIdentity(candidate) === identity);
-    if (index < 0) {
+    const state = updateInventoryItemState({ inventory, equipped, item, updates });
+    if (!state.updated) {
       toast.info('Only backpack items can be edited. Starting/GM-granted items stay read-only here.');
       return;
     }
-    const nextInventory = [...inventory];
-    nextInventory[index] = normaliseItem({ ...nextInventory[index], ...updates }, 'inventory');
-    const synced = syncInventoryWithEquipment(nextInventory, equipped);
-    await patchCharacter({ inventory: synced }, success);
+    await saveInventoryEquipment(state, success);
   };
 
   const removeItem = async (item) => {
