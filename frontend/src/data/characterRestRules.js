@@ -1,5 +1,5 @@
 import { mergeCharacterClassResources } from './characterClassResources';
-import { getMulticlassSpellSlots } from './spellDatabase';
+import { getEditionMulticlassSpellSlots } from './editionSpellSlotRules';
 import {
   buildPactMagicResource,
   getNormalSpellPool,
@@ -105,7 +105,7 @@ export function restoreResourceTrackers(resources = {}, restType = 'long-rest') 
 function getSlotMath(character = {}) {
   const classLevels = getCharacterClassLevels(character);
   try {
-    return getMulticlassSpellSlots(classLevels, character) || {};
+    return getEditionMulticlassSpellSlots(classLevels, character) || {};
   } catch {
     return {};
   }
