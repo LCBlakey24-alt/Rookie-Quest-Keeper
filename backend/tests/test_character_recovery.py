@@ -17,6 +17,8 @@ os.environ.setdefault("APP_URL", "http://localhost:3000")
 os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 
 from routes.character_recovery import (  # noqa: E402
+    _pact_slot_shape,
+    canonical_resources_for_rest,
     has_non_pact_spell_slots,
     long_rest_hit_dice,
     restore_resource_trackers,
@@ -88,6 +90,52 @@ class TestCharacterRecoveryHelpers(unittest.TestCase):
         restored = restore_resource_trackers(resources, "long-rest")
         self.assertEqual(restored["pact_magic"]["remaining"], 2)
         self.assertEqual(restored["rage"]["remaining"], 3)
+
+    def test_rest_repair_upgrades_stale_2024_resource_shape_without_losing_spent_state(self):
+        character = {
+            "character_class": "Fighter",
+            "level": 10,
+            "rules_edition": "2024",
+            "class_levels": {"Fighter": 10},
+            "resources": {
+                "second_wind": {
+                    "label": "Second Wind",
+                    "current": 0,
+                    "remaining": 0,
+                    "max": 3,
+                    "restore": "long-rest",
+                },
+                "custom_charge": {"current": 2, "remaining": 2, "max": 2, "restore": "long-rest"},
+            },
+        }
+
+        repaired = canonical_resources_for_rest(character)
+        self.assertEqual(repaired["second_wind"]["max"], 4)
+        self.assertEqual(repaired["second_wind"]["current"], 1)
+        self.assertEqual(repaired["second_wind"]["short_rest_restore"], 1)
+        self.assertEqual(repaired["custom_charge"]["current"], 2)
+
+    def test_rest_repair_builds_current_warlock_pact_shape_for_old_sheets(self):
+        repaired = canonical_resources_for_rest({
+            "character_class": "Warlock",
+            "level": 17,
+            "rules_edition": "2014",
+            "class_levels": {"Warlock": 17},
+            "resources": {
+                "pact_magic": {
+                    "current": 0,
+                    "remaining": 0,
+                    "max": 2,
+                    "slot_level": 4,
+                    "restore": "short-rest",
+                },
+            },
+        })
+
+        self.assertEqual(repaired["pact_magic"]["max"], 4)
+        self.assertEqual(repaired["pact_magic"]["current"], 2)
+        self.assertEqual(repaired["pact_magic"]["slot_level"], 5)
+        self.assertEqual(_pact_slot_shape(repaired), {"5": 4})
 
     def test_2014_long_rest_regains_half_total_hit_dice_minimum_one(self):
         character = {
