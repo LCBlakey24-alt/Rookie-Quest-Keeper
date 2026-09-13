@@ -7,7 +7,6 @@ routes even when the frontend did not explicitly send resource trackers.
 
 from __future__ import annotations
 
-import math
 from typing import Any, Dict, Iterable, Tuple
 
 
@@ -52,10 +51,31 @@ def warlock_shape(level: int) -> Tuple[int, int]:
     return slot_level, slots
 
 
+def _resource_spec(
+    *,
+    label: str,
+    maximum: int,
+    restore: str,
+    class_name: str,
+    min_level: int,
+    short_rest_restore: int = 0,
+    **extra: Any,
+) -> Dict[str, Any]:
+    spec = {
+        "label": label,
+        "max": maximum,
+        "restore": restore,
+        "className": class_name,
+        "min_level": min_level,
+        **extra,
+    }
+    if short_rest_restore > 0:
+        spec["short_rest_restore"] = short_rest_restore
+    return spec
+
+
 def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iterable[Tuple[str, Dict[str, Any]]]:
     edition = _edition(character)
-    total_level = max(1, sum(max(0, _int(level, 0)) for level in class_levels.values()) or _int(character.get("level"), 1))
-    pb = proficiency_bonus(total_level)
 
     barbarian = class_level(class_levels, "Barbarian")
     if barbarian:
@@ -71,95 +91,179 @@ def _rule_specs(character: Dict[str, Any], class_levels: Dict[str, int]) -> Iter
             rage_max = 3
         else:
             rage_max = 2
-        yield "rage", {"label": "Rage", "max": rage_max, "restore": "long-rest", "className": "Barbarian", "min_level": 1}
+        yield "rage", _resource_spec(
+            label="Rage",
+            maximum=rage_max,
+            restore="long-rest",
+            short_rest_restore=1 if edition == "2024" else 0,
+            class_name="Barbarian",
+            min_level=1,
+        )
 
     bard = class_level(class_levels, "Bard")
     if bard:
         bardic_max = max(1, ability_modifier(character.get("charisma")))
-        yield "bardic_inspiration", {
-            "label": "Bardic Inspiration",
-            "max": bardic_max,
-            "restore": "short-rest" if bard >= 5 else "long-rest",
-            "className": "Bard",
-            "min_level": 1,
-        }
+        yield "bardic_inspiration", _resource_spec(
+            label="Bardic Inspiration",
+            maximum=bardic_max,
+            restore="short-rest" if bard >= 5 else "long-rest",
+            class_name="Bard",
+            min_level=1,
+        )
 
     cleric = class_level(class_levels, "Cleric")
     if cleric >= 2:
         if edition == "2024":
-            channel_max = max(2, math.ceil(cleric / 2))
-        elif cleric >= 18:
-            channel_max = 3
-        elif cleric >= 6:
-            channel_max = 2
+            channel_max = 4 if cleric >= 18 else 3 if cleric >= 6 else 2
+            channel_restore = "long-rest"
+            channel_short_restore = 1
         else:
-            channel_max = 1
-        yield "channel_divinity", {"label": "Channel Divinity", "max": channel_max, "restore": "short-rest", "className": "Cleric", "min_level": 2}
+            channel_max = 3 if cleric >= 18 else 2 if cleric >= 6 else 1
+            channel_restore = "short-rest"
+            channel_short_restore = 0
+        yield "channel_divinity", _resource_spec(
+            label="Channel Divinity",
+            maximum=channel_max,
+            restore=channel_restore,
+            short_rest_restore=channel_short_restore,
+            class_name="Cleric",
+            min_level=2,
+        )
 
     druid = class_level(class_levels, "Druid")
     if druid >= 2:
-        yield "wild_shape", {"label": "Wild Shape", "max": 2, "restore": "short-rest", "className": "Druid", "min_level": 2}
+        if edition == "2024":
+            wild_shape_max = 4 if druid >= 17 else 3 if druid >= 6 else 2
+            wild_shape_restore = "long-rest"
+            wild_shape_short_restore = 1
+        else:
+            wild_shape_max = 99 if druid >= 20 else 2
+            wild_shape_restore = "short-rest"
+            wild_shape_short_restore = 0
+        yield "wild_shape", _resource_spec(
+            label="Wild Shape",
+            maximum=wild_shape_max,
+            restore=wild_shape_restore,
+            short_rest_restore=wild_shape_short_restore,
+            class_name="Druid",
+            min_level=2,
+        )
 
     fighter = class_level(class_levels, "Fighter")
     if fighter >= 1:
-        yield "second_wind", {
-            "label": "Second Wind",
-            "max": pb if edition == "2024" else 1,
-            "restore": "long-rest" if edition == "2024" else "short-rest",
-            "className": "Fighter",
-            "min_level": 1,
-        }
+        if edition == "2024":
+            second_wind_max = 4 if fighter >= 10 else 3 if fighter >= 4 else 2
+            second_wind_restore = "long-rest"
+            second_wind_short_restore = 1
+        else:
+            second_wind_max = 1
+            second_wind_restore = "short-rest"
+            second_wind_short_restore = 0
+        yield "second_wind", _resource_spec(
+            label="Second Wind",
+            maximum=second_wind_max,
+            restore=second_wind_restore,
+            short_rest_restore=second_wind_short_restore,
+            class_name="Fighter",
+            min_level=1,
+        )
     if fighter >= 2:
-        yield "action_surge", {"label": "Action Surge", "max": 2 if fighter >= 17 else 1, "restore": "short-rest", "className": "Fighter", "min_level": 2}
+        yield "action_surge", _resource_spec(
+            label="Action Surge",
+            maximum=2 if fighter >= 17 else 1,
+            restore="short-rest",
+            class_name="Fighter",
+            min_level=2,
+        )
     if fighter >= 9:
         indomitable_max = 3 if fighter >= 17 else 2 if fighter >= 13 else 1
-        yield "indomitable", {"label": "Indomitable", "max": indomitable_max, "restore": "long-rest", "className": "Fighter", "min_level": 9}
+        yield "indomitable", _resource_spec(
+            label="Indomitable",
+            maximum=indomitable_max,
+            restore="long-rest",
+            class_name="Fighter",
+            min_level=9,
+        )
 
     monk = class_level(class_levels, "Monk")
     if monk >= 2:
-        yield "ki", {
-            "label": "Discipline Points" if edition == "2024" else "Ki",
-            "max": monk,
-            "restore": "short-rest",
-            "className": "Monk",
-            "min_level": 2,
-        }
+        yield "ki", _resource_spec(
+            label="Focus Points" if edition == "2024" else "Ki",
+            maximum=monk,
+            restore="short-rest",
+            class_name="Monk",
+            min_level=2,
+        )
 
     paladin = class_level(class_levels, "Paladin")
     if paladin >= 1:
-        yield "lay_on_hands", {"label": "Lay on Hands", "max": paladin * 5, "restore": "long-rest", "className": "Paladin", "min_level": 1}
+        yield "lay_on_hands", _resource_spec(
+            label="Lay on Hands",
+            maximum=paladin * 5,
+            restore="long-rest",
+            class_name="Paladin",
+            min_level=1,
+        )
     if paladin >= 3:
-        yield "channel_divinity", {
-            "label": "Channel Divinity",
-            "max": pb if edition == "2024" else 1,
-            "restore": "long-rest" if edition == "2024" else "short-rest",
-            "className": "Paladin",
-            "min_level": 3,
-        }
+        if edition == "2024":
+            paladin_channel_max = 3 if paladin >= 11 else 2
+            paladin_channel_restore = "long-rest"
+            paladin_channel_short_restore = 1
+        else:
+            paladin_channel_max = 1
+            paladin_channel_restore = "short-rest"
+            paladin_channel_short_restore = 0
+        yield "channel_divinity", _resource_spec(
+            label="Channel Divinity",
+            maximum=paladin_channel_max,
+            restore=paladin_channel_restore,
+            short_rest_restore=paladin_channel_short_restore,
+            class_name="Paladin",
+            min_level=3,
+        )
 
     ranger = class_level(class_levels, "Ranger")
     if ranger >= 1 and edition == "2024":
-        yield "favored_enemy", {"label": "Favored Enemy", "max": max(2, math.ceil(ranger / 2)), "restore": "long-rest", "className": "Ranger", "min_level": 1}
+        favored_enemy_max = 6 if ranger >= 17 else 5 if ranger >= 13 else 4 if ranger >= 9 else 3 if ranger >= 5 else 2
+        yield "favored_enemy", _resource_spec(
+            label="Favored Enemy",
+            maximum=favored_enemy_max,
+            restore="long-rest",
+            class_name="Ranger",
+            min_level=1,
+        )
 
     sorcerer = class_level(class_levels, "Sorcerer")
     if sorcerer >= 2:
-        yield "sorcery_points", {"label": "Sorcery Points", "max": sorcerer, "restore": "long-rest", "className": "Sorcerer", "min_level": 2}
+        yield "sorcery_points", _resource_spec(
+            label="Sorcery Points",
+            maximum=sorcerer,
+            restore="long-rest",
+            class_name="Sorcerer",
+            min_level=2,
+        )
 
     warlock = class_level(class_levels, "Warlock")
     if warlock >= 1:
         slot_level, slots = warlock_shape(warlock)
-        yield "pact_magic", {
-            "label": "Pact Magic",
-            "max": slots,
-            "slot_level": slot_level,
-            "restore": "short-rest",
-            "className": "Warlock",
-            "min_level": 1,
-        }
+        yield "pact_magic", _resource_spec(
+            label="Pact Magic",
+            maximum=slots,
+            restore="short-rest",
+            class_name="Warlock",
+            min_level=1,
+            slot_level=slot_level,
+        )
 
     wizard = class_level(class_levels, "Wizard")
     if wizard >= 1:
-        yield "arcane_recovery", {"label": "Arcane Recovery", "max": 1, "restore": "long-rest", "className": "Wizard", "min_level": 1}
+        yield "arcane_recovery", _resource_spec(
+            label="Arcane Recovery",
+            maximum=1,
+            restore="long-rest",
+            class_name="Wizard",
+            min_level=1,
+        )
 
 
 def merge_character_resources(
