@@ -13,6 +13,16 @@ export const WIZARD_SCHOLAR_SKILLS = [
   'Arcana', 'History', 'Investigation', 'Medicine', 'Nature', 'Religion',
 ];
 
+export const STANDARD_LANGUAGE_OPTIONS_2024 = [
+  'Common Sign Language', 'Draconic', 'Dwarvish', 'Elvish', 'Giant',
+  'Gnomish', 'Goblin', 'Halfling', 'Orc',
+];
+
+export const RARE_LANGUAGE_OPTIONS_2024 = [
+  'Abyssal', 'Celestial', 'Deep Speech', 'Druidic', 'Infernal',
+  'Primordial', 'Sylvan', 'Thieves’ Cant', 'Undercommon',
+];
+
 export const FIGHTING_STYLE_OPTIONS = [
   'Archery', 'Defense', 'Dueling', 'Great Weapon Fighting', 'Protection', 'Two-Weapon Fighting',
   'Blind Fighting', 'Interception', 'Thrown Weapon Fighting', 'Unarmed Fighting',
@@ -78,6 +88,24 @@ function metamagicTarget(className, level, edition) {
   return 2;
 }
 
+function classLanguageTarget(className, level, edition) {
+  if (editionFor(edition) !== '2024') return 0;
+  if (className === 'Ranger' && level >= 2) return 2;
+  if (className === 'Rogue' && level >= 1) return 1;
+  return 0;
+}
+
+function fixedClassLanguages(className, level, edition) {
+  if (editionFor(edition) === '2024' && className === 'Rogue' && level >= 1) return ['Thieves’ Cant'];
+  return [];
+}
+
+function classLanguageOptions(className, level, edition) {
+  const fixed = new Set(fixedClassLanguages(className, level, edition).map(lower));
+  return [...STANDARD_LANGUAGE_OPTIONS_2024, ...RARE_LANGUAGE_OPTIONS_2024]
+    .filter((language) => !fixed.has(lower(language)));
+}
+
 function maneuverTarget(className, level, subclassName = '') {
   if (className !== 'Fighter' || !lower(subclassName).includes('battle master') || level < 3) return 0;
   if (level >= 15) return 9;
@@ -101,12 +129,24 @@ function removeGeneratedClassChoiceFeatures(features, removers = []) {
   });
 }
 
+function uniqueStrings(values = []) {
+  const seen = new Set();
+  return arr(values).filter((value) => {
+    const key = lower(value).trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function buildClassSpecificChoicePlan({ className = '', level = 1, subclassName = '', edition = '2014' } = {}) {
   const numericLevel = Math.max(1, Math.min(20, Number(level || 1)));
   const rulesEdition = editionFor(edition);
   const fightingStyles = fightingStyleTarget(className, numericLevel);
   const expertise = expertiseTarget(className, numericLevel, rulesEdition);
   const metamagic = metamagicTarget(className, numericLevel, rulesEdition);
+  const languages = classLanguageTarget(className, numericLevel, rulesEdition);
+  const fixedLanguages = fixedClassLanguages(className, numericLevel, rulesEdition);
   const maneuvers = maneuverTarget(className, numericLevel, subclassName);
 
   return {
@@ -117,22 +157,31 @@ export function buildClassSpecificChoicePlan({ className = '', level = 1, subcla
     fightingStyleTarget: fightingStyles,
     expertiseTarget: expertise,
     metamagicTarget: metamagic,
+    languageTarget: languages,
+    fixedLanguages,
     maneuverTarget: maneuvers,
-    hasChoices: Boolean(fightingStyles || expertise || metamagic || maneuvers),
+    hasChoices: Boolean(fightingStyles || expertise || metamagic || languages || maneuvers || fixedLanguages.length),
     options: {
       fightingStyles: FIGHTING_STYLE_OPTIONS,
       expertiseSkills: expertiseOptions(className, rulesEdition),
       metamagic: METAMAGIC_OPTIONS,
+      languages: classLanguageOptions(className, numericLevel, rulesEdition),
       maneuvers: MANEUVER_OPTIONS,
     },
   };
 }
 
 export function normaliseClassSpecificSelection(selection = {}, plan = {}) {
+  const languageOptions = new Set(arr(plan.options?.languages).map(lower));
+  const fixed = new Set(arr(plan.fixedLanguages).map(lower));
+  const selectedLanguages = uniqueStrings(selection.languages || selection.language_choices)
+    .filter((language) => languageOptions.has(lower(language)) && !fixed.has(lower(language)));
+
   return {
     fightingStyles: clamp(selection.fightingStyles || selection.fighting_styles, plan.fightingStyleTarget || 0),
     expertise: clamp(selection.expertise || selection.expertise_choices, plan.expertiseTarget || 0),
     metamagic: clamp(selection.metamagic || selection.metamagic_options, plan.metamagicTarget || 0),
+    languages: clamp(selectedLanguages, plan.languageTarget || 0),
     maneuvers: clamp(selection.maneuvers || selection.combat_maneuvers, plan.maneuverTarget || 0),
   };
 }
@@ -159,6 +208,9 @@ export function applyClassSpecificChoicesToPayload(payload, selection = {}, plan
   if (!current.metamagic.length) {
     clearFields(next, ['metamagic_options', 'metamagic']);
     if (plan.className !== 'Sorcerer') clearFields(next, ['sorcery_points', 'sorcery_points_remaining']);
+  }
+  if (!current.languages.length) {
+    clearFields(next, ['class_language_choices']);
   }
   if (!current.maneuvers.length) {
     clearFields(next, ['combat_maneuvers', 'battle_master_maneuvers', 'maneuvers', 'superiority_dice']);
@@ -187,6 +239,12 @@ export function applyClassSpecificChoicesToPayload(payload, selection = {}, plan
     next.metamagic = current.metamagic;
     next.sorcery_points = Math.max(Number(next.sorcery_points || 0), Number(plan.level || next.level || 0));
     next.sorcery_points_remaining = next.sorcery_points;
+  }
+
+  const classLanguages = uniqueStrings([...arr(plan.fixedLanguages), ...current.languages]);
+  if (classLanguages.length) {
+    next.class_language_choices = current.languages;
+    next.languages = uniqueStrings([...arr(next.languages), ...classLanguages]);
   }
 
   if (current.maneuvers.length) {
