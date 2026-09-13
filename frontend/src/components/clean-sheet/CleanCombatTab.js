@@ -5,6 +5,7 @@ import { getClassResourceRules } from '../../data/classResourceRules';
 import { getCharacterActionFeatures } from '../../data/characterFeatureSelectors';
 import { buildCharacterSpellCastUpdate } from '../../data/characterSpellCastingActions';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
+import CombatSpellActionCard from './CombatSpellActionCard';
 import { ActionSection, AttackCard, SimpleActionCard } from './CleanCombatTabCards';
 import {
   fmt,
@@ -44,12 +45,6 @@ function actionTypeFromText(text = '', fallback = 'action') {
   if (/minute|hour|ritual|special/.test(normalised)) return null;
   if (/action/.test(normalised)) return 'action';
   return fallback;
-}
-
-function spellLevelLabel(level) {
-  if (Number(level) === 0) return 'Cantrip';
-  if (!level && level !== 0) return 'Spell';
-  return `Level ${level}`;
 }
 
 function normaliseSpell(spell, fallbackLevel = null, source = '') {
@@ -245,9 +240,9 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     toast.success(`${damage.label || 'Damage'}: ${result.total} ${damage.damageType || ''}`.trim());
   };
 
-  const castSpell = async (spell) => {
+  const castSpell = async (spell, explicitOption = null) => {
     const spellName = spell.name || 'Spell';
-    const cast = buildCharacterSpellCastUpdate(character, spell);
+    const cast = buildCharacterSpellCastUpdate(character, spell, { explicitOption });
 
     if (!cast.ok) {
       toast.error(cast.reason || `No spell slot available for ${spellName}`);
@@ -307,12 +302,12 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   ));
 
   const spellCards = (spellList, typeLabel) => spellList.map((spell) => (
-    <SimpleActionCard
+    <CombatSpellActionCard
       key={`${typeLabel}-${spell.name}`}
-      title={spell.name}
-      type={spellLevelLabel(spell.level)}
-      description={`${spell.source || 'Spell'}${spell.castingTime ? ` • ${spell.castingTime}` : ''}${spell.description ? ` — ${spell.description.slice(0, 120)}${spell.description.length > 120 ? '…' : ''}` : ''}`}
-      onClick={() => castSpell(spell)}
+      character={character}
+      spell={spell}
+      typeLabel={typeLabel}
+      onCast={castSpell}
     />
   ));
 
