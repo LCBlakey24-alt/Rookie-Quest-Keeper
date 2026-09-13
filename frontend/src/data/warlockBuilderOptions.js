@@ -8,6 +8,65 @@ export const WARLOCK_PACT_BOON_OPTIONS = [
   { key: 'talisman', name: 'Pact of the Talisman', summary: 'Charm-focused pact option.' },
 ];
 
+export const WARLOCK_INVOCATION_OPTIONS_2014 = [
+  'Agonizing Blast',
+  'Armor of Shadows',
+  'Beast Speech',
+  'Beguiling Influence',
+  'Devil’s Sight',
+  'Eldritch Mind',
+  'Eldritch Sight',
+  'Eldritch Spear',
+  'Eyes of the Rune Keeper',
+  'Fiendish Vigor',
+  'Mask of Many Faces',
+  'Misty Visions',
+  'Repelling Blast',
+  'Thief of Five Fates',
+  'Book of Ancient Secrets',
+  'Eldritch Smite',
+  'Improved Pact Weapon',
+  'Investment of the Chain Master',
+  'One with Shadows',
+  'Tomb of Levistus',
+  'Ascendant Step',
+  'Lifedrinker',
+  'Shroud of Shadow',
+  'Visions of Distant Realms',
+  'Witch Sight',
+];
+
+export const WARLOCK_INVOCATION_OPTIONS_2024 = [
+  { name: 'Agonizing Blast', minLevel: 2, prerequisiteNote: 'Requires an eligible damaging Warlock cantrip.' },
+  { name: 'Armor of Shadows', minLevel: 1 },
+  { name: 'Ascendant Step', minLevel: 5 },
+  { name: 'Devil’s Sight', minLevel: 2 },
+  { name: 'Devouring Blade', minLevel: 12, requiresInvocation: 'Thirsting Blade' },
+  { name: 'Eldritch Mind', minLevel: 1 },
+  { name: 'Eldritch Smite', minLevel: 5, requiresInvocation: 'Pact of the Blade' },
+  { name: 'Eldritch Spear', minLevel: 2, prerequisiteNote: 'Requires an eligible damaging Warlock cantrip.' },
+  { name: 'Fiendish Vigor', minLevel: 2 },
+  { name: 'Gaze of Two Minds', minLevel: 5 },
+  { name: 'Gift of the Depths', minLevel: 5 },
+  { name: 'Gift of the Protectors', minLevel: 9, requiresInvocation: 'Pact of the Tome' },
+  { name: 'Investment of the Chain Master', minLevel: 5, requiresInvocation: 'Pact of the Chain' },
+  { name: 'Lessons of the First Ones', minLevel: 2, prerequisiteNote: 'Choose an Origin feat when this invocation is configured.' },
+  { name: 'Lifedrinker', minLevel: 9, requiresInvocation: 'Pact of the Blade' },
+  { name: 'Mask of Many Faces', minLevel: 2 },
+  { name: 'Master of Myriad Forms', minLevel: 5 },
+  { name: 'Misty Visions', minLevel: 2 },
+  { name: 'One with Shadows', minLevel: 5 },
+  { name: 'Otherworldly Leap', minLevel: 2 },
+  { name: 'Pact of the Blade', minLevel: 1, pactInvocation: true },
+  { name: 'Pact of the Chain', minLevel: 1, pactInvocation: true },
+  { name: 'Pact of the Tome', minLevel: 1, pactInvocation: true },
+  { name: 'Repelling Blast', minLevel: 2, prerequisiteNote: 'Requires an eligible attacking Warlock cantrip.' },
+  { name: 'Thirsting Blade', minLevel: 5, requiresInvocation: 'Pact of the Blade' },
+  { name: 'Visions of Distant Realms', minLevel: 9 },
+  { name: 'Whispers of the Grave', minLevel: 7 },
+  { name: 'Witch Sight', minLevel: 15 },
+];
+
 function normaliseChoice(value = '') {
   return String(value || '')
     .trim()
@@ -31,11 +90,26 @@ function optionMatches(option, value = '') {
   return Boolean(key && (option.key === key || normaliseChoice(option.name) === key));
 }
 
+export function getWarlockInvocationOptionDetails(level = 1, edition = '2014') {
+  const warlockLevel = Math.max(1, Number(level || 1));
+  const ruleset = normaliseWarlockRulesEdition(edition);
+  if (ruleset !== '2024') {
+    return WARLOCK_INVOCATION_OPTIONS_2014.map((name) => ({ name, minLevel: 1 }));
+  }
+  return WARLOCK_INVOCATION_OPTIONS_2024.filter((option) => warlockLevel >= option.minLevel);
+}
+
+export function getWarlockInvocationOptions(level = 1, edition = '2014') {
+  return getWarlockInvocationOptionDetails(level, edition).map((option) => option.name);
+}
+
 export function getWarlockBuilderOptions({ level = 1, edition = '2014' } = {}) {
   const warlockLevel = Math.max(1, Number(level || 1));
   const ruleset = normaliseWarlockRulesEdition(edition);
   const subclassChoiceLevel = getWarlockSubclassChoiceLevel(ruleset);
-  const pactBoonRequired = ruleset === '2014' ? warlockLevel >= 3 : warlockLevel >= 3;
+  const pactBoonRequired = ruleset === '2014' && warlockLevel >= 3;
+  const invocationOptionDetails = getWarlockInvocationOptionDetails(warlockLevel, ruleset);
+  const eligibleInvocationOptions = invocationOptionDetails.map((option) => option.name);
 
   return {
     className: 'Warlock',
@@ -45,9 +119,11 @@ export function getWarlockBuilderOptions({ level = 1, edition = '2014' } = {}) {
     subclassRequired: warlockLevel >= subclassChoiceLevel,
     subclassOptions: getWarlockSubclassOptions(ruleset),
     pactBoonRequired,
-    pactBoonOptions: WARLOCK_PACT_BOON_OPTIONS,
+    pactBoonOptions: ruleset === '2014' ? WARLOCK_PACT_BOON_OPTIONS : [],
     invocationCount: getWarlockInvocationCount(warlockLevel, ruleset),
     invocationsRequired: getWarlockInvocationCount(warlockLevel, ruleset) > 0,
+    invocationOptionDetails,
+    eligibleInvocationOptions,
   };
 }
 
@@ -79,7 +155,7 @@ export function validateWarlockBuilderSelections({
   if (subclass && !isValidWarlockSubclass(subclass, options.edition)) errors.push('Choose a Warlock patron available in this ruleset.');
 
   if (options.pactBoonRequired && !pactBoon) errors.push('Choose a Pact Boon.');
-  if (pactBoon && !isValidWarlockPactBoon(pactBoon)) errors.push('Choose a valid Pact Boon.');
+  if (options.pactBoonRequired && pactBoon && !isValidWarlockPactBoon(pactBoon)) errors.push('Choose a valid Pact Boon.');
 
   if (options.invocationsRequired && invocationList.length < options.invocationCount) {
     errors.push(`Choose ${options.invocationCount} Eldritch Invocation${options.invocationCount === 1 ? '' : 's'}.`);
@@ -92,6 +168,23 @@ export function validateWarlockBuilderSelections({
     errors.push('Choose each Eldritch Invocation only once.');
   }
 
+  const eligible = new Set(options.eligibleInvocationOptions.map(normaliseInvocation));
+  invocationList.forEach((invocation) => {
+    if (!eligible.has(normaliseInvocation(invocation))) {
+      errors.push(`${invocation} is not available to this Warlock at level ${options.level}.`);
+    }
+  });
+
+  if (options.edition === '2024') {
+    const selected = new Set(invocationList.map(normaliseInvocation));
+    options.invocationOptionDetails.forEach((option) => {
+      if (!option.requiresInvocation || !selected.has(normaliseInvocation(option.name))) return;
+      if (!selected.has(normaliseInvocation(option.requiresInvocation))) {
+        errors.push(`${option.name} requires ${option.requiresInvocation}.`);
+      }
+    });
+  }
+
   return {
     ready: errors.length === 0,
     errors,
@@ -99,7 +192,7 @@ export function validateWarlockBuilderSelections({
     options,
     selections: {
       subclass: subclass || null,
-      pactBoon: pactBoon || null,
+      pactBoon: options.pactBoonRequired ? pactBoon || null : null,
       invocations: invocationList,
     },
   };
