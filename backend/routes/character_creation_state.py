@@ -15,10 +15,9 @@ from fastapi import APIRouter, Depends, status
 
 from config import db
 from data.character_resources import merge_character_resources, warlock_shape
+from data.spell_slot_rules import class_spell_slots, shared_spell_slots
 from routes.character_patch import _clean_create
 from routes.characters import (
-    calculate_spell_slots,
-    compute_multiclass_spell_slots,
     display_class_name,
     hit_dice_string_for,
     proficiency_for,
@@ -95,10 +94,22 @@ def _warlock_level(class_levels: Dict[str, int]) -> int:
     return 0
 
 
-def derive_creation_spell_slots(primary_class: str, subclass: str, class_levels: Dict[str, int]) -> Dict[str, int]:
-    """Derive shared slots, including half/third casters, with Pact Magic separate."""
-    entries = _class_entries(class_levels, primary_class, subclass)
-    shared = compute_multiclass_spell_slots(entries)
+def derive_creation_spell_slots(
+    primary_class: str,
+    subclass: str,
+    class_levels: Dict[str, int],
+    character: Dict[str, Any] | None = None,
+) -> Dict[str, int]:
+    """Derive edition-aware shared slots with Pact Magic kept separate."""
+    rules_character = {
+        **(character or {}),
+        "character_class": primary_class,
+        "subclass": subclass,
+        "class_levels": class_levels,
+        "classes": _class_entries(class_levels, primary_class, subclass),
+    }
+
+    shared = shared_spell_slots(rules_character, class_levels)
     if shared:
         return {str(slot_level): _int(count, 0) for slot_level, count in shared.items()}
 
@@ -109,7 +120,7 @@ def derive_creation_spell_slots(primary_class: str, subclass: str, class_levels:
 
     if len(class_levels) == 1:
         level = next(iter(class_levels.values()), 1)
-        return calculate_spell_slots(primary_class, level)
+        return class_spell_slots(rules_character, primary_class, level)
     return {}
 
 
@@ -211,7 +222,12 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
     character["hit_dice_remaining"] = min(total_level, max(0, _int(character.get("hit_dice_remaining"), total_level)))
 
     supplied_slots = payload.get("spell_slots") if isinstance(payload.get("spell_slots"), dict) else {}
-    derived_slots = derive_creation_spell_slots(primary_class, character.get("subclass") or "", class_levels)
+    derived_slots = derive_creation_spell_slots(
+        primary_class,
+        character.get("subclass") or "",
+        class_levels,
+        character,
+    )
     spell_slots = supplied_slots or derived_slots
     if len(class_levels) > 1 and derived_slots:
         spell_slots = derived_slots
