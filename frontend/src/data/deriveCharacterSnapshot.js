@@ -70,16 +70,18 @@ function getRaceTraits(character = {}, edition = '2014') {
 
 function getSpellcastingBlocks(character = {}, classLevels = {}) {
   const blocks = [];
+  const edition = normalizeEdition(character);
   Object.keys(classLevels).forEach(className => {
     const info = SPELLCASTING_CLASSES[className];
     if (!info) return;
     const level = getCharacterClassLevel(character, className);
     if (!classHasEditionSpellcasting(character, className, level)) return;
+    const is2024Ranger = edition === '2024' && normalizeKey(className) === 'ranger';
     blocks.push({
       className,
       level,
       ability: info.ability,
-      type: info.pactMagic ? 'pact_magic' : info.type,
+      type: info.pactMagic ? 'pact_magic' : is2024Ranger ? 'prepared' : info.type,
       ritual: Boolean(info.ritual),
       slots: getEditionSpellSlotsForClass(character, className, level),
       spellSaveDc: Number(character?.spell_save_dc || 0),
