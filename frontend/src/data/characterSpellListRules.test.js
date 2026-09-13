@@ -1,12 +1,14 @@
 import {
   buildLegacyPreparedMigrationPlan,
   buildLegacyPreparedMigrationUpdates,
+  characterSpellIdentity,
   getCharacterPreparedCapacity,
   getCharacterSpellListMode,
   getSpellListDestination,
   getSpellListLabel,
   normaliseCharacterClassLevels,
   spellBelongsToClass,
+  spellListContains,
   tagSpellSource,
 } from './characterSpellListRules';
 
@@ -50,6 +52,24 @@ describe('character sheet spell list rules', () => {
     expect(tagSpellSource({ name: 'Shield', level: 1 }, 'Wizard')).toMatchObject({ name: 'Shield', sourceClass: 'Wizard' });
     expect(spellBelongsToClass({ name: 'Shield', sourceClass: 'Wizard' }, 'Wizard')).toBe(true);
     expect(spellBelongsToClass({ name: 'Shield', sourceClass: 'Wizard' }, 'Bard')).toBe(false);
+  });
+
+  test('source-aware identity keeps the same spell name distinct by class', () => {
+    expect(characterSpellIdentity({ name: 'Charm Person', sourceClass: 'Bard' })).toBe('bard:charmperson');
+    expect(characterSpellIdentity({ name: 'Charm Person', sourceClass: 'Warlock' })).toBe('warlock:charmperson');
+    expect(characterSpellIdentity({ name: 'Charm Person' })).toBe('legacy:charmperson');
+  });
+
+  test('spell list containment allows same-name spells from different tagged classes', () => {
+    const saved = [{ name: 'Charm Person', sourceClass: 'Bard' }];
+    expect(spellListContains(saved, { name: 'Charm Person', sourceClass: 'Bard' })).toBe(true);
+    expect(spellListContains(saved, { name: 'Charm Person', sourceClass: 'Warlock' })).toBe(false);
+  });
+
+  test('legacy untagged same-name spell blocks guessed duplicates until reviewed', () => {
+    const saved = [{ name: 'Charm Person' }];
+    expect(spellListContains(saved, { name: 'Charm Person', sourceClass: 'Bard' })).toBe(true);
+    expect(spellListContains(saved, { name: 'Charm Person', sourceClass: 'Warlock' })).toBe(true);
   });
 
   test('legacy untagged spell entries remain visible rather than disappearing', () => {
