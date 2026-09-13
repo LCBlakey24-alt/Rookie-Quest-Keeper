@@ -19,6 +19,7 @@ import {
   getCharacterSpellListMode,
   getSpellListDestination,
   getSpellListLabel,
+  spellListContains,
   tagSpellSource,
 } from '@/data/characterSpellListRules';
 import {
@@ -129,10 +130,6 @@ function flattenClassSpellGroups(className, groups = {}, maxSpellLevel = 0) {
     });
   }
   return results;
-}
-
-function savedSpellNameSet(...groups) {
-  return new Set(groups.flat().map((spell) => normalizeName(spell.name)).filter(Boolean));
 }
 
 function withoutSpell(spells = [], spellName = '', sourceClass = '') {
@@ -391,7 +388,7 @@ function SpellLibraryCard({ spell, saved, onAdd }) {
   );
 }
 
-function SpellLibrary({ spells, savedNames, onAdd }) {
+function SpellLibrary({ spells, savedSpells, onAdd }) {
   const grouped = groupByLevel(spells);
   const levels = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
 
@@ -409,7 +406,7 @@ function SpellLibrary({ spells, savedNames, onAdd }) {
               <SpellLibraryCard
                 key={`${spell.sourceClass}-${spell.level}-${spell.name}`}
                 spell={spell}
-                saved={savedNames.has(normalizeName(spell.name))}
+                saved={spellListContains(savedSpells, spell)}
                 onAdd={onAdd}
               />
             ))}
@@ -423,7 +420,7 @@ function SpellLibrary({ spells, savedNames, onAdd }) {
 function SpellGroup({
   title,
   spells,
-  preparedNames,
+  preparedSpells,
   emptyText,
   groupMode,
   getCastOptions,
@@ -437,7 +434,7 @@ function SpellGroup({
 
   const getCardRules = (spell) => {
     const cantrip = Number(spell.level || 0) === 0;
-    const prepared = preparedNames.has(normalizeName(spell.name));
+    const prepared = spellListContains(preparedSpells, spell);
     const spellbookOnly = groupMode === 'spellbook' && !prepared;
     const castable = cantrip || groupMode === 'known' || groupMode === 'prepared' || !spellbookOnly;
     return {
@@ -548,7 +545,6 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const spellbook = uniqueSpells(character?.spellbook, null);
   const canonicalPrepared = uniqueSpells(character?.spells_prepared || character?.prepared_spells || character?.preparedSpells, null);
   const prepared = uniqueSpells(migrationPlan.effectivePrepared?.length ? migrationPlan.effectivePrepared : canonicalPrepared, null);
-  const preparedNames = new Set(prepared.map((spell) => normalizeName(spell.name)));
   const legacyMigrationMarker = Boolean(character?.spell_list_migration?.legacy_preserved);
   const known = rawKnown.filter((spell) => {
     const source = sourceClassFor(spell);
@@ -556,11 +552,11 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       ? spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(source))
       : null;
     if (sourceRow?.listMode === 'known') return true;
-    if (sourceRow?.listMode === 'prepared' && preparedNames.has(normalizeName(spell.name))) return false;
-    if (!source && (migrationPlan.hasMigration || legacyMigrationMarker) && preparedNames.has(normalizeName(spell.name))) return false;
+    if (sourceRow?.listMode === 'prepared' && spellListContains(prepared, spell)) return false;
+    if (!source && (migrationPlan.hasMigration || legacyMigrationMarker) && spellListContains(prepared, spell)) return false;
     return true;
   });
-  const savedNames = savedSpellNameSet(cantrips, rawKnown, spellbook, prepared);
+  const savedSpells = uniqueSpells([...cantrips, ...rawKnown, ...spellbook, ...prepared]);
   const lowerSearch = spellSearch.trim().toLowerCase();
   const filterSpells = (spells) => !lowerSearch
     ? spells
@@ -687,8 +683,8 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           ? prepared
           : rawKnown;
 
-    if (existing.some((entry) => normalizeName(entry.name) === normalizeName(normalised.name))) {
-      toast.info(`${normalised.name} is already on this sheet.`);
+    if (spellListContains(existing, normalised)) {
+      toast.info(`${normalised.name} is already on this ${sourceClass ? `${sourceClass} ` : ''}spell list.`);
       return false;
     }
 
@@ -717,12 +713,9 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     const normalised = normaliseSpell(spell, spell.level);
     if (Number(normalised.level || 0) <= 0) return false;
     const sourceClass = sourceClassFor(normalised, 'Wizard');
-    const alreadyPrepared = prepared.some((entry) => (
-      normalizeName(entry.name) === normalizeName(normalised.name)
-      && (!entry.sourceClass || !sourceClass || normalizeName(sourceClassFor(entry)) === normalizeName(sourceClass))
-    ));
-    if (alreadyPrepared) {
-      toast.info(`${normalised.name} is already prepared.`);
+    const tagged = tagSpellSource(normalised, sourceClass);
+    if (spellListContains(prepared, tagged)) {
+      toast.info(`${normalised.name} is already prepared for ${sourceClass || 'this caster'}.`);
       return false;
     }
 
@@ -735,7 +728,6 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       return false;
     }
 
-    const tagged = tagSpellSource(normalised, sourceClass);
     const nextPrepared = [...prepared, tagged];
     const ok = await onCharacterUpdate(
       listUpdate('spells_prepared', nextPrepared),
@@ -862,7 +854,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
 
       <SpellLibrary
         spells={filterSpells(availableClassSpells)}
-        savedNames={savedNames}
+        savedSpells={savedSpells}
         onAdd={addSpellFromLibrary}
       />
 
@@ -935,7 +927,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       <SpellGroup
         title="Cantrips"
         spells={filterSpells(cantrips)}
-        preparedNames={preparedNames}
+        preparedSpells={prepared}
         groupMode="known"
         getCastOptions={castOptionsForSpell}
         emptyText="No cantrips found on this character. Add one from the class spell library above."
@@ -949,7 +941,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         <SpellGroup
           title="Prepared Spells"
           spells={filterSpells(prepared)}
-          preparedNames={preparedNames}
+          preparedSpells={prepared}
           groupMode="prepared"
           getCastOptions={castOptionsForSpell}
           emptyText="No prepared spells found. Add a prepared-class spell or prepare one from a Wizard spellbook."
@@ -963,8 +955,8 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       {(hasSpellbookModel || spellbook.length > 0) && (
         <SpellGroup
           title="Spellbook"
-          spells={filterSpells(spellbook.filter((spell) => !preparedNames.has(normalizeName(spell.name))))}
-          preparedNames={preparedNames}
+          spells={filterSpells(spellbook.filter((spell) => !spellListContains(prepared, spell)))}
+          preparedSpells={prepared}
           groupMode="spellbook"
           getCastOptions={castOptionsForSpell}
           emptyText="No unprepared spellbook entries found. Add Wizard spells from the class library above."
@@ -979,7 +971,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         <SpellGroup
           title="Known Spells"
           spells={filterSpells(known)}
-          preparedNames={preparedNames}
+          preparedSpells={prepared}
           groupMode="known"
           getCastOptions={castOptionsForSpell}
           emptyText="No known spells found. Add one from the class spell library above."
