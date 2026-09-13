@@ -8,6 +8,7 @@ import { resourceActionCards, resourceValue } from '../../data/actionEconomyCard
 import CombatSpellActionCard from './CombatSpellActionCard';
 import { ActionSection, AttackCard, SimpleActionCard } from './CleanCombatTabCards';
 import {
+  buildConsumableUseUpdate,
   fmt,
   gatherConsumables,
   gatherEquippedWeapons,
@@ -276,19 +277,15 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     const result = rollDice(heal.count, heal.sides, heal.modifier);
     toast.success(`${getItemName(item)} heals ${result.total} HP`);
     if (!onCharacterUpdate) return;
-    const inventory = [...(character?.inventory || [])];
-    const equipment = [...(character?.equipment || [])];
-    const source = inventory.includes(item) ? inventory : equipment;
-    const sourceIndex = source.findIndex(entry => entry === item);
-    if (sourceIndex >= 0 && typeof source[sourceIndex] === 'object') {
-      const qty = getItemQuantity(source[sourceIndex]);
-      if (qty && qty > 1) source[sourceIndex] = { ...source[sourceIndex], quantity: qty - 1, qty: qty - 1 };
-      else source.splice(sourceIndex, 1);
+    const updates = buildConsumableUseUpdate(character, item, result.total);
+    if (!updates.consumed) {
+      toast.error(`Could not find ${getItemName(item)} in this character's inventory.`);
+      return;
     }
     await onCharacterUpdate({
-      current_hit_points: Math.min(Number(character?.max_hit_points || 10), Number(character?.current_hit_points || 0) + result.total),
-      inventory,
-      equipment,
+      current_hit_points: updates.current_hit_points,
+      inventory: updates.inventory,
+      equipment: updates.equipment,
     }, { error: 'Could not use consumable' });
   };
 
