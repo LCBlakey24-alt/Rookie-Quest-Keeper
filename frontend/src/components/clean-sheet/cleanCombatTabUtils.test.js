@@ -1,6 +1,7 @@
 import {
   buildConsumableUseUpdate,
   consumeConsumableState,
+  rollDice,
 } from './cleanCombatTabUtils';
 
 describe('combat consumable persistence', () => {
@@ -77,5 +78,16 @@ describe('combat consumable persistence', () => {
       equipment: ['Torch'],
       consumed: false,
     });
+  });
+});
+
+describe('combat damage rolls', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  test('a damage penalty can reduce the result to zero but never below zero', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0); // rolls 1
+
+    expect(rollDice(1, 4, -3)).toMatchObject({ rolls: [1], total: 0 });
+    expect(rollDice(1, 4, -99)).toMatchObject({ rolls: [1], total: 0 });
   });
 });
