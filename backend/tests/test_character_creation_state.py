@@ -103,6 +103,85 @@ class TestCharacterCreationState(unittest.TestCase):
         self.assertEqual(character["resources"]["pact_magic"]["slot_level"], 2)
         self.assertEqual(character["resources"]["arcane_recovery"]["max"], 1)
 
+    def test_2024_paladin_gets_spellcasting_and_slots_at_level_one(self):
+        character = normalise_created_character(
+            {
+                "name": "Dawn Shield",
+                "race": "Human",
+                "character_class": "Paladin",
+                "level": 1,
+                "rules_edition": "2024",
+                "charisma": 16,
+            },
+            "player-one",
+        )
+        self.assertEqual(character["spell_slots"], {"1": 2})
+        self.assertEqual(character["spell_slots_remaining"], {"1": 2})
+        self.assertEqual(character["spellcasting_ability"], "charisma")
+
+    def test_2014_paladin_still_starts_spellcasting_at_level_two(self):
+        self.assertEqual(
+            derive_creation_spell_slots(
+                "Paladin",
+                "",
+                {"Paladin": 1},
+                {"rules_edition": "2014", "character_class": "Paladin", "level": 1},
+            ),
+            {},
+        )
+        self.assertEqual(
+            derive_creation_spell_slots(
+                "Paladin",
+                "",
+                {"Paladin": 2},
+                {"rules_edition": "2014", "character_class": "Paladin", "level": 2},
+            ),
+            {"1": 2},
+        )
+
+    def test_2024_ranger_gets_spellcasting_and_slots_at_level_one(self):
+        character = normalise_created_character(
+            {
+                "name": "Trail",
+                "race": "Human",
+                "character_class": "Ranger",
+                "level": 1,
+                "rules_edition": "2024",
+                "wisdom": 16,
+            },
+            "player-one",
+        )
+        self.assertEqual(character["spell_slots"], {"1": 2})
+        self.assertEqual(character["spellcasting_ability"], "wisdom")
+
+    def test_2024_multiclass_half_caster_rounds_up_but_2014_rounds_down(self):
+        modern = normalise_created_character(
+            {
+                "name": "Modern Hybrid",
+                "race": "Human",
+                "character_class": "Wizard 1 / Paladin 1",
+                "level": 2,
+                "rules_edition": "2024",
+                "intelligence": 16,
+                "charisma": 16,
+            },
+            "player-one",
+        )
+        legacy = normalise_created_character(
+            {
+                "name": "Legacy Hybrid",
+                "race": "Human",
+                "character_class": "Wizard 1 / Paladin 1",
+                "level": 2,
+                "rules_edition": "2014",
+                "intelligence": 16,
+                "charisma": 16,
+            },
+            "player-one",
+        )
+        self.assertEqual(modern["spell_slots"], {"1": 3})
+        self.assertEqual(legacy["spell_slots"], {"1": 2})
+
     def test_imported_fighter_gets_persisted_core_resource_trackers(self):
         character = normalise_created_character(
             {
