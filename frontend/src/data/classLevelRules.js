@@ -53,7 +53,7 @@ export const CLASS_ASI_LEVELS = {
   Wizard: DEFAULT_ASI_LEVELS,
 };
 
-export const SPELLCASTING_START_LEVEL = {
+export const SPELLCASTING_START_LEVELS_2014 = {
   Bard: 1,
   Cleric: 1,
   Druid: 1,
@@ -64,8 +64,22 @@ export const SPELLCASTING_START_LEVEL = {
   Ranger: 2,
 };
 
+export const SPELLCASTING_START_LEVELS_2024 = {
+  Bard: 1,
+  Cleric: 1,
+  Druid: 1,
+  Paladin: 1,
+  Ranger: 1,
+  Sorcerer: 1,
+  Warlock: 1,
+  Wizard: 1,
+};
+
+// Legacy export retained for older callers that intentionally mean 2014 rules.
+export const SPELLCASTING_START_LEVEL = SPELLCASTING_START_LEVELS_2014;
+
 export function getRulesEdition(value = '2014') {
-  return String(value) === '2024' ? '2024' : '2014';
+  return String(value || '2014').includes('2024') ? '2024' : '2014';
 }
 
 export function getSubclassUnlockLevel(className, edition = '2014') {
@@ -87,12 +101,15 @@ export function isAsiLevel(className, level) {
   return getAsiLevels(className).includes(Number(level));
 }
 
-export function getSpellcastingStartLevel(className) {
-  return SPELLCASTING_START_LEVEL[className] || null;
+export function getSpellcastingStartLevel(className, edition = '2014') {
+  const rules = getRulesEdition(edition) === '2024'
+    ? SPELLCASTING_START_LEVELS_2024
+    : SPELLCASTING_START_LEVELS_2014;
+  return rules[className] || null;
 }
 
-export function isSpellcastingAvailableAtLevel(className, level) {
-  const start = getSpellcastingStartLevel(className);
+export function isSpellcastingAvailableAtLevel(className, level, edition = '2014') {
+  const start = getSpellcastingStartLevel(className, edition);
   return Boolean(start && Number(level || 1) >= start);
 }
 
@@ -108,7 +125,7 @@ export function getRequiredLevelChoices({ className, level, edition = '2014' }) 
     choices.push({ type: 'asi_or_feat', level: numericLevel, label: 'Ability Score Improvement or feat' });
   }
 
-  if (numericLevel === getSpellcastingStartLevel(className)) {
+  if (numericLevel === getSpellcastingStartLevel(className, edition)) {
     choices.push({ type: 'spellcasting_start', level: numericLevel, label: 'Spellcasting begins' });
   }
 
