@@ -31,6 +31,8 @@ function optionLabel(option) {
 
 function optionDescription(option) {
   if (!option || typeof option === 'string') return '';
+  if (option.prerequisiteNote) return option.prerequisiteNote;
+  if (option.requiresInvocation) return `Requires ${option.requiresInvocation}.`;
   return option.description || option.summary || option.prerequisite || '';
 }
 
@@ -211,11 +213,19 @@ export function WarlockChoiceSection({ plan, selection, onChange }) {
   const current = normaliseWarlockSelection(selection, plan);
   const update = (patch) => onChange({ ...current, ...patch });
   const count = Number(plan.invocationCount || 0);
+  const invocationOptions = arr(plan.invocationOptionDetails).length
+    ? plan.invocationOptionDetails
+    : arr(plan.eligibleInvocationOptions).length
+      ? plan.eligibleInvocationOptions
+      : plan.invocationOptions;
+  const is2024 = String(plan.edition || '').includes('2024');
 
   return (
     <section className="full-creator-auto-box" aria-label="Warlock choices">
       <strong>Warlock choices</strong>
-      <span>Pact Boon and Eldritch Invocations are applied to the saved sheet.</span>
+      <span>{is2024
+        ? 'Choose Eldritch Invocations available at this Warlock level. Pact of the Blade, Chain, and Tome are invocations in the 2024 rules.'
+        : 'Pact Boon and Eldritch Invocations are applied to the saved sheet.'}</span>
 
       {plan.pactBoonRequired && (
         <ToggleChoiceList
@@ -230,7 +240,7 @@ export function WarlockChoiceSection({ plan, selection, onChange }) {
       <ToggleChoiceList
         label="Eldritch Invocations"
         value={current.invocations}
-        options={plan.invocationOptions}
+        options={invocationOptions}
         max={count}
         onChange={(invocations) => update({ invocations })}
       />
