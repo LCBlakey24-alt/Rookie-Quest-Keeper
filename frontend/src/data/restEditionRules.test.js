@@ -12,6 +12,10 @@ describe('edition-aware rest eligibility', () => {
     expect(canStartRest({ rules_edition: '2024', current_hit_points: 0, max_hit_points: 20 })).toBe(false);
     expect(canStartRest({ ruleset_id: 'dnd5e_2024', current_hit_points: 1, max_hit_points: 20 })).toBe(true);
   });
+
+  test('legacy 2024 saves without a current HP field fall back to saved max HP', () => {
+    expect(canStartRest({ rules_edition: '2024', max_hit_points: 20 })).toBe(true);
+  });
 });
 
 describe('edition-aware Hit Die healing minimums', () => {
