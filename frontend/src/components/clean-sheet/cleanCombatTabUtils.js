@@ -11,7 +11,7 @@ export function hasSaveProficiency(character, ability) {
 
 export function rollDice(count = 1, sides = 8, modifier = 0) {
   const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
-  const total = Math.max(1, rolls.reduce((sum, value) => sum + value, 0) + modifier);
+  const total = Math.max(0, rolls.reduce((sum, value) => sum + value, 0) + modifier);
   return { rolls, total, notation: `${count}d${sides}${modifier ? ` ${fmt(modifier)}` : ''}` };
 }
 
@@ -68,6 +68,52 @@ export function getSuperiorityDie(level) {
 export function getItemQuantity(item) {
   if (!item || typeof item === 'string') return null;
   return item.quantity ?? item.qty ?? item.count ?? null;
+}
+
+export function consumeConsumableState(character = {}, item) {
+  const inventory = [...(character?.inventory || [])];
+  const equipment = [...(character?.equipment || [])];
+  const inInventory = inventory.includes(item);
+  const inEquipment = equipment.includes(item);
+  const source = inInventory ? inventory : inEquipment ? equipment : null;
+
+  if (!source) return { inventory, equipment, consumed: false };
+
+  const sourceIndex = source.findIndex(entry => entry === item);
+  if (sourceIndex < 0) return { inventory, equipment, consumed: false };
+
+  const stored = source[sourceIndex];
+  if (stored && typeof stored === 'object') {
+    const quantity = Number(getItemQuantity(stored));
+    if (Number.isFinite(quantity) && quantity > 1) {
+      source[sourceIndex] = { ...stored, quantity: quantity - 1, qty: quantity - 1 };
+    } else {
+      source.splice(sourceIndex, 1);
+    }
+  } else {
+    // Legacy characters can store consumables as plain strings. Removing one
+    // matching entry prevents those old potions from becoming infinitely reusable.
+    source.splice(sourceIndex, 1);
+  }
+
+  return { inventory, equipment, consumed: true };
+}
+
+export function buildConsumableUseUpdate(character = {}, item, healingTotal = 0) {
+  const consumed = consumeConsumableState(character, item);
+  const maxHp = Math.max(1, Number(character?.max_hit_points ?? character?.max_hp ?? 10) || 10);
+  const rawCurrent = character?.current_hit_points ?? character?.hp;
+  const currentHp = rawCurrent === undefined || rawCurrent === null || rawCurrent === ''
+    ? maxHp
+    : Math.max(0, Math.min(maxHp, Number(rawCurrent) || 0));
+  const healing = Math.max(0, Number(healingTotal) || 0);
+
+  return {
+    current_hit_points: Math.min(maxHp, currentHp + healing),
+    inventory: consumed.inventory,
+    equipment: consumed.equipment,
+    consumed: consumed.consumed,
+  };
 }
 
 function isWeaponLike(item) {
