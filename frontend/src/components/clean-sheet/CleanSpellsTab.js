@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AlertTriangle, Search, Wand2 } from 'lucide-react';
 
+import apiClient from '@/lib/apiClient';
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import {
   SPELLCASTING_CLASSES,
