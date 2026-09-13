@@ -111,6 +111,34 @@ export function syncInventoryWithEquipment(inventory = [], equipped = {}) {
   });
 }
 
+export function findInventoryItemIndex(inventory = [], item = {}, equipped = {}) {
+  const identity = inventoryItemIdentity(item);
+  if (!identity) return -1;
+
+  if (identity.startsWith('id:')) {
+    return toArray(inventory).findIndex((candidate) => inventoryItemIdentity(candidate) === identity);
+  }
+
+  const synced = syncInventoryWithEquipment(inventory, equipped);
+  const preferredSlot = canonicalInventorySlot(item?.equip_slot || item?.equipped_slot || '');
+  if (preferredSlot) {
+    const slotIndex = synced.findIndex((candidate) => (
+      inventoryItemIdentity(candidate) === identity
+      && canonicalInventorySlot(candidate?.equip_slot || candidate?.equipped_slot || '') === preferredSlot
+    ));
+    if (slotIndex >= 0) return slotIndex;
+  }
+
+  const wantsEquipped = Boolean(item?.equipped || item?.is_equipped);
+  const stateIndex = synced.findIndex((candidate) => (
+    inventoryItemIdentity(candidate) === identity
+    && Boolean(candidate?.equipped || candidate?.is_equipped) === wantsEquipped
+  ));
+  if (stateIndex >= 0) return stateIndex;
+
+  return synced.findIndex((candidate) => inventoryItemIdentity(candidate) === identity);
+}
+
 export function equipInventoryState({ inventory = [], equipped = {}, item, slot = '' } = {}) {
   const canonical = canonicalInventorySlot(slot || item?.equip_slot || item?.equipped_slot);
   if (!canonical || !item) return { inventory: toArray(inventory), equipped: { ...(equipped || {}) } };
@@ -131,14 +159,9 @@ export function clearInventorySlotState({ inventory = [], equipped = {}, slot = 
 
 export function removeInventoryItemState({ inventory = [], equipped = {}, item } = {}) {
   const identity = inventoryItemIdentity(item);
-  let removed = false;
-  const nextInventory = toArray(inventory).filter((candidate) => {
-    if (!removed && identity && inventoryItemIdentity(candidate) === identity) {
-      removed = true;
-      return false;
-    }
-    return true;
-  });
+  const removeIndex = findInventoryItemIndex(inventory, item, equipped);
+  const nextInventory = toArray(inventory).filter((_, index) => index !== removeIndex);
+  const removed = removeIndex >= 0;
 
   let nextEquipped = { ...(equipped || {}) };
   const matchingAssignments = equippedAssignments(equipped)
