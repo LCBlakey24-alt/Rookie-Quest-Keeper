@@ -25,7 +25,11 @@ export function getCharacterEdition(character = {}) {
 
 export function canStartRest(character = {}) {
   if (getCharacterEdition(character) !== '2024') return true;
-  const currentHp = toNumber(character.current_hit_points ?? character.hp, 0);
+  const maxHp = Math.max(1, toNumber(character.max_hit_points ?? character.max_hp, 1));
+  const rawCurrent = character.current_hit_points ?? character.hp;
+  const currentHp = rawCurrent === undefined || rawCurrent === null || rawCurrent === ''
+    ? maxHp
+    : Math.max(0, Math.min(maxHp, toNumber(rawCurrent, maxHp)));
   return currentHp > 0;
 }
 
