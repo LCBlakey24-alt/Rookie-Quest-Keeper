@@ -103,6 +103,25 @@ class TestCharacterSpellMigration(unittest.TestCase):
             [("Bard", "Healing Word"), ("Warlock", "Hex")],
         )
 
+    def test_same_spell_can_be_owned_by_two_multiclass_sources(self):
+        migration = build_spell_list_migration({
+            "character_class": "Bard",
+            "level": 5,
+            "rules_edition": "2024",
+            "class_levels": {"Bard": 3, "Warlock": 2},
+            "spells_known": [
+                {"name": "Charm Person", "level": 1, "sourceClass": "Bard"},
+                {"name": "Charm Person", "level": 1, "sourceClass": "Warlock"},
+            ],
+        })
+        self.assertTrue(migration["changed"])
+        prepared = migration["updates"]["spells_prepared"]
+        self.assertEqual(len(prepared), 2)
+        self.assertEqual(
+            [(spell["sourceClass"], spell["name"]) for spell in prepared],
+            [("Bard", "Charm Person"), ("Warlock", "Charm Person")],
+        )
+
     def test_existing_canonical_prepared_list_is_not_duplicated(self):
         migration = build_spell_list_migration({
             "character_class": "Bard",
