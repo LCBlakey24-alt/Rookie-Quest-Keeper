@@ -1,4 +1,4 @@
-import { getMulticlassSpellSlots } from './spellDatabase';
+import { getEditionMulticlassSpellSlots } from './editionSpellSlotRules';
 import {
   buildPactMagicResource,
   getCastOptionsForSpell,
@@ -38,7 +38,7 @@ export function characterClassLevels(character = {}) {
 
 export function getCharacterSpellPools(character = {}) {
   const classLevels = characterClassLevels(character);
-  const slotMath = getMulticlassSpellSlots(classLevels, character) || {};
+  const slotMath = getEditionMulticlassSpellSlots(classLevels, character) || {};
   return {
     classLevels,
     slotMath,
