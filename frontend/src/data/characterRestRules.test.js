@@ -46,6 +46,23 @@ describe('character rest state helpers', () => {
     });
   });
 
+  test('2024-style trackers regain one use per Short Rest instead of fully refilling', () => {
+    const first = restoreResourceTrackers({
+      second_wind: { current: 0, remaining: 0, max: 4, restore: 'long-rest', short_rest_restore: 1 },
+      channel_divinity: { current: 1, remaining: 1, max: 4, restore: 'long-rest', short_rest_restore: 1 },
+      wild_shape: { current: 2, remaining: 2, max: 4, restore: 'long-rest', short_rest_restore: 1 },
+    }, 'short-rest');
+
+    expect(first.second_wind).toMatchObject({ current: 1, remaining: 1, max: 4 });
+    expect(first.channel_divinity).toMatchObject({ current: 2, remaining: 2, max: 4 });
+    expect(first.wild_shape).toMatchObject({ current: 3, remaining: 3, max: 4 });
+
+    const second = restoreResourceTrackers(first, 'short-rest');
+    expect(second.second_wind.current).toBe(2);
+    expect(second.channel_divinity.current).toBe(3);
+    expect(second.wild_shape.current).toBe(4);
+  });
+
   test('long rest resets combat state, slots, resources and one exhaustion level', () => {
     const updates = buildLongRestUpdates({
       character_class: 'Wizard',
