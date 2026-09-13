@@ -46,6 +46,7 @@ export function getWarlockInvocationCount(level = 1, edition = '2014') {
     if (warlockLevel >= 15) return 9;
     if (warlockLevel >= 12) return 8;
     if (warlockLevel >= 9) return 7;
+    if (warlockLevel >= 7) return 6;
     if (warlockLevel >= 5) return 5;
     if (warlockLevel >= 2) return 3;
     return 1;
@@ -97,16 +98,16 @@ const WARLOCK_FEATURES_2024 = [
   { level: 1, key: 'eldritch_invocations', name: 'Eldritch Invocations', type: 'choice', choiceType: 'eldritch_invocations' },
   { level: 2, key: 'magical_cunning', name: 'Magical Cunning', type: 'recovery' },
   { level: 3, key: 'warlock_subclass', name: 'Warlock Subclass', type: 'choice', choiceType: 'subclass' },
-  { level: 3, key: 'pact_boon', name: 'Pact Boon', type: 'choice', choiceType: 'pact_boon' },
   { level: 6, key: 'subclass_feature_6', name: 'Warlock Subclass Feature', type: 'subclass' },
+  { level: 9, key: 'contact_patron', name: 'Contact Patron', type: 'utility' },
   { level: 10, key: 'subclass_feature_10', name: 'Warlock Subclass Feature', type: 'subclass' },
   { level: 11, key: 'mystic_arcanum_6', name: 'Mystic Arcanum', type: 'spellcasting' },
   { level: 13, key: 'mystic_arcanum_7', name: 'Mystic Arcanum', type: 'spellcasting' },
   { level: 14, key: 'subclass_feature_14', name: 'Warlock Subclass Feature', type: 'subclass' },
   { level: 15, key: 'mystic_arcanum_8', name: 'Mystic Arcanum', type: 'spellcasting' },
   { level: 17, key: 'mystic_arcanum_9', name: 'Mystic Arcanum', type: 'spellcasting' },
-  { level: 20, key: 'epic_boon_or_asi', name: 'Epic Boon / Ability Score Improvement', type: 'choice', choiceType: 'epic_boon_or_asi' },
-  ...WARLOCK_ASI_LEVELS.filter(level => level !== 19).map(asiFeature),
+  { level: 20, key: 'eldritch_master', name: 'Eldritch Master', type: 'recovery' },
+  ...WARLOCK_ASI_LEVELS.map(asiFeature),
 ];
 
 export function getWarlockProgression(edition = '2014') {
