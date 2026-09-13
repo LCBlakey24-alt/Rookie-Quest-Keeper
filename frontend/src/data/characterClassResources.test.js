@@ -1,4 +1,4 @@
-import { mergeCharacterClassResources } from './characterClassResources';
+import { mergeCharacterClassResources, resourceSpecs } from './characterClassResources';
 
 describe('character class resources', () => {
   test('spent Ki stays spent while a new level adds one usable point', () => {
@@ -63,5 +63,57 @@ describe('character class resources', () => {
       { Fighter: 3 },
       { initialiseMissing: false },
     )).toEqual({});
+  });
+
+  test('2024 partial Short Rest resources persist recovery metadata', () => {
+    expect(resourceSpecs({ edition: '2024' }, { Fighter: 10 }).second_wind).toMatchObject({
+      max: 4,
+      restore: 'long-rest',
+      short_rest_restore: 1,
+    });
+    expect(resourceSpecs({ edition: '2024' }, { Cleric: 18 }).channel_divinity).toMatchObject({
+      max: 4,
+      restore: 'long-rest',
+      short_rest_restore: 1,
+    });
+    expect(resourceSpecs({ edition: '2024' }, { Druid: 17 }).wild_shape).toMatchObject({
+      max: 4,
+      restore: 'long-rest',
+      short_rest_restore: 1,
+    });
+    expect(resourceSpecs({ edition: '2024' }, { Paladin: 11 }).channel_divinity).toMatchObject({
+      max: 3,
+      restore: 'long-rest',
+      short_rest_restore: 1,
+    });
+  });
+
+  test('2024 Ranger Favored Enemy follows class thresholds', () => {
+    expect(resourceSpecs({ edition: '2024' }, { Ranger: 1 }).favored_enemy.max).toBe(2);
+    expect(resourceSpecs({ edition: '2024' }, { Ranger: 5 }).favored_enemy.max).toBe(3);
+    expect(resourceSpecs({ edition: '2024' }, { Ranger: 9 }).favored_enemy.max).toBe(4);
+    expect(resourceSpecs({ edition: '2024' }, { Ranger: 13 }).favored_enemy.max).toBe(5);
+    expect(resourceSpecs({ edition: '2024' }, { Ranger: 17 }).favored_enemy.max).toBe(6);
+  });
+
+  test('level-up adds only newly gained 2024 resource capacity', () => {
+    const resources = mergeCharacterClassResources({
+      edition: '2024',
+      resources: {
+        second_wind: { current: 0, remaining: 0, max: 3, restore: 'long-rest', short_rest_restore: 1 },
+      },
+    }, { Fighter: 10 });
+
+    expect(resources.second_wind).toMatchObject({
+      max: 4,
+      current: 1,
+      remaining: 1,
+      short_rest_restore: 1,
+    });
+  });
+
+  test('2024 Monk tracker uses Focus Points label', () => {
+    const resources = mergeCharacterClassResources({ edition: '2024', resources: {} }, { Monk: 5 });
+    expect(resources.ki).toMatchObject({ label: 'Focus Points', max: 5 });
   });
 });
