@@ -48,10 +48,11 @@ describe('1-to-20 class progression audit data', () => {
 });
 
 describe('class resource unlocks and action economy audit', () => {
-  test('Monk Ki/Discipline unlocks at 2, scales by monk level, and creates clickable bonus actions', () => {
+  test('Monk Ki/Focus Points unlock at 2, scale by monk level, and create clickable bonus actions', () => {
     expect(getClassResourceRules(character('monk', 1)).find(rule => rule.key === 'ki')).toBeUndefined();
     expect(getClassResourceRules(character('monk', 2)).find(rule => rule.key === 'ki')).toMatchObject({ maxValue: 2, restore: 'short-rest' });
     expect(getClassResourceRules(character('monk', 20)).find(rule => rule.key === 'ki')).toMatchObject({ maxValue: 20 });
+    expect(getClassResourceRules(character('monk', 2, { rules_edition: '2024' })).find(rule => rule.key === 'ki').label(character('monk', 2, { rules_edition: '2024' }))).toBe('Focus Points');
     expect(actionTitlesFor(character('monk', 2)).bonus).toEqual(expect.arrayContaining(['Flurry of Blows', 'Patient Defense', 'Step of the Wind']));
   });
 
@@ -85,11 +86,22 @@ describe('class resource unlocks and action economy audit', () => {
     expect(actionTitlesFor(character('paladin', 3)).action).toContain('Channel Divinity');
     expect(actionTitlesFor(character('ranger', 2, { rules_edition: '2014' })).bonus).toContain("Hunter's Mark");
     expect(actionTitlesFor(character('ranger', 1, { rules_edition: '2024' })).bonus).toContain("Hunter's Mark");
-    expect(getClassResourceRules(character('warlock', 1)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 1, restore: 'short-rest' });
-    expect(getClassResourceRules(character('warlock', 2)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 2 });
+    expect(getClassResourceRules(character('warlock', 1)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 1, slotLevelValue: 1, restore: 'short-rest' });
+    expect(getClassResourceRules(character('warlock', 2)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 2, slotLevelValue: 1 });
+    expect(getClassResourceRules(character('warlock', 11)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 3, slotLevelValue: 5 });
+    expect(getClassResourceRules(character('warlock', 17)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 4, slotLevelValue: 5 });
     expect(getClassResourceRules(character('ranger', 1, { rules_edition: '2014' })).find(rule => rule.key === 'favored_enemy')).toBeUndefined();
     expect(getClassResourceRules(character('ranger', 1, { rules_edition: '2024' })).find(rule => rule.key === 'favored_enemy')).toMatchObject({ maxValue: 2, restore: 'long-rest' });
-    expect(getClassResourceRules(character('ranger', 7, { rules_edition: '2024' })).find(rule => rule.key === 'favored_enemy')).toMatchObject({ maxValue: 4 });
+    expect(getClassResourceRules(character('ranger', 7, { rules_edition: '2024' })).find(rule => rule.key === 'favored_enemy')).toMatchObject({ maxValue: 3 });
+    expect(getClassResourceRules(character('ranger', 17, { rules_edition: '2024' })).find(rule => rule.key === 'favored_enemy')).toMatchObject({ maxValue: 6 });
+  });
+
+  test('2024 partial Short Rest resources carry one-use recovery metadata', () => {
+    expect(getClassResourceRules(character('barbarian', 5, { rules_edition: '2024' })).find(rule => rule.key === 'rage')).toMatchObject({ shortRestRestoreValue: 1, restore: 'long-rest' });
+    expect(getClassResourceRules(character('cleric', 6, { rules_edition: '2024' })).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 3, shortRestRestoreValue: 1 });
+    expect(getClassResourceRules(character('druid', 17, { rules_edition: '2024' })).find(rule => rule.key === 'wild_shape')).toMatchObject({ maxValue: 4, shortRestRestoreValue: 1 });
+    expect(getClassResourceRules(character('fighter', 10, { rules_edition: '2024' })).find(rule => rule.key === 'second_wind')).toMatchObject({ maxValue: 4, shortRestRestoreValue: 1 });
+    expect(getClassResourceRules(character('paladin', 11, { rules_edition: '2024' })).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 3, shortRestRestoreValue: 1 });
   });
 
   test('Rogue core turn reminders appear at the correct levels', () => {
