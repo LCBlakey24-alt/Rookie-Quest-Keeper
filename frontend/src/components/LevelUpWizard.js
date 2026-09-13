@@ -16,10 +16,15 @@ import { CLASS_FEATURES } from '@/data/classFeatures';
 import {
   CANTRIPS_KNOWN,
   SPELLCASTING_CLASSES,
-  SPELLS_KNOWN,
-  getMaxSpellLevel,
   getSpellsForClass,
 } from '@/data/spellDatabase';
+import { classHasEditionSpellcasting, getEditionMaxSpellLevel } from '@/data/editionSpellSlotRules';
+import {
+  getKnownSpellTarget,
+  getPreparedSpellCapacity,
+  getSpellSelectionMode,
+  getWizardSpellbookTarget,
+} from '@/data/spellPreparationRules';
 import { ABILITIES, ABILITY_SHORT, ASI_LEVELS, HIT_DICE } from '@/data/levelUpData';
 import {
   needsSubclassChoice,
@@ -132,11 +137,20 @@ function namesFrom(list) {
   return (Array.isArray(list) ? list : []).map((item) => normaliseName(item?.name || item)).filter(Boolean);
 }
 
-function selectedSubclassSupportsCasting(className, subclass) {
-  const info = SPELLCASTING_CLASSES[className];
-  if (!info) return false;
-  if (!info.subclassOnly) return true;
-  return normaliseName(subclass) === normaliseName(info.subclassOnly);
+function spellChoiceLabel(mode, count) {
+  if (mode === 'spellbook') return `Spellbook spells · choose ${count}`;
+  if (mode === 'prepared') return `Prepared spells · choose ${count}`;
+  return `Known spells · choose ${count}`;
+}
+
+function spellChoiceSummary(mode, cantripGain, spellGain) {
+  const pieces = [];
+  if (cantripGain > 0) pieces.push(`${cantripGain} cantrip${cantripGain === 1 ? '' : 's'}`);
+  if (spellGain > 0) {
+    const noun = mode === 'spellbook' ? 'spellbook spell' : mode === 'prepared' ? 'prepared spell' : 'known spell';
+    pieces.push(`${spellGain} ${noun}${spellGain === 1 ? '' : 's'}`);
+  }
+  return pieces.length ? `${pieces.join(' and ')} to choose.` : 'No new spell-list choices required at this class level.';
 }
 
 export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp }) {
@@ -250,18 +264,66 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     : preflight?.can_choose_subclass !== undefined ? Boolean(preflight.can_choose_subclass) : localNeedsSubclass;
   const subclassOptions = normaliseSubclassOptions(isMulticlass ? null : preflight, characterClass);
   const castingSubclass = selectedSubclass || existingSubclass;
-  const isSpellcaster = selectedSubclassSupportsCasting(characterClass, castingSubclass);
-  const maxSpellLevel = getMaxSpellLevel(characterClass, classLevelAfter) || 0;
+  const castingCharacter = {
+    ...character,
+    character_class: characterClass,
+    subclass: castingSubclass,
+    level: classLevelAfter,
+    class_levels: { [characterClass]: classLevelAfter },
+    classes: [{ name: characterClass, level: classLevelAfter, subclass: castingSubclass }],
+    rules_edition: edition,
+  };
+  const isSpellcaster = classHasEditionSpellcasting(castingCharacter, characterClass, classLevelAfter);
+  const maxSpellLevel = isSpellcaster
+    ? getEditionMaxSpellLevel(castingCharacter, characterClass, classLevelAfter)
+    : 0;
   const { cantrips, spells } = spellListFor(characterClass, maxSpellLevel);
   const localCantripGain = localGain(CANTRIPS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter);
-  const localSpellGain = localGain(SPELLS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter);
   const cantripGain = !isMulticlass && preflight?.cantrips_to_learn !== undefined
     ? Number(preflight.cantrips_to_learn || 0)
     : localCantripGain;
-  const spellGain = !isMulticlass && preflight?.spells_to_learn !== undefined
+
+  const localSelectionMode = getSpellSelectionMode({ className: characterClass, edition });
+  const spellChoiceMode = !isMulticlass && preflight?.spell_selection_mode
+    ? preflight.spell_selection_mode
+    : localSelectionMode;
+  const localKnownBefore = getKnownSpellTarget({ className: characterClass, level: classLevelBefore, edition });
+  const localKnownAfter = getKnownSpellTarget({ className: characterClass, level: classLevelAfter, edition });
+  const localKnownGain = Math.max(0, localKnownAfter - localKnownBefore);
+  const localSpellbookGain = characterClass === 'Wizard'
+    ? Math.max(0, getWizardSpellbookTarget(classLevelAfter) - getWizardSpellbookTarget(classLevelBefore))
+    : 0;
+  const castingAbility = SPELLCASTING_CLASSES[characterClass]?.ability;
+  const castingAbilityScore = castingAbility ? abilityScore(character, castingAbility) : 10;
+  const localPreparedBefore = getPreparedSpellCapacity({
+    className: characterClass,
+    level: classLevelBefore,
+    edition,
+    abilityScore: castingAbilityScore,
+  });
+  const localPreparedAfter = getPreparedSpellCapacity({
+    className: characterClass,
+    level: classLevelAfter,
+    edition,
+    abilityScore: castingAbilityScore,
+  });
+  const localPreparedGain = Math.max(0, localPreparedAfter - localPreparedBefore);
+  const preparedCapacityBefore = !isMulticlass && preflight?.prepared_spell_capacity_before !== undefined
+    ? Number(preflight.prepared_spell_capacity_before || 0)
+    : localPreparedBefore;
+  const preparedCapacityAfter = !isMulticlass && preflight?.prepared_spell_capacity !== undefined
+    ? Number(preflight.prepared_spell_capacity || 0)
+    : localPreparedAfter;
+  const preparedCapacityGain = !isMulticlass && preflight?.prepared_spell_capacity_gain !== undefined
+    ? Number(preflight.prepared_spell_capacity_gain || 0)
+    : localPreparedGain;
+  const permanentSpellGain = !isMulticlass && preflight?.spells_to_learn !== undefined
     ? Number(preflight.spells_to_learn || 0)
-    : localSpellGain;
-  const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellGain > 0);
+    : spellChoiceMode === 'spellbook' ? localSpellbookGain : localKnownGain;
+  const spellChoiceGain = spellChoiceMode === 'prepared' ? preparedCapacityGain : permanentSpellGain;
+  const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellChoiceGain > 0);
+  const preparedCapacityNote = spellChoiceMode === 'spellbook' && preparedCapacityAfter > preparedCapacityBefore;
+
   const localAsiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default || [];
   const localIsAsiLevel = localAsiLevels.includes(classLevelAfter);
   const isAsiLevel = isMulticlass
@@ -296,7 +358,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     if (activeStep === 'overview') return isMulticlass || !preflightLoading;
     if (activeStep === 'hp') return hpMethod === 'average' || (hpMethod === 'roll' && hpRoll) || (hpMethod === 'manual' && validManualRoll);
     if (activeStep === 'subclass') return Boolean(selectedSubclass);
-    if (activeStep === 'spells') return selectedNewCantrips.length >= cantripGain && selectedNewSpells.length >= spellGain;
+    if (activeStep === 'spells') return selectedNewCantrips.length >= cantripGain && selectedNewSpells.length >= spellChoiceGain;
     if (activeStep === 'asi') {
       if (choiceType === 'asi') return Boolean(asiChoices.ability1 && asiChoices.ability2);
       if (choiceType === 'feat') return Boolean(selectedFeat);
@@ -427,7 +489,13 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               <div style={styles.checklist}>
                 <CheckLine active={needsSubclass} text={needsSubclass ? 'Subclass choice is required at this class level.' : 'No new subclass choice required.'} />
                 <CheckLine active={isAsiLevel} text={isAsiLevel ? 'ASI or feat choice is due for this class.' : 'No ASI or feat choice at this class level.'} />
-                <CheckLine active={hasSpellChoices} text={hasSpellChoices ? `${cantripGain} cantrip${cantripGain === 1 ? '' : 's'} and ${spellGain} spell${spellGain === 1 ? '' : 's'} to learn.` : 'No new known-spell choices required from the current progression data.'} />
+                <CheckLine active={hasSpellChoices} text={spellChoiceSummary(spellChoiceMode, cantripGain, spellChoiceGain)} />
+                {preparedCapacityNote && (
+                  <CheckLine
+                    active
+                    text={`Prepared spell capacity increases ${preparedCapacityBefore} → ${preparedCapacityAfter}; choose the active prepared list from the spellbook on the character sheet.`}
+                  />
+                )}
               </div>
             </section>
           )}
@@ -480,7 +548,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
 
           {activeStep === 'spells' && (
             <section style={styles.section}>
-              <h3 style={styles.sectionTitle}>Choose new spells</h3>
+              <h3 style={styles.sectionTitle}>Choose spell progression</h3>
               {cantripGain > 0 && (
                 <SpellPicker
                   title={`Cantrips · choose ${cantripGain}`}
@@ -491,15 +559,21 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   onToggle={(spell) => toggleSpell(spell, setSelectedNewCantrips, { ...spell, level: 0 }, cantripGain)}
                 />
               )}
-              {spellGain > 0 && (
+              {spellChoiceGain > 0 && (
                 <SpellPicker
-                  title={`Spells · choose ${spellGain}`}
+                  title={spellChoiceLabel(spellChoiceMode, spellChoiceGain)}
                   spells={spells}
                   selected={selectedNewSpells}
                   existingNames={existingSpellNames}
-                  limit={spellGain}
-                  onToggle={(spell) => toggleSpell(spell, setSelectedNewSpells, spell, spellGain)}
+                  limit={spellChoiceGain}
+                  onToggle={(spell) => toggleSpell(spell, setSelectedNewSpells, spell, spellChoiceGain)}
                 />
+              )}
+              {spellChoiceMode === 'prepared' && spellChoiceGain > 0 && (
+                <p style={styles.copy}>These choices are saved to this class’s prepared spell list rather than the legacy known-spells list.</p>
+              )}
+              {spellChoiceMode === 'spellbook' && spellChoiceGain > 0 && (
+                <p style={styles.copy}>These spells are added to the Wizard spellbook. Prepared spells remain a separate loadout chosen from that book.</p>
               )}
             </section>
           )}
@@ -550,7 +624,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 {choiceType === 'feat' && selectedFeat && <Summary label="Feat" value={selectedFeat.name} />}
                 {choiceType === 'asi' && <Summary label="ASI" value={`${abilityLabel(asiChoices.ability1)} +1, ${abilityLabel(asiChoices.ability2)} +1`} />}
                 {!!selectedNewCantrips.length && <Summary label="Cantrips" value={selectedNewCantrips.map((spell) => spell.name).join(', ')} />}
-                {!!selectedNewSpells.length && <Summary label="Spells" value={selectedNewSpells.map((spell) => spell.name).join(', ')} />}
+                {!!selectedNewSpells.length && <Summary label={spellChoiceMode === 'spellbook' ? 'Spellbook' : spellChoiceMode === 'prepared' ? 'Prepared' : 'Spells'} value={selectedNewSpells.map((spell) => spell.name).join(', ')} />}
+                {preparedCapacityNote && <Summary label="Prepared capacity" value={`${preparedCapacityBefore} → ${preparedCapacityAfter}`} />}
               </div>
             </section>
           )}
