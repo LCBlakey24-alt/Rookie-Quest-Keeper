@@ -11,7 +11,7 @@ export function hasSaveProficiency(character, ability) {
 
 export function rollDice(count = 1, sides = 8, modifier = 0) {
   const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
-  const total = Math.max(1, rolls.reduce((sum, value) => sum + value, 0) + modifier);
+  const total = Math.max(0, rolls.reduce((sum, value) => sum + value, 0) + modifier);
   return { rolls, total, notation: `${count}d${sides}${modifier ? ` ${fmt(modifier)}` : ''}` };
 }
 
