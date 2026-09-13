@@ -4,6 +4,8 @@ import {
   normaliseClassSpecificSelection,
 } from './classSpecificChoiceEngine';
 
+const BUILDER_DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
+
 const basePayload = (overrides = {}) => ({
   name: 'Class Choice Hero',
   character_class: 'Fighter',
@@ -13,6 +15,10 @@ const basePayload = (overrides = {}) => ({
 });
 
 describe('class specific choice engine', () => {
+  afterEach(() => {
+    if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem(BUILDER_DRAFT_KEY);
+  });
+
   test('builds Fighting Style, Expertise, Metamagic, and Battle Master targets', () => {
     expect(buildClassSpecificChoicePlan({ className: 'Fighter', level: 1 })).toMatchObject({
       fightingStyleTarget: 1,
@@ -36,6 +42,18 @@ describe('class specific choice engine', () => {
       fightingStyleTarget: 1,
       maneuverTarget: 5,
       hasChoices: true,
+    });
+  });
+
+  test('legacy builder callers inherit the edition from the saved builder draft', () => {
+    window.localStorage.setItem(BUILDER_DRAFT_KEY, JSON.stringify({ edition: '2024' }));
+    expect(buildClassSpecificChoicePlan({ className: 'Bard', level: 2 })).toMatchObject({
+      edition: '2024',
+      expertiseTarget: 2,
+    });
+    expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2 })).toMatchObject({
+      edition: '2024',
+      metamagicTarget: 2,
     });
   });
 
