@@ -146,20 +146,27 @@ export function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
 }
 
 export function SpellChoiceSection({ plan, selection, onChange }) {
-  if (!plan?.hasKnownSpellPicker && !plan?.hasPreparedSpellPicker && !plan?.cantripTarget) return null;
+  if (!plan?.hasKnownSpellPicker && !plan?.hasSpellbookPicker && !plan?.hasPreparedSpellPicker && !plan?.cantripTarget) return null;
   const current = normaliseSpellSelection(selection, plan);
   const update = (patch) => onChange({ ...current, ...patch });
   const cantripTarget = Number(plan.cantripTarget || 0);
-  const knownTarget = Number(plan.knownTarget || 0);
+  const isSpellbook = plan.spellSelectionMode === 'spellbook';
+  const permanentTarget = isSpellbook ? Number(plan.spellbookTarget || 0) : Number(plan.knownTarget || 0);
   const preparedTarget = Number(plan.preparedTarget || 0);
+  const preparedOptions = isSpellbook
+    ? arr(plan.spellOptions).filter((option) => current.spells.includes(optionValue(option)))
+    : plan.spellOptions;
+  const permanentLabel = isSpellbook ? 'Spellbook spells' : 'Known spells';
+  const description = isSpellbook
+    ? 'Choose the spells written in the Wizard spellbook, then choose the prepared list from those spellbook entries.'
+    : plan.spellSelectionMode === 'prepared'
+      ? 'Choose the character’s prepared spell list for this class and level.'
+      : 'Choose the permanent known-spell list for this class and level.';
 
   return (
     <section className="full-creator-auto-box" aria-label="Higher-level spell choices">
       <strong>Higher-level spells</strong>
-      <span>
-        Choose the spell options for this starting level. Known spells are saved as known spells;
-        prepared spells are saved as the character’s prepared list.
-      </span>
+      <span>{description}</span>
 
       <ToggleChoiceList
         label="Cantrips"
@@ -170,20 +177,27 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
       />
 
       <ToggleChoiceList
-        label="Known spells"
+        label={permanentLabel}
         value={current.spells}
         options={plan.spellOptions}
-        max={knownTarget}
-        onChange={(spells) => update({ spells })}
+        max={permanentTarget}
+        onChange={(spells) => {
+          const prepared = isSpellbook ? current.prepared.filter((name) => spells.includes(name)) : current.prepared;
+          update({ spells, prepared });
+        }}
       />
 
       <ToggleChoiceList
         label="Prepared spells"
         value={current.prepared}
-        options={plan.spellOptions}
+        options={preparedOptions}
         max={preparedTarget}
         onChange={(prepared) => update({ prepared })}
       />
+
+      {isSpellbook && permanentTarget > 0 && preparedTarget > 0 && current.spells.length < permanentTarget && (
+        <small>Finish choosing the spellbook before the full prepared list will be available.</small>
+      )}
 
       {arr(plan.arcanumLevels).length > 0 && (
         <small>Mystic Arcanum is tracked on save when matching high-level spell options are available in the spell database.</small>
