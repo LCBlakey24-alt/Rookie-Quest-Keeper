@@ -1,7 +1,22 @@
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const clamp = (value, max = Infinity) => arr(value).slice(0, max);
 const lower = (value = '') => String(value || '').toLowerCase();
-const editionFor = (edition = '2014') => String(edition || '2014').includes('2024') ? '2024' : '2014';
+const BUILDER_DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
+
+function builderDraftEdition() {
+  if (typeof window === 'undefined' || !window.localStorage) return '';
+  try {
+    const draft = JSON.parse(window.localStorage.getItem(BUILDER_DRAFT_KEY) || 'null');
+    return draft?.edition || draft?.rules_edition || draft?.ruleset_id || '';
+  } catch {
+    return '';
+  }
+}
+
+const editionFor = (edition) => {
+  const raw = edition || builderDraftEdition() || '2014';
+  return String(raw).includes('2024') ? '2024' : '2014';
+};
 
 export const SKILL_OPTIONS = [
   'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History',
@@ -101,7 +116,7 @@ function removeGeneratedClassChoiceFeatures(features, removers = []) {
   });
 }
 
-export function buildClassSpecificChoicePlan({ className = '', level = 1, subclassName = '', edition = '2014' } = {}) {
+export function buildClassSpecificChoicePlan({ className = '', level = 1, subclassName = '', edition = null } = {}) {
   const numericLevel = Math.max(1, Math.min(20, Number(level || 1)));
   const rulesEdition = editionFor(edition);
   const fightingStyles = fightingStyleTarget(className, numericLevel);
