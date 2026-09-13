@@ -19,6 +19,8 @@ from data.class_progression import (
     class_progression_summary,
     feats_for_edition,
     prepared_spell_capacity,
+    prepared_spell_change_rule,
+    spell_selection_mode,
     spells_to_learn as progression_spells_to_learn,
     subclasses_for,
 )
@@ -108,6 +110,8 @@ def build_level_up_preflight(
     next_slots = progression_spell_slot_totals(existing, next_class_levels)
     prepared_before = prepared_spell_capacity(character_class, class_level_before, edition)
     prepared_after = prepared_spell_capacity(character_class, class_level_after, edition)
+    selection_mode = spell_selection_mode(character_class, edition)
+    prepared_change = prepared_spell_change_rule(character_class, edition)
 
     return {
         "character_id": character_id or existing.get("id", ""),
@@ -125,6 +129,7 @@ def build_level_up_preflight(
         "previous_proficiency_bonus": proficiency_for(current_total_level),
         "spell_slots": next_slots,
         "previous_spell_slots": previous_slots,
+        "spell_selection_mode": selection_mode,
         "spells_to_learn": progression_spells_to_learn(
             character_class,
             class_level_before,
@@ -135,6 +140,7 @@ def build_level_up_preflight(
         "prepared_spell_capacity_before": prepared_before,
         "prepared_spell_capacity": prepared_after,
         "prepared_spell_capacity_gain": max(0, prepared_after - prepared_before),
+        "prepared_spell_change": prepared_change,
         "is_asi_level": class_level_after in asi_levels_for(character_class),
         "asi_levels": asi_levels_for(character_class),
         "can_choose_subclass": can_choose_subclass,
