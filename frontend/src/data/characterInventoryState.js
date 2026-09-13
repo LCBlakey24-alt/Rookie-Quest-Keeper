@@ -157,6 +157,46 @@ export function clearInventorySlotState({ inventory = [], equipped = {}, slot = 
   };
 }
 
+export function updateInventoryItemState({ inventory = [], equipped = {}, item, updates = {} } = {}) {
+  const index = findInventoryItemIndex(inventory, item, equipped);
+  if (index < 0) {
+    return {
+      inventory: toArray(inventory),
+      equipped: { ...(equipped || {}) },
+      updated: false,
+      index: -1,
+    };
+  }
+
+  const syncedBefore = syncInventoryWithEquipment(inventory, equipped);
+  const selectedBefore = syncedBefore[index] || item;
+  const nextInventory = [...toArray(inventory)];
+  const raw = typeof nextInventory[index] === 'string'
+    ? { name: nextInventory[index] }
+    : { ...(nextInventory[index] || {}) };
+  const nextItem = { ...raw, ...updates };
+  nextInventory[index] = nextItem;
+
+  let nextEquipped = { ...(equipped || {}) };
+  const equippedSlot = canonicalInventorySlot(
+    selectedBefore?.equip_slot
+    || selectedBefore?.equipped_slot
+    || item?.equip_slot
+    || item?.equipped_slot
+    || '',
+  );
+  if ((selectedBefore?.equipped || selectedBefore?.is_equipped) && equippedSlot) {
+    nextEquipped = setCanonicalInventorySlot(nextEquipped, equippedSlot, nextItem);
+  }
+
+  return {
+    inventory: syncInventoryWithEquipment(nextInventory, nextEquipped),
+    equipped: nextEquipped,
+    updated: true,
+    index,
+  };
+}
+
 export function removeInventoryItemState({ inventory = [], equipped = {}, item } = {}) {
   const identity = inventoryItemIdentity(item);
   const removeIndex = findInventoryItemIndex(inventory, item, equipped);
