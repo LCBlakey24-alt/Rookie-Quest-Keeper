@@ -13,6 +13,7 @@ import {
   getEditionMulticlassSpellSlots,
 } from '@/data/editionSpellSlotRules';
 import {
+  buildLegacyPreparedMigrationPlan,
   canonicalSpellClassName,
   getCharacterPreparedCapacity,
   getCharacterSpellListMode,
@@ -61,8 +62,8 @@ function uniqueSpells(spells = [], fallbackLevel = null) {
   return toArray(spells)
     .map((spell) => normaliseSpell(spell, fallbackLevel))
     .filter((spell) => {
-      const key = normalizeName(spell.name);
-      if (!key || seen.has(key)) return false;
+      const key = `${normalizeName(spell.sourceClass || spell.source_class || '')}:${normalizeName(spell.name)}`;
+      if (!normalizeName(spell.name) || seen.has(key)) return false;
       seen.add(key);
       return true;
     });
@@ -134,9 +135,16 @@ function savedSpellNameSet(...groups) {
   return new Set(groups.flat().map((spell) => normalizeName(spell.name)).filter(Boolean));
 }
 
-function withoutSpell(spells = [], spellName = '') {
+function withoutSpell(spells = [], spellName = '', sourceClass = '') {
   const key = normalizeName(spellName);
-  return toArray(spells).filter((spell) => normalizeName(normaliseSpell(spell).name) !== key);
+  const sourceKey = normalizeName(sourceClass);
+  return toArray(spells).filter((spell) => {
+    const nameMatches = normalizeName(normaliseSpell(spell).name) === key;
+    if (!nameMatches) return true;
+    if (!sourceKey) return false;
+    const savedSource = normalizeName(spell?.sourceClass || spell?.source_class || '');
+    return savedSource && savedSource !== sourceKey;
+  });
 }
 
 function sourceClassFor(spell = {}, fallback = '') {
@@ -482,11 +490,16 @@ function SpellGroup({
 
 export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const [spellSearch, setSpellSearch] = useState('');
+  const [migratingLegacy, setMigratingLegacy] = useState(false);
   const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
   const classLevels = useMemo(() => {
     const snapshotLevels = snapshot.identity?.classLevels || {};
     return hasItems(snapshotLevels) ? snapshotLevels : getClassLevels(character);
   }, [character, snapshot.identity?.classLevels]);
+  const migrationPlan = useMemo(
+    () => buildLegacyPreparedMigrationPlan(character, classLevels),
+    [character, classLevels],
+  );
   const slotMath = useMemo(
     () => snapshot.spellcasting?.multiclass || getEditionMulticlassSpellSlots(classLevels, character),
     [classLevels, character, snapshot.spellcasting?.multiclass],
@@ -531,11 +544,23 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const hasSpellbookModel = spellcastingRows.some((row) => row.listMode === 'spellbook');
 
   const cantrips = uniqueSpells(character?.cantrips_known || character?.cantrips, 0);
-  const known = uniqueSpells(character?.spells_known || character?.known_spells, null);
+  const rawKnown = uniqueSpells(character?.spells_known || character?.known_spells, null);
   const spellbook = uniqueSpells(character?.spellbook, null);
-  const prepared = uniqueSpells(character?.spells_prepared || character?.prepared_spells || character?.preparedSpells, null);
+  const canonicalPrepared = uniqueSpells(character?.spells_prepared || character?.prepared_spells || character?.preparedSpells, null);
+  const prepared = uniqueSpells(migrationPlan.effectivePrepared?.length ? migrationPlan.effectivePrepared : canonicalPrepared, null);
   const preparedNames = new Set(prepared.map((spell) => normalizeName(spell.name)));
-  const savedNames = savedSpellNameSet(cantrips, known, spellbook, prepared);
+  const legacyMigrationMarker = Boolean(character?.spell_list_migration?.legacy_preserved);
+  const known = rawKnown.filter((spell) => {
+    const source = sourceClassFor(spell);
+    const sourceRow = source
+      ? spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(source))
+      : null;
+    if (sourceRow?.listMode === 'known') return true;
+    if (sourceRow?.listMode === 'prepared' && preparedNames.has(normalizeName(spell.name))) return false;
+    if (!source && (migrationPlan.hasMigration || legacyMigrationMarker) && preparedNames.has(normalizeName(spell.name))) return false;
+    return true;
+  });
+  const savedNames = savedSpellNameSet(cantrips, rawKnown, spellbook, prepared);
   const lowerSearch = spellSearch.trim().toLowerCase();
   const filterSpells = (spells) => !lowerSearch
     ? spells
@@ -545,20 +570,28 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
 
   const spellWarnings = useMemo(() => {
     const warnings = [...(snapshot.warnings || [])];
+    if (migrationPlan.hasOverflow) {
+      const first = migrationPlan.candidates.find((candidate) => !candidate.safe);
+      warnings.unshift(`Legacy ${first?.className || 'prepared'} spell data exceeds its current prepared capacity. Review it before migration.`);
+    } else if (migrationPlan.ambiguous) {
+      warnings.unshift('Legacy multiclass spells do not identify which prepared class they belong to. They were not migrated automatically.');
+    } else if (migrationPlan.hasMigration) {
+      warnings.unshift('Legacy 2024 spell storage detected. The sheet is using the safe prepared-list interpretation until you save the migration.');
+    }
     if (spellcastingRows.length && !hasItems(effectiveSlots) && !hasPactMagic) {
       warnings.push('Spellcaster has no derived or saved spell-slot data.');
     }
     if (normalPool.legacyPactExcluded) {
       warnings.push('Legacy Warlock slots were separated into the Pact Magic pool so they no longer collide with ordinary slots.');
     }
-    if (spellcastingRows.length && !cantrips.length && !known.length && !spellbook.length && !prepared.length) {
+    if (spellcastingRows.length && !cantrips.length && !rawKnown.length && !spellbook.length && !prepared.length) {
       warnings.push('Caster has spellcasting math but no saved spell list yet.');
     }
-    if (spellcastingRows.length > 1 && [...known, ...spellbook, ...prepared].some((spell) => !spell.sourceClass && !spell.source_class)) {
+    if (spellcastingRows.length > 1 && [...rawKnown, ...spellbook, ...prepared].some((spell) => !spell.sourceClass && !spell.source_class)) {
       warnings.push('Some legacy multiclass spells do not record their source class yet; they remain visible but should be reviewed when edited.');
     }
     return warnings;
-  }, [snapshot.warnings, spellcastingRows.length, effectiveSlots, hasPactMagic, normalPool.legacyPactExcluded, cantrips.length, known, spellbook, prepared]);
+  }, [snapshot.warnings, migrationPlan, spellcastingRows.length, effectiveSlots, hasPactMagic, normalPool.legacyPactExcluded, cantrips.length, rawKnown, spellbook, prepared]);
 
   const availableClassSpells = useMemo(() => {
     const seen = new Set();
@@ -612,6 +645,34 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     return onCharacterUpdate(updates, { error: 'Could not update Pact Magic' });
   };
 
+  const migrateLegacySpellLists = async () => {
+    if (!character?.id || migratingLegacy || !migrationPlan.hasMigration) return;
+    setMigratingLegacy(true);
+    try {
+      const response = await apiClient.post(`/characters/${character.id}/spell-lists/migrate`);
+      const migratedCharacter = response?.data?.character;
+      const nextPrepared = migratedCharacter?.spells_prepared || migratedCharacter?.prepared_spells;
+      if (nextPrepared && onCharacterUpdate) {
+        await onCharacterUpdate(
+          {
+            spells_prepared: nextPrepared,
+            prepared_spells: nextPrepared,
+            preparedSpells: nextPrepared,
+            spell_list_migration: migratedCharacter?.spell_list_migration,
+          },
+          { error: 'Could not refresh migrated spell list' },
+        );
+      }
+      toast.success('Legacy spell list upgraded', {
+        description: 'Prepared spells are now stored canonically; the old known-spell data was preserved for safety.',
+      });
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not migrate legacy spell list');
+    } finally {
+      setMigratingLegacy(false);
+    }
+  };
+
   const addSpellFromLibrary = async (spell) => {
     if (!onCharacterUpdate) return false;
     const normalised = tagSpellSource(normaliseSpell(spell, spell.level), spell.sourceClass);
@@ -624,7 +685,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         ? spellbook
         : field === 'spells_prepared'
           ? prepared
-          : known;
+          : rawKnown;
 
     if (existing.some((entry) => normalizeName(entry.name) === normalizeName(normalised.name))) {
       toast.info(`${normalised.name} is already on this sheet.`);
@@ -655,12 +716,16 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     if (!onCharacterUpdate) return false;
     const normalised = normaliseSpell(spell, spell.level);
     if (Number(normalised.level || 0) <= 0) return false;
-    if (preparedNames.has(normalizeName(normalised.name))) {
+    const sourceClass = sourceClassFor(normalised, 'Wizard');
+    const alreadyPrepared = prepared.some((entry) => (
+      normalizeName(entry.name) === normalizeName(normalised.name)
+      && (!entry.sourceClass || !sourceClass || normalizeName(sourceClassFor(entry)) === normalizeName(sourceClass))
+    ));
+    if (alreadyPrepared) {
       toast.info(`${normalised.name} is already prepared.`);
       return false;
     }
 
-    const sourceClass = sourceClassFor(normalised, 'Wizard');
     const sourceRow = spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(sourceClass));
     const capacity = Number(sourceRow?.preparedCapacity || 0);
     const wizardRows = spellcastingRows.filter((row) => row.listMode === 'spellbook');
@@ -683,7 +748,8 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const unprepareSpell = async (spell) => {
     if (!onCharacterUpdate) return false;
     const normalised = normaliseSpell(spell, spell.level);
-    const nextPrepared = withoutSpell(prepared, normalised.name);
+    const sourceClass = sourceClassFor(normalised);
+    const nextPrepared = withoutSpell(prepared, normalised.name, sourceClass);
     if (nextPrepared.length === prepared.length) return false;
 
     const ok = await onCharacterUpdate(
@@ -817,6 +883,14 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
             <span>{spellWarnings[0]}</span>
           </div>
         )}
+        {migrationPlan.hasMigration && (
+          <div className="clean-sheet-spell-actions">
+            <button type="button" onClick={migrateLegacySpellLists} disabled={migratingLegacy}>
+              {migratingLegacy ? 'Upgrading…' : 'Save Legacy Spell Upgrade'}
+            </button>
+            <span className="clean-sheet-muted">The old known-spell copy is preserved as a safety backup.</span>
+          </div>
+        )}
       </section>
 
       {spellcastingRows.length > 0 && (
@@ -826,21 +900,26 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
             <span>{Object.keys(classLevels).length > 1 ? 'Multiclass' : 'Single class'}</span>
           </div>
           <div className="clean-sheet-caster-grid">
-            {spellcastingRows.map((row) => (
-              <article key={row.className} className="clean-sheet-caster-card">
-                <div className="clean-sheet-caster-card-title">
-                  <strong>{row.className}</strong>
-                  <span>Level {row.level}</span>
-                </div>
-                <div className="clean-sheet-caster-stats">
-                  <div><span>Ability</span><strong>{row.abilityLabel}</strong></div>
-                  <div><span>Save DC</span><strong>{row.saveDc}</strong></div>
-                  <div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong></div>
-                  <div><span>Style</span><strong>{row.castingType}</strong></div>
-                </div>
-                {row.preparedCapacity > 0 && <p className="clean-sheet-muted">Prepared capacity: {row.preparedCapacity}</p>}
-              </article>
-            ))}
+            {spellcastingRows.map((row) => {
+              const migration = migrationPlan.candidates.find((candidate) => normalizeName(candidate.className) === normalizeName(row.className));
+              const sourcePrepared = spellsForSource(prepared, row.className, { legacyFallback: spellcastingRows.filter((entry) => entry.listMode === 'prepared').length === 1 });
+              return (
+                <article key={row.className} className="clean-sheet-caster-card">
+                  <div className="clean-sheet-caster-card-title">
+                    <strong>{row.className}</strong>
+                    <span>Level {row.level}</span>
+                  </div>
+                  <div className="clean-sheet-caster-stats">
+                    <div><span>Ability</span><strong>{row.abilityLabel}</strong></div>
+                    <div><span>Save DC</span><strong>{row.saveDc}</strong></div>
+                    <div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong></div>
+                    <div><span>Style</span><strong>{row.castingType}</strong></div>
+                  </div>
+                  {row.preparedCapacity > 0 && <p className="clean-sheet-muted">Prepared: {sourcePrepared.length}/{row.preparedCapacity}</p>}
+                  {migration && !migration.safe && <p className="clean-sheet-muted">Legacy list has {migration.overflow} spell{migration.overflow === 1 ? '' : 's'} over current capacity and needs review.</p>}
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
@@ -911,7 +990,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         />
       )}
 
-      {!cantrips.length && !known.length && !spellbook.length && !prepared.length && (
+      {!cantrips.length && !rawKnown.length && !spellbook.length && !prepared.length && (
         <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-empty">
           <Wand2 size={22} />
           <h2>No spells saved yet</h2>
