@@ -72,6 +72,45 @@ describe('character combat derivations', () => {
     expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(15);
   });
 
+  test('persisted unarmoured shield AC is not given the shield bonus a second time', () => {
+    const character = {
+      ...baseCharacter,
+      armor_class: 15,
+      equipped: {
+        offHand: { name: 'Shield', type: 'shield', ac_bonus: 2 },
+      },
+    };
+
+    expect(deriveArmorClass(character)).toBe(15);
+    expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(15);
+  });
+
+  test('persisted armoured AC stays authoritative on ordinary sheet renders', () => {
+    const character = {
+      ...baseCharacter,
+      armor_class: 17,
+      equipped: {
+        armor: { name: 'Studded Leather', type: 'armor' },
+        offHand: { name: 'Shield', type: 'shield', ac_bonus: 2 },
+      },
+    };
+
+    expect(deriveArmorClass(character)).toBe(17);
+  });
+
+  test('equipment recalculation still ignores a stale stored AC when explicitly requested', () => {
+    const character = {
+      ...baseCharacter,
+      armor_class: 10,
+      equipped: {
+        armor: { name: 'Plate', type: 'armor' },
+      },
+    };
+
+    expect(deriveArmorClass(character)).toBe(10);
+    expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(18);
+  });
+
   test('equipped weapons become attacks but armour does not', () => {
     const character = {
       ...baseCharacter,

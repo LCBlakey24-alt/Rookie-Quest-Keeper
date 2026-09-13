@@ -131,8 +131,16 @@ export function deriveArmorClass(character, options = {}) {
   // derive the same AC.
   const shield = equipped.shield || (isShieldLike(offHand) ? offHand : null);
   const explicitAc = options.ignoreStoredAc ? 0 : Number(character?.armor_class ?? character?.ac ?? 0);
-  const unarmoredAc = explicitAc || 10 + dexMod;
 
+  // Equipping/unequipping gear explicitly calls this helper with
+  // `ignoreStoredAc: true`, then persists the newly derived AC. On ordinary
+  // sheet renders that persisted value is therefore already the final result.
+  // Re-running shield/custom-item bonuses on top of it double-counts equipment
+  // (for example an unarmoured DEX 16 character can save 15 AC with a shield,
+  // then incorrectly display 17 on the next render).
+  if (explicitAc > 0) return explicitAc;
+
+  const unarmoredAc = 10 + dexMod;
   const hasArmorRule = Boolean(findArmorRule(armor) || findArmorRule(shield));
   if (!hasArmorRule) {
     // No named armour rule, but equipped items may still carry ac_bonus.
