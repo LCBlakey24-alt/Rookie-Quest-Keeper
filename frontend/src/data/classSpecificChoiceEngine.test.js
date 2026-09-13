@@ -77,6 +77,47 @@ describe('class specific choice engine', () => {
     expect(buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 17, edition: '2024' }).metamagicTarget).toBe(6);
   });
 
+  test('2024 origin languages grant Common plus two Standard Language choices', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2024' });
+
+    expect(plan.originLanguageTarget).toBe(2);
+    expect(plan.fixedOriginLanguages).toEqual(['Common']);
+    expect(plan.options.originLanguages).toEqual(expect.arrayContaining(['Elvish', 'Dwarvish', 'Orc']));
+    expect(plan.options.originLanguages).not.toEqual(expect.arrayContaining(['Abyssal', 'Celestial', 'Infernal']));
+    expect(buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2014' }).originLanguageTarget).toBe(0);
+  });
+
+  test('2024 origin language save replaces bundled legacy species languages', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2024' });
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({
+        race: 'Elf',
+        rules_edition: '2024',
+        languages: ['Common', 'Elvish'],
+      }),
+      { originLanguages: ['Dwarvish', 'Orc'] },
+      plan,
+    );
+
+    expect(payload.origin_language_choices).toEqual(['Dwarvish', 'Orc']);
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Orc']);
+  });
+
+  test('2024 origin language save preserves extra non-legacy language grants', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Fighter', level: 1, edition: '2024' });
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({
+        race: 'Elf',
+        rules_edition: '2024',
+        languages: ['Common', 'Elvish', 'Sylvan'],
+      }),
+      { originLanguages: ['Dwarvish', 'Orc'] },
+      plan,
+    );
+
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Orc', 'Sylvan']);
+  });
+
   test('2024 Ranger Deft Explorer offers two class language choices and preserves existing languages', () => {
     const plan = buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' });
     expect(plan.languageTarget).toBe(2);
@@ -90,6 +131,25 @@ describe('class specific choice engine', () => {
 
     expect(payload.class_language_choices).toEqual(['Elvish', 'Sylvan']);
     expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Elvish', 'Sylvan']);
+  });
+
+  test('2024 Ranger class languages stack on origin choices without duplicates', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Ranger', level: 2, edition: '2024' });
+    const selection = normaliseClassSpecificSelection({
+      originLanguages: ['Dwarvish', 'Orc'],
+      languages: ['Orc', 'Sylvan', 'Undercommon'],
+    }, plan);
+
+    expect(selection.originLanguages).toEqual(['Dwarvish', 'Orc']);
+    expect(selection.languages).toEqual(['Sylvan', 'Undercommon']);
+
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({ character_class: 'Ranger', level: 2, rules_edition: '2024' }),
+      selection,
+      plan,
+    );
+
+    expect(payload.languages).toEqual(['Common', 'Dwarvish', 'Orc', 'Sylvan', 'Undercommon']);
   });
 
   test('2024 Rogue Thieves Cant is automatic and one additional language is selected', () => {
