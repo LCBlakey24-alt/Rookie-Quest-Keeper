@@ -51,6 +51,48 @@ describe('preview character creation state', () => {
     expect(character.resources.channel_divinity).toMatchObject({ max: 1, current: 1 });
   });
 
+  test('2024 half-caster preview creation uses revised rounding', () => {
+    const modern = canonicalisePreviewCreatedCharacter({
+      name: 'Modern Paladin',
+      race: 'Human',
+      character_class: 'Paladin',
+      level: 3,
+      edition: '2024',
+      rules_edition: '2024',
+      charisma: 16,
+      spell_slots: { 1: 2 },
+      spell_slots_remaining: { 1: 2 },
+    });
+    const legacy = canonicalisePreviewCreatedCharacter({
+      name: 'Legacy Paladin',
+      race: 'Human',
+      character_class: 'Paladin',
+      level: 3,
+      edition: '2014',
+      rules_edition: '2014',
+      charisma: 16,
+    });
+
+    expect(modern.spell_slots).toEqual({ 1: 3 });
+    expect(modern.spell_slots_remaining).toEqual({ 1: 2 });
+    expect(legacy.spell_slots).toEqual({ 1: 2 });
+  });
+
+  test('2024 Ranger preview creation has spell slots from level one', () => {
+    const character = canonicalisePreviewCreatedCharacter({
+      name: 'Trail',
+      race: 'Human',
+      character_class: 'Ranger',
+      level: 1,
+      edition: '2024',
+      rules_edition: '2024',
+      wisdom: 16,
+    });
+
+    expect(character.spell_slots).toEqual({ 1: 2 });
+    expect(character.spell_slots_remaining).toEqual({ 1: 2 });
+  });
+
   test('warlock creation exposes pact slots and a short-rest tracker', () => {
     const character = canonicalisePreviewCreatedCharacter({
       name: 'Javen',
@@ -73,6 +115,23 @@ describe('preview character creation state', () => {
     expect(character.spellcasting_ability).toBe('charisma');
     expect(character.spell_save_dc).toBe(16);
     expect(character.spell_attack_bonus).toBe(8);
+  });
+
+  test('malformed legacy Warlock builder slots are replaced by canonical Pact slots', () => {
+    const character = canonicalisePreviewCreatedCharacter({
+      name: 'Pact Caster',
+      race: 'Human',
+      character_class: 'Warlock',
+      level: 5,
+      edition: '2024',
+      rules_edition: '2024',
+      charisma: 16,
+      spell_slots: { slots: 2, level: 3 },
+      spell_slots_remaining: { slots: 2, level: 3 },
+    });
+
+    expect(character.spell_slots).toEqual({ 3: 2 });
+    expect(character.spell_slots_remaining).toEqual({ 3: 2 });
   });
 
   test('homebrew multiclass keeps explicitly supplied spell slots', () => {
