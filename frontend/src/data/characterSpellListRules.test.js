@@ -40,7 +40,7 @@ describe('character sheet spell list rules', () => {
 
   test('prepared capacity is edition aware', () => {
     expect(getCharacterPreparedCapacity({ rules_edition: '2024', wisdom: 8 }, 'Ranger', 2)).toBe(3);
-    expect(getCharacterPreparedCapacity({ rules_edition: '2014', wisdom: 18 }, 'Paladin', 5)).toBe(6);
+    expect(getCharacterPreparedCapacity({ rules_edition: '2014', charisma: 18 }, 'Paladin', 5)).toBe(6);
   });
 
   test('new spell entries retain their source class for multiclass sheets', () => {
