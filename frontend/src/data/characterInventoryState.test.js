@@ -138,7 +138,8 @@ describe('character inventory state', () => {
 
     expect(state.index).toBe(1);
     expect(state.inventory[0]).toMatchObject({ note: 'equipped copy', favorite: false, equipped: true });
-    expect(state.inventory[1]).toMatchObject({ note: 'spare copy', favorite: true, equipped: false });
+    expect(state.inventory[1]).toMatchObject({ note: 'spare copy', favorite: true });
+    expect(Boolean(state.inventory[1].equipped || state.inventory[1].is_equipped)).toBe(false);
     expect(state.equipped.mainHand).toMatchObject({ note: 'equipped copy', favorite: false });
   });
 
