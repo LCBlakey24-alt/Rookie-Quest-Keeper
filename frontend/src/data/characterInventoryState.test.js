@@ -98,6 +98,38 @@ describe('character inventory state', () => {
     expect(synced[0].equip_slot).toBeUndefined();
   });
 
+  test('legacy duplicate name-only items are preserved within one source but copied source lists do not triple them', () => {
+    const view = buildCarriedInventoryView({
+      inventory: [{ name: 'Dagger' }, { name: 'Dagger' }],
+      equipment: [{ name: 'Dagger' }, { name: 'Dagger' }],
+      starting: [{ name: 'Dagger' }, { name: 'Dagger' }],
+    });
+    expect(view).toHaveLength(2);
+    expect(view.map((item) => item.name)).toEqual(['Dagger', 'Dagger']);
+    expect(view.every((item) => item.source === 'inventory')).toBe(true);
+  });
+
+  test('one legacy name-only equipped assignment marks only one matching duplicate equipped', () => {
+    const synced = syncInventoryWithEquipment(
+      [{ name: 'Dagger' }, { name: 'Dagger' }],
+      { mainHand: { name: 'Dagger' } },
+    );
+    expect(synced.filter((item) => item.equipped)).toHaveLength(1);
+    expect(synced.filter((item) => !item.equipped)).toHaveLength(1);
+  });
+
+  test('two legacy same-name weapons can occupy main and off hand without collapsing into one card', () => {
+    const view = buildCarriedInventoryView({
+      inventory: [{ name: 'Dagger' }, { name: 'Dagger' }],
+      equipped: {
+        mainHand: { name: 'Dagger' },
+        offHand: { name: 'Dagger' },
+      },
+    });
+    expect(view).toHaveLength(2);
+    expect(view.map((item) => item.equip_slot).sort()).toEqual(['mainHand', 'offHand'].sort());
+  });
+
   test('currency reads legacy shapes and writes canonical aliases without negative coins', () => {
     const character = { gold: 12, currency: { copper: 3, sp: 4, platinum: 2 } };
     expect(normaliseCurrencyState(character)).toEqual({ cp: 3, sp: 4, ep: 0, gp: 12, pp: 2 });
