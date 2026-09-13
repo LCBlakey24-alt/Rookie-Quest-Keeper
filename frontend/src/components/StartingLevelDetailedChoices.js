@@ -221,29 +221,35 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
 }
 
 export function WarlockChoiceSection({ plan, selection, onChange }) {
-  if (!plan?.invocationsRequired && !plan?.pactBoonRequired) return null;
-  const rawCurrent = normaliseWarlockSelection(selection, plan);
-  const invocationOptions = arr(plan.invocationOptionDetails).length
+  const active = Boolean(plan?.invocationsRequired || plan?.pactBoonRequired);
+  const rawCurrent = normaliseWarlockSelection(selection, plan || {});
+  const invocationOptions = arr(plan?.invocationOptionDetails).length
     ? plan.invocationOptionDetails
-    : arr(plan.eligibleInvocationOptions).length
+    : arr(plan?.eligibleInvocationOptions).length
       ? plan.eligibleInvocationOptions
-      : plan.invocationOptions;
+      : plan?.invocationOptions;
   const eligibleInvocationNames = new Set(arr(invocationOptions).map(optionValue));
   const current = {
     ...rawCurrent,
-    pactBoon: plan.pactBoonRequired ? rawCurrent.pactBoon : '',
-    invocations: arr(rawCurrent.invocations).filter((name) => eligibleInvocationNames.has(name)),
+    pactBoon: plan?.pactBoonRequired ? rawCurrent.pactBoon : '',
+    invocations: eligibleInvocationNames.size
+      ? arr(rawCurrent.invocations).filter((name) => eligibleInvocationNames.has(name))
+      : arr(rawCurrent.invocations),
   };
-  const update = (patch) => onChange({ ...current, ...patch });
-  const count = Number(plan.invocationCount || 0);
-  const is2024 = String(plan.edition || '').includes('2024');
+  const count = Number(plan?.invocationCount || 0);
+  const is2024 = String(plan?.edition || '').includes('2024');
 
   React.useEffect(() => {
+    if (!active) return;
     const changed = rawCurrent.pactBoon !== current.pactBoon
       || rawCurrent.invocations.length !== current.invocations.length
       || rawCurrent.invocations.some((name, index) => name !== current.invocations[index]);
     if (changed) onChange(current);
-  }, [current, onChange, rawCurrent]);
+  }, [active, current, onChange, rawCurrent]);
+
+  if (!active) return null;
+
+  const update = (patch) => onChange({ ...current, ...patch });
 
   return (
     <section className="full-creator-auto-box" aria-label="Warlock choices">
