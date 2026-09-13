@@ -12,7 +12,7 @@ const baseCharacter = {
 };
 
 describe('character combat derivations', () => {
-  test('equipping studded leather and shield updates AC from equipment', () => {
+  test('equipping studded leather and legacy shield key updates AC from equipment', () => {
     const character = {
       ...baseCharacter,
       equipped: {
@@ -22,6 +22,30 @@ describe('character combat derivations', () => {
     };
 
     expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(17);
+  });
+
+  test('canonical off-hand shield gives the same AC as legacy shield storage', () => {
+    const character = {
+      ...baseCharacter,
+      equipped: {
+        armor: { name: 'Studded Leather', type: 'armor' },
+        offHand: { name: 'Shield', type: 'shield', ac_bonus: 2 },
+      },
+    };
+
+    expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(17);
+  });
+
+  test('non-shield off-hand weapon does not accidentally grant shield AC', () => {
+    const character = {
+      ...baseCharacter,
+      equipped: {
+        armor: { name: 'Studded Leather', type: 'armor' },
+        offHand: { name: 'Dagger', type: 'weapon', damage_dice: '1d4' },
+      },
+    };
+
+    expect(deriveArmorClass(character, { ignoreStoredAc: true })).toBe(15);
   });
 
   test('equipped weapons become attacks but armour does not', () => {
