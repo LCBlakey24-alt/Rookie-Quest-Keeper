@@ -38,10 +38,22 @@ function optionDescription(option) {
 
 function ToggleChoiceList({ label, value, options, max, onChange }) {
   const [query, setQuery] = React.useState('');
+  const rawSelected = arr(value);
+  const choices = arr(options);
+  const allowedValues = React.useMemo(() => new Set(choices.map(optionValue)), [choices]);
+  const selected = choices.length
+    ? rawSelected.filter((selectedValue) => allowedValues.has(selectedValue)).slice(0, max || Infinity)
+    : rawSelected.slice(0, max || Infinity);
+
+  React.useEffect(() => {
+    if (!choices.length || !max) return;
+    const changed = rawSelected.length !== selected.length
+      || rawSelected.some((selectedValue, index) => selectedValue !== selected[index]);
+    if (changed) onChange(selected);
+  }, [choices, max, onChange, rawSelected, selected]);
+
   if (!max) return null;
 
-  const selected = arr(value);
-  const choices = arr(options);
   const searchable = choices.length > 12;
   const normalisedQuery = query.trim().toLowerCase();
   const visibleChoices = choices
@@ -210,15 +222,28 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
 
 export function WarlockChoiceSection({ plan, selection, onChange }) {
   if (!plan?.invocationsRequired && !plan?.pactBoonRequired) return null;
-  const current = normaliseWarlockSelection(selection, plan);
-  const update = (patch) => onChange({ ...current, ...patch });
-  const count = Number(plan.invocationCount || 0);
+  const rawCurrent = normaliseWarlockSelection(selection, plan);
   const invocationOptions = arr(plan.invocationOptionDetails).length
     ? plan.invocationOptionDetails
     : arr(plan.eligibleInvocationOptions).length
       ? plan.eligibleInvocationOptions
       : plan.invocationOptions;
+  const eligibleInvocationNames = new Set(arr(invocationOptions).map(optionValue));
+  const current = {
+    ...rawCurrent,
+    pactBoon: plan.pactBoonRequired ? rawCurrent.pactBoon : '',
+    invocations: arr(rawCurrent.invocations).filter((name) => eligibleInvocationNames.has(name)),
+  };
+  const update = (patch) => onChange({ ...current, ...patch });
+  const count = Number(plan.invocationCount || 0);
   const is2024 = String(plan.edition || '').includes('2024');
+
+  React.useEffect(() => {
+    const changed = rawCurrent.pactBoon !== current.pactBoon
+      || rawCurrent.invocations.length !== current.invocations.length
+      || rawCurrent.invocations.some((name, index) => name !== current.invocations[index]);
+    if (changed) onChange(current);
+  }, [current, onChange, rawCurrent]);
 
   return (
     <section className="full-creator-auto-box" aria-label="Warlock choices">
