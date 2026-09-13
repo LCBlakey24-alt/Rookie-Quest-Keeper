@@ -66,6 +66,62 @@ class TestCharacterProgressionPreflight(unittest.TestCase):
         result = build_level_up_preflight(character, target_class="Wizard")
         self.assertFalse(result["can_choose_subclass"])
 
+    def test_2014_ranger_still_uses_known_spell_progression(self):
+        ranger = {
+            "id": "ranger-legacy",
+            "name": "Legacy Ranger",
+            "character_class": "Ranger",
+            "level": 1,
+            "rules_edition": "2014",
+            "ruleset_id": "dnd5e_2014",
+            "class_levels": {"Ranger": 1},
+            "classes": [{"name": "Ranger", "level": 1, "subclass": ""}],
+        }
+        result = build_level_up_preflight(ranger, target_class="Ranger")
+        self.assertEqual(result["class_level_after"], 2)
+        self.assertEqual(result["spells_to_learn"], 2)
+        self.assertEqual(result["prepared_spell_capacity"], 0)
+        self.assertEqual(result["progression_reference"]["spells_known_table"][2], 2)
+
+    def test_2024_ranger_does_not_leak_legacy_known_spell_choices(self):
+        ranger = {
+            "id": "ranger-modern",
+            "name": "Modern Ranger",
+            "character_class": "Ranger",
+            "level": 1,
+            "rules_edition": "2024",
+            "ruleset_id": "dnd5e_2024",
+            "class_levels": {"Ranger": 1},
+            "classes": [{"name": "Ranger", "level": 1, "subclass": ""}],
+        }
+        result = build_level_up_preflight(ranger, target_class="Ranger")
+        self.assertEqual(result["class_level_after"], 2)
+        self.assertEqual(result["spells_to_learn"], 0)
+        self.assertEqual(result["prepared_spell_capacity_before"], 2)
+        self.assertEqual(result["prepared_spell_capacity"], 3)
+        self.assertEqual(result["prepared_spell_capacity_gain"], 1)
+        self.assertEqual(result["progression_reference"]["spells_known_table"], {})
+        self.assertEqual(result["progression_reference"]["prepared_spells_table"][1], 2)
+        self.assertEqual(result["progression_reference"]["prepared_spells_table"][2], 3)
+
+    def test_2024_paladin_exposes_prepared_capacity_without_known_spell_gain(self):
+        paladin = {
+            "id": "paladin-modern",
+            "name": "Modern Paladin",
+            "character_class": "Paladin",
+            "level": 4,
+            "rules_edition": "2024",
+            "ruleset_id": "dnd5e_2024",
+            "class_levels": {"Paladin": 4},
+            "classes": [{"name": "Paladin", "level": 4, "subclass": "Oath of Devotion"}],
+        }
+        result = build_level_up_preflight(paladin, target_class="Paladin")
+        self.assertEqual(result["class_level_after"], 5)
+        self.assertEqual(result["spells_to_learn"], 0)
+        self.assertEqual(result["prepared_spell_capacity_before"], 5)
+        self.assertEqual(result["prepared_spell_capacity"], 6)
+        self.assertEqual(result["prepared_spell_capacity_gain"], 1)
+
     def test_new_class_is_rejected_from_normal_level_up_preflight(self):
         with self.assertRaises(HTTPException) as raised:
             build_level_up_preflight(self.character, target_class="Cleric")
