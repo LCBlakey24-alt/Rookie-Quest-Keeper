@@ -4,6 +4,7 @@ import { AlertTriangle, Search, Wand2 } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
+import { spellRequiresConcentration } from '@/data/spellConcentrationRules';
 import {
   SPELLCASTING_CLASSES,
   getSpellsForClass,
@@ -296,7 +297,7 @@ function SpellCard({
   const [expanded, setExpanded] = useState(false);
   const [choosingSlot, setChoosingSlot] = useState(false);
   const hasDescription = Boolean(spell.description);
-  const concentrationLikely = /concentration/i.test(spell.description || '');
+  const concentrationLikely = spellRequiresConcentration(spell);
   const levelled = Number(spell.level || 0) > 0;
   const hasAvailableSlot = !levelled || castOptions.length > 0;
   const canPressCast = castable && hasAvailableSlot;

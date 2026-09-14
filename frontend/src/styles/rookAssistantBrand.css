@@ -1,0 +1,126 @@
+html:root {
+  --rook-gold: #00AEEF !important;
+  --rook-gold-bright: #7CCBFF !important;
+  --rook-red: #FF2DAA !important;
+  --rook-panel: rgba(7, 24, 40, 0.98) !important;
+  --rook-panel-strong: rgba(8, 31, 50, 0.99) !important;
+  --rook-border: rgba(124, 203, 255, 0.34) !important;
+  --rook-text: #FFFFFF !important;
+  --rook-muted: #A9C6D9 !important;
+}
+
+body .rook-assistant-fab {
+  border-color: rgba(124, 203, 255, 0.5);
+  background: #0A2A43;
+  color: #FFFFFF;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), 0 0 30px rgba(0, 174, 239, 0.2);
+  padding: 6px 13px 6px 7px;
+}
+
+body .rook-assistant-fab:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.52), 0 0 38px rgba(255, 45, 170, 0.2);
+}
+
+body .rook-assistant-fab__glow {
+  background: rgba(0, 174, 239, 0.08);
+}
+
+body .rook-assistant-fab > svg {
+  display: none;
+}
+
+body .rook-assistant-fab::before {
+  content: '';
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 10px;
+  background: #05090D url('../assets/rook-mascot.webp') center / contain no-repeat;
+}
+
+body .rook-assistant-pill {
+  border-color: rgba(124, 203, 255, 0.3);
+  background: rgba(8, 31, 50, 0.99);
+}
+
+body .rook-assistant-pill > svg {
+  display: none;
+}
+
+body .rook-assistant-pill::before {
+  content: '';
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  border-radius: 7px;
+  background: #05090D url('../assets/rook-mascot.webp') center / contain no-repeat;
+}
+
+body .rook-assistant-pill strong {
+  background: #FF2DAA;
+  color: #FFFFFF;
+}
+
+body .rook-assistant-panel {
+  border-color: rgba(124, 203, 255, 0.32);
+  background: #071828;
+  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.62), 0 0 42px rgba(0, 174, 239, 0.13);
+}
+
+body .rook-assistant-header {
+  border-bottom-color: rgba(124, 203, 255, 0.18);
+  background: #0A2236;
+}
+
+body .rook-assistant-orb {
+  width: 50px;
+  height: 50px;
+  padding: 2px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 203, 255, 0.38);
+  background: #05090D;
+  box-shadow: 0 0 20px rgba(0, 174, 239, 0.2);
+}
+
+body .rook-assistant-orb > svg {
+  display: none;
+}
+
+body .rook-assistant-orb::before {
+  content: '';
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #05090D url('../assets/rook-mascot.webp') center / contain no-repeat;
+}
+
+body .rook-assistant-title span {
+  color: #7CCBFF;
+}
+
+body .rook-assistant-actions button:hover,
+body .rook-assistant-copy:hover {
+  border-color: rgba(255, 45, 170, 0.38);
+  background: rgba(255, 45, 170, 0.08);
+}
+
+body .rook-assistant-chip-row button {
+  border-color: rgba(124, 203, 255, 0.24);
+  background: rgba(0, 174, 239, 0.08);
+  color: #DDF4FF;
+}
+
+body .rook-assistant-empty__icon {
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 12px;
+  border: 1px solid rgba(124, 203, 255, 0.25);
+  border-radius: 18px;
+  background: #05090D url('../assets/rook-mascot.webp') center / contain no-repeat;
+  box-shadow: 0 0 30px rgba(0, 174, 239, 0.16);
+}
+
+body .rook-assistant-empty__icon > svg {
+  display: none;
+}
