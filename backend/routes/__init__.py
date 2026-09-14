@@ -22,6 +22,7 @@ from routes.combat import router as combat_router
 from routes.combat_initiative_submissions import router as combat_initiative_submissions_router
 from routes.players import router as players_router
 from routes.maps import router as maps_router
+from routes.map_records import router as map_records_router, remove_legacy_map_record_routes
 from routes.map_mutations import router as map_mutations_router, remove_legacy_map_mutation_routes
 from routes.tables import router as tables_router
 from routes.ai import router as ai_router
@@ -59,6 +60,7 @@ from routes.roll_events import router as roll_events_router
 # legacy router stays registered for backwards-compatible endpoints.
 remove_legacy_custom_creature_routes(admin_router)
 remove_legacy_world_hierarchy_routes(world_router)
+remove_legacy_map_record_routes(maps_router)
 remove_legacy_map_mutation_routes(maps_router)
 remove_legacy_rook_chat_route(ai_router)
 remove_legacy_rook_form_fill_route(ai_router)
@@ -96,8 +98,9 @@ all_routers = [
     combat_router,
     combat_initiative_submissions_router,
     players_router,
-    # Nested world/local map edits use campaign-scoped atomic mutations before
-    # the remaining legacy map endpoints are registered.
+    # Top-level map writes validate record references and keep response reads
+    # campaign-scoped. Nested pin/path edits remain atomic in map_mutations.
+    map_records_router,
     map_mutations_router,
     maps_router,
     tables_router,
