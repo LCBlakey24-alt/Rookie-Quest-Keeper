@@ -2,6 +2,12 @@
   "buildCommand": "yarn build",
   "outputDirectory": "build",
   "installCommand": "yarn install",
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "*": false
+    }
+  },
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=3072",
     "DISABLE_ESLINT_PLUGIN": "true",
