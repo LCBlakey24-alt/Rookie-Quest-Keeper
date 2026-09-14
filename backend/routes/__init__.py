@@ -24,6 +24,7 @@ from routes.tables import router as tables_router
 from routes.ai import router as ai_router
 from routes.rook_chat import router as rook_chat_router, remove_legacy_rook_chat_route
 from routes.rook_form_fill import router as rook_form_fill_router, remove_legacy_rook_form_fill_route
+from routes.rook_generate import router as rook_generate_router, remove_legacy_rook_generate_route
 from routes.rook_studio import router as rook_studio_router
 from routes.inventory import router as inventory_router
 from routes.offline_inventory_sync import router as offline_inventory_sync_router
@@ -51,9 +52,10 @@ from routes.quests import router as quests_router
 from routes.roll_events import router as roll_events_router
 
 # Focused shared-brain routes own their specific Rook endpoints. Every other
-# legacy AI route remains intact on ai_router.
+# legacy AI route remains intact on ai_router, including /unseen-servant/generate.
 remove_legacy_rook_chat_route(ai_router)
 remove_legacy_rook_form_fill_route(ai_router)
+remove_legacy_rook_generate_route(ai_router)
 
 all_routers = [
     auth_router,
@@ -86,6 +88,7 @@ all_routers = [
     # AI routes so each focused path has one authoritative implementation.
     rook_chat_router,
     rook_form_fill_router,
+    rook_generate_router,
     ai_router,
     rook_studio_router,  # Draft-first create/review/save workflow for GM content.
     inventory_router,
