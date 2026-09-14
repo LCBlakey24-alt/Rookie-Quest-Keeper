@@ -22,6 +22,7 @@ from routes.players import router as players_router
 from routes.maps import router as maps_router
 from routes.tables import router as tables_router
 from routes.ai import router as ai_router
+from routes.rook_chat import router as rook_chat_router, remove_legacy_rook_chat_route
 from routes.rook_studio import router as rook_studio_router
 from routes.inventory import router as inventory_router
 from routes.offline_inventory_sync import router as offline_inventory_sync_router
@@ -47,6 +48,11 @@ from routes.handouts import router as handouts_router
 from routes.story_arcs import router as story_arcs_router
 from routes.quests import router as quests_router
 from routes.roll_events import router as roll_events_router
+
+# The focused Rook chat route now owns POST /rook/chat. Keep every other legacy
+# AI route intact, but remove the duplicate chat handler before registration so
+# OpenAPI and runtime routing have one authoritative endpoint.
+remove_legacy_rook_chat_route(ai_router)
 
 all_routers = [
     auth_router,
@@ -75,7 +81,10 @@ all_routers = [
     players_router,
     maps_router,
     tables_router,
-    ai_router,  # Text-based Rook AI helpers stay enabled.
+    # Shared-brain Rook chat shadows only the old chat handler; generation,
+    # form-fill, notes and other text AI routes remain on the legacy router.
+    rook_chat_router,
+    ai_router,
     rook_studio_router,  # Draft-first create/review/save workflow for GM content.
     inventory_router,
     # Narrow retry-safe create endpoint used only by explicitly queued offline combat loot.

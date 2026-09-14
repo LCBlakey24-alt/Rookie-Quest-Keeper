@@ -10,7 +10,7 @@ on:
 
 jobs:
   player-workspace-api:
-    name: Player access and timeline persistence
+    name: Player access and route persistence
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,12 +18,13 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install route test dependencies
-        run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart
-      - name: Test player access, timeline persistence, handouts and display delivery
+        run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests
+      - name: Test player access and timeline persistence
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
           python -m unittest discover -s backend/tests -p test_player_handout_summary.py -v
-          python -m unittest discover -s backend/tests -p test_campaign_display_routes.py -v
+      - name: Test display delivery and focused Rook chat
+        run: python -m pytest -q backend/tests/test_campaign_display_routes.py backend/tests/test_rook_chat_route.py
 
   frontend-build:
     name: Frontend tests and build
