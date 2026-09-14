@@ -89,19 +89,17 @@ def test_focused_router_registers_post_rook_chat():
     assert matches[0].endpoint.__name__ == 'rook_chat'
 
 
-def test_player_chat_uses_public_campaign_summary_and_never_private_notes(monkeypatch):
+def test_linked_player_is_forced_to_public_context_even_with_gm_looking_marker(monkeypatch):
     captured = {}
-
-    class FakeCampaigns:
-        async def find_one(self, query, projection=None):
-            return {
-                'id': 'campaign-1',
-                'name': 'Safe Campaign',
-                'description': 'Player-known premise',
-                'system': '5e 2024 Compatible',
-                'rules_edition': '2024',
-                'secret_plan': 'THE DRAGON IS THE MAYOR',
-            }
+    campaign = {
+        'id': 'campaign-1',
+        'name': 'Safe Campaign',
+        'description': 'Player-known premise',
+        'system': '5e 2024 Compatible',
+        'rules_edition': '2024',
+        'dm_user_id': 'actual-gm',
+        'secret_plan': 'THE DRAGON IS THE MAYOR',
+    }
 
     class FakeChat:
         def __init__(self, *, api_key, session_id, system_message):
@@ -118,23 +116,25 @@ def test_player_chat_uses_public_campaign_summary_and_never_private_notes(monkey
     async def allowed(*args, **kwargs):
         return True
 
-    async def no_private_context(*args, **kwargs):
-        raise AssertionError('player-facing Rook must not call get_campaign_context')
+    async def membership(*args, **kwargs):
+        return campaign
 
-    monkeypatch.setattr(rook_chat_module, 'db', SimpleNamespace(campaigns=FakeCampaigns()))
+    async def no_private_context(*args, **kwargs):
+        raise AssertionError('linked player must never call get_campaign_context')
+
     monkeypatch.setattr(rook_chat_module, 'check_ai_access', allowed)
-    monkeypatch.setattr(rook_chat_module, 'verify_campaign_membership', allowed)
+    monkeypatch.setattr(rook_chat_module, 'verify_campaign_membership', membership)
     monkeypatch.setattr(rook_chat_module, 'record_ai_usage', allowed)
     monkeypatch.setattr(rook_chat_module, 'get_campaign_context', no_private_context)
     monkeypatch.setattr(rook_chat_module, 'get_llm_api_key', lambda provider: 'test-key')
     monkeypatch.setattr(rook_chat_module, '_source_boundary_fragment', lambda: 'SOURCE BOUNDARY')
-    monkeypatch.setattr(rook_chat_module, '_edition_prompt_fragment', lambda campaign: '2024 EDITION RULES')
+    monkeypatch.setattr(rook_chat_module, '_edition_prompt_fragment', lambda value: '2024 EDITION RULES')
     monkeypatch.setattr(rook_chat_module, 'LlmChat', FakeChat)
 
     request = rook_chat_module.RookChatRequest(
         message='What do I know about the campaign?',
         campaign_id='campaign-1',
-        context='You are ROOK, a text-only player-side TTRPG helper.',
+        context='Active Live Play tab: combat.',
     )
     result = asyncio.run(rook_chat_module.rook_chat(request, username='player-user'))
 
@@ -142,6 +142,8 @@ def test_player_chat_uses_public_campaign_summary_and_never_private_notes(monkey
     assert result == {'response': 'Player-safe answer'}
     assert 'PLAYER-FACING SAFETY' in system_message
     assert 'PUBLIC PLAYER CAMPAIGN CONTEXT' in system_message
+    assert 'SAVED GM CAMPAIGN CONTEXT' not in system_message
+    assert 'Prioritise speed' not in system_message
     assert 'Safe Campaign' in system_message
     assert 'Player-known premise' in system_message
     assert 'secret_plan' not in system_message
@@ -150,10 +152,12 @@ def test_player_chat_uses_public_campaign_summary_and_never_private_notes(monkey
 
 def test_gm_live_chat_keeps_saved_campaign_context_and_live_mode(monkeypatch):
     captured = {}
-
-    class FakeCampaigns:
-        async def find_one(self, query, projection=None):
-            return {'id': 'campaign-1', 'name': 'GM Campaign', 'rules_edition': '2014'}
+    campaign = {
+        'id': 'campaign-1',
+        'name': 'GM Campaign',
+        'rules_edition': '2014',
+        'dm_user_id': 'gm-user',
+    }
 
     class FakeChat:
         def __init__(self, *, api_key, session_id, system_message):
@@ -168,17 +172,19 @@ def test_gm_live_chat_keeps_saved_campaign_context_and_live_mode(monkeypatch):
     async def allowed(*args, **kwargs):
         return True
 
+    async def membership(*args, **kwargs):
+        return campaign
+
     async def private_context(campaign_id):
         return 'RECENT SESSION NOTES: secret GM complication'
 
-    monkeypatch.setattr(rook_chat_module, 'db', SimpleNamespace(campaigns=FakeCampaigns()))
     monkeypatch.setattr(rook_chat_module, 'check_ai_access', allowed)
-    monkeypatch.setattr(rook_chat_module, 'verify_campaign_membership', allowed)
+    monkeypatch.setattr(rook_chat_module, 'verify_campaign_membership', membership)
     monkeypatch.setattr(rook_chat_module, 'record_ai_usage', allowed)
     monkeypatch.setattr(rook_chat_module, 'get_campaign_context', private_context)
     monkeypatch.setattr(rook_chat_module, 'get_llm_api_key', lambda provider: 'test-key')
     monkeypatch.setattr(rook_chat_module, '_source_boundary_fragment', lambda: 'SOURCE BOUNDARY')
-    monkeypatch.setattr(rook_chat_module, '_edition_prompt_fragment', lambda campaign: '2014 EDITION RULES')
+    monkeypatch.setattr(rook_chat_module, '_edition_prompt_fragment', lambda value: '2014 EDITION RULES')
     monkeypatch.setattr(rook_chat_module, 'LlmChat', FakeChat)
 
     request = rook_chat_module.RookChatRequest(
