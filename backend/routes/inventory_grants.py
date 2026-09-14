@@ -14,14 +14,14 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import db
-from routes.inventory import (
+from utils.auth import get_current_user, verify_campaign_ownership
+from utils.inventory_grant_helpers import (
     build_npc_attack_from_item,
     character_armor_class_with_equipped,
     item_inventory_entry,
     merge_npc_attack,
     safe_int,
 )
-from utils.auth import get_current_user, verify_campaign_ownership
 
 router = APIRouter()
 
