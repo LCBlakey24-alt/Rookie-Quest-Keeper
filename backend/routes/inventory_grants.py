@@ -110,10 +110,21 @@ async def _consume_reserved_item(campaign_id: str, item_id: str, token: str) -> 
     if result.deleted_count > 0:
         return
 
-    # The item may already have been removed by another GM action after the
-    # recipient write. A final campaign-scoped delete prevents a leftover copy
-    # from being granted again without ever reaching across campaign bounds.
-    await db.inventory.delete_one({'id': item_id, 'campaign_id': campaign_id})
+    existing = await db.inventory.find_one(
+        {'id': item_id, 'campaign_id': campaign_id},
+        {'_id': 0, 'id': 1, 'grant_in_progress': 1},
+    )
+    if not existing:
+        # Another legitimate action already removed the source item. The
+        # recipient write is complete, so there is nothing left to clean up.
+        return
+
+    # Never fall back to deleting by bare item/campaign after the reservation
+    # token has changed. A stale slow request must not erase a newer Grant.
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail='The item reservation changed before Grant cleanup finished. Refresh party inventory before granting it again.',
+    )
 
 
 @router.post('/campaigns/{campaign_id}/inventory/{item_id}/grant')
