@@ -22,12 +22,17 @@ ALLOWED_DISPLAY_MODES = {
 
 
 def default_display_state(campaign_id: str) -> Dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    sequence = int(now.timestamp() * 1000)
     return {
         'campaign_id': campaign_id,
+        'sync_id': f'{campaign_id}-{sequence}',
+        'sequence': sequence,
         'mode': 'blank',
         'payload': {},
-        'updated_at': datetime.now(timezone.utc).isoformat(),
+        'updated_at': now.isoformat(),
         'updated_by': '',
+        'delivery_ack': {},
     }
 
 
@@ -37,24 +42,27 @@ def sanitize_display_state(campaign_id: str, data: Dict[str, Any], username: str
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Unsupported player display mode')
 
     payload = data.get('payload') if isinstance(data.get('payload'), dict) else {}
-    sync_id = str(data.get('sync_id') or data.get('id') or '').strip()
+    now = datetime.now(timezone.utc)
+    server_sequence = int(now.timestamp() * 1000)
+    sync_id = str(data.get('sync_id') or data.get('id') or f'{campaign_id}-{server_sequence}').strip()
     source_tab = str(data.get('source_tab') or '').strip()
     try:
-        sequence = int(data.get('sequence') or data.get('seq') or 0)
+        sequence = int(data.get('sequence') or data.get('seq') or server_sequence)
     except (TypeError, ValueError):
-        sequence = 0
+        sequence = server_sequence
+    if sequence <= 0:
+        sequence = server_sequence
 
     state = {
         'campaign_id': campaign_id,
+        'sync_id': sync_id,
+        'sequence': sequence,
         'mode': mode,
         'payload': payload,
-        'updated_at': datetime.now(timezone.utc).isoformat(),
+        'updated_at': now.isoformat(),
         'updated_by': username,
+        'delivery_ack': {},
     }
-    if sync_id:
-        state['sync_id'] = sync_id
-    if sequence > 0:
-        state['sequence'] = sequence
     if source_tab:
         state['source_tab'] = source_tab
     return state
