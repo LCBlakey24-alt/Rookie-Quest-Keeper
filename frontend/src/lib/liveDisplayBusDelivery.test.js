@@ -1,5 +1,9 @@
 import apiClient from '@/lib/apiClient';
-import { acknowledgePlayerDisplayState, isPlayerDisplayPath } from './liveDisplayBus';
+import {
+  acknowledgePlayerDisplayState,
+  displayStateRevisionIdentity,
+  isPlayerDisplayPath,
+} from './liveDisplayBus';
 
 jest.mock('@/lib/apiClient', () => ({
   __esModule: true,
@@ -58,5 +62,20 @@ describe('player display delivery acknowledgement', () => {
 
     expect(result.acknowledged).toBe(false);
     expect(result.error).toBe(error);
+  });
+
+  test('treats a newer revision of the same reveal as a fresh display update', () => {
+    const first = displayStateRevisionIdentity({
+      sync_id: 'group-check-1',
+      updated_at: '2026-09-14T12:00:00.000Z',
+      sequence: 10,
+    });
+    const next = displayStateRevisionIdentity({
+      sync_id: 'group-check-1',
+      updated_at: '2026-09-14T12:00:05.000Z',
+      sequence: 10,
+    });
+
+    expect(next).not.toBe(first);
   });
 });
