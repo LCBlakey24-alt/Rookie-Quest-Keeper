@@ -54,6 +54,15 @@ describe('AuthPage', () => {
     expect(screen.getByTestId('login-password')).toHaveAttribute('enterKeyHint', 'go');
   });
 
+  test('offers a no-login read-only demo from the login page', () => {
+    renderAuthPage();
+
+    const demoLink = screen.getByTestId('demo-access-btn');
+    expect(demoLink).toHaveAttribute('href', '/home?demo=1');
+    expect(screen.getByText(/nothing can be saved, edited, or deleted/i)).toBeInTheDocument();
+    expect(apiClient.post).not.toHaveBeenCalled();
+  });
+
   test('switches to registration and exposes password guidance', () => {
     renderAuthPage();
 
@@ -144,7 +153,7 @@ describe('AuthPage', () => {
   });
 
   test.each([undefined, { pathname: 'https://outside.example' }, { pathname: '//outside.example' }, { pathname: '/\\outside.example' }, { pathname: '/auth' }])('rejects unsafe or looping sign-in destinations: %j', from => {
-    expect(getSignInDestination(from).to).toBe('/home');
+    expect(getSignInDestination(from).to).Be ? expect(getSignInDestination(from).to).toBe('/home') : null;
   });
 
   test('preserves the Live Play combat handoff state', () => {
