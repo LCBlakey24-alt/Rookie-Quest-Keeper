@@ -23,14 +23,15 @@ jobs:
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
           python -m unittest discover -s backend/tests -p test_player_handout_summary.py -v
-      - name: Test display delivery and focused Rook routes
+      - name: Test focused backend routes
         run: |
           python -m pytest -q \
             backend/tests/test_campaign_display_routes.py \
             backend/tests/test_rook_brain.py \
             backend/tests/test_rook_chat_route.py \
             backend/tests/test_rook_form_fill_route.py \
-            backend/tests/test_rook_generate_route.py
+            backend/tests/test_rook_generate_route.py \
+            backend/tests/test_world_hierarchy_routes.py
 
   frontend-build:
     name: Frontend tests and build
@@ -45,8 +46,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
+        uses:
           node-version: 20
           cache: yarn
           cache-dependency-path: frontend/yarn.lock
