@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchPlayerCampaignSections } from './playerCampaignData';
+import { playerSheetReturnState } from './playerSheetNavigation';
 import { fetchPlayerHandoutSummary } from '@/components/dashboard/player/playerDashboardData';
 import '@/styles/playerCampaign.css';
 import '@/styles/playerCampaignCharacterStatus.css';
@@ -95,6 +96,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
   const campaignTabs = tabs.map(tab => tab.id === 'handouts' && unreadHandouts > 0
     ? { ...tab, badge: unreadHandouts }
     : tab);
+  const sheetReturnState = playerSheetReturnState(`/player/campaign/${campaignId}`);
 
   return (
     <main className="player-campaign-page">
@@ -138,7 +140,12 @@ export function PlayerCampaignWorkspace({ campaignId }) {
                           <span>AC {characterAc(character)}</span>
                         </div>
                       </div>
-                      <Link className="player-campaign-action" aria-label={`Open ${character.name || character.character_name || 'character'} sheet`} to={`/characters/${character.id}`}>Open Sheet</Link>
+                      <Link
+                        className="player-campaign-action"
+                        aria-label={`Open ${character.name || character.character_name || 'character'} sheet`}
+                        to={`/characters/${character.id}`}
+                        state={sheetReturnState}
+                      >Open Sheet</Link>
                     </li>)}</ul>}
               </section>
               <section className="player-campaign-card">

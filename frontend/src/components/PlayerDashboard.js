@@ -11,6 +11,7 @@ import PlayerCharactersPanel from '@/components/dashboard/player/PlayerCharacter
 import PlayerCampaignsPanel from '@/components/dashboard/player/PlayerCampaignsPanel';
 import PlayerSuggestionBox from '@/components/dashboard/player/PlayerSuggestionBox';
 import { combineLinkedCampaigns } from '@/components/dashboard/player/playerDashboardUtils';
+import { playerSheetReturnState } from '@/components/player/playerSheetNavigation';
 import {
   describePlayerDashboardFailures,
   fetchPlayerDashboardSections,
@@ -255,7 +256,7 @@ export default function PlayerDashboard() {
             characters={characters}
             onCreateCharacter={() => navigate('/characters/new')}
             onImportCharacter={() => navigate('/characters/import')}
-            onOpenCharacter={(character) => navigate(`/characters/${character.id}`)}
+            onOpenCharacter={(character) => navigate(`/characters/${character.id}`, { state: playerSheetReturnState('/player') })}
           />
         )}
 
