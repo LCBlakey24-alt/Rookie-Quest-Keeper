@@ -78,7 +78,7 @@ def build_form_fill_system_message(
     context_label = 'PUBLIC PLAYER CAMPAIGN CONTEXT' if player_facing else 'SAVED GM CAMPAIGN CONTEXT'
     parts = [
         _source_boundary_fragment(),
-        rook_form_fill_fragment(),
+        rook_form_fill_fragment(player_facing=player_facing),
         'FORM-FILL CONTRACT:\n'
         '- This is text-only, review-first drafting. Never claim anything was saved.\n'
         '- Do not generate or suggest AI images, portraits, tokens, maps, artwork, or visual assets.\n'
