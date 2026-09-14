@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
+import { loadLiveSessionSections } from '@/data/livePlayLoaders';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { generateCombatReadyNpc } from '@/lib/npcStatBlockFactory';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
 import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
 import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
+import LiveDataWarning from '@/components/gm/LiveDataWarning';
 
 const LootGenerator = React.lazy(() => import('@/components/LootGenerator'));
 const PartyLocationTracker = React.lazy(() => import('@/components/PartyLocationTracker'));
@@ -49,6 +51,7 @@ export default function LiveSessionGridPage() {
   const [scenarios, setScenarios] = useState([]);
   const [calendar, setCalendar] = useState(null);
   const [sessionNotes, setSessionNotes] = useState([]);
+  const [loadErrors, setLoadErrors] = useState([]);
   const [quickNote, setQuickNote] = useState('');
   const [processingNote, setProcessingNote] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState(null);
@@ -74,18 +77,20 @@ export default function LiveSessionGridPage() {
 
   const fetchAllData = useCallback(async () => {
     try {
-      const [campaignRes, playersRes, scenariosRes, calendarRes, notesRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}`),
-        apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
-        apiClient.get(`/campaigns/${campaignId}/calendar`).catch(() => ({ data: null })),
-        apiClient.get(`/campaigns/${campaignId}/ingame-notes`).catch(() => ({ data: [] })),
-      ]);
-      setCampaign(campaignRes.data);
-      setPlayers(Array.isArray(playersRes.data) ? playersRes.data : []);
-      setScenarios(Array.isArray(scenariosRes.data) ? scenariosRes.data : []);
-      setCalendar(calendarRes.data || null);
-      setSessionNotes(Array.isArray(notesRes.data) ? notesRes.data.slice(0, 30) : []);
+      const { sections, errors } = await loadLiveSessionSections(apiClient, campaignId);
+
+      if (sections.campaign.ok) setCampaign(sections.campaign.data || null);
+      if (sections.players.ok) setPlayers(Array.isArray(sections.players.data) ? sections.players.data : []);
+      if (sections.scenarios.ok) setScenarios(Array.isArray(sections.scenarios.data) ? sections.scenarios.data : []);
+      if (sections.calendar.ok) setCalendar(sections.calendar.data || null);
+      if (sections.notes.ok) setSessionNotes(Array.isArray(sections.notes.data) ? sections.notes.data.slice(0, 30) : []);
+
+      setLoadErrors(errors);
+      if (errors.length) {
+        const campaignFailed = errors.some(item => item.key === 'campaign');
+        if (campaignFailed) toast.error('Campaign details could not be refreshed. Existing Live Play data has been kept where available.');
+        else toast.warning('Some Live Play data could not be refreshed. Existing data has been kept where available.');
+      }
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to load Live Play Mode');
     } finally {
@@ -166,6 +171,10 @@ export default function LiveSessionGridPage() {
   const launchCombat = (scenario) => navigate(`/campaign/${campaignId}/combat`, { state: { scenario, campaignName: campaign?.name } });
 
   const quickStartCombat = () => {
+    if (loadErrors.some(item => item.key === 'players')) {
+      toast.error('Party data is unavailable. Retry Live Play data before starting Quick Combat so no characters are accidentally omitted.');
+      return;
+    }
     const quickScenario = {
       id: 'quick-combat',
       name: 'Quick Combat',
@@ -281,6 +290,7 @@ export default function LiveSessionGridPage() {
           </div>
         </header>
 
+        <LiveDataWarning errors={loadErrors} onRetry={fetchAllData} />
         <LiveStoryFocusPanel campaignId={campaignId} />
         <GroupCheckRequestPanel campaignId={campaignId} players={players} />
         <section style={gridShellStyle}><LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} /></section>
