@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff, BookOpen, Sparkles } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
+import { getSignInDestination } from '@/components/auth/SignInRedirect';
 import './AuthPage.css';
 
 const AUTH_COPY = {
@@ -192,6 +193,8 @@ function createStagingCredentials() {
 export default function AuthPage({ onLogin = () => {} }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const destination = getSignInDestination(location.state?.from);
 
   const initialToken = searchParams.get('token');
   const queryMode = searchParams.get('mode');
@@ -229,7 +232,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     setMode(safeMode);
 
     if (safeMode !== 'reset') {
-      navigate(getAuthModePath(safeMode), { replace });
+      navigate(getAuthModePath(safeMode), { replace, state: location.state });
     }
   };
 
@@ -272,7 +275,7 @@ export default function AuthPage({ onLogin = () => {} }) {
       const response = await apiClient.post('/auth/login', payload);
       toast.success('Welcome back!');
       onLogin(response.data.token, response.data.username || identifier);
-      navigate('/home', { replace: true });
+      navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Login failed'));
     } finally {
@@ -306,7 +309,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
       toast.success('Staging test account ready');
       onLogin(response.data.token, response.data.username || stagingCredentials.username);
-      navigate('/home', { replace: true });
+      navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Could not open the staging test account'));
     } finally {
@@ -342,7 +345,7 @@ export default function AuthPage({ onLogin = () => {} }) {
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
       onLogin(response.data.token, response.data.username || payload.username);
-      navigate('/home', { replace: true });
+      navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Registration failed'));
     } finally {

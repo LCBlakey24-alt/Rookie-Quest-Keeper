@@ -137,8 +137,11 @@ apiClient.interceptors.response.use(
     }
 
     if (error?.response?.status === 401) {
-      clearAuthToken();
-      localStorage.removeItem('dm_username');
+      const authorization = error.config?.headers?.Authorization;
+      const currentToken = getAuthToken();
+      // Failed sign-in and late requests from an old account must not clear a
+      // newer session. clearAuthToken also notifies the mounted route gate.
+      if (currentToken && authorization === `Bearer ${currentToken}`) clearAuthToken();
     }
     return Promise.reject(error);
   }
