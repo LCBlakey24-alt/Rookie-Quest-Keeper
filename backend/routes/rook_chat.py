@@ -12,7 +12,6 @@ from typing import Any, Dict, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from config import db
 from models import RookChatRequest
 from utils.auth import check_ai_access, get_current_user, record_ai_usage, verify_campaign_membership
 from utils.helpers import get_campaign_context
@@ -45,7 +44,6 @@ def detect_rook_chat_mode(context: str = '') -> Tuple[bool, bool]:
         or 'live play co-gm' in lowered
     )
 
-    # Player safety wins if a caller accidentally supplies both markers.
     if player_facing:
         live_play = False
     return player_facing, live_play
@@ -114,7 +112,7 @@ def remove_legacy_rook_chat_route(legacy_router) -> int:
 
 @router.post('/rook/chat')
 async def rook_chat(request: RookChatRequest, username: str = Depends(get_current_user)):
-    """Context-aware ROOK chat with shared-brain and player-safe campaign boundaries."""
+    """Context-aware ROOK chat with shared-brain and ownership-backed privacy boundaries."""
     can_use_ai = await check_ai_access(username, 'ai')
     if not can_use_ai:
         raise HTTPException(
@@ -132,9 +130,12 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
     edition_context = ''
 
     if request.campaign_id:
-        await verify_campaign_membership(request.campaign_id, username)
-        campaign = await db.campaigns.find_one({'id': request.campaign_id}, {'_id': 0})
+        campaign = await verify_campaign_membership(request.campaign_id, username)
         if campaign:
+            if campaign.get('dm_user_id') != username:
+                player_facing = True
+                live_play = False
+
             edition_context = _edition_prompt_fragment(campaign)
             if player_facing:
                 campaign_context = json.dumps(player_campaign_summary(campaign), ensure_ascii=False, default=str)
