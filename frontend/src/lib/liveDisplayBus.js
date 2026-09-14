@@ -80,8 +80,9 @@ function stableStateId(state = {}, updatedAt = '', sequence = 0) {
   return `${state.mode || 'blank'}-${updatedAt || 'unknown'}-${sequence}`;
 }
 
-function stateIdentity(state = {}) {
-  return state.sync_id || state.id || `${state.mode || 'blank'}-${state.updated_at || ''}-${stateSequence(state)}`;
+export function displayStateRevisionIdentity(state = {}) {
+  const syncId = state.sync_id || state.id || state.mode || 'blank';
+  return `${syncId}-${state.updated_at || ''}-${stateSequence(state)}`;
 }
 
 function isNewerState(candidate, current) {
@@ -224,10 +225,10 @@ export function subscribeDisplayState(campaignId, onState) {
 
   const applyState = (state) => {
     const safeState = normaliseDisplayState(state);
-    const identity = stateIdentity(safeState);
+    const identity = displayStateRevisionIdentity(safeState);
     if (identity === lastIdentity) return;
     const current = readStoredDisplayState(campaignId);
-    if (current && !isNewerState(safeState, current) && stateIdentity(current) !== identity) return;
+    if (current && !isNewerState(safeState, current) && displayStateRevisionIdentity(current) !== identity) return;
     lastIdentity = identity;
     onState(safeState);
   };
@@ -312,14 +313,15 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
     if (cancelled || !state?.updated_at) return;
     const localState = readStoredDisplayState(campaignId);
     const safeState = reconcileRemoteState(state, normaliseDisplayState(state), localState);
-    const identity = stateIdentity(safeState);
-    lastAcknowledgementState = safeState;
+    const identity = displayStateRevisionIdentity(safeState);
     if (identity === lastRemoteIdentity) {
+      lastAcknowledgementState = safeState;
       void acknowledgeCurrentState(safeState);
       return;
     }
     if (localState && !isNewerState(safeState, localState)) return;
     lastRemoteIdentity = identity;
+    lastAcknowledgementState = safeState;
     saveDisplayState(campaignId, safeState);
     onState(safeState);
     void acknowledgeCurrentState(safeState);
