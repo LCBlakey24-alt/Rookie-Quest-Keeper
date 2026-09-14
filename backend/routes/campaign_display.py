@@ -37,13 +37,27 @@ def sanitize_display_state(campaign_id: str, data: Dict[str, Any], username: str
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Unsupported player display mode')
 
     payload = data.get('payload') if isinstance(data.get('payload'), dict) else {}
-    return {
+    sync_id = str(data.get('sync_id') or data.get('id') or '').strip()
+    source_tab = str(data.get('source_tab') or '').strip()
+    try:
+        sequence = int(data.get('sequence') or data.get('seq') or 0)
+    except (TypeError, ValueError):
+        sequence = 0
+
+    state = {
         'campaign_id': campaign_id,
         'mode': mode,
         'payload': payload,
         'updated_at': datetime.now(timezone.utc).isoformat(),
         'updated_by': username,
     }
+    if sync_id:
+        state['sync_id'] = sync_id
+    if sequence > 0:
+        state['sequence'] = sequence
+    if source_tab:
+        state['source_tab'] = source_tab
+    return state
 
 
 @router.get('/campaigns/{campaign_id}/display-state')
