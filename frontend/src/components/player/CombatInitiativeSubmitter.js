@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, Dices, RefreshCw, Swords } from 'lucide-react';
+import { AlertTriangle, Check, Dices, RefreshCw, Swords } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
@@ -24,19 +24,23 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const combatActive = Boolean(state?.combat_active);
 
   const load = useCallback(async () => {
-    if (!campaignId) return;
+    if (!campaignId) return false;
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/combat-initiative/mine`);
       const next = response.data || null;
       setState(next);
+      setLoadError('');
       if (next?.submission?.initiative !== undefined && next?.submission?.initiative !== null) {
         setValue(String(next.submission.initiative));
       }
-    } catch {
-      setState(null);
+      return true;
+    } catch (error) {
+      setLoadError(error?.response?.data?.detail || 'Could not check initiative status.');
+      return false;
     } finally {
       setLoading(false);
     }
@@ -76,7 +80,30 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
     return `${character.name} has not submitted initiative yet.`;
   }, [active, character, submitted]);
 
-  if (loading || !active) return null;
+  if (loading && state === null && !loadError) return null;
+
+  if (!active) {
+    if (!loadError) return null;
+    return (
+      <section
+        data-testid="player-combat-initiative-unavailable"
+        role="status"
+        style={{ ...shellStyle, ...unavailableShellStyle, padding: compact ? 9 : 11 }}
+      >
+        <header style={headerStyle}>
+          <span style={warningIconWrapStyle}><AlertTriangle size={16} color={theme.blue} /></span>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <strong style={titleStyle}>Initiative status unavailable</strong>
+            <small style={subtitleStyle}>This screen cannot confirm whether combat is active right now.</small>
+          </span>
+          <button type="button" onClick={load} style={iconButtonStyle} title="Retry initiative status">
+            <RefreshCw size={13} color={theme.blue} />
+          </button>
+        </header>
+        <span style={statusStyle}>{loadError} Retry before assuming no initiative is needed.</span>
+      </section>
+    );
+  }
 
   const submit = async (initiative, method = 'manual') => {
     const numeric = Number(initiative);
@@ -109,6 +136,12 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
 
   return (
     <section data-testid="player-combat-initiative" style={{ ...shellStyle, padding: compact ? 9 : 11 }}>
+      {loadError && (
+        <div data-testid="player-combat-initiative-warning" role="status" style={inlineWarningStyle}>
+          <AlertTriangle size={14} color={theme.blue} />
+          <span>Initiative refresh failed. Showing the last confirmed combat state.</span>
+        </div>
+      )}
       <header style={headerStyle}>
         <span style={iconWrapStyle}><Swords size={16} color={theme.blue} /></span>
         <span style={{ minWidth: 0, flex: 1 }}>
@@ -153,11 +186,14 @@ const shellStyle = {
   gap: 8,
   boxShadow: 'none',
 };
+const unavailableShellStyle = { borderLeft: `1px solid ${theme.blue}` };
 const headerStyle = { display: 'flex', gap: 8, alignItems: 'center' };
 const iconWrapStyle = { width: 32, height: 32, background: theme.blueSoft, border: `1px solid ${theme.line}`, borderRadius: 5, display: 'grid', placeItems: 'center', flex: '0 0 32px' };
+const warningIconWrapStyle = { ...iconWrapStyle, border: '1px solid rgba(124,203,255,.34)' };
 const titleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 900 };
 const subtitleStyle = { display: 'block', marginTop: 1, color: theme.text, fontSize: 11, lineHeight: 1.3 };
 const iconButtonStyle = { width: 32, height: 32, border: `1px solid ${theme.line}`, borderRadius: 5, background: theme.card, color: theme.text, display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'none' };
+const inlineWarningStyle = { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', background: theme.blueSoft, border: '1px solid rgba(124,203,255,.24)', borderRadius: 5, color: theme.text, fontSize: 10, fontWeight: 800 };
 const controlsStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 1fr) auto auto', gap: 5, alignItems: 'end' };
 const fieldStyle = { display: 'grid', gap: 3, color: theme.text, fontSize: 9, fontWeight: 900, letterSpacing: '.06em', textTransform: 'uppercase' };
 const inputStyle = { width: '100%', minWidth: 0, height: 38, boxSizing: 'border-box', background: theme.input, border: `1px solid ${theme.line}`, borderRadius: 5, color: theme.text, padding: '0 8px', fontSize: 13, outline: 'none', boxShadow: 'none' };
