@@ -19,6 +19,18 @@ const asName = (value) => {
   return value?.name || value?.title || '';
 };
 
+const splitNames = (value) => {
+  if (Array.isArray(value)) return value.flatMap(splitNames).filter(Boolean);
+  if (typeof value === 'string') {
+    return value
+      .split(/[,;/|]+|\band\b/gi)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  const name = asName(value);
+  return name ? [name] : [];
+};
+
 const hitDieNumber = (value, fallback = 8) => {
   const match = String(value || '').match(/d?(6|8|10|12)/i);
   return match ? Number(match[1]) : Number(value || fallback) || fallback;
@@ -55,6 +67,61 @@ const toSubraceMap = (subraces = []) => {
   }).filter(([name]) => name));
 };
 
+export function normaliseClassSkillChoices(option = {}) {
+  const rawChoices = option.skill_choices ?? option.skillChoices ?? [];
+  const explicitCount = Number(
+    option.skill_count
+    ?? option.skillCount
+    ?? option.skill_choice_count
+    ?? option.skillChoiceCount
+    ?? 0,
+  );
+
+  if (typeof rawChoices === 'string') {
+    const trimmed = rawChoices.trim();
+    if (!trimmed) return { skillChoices: [], skillCount: Math.max(0, explicitCount || 0) };
+    if (trimmed.toLowerCase() === 'any') {
+      return { skillChoices: 'any', skillCount: Math.max(0, explicitCount || 0) };
+    }
+    return {
+      skillChoices: splitNames(trimmed),
+      skillCount: Math.max(0, explicitCount || 0),
+    };
+  }
+
+  if (Array.isArray(rawChoices)) {
+    return {
+      skillChoices: splitNames(rawChoices),
+      skillCount: Math.max(0, explicitCount || 0),
+    };
+  }
+
+  if (rawChoices && typeof rawChoices === 'object') {
+    const choiceSource = rawChoices.from
+      ?? rawChoices.options
+      ?? rawChoices.skills
+      ?? rawChoices.choices
+      ?? rawChoices.values
+      ?? [];
+    const inferredCount = Number(
+      rawChoices.choose
+      ?? rawChoices.count
+      ?? rawChoices.max
+      ?? rawChoices.limit
+      ?? 0,
+    );
+    const choiceText = typeof choiceSource === 'string' ? choiceSource.trim() : '';
+    const skillChoices = choiceText.toLowerCase() === 'any' ? 'any' : splitNames(choiceSource);
+
+    return {
+      skillChoices,
+      skillCount: Math.max(0, explicitCount > 0 ? explicitCount : (inferredCount || 0)),
+    };
+  }
+
+  return { skillChoices: [], skillCount: Math.max(0, explicitCount || 0) };
+}
+
 export function normaliseRaceOption(option = {}) {
   return {
     description: option.description || '',
@@ -72,18 +139,18 @@ export function normaliseRaceOption(option = {}) {
 }
 
 export function normaliseClassOption(option = {}) {
-  const skillChoices = option.skill_choices || option.skillChoices || [];
+  const { skillChoices, skillCount } = normaliseClassSkillChoices(option);
   return {
     description: option.description || '',
     hitDie: hitDieNumber(option.hit_die || option.hitDie, 8),
     primaryAbility: option.primary_ability || option.primaryAbility || '',
-    savingThrows: asArray(option.saving_throw_proficiencies || option.savingThrows),
-    armorProficiencies: asArray(option.armor_proficiencies || option.armorProficiencies),
-    weaponProficiencies: asArray(option.weapon_proficiencies || option.weaponProficiencies),
-    toolProficiencies: asArray(option.tool_proficiencies || option.toolProficiencies),
+    savingThrows: asArray(option.saving_throw_proficiencies || option.savingThrows).flatMap(splitNames),
+    armorProficiencies: asArray(option.armor_proficiencies || option.armorProficiencies).flatMap(splitNames),
+    weaponProficiencies: asArray(option.weapon_proficiencies || option.weaponProficiencies).flatMap(splitNames),
+    toolProficiencies: asArray(option.tool_proficiencies || option.toolProficiencies).flatMap(splitNames),
     skillChoices,
-    skillCount: Number(option.skill_count || option.skillCount || 0),
-    startingEquipment: asArray(option.starting_equipment || option.startingEquipment),
+    skillCount,
+    startingEquipment: asArray(option.starting_equipment || option.startingEquipment).map(textOf).filter(Boolean),
     features: toFeatureMap(option.features),
     subclasses: [],
     spellcasting: option.spellcasting || null,
@@ -97,10 +164,10 @@ export function normaliseClassOption(option = {}) {
 export function normaliseBackgroundOption(option = {}) {
   return {
     description: option.description || '',
-    skillProficiencies: asArray(option.skill_proficiencies || option.skillProficiencies),
-    toolProficiencies: asArray(option.tool_proficiencies || option.toolProficiencies),
+    skillProficiencies: asArray(option.skill_proficiencies || option.skillProficiencies).flatMap(splitNames),
+    toolProficiencies: asArray(option.tool_proficiencies || option.toolProficiencies).flatMap(splitNames),
     languages: Number(option.languages || 0),
-    equipment: asArray(option.equipment),
+    equipment: asArray(option.equipment).map(textOf).filter(Boolean),
     featureName: option.feature_name || option.featureName || '',
     featureDescription: option.feature_description || option.featureDescription || '',
     originFeat2024: option.origin_feat_2024 || option.originFeat2024 || '',
