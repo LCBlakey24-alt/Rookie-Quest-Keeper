@@ -2,6 +2,7 @@
 from routes.auth import router as auth_router
 from routes.admin_feedback import router as admin_feedback_router
 from routes.admin import router as admin_router
+from routes.custom_creatures import router as custom_creatures_router, remove_legacy_custom_creature_routes
 from routes.site_updates import router as site_updates_router
 from routes.admin_audit import router as admin_audit_router
 from routes.admin_metrics import router as admin_metrics_router
@@ -55,6 +56,7 @@ from routes.roll_events import router as roll_events_router
 
 # Focused routes own these modern implementations while the remainder of each
 # legacy router stays registered for backwards-compatible endpoints.
+remove_legacy_custom_creature_routes(admin_router)
 remove_legacy_world_hierarchy_routes(world_router)
 remove_legacy_rook_chat_route(ai_router)
 remove_legacy_rook_form_fill_route(ai_router)
@@ -66,6 +68,9 @@ all_routers = [
     # Register focused admin feedback reads before the legacy admin router so
     # separated feedback/testing list and export endpoints take precedence.
     admin_feedback_router,
+    # Custom creature content is GM-only campaign prep; keep its focused
+    # ownership-enforced routes ahead of the remaining legacy admin endpoints.
+    custom_creatures_router,
     admin_router,
     site_updates_router,
     admin_audit_router,
