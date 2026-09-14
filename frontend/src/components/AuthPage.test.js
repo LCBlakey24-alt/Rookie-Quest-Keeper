@@ -153,7 +153,7 @@ describe('AuthPage', () => {
   });
 
   test.each([undefined, { pathname: 'https://outside.example' }, { pathname: '//outside.example' }, { pathname: '/\\outside.example' }, { pathname: '/auth' }])('rejects unsafe or looping sign-in destinations: %j', from => {
-    expect(getSignInDestination(from).to).Be ? expect(getSignInDestination(from).to).toBe('/home') : null;
+    expect(getSignInDestination(from).to).toBe('/home');
   });
 
   test('preserves the Live Play combat handoff state', () => {
