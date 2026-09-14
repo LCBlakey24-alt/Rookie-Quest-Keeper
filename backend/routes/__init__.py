@@ -38,6 +38,7 @@ from routes.rook_form_fill import router as rook_form_fill_router, remove_legacy
 from routes.rook_generate import router as rook_generate_router, remove_legacy_rook_generate_route
 from routes.rook_studio import router as rook_studio_router
 from routes.inventory import router as inventory_router
+from routes.inventory_grants import router as inventory_grants_router, remove_legacy_inventory_grant_route
 from routes.inventory_claims import router as inventory_claims_router, remove_legacy_inventory_claim_routes
 from routes.offline_inventory_sync import router as offline_inventory_sync_router
 from routes.user_content import router as user_content_router
@@ -77,6 +78,7 @@ remove_legacy_rook_form_fill_route(ai_router)
 remove_legacy_rook_generate_route(ai_router)
 remove_legacy_inventory_claim_routes(inventory_router)
 remove_legacy_inventory_update_route(inventory_router)
+remove_legacy_inventory_grant_route(inventory_router)
 
 all_routers = [
     auth_router,
@@ -126,8 +128,9 @@ all_routers = [
     rook_generate_router,
     ai_router,
     rook_studio_router,  # Draft-first create/review/save workflow for GM content.
-    # Claim/unclaim and ordinary inventory updates are focused before the legacy
-    # inventory router so ownership and campaign-scoped reads remain authoritative.
+    # Grant, claim/unclaim and ordinary inventory updates are focused before the
+    # legacy inventory router so race/ownership/scoping checks stay authoritative.
+    inventory_grants_router,
     inventory_claims_router,
     inventory_router,
     # Narrow retry-safe create endpoint used only by explicitly queued offline combat loot.
