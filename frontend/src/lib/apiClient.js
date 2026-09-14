@@ -14,6 +14,8 @@ const LEGACY_ACCOUNT_ROUTES = {
   'delete:/account/delete': { method: 'delete', url: '/auth/me' },
 };
 
+export const LOGIN_TIMEOUT_MS = 30000;
+
 export function applyLegacyApiCompatibility(config = {}) {
   const key = `${String(config.method || 'get').toLowerCase()}:${String(config.url || '')}`;
   const replacement = LEGACY_ACCOUNT_ROUTES[key];
@@ -23,7 +25,7 @@ export function applyLegacyApiCompatibility(config = {}) {
 
 export function applyLoginTimeoutPolicy(config = {}) {
   if (String(config.url || '') !== '/auth/login') return config;
-  return { ...config, timeout: 0 };
+  return { ...config, timeout: LOGIN_TIMEOUT_MS };
 }
 
 function parseRequestData(data) {
@@ -82,6 +84,16 @@ function isAuthProbeNetworkFailure(error) {
   return url === '/auth/me' && !error?.response;
 }
 
+function isLoginNetworkFailure(error) {
+  return String(error?.config?.url || '') === '/auth/login' && !error?.response;
+}
+
+function isRequestTimeout(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+  return code === 'ECONNABORTED' || code === 'ETIMEDOUT' || message.includes('timeout');
+}
+
 const apiClient = axios.create({
   baseURL: API_BASE,
   timeout: 20000,
@@ -107,6 +119,10 @@ apiClient.interceptors.response.use(
   async (error) => {
     if (error?.response?.data?.detail) {
       error.formattedDetail = formatApiErrorDetail(error.response.data.detail);
+    } else if (isLoginNetworkFailure(error)) {
+      error.formattedDetail = isRequestTimeout(error)
+        ? 'The server is taking longer than expected to respond. It may still be waking up. Please try signing in again in a moment.'
+        : 'Could not reach the Rookie Quest Keeper server. Check your connection and try signing in again.';
     }
 
     // /auth/me is an online validity probe, not the source of the local
@@ -147,9 +163,10 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Free/sleeping hosts can take longer than the old login timeout to wake.
+// Free/sleeping hosts can take longer than an ordinary API request to wake.
 // Start that wake-up as soon as the frontend bundle loads, while the user is
-// still reading the landing/auth UI. This is deliberately fire-and-forget.
+// still reading the landing/auth UI. Login itself still has a bounded timeout
+// so a failed wake-up can never leave the sign-in screen spinning forever.
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
   window.setTimeout(() => {
     wakeBackend();
