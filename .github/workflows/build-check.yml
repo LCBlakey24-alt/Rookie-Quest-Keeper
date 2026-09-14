@@ -19,11 +19,12 @@ jobs:
           python-version: '3.11'
       - name: Install route test dependencies
         run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart
-      - name: Test player access, timeline persistence, handouts and display delivery
+      - name: Test player access, timeline persistence, handouts, display delivery and Rook chat
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
           python -m unittest discover -s backend/tests -p test_player_handout_summary.py -v
           python -m unittest discover -s backend/tests -p test_campaign_display_routes.py -v
+          python -m unittest discover -s backend/tests -p test_rook_chat_route.py -v
 
   frontend-build:
     name: Frontend tests and build
