@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
+import { getSignInDestination } from './auth/SignInRedirect';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import AuthPage from './AuthPage';
@@ -26,6 +27,11 @@ function renderAuthPage(initialPath = '/auth') {
   );
 
   return { ...view, onLogin };
+}
+
+function CurrentLocation() {
+  const location = useLocation();
+  return <output aria-label="Current page">{location.pathname}{location.search}{location.hash}</output>;
 }
 
 describe('AuthPage', () => {
@@ -122,5 +128,27 @@ describe('AuthPage', () => {
 
     expect(toast.success).toHaveBeenCalledWith('Welcome back!');
     expect(onLogin).toHaveBeenCalledWith('keeper-token', 'Rook');
+  });
+
+  test('keeps a sheet destination when switching auth tabs and signing in', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { token: 'keeper-token', username: 'Rook' } });
+    render(<MemoryRouter initialEntries={[{
+      pathname: '/auth', state: { from: { pathname: '/characters/hero-1', search: '?tab=spells', hash: '#prepared' } },
+    }]}><AuthPage /><CurrentLocation /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('tab', { name: /create account/i }));
+    fireEvent.click(screen.getByRole('tab', { name: /sign in/i }));
+    fireEvent.change(screen.getByTestId('login-username'), { target: { value: 'Rook' } });
+    fireEvent.change(screen.getByTestId('login-password'), { target: { value: 'secret-table-key' } });
+    fireEvent.click(screen.getByTestId('login-btn'));
+    await waitFor(() => expect(screen.getByLabelText('Current page')).toHaveTextContent('/characters/hero-1?tab=spells#prepared'));
+  });
+
+  test.each([undefined, { pathname: 'https://outside.example' }, { pathname: '//outside.example' }, { pathname: '/\\outside.example' }, { pathname: '/auth' }])('rejects unsafe or looping sign-in destinations: %j', from => {
+    expect(getSignInDestination(from).to).toBe('/home');
+  });
+
+  test('preserves the Live Play combat handoff state', () => {
+    const state = { campaignId: 'campaign-1', source: 'live-play' };
+    expect(getSignInDestination({ pathname: '/combat', state })).toEqual({ to: '/combat', state });
   });
 });
