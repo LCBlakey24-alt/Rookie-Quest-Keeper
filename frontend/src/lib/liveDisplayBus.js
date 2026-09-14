@@ -26,6 +26,28 @@ async function getApiClient() {
   return module.default;
 }
 
+export function isPlayerDisplayPath(pathname = '') {
+  return /\/player-display(?:\/|$)/.test(String(pathname || ''));
+}
+
+export async function acknowledgePlayerDisplayState(campaignId, state, runtimeWindow = getWindow()) {
+  if (!campaignId || !state?.sync_id || !isPlayerDisplayPath(runtimeWindow?.location?.pathname)) {
+    return { acknowledged: false, skipped: true };
+  }
+
+  try {
+    const apiClient = await getApiClient();
+    const response = await apiClient.post(`/campaigns/${campaignId}/display-state/ack`, {
+      sync_id: state.sync_id,
+      display_target: state.payload?.display_target || '',
+      mode: state.mode || 'blank',
+    });
+    return response?.data || { acknowledged: true, sync_id: state.sync_id };
+  } catch (error) {
+    return { acknowledged: false, error };
+  }
+}
+
 function websocketUrl(campaignId) {
   const runtimeWindow = getWindow();
   if (!campaignId || !runtimeWindow) return '';
@@ -259,12 +281,15 @@ export function subscribeDisplayState(campaignId, onState) {
   return () => handlers.forEach(cleanup => cleanup());
 }
 
-export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 5000 } = {}) {
+export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 5000, acknowledgementIntervalMs = 10000 } = {}) {
   const runtimeWindow = getWindow();
   if (!runtimeWindow) return safeNoop;
 
   let cancelled = false;
   let lastRemoteIdentity = '';
+  let lastAcknowledgementState = null;
+  let acknowledgementInFlight = false;
+  let acknowledgementTimer = null;
   let socket = null;
   let reconnectTimer = null;
   let pingTimer = null;
@@ -273,16 +298,31 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   let remoteReadInFlight = false;
   let socketReady = false;
 
+  const acknowledgeCurrentState = async (state = lastAcknowledgementState) => {
+    if (cancelled || acknowledgementInFlight || !state?.sync_id || !isPlayerDisplayPath(runtimeWindow.location?.pathname)) return;
+    acknowledgementInFlight = true;
+    try {
+      await acknowledgePlayerDisplayState(campaignId, state, runtimeWindow);
+    } finally {
+      acknowledgementInFlight = false;
+    }
+  };
+
   const applyRemoteState = (state) => {
     if (cancelled || !state?.updated_at) return;
     const localState = readStoredDisplayState(campaignId);
     const safeState = reconcileRemoteState(state, normaliseDisplayState(state), localState);
     const identity = stateIdentity(safeState);
-    if (identity === lastRemoteIdentity) return;
+    lastAcknowledgementState = safeState;
+    if (identity === lastRemoteIdentity) {
+      void acknowledgeCurrentState(safeState);
+      return;
+    }
     if (localState && !isNewerState(safeState, localState)) return;
     lastRemoteIdentity = identity;
     saveDisplayState(campaignId, safeState);
     onState(safeState);
+    void acknowledgeCurrentState(safeState);
   };
 
   const readRemoteState = async () => {
@@ -380,9 +420,16 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   readRemoteState();
   connectSocket();
 
+  if (isPlayerDisplayPath(runtimeWindow.location?.pathname)) {
+    acknowledgementTimer = runtimeWindow.setInterval(() => {
+      void acknowledgeCurrentState();
+    }, Math.max(5000, acknowledgementIntervalMs));
+  }
+
   const runtimeDocument = getDocument();
   const onWake = () => {
     if (!socketReady) readRemoteState();
+    else void acknowledgeCurrentState();
   };
   runtimeWindow.addEventListener('focus', onWake);
   runtimeWindow.addEventListener('online', onWake);
@@ -391,6 +438,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   return () => {
     cancelled = true;
     stopPolling();
+    if (acknowledgementTimer) runtimeWindow.clearInterval(acknowledgementTimer);
     if (reconnectTimer) runtimeWindow.clearTimeout(reconnectTimer);
     clearSocketTimers();
     try { socket?.close(); } catch { /* ignore */ }
