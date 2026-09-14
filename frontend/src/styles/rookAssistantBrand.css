@@ -1,0 +1,96 @@
+:root {
+  --rook-gold: #00AEEF;
+  --rook-gold-bright: #7CCBFF;
+  --rook-red: #FF2DAA;
+  --rook-panel: rgba(7, 24, 40, 0.96);
+  --rook-panel-strong: rgba(8, 31, 50, 0.99);
+  --rook-border: rgba(124, 203, 255, 0.34);
+  --rook-text: #FFFFFF;
+  --rook-muted: #A9C6D9;
+}
+
+.rook-assistant-fab {
+  border-color: rgba(124, 203, 255, 0.5);
+  background: #0A2A43;
+  color: #FFFFFF;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), 0 0 30px rgba(0, 174, 239, 0.2);
+  padding: 6px 13px 6px 7px;
+}
+
+.rook-assistant-fab:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.52), 0 0 38px rgba(255, 45, 170, 0.2);
+}
+
+.rook-assistant-fab__glow {
+  background: radial-gradient(circle, rgba(124, 203, 255, 0.22), transparent 66%);
+}
+
+.rook-assistant-fab__mascot,
+.rook-assistant-pill__mascot {
+  border-radius: 10px;
+  object-fit: contain;
+  background: #05090D;
+}
+
+.rook-assistant-panel {
+  border-color: rgba(124, 203, 255, 0.32);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(0, 174, 239, 0.15), transparent 31%),
+    radial-gradient(circle at 100% 10%, rgba(255, 45, 170, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(8, 31, 50, 0.99), rgba(4, 17, 29, 0.99));
+  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.62), 0 0 42px rgba(0, 174, 239, 0.13);
+}
+
+.rook-assistant-header {
+  border-bottom-color: rgba(124, 203, 255, 0.18);
+}
+
+.rook-assistant-orb {
+  width: 50px;
+  height: 50px;
+  padding: 2px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 203, 255, 0.38);
+  background: #05090D;
+  box-shadow: 0 0 20px rgba(0, 174, 239, 0.2);
+}
+
+.rook-assistant-orb__mascot {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 12px;
+}
+
+.rook-assistant-title span {
+  color: #7CCBFF;
+}
+
+.rook-assistant-actions button:hover,
+.rook-assistant-copy:hover {
+  border-color: rgba(255, 45, 170, 0.38);
+  background: rgba(255, 45, 170, 0.08);
+}
+
+.rook-assistant-chip-row button {
+  border-color: rgba(124, 203, 255, 0.24);
+  background: rgba(0, 174, 239, 0.08);
+  color: #DDF4FF;
+}
+
+.rook-assistant-empty__mascot {
+  margin: 0 auto 10px;
+  border-radius: 18px;
+  background: #05090D;
+  box-shadow: 0 0 30px rgba(0, 174, 239, 0.16);
+}
+
+.rook-assistant-pill {
+  border-color: rgba(124, 203, 255, 0.3);
+  background: rgba(8, 31, 50, 0.99);
+}
+
+.rook-assistant-pill strong {
+  background: #FF2DAA;
+  color: #FFFFFF;
+}
