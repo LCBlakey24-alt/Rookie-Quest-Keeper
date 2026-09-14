@@ -1,4 +1,4 @@
-import { clearQueuedNpcIds, playerToCombatant, readQueuedNpcIds } from './LiveEncounterLauncher';
+import { clearQueuedNpcIds, persistQueuedNpcIds, playerToCombatant, readQueuedNpcIds } from './LiveEncounterLauncher';
 
 describe('LiveEncounterLauncher player combat handoff', () => {
   test('preserves temp HP, death saves and concentration', () => {
@@ -58,5 +58,14 @@ describe('LiveEncounterLauncher queued NPC handoff', () => {
     const storage = { getItem: jest.fn(() => '{not-json') };
 
     expect(readQueuedNpcIds(storage, 'campaign-1', [{ id: 'npc-1' }])).toEqual([]);
+  });
+
+  test('queue changes only report success after storage accepts them', () => {
+    const workingStorage = { setItem: jest.fn() };
+    expect(persistQueuedNpcIds(workingStorage, 'campaign-1', ['npc-2'])).toBe(true);
+    expect(workingStorage.setItem).toHaveBeenCalledWith('gm.liveEncounterNpcQueue.campaign-1', JSON.stringify(['npc-2']));
+
+    const failingStorage = { setItem: jest.fn(() => { throw new Error('storage full'); }) };
+    expect(persistQueuedNpcIds(failingStorage, 'campaign-1', [])).toBe(false);
   });
 });
