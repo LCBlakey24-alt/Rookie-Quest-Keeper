@@ -1,5 +1,7 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageSquare } from 'lucide-react';
+import { playerSheetReturnFromLocation } from '@/components/player/playerSheetNavigation';
 import './CleanSheetTabs.minimal.css';
 import './CleanSheetTabsRail.css';
 import './CleanSheetTabsAppShell.css';
@@ -8,8 +10,25 @@ import './CleanLevelUpWizardPolish.css';
 import './CleanSheetTabAttention.css';
 import './CleanSheetFinalHammer.css';
 
+function backCopy(returnTo) {
+  if (returnTo.startsWith('/player/campaign/')) return 'Back to campaign';
+  if (returnTo.startsWith('/mobile/')) return 'Back to mobile campaign';
+  if (returnTo === '/mobile') return 'Back to mobile player home';
+  if (returnTo === '/player') return 'Back to player home';
+  return 'Back to dashboard';
+}
+
 export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const playerReturnTo = playerSheetReturnFromLocation(location);
+  const backLabel = backCopy(playerReturnTo);
+
   const handleBack = () => {
+    if (playerReturnTo) {
+      navigate(playerReturnTo);
+      return;
+    }
     if (onBack) {
       onBack();
       return;
@@ -27,8 +46,8 @@ export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack })
         type="button"
         className="clean-sheet-rail-back"
         onClick={handleBack}
-        aria-label="Back to dashboard"
-        title="Back"
+        aria-label={backLabel}
+        title={backLabel}
       >
         <ArrowLeft size={18} />
         <span>Back</span>
