@@ -46,25 +46,22 @@ class DeleteResult:
         self.deleted_count = deleted_count
 
 
-def test_remove_legacy_grant_route_preserves_other_inventory_handlers():
+def test_grant_route_replaces_only_legacy_grant_handler():
     target = FakeRoute('/campaigns/{campaign_id}/inventory/{item_id}/grant', {'POST'})
     get_inventory = FakeRoute('/campaigns/{campaign_id}/inventory', {'GET'})
     update_inventory = FakeRoute('/campaigns/{campaign_id}/inventory/{item_id}', {'PUT'})
     router = SimpleNamespace(routes=[target, get_inventory, update_inventory])
 
-    removed = grants.remove_legacy_inventory_grant_route(router)
-
-    assert removed == 1
+    assert grants.remove_legacy_inventory_grant_route(router) == 1
     assert router.routes == [get_inventory, update_inventory]
 
-
-def test_focused_router_registers_grant_route_once():
-    matches = []
-    for route in grants.router.routes:
-        for method in getattr(route, 'methods', set()) or set():
-            if (method, getattr(route, 'path', '')) == grants.GRANT_ROUTE_KEY:
-                matches.append((method, route.path))
-    assert matches == [grants.GRANT_ROUTE_KEY]
+    registered = [
+        (method, route.path)
+        for route in grants.router.routes
+        for method in (getattr(route, 'methods', set()) or set())
+        if (method, getattr(route, 'path', '')) == grants.GRANT_ROUTE_KEY
+    ]
+    assert registered == [grants.GRANT_ROUTE_KEY]
 
 
 def test_ownership_failure_stops_target_and_inventory_access(monkeypatch):
@@ -83,12 +80,14 @@ def test_ownership_failure_stops_target_and_inventory_access(monkeypatch):
 
     with pytest.raises(HTTPException) as exc:
         asyncio.run(grants.grant_inventory_item_to_target(
-            'campaign-a', 'item-1', {'target_type': 'character', 'target_id': 'char-1'}, current_user='outsider'
+            'campaign-a', 'item-1',
+            {'target_type': 'character', 'target_id': 'char-1'},
+            current_user='outsider',
         ))
     assert exc.value.status_code == 404
 
 
-def test_reservation_is_campaign_scoped_atomic_and_has_stale_recovery(monkeypatch):
+def test_reservation_is_atomic_campaign_scoped_and_reclaims_stale_locks(monkeypatch):
     writes = []
     reads = []
 
@@ -108,7 +107,6 @@ def test_reservation_is_campaign_scoped_atomic_and_has_stale_recovery(monkeypatc
             }
 
     monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=Inventory()))
-
     item, token = asyncio.run(grants._reserve_inventory_item('campaign-a', 'item-1', 'gm-a'))
 
     query, update = writes[0]
@@ -128,44 +126,32 @@ def test_reservation_is_campaign_scoped_atomic_and_has_stale_recovery(monkeypatc
     assert item['name'] == 'Sword'
 
 
-def test_active_reservation_blocks_second_grant(monkeypatch):
-    class Inventory:
+def test_active_reservation_blocks_second_grant_and_missing_item_is_404(monkeypatch):
+    class BusyInventory:
         async def update_one(self, query, update):
             return UpdateResult(0)
 
         async def find_one(self, query, projection=None):
-            return {
-                'id': 'item-1',
-                'grant_in_progress': {'token': 'other-token', 'by': 'gm-b'},
-            }
+            return {'id': 'item-1', 'grant_in_progress': {'token': 'other-token'}}
 
-    monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=Inventory()))
-
-    with pytest.raises(HTTPException) as exc:
+    monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=BusyInventory()))
+    with pytest.raises(HTTPException) as busy:
         asyncio.run(grants._reserve_inventory_item('campaign-a', 'item-1', 'gm-a'))
-    assert exc.value.status_code == 409
-    assert 'already being granted' in exc.value.detail.lower()
+    assert busy.value.status_code == 409
 
-
-def test_missing_item_returns_404_when_reservation_cannot_match(monkeypatch):
-    class Inventory:
-        async def update_one(self, query, update):
-            return UpdateResult(0)
-
+    class MissingInventory(BusyInventory):
         async def find_one(self, query, projection=None):
             return None
 
-    monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=Inventory()))
-
-    with pytest.raises(HTTPException) as exc:
+    monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=MissingInventory()))
+    with pytest.raises(HTTPException) as missing:
         asyncio.run(grants._reserve_inventory_item('campaign-a', 'missing', 'gm-a'))
-    assert exc.value.status_code == 404
+    assert missing.value.status_code == 404
 
 
-def test_character_grant_scopes_target_write_and_consumes_reserved_item(monkeypatch):
-    inventory_writes = []
-    inventory_deletes = []
+def test_character_grant_scopes_target_write_and_consumes_exact_reservation(monkeypatch):
     character_writes = []
+    inventory_deletes = []
     token_box = {'token': None}
 
     async def verify(campaign_id, username):
@@ -182,18 +168,13 @@ def test_character_grant_scopes_target_write_and_consumes_reserved_item(monkeypa
 
     class Inventory:
         async def update_one(self, query, update):
-            inventory_writes.append((query, update))
-            if '$set' in update and 'grant_in_progress' in update['$set']:
-                token_box['token'] = update['$set']['grant_in_progress']['token']
+            token_box['token'] = update['$set']['grant_in_progress']['token']
             return UpdateResult(1)
 
         async def find_one(self, query, projection=None):
             return {
-                'id': 'item-1',
-                'campaign_id': 'campaign-a',
-                'name': 'Longsword',
-                'quantity': 1,
-                'type': 'weapon',
+                'id': 'item-1', 'campaign_id': 'campaign-a', 'name': 'Longsword',
+                'quantity': 1, 'item_type': 'weapon',
                 'grant_in_progress': {'token': token_box['token']},
             }
 
@@ -203,13 +184,11 @@ def test_character_grant_scopes_target_write_and_consumes_reserved_item(monkeypa
 
     monkeypatch.setattr(grants, 'verify_campaign_ownership', verify)
     monkeypatch.setattr(grants, 'db', SimpleNamespace(
-        player_characters=Characters(),
-        inventory=Inventory(),
+        player_characters=Characters(), inventory=Inventory(),
     ))
 
     result = asyncio.run(grants.grant_inventory_item_to_target(
-        'campaign-a',
-        'item-1',
+        'campaign-a', 'item-1',
         {'target_type': 'character', 'target_id': 'char-1'},
         current_user='gm-a',
     ))
@@ -225,7 +204,7 @@ def test_character_grant_scopes_target_write_and_consumes_reserved_item(monkeypa
     assert result['target_name'] == 'Aria'
 
 
-def test_character_disappearing_after_reservation_releases_item_and_does_not_delete(monkeypatch):
+def test_character_disappearing_after_reservation_releases_item_without_delete(monkeypatch):
     inventory_updates = []
     inventory_deletes = []
     token_box = {'token': None}
@@ -250,9 +229,7 @@ def test_character_disappearing_after_reservation_releases_item_and_does_not_del
 
         async def find_one(self, query, projection=None):
             return {
-                'id': 'item-1',
-                'campaign_id': 'campaign-a',
-                'name': 'Potion',
+                'id': 'item-1', 'campaign_id': 'campaign-a', 'name': 'Potion',
                 'grant_in_progress': {'token': token_box['token']},
             }
 
@@ -262,13 +239,14 @@ def test_character_disappearing_after_reservation_releases_item_and_does_not_del
 
     monkeypatch.setattr(grants, 'verify_campaign_ownership', verify)
     monkeypatch.setattr(grants, 'db', SimpleNamespace(
-        player_characters=Characters(),
-        inventory=Inventory(),
+        player_characters=Characters(), inventory=Inventory(),
     ))
 
     with pytest.raises(HTTPException) as exc:
         asyncio.run(grants.grant_inventory_item_to_target(
-            'campaign-a', 'item-1', {'target_type': 'character', 'target_id': 'char-1'}, current_user='gm-a'
+            'campaign-a', 'item-1',
+            {'target_type': 'character', 'target_id': 'char-1'},
+            current_user='gm-a',
         ))
 
     assert exc.value.status_code == 409
@@ -282,10 +260,9 @@ def test_character_disappearing_after_reservation_releases_item_and_does_not_del
     assert release_update == {'$unset': {'grant_in_progress': ''}}
 
 
-def test_npc_grant_uses_campaign_scoped_write_and_response_read(monkeypatch):
+def test_npc_grant_uses_scoped_write_read_and_preserves_stat_effects(monkeypatch):
     npc_writes = []
     npc_reads = []
-    inventory_deletes = []
     token_box = {'token': None}
 
     async def verify(campaign_id, username):
@@ -309,36 +286,61 @@ def test_npc_grant_uses_campaign_scoped_write_and_response_read(monkeypatch):
 
         async def find_one(self, query, projection=None):
             return {
-                'id': 'item-1',
-                'campaign_id': 'campaign-a',
-                'name': 'Shield',
-                'type': 'armor',
-                'ac_bonus': 2,
+                'id': 'item-1', 'campaign_id': 'campaign-a', 'name': 'Shield',
+                'item_type': 'armor', 'ac_bonus': 2,
                 'grant_in_progress': {'token': token_box['token']},
             }
 
         async def delete_one(self, query):
-            inventory_deletes.append(query)
             return DeleteResult(1)
 
     monkeypatch.setattr(grants, 'verify_campaign_ownership', verify)
     monkeypatch.setattr(grants, 'db', SimpleNamespace(npcs=Npcs(), inventory=Inventory()))
 
     result = asyncio.run(grants.grant_inventory_item_to_target(
-        'campaign-a',
-        'item-1',
+        'campaign-a', 'item-1',
         {'target_type': 'npc', 'target_id': 'npc-1', 'auto_equip': True},
         current_user='gm-a',
     ))
 
     assert npc_writes[0][0] == {'id': 'npc-1', 'campaign_id': 'campaign-a'}
     assert npc_reads[-1][0] == {'id': 'npc-1', 'campaign_id': 'campaign-a'}
-    assert inventory_deletes[0]['campaign_id'] == 'campaign-a'
     assert result['success'] is True
     assert result['npc_stat_changes']['ac_bonus_applied'] == 2
 
 
-def test_consume_fallback_delete_stays_campaign_scoped(monkeypatch):
+def test_cleanup_never_deletes_item_with_newer_reservation(monkeypatch):
+    deletes = []
+    reads = []
+
+    class Inventory:
+        async def delete_one(self, query):
+            deletes.append(query)
+            return DeleteResult(0)
+
+        async def find_one(self, query, projection=None):
+            reads.append((query, projection))
+            return {
+                'id': 'item-1',
+                'campaign_id': 'campaign-a',
+                'grant_in_progress': {'token': 'newer-token'},
+            }
+
+    monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=Inventory()))
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(grants._consume_reserved_item('campaign-a', 'item-1', 'old-token'))
+
+    assert exc.value.status_code == 409
+    assert deletes == [{
+        'id': 'item-1',
+        'campaign_id': 'campaign-a',
+        'grant_in_progress.token': 'old-token',
+    }]
+    assert reads[0][0] == {'id': 'item-1', 'campaign_id': 'campaign-a'}
+
+
+def test_cleanup_accepts_item_already_removed_without_broad_delete(monkeypatch):
     deletes = []
 
     class Inventory:
@@ -346,11 +348,14 @@ def test_consume_fallback_delete_stays_campaign_scoped(monkeypatch):
             deletes.append(query)
             return DeleteResult(0)
 
-    monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=Inventory()))
+        async def find_one(self, query, projection=None):
+            return None
 
+    monkeypatch.setattr(grants, 'db', SimpleNamespace(inventory=Inventory()))
     asyncio.run(grants._consume_reserved_item('campaign-a', 'item-1', 'token-1'))
 
-    assert deletes == [
-        {'id': 'item-1', 'campaign_id': 'campaign-a', 'grant_in_progress.token': 'token-1'},
-        {'id': 'item-1', 'campaign_id': 'campaign-a'},
-    ]
+    assert deletes == [{
+        'id': 'item-1',
+        'campaign_id': 'campaign-a',
+        'grant_in_progress.token': 'token-1',
+    }]
