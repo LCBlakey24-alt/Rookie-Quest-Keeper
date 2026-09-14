@@ -236,7 +236,11 @@ def test_world_path_add_update_delete_are_atomic_scoped_and_validate_endpoints(m
 
     assert reads[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
     assert reads[0][1] == {'_id': 0, 'pins': 1, 'paths': 1}
-    assert writes[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
+    assert writes[0][0] == {
+        'id': 'map-1',
+        'campaign_id': 'campaign-a',
+        'pins.id': {'$all': ['a', 'b']},
+    }
     assert writes[0][1]['$push']['paths']['from_pin_id'] == 'a'
     assert added['to_pin_id'] == 'b'
 
@@ -426,12 +430,39 @@ def test_one_sided_path_endpoint_edit_validates_against_existing_other_endpoint(
         'campaign-a', 'map-1', 'path-1', {'from_pin_id': 'c'}, username='gm-a'
     ))
 
-    assert writes[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a', 'paths.id': 'path-1'}
+    assert writes[0][0] == {
+        'id': 'map-1',
+        'campaign_id': 'campaign-a',
+        'paths.id': 'path-1',
+        'pins.id': {'$all': ['c', 'b']},
+    }
     assert writes[0][1]['$set']['paths.$.from_pin_id'] == 'c'
     assert 'paths.$.to_pin_id' not in writes[0][1]['$set']
     assert reads[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
     assert result['from_pin_id'] == 'c'
     assert result['to_pin_id'] == 'b'
+
+
+def test_path_write_returns_conflict_if_endpoint_disappears_after_validation(monkeypatch):
+    async def verify(campaign_id, username):
+        return None
+
+    class WorldMaps:
+        async def find_one(self, query, projection=None):
+            return {'pins': [{'id': 'a'}, {'id': 'b'}], 'paths': []}
+
+        async def update_one(self, query, update):
+            assert query['pins.id'] == {'$all': ['a', 'b']}
+            return Result(0)
+
+    monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(world_maps=WorldMaps()))
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(maps.add_world_map_path(
+            'campaign-a', 'map-1', {'from_pin_id': 'a', 'to_pin_id': 'b'}, username='gm-a'
+        ))
+    assert exc.value.status_code == 409
 
 
 def test_local_linked_place_must_exist_in_campaign(monkeypatch):
