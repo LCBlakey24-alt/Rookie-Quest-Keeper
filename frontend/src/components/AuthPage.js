@@ -5,6 +5,7 @@ import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff, BookOpen, Sparkl
 import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { getSignInDestination } from '@/components/auth/SignInRedirect';
+import ReadOnlyDemoAccess from '@/components/auth/ReadOnlyDemoAccess';
 import './AuthPage.css';
 
 const AUTH_COPY = {
@@ -518,6 +519,8 @@ export default function AuthPage({ onLogin = () => {} }) {
 
             <AuthNotice>{copy.notice}</AuthNotice>
             <AuthAssurancePanel {...assurance} />
+
+            {mode === 'login' && <ReadOnlyDemoAccess />}
 
             {mode === 'login' && stagingCredentials && (
               <section className="rqk-staging-access" aria-label="Staging test account">

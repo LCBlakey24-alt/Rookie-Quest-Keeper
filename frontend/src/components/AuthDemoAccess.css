@@ -1,0 +1,62 @@
+/* Public read-only demo CTA on the authentication gateway. */
+.rqk-demo-access {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px;
+  border: 1px solid rgba(86, 185, 255, 0.32);
+  border-radius: 16px;
+  background: rgba(31, 126, 177, 0.10);
+}
+
+.rqk-demo-access__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.rqk-demo-access__eyebrow {
+  color: var(--rq-accent-secondary, #56b9ff);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rqk-demo-access strong {
+  color: var(--rq-text-primary, #ffffff);
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.rqk-demo-access p {
+  margin: 0;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.82));
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+#root .rqk-auth-page .rqk-demo-access__button {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 16px;
+  border: 1px solid rgba(86, 185, 255, 0.42) !important;
+  border-radius: 14px !important;
+  background: #102b40 !important;
+  color: #ffffff !important;
+  text-decoration: none;
+  font-weight: 950;
+  box-shadow: none !important;
+  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+#root .rqk-auth-page .rqk-demo-access__button:hover,
+#root .rqk-auth-page .rqk-demo-access__button:focus-visible {
+  transform: translateY(-1px);
+  border-color: #56b9ff !important;
+  background: #143b57 !important;
+  outline: none;
+}

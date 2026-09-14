@@ -107,7 +107,7 @@ export async function previewAdapter(config) {
 }
 
 export function installPreviewTransport(runtime = window) {
-  if (!isLocalPreview(runtime.location.hostname)) return;
+  if (!isLocalPreview(runtime.location.hostname, runtime)) return;
   // Set this before App and its legacy axios clients are evaluated.
   axios.defaults.adapter = previewAdapter;
   const originalFetch = runtime.fetch?.bind(runtime);

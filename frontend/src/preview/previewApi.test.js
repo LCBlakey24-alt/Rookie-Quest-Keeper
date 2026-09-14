@@ -86,3 +86,16 @@ test('a newly created character can join using the preview campaign code', () =>
   api.request('post', '/campaign-invites/join', { character_id: character.id, join_code });
   expect(api.request('get', `/characters/${character.id}`).campaign_id).toBe(campaignId);
 });
+
+test('public demo mode serves sample data but rejects every write without persisting it', () => {
+  const storage = memoryStorage();
+  const api = createPreviewApi(storage, { readOnly: true });
+
+  expect(api.request('get', '/characters/demo-fighter-1').current_hit_points).toBe(12);
+  expect(() => api.request('patch', '/characters/demo-fighter-1', { current_hit_points: 0 }))
+    .toThrow('Demo mode is read-only');
+  expect(() => api.request('post', `/campaigns/${campaignId}/timeline`, { title: 'Should not save' }))
+    .toThrow('Demo mode is read-only');
+  expect(api.request('get', '/characters/demo-fighter-1').current_hit_points).toBe(12);
+  expect(storage.getItem(PREVIEW_STORAGE_KEY)).toBeNull();
+});

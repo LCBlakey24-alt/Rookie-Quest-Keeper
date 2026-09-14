@@ -1,7 +1,7 @@
 import { buildLongRestUpdates, buildShortRestUpdates } from '../data/characterRestRules';
 import { canonicalisePreviewCreatedCharacter } from './previewCharacterCreation';
 import { createPreviewSeed } from './previewSeed';
-import { PREVIEW_STORAGE_KEY, PREVIEW_USER } from './previewMode';
+import { isReadOnlyDemo, PREVIEW_STORAGE_KEY, PREVIEW_USER } from './previewMode';
 
 const copy = value => JSON.parse(JSON.stringify(value));
 const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
@@ -18,13 +18,19 @@ function publicCampaign(campaign) {
   return { id, name, description, system, rules_edition, world_name, environment };
 }
 
-export function createPreviewApi(storage = typeof localStorage === 'undefined' ? null : localStorage) {
+export function createPreviewApi(
+  storage = typeof localStorage === 'undefined' ? null : localStorage,
+  options = {},
+) {
+  const readOnly = options.readOnly ?? isReadOnlyDemo();
   let state;
-  try {
-    const saved = JSON.parse(storage?.getItem(PREVIEW_STORAGE_KEY) || 'null');
-    if (saved?.version === 1 && Array.isArray(saved.campaigns) && Array.isArray(saved.characters)
-      && saved.collections && saved.objects && saved.receipts && Array.isArray(saved.notes) && Array.isArray(saved.recaps) && Array.isArray(saved.homebrew)) state = saved;
-  } catch { /* Start with sample data when browser storage is unavailable. */ }
+  if (!readOnly) {
+    try {
+      const saved = JSON.parse(storage?.getItem(PREVIEW_STORAGE_KEY) || 'null');
+      if (saved?.version === 1 && Array.isArray(saved.campaigns) && Array.isArray(saved.characters)
+        && saved.collections && saved.objects && saved.receipts && Array.isArray(saved.notes) && Array.isArray(saved.recaps) && Array.isArray(saved.homebrew)) state = saved;
+    } catch { /* Start with sample data when browser storage is unavailable. */ }
+  }
   if (!state) state = createPreviewSeed();
 
   const findCampaign = id => state.campaigns.find(item => item.id === id) || fail('Preview campaign not found.', 404);
@@ -182,10 +188,13 @@ export function createPreviewApi(storage = typeof localStorage === 'undefined' ?
     request(method, url, body = {}) {
       const verb = String(method || 'get').toLowerCase();
       const path = new URL(url, 'https://preview.invalid').pathname.replace(/^\/api(?=\/|$)/, '').replace(/\/$/, '') || '/';
+      if (readOnly && verb !== 'get') {
+        fail('Demo mode is read-only. Sign in or create an account to save changes.', 403);
+      }
       const before = verb === 'get' ? null : copy(state);
       try {
         const result = dispatch(verb, path, body);
-        if (verb !== 'get' && storage) {
+        if (!readOnly && verb !== 'get' && storage) {
           try { storage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(state)); }
           catch { fail('This browser could not save your preview change. Free some storage and try again.', 507); }
         }
