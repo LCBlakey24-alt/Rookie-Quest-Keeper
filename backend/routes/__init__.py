@@ -28,6 +28,7 @@ from routes.rook_form_fill import router as rook_form_fill_router, remove_legacy
 from routes.rook_generate import router as rook_generate_router, remove_legacy_rook_generate_route
 from routes.rook_studio import router as rook_studio_router
 from routes.inventory import router as inventory_router
+from routes.inventory_claims import router as inventory_claims_router, remove_legacy_inventory_claim_routes
 from routes.offline_inventory_sync import router as offline_inventory_sync_router
 from routes.user_content import router as user_content_router
 from routes.player_rules import router as player_rules_router
@@ -58,6 +59,7 @@ remove_legacy_world_hierarchy_routes(world_router)
 remove_legacy_rook_chat_route(ai_router)
 remove_legacy_rook_form_fill_route(ai_router)
 remove_legacy_rook_generate_route(ai_router)
+remove_legacy_inventory_claim_routes(inventory_router)
 
 all_routers = [
     auth_router,
@@ -96,6 +98,9 @@ all_routers = [
     rook_generate_router,
     ai_router,
     rook_studio_router,  # Draft-first create/review/save workflow for GM content.
+    # Claim/unclaim is registered before the legacy inventory router so the
+    # server enforces character ownership and campaign-scoped writes.
+    inventory_claims_router,
     inventory_router,
     # Narrow retry-safe create endpoint used only by explicitly queued offline combat loot.
     offline_inventory_sync_router,
