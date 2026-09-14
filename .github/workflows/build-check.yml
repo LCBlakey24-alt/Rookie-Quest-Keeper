@@ -29,7 +29,8 @@ jobs:
             backend/tests/test_campaign_display_routes.py \
             backend/tests/test_rook_brain.py \
             backend/tests/test_rook_chat_route.py \
-            backend/tests/test_rook_form_fill_route.py
+            backend/tests/test_rook_form_fill_route.py \
+            backend/tests/test_rook_generate_route.py
 
   frontend-build:
     name: Frontend tests and build
