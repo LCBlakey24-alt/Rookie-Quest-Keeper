@@ -154,6 +154,11 @@ def _validate_path_endpoints(world_map: Dict[str, Any], from_pin_id: Any, to_pin
     return from_id, to_id
 
 
+def _path_endpoint_guard(from_pin_id: str, to_pin_id: str) -> Dict[str, Any]:
+    """Require both path endpoints to still exist at the instant of mutation."""
+    return {'$all': [from_pin_id, to_pin_id]}
+
+
 @router.post('/campaigns/{campaign_id}/world-maps/{map_id}/pins')
 async def add_world_map_pin(
     campaign_id: str,
@@ -275,11 +280,18 @@ async def add_world_map_path(
         'is_bidirectional': path_data.get('is_bidirectional', True),
     }
     result = await db.world_maps.update_one(
-        {'id': map_id, 'campaign_id': campaign_id},
+        {
+            'id': map_id,
+            'campaign_id': campaign_id,
+            'pins.id': _path_endpoint_guard(from_pin_id, to_pin_id),
+        },
         {'$push': {'paths': new_path}, '$set': {'updated_at': _now()}},
     )
     if result.matched_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='World map not found')
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Travel path endpoints changed before the path could be saved. Refresh and try again.',
+        )
     return new_path
 
 
@@ -295,6 +307,13 @@ async def update_world_map_path(
     changes = _allowed(path_data, WORLD_PATH_FIELDS)
     if not changes:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='No supported path fields to update')
+
+    update_query: Dict[str, Any] = {
+        'id': map_id,
+        'campaign_id': campaign_id,
+        'paths.id': path_id,
+    }
+    endpoint_guarded = False
     if 'from_pin_id' in changes or 'to_pin_id' in changes:
         world_map = await _world_map_for_path_validation(campaign_id, map_id)
         existing_path = next(
@@ -312,13 +331,18 @@ async def update_world_map_path(
             changes['from_pin_id'] = from_pin_id
         if 'to_pin_id' in changes:
             changes['to_pin_id'] = to_pin_id
+        update_query['pins.id'] = _path_endpoint_guard(from_pin_id, to_pin_id)
+        endpoint_guarded = True
+
     set_values = {f'paths.$.{key}': value for key, value in changes.items()}
     set_values['updated_at'] = _now()
-    result = await db.world_maps.update_one(
-        {'id': map_id, 'campaign_id': campaign_id, 'paths.id': path_id},
-        {'$set': set_values},
-    )
+    result = await db.world_maps.update_one(update_query, {'$set': set_values})
     if result.matched_count == 0:
+        if endpoint_guarded:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail='Travel path endpoints changed before the update completed. Refresh and try again.',
+            )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Path not found')
     return await _embedded_after_update(
         db.world_maps,
