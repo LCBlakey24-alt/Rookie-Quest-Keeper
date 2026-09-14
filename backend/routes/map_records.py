@@ -43,15 +43,15 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-async def _require_campaign_location(campaign_id: str, location_id: str) -> None:
-    location_id = str(location_id or '').strip()
-    if not location_id:
+async def _require_campaign_location(campaign_id: str, location_id: str) -> str:
+    normalised_location_id = str(location_id or '').strip()
+    if not normalised_location_id:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail='Choose a campaign Location before creating a local map',
         )
     location = await db.locations.find_one(
-        {'id': location_id, 'campaign_id': campaign_id},
+        {'id': normalised_location_id, 'campaign_id': campaign_id},
         {'_id': 0, 'id': 1},
     )
     if not location:
@@ -59,6 +59,7 @@ async def _require_campaign_location(campaign_id: str, location_id: str) -> None
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail='Linked Location was not found in this campaign',
         )
+    return normalised_location_id
 
 
 @router.put('/campaigns/{campaign_id}/maps/{map_id}', response_model=GameMap)
@@ -117,11 +118,11 @@ async def create_local_map_record(
     username: str = Depends(get_current_user),
 ):
     await verify_campaign_ownership(campaign_id, username)
-    await _require_campaign_location(campaign_id, map_data.location_id)
+    location_id = await _require_campaign_location(campaign_id, map_data.location_id)
 
     local_map = LocalMap(
         campaign_id=campaign_id,
-        location_id=map_data.location_id,
+        location_id=location_id,
         name=map_data.name,
         map_type=map_data.map_type,
         image_data=map_data.image_data,
