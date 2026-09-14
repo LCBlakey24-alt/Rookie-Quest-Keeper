@@ -22,6 +22,12 @@ from routes.live_party import router as live_party_router
 from routes.combat import router as combat_router
 from routes.combat_initiative_submissions import router as combat_initiative_submissions_router
 from routes.players import router as players_router
+from routes.campaign_record_updates import (
+    router as campaign_record_updates_router,
+    remove_legacy_npc_update_route,
+    remove_legacy_player_update_route,
+    remove_legacy_inventory_update_route,
+)
 from routes.maps import router as maps_router
 from routes.map_records import router as map_records_router, remove_legacy_map_record_routes
 from routes.map_mutations import router as map_mutations_router, remove_legacy_map_mutation_routes
@@ -62,12 +68,15 @@ from routes.roll_events import router as roll_events_router
 remove_legacy_custom_creature_routes(admin_router)
 remove_legacy_world_record_update_routes(world_router)
 remove_legacy_world_hierarchy_routes(world_router)
+remove_legacy_npc_update_route(npcs_router)
+remove_legacy_player_update_route(players_router)
 remove_legacy_map_record_routes(maps_router)
 remove_legacy_map_mutation_routes(maps_router)
 remove_legacy_rook_chat_route(ai_router)
 remove_legacy_rook_form_fill_route(ai_router)
 remove_legacy_rook_generate_route(ai_router)
 remove_legacy_inventory_claim_routes(inventory_router)
+remove_legacy_inventory_update_route(inventory_router)
 
 all_routers = [
     auth_router,
@@ -95,6 +104,9 @@ all_routers = [
     world_hierarchy_router,
     world_router,
     notes_router,
+    # NPC/player/inventory PUT responses stay inside the same campaign boundary
+    # as their writes while their legacy routers keep all other behavior.
+    campaign_record_updates_router,
     npcs_router,
     live_state_router,
     live_party_router,
@@ -114,8 +126,8 @@ all_routers = [
     rook_generate_router,
     ai_router,
     rook_studio_router,  # Draft-first create/review/save workflow for GM content.
-    # Claim/unclaim is registered before the legacy inventory router so the
-    # server enforces character ownership and campaign-scoped writes.
+    # Claim/unclaim and ordinary inventory updates are focused before the legacy
+    # inventory router so ownership and campaign-scoped reads remain authoritative.
     inventory_claims_router,
     inventory_router,
     # Narrow retry-safe create endpoint used only by explicitly queued offline combat loot.
