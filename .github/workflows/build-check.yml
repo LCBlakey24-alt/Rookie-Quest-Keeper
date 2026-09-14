@@ -23,8 +23,13 @@ jobs:
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
           python -m unittest discover -s backend/tests -p test_player_handout_summary.py -v
-      - name: Test display delivery and focused Rook chat
-        run: python -m pytest -q backend/tests/test_campaign_display_routes.py backend/tests/test_rook_chat_route.py
+      - name: Test display delivery and focused Rook routes
+        run: |
+          python -m pytest -q \
+            backend/tests/test_campaign_display_routes.py \
+            backend/tests/test_rook_brain.py \
+            backend/tests/test_rook_chat_route.py \
+            backend/tests/test_rook_form_fill_route.py
 
   frontend-build:
     name: Frontend tests and build

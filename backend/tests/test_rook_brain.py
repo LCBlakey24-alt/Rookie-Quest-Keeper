@@ -25,6 +25,14 @@ def test_rook_form_fill_fragment_is_json_and_field_focused():
     assert "valid JSON only" in fragment
 
 
+def test_rook_form_fill_fragment_can_be_player_safe():
+    fragment = rook_form_fill_fragment(player_facing=True)
+
+    assert "PLAYER-FACING SAFETY" in fragment
+    assert "Do not reveal GM-only secrets" in fragment
+    assert "JSON OUTPUT RULES" in fragment
+
+
 def test_rook_generate_fragment_is_json_generation_focused():
     fragment = rook_generate_fragment()
 

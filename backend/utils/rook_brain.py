@@ -113,9 +113,14 @@ def rook_brain_fragment(
     return "\n\n".join(part.strip() for part in parts if part and part.strip())
 
 
-def rook_form_fill_fragment() -> str:
+def rook_form_fill_fragment(*, player_facing: bool = False) -> str:
     """Prompt fragment tuned for `/rook/form-fill`."""
-    return rook_brain_fragment("form_fill", json_only=True, include_creative_bank=True)
+    return rook_brain_fragment(
+        "form_fill",
+        json_only=True,
+        player_facing=player_facing,
+        include_creative_bank=True,
+    )
 
 
 def rook_generate_fragment() -> str:
