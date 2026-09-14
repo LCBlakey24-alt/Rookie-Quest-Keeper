@@ -58,7 +58,8 @@ export default function PlayerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState(readRememberedCharacterId);
-  const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
+  const [handoutSummary, setHandoutSummary] = useState(null);
+  const [handoutSummaryError, setHandoutSummaryError] = useState(false);
   const [loadWarning, setLoadWarning] = useState('');
 
   const selectedCharacter = useMemo(
@@ -67,9 +68,10 @@ export default function PlayerDashboard() {
   );
 
   const dashboardTabs = useMemo(() => tabs.map((tab) => {
-    if (tab.id !== 'handouts' || handoutSummary.unread <= 0) return tab;
-    return { ...tab, badge: handoutSummary.unread };
-  }), [handoutSummary.unread]);
+    const unread = Number(handoutSummary?.unread || 0);
+    if (tab.id !== 'handouts' || unread <= 0) return tab;
+    return { ...tab, badge: unread };
+  }), [handoutSummary]);
 
   const activeTabMeta = useMemo(
     () => dashboardTabs.find((tab) => tab.id === activeTab) || dashboardTabs[0],
@@ -137,10 +139,17 @@ export default function PlayerDashboard() {
     try {
       const summary = await fetchPlayerHandoutSummary(apiClient);
       setHandoutSummary(summary);
+      setHandoutSummaryError(false);
       return true;
     } catch {
+      setHandoutSummaryError(true);
       return false;
     }
+  }, []);
+
+  const acceptHandoutSummary = useCallback((summary) => {
+    setHandoutSummary(summary);
+    setHandoutSummaryError(false);
   }, []);
 
   useEffect(() => {
@@ -171,7 +180,7 @@ export default function PlayerDashboard() {
     try {
       const [result, handoutsOk] = await Promise.all([loadPlayerData(), refreshHandouts()]);
       if (result.ok && handoutsOk) toast.success('Player dashboard refreshed');
-      else if (result.ok) toast.warning('Dashboard refreshed, but the received-handout count could not update.');
+      else if (result.ok) toast.warning('Dashboard refreshed, but received-handout status is still unavailable.');
     } finally {
       setRefreshing(false);
     }
@@ -216,6 +225,18 @@ export default function PlayerDashboard() {
         </aside>
       )}
 
+      {handoutSummaryError && (
+        <aside data-testid="player-handout-summary-warning" role="status" style={handoutWarningStyle}>
+          <Mail size={18} aria-hidden="true" style={{ flex: '0 0 auto' }} />
+          <div>
+            <strong>Received-handout status is temporarily unavailable.</strong>
+            <span>{handoutSummary
+              ? 'Keeping your last known unread count until the next successful check.'
+              : 'Unread items have not been counted yet. Open Received or refresh to try again.'}</span>
+          </div>
+        </aside>
+      )}
+
       <PlayerJoinStrip
         characters={characters}
         selectedCharacterId={selectedCharacterId}
@@ -254,7 +275,7 @@ export default function PlayerDashboard() {
         {activeTab === 'handouts' && (
           <Suspense fallback={<div style={tabLoadingStyle}>Loading received handouts…</div>}>
             <div className="player-handouts-surface">
-              <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />
+              <PlayerHandoutsPanel onSummaryChange={acceptHandoutSummary} />
             </div>
           </Suspense>
         )}
@@ -283,6 +304,13 @@ const loadWarningStyle = {
   borderRadius: 5,
   background: '#102B40',
   color: '#FFFFFF',
+};
+
+const handoutWarningStyle = {
+  ...loadWarningStyle,
+  marginTop: 8,
+  border: '1px solid rgba(124, 203, 255, 0.32)',
+  borderLeft: '1px solid #7CCBFF',
 };
 
 const tabLoadingStyle = {

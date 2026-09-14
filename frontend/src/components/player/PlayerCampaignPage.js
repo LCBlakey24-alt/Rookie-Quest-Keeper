@@ -42,16 +42,25 @@ export function PlayerCampaignWorkspace({ campaignId }) {
   const [data, setData] = useState({ campaign: null, party: null, characters: null });
   const [loading, setLoading] = useState(true);
   const [failures, setFailures] = useState([]);
-  const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
+  const [handoutSummary, setHandoutSummary] = useState(null);
+  const [handoutSummaryError, setHandoutSummaryError] = useState(false);
 
   const refreshHandoutSummary = useCallback(async () => {
     try {
       const summary = await fetchPlayerHandoutSummary(apiClient, campaignId);
       setHandoutSummary(summary);
+      setHandoutSummaryError(false);
+      return true;
     } catch {
-      // Handout counts are secondary; the full Handouts tab still has its own error state.
+      setHandoutSummaryError(true);
+      return false;
     }
   }, [campaignId]);
+
+  const acceptHandoutSummary = useCallback((summary) => {
+    setHandoutSummary(summary);
+    setHandoutSummaryError(false);
+  }, []);
 
   const refresh = useCallback(async () => {
     const request = ++requestRef.current;
@@ -82,8 +91,9 @@ export function PlayerCampaignWorkspace({ campaignId }) {
 
   const { campaign, party, characters } = data;
   const environment = campaign?.environment || {};
-  const campaignTabs = tabs.map(tab => tab.id === 'handouts' && handoutSummary.unread > 0
-    ? { ...tab, badge: handoutSummary.unread }
+  const unreadHandouts = Number(handoutSummary?.unread || 0);
+  const campaignTabs = tabs.map(tab => tab.id === 'handouts' && unreadHandouts > 0
+    ? { ...tab, badge: unreadHandouts }
     : tab);
 
   return (
@@ -98,6 +108,11 @@ export function PlayerCampaignWorkspace({ campaignId }) {
       </header>
       {failures.length > 0 && <div role="status" className="player-campaign-warning">
         Could not refresh {failures.join(', ')}. Previously loaded information remains visible. Try Refresh to check again.
+      </div>}
+      {handoutSummaryError && <div role="status" data-testid="player-campaign-handout-summary-warning" className="player-campaign-warning">
+        {handoutSummary
+          ? 'Could not refresh unread Handouts. Keeping the last known count until the next successful check.'
+          : 'Could not check unread Handouts yet. Open the Handouts tab or press Refresh to try again.'}
       </div>}
       <Tabs defaultValue="campaign">
         <TabsList className="player-campaign-tabs" aria-label="Campaign sections">
@@ -151,7 +166,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
           </div>
         </TabsContent>
         <TabsContent value="notes"><Suspense fallback={<p>Loading notes…</p>}><PlayerNotesTab campaignId={campaignId} /></Suspense></TabsContent>
-        <TabsContent value="handouts"><Suspense fallback={<p>Loading handouts…</p>}><PlayerHandoutsPanel campaignId={campaignId} onSummaryChange={setHandoutSummary} /></Suspense></TabsContent>
+        <TabsContent value="handouts"><Suspense fallback={<p>Loading handouts…</p>}><PlayerHandoutsPanel campaignId={campaignId} onSummaryChange={acceptHandoutSummary} /></Suspense></TabsContent>
         <TabsContent value="timeline"><Suspense fallback={<p>Loading timeline…</p>}><SessionTimeline campaignId={campaignId} readOnly /></Suspense></TabsContent>
       </Tabs>
     </main>

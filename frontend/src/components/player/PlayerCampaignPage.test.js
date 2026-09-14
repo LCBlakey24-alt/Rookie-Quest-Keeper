@@ -42,3 +42,15 @@ test('keeps loaded campaign details when refresh fails', async () => {
   expect(screen.getByText('Test table')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Open Hero sheet' })).toBeInTheDocument();
 });
+
+test('shows an explicit warning when unread handout status cannot be checked', async () => {
+  fetchPlayerCampaignSections.mockResolvedValue(data);
+  fetchPlayerHandoutSummary.mockRejectedValue(new Error('offline'));
+
+  render(<MemoryRouter><PlayerCampaignWorkspace campaignId="c1" /></MemoryRouter>);
+
+  expect(await screen.findByText('Test table')).toBeInTheDocument();
+  const warning = await screen.findByTestId('player-campaign-handout-summary-warning');
+  expect(warning).toHaveTextContent('Could not check unread Handouts yet');
+  expect(screen.queryByLabelText('0 unread')).not.toBeInTheDocument();
+});
