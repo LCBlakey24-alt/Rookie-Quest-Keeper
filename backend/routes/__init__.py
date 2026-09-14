@@ -13,6 +13,7 @@ from routes.campaign_setup import router as campaign_setup_router
 from routes.campaigns import router as campaigns_router
 from routes.campaign_content import router as campaign_content_router
 from routes.world import router as world_router
+from routes.world_record_updates import router as world_record_updates_router, remove_legacy_world_record_update_routes
 from routes.world_hierarchy import router as world_hierarchy_router, remove_legacy_world_hierarchy_routes
 from routes.notes import router as notes_router
 from routes.npcs import router as npcs_router
@@ -59,6 +60,7 @@ from routes.roll_events import router as roll_events_router
 # Focused routes own these modern implementations while the remainder of each
 # legacy router stays registered for backwards-compatible endpoints.
 remove_legacy_custom_creature_routes(admin_router)
+remove_legacy_world_record_update_routes(world_router)
 remove_legacy_world_hierarchy_routes(world_router)
 remove_legacy_map_record_routes(maps_router)
 remove_legacy_map_mutation_routes(maps_router)
@@ -87,8 +89,9 @@ all_routers = [
     campaign_setup_router,
     campaigns_router,
     campaign_content_router,
-    # Campaign-scoped hierarchy routes shadow only the old world tree handlers.
-    # Gods, calendar, locations, notes and the rest of world.py remain intact.
+    # Core world-prep record updates keep both the write and response read
+    # campaign-scoped. Hierarchy CRUD remains on its own hardened router.
+    world_record_updates_router,
     world_hierarchy_router,
     world_router,
     notes_router,
