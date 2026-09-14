@@ -2,6 +2,7 @@ import apiClient, {
   applyCharacterCreationReadinessPolicy,
   applyLegacyApiCompatibility,
   applyLoginTimeoutPolicy,
+  LOGIN_TIMEOUT_MS,
   wakeBackend,
 } from './apiClient';
 
@@ -40,14 +41,30 @@ describe('legacy account API compatibility', () => {
 });
 
 describe('login timeout policy', () => {
-  test('disables the client timeout for login so a sleeping backend can wake up', () => {
+  test('gives a sleeping backend a bounded wake-up window instead of waiting forever', () => {
     const configured = applyLoginTimeoutPolicy({ method: 'post', url: '/auth/login', timeout: 20000 });
-    expect(configured.timeout).toBe(0);
+    expect(LOGIN_TIMEOUT_MS).toBe(30000);
+    expect(configured.timeout).toBe(LOGIN_TIMEOUT_MS);
+    expect(configured.timeout).toBeGreaterThan(0);
   });
 
   test('keeps the normal timeout policy for other requests', () => {
     const original = { method: 'get', url: '/campaigns', timeout: 20000 };
     expect(applyLoginTimeoutPolicy(original)).toBe(original);
+  });
+
+  test('turns a login timeout into a useful retry message', async () => {
+    const adapter = jest.fn(async config => {
+      const error = new Error(`timeout of ${config.timeout}ms exceeded`);
+      error.code = 'ECONNABORTED';
+      error.config = config;
+      throw error;
+    });
+
+    await expect(apiClient.post('/auth/login', { username: 'Rook', password: 'test' }, { adapter }))
+      .rejects.toMatchObject({
+        formattedDetail: expect.stringMatching(/server is taking longer than expected.*waking up.*try signing in again/i),
+      });
   });
 });
 
