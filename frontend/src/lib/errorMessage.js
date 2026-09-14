@@ -1,5 +1,9 @@
 export function getErrorMessage(error, fallback = 'Something went wrong') {
-  const detail = error?.response?.data?.detail ?? error?.response?.data?.message ?? error?.message ?? error;
+  const detail = error?.formattedDetail
+    ?? error?.response?.data?.detail
+    ?? error?.response?.data?.message
+    ?? error?.message
+    ?? error;
   return stringifyErrorDetail(detail, fallback);
 }
 
