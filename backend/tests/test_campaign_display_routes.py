@@ -1,4 +1,5 @@
 import asyncio
+import importlib.util
 import os
 import sys
 from pathlib import Path
@@ -9,16 +10,22 @@ os.environ.setdefault('JWT_SECRET_KEY', 'test')
 os.environ.setdefault('APP_URL', 'http://localhost:3000')
 os.environ.setdefault('CORS_ORIGINS', 'http://localhost:3000')
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BACKEND_ROOT))
 
 from fastapi import HTTPException
-from routes import campaign_display as campaign_display_module
-from routes.campaign_display import (
-    acknowledge_campaign_display_state,
-    default_display_state,
-    router,
-    sanitize_display_state,
+
+spec = importlib.util.spec_from_file_location(
+    'campaign_display_under_test',
+    BACKEND_ROOT / 'routes' / 'campaign_display.py',
 )
+campaign_display_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(campaign_display_module)
+
+acknowledge_campaign_display_state = campaign_display_module.acknowledge_campaign_display_state
+default_display_state = campaign_display_module.default_display_state
+router = campaign_display_module.router
+sanitize_display_state = campaign_display_module.sanitize_display_state
 
 
 def route_endpoint(path, method):
@@ -41,6 +48,9 @@ def test_default_display_state_is_safe_blank_state():
     assert state['mode'] == 'blank'
     assert state['payload'] == {}
     assert state['updated_by'] == ''
+    assert state['sync_id'].startswith('campaign-1-')
+    assert state['sequence'] > 0
+    assert state['delivery_ack'] == {}
 
 
 def test_sanitize_display_state_accepts_known_modes_and_rejects_unknown_modes():
@@ -50,6 +60,8 @@ def test_sanitize_display_state_accepts_known_modes_and_rejects_unknown_modes():
     assert state['mode'] == 'image'
     assert state['payload'] == {'title': 'Map'}
     assert state['updated_by'] == 'gm-user'
+    assert state['sync_id'].startswith('campaign-1-')
+    assert state['delivery_ack'] == {}
 
     try:
         sanitize_display_state('campaign-1', {'mode': 'private-notes', 'payload': {'secret': 'Nope'}}, 'gm-user')
@@ -71,6 +83,7 @@ def test_sanitize_display_state_preserves_sync_identity_for_delivery_tracking():
     assert state['sync_id'] == 'sync-123'
     assert state['sequence'] == 42
     assert state['source_tab'] == 'gm-tab-1'
+    assert state['delivery_ack'] == {}
 
 
 def test_acknowledgement_records_only_the_current_display_state(monkeypatch):
