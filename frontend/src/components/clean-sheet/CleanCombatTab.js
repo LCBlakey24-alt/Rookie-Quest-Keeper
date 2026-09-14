@@ -197,6 +197,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const updateResource = async (resourceKey, label, delta = -1) => {
     const resource = classResources.find((item) => item.key === resourceKey);
     if (!resource || resource.current <= 0 || !onCharacterUpdate) return;
+    const previous = resource.current;
     const next = Math.max(0, Math.min(resource.max, resource.current + delta));
     setResourceDrafts((prev) => ({ ...prev, [resourceKey]: next }));
     const nextResources = {
@@ -211,7 +212,11 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
       },
     };
     const ok = await onCharacterUpdate({ resources: nextResources }, { error: `Could not use ${label}` });
-    if (ok !== false) toast.success(`${label}: ${next}/${resource.max} remaining`);
+    if (ok === false) {
+      setResourceDrafts((prev) => ({ ...prev, [resourceKey]: previous }));
+      return;
+    }
+    toast.success(`${label}: ${next}/${resource.max} remaining`);
   };
 
   const resourceActions = useMemo(() => resourceActionCards(character, classResources, {
@@ -273,20 +278,24 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   };
 
   const useConsumable = async (item) => {
+    if (!onCharacterUpdate) {
+      toast.error('Open a saved character before using consumables.');
+      return;
+    }
     const heal = getPotionHealing(item);
     const result = rollDice(heal.count, heal.sides, heal.modifier);
-    toast.success(`${getItemName(item)} heals ${result.total} HP`);
-    if (!onCharacterUpdate) return;
     const updates = buildConsumableUseUpdate(character, item, result.total);
     if (!updates.consumed) {
       toast.error(`Could not find ${getItemName(item)} in this character's inventory.`);
       return;
     }
-    await onCharacterUpdate({
+    const ok = await onCharacterUpdate({
       current_hit_points: updates.current_hit_points,
       inventory: updates.inventory,
       equipment: updates.equipment,
     }, { error: 'Could not use consumable' });
+    if (ok === false) return;
+    toast.success(`${getItemName(item)} heals ${result.total} HP`);
   };
 
   const featureCards = (features) => features.map((feature) => (
