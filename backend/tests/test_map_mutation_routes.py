@@ -202,7 +202,7 @@ def test_delete_world_pin_atomically_removes_connected_paths(monkeypatch):
     assert result == {'message': 'Pin deleted'}
 
 
-def test_world_path_add_update_delete_are_atomic_and_scoped(monkeypatch):
+def test_world_path_add_update_delete_are_atomic_scoped_and_validate_endpoints(monkeypatch):
     writes = []
     reads = []
 
@@ -216,7 +216,10 @@ def test_world_path_add_update_delete_are_atomic_and_scoped(monkeypatch):
 
         async def find_one(self, query, projection=None):
             reads.append((query, projection))
-            return {'paths': [{'id': 'path-1', 'notes': 'Updated road'}]}
+            return {
+                'pins': [{'id': 'a'}, {'id': 'b'}],
+                'paths': [{'id': 'path-1', 'from_pin_id': 'a', 'to_pin_id': 'b', 'notes': 'Updated road'}],
+            }
 
     monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
     monkeypatch.setattr(maps, 'db', SimpleNamespace(world_maps=Collection()))
@@ -231,6 +234,8 @@ def test_world_path_add_update_delete_are_atomic_and_scoped(monkeypatch):
         'campaign-a', 'map-1', 'path-1', username='gm-a'
     ))
 
+    assert reads[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
+    assert reads[0][1] == {'_id': 0, 'pins': 1, 'paths': 1}
     assert writes[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
     assert writes[0][1]['$push']['paths']['from_pin_id'] == 'a'
     assert added['to_pin_id'] == 'b'
@@ -238,8 +243,9 @@ def test_world_path_add_update_delete_are_atomic_and_scoped(monkeypatch):
     assert writes[1][0] == {'id': 'map-1', 'campaign_id': 'campaign-a', 'paths.id': 'path-1'}
     assert writes[1][1]['$set']['paths.$.notes'] == 'Updated road'
     assert 'paths.$.id' not in writes[1][1]['$set']
-    assert reads[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
-    assert updated == {'id': 'path-1', 'notes': 'Updated road'}
+    assert reads[1][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
+    assert updated['id'] == 'path-1'
+    assert updated['notes'] == 'Updated road'
 
     assert writes[2][0] == {'id': 'map-1', 'campaign_id': 'campaign-a', 'paths.id': 'path-1'}
     assert writes[2][1]['$pull']['paths'] == {'id': 'path-1'}
@@ -301,3 +307,158 @@ def test_empty_or_unsupported_nested_update_is_rejected(monkeypatch):
             'campaign-a', 'map-1', 'pin-1', {'id': 'only-disallowed'}, username='gm-a'
         ))
     assert exc.value.status_code == 400
+
+
+def test_linked_location_must_belong_to_same_campaign(monkeypatch):
+    location_queries = []
+
+    class Locations:
+        async def find_one(self, query, projection=None):
+            location_queries.append(query)
+            return None
+
+    class NeverWrite:
+        async def update_one(self, *args, **kwargs):
+            pytest.fail('Invalid linked location must fail before map mutation')
+
+    async def verify(campaign_id, username):
+        return None
+
+    monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(
+        locations=Locations(),
+        world_maps=NeverWrite(),
+    ))
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(maps.add_world_map_pin(
+            'campaign-a', 'map-1', {'linked_location_id': 'location-from-b'}, username='gm-a'
+        ))
+
+    assert exc.value.status_code == 422
+    assert location_queries == [{'id': 'location-from-b', 'campaign_id': 'campaign-a'}]
+
+
+def test_linked_place_accepts_embedded_or_hierarchy_place_in_campaign(monkeypatch):
+    location_queries = []
+    hierarchy_queries = []
+
+    class Locations:
+        async def find_one(self, query, projection=None):
+            location_queries.append(query)
+            return None
+
+    class WorldPlaces:
+        async def find_one(self, query, projection=None):
+            hierarchy_queries.append(query)
+            return {'id': 'place-1'}
+
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(
+        locations=Locations(),
+        world_places=WorldPlaces(),
+    ))
+
+    asyncio.run(maps._validate_pin_links('campaign-a', linked_place_id='place-1'))
+
+    assert location_queries == [{
+        'campaign_id': 'campaign-a',
+        'places_of_interest.id': 'place-1',
+    }]
+    assert hierarchy_queries == [{'id': 'place-1', 'campaign_id': 'campaign-a'}]
+
+
+def test_missing_or_self_referential_path_endpoints_are_rejected(monkeypatch):
+    writes = []
+
+    async def verify(campaign_id, username):
+        return None
+
+    class WorldMaps:
+        async def find_one(self, query, projection=None):
+            return {'pins': [{'id': 'a'}, {'id': 'b'}], 'paths': []}
+
+        async def update_one(self, query, update):
+            writes.append((query, update))
+            return Result(1)
+
+    monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(world_maps=WorldMaps()))
+
+    with pytest.raises(HTTPException) as missing:
+        asyncio.run(maps.add_world_map_path(
+            'campaign-a', 'map-1', {'from_pin_id': 'a', 'to_pin_id': 'missing'}, username='gm-a'
+        ))
+    assert missing.value.status_code == 422
+
+    with pytest.raises(HTTPException) as self_loop:
+        asyncio.run(maps.add_world_map_path(
+            'campaign-a', 'map-1', {'from_pin_id': 'a', 'to_pin_id': 'a'}, username='gm-a'
+        ))
+    assert self_loop.value.status_code == 422
+    assert writes == []
+
+
+def test_one_sided_path_endpoint_edit_validates_against_existing_other_endpoint(monkeypatch):
+    writes = []
+    reads = []
+
+    async def verify(campaign_id, username):
+        return None
+
+    class WorldMaps:
+        async def find_one(self, query, projection=None):
+            reads.append((query, projection))
+            if projection == {'_id': 0, 'pins': 1, 'paths': 1}:
+                return {
+                    'pins': [{'id': 'a'}, {'id': 'b'}, {'id': 'c'}],
+                    'paths': [{'id': 'path-1', 'from_pin_id': 'a', 'to_pin_id': 'b'}],
+                }
+            return {'paths': [{'id': 'path-1', 'from_pin_id': 'c', 'to_pin_id': 'b'}]}
+
+        async def update_one(self, query, update):
+            writes.append((query, update))
+            return Result(1)
+
+    monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(world_maps=WorldMaps()))
+
+    result = asyncio.run(maps.update_world_map_path(
+        'campaign-a', 'map-1', 'path-1', {'from_pin_id': 'c'}, username='gm-a'
+    ))
+
+    assert writes[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a', 'paths.id': 'path-1'}
+    assert writes[0][1]['$set']['paths.$.from_pin_id'] == 'c'
+    assert 'paths.$.to_pin_id' not in writes[0][1]['$set']
+    assert reads[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
+    assert result['from_pin_id'] == 'c'
+    assert result['to_pin_id'] == 'b'
+
+
+def test_local_linked_place_must_exist_in_campaign(monkeypatch):
+    async def verify(campaign_id, username):
+        return None
+
+    class Locations:
+        async def find_one(self, query, projection=None):
+            return None
+
+    class WorldPlaces:
+        async def find_one(self, query, projection=None):
+            return None
+
+    class NeverWrite:
+        async def update_one(self, *args, **kwargs):
+            pytest.fail('Invalid local place link must fail before map mutation')
+
+    monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(
+        locations=Locations(),
+        world_places=WorldPlaces(),
+        local_maps=NeverWrite(),
+    ))
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(maps.add_local_map_pin(
+            'campaign-a', 'local-1', {'linked_place_id': 'missing'}, username='gm-a'
+        ))
+    assert exc.value.status_code == 422
