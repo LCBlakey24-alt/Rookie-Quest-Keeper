@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { fetchPlayerCampaignSections } from './playerCampaignData';
 import { fetchPlayerHandoutSummary } from '@/components/dashboard/player/playerDashboardData';
 import { PlayerCampaignWorkspace } from './PlayerCampaignPage';
@@ -15,6 +15,11 @@ const data = {
   characters: [{ id: 'p1', name: 'Hero', current_hit_points: 0, max_hit_points: 20, armor_class: 16 }],
   failures: [],
 };
+
+function SheetRouteProbe() {
+  const location = useLocation();
+  return <div data-testid="campaign-sheet-return-state">{location.state?.playerReturnTo || 'none'}</div>;
+}
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -31,6 +36,23 @@ test('offers a real character sheet link, preserves zero HP and omits GM actions
   expect(fetchPlayerHandoutSummary).toHaveBeenCalledWith(expect.anything(), 'c1');
   expect(screen.getByRole('link', { name: 'Player home' })).toHaveAttribute('href', '/player');
   expect(screen.queryByText('GM Notes')).not.toBeInTheDocument();
+});
+
+test('opens a sheet with the current player campaign as its return context', async () => {
+  fetchPlayerCampaignSections.mockResolvedValue(data);
+  render(
+    <MemoryRouter initialEntries={['/player/campaign/c1']}>
+      <Routes>
+        <Route path="/player/campaign/:campaignId" element={<PlayerCampaignWorkspace campaignId="c1" />} />
+        <Route path="/characters/:characterId" element={<SheetRouteProbe />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByText('Test table')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: 'Open Hero sheet' }));
+
+  expect(await screen.findByTestId('campaign-sheet-return-state')).toHaveTextContent('/player/campaign/c1');
 });
 
 test('keeps loaded campaign details when refresh fails', async () => {
