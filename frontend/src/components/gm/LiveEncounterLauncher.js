@@ -3,6 +3,8 @@ import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { loadEncounterReviewSections } from '@/data/livePlayLoaders';
+import LiveDataWarning from '@/components/gm/LiveDataWarning';
 
 const rq = {
   bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)',
@@ -25,6 +27,15 @@ export function clearQueuedNpcIds(storage, campaignId) {
   try {
     storage.removeItem(`gm.liveEncounterNpcQueue.${campaignId}`);
   } catch { /* local handoff cleanup is best effort */ }
+}
+
+export function persistQueuedNpcIds(storage, campaignId, npcIds) {
+  try {
+    storage.setItem(`gm.liveEncounterNpcQueue.${campaignId}`, JSON.stringify(safeArray(npcIds)));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function numberOr(value, fallback) {
@@ -105,6 +116,8 @@ export default function LiveEncounterLauncher({ campaignId }) {
   const [npcSearch, setNpcSearch] = useState('');
   const [quickCombatants, setQuickCombatants] = useState([]);
   const [quickDraft, setQuickDraft] = useState(EMPTY_QUICK);
+  const [loadErrors, setLoadErrors] = useState([]);
+  const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -112,32 +125,42 @@ export default function LiveEncounterLauncher({ campaignId }) {
     const load = async () => {
       setLoading(true);
       try {
-        const [campaignRes, scenarioRes, playerRes, npcRes, stateRes] = await Promise.all([
-          apiClient.get(`/campaigns/${campaignId}`).catch(() => ({ data: null })),
-          apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
-          apiClient.get(`/campaigns/${campaignId}/live-party`).catch(() => apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] }))),
-          apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-          apiClient.get(`/campaigns/${campaignId}/live-state`).catch(() => ({ data: { companion_npc_ids: [] } })),
-        ]);
-        const loadedScenarios = safeArray(scenarioRes.data);
-        const loadedPlayers = safeArray(playerRes.data);
-        const loadedNpcs = safeArray(npcRes.data);
-        setCampaignName(campaignRes.data?.name || 'Campaign');
-        setScenarios(loadedScenarios);
-        setPlayers(loadedPlayers);
-        setNpcs(loadedNpcs);
-        setTravellingIds(safeArray(stateRes.data?.companion_npc_ids));
-        setIncludedPlayerIds(loadedPlayers.map(player => player.id).filter(Boolean));
+        const { sections, errors } = await loadEncounterReviewSections(apiClient, campaignId);
+        const loadedScenarios = sections.scenarios.ok ? safeArray(sections.scenarios.data) : null;
+        const loadedPlayers = sections.players.ok ? safeArray(sections.players.data) : null;
+        const loadedNpcs = sections.npcs.ok ? safeArray(sections.npcs.data) : null;
 
-        let requested = '';
-        let queued = [];
-        try {
-          requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
-          localStorage.removeItem(`gm.questEncounter.${campaignId}`);
-          queued = readQueuedNpcIds(localStorage, campaignId, loadedNpcs);
-        } catch { /* ignore */ }
-        setQueuedNpcIds(queued);
-        setSelectedId(loadedScenarios.some(item => item.id === requested) ? requested : (loadedScenarios[0]?.id || ''));
+        if (sections.campaign.ok) setCampaignName(sections.campaign.data?.name || 'Campaign');
+        if (loadedScenarios) setScenarios(loadedScenarios);
+        if (loadedPlayers) {
+          setPlayers(loadedPlayers);
+          setIncludedPlayerIds(loadedPlayers.map(player => player.id).filter(Boolean));
+        }
+        if (loadedNpcs) setNpcs(loadedNpcs);
+        if (sections.liveState.ok) setTravellingIds(safeArray(sections.liveState.data?.companion_npc_ids));
+
+        if (loadedNpcs) {
+          const queued = readQueuedNpcIds(localStorage, campaignId, loadedNpcs);
+          setQueuedNpcIds(queued);
+        }
+
+        if (loadedScenarios) {
+          let requested = '';
+          try {
+            requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
+            localStorage.removeItem(`gm.questEncounter.${campaignId}`);
+          } catch { /* ignore */ }
+          setSelectedId(previous => (
+            loadedScenarios.some(item => item.id === requested)
+              ? requested
+              : loadedScenarios.some(item => item.id === previous)
+                ? previous
+                : (loadedScenarios[0]?.id || '')
+          ));
+        }
+
+        setLoadErrors(errors);
+        if (errors.length) toast.warning('Some Encounter Review data could not be refreshed. Existing data has been kept where available.');
       } catch (error) {
         toast.error(error?.response?.data?.detail || 'Could not load saved encounters');
       } finally {
@@ -145,7 +168,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
       }
     };
     load();
-  }, [campaignId]);
+  }, [campaignId, reloadKey]);
 
   const selected = useMemo(() => scenarios.find(item => item.id === selectedId) || null, [scenarios, selectedId]);
   const baseCombatants = useMemo(() => safeArray(selected?.combatants), [selected]);
@@ -170,8 +193,11 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
   const removeQueuedNpc = npcId => {
     const nextQueuedIds = queuedNpcIds.filter(id => id !== npcId);
+    if (!persistQueuedNpcIds(localStorage, campaignId, nextQueuedIds)) {
+      toast.error('Could not update the queued NPC list. Nothing was removed.');
+      return;
+    }
     setQueuedNpcIds(nextQueuedIds);
-    try { localStorage.setItem(`gm.liveEncounterNpcQueue.${campaignId}`, JSON.stringify(nextQueuedIds)); } catch { /* ignore */ }
   };
 
   const addQuickCombatants = () => {
@@ -194,6 +220,12 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
   const launch = () => {
     if (!selected) return;
+    const participantLoadFailed = loadErrors.some(item => ['players', 'npcs', 'liveState'].includes(item.key));
+    if (participantLoadFailed) {
+      toast.error('Participant data is incomplete. Retry Encounter Review before starting combat so nobody is accidentally omitted.');
+      return;
+    }
+
     let combatants = [];
     baseCombatants.forEach((combatant, index) => {
       if (enabledBaseKeys.includes(keyFor(combatant, index))) combatants = appendUnique(combatants, combatant);
@@ -211,7 +243,13 @@ export default function LiveEncounterLauncher({ campaignId }) {
     });
   };
 
+  const retryLoad = () => setReloadKey(value => value + 1);
+  const scenarioLoadFailed = loadErrors.some(item => item.key === 'scenarios');
+
   if (loading) return <div style={emptyStyle}>Loading encounters…</div>;
+  if (!scenarios.length && scenarioLoadFailed) {
+    return <div style={{ display: 'grid', gap: 7 }}><LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact /><div style={emptyStyle}>Saved encounters could not be loaded. Retry instead of treating this as an empty campaign.</div></div>;
+  }
   if (!scenarios.length) return <div style={emptyStyle}>No saved encounters yet. Build one in Campaign Prep, then it will appear here.</div>;
 
   return (
@@ -223,6 +261,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
         </select>
       </header>
 
+      <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
       {selected?.description && <div style={descriptionStyle}>{selected.description}</div>}
 
       {queuedNpcs.length > 0 && (
