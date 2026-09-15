@@ -1,0 +1,130 @@
+.rqk-quest-sharing {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid var(--rq-border-default);
+  border-left: 1px solid var(--rq-secondary);
+  background: var(--rq-bg-panel);
+  color: var(--rq-text-primary);
+}
+
+.rqk-quest-sharing__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rqk-quest-sharing__heading > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  max-width: 780px;
+}
+
+.rqk-quest-sharing__heading span {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rqk-quest-sharing__heading strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 1rem;
+}
+
+.rqk-quest-sharing__heading p,
+.rqk-quest-sharing__empty {
+  margin: 0;
+  color: var(--rq-text-primary);
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+.rqk-quest-sharing__heading b {
+  padding: 6px 8px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-card);
+  font-size: .76rem;
+}
+
+.rqk-quest-sharing__list {
+  display: grid;
+  gap: 6px;
+}
+
+.rqk-quest-sharing__row {
+  width: 100%;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-bg-main);
+  color: var(--rq-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rqk-quest-sharing__row.is-shared {
+  border-left-color: var(--rq-secondary);
+}
+
+.rqk-quest-sharing__row:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.rqk-quest-sharing__icon {
+  display: grid;
+  place-items: center;
+}
+
+.rqk-quest-sharing__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.rqk-quest-sharing__copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .84rem;
+}
+
+.rqk-quest-sharing__copy small {
+  font-size: .72rem;
+}
+
+.rqk-quest-sharing__action {
+  min-width: 54px;
+  padding: 5px 7px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-card);
+  text-align: center;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+@media (max-width: 620px) {
+  .rqk-quest-sharing {
+    padding: 9px;
+  }
+
+  .rqk-quest-sharing__row {
+    grid-template-columns: 26px minmax(0, 1fr);
+  }
+
+  .rqk-quest-sharing__action {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
