@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from config import db
-from utils.auth import get_current_user, verify_campaign_ownership
+from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
 
 router = APIRouter()
 
@@ -47,6 +47,7 @@ class QuestCreate(BaseModel):
     linked_handout_ids: List[str] = Field(default_factory=list)
     linked_reward_ids: List[str] = Field(default_factory=list)
     is_pinned: bool = False
+    shared_with_players: bool = False
 
 
 class QuestUpdate(BaseModel):
@@ -63,6 +64,7 @@ class QuestUpdate(BaseModel):
     linked_handout_ids: Optional[List[str]] = None
     linked_reward_ids: Optional[List[str]] = None
     is_pinned: Optional[bool] = None
+    shared_with_players: Optional[bool] = None
 
 
 class QuestObjectiveUpdate(BaseModel):
@@ -98,6 +100,30 @@ def normalise_objective(data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def player_objective(objective: Dict[str, Any]) -> Dict[str, Any]:
+    """Return only objective fields that are safe to reveal at the table."""
+    return {
+        "id": objective.get("id") or "",
+        "title": objective.get("title") or "Untitled objective",
+        "status": objective.get("status") or "upcoming",
+        "optional": bool(objective.get("optional", False)),
+    }
+
+
+def player_quest(quest: Dict[str, Any]) -> Dict[str, Any]:
+    """Strip GM prep, links, reward references and objective notes from a shared quest."""
+    return {
+        "id": quest.get("id") or "",
+        "title": quest.get("title") or "Untitled quest",
+        "summary": quest.get("summary") or "",
+        "hook": quest.get("hook") or "",
+        "status": quest.get("status") or "available",
+        "is_pinned": bool(quest.get("is_pinned", False)),
+        "updated_at": quest.get("updated_at") or "",
+        "objectives": [player_objective(item) for item in quest.get("objectives", []) if isinstance(item, dict)],
+    }
+
+
 async def get_owned_quest(campaign_id: str, quest_id: str, username: str) -> Dict[str, Any]:
     await verify_campaign_ownership(campaign_id, username)
     quest = await db.quests.find_one({"id": quest_id, "campaign_id": campaign_id}, {"_id": 0})
@@ -111,6 +137,17 @@ async def list_quests(campaign_id: str, username: str = Depends(get_current_user
     """List every persistent quest in a GM-owned campaign."""
     await verify_campaign_ownership(campaign_id, username)
     return await db.quests.find({"campaign_id": campaign_id}, {"_id": 0}).sort([("is_pinned", -1), ("updated_at", -1)]).to_list(500)
+
+
+@router.get("/player/campaign/{campaign_id}/quests")
+async def list_player_quests(campaign_id: str, username: str = Depends(get_current_user)):
+    """List only explicitly shared quests, with every GM-only field removed."""
+    await verify_campaign_membership(campaign_id, username)
+    quests = await db.quests.find(
+        {"campaign_id": campaign_id, "shared_with_players": True, "status": {"$ne": "archived"}},
+        {"_id": 0},
+    ).sort([("is_pinned", -1), ("updated_at", -1)]).to_list(500)
+    return [player_quest(quest) for quest in quests]
 
 
 @router.get("/campaigns/{campaign_id}/quests/{quest_id}")

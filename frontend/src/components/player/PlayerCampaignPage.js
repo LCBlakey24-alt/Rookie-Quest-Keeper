@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, FileText, Mail, Clock, RefreshCw } from 'lucide-react';
+import { ArrowLeft, BookOpen, FileText, Mail, Clock, Flag, RefreshCw } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,11 +13,13 @@ import '@/styles/playerCampaignTabBadge.css';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
+const PlayerQuestsPanel = lazy(() => import('./PlayerQuestsPanel'));
 const SessionTimeline = lazy(() => import('@/components/SessionTimeline'));
 const CombatInitiativeSubmitter = lazy(() => import('./CombatInitiativeSubmitter'));
 
 const tabs = [
   { id: 'campaign', label: 'Campaign', icon: BookOpen },
+  { id: 'quests', label: 'Quests', icon: Flag },
   { id: 'notes', label: 'My notes', icon: FileText },
   { id: 'handouts', label: 'Handouts', icon: Mail },
   { id: 'timeline', label: 'Timeline', icon: Clock },
@@ -172,6 +174,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
             </section>
           </div>
         </TabsContent>
+        <TabsContent value="quests"><Suspense fallback={<p>Loading quests…</p>}><PlayerQuestsPanel campaignId={campaignId} /></Suspense></TabsContent>
         <TabsContent value="notes"><Suspense fallback={<p>Loading notes…</p>}><PlayerNotesTab campaignId={campaignId} /></Suspense></TabsContent>
         <TabsContent value="handouts"><Suspense fallback={<p>Loading handouts…</p>}><PlayerHandoutsPanel campaignId={campaignId} onSummaryChange={acceptHandoutSummary} /></Suspense></TabsContent>
         <TabsContent value="timeline"><Suspense fallback={<p>Loading timeline…</p>}><SessionTimeline campaignId={campaignId} readOnly /></Suspense></TabsContent>
