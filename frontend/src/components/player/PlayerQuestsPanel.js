@@ -33,8 +33,6 @@ export default function PlayerQuestsPanel({ campaignId }) {
 
   useEffect(() => {
     load();
-    // campaignId is the identity of this workspace; reload when it changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId]);
 
   const groups = useMemo(() => {
