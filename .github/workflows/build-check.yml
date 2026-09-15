@@ -23,6 +23,7 @@ jobs:
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
           python -m unittest discover -s backend/tests -p test_player_handout_summary.py -v
+          python -m unittest discover -s backend/tests -p test_player_quest_routes.py -v
       - name: Test focused backend routes
         run: |
           python -m pytest -q \
