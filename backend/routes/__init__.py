@@ -27,6 +27,7 @@ from routes.campaign_record_updates import (
     remove_legacy_npc_update_route,
     remove_legacy_player_update_route,
     remove_legacy_inventory_update_route,
+    remove_legacy_custom_item_update_route,
 )
 from routes.maps import router as maps_router
 from routes.map_records import router as map_records_router, remove_legacy_map_record_routes
@@ -78,6 +79,7 @@ remove_legacy_rook_form_fill_route(ai_router)
 remove_legacy_rook_generate_route(ai_router)
 remove_legacy_inventory_claim_routes(inventory_router)
 remove_legacy_inventory_update_route(inventory_router)
+remove_legacy_custom_item_update_route(inventory_router)
 remove_legacy_inventory_grant_route(inventory_router)
 
 all_routers = [
@@ -106,8 +108,8 @@ all_routers = [
     world_hierarchy_router,
     world_router,
     notes_router,
-    # NPC/player/inventory PUT responses stay inside the same campaign boundary
-    # as their writes while their legacy routers keep all other behavior.
+    # NPC/player/inventory/custom-item PUT responses stay inside the same
+    # campaign boundary as their writes while legacy routers keep other behavior.
     campaign_record_updates_router,
     npcs_router,
     live_state_router,
