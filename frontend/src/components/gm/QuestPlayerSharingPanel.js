@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Eye, EyeOff, Users } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Eye, EyeOff, RefreshCw, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import './QuestPlayerSharingPanel.css';
@@ -14,21 +14,21 @@ export default function QuestPlayerSharingPanel({ campaignId }) {
     [quests],
   );
 
-  useEffect(() => {
-    let active = true;
+  const load = useCallback(async () => {
     setLoading(true);
-    apiClient.get(`/campaigns/${campaignId}/quests`)
-      .then(response => {
-        if (active) setQuests(Array.isArray(response.data) ? response.data : []);
-      })
-      .catch(error => {
-        if (active) toast.error(error?.response?.data?.detail || 'Could not load quest sharing');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => { active = false; };
+    try {
+      const response = await apiClient.get(`/campaigns/${campaignId}/quests`);
+      setQuests(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not load quest sharing');
+    } finally {
+      setLoading(false);
+    }
   }, [campaignId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const toggleSharing = async quest => {
     const next = !quest.shared_with_players;
@@ -54,10 +54,15 @@ export default function QuestPlayerSharingPanel({ campaignId }) {
           <strong><Users size={16} aria-hidden="true" /> Shared quests</strong>
           <p>Only quests switched on here appear on the player campaign page. GM notes and linked prep never leave the GM view.</p>
         </div>
-        <b>{sharedCount}/{quests.length} shared</b>
+        <div className="rqk-quest-sharing__heading-actions">
+          <b>{sharedCount}/{quests.length} shared</b>
+          <button type="button" onClick={load} disabled={loading} className="rqk-quest-sharing__refresh">
+            <RefreshCw size={14} aria-hidden="true" /> {loading ? 'Refreshing…' : 'Refresh list'}
+          </button>
+        </div>
       </div>
 
-      {loading ? <p className="rqk-quest-sharing__empty">Loading sharing controls…</p>
+      {loading && quests.length === 0 ? <p className="rqk-quest-sharing__empty">Loading sharing controls…</p>
         : quests.length === 0 ? <p className="rqk-quest-sharing__empty">Create a quest first, then choose whether players can see it.</p>
           : <div className="rqk-quest-sharing__list">
             {quests.map(quest => (
