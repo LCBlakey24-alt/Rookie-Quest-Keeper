@@ -15,6 +15,12 @@ const LEGACY_ACCOUNT_ROUTES = {
 };
 
 export const LOGIN_TIMEOUT_MS = 30000;
+const BACKEND_WAKE_TIMEOUT_MS = 10000;
+const BACKEND_WAKE_FRESH_MS = 2 * 60 * 1000;
+const BACKEND_WAKE_RETRY_DELAY_MS = 1500;
+
+let wakeInFlight = null;
+let lastSuccessfulWakeAt = 0;
 
 export function applyLegacyApiCompatibility(config = {}) {
   const key = `${String(config.method || 'get').toLowerCase()}:${String(config.url || '')}`;
@@ -68,15 +74,50 @@ export async function applyCharacterCreationReadinessPolicy(config = {}, storage
   throw error;
 }
 
-export async function wakeBackend() {
-  if (isLocalPreview()) return false;
-  if (typeof fetch !== 'function') return false;
-  try {
-    await fetch(`${API_BASE}/health`, { method: 'GET', cache: 'no-store' });
-    return true;
-  } catch {
-    return false;
+export function wakeBackend({ force = false } = {}) {
+  if (isLocalPreview()) return Promise.resolve(false);
+  if (typeof fetch !== 'function') return Promise.resolve(false);
+
+  const now = Date.now();
+  if (!force && lastSuccessfulWakeAt && now - lastSuccessfulWakeAt < BACKEND_WAKE_FRESH_MS) {
+    return Promise.resolve(true);
   }
+  if (wakeInFlight) return wakeInFlight;
+
+  wakeInFlight = (async () => {
+    const supportsAbort = typeof AbortController !== 'undefined';
+    const controller = supportsAbort ? new AbortController() : null;
+    const timeoutId = typeof window !== 'undefined'
+      ? window.setTimeout(() => controller?.abort(), BACKEND_WAKE_TIMEOUT_MS)
+      : null;
+
+    try {
+      const response = await fetch(`${API_BASE}/health`, {
+        method: 'GET',
+        cache: 'no-store',
+        ...(controller ? { signal: controller.signal } : {}),
+      });
+      if (response.ok) lastSuccessfulWakeAt = Date.now();
+      return response.ok;
+    } catch {
+      return false;
+    } finally {
+      if (timeoutId !== null && typeof window !== 'undefined') window.clearTimeout(timeoutId);
+      wakeInFlight = null;
+    }
+  })();
+
+  return wakeInFlight;
+}
+
+function warmBackend({ retry = false } = {}) {
+  wakeBackend().then((ready) => {
+    if (!ready && retry && typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        wakeBackend({ force: true });
+      }, BACKEND_WAKE_RETRY_DELAY_MS);
+    }
+  });
 }
 
 function isAuthProbeNetworkFailure(error) {
@@ -164,13 +205,21 @@ apiClient.interceptors.response.use(
 );
 
 // Free/sleeping hosts can take longer than an ordinary API request to wake.
-// Start that wake-up as soon as the frontend bundle loads, while the user is
-// still reading the landing/auth UI. Login itself still has a bounded timeout
-// so a failed wake-up can never leave the sign-in screen spinning forever.
+// Start the wake-up while the user is still reading the landing/auth UI, then
+// re-check when a phone or browser returns to the app after being idle. Calls
+// are deduplicated and fresh successful wakes are reused so this stays cheap.
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
   window.setTimeout(() => {
-    wakeBackend();
+    warmBackend({ retry: true });
   }, 0);
+
+  window.addEventListener('focus', () => {
+    warmBackend();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') warmBackend();
+  });
 }
 
 export default apiClient;
