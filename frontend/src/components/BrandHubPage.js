@@ -103,9 +103,12 @@ export default function BrandHubPage() {
           <button type="button" onClick={() => navigate('/game')}>The Game</button>
         </div>
 
-        <button className="rq-brand-nav-cta" type="button" onClick={() => navigate('/keeper')}>
-          Open Keeper <ArrowRight size={17} aria-hidden="true" />
-        </button>
+        <div className="rq-brand-nav-actions">
+          <button className="rq-brand-nav-signin" type="button" onClick={() => navigate('/auth')}>Sign In</button>
+          <button className="rq-brand-nav-cta" type="button" onClick={() => navigate('/keeper')}>
+            Open Keeper <ArrowRight size={17} aria-hidden="true" />
+          </button>
+        </div>
       </nav>
 
       <main id="rq-brand-main">
