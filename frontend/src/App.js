@@ -27,6 +27,7 @@ import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 import { isLocalPreview, PREVIEW_USER } from '@/preview/previewMode';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
+const PUBLIC_BRAND_PATHS = new Set(['/', '/keeper', '/forge', '/worlds', '/game']);
 
 function isChunkLoadError(error) {
   const message = String(error?.message || error || '');
@@ -66,6 +67,8 @@ const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/
 const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/PlayerCampaignPage'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
+const BrandHubPage = lazyWithChunkRetry(() => import('@/components/BrandHubPage'));
+const BrandProductPage = lazyWithChunkRetry(() => import('@/components/BrandProductPage'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
@@ -107,7 +110,7 @@ function ThemeRouter() {
 
   useEffect(() => {
     const path = location.pathname;
-    if (path === '/' || path.startsWith('/auth')) setTheme(THEMES.LANDING);
+    if (PUBLIC_BRAND_PATHS.has(path) || path.startsWith('/auth')) setTheme(THEMES.LANDING);
     else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display')) setTheme(THEMES.GM);
     else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
@@ -117,8 +120,10 @@ function ThemeRouter() {
 
 export function AppRoutes() {
   const preview = isLocalPreview();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
   const [username, setUsername] = useState(() => preview ? PREVIEW_USER : localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth');
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
     if (!preview) localStorage.setItem(AUTH_USERNAME_KEY, nextUsername || '');
@@ -167,7 +172,11 @@ export function AppRoutes() {
       <GlobalActionFillEffects />
       <GlobalScrollRecovery />
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <BrandHubPage />} />
+        <Route path="/keeper" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
+        <Route path="/forge" element={<BrandProductPage product="forge" />} />
+        <Route path="/worlds" element={<BrandProductPage product="worlds" />} />
+        <Route path="/game" element={<BrandProductPage product="game" />} />
         <Route path="/auth" element={isAuthenticated ? <PostSignInRedirect /> : <AuthPage onLogin={handleAuthLogin} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <SignInRedirect />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <SignInRedirect />} />
@@ -208,9 +217,9 @@ export function AppRoutes() {
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <SignInRedirect />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
-      {isAuthenticated && <RookGlobalAssistant />}
-      {isAuthenticated && <FloatingDiceRoller />}
-      {isAuthenticated && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
+      {isAuthenticated && !isPublicBrandRoute && <RookGlobalAssistant />}
+      {isAuthenticated && !isPublicBrandRoute && <FloatingDiceRoller />}
+      {isAuthenticated && !isPublicBrandRoute && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
     </>
   );
 }
