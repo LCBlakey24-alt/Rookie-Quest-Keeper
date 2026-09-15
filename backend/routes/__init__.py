@@ -1,5 +1,6 @@
 """Route module - import all routers for inclusion in the main app."""
 from routes.auth import router as auth_router
+from routes.auth_login_fast import router as auth_login_fast_router, remove_legacy_auth_login_route
 from routes.admin_feedback import router as admin_feedback_router
 from routes.admin import router as admin_router
 from routes.custom_creatures import router as custom_creatures_router, remove_legacy_custom_creature_routes
@@ -27,6 +28,7 @@ from routes.campaign_record_updates import (
     remove_legacy_npc_update_route,
     remove_legacy_player_update_route,
     remove_legacy_inventory_update_route,
+    remove_legacy_custom_item_update_route,
 )
 from routes.maps import router as maps_router
 from routes.map_records import router as map_records_router, remove_legacy_map_record_routes
@@ -66,6 +68,7 @@ from routes.roll_events import router as roll_events_router
 
 # Focused routes own these modern implementations while the remainder of each
 # legacy router stays registered for backwards-compatible endpoints.
+remove_legacy_auth_login_route(auth_router)
 remove_legacy_custom_creature_routes(admin_router)
 remove_legacy_world_record_update_routes(world_router)
 remove_legacy_world_hierarchy_routes(world_router)
@@ -78,9 +81,13 @@ remove_legacy_rook_form_fill_route(ai_router)
 remove_legacy_rook_generate_route(ai_router)
 remove_legacy_inventory_claim_routes(inventory_router)
 remove_legacy_inventory_update_route(inventory_router)
+remove_legacy_custom_item_update_route(inventory_router)
 remove_legacy_inventory_grant_route(inventory_router)
 
 all_routers = [
+    # Login gets a focused fast path while the legacy auth router keeps every
+    # other account endpoint unchanged.
+    auth_login_fast_router,
     auth_router,
     # Register focused admin feedback reads before the legacy admin router so
     # separated feedback/testing list and export endpoints take precedence.
@@ -106,8 +113,8 @@ all_routers = [
     world_hierarchy_router,
     world_router,
     notes_router,
-    # NPC/player/inventory PUT responses stay inside the same campaign boundary
-    # as their writes while their legacy routers keep all other behavior.
+    # NPC/player/inventory/custom-item PUT responses stay inside the same
+    # campaign boundary as their writes while legacy routers keep other behavior.
     campaign_record_updates_router,
     npcs_router,
     live_state_router,

@@ -7,7 +7,7 @@ post-update response reads previously fell back to a bare record ID.
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import db
-from models import NPCUpdate, Player, PlayerUpdate, InventoryItemUpdate
+from models import NPCUpdate, Player, PlayerUpdate, InventoryItemUpdate, CustomItemUpdate
 from utils.auth import get_current_user, verify_campaign_ownership
 
 router = APIRouter()
@@ -16,6 +16,7 @@ CAMPAIGN_RECORD_UPDATE_ROUTE_KEYS = {
     ('PUT', '/campaigns/{campaign_id}/npcs/{npc_id}'),
     ('PUT', '/campaigns/{campaign_id}/players/{player_id}'),
     ('PUT', '/campaigns/{campaign_id}/inventory/{item_id}'),
+    ('PUT', '/campaigns/{campaign_id}/custom-items/{item_id}'),
 }
 
 
@@ -29,6 +30,10 @@ def remove_legacy_player_update_route(legacy_router) -> int:
 
 def remove_legacy_inventory_update_route(legacy_router) -> int:
     return _remove_routes(legacy_router, {('PUT', '/campaigns/{campaign_id}/inventory/{item_id}')})
+
+
+def remove_legacy_custom_item_update_route(legacy_router) -> int:
+    return _remove_routes(legacy_router, {('PUT', '/campaigns/{campaign_id}/custom-items/{item_id}')})
 
 
 def _remove_routes(legacy_router, route_keys) -> int:
@@ -134,4 +139,24 @@ async def update_inventory_record(
         record_id=item_id,
         update_dict=update_dict,
         not_found='Item not found',
+    )
+
+
+@router.put('/campaigns/{campaign_id}/custom-items/{item_id}')
+async def update_custom_item_record(
+    campaign_id: str,
+    item_id: str,
+    item_update: CustomItemUpdate,
+    current_user: str = Depends(get_current_user),
+):
+    await verify_campaign_ownership(campaign_id, current_user)
+    update_dict = {key: value for key, value in item_update.model_dump().items() if value is not None}
+    if not update_dict:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='No fields to update')
+    return await _scoped_update(
+        db.custom_items,
+        campaign_id=campaign_id,
+        record_id=item_id,
+        update_dict=update_dict,
+        not_found='Custom item not found',
     )

@@ -17,6 +17,7 @@ import { registerPwaServiceWorker } from "@/pwa/registerServiceWorker";
 import { installQueuedCombatPartyOverlay } from "@/offline/queuedCombatPartyOverlay";
 import { installRookAiConsentGate } from "@/privacy/rookAiConsent";
 import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCleanup";
+import { installStaleAssetRecovery } from "@/utils/staleAssetRecovery";
 import { isLocalPreview } from '@/preview/previewMode';
 
 // One final product-level visual authority. App Store usability fixes load first;
@@ -26,6 +27,7 @@ import "@/styles/threeModeMinimalist.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
+installStaleAssetRecovery();
 if (!isLocalPreview()) installRookAiConsentGate();
 installAccountDeletionLocalCleanup();
 

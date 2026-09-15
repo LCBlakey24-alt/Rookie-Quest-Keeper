@@ -2,9 +2,11 @@
 ROOK Backend - Rookie Quest Keeper
 Thin entry point that assembles all modular routers.
 """
+import asyncio
+import logging
+
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
 from starlette.middleware.cors import CORSMiddleware
-import logging
 
 from config import client, db, logger, CORS_ORIGIN_LIST
 from utils.ws_manager import ws_manager
@@ -134,11 +136,13 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
         ws_manager.disconnect(websocket, username, campaign_id)
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize systems on startup"""
-    await initialize_rule_systems()
-    logger.info("Rule systems initialized")
+async def run_startup_maintenance():
+    """Run idempotent database maintenance without blocking auth/health startup."""
+    try:
+        await initialize_rule_systems()
+        logger.info("Rule systems initialized")
+    except Exception as e:
+        logger.warning(f"Could not initialize rule systems: {e}")
 
     # Seed premade character templates into MongoDB if missing.
     try:
@@ -147,8 +151,9 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"Could not seed character templates: {e}")
 
-    # Ensure indexes exist for the most queried fields.
-    # create_index is a no-op if the index already exists.
+    # Ensure indexes exist for the most queried fields. create_index is a no-op
+    # if the index already exists, so this can safely run just after the server
+    # begins accepting requests instead of extending every cold-start login.
     try:
         from pymongo import ASCENDING
         existing_user_indexes = await db.users.index_information()
@@ -190,6 +195,20 @@ async def startup_event():
         logger.warning(f"Could not create indexes: {e}")
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Become responsive first, then finish idempotent database maintenance."""
+    app.state.startup_maintenance_task = asyncio.create_task(run_startup_maintenance())
+    logger.info("ROOK backend ready; startup maintenance is running in the background")
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    task = getattr(app.state, "startup_maintenance_task", None)
+    if task and not task.done():
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
     client.close()
