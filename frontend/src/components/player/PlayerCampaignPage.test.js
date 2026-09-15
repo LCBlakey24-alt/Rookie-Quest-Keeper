@@ -44,8 +44,10 @@ test('opens shared quests from the player campaign tabs', async () => {
   render(<MemoryRouter><PlayerCampaignWorkspace campaignId="c1" /></MemoryRouter>);
 
   await screen.findByText('Test table');
-  fireEvent.click(screen.getByRole('tab', { name: /quests/i }));
+  const questsTab = screen.getByRole('tab', { name: /quests/i });
+  fireEvent.mouseDown(questsTab, { button: 0, ctrlKey: false });
 
+  expect(questsTab).toHaveAttribute('aria-selected', 'true');
   expect(await screen.findByText('Shared quest panel')).toBeInTheDocument();
 });
 
