@@ -1,5 +1,6 @@
 """Route module - import all routers for inclusion in the main app."""
 from routes.auth import router as auth_router
+from routes.auth_login_fast import router as auth_login_fast_router, remove_legacy_auth_login_route
 from routes.admin_feedback import router as admin_feedback_router
 from routes.admin import router as admin_router
 from routes.custom_creatures import router as custom_creatures_router, remove_legacy_custom_creature_routes
@@ -67,6 +68,7 @@ from routes.roll_events import router as roll_events_router
 
 # Focused routes own these modern implementations while the remainder of each
 # legacy router stays registered for backwards-compatible endpoints.
+remove_legacy_auth_login_route(auth_router)
 remove_legacy_custom_creature_routes(admin_router)
 remove_legacy_world_record_update_routes(world_router)
 remove_legacy_world_hierarchy_routes(world_router)
@@ -83,6 +85,9 @@ remove_legacy_custom_item_update_route(inventory_router)
 remove_legacy_inventory_grant_route(inventory_router)
 
 all_routers = [
+    # Login gets a focused fast path while the legacy auth router keeps every
+    # other account endpoint unchanged.
+    auth_login_fast_router,
     auth_router,
     # Register focused admin feedback reads before the legacy admin router so
     # separated feedback/testing list and export endpoints take precedence.
