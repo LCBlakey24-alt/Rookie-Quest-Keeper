@@ -84,7 +84,7 @@
   width: 100%;
   height: auto;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
   background: #0C2234;
   padding: 0;
@@ -281,7 +281,7 @@
   }
 
   .player-campaign-page .player-campaign-tabs {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .player-campaign-page .player-campaign-tabs button {
