@@ -22,7 +22,20 @@ export function createPreviewSeed() {
     collections: {
       [PREVIEW_CAMPAIGN_ID]: {
         timeline: [{ id: 'preview-event', campaign_id: PREVIEW_CAMPAIGN_ID, type: 'session', event_type: 'session', title: 'Try the campaign timeline', description: 'Add an event in the GM view, then open the player view to see it here.', session_number: 1, in_game_date: '', timestamp: now, created_at: now }],
-        handouts: [{ id: 'preview-handout', campaign_id: PREVIEW_CAMPAIGN_ID, title: 'Welcome to the preview', category: 'letter', content: 'You can read and save this handout. New handouts shared from the GM pages will appear in this player workspace.', shared_with: [PREVIEW_USER], allow_player_sharing: true, created_at: now }],
+        handouts: [{ id: 'preview-handout', campaign_id: PREVIEW_CAMPAIGN_ID, title: 'Welcome to the preview', category: 'letter', content: 'You can read this sample handout. Signed-in accounts can save their own handout state.', shared_with: [PREVIEW_USER], allow_player_sharing: true, created_at: now }],
+        quests: [{
+          id: 'preview-shared-quest', campaign_id: PREVIEW_CAMPAIGN_ID, title: 'Find the missing courier',
+          summary: 'A courier carrying an important message never reached the next village.',
+          hook: 'The innkeeper last saw them taking the old forest road.', status: 'active', is_pinned: true,
+          shared_with_players: true, gm_notes: 'Secret preview GM note that must never reach the player quest feed.',
+          linked_encounter_ids: ['preview-secret-encounter'], linked_reward_ids: ['preview-secret-reward'],
+          objectives: [
+            { id: 'preview-objective-1', title: 'Search the old forest road', status: 'completed', optional: false, notes: 'GM-only clue timing.' },
+            { id: 'preview-objective-2', title: 'Follow the tracks beyond the bridge', status: 'upcoming', optional: false, linked_encounter_id: 'preview-secret-encounter' },
+            { id: 'preview-objective-3', title: 'Ask the charcoal burners what they saw', status: 'upcoming', optional: true },
+          ],
+          created_at: now, updated_at: now,
+        }],
         'ingame-notes': [{ id: 'preview-gm-note', campaign_id: PREVIEW_CAMPAIGN_ID, content: 'A sample GM note. Edit it or create another to try session preparation.', created_at: now }],
       },
     },
