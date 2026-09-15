@@ -13,6 +13,38 @@ function previewParams(url = '', params = {}) {
   return { ...query, ...(params || {}) };
 }
 
+function playerQuestPreview(quest) {
+  return {
+    id: quest.id || '',
+    title: quest.title || 'Untitled quest',
+    summary: quest.summary || '',
+    hook: quest.hook || '',
+    status: quest.status || 'available',
+    is_pinned: Boolean(quest.is_pinned),
+    updated_at: quest.updated_at || '',
+    objectives: Array.isArray(quest.objectives) ? quest.objectives.map(objective => ({
+      id: objective.id || '',
+      title: objective.title || 'Untitled objective',
+      status: objective.status || 'upcoming',
+      optional: Boolean(objective.optional),
+    })) : [],
+  };
+}
+
+function dispatchPlayerQuestPreview({ method, url, previewRequest }) {
+  if (method !== 'get') return { handled: false, data: null };
+  const match = previewPath(url).match(/^\/player\/campaign\/([^/]+)\/quests$/);
+  if (!match) return { handled: false, data: null };
+  const campaignId = decodeURIComponent(match[1]);
+  const quests = previewRequest('get', `/campaigns/${campaignId}/quests`);
+  return {
+    handled: true,
+    data: (Array.isArray(quests) ? quests : [])
+      .filter(quest => quest.shared_with_players === true && quest.status !== 'archived')
+      .map(playerQuestPreview),
+  };
+}
+
 async function dispatchCharacterProgressionPreview({ method, url, params, body, previewRequest }) {
   const path = previewPath(url);
   const match = path.match(/^\/characters\/([^/]+)\/(level-up-options|level-up|multiclass)$/);
@@ -83,6 +115,11 @@ export async function previewAdapter(config) {
     const method = String(config.method || 'get').toLowerCase();
     guardIsolatedPreviewFeature(method, config.url);
     const body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {};
+
+    const playerQuests = dispatchPlayerQuestPreview({ method, url: config.url, previewRequest });
+    if (playerQuests.handled) {
+      return { data: playerQuests.data, status: 200, statusText: 'OK', headers: {}, config };
+    }
 
     const safeEdit = await dispatchStateSafeBuilderEdit({ method, url: config.url, body, previewRequest });
     if (safeEdit.handled) {
