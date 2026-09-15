@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import '@/styles/rookieQuestBrand.css';
+import '@/styles/rookieQuestBrandNav.css';
 
 const PRODUCTS = [
   {
