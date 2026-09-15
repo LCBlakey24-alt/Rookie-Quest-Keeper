@@ -1,0 +1,41 @@
+.rq-brand-nav-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rq-brand-nav-signin {
+  border: 0;
+  border-radius: 7px;
+  padding: 10px 11px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.rq-brand-nav-signin:hover,
+.rq-brand-nav-signin:focus-visible {
+  background: rgba(124, 203, 255, 0.08);
+  color: #fff;
+  outline: none;
+}
+
+@media (max-width: 680px) {
+  .rq-brand-nav-actions {
+    gap: 2px;
+  }
+
+  .rq-brand-nav-signin {
+    padding: 8px 7px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 430px) {
+  .rq-brand-nav-signin {
+    display: none;
+  }
+}
