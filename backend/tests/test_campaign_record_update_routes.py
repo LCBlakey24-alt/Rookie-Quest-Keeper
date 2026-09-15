@@ -63,22 +63,24 @@ def test_legacy_update_removers_only_remove_target_put_routes():
     player_target = FakeRoute('/campaigns/{campaign_id}/players/{player_id}', {'PUT'})
     player_delete = FakeRoute('/campaigns/{campaign_id}/players/{player_id}', {'DELETE'})
     inventory_target = FakeRoute('/campaigns/{campaign_id}/inventory/{item_id}', {'PUT'})
+    custom_item_target = FakeRoute('/campaigns/{campaign_id}/custom-items/{item_id}', {'PUT'})
     inventory_grant = FakeRoute('/campaigns/{campaign_id}/inventory/{item_id}/grant', {'POST'})
 
     npc_router = SimpleNamespace(routes=[npc_target, npc_get])
     player_router = SimpleNamespace(routes=[player_target, player_delete])
-    inventory_router = SimpleNamespace(routes=[inventory_target, inventory_grant])
+    inventory_router = SimpleNamespace(routes=[inventory_target, custom_item_target, inventory_grant])
 
     assert records.remove_legacy_npc_update_route(npc_router) == 1
     assert records.remove_legacy_player_update_route(player_router) == 1
     assert records.remove_legacy_inventory_update_route(inventory_router) == 1
+    assert records.remove_legacy_custom_item_update_route(inventory_router) == 1
 
     assert npc_router.routes == [npc_get]
     assert player_router.routes == [player_delete]
     assert inventory_router.routes == [inventory_grant]
 
 
-def test_focused_router_registers_all_three_routes_once():
+def test_focused_router_registers_all_four_routes_once():
     actual = []
     for route in records.router.routes:
         for method in getattr(route, 'methods', set()) or set():
@@ -87,7 +89,7 @@ def test_focused_router_registers_all_three_routes_once():
                 actual.append(key)
 
     assert set(actual) == records.CAMPAIGN_RECORD_UPDATE_ROUTE_KEYS
-    assert len(actual) == 3
+    assert len(actual) == 4
 
 
 def test_ownership_failure_stops_record_collection_access(monkeypatch):
@@ -283,3 +285,37 @@ def test_inventory_update_returns_only_campaign_scoped_response(monkeypatch):
         'campaign-a', 'item-1', Payload({'quantity': 2, 'notes': None}), current_user='gm-a'
     ))
     assert result['quantity'] == 2
+
+
+def test_custom_item_update_rejects_empty_payload_and_returns_scoped_response(monkeypatch):
+    async def verify(campaign_id, username):
+        return None
+
+    class Collection:
+        async def update_one(self, query, update):
+            assert query == {'id': 'custom-1', 'campaign_id': 'campaign-a'}
+            assert update == {'$set': {'name': 'Moonblade'}}
+            return Result(1)
+
+        async def find_one(self, query, projection=None):
+            assert query == {'id': 'custom-1', 'campaign_id': 'campaign-a'}
+            return {'id': 'custom-1', 'campaign_id': 'campaign-a', 'name': 'Moonblade'}
+
+    monkeypatch.setattr(records, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(records, 'db', SimpleNamespace(custom_items=Collection()))
+
+    result = asyncio.run(records.update_custom_item_record(
+        'campaign-a', 'custom-1', Payload({'name': 'Moonblade', 'notes': None}), current_user='gm-a'
+    ))
+    assert result['name'] == 'Moonblade'
+
+    class NeverTouch:
+        async def update_one(self, *args, **kwargs):
+            pytest.fail('Empty custom-item update must fail before write')
+
+    monkeypatch.setattr(records, 'db', SimpleNamespace(custom_items=NeverTouch()))
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(records.update_custom_item_record(
+            'campaign-a', 'custom-1', Payload({'name': None, 'notes': None}), current_user='gm-a'
+        ))
+    assert exc.value.status_code == 400
