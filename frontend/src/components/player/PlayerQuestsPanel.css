@@ -1,0 +1,227 @@
+.player-quests-panel {
+  display: grid;
+  gap: 12px;
+  color: var(--rq-text-primary);
+}
+
+.player-quests-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border: 1px solid var(--rq-border-default);
+  border-left: 1px solid var(--rq-secondary);
+  background: var(--rq-bg-panel);
+}
+
+.player-quests-header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.player-quests-header span {
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.player-quests-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.player-quests-header p {
+  margin: 0;
+  font-size: .84rem;
+  line-height: 1.45;
+}
+
+.player-quests-refresh {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-card);
+  color: var(--rq-text-primary);
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.player-quests-refresh:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.player-quests-warning {
+  padding: 10px 12px;
+  border: 1px solid rgba(255,45,170,.3);
+  border-left: 1px solid var(--rq-accent-primary);
+  background: var(--rq-bg-panel);
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+.player-quests-empty {
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 16px;
+  border: 1px dashed var(--rq-border-default);
+  background: var(--rq-bg-panel);
+  text-align: center;
+}
+
+.player-quests-empty span {
+  font-size: .8rem;
+}
+
+.player-quests-group {
+  display: grid;
+  gap: 8px;
+}
+
+.player-quests-group > h3 {
+  margin: 0;
+  font-size: .86rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.player-quests-list {
+  display: grid;
+  gap: 8px;
+}
+
+.player-quest-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-bg-panel);
+}
+
+.player-quest-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.player-quest-card__top > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.player-quest-card__top > strong {
+  padding: 4px 6px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-card);
+  font-size: .74rem;
+}
+
+.player-quest-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.player-quest-card__title-row h4 {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+}
+
+.player-quest-status {
+  width: fit-content;
+  padding: 3px 6px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-card);
+  font-size: .68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.player-quest-summary,
+.player-quest-hook {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.player-quest-summary {
+  font-size: .86rem;
+  font-weight: 750;
+}
+
+.player-quest-hook {
+  font-size: .8rem;
+}
+
+.player-quest-objectives {
+  display: grid;
+  gap: 5px;
+}
+
+.player-quest-objective {
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-bg-main);
+  font-size: .8rem;
+}
+
+.player-quest-objective.is-completed > span:nth-child(2) {
+  text-decoration: line-through;
+  opacity: .72;
+}
+
+.player-quest-objective.is-skipped {
+  opacity: .62;
+}
+
+.player-quest-objective__icon {
+  display: grid;
+  place-items: center;
+}
+
+.player-quest-objective small {
+  padding: 2px 5px;
+  border: 1px solid var(--rq-border-default);
+  font-size: .64rem;
+  font-weight: 850;
+}
+
+@media (max-width: 620px) {
+  .player-quests-header,
+  .player-quest-card {
+    padding: 10px;
+  }
+
+  .player-quests-refresh {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .player-quest-objective {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .player-quest-objective small {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
