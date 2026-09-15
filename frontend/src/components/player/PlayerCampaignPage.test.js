@@ -8,6 +8,7 @@ import { PlayerCampaignWorkspace } from './PlayerCampaignPage';
 jest.mock('./playerCampaignData', () => ({ fetchPlayerCampaignSections: jest.fn() }));
 jest.mock('@/components/dashboard/player/playerDashboardData', () => ({ fetchPlayerHandoutSummary: jest.fn() }));
 jest.mock('./CombatInitiativeSubmitter', () => () => null);
+jest.mock('./PlayerQuestsPanel', () => () => <div>Shared quest panel</div>);
 
 const data = {
   campaign: { id: 'c1', name: 'Test table', description: 'Shared description' },
@@ -36,6 +37,16 @@ test('offers a real character sheet link, preserves zero HP and omits GM actions
   expect(fetchPlayerHandoutSummary).toHaveBeenCalledWith(expect.anything(), 'c1');
   expect(screen.getByRole('link', { name: 'Player home' })).toHaveAttribute('href', '/player');
   expect(screen.queryByText('GM Notes')).not.toBeInTheDocument();
+});
+
+test('opens shared quests from the player campaign tabs', async () => {
+  fetchPlayerCampaignSections.mockResolvedValue(data);
+  render(<MemoryRouter><PlayerCampaignWorkspace campaignId="c1" /></MemoryRouter>);
+
+  await screen.findByText('Test table');
+  fireEvent.click(screen.getByRole('tab', { name: /quests/i }));
+
+  expect(await screen.findByText('Shared quest panel')).toBeInTheDocument();
 });
 
 test('opens a sheet with the current player campaign as its return context', async () => {
