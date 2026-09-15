@@ -1,9 +1,18 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Mail, Shield } from 'lucide-react';
-import PlayerDashboardTabs from './PlayerDashboardTabs';
+import PlayerDashboardTabs, { PLAYER_DASHBOARD_TAB_KEY } from './PlayerDashboardTabs';
+
+const tabs = [
+  { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
+  { id: 'handouts', label: 'Received', icon: Mail, testId: 'tab-handouts' },
+];
 
 describe('PlayerDashboardTabs', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
   test('shows a compact unread badge without changing the tab label', () => {
     render(
       <PlayerDashboardTabs
@@ -37,5 +46,45 @@ describe('PlayerDashboardTabs', () => {
     );
 
     expect(screen.getByLabelText('142 unread')).toHaveTextContent('99+');
+  });
+
+  test('restores the last valid player section when returning to Player Home', () => {
+    sessionStorage.setItem(PLAYER_DASHBOARD_TAB_KEY, 'handouts');
+    const setActiveTab = jest.fn();
+
+    render(
+      <PlayerDashboardTabs tabs={tabs} activeTab="characters" setActiveTab={setActiveTab}>
+        <div>Character content</div>
+      </PlayerDashboardTabs>,
+    );
+
+    expect(setActiveTab).toHaveBeenCalledWith('handouts');
+  });
+
+  test('ignores a remembered section that is no longer a valid player tab', () => {
+    sessionStorage.setItem(PLAYER_DASHBOARD_TAB_KEY, 'gm-secret');
+    const setActiveTab = jest.fn();
+
+    render(
+      <PlayerDashboardTabs tabs={tabs} activeTab="characters" setActiveTab={setActiveTab}>
+        <div>Character content</div>
+      </PlayerDashboardTabs>,
+    );
+
+    expect(setActiveTab).not.toHaveBeenCalled();
+  });
+
+  test('remembers a section when the player changes tabs', () => {
+    const setActiveTab = jest.fn();
+    render(
+      <PlayerDashboardTabs tabs={tabs} activeTab="characters" setActiveTab={setActiveTab}>
+        <div>Character content</div>
+      </PlayerDashboardTabs>,
+    );
+
+    fireEvent.mouseDown(screen.getByTestId('tab-handouts'), { button: 0, ctrlKey: false });
+
+    expect(setActiveTab).toHaveBeenCalledWith('handouts');
+    expect(sessionStorage.getItem(PLAYER_DASHBOARD_TAB_KEY)).toBe('handouts');
   });
 });
