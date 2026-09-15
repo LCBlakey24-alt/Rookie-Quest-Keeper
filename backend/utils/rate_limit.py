@@ -41,6 +41,7 @@ class SlidingWindowRateLimiter:
 RATE_LIMITS = [
     # Auth-sensitive routes.
     ("/api/auth/login", 8, 15 * 60),
+    ("/api/auth/google", 12, 15 * 60),
     ("/api/auth/register", 10, 60 * 60),
     ("/api/auth/forgot-password", 5, 60 * 60),
     ("/api/auth/reset-password", 8, 60 * 60),
