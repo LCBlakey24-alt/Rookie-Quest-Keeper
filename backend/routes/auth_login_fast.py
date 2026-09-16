@@ -13,8 +13,6 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
-from google.auth.transport import requests as google_requests
-from google.oauth2 import id_token as google_id_token
 
 from config import db
 from models import UserLogin, TokenResponse
@@ -97,6 +95,13 @@ def suggest_google_username(email: str) -> str:
 def verify_google_credential(credential: str) -> dict:
     if not GOOGLE_CLIENT_ID:
         raise RuntimeError('Google sign-in is not configured')
+
+    # Google auth pulls in a relatively large dependency tree. Import it only
+    # for the minority of requests that actually use Google sign-in so ordinary
+    # password logins and cold starts stay lighter.
+    from google.auth.transport import requests as google_requests
+    from google.oauth2 import id_token as google_id_token
+
     return google_id_token.verify_oauth2_token(
         credential,
         google_requests.Request(),
