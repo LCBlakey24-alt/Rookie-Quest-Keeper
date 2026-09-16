@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends
 from config import ADMIN_USERNAMES, db
 from routes.admin import merge_site_settings
 from routes.homebrew import COLLECTION, CONTENT_TYPES
-from utils.auth import get_current_user
+from utils.auth import get_current_user, verify_campaign_ownership
 
 router = APIRouter()
 
@@ -74,6 +74,45 @@ HOMEBREW_PROJECTION = {
     'created_at': 1,
     'updated_at': 1,
 }
+
+# The GM campaign home only needs enough information to choose and paint the
+# current quest/story focus. Keep private prep on the server by ownership-
+# checking this endpoint and avoid shipping unrelated full record bodies.
+QUEST_HOME_PROJECTION = {
+    '_id': 0,
+    'id': 1,
+    'title': 1,
+    'summary': 1,
+    'hook': 1,
+    'status': 1,
+    'objectives': 1,
+    'linked_npc_ids': 1,
+    'linked_location_ids': 1,
+    'is_pinned': 1,
+    'updated_at': 1,
+}
+
+STORY_ARC_HOME_PROJECTION = {
+    '_id': 0,
+    'id': 1,
+    'title': 1,
+    'status': 1,
+    'chapters': 1,
+    'created_at': 1,
+}
+
+NPC_HOME_PROJECTION = {'_id': 0, 'id': 1, 'name': 1}
+LOCATION_HOME_PROJECTION = {'_id': 0, 'id': 1, 'name': 1}
+NOTE_HOME_PROJECTION = {'_id': 0, 'id': 1, 'content': 1, 'created_at': 1, 'updated_at': 1}
+CALENDAR_HOME_PROJECTION = {
+    '_id': 0,
+    'campaign_id': 1,
+    'current_day': 1,
+    'current_month': 1,
+    'current_year': 1,
+    'custom_months': 1,
+}
+EVENT_HOME_PROJECTION = {'_id': 0, 'id': 1, 'name': 1, 'day': 1, 'month': 1, 'year': 1}
 
 
 async def _load_homebrew_summaries(username: str) -> list[dict]:
@@ -180,3 +219,66 @@ async def get_campaign_library(username: str = Depends(get_current_user)):
         CAMPAIGN_LIBRARY_PROJECTION,
     ).sort('updated_at', -1).to_list(1000)
     return await _attach_campaign_library_counts(campaigns)
+
+
+@router.get('/campaigns/{campaign_id}/home-bootstrap')
+async def get_campaign_home_bootstrap(campaign_id: str, username: str = Depends(get_current_user)):
+    """Return the GM Home focus data in one ownership-checked round trip."""
+    await verify_campaign_ownership(campaign_id, username)
+
+    quests_request = db.quests.find(
+        {'campaign_id': campaign_id},
+        QUEST_HOME_PROJECTION,
+    ).sort([('is_pinned', -1), ('updated_at', -1)]).to_list(500)
+
+    arcs_request = db.story_arcs.find(
+        {'campaign_id': campaign_id},
+        STORY_ARC_HOME_PROJECTION,
+    ).sort('created_at', 1).to_list(200)
+
+    npcs_request = db.npcs.find(
+        {'campaign_id': campaign_id},
+        NPC_HOME_PROJECTION,
+    ).to_list(1000)
+
+    locations_request = db.locations.find(
+        {'campaign_id': campaign_id},
+        LOCATION_HOME_PROJECTION,
+    ).to_list(1000)
+
+    # GM Home only renders the newest note; don't download a campaign's entire
+    # note history just to show one preview card.
+    notes_request = db.ingame_notes.find(
+        {'campaign_id': campaign_id},
+        NOTE_HOME_PROJECTION,
+    ).sort('created_at', -1).to_list(1)
+
+    calendar_request = db.calendars.find_one(
+        {'campaign_id': campaign_id},
+        CALENDAR_HOME_PROJECTION,
+    )
+
+    events_request = db.calendar_events.find(
+        {'campaign_id': campaign_id},
+        EVENT_HOME_PROJECTION,
+    ).to_list(1000)
+
+    quests, arcs, npcs, locations, notes, calendar, events = await asyncio.gather(
+        quests_request,
+        arcs_request,
+        npcs_request,
+        locations_request,
+        notes_request,
+        calendar_request,
+        events_request,
+    )
+
+    return {
+        'quests': quests,
+        'arcs': arcs,
+        'npcs': npcs,
+        'locations': locations,
+        'notes': notes,
+        'calendar': calendar,
+        'events': events,
+    }
