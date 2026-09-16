@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import ADMIN_USERNAMES, db
 from routes.admin import merge_site_settings
+from routes.campaign_display import default_display_state
 from routes.homebrew import COLLECTION, CONTENT_TYPES
 from utils.auth import get_current_user
 
@@ -335,11 +336,39 @@ async def get_live_play_bootstrap(campaign_id: str, username: str = Depends(get_
         {'_id': 0},
     ).sort('created_at', -1).to_list(30)
 
-    players, scenarios, calendar, notes = await asyncio.gather(
+    # These widgets are always rendered immediately after the shell loads. They
+    # used to fire five more mount-time browser requests (including two reads of
+    # display-state). Preload their first state here; their normal refresh,
+    # WebSocket and polling behaviour still takes over after mount.
+    arcs_request = db.story_arcs.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    ).sort('created_at', 1).to_list(200)
+
+    maps_request = db.maps.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    ).to_list(1000)
+
+    npcs_request = db.npcs.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    ).to_list(1000)
+
+    display_state_request = db.campaign_display_states.find_one(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    )
+
+    players, scenarios, calendar, notes, arcs, maps, npcs, display_state = await asyncio.gather(
         players_request,
         scenarios_request,
         calendar_request,
         notes_request,
+        arcs_request,
+        maps_request,
+        npcs_request,
+        display_state_request,
     )
 
     return {
@@ -348,4 +377,8 @@ async def get_live_play_bootstrap(campaign_id: str, username: str = Depends(get_
         'scenarios': scenarios,
         'calendar': calendar,
         'notes': notes,
+        'story_arcs': arcs,
+        'maps': maps,
+        'npcs': npcs,
+        'display_state': display_state or default_display_state(campaign_id),
     }
