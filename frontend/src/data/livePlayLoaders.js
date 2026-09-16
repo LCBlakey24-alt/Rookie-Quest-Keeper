@@ -8,6 +8,8 @@ const SECTION_LABELS = {
   liveState: 'travelling NPC state',
 };
 
+const liveBootstrapExtras = new Map();
+
 async function readSection(apiClient, url) {
   try {
     const response = await apiClient.get(url);
@@ -37,15 +39,32 @@ function sectionsFromLiveBootstrap(payload = {}) {
   };
 }
 
+function storeLiveBootstrapExtras(campaignId, payload = {}) {
+  liveBootstrapExtras.set(String(campaignId || ''), {
+    storyArcs: Array.isArray(payload.story_arcs) ? payload.story_arcs : null,
+    maps: Array.isArray(payload.maps) ? payload.maps : null,
+    npcs: Array.isArray(payload.npcs) ? payload.npcs : null,
+    displayState: payload.display_state || null,
+  });
+}
+
+export function getLiveBootstrapExtras(campaignId) {
+  return liveBootstrapExtras.get(String(campaignId || '')) || null;
+}
+
 export async function loadLiveSessionSections(apiClient, campaignId) {
   // Modern path: one ownership-checked request carries the exact sections the
-  // Live Play shell needs. If an older/mid-deploy backend does not expose it,
-  // fall back to the established independent reads so Live Play still opens.
+  // Live Play shell and its always-on widgets need. The widget payload is held
+  // in module memory until those children mount a moment later, avoiding prop
+  // plumbing through the large Live Play shell.
   try {
     const bootstrap = await apiClient.get(`/campaigns/${campaignId}/live-bootstrap`);
-    const sections = sectionsFromLiveBootstrap(bootstrap?.data || {});
+    const payload = bootstrap?.data || {};
+    const sections = sectionsFromLiveBootstrap(payload);
+    storeLiveBootstrapExtras(campaignId, payload);
     return { sections, errors: [] };
   } catch (error) {
+    liveBootstrapExtras.delete(String(campaignId || ''));
     const status = error?.response?.status;
     if (status === 401 || status === 403) {
       const sections = Object.fromEntries(
