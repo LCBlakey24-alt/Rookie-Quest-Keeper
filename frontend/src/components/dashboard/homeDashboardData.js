@@ -54,6 +54,32 @@ function readHomebrew(result) {
   ));
 }
 
+function readBootstrap(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+
+  const characters = cleanRecords(data.characters);
+  const campaigns = cleanRecords(data.campaigns);
+  const homebrewItems = cleanRecords(data.homebrew_items);
+  const siteSettings = data.site_settings;
+
+  if (characters === null || campaigns === null || homebrewItems === null) return null;
+  if (!siteSettings || typeof siteSettings !== 'object' || Array.isArray(siteSettings)) return null;
+  if (typeof data.is_admin !== 'boolean') return null;
+
+  return {
+    characters,
+    campaigns,
+    homebrewItems,
+    isAdmin: data.is_admin,
+    siteSettings,
+    adminOverview: data.admin_overview && typeof data.admin_overview === 'object'
+      ? data.admin_overview
+      : {},
+    failures: [],
+    ok: true,
+  };
+}
+
 export function resolveDashboardPrimaryResults(results = []) {
   const [charactersResult, campaignsResult, adminResult, settingsResult, homebrewResult] = results;
   const failures = [];
@@ -84,6 +110,18 @@ export function resolveDashboardPrimaryResults(results = []) {
 }
 
 export async function fetchHomeDashboardSections(client) {
+  // Modern production path: one small request containing only the fields the
+  // home screen needs. Keep the legacy fan-out as a rollout fallback so an
+  // older backend can still serve a newly deployed frontend safely.
+  try {
+    const response = await client.get('/dashboard/bootstrap');
+    const bootstrap = readBootstrap(response?.data);
+    if (bootstrap) return bootstrap;
+  } catch (error) {
+    const status = error?.response?.status;
+    if (status !== 404 && status !== 405) throw error;
+  }
+
   const primaryResults = await Promise.allSettled([
     client.get('/characters'),
     client.get('/campaigns'),
