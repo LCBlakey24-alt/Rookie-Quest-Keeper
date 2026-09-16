@@ -126,6 +126,7 @@ export default function MyCharactersPage() {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [deletingId, setDeletingId] = useState('');
   const [duplicatingId, setDuplicatingId] = useState('');
 
@@ -138,11 +139,12 @@ export default function MyCharactersPage() {
       const response = await fetchCharacterLibrary();
       const records = Array.isArray(response.data) ? response.data : response.data?.characters || [];
       setCharacters(records.filter((item) => item && typeof item === 'object'));
+      setLoadError('');
       return { ok: true };
     } catch (error) {
-      if (notifyFailure) {
-        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load characters');
-      }
+      const detail = error?.formattedDetail || error?.response?.data?.detail || 'Failed to load characters';
+      setLoadError(detail);
+      if (notifyFailure) toast.error(detail);
       return { ok: false, error };
     } finally {
       setLoading(false);
@@ -245,7 +247,18 @@ export default function MyCharactersPage() {
         </div>
       </section>
 
-      {sortedCharacters.length === 0 ? (
+      {loadError && sortedCharacters.length === 0 ? (
+        <section className="library-page-empty" role="alert" aria-live="polite">
+          <h2>Couldn’t load characters</h2>
+          <p>{loadError}</p>
+          <div className="library-page-actions">
+            <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button library-page-button-primary library-page-loading-button">
+              <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
+              {refreshing ? 'Trying again…' : 'Try again'}
+            </button>
+          </div>
+        </section>
+      ) : sortedCharacters.length === 0 ? (
         <section className="library-page-empty">
           <h2>No characters yet</h2>
           <p>Create your first character or import an existing one.</p>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Clock3, Plus, UsersRound, Wand2 } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock3, Plus, UsersRound, Wand2 } from 'lucide-react';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import '@/styles/unifiedDashboardPolish.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
@@ -44,6 +44,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     recentCharacters,
     recentCampaigns,
     recentHomebrew,
+    dashboardWarning,
     loadDashboard,
   } = useDashboardData();
 
@@ -136,6 +137,16 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         onRefresh={loadDashboard}
         onLogout={onLogout}
       />
+
+      {dashboardWarning && (
+        <div className="dashboard-empty-compact" role="status" aria-live="polite">
+          <AlertTriangle size={18} aria-hidden="true" />
+          <p>{dashboardWarning}</p>
+          <button type="button" className="unified-dashboard-button" disabled={refreshing} onClick={() => loadDashboard({ notifyFailure: false })}>
+            {refreshing ? 'Trying again…' : 'Retry dashboard'}
+          </button>
+        </div>
+      )}
 
       <section className="dashboard-simple-section" aria-labelledby="dashboard-actions-title">
         <div className="dashboard-simple-heading">

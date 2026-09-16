@@ -65,6 +65,7 @@ export default function MyCampaignsPage() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
   const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
@@ -79,11 +80,12 @@ export default function MyCampaignsPage() {
       const response = await fetchCampaignLibrary();
       const records = Array.isArray(response.data) ? response.data : response.data?.campaigns || [];
       setCampaigns(records.filter((item) => item && typeof item === 'object'));
+      setLoadError('');
       return { ok: true };
     } catch (error) {
-      if (notifyFailure) {
-        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load campaigns');
-      }
+      const detail = error?.formattedDetail || error?.response?.data?.detail || 'Failed to load campaigns';
+      setLoadError(detail);
+      if (notifyFailure) toast.error(detail);
       return { ok: false, error };
     } finally {
       setLoading(false);
@@ -224,7 +226,18 @@ export default function MyCampaignsPage() {
         </div>
       </section>
 
-      {sortedCampaigns.length === 0 ? (
+      {loadError && sortedCampaigns.length === 0 ? (
+        <section className="library-page-empty" role="alert" aria-live="polite">
+          <h2>Couldn’t load campaigns</h2>
+          <p>{loadError}</p>
+          <div className="library-page-actions">
+            <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button library-page-button-primary library-page-loading-button">
+              <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
+              {refreshing ? 'Trying again…' : 'Try again'}
+            </button>
+          </div>
+        </section>
+      ) : sortedCampaigns.length === 0 ? (
         <section className="library-page-empty campaign-library-empty">
           <h2>No campaigns yet</h2>
           <p>Create your first campaign to start building the world.</p>
