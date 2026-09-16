@@ -16,8 +16,31 @@ function apiFrom(map) {
 }
 
 describe('Live Play section loading', () => {
-  test('keeps a failed party read distinct from a legitimate empty party', async () => {
+  test('loads the Live Play shell from one bootstrap request when available', async () => {
     const apiClient = apiFrom({
+      '/campaigns/c0/live-bootstrap': {
+        campaign: { id: 'c0', name: 'Fast Table' },
+        players: [{ id: 'p1', name: 'Hero' }],
+        scenarios: [{ id: 's1', name: 'Ambush' }],
+        calendar: { current_day: 4 },
+        notes: [{ id: 'n1', content: 'Previously...' }],
+      },
+    });
+
+    const result = await loadLiveSessionSections(apiClient, 'c0');
+
+    expect(apiClient.get).toHaveBeenCalledTimes(1);
+    expect(apiClient.get).toHaveBeenCalledWith('/campaigns/c0/live-bootstrap');
+    expect(result.errors).toEqual([]);
+    expect(result.sections.campaign).toEqual({ ok: true, data: { id: 'c0', name: 'Fast Table' } });
+    expect(result.sections.players.data).toHaveLength(1);
+    expect(result.sections.scenarios.data).toHaveLength(1);
+    expect(result.sections.notes.data).toHaveLength(1);
+  });
+
+  test('keeps a failed party read distinct from a legitimate empty party when bootstrap falls back', async () => {
+    const apiClient = apiFrom({
+      '/campaigns/c1/live-bootstrap': new Error('bootstrap unavailable'),
       '/campaigns/c1': { id: 'c1', name: 'Test' },
       '/campaigns/c1/players': new Error('offline'),
       '/campaigns/c1/combat-scenarios': [],
@@ -27,6 +50,8 @@ describe('Live Play section loading', () => {
 
     const result = await loadLiveSessionSections(apiClient, 'c1');
 
+    expect(apiClient.get).toHaveBeenCalledWith('/campaigns/c1/live-bootstrap');
+    expect(apiClient.get).toHaveBeenCalledWith('/campaigns/c1/players');
     expect(result.sections.players.ok).toBe(false);
     expect(result.sections.players.data).toBeUndefined();
     expect(result.sections.scenarios).toEqual({ ok: true, data: [] });
