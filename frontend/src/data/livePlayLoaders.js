@@ -27,7 +27,34 @@ function collectErrors(sections) {
     }));
 }
 
+function sectionsFromLiveBootstrap(payload = {}) {
+  return {
+    campaign: { ok: true, data: payload.campaign || null },
+    players: { ok: true, data: Array.isArray(payload.players) ? payload.players : [] },
+    scenarios: { ok: true, data: Array.isArray(payload.scenarios) ? payload.scenarios : [] },
+    calendar: { ok: true, data: payload.calendar || null },
+    notes: { ok: true, data: Array.isArray(payload.notes) ? payload.notes : [] },
+  };
+}
+
 export async function loadLiveSessionSections(apiClient, campaignId) {
+  // Modern path: one ownership-checked request carries the exact sections the
+  // Live Play shell needs. If an older/mid-deploy backend does not expose it,
+  // fall back to the established independent reads so Live Play still opens.
+  try {
+    const bootstrap = await apiClient.get(`/campaigns/${campaignId}/live-bootstrap`);
+    const sections = sectionsFromLiveBootstrap(bootstrap?.data || {});
+    return { sections, errors: [] };
+  } catch (error) {
+    const status = error?.response?.status;
+    if (status === 401 || status === 403) {
+      const sections = Object.fromEntries(
+        ['campaign', 'players', 'scenarios', 'calendar', 'notes'].map(key => [key, { ok: false, error }])
+      );
+      return { sections, errors: collectErrors(sections) };
+    }
+  }
+
   const [campaign, players, scenarios, calendar, notes] = await Promise.all([
     readSection(apiClient, `/campaigns/${campaignId}`),
     readSection(apiClient, `/campaigns/${campaignId}/players`),
