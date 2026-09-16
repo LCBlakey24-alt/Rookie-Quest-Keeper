@@ -9,6 +9,7 @@ import {
   Shield,
 } from 'lucide-react';
 import '@/styles/rookieQuestBrand.css';
+import '@/styles/rookieQuestKeeperFirst.css';
 
 const ROADMAP = [
   {
