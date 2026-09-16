@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { AUTH_USERNAME_KEY } from '@/lib/auth';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
 import '@/styles/appShellRail.css';
@@ -16,6 +17,58 @@ import '@/layouts/mobile/appShell.css';
 import { isLocalPreview } from '@/preview/previewMode';
 import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
 import '@/preview/previewWorkspace.css';
+
+const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000;
+let adminCheckInFlight = null;
+
+function adminCacheKey() {
+  if (typeof window === 'undefined') return '';
+  const username = localStorage.getItem(AUTH_USERNAME_KEY) || 'unknown';
+  return `rqk.admin-check:${username}`;
+}
+
+function readCachedAdminStatus() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const key = adminCacheKey();
+    if (!key) return null;
+    const cached = JSON.parse(sessionStorage.getItem(key) || 'null');
+    if (!cached || typeof cached.isAdmin !== 'boolean' || !Number.isFinite(cached.checkedAt)) return null;
+    if (Date.now() - cached.checkedAt > ADMIN_CACHE_TTL_MS) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    return cached.isAdmin;
+  } catch {
+    return null;
+  }
+}
+
+function storeAdminStatus(isAdmin) {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = adminCacheKey();
+    if (key) sessionStorage.setItem(key, JSON.stringify({ isAdmin: Boolean(isAdmin), checkedAt: Date.now() }));
+  } catch {}
+}
+
+async function loadAdminStatus() {
+  const cached = readCachedAdminStatus();
+  if (cached !== null) return cached;
+  if (adminCheckInFlight) return adminCheckInFlight;
+
+  adminCheckInFlight = apiClient.get('/admin/check')
+    .then((response) => {
+      const isAdmin = Boolean(response.data?.is_admin);
+      storeAdminStatus(isAdmin);
+      return isAdmin;
+    })
+    .finally(() => {
+      adminCheckInFlight = null;
+    });
+
+  return adminCheckInFlight;
+}
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
@@ -138,17 +191,20 @@ export default function AppShell({ children }) {
   const visibleNavItems = isMobile
     ? mainNavItems.filter((item) => item.mobilePrimary)
     : mainNavItems;
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => readCachedAdminStatus() ?? false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    apiClient.get('/admin/check')
-      .then((response) => {
-        if (active) setIsAdmin(Boolean(response.data?.is_admin));
+    loadAdminStatus()
+      .then((nextIsAdmin) => {
+        if (active) setIsAdmin(nextIsAdmin);
       })
       .catch(() => {
+        // A temporary account-service problem should not create repeated retry
+        // traffic or disturb the rest of the workspace. The next shell mount
+        // can try again because failures are deliberately not cached.
         if (active) setIsAdmin(false);
       });
 
