@@ -28,8 +28,64 @@ def require_env(name: str) -> str:
 # MongoDB
 mongo_url = require_env('MONGO_URL')
 db_name = require_env('DB_NAME')
-client = AsyncIOMotorClient(mongo_url)
-db = client[db_name]
+
+
+class _LazyMongoState:
+    """Create Motor/PyMongo objects only when a database operation needs them.
+
+    PyMongo resolves mongodb+srv DNS records while constructing MongoClient.
+    Doing that at module import means a paused/unavailable Atlas cluster can
+    prevent FastAPI from starting at all. Deferring construction keeps health
+    and public service-status routes available while database operations still
+    fail normally until Atlas is reachable again.
+    """
+
+    def __init__(self, url: str, name: str):
+        self.url = url
+        self.name = name
+        self._client = None
+        self._db = None
+
+    def get_client(self):
+        if self._client is None:
+            self._client = AsyncIOMotorClient(self.url)
+        return self._client
+
+    def get_db(self):
+        if self._db is None:
+            self._db = self.get_client()[self.name]
+        return self._db
+
+    def close(self):
+        if self._client is not None:
+            self._client.close()
+
+
+class _LazyMongoClient:
+    def __init__(self, state: _LazyMongoState):
+        self._state = state
+
+    def __getattr__(self, name):
+        return getattr(self._state.get_client(), name)
+
+    def close(self):
+        self._state.close()
+
+
+class _LazyMongoDatabase:
+    def __init__(self, state: _LazyMongoState):
+        self._state = state
+
+    def __getattr__(self, name):
+        return getattr(self._state.get_db(), name)
+
+    def __getitem__(self, name):
+        return self._state.get_db()[name]
+
+
+_mongo_state = _LazyMongoState(mongo_url, db_name)
+client = _LazyMongoClient(_mongo_state)
+db = _LazyMongoDatabase(_mongo_state)
 
 # JWT
 JWT_SECRET = require_env('JWT_SECRET_KEY')
