@@ -9,44 +9,52 @@ import {
   Shield,
 } from 'lucide-react';
 import '@/styles/rookieQuestBrand.css';
+import '@/styles/rookieQuestKeeperFirst.css';
 
-const PRODUCTS = [
+const ROADMAP = [
   {
+    number: '01',
     key: 'keeper',
     icon: Shield,
     verb: 'Run',
     name: 'Keeper',
-    status: 'Available now',
-    description: 'Characters, campaigns, prep and live table tools in one connected workspace.',
-    path: '/keeper',
+    status: 'Now',
+    description: 'The first Rookie Quest product: characters, campaigns, prep and live table tools in one connected workspace.',
   },
   {
+    number: '02',
     key: 'forge',
     icon: Hammer,
     verb: 'Build',
     name: 'Forge',
-    status: 'In development',
-    description: 'Modular printable terrain built to be reused, expanded and stored without the headache.',
-    path: '/forge',
+    status: 'Next',
+    description: 'Our modular printable terrain system. It stays in development until the tiles, connectors and core range are properly tested.',
   },
   {
+    number: '03',
     key: 'worlds',
     icon: BookOpen,
     verb: 'Explore',
     name: 'Worlds',
-    status: 'In development',
-    description: 'Original settings, adventures and lore designed to give your table somewhere new to go.',
-    path: '/worlds',
+    status: 'Later',
+    description: 'Original campaign settings, adventures and lore that can eventually connect back into Keeper and Forge.',
   },
   {
+    number: '04',
     key: 'game',
     icon: Dices,
     verb: 'Play',
-    name: 'The Game',
-    status: 'Future release',
-    description: 'A future original tabletop RPG shaped by the way people actually build, run and play.',
-    path: '/game',
+    name: 'Rookie Quest RPG',
+    status: 'Future',
+    description: 'Our own tabletop roleplaying system, built only after the rest of the ecosystem has taught us what the game should actually be.',
   },
+];
+
+const KEEPER_FEATURES = [
+  'Create and manage characters',
+  'Build campaigns and organise prep',
+  'Run live sessions and combat',
+  'Keep GM and player tools connected',
 ];
 
 function BrandMark({ compact = false }) {
@@ -59,7 +67,7 @@ function BrandMark({ compact = false }) {
 
 export default function BrandHubPage() {
   const navigate = useNavigate();
-  const productsRef = useRef(null);
+  const roadmapRef = useRef(null);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -72,7 +80,7 @@ export default function BrandHubPage() {
     activeMetaDescription.setAttribute('name', 'description');
     activeMetaDescription.setAttribute(
       'content',
-      'Rookie Quest brings tabletop campaign tools, original worlds, modular printable terrain and a future original RPG together in one connected ecosystem.'
+      'Rookie Quest is a growing tabletop brand. Start with Rookie Quest Keeper, our connected campaign and table-management toolkit, with Forge, Worlds and an original RPG planned for the future.'
     );
 
     if (createdMeta) document.head.appendChild(activeMetaDescription);
@@ -84,13 +92,13 @@ export default function BrandHubPage() {
     };
   }, []);
 
-  const scrollToProducts = () => {
+  const scrollToRoadmap = () => {
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    productsRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+    roadmapRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
   };
 
   return (
-    <div className="rq-brand-page">
+    <div className="rq-brand-page rq-brand-page-keeper-first">
       <a className="rq-brand-skip" href="#rq-brand-main">Skip to content</a>
 
       <nav className="rq-brand-nav" aria-label="Rookie Quest navigation">
@@ -99,11 +107,9 @@ export default function BrandHubPage() {
           <span className="rq-brand-lockup-name">Rookie Quest</span>
         </button>
 
-        <div className="rq-brand-nav-links" aria-label="Rookie Quest products">
+        <div className="rq-brand-nav-links" aria-label="Rookie Quest navigation links">
           <button type="button" onClick={() => navigate('/keeper')}>Keeper</button>
-          <button type="button" onClick={() => navigate('/forge')}>Forge</button>
-          <button type="button" onClick={() => navigate('/worlds')}>Worlds</button>
-          <button type="button" onClick={() => navigate('/game')}>Game</button>
+          <button type="button" onClick={scrollToRoadmap}>Roadmap</button>
         </div>
 
         <div className="rq-brand-nav-actions">
@@ -115,93 +121,113 @@ export default function BrandHubPage() {
       </nav>
 
       <main id="rq-brand-main">
-        <section className="rq-brand-hero" aria-labelledby="rq-brand-title">
+        <section className="rq-brand-hero rq-brand-hero-keeper-first" aria-labelledby="rq-brand-title">
           <div className="rq-brand-hero-mark"><BrandMark /></div>
-          <p className="rq-brand-overline">Tabletop stories. One connected home.</p>
+          <p className="rq-brand-overline">A home for the tabletop ideas we want to build properly.</p>
           <h1 id="rq-brand-title">Rookie Quest</h1>
           <p className="rq-brand-tagline">Every legend starts somewhere.</p>
           <p className="rq-brand-intro">
-            Tools to run the table. Terrain to build it. Worlds to explore. And, one day, a game system of our own.
+            Rookie Quest is being built one product at a time. We are starting with Keeper — making it useful, polished and dependable before we move on to the next big thing.
           </p>
 
           <div className="rq-brand-hero-actions">
-            <button className="rq-brand-button rq-brand-button-primary" type="button" onClick={scrollToProducts}>
-              Explore Rookie Quest <ArrowRight size={17} aria-hidden="true" />
+            <button className="rq-brand-button rq-brand-button-primary rq-brand-button-keeper" type="button" onClick={() => navigate('/keeper')}>
+              Explore Rookie Quest Keeper <ArrowRight size={17} aria-hidden="true" />
             </button>
-            <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={() => navigate('/keeper')}>
-              Open Keeper
+            <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={scrollToRoadmap}>
+              See the plan ahead
             </button>
-          </div>
-
-          <div className="rq-brand-mantra" aria-label="Rookie Quest pillars">
-            <span className="rq-brand-mantra-game">Play</span>
-            <i aria-hidden="true" />
-            <span className="rq-brand-mantra-keeper">Run</span>
-            <i aria-hidden="true" />
-            <span className="rq-brand-mantra-worlds">Explore</span>
-            <i aria-hidden="true" />
-            <span className="rq-brand-mantra-forge">Build</span>
           </div>
         </section>
 
-        <section className="rq-brand-products" ref={productsRef} aria-labelledby="rq-products-title">
-          <div className="rq-brand-section-heading">
-            <p className="rq-brand-kicker">The Rookie Quest family</p>
-            <h2 id="rq-products-title">Four paths. One table.</h2>
+        <section className="rq-keeper-spotlight" aria-labelledby="rq-keeper-title">
+          <div className="rq-keeper-spotlight-copy">
+            <p className="rq-brand-kicker">Product 01 · Available now</p>
+            <div className="rq-keeper-wordmark">
+              <span className="rq-keeper-wordmark-icon"><Shield size={28} strokeWidth={1.7} aria-hidden="true" /></span>
+              <div>
+                <small>Rookie Quest</small>
+                <h2 id="rq-keeper-title">Keeper</h2>
+              </div>
+            </div>
+            <p className="rq-keeper-lead">
+              The first part of Rookie Quest is the one we finish first: a clean, connected place to organise characters, campaigns and the table itself.
+            </p>
+            <div className="rq-keeper-actions">
+              <button className="rq-brand-button rq-brand-button-primary rq-brand-button-keeper" type="button" onClick={() => navigate('/keeper')}>
+                Visit Keeper <ArrowRight size={17} aria-hidden="true" />
+              </button>
+              <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={() => navigate('/auth')}>
+                Sign in
+              </button>
+            </div>
           </div>
 
-          <div className="rq-brand-product-grid">
-            {PRODUCTS.map((product) => {
-              const Icon = product.icon;
+          <div className="rq-keeper-feature-panel" aria-label="Rookie Quest Keeper highlights">
+            <p>Built around the whole session</p>
+            <div className="rq-keeper-feature-list">
+              {KEEPER_FEATURES.map((feature, index) => (
+                <div key={feature}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <strong>{feature}</strong>
+                </div>
+              ))}
+            </div>
+            <p className="rq-keeper-feature-note">Keeper gets the attention now. The rest of Rookie Quest follows when it is ready.</p>
+          </div>
+        </section>
+
+        <section className="rq-brand-roadmap" ref={roadmapRef} id="roadmap" aria-labelledby="rq-roadmap-title">
+          <div className="rq-brand-section-heading rq-brand-roadmap-heading">
+            <p className="rq-brand-kicker">The plan ahead</p>
+            <h2 id="rq-roadmap-title">One thing at a time.</h2>
+            <p>
+              The order matters. We finish and polish each part before the next one becomes a real public product.
+            </p>
+          </div>
+
+          <div className="rq-brand-roadmap-list">
+            {ROADMAP.map((item) => {
+              const Icon = item.icon;
+              const active = item.key === 'keeper';
               return (
-                <button
-                  key={product.key}
-                  type="button"
-                  className={`rq-brand-product-card rq-brand-product-${product.key}`}
-                  onClick={() => navigate(product.path)}
-                  aria-label={`Explore Rookie Quest ${product.name}`}
-                >
-                  <span className="rq-brand-card-topline">
-                    <span className="rq-brand-product-icon"><Icon size={24} strokeWidth={1.7} aria-hidden="true" /></span>
-                    <span className="rq-brand-product-status">{product.status}</span>
-                  </span>
-                  <span className="rq-brand-product-wordmark">
-                    <small>Rookie Quest</small>
-                    <strong>{product.name}</strong>
-                  </span>
-                  <span className="rq-brand-product-verb">{product.verb}</span>
-                  <span className="rq-brand-product-description">{product.description}</span>
-                  <span className="rq-brand-card-link">Explore <ArrowRight size={16} aria-hidden="true" /></span>
-                </button>
+                <article key={item.key} className={`rq-brand-roadmap-item rq-brand-roadmap-${item.key}${active ? ' is-active' : ''}`}>
+                  <div className="rq-brand-roadmap-number">{item.number}</div>
+                  <div className="rq-brand-roadmap-icon"><Icon size={23} strokeWidth={1.7} aria-hidden="true" /></div>
+                  <div className="rq-brand-roadmap-copy">
+                    <div className="rq-brand-roadmap-titleline">
+                      <div>
+                        <small>Rookie Quest</small>
+                        <h3>{item.name}</h3>
+                      </div>
+                      <span>{item.status}</span>
+                    </div>
+                    <p>{item.description}</p>
+                    <strong>{item.verb}</strong>
+                  </div>
+                  {active && (
+                    <button type="button" className="rq-brand-roadmap-link" onClick={() => navigate('/keeper')}>
+                      Explore Keeper <ArrowRight size={16} aria-hidden="true" />
+                    </button>
+                  )}
+                </article>
               );
             })}
           </div>
         </section>
 
-        <section className="rq-brand-connection" aria-labelledby="rq-connection-title">
-          <p className="rq-brand-kicker">Built to connect</p>
-          <h2 id="rq-connection-title">Your table. Your world. Your quest.</h2>
+        <section className="rq-brand-connection rq-brand-connection-keeper-first" aria-labelledby="rq-connection-title">
+          <p className="rq-brand-kicker">The long-term idea</p>
+          <h2 id="rq-connection-title">One brand. A connected table.</h2>
           <p>
-            The long-term goal is simple: discover something in Worlds, run it in Keeper, build it with Forge,
-            and play it with the system that suits your table — including ours when it is ready.
+            Keeper comes first. Later, Forge can help build the table, Worlds can give it somewhere to go, and our own RPG can give it another way to play. None of those needs to be rushed for the idea to work.
           </p>
-        </section>
-
-        <section className="rq-brand-start" aria-label="Start with Rookie Quest Keeper">
-          <div>
-            <p className="rq-brand-kicker">Available now</p>
-            <h2>Start with Keeper.</h2>
-            <p>The first live piece of Rookie Quest is already built for characters, campaigns and the table itself.</p>
-          </div>
-          <button className="rq-brand-button rq-brand-button-primary" type="button" onClick={() => navigate('/keeper')}>
-            Explore Keeper <ArrowRight size={17} aria-hidden="true" />
-          </button>
         </section>
       </main>
 
       <footer className="rq-brand-footer">
         <div><BrandMark compact /><span>Rookie Quest</span></div>
-        <p>Play · Run · Explore · Build</p>
+        <p>Keeper first · The rest when it is ready</p>
       </footer>
     </div>
   );

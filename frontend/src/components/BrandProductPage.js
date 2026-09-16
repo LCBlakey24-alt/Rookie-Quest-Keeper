@@ -6,47 +6,37 @@ import {
   BookOpen,
   Compass,
   Dices,
-  Map,
-  ScrollText,
-  Shield,
-  Sparkles,
-  Users,
+  Hammer,
 } from 'lucide-react';
-import ForgePage from '@/components/ForgePage';
 import '@/styles/rookieQuestBrand.css';
 
 const PRODUCT_DATA = {
+  forge: {
+    key: 'forge',
+    icon: Hammer,
+    name: 'Forge',
+    verb: 'Build',
+    status: 'Roadmap · Next after Keeper',
+    title: 'Designed first. Published later.',
+    intro: 'Forge is an active Rookie Quest development project, but it is not a finished public product yet. The modular tiles, connectors, elevation system and starter range need to be completed and physically tested before this becomes a real Forge website or catalogue.',
+  },
   worlds: {
     key: 'worlds',
     icon: BookOpen,
     name: 'Worlds',
     verb: 'Explore',
-    status: 'In development',
-    title: 'Explore somewhere new.',
-    intro: 'Original campaign settings, adventures and lore built to give a table a strong starting point without deciding the story for it.',
-    detail: 'Worlds can grow from full campaign settings down to cities, factions, adventures, creatures and individual encounter locations — all with room to connect back into Keeper and Forge when that adds something useful.',
-    highlights: [
-      { icon: Map, title: 'Places worth exploring', text: 'Distinct locations, conflicts and cultures with enough open space for a GM to make the setting their own.' },
-      { icon: ScrollText, title: 'Adventures that connect', text: 'Published material can eventually feed useful NPCs, locations, quests and notes straight into Keeper.' },
-      { icon: Sparkles, title: 'One source, many formats', text: 'Lore, campaign tools and matching terrain can all point back to the same world instead of living in separate silos.' },
-    ],
-    footer: 'Worlds stays broad on purpose so individual settings can build their own identities without changing the Rookie Quest structure.',
+    status: 'Roadmap · Later',
+    title: 'A future home for our settings and adventures.',
+    intro: 'Worlds is part of the long-term Rookie Quest plan. We will build its public experience after Keeper is polished and Forge has earned its own finished product release.',
   },
   game: {
     key: 'game',
     icon: Dices,
-    name: 'The Game',
+    name: 'Rookie Quest RPG',
     verb: 'Play',
-    status: 'Future release',
-    title: 'Play your own legend.',
-    intro: 'A future original tabletop roleplaying game shaped by what we learn from building tools, running campaigns and watching what actually helps at the table.',
-    detail: 'We are deliberately not pretending the rules are finished before they exist. The game gets to earn its final name, identity and mechanics through playtesting, iteration and the wider Rookie Quest ecosystem.',
-    highlights: [
-      { icon: Users, title: 'Welcoming, not shallow', text: 'Easy to start should still leave experienced players with choices, mastery and room to build something personal.' },
-      { icon: Shield, title: 'Built for sessions', text: 'Rules should support momentum at the table instead of constantly sending players away to search for what they can do.' },
-      { icon: Compass, title: 'Native to Rookie Quest', text: 'When it is ready, Keeper, Worlds and Forge should understand the game from day one rather than bolting support on afterwards.' },
-    ],
-    footer: 'For now, the original game remains a future project while Keeper, Forge and Worlds give us real things to learn from today.',
+    status: 'Roadmap · Future',
+    title: 'The game comes when the game is ready.',
+    intro: 'Our own tabletop roleplaying system is a future goal, not something we need to rush into a website today. Keeper comes first, followed by Forge and Worlds, so the eventual RPG can grow from things we have actually built and used.',
   },
 };
 
@@ -58,16 +48,23 @@ function BrandMark() {
   );
 }
 
-function GenericBrandProductPage({ product }) {
+export default function BrandProductPage({ product }) {
   const navigate = useNavigate();
   const data = PRODUCT_DATA[product] || PRODUCT_DATA.game;
   const Icon = data.icon;
 
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = `Rookie Quest ${data.name} | ${data.verb}`;
+    document.title = `Rookie Quest ${data.name} | Roadmap`;
     return () => { document.title = previousTitle; };
-  }, [data.name, data.verb]);
+  }, [data.name]);
+
+  const returnToRoadmap = () => {
+    navigate('/');
+    window.setTimeout(() => {
+      document.getElementById('roadmap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  };
 
   return (
     <div className={`rq-brand-page rq-brand-product-page rq-brand-product-page-${data.key}`}>
@@ -79,9 +76,7 @@ function GenericBrandProductPage({ product }) {
 
         <div className="rq-brand-nav-links">
           <button type="button" onClick={() => navigate('/keeper')}>Keeper</button>
-          <button type="button" onClick={() => navigate('/forge')}>Forge</button>
-          <button type="button" onClick={() => navigate('/worlds')}>Worlds</button>
-          <button type="button" onClick={() => navigate('/game')}>Game</button>
+          <button type="button" onClick={returnToRoadmap}>Roadmap</button>
         </div>
 
         <div className="rq-brand-nav-actions">
@@ -93,13 +88,13 @@ function GenericBrandProductPage({ product }) {
       </nav>
 
       <main className="rq-brand-product-main">
-        <button className="rq-brand-back" type="button" onClick={() => navigate('/')}>
-          <ArrowLeft size={16} aria-hidden="true" /> Rookie Quest
+        <button className="rq-brand-back" type="button" onClick={returnToRoadmap}>
+          <ArrowLeft size={16} aria-hidden="true" /> Back to the roadmap
         </button>
 
         <section className="rq-brand-product-hero">
           <div className="rq-brand-product-hero-icon"><Icon size={32} strokeWidth={1.6} aria-hidden="true" /></div>
-          <p className="rq-brand-product-overline">Rookie Quest</p>
+          <p className="rq-brand-product-overline">Rookie Quest roadmap</p>
           <h1>{data.name}</h1>
           <div className="rq-brand-product-meta">
             <span>{data.verb}</span>
@@ -108,39 +103,20 @@ function GenericBrandProductPage({ product }) {
           </div>
           <h2>{data.title}</h2>
           <p className="rq-brand-product-page-intro">{data.intro}</p>
-          <p className="rq-brand-product-page-detail">{data.detail}</p>
-        </section>
-
-        <section className="rq-brand-highlight-grid" aria-label={`${data.name} goals`}>
-          {data.highlights.map((item) => {
-            const ItemIcon = item.icon;
-            return (
-              <article key={item.title}>
-                <ItemIcon size={23} strokeWidth={1.7} aria-hidden="true" />
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </article>
-            );
-          })}
         </section>
 
         <section className="rq-brand-product-note">
-          <p>{data.footer}</p>
+          <p>For now, Rookie Quest development is focused on making Keeper the strongest first product it can be.</p>
           <div>
-            <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={() => navigate('/')}>
-              Back to Rookie Quest
+            <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={returnToRoadmap}>
+              See the Rookie Quest roadmap
             </button>
             <button className="rq-brand-button rq-brand-button-primary" type="button" onClick={() => navigate('/keeper')}>
-              See what is live now <ArrowRight size={17} aria-hidden="true" />
+              Explore Keeper <ArrowRight size={17} aria-hidden="true" />
             </button>
           </div>
         </section>
       </main>
     </div>
   );
-}
-
-export default function BrandProductPage({ product }) {
-  if (product === 'forge') return <ForgePage />;
-  return <GenericBrandProductPage product={product} />;
 }
