@@ -5,8 +5,10 @@ Thin entry point that assembles all modular routers.
 import asyncio
 import logging
 
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, APIRouter, Request, WebSocket, WebSocketDisconnect
+from pymongo.errors import PyMongoError
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 
 from config import client, db, logger, CORS_ORIGIN_LIST
 from utils.ws_manager import ws_manager
@@ -42,11 +44,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(PyMongoError)
+async def database_unavailable_handler(request: Request, exc: PyMongoError):
+    """Keep infrastructure failures distinct from bad credentials/user errors."""
+    logger.warning("Database unavailable while handling %s %s: %s", request.method, request.url.path, type(exc).__name__)
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": "The Rookie Quest Keeper account service is temporarily unavailable. Your account data has not been changed; please try again shortly."
+        },
+        headers={"Retry-After": "30"},
+    )
+
+
 # Health check endpoints
 @app.get("/health")
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint for deployment readiness"""
+    """Health check endpoint for deployment readiness."""
     return {"status": "healthy", "service": "rook-backend"}
 
 
