@@ -8,6 +8,7 @@ import {
   Dices,
   Hammer,
 } from 'lucide-react';
+import { openBrandDestination } from '@/config/brandDestinations';
 import '@/styles/rookieQuestBrand.css';
 
 const PRODUCT_DATA = {
@@ -52,6 +53,7 @@ export default function BrandProductPage({ product }) {
   const navigate = useNavigate();
   const data = PRODUCT_DATA[product] || PRODUCT_DATA.game;
   const Icon = data.icon;
+  const openProduct = (key) => openBrandDestination(navigate, key);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -75,13 +77,13 @@ export default function BrandProductPage({ product }) {
         </button>
 
         <div className="rq-brand-nav-links">
-          <button type="button" onClick={() => navigate('/keeper')}>Keeper</button>
+          <button type="button" onClick={() => openProduct('keeper')}>Keeper</button>
           <button type="button" onClick={returnToRoadmap}>Roadmap</button>
         </div>
 
         <div className="rq-brand-nav-actions">
           <button className="rq-brand-nav-signin" type="button" onClick={() => navigate('/auth')}>Sign in</button>
-          <button className="rq-brand-nav-cta" type="button" onClick={() => navigate('/keeper')}>
+          <button className="rq-brand-nav-cta" type="button" onClick={() => openProduct('keeper')}>
             Open Keeper <ArrowRight size={16} aria-hidden="true" />
           </button>
         </div>
@@ -111,7 +113,7 @@ export default function BrandProductPage({ product }) {
             <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={returnToRoadmap}>
               See the Rookie Quest roadmap
             </button>
-            <button className="rq-brand-button rq-brand-button-primary" type="button" onClick={() => navigate('/keeper')}>
+            <button className="rq-brand-button rq-brand-button-primary" type="button" onClick={() => openProduct('keeper')}>
               Explore Keeper <ArrowRight size={17} aria-hidden="true" />
             </button>
           </div>
