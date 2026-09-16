@@ -125,7 +125,12 @@ async function networkFirstMedia(request) {
 
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(STATIC_CACHE);
-  const cached = await cache.match(request);
+  const shellCache = await caches.open(SHELL_CACHE);
+  // Current runtime requests are written into STATIC_CACHE, while the install
+  // step deliberately precaches every hashed build asset into SHELL_CACHE.
+  // Check both: an older open tab may still need its previous hashed chunk
+  // immediately after a new deployment removes that file from the origin.
+  const cached = await cache.match(request) || await shellCache.match(request);
   const update = fetch(request)
     .then(response => {
       if (response?.ok) cache.put(request, response.clone()).catch(() => undefined);
