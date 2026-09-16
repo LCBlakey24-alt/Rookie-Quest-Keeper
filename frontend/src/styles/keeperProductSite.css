@@ -1,0 +1,340 @@
+#root .landing-page-final.keeper-product-site {
+  --landing-bg: #f5f8fb;
+  --landing-bg-deep: #e8f0f7;
+  --landing-surface: #ffffff;
+  --landing-card: #ffffff;
+  --landing-card-hover: #f1f7fb;
+  --landing-line: rgba(10, 45, 71, 0.13);
+  --landing-line-strong: rgba(10, 45, 71, 0.25);
+  --landing-red: #1687c7;
+  --landing-red-bright: #079ee8;
+  --landing-red-soft: rgba(22, 135, 199, 0.13);
+  --landing-text: #10283a;
+  --landing-muted: rgba(16, 40, 58, 0.72);
+  --landing-faint: rgba(16, 40, 58, 0.53);
+  --keeper-navy: #0a2235;
+  --keeper-blue: #1687c7;
+  --keeper-sky: #72c9f4;
+  --keeper-warm: #e88937;
+  --keeper-gold: #d8ae59;
+
+  background:
+    radial-gradient(circle at 12% 4%, rgba(114, 201, 244, 0.2), transparent 28rem),
+    radial-gradient(circle at 88% 20%, rgba(232, 137, 55, 0.08), transparent 24rem),
+    linear-gradient(180deg, #fbfdff 0%, #f5f8fb 54%, #edf4f8 100%) !important;
+  color: var(--landing-text) !important;
+}
+
+#root .keeper-product-site .landing-final-nav {
+  top: clamp(8px, 1.4vw, 18px);
+  border-radius: 12px;
+  border-color: rgba(10, 45, 71, 0.12) !important;
+  background: rgba(251, 253, 255, 0.9) !important;
+  box-shadow: 0 12px 34px rgba(10, 34, 53, 0.07);
+}
+
+.keeper-product-site .landing-brand-context {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 190px;
+}
+
+.keeper-product-site .landing-brand-context-copy {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+#root .keeper-product-site .landing-parent-link {
+  width: max-content;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: rgba(16, 40, 58, 0.52) !important;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#root .keeper-product-site .landing-parent-link:hover,
+#root .keeper-product-site .landing-parent-link:focus-visible {
+  color: var(--keeper-blue) !important;
+  outline: 0;
+}
+
+.keeper-product-site .landing-brand-context-copy > span {
+  color: var(--keeper-navy);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+#root .keeper-product-site .landing-logo-button {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+}
+
+#root .keeper-product-site .landing-anchor-button:hover,
+#root .keeper-product-site .landing-anchor-button:focus-visible {
+  border-color: rgba(22, 135, 199, 0.18) !important;
+  background: rgba(22, 135, 199, 0.06) !important;
+  color: var(--keeper-navy) !important;
+}
+
+#root .keeper-product-site .landing-button {
+  border-radius: 7px !important;
+  box-shadow: none !important;
+}
+
+#root .keeper-product-site .landing-button-primary {
+  background: var(--keeper-blue) !important;
+  border-color: var(--keeper-blue) !important;
+  color: #ffffff !important;
+}
+
+#root .keeper-product-site .landing-button-primary:hover:not(:disabled),
+#root .keeper-product-site .landing-button-primary:focus-visible:not(:disabled) {
+  background: #067fc2 !important;
+  border-color: #067fc2 !important;
+}
+
+#root .keeper-product-site .landing-button-ghost {
+  background: #ffffff !important;
+  border-color: rgba(10, 45, 71, 0.15) !important;
+  color: var(--keeper-navy) !important;
+}
+
+#root .keeper-product-site .landing-button-ghost:hover:not(:disabled),
+#root .keeper-product-site .landing-button-ghost:focus-visible:not(:disabled) {
+  background: #f2f8fc !important;
+  border-color: rgba(22, 135, 199, 0.3) !important;
+}
+
+.keeper-product-site .landing-final-hero {
+  position: relative;
+  min-height: min(700px, calc(100dvh - 132px));
+}
+
+.keeper-product-site .landing-final-hero::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 11%;
+  width: 56px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--keeper-blue), var(--keeper-sky), var(--keeper-warm), var(--keeper-gold));
+  border-radius: 999px;
+}
+
+.keeper-product-site .landing-hero-copy {
+  gap: 16px;
+}
+
+.keeper-product-site .landing-final-logo-wrap {
+  margin-top: 16px;
+  filter: drop-shadow(0 16px 28px rgba(10, 34, 53, 0.09));
+}
+
+#root .keeper-product-site .landing-kicker,
+#root .keeper-product-site .landing-card-eyebrow {
+  color: var(--keeper-blue) !important;
+}
+
+#root .keeper-product-site h1 {
+  color: var(--keeper-navy) !important;
+  font-family: 'Cinzel', Georgia, serif !important;
+  font-weight: 800;
+  letter-spacing: -0.035em !important;
+  line-height: 1.02;
+}
+
+#root .keeper-product-site h2,
+#root .keeper-product-site h3 {
+  color: var(--keeper-navy) !important;
+}
+
+#root .keeper-product-site .landing-final-intro {
+  color: rgba(16, 40, 58, 0.7) !important;
+}
+
+.keeper-product-site .landing-proof-strip {
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.75) !important;
+  box-shadow: 0 10px 26px rgba(10, 34, 53, 0.04);
+}
+
+.keeper-product-site .landing-preview-panel {
+  border-radius: 14px;
+  overflow: hidden;
+  border-color: rgba(10, 45, 71, 0.12);
+  background:
+    linear-gradient(145deg, rgba(114, 201, 244, 0.12), transparent 36%),
+    #ffffff !important;
+  box-shadow: 0 28px 65px rgba(10, 34, 53, 0.11);
+}
+
+.keeper-product-site .landing-preview-topbar {
+  background: #f3f8fb !important;
+}
+
+.keeper-product-site .landing-preview-dots span {
+  border-radius: 50%;
+  background: var(--keeper-blue);
+}
+
+.keeper-product-site .landing-preview-dots span:nth-child(2) {
+  background: var(--keeper-warm);
+  opacity: 0.85;
+}
+
+.keeper-product-site .landing-preview-dots span:nth-child(3) {
+  background: var(--keeper-gold);
+  opacity: 0.78;
+}
+
+.keeper-product-site .landing-preview-spotlight {
+  border-radius: 9px;
+  background:
+    linear-gradient(135deg, rgba(22, 135, 199, 0.12), rgba(114, 201, 244, 0.04) 55%, rgba(232, 137, 55, 0.05)),
+    #f7fbfd !important;
+}
+
+#root .keeper-product-site .landing-preview-spotlight span,
+#root .keeper-product-site .landing-preview-row svg,
+#root .keeper-product-site .landing-final-feature > svg,
+#root .keeper-product-site .landing-start-card > svg,
+#root .keeper-product-site .landing-benefit-card > svg {
+  color: var(--keeper-blue) !important;
+}
+
+.keeper-product-site .landing-preview-row,
+.keeper-product-site .landing-final-features,
+.keeper-product-site .landing-start-paths,
+.keeper-product-site .landing-benefit-grid,
+.keeper-product-site .landing-two-columns,
+.keeper-product-site .landing-roadmap,
+.keeper-product-site .landing-final-strip,
+.keeper-product-site .landing-marketing-block,
+.keeper-product-site .landing-final-cta,
+#root .keeper-product-site .landing-faq-panel,
+#root .keeper-product-site .landing-product-footer {
+  border-radius: 12px;
+  border-color: rgba(10, 45, 71, 0.11) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: 0 15px 40px rgba(10, 34, 53, 0.045);
+  overflow: hidden;
+}
+
+#root .keeper-product-site .landing-status-heading,
+#root .keeper-product-site .landing-faq-heading,
+#root .keeper-product-site .landing-principles-heading,
+#root .keeper-product-site .landing-table-shift-heading {
+  background:
+    linear-gradient(90deg, rgba(22, 135, 199, 0.1), transparent 52%),
+    #f8fbfd !important;
+}
+
+#root .keeper-product-site .landing-faq-item[open] summary::after,
+#root .keeper-product-site .landing-footer-actions button:hover,
+#root .keeper-product-site .landing-footer-actions button:focus-visible {
+  background: var(--keeper-blue) !important;
+  border-color: var(--keeper-blue) !important;
+  color: #ffffff !important;
+}
+
+#root .keeper-product-site .landing-faq-item summary::after {
+  border-radius: 6px;
+  background: #ffffff !important;
+  color: var(--keeper-blue) !important;
+}
+
+#root .keeper-product-site .landing-footer-actions button {
+  border-radius: 6px;
+  background: #ffffff !important;
+  color: var(--keeper-navy) !important;
+}
+
+.keeper-product-site .landing-product-footer {
+  margin-top: 8px;
+}
+
+.keeper-product-site .landing-footer-brand::before {
+  content: 'Rookie Quest · Product 01';
+  grid-column: 2;
+  color: var(--keeper-blue);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.keeper-product-site .landing-footer-brand strong {
+  margin-top: 2px;
+}
+
+.keeper-product-site .landing-rq-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: max-content;
+  margin-top: 8px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--keeper-blue);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.keeper-product-site .landing-rq-return:hover,
+.keeper-product-site .landing-rq-return:focus-visible {
+  color: var(--keeper-navy);
+  outline: 0;
+}
+
+@media (max-width: 960px) {
+  .keeper-product-site .landing-brand-context {
+    min-width: auto;
+  }
+
+  .keeper-product-site .landing-brand-context-copy {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  #root .keeper-product-site {
+    padding: 10px 12px 20px;
+  }
+
+  #root .keeper-product-site .landing-final-nav {
+    border-radius: 10px;
+  }
+
+  .keeper-product-site .landing-final-hero::before {
+    top: 4%;
+    width: 46px;
+  }
+
+  .keeper-product-site .landing-preview-panel,
+  .keeper-product-site .landing-final-features,
+  .keeper-product-site .landing-start-paths,
+  .keeper-product-site .landing-benefit-grid,
+  .keeper-product-site .landing-two-columns,
+  .keeper-product-site .landing-roadmap,
+  .keeper-product-site .landing-final-strip,
+  .keeper-product-site .landing-marketing-block,
+  .keeper-product-site .landing-final-cta,
+  #root .keeper-product-site .landing-faq-panel,
+  #root .keeper-product-site .landing-product-footer {
+    border-radius: 10px;
+  }
+}
