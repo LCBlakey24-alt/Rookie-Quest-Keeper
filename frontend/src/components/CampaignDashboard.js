@@ -56,10 +56,12 @@ function tabFromHash() {
 export default function CampaignDashboard() {
   const { campaignId } = useParams();
   const navigate = useNavigate();
+  const [initialTab] = useState(tabFromHash);
   const [campaign, setCampaign] = useState(null);
+  const [homeBootstrap, setHomeBootstrap] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [activeTab, setActiveTab] = useState(tabFromHash);
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
 
@@ -77,16 +79,38 @@ export default function CampaignDashboard() {
     setLoading(true);
     setLoadError('');
     try {
+      // The ordinary GM Home route can paint its header and focus cards from
+      // one ownership-scoped response. Deep links to other tabs stay lean and
+      // use the normal campaign detail endpoint instead of fetching Home data.
+      if (initialTab === 'command-centre') {
+        try {
+          const bootstrapResponse = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
+          const bootstrapPayload = bootstrapResponse.data || {};
+          if (bootstrapPayload.campaign) {
+            setCampaign(bootstrapPayload.campaign);
+            setHomeBootstrap(bootstrapPayload);
+            return;
+          }
+        } catch (bootstrapError) {
+          const status = bootstrapError?.response?.status;
+          if (status === 401 || status === 403) throw bootstrapError;
+          // Older/mid-deploy backends or a partial Home failure can still open
+          // the campaign through the established detail endpoint below.
+        }
+      }
+
       const response = await apiClient.get(`/campaigns/${campaignId}`);
       setCampaign(response.data);
+      setHomeBootstrap(null);
     } catch (error) {
       setCampaign(null);
+      setHomeBootstrap(null);
       setLoadError(error?.response?.data?.detail || 'Campaign could not be loaded.');
       toast.error('Failed to load campaign');
     } finally {
       setLoading(false);
     }
-  }, [campaignId]);
+  }, [campaignId, initialTab]);
 
   useEffect(() => {
     fetchCampaign();
@@ -96,6 +120,7 @@ export default function CampaignDashboard() {
     const onHashChange = () => {
       const nextTab = tabFromHash();
       if (!validTabIds.has(nextTab)) return;
+      if (nextTab !== 'command-centre') setHomeBootstrap(null);
       setActiveTab(nextTab);
     };
 
@@ -107,6 +132,7 @@ export default function CampaignDashboard() {
 
   const handleTabClick = useCallback((tabId) => {
     if (!validTabIds.has(tabId)) return;
+    if (tabId !== 'command-centre') setHomeBootstrap(null);
     setActiveTab(tabId);
 
     if (typeof window !== 'undefined') {
@@ -178,6 +204,7 @@ export default function CampaignDashboard() {
           <GMHome
             campaignId={campaignId}
             campaign={campaign}
+            initialData={homeBootstrap}
             invite={invite}
             inviteLoading={inviteLoading}
             onOpenTab={handleTabClick}
@@ -207,6 +234,7 @@ export default function CampaignDashboard() {
           <GMHome
             campaignId={campaignId}
             campaign={campaign}
+            initialData={homeBootstrap}
             invite={invite}
             inviteLoading={inviteLoading}
             onOpenTab={handleTabClick}
@@ -324,6 +352,18 @@ function safeList(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function normaliseHomeData(payload = {}) {
+  return {
+    quests: safeList(payload.quests),
+    arcs: safeList(payload.arcs),
+    npcs: safeList(payload.npcs),
+    locations: safeList(payload.locations),
+    notes: safeList(payload.notes),
+    calendar: payload.calendar || null,
+    events: safeList(payload.events),
+  };
+}
+
 function objectiveProgress(quest) {
   const objectives = safeList(quest?.objectives);
   const resolved = objectives.filter(item => ['completed', 'skipped'].includes(item.status)).length;
@@ -371,17 +411,9 @@ function daysUntilEvent(event, calendar) {
   return ((Number(event.month || 1) - Number(calendar.current_month || 1)) * 30) + (Number(event.day || 1) - Number(calendar.current_day || 1));
 }
 
-function GMHome({ campaignId, campaign, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
-  const [data, setData] = useState({
-    quests: [],
-    arcs: [],
-    npcs: [],
-    locations: [],
-    notes: [],
-    calendar: null,
-    events: [],
-  });
-  const [homeLoading, setHomeLoading] = useState(true);
+function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
+  const [data, setData] = useState(() => normaliseHomeData(initialData));
+  const [homeLoading, setHomeLoading] = useState(!initialData);
 
   const loadHome = useCallback(async () => {
     if (!campaignId) return;
@@ -392,16 +424,7 @@ function GMHome({ campaignId, campaign, invite, inviteLoading, onOpenTab, onFetc
     // and backend deployments can arrive in either order safely.
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
-      const payload = response.data || {};
-      setData({
-        quests: safeList(payload.quests),
-        arcs: safeList(payload.arcs),
-        npcs: safeList(payload.npcs),
-        locations: safeList(payload.locations),
-        notes: safeList(payload.notes),
-        calendar: payload.calendar || null,
-        events: safeList(payload.events),
-      });
+      setData(normaliseHomeData(response.data || {}));
       setHomeLoading(false);
       return;
     } catch (error) {
@@ -422,19 +445,26 @@ function GMHome({ campaignId, campaign, invite, inviteLoading, onOpenTab, onFetc
       apiClient.get(`/campaigns/${campaignId}/calendar-events`).catch(() => ({ data: [] })),
     ]);
 
-    setData({
-      quests: safeList(questsRes.data),
-      arcs: safeList(arcsRes.data),
-      npcs: safeList(npcsRes.data),
-      locations: safeList(locationsRes.data),
-      notes: safeList(notesRes.data),
-      calendar: calendarRes.data || null,
-      events: safeList(eventsRes.data),
-    });
+    setData(normaliseHomeData({
+      quests: questsRes.data,
+      arcs: arcsRes.data,
+      npcs: npcsRes.data,
+      locations: locationsRes.data,
+      notes: notesRes.data,
+      calendar: calendarRes.data,
+      events: eventsRes.data,
+    }));
     setHomeLoading(false);
   }, [campaignId]);
 
-  useEffect(() => { loadHome(); }, [loadHome]);
+  useEffect(() => {
+    if (initialData) {
+      setData(normaliseHomeData(initialData));
+      setHomeLoading(false);
+      return;
+    }
+    loadHome();
+  }, [initialData, loadHome]);
 
   const currentQuest = useMemo(() => chooseCurrentQuest(data.quests), [data.quests]);
   const questProgress = useMemo(() => objectiveProgress(currentQuest), [currentQuest]);
