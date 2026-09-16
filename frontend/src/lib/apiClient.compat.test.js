@@ -3,6 +3,7 @@ import apiClient, {
   applyLegacyApiCompatibility,
   applyLoginTimeoutPolicy,
   LOGIN_TIMEOUT_MS,
+  shouldUseOfflineCache,
   wakeBackend,
 } from './apiClient';
 
@@ -65,6 +66,20 @@ describe('login timeout policy', () => {
       .rejects.toMatchObject({
         formattedDetail: expect.stringMatching(/server is taking longer than expected.*waking up.*try signing in again/i),
       });
+  });
+});
+
+describe('offline cache gate', () => {
+  test.each([
+    [{ method: 'post', url: '/characters' }, false],
+    [{ method: 'get', url: '/auth/me' }, false],
+    [{ method: 'get', url: '/auth/me?fresh=1' }, false],
+    [{ method: 'get', url: '/admin/check' }, false],
+    [{ method: 'get', url: '/rook/chat' }, false],
+    [{ method: 'get', url: '/campaigns' }, true],
+    [{ method: 'get', url: '/characters/c1' }, true],
+  ])('only considers signed-in data reads for offline caching', (config, expected) => {
+    expect(shouldUseOfflineCache(config)).toBe(expected);
   });
 });
 
