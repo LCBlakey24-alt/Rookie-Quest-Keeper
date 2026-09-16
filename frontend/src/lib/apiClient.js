@@ -1,11 +1,9 @@
 import axios from 'axios';
 import { API_BASE } from '@/lib/api';
 import { clearAuthToken, getAuthToken } from '@/lib/auth';
-import { readOfflineApiResponse, storeOfflineApiResponse } from '@/offline/offlineApiCache';
 
 import { formatApiErrorDetail } from '@/lib/apiErrors';
 import { isLocalPreview } from '@/preview/previewMode';
-import { previewAdapter } from '@/preview/previewTransport';
 
 const LEGACY_ACCOUNT_ROUTES = {
   'get:/account/profile': { method: 'get', url: '/auth/me' },
@@ -42,6 +40,18 @@ function parseRequestData(data) {
   } catch {
     return {};
   }
+}
+
+export function shouldUseOfflineCache(config = {}) {
+  const method = String(config.method || 'get').toLowerCase();
+  if (method !== 'get') return false;
+
+  const url = String(config.url || '').split('?')[0];
+  if (!url || url === '/auth/me' || url.startsWith('/auth/') || url.startsWith('/admin') || url.startsWith('/rook')) {
+    return false;
+  }
+
+  return true;
 }
 
 export async function applyCharacterCreationReadinessPolicy(config = {}, storage) {
@@ -144,7 +154,14 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
   let config = applyLegacyApiCompatibility(incomingConfig);
   config = applyLoginTimeoutPolicy(config);
   config = await applyCharacterCreationReadinessPolicy(config);
-  if (isLocalPreview()) return { ...config, adapter: previewAdapter };
+
+  // The isolated preview transport is substantial and is only ever needed on
+  // local preview hosts. Keep it out of ordinary/public startup bundles.
+  if (isLocalPreview()) {
+    const { previewAdapter } = await import('@/preview/previewTransport');
+    return { ...config, adapter: previewAdapter };
+  }
+
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
@@ -154,7 +171,15 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
 apiClient.interceptors.response.use(
   (response) => {
     if (isLocalPreview()) return response;
-    storeOfflineApiResponse(response.config, response).catch(() => {});
+
+    // IndexedDB/offline support is valuable once signed-in data is being read,
+    // but it should not be part of public/auth startup. Load it after a cache-
+    // eligible response has already completed so it never delays the request.
+    if (shouldUseOfflineCache(response.config)) {
+      import('@/offline/offlineApiCache')
+        .then(({ storeOfflineApiResponse }) => storeOfflineApiResponse(response.config, response))
+        .catch(() => {});
+    }
     return response;
   },
   async (error) => {
@@ -180,8 +205,10 @@ apiClient.interceptors.response.use(
     }
 
     // GET-only offline fallback. Mutations still fail normally: they will not
-    // be queued until the dedicated sync/conflict layer is implemented.
-    if (!error?.response && error?.config) {
+    // be queued until the dedicated sync/conflict layer is implemented. Import
+    // the IndexedDB transport only if this request can actually use it.
+    if (!error?.response && error?.config && shouldUseOfflineCache(error.config)) {
+      const { readOfflineApiResponse } = await import('@/offline/offlineApiCache');
       const cached = await readOfflineApiResponse(error.config).catch(() => null);
       if (cached) {
         try {
