@@ -1,0 +1,800 @@
+/* Signed-in calm pass — one final presentation layer for the app shell,
+   dashboard and core libraries. Keep behaviour/data logic untouched. */
+
+/* -------------------------------------------------------------------------- */
+/* App shell                                                                   */
+/* -------------------------------------------------------------------------- */
+
+html body #root .rqk-app-shell {
+  background: #071522 !important;
+}
+
+html body #root .rqk-app-workspace,
+html body #root .rqk-app-shell-content {
+  min-width: 0 !important;
+  background: #071522 !important;
+}
+
+html body #root .rqk-app-rail {
+  background: #06111c !important;
+  border-color: rgba(124, 203, 255, 0.12) !important;
+}
+
+html body #root .rqk-app-rail-brand {
+  min-height: 58px !important;
+  padding: 7px 8px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+}
+
+html body #root .rqk-app-rail-brand:hover,
+html body #root .rqk-app-rail-brand:focus-visible {
+  background: #0c2234 !important;
+  border-color: rgba(124, 203, 255, 0.16) !important;
+  outline: none !important;
+}
+
+html body #root .rqk-app-rail-brand-mark {
+  width: 38px !important;
+  height: 38px !important;
+  background: transparent !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-app-rail-brand-copy strong {
+  font-family: var(--rq-font-sans) !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+}
+
+html body #root .rqk-app-rail-brand-copy small {
+  margin-top: 3px !important;
+  color: #7ccbff !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.09em !important;
+}
+
+html body #root .rqk-app-rail-section-label {
+  margin: 10px 10px 3px !important;
+  color: #7890a8 !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.12em !important;
+}
+
+html body #root .rqk-app-rail-nav,
+html body #root .rqk-app-rail-bottom {
+  gap: 4px !important;
+}
+
+html body #root .rqk-app-rail-link {
+  min-height: 44px !important;
+  border-radius: 10px !important;
+  transition: background-color 120ms ease, border-color 120ms ease !important;
+}
+
+html body #root .rqk-app-rail-link:hover,
+html body #root .rqk-app-rail-link:focus-visible {
+  transform: none !important;
+  background: #0c2234 !important;
+  border-color: rgba(124, 203, 255, 0.13) !important;
+}
+
+html body #root .rqk-app-rail-link.is-active {
+  background: rgba(124, 203, 255, 0.09) !important;
+  border-color: rgba(255, 45, 170, 0.34) !important;
+}
+
+html body #root .rqk-app-rail-link.is-active::before {
+  inset-block: 10px !important;
+  left: 2px !important;
+  width: 2px !important;
+  background: #ff2daa !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-app-rail-link svg,
+html body #root .rqk-app-rail-rook svg {
+  color: #7ccbff !important;
+}
+
+html body #root .rqk-app-rail-link.is-active svg {
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  box-sizing: border-box !important;
+}
+
+html body #root .rqk-app-rail-link.is-active span::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body #root .rqk-app-rail-bottom {
+  padding-top: 9px !important;
+  border-top: 1px solid rgba(124, 203, 255, 0.08) !important;
+}
+
+html body #root .rqk-app-rail-rook,
+html body #root .rqk-app-rail-feedback {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+html body #root .rqk-app-rail-rook:hover,
+html body #root .rqk-app-rail-rook:focus-visible,
+html body #root .rqk-app-rail-feedback:hover,
+html body #root .rqk-app-rail-feedback:focus-visible {
+  background: #0c2234 !important;
+  border-color: rgba(124, 203, 255, 0.13) !important;
+}
+
+@media (min-width: 960px) {
+  html body #root .rqk-app-shell[data-rq-device='desktop'] {
+    grid-template-columns: 218px minmax(0, 1fr) !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail {
+    padding: 16px 11px !important;
+    gap: 9px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-link {
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 7px 9px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='desktop'] .rqk-app-rail-link span {
+    font-size: 13px !important;
+    font-weight: 750 !important;
+  }
+}
+
+@media (min-width: 720px) and (max-width: 959px) {
+  html body #root .rqk-app-shell[data-rq-device='tablet'] {
+    grid-template-columns: 196px minmax(0, 1fr) !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail {
+    padding: 13px 10px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-link {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 7px 8px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-link span {
+    display: block !important;
+    font-size: 12px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mobile app chrome                                                           */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 719px) {
+  html body #root .rqk-app-shell[data-rq-device='mobile'] {
+    display: block !important;
+    min-height: 100dvh !important;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-workspace {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 45 !important;
+    min-height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 7px 12px !important;
+    background: rgba(7, 21, 34, 0.97) !important;
+    border-bottom: 1px solid rgba(124, 203, 255, 0.11) !important;
+    backdrop-filter: blur(12px) !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar-title {
+    display: grid !important;
+    gap: 1px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar-title span {
+    color: #7890a8 !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-topbar-title strong {
+    color: #ffffff !important;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail {
+    position: fixed !important;
+    inset: auto 0 0 0 !important;
+    z-index: 80 !important;
+    width: 100% !important;
+    height: auto !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 4fr) minmax(54px, 1fr) !important;
+    align-items: stretch !important;
+    gap: 3px !important;
+    padding: 5px 6px calc(5px + env(safe-area-inset-bottom, 0px)) !important;
+    background: rgba(6, 17, 28, 0.98) !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(124, 203, 255, 0.14) !important;
+    box-shadow: none !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-nav {
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-bottom {
+    min-width: 0 !important;
+    display: grid !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger {
+    min-width: 0 !important;
+    min-height: 56px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 24px auto !important;
+    place-items: center !important;
+    align-content: center !important;
+    gap: 2px !important;
+    padding: 5px 2px !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link span,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger span {
+    display: block !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    color: #a9b9ca !important;
+    font-family: var(--rq-font-sans) !important;
+    font-size: 8.5px !important;
+    font-weight: 750 !important;
+    line-height: 1.05 !important;
+    text-align: center !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link svg,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger svg {
+    width: 19px !important;
+    height: 19px !important;
+    padding: 0 !important;
+    color: #7ccbff !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link.is-active,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.is-active {
+    background: rgba(124, 203, 255, 0.09) !important;
+    border-color: rgba(255, 45, 170, 0.34) !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link.is-active span,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.is-active span {
+    color: #ffffff !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link.is-active::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-panel {
+    inset: auto 8px calc(72px + env(safe-area-inset-bottom, 0px)) 8px !important;
+    max-height: min(66dvh, 410px) !important;
+    gap: 10px !important;
+    padding: 12px !important;
+    background: #0c2234 !important;
+    border: 1px solid rgba(124, 203, 255, 0.18) !important;
+    border-radius: 14px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-heading span {
+    color: #9db0c4 !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-item {
+    min-height: 50px !important;
+    border-radius: 10px !important;
+    background: #102b40 !important;
+    border-color: rgba(124, 203, 255, 0.12) !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dashboard                                                                   */
+/* -------------------------------------------------------------------------- */
+
+html body #root .rqk-app-shell .unified-dashboard-page--simple {
+  width: min(100%, 1080px) !important;
+  gap: 22px !important;
+  padding: clamp(18px, 2.4vw, 30px) !important;
+}
+
+html body #root .rqk-app-shell .unified-dashboard-header--simple {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 22px !important;
+  padding: clamp(22px, 3vw, 30px) !important;
+  background: #0c2234 !important;
+  border: 1px solid rgba(124, 203, 255, 0.14) !important;
+  border-radius: 16px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-eyebrow {
+  margin-bottom: 7px !important;
+  color: #7ccbff !important;
+  font-size: 9px !important;
+  letter-spacing: 0.11em !important;
+}
+
+html body #root .rqk-app-shell .unified-dashboard-header--simple h1 {
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  letter-spacing: -0.035em !important;
+}
+
+html body #root .rqk-app-shell .dashboard-muted {
+  max-width: 52ch !important;
+  margin-top: 9px !important;
+  color: #9db0c4 !important;
+  font-size: 13px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-header-buttons {
+  gap: 6px !important;
+}
+
+html body #root .rqk-app-shell .unified-dashboard-button {
+  min-height: 38px !important;
+  padding-inline: 11px !important;
+  background: transparent !important;
+  border-color: rgba(124, 203, 255, 0.15) !important;
+  border-radius: 9px !important;
+  color: #dce7f2 !important;
+}
+
+html body #root .rqk-app-shell .unified-dashboard-button:hover:not(:disabled),
+html body #root .rqk-app-shell .unified-dashboard-button:focus-visible {
+  background: #102b40 !important;
+  border-color: rgba(255, 45, 170, 0.34) !important;
+}
+
+html body #root .rqk-app-shell .dashboard-simple-section {
+  gap: 12px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-simple-heading {
+  padding-inline: 2px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-simple-heading h2 {
+  font-size: 0.98rem !important;
+  letter-spacing: 0.01em !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-grid--simple {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-card--simple {
+  min-height: 88px !important;
+  grid-template-columns: 42px minmax(0, 1fr) auto !important;
+  gap: 13px !important;
+  padding: 16px !important;
+  background: #0c2234 !important;
+  border: 1px solid rgba(124, 203, 255, 0.13) !important;
+  border-radius: 14px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-card--simple:nth-child(-n + 2) {
+  min-height: 130px !important;
+  padding: 20px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-card--simple:hover,
+html body #root .rqk-app-shell .dashboard-command-card--simple:focus-visible {
+  background: #102b40 !important;
+  border-color: rgba(124, 203, 255, 0.28) !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-card--simple.is-primary {
+  border-color: rgba(255, 45, 170, 0.46) !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-icon,
+html body #root .rqk-app-shell .dashboard-command-card--simple.is-primary .dashboard-command-icon {
+  width: 42px !important;
+  height: 42px !important;
+  background: rgba(124, 203, 255, 0.08) !important;
+  color: #7ccbff !important;
+  border: 1px solid rgba(124, 203, 255, 0.18) !important;
+  border-radius: 11px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-card--simple.is-primary .dashboard-command-icon {
+  color: #ffffff !important;
+  border-color: rgba(255, 45, 170, 0.48) !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-copy strong {
+  font-size: 15px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-copy > span {
+  margin-top: 2px !important;
+  color: #9db0c4 !important;
+  font-size: 11.5px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-command-card--simple > em {
+  color: #7890a8 !important;
+  font-size: 9px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-activity-list {
+  gap: 0 !important;
+  overflow: hidden !important;
+  background: #0c2234 !important;
+  border: 1px solid rgba(124, 203, 255, 0.12) !important;
+  border-radius: 14px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-activity-item {
+  min-height: 64px !important;
+  padding: 11px 14px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(124, 203, 255, 0.08) !important;
+  border-radius: 0 !important;
+}
+
+html body #root .rqk-app-shell .dashboard-activity-item:last-child {
+  border-bottom: 0 !important;
+}
+
+html body #root .rqk-app-shell .dashboard-activity-item:hover,
+html body #root .rqk-app-shell .dashboard-activity-item:focus-visible {
+  background: rgba(124, 203, 255, 0.06) !important;
+}
+
+html body #root .rqk-app-shell .dashboard-activity-icon {
+  background: rgba(124, 203, 255, 0.08) !important;
+  color: #7ccbff !important;
+  border-radius: 9px !important;
+}
+
+html body #root .rqk-app-shell .dashboard-activity-copy span,
+html body #root .rqk-app-shell .dashboard-activity-item time {
+  color: #7890a8 !important;
+}
+
+@media (max-width: 719px) {
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-page--simple {
+    gap: 18px !important;
+    padding: 12px 10px 18px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-header--simple {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 17px !important;
+    border-radius: 14px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-header--simple h1 {
+    font-size: clamp(1.85rem, 8vw, 2.35rem) !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-header-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-button {
+    min-height: 42px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-grid--simple {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple:nth-child(-n + 2) {
+    min-height: 86px !important;
+    padding: 13px !important;
+    border-radius: 12px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple:nth-child(n + 3) {
+    min-height: 72px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-command-card--simple:nth-child(n + 3) .dashboard-command-copy > span {
+    display: none !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-activity-list {
+    border-radius: 12px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .dashboard-activity-item {
+    min-height: 60px !important;
+    padding: 10px 11px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Characters and campaigns                                                    */
+/* -------------------------------------------------------------------------- */
+
+html body #root .rqk-app-shell .characters-library-page--simple,
+html body #root .rqk-app-shell .campaigns-library-page--simple {
+  width: min(100%, 1100px) !important;
+  margin-inline: auto !important;
+  padding: clamp(20px, 2.6vw, 32px) !important;
+  gap: 18px !important;
+  background: transparent !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .characters-library-hero,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaigns-library-hero {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 18px !important;
+  padding: 4px 2px 18px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(124, 203, 255, 0.13) !important;
+  border-radius: 0 !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .library-page-eyebrow,
+html body #root .rqk-app-shell .campaigns-library-page--simple .library-page-eyebrow {
+  color: #7ccbff !important;
+  font-size: 9px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .characters-library-hero h1,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaigns-library-hero h1 {
+  margin: 3px 0 5px !important;
+  font-size: clamp(2rem, 3.7vw, 2.8rem) !important;
+  letter-spacing: -0.035em !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .characters-library-hero h1 + p,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaigns-library-hero h1 + p {
+  color: #7890a8 !important;
+  font-size: 11px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-actions,
+html body #root .rqk-app-shell .campaigns-library-actions {
+  gap: 7px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-actions > *,
+html body #root .rqk-app-shell .campaigns-library-actions > * {
+  min-height: 40px !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  border-color: rgba(124, 203, 255, 0.14) !important;
+}
+
+html body #root .rqk-app-shell .characters-library-actions > :first-child,
+html body #root .rqk-app-shell .campaigns-library-actions > :first-child {
+  background: #102b40 !important;
+  border-color: rgba(255, 45, 170, 0.5) !important;
+}
+
+html body #root .rqk-app-shell .characters-card-grid,
+html body #root .rqk-app-shell .campaigns-card-grid {
+  gap: 14px !important;
+}
+
+html body #root .rqk-app-shell[data-rq-device='desktop'] .characters-library-page--simple .characters-card-grid,
+html body #root .rqk-app-shell[data-rq-device='desktop'] .campaigns-library-page--simple .campaigns-card-grid,
+html body #root .rqk-app-shell[data-rq-device='tablet'] .characters-library-page--simple .characters-card-grid,
+html body #root .rqk-app-shell[data-rq-device='tablet'] .campaigns-library-page--simple .campaigns-card-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-library-card--simple,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-library-card--simple {
+  gap: 14px !important;
+  padding: 17px !important;
+  background: #0c2234 !important;
+  border: 1px solid rgba(124, 203, 255, 0.12) !important;
+  border-radius: 13px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-library-card--simple:hover,
+html body #root .rqk-app-shell .characters-library-page--simple .character-library-card--simple:focus-within,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-library-card--simple:hover,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-library-card--simple:focus-within {
+  background: #102b40 !important;
+  border-color: rgba(124, 203, 255, 0.25) !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-main,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-main {
+  gap: 6px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-library-card h2,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-title-row h2 {
+  font-size: 1.15rem !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-level-badge,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-type {
+  min-height: 25px !important;
+  padding-inline: 8px !important;
+  background: rgba(124, 203, 255, 0.08) !important;
+  border-color: rgba(124, 203, 255, 0.18) !important;
+  border-radius: 8px !important;
+  color: #cfe9fb !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-primary-line,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-primary-line {
+  color: #dce7f2 !important;
+  font-size: 12px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-subclass-line,
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-meta-line,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-description,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-meta-line {
+  color: #8fa5ba !important;
+}
+
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-description {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-actions--simple,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-actions--simple {
+  gap: 7px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-open,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-open {
+  background: #102b40 !important;
+  border-color: rgba(255, 45, 170, 0.46) !important;
+  border-radius: 9px !important;
+}
+
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-edit,
+html body #root .rqk-app-shell .characters-library-page--simple .character-card-icon-action,
+html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-delete {
+  background: transparent !important;
+  border-color: rgba(124, 203, 255, 0.14) !important;
+  border-radius: 9px !important;
+}
+
+@media (max-width: 719px) {
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple {
+    padding: 12px 10px 18px !important;
+    gap: 14px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .characters-library-hero,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaigns-library-hero {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 5px 1px 15px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .characters-library-hero h1,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaigns-library-hero h1 {
+    font-size: clamp(1.85rem, 8.5vw, 2.25rem) !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-actions > :first-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-actions > * {
+    min-height: 43px !important;
+    font-size: 11px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-actions {
+    grid-template-columns: 1.35fr .85fr !important;
+    gap: 7px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-actions > * {
+    min-height: 43px !important;
+    font-size: 11px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-card-grid,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-card-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-library-card--simple,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-library-card--simple {
+    gap: 12px !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-actions--simple {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-open {
+    grid-column: 1 / -1 !important;
+    min-height: 43px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-edit,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .characters-library-page--simple .character-card-icon-action {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 41px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-card-actions--simple {
+    grid-template-columns: minmax(0, 1fr) 44px !important;
+    gap: 7px !important;
+  }
+
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-card-open,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaign-card-delete {
+    min-height: 43px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root .rqk-app-shell .rqk-app-rail-link,
+  html body #root .rqk-app-shell .dashboard-command-card--simple,
+  html body #root .rqk-app-shell .dashboard-activity-item {
+    transition: none !important;
+  }
+}
