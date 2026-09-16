@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Monitor, RefreshCw } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 
 const FRESH_ACK_MS = 20000;
 
@@ -63,7 +64,8 @@ export function derivePlayerDisplayDeliveryStatus(state, nowMs = Date.now()) {
 }
 
 export default function PlayerDisplayDeliveryStatus({ campaignId, pollMs = 4000 }) {
-  const [displayState, setDisplayState] = useState(null);
+  const initialDisplayState = getLiveBootstrapExtras(campaignId)?.displayState || null;
+  const [displayState, setDisplayState] = useState(() => initialDisplayState);
   const [loadError, setLoadError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [clock, setClock] = useState(() => Date.now());
@@ -87,11 +89,21 @@ export default function PlayerDisplayDeliveryStatus({ campaignId, pollMs = 4000 
   useEffect(() => {
     if (!campaignId) return undefined;
     let active = true;
+    const cachedState = getLiveBootstrapExtras(campaignId)?.displayState || null;
+    if (cachedState) {
+      setDisplayState(cachedState);
+      setLoadError(false);
+      setClock(Date.now());
+    }
+
     const run = async () => {
       if (!active) return;
       await refresh();
     };
-    run();
+
+    // The Live Play bootstrap already gives us a fresh first state. Start with
+    // that instantly and let normal polling resume on the next interval.
+    if (!cachedState) run();
     const timer = window.setInterval(run, Math.max(2500, Number(pollMs) || 4000));
     return () => {
       active = false;
