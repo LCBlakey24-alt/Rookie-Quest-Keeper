@@ -386,6 +386,32 @@ function GMHome({ campaignId, campaign, invite, inviteLoading, onOpenTab, onFetc
   const loadHome = useCallback(async () => {
     if (!campaignId) return;
     setHomeLoading(true);
+
+    // Modern path: one narrow GM-only payload instead of seven browser API
+    // round trips. Keep the legacy fan-out as a rollout fallback so frontend
+    // and backend deployments can arrive in either order safely.
+    try {
+      const response = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
+      const payload = response.data || {};
+      setData({
+        quests: safeList(payload.quests),
+        arcs: safeList(payload.arcs),
+        npcs: safeList(payload.npcs),
+        locations: safeList(payload.locations),
+        notes: safeList(payload.notes),
+        calendar: payload.calendar || null,
+        events: safeList(payload.events),
+      });
+      setHomeLoading(false);
+      return;
+    } catch (error) {
+      const status = error?.response?.status;
+      if (status !== 404 && status !== 405) {
+        // A temporary bootstrap issue should not strand an existing campaign;
+        // the established per-resource endpoints remain a safe fallback.
+      }
+    }
+
     const [questsRes, arcsRes, npcsRes, locationsRes, notesRes, calendarRes, eventsRes] = await Promise.all([
       apiClient.get(`/campaigns/${campaignId}/quests`).catch(() => ({ data: [] })),
       apiClient.get(`/campaigns/${campaignId}/story-arcs`).catch(() => ({ data: [] })),
