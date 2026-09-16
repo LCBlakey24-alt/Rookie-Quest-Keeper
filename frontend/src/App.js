@@ -7,8 +7,6 @@ import '@/App.css';
 // family moves into its isolated desktop/tablet/mobile presentation layer.
 import '@/styles/designSystem.css';
 import '@/styles/featurePresentationStack.css';
-import '@/data/applyTestBackgrounds';
-import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
 import { Toaster } from '@/components/ui/sonner';
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
@@ -71,7 +69,7 @@ const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSetting
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
-const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridgeV2'));
+const CharacterCreator = lazyWithChunkRetry(() => import('@/routes/CharacterCreatorRoute'));
 const CharacterProfileEditor = lazyWithChunkRetry(() => import('@/components/CharacterProfileEditor'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
 
