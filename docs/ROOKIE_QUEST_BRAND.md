@@ -10,6 +10,39 @@
 
 The word “rookie” is not intended to mean “beginner-only”. It represents the starting point of any new tabletop experience: a first character, a first campaign, a first painted miniature, a first world, or the first session of something completely new.
 
+## Visual identity
+
+The parent brand should feel like a **premium tabletop label**, not a generic fantasy dashboard. The visual system is deliberately restrained so the individual products can carry stronger personalities without making the parent site noisy.
+
+### Parent identity
+- Deep midnight navy backgrounds
+- Warm antique-gold compass mark and parent-brand accents
+- Cinzel for display/brand typography
+- Manrope for interface and supporting copy
+- Generous spacing and thin dividers instead of heavy panels
+- Fantasy atmosphere through typography and symbols rather than overloaded artwork
+
+### Shared compass motif
+A simple compass is the core Rookie Quest symbol. It represents the start of a journey and gives Keeper, Forge, Worlds and the future game a shared visual anchor without forcing them to use identical logos.
+
+### Product colours
+- **Keeper / Run:** sky blue
+- **Forge / Build:** ember orange
+- **Worlds / Explore:** parchment gold
+- **The Game / Play:** arcane violet
+
+The colour should identify the product through lines, icons and wordmarks rather than filling entire pages with colour.
+
+### Homepage rule
+The parent homepage should stay intentionally minimal:
+1. Rookie Quest identity
+2. “Every legend starts somewhere.”
+3. The four product paths
+4. One short explanation of how the ecosystem connects
+5. A clear route into Keeper, the live product
+
+Avoid turning the homepage into a long list of features. Product-specific detail belongs on the relevant product page.
+
 ## Product family
 
 ### Rookie Quest Keeper — Run
