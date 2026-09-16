@@ -12,6 +12,7 @@ import {
 import { BRAND_DESTINATIONS, openBrandDestination } from '@/config/brandDestinations';
 import '@/styles/rookieQuestBrand.css';
 import '@/styles/rookieQuestKeeperFirst.css';
+import '@/styles/rookieQuestParentPolish.css';
 
 const ROADMAP = [
   {
