@@ -50,6 +50,16 @@ function clampNumber(value, fallback, min, max) {
   return Math.max(min, Math.min(max, Math.floor(parsed)));
 }
 
+async function fetchCampaignLibrary() {
+  try {
+    return await apiClient.get('/library/campaigns');
+  } catch (error) {
+    const status = error?.response?.status;
+    if (status !== 404 && status !== 405) throw error;
+    return apiClient.get('/campaigns');
+  }
+}
+
 export default function MyCampaignsPage() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
@@ -66,7 +76,7 @@ export default function MyCampaignsPage() {
 
   const loadCampaigns = async ({ notifyFailure = true } = {}) => {
     try {
-      const response = await apiClient.get('/campaigns');
+      const response = await fetchCampaignLibrary();
       const records = Array.isArray(response.data) ? response.data : response.data?.campaigns || [];
       setCampaigns(records.filter((item) => item && typeof item === 'object'));
       return { ok: true };

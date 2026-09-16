@@ -112,6 +112,16 @@ function duplicatePayload(source) {
   };
 }
 
+async function fetchCharacterLibrary() {
+  try {
+    return await apiClient.get('/library/characters');
+  } catch (error) {
+    const status = error?.response?.status;
+    if (status !== 404 && status !== 405) throw error;
+    return apiClient.get('/characters');
+  }
+}
+
 export default function MyCharactersPage() {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -125,7 +135,7 @@ export default function MyCharactersPage() {
 
   const loadCharacters = async ({ notifyFailure = true } = {}) => {
     try {
-      const response = await apiClient.get('/characters');
+      const response = await fetchCharacterLibrary();
       const records = Array.isArray(response.data) ? response.data : response.data?.characters || [];
       setCharacters(records.filter((item) => item && typeof item === 'object'));
       return { ok: true };

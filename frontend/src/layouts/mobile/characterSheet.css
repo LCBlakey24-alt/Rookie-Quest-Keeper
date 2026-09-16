@@ -87,6 +87,48 @@
   box-sizing: border-box !important;
 }
 
+/* Summary/readiness cards contain inline span/strong/em elements in the shared
+   sheet markup. On narrow screens explicitly stack them so labels, values and
+   helper text never run together (for example RaceGoliathNo sub option...). */
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-content: start !important;
+  gap: 3px !important;
+  padding: 9px 10px !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div > span,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div > strong,
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div > em {
+  display: block !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div > span {
+  font-size: .68rem !important;
+  line-height: 1.2 !important;
+  font-weight: 850 !important;
+  letter-spacing: .055em !important;
+  text-transform: uppercase !important;
+  opacity: .78;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div > strong {
+  font-size: 1rem !important;
+  line-height: 1.22 !important;
+  font-weight: 900 !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid > div > em {
+  font-size: .78rem !important;
+  line-height: 1.35 !important;
+  font-style: normal !important;
+  opacity: .88;
+}
+
 [data-rq-device='mobile'] .character-page-v2 .clean-sheet-skill-card {
   min-height: 44px !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
@@ -121,6 +163,12 @@
   max-width: 100% !important;
   overflow-x: auto !important;
   scrollbar-width: thin;
+}
+
+@media (max-width: 560px) {
+  [data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 390px) {
