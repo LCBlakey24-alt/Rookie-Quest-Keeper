@@ -6,12 +6,12 @@ Vercel -> Render -> MongoDB work during ordinary navigation.
 """
 import asyncio
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from config import ADMIN_USERNAMES, db
 from routes.admin import merge_site_settings
 from routes.homebrew import COLLECTION, CONTENT_TYPES
-from utils.auth import get_current_user, verify_campaign_ownership
+from utils.auth import get_current_user
 
 router = APIRouter()
 
@@ -62,6 +62,13 @@ CAMPAIGN_LIBRARY_PROJECTION = {
     'world_genre': 1,
     'description': 1,
     'world_setting_notes': 1,
+}
+
+CAMPAIGN_HOME_PROJECTION = {
+    **CAMPAIGN_PROJECTION,
+    'system': 1,
+    'rules_edition': 1,
+    'campaign_type': 1,
 }
 
 HOMEBREW_PROJECTION = {
@@ -223,8 +230,15 @@ async def get_campaign_library(username: str = Depends(get_current_user)):
 
 @router.get('/campaigns/{campaign_id}/home-bootstrap')
 async def get_campaign_home_bootstrap(campaign_id: str, username: str = Depends(get_current_user)):
-    """Return the GM Home focus data in one ownership-checked round trip."""
-    await verify_campaign_ownership(campaign_id, username)
+    """Return the GM Home header and focus data in one ownership-scoped round trip."""
+    # This lookup both proves ownership and supplies the header. Avoid a second
+    # campaign query just to fetch a name after verify_campaign_ownership.
+    campaign = await db.campaigns.find_one(
+        {'id': campaign_id, 'dm_user_id': username},
+        CAMPAIGN_HOME_PROJECTION,
+    )
+    if not campaign:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign not found or access denied')
 
     quests_request = db.quests.find(
         {'campaign_id': campaign_id},
@@ -274,6 +288,7 @@ async def get_campaign_home_bootstrap(campaign_id: str, username: str = Depends(
     )
 
     return {
+        'campaign': campaign,
         'quests': quests,
         'arcs': arcs,
         'npcs': npcs,
