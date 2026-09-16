@@ -16,9 +16,6 @@ import AppShell from '@/components/app/AppShell';
 import SignInRedirect, { PostSignInRedirect } from '@/components/auth/SignInRedirect';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
-import FloatingDiceRoller from '@/components/FloatingDiceRoller';
-import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
-import RookGlobalAssistant from '@/components/RookGlobalAssistant';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
@@ -77,6 +74,13 @@ const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/Charac
 const CharacterCreator = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridgeV2'));
 const CharacterProfileEditor = lazyWithChunkRetry(() => import('@/components/CharacterProfileEditor'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
+
+// These tools are only visible after sign-in. Keeping them out of the shared
+// startup bundle lets public/auth routes and the main workspace become usable
+// before optional floating utilities are downloaded.
+const RookGlobalAssistant = lazyWithChunkRetry(() => import('@/components/RookGlobalAssistant'));
+const FloatingDiceRoller = lazyWithChunkRetry(() => import('@/components/FloatingDiceRoller'));
+const GlobalFeedbackButton = lazyWithChunkRetry(() => import('@/components/GlobalFeedbackButton'));
 
 function CampaignLiveRedirect() {
   const { campaignId } = useParams();
@@ -217,9 +221,13 @@ export function AppRoutes() {
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <SignInRedirect />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
-      {isAuthenticated && !isPublicBrandRoute && <RookGlobalAssistant />}
-      {isAuthenticated && !isPublicBrandRoute && <FloatingDiceRoller />}
-      {isAuthenticated && !isPublicBrandRoute && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
+      {isAuthenticated && !isPublicBrandRoute && (
+        <Suspense fallback={null}>
+          <RookGlobalAssistant />
+          <FloatingDiceRoller />
+          <GlobalFeedbackButton isAuthenticated={isAuthenticated} />
+        </Suspense>
+      )}
     </>
   );
 }
