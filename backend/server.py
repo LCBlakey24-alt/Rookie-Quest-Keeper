@@ -195,6 +195,17 @@ async def run_startup_maintenance():
                          "handouts", "session_recaps", "calendar_events"):
             col = getattr(db, col_name)
             await col.create_index([("campaign_id", ASCENDING)], background=True)
+
+        # Dashboard/homebrew library queries are user-scoped across these
+        # separate collections. Indexing user_id keeps the one-request dashboard
+        # fast as a user's personal library grows.
+        for col_name in (
+            "user_races", "user_classes", "user_subclasses", "user_feats",
+            "user_spells", "user_backgrounds", "user_magic_items",
+            "user_monsters", "user_npcs", "user_custom_rules",
+        ):
+            await getattr(db, col_name).create_index([("user_id", ASCENDING)], background=True)
+
         await db.ai_usage.create_index([("username", ASCENDING), ("month", ASCENDING)], background=True)
         await db.user_playtest_packs.create_index([("user_id", ASCENDING), ("edition", ASCENDING)], background=True)
         await db.user_playtest_packs.create_index([("campaign_id", ASCENDING)], background=True)
