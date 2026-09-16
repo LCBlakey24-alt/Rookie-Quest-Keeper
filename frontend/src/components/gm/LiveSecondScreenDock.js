@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Copy, Image as ImageIcon, Monitor, RefreshCw, Send, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 import { createDisplayState, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
@@ -43,17 +44,21 @@ function displaySubtitle(state) {
 }
 
 export default function LiveSecondScreenDock({ campaignId }) {
-  const [state, setState] = useState(() => loadDisplayState(campaignId));
-  const [maps, setMaps] = useState([]);
-  const [npcs, setNpcs] = useState([]);
+  const initialExtras = getLiveBootstrapExtras(campaignId);
+  const [state, setState] = useState(() => initialExtras?.displayState || loadDisplayState(campaignId));
+  const [maps, setMaps] = useState(() => Array.isArray(initialExtras?.maps) ? initialExtras.maps : []);
+  const [npcs, setNpcs] = useState(() => Array.isArray(initialExtras?.npcs) ? initialExtras.npcs : []);
   const [target, setTarget] = useState('standing-tv');
   const [busy, setBusy] = useState('');
   const [refreshingAssets, setRefreshingAssets] = useState(false);
   const [assetWarning, setAssetWarning] = useState('');
 
   useEffect(() => {
-    setState(loadDisplayState(campaignId));
+    const cachedState = getLiveBootstrapExtras(campaignId)?.displayState;
+    setState(cachedState || loadDisplayState(campaignId));
     const local = subscribeDisplayState(campaignId, setState);
+    // Keep the existing remote freshness read/WebSocket path for safety. The
+    // bootstrap state paints immediately while this connection comes online.
     const remote = subscribeRemoteDisplayState(campaignId, setState, { intervalMs: 1000 });
     return () => { local(); remote(); };
   }, [campaignId]);
@@ -95,9 +100,15 @@ export default function LiveSecondScreenDock({ campaignId }) {
   }, [campaignId]);
 
   useEffect(() => {
+    const cached = getLiveBootstrapExtras(campaignId);
+    setAssetWarning('');
+    if (Array.isArray(cached?.maps) && Array.isArray(cached?.npcs)) {
+      setMaps(cached.maps);
+      setNpcs(cached.npcs);
+      return;
+    }
     setMaps([]);
     setNpcs([]);
-    setAssetWarning('');
     refreshAssets({ silent: true });
   }, [campaignId, refreshAssets]);
 
