@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Flag, RefreshCw, ScrollText } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 import LiveSecondScreenDock from '@/components/gm/LiveSecondScreenDock';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -43,8 +44,9 @@ function findFocus(arcs) {
 }
 
 export default function LiveStoryFocusPanel({ campaignId }) {
-  const [arcs, setArcs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const initialArcs = getLiveBootstrapExtras(campaignId)?.storyArcs;
+  const [arcs, setArcs] = useState(() => Array.isArray(initialArcs) ? initialArcs : []);
+  const [loading, setLoading] = useState(() => !Array.isArray(initialArcs));
 
   const loadArcs = useCallback(async () => {
     if (!campaignId) return;
@@ -59,7 +61,15 @@ export default function LiveStoryFocusPanel({ campaignId }) {
     }
   }, [campaignId]);
 
-  useEffect(() => { loadArcs(); }, [loadArcs]);
+  useEffect(() => {
+    const cachedArcs = getLiveBootstrapExtras(campaignId)?.storyArcs;
+    if (Array.isArray(cachedArcs)) {
+      setArcs(cachedArcs);
+      setLoading(false);
+      return;
+    }
+    loadArcs();
+  }, [campaignId, loadArcs]);
 
   const focus = useMemo(() => findFocus(arcs), [arcs]);
   const reachedCount = focus.points.filter(point => point.status === 'reached').length;
