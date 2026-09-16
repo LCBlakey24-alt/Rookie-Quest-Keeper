@@ -1,5 +1,6 @@
 import {
   describeLiveLoadErrors,
+  getLiveBootstrapExtras,
   loadEncounterReviewSections,
   loadLiveSessionSections,
 } from './livePlayLoaders';
@@ -16,7 +17,7 @@ function apiFrom(map) {
 }
 
 describe('Live Play section loading', () => {
-  test('loads the Live Play shell from one bootstrap request when available', async () => {
+  test('loads the Live Play shell and always-on widget seeds from one bootstrap request', async () => {
     const apiClient = apiFrom({
       '/campaigns/c0/live-bootstrap': {
         campaign: { id: 'c0', name: 'Fast Table' },
@@ -24,6 +25,10 @@ describe('Live Play section loading', () => {
         scenarios: [{ id: 's1', name: 'Ambush' }],
         calendar: { current_day: 4 },
         notes: [{ id: 'n1', content: 'Previously...' }],
+        story_arcs: [{ id: 'a1', title: 'The Road North' }],
+        maps: [{ id: 'm1', name: 'Town Map' }],
+        npcs: [{ id: 'npc1', name: 'Innkeeper' }],
+        display_state: { sync_id: 'sync-1', mode: 'blank', updated_at: '2026-09-16T12:00:00Z' },
       },
     });
 
@@ -36,6 +41,12 @@ describe('Live Play section loading', () => {
     expect(result.sections.players.data).toHaveLength(1);
     expect(result.sections.scenarios.data).toHaveLength(1);
     expect(result.sections.notes.data).toHaveLength(1);
+    expect(getLiveBootstrapExtras('c0')).toEqual({
+      storyArcs: [{ id: 'a1', title: 'The Road North' }],
+      maps: [{ id: 'm1', name: 'Town Map' }],
+      npcs: [{ id: 'npc1', name: 'Innkeeper' }],
+      displayState: { sync_id: 'sync-1', mode: 'blank', updated_at: '2026-09-16T12:00:00Z' },
+    });
   });
 
   test('keeps a failed party read distinct from a legitimate empty party when bootstrap falls back', async () => {
@@ -52,6 +63,7 @@ describe('Live Play section loading', () => {
 
     expect(apiClient.get).toHaveBeenCalledWith('/campaigns/c1/live-bootstrap');
     expect(apiClient.get).toHaveBeenCalledWith('/campaigns/c1/players');
+    expect(getLiveBootstrapExtras('c1')).toBeNull();
     expect(result.sections.players.ok).toBe(false);
     expect(result.sections.players.data).toBeUndefined();
     expect(result.sections.scenarios).toEqual({ ok: true, data: [] });
