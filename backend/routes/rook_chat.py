@@ -12,6 +12,7 @@ from typing import Any, Dict, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from config import logger
 from models import RookChatRequest
 from utils.auth import check_ai_access, get_current_user, record_ai_usage, verify_campaign_membership
 from utils.helpers import get_campaign_context
@@ -122,7 +123,12 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
 
     api_key = get_llm_api_key('openai')
     if not api_key:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='AI key not configured')
+        logger.error('ROOK chat is unavailable because no OpenAI/LLM API key is configured')
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail='Rook is temporarily unavailable. Please try again shortly.',
+            headers={'Retry-After': '30'},
+        )
 
     caller_context = str(request.context or '')
     player_facing, live_play = detect_rook_chat_mode(caller_context)
@@ -157,6 +163,21 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
     )
     chat.with_model('openai', 'gpt-4o')
 
-    response = await chat.send_message(UserMessage(text=request.message))
-    await record_ai_usage(username)
+    try:
+        response = await chat.send_message(UserMessage(text=request.message))
+    except Exception as exc:
+        logger.exception('ROOK provider request failed for %s: %s', username, type(exc).__name__)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail='Rook is temporarily unavailable. Please try again shortly.',
+            headers={'Retry-After': '15'},
+        ) from exc
+
+    try:
+        await record_ai_usage(username)
+    except Exception as exc:
+        # Usage accounting should never discard a successful answer. Keep the
+        # response available and log the accounting failure for investigation.
+        logger.warning('Could not record ROOK AI usage for %s: %s', username, type(exc).__name__)
+
     return {'response': response}
