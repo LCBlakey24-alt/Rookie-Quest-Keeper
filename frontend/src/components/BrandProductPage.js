@@ -4,37 +4,18 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
-  Boxes,
   Compass,
   Dices,
-  Hammer,
-  Layers3,
   Map,
-  PackageOpen,
   ScrollText,
   Shield,
   Sparkles,
   Users,
 } from 'lucide-react';
+import ForgePage from '@/components/ForgePage';
 import '@/styles/rookieQuestBrand.css';
 
 const PRODUCT_DATA = {
-  forge: {
-    key: 'forge',
-    icon: Hammer,
-    name: 'Forge',
-    verb: 'Build',
-    status: 'In development',
-    title: 'Build the battlefield.',
-    intro: 'Modular 3D-printable terrain designed to be reused, expanded, stored and rebuilt around whatever encounter comes next.',
-    detail: 'Forge is being designed as a system rather than a pile of one-off scenery: stackable frames, interchangeable tiles, walls, doors, stairs, elevation, pillars, railings and themed encounter packs that all understand the same base language.',
-    highlights: [
-      { icon: Layers3, title: 'One modular standard', text: 'Floors, walls, doors and elevation are designed to work together rather than becoming isolated print projects.' },
-      { icon: Boxes, title: 'Made to store', text: 'Frames and pieces are being developed around stacking, repeat use and practical storage as much as table presence.' },
-      { icon: PackageOpen, title: 'Encounter-ready packs', text: 'Future sets can bundle exactly what a ruin, cave, street, dungeon or published adventure needs.' },
-    ],
-    footer: 'Forge will become the home for downloadable Rookie Quest terrain files and complete printable encounter packs.',
-  },
   worlds: {
     key: 'worlds',
     icon: BookOpen,
@@ -77,7 +58,7 @@ function BrandMark() {
   );
 }
 
-export default function BrandProductPage({ product }) {
+function GenericBrandProductPage({ product }) {
   const navigate = useNavigate();
   const data = PRODUCT_DATA[product] || PRODUCT_DATA.game;
   const Icon = data.icon;
@@ -157,4 +138,9 @@ export default function BrandProductPage({ product }) {
       </main>
     </div>
   );
+}
+
+export default function BrandProductPage({ product }) {
+  if (product === 'forge') return <ForgePage />;
+  return <GenericBrandProductPage product={product} />;
 }
