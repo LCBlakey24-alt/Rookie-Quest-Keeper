@@ -297,3 +297,55 @@ async def get_campaign_home_bootstrap(campaign_id: str, username: str = Depends(
         'calendar': calendar,
         'events': events,
     }
+
+
+@router.get('/campaigns/{campaign_id}/live-bootstrap')
+async def get_live_play_bootstrap(campaign_id: str, username: str = Depends(get_current_user)):
+    """Return the initial Live Play state in one GM-only browser round trip."""
+    # Live Play needs the full campaign object (environment, dice settings, etc.),
+    # so preserve the existing detail-route shape while using this lookup as the
+    # ownership check as well.
+    campaign = await db.campaigns.find_one(
+        {'id': campaign_id, 'dm_user_id': username},
+        {'_id': 0},
+    )
+    if not campaign:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign not found or access denied')
+
+    players_request = db.players.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    ).to_list(1000)
+
+    scenarios_request = db.combat_scenarios.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    ).to_list(1000)
+
+    calendar_request = db.calendars.find_one(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    )
+
+    # LiveSessionGridPage already keeps only the first 30 newest notes. Apply
+    # that cap at MongoDB so large campaign journals do not cross the network
+    # only to be sliced away by React.
+    notes_request = db.ingame_notes.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0},
+    ).sort('created_at', -1).to_list(30)
+
+    players, scenarios, calendar, notes = await asyncio.gather(
+        players_request,
+        scenarios_request,
+        calendar_request,
+        notes_request,
+    )
+
+    return {
+        'campaign': campaign,
+        'players': players,
+        'scenarios': scenarios,
+        'calendar': calendar,
+        'notes': notes,
+    }
