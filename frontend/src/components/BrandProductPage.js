@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,6 +9,7 @@ import {
   Hammer,
 } from 'lucide-react';
 import WorldsLandingPage from '@/components/WorldsLandingPage';
+import TiaKartaWorldPage from '@/components/TiaKartaWorldPage';
 import { openBrandDestination } from '@/config/brandDestinations';
 import '@/styles/rookieQuestBrand.css';
 
@@ -40,6 +41,29 @@ const PRODUCT_DATA = {
     title: 'The game comes when the game is ready.',
     intro: 'Our own tabletop roleplaying system is a future goal, not something we need to rush into a website today. Keeper comes first, followed by Forge and Worlds, so the eventual RPG can grow from things we have actually built and used.',
   },
+};
+
+const TIA_KARTA_SHORTCUT_STYLE = {
+  position: 'fixed',
+  right: '18px',
+  bottom: '18px',
+  zIndex: 80,
+  minHeight: '46px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  padding: '0 15px',
+  border: '1px solid rgba(240, 215, 165, 0.62)',
+  borderRadius: '2px',
+  background: 'linear-gradient(180deg, #e4c48f, #bd9259)',
+  color: '#07131d',
+  boxShadow: '0 14px 38px rgba(0,0,0,.34)',
+  cursor: 'pointer',
+  fontSize: '10px',
+  fontWeight: 950,
+  letterSpacing: '.09em',
+  textTransform: 'uppercase',
 };
 
 function BrandMark() {
@@ -125,6 +149,27 @@ function RoadmapProductPage({ product }) {
 }
 
 export default function BrandProductPage({ product }) {
-  if (product === 'worlds') return <WorldsLandingPage />;
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  if (product === 'worlds') {
+    const setting = new URLSearchParams(location.search).get('setting');
+    if (setting === 'tia-karta') return <TiaKartaWorldPage />;
+
+    return (
+      <>
+        <WorldsLandingPage />
+        <button
+          type="button"
+          style={TIA_KARTA_SHORTCUT_STYLE}
+          onClick={() => navigate('/worlds?setting=tia-karta')}
+          aria-label="Open the Tia-Karta setting prototype"
+        >
+          Tia-Karta prototype <ArrowRight size={15} aria-hidden="true" />
+        </button>
+      </>
+    );
+  }
+
   return <RoadmapProductPage product={product} />;
 }
