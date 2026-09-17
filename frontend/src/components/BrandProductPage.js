@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,6 +9,7 @@ import {
   Hammer,
 } from 'lucide-react';
 import WorldsLandingPage from '@/components/WorldsLandingPage';
+import TiaKartaWorldPage from '@/components/TiaKartaWorldPage';
 import { openBrandDestination } from '@/config/brandDestinations';
 import '@/styles/rookieQuestBrand.css';
 
@@ -125,6 +126,13 @@ function RoadmapProductPage({ product }) {
 }
 
 export default function BrandProductPage({ product }) {
-  if (product === 'worlds') return <WorldsLandingPage />;
+  const location = useLocation();
+
+  if (product === 'worlds') {
+    const setting = new URLSearchParams(location.search).get('setting');
+    if (setting === 'tia-karta') return <TiaKartaWorldPage />;
+    return <WorldsLandingPage />;
+  }
+
   return <RoadmapProductPage product={product} />;
 }
