@@ -8,6 +8,7 @@ import {
   Dices,
   Hammer,
 } from 'lucide-react';
+import WorldsLandingPage from '@/components/WorldsLandingPage';
 import { openBrandDestination } from '@/config/brandDestinations';
 import '@/styles/rookieQuestBrand.css';
 
@@ -49,7 +50,7 @@ function BrandMark() {
   );
 }
 
-export default function BrandProductPage({ product }) {
+function RoadmapProductPage({ product }) {
   const navigate = useNavigate();
   const data = PRODUCT_DATA[product] || PRODUCT_DATA.game;
   const Icon = data.icon;
@@ -121,4 +122,9 @@ export default function BrandProductPage({ product }) {
       </main>
     </div>
   );
+}
+
+export default function BrandProductPage({ product }) {
+  if (product === 'worlds') return <WorldsLandingPage />;
+  return <RoadmapProductPage product={product} />;
 }
