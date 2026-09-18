@@ -126,8 +126,18 @@ export function AppRoutes() {
   const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth');
 
-  const handleAuthLogin = useCallback((token, nextUsername) => {
-    if (!preview) localStorage.setItem(AUTH_USERNAME_KEY, nextUsername || '');
+  const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
+    if (!preview) {
+      localStorage.setItem(AUTH_USERNAME_KEY, nextUsername || '');
+      if (typeof nextIsAdmin === 'boolean') {
+        try {
+          sessionStorage.setItem(
+            `rqk.admin-check:${nextUsername || 'unknown'}`,
+            JSON.stringify({ isAdmin: nextIsAdmin, checkedAt: Date.now() }),
+          );
+        } catch {}
+      }
+    }
     skipNextAuthProbeRef.current = true;
     setAuthToken(token);
     setUsername(nextUsername || '');
