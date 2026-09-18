@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
-from config import db
+from config import ADMIN_USERNAMES, db
 from models import UserLogin, TokenResponse
 from utils.auth import create_token, hash_password, verify_password
 
@@ -114,11 +114,17 @@ def is_google_authoritative_email(claims: dict) -> bool:
     return email.endswith('@gmail.com') or bool(claims.get('hd'))
 
 
+def admin_flag(username: str) -> bool:
+    admins = {str(value).lower() for value in ADMIN_USERNAMES}
+    return str(username or '').lower() in admins
+
+
 def token_payload(user: dict) -> dict:
     return {
         'token': create_token(user['username']),
         'username': user['username'],
         'email': user.get('email'),
+        'is_admin': admin_flag(user['username']),
         'requires_username': False,
     }
 
@@ -135,7 +141,12 @@ async def login_fast(user_data: UserLogin):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
 
     token = create_token(user['username'])
-    return TokenResponse(token=token, username=user['username'], email=user.get('email'))
+    return TokenResponse(
+        token=token,
+        username=user['username'],
+        email=user.get('email'),
+        is_admin=admin_flag(user['username']),
+    )
 
 
 @router.post('/auth/google')
