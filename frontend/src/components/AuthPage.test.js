@@ -120,7 +120,7 @@ describe('AuthPage', () => {
   });
 
   test('submits login credentials and reports the authenticated user', async () => {
-    apiClient.post.mockResolvedValueOnce({ data: { token: 'keeper-token', username: 'Rook' } });
+    apiClient.post.mockResolvedValueOnce({ data: { token: 'keeper-token', username: 'Rook', is_admin: false } });
     const { onLogin } = renderAuthPage();
 
     fireEvent.change(screen.getByTestId('login-username'), { target: { value: ' player@example.com ' } });
@@ -136,7 +136,7 @@ describe('AuthPage', () => {
     });
 
     expect(toast.success).toHaveBeenCalledWith('Welcome back!');
-    expect(onLogin).toHaveBeenCalledWith('keeper-token', 'Rook');
+    expect(onLogin).toHaveBeenCalledWith('keeper-token', 'Rook', false);
   });
 
   test('keeps a sheet destination when switching auth tabs and signing in', async () => {
