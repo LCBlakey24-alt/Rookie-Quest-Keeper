@@ -82,6 +82,20 @@ export function createPreviewApi(
     if (method === 'get' && path === '/admin/check') return { is_admin: false };
     if (method === 'get' && path === '/health') return { status: 'local-preview' };
     if (method === 'get' && path === '/site-settings') return { campaign_creation_enabled: true, character_creation_enabled: true, uploads_enabled: false, rook_text_enabled: false, feedback_enabled: false };
+    if (method === 'get' && path === '/dashboard/bootstrap') return {
+      characters: state.characters,
+      campaigns: state.campaigns,
+      homebrew_items: state.homebrew,
+      site_settings: {
+        campaign_creation_enabled: true,
+        character_creation_enabled: true,
+        uploads_enabled: false,
+        rook_text_enabled: false,
+        feedback_enabled: false,
+      },
+      is_admin: false,
+      admin_overview: {},
+    };
     if (method === 'get' && path === '/rule-systems') return [{ id: 'dnd5e_2014', name: 'D&D 5e', short_code: 'dnd5e_2014' }];
     if (method === 'get' && path.startsWith('/player/rules/')) return { races: [], classes: [], subclasses: [], backgrounds: [], feats: [], spells: [], sources: [] };
     if (method === 'get' && ['/updates', '/updates/global', '/uploads', '/custom-rulesets', '/rulesets', '/notifications'].includes(path)) return [];

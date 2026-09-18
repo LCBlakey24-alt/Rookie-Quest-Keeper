@@ -17,6 +17,18 @@ test('opens with sample characters and filters GM data from the player campaign'
   expect(campaign.party[0].spell_slots).toBeUndefined();
 });
 
+test('dashboard bootstrap returns the sample workspace in one request', () => {
+  const api = createPreviewApi(memoryStorage());
+  const dashboard = api.request('get', '/dashboard/bootstrap');
+
+  expect(dashboard.campaigns).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: campaignId, name: 'Preview campaign' }),
+  ]));
+  expect(dashboard.characters).toHaveLength(2);
+  expect(dashboard.is_admin).toBe(false);
+  expect(dashboard.site_settings.campaign_creation_enabled).toBe(true);
+});
+
 test('character HP and spell slots survive a reload, including zero values', () => {
   const storage = memoryStorage();
   const api = createPreviewApi(storage);

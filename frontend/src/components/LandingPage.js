@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   Backpack,
   BookOpen,
   ChevronRight,
@@ -279,12 +278,11 @@ export default function LandingPage() {
 
       <nav className="landing-final-nav" aria-label="Rookie Quest Keeper navigation">
         <div className="landing-brand-context">
-          <button type="button" className="landing-logo-button" onClick={() => navigate('/')} aria-label="Back to Rookie Quest">
+          <button type="button" className="landing-logo-button" onClick={() => navigate('/')} aria-label="Rookie Quest Keeper home">
             <BrandMiniLogo size={44} />
           </button>
           <div className="landing-brand-context-copy">
-            <button type="button" className="landing-parent-link" onClick={() => navigate('/')}>Rookie Quest</button>
-            <span>Keeper</span>
+            <span>Rookie Quest Keeper</span>
           </div>
         </div>
 
@@ -312,7 +310,7 @@ export default function LandingPage() {
               <BrandMainLogo width={480} />
             </div>
 
-            <p className="landing-kicker">Rookie Quest · Product 01 · Available now</p>
+            <p className="landing-kicker">Rookie Quest Keeper · Available now</p>
             <h1 id="landing-hero-title">Your campaign. Kept together.</h1>
             <p className="landing-final-intro">
               Build your character, prepare your campaign, and keep the tools you need close at hand when the dice start rolling.
@@ -509,9 +507,6 @@ export default function LandingPage() {
           <div>
             <strong>Rookie Quest Keeper</strong>
             <p>Independent tabletop companion for 5e-style campaigns, character sheets, live play, and GM prep.</p>
-            <button type="button" className="landing-rq-return" onClick={() => navigate('/')}>
-              <ArrowLeft size={14} aria-hidden="true" /> Back to Rookie Quest
-            </button>
           </div>
         </div>
         <div className="landing-footer-actions" aria-label="Footer navigation">
@@ -520,7 +515,7 @@ export default function LandingPage() {
           <button type="button" onClick={() => scrollToSection(faqSectionRef)}>FAQ</button>
           <button type="button" onClick={goRegister}>Create account</button>
         </div>
-        <p className="landing-footer-note">&copy; {new Date().getFullYear()} Rookie Quest Keeper. A Rookie Quest product built for home tables, new players, and campaign runners.</p>
+        <p className="landing-footer-note">&copy; {new Date().getFullYear()} Rookie Quest Keeper. Built for home tables, new players, and campaign runners.</p>
       </footer>
     </div>
   );

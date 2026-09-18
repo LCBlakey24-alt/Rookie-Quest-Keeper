@@ -16,10 +16,14 @@ jest.mock('@/components/ui/GlobalActionFillEffects', () => () => null);
 // Keep theme switching independent of this route/authentication integration test.
 jest.mock('@/contexts/ThemeContext', () => ({ useTheme: () => ({ setTheme: () => {} }), THEMES: {} }));
 
-afterEach(() => { jest.restoreAllMocks(); localStorage.clear(); });
+afterEach(() => {
+  jest.restoreAllMocks();
+  localStorage.clear();
+  sessionStorage.clear();
+});
 
 test('the staging sign-in URL opens the real dashboard and sample data without authenticating', async () => {
-  jest.spyOn(mode, 'isLocalPreview').mockReturnValue(true);
+  sessionStorage.setItem(mode.DEMO_SESSION_KEY, '1');
   const get = jest.spyOn(apiClient, 'get');
   const post = jest.spyOn(apiClient, 'post');
   render(<React.Suspense fallback={<p>Loading page</p>}><MemoryRouter initialEntries={['/auth']}><AppRoutes /></MemoryRouter></React.Suspense>);
@@ -32,8 +36,8 @@ test('the staging sign-in URL opens the real dashboard and sample data without a
 });
 
 test('a normal site still requires sign-in before opening the dashboard', async () => {
-  jest.spyOn(mode, 'isLocalPreview').mockReturnValue(false);
   localStorage.clear();
+  sessionStorage.clear();
   render(<React.Suspense fallback={<p>Loading page</p>}><MemoryRouter initialEntries={['/home']}><AppRoutes /></MemoryRouter></React.Suspense>);
   expect(await screen.findByText('Sign in screen')).toBeInTheDocument();
   expect(screen.queryByText('Preview campaign')).not.toBeInTheDocument();

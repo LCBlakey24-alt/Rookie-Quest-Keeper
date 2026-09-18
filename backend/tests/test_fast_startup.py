@@ -38,6 +38,7 @@ def test_database_setup_remains_inside_background_maintenance():
     maintenance = _async_function(tree, 'run_startup_maintenance')
     maintenance_source = ast.get_source_segment(source, maintenance) or ''
 
+    assert "db.command('ping')" in maintenance_source
     assert 'initialize_rule_systems' in maintenance_source
     assert 'seed_templates_if_empty' in maintenance_source
     assert 'create_index' in maintenance_source

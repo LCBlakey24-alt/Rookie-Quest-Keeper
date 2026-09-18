@@ -154,6 +154,15 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
 
 async def run_startup_maintenance():
     """Run idempotent database maintenance without blocking auth/health startup."""
+    # Warm the lazy Mongo client immediately after the web process becomes
+    # responsive. This pays DNS/TLS/server-selection setup in the background
+    # while the user is still reading the landing or sign-in screen.
+    try:
+        await db.command('ping')
+        logger.info("MongoDB connection warmed")
+    except Exception as e:
+        logger.warning(f"Could not warm MongoDB connection: {e}")
+
     try:
         await initialize_rule_systems()
         logger.info("Rule systems initialized")

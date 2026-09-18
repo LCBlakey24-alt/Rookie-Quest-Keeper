@@ -9,7 +9,8 @@ jest.mock('@/lib/apiClient', () => ({ __esModule: true, default: { get: jest.fn(
 jest.mock('@/components/app/AppShell', () => ({ children }) => <div>{children}</div>);
 jest.mock('@/components/UnifiedDashboard', () => ({ username }) => <h1>Dashboard for {username}</h1>);
 jest.mock('@/components/gm/PlayerDisplayPage', () => () => <h1>Player display</h1>);
-jest.mock('@/components/AuthPage', () => ({ onLogin }) => <button onClick={() => onLogin('new-token', 'New Keeper')}>Sign in</button>);
+jest.mock('@/components/AuthPage', () => ({ onLogin }) => <button onClick={() => onLogin('new-token', 'New Keeper', true)}>Sign in</button>);
+jest.mock('@/components/LandingPage', () => () => <h1>Rookie Quest Keeper landing</h1>);
 jest.mock('@/components/RookGlobalAssistant', () => () => null);
 jest.mock('@/components/FloatingDiceRoller', () => () => null);
 jest.mock('@/components/GlobalFeedbackButton', () => () => null);
@@ -25,11 +26,15 @@ function openApp(path = '/home') {
 beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
+  sessionStorage.clear();
   localStorage.setItem('dm_username', 'Keeper');
   setAuthToken('current-token');
   apiClient.get.mockResolvedValue({ data: {} });
 });
-afterEach(() => localStorage.clear());
+afterEach(() => {
+  localStorage.clear();
+  sessionStorage.clear();
+});
 
 test.each([429, 500, 502, 503])('a temporary %s profile failure keeps the signed-in workspace', async status => {
   apiClient.get.mockRejectedValue({ response: { status } });
@@ -83,6 +88,20 @@ test('successful sign-in persists the username alongside the session', async () 
   fireEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
   await waitFor(() => expect(localStorage.getItem('dm_username')).toBe('New Keeper'));
   expect(await screen.findByRole('heading', { name: 'Dashboard for New Keeper' })).toBeInTheDocument();
+  expect(apiClient.get).not.toHaveBeenCalled();
+  expect(JSON.parse(sessionStorage.getItem('rqk.admin-check:New Keeper'))).toMatchObject({ isAdmin: true });
+});
+
+test('the public root is the Keeper product site', async () => {
+  localStorage.clear();
+  openApp('/');
+  expect(await screen.findByRole('heading', { name: 'Rookie Quest Keeper landing' })).toBeInTheDocument();
+});
+
+test.each(['/keeper', '/forge', '/worlds', '/game'])('%s no longer serves the parent Rookie Quest product site', async path => {
+  localStorage.clear();
+  openApp(path);
+  expect(await screen.findByRole('heading', { name: 'Rookie Quest Keeper landing' })).toBeInTheDocument();
 });
 
 test('a player display link resumes after signing in', async () => {

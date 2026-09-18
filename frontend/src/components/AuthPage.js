@@ -275,7 +275,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     try {
       const response = await apiClient.post('/auth/login', payload);
       toast.success('Welcome back!');
-      onLogin(response.data.token, response.data.username || identifier);
+      onLogin(response.data.token, response.data.username || identifier, response.data.is_admin);
       navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Login failed'));
@@ -309,7 +309,7 @@ export default function AuthPage({ onLogin = () => {} }) {
       }
 
       toast.success('Staging test account ready');
-      onLogin(response.data.token, response.data.username || stagingCredentials.username);
+      onLogin(response.data.token, response.data.username || stagingCredentials.username, response.data.is_admin);
       navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Could not open the staging test account'));
@@ -345,7 +345,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
-      onLogin(response.data.token, response.data.username || payload.username);
+      onLogin(response.data.token, response.data.username || payload.username, response.data.is_admin);
       navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Registration failed'));
