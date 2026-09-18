@@ -90,7 +90,8 @@ class FastLoginTests(unittest.TestCase):
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
-             patch.object(login_routes, 'create_token', return_value='token-1'):
+             patch.object(login_routes, 'create_token', return_value='token-1'), \
+             patch.object(login_routes, 'ADMIN_USERNAMES', ['Rook']):
             result = run(login_routes.login_fast(SimpleNamespace(
                 username='Rook', email=None, password='secret'
             )))
@@ -99,6 +100,7 @@ class FastLoginTests(unittest.TestCase):
         threaded.assert_awaited_once_with(login_routes.verify_password, 'secret', 'hash')
         self.assertEqual(result.token, 'token-1')
         self.assertEqual(result.username, 'Rook')
+        self.assertTrue(result.is_admin)
 
     def test_missing_user_or_bad_password_returns_401(self):
         users = FakeUsers(None)
