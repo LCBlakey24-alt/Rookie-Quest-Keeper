@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 
@@ -22,7 +22,7 @@ import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 import { isLocalPreview, PREVIEW_USER } from '@/preview/previewMode';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
-const PUBLIC_BRAND_PATHS = new Set(['/', '/keeper', '/forge', '/worlds', '/game']);
+const PUBLIC_BRAND_PATHS = new Set(['/', '/keeper']);
 
 function isChunkLoadError(error) {
   const message = String(error?.message || error || '');
@@ -62,8 +62,6 @@ const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/
 const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/PlayerCampaignPage'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
-const BrandHubPage = lazyWithChunkRetry(() => import('@/components/BrandHubPage'));
-const BrandProductPage = lazyWithChunkRetry(() => import('@/components/BrandProductPage'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
@@ -125,10 +123,12 @@ export function AppRoutes() {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
   const [username, setUsername] = useState(() => preview ? PREVIEW_USER : localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth');
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
     if (!preview) localStorage.setItem(AUTH_USERNAME_KEY, nextUsername || '');
+    skipNextAuthProbeRef.current = true;
     setAuthToken(token);
     setUsername(nextUsername || '');
     setIsAuthenticated(true);
@@ -157,6 +157,10 @@ export function AppRoutes() {
 
   useEffect(() => {
     if (!isAuthenticated || preview) return;
+    if (skipNextAuthProbeRef.current) {
+      skipNextAuthProbeRef.current = false;
+      return;
+    }
     let active = true;
     const checkedToken = getAuthToken();
     apiClient.get('/auth/me').catch((error) => {
@@ -174,11 +178,11 @@ export function AppRoutes() {
       <GlobalActionFillEffects />
       <GlobalScrollRecovery />
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <BrandHubPage />} />
-        <Route path="/keeper" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
-        <Route path="/forge" element={<BrandProductPage product="forge" />} />
-        <Route path="/worlds" element={<BrandProductPage product="worlds" />} />
-        <Route path="/game" element={<BrandProductPage product="game" />} />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
+        <Route path="/keeper" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
+        <Route path="/forge" element={<Navigate to="/" replace />} />
+        <Route path="/worlds" element={<Navigate to="/" replace />} />
+        <Route path="/game" element={<Navigate to="/" replace />} />
         <Route path="/auth" element={isAuthenticated ? <PostSignInRedirect /> : <AuthPage onLogin={handleAuthLogin} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <SignInRedirect />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <SignInRedirect />} />
