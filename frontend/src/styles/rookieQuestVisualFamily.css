@@ -1,0 +1,535 @@
+/* Visual product-family layer for the Rookie Quest parent site.
+   This stays scoped to the public brand homepage. */
+
+.rq-visual-home {
+  --rq-world-ink: #07131f;
+  --rq-world-paper: #ead9ad;
+  --rq-world-gold: #d8b66d;
+}
+
+.rq-main-brand-nav .rq-brand-nav-links {
+  gap: 8px;
+}
+
+.rq-visual-hero {
+  position: relative;
+}
+
+.rq-visual-hero::before {
+  content: '';
+  position: absolute;
+  inset: 10% 4% auto auto;
+  width: min(38vw, 520px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(216,182,109,0.08), rgba(216,182,109,0) 66%);
+  pointer-events: none;
+}
+
+.rq-visual-hero-showcase {
+  overflow: hidden;
+}
+
+.rq-visual-family-stack {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.rq-visual-family-strip {
+  --family-accent: var(--rq-brand-gold);
+  width: 100%;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(247,242,232,0.09);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--family-accent) 8%, transparent), rgba(255,255,255,0.012) 36%),
+    rgba(5,15,24,0.74);
+  color: var(--rq-brand-text);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.rq-visual-family-strip.is-keeper { --family-accent: var(--rq-brand-keeper); }
+.rq-visual-family-strip.is-forge { --family-accent: var(--rq-brand-forge); }
+.rq-visual-family-strip.is-worlds { --family-accent: var(--rq-brand-worlds); }
+.rq-visual-family-strip.is-game { --family-accent: var(--rq-brand-game); }
+
+.rq-visual-family-strip:hover,
+.rq-visual-family-strip:focus-visible {
+  transform: translateX(3px);
+  border-color: color-mix(in srgb, var(--family-accent) 42%, rgba(247,242,232,0.12));
+  outline: none;
+}
+
+.rq-visual-family-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--family-accent) 35%, transparent);
+  border-radius: 7px;
+  color: var(--family-accent);
+  background: color-mix(in srgb, var(--family-accent) 6%, transparent);
+}
+
+.rq-visual-family-strip > div {
+  display: grid;
+  gap: 2px;
+}
+
+.rq-visual-family-strip small,
+.rq-visual-family-strip em {
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.rq-visual-family-strip small {
+  color: var(--family-accent);
+}
+
+.rq-visual-family-strip strong {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.rq-visual-family-strip em {
+  color: rgba(247,242,232,0.34);
+}
+
+.rq-visual-family-strip > svg {
+  color: rgba(247,242,232,0.28);
+}
+
+.rq-visual-product-grid {
+  align-items: stretch;
+}
+
+.rq-visual-product-card {
+  min-height: 580px;
+  display: grid;
+  grid-template-rows: 220px minmax(0, 1fr);
+  padding: 0;
+  overflow: hidden;
+}
+
+.rq-visual-product-content {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.rq-visual-product-content > button {
+  margin-top: auto;
+}
+
+.rq-product-scene {
+  --scene-accent: var(--rq-brand-gold);
+  position: relative;
+  min-height: 220px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(247,242,232,0.08);
+  background:
+    radial-gradient(circle at 82% 16%, color-mix(in srgb, var(--scene-accent) 14%, transparent), transparent 34%),
+    linear-gradient(160deg, #0f2535 0%, #07131f 70%);
+}
+
+.rq-product-scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.68), transparent);
+  pointer-events: none;
+}
+
+.rq-product-scene-keeper { --scene-accent: var(--rq-brand-keeper); }
+.rq-product-scene-forge { --scene-accent: var(--rq-brand-forge); }
+.rq-product-scene-world { --scene-accent: var(--rq-brand-worlds); }
+.rq-product-scene-game { --scene-accent: var(--rq-brand-game); }
+
+.rq-scene-caption {
+  position: absolute;
+  left: 15px;
+  bottom: 12px;
+  z-index: 4;
+  color: color-mix(in srgb, var(--scene-accent) 76%, white 8%);
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Keeper visual */
+.rq-scene-window {
+  position: absolute;
+  inset: 28px 26px 38px;
+  z-index: 2;
+  border: 1px solid rgba(113,201,255,0.28);
+  border-radius: 10px;
+  background: rgba(5,19,31,0.88);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+  overflow: hidden;
+  transform: perspective(700px) rotateX(3deg) rotateY(-4deg);
+}
+
+.rq-scene-window-bar {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border-bottom: 1px solid rgba(113,201,255,0.12);
+  background: rgba(113,201,255,0.035);
+}
+
+.rq-scene-window-bar i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(113,201,255,0.34);
+}
+
+.rq-scene-keeper-layout {
+  height: calc(100% - 28px);
+  display: grid;
+  grid-template-columns: 42px 1fr;
+}
+
+.rq-scene-keeper-rail {
+  display: block;
+  border-right: 1px solid rgba(113,201,255,0.09);
+  background:
+    linear-gradient(rgba(113,201,255,0.18) 0 0) 50% 18px / 16px 3px no-repeat,
+    linear-gradient(rgba(113,201,255,0.10) 0 0) 50% 42px / 14px 14px no-repeat,
+    linear-gradient(rgba(113,201,255,0.10) 0 0) 50% 68px / 14px 14px no-repeat;
+}
+
+.rq-scene-keeper-main {
+  padding: 18px;
+}
+
+.rq-scene-title-line,
+.rq-scene-wide-line,
+.rq-scene-mid-line {
+  display: block;
+  border-radius: 999px;
+  background: rgba(247,242,232,0.10);
+}
+
+.rq-scene-title-line { width: 42%; height: 6px; background: rgba(113,201,255,0.42); }
+.rq-scene-wide-line { width: 82%; height: 5px; margin-top: 18px; }
+.rq-scene-mid-line { width: 56%; height: 5px; margin-top: 10px; }
+
+.rq-scene-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.rq-scene-stat-row i {
+  height: 38px;
+  border: 1px solid rgba(113,201,255,0.12);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(113,201,255,0.08), rgba(113,201,255,0.02));
+}
+
+/* Forge visual */
+.rq-product-scene-forge {
+  background:
+    radial-gradient(circle at 76% 20%, rgba(242,138,61,0.18), transparent 30%),
+    linear-gradient(155deg, #2d3235, #12181b 70%);
+}
+
+.rq-scene-forge-grid {
+  position: absolute;
+  left: 28px;
+  bottom: 42px;
+  width: 150px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  transform: perspective(520px) rotateX(57deg) rotateZ(-10deg);
+  transform-origin: center;
+  filter: drop-shadow(0 18px 20px rgba(0,0,0,0.38));
+}
+
+.rq-scene-forge-grid span {
+  aspect-ratio: 1;
+  border: 1px solid #4d5558;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.05), transparent 36%),
+    #73787a;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.12);
+}
+
+.rq-scene-forge-wall {
+  position: absolute;
+  right: 28px;
+  top: 42px;
+  width: 92px;
+  height: 88px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 5px;
+  transform: skewY(-6deg);
+  background: #565e61;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 10px 16px 26px rgba(0,0,0,0.34);
+}
+
+.rq-scene-forge-wall i {
+  background: #84898a;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+
+.rq-scene-forge-stamp {
+  position: absolute;
+  right: 110px;
+  bottom: 28px;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(216,194,162,0.30);
+  border-radius: 50%;
+  background: rgba(0,0,0,0.26);
+  transform: rotate(-9deg);
+}
+
+.rq-scene-forge-stamp .rq-forge-mark {
+  transform: scale(0.44);
+}
+
+/* World visual */
+.rq-product-scene-world {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(223,189,98,0.12), transparent 42%),
+    linear-gradient(160deg, #172336, #0a1620 70%);
+}
+
+.rq-scene-book {
+  position: absolute;
+  inset: 32px 24px 40px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  transform: perspective(720px) rotateX(10deg);
+  filter: drop-shadow(0 18px 24px rgba(0,0,0,0.34));
+}
+
+.rq-scene-page {
+  position: relative;
+  padding: 16px;
+  color: rgba(84,62,28,0.72);
+  background:
+    repeating-linear-gradient(0deg, rgba(110,85,42,0.05) 0 1px, transparent 1px 6px),
+    #d8c18f;
+  overflow: hidden;
+}
+
+.rq-scene-page-left {
+  border-radius: 12px 2px 2px 9px;
+  transform: rotateY(5deg);
+  transform-origin: right center;
+}
+
+.rq-scene-page-right {
+  border-radius: 2px 12px 9px 2px;
+  transform: rotateY(-5deg);
+  transform-origin: left center;
+}
+
+.rq-scene-page svg {
+  opacity: 0.58;
+}
+
+.rq-scene-page-right > span {
+  display: block;
+  width: 78%;
+  height: 4px;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: rgba(84,62,28,0.25);
+}
+
+.rq-scene-route {
+  position: absolute;
+  left: 38px;
+  top: 78px;
+  width: 66px;
+  height: 32px;
+  border-top: 2px dashed rgba(107,71,27,0.44);
+  border-radius: 50%;
+  transform: rotate(-9deg);
+}
+
+.rq-scene-map-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 2px solid rgba(107,71,27,0.60);
+  border-radius: 50%;
+  background: #dbc799;
+}
+
+.rq-scene-map-dot.one { left: 30px; top: 70px; }
+.rq-scene-map-dot.two { left: 84px; top: 92px; }
+.rq-scene-map-dot.three { left: 112px; top: 60px; }
+
+/* RPG visual */
+.rq-product-scene-game {
+  background:
+    radial-gradient(circle at 75% 30%, rgba(181,140,255,0.18), transparent 35%),
+    linear-gradient(150deg, #17132d, #0b1220 72%);
+}
+
+.rq-scene-rulebook {
+  position: absolute;
+  left: 30px;
+  top: 30px;
+  width: 128px;
+  height: 150px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  border: 1px solid rgba(181,140,255,0.34);
+  border-radius: 4px 8px 8px 4px;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.28) 0 8px, transparent 8px),
+    linear-gradient(145deg, #2d2451, #17172b);
+  box-shadow: 12px 20px 28px rgba(0,0,0,0.34);
+  transform: rotate(-4deg);
+}
+
+.rq-scene-rulebook::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(216,182,109,0.20);
+}
+
+.rq-scene-rulebook-mark {
+  color: var(--rq-brand-gold);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.rq-scene-rulebook strong {
+  z-index: 1;
+  color: rgba(247,242,232,0.76);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.rq-scene-rulebook i {
+  width: 44px;
+  height: 1px;
+  background: rgba(216,182,109,0.42);
+}
+
+.rq-scene-dice {
+  position: absolute;
+  right: 28px;
+  bottom: 42px;
+  color: #cab5ff;
+  transform: rotate(8deg);
+  filter: drop-shadow(0 0 22px rgba(181,140,255,0.22));
+}
+
+/* Product-specific refinements */
+.rq-visual-product-card.is-worlds {
+  --product-accent: var(--rq-brand-worlds);
+}
+
+.rq-visual-product-card.is-worlds .rq-business-product-icon,
+.rq-visual-family-strip.is-worlds .rq-visual-family-icon {
+  border-radius: 50%;
+}
+
+.rq-visual-products .rq-business-section-heading {
+  max-width: 790px;
+}
+
+@media (max-width: 1080px) {
+  .rq-visual-product-card {
+    min-height: 550px;
+  }
+}
+
+@media (max-width: 700px) {
+  .rq-visual-family-strip {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .rq-visual-family-strip em {
+    display: none;
+  }
+
+  .rq-visual-product-card {
+    min-height: 0;
+    grid-template-rows: 210px auto;
+  }
+
+  .rq-scene-window {
+    inset: 24px 20px 36px;
+  }
+
+  .rq-scene-book {
+    inset: 28px 20px 38px;
+  }
+}
+
+@media (max-width: 520px) {
+  .rq-main-brand-nav .rq-brand-nav-links {
+    display: none;
+  }
+
+  .rq-visual-family-strip {
+    min-height: 64px;
+    padding: 10px 11px;
+  }
+
+  .rq-visual-family-strip strong {
+    font-size: 13px;
+  }
+
+  .rq-product-scene {
+    min-height: 190px;
+  }
+
+  .rq-visual-product-card {
+    grid-template-rows: 190px auto;
+  }
+
+  .rq-visual-product-content {
+    padding: 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rq-visual-family-strip:hover,
+  .rq-visual-family-strip:focus-visible {
+    transform: none;
+  }
+}

@@ -9,6 +9,7 @@ import {
   Hammer,
   Layers,
   Mail,
+  Map,
   Package,
   Shield,
   Sparkles,
@@ -19,6 +20,7 @@ import '@/styles/rookieQuestBrand.css';
 import '@/styles/rookieQuestKeeperFirst.css';
 import '@/styles/rookieQuestParentPolish.css';
 import '@/styles/rookieQuestBusinessHome.css';
+import '@/styles/rookieQuestVisualFamily.css';
 
 const PRODUCT_FAMILY = [
   {
@@ -40,7 +42,7 @@ const PRODUCT_FAMILY = [
     name: 'Forge',
     status: 'In development',
     short: 'Build worlds. Fuel adventures.',
-    description: 'Affordable modular 3D-printable terrain designed to grow from a first room into a whole world.',
+    description: 'Affordable modular 3D-printable terrain designed to grow from a first room into a whole battlefield.',
     action: 'Meet Forge',
   },
   {
@@ -48,11 +50,11 @@ const PRODUCT_FAMILY = [
     key: 'worlds',
     icon: BookOpen,
     verb: 'Explore',
-    name: 'Worlds',
+    name: 'World',
     status: 'Planned',
-    short: 'New places. New stories.',
-    description: 'Original settings, adventures and lore made to work on their own or alongside the rest of Rookie Quest.',
-    action: 'See the plan',
+    short: 'Your next campaign starts here.',
+    description: 'Campaign settings, modules and adventures built to give GMs more stories to put straight on the table.',
+    action: 'Meet World',
   },
   {
     number: '04',
@@ -117,6 +119,74 @@ function ForgeMark() {
   );
 }
 
+function ProductScene({ productKey }) {
+  if (productKey === 'keeper') {
+    return (
+      <div className="rq-product-scene rq-product-scene-keeper" aria-hidden="true">
+        <div className="rq-scene-window">
+          <div className="rq-scene-window-bar"><i /><i /><i /></div>
+          <div className="rq-scene-keeper-layout">
+            <span className="rq-scene-keeper-rail" />
+            <div className="rq-scene-keeper-main">
+              <span className="rq-scene-title-line" />
+              <div className="rq-scene-stat-row"><i /><i /><i /></div>
+              <span className="rq-scene-wide-line" />
+              <span className="rq-scene-mid-line" />
+            </div>
+          </div>
+        </div>
+        <span className="rq-scene-caption">Campaign workspace</span>
+      </div>
+    );
+  }
+
+  if (productKey === 'forge') {
+    return (
+      <div className="rq-product-scene rq-product-scene-forge" aria-hidden="true">
+        <div className="rq-scene-forge-grid">
+          <span /><span /><span /><span /><span /><span /><span /><span /><span />
+        </div>
+        <div className="rq-scene-forge-wall"><i /><i /><i /></div>
+        <div className="rq-scene-forge-stamp"><ForgeMark /></div>
+        <span className="rq-scene-caption">Modular terrain system</span>
+      </div>
+    );
+  }
+
+  if (productKey === 'worlds') {
+    return (
+      <div className="rq-product-scene rq-product-scene-world" aria-hidden="true">
+        <div className="rq-scene-book">
+          <div className="rq-scene-page rq-scene-page-left">
+            <Map size={42} strokeWidth={1.15} />
+            <i className="rq-scene-route" />
+            <span className="rq-scene-map-dot one" />
+            <span className="rq-scene-map-dot two" />
+            <span className="rq-scene-map-dot three" />
+          </div>
+          <div className="rq-scene-page rq-scene-page-right">
+            <Compass size={40} strokeWidth={1.05} />
+            <span /><span /><span />
+          </div>
+        </div>
+        <span className="rq-scene-caption">Settings · modules · adventures</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rq-product-scene rq-product-scene-game" aria-hidden="true">
+      <div className="rq-scene-rulebook">
+        <span className="rq-scene-rulebook-mark">RQ</span>
+        <strong>Core Rules</strong>
+        <i />
+      </div>
+      <div className="rq-scene-dice"><Dices size={54} strokeWidth={1.2} /></div>
+      <span className="rq-scene-caption">Future original RPG</span>
+    </div>
+  );
+}
+
 export default function BrandHubPage() {
   const navigate = useNavigate();
   const productsRef = useRef(null);
@@ -131,11 +201,11 @@ export default function BrandHubPage() {
     const createdMeta = !metaDescription;
     const activeMetaDescription = metaDescription ?? document.createElement('meta');
 
-    document.title = 'Rookie Quest | Tools, Terrain & Worlds for Tabletop Adventures';
+    document.title = 'Rookie Quest | Tools, Terrain & Adventures for the Table';
     activeMetaDescription.setAttribute('name', 'description');
     activeMetaDescription.setAttribute(
       'content',
-      'Rookie Quest makes tabletop tools, printable terrain, original worlds and future games. Start with Rookie Quest Keeper today and follow Forge as it grows.'
+      'Rookie Quest creates tabletop tools, affordable printable terrain, campaign settings, modules, adventures and future games. Start with Rookie Quest Keeper today.'
     );
 
     if (createdMeta) document.head.appendChild(activeMetaDescription);
@@ -155,10 +225,10 @@ export default function BrandHubPage() {
   const openProduct = (key) => openBrandDestination(navigate, key);
 
   return (
-    <div className="rq-brand-page rq-brand-page-keeper-first rq-business-home">
+    <div className="rq-brand-page rq-brand-page-keeper-first rq-business-home rq-visual-home">
       <a className="rq-brand-skip" href="#rq-brand-main">Skip to content</a>
 
-      <nav className="rq-brand-nav rq-business-nav" aria-label="Rookie Quest navigation">
+      <nav className="rq-brand-nav rq-business-nav rq-main-brand-nav" aria-label="Rookie Quest navigation">
         <button className="rq-brand-lockup" type="button" onClick={() => navigate('/')} aria-label="Rookie Quest home">
           <BrandMark compact />
           <span className="rq-brand-lockup-copy">
@@ -169,8 +239,6 @@ export default function BrandHubPage() {
 
         <div className="rq-brand-nav-links" aria-label="Rookie Quest navigation links">
           <button type="button" onClick={() => scrollTo(productsRef)}>Products</button>
-          <button type="button" onClick={() => openProduct('keeper')}>Keeper</button>
-          <button type="button" onClick={() => scrollTo(forgeRef)}>Forge</button>
           <button type="button" onClick={() => scrollTo(aboutRef)}>About</button>
           <button type="button" onClick={() => scrollTo(roadmapRef)}>Roadmap</button>
         </div>
@@ -184,77 +252,83 @@ export default function BrandHubPage() {
       </nav>
 
       <main id="rq-brand-main">
-        <section className="rq-business-hero" aria-labelledby="rq-brand-title">
+        <section className="rq-business-hero rq-visual-hero" aria-labelledby="rq-brand-title">
           <div className="rq-business-hero-copy">
-            <div className="rq-business-eyebrow"><BrandMark compact /><span>Tabletop tools made to grow with your adventures</span></div>
+            <div className="rq-business-eyebrow"><BrandMark compact /><span>Tabletop ideas built to be used, not just admired</span></div>
             <p className="rq-business-mantra" aria-label="Play, Run, Explore, Build">Play <i /> Run <i /> Explore <i /> Build</p>
             <h1 id="rq-brand-title">Rookie Quest</h1>
             <p className="rq-brand-tagline">Every legend starts somewhere.</p>
             <p className="rq-brand-intro">
-              Tools, terrain, worlds and stories for tabletop adventurers. Start with Keeper today, then watch Rookie Quest grow one properly finished product at a time.
+              Digital campaign tools, printable terrain, ready-to-run settings and adventures — all growing under one tabletop brand.
             </p>
             <div className="rq-brand-hero-actions rq-business-hero-actions">
               <button className="rq-brand-button rq-brand-button-primary" type="button" onClick={() => scrollTo(productsRef)}>
-                Explore Rookie Quest <ArrowRight size={17} aria-hidden="true" />
+                Explore the family <ArrowRight size={17} aria-hidden="true" />
               </button>
-              <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={() => openProduct('keeper')}>
-                Open Keeper
+              <button className="rq-brand-button rq-brand-button-secondary" type="button" onClick={() => scrollTo(aboutRef)}>
+                Why Rookie Quest?
               </button>
             </div>
             <div className="rq-business-proof" aria-label="Rookie Quest principles">
               <span>Built for players &amp; GMs</span>
-              <span>Digital &amp; printable tools</span>
+              <span>Digital &amp; printable products</span>
               <span>Affordable by design</span>
             </div>
           </div>
 
-          <div className="rq-business-hero-showcase" aria-label="Rookie Quest product family preview">
+          <div className="rq-business-hero-showcase rq-visual-hero-showcase" aria-label="Rookie Quest product family preview">
             <div className="rq-business-showcase-glow" />
             <div className="rq-business-showcase-heading">
               <span>The Rookie Quest family</span>
-              <strong>Start somewhere. Grow anywhere.</strong>
+              <strong>Four directions. One table.</strong>
             </div>
-            <div className="rq-business-showcase-grid">
+            <div className="rq-visual-family-stack">
               {PRODUCT_FAMILY.map((product) => {
                 const Icon = product.icon;
                 return (
-                  <button key={product.key} type="button" className={`rq-business-showcase-card is-${product.key}`} onClick={() => product.key === 'forge' ? scrollTo(forgeRef) : openProduct(product.key)}>
-                    <span><Icon size={20} strokeWidth={1.7} aria-hidden="true" /></span>
-                    <small>{product.verb}</small>
-                    <strong>{product.name}</strong>
+                  <button key={product.key} type="button" className={`rq-visual-family-strip is-${product.key}`} onClick={() => product.key === 'forge' ? scrollTo(forgeRef) : openProduct(product.key)}>
+                    <span className="rq-visual-family-icon"><Icon size={18} strokeWidth={1.7} aria-hidden="true" /></span>
+                    <div>
+                      <small>{product.verb}</small>
+                      <strong>{product.name}</strong>
+                    </div>
                     <em>{product.status}</em>
+                    <ArrowRight size={15} aria-hidden="true" />
                   </button>
                 );
               })}
             </div>
-            <p>Keeper is live now. Forge is the next product we are preparing for release.</p>
+            <p>Keeper is live. Forge is next. World and our own RPG follow when they are ready.</p>
           </div>
         </section>
 
-        <section ref={productsRef} id="products" className="rq-business-products" aria-labelledby="rq-products-title">
+        <section ref={productsRef} id="products" className="rq-business-products rq-visual-products" aria-labelledby="rq-products-title">
           <div className="rq-business-section-heading">
-            <p className="rq-brand-kicker">Our products</p>
+            <p className="rq-brand-kicker">The Rookie Quest family</p>
             <h2 id="rq-products-title">One table. Four directions.</h2>
-            <p>Each part of Rookie Quest has its own job and its own identity. Use one, mix several, or simply follow the parts that matter to your table.</p>
+            <p>Each product has its own job and visual identity, but everything still feels unmistakably Rookie Quest.</p>
           </div>
 
-          <div className="rq-business-product-grid">
+          <div className="rq-business-product-grid rq-visual-product-grid">
             {PRODUCT_FAMILY.map((product) => {
               const Icon = product.icon;
               return (
-                <article key={product.key} className={`rq-business-product-card is-${product.key}`}>
-                  <div className="rq-business-product-topline">
-                    <span>{product.number}</span>
-                    <small>{product.status}</small>
+                <article key={product.key} className={`rq-business-product-card rq-visual-product-card is-${product.key}`}>
+                  <ProductScene productKey={product.key} />
+                  <div className="rq-visual-product-content">
+                    <div className="rq-business-product-topline">
+                      <span>{product.number}</span>
+                      <small>{product.status}</small>
+                    </div>
+                    <div className="rq-business-product-icon"><Icon size={26} strokeWidth={1.6} aria-hidden="true" /></div>
+                    <p className="rq-business-product-parent">Rookie Quest</p>
+                    <h3>{product.name}</h3>
+                    <strong>{product.short}</strong>
+                    <p>{product.description}</p>
+                    <button type="button" onClick={() => product.key === 'forge' ? scrollTo(forgeRef) : openProduct(product.key)}>
+                      {product.action} <ArrowRight size={15} aria-hidden="true" />
+                    </button>
                   </div>
-                  <div className="rq-business-product-icon"><Icon size={28} strokeWidth={1.6} aria-hidden="true" /></div>
-                  <p className="rq-business-product-parent">Rookie Quest</p>
-                  <h3>{product.name}</h3>
-                  <strong>{product.short}</strong>
-                  <p>{product.description}</p>
-                  <button type="button" onClick={() => product.key === 'forge' ? scrollTo(forgeRef) : openProduct(product.key)}>
-                    {product.action} <ArrowRight size={15} aria-hidden="true" />
-                  </button>
                 </article>
               );
             })}
@@ -352,16 +426,16 @@ export default function BrandHubPage() {
           <div>
             <p className="rq-brand-kicker">Free resources</p>
             <h2 id="rq-free-title">Try Rookie Quest before you buy anything.</h2>
-            <p>Forge will launch with a free sample pack so people can test the system on their own printer before paying for a terrain set. More useful free resources can grow here over time.</p>
+            <p>Forge will launch with a free sample pack so people can test the system on their own printer before paying for terrain. World can grow a library of free one-shots and previews alongside the paid catalogue.</p>
           </div>
-          <button type="button" className="rq-brand-button rq-brand-button-secondary" onClick={() => scrollTo(forgeRef)}>See Forge progress</button>
+          <button type="button" className="rq-brand-button rq-brand-button-secondary" onClick={() => scrollTo(forgeRef)}>See what is coming</button>
         </section>
 
         <section ref={roadmapRef} id="roadmap" className="rq-brand-roadmap rq-business-roadmap" aria-labelledby="rq-roadmap-title">
           <div className="rq-business-section-heading">
             <p className="rq-brand-kicker">The plan ahead</p>
             <h2 id="rq-roadmap-title">Build the business in the right order.</h2>
-            <p>Keeper proves the software. Forge becomes the first focused digital product line. Worlds follows with content. The original RPG comes only when the rest has taught us enough to make it worth playing.</p>
+            <p>Keeper proves the software. Forge becomes the first focused digital product line. World follows with campaign settings, modules and adventures. The original RPG comes only when the rest has taught us enough to make it worth playing.</p>
           </div>
           <div className="rq-business-roadmap-rail">
             {PRODUCT_FAMILY.map((item) => {
@@ -380,8 +454,8 @@ export default function BrandHubPage() {
 
         <section className="rq-business-join" aria-labelledby="rq-join-title">
           <Mail size={26} strokeWidth={1.6} aria-hidden="true" />
-          <div><p className="rq-brand-kicker">Follow the quest</p><h2 id="rq-join-title">The next release should be worth hearing about.</h2><p>Email updates will come with the Forge launch so people can hear about free samples, new packs and major Rookie Quest releases without needing to chase social feeds.</p></div>
-          <span className="rq-business-coming">Mailing list coming with Forge</span>
+          <div><p className="rq-brand-kicker">Follow the quest</p><h2 id="rq-join-title">The next release should be worth hearing about.</h2><p>Email updates will come with the first commercial launch so people can hear about free samples, new releases and major Rookie Quest updates without needing to chase social feeds.</p></div>
+          <span className="rq-business-coming">Mailing list coming before launch</span>
         </section>
       </main>
 
@@ -399,7 +473,7 @@ export default function BrandHubPage() {
             </button>
           ))}
         </div>
-        <p className="rq-business-footer-note">Rookie Quest is being built one useful product at a time. Commerce, licensing and downloads will be added as Forge reaches release readiness.</p>
+        <p className="rq-business-footer-note">Rookie Quest is being built one useful product at a time. Shop, licensing and customer downloads arrive when the first paid product is ready.</p>
       </footer>
     </div>
   );
