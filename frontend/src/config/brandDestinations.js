@@ -15,7 +15,7 @@ export const BRAND_DESTINATIONS = {
   },
   worlds: {
     key: 'worlds',
-    label: 'Worlds',
+    label: 'World',
     kind: 'roadmap',
     href: '/worlds',
     status: 'planned',
