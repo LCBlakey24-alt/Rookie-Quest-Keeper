@@ -64,6 +64,7 @@ describe('homeDashboardData', () => {
   test('loads admin overview only after admin access is confirmed', async () => {
     const client = {
       get: jest.fn((path) => {
+        if (path === '/dashboard/bootstrap') return Promise.reject({ response: { status: 404 } });
         if (path === '/characters') return Promise.resolve({ data: [] });
         if (path === '/campaigns') return Promise.resolve({ data: [] });
         if (path === '/admin/check') return Promise.resolve({ data: { is_admin: true } });
@@ -85,6 +86,7 @@ describe('homeDashboardData', () => {
   test('preserves prior admin overview when its refresh fails', async () => {
     const client = {
       get: jest.fn((path) => {
+        if (path === '/dashboard/bootstrap') return Promise.reject({ response: { status: 404 } });
         if (path === '/characters') return Promise.resolve({ data: [] });
         if (path === '/campaigns') return Promise.resolve({ data: [] });
         if (path === '/admin/check') return Promise.resolve({ data: { is_admin: true } });
@@ -106,6 +108,7 @@ describe('homeDashboardData', () => {
   test('does not request admin overview when admin access is unknown', async () => {
     const client = {
       get: jest.fn((path) => {
+        if (path === '/dashboard/bootstrap') return Promise.reject({ response: { status: 404 } });
         if (path === '/characters') return Promise.resolve({ data: [] });
         if (path === '/campaigns') return Promise.resolve({ data: [] });
         if (path === '/admin/check') return Promise.reject(new Error('admin check offline'));
