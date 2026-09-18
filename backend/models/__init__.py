@@ -67,6 +67,7 @@ class TokenResponse(BaseModel):
     token: str
     username: str
     email: Optional[str] = None
+    is_admin: Optional[bool] = None
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
