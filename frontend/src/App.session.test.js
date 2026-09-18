@@ -83,6 +83,7 @@ test('successful sign-in persists the username alongside the session', async () 
   fireEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
   await waitFor(() => expect(localStorage.getItem('dm_username')).toBe('New Keeper'));
   expect(await screen.findByRole('heading', { name: 'Dashboard for New Keeper' })).toBeInTheDocument();
+  expect(apiClient.get).not.toHaveBeenCalled();
 });
 
 test('a player display link resumes after signing in', async () => {
