@@ -26,11 +26,11 @@ const PRODUCT_DATA = {
   worlds: {
     key: 'worlds',
     icon: BookOpen,
-    name: 'Worlds',
+    name: 'World',
     verb: 'Explore',
     status: 'Roadmap · Later',
-    title: 'A future home for our settings and adventures.',
-    intro: 'Worlds is part of the long-term Rookie Quest plan. We will build its public experience after Keeper is polished and Forge has earned its own finished product release.',
+    title: 'A future home for settings, modules and adventures.',
+    intro: 'World is the future publishing side of Rookie Quest: campaign settings, modules and adventures designed to give GMs more stories to bring straight to the table. Its full storefront comes after Keeper and Forge are ready.',
   },
   game: {
     key: 'game',
