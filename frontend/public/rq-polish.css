@@ -537,7 +537,8 @@
 }
 
 #root .rqk-demo-access {
-  grid-template-columns: minmax(0, 1fr) auto !important;
+  /* The desktop sign-in card is narrow too; stack by available card space. */
+  grid-template-columns: minmax(0, 1fr) !important;
   align-items: center !important;
   gap: 10px 14px !important;
   padding: 11px 12px !important;
@@ -550,8 +551,8 @@
 }
 
 #root .rqk-auth-page .rqk-demo-access__button {
-  width: auto !important;
-  min-width: 168px !important;
+  width: 100% !important;
+  min-width: 0 !important;
   min-height: 42px !important;
   border-radius: 10px !important;
 }
