@@ -27,7 +27,7 @@ async def _get_handout_recipients(campaign_id: str) -> List[Dict[str, str]]:
             continue
         known_member_usernames.add(username)
         member_status = str(member.get('status') or 'active').strip().lower()
-        if member_status != 'active':
+        if member_status not in {'active', 'dead', 'retired'}:
             continue
         eligible_member_usernames.add(username)
         recipients[username] = {
