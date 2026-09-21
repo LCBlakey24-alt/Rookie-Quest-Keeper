@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
 from utils.auth import get_current_user, verify_campaign_ownership, verify_campaign_membership
 from utils.player_views import player_campaign_summary, player_party_member, PARTY_FIELDS
-from routes.live_party import build_live_party_rows
+from utils.live_party import build_live_party_rows
 from models import Player, PlayerCreate, PlayerUpdate, PlayerStats
 from typing import List
 import uuid
