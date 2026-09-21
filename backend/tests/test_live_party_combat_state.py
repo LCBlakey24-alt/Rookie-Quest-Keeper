@@ -9,13 +9,20 @@ sys.modules.setdefault('config', types.SimpleNamespace(db=None))
 sys.modules.setdefault('utils', types.ModuleType('utils'))
 sys.modules.setdefault('utils.auth', types.SimpleNamespace(get_current_user=lambda: None, verify_campaign_ownership=None))
 
+util_spec = importlib.util.spec_from_file_location('live_party_utils_under_test', Path(__file__).resolve().parents[1] / 'utils' / 'live_party.py')
+live_party_utils = importlib.util.module_from_spec(util_spec)
+assert util_spec and util_spec.loader
+util_spec.loader.exec_module(live_party_utils)
+sys.modules['utils.live_party'] = live_party_utils
+
 spec = importlib.util.spec_from_file_location('live_party_under_test', Path(__file__).resolve().parents[1] / 'routes' / 'live_party.py')
 live_party = importlib.util.module_from_spec(spec)
+assert spec and spec.loader
 spec.loader.exec_module(live_party)
 
 
 def test_character_row_preserves_full_safe_combat_state():
-    row = live_party._character_row({
+    row = live_party_utils._character_row({
         'id': 'char-1',
         'name': 'Hero',
         'max_hit_points': 40,
