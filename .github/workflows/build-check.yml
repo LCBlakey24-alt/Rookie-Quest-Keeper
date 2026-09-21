@@ -35,6 +35,11 @@ jobs:
             backend/tests/test_rook_generate_route.py \
             backend/tests/test_world_hierarchy_routes.py \
             backend/tests/test_inventory_claim_routes.py \
+            backend/tests/test_campaign_membership_status.py \
+            backend/tests/test_handout_recipient_membership.py \
+            backend/tests/test_player_content_membership.py \
+            backend/tests/test_live_party_combat_state.py \
+            backend/tests/test_inventory_grant_targets.py \
             backend/tests/test_custom_creature_routes.py \
             backend/tests/test_map_mutation_routes.py \
             backend/tests/test_map_record_routes.py \
