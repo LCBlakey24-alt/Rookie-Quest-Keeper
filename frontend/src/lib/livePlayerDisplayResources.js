@@ -2,7 +2,7 @@ const RESOURCE_DEFINITIONS = [
   { key: 'maps', label: 'maps', path: (campaignId) => `/campaigns/${campaignId}/maps` },
   { key: 'npcs', label: 'NPCs', path: (campaignId) => `/campaigns/${campaignId}/npcs` },
   { key: 'scenarios', label: 'combat scenarios', path: (campaignId) => `/campaigns/${campaignId}/combat-scenarios` },
-  { key: 'players', label: 'players', path: (campaignId) => `/campaigns/${campaignId}/players` },
+  { key: 'players', label: 'players', path: (campaignId) => `/campaigns/${campaignId}/live-party` },
 ];
 
 export function resolvePlayerDisplayResourceResults(results = []) {
