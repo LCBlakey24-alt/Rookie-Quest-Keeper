@@ -28,6 +28,8 @@ describe('live player display resource loading', () => {
     const result = await loadPlayerDisplayResources(apiClient, 'campaign-1');
 
     expect(apiClient.get).toHaveBeenCalledTimes(4);
+    expect(apiClient.get).toHaveBeenCalledWith('/campaigns/campaign-1/live-party');
+    expect(apiClient.get).not.toHaveBeenCalledWith('/campaigns/campaign-1/players');
     expect(result.failures).toEqual(['NPCs']);
     expect(result.data.maps).toHaveLength(1);
     expect(result.data.scenarios).toHaveLength(1);
