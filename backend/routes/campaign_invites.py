@@ -174,7 +174,10 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
 @router.get('/campaign-invites/joined/list')
 async def get_joined_campaigns(username: str = Depends(get_current_user)):
     """List campaigns the current user has joined as a player."""
-    memberships = await db.campaign_members.find({'user_id': username}, {'_id': 0}).to_list(100)
+    memberships = await db.campaign_members.find(
+        {'user_id': username, 'status': {'$ne': 'removed'}},
+        {'_id': 0},
+    ).to_list(100)
     campaign_ids = [member.get('campaign_id') for member in memberships if member.get('campaign_id')]
     if not campaign_ids:
         return []
