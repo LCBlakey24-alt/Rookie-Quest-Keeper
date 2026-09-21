@@ -89,16 +89,17 @@ def _legacy_row(player: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def build_live_party_rows(campaign_id: str) -> List[Dict[str, Any]]:
-    """Build the canonical combat-ready party for Live Play and related tools."""
-    members = await db.campaign_members.find(
+async def build_live_party_rows(campaign_id: str, database=None) -> List[Dict[str, Any]]:
+    """Build the canonical approved party for GM, player and display surfaces."""
+    source_db = database or db
+    members = await source_db.campaign_members.find(
         {"campaign_id": campaign_id, "status": {"$in": ["active", None]}},
         {"_id": 0},
     ).to_list(1000)
     character_ids = [member.get("character_id") for member in members if member.get("character_id")]
     characters = []
     if character_ids:
-        characters = await db.player_characters.find(
+        characters = await source_db.player_characters.find(
             {"id": {"$in": character_ids}},
             {"_id": 0},
         ).to_list(1000)
@@ -114,7 +115,7 @@ async def build_live_party_rows(campaign_id: str) -> List[Dict[str, Any]]:
         rows.append(row)
         real_names.add(_name_key(row.get("name")))
 
-    legacy_players = await db.players.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(1000)
+    legacy_players = await source_db.players.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(1000)
     for player in legacy_players:
         if _name_key(player.get("name")) in real_names:
             continue
