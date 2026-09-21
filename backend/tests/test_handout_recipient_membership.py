@@ -36,7 +36,7 @@ class Collection:
         return Cursor(self.rows)
 
 
-def test_handout_recipients_exclude_pending_removed_dead_and_retired_members(monkeypatch):
+def test_handout_recipients_exclude_pending_and_removed_but_keep_approved_members(monkeypatch):
     members = [
         {'user_id': 'active-player', 'username': 'active-player', 'status': 'active'},
         {'user_id': 'pending-player', 'username': 'pending-player', 'status': 'pending'},
@@ -61,6 +61,6 @@ def test_handout_recipients_exclude_pending_removed_dead_and_retired_members(mon
     recipients = asyncio.run(handouts._get_handout_recipients('campaign-1'))
     usernames = [item['username'] for item in recipients]
 
-    assert usernames == ['active-player', 'legacy-player']
+    assert usernames == ['active-player', 'dead-player', 'legacy-player', 'retired-player']
     active = next(item for item in recipients if item['username'] == 'active-player')
     assert active['character_name'] == 'Ari'
