@@ -19,14 +19,22 @@ async def _get_handout_recipients(campaign_id: str) -> List[Dict[str, str]]:
     recipients: Dict[str, Dict[str, str]] = {}
 
     members = await db.campaign_members.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(200)
+    known_member_usernames = set()
+    eligible_member_usernames = set()
     for member in members:
         username = str(member.get('username') or member.get('user_id') or '').strip()
-        if username:
-            recipients[username] = {
-                'username': username,
-                'display_name': member.get('username') or username,
-                'source': 'campaign_member',
-            }
+        if not username:
+            continue
+        known_member_usernames.add(username)
+        member_status = str(member.get('status') or 'active').strip().lower()
+        if member_status != 'active':
+            continue
+        eligible_member_usernames.add(username)
+        recipients[username] = {
+            'username': username,
+            'display_name': member.get('username') or username,
+            'source': 'campaign_member',
+        }
 
     characters = await db.player_characters.find(
         {'campaign_id': campaign_id, 'user_id': {'$nin': [None, '']}},
@@ -34,14 +42,21 @@ async def _get_handout_recipients(campaign_id: str) -> List[Dict[str, str]]:
     ).to_list(200)
     for character in characters:
         username = str(character.get('user_id') or '').strip()
-        if username:
-            existing = recipients.get(username, {})
-            recipients[username] = {
-                'username': username,
-                'display_name': existing.get('display_name') or username,
-                'character_name': character.get('name', ''),
-                'source': 'linked_character' if not existing else existing.get('source', 'linked_character'),
-            }
+        if not username:
+            continue
+        # A current membership record is authoritative: pending, removed, dead
+        # or retired players should not appear as fresh handout recipients.
+        # Characters with no membership record are legacy links and remain
+        # eligible for backwards compatibility.
+        if username in known_member_usernames and username not in eligible_member_usernames:
+            continue
+        existing = recipients.get(username, {})
+        recipients[username] = {
+            'username': username,
+            'display_name': existing.get('display_name') or username,
+            'character_name': character.get('name', ''),
+            'source': 'linked_character' if not existing else existing.get('source', 'linked_character'),
+        }
 
     return sorted(recipients.values(), key=lambda item: (item.get('display_name') or item['username']).lower())
 
