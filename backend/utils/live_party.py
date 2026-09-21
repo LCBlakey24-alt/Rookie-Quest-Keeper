@@ -59,7 +59,7 @@ def _legacy_row(player: Dict[str, Any]) -> Dict[str, Any]:
         "id": player.get("id"),
         "character_id": None,
         "legacy_player_id": player.get("id"),
-        "name": player.get("name") or "Player Character",
+        "name": player.get("name") or player.get("character_name") or "Player Character",
         "character_class": player.get("character_class") or "",
         "level": _int(player.get("level"), 1),
         "hp": max(0, _int(player.get("hp"), max_hp)),
@@ -106,7 +106,7 @@ async def build_live_party_rows(campaign_id: str, database=None) -> List[Dict[st
 
     legacy_players = await source_db.players.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(1000)
     for player in legacy_players:
-        if _name_key(player.get("name")) in real_names:
+        if _name_key(player.get("name") or player.get("character_name")) in real_names:
             continue
         rows.append(_legacy_row(player))
 
