@@ -12,7 +12,7 @@ from config import ADMIN_USERNAMES, db
 from routes.admin import merge_site_settings
 from routes.campaign_display import default_display_state
 from routes.homebrew import COLLECTION, CONTENT_TYPES
-from routes.live_party import build_live_party_rows
+from utils.live_party import build_live_party_rows
 from utils.auth import get_current_user
 
 router = APIRouter()
