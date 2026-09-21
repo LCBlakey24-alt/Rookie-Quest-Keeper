@@ -3,7 +3,8 @@ import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Search, Send, Trash2, Upl
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { GM_REFERENCE_PACK_TABLES_BY_EDITION } from '@/data/gmReferenceTablesByEdition';
-import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState } from '@/lib/liveDisplayBus';
+import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -631,8 +632,8 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
 
   const copyRowToClipboard = (entry) => copyText(rowCopyText(activeTable, entry));
 
-  const sendRowToDisplay = (entry) => {
-    publishCampaignDisplayState(campaignId, createDisplayState('table-result', {
+  const sendRowToDisplay = async (entry) => {
+    const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState('table-result', {
       eyebrow: activeIsRollable ? 'Table Result' : 'Reference Lookup',
       title: activeTable.name,
       die: activeIsRollable ? activeTable.die : 'Lookup',
@@ -640,7 +641,13 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
       result: entry.text,
       display_target: 'standing-tv',
     }));
-    toast.success(activeIsRollable ? 'Table row sent to player display' : 'Reference lookup sent to player display');
+    if (result.remoteSynced) {
+      toast.success(activeIsRollable ? 'Table row sent to player display' : 'Reference lookup sent to player display');
+    } else {
+      toast.warning('Updated locally — remote player display did not sync', {
+        description: 'The result is safe in this browser. Check the second-screen connection before relying on the TV display.',
+      });
+    }
   };
 
   const deleteCustomTable = async (tableId) => {
@@ -660,10 +667,26 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
   };
 
   const resultText = lastRoll ? `${lastRoll.tableName}: ${lastRoll.die} rolled ${lastRoll.roll} — ${lastRoll.text}` : '';
-  const sendResultToDisplay = () => {
+  const sendResultToDisplay = async () => {
     if (!lastRoll) return;
-    publishCampaignDisplayState(campaignId, createDisplayState('table-result', { eyebrow: 'Table Roll', title: lastRoll.tableName, roll: lastRoll.roll, die: lastRoll.die, result: lastRoll.text, display_target: 'standing-tv' }));
-    toast.success('Table result sent to player display');
+    const result = await publishCampaignDisplayStateWithStatus(
+      campaignId,
+      createDisplayState('table-result', {
+        eyebrow: 'Table Roll',
+        title: lastRoll.tableName,
+        roll: lastRoll.roll,
+        die: lastRoll.die,
+        result: lastRoll.text,
+        display_target: 'standing-tv',
+      }),
+    );
+    if (result.remoteSynced) {
+      toast.success('Table result sent to player display');
+    } else {
+      toast.warning('Updated locally — remote player display did not sync', {
+        description: 'The roll result is still visible locally. Check the second-screen connection before continuing.',
+      });
+    }
   };
 
   return (
