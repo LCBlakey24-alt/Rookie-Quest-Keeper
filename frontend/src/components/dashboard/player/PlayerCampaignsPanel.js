@@ -25,11 +25,22 @@ export default function PlayerCampaignsPanel({ campaigns, onJoinCampaign, onOpen
         />
       ) : campaigns.map((campaign) => {
         const metadata = campaignMeta(campaign);
+        const memberStatus = String(campaign.member_status || '').toLowerCase();
+        const awaitingApproval = memberStatus === 'pending';
+        const unavailable = memberStatus === 'removed';
+        const canOpen = !awaitingApproval && !unavailable;
+        const eyebrow = awaitingApproval
+          ? 'Awaiting GM approval'
+          : unavailable
+            ? 'No longer linked'
+            : campaign.member_role
+              ? 'Joined Campaign'
+              : 'Campaign';
         return (
           <Card key={campaign.id} className="player-dashboard-card player-dashboard-campaign-card">
             <CardContent className="player-dashboard-card-content">
               <div className="player-dashboard-campaign-copy">
-                <p className="player-dashboard-eyebrow">{campaign.member_role ? 'Joined Campaign' : 'Campaign'}</p>
+                <p className="player-dashboard-eyebrow">{eyebrow}</p>
                 <h2>{campaign.name || 'Linked Campaign'}</h2>
                 {metadata.length > 0 && (
                   <div className="player-dashboard-campaign-meta" aria-label="Campaign details">
@@ -42,8 +53,13 @@ export default function PlayerCampaignsPanel({ campaigns, onJoinCampaign, onOpen
                     : 'Campaign linked to your player account.')}
                 </p>
               </div>
-              <Button onClick={() => onOpenCampaign(campaign)} className="btn-outline player-dashboard-action-button">
-                Open Campaign <ChevronRight size={16} />
+              <Button
+                onClick={() => canOpen && onOpenCampaign(campaign)}
+                disabled={!canOpen}
+                className="btn-outline player-dashboard-action-button"
+              >
+                {awaitingApproval ? 'Awaiting Approval' : unavailable ? 'Unavailable' : 'Open Campaign'}
+                {canOpen && <ChevronRight size={16} />}
               </Button>
             </CardContent>
           </Card>
