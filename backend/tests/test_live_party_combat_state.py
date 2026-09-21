@@ -47,7 +47,7 @@ def test_character_row_preserves_full_safe_combat_state():
 
 
 def test_character_row_clamps_unsafe_death_save_and_temp_values():
-    row = live_party._character_row({
+    row = live_party_utils._character_row({
         'id': 'char-1',
         'max_hit_points': 10,
         'current_hit_points': 0,
