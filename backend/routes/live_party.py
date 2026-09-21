@@ -89,11 +89,8 @@ def _legacy_row(player: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-@router.get("/campaigns/{campaign_id}/live-party")
-async def get_live_party(campaign_id: str, username: str = Depends(get_current_user)) -> List[Dict[str, Any]]:
-    """Return the GM's combat-ready party, preferring real linked sheets."""
-    await verify_campaign_ownership(campaign_id, username)
-
+async def build_live_party_rows(campaign_id: str) -> List[Dict[str, Any]]:
+    """Build the canonical combat-ready party for Live Play and related tools."""
     members = await db.campaign_members.find(
         {"campaign_id": campaign_id, "status": {"$in": ["active", None]}},
         {"_id": 0},
@@ -124,3 +121,10 @@ async def get_live_party(campaign_id: str, username: str = Depends(get_current_u
         rows.append(_legacy_row(player))
 
     return rows
+
+
+@router.get("/campaigns/{campaign_id}/live-party")
+async def get_live_party(campaign_id: str, username: str = Depends(get_current_user)) -> List[Dict[str, Any]]:
+    """Return the GM's combat-ready party, preferring real linked sheets."""
+    await verify_campaign_ownership(campaign_id, username)
+    return await build_live_party_rows(campaign_id)
