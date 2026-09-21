@@ -12,6 +12,7 @@ from config import ADMIN_USERNAMES, db
 from routes.admin import merge_site_settings
 from routes.campaign_display import default_display_state
 from routes.homebrew import COLLECTION, CONTENT_TYPES
+from routes.live_party import build_live_party_rows
 from utils.auth import get_current_user
 
 router = APIRouter()
@@ -313,10 +314,7 @@ async def get_live_play_bootstrap(campaign_id: str, username: str = Depends(get_
     if not campaign:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign not found or access denied')
 
-    players_request = db.players.find(
-        {'campaign_id': campaign_id},
-        {'_id': 0},
-    ).to_list(1000)
+    players_request = build_live_party_rows(campaign_id)
 
     scenarios_request = db.combat_scenarios.find(
         {'campaign_id': campaign_id},
