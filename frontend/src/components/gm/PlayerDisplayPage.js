@@ -120,7 +120,7 @@ export default function PlayerDisplayPage() {
     const fetchParty = async () => {
       if (!campaignId) return;
       try {
-        const response = await apiClient.get(`/campaigns/${campaignId}/players`);
+        const response = await apiClient.get(`/campaigns/${campaignId}/live-party`);
         const rows = Array.isArray(response.data) ? response.data : [];
         if (!cancelled) setParty(rows.map(normalisePartyMember).filter(member => member?.name));
       } catch {
