@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Test Session Journal CRUD API
 Tests player journal endpoint operations.
@@ -9,8 +15,8 @@ import uuid
 from datetime import datetime
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
-TEST_EMAIL = 'stress_test_1772651200@test.com'
-TEST_PASSWORD = 'TestPass123!'
+TEST_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 
 
 @pytest.fixture
