@@ -10,7 +10,7 @@ os.environ.setdefault('CORS_ORIGINS', 'http://localhost:3000')
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from routes.homebrew import _normalise_content_type, _normalise_parsed
+from routes.homebrew import _build_template, _normalise_content_type, _normalise_parsed
 
 
 def test_homebrew_content_type_aliases_match_workshop_labels():
@@ -106,3 +106,32 @@ def test_spell_parser_accepts_dictionary_class_maps():
     }, '2024')
 
     assert parsed['classes'] == ['Wizard', 'Artificer']
+
+
+def test_class_template_exposes_spellcasting_definition():
+    template = _build_template('class', '2024')
+
+    assert '## Spellcasting' in template
+    assert 'progression: full|half|third|pact' in template
+
+
+def test_class_parser_preserves_spellcasting_metadata():
+    spellcasting = {
+        'ability': 'intelligence',
+        'type': 'known',
+        'progression': 'full',
+        'start_level': 1,
+        'cantrips_level_1': 2,
+        'spells_level_1': 3,
+        'ritual': False,
+    }
+    parsed = _normalise_parsed('class', {
+        'name': 'Runesmith',
+        'hit_die': 'd8',
+        'features': [{'level': 1, 'name': 'Rune Magic'}],
+        'spellcasting': spellcasting,
+    }, '2024')
+
+    assert parsed['spellcasting'] == spellcasting
+    assert parsed['content_type'] == 'class'
+    assert parsed['edition'] == '2024'
