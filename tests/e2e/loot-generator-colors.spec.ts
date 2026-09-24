@@ -1,12 +1,14 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'E2E credentials are not configured; set RQK_E2E_EMAIL and RQK_E2E_PASSWORD.');
+
 /**
  * Tests for Loot Generator gold color implementation and Quick Dice panel visibility
  * on Loot tab. This verifies the UI cleanup (green #22c55e → gold #F59E0B).
  */
 
-const TEST_EMAIL = 'lcblakey24@outlook.com';
-const TEST_PASSWORD = 'LCBlakey24?!';
+const TEST_EMAIL = (process.env.RQK_E2E_EMAIL || '');
+const TEST_PASSWORD = (process.env.RQK_E2E_PASSWORD || '');
 const CAMPAIGN_ID = 'b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6';
 
 async function login(page: Page) {
