@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'E2E credentials are not configured; set RQK_E2E_EMAIL and RQK_E2E_PASSWORD.');
+
 test.describe('Visual Overhaul Update - March 2026', () => {
   const testCredentials = {
-    email: 'lcblakey24@outlook.com',
-    password: 'LCBlakey24?!'
+    email: (process.env.RQK_E2E_EMAIL || ''),
+    password: (process.env.RQK_E2E_PASSWORD || '')
   };
 
   test.beforeEach(async ({ page }) => {
