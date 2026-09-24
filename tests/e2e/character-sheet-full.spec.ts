@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 /**
  * Character Sheet Full Tests - NEW Feature
  * Tests the new All-in-One Player Character Sheet with tabbed interface
@@ -8,8 +12,8 @@ import { test, expect } from '@playwright/test';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 const TEST_USER = {
-  email: 'stress_test_1772651200@test.com',
-  password: 'TestPass123!'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 const TEST_CHARACTER_ID = '5c200c1f-d584-4b3d-a3a2-e1b49b404e8d';
 
