@@ -104,6 +104,7 @@ async def upload_user_content(data: UserBulkContentUpload, username: str = Depen
             saving_throw_proficiencies=class_data.saving_throw_proficiencies,
             armor_proficiencies=class_data.armor_proficiencies,
             weapon_proficiencies=class_data.weapon_proficiencies,
+            spellcasting=class_data.spellcasting,
             features=class_data.features,
             source=class_data.source
         )

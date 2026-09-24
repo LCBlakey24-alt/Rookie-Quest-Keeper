@@ -107,6 +107,19 @@ describe('uploaded character rule option normalization', () => {
     ]);
   });
 
+  test('preserves homebrew class spellcasting metadata for the creator', () => {
+    const spellcasting = {
+      ability: 'wisdom',
+      type: 'prepared',
+      progression: 'full',
+      start_level: 1,
+      cantrips_level_1: 2,
+      spells_level_1: 3,
+    };
+
+    expect(normaliseClassOption({ spellcasting }).spellcasting).toEqual(spellcasting);
+  });
+
   test('preserves the earliest explicit homebrew subclass unlock level', () => {
     expect(normaliseClassOption({
       subclass_unlock_levels: [6, 2, 10],

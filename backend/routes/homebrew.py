@@ -114,6 +114,7 @@ SCHEMA_HINTS = {
         "equipment": "[string]",
         "features": "[{level: int 1-20, name, description, rules_text, resources, actions, passive_effects}]",
         "subclass_unlock_levels": "[int] — levels where subclass features are gained",
+        "spellcasting": "optional object e.g. {ability: intelligence, type: known|prepared|spellbook, progression: full|half|third|pact, start_level: 1, cantrips_level_1: 2, spells_level_1: 2, ritual: false}",
         **ADVANCED_MECHANIC_HINTS,
     },
     "subclass": {

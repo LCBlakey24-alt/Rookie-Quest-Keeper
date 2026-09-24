@@ -52,7 +52,7 @@ const EMPTY_DRAFTS = {
   custom_rule: { name: '', image_url: '', category: 'other', summary: '', enabled_by_default: true, rule_text: '', trigger: '', resolution: '', examples: [], settings: {}, player_visible: true, gm_notes: '', ...ADVANCED },
   magic_item: { name: '', image_url: '', type: 'Wondrous Item', rarity: '', requires_attunement: false, attunement_requirement: '', description: '', effects: [], charges: {}, ...ADVANCED },
   race: { name: '', image_url: '', description: '', size: 'Medium', speed: 30, ability_bonuses: {}, traits: [], languages: [], subraces: [], ...ADVANCED },
-  class: { name: '', image_url: '', description: '', hit_die: 'd8', primary_ability: '', saving_throw_proficiencies: [], armor_proficiencies: [], weapon_proficiencies: [], tool_proficiencies: [], skill_choices: {}, equipment: [], subclass_unlock_levels: [], features: [], ...ADVANCED },
+  class: { name: '', image_url: '', description: '', hit_die: 'd8', primary_ability: '', saving_throw_proficiencies: [], armor_proficiencies: [], weapon_proficiencies: [], tool_proficiencies: [], skill_choices: {}, equipment: [], subclass_unlock_levels: [], spellcasting: null, features: [], ...ADVANCED },
   subclass: { name: '', image_url: '', parent_class: '', description: '', subclass_level: 3, features: [], ...ADVANCED },
   feat: { name: '', image_url: '', description: '', category: 'general', prerequisite: '', repeatable: false, ability_score_increase: {}, benefits: [], ...ADVANCED },
   spell: { name: '', image_url: '', description: '', level: 0, school: '', casting_time: '', range: '', components: '', duration: '', ritual: false, concentration: false, classes: [], damage: {}, higher_level: '', effects: [], ...ADVANCED },
@@ -244,7 +244,22 @@ function DraftEditor({ contentType, draft, missing, onChange }) {
         {contentType === 'class' && <FieldRow label="Primary Ability" value={draft.primary_ability} onChange={v => upd('primary_ability', v)} />}
       </FormGrid>
       <FieldRow label="Description" value={draft.description} onChange={v => upd('description', v)} multiline />
-      {contentType === 'class' && <><FieldRow label="Saving Throws" value={toLines(draft.saving_throw_proficiencies)} onChange={v => upd('saving_throw_proficiencies', fromLines(v))} multiline /><FieldRow label="Armour Proficiencies" value={toLines(draft.armor_proficiencies)} onChange={v => upd('armor_proficiencies', fromLines(v))} multiline /><FieldRow label="Weapon Proficiencies" value={toLines(draft.weapon_proficiencies)} onChange={v => upd('weapon_proficiencies', fromLines(v))} multiline /><FieldRow label="Tool Proficiencies" value={toLines(draft.tool_proficiencies)} onChange={v => upd('tool_proficiencies', fromLines(v))} multiline /></>}
+      {contentType === 'class' && <><FieldRow label="Saving Throws" value={toLines(draft.saving_throw_proficiencies)} onChange={v => upd('saving_throw_proficiencies', fromLines(v))} multiline /><FieldRow label="Armour Proficiencies" value={toLines(draft.armor_proficiencies)} onChange={v => upd('armor_proficiencies', fromLines(v))} multiline /><FieldRow label="Weapon Proficiencies" value={toLines(draft.weapon_proficiencies)} onChange={v => upd('weapon_proficiencies', fromLines(v))} multiline /><FieldRow label="Tool Proficiencies" value={toLines(draft.tool_proficiencies)} onChange={v => upd('tool_proficiencies', fromLines(v))} multiline />
+        <CheckRow label="This class uses spellcasting" checked={Boolean(draft.spellcasting)} onChange={enabled => upd('spellcasting', enabled ? { ability: '', type: 'known', progression: 'full', start_level: 1, cantrips_level_1: 0, spells_level_1: 0, ritual: false } : null)} />
+        {draft.spellcasting && <>
+          <FormGrid>
+            <SelectRow label="Spellcasting Ability" value={draft.spellcasting.ability || ''} onChange={v => upd('spellcasting', { ...draft.spellcasting, ability: v })} options={['', 'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']} />
+            <SelectRow label="Spellcasting Style" value={draft.spellcasting.type || 'known'} onChange={v => upd('spellcasting', { ...draft.spellcasting, type: v })} options={['known', 'prepared', 'spellbook']} />
+            <SelectRow label="Slot Progression" value={draft.spellcasting.progression || 'full'} onChange={v => upd('spellcasting', { ...draft.spellcasting, progression: v })} options={['full', 'half', 'third', 'pact']} />
+          </FormGrid>
+          <FormGrid>
+            <FieldRow label="Spellcasting Starts At Level" value={draft.spellcasting.start_level ?? 1} onChange={v => upd('spellcasting', { ...draft.spellcasting, start_level: Math.max(1, Math.min(20, Number(v) || 1)) })} type="number" />
+            <FieldRow label="Level 1 Cantrips" value={draft.spellcasting.cantrips_level_1 ?? 0} onChange={v => upd('spellcasting', { ...draft.spellcasting, cantrips_level_1: Math.max(0, Number(v) || 0) })} type="number" />
+            <FieldRow label="Level 1 Spells" value={draft.spellcasting.spells_level_1 ?? 0} onChange={v => upd('spellcasting', { ...draft.spellcasting, spells_level_1: Math.max(0, Number(v) || 0) })} type="number" />
+          </FormGrid>
+          <CheckRow label="Supports ritual casting" checked={Boolean(draft.spellcasting.ritual)} onChange={v => upd('spellcasting', { ...draft.spellcasting, ritual: v })} />
+        </>}
+      </>}
       <FieldRow label="Features (Level - Name :: description)" value={toLines(draft.features)} onChange={v => upd('features', namedFromLines(v))} multiline missing={miss('features')} />
       {advanced}
     </div>;
