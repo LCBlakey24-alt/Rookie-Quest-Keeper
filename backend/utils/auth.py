@@ -64,12 +64,36 @@ async def verify_campaign_membership(campaign_id: str, username: str) -> dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
     if campaign.get('dm_user_id') == username:
         return campaign
+
+    membership = await db.campaign_members.find_one(
+        {'campaign_id': campaign_id, 'user_id': username},
+        {'_id': 0, 'status': 1, 'character_id': 1},
+    )
+    if membership:
+        member_status = str(membership.get('status') or 'active').strip().lower()
+        if member_status == 'pending':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your character is waiting for GM approval",
+            )
+        if member_status == 'removed':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are no longer a member of this campaign",
+            )
+        if member_status in {'active', 'dead', 'retired'}:
+            return campaign
+
+    # Backwards compatibility for campaigns linked before campaign_members was
+    # introduced. New join-code requests always create a membership record, so
+    # this fallback cannot bypass the pending/removed approval states above.
     player_character = await db.player_characters.find_one({
         'user_id': username, 'campaign_id': campaign_id
     }, {'_id': 1})
-    if player_character:
+    if player_character and not membership:
         return campaign
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You must be a member of this campaign")
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You must be an approved member of this campaign")
 
 
 async def is_admin(username: str) -> bool:

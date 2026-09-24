@@ -155,6 +155,12 @@ async def grant_inventory_item_to_target(
         )
         if not character:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Character not found in this campaign')
+        join_status = str(character.get('campaign_join_status') or 'active').strip().lower()
+        if join_status != 'active':
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail='This character is not an active campaign character and cannot receive new items',
+            )
 
         item, token = await _reserve_inventory_item(campaign_id, item_id, current_user)
         inventory_entry = item_inventory_entry(

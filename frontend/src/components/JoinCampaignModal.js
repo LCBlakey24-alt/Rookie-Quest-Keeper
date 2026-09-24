@@ -28,10 +28,18 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
       });
 
       const campaign = response.data?.campaign || response.data;
-      toast.success('Successfully joined campaign!', {
-        description: `${characterName || 'Your character'} is now part of ${campaign?.name || 'the campaign'}`,
-        duration: 5000
-      });
+      const joinStatus = String(response.data?.status || 'active').toLowerCase();
+      if (joinStatus === 'pending') {
+        toast.success('Request sent to GM', {
+          description: `${characterName || 'Your character'} is linked to ${campaign?.name || 'the campaign'} and is waiting for approval.`,
+          duration: 5000
+        });
+      } else {
+        toast.success('Successfully joined campaign!', {
+          description: `${characterName || 'Your character'} is now part of ${campaign?.name || 'the campaign'}`,
+          duration: 5000
+        });
+      }
 
       if (onSuccess) onSuccess(campaign);
       setJoinCode('');

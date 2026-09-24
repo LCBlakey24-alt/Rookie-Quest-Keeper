@@ -180,8 +180,12 @@ async def get_inventory_grant_targets(campaign_id: str, current_user: str = Depe
     await verify_campaign_ownership(campaign_id, current_user)
     characters = await db.player_characters.find(
         {'campaign_id': campaign_id},
-        {'_id': 0, 'id': 1, 'name': 1, 'user_id': 1, 'character_class': 1, 'level': 1}
+        {'_id': 0, 'id': 1, 'name': 1, 'user_id': 1, 'character_class': 1, 'level': 1, 'campaign_join_status': 1}
     ).sort('name', 1).to_list(200)
+    characters = [
+        character for character in characters
+        if str(character.get('campaign_join_status') or 'active').strip().lower() == 'active'
+    ]
     npcs = await db.npcs.find(
         {'campaign_id': campaign_id},
         {'_id': 0, 'id': 1, 'name': 1, 'role': 1, 'class_name': 1, 'level': 1, 'hp': 1, 'max_hp': 1, 'ac': 1}

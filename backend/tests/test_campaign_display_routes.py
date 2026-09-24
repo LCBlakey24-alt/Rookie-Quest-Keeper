@@ -63,6 +63,14 @@ def test_sanitize_display_state_accepts_known_modes_and_rejects_unknown_modes():
     assert state['sync_id'].startswith('campaign-1-')
     assert state['delivery_ack'] == {}
 
+    table_result = sanitize_display_state(
+        'campaign-1',
+        {'mode': 'table-result', 'payload': {'title': 'Travel', 'roll': 7, 'result': 'Storm'}},
+        'gm-user',
+    )
+    assert table_result['mode'] == 'table-result'
+    assert table_result['payload']['result'] == 'Storm'
+
     try:
         sanitize_display_state('campaign-1', {'mode': 'private-notes', 'payload': {'secret': 'Nope'}}, 'gm-user')
     except HTTPException as exc:

@@ -2,7 +2,7 @@ import React from 'react';
 import { Users } from 'lucide-react';
 import SendItemPanel from './SendItemPanel';
 
-export default function PartyTab({ theme, players }) {
+export default function PartyTab({ theme, campaignId, players }) {
   return (
     <div>
       <h2 style={{ fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -74,7 +74,7 @@ export default function PartyTab({ theme, players }) {
 
       {/* Send Item to Player */}
       <div style={{ marginTop: '20px' }}>
-        <SendItemPanel theme={theme} partyCharacters={players.map(p => ({
+        <SendItemPanel theme={theme} campaignId={campaignId} partyCharacters={players.map(p => ({
           id: p.id, name: p.name, level: p.level, character_class: p.class || p.character_class,
         }))} />
       </div>

@@ -12,7 +12,7 @@ const RARITY_COLORS = {
   'Very Rare': '#8B5CF6', Legendary: '#F59E0B', Artifact: '#EF4444',
 };
 
-export default function SendItemPanel({ theme, partyCharacters = [] }) {
+export default function SendItemPanel({ theme, campaignId, partyCharacters = [] }) {
   const [selectedChar, setSelectedChar] = useState('');
   const [itemName, setItemName] = useState('');
   const [itemType, setItemType] = useState('Wondrous');
@@ -22,27 +22,52 @@ export default function SendItemPanel({ theme, partyCharacters = [] }) {
   const [sending, setSending] = useState(false);
 
   const handleSend = async () => {
+    if (!campaignId) {
+      toast.error('Open this tool from an active campaign before sending an item');
+      return;
+    }
     if (!selectedChar || !itemName.trim()) {
       toast.error('Select a character and enter item name');
       return;
     }
     setSending(true);
+    let createdItem = null;
     try {
-      const res = await apiClient.post(`/characters/${selectedChar}/send-item`, {
+      const createResponse = await apiClient.post(`/campaigns/${campaignId}/inventory`, {
         name: itemName.trim(),
-        type: itemType.toLowerCase(),
-        rarity: itemRarity.toLowerCase(),
+        quantity: 1,
+        item_type: itemType.toLowerCase(),
         description: itemDesc,
-        requires_attunement: requiresAttunement,
+        is_magical: itemType !== 'Potion' && itemType !== 'Scroll',
+        attunement_required: requiresAttunement,
+        notes: `${itemRarity} rarity`,
       });
-      toast.success(res.data.message || 'Item sent!');
+      createdItem = createResponse.data;
+
+      const grantResponse = await apiClient.post(
+        `/campaigns/${campaignId}/inventory/${createdItem.id}/grant`,
+        {
+          target_type: 'character',
+          target_id: selectedChar,
+        },
+      );
+
+      toast.success(grantResponse.data?.message || `${itemName.trim()} sent to player`);
       setItemName('');
       setItemDesc('');
       setRequiresAttunement(false);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to send item');
+      const detail = err.response?.data?.detail;
+      if (createdItem?.id) {
+        toast.error(
+          detail || 'The item was added to party inventory, but could not be sent to the player. It is still safe in party inventory.',
+        );
+      } else {
+        toast.error(detail || 'Failed to create item for this campaign');
+      }
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   const inputStyle = {
@@ -123,13 +148,13 @@ export default function SendItemPanel({ theme, partyCharacters = [] }) {
         </div>
       )}
 
-      <button data-testid="send-item-btn" onClick={handleSend} disabled={sending || !selectedChar || !itemName.trim()}
+      <button data-testid="send-item-btn" onClick={handleSend} disabled={sending || !campaignId || !selectedChar || !itemName.trim()}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           padding: '10px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
           cursor: sending ? 'wait' : 'pointer',
           background: theme.gradient || 'linear-gradient(135deg, #D4A017, #F59E0B)',
-          color: '#fff', border: 'none', opacity: (sending || !selectedChar || !itemName.trim()) ? 0.5 : 1,
+          color: '#fff', border: 'none', opacity: (sending || !campaignId || !selectedChar || !itemName.trim()) ? 0.5 : 1,
         }}>
         <Send size={14} /> {sending ? 'Sending...' : 'Send Item'}
       </button>

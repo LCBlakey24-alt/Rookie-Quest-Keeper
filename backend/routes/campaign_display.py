@@ -14,6 +14,7 @@ ALLOWED_DISPLAY_MODES = {
     'blank',
     'title',
     'image',
+    'table-result',
     'npc-grid',
     'combat',
     'group-check',

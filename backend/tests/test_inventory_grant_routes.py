@@ -149,6 +149,44 @@ def test_active_reservation_blocks_second_grant_and_missing_item_is_404(monkeypa
     assert missing.value.status_code == 404
 
 
+def test_inactive_character_is_rejected_before_party_item_is_reserved(monkeypatch):
+    async def verify(campaign_id, username):
+        return None
+
+    class Characters:
+        async def find_one(self, query, projection=None):
+            return {
+                'id': 'char-1',
+                'campaign_id': 'campaign-a',
+                'name': 'Pending Hero',
+                'campaign_join_status': 'pending',
+            }
+
+    class Inventory:
+        async def update_one(self, *args, **kwargs):
+            pytest.fail('Inactive target must be rejected before inventory reservation')
+
+        async def find_one(self, *args, **kwargs):
+            pytest.fail('Inactive target must be rejected before inventory access')
+
+    monkeypatch.setattr(grants, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(grants, 'db', SimpleNamespace(
+        player_characters=Characters(),
+        inventory=Inventory(),
+    ))
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(grants.grant_inventory_item_to_target(
+            'campaign-a',
+            'item-1',
+            {'target_type': 'character', 'target_id': 'char-1'},
+            current_user='gm-a',
+        ))
+
+    assert exc.value.status_code == 409
+    assert 'not an active campaign character' in exc.value.detail
+
+
 def test_character_grant_scopes_target_write_and_consumes_exact_reservation(monkeypatch):
     character_writes = []
     inventory_deletes = []

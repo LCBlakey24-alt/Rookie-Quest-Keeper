@@ -18,6 +18,68 @@ from utils.session_note_sync import apply_session_note_world_sync
 
 router = APIRouter()
 
+APPROVED_PLAYER_STATES = {'active', 'dead', 'retired'}
+
+
+async def _approved_campaign_characters(campaign_id: str, character_ids: Optional[List[str]] = None):
+    """Return linked characters belonging to approved or legacy campaign players."""
+    members = await db.campaign_members.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0, 'user_id': 1, 'character_id': 1, 'status': 1},
+    ).to_list(1000)
+    known_users = {str(member.get('user_id') or '').strip() for member in members if member.get('user_id')}
+    approved_users = {
+        str(member.get('user_id') or '').strip()
+        for member in members
+        if member.get('user_id') and str(member.get('status') or 'active').strip().lower() in APPROVED_PLAYER_STATES
+    }
+
+    query = {'campaign_id': campaign_id}
+    if character_ids:
+        query['id'] = {'$in': character_ids}
+    characters = await db.player_characters.find(
+        query,
+        {'_id': 0, 'id': 1, 'user_id': 1, 'name': 1},
+    ).to_list(1000)
+
+    return [
+        character for character in characters
+        if character.get('user_id')
+        and (
+            str(character.get('user_id')).strip() in approved_users
+            or str(character.get('user_id')).strip() not in known_users
+        )
+    ]
+
+
+async def _accessible_player_campaign_ids(username: str) -> List[str]:
+    """Resolve campaigns an approved player can read, preserving legacy links."""
+    memberships = await db.campaign_members.find(
+        {'user_id': username},
+        {'_id': 0, 'campaign_id': 1, 'status': 1},
+    ).to_list(1000)
+    known = {
+        str(member.get('campaign_id') or '').strip(): str(member.get('status') or 'active').strip().lower()
+        for member in memberships
+        if member.get('campaign_id')
+    }
+    campaign_ids = {
+        campaign_id for campaign_id, member_status in known.items()
+        if member_status in APPROVED_PLAYER_STATES
+    }
+
+    characters = await db.player_characters.find(
+        {'user_id': username},
+        {'_id': 0, 'campaign_id': 1},
+    ).to_list(1000)
+    for character in characters:
+        campaign_id = str(character.get('campaign_id') or '').strip()
+        if campaign_id and campaign_id not in known:
+            campaign_ids.add(campaign_id)
+
+    return sorted(campaign_ids)
+
+
 @router.post("/campaigns/{campaign_id}/ingame-notes", response_model=InGameNote, status_code=status.HTTP_201_CREATED)
 async def create_ingame_note(campaign_id: str, note_data: InGameNoteCreate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
@@ -134,14 +196,11 @@ Write the recap now:"""
         logger.error(f"AI recap generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate recap")
     
-    # Find all players linked to this campaign via their characters
-    player_characters = await db.player_characters.find(
-        {'campaign_id': campaign_id},
-        {'_id': 0, 'user_id': 1}
-    ).to_list(100)
-    
-    # Get unique player user_ids
-    player_user_ids = list(set([char['user_id'] for char in player_characters if char.get('user_id')]))
+    # Deliver only to approved campaign players. Pending/removed character
+    # links remain stored for safe approval/rejoin flows but do not receive
+    # campaign content.
+    player_characters = await _approved_campaign_characters(campaign_id)
+    player_user_ids = list({char['user_id'] for char in player_characters if char.get('user_id')})
     
     # Create session recap for each player
     session_date = datetime.now(timezone.utc).isoformat()
@@ -191,9 +250,8 @@ async def create_player_note(note_data: PlayerNoteCreate, username: str = Depend
     """Create a personal player note"""
     campaign_name = None
     if note_data.campaign_id:
-        campaign = await db.campaigns.find_one({'id': note_data.campaign_id}, {'_id': 0, 'name': 1})
-        if campaign:
-            campaign_name = campaign.get('name')
+        campaign = await verify_campaign_membership(note_data.campaign_id, username)
+        campaign_name = campaign.get('name')
     
     note = PlayerNote(
         user_id=username,
@@ -298,17 +356,13 @@ async def sync_gm_note_to_players(campaign_id: str, note_data: GMNoteSync, usern
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     
-    # Get target characters - either specified or all in campaign
-    if note_data.target_character_ids:
-        characters = await db.player_characters.find(
-            {'id': {'$in': note_data.target_character_ids}, 'campaign_id': campaign_id},
-            {'_id': 0, 'id': 1, 'user_id': 1, 'name': 1}
-        ).to_list(100)
-    else:
-        characters = await db.player_characters.find(
-            {'campaign_id': campaign_id},
-            {'_id': 0, 'id': 1, 'user_id': 1, 'name': 1}
-        ).to_list(100)
+    # Get only approved target characters. Pending and removed memberships
+    # retain their campaign link for workflow/history but cannot receive GM
+    # notes until approved again.
+    characters = await _approved_campaign_characters(
+        campaign_id,
+        note_data.target_character_ids or None,
+    )
     
     if not characters:
         return {"message": "No characters found in campaign to sync", "synced_count": 0}
@@ -356,13 +410,7 @@ async def sync_gm_note_to_players(campaign_id: str, note_data: GMNoteSync, usern
 @router.get("/player/timeline")
 async def get_player_timeline(username: str = Depends(get_current_user)):
     """Get all timeline events from campaigns the player is part of"""
-    # Find all campaigns the player has characters in
-    characters = await db.player_characters.find(
-        {'user_id': username},
-        {'_id': 0, 'campaign_id': 1}
-    ).to_list(100)
-    
-    campaign_ids = list(set([c['campaign_id'] for c in characters if c.get('campaign_id')]))
+    campaign_ids = await _accessible_player_campaign_ids(username)
     
     if not campaign_ids:
         return []

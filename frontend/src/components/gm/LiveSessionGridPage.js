@@ -247,7 +247,7 @@ export default function LiveSessionGridPage() {
 
     switch (toolId) {
       case 'combat': return lazyTool(<CombatTab theme={theme} campaignId={campaignId} scenarios={scenarios} selectedScenario={selectedScenario} setSelectedScenario={setSelectedScenario} launchCombat={launchCombat} quickStartCombat={quickStartCombat} players={players} setShowQuickCombat={() => {}} />);
-      case 'party': return lazyTool(<PartyTab theme={theme} players={players} />);
+      case 'party': return lazyTool(<PartyTab theme={theme} campaignId={campaignId} players={players} />);
       case 'notes': return lazyTool(<NotesTab theme={theme} campaignId={campaignId} quickNote={quickNote} setQuickNote={setQuickNote} processingNote={processingNote} handleSubmitNote={handleSubmitNote} sessionNotes={sessionNotes} setSessionNotes={setSessionNotes} />);
       case 'handouts': return lazyTool(<GMHandoutsTab campaignId={campaignId} />);
       case 'player-display': return lazyTool(<LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />);
