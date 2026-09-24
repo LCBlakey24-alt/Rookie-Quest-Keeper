@@ -1,4 +1,4 @@
-import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings } from './characterCreationPayload';
+import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings, mergeToolProficiencies } from './characterCreationPayload';
 
 const thorne = {
   name: 'Thorne the Blade',
@@ -72,6 +72,13 @@ describe('character creation payload helper', () => {
     expect(loadouts.find(loadout => loadout.id === 'rook-healing').spells.map(spell => spell.name)).toEqual(expect.arrayContaining(['Cure Wounds']));
     expect(loadouts.find(loadout => loadout.id === 'rook-power').spells.map(spell => spell.name)).toEqual(expect.arrayContaining(['Guiding Bolt']));
     expect(loadouts.find(loadout => loadout.id === 'rook-support').spells.map(spell => spell.name)).toEqual(expect.arrayContaining(['Bless']));
+  });
+
+  test('merges class and background tool proficiencies without duplicates', () => {
+    expect(mergeToolProficiencies(
+      ["Thieves' tools", 'Gaming set'],
+      ['Gaming set', 'Disguise kit'],
+    )).toEqual(["Thieves' tools", 'Gaming set', 'Disguise kit']);
   });
 
   test('calculates armour AC with Dex caps, shields, and Defense style', () => {
