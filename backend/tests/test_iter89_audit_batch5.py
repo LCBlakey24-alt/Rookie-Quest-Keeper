@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """Iter 89 audit batch 5 tests.
 
 Coverage:
@@ -12,8 +18,8 @@ import pytest
 import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8000").rstrip("/")
-EMAIL = "lcblakey24@outlook.com"
-PASSWORD = "LCBlakey24?!"
+EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 TEST_CHAR_ID = "a1e7babc-c582-48ec-8a64-8c71501fa281"
 TEST_CAMPAIGN_ID = "b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6"
 
