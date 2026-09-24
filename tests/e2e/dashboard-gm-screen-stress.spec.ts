@@ -1,13 +1,15 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'E2E credentials are not configured; set RQK_E2E_EMAIL and RQK_E2E_PASSWORD.');
+
 /**
  * ROOK Stress Test - Dashboard & GM Screen
  * Tests navigation, campaign creation, and GM Screen functionality
  */
 
 const TEST_USER = {
-  email: 'lcblakey24@outlook.com',
-  password: 'LCBlakey24?!'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 
 async function loginUser(page: Page) {
