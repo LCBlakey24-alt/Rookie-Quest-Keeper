@@ -81,6 +81,24 @@ describe('character creation payload helper', () => {
     )).toEqual(["Thieves' tools", 'Gaming set', 'Disguise kit']);
   });
 
+  test('keeps structured homebrew feature descriptions separate from feature names', () => {
+    expect(normaliseClassFeatureForSheet(
+      { name: 'Arcane Ward', description: 'Gain a protective magical ward.' },
+      'Runesmith',
+      1,
+    )).toEqual({
+      name: 'Arcane Ward',
+      description: 'Gain a protective magical ward.',
+    });
+  });
+
+  test('keeps legacy string class features working', () => {
+    expect(normaliseClassFeatureForSheet('Second Wind', 'Fighter', 1)).toEqual({
+      name: 'Second Wind',
+      description: 'Fighter feature gained at level 1.',
+    });
+  });
+
   test('calculates armour AC with Dex caps, shields, and Defense style', () => {
     expect(calculateArmorClass({ dexterity: 16, armorKey: 'leather' })).toBe(14);
     expect(calculateArmorClass({ dexterity: 16, armorKey: 'scale_mail', shield: true })).toBe(18);
