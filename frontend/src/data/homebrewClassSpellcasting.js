@@ -145,3 +145,32 @@ export function buildHomebrewSpellcastingState(classData = {}, {
     spell_attack_bonus: toNumber(proficiencyBonus, 2) + abilityModifier,
   };
 }
+
+
+export function buildHomebrewPactMagicTracker(classData = {}, {
+  level = 1,
+  edition = '2014',
+} = {}) {
+  const definition = normaliseHomebrewClassSpellcasting(classData);
+  if (!definition?.pactMagic || !homebrewSpellcastingIsActive(classData, level)) return null;
+
+  const slots = getHomebrewSpellSlots(classData, level, edition);
+  const entries = Object.entries(slots).filter(([slotLevel, count]) => Number(slotLevel) > 0 && Number(count) > 0);
+  if (entries.length !== 1) return null;
+
+  const [slotLevel, count] = entries[0];
+  const maximum = Math.max(0, Number(count) || 0);
+  if (!maximum) return null;
+
+  return {
+    label: 'Pact Magic',
+    current: maximum,
+    remaining: maximum,
+    max: maximum,
+    slot_level: Number(slotLevel),
+    restore: 'short-rest',
+    min_level: definition.startLevel,
+    className: classData?.name || 'Homebrew',
+    homebrew: true,
+  };
+}
