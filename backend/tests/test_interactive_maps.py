@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Backend API tests for Interactive Maps (World Maps and Local Maps)
 Tests world map CRUD, pins, paths, and travel calculator
@@ -12,8 +18,8 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstr
 API = f"{BASE_URL}/api"
 
 # Test credentials
-TEST_EMAIL = 'stress_test_1772651200@test.com'
-TEST_PASSWORD = 'TestPass123!'
+TEST_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 TEST_CAMPAIGN_ID = '1e6a6d0d-ad88-4b8a-9cc5-a1672119343c'
 
 
