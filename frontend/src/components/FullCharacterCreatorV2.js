@@ -8,6 +8,7 @@ import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/da
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
+import { mergeToolProficiencies } from '@/data/characterCreationPayload';
 import { classSkillsForEdit } from '@/data/characterEditSkillHelpers';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
@@ -485,7 +486,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       saving_throw_proficiencies: arr(classData.savingThrows),
       armor_proficiencies: arr(classData.armorProficiencies),
       weapon_proficiencies: arr(classData.weaponProficiencies),
-      tool_proficiencies: arr(backgroundData.toolProficiencies),
+      tool_proficiencies: mergeToolProficiencies(classData.toolProficiencies, backgroundData.toolProficiencies),
       languages: baseLanguages,
       racial_traits: racialTraits,
       class_features: classFeatures,

@@ -58,6 +58,13 @@ export function calculateArmorClass({ dexterity = 10, wisdom = 10, constitution 
   return ac;
 }
 
+export function mergeToolProficiencies(classTools = [], backgroundTools = []) {
+  return Array.from(new Set([
+    ...(Array.isArray(classTools) ? classTools : []),
+    ...(Array.isArray(backgroundTools) ? backgroundTools : []),
+  ].filter(Boolean)));
+}
+
 function deriveLanguages(raceData = {}, backgroundData = {}) {
   const languages = new Set((raceData.languages || []).filter(language => !choiceText(language)));
   const choiceCount = (raceData.languages || []).filter(choiceText).length + (Number(backgroundData.languages || 0) || 0);
@@ -277,7 +284,7 @@ export function buildCharacterCreationPayloadFromTemplate(template = {}, { name 
     saving_throw_proficiencies: classData.savingThrows || [],
     armor_proficiencies: classData.armorProficiencies || [],
     weapon_proficiencies: classData.weaponProficiencies || [],
-    tool_proficiencies: backgroundData.toolProficiencies || [],
+    tool_proficiencies: mergeToolProficiencies(classData.toolProficiencies, backgroundData.toolProficiencies),
     languages: template.languages || deriveLanguages(raceData, backgroundData),
     racial_traits: template.racial_traits || deriveTraits(raceData, template.subrace || ''),
     class_features: template.class_features || deriveClassFeatures(classData, className, level, template),
