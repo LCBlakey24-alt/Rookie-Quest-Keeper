@@ -17,6 +17,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Check for committed reusable test credentials
+        run: python scripts/check_test_credentials.py
+
       - name: Install route test dependencies
         run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests google-auth
       - name: Test player access and timeline persistence
