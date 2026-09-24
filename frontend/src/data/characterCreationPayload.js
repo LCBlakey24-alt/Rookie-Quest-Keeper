@@ -80,11 +80,23 @@ function deriveTraits(raceData = {}, subrace = '') {
   return traits.map(trait => ({ name: String(trait).split(' (')[0], description: String(trait) }));
 }
 
+export function normaliseClassFeatureForSheet(feature, className = '', level = 1) {
+  const name = typeof feature === 'string'
+    ? feature
+    : feature?.name || feature?.title || feature?.description || feature?.text || '';
+  if (!name || name === '---') return null;
+  const description = feature && typeof feature === 'object'
+    ? feature.description || feature.text || feature.summary || `${className} feature gained at level ${level}.`
+    : `${className} feature gained at level ${level}.`;
+  return { name: String(name), description: String(description) };
+}
+
 function deriveClassFeatures(classData = {}, className = '', level = 1, template = {}) {
   const features = [];
   for (let current = 1; current <= Number(level || 1); current += 1) {
-    (classData.features?.[current] || []).filter(name => name && name !== '---').forEach(name => {
-      features.push(toFeature(name, `${className} feature gained at level ${current}.`));
+    (classData.features?.[current] || []).forEach(feature => {
+      const normalised = normaliseClassFeatureForSheet(feature, className, current);
+      if (normalised) features.push(normalised);
     });
   }
   if (template.fighting_style) features.push(toFeature(`Fighting Style: ${template.fighting_style}`, 'Fighting style selected by this premade hero.'));

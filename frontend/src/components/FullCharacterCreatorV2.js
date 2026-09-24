@@ -8,7 +8,7 @@ import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/da
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
-import { mergeToolProficiencies } from '@/data/characterCreationPayload';
+import { mergeToolProficiencies, normaliseClassFeatureForSheet } from '@/data/characterCreationPayload';
 import { classSkillsForEdit } from '@/data/characterEditSkillHelpers';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
@@ -204,10 +204,12 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const baseLanguages = arr(raceData.languages).filter((language) => !isChoiceLang(language));
   const languageChoices = arr(raceData.languages).filter(isChoiceLang).length;
   const racialTraits = [...arr(raceData.traits), ...arr(raceData.subraces?.[draft.subrace]?.traits)].map((trait) => ({ name: String(trait).split(' (')[0], description: String(trait) }));
-  let classFeatures = arr(classData.features?.[1]).filter((name) => name && name !== '---').map((name) => ({
-    name: name === 'Fighting Style' && draft.fighterFightingStyle ? `Fighting Style: ${draft.fighterFightingStyle}` : String(name),
-    description: name === 'Fighting Style' && draft.fighterFightingStyle ? `Fighter level 1 fighting style: ${draft.fighterFightingStyle}.` : `${draft.characterClass} feature gained at level 1.`,
-  }));
+  let classFeatures = arr(classData.features?.[1])
+    .map((feature) => normaliseClassFeatureForSheet(feature, draft.characterClass, 1))
+    .filter(Boolean)
+    .map((feature) => feature.name === 'Fighting Style' && draft.fighterFightingStyle
+      ? { name: `Fighting Style: ${draft.fighterFightingStyle}`, description: `Fighter level 1 fighting style: ${draft.fighterFightingStyle}.` }
+      : feature);
   if (draft.characterClass === 'Fighter' && draft.fighterFightingStyle && !classFeatures.some((feature) => feature.name.startsWith('Fighting Style'))) {
     classFeatures = [{ name: `Fighting Style: ${draft.fighterFightingStyle}`, description: `Fighter level 1 fighting style: ${draft.fighterFightingStyle}.` }, ...classFeatures];
   }
