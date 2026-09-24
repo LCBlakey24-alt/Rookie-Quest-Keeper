@@ -76,14 +76,21 @@ export const TEST_ABILITIES_SCENARIO_ID = 'd719e646-688f-482f-a97a-8d02d80f2807'
 // Custom creature with abilities
 export const TEST_CUSTOM_CREATURE_ID = '7bc77fba-92ff-47bc-83dc-cf3e5ac1703a';
 
-// Updated test user with email - Admin Test User
-export const TEST_USER = { 
-  email: 'lcblakey24@outlook.com',
-  username: 'lcblakey24',
-  password: 'LCBlakey24?!'
+// Pre-registered E2E account. Values must come from the local/CI environment.
+export const TEST_USER = {
+  email: process.env.RQK_E2E_EMAIL || '',
+  username: process.env.RQK_E2E_USERNAME || 'e2e-test-user',
+  password: process.env.RQK_E2E_PASSWORD || '',
 };
 
+export function assertE2ECredentialsConfigured() {
+  if (!TEST_USER.email || !TEST_USER.password) {
+    throw new Error('E2E credentials are not configured. Set RQK_E2E_EMAIL and RQK_E2E_PASSWORD in the test environment.');
+  }
+}
+
 export async function loginTestUser(page: Page) {
+  assertE2ECredentialsConfigured();
   await loginUser(page, TEST_USER.email, TEST_USER.password);
   // After login, user goes to /home (UnifiedDashboard)
   await page.waitForURL(/\/home/, { timeout: 15000 });

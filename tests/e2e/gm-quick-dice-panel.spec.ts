@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-const TEST_EMAIL = 'lcblakey24@outlook.com';
-const TEST_PASSWORD = 'LCBlakey24?!';
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
+const TEST_EMAIL = (process.env.RQK_E2E_EMAIL || '');
+const TEST_PASSWORD = (process.env.RQK_E2E_PASSWORD || '');
 const CAMPAIGN_ID = 'b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6';
 
 async function login(page: any) {

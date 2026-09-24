@@ -1,13 +1,17 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 /**
  * ROOK Stress Test - Character Builder & Character Sheet
  * Tests stat methods, form validation, character creation, and character sheet functionality
  */
 
 const TEST_USER = {
-  email: 'lcblakey24@outlook.com',
-  password: 'LCBlakey24?!'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 
 async function loginUser(page: Page) {

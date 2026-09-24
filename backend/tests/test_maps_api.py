@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Test suite for Map Builder API endpoints
 Tests CRUD operations for campaign maps including terrain, walls, fog of war
@@ -12,8 +18,8 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
 # Test campaign and user
 TEST_CAMPAIGN_ID = '1e6a6d0d-ad88-4b8a-9cc5-a1672119343c'
-TEST_USER_EMAIL = 'stress_test_1772651200@test.com'
-TEST_USER_PASSWORD = 'TestPass123!'
+TEST_USER_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_USER_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 
 
 @pytest.fixture

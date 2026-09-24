@@ -1,5 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 /**
  * Level Up Modal and Spells Tab Tests
  * Tests for character leveling system with ASI/Feat selection 
@@ -8,8 +12,8 @@ import { test, expect, Page } from '@playwright/test';
 
 // Test user credentials
 const TEST_USER = {
-  email: 'leveltest@test.com',
-  password: 'test123'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 
 // Existing test character from leveltest user (Level 4 Fighter)

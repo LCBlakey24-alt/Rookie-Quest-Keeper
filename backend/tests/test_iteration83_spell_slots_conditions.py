@@ -9,8 +9,8 @@ import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8000").rstrip("/")
 
-EMAIL = "lcblakey24@outlook.com"
-PASSWORD = "LCBlakey24?!"
+EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 CHAR_ID = "a1e7babc-c582-48ec-8a64-8c71501fa281"
 
 

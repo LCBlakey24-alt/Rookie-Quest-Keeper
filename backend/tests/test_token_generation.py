@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Tests for POST /api/ai/generate-token endpoint
 Tests token generation for combat map tokens.
@@ -19,8 +25,8 @@ def api_client():
 def auth_token(api_client):
     """Get authentication token"""
     response = api_client.post(f"{BASE_URL}/api/auth/login", json={
-        "email": "stress_test_1772651200@test.com",
-        "password": "TestPass123!"
+        "email": os.environ.get("RQK_E2E_EMAIL", ""),
+        "password": os.environ.get("RQK_E2E_PASSWORD", "")
     })
     if response.status_code == 200:
         return response.json().get("token")

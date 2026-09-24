@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Backend API Tests for Player Notes and Combat Scenarios
 Tests the player notes CRUD operations and combat scenario endpoints.
@@ -11,8 +17,8 @@ from datetime import datetime
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 
 # Test user credentials
-TEST_USER_EMAIL = 'stress_test_1772651200@test.com'
-TEST_USER_PASSWORD = 'TestPass123!'
+TEST_USER_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_USER_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 TEST_CAMPAIGN_ID = '1e6a6d0d-ad88-4b8a-9cc5-a1672119343c'
 TEST_SCENARIO_ID = '7bd4be2a-2821-4daf-97d7-af5ddbe34968'
 

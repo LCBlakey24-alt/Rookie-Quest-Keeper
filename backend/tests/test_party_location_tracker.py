@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Party Location Tracker Backend API Tests
 Tests the world-map endpoints used by PartyLocationTracker:
@@ -14,8 +20,8 @@ from datetime import datetime
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
 # Test user credentials - use existing test user
-TEST_EMAIL = "stress_test_1772651200@test.com"
-TEST_PASSWORD = "TestPass123!"
+TEST_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 
 # Will be set during test
 TEST_CAMPAIGN_ID = None

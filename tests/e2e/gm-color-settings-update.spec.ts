@@ -1,5 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 /**
  * Tests for GM Side Color Updates and Campaign Settings Modal:
  * 1. Campaign Dashboard - Settings button visible in header
@@ -10,8 +14,8 @@ import { test, expect, Page } from '@playwright/test';
  * 6. Previous features still work
  */
 
-const TEST_EMAIL = 'lcblakey24@outlook.com';
-const TEST_PASSWORD = 'LCBlakey24?!';
+const TEST_EMAIL = (process.env.RQK_E2E_EMAIL || '');
+const TEST_PASSWORD = (process.env.RQK_E2E_PASSWORD || '');
 const CAMPAIGN_ID = 'b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6';
 
 // Helper to login

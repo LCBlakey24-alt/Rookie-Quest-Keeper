@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Tests for Character Level Up endpoint POST /api/characters/{character_id}/level-up
 Tests ASI (Ability Score Improvements), Feat selection, HP calculation, and proficiency bonus
@@ -10,8 +16,8 @@ from datetime import datetime
 BASE_URL = "http://localhost:8000"
 
 # Test user credentials
-TEST_USER_EMAIL = "leveltest@test.com"
-TEST_USER_PASSWORD = "test123"
+TEST_USER_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_USER_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 
 
 @pytest.fixture

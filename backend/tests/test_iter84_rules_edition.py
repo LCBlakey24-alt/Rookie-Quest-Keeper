@@ -2,8 +2,8 @@
 import os, requests, pytest
 
 BASE = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
-EMAIL = "lcblakey24@outlook.com"
-PASSWORD = "LCBlakey24?!"
+EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 CAMPAIGN_ID = "b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6"
 
 

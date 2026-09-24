@@ -5,10 +5,14 @@
  */
 import { test, expect } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 const TEST_CAMPAIGN_ID = '1e6a6d0d-ad88-4b8a-9cc5-a1672119343c';
 const TEST_USER = {
-  email: 'stress_test_1772651200@test.com',
-  password: 'TestPass123!'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 
 async function loginAndNavigateToGMScreen(page: ReturnType<typeof test.info>['page']) {

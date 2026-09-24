@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test';
+
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
 import { dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 // Test Rook's Tips guides for the consolidated tabs
@@ -15,8 +19,8 @@ test.describe("Rook's Tips - Consolidated Tabs", () => {
     await dismissToasts(page);
     // Login
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('login-email').fill('admin@rookiequestkeeper.com');
-    await page.getByTestId('login-password').fill('admin123');
+    await page.getByTestId('login-email').fill((process.env.RQK_E2E_EMAIL || ''));
+    await page.getByTestId('login-password').fill((process.env.RQK_E2E_PASSWORD || ''));
     await page.getByTestId('login-btn').click();
     await page.waitForTimeout(2000);
     // Navigate to campaign

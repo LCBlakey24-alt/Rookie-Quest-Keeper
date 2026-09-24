@@ -15,8 +15,8 @@ import uuid
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 
 # Test user credentials (admin user with legendary tier)
-TEST_USER_EMAIL = 'lcblakey24@outlook.com'
-TEST_USER_PASSWORD = 'LCBlakey24?!'
+TEST_USER_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_USER_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 
 
 # Expected subclass unlock levels per edition

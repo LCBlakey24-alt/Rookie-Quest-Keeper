@@ -1,5 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 /**
  * Tests for Yellow Tier GM Features:
  * 1. Session Timeline - Track campaign events
@@ -9,8 +13,8 @@ import { test, expect, Page } from '@playwright/test';
  */
 
 const CAMPAIGN_ID = '0bd14e3c-9cec-4dda-a2f9-bc0efe58ebb5';
-const GM_EMAIL = 'gmtest@test.com';
-const GM_PASSWORD = 'test123';
+const GM_EMAIL = process.env.RQK_E2E_EMAIL || '';
+const GM_PASSWORD = process.env.RQK_E2E_PASSWORD || '';
 
 // Helper to login and navigate to campaign
 async function loginAndNavigateToCampaign(page: Page) {

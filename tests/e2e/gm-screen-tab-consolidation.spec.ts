@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('GM Screen Tab Consolidation', () => {
-  const testEmail = 'lcblakey24@outlook.com';
-  const testPassword = 'LCBlakey24?!';
+  const testEmail = (process.env.RQK_E2E_EMAIL || '');
+  const testPassword = (process.env.RQK_E2E_PASSWORD || '');
   const CAMPAIGN_ID = 'b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6';
 
   test.beforeEach(async ({ page }) => {
