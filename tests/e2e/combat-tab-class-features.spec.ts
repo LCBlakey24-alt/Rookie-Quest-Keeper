@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'E2E credentials are not configured; set RQK_E2E_EMAIL and RQK_E2E_PASSWORD.');
+
 /**
  * Combat Tab Dynamic Class Features Tests
  * Tests the dynamic class actions, bonus actions, reactions, and passive abilities
@@ -8,8 +10,8 @@ import { test, expect } from '@playwright/test';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 const TEST_USER = {
-  email: 'lcblakey24@outlook.com',
-  password: 'Trigger24?!'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 
 // Test Characters
