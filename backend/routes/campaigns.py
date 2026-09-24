@@ -83,6 +83,19 @@ async def delete_campaign(campaign_id: str, username: str = Depends(get_current_
     result = await db.campaigns.delete_one({'id': campaign_id, 'dm_user_id': username})
     if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+    now = datetime.now(timezone.utc).isoformat()
+    await db.campaign_members.delete_many({'campaign_id': campaign_id})
+    await db.campaign_invites.delete_many({'campaign_id': campaign_id})
+    await db.player_characters.update_many(
+        {'campaign_id': campaign_id},
+        {'$set': {
+            'campaign_id': None,
+            'campaign_name': None,
+            'campaign_join_status': None,
+            'updated_at': now,
+        }}
+    )
     return {'message': 'Campaign deleted successfully'}
 
 # ==================== CAMPAIGN SETTING ROUTES ====================
