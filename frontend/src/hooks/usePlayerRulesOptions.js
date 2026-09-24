@@ -150,7 +150,7 @@ export function normaliseClassOption(option = {}) {
     toolProficiencies: asArray(option.tool_proficiencies || option.toolProficiencies).flatMap(splitNames),
     skillChoices,
     skillCount,
-    startingEquipment: asArray(option.starting_equipment || option.startingEquipment).map(textOf).filter(Boolean),
+    startingEquipment: asArray(option.starting_equipment || option.startingEquipment || option.equipment).map(textOf).filter(Boolean),
     features: toFeatureMap(option.features),
     subclasses: [],
     spellcasting: option.spellcasting || null,
