@@ -1,4 +1,4 @@
-import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings, mergeToolProficiencies, normaliseClassFeatureForSheet } from './characterCreationPayload';
+import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings, mergeToolProficiencies, normaliseClassFeatureForSheet, normaliseTraitForSheet } from './characterCreationPayload';
 
 const thorne = {
   name: 'Thorne the Blade',
@@ -79,6 +79,23 @@ describe('character creation payload helper', () => {
       ["Thieves' tools", 'Gaming set'],
       ['Gaming set', 'Disguise kit'],
     )).toEqual(["Thieves' tools", 'Gaming set', 'Disguise kit']);
+  });
+
+  test('keeps structured homebrew racial trait descriptions separate from names', () => {
+    expect(normaliseTraitForSheet({
+      name: 'Starlit Sight',
+      description: 'See clearly beneath starlight.',
+    })).toEqual({
+      name: 'Starlit Sight',
+      description: 'See clearly beneath starlight.',
+    });
+  });
+
+  test('keeps legacy string racial traits working', () => {
+    expect(normaliseTraitForSheet('Darkvision (60 ft.)')).toEqual({
+      name: 'Darkvision',
+      description: 'Darkvision (60 ft.)',
+    });
   });
 
   test('keeps structured homebrew feature descriptions separate from feature names', () => {

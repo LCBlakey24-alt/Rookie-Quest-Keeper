@@ -75,9 +75,22 @@ function deriveLanguages(raceData = {}, backgroundData = {}) {
   return Array.from(languages);
 }
 
+export function normaliseTraitForSheet(trait) {
+  if (typeof trait === 'string') {
+    return { name: trait.split(' (')[0], description: trait };
+  }
+  if (!trait || typeof trait !== 'object') return null;
+  const name = trait.name || trait.title || trait.description || trait.text || '';
+  if (!name) return null;
+  return {
+    name: String(name),
+    description: String(trait.description || trait.text || trait.summary || name),
+  };
+}
+
 function deriveTraits(raceData = {}, subrace = '') {
   const traits = [...(raceData.traits || []), ...(raceData.subraces?.[subrace]?.traits || [])];
-  return traits.map(trait => ({ name: String(trait).split(' (')[0], description: String(trait) }));
+  return traits.map(normaliseTraitForSheet).filter(Boolean);
 }
 
 export function normaliseClassFeatureForSheet(feature, className = '', level = 1) {

@@ -6,6 +6,12 @@ import { ABILITIES } from '@/lib/characterRules';
 import { DetailPanel, Pill, SelectCard, StepHeader } from '@/components/character-builder/BuilderPrimitives';
 import { traitChipStyle } from '@/components/character-builder/builderTheme';
 
+const traitName = (trait) => (
+  typeof trait === 'string'
+    ? trait
+    : trait?.name || trait?.title || trait?.description || trait?.text || ''
+);
+
 export default function RaceStep({
   mergedRaces,
   race,
@@ -58,7 +64,7 @@ export default function RaceStep({
         <DetailPanel title={`${raceData.name} Traits`} color={theme.sunset.pink}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '12px' }}>
             {raceData.traits.map((trait, index) => (
-              <div key={index} style={traitChipStyle}><Sparkles size={12} style={{ flexShrink: 0 }} /> {trait}</div>
+              <div key={index} style={traitChipStyle}><Sparkles size={12} style={{ flexShrink: 0 }} /> {traitName(trait)}</div>
             ))}
           </div>
           {raceData.languages && (
@@ -82,7 +88,7 @@ export default function RaceStep({
                   onClick={() => setSubrace(sr)}
                   color={theme.sunset.pink}
                   title={sr}
-                  subtitle={(sub.traits || []).slice(0, 1).join(', ') || 'Subrace'}
+                  subtitle={(sub.traits || []).slice(0, 1).map(traitName).filter(Boolean).join(', ') || 'Subrace'}
                   data-testid={`subrace-${sr}`}
                   footer={
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>

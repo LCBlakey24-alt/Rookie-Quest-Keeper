@@ -6,6 +6,26 @@ import {
 } from './usePlayerRulesOptions';
 
 describe('uploaded character rule option normalization', () => {
+  test('preserves structured homebrew race and subrace trait descriptions', () => {
+    const race = buildMergedCharacterRules({}, {
+      races: [{
+        name: 'Starborn',
+        traits: [{ name: 'Starlit Sight', description: 'See clearly beneath starlight.' }],
+        subraces: [{
+          name: 'Dawnkin',
+          traits: [{ name: 'Solar Spark', description: 'Carry a spark of dawn.' }],
+        }],
+      }],
+    }).races.Starborn;
+
+    expect(race.traits).toEqual([
+      expect.objectContaining({ name: 'Starlit Sight', description: 'See clearly beneath starlight.' }),
+    ]);
+    expect(race.subraces.Dawnkin.traits).toEqual([
+      expect.objectContaining({ name: 'Solar Spark', description: 'Carry a spark of dawn.' }),
+    ]);
+  });
+
   test('normalises backend class skill choice objects into creator-ready fields', () => {
     expect(normaliseClassSkillChoices({
       skill_choices: {
