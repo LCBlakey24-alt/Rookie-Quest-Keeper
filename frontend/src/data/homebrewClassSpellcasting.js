@@ -32,8 +32,10 @@ export function normaliseHomebrewClassSpellcasting(classData = {}) {
   const type = STYLES.has(rawStyle) ? rawStyle : 'known';
 
   const rawProgression = normaliseToken(firstDefined(raw.progression, raw.slot_progression, raw.slotProgression) || '');
-  const progression = PROGRESSIONS.has(rawProgression)
-    ? rawProgression
+  const progressionAliases = { fullcaster: 'full', halfcaster: 'half', thirdcaster: 'third', pactmagic: 'pact' };
+  const explicitProgression = progressionAliases[rawProgression] || rawProgression;
+  const progression = PROGRESSIONS.has(explicitProgression)
+    ? explicitProgression
     : raw.pactMagic || raw.pact_magic
       ? 'pact'
       : raw.halfCaster || raw.half_caster
