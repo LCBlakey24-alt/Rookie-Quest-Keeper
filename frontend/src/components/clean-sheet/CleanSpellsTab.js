@@ -3,9 +3,21 @@ import { toast } from 'sonner';
 import { AlertTriangle, Search, Wand2 } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
+import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { spellRequiresConcentration } from '@/data/spellConcentrationRules';
 import { buildSavedCustomCasterRow } from '@/data/savedCustomSpellcastingPresentation';
+import {
+  getHomebrewSpellSlots,
+  homebrewSpellcastingIsActive,
+  normaliseHomebrewClassSpellcasting,
+} from '@/data/homebrewClassSpellcasting';
+import {
+  homebrewSpellsForClass,
+  spellDestinationForHomebrewClass,
+  spellListLabelFromMode,
+  spellListModeFromHomebrewClass,
+} from '@/data/homebrewSpellOptions';
 import {
   SPELLCASTING_CLASSES,
   getSpellsForClass,
@@ -492,6 +504,18 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const [spellSearch, setSpellSearch] = useState('');
   const [migratingLegacy, setMigratingLegacy] = useState(false);
   const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
+  const rulesEdition = String(character?.rules_edition || character?.edition || snapshot.identity?.edition || '').includes('2024') ? '2024' : '2014';
+  const campaignId = character?.campaign_id || '';
+  const { options: playerRuleOptions } = usePlayerRulesOptions({
+    edition: rulesEdition,
+    campaignId,
+  });
+  const homebrewClassOptions = useMemo(() => Object.fromEntries(
+    toArray(playerRuleOptions?.classes)
+      .map((option) => [normalizeName(option?.name || option?.title), option])
+      .filter(([name]) => name),
+  ), [playerRuleOptions?.classes]);
+  const homebrewSpellOptions = useMemo(() => toArray(playerRuleOptions?.spells), [playerRuleOptions?.spells]);
   const classLevels = useMemo(() => {
     const snapshotLevels = snapshot.identity?.classLevels || {};
     return hasItems(snapshotLevels) ? snapshotLevels : getClassLevels(character);
@@ -516,7 +540,18 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       const canonical = canonicalSpellClassName(className);
       const info = SPELLCASTING_CLASSES[canonical];
       if (!info) {
-        return buildSavedCustomCasterRow(character, className, level, proficiencyBonus);
+        const row = buildSavedCustomCasterRow(character, className, level, proficiencyBonus);
+        if (!row) return null;
+        const homebrewClass = homebrewClassOptions[normalizeName(className)];
+        const definition = normaliseHomebrewClassSpellcasting(homebrewClass || {});
+        const listMode = spellListModeFromHomebrewClass(homebrewClass) || row.listMode;
+        const listLabel = spellListLabelFromMode(listMode);
+        return {
+          ...row,
+          listMode,
+          listLabel,
+          castingType: definition?.pactMagic ? `Pact Magic · ${listLabel}` : `Homebrew · ${listLabel}`,
+        };
       }
       if (!classHasSpellcasting(character, className, classLevels)) return null;
       const modifier = abilityMod(character?.[info.ability]);
@@ -535,7 +570,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         castingType: info.pactMagic ? `Pact Magic · ${listLabel}` : listLabel,
       };
     })
-    .filter(Boolean), [character, classLevels, proficiencyBonus]);
+    .filter(Boolean), [character, classLevels, proficiencyBonus, homebrewClassOptions]);
 
   const primaryClass = canonicalSpellClassName(character?.character_class || character?.class_name || '');
   const primaryCaster = spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(primaryClass)) || spellcastingRows[0];
@@ -600,14 +635,41 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     return Object.entries(classLevels)
       .flatMap(([className, level]) => {
         const canonical = canonicalSpellClassName(className);
-        if (!classHasSpellcasting(character, canonical, classLevels)) return [];
-        const maxSpellLevel = getEditionMaxSpellLevel(
-          { ...character, class_levels: classLevels },
-          canonical,
-          Number(level) || 0,
+        const coreCaster = Boolean(SPELLCASTING_CLASSES[canonical])
+          && classHasSpellcasting(character, canonical, classLevels);
+        const homebrewClass = !SPELLCASTING_CLASSES[canonical]
+          ? homebrewClassOptions[normalizeName(className)]
+          : null;
+        const homebrewCaster = Boolean(homebrewClass)
+          && homebrewSpellcastingIsActive(homebrewClass, Number(level) || 0);
+        if (!coreCaster && !homebrewCaster) return [];
+
+        let maxSpellLevel = 0;
+        if (coreCaster) {
+          maxSpellLevel = getEditionMaxSpellLevel(
+            { ...character, class_levels: classLevels },
+            canonical,
+            Number(level) || 0,
+          );
+        } else {
+          const homebrewSlots = getHomebrewSpellSlots(homebrewClass, Number(level) || 0, rulesEdition);
+          maxSpellLevel = Math.max(0, ...Object.keys(homebrewSlots).map(Number).filter(Number.isFinite));
+        }
+
+        const listMode = homebrewClass ? spellListModeFromHomebrewClass(homebrewClass) : '';
+        const listLabel = homebrewClass
+          ? spellListLabelFromMode(listMode)
+          : getSpellListLabel(character, canonical);
+        const builtInSpells = coreCaster
+          ? flattenClassSpellGroups(canonical, getSpellsForClass(canonical), maxSpellLevel)
+          : [];
+        const customSpells = homebrewSpellsForClass(
+          homebrewSpellOptions,
+          className,
+          maxSpellLevel,
         );
-        const listLabel = getSpellListLabel(character, canonical);
-        return flattenClassSpellGroups(canonical, getSpellsForClass(canonical), maxSpellLevel)
+
+        return [...builtInSpells, ...customSpells]
           .map((spell) => ({ ...spell, listLabel }));
       })
       .filter((spell) => {
@@ -617,7 +679,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         return true;
       })
       .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name));
-  }, [character, classLevels]);
+  }, [character, classLevels, homebrewClassOptions, homebrewSpellOptions, rulesEdition]);
 
   const castOptionsForSpell = (spell) => getCastOptionsForSpell({
     spell,
@@ -680,7 +742,12 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     const normalised = tagSpellSource(normaliseSpell(spell, spell.level), spell.sourceClass);
     const level = Number(normalised.level || 0);
     const sourceClass = sourceClassFor(normalised, primaryCaster?.className || primaryClass);
-    const field = getSpellListDestination(character, sourceClass, level);
+    const homebrewClass = !SPELLCASTING_CLASSES[canonicalSpellClassName(sourceClass)]
+      ? homebrewClassOptions[normalizeName(sourceClass)]
+      : null;
+    const field = homebrewClass
+      ? spellDestinationForHomebrewClass(homebrewClass, level)
+      : getSpellListDestination(character, sourceClass, level);
     const existing = field === 'cantrips_known'
       ? cantrips
       : field === 'spellbook'
@@ -710,7 +777,10 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       listUpdate(field, nextList),
       { error: `Could not add ${normalised.name}` },
     );
-    if (ok !== false) toast.success(`${normalised.name} added to ${level === 0 ? 'cantrips' : getSpellListLabel(character, sourceClass)}`);
+    const destinationLabel = homebrewClass
+      ? spellListLabelFromMode(spellListModeFromHomebrewClass(homebrewClass))
+      : getSpellListLabel(character, sourceClass);
+    if (ok !== false) toast.success(`${normalised.name} added to ${level === 0 ? 'cantrips' : destinationLabel}`);
     return ok;
   };
 
