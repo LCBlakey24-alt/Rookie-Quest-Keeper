@@ -382,7 +382,18 @@ async def delete_character(character_id: str, username: str = Depends(get_curren
     result = await db.player_characters.delete_one({'id': character_id, 'user_id': username})
     if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character not found")
+
+    now = datetime.now(timezone.utc).isoformat()
     await db.journal_entries.delete_many({'character_id': character_id, 'user_id': username})
+    await db.campaign_members.update_many(
+        {'character_id': character_id, 'user_id': username},
+        {'$set': {
+            'character_id': None,
+            'status': 'removed',
+            'updated_at': now,
+            'character_removed_at': now,
+        }}
+    )
     return {"message": "Character deleted successfully"}
 
 
