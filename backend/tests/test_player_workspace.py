@@ -35,6 +35,7 @@ def route_module(name):
 players = route_module('players')
 notes = route_module('notes')
 invites = route_module('campaign_invites')
+characters = route_module('characters')
 
 
 def matches(row, query):
@@ -72,6 +73,19 @@ class Collection:
         self.rows = [row for row in self.rows if not matches(row, query)]
         return SimpleNamespace(deleted_count=previous - len(self.rows))
 
+    async def delete_many(self, query):
+        previous = len(self.rows)
+        self.rows = [row for row in self.rows if not matches(row, query)]
+        return SimpleNamespace(deleted_count=previous - len(self.rows))
+
+    async def update_many(self, query, update):
+        matched = 0
+        for row in self.rows:
+            if matches(row, query):
+                matched += 1
+                row.update(copy.deepcopy(update.get('$set', {})))
+        return SimpleNamespace(matched_count=matched, modified_count=matched)
+
 
 class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
@@ -89,8 +103,9 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
             players=Collection([{'id': 'legacy', 'campaign_id': 'c1', 'character_name': 'Companion', 'gm_notes': 'SECRET'}]),
             campaign_members=Collection([{'campaign_id': 'c1', 'user_id': 'player', 'character_id': 'p1'}]),
             timeline_events=Collection(),
+            journal_entries=Collection([{'id': 'j1', 'character_id': 'p1', 'user_id': 'player'}]),
         )
-        for module in (auth, players, notes, invites):
+        for module in (auth, players, notes, invites, characters):
             patcher = patch.object(module, 'db', self.db)
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -135,6 +150,19 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result[0]['character_id'], 'p1')
         self.assertNotIn('SECRET', str(result))
         self.assertEqual(self.db.campaigns.rows[0], self.campaign)
+
+    async def test_deleting_character_detaches_campaign_membership(self):
+        result = await characters.delete_character('p1', 'player')
+
+        self.assertEqual(result['message'], 'Character deleted successfully')
+        self.assertEqual(self.db.player_characters.rows, [
+            {'id': 'p2', 'campaign_id': 'c2', 'user_id': 'other', 'name': 'Other hero'}
+        ])
+        self.assertEqual(self.db.journal_entries.rows, [])
+        membership = self.db.campaign_members.rows[0]
+        self.assertIsNone(membership['character_id'])
+        self.assertEqual(membership['status'], 'removed')
+        self.assertIn('character_removed_at', membership)
 
     async def test_player_cannot_use_gm_roster(self):
         with self.assertRaises(HTTPException):
