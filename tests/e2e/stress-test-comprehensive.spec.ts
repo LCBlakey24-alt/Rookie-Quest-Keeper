@@ -1,13 +1,15 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'E2E credentials are not configured; set RQK_E2E_EMAIL and RQK_E2E_PASSWORD.');
+
 /**
  * Comprehensive Stress Test for ROOK (Rookie Quest Keeper) TTRPG Application
  * Tests all GM features: NPCs, Locations, Maps, Timeline, Gods, Combat, Notes, Custom Content
  * And Player features: Character creation, Character sheet, joining campaigns
  */
 
-const ADMIN_EMAIL = 'lcblakey24@outlook.com';
-const ADMIN_PASSWORD = 'Trigger24?!';
+const ADMIN_EMAIL = (process.env.RQK_E2E_EMAIL || '');
+const ADMIN_PASSWORD = (process.env.RQK_E2E_PASSWORD || '');
 const TEST_CAMPAIGN_ID = 'eabd4ae0-d1d8-40a5-858e-f7772af1d2ce';
 
 // Helper to login admin user
