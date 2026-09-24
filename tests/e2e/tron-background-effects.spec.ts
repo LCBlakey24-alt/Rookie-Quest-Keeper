@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test';
+
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
 import { 
   waitForAppReady,
   dismissToasts,
@@ -8,8 +12,8 @@ import {
 } from '../fixtures/helpers';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
-const TEST_EMAIL = 'admin@rookiequestkeeper.com';
-const TEST_PASSWORD = 'admin123';
+const TEST_EMAIL = (process.env.RQK_E2E_EMAIL || '');
+const TEST_PASSWORD = (process.env.RQK_E2E_PASSWORD || '');
 
 test.describe('Tron Light Cycle Background Effects', () => {
   
