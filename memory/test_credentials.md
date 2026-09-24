@@ -1,13 +1,17 @@
-# Test Credentials
+# Test credentials
 
-## Primary test account
-- **Email**: lcblakey24@outlook.com
-- **Password**: LCBlakey24?!
+Do not commit real or reusable account credentials to this repository.
 
-## Existing test characters
-- Test_Orc_Wiz (Wizard, Lv 1): `a1e7babc-c582-48ec-8a64-8c71501fa281`
-- Test_Gnome_Wiz (Wizard): see GET /api/characters for id
+For browser E2E tests that require a pre-registered account, provide credentials through the environment:
 
-## Premade template IDs (for Premade builder tests)
-2014: `tmpl-thorne-fighter`, `tmpl-elara-wizard`, `tmpl-shade-rogue`, `tmpl-bromm-cleric`, `tmpl-kara-barbarian`, `tmpl-lysander-bard`, `tmpl-fenn-ranger`, `tmpl-selene-druid`, `tmpl-rook-paladin`, `tmpl-vex-warlock`, `tmpl-ember-sorcerer`, `tmpl-shen-monk`
-2024: same list prefixed `tmpl-2024-`
+```bash
+export RQK_E2E_EMAIL="e2e-account@example.test"
+export RQK_E2E_PASSWORD="..."
+export RQK_E2E_USERNAME="e2e-test-user" # optional
+```
+
+CI should provide these values through protected repository/environment secrets.
+
+Backend integration tests that require a pre-existing account should use the same `RQK_E2E_EMAIL` and `RQK_E2E_PASSWORD` variables, or create an isolated test user during the test.
+
+Never add a real personal password, admin password, API key, access token, or reusable production credential to a test fixture.
