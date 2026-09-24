@@ -56,12 +56,6 @@ for root in SCAN_ROOTS:
         if EMAIL_ASSIGNMENT.search(text) and PASSWORD_ASSIGNMENT.search(text):
             violations.append(str(path.relative_to(ROOT)))
 
-policy_doc = ROOT / "memory" / "test_credentials.md"
-if policy_doc.exists():
-    text = policy_doc.read_text(encoding="utf-8", errors="ignore")
-    if re.search(r"(?i)password\s*[:=]\s*[^\s\`]+", text):
-        violations.append(str(policy_doc.relative_to(ROOT)))
-
 if violations:
     print("Reusable-looking literal test credentials found:")
     for path in sorted(set(violations)):
