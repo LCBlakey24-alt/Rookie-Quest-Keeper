@@ -110,6 +110,26 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
                 await route('c1', 'outsider')
             self.assertEqual(error.exception.status_code, 403)
 
+    async def test_pending_member_cannot_read_campaign_until_gm_approval(self):
+        self.db.campaign_members.rows[0]['status'] = 'pending'
+        self.db.player_characters.rows[0]['campaign_join_status'] = 'pending'
+
+        with self.assertRaises(HTTPException) as error:
+            await players.get_player_campaign('c1', 'player')
+
+        self.assertEqual(error.exception.status_code, 403)
+        self.assertIn('pending GM approval', error.exception.detail)
+
+    async def test_active_member_can_read_campaign(self):
+        self.db.campaign_members.rows[0]['status'] = 'active'
+        result = await players.get_player_campaign('c1', 'player')
+        self.assertEqual(result['name'], 'Test table')
+
+    async def test_legacy_linked_character_without_membership_record_still_has_access(self):
+        self.db.campaign_members.rows = []
+        result = await players.get_player_campaign('c1', 'player')
+        self.assertEqual(result['name'], 'Test table')
+
     async def test_joined_campaigns_do_not_return_gm_documents(self):
         result = await invites.get_joined_campaigns('player')
         self.assertEqual(result[0]['character_id'], 'p1')

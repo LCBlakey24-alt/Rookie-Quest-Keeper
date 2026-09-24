@@ -64,6 +64,30 @@ async def verify_campaign_membership(campaign_id: str, username: str) -> dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
     if campaign.get('dm_user_id') == username:
         return campaign
+
+    members = getattr(db, 'campaign_members', None)
+    member = await members.find_one(
+        {'campaign_id': campaign_id, 'user_id': username},
+        {'_id': 0, 'status': 1}
+    ) if members is not None else None
+
+    if member:
+        member_status = str(member.get('status') or 'active').strip().lower()
+        if member_status == 'active':
+            return campaign
+        if member_status == 'pending':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Campaign membership is pending GM approval"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not an active member of this campaign"
+        )
+
+    # Legacy fallback: older campaigns may have linked characters but no
+    # campaign_members record. Once a membership record exists, its status is
+    # authoritative and inactive states must not fall through to this check.
     player_character = await db.player_characters.find_one({
         'user_id': username, 'campaign_id': campaign_id
     }, {'_id': 1})
