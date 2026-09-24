@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { waitForAppReady, dismissToasts } from '../fixtures/helpers';
 
-const TEST_EMAIL = 'lcblakey24@outlook.com';
-const TEST_PASSWORD = 'Trigger24?!';
+test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'E2E credentials are not configured; set RQK_E2E_EMAIL and RQK_E2E_PASSWORD.');
+
+const TEST_EMAIL = (process.env.RQK_E2E_EMAIL || '');
+const TEST_PASSWORD = (process.env.RQK_E2E_PASSWORD || '');
 const TEST_CAMPAIGN_ID = 'eabd4ae0-d1d8-40a5-858e-f7772af1d2ce';
 const TEST_CAMPAIGN_NAME = 'Test Forgotten Realms Campaign';
 
