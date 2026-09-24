@@ -502,6 +502,7 @@ class UserClass(BaseModel):
     saving_throw_proficiencies: List[str] = []
     armor_proficiencies: List[str] = []
     weapon_proficiencies: List[str] = []
+    spellcasting: Optional[Dict[str, Any]] = None
     features: List[Dict[str, Any]] = []
     source: str = "Custom"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
