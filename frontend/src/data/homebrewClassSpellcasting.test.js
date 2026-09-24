@@ -1,4 +1,5 @@
 import {
+  buildHomebrewPactMagicTracker,
   buildHomebrewSpellcastingState,
   getHomebrewLevelOneSpellRequirements,
   getHomebrewSpellSlots,
@@ -76,6 +77,25 @@ describe('homebrew class spellcasting', () => {
     };
 
     expect(getHomebrewSpellSlots(pactCaster, 5, '2014')).toEqual({ 3: 2 });
+  });
+
+  test('builds a short-rest Pact Magic tracker for custom pact casters', () => {
+    const pactCaster = {
+      name: 'Hexbinder',
+      spellcasting: { ability: 'charisma', progression: 'pact', start_level: 1 },
+    };
+
+    expect(buildHomebrewPactMagicTracker(pactCaster, { level: 5, edition: '2014' })).toEqual({
+      label: 'Pact Magic',
+      current: 2,
+      remaining: 2,
+      max: 2,
+      slot_level: 3,
+      restore: 'short-rest',
+      min_level: 1,
+      className: 'Hexbinder',
+      homebrew: true,
+    });
   });
 
   test('respects a delayed spellcasting start', () => {
