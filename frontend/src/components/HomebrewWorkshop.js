@@ -56,7 +56,7 @@ const EMPTY_DRAFTS = {
   subclass: { name: '', image_url: '', parent_class: '', description: '', subclass_level: 3, features: [], ...ADVANCED },
   feat: { name: '', image_url: '', description: '', category: 'general', prerequisite: '', repeatable: false, ability_score_increase: {}, benefits: [], ...ADVANCED },
   spell: { name: '', image_url: '', description: '', level: 0, school: '', casting_time: '', range: '', components: '', duration: '', ritual: false, concentration: false, classes: [], damage: {}, higher_level: '', effects: [], ...ADVANCED },
-  background: { name: '', image_url: '', description: '', skill_proficiencies: [], tool_proficiencies: [], languages: 0, equipment: [], feature_name: '', feature_description: '', suggested_characteristics: {}, ...ADVANCED },
+  background: { name: '', image_url: '', description: '', skill_proficiencies: [], tool_proficiencies: [], languages: 0, equipment: [], feature_name: '', feature_description: '', asi2024: {}, origin_feat_2024: '', suggested_characteristics: {}, ...ADVANCED },
 };
 
 const CATEGORIES = ['exploding_dice', 'chaos_tokens', 'custom_skill', 'resting', 'combat', 'magic', 'futuristic', 'other'];
@@ -282,6 +282,8 @@ function DraftEditor({ contentType, draft, missing, onChange }) {
       <FieldRow label="Skill Proficiencies" value={toLines(draft.skill_proficiencies)} onChange={v => upd('skill_proficiencies', fromLines(v))} multiline missing={miss('skill_proficiencies')} />
       <FieldRow label="Tool Proficiencies" value={toLines(draft.tool_proficiencies)} onChange={v => upd('tool_proficiencies', fromLines(v))} multiline />
       <FieldRow label="Equipment" value={toLines(draft.equipment)} onChange={v => upd('equipment', fromLines(v))} multiline />
+      <JsonField label="2024 Ability Score Increases JSON" value={draft.asi2024 || {}} onChange={v => upd('asi2024', v)} placeholder='{"strength": 2, "constitution": 1}' />
+      <FieldRow label="2024 Origin Feat" value={draft.origin_feat_2024 || ''} onChange={v => upd('origin_feat_2024', v)} placeholder="Tough, Alert, Crafter…" />
       <FieldRow label="Feature Name" value={draft.feature_name} onChange={v => upd('feature_name', v)} />
       <FieldRow label="Feature Description" value={draft.feature_description} onChange={v => upd('feature_description', v)} multiline />
       {advanced}

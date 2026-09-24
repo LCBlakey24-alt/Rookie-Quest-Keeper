@@ -170,6 +170,7 @@ export function normaliseBackgroundOption(option = {}) {
     equipment: asArray(option.equipment).map(textOf).filter(Boolean),
     featureName: option.feature_name || option.featureName || '',
     featureDescription: option.feature_description || option.featureDescription || '',
+    asi2024: option.asi2024 || option.asi_2024 || {},
     originFeat2024: option.origin_feat_2024 || option.originFeat2024 || '',
     source: option.source_label || option.source || 'Uploaded',
     sourceScope: option.source_scope || 'personal',

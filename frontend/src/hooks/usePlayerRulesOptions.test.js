@@ -54,6 +54,22 @@ describe('uploaded character rule option normalization', () => {
     }).skillProficiencies).toEqual(['Stealth', 'Deception']);
   });
 
+  test('preserves 2024 background ASI and origin feat fields for the active creator', () => {
+    expect(normaliseBackgroundOption({
+      asi2024: { wisdom: 2, constitution: 1 },
+      origin_feat_2024: 'Tough',
+    })).toMatchObject({
+      asi2024: { wisdom: 2, constitution: 1 },
+      originFeat2024: 'Tough',
+    });
+  });
+
+  test('accepts snake-case 2024 ASI data from uploaded backgrounds', () => {
+    expect(normaliseBackgroundOption({
+      asi_2024: { intelligence: 2, dexterity: 1 },
+    }).asi2024).toEqual({ intelligence: 2, dexterity: 1 });
+  });
+
   test('merged uploaded classes expose a usable skill target to the creator', () => {
     const merged = buildMergedCharacterRules({}, {
       classes: [{

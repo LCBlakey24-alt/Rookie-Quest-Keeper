@@ -158,6 +158,8 @@ SCHEMA_HINTS = {
         "tool_proficiencies": "[string]",
         "languages": "int — number of additional languages",
         "equipment": "[string]",
+        "asi2024": "object e.g. {strength: 2, constitution: 1} — 2024 background ability score increases",
+        "origin_feat_2024": "string — 2024 origin feat granted by the background",
         "feature_name": "string",
         "feature_description": "string",
         "suggested_characteristics": "object or [string]",
