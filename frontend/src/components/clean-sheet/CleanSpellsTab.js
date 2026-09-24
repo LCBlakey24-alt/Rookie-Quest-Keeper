@@ -5,6 +5,7 @@ import { AlertTriangle, Search, Wand2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { spellRequiresConcentration } from '@/data/spellConcentrationRules';
+import { buildSavedCustomCasterRow } from '@/data/savedCustomSpellcastingPresentation';
 import {
   SPELLCASTING_CLASSES,
   getSpellsForClass,
@@ -514,7 +515,10 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     .map(([className, level]) => {
       const canonical = canonicalSpellClassName(className);
       const info = SPELLCASTING_CLASSES[canonical];
-      if (!info || !classHasSpellcasting(character, className, classLevels)) return null;
+      if (!info) {
+        return buildSavedCustomCasterRow(character, className, level, proficiencyBonus);
+      }
+      if (!classHasSpellcasting(character, className, classLevels)) return null;
       const modifier = abilityMod(character?.[info.ability]);
       const listMode = getCharacterSpellListMode(character, canonical);
       const listLabel = getSpellListLabel(character, canonical);
@@ -905,8 +909,8 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
                   </div>
                   <div className="clean-sheet-caster-stats">
                     <div><span>Ability</span><strong>{row.abilityLabel}</strong></div>
-                    <div><span>Save DC</span><strong>{row.saveDc}</strong></div>
-                    <div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong></div>
+                    <div><span>Save DC</span><strong>{row.saveDc ?? '—'}</strong></div>
+                    <div><span>Attack</span><strong>{row.attackBonus === null || row.attackBonus === undefined ? '—' : formatBonus(row.attackBonus)}</strong></div>
                     <div><span>Style</span><strong>{row.castingType}</strong></div>
                   </div>
                   {row.preparedCapacity > 0 && <p className="clean-sheet-muted">Prepared: {sourcePrepared.length}/{row.preparedCapacity}</p>}
