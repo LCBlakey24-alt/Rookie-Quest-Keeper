@@ -76,6 +76,17 @@ describe('uploaded character rule option normalization', () => {
     }).startingEquipment).toEqual(['Leather Armor', 'Longsword', 'Explorer Pack']);
   });
 
+  test('preserves structured homebrew class feature names and descriptions', () => {
+    expect(normaliseClassOption({
+      features: [{ level: 1, name: 'Arcane Ward', description: 'Gain a protective magical ward.' }],
+    }).features[1]).toEqual([
+      expect.objectContaining({
+        name: 'Arcane Ward',
+        description: 'Gain a protective magical ward.',
+      }),
+    ]);
+  });
+
   test('preserves the earliest explicit homebrew subclass unlock level', () => {
     expect(normaliseClassOption({
       subclass_unlock_levels: [6, 2, 10],
