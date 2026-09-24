@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 // Test credentials
-const TEST_EMAIL = 'lcblakey24@outlook.com';
-const TEST_PASSWORD = 'LCBlakey24?!';
+const TEST_EMAIL = (process.env.RQK_E2E_EMAIL || '');
+const TEST_PASSWORD = (process.env.RQK_E2E_PASSWORD || '');
 
 // Helper function to login and navigate to GM Screen
 async function loginAndNavigateToGMScreen(page) {
