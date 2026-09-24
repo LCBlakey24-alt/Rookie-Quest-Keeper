@@ -6,6 +6,12 @@ import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices,
 import apiClient from '@/lib/apiClient';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
+import {
+  buildHomebrewSpellcastingState,
+  getHomebrewLevelOneSpellRequirements,
+  homebrewSpellcastingIsActive,
+  normaliseHomebrewClassSpellcasting,
+} from '@/data/homebrewClassSpellcasting';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import { mergeToolProficiencies, normaliseClassFeatureForSheet, normaliseTraitForSheet } from '@/data/characterCreationPayload';
@@ -19,7 +25,7 @@ const STANDARD = { strength: 15, dexterity: 14, constitution: 13, intelligence: 
 const LEVEL_ONE_SUBCLASS = new Set(['Cleric', 'Sorcerer', 'Warlock']);
 const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
 const FIGHTER_FIGHTING_STYLES = ['Archery', 'Defense', 'Dueling', 'Great Weapon Fighting', 'Protection', 'Two-Weapon Fighting'];
-const SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
+const CORE_LEVEL_ONE_SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
 const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 
 const STARTING_GOLD_2014_BY_CLASS = {
@@ -109,8 +115,10 @@ function classSkillOptions(classData) {
   return arr(classData.skillChoices);
 }
 
-function spellRequirements(characterClass, scores) {
-  if (!SPELL_CLASSES.has(characterClass)) return { cantrips: 0, spells: 0, type: 'none' };
+function spellRequirements(characterClass, classData, scores) {
+  if (!CORE_LEVEL_ONE_SPELL_CLASSES.has(characterClass)) {
+    return getHomebrewLevelOneSpellRequirements(classData);
+  }
   if (characterClass === 'Wizard') return { cantrips: 3, spells: 6, type: 'spellbook' };
   if (characterClass === 'Cleric') return { cantrips: 3, spells: Math.max(1, mod(scores.wisdom) + 1), type: 'prepared' };
   if (characterClass === 'Druid') return { cantrips: 2, spells: Math.max(1, mod(scores.wisdom) + 1), type: 'prepared' };
@@ -219,13 +227,14 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const startingGoldRule = getStartingGoldRule(draft.characterClass, draft.edition);
   const startingGold = equipmentMode === 'gold' ? (startingGoldRule.fixed ? startingGoldRule.average : Number(draft.rolledStartingGold || 0)) : 0;
   const equipmentList = startingEquipment();
-  const spellReq = spellRequirements(draft.characterClass, finalScores);
+  const spellReq = spellRequirements(draft.characterClass, classData, finalScores);
   const spellLists = getSpellsForClass(draft.characterClass) || {};
   const cantripPool = arr(spellLists.cantrips || spellLists[0]);
   const levelOnePool = arr(spellLists[1]);
   const visibleCantrips = cantripPool.filter((spell) => searchMatch(spell, spellSearch));
   const visibleSpells = levelOnePool.filter((spell) => searchMatch(spell, spellSearch));
-  const hasSpells = spellReq.cantrips > 0 || spellReq.spells > 0;
+  const isHomebrewSpellcaster = !SPELLCASTING_CLASSES[draft.characterClass] && homebrewSpellcastingIsActive(classData, 1);
+  const hasSpells = spellReq.cantrips > 0 || spellReq.spells > 0 || isHomebrewSpellcaster;
   const chosenFeat = draft.extraFeat !== 'None' ? draft.extraFeat : (draft.edition === '2024' ? backgroundData.originFeat2024 || '' : '');
   const featRequired = draft.edition === '2024';
   const equipmentComplete = equipmentMode === 'equipment' || (equipmentMode === 'gold' && (startingGoldRule.fixed || startingGold > 0));
@@ -376,20 +385,32 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }
 
   function spellFields() {
-    const classInfo = SPELLCASTING_CLASSES[draft.characterClass];
+    const coreClassInfo = SPELLCASTING_CLASSES[draft.characterClass];
+    const homebrewClassInfo = coreClassInfo ? null : normaliseHomebrewClassSpellcasting(classData);
+    const classInfo = coreClassInfo || homebrewClassInfo;
     if (!classInfo || !hasSpells) return {};
-    const ability = classInfo.ability;
-    const abilityMod = mod(finalScores[ability]);
-    const slots = getSpellSlotsForCaster(classInfo, 1);
+
+    const ability = classInfo.ability || '';
+    const abilityMod = ability ? mod(finalScores[ability]) : 0;
+    const spellState = coreClassInfo
+      ? {
+        spellcasting_ability: ability,
+        spell_save_dc: 8 + proficiencyBonus + abilityMod,
+        spell_attack_bonus: proficiencyBonus + abilityMod,
+        spell_slots: getSpellSlotsForCaster(coreClassInfo, 1),
+        spell_slots_remaining: getSpellSlotsForCaster(coreClassInfo, 1),
+      }
+      : buildHomebrewSpellcastingState(classData, {
+        level: 1,
+        edition: draft.edition,
+        scores: finalScores,
+        proficiencyBonus,
+      });
     const cantrips = draft.selectedCantrips.map((name) => toSpellEntry(cantripPool.find((spell) => spellName(spell) === name) || { name }, 0));
     const spells = draft.selectedSpells.map((name) => toSpellEntry(levelOnePool.find((spell) => spellName(spell) === name) || { name }, 1));
     const preparedLimit = Math.max(1, abilityMod + 1);
     return {
-      spellcasting_ability: ability,
-      spell_save_dc: 8 + proficiencyBonus + abilityMod,
-      spell_attack_bonus: proficiencyBonus + abilityMod,
-      spell_slots: slots,
-      spell_slots_remaining: slots,
+      ...spellState,
       cantrips_known: cantrips,
       ...(spellReq.type === 'spellbook'
         ? { spellbook: spells, spells_prepared: spells.slice(0, preparedLimit) }
@@ -741,6 +762,9 @@ function Skills({ backgroundSkills, skillOptions, selected, target, toggle }) {
 }
 
 function Spells({ spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
+  if (spellReq.cantrips === 0 && spellReq.spells === 0) {
+    return <div className="full-creator-auto-box"><strong>Spellcasting</strong><span>This homebrew class uses spellcasting, but no level 1 spell choices are configured yet.</span></div>;
+  }
   return <>
     <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>
       <input className="full-creator-search" value={spellSearch} onChange={(event) => setSpellSearch(event.target.value)} placeholder="Search spells, damage, healing…" />
