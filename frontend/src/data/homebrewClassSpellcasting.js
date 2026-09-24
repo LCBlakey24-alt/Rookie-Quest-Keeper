@@ -31,8 +31,16 @@ export function normaliseHomebrewClassSpellcasting(classData = {}) {
   const rawStyle = String(firstDefined(raw.type, raw.style, raw.casting_type, raw.castingType) || 'known').trim().toLowerCase();
   const type = STYLES.has(rawStyle) ? rawStyle : 'known';
 
-  const rawProgression = normaliseToken(firstDefined(raw.progression, raw.slot_progression, raw.slotProgression) || 'full');
-  const progression = PROGRESSIONS.has(rawProgression) ? rawProgression : 'full';
+  const rawProgression = normaliseToken(firstDefined(raw.progression, raw.slot_progression, raw.slotProgression) || '');
+  const progression = PROGRESSIONS.has(rawProgression)
+    ? rawProgression
+    : raw.pactMagic || raw.pact_magic
+      ? 'pact'
+      : raw.halfCaster || raw.half_caster
+        ? 'half'
+        : raw.thirdCaster || raw.third_caster
+          ? 'third'
+          : 'full';
 
   const startLevel = clampLevel(firstDefined(raw.start_level, raw.startLevel), 1);
   const cantripsAtLevelOne = countField(
