@@ -117,6 +117,7 @@ function classSkillOptions(classData) {
 
 function spellRequirements(characterClass, classData, scores) {
   if (!CORE_LEVEL_ONE_SPELL_CLASSES.has(characterClass)) {
+    if (SPELLCASTING_CLASSES[characterClass]) return { cantrips: 0, spells: 0, type: 'none' };
     return getHomebrewLevelOneSpellRequirements(classData);
   }
   if (characterClass === 'Wizard') return { cantrips: 3, spells: 6, type: 'spellbook' };
