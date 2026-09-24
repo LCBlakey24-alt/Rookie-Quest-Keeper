@@ -119,6 +119,16 @@ pytest
 pytest --run-integration -m integration
 ```
 
+For E2E/integration tests that use a pre-registered account, provide credentials only through the environment:
+
+```bash
+export RQK_E2E_EMAIL="e2e-account@example.test"
+export RQK_E2E_PASSWORD="..."
+export RQK_E2E_USERNAME="e2e-test-user" # optional
+```
+
+Do not commit real or reusable credentials. CI should inject these values from protected secrets.
+
 Manual smoke test:
 
 1. Register/login.
