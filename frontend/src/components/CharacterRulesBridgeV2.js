@@ -14,6 +14,10 @@ import {
 } from '@/data/spellDatabase';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import {
+  buildHomebrewSpellcastingState,
+  homebrewSpellcastingIsActive,
+} from '@/data/homebrewClassSpellcasting';
+import {
   resolveDraftClassName,
   resolvePayloadClassName,
   resolvePayloadSubclassName,
@@ -415,6 +419,16 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
     const slots = getSpellSlotsForCaster(spellcasting, level);
     enhanced.spell_slots = slots;
     enhanced.spell_slots_remaining = slots;
+  } else if (homebrewSpellcastingIsActive(classData, level)) {
+    enhanced = {
+      ...enhanced,
+      ...buildHomebrewSpellcastingState(classData, {
+        level,
+        edition: enhanced.rules_edition || enhanced.edition || '2014',
+        scores: enhanced,
+        proficiencyBonus: enhanced.proficiency_bonus,
+      }),
+    };
   }
   enhanced.resources = buildInitialClassResources(enhanced);
   return enhanced;
