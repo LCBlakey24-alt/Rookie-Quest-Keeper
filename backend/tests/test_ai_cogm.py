@@ -14,8 +14,8 @@ class TestAICoGM:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup test credentials and get auth token"""
-        self.email = "lcblakey24@outlook.com"
-        self.password = "LCBlakey24?!"
+        self.email = os.environ.get("RQK_E2E_EMAIL", "")
+        self.password = os.environ.get("RQK_E2E_PASSWORD", "")
         self.campaign_id = "b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6"
         
         # Get auth token
@@ -175,8 +175,8 @@ class TestCharacterInventoryAPI:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup test credentials and get auth token"""
-        self.email = "lcblakey24@outlook.com"
-        self.password = "LCBlakey24?!"
+        self.email = os.environ.get("RQK_E2E_EMAIL", "")
+        self.password = os.environ.get("RQK_E2E_PASSWORD", "")
         self.campaign_id = "b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6"
         
         # Get auth token
