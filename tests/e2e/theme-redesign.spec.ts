@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Theme Redesign - Dual Theme System', () => {
   const testCredentials = {
-    email: 'lcblakey24@outlook.com',
-    password: 'LCBlakey24?!'
+    email: (process.env.RQK_E2E_EMAIL || ''),
+    password: (process.env.RQK_E2E_PASSWORD || '')
   };
 
   test.describe('Landing Page - Neutral Theme', () => {
