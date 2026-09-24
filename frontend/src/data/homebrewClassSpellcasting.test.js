@@ -43,6 +43,16 @@ describe('homebrew class spellcasting', () => {
     })).toEqual({ cantrips: 0, spells: 0, type: 'none' });
   });
 
+  test('accepts legacy caster flags and friendly progression labels', () => {
+    expect(normaliseHomebrewClassSpellcasting({
+      spellcasting: { ability: 'wisdom', halfCaster: true },
+    }).progression).toBe('half');
+
+    expect(normaliseHomebrewClassSpellcasting({
+      spellcasting: { ability: 'charisma', progression: 'Pact Magic' },
+    }).progression).toBe('pact');
+  });
+
   test('uses full-caster slot progression after the configured start level', () => {
     expect(getHomebrewSpellSlots(fullCaster, 5, '2014')).toEqual({
       1: 4,
