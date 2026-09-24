@@ -9,8 +9,8 @@ import os
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000')
 
 # Test credentials
-TEST_EMAIL = "lcblakey24@outlook.com"
-TEST_PASSWORD = "LCBlakey24?!"
+TEST_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 
 
 @pytest.fixture(scope="module")
