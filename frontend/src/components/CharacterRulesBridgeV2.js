@@ -9,9 +9,12 @@ import { FEATS } from '@/data/levelUpData';
 import {
   SPELLCASTING_CLASSES,
   SPELL_DATABASE,
-  getCanonicalSpellcastingClass,
   getSpellSlotsForCaster,
 } from '@/data/spellDatabase';
+import {
+  normaliseSpellClasses,
+  spellEntryFromHomebrew,
+} from '@/data/homebrewSpellOptions';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import {
   buildHomebrewPactMagicTracker,
@@ -171,40 +174,7 @@ function installUploadedFeats(feats = []) {
   });
 }
 
-export function normaliseSpellClasses(spell = {}) {
-  const rawClasses = splitList(
-    spell.classes ||
-    spell.class_list ||
-    spell.classList ||
-    spell.class_names ||
-    spell.classNames ||
-    spell.available_classes ||
-    spell.availableClasses ||
-    spell.class ||
-    spell.spell_class,
-  );
-  const classes = rawClasses
-    .map((name) => getCanonicalSpellcastingClass(name))
-    .filter(Boolean);
-  return rawClasses.length ? Array.from(new Set(classes)) : Object.keys(SPELLCASTING_CLASSES);
-}
-
-export function spellEntryFromHomebrew(spell = {}) {
-  const damage = spell.damage && typeof spell.damage === 'object' ? spell.damage.dice : spell.damage;
-  const damageType = spell.damage && typeof spell.damage === 'object' ? spell.damage.type : spell.damageType || spell.damage_type;
-  return {
-    ...spell,
-    name: displayName(spell),
-    level: Number(spell.level ?? spell.spell_level ?? 0),
-    school: spell.school || '',
-    classes: normaliseSpellClasses(spell),
-    description: spell.description || spell.rules_text || '',
-    damage,
-    damageType,
-    source: spell.source_label || spell.source || 'Homebrew Workshop',
-    homebrew: true,
-  };
-}
+export { normaliseSpellClasses, spellEntryFromHomebrew };
 
 function installUploadedSpells(spells = []) {
   arr(spells).forEach((rawSpell) => {
