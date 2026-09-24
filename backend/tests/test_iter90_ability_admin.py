@@ -1,7 +1,7 @@
 """Iteration 90 - Admin CSV export + Impersonate + regression tests.
 
 Covers:
-- Auth: login for admin user (lcblakey24@outlook.com -> username 'LCBlakey24')
+- Auth: login for configured E2E admin account
 - Admin: GET /api/admin/check returns is_admin True
 - Admin CSV: /api/admin/export/users.csv and /admin/export/campaigns.csv (headers + auth)
 - Admin Impersonate: POST /api/admin/users/{username}/impersonate (case-insensitive,
