@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'E2E credentials are not configured; set RQK_E2E_EMAIL and RQK_E2E_PASSWORD.');
+
 test.describe('SRD-Only Items Database Verification', () => {
-  const testEmail = 'lcblakey24@outlook.com';
-  const testPassword = 'LCBlakey24?!';
+  const testEmail = (process.env.RQK_E2E_EMAIL || '');
+  const testPassword = (process.env.RQK_E2E_PASSWORD || '');
   const campaignId = 'b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6';
 
   test.beforeEach(async ({ page }) => {
