@@ -1,5 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
 
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
+
 /**
  * Tests for LevelUpModal with multiclass support
  * Features:
@@ -11,8 +15,8 @@ import { test, expect, Page } from '@playwright/test';
 
 // Test credentials
 const TEST_USER = {
-  email: 'stress_test_1772651200@test.com',
-  password: 'TestPass123!'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 
 // Character used for testing (TEST_ELARA_WIZARD)
