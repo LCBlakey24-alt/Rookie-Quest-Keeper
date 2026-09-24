@@ -7,6 +7,7 @@ import apiClient from '@/lib/apiClient';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import {
+  buildHomebrewPactMagicTracker,
   buildHomebrewSpellcastingState,
   getHomebrewLevelOneSpellRequirements,
   homebrewSpellcastingIsActive,
@@ -539,7 +540,14 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       has_inspiration: false,
       ...spellData,
     };
-    return { ...basePayload, resources: buildInitialClassResources(basePayload) };
+    const resources = buildInitialClassResources(basePayload);
+    const pactMagic = !SPELLCASTING_CLASSES[draft.characterClass]
+      ? buildHomebrewPactMagicTracker(classData, { level: 1, edition: draft.edition })
+      : null;
+    return {
+      ...basePayload,
+      resources: pactMagic ? { ...resources, pact_magic: pactMagic } : resources,
+    };
   }
 
   async function saveCharacter() {
