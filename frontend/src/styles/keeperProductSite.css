@@ -1,27 +1,39 @@
-/* Keeper shares the app's flat navy palette. Do not introduce a separate
-   light skin: the shared control layer deliberately keeps text white. */
+/* Keeper landing page visual hierarchy.
+   Keep the shared flat navy / sky-blue / hot-pink identity, but avoid
+   making every text tier and divider equally bright. */
 #root .landing-page-final.keeper-product-site {
-  --landing-bg: #071522;
-  --landing-bg-deep: #06111c;
-  --landing-surface: #0c2234;
-  --landing-card: #102b40;
-  --landing-card-hover: #14344c;
-  --landing-line: rgba(255, 45, 170, 0.18);
-  --landing-line-strong: rgba(255, 45, 170, 0.42);
+  --landing-bg: #040d16;
+  --landing-bg-deep: #020810;
+  --landing-surface: #091a29;
+  --landing-card: #0d2436;
+  --landing-card-hover: #123149;
+
+  /* Pink stays a deliberate action/focus accent instead of filling the page. */
+  --landing-line: rgba(255, 45, 170, 0.10);
+  --landing-line-strong: rgba(255, 45, 170, 0.30);
   --landing-red: #ff2daa;
-  --landing-red-bright: #ff2daa;
-  --landing-red-soft: rgba(255, 45, 170, 0.08);
-  --landing-text: #ffffff;
-  --landing-muted: #ffffff;
-  --landing-faint: #ffffff;
+  --landing-red-bright: #ff4db6;
+  --landing-red-soft: rgba(255, 45, 170, 0.045);
+
+  /* Supporting emphasis uses Keeper sky blue. */
+  --landing-secondary: #7ccbff;
+  --landing-secondary-soft: rgba(124, 203, 255, 0.08);
+  --landing-secondary-line: rgba(124, 203, 255, 0.20);
+
+  /* Restore hierarchy: not every line of copy should be full white. */
+  --landing-text: #f8fbff;
+  --landing-muted: rgba(238, 246, 252, 0.76);
+  --landing-faint: rgba(238, 246, 252, 0.60);
+
   background: var(--landing-bg) !important;
   color: var(--landing-text) !important;
 }
 
 #root .keeper-product-site .landing-final-nav {
-  background: var(--landing-bg-deep) !important;
+  background: rgba(2, 8, 16, 0.94) !important;
+  border-color: var(--landing-line) !important;
   border-radius: 7px;
-  backdrop-filter: none;
+  backdrop-filter: blur(14px);
 }
 
 .keeper-product-site .landing-brand-context {
@@ -32,6 +44,7 @@
 }
 
 .keeper-product-site .landing-brand-context-copy {
+  color: var(--landing-text);
   font-size: 14px;
   font-weight: 800;
 }
@@ -52,6 +65,60 @@
 #root .keeper-product-site .landing-preview-topbar,
 #root .keeper-product-site .landing-preview-row {
   background: var(--landing-card) !important;
+}
+
+/* Give the long landing page calm, clearly separated reading zones. */
+#root .keeper-product-site .landing-final-features,
+#root .keeper-product-site .landing-start-paths,
+#root .keeper-product-site .landing-marketing-block,
+#root .keeper-product-site .landing-benefit-grid,
+#root .keeper-product-site .landing-roadmap,
+#root .keeper-product-site .landing-two-columns,
+#root .keeper-product-site .landing-final-strip,
+#root .keeper-product-site .landing-faq-panel,
+#root .keeper-product-site .landing-final-cta {
+  border-color: var(--landing-line) !important;
+  background: rgba(2, 8, 16, 0.46) !important;
+}
+
+#root .keeper-product-site .landing-section-heading,
+#root .keeper-product-site .landing-roadmap-heading,
+#root .keeper-product-site .landing-faq-heading {
+  background: var(--landing-surface) !important;
+  background-image: none !important;
+}
+
+/* Sky blue carries supporting visual emphasis; pink stays for key actions. */
+#root .keeper-product-site .landing-final-feature svg,
+#root .keeper-product-site .landing-benefit-card svg,
+#root .keeper-product-site .landing-two-columns svg,
+#root .keeper-product-site .landing-final-strip svg,
+#root .keeper-product-site .landing-final-cta > svg,
+#root .keeper-product-site .landing-logo-button svg,
+#root .keeper-product-site .landing-start-card svg {
+  color: var(--landing-secondary) !important;
+}
+
+#root .keeper-product-site .landing-kicker,
+#root .keeper-product-site .landing-card-eyebrow {
+  color: var(--landing-secondary) !important;
+}
+
+#root .keeper-product-site .landing-button-primary {
+  color: var(--landing-bg-deep) !important;
+}
+
+#root .keeper-product-site .landing-button-ghost,
+#root .keeper-product-site .landing-card-action {
+  background: var(--landing-card) !important;
+  border-color: var(--landing-secondary-line) !important;
+  color: var(--landing-text) !important;
+}
+
+#root .keeper-product-site .landing-button-ghost:hover:not(:disabled),
+#root .keeper-product-site .landing-card-action:hover:not(:disabled) {
+  background: var(--landing-card-hover) !important;
+  border-color: rgba(124, 203, 255, 0.34) !important;
 }
 
 .keeper-product-site .landing-button {
