@@ -1,10 +1,14 @@
 import { test, expect } from '@playwright/test';
+
+test.beforeEach(() => {
+  test.skip(!process.env.RQK_E2E_EMAIL || !process.env.RQK_E2E_PASSWORD, 'Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD');
+});
 import { waitForAppReady, dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 // Test user credentials (pre-registered)
 const AI_TEST_USER = {
-  email: 'aitest@test.com',
-  password: 'test123456'
+  email: (process.env.RQK_E2E_EMAIL || ''),
+  password: (process.env.RQK_E2E_PASSWORD || '')
 };
 
 test.describe('AI Character Generation - Unseen Servant in Character Builder', () => {
