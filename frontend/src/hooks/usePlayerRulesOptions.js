@@ -40,9 +40,15 @@ const toFeatureMap = (features = []) => {
   const out = {};
   asArray(features).forEach((feature) => {
     const level = Math.max(1, Math.min(20, Number(feature?.level || 1)));
-    const label = textOf(feature);
-    if (!label) return;
-    out[level] = [...(out[level] || []), label];
+    const value = typeof feature === 'string'
+      ? feature
+      : {
+        ...feature,
+        name: asName(feature) || feature?.description || feature?.text || feature?.summary || '',
+        description: feature?.description || feature?.text || feature?.summary || '',
+      };
+    if (!(typeof value === 'string' ? value : value.name)) return;
+    out[level] = [...(out[level] || []), value];
   });
   return out;
 };
