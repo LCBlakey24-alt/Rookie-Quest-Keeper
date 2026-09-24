@@ -19,6 +19,18 @@ const asName = (value) => {
   return value?.name || value?.title || '';
 };
 
+const normaliseTraitValue = (trait) => {
+  if (typeof trait === 'string') return trait;
+  if (!trait || typeof trait !== 'object') return String(trait || '');
+  const name = asName(trait) || trait.description || trait.text || trait.summary || '';
+  if (!name) return '';
+  return {
+    ...trait,
+    name,
+    description: trait.description || trait.text || trait.summary || '',
+  };
+};
+
 const splitNames = (value) => {
   if (Array.isArray(value)) return value.flatMap(splitNames).filter(Boolean);
   if (typeof value === 'string') {
@@ -58,7 +70,7 @@ const toSubraceMap = (subraces = []) => {
     return Object.fromEntries(Object.entries(subraces).map(([name, data]) => [name, {
       ...data,
       asi2014: data?.asi2014 || data?.ability_bonuses || data?.abilityBonuses || {},
-      traits: asArray(data?.traits).map(textOf),
+      traits: asArray(data?.traits).map(normaliseTraitValue).filter(Boolean),
     }]));
   }
 
@@ -68,7 +80,7 @@ const toSubraceMap = (subraces = []) => {
       description: subrace?.description || '',
       speed: Number(subrace?.speed || 0) || undefined,
       asi2014: subrace?.asi2014 || subrace?.ability_bonuses || subrace?.abilityBonuses || {},
-      traits: asArray(subrace?.traits).map(textOf),
+      traits: asArray(subrace?.traits).map(normaliseTraitValue).filter(Boolean),
     }];
   }).filter(([name]) => name));
 };
@@ -134,7 +146,7 @@ export function normaliseRaceOption(option = {}) {
     size: option.size || 'Medium',
     speed: Number(option.speed || 30),
     asi2014: option.asi2014 || option.ability_bonuses || option.abilityBonuses || {},
-    traits: asArray(option.traits).map(textOf),
+    traits: asArray(option.traits).map(normaliseTraitValue).filter(Boolean),
     languages: asArray(option.languages).map(textOf),
     subraces: toSubraceMap(option.subraces),
     source: option.source_label || option.source || 'Uploaded',
