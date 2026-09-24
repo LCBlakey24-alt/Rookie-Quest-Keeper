@@ -320,9 +320,9 @@ export default function LandingPage() {
               <button data-testid="landing-cta-btn" type="button" className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')} onClick={goBuild} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
                 <span>Build Your First Character</span> <ChevronRight size={18} aria-hidden="true" />
               </button>
-              <button type="button" className="landing-button landing-button-ghost landing-button-large" onClick={() => scrollToSection(readySectionRef)} disabled={isTransitioning}>
-                <span>See What Keeper Can Do</span>
-              </button>
+              <a className="landing-button landing-button-ghost landing-button-large" href="/home?demo=1">
+                <span>Explore the demo</span>
+              </a>
             </div>
 
             <div className="landing-proof-strip" aria-label="Rookie Quest Keeper focus areas">
