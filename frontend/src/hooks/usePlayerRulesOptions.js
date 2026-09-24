@@ -140,6 +140,14 @@ export function normaliseRaceOption(option = {}) {
 
 export function normaliseClassOption(option = {}) {
   const { skillChoices, skillCount } = normaliseClassSkillChoices(option);
+  const rawSubclassLevels = option.subclass_unlock_levels
+    ?? option.subclassUnlockLevels
+    ?? option.subclass_level
+    ?? option.subclassLevel;
+  const subclassLevels = asArray(rawSubclassLevels)
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value >= 1 && value <= 20);
+  const subclassLevel = subclassLevels.length ? Math.min(...subclassLevels) : null;
   return {
     description: option.description || '',
     hitDie: hitDieNumber(option.hit_die || option.hitDie, 8),
@@ -154,6 +162,7 @@ export function normaliseClassOption(option = {}) {
     features: toFeatureMap(option.features),
     subclasses: [],
     spellcasting: option.spellcasting || null,
+    ...(subclassLevel ? { subclassLevel } : {}),
     source: option.source_label || option.source || 'Uploaded',
     sourceScope: option.source_scope || 'personal',
     rulesetId: option.ruleset_id || option.rulesetId || '',
@@ -201,7 +210,19 @@ export function buildMergedCharacterRules(core = {}, options = {}) {
     if (!parent || !name) return;
     if (!classes[parent]) classes[parent] = normaliseClassOption({ name: parent, source: 'Uploaded placeholder' });
     const current = asArray(classes[parent].subclasses).map(asName);
-    if (!current.includes(name)) classes[parent] = { ...classes[parent], subclasses: [...current, name] };
+    const explicitUnlock = Number(subclass.subclass_level ?? subclass.subclassLevel);
+    const validUnlock = Number.isInteger(explicitUnlock) && explicitUnlock >= 1 && explicitUnlock <= 20
+      ? explicitUnlock
+      : null;
+    const existingUnlock = Number(classes[parent].subclassLevel || 0);
+    const homebrewUnlock = classes[parent].isHomebrew && validUnlock
+      ? (existingUnlock ? Math.min(existingUnlock, validUnlock) : validUnlock)
+      : null;
+    classes[parent] = {
+      ...classes[parent],
+      subclasses: current.includes(name) ? current : [...current, name],
+      ...(homebrewUnlock ? { subclassLevel: homebrewUnlock } : {}),
+    };
   });
 
   asArray(options.backgrounds).forEach((background) => {
