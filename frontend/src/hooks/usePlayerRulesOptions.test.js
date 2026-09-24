@@ -70,6 +70,12 @@ describe('uploaded character rule option normalization', () => {
     }).asi2024).toEqual({ intelligence: 2, dexterity: 1 });
   });
 
+  test('normalises Homebrew Workshop class equipment into creator starting equipment', () => {
+    expect(normaliseClassOption({
+      equipment: ['Leather Armor', 'Longsword', 'Explorer Pack'],
+    }).startingEquipment).toEqual(['Leather Armor', 'Longsword', 'Explorer Pack']);
+  });
+
   test('merged uploaded classes expose a usable skill target to the creator', () => {
     const merged = buildMergedCharacterRules({}, {
       classes: [{
