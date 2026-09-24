@@ -1,4 +1,4 @@
-import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings, mergeToolProficiencies } from './characterCreationPayload';
+import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings, mergeToolProficiencies, normaliseClassFeatureForSheet } from './characterCreationPayload';
 
 const thorne = {
   name: 'Thorne the Blade',
