@@ -9,8 +9,8 @@ import os
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
 # Test credentials
-TEST_EMAIL = "lcblakey24@outlook.com"
-TEST_PASSWORD = "LCBlakey24?!"
+TEST_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+TEST_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 WIZARD_CHARACTER_ID = "9e2d3e83-65cb-4ece-a4b0-4f5c156f68c7"
 FIGHTER_CHARACTER_ID = "0bda5cf5-b8be-40c8-b2bc-b030ea70c366"
 
