@@ -76,6 +76,31 @@ describe('uploaded character rule option normalization', () => {
     }).startingEquipment).toEqual(['Leather Armor', 'Longsword', 'Explorer Pack']);
   });
 
+  test('preserves the earliest explicit homebrew subclass unlock level', () => {
+    expect(normaliseClassOption({
+      subclass_unlock_levels: [6, 2, 10],
+    }).subclassLevel).toBe(2);
+  });
+
+  test('uses uploaded subclass timing for a homebrew parent without changing core class timing', () => {
+    const merged = buildMergedCharacterRules({
+      classes: {
+        Cleric: { subclasses: ['Life Domain'], isHomebrew: false },
+      },
+    }, {
+      classes: [{ name: 'Warden' }],
+      subclasses: [
+        { name: 'Iron Path', parent_class: 'Warden', subclass_level: 1 },
+        { name: 'Twilight Domain', parent_class: 'Cleric', subclass_level: 3 },
+      ],
+    });
+
+    expect(merged.classes.Warden.subclassLevel).toBe(1);
+    expect(merged.classes.Warden.subclasses).toContain('Iron Path');
+    expect(merged.classes.Cleric.subclassLevel).toBeUndefined();
+    expect(merged.classes.Cleric.subclasses).toContain('Twilight Domain');
+  });
+
   test('merged uploaded classes expose a usable skill target to the creator', () => {
     const merged = buildMergedCharacterRules({}, {
       classes: [{
