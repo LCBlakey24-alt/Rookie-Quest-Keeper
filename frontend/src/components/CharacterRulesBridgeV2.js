@@ -14,6 +14,7 @@ import {
 } from '@/data/spellDatabase';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import {
+  buildHomebrewPactMagicTracker,
   buildHomebrewSpellcastingState,
   homebrewSpellcastingIsActive,
 } from '@/data/homebrewClassSpellcasting';
@@ -431,6 +432,15 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
     };
   }
   enhanced.resources = buildInitialClassResources(enhanced);
+  if (!spellcasting) {
+    const pactMagic = buildHomebrewPactMagicTracker(classData, {
+      level,
+      edition: enhanced.rules_edition || enhanced.edition || '2014',
+    });
+    if (pactMagic) {
+      enhanced.resources = { ...enhanced.resources, pact_magic: pactMagic };
+    }
+  }
   return enhanced;
 }
 
