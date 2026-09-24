@@ -20,8 +20,12 @@ describe('uploaded builder option normalization', () => {
     ]);
   });
 
-  test('keeps unknown class spell lists permissive as a safe fallback', () => {
-    expect(normaliseSpellClasses({ classes: 'Mystic' }).length).toBeGreaterThan(2);
+  test('preserves explicit unknown class spell lists instead of broadening them', () => {
+    expect(normaliseSpellClasses({ classes: 'Mystic' })).toEqual(['Mystic']);
+  });
+
+  test('keeps the broad fallback only when a spell has no class information', () => {
+    expect(normaliseSpellClasses({}).length).toBeGreaterThan(2);
   });
 
   test('detects uploaded origin and epic feats from common workshop fields', () => {

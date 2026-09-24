@@ -180,8 +180,8 @@ export function normaliseSpellClasses(spell = {}) {
   );
   const classes = rawClasses
     .map((name) => getCanonicalSpellcastingClass(name))
-    .filter((name) => name && SPELLCASTING_CLASSES[name]);
-  return classes.length ? Array.from(new Set(classes)) : Object.keys(SPELLCASTING_CLASSES);
+    .filter(Boolean);
+  return rawClasses.length ? Array.from(new Set(classes)) : Object.keys(SPELLCASTING_CLASSES);
 }
 
 export function spellEntryFromHomebrew(spell = {}) {
