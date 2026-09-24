@@ -1,3 +1,9 @@
+import os
+import pytest
+
+if not os.environ.get("RQK_E2E_EMAIL") or not os.environ.get("RQK_E2E_PASSWORD"):
+    pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD", allow_module_level=True)
+
 """
 Tests for Rule Systems, Content Management, Bulk Upload and AI with Rules APIs
 """
@@ -10,8 +16,8 @@ import uuid
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 
 # Test credentials - admin user
-ADMIN_EMAIL = 'gmtest@test.com'
-ADMIN_PASSWORD = 'test123'
+ADMIN_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
+ADMIN_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 TEST_CAMPAIGN_ID = '0bd14e3c-9cec-4dda-a2f9-bc0efe58ebb5'
 
 
