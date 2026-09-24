@@ -143,6 +143,39 @@ describe('character rest state helpers', () => {
     expect(updates.spell_slots_remaining).toBeUndefined();
   });
 
+  test('custom Pact Magic tracker restores and mirrors slots on a short rest', () => {
+    const updates = buildShortRestUpdates({
+      character_class: 'Hexbinder',
+      class_levels: { Hexbinder: 5 },
+      level: 5,
+      spell_slots: { 3: 2 },
+      spell_slots_remaining: { 3: 0 },
+      resources: {
+        pact_magic: {
+          label: 'Pact Magic',
+          current: 0,
+          remaining: 0,
+          max: 2,
+          slot_level: 3,
+          restore: 'short-rest',
+          className: 'Hexbinder',
+          homebrew: true,
+        },
+      },
+    });
+
+    expect(updates.resources.pact_magic).toMatchObject({
+      current: 2,
+      remaining: 2,
+      max: 2,
+      slot_level: 3,
+      className: 'Hexbinder',
+      homebrew: true,
+    });
+    expect(updates.spell_slots).toEqual({ 3: 2 });
+    expect(updates.spell_slots_remaining).toEqual({ 3: 2 });
+  });
+
   test('legacy Warlock short rest migrates and restores legacy pact slot state', () => {
     const updates = buildShortRestUpdates({
       character_class: 'Warlock',
