@@ -36,6 +36,7 @@ players = route_module('players')
 notes = route_module('notes')
 invites = route_module('campaign_invites')
 characters = route_module('characters')
+campaigns = route_module('campaigns')
 
 
 def matches(row, query):
@@ -102,10 +103,14 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
             ]),
             players=Collection([{'id': 'legacy', 'campaign_id': 'c1', 'character_name': 'Companion', 'gm_notes': 'SECRET'}]),
             campaign_members=Collection([{'campaign_id': 'c1', 'user_id': 'player', 'character_id': 'p1'}]),
+            campaign_invites=Collection([
+                {'id': 'invite-1', 'campaign_id': 'c1', 'code': 'ABC123'},
+                {'id': 'invite-2', 'campaign_id': 'c2', 'code': 'XYZ789'},
+            ]),
             timeline_events=Collection(),
             journal_entries=Collection([{'id': 'j1', 'character_id': 'p1', 'user_id': 'player'}]),
         )
-        for module in (auth, players, notes, invites, characters):
+        for module in (auth, players, notes, invites, characters, campaigns):
             patcher = patch.object(module, 'db', self.db)
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -163,6 +168,20 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(membership['character_id'])
         self.assertEqual(membership['status'], 'removed')
         self.assertIn('character_removed_at', membership)
+
+    async def test_deleting_campaign_detaches_player_links_and_invalidates_invites(self):
+        result = await campaigns.delete_campaign('c1', 'gm')
+
+        self.assertEqual(result['message'], 'Campaign deleted successfully')
+        self.assertEqual([row['id'] for row in self.db.campaigns.rows], ['c2'])
+        self.assertEqual(self.db.campaign_members.rows, [])
+        self.assertEqual([row['id'] for row in self.db.campaign_invites.rows], ['invite-2'])
+
+        character = next(row for row in self.db.player_characters.rows if row['id'] == 'p1')
+        self.assertIsNone(character['campaign_id'])
+        self.assertIsNone(character['campaign_name'])
+        self.assertIsNone(character['campaign_join_status'])
+        self.assertIn('updated_at', character)
 
     async def test_player_cannot_use_gm_roster(self):
         with self.assertRaises(HTTPException):
