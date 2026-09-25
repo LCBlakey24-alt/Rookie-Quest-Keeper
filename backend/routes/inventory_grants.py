@@ -156,6 +156,27 @@ async def grant_inventory_item_to_target(
         if not character:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Character not found in this campaign')
 
+        member = None
+        if character.get('user_id'):
+            member = await db.campaign_members.find_one(
+                {'campaign_id': campaign_id, 'user_id': character.get('user_id')},
+                {'_id': 0, 'character_id': 1, 'status': 1},
+            )
+        if member is None:
+            member = await db.campaign_members.find_one(
+                {'campaign_id': campaign_id, 'character_id': target_id},
+                {'_id': 0, 'character_id': 1, 'status': 1},
+            )
+
+        if member is not None:
+            member_status = str(member.get('status') or 'active').strip().lower()
+            linked_character_id = str(member.get('character_id') or '').strip()
+            if member_status != 'active' or (linked_character_id and linked_character_id != str(target_id)):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail='This character is not an active campaign character and cannot receive new items',
+                )
+
         item, token = await _reserve_inventory_item(campaign_id, item_id, current_user)
         inventory_entry = item_inventory_entry(
             item,
