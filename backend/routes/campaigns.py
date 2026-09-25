@@ -81,7 +81,7 @@ USER_PLAYTEST_CAMPAIGN_REFERENCES = (
 def _db_collection(name: str):
     try:
         return db[name]
-    except (TypeError, KeyError):
+    except (TypeError, KeyError, AttributeError):
         return getattr(db, name, None)
 
 
