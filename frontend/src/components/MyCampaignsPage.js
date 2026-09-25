@@ -226,6 +226,19 @@ export default function MyCampaignsPage() {
         </div>
       </section>
 
+      {loadError && sortedCampaigns.length > 0 && (
+        <section className="library-page-stale-warning" role="alert" aria-live="polite">
+          <div>
+            <strong>Showing your last loaded campaigns</strong>
+            <p>Keeper couldn’t refresh this list. Your saved campaigns are still shown below.</p>
+          </div>
+          <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary library-page-loading-button" aria-busy={refreshing ? 'true' : 'false'}>
+            <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
+            {refreshing ? 'Trying again…' : 'Try again'}
+          </button>
+        </section>
+      )}
+
       {loadError && sortedCampaigns.length === 0 ? (
         <section className="library-page-empty" role="alert" aria-live="polite">
           <h2>Couldn’t load campaigns</h2>

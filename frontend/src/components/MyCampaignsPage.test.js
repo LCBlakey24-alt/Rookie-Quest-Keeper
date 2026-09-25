@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import MyCampaignsPage from './MyCampaignsPage';
@@ -55,6 +55,19 @@ describe('MyCampaignsPage simplified library', () => {
     expect(screen.getByRole('button', { name: /Open Campaign/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete Baldering' })).toBeInTheDocument();
     expect(screen.getByText(/Rebuild the Crownless City/i)).toBeInTheDocument();
+  });
+
+  test('keeps loaded campaigns visible and warns when refresh fails', async () => {
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Baldering' })).toBeInTheDocument();
+
+    apiClient.get.mockRejectedValueOnce(new Error('network unavailable'));
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    expect(await screen.findByText('Showing your last loaded campaigns')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Baldering' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Try again' })).toBeEnabled());
   });
 
   test('does not render the retired campaign stats dashboard or toolbar', async () => {
