@@ -23,6 +23,169 @@ except ImportError:
 
 router = APIRouter()
 
+# Campaign deletion deliberately sweeps records by campaign_id so newly-added
+# campaign-owned collections are cleaned up without another hand-maintained list.
+# These collections are excluded because the records belong to a user/site and
+# may only reference a campaign.
+CAMPAIGN_SWEEP_EXCLUSIONS = {
+    'campaigns',
+    'users',
+    'password_resets',
+    'site_settings',
+    'layout_settings',
+    'player_characters',
+    'player_notes',
+    'player_journal',
+    'custom_rulesets',
+    'reviews',
+    'improvement_feedback',
+    'ai_usage',
+    'user_rulesets',
+    'user_playtest_packs',
+    'user_playtest_content',
+    'user_races',
+    'user_classes',
+    'user_subclasses',
+    'user_backgrounds',
+    'user_feats',
+    'user_spells',
+    'user_magic_items',
+    'user_monsters',
+    'user_npcs',
+    'user_custom_rules',
+    'homebrew_items',
+    'character_templates',
+}
+
+USER_HOMEBREW_CAMPAIGN_REFERENCES = (
+    'user_rulesets',
+    'user_races',
+    'user_classes',
+    'user_subclasses',
+    'user_backgrounds',
+    'user_feats',
+    'user_spells',
+    'user_magic_items',
+    'user_monsters',
+    'user_npcs',
+    'user_custom_rules',
+    'homebrew_items',
+)
+
+USER_PLAYTEST_CAMPAIGN_REFERENCES = (
+    'user_playtest_packs',
+    'user_playtest_content',
+)
+
+
+def _db_collection(name: str):
+    try:
+        return db[name]
+    except (TypeError, KeyError):
+        return getattr(db, name, None)
+
+
+async def _campaign_collection_names() -> List[str]:
+    list_names = getattr(db, 'list_collection_names', None)
+    if callable(list_names):
+        return await list_names()
+
+    # Small in-memory test databases expose collections as attributes.
+    return [
+        name for name, value in vars(db).items()
+        if hasattr(value, 'delete_many')
+    ]
+
+
+async def cleanup_campaign_data(campaign_id: str) -> Dict[str, Any]:
+    """Remove campaign-owned records while preserving user-owned content."""
+    now = datetime.now(timezone.utc).isoformat()
+    deleted: Dict[str, int] = {}
+    detached: Dict[str, int] = {}
+    references_removed: Dict[str, int] = {}
+
+    for collection_name in await _campaign_collection_names():
+        if collection_name in CAMPAIGN_SWEEP_EXCLUSIONS:
+            continue
+        collection = _db_collection(collection_name)
+        if collection is None or not hasattr(collection, 'delete_many'):
+            continue
+        result = await collection.delete_many({'campaign_id': campaign_id})
+        if result.deleted_count:
+            deleted[collection_name] = result.deleted_count
+
+    # Character sheets and personal notes/journals belong to players. Detach
+    # them so campaign deletion cannot destroy another user's personal data.
+    player_characters = _db_collection('player_characters')
+    if player_characters is not None:
+        result = await player_characters.update_many(
+            {'campaign_id': campaign_id},
+            {'$set': {
+                'campaign_id': None,
+                'campaign_name': None,
+                'campaign_join_status': None,
+                'updated_at': now,
+            }}
+        )
+        if result.modified_count:
+            detached['player_characters'] = result.modified_count
+
+    for collection_name in ('player_notes', 'player_journal'):
+        collection = _db_collection(collection_name)
+        if collection is None or not hasattr(collection, 'update_many'):
+            continue
+        result = await collection.update_many(
+            {'campaign_id': campaign_id},
+            {'$set': {'campaign_id': None, 'updated_at': now}}
+        )
+        if result.modified_count:
+            detached[collection_name] = result.modified_count
+
+    # Campaign-scoped homebrew stays owned by its creator. Once the campaign is
+    # gone it becomes private/unscoped instead of being deleted.
+    for collection_name in USER_HOMEBREW_CAMPAIGN_REFERENCES:
+        collection = _db_collection(collection_name)
+        if collection is None or not hasattr(collection, 'update_many'):
+            continue
+        result = await collection.update_many(
+            {'campaign_id': campaign_id},
+            {'$set': {
+                'campaign_id': None,
+                'visibility': 'private',
+                'updated_at': now,
+            }}
+        )
+        if result.modified_count:
+            detached[collection_name] = result.modified_count
+
+    for collection_name in USER_PLAYTEST_CAMPAIGN_REFERENCES:
+        collection = _db_collection(collection_name)
+        if collection is None or not hasattr(collection, 'update_many'):
+            continue
+        result = await collection.update_many(
+            {'campaign_id': campaign_id},
+            {'$set': {'campaign_id': None, 'updated_at': now}}
+        )
+        if result.modified_count:
+            detached[collection_name] = result.modified_count
+
+    # Legacy reusable rulesets reference campaigns through an array instead of
+    # campaign_id. Remove only that sharing reference.
+    custom_rulesets = _db_collection('custom_rulesets')
+    if custom_rulesets is not None and hasattr(custom_rulesets, 'update_many'):
+        result = await custom_rulesets.update_many(
+            {'shared_campaigns': campaign_id},
+            {'$pull': {'shared_campaigns': campaign_id}}
+        )
+        if result.modified_count:
+            references_removed['custom_rulesets.shared_campaigns'] = result.modified_count
+
+    return {
+        'deleted': deleted,
+        'detached': detached,
+        'references_removed': references_removed,
+    }
+
 
 async def site_flag_enabled(flag_name: str, default: bool = True) -> bool:
     """Read a global site feature flag. Defaults open when settings do not exist yet."""
@@ -80,23 +243,26 @@ async def update_campaign(campaign_id: str, campaign_data: CampaignCreate, usern
 
 @router.delete("/campaigns/{campaign_id}")
 async def delete_campaign(campaign_id: str, username: str = Depends(get_current_user)):
-    result = await db.campaigns.delete_one({'id': campaign_id, 'dm_user_id': username})
-    if result.deleted_count == 0:
+    # Verify ownership before mutating anything. The campaign itself is deleted
+    # last so a failed cleanup can be retried instead of orphaning hidden data.
+    campaign = await db.campaigns.find_one(
+        {'id': campaign_id, 'dm_user_id': username},
+        {'_id': 0, 'id': 1},
+    )
+    if not campaign:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
 
-    now = datetime.now(timezone.utc).isoformat()
-    await db.campaign_members.delete_many({'campaign_id': campaign_id})
-    await db.campaign_invites.delete_many({'campaign_id': campaign_id})
-    await db.player_characters.update_many(
-        {'campaign_id': campaign_id},
-        {'$set': {
-            'campaign_id': None,
-            'campaign_name': None,
-            'campaign_join_status': None,
-            'updated_at': now,
-        }}
-    )
-    return {'message': 'Campaign deleted successfully'}
+    cleanup = await cleanup_campaign_data(campaign_id)
+
+    result = await db.campaigns.delete_one({'id': campaign_id, 'dm_user_id': username})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Campaign changed during deletion; please retry")
+
+    return {
+        'message': 'Campaign deleted successfully',
+        'campaign_id': campaign_id,
+        'cleanup': cleanup,
+    }
 
 # ==================== CAMPAIGN SETTING ROUTES ====================
 
