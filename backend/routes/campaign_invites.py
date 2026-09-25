@@ -247,7 +247,7 @@ async def get_campaign_invite(campaign_id: str, username: str = Depends(get_curr
 async def rotate_campaign_invite(campaign_id: str, username: str = Depends(get_current_user)):
     """Create a fresh join code for a campaign. GM only."""
     await verify_campaign_ownership(campaign_id, username)
-    await db.campaign_invites.delete_many({'campaign_id': campaign_id, 'created_by': username, 'expires_at': None})
+
     invite_obj = CampaignInvite(
         campaign_id=campaign_id,
         created_by=username,
@@ -257,6 +257,21 @@ async def rotate_campaign_invite(campaign_id: str, username: str = Depends(get_c
     )
     invite = invite_obj.model_dump()
     await db.campaign_invites.insert_one(invite)
+
+    try:
+        await db.campaign_invites.delete_many({
+            'campaign_id': campaign_id,
+            'created_by': username,
+            'expires_at': None,
+            'code': {'$ne': invite.get('code')},
+        })
+    except Exception:
+        try:
+            await db.campaign_invites.delete_one({'id': invite.get('id')})
+        except Exception:
+            pass
+        raise
+
     campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'name': 1, 'join_mode': 1, 'join_code_enabled': 1}) or {}
     return {
         'campaign_id': campaign_id,
