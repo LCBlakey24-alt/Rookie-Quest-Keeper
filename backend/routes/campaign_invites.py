@@ -104,7 +104,8 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Character not found')
 
     join_mode = campaign.get('join_mode', 'gm_approval')
-    member_state = 'active' if join_mode == 'auto_accept' else 'pending'
+    requested_member_state = 'active' if join_mode == 'auto_accept' else 'pending'
+    final_member_state = requested_member_state
     existing_member = await db.campaign_members.find_one({'campaign_id': campaign_id, 'user_id': username}, {'_id': 0})
 
     if existing_member:
@@ -121,13 +122,14 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
         update_data = {
             'username': username,
             'character_id': character_id,
-            'status': existing_state if existing_state in ACTIVE_JOIN_STATES and not changing_character else member_state,
+            'status': existing_state if existing_state in ACTIVE_JOIN_STATES and not changing_character else requested_member_state,
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }
         if existing_state in REJOIN_ALLOWED_STATES:
-            update_data['status'] = member_state
+            update_data['status'] = requested_member_state
             update_data['rejoined_at'] = datetime.now(timezone.utc).isoformat()
 
+        final_member_state = update_data['status']
         await db.campaign_members.update_one({'id': existing_member.get('id')}, {'$set': update_data})
     else:
         member = CampaignMember(
@@ -137,7 +139,7 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
             character_id=character_id,
         )
         member_doc = member.model_dump()
-        member_doc['status'] = member_state
+        member_doc['status'] = requested_member_state
         member_doc['updated_at'] = datetime.now(timezone.utc).isoformat()
         await db.campaign_members.insert_one(member_doc)
         await db.campaign_invites.update_one({'code': code}, {'$inc': {'uses': 1}})
@@ -147,15 +149,15 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
         {'$set': {
             'campaign_id': campaign_id,
             'campaign_name': campaign.get('name', 'Untitled Campaign'),
-            'campaign_join_status': member_state,
+            'campaign_join_status': final_member_state,
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }}
     )
 
-    message = 'Character linked to campaign' if member_state == 'active' else 'Character submitted for GM approval'
+    message = 'Character linked to campaign' if final_member_state == 'active' else 'Character submitted for GM approval'
     return {
         'message': message,
-        'status': member_state,
+        'status': final_member_state,
         'campaign': {
             'id': campaign_id,
             'name': campaign.get('name', 'Untitled Campaign'),
