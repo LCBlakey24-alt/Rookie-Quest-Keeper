@@ -44,6 +44,7 @@ jobs:
             backend/tests/test_world_record_update_routes.py \
             backend/tests/test_campaign_record_update_routes.py \
             backend/tests/test_inventory_grant_routes.py \
+            backend/tests/test_inventory_recipient_membership.py \
             backend/tests/test_handout_recipient_membership.py \
             backend/tests/test_player_content_membership.py \
             backend/tests/test_live_party_combat_state.py \
