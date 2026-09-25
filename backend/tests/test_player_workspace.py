@@ -40,8 +40,17 @@ campaigns = route_module('campaigns')
 
 
 def matches(row, query):
-    return all(row.get(key) in value['$in'] if isinstance(value, dict) and '$in' in value
-               else row.get(key) == value for key, value in query.items())
+    for key, value in query.items():
+        row_value = row.get(key)
+        if isinstance(value, dict) and '$in' in value:
+            if row_value not in value['$in']:
+                return False
+        elif isinstance(row_value, list):
+            if value not in row_value:
+                return False
+        elif row_value != value:
+            return False
+    return True
 
 
 class Cursor:
@@ -95,7 +104,26 @@ class Collection:
             if matches(row, query):
                 matched += 1
                 row.update(copy.deepcopy(update.get('$set', {})))
+                for key, value in update.get('$pull', {}).items():
+                    if isinstance(row.get(key), list):
+                        row[key] = [item for item in row[key] if item != value]
         return SimpleNamespace(matched_count=matched, modified_count=matched)
+
+
+class FailingCollection(Collection):
+    async def delete_many(self, query):
+        raise RuntimeError('simulated cleanup failure')
+
+
+class Database(SimpleNamespace):
+    def __getitem__(self, name):
+        return getattr(self, name)
+
+    async def list_collection_names(self):
+        return [
+            name for name, value in vars(self).items()
+            if isinstance(value, Collection)
+        ]
 
 
 class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
@@ -105,7 +133,7 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
             'world_setting_notes': 'SECRET', 'join_code': 'SECRET',
             'environment': {'weather': 'Rain', 'gm_notes': 'SECRET'},
         }
-        self.db = SimpleNamespace(
+        self.db = Database(
             campaigns=Collection([self.campaign, {'id': 'c2', 'dm_user_id': 'other-gm'}]),
             player_characters=Collection([
                 {'id': 'p1', 'campaign_id': 'c1', 'user_id': 'player', 'name': 'Hero', 'level': 3, 'notes': 'PRIVATE'},
@@ -116,6 +144,34 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
             campaign_invites=Collection([
                 {'id': 'invite-1', 'campaign_id': 'c1', 'code': 'ABC123'},
                 {'id': 'invite-2', 'campaign_id': 'c2', 'code': 'XYZ789'},
+            ]),
+            campaign_settings=Collection([
+                {'id': 'setting-1', 'campaign_id': 'c1'},
+                {'id': 'setting-2', 'campaign_id': 'c2'},
+            ]),
+            npcs=Collection([
+                {'id': 'npc-1', 'campaign_id': 'c1'},
+                {'id': 'npc-2', 'campaign_id': 'c2'},
+            ]),
+            quests=Collection([
+                {'id': 'quest-1', 'campaign_id': 'c1'},
+                {'id': 'quest-2', 'campaign_id': 'c2'},
+            ]),
+            world_maps=Collection([
+                {'id': 'map-1', 'campaign_id': 'c1'},
+                {'id': 'map-2', 'campaign_id': 'c2'},
+            ]),
+            player_notes=Collection([
+                {'id': 'note-1', 'campaign_id': 'c1', 'user_id': 'player', 'title': 'Keep me'},
+            ]),
+            player_journal=Collection([
+                {'id': 'journal-1', 'campaign_id': 'c1', 'user_id': 'player', 'content': 'Keep me too'},
+            ]),
+            user_races=Collection([
+                {'id': 'race-1', 'campaign_id': 'c1', 'user_id': 'player', 'visibility': 'campaign'},
+            ]),
+            custom_rulesets=Collection([
+                {'id': 'rules-1', 'shared_campaigns': ['c1', 'c2']},
             ]),
             timeline_events=Collection(),
             journal_entries=Collection([{'id': 'j1', 'character_id': 'p1', 'user_id': 'player'}]),
@@ -205,19 +261,48 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(membership['status'], 'removed')
         self.assertIn('character_removed_at', membership)
 
-    async def test_deleting_campaign_detaches_player_links_and_invalidates_invites(self):
+    async def test_deleting_campaign_cascades_owned_data_and_preserves_user_content(self):
         result = await campaigns.delete_campaign('c1', 'gm')
 
         self.assertEqual(result['message'], 'Campaign deleted successfully')
+        self.assertEqual(result['campaign_id'], 'c1')
         self.assertEqual([row['id'] for row in self.db.campaigns.rows], ['c2'])
         self.assertEqual(self.db.campaign_members.rows, [])
         self.assertEqual([row['id'] for row in self.db.campaign_invites.rows], ['invite-2'])
+        self.assertEqual([row['id'] for row in self.db.campaign_settings.rows], ['setting-2'])
+        self.assertEqual([row['id'] for row in self.db.npcs.rows], ['npc-2'])
+        self.assertEqual([row['id'] for row in self.db.quests.rows], ['quest-2'])
+        self.assertEqual([row['id'] for row in self.db.world_maps.rows], ['map-2'])
 
         character = next(row for row in self.db.player_characters.rows if row['id'] == 'p1')
         self.assertIsNone(character['campaign_id'])
         self.assertIsNone(character['campaign_name'])
         self.assertIsNone(character['campaign_join_status'])
         self.assertIn('updated_at', character)
+
+        self.assertEqual(len(self.db.player_notes.rows), 1)
+        self.assertIsNone(self.db.player_notes.rows[0]['campaign_id'])
+        self.assertEqual(len(self.db.player_journal.rows), 1)
+        self.assertIsNone(self.db.player_journal.rows[0]['campaign_id'])
+
+        self.assertEqual(len(self.db.user_races.rows), 1)
+        self.assertIsNone(self.db.user_races.rows[0]['campaign_id'])
+        self.assertEqual(self.db.user_races.rows[0]['visibility'], 'private')
+        self.assertEqual(self.db.custom_rulesets.rows[0]['shared_campaigns'], ['c2'])
+
+        self.assertEqual(result['cleanup']['deleted']['npcs'], 1)
+        self.assertEqual(result['cleanup']['deleted']['quests'], 1)
+        self.assertEqual(result['cleanup']['detached']['player_characters'], 1)
+        self.assertEqual(result['cleanup']['detached']['user_races'], 1)
+        self.assertEqual(result['cleanup']['references_removed']['custom_rulesets.shared_campaigns'], 1)
+
+    async def test_campaign_parent_survives_cleanup_failure(self):
+        self.db.quests = FailingCollection([{'id': 'quest-1', 'campaign_id': 'c1'}])
+
+        with self.assertRaises(RuntimeError):
+            await campaigns.delete_campaign('c1', 'gm')
+
+        self.assertTrue(any(row['id'] == 'c1' for row in self.db.campaigns.rows))
 
     async def test_player_cannot_use_gm_roster(self):
         with self.assertRaises(HTTPException):
