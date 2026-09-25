@@ -157,13 +157,14 @@ async def grant_inventory_item_to_target(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Character not found in this campaign')
 
         member = None
-        if character.get('user_id'):
-            member = await db.campaign_members.find_one(
+        campaign_members = getattr(db, 'campaign_members', None)
+        if campaign_members is not None and character.get('user_id'):
+            member = await campaign_members.find_one(
                 {'campaign_id': campaign_id, 'user_id': character.get('user_id')},
                 {'_id': 0, 'character_id': 1, 'status': 1},
             )
-        if member is None:
-            member = await db.campaign_members.find_one(
+        if campaign_members is not None and member is None:
+            member = await campaign_members.find_one(
                 {'campaign_id': campaign_id, 'character_id': target_id},
                 {'_id': 0, 'character_id': 1, 'status': 1},
             )
