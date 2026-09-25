@@ -188,15 +188,22 @@ async def create_campaign(campaign_data: Dict[str, Any], username: str = Depends
     await db.campaigns.insert_one(doc)
     doc.pop('_id', None)
 
-    invite_obj = CampaignInvite(
-        campaign_id=doc['id'],
-        created_by=username,
-        code=await create_unique_join_code(),
-        expires_at=None,
-        max_uses=None,
-    )
-    invite = invite_obj.model_dump()
-    await db.campaign_invites.insert_one(invite)
+    try:
+        invite_obj = CampaignInvite(
+            campaign_id=doc['id'],
+            created_by=username,
+            code=await create_unique_join_code(),
+            expires_at=None,
+            max_uses=None,
+        )
+        invite = invite_obj.model_dump()
+        await db.campaign_invites.insert_one(invite)
+    except Exception:
+        try:
+            await db.campaigns.delete_one({'id': doc['id'], 'dm_user_id': username})
+        except Exception:
+            logger.exception('Failed to roll back campaign %s after join-code creation failed', doc.get('id'))
+        raise
 
     return {**doc, 'join_code_created': True}
 
