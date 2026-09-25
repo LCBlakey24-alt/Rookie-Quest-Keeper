@@ -182,10 +182,13 @@ async def get_inventory_grant_targets(campaign_id: str, current_user: str = Depe
         {'campaign_id': campaign_id},
         {'_id': 0, 'id': 1, 'name': 1, 'user_id': 1, 'character_class': 1, 'level': 1}
     ).sort('name', 1).to_list(200)
-    members = await db.campaign_members.find(
-        {'campaign_id': campaign_id},
-        {'_id': 0, 'user_id': 1, 'character_id': 1, 'status': 1}
-    ).to_list(500)
+    campaign_members = getattr(db, 'campaign_members', None)
+    members = []
+    if campaign_members is not None:
+        members = await campaign_members.find(
+            {'campaign_id': campaign_id},
+            {'_id': 0, 'user_id': 1, 'character_id': 1, 'status': 1}
+        ).to_list(500)
     member_by_character = {
         str(member.get('character_id')): member
         for member in members
