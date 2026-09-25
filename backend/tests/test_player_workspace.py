@@ -166,6 +166,11 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn('SECRET', str(result))
         self.assertEqual(self.db.campaigns.rows[0], self.campaign)
 
+    async def test_removed_membership_is_hidden_from_joined_campaigns(self):
+        self.db.campaign_members.rows[0]['status'] = 'removed'
+        result = await invites.get_joined_campaigns('player')
+        self.assertEqual(result, [])
+
     async def test_reusing_join_code_keeps_existing_live_membership_status_in_sync(self):
         self.db.campaign_members.rows[0].update({'id': 'm1', 'status': 'active'})
         self.db.campaigns.rows[0].update({'join_mode': 'gm_approval', 'join_code_enabled': True})
