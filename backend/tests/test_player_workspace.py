@@ -79,6 +79,16 @@ class Collection:
         self.rows = [row for row in self.rows if not matches(row, query)]
         return SimpleNamespace(deleted_count=previous - len(self.rows))
 
+    async def update_one(self, query, update):
+        for row in self.rows:
+            if matches(row, query):
+                row.update(copy.deepcopy(update.get('$set', {})))
+                if '$inc' in update:
+                    for key, value in update['$inc'].items():
+                        row[key] = row.get(key, 0) + value
+                return SimpleNamespace(matched_count=1, modified_count=1)
+        return SimpleNamespace(matched_count=0, modified_count=0)
+
     async def update_many(self, query, update):
         matched = 0
         for row in self.rows:
@@ -155,6 +165,27 @@ class PlayerWorkspaceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result[0]['character_id'], 'p1')
         self.assertNotIn('SECRET', str(result))
         self.assertEqual(self.db.campaigns.rows[0], self.campaign)
+
+    async def test_reusing_join_code_keeps_existing_live_membership_status_in_sync(self):
+        self.db.campaign_members.rows[0].update({'id': 'm1', 'status': 'active'})
+        self.db.campaigns.rows[0].update({'join_mode': 'gm_approval', 'join_code_enabled': True})
+        result = await invites.join_campaign_by_code(
+            {'join_code': 'ABC123', 'character_id': 'p1'},
+            'player',
+        )
+        self.assertEqual(result['status'], 'active')
+        self.assertEqual(self.db.campaign_members.rows[0]['status'], 'active')
+        self.assertEqual(self.db.player_characters.rows[0]['campaign_join_status'], 'active')
+
+        self.db.campaign_members.rows[0]['status'] = 'pending'
+        self.db.campaigns.rows[0]['join_mode'] = 'auto_accept'
+        result = await invites.join_campaign_by_code(
+            {'join_code': 'ABC123', 'character_id': 'p1'},
+            'player',
+        )
+        self.assertEqual(result['status'], 'pending')
+        self.assertEqual(self.db.campaign_members.rows[0]['status'], 'pending')
+        self.assertEqual(self.db.player_characters.rows[0]['campaign_join_status'], 'pending')
 
     async def test_deleting_character_detaches_campaign_membership(self):
         result = await characters.delete_character('p1', 'player')
