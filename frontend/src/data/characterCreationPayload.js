@@ -88,6 +88,30 @@ export function normaliseTraitForSheet(trait) {
   };
 }
 
+export function normaliseBackgroundFeatureForSheet(backgroundData = {}, backgroundName = '') {
+  const raw = backgroundData.feature ?? backgroundData.featureName ?? backgroundData.feature_name ?? '';
+  const explicitDescription = backgroundData.featureDescription || backgroundData.feature_description || '';
+
+  if (raw && typeof raw === 'object') {
+    const name = raw.name || raw.title || raw.feature_name || raw.label || '';
+    if (!name) return null;
+    return {
+      ...raw,
+      name: String(name),
+      description: String(raw.description || raw.text || raw.summary || explicitDescription || name),
+      source: raw.source || backgroundName || backgroundData.name || 'Background',
+    };
+  }
+
+  const name = String(raw || '').trim();
+  if (!name) return null;
+  return {
+    name,
+    description: String(explicitDescription || `Background feature from ${backgroundName || backgroundData.name || 'this background'}.`),
+    source: backgroundName || backgroundData.name || 'Background',
+  };
+}
+
 function deriveTraits(raceData = {}, subrace = '') {
   const traits = [...(raceData.traits || []), ...(raceData.subraces?.[subrace]?.traits || [])];
   return traits.map(normaliseTraitForSheet).filter(Boolean);
@@ -282,6 +306,7 @@ export function buildCharacterCreationPayloadFromTemplate(template = {}, { name 
   const maxHp = template.max_hit_points || template.hit_points || calculateLevelOneHp(className, abilities.constitution);
   const armorClass = template.armor_class || calculateArmorClass({ ...abilities, className, armorKey: equipment.armorKey, shield: equipment.shield, fightingStyle: template.fighting_style });
   const spellFields = deriveSpellFields(className, level, abilities, template, { spellLoadoutId, customPreparedSpells });
+  const backgroundFeature = normaliseBackgroundFeatureForSheet(backgroundData, backgroundName);
 
   return {
     name: name.trim(),
@@ -313,6 +338,7 @@ export function buildCharacterCreationPayloadFromTemplate(template = {}, { name 
     languages: template.languages || deriveLanguages(raceData, backgroundData),
     racial_traits: template.racial_traits || deriveTraits(raceData, template.subrace || ''),
     class_features: template.class_features || deriveClassFeatures(classData, className, level, template),
+    background_features: template.background_features || (backgroundFeature ? [backgroundFeature] : []),
     fighting_style: template.fighting_style || '',
     equipment_choice: template.equipment_pick || template.equipment_choice || '',
     starting_equipment: equipment.starting_equipment,
