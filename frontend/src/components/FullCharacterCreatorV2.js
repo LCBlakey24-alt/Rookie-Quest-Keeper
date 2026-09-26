@@ -15,7 +15,7 @@ import {
 } from '@/data/homebrewClassSpellcasting';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
-import { mergeToolProficiencies, normaliseClassFeatureForSheet, normaliseTraitForSheet } from '@/data/characterCreationPayload';
+import { mergeToolProficiencies, normaliseBackgroundFeatureForSheet, normaliseClassFeatureForSheet, normaliseTraitForSheet } from '@/data/characterCreationPayload';
 import { classSkillsForEdit } from '@/data/characterEditSkillHelpers';
 import { buildFullBuilderLanguages, getBackgroundLanguageBudget, splitExistingLanguagesForBuilder } from '@/data/languageFullBuilderHelpers';
 import { EXTRA_LANGUAGE_OPTIONS, countChoiceLanguages, getFixedLanguages } from '@/data/languageChoiceUtils';
@@ -197,6 +197,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const raceData = RACES[draft.race] || {};
   const classData = CLASSES[draft.characterClass] || {};
   const backgroundData = BACKGROUNDS[draft.background] || {};
+  const backgroundFeature = normaliseBackgroundFeatureForSheet(backgroundData, draft.background);
+  const backgroundFeatures = backgroundFeature ? [backgroundFeature] : [];
   const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   const speciesLabel = draft.edition === '2024' ? 'Species' : 'Race';
   const startingLevel = 1;
@@ -544,6 +546,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       languages: finalLanguages,
       racial_traits: racialTraits,
       class_features: classFeatures,
+      background_features: backgroundFeatures,
       feats: chosenFeat ? [{ name: chosenFeat, source: draft.edition === '2024' ? 'origin' : 'optional' }] : [],
       equipment_choice: equipmentMode === 'gold' ? (startingGoldRule.fixed ? 'starting_gold_fixed' : 'starting_gold_rolled') : 'starting_equipment',
       starting_gold_formula: equipmentMode === 'gold' ? startingGoldRule.formula : '',
@@ -649,7 +652,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             {stepId === 'setup' && <Setup draft={draft} update={update} />}
             {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} selectedLanguages={draft.raceChosenLanguages} unavailableLanguages={[...baseLanguages, ...arr(draft.backgroundChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('raceChosenLanguages', language, languageChoices)} />}
             {stepId === 'class' && <ClassStep draft={draft} update={update} classData={classData} classFeatures={classFeatures} classChoicesRequired={classChoicesRequired} subclassLevel={subclassLevel} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
-            {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} backgroundLanguageBudget={backgroundLanguageBudget} unavailableLanguages={[...baseLanguages, ...arr(draft.raceChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('backgroundChosenLanguages', language, backgroundLanguageBudget)} />}
+            {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} backgroundFeature={backgroundFeature} backgroundLanguageBudget={backgroundLanguageBudget} unavailableLanguages={[...baseLanguages, ...arr(draft.raceChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('backgroundChosenLanguages', language, backgroundLanguageBudget)} />}
             {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
               const next = { ...draft.floatingAsi };
               if (next[ability]) delete next[ability];
@@ -777,7 +780,7 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
   </>;
 }
 
-function Background({ draft, update, featRequired, originFeat, backgroundLanguageBudget, unavailableLanguages, toggleLanguage }) {
+function Background({ draft, update, featRequired, originFeat, backgroundFeature, backgroundLanguageBudget, unavailableLanguages, toggleLanguage }) {
   const backgroundData = BACKGROUNDS[draft.background] || {};
   return <>
     <Title icon={BookOpen} title="Choose background" text="Pick where your character came from. Origin feat lives here for 2024 characters." />
@@ -792,7 +795,9 @@ function Background({ draft, update, featRequired, originFeat, backgroundLanguag
       <ReviewItem label="Tools" value={arr(backgroundData.toolProficiencies).join(', ') || 'None listed'} />
       <ReviewItem label="Equipment" value={arr(backgroundData.equipment).slice(0, 2).join(', ') || 'None listed'} />
       <ReviewItem label="Languages" value={backgroundLanguageBudget ? `${arr(draft.backgroundChosenLanguages).length}/${backgroundLanguageBudget} chosen` : 'None listed'} />
+      <ReviewItem label="Feature" value={backgroundFeature?.name || 'None listed'} />
     </div>
+    {backgroundFeature && <Choice title="Background feature"><span className="full-creator-note"><strong>{backgroundFeature.name}</strong>{backgroundFeature.description ? ` — ${backgroundFeature.description}` : ''}</span></Choice>}
     <LanguagePicker title="Background languages" count={backgroundLanguageBudget} selected={arr(draft.backgroundChosenLanguages)} unavailable={unavailableLanguages} onToggle={toggleLanguage} />
   </>;
 }
