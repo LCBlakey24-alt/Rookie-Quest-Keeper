@@ -4,7 +4,7 @@
 @media (max-width: 759px) {
   #root .character-page-v2 {
     --rqk-mobile-panel: #0C2234;
-    --rqk-mobile-chip: #102B40;
+    --rqk-mobile-chip: #112A40;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill {
@@ -35,7 +35,7 @@
     line-height: 1.05 !important;
     overflow-wrap: anywhere !important;
     word-break: normal !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags {
@@ -46,7 +46,7 @@
     position: relative !important;
     padding-bottom: 9px !important;
     margin-bottom: 8px !important;
-    border-bottom: 1px solid #FF2DAA !important;
+    border-bottom: 1px solid #D6A84F !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row::after,
@@ -60,7 +60,7 @@
     padding: 10px !important;
     background: #0C2234 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 7px !important;
     box-shadow: none !important;
   }
@@ -73,7 +73,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2 {
     margin-bottom: 3px !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2::after {
@@ -101,8 +101,8 @@
     place-items: center !important;
     gap: 2px !important;
     text-align: center !important;
-    background: #102B40 !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    background: #112A40 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
   }
@@ -116,14 +116,14 @@
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card svg {
     width: 12px !important;
     height: 12px !important;
-    color: #7CCBFF !important;
+    color: #79BCE8 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label small,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label em,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card strong {
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label {
@@ -182,10 +182,10 @@
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button,
   #root .character-page-v2 .clean-sheet-roll-chip,
   #root .character-page-v2 .clean-sheet-panel button.clean-sheet-roll-chip {
-    color: #FFFFFF !important;
-    background: #102B40 !important;
+    color: #F7F1E7 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.20) !important;
+    border: 1px solid rgba(214,168,79,.20) !important;
     box-shadow: none !important;
     text-shadow: none !important;
   }
@@ -194,9 +194,9 @@
   #root .character-page-v2 .clean-sheet-inspiration-toggle[aria-pressed='true'],
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button[aria-pressed='true'] {
-    color: #FFFFFF !important;
-    background: rgba(124,203,255,.10) !important;
-    border-color: #FF2DAA !important;
+    color: #F7F1E7 !important;
+    background: rgba(121,188,232,.10) !important;
+    border-color: #D6A84F !important;
     box-shadow: none !important;
   }
 
