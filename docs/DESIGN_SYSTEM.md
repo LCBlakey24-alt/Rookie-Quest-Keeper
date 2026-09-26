@@ -48,38 +48,38 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
 
 ```css
 :root {
-  --rq-bg: #071522;
-  --rq-bg-main: #071522;
-  --rq-bg-deep: #050E18;
-  --rq-bg-rail: #050E18;
-  --rq-bg-panel: #0C2234;
-  --rq-card: #112A40;
-  --rq-card-hover: #17364F;
-  --rq-bg-input: #071A29;
+  --rq-bg: #0B1B2B;
+  --rq-bg-main: #0B1B2B;
+  --rq-bg-deep: #07131F;
+  --rq-bg-rail: #07131F;
+  --rq-bg-panel: #1E2936;
+  --rq-card: #263748;
+  --rq-card-hover: #334155;
+  --rq-bg-input: #101F2D;
 
-  --rq-primary: #D6A84F;
-  --rq-primary-hover: #E8C56E;
-  --rq-primary-soft: rgba(214, 168, 79, 0.12);
-  --rq-accent-primary: #D6A84F;
-  --rq-accent-hover: #E8C56E;
-  --rq-accent-soft: rgba(214, 168, 79, 0.12);
-  --rq-accent-border: rgba(214, 168, 79, 0.30);
+  --rq-primary: #C9A96B;
+  --rq-primary-hover: #D9BC82;
+  --rq-primary-soft: rgba(201, 169, 107, 0.12);
+  --rq-accent-primary: #C9A96B;
+  --rq-accent-hover: #D9BC82;
+  --rq-accent-soft: rgba(201, 169, 107, 0.12);
+  --rq-accent-border: rgba(201, 169, 107, 0.30);
 
-  --rq-secondary: #79BCE8;
-  --rq-secondary-soft: rgba(121, 188, 232, 0.10);
+  --rq-secondary: #6E91B4;
+  --rq-secondary-soft: rgba(110, 145, 180, 0.10);
 
-  --rq-text-primary: #F7F1E7;
-  --rq-text-secondary: rgba(247, 241, 231, 0.78);
-  --rq-text-muted: rgba(247, 241, 231, 0.60);
-  --rq-faint: rgba(247, 241, 231, 0.46);
+  --rq-text-primary: #EADFC8;
+  --rq-text-secondary: rgba(234, 223, 200, 0.78);
+  --rq-text-muted: rgba(234, 223, 200, 0.60);
+  --rq-faint: rgba(234, 223, 200, 0.46);
 
-  --rq-line: rgba(166, 193, 216, 0.14);
-  --rq-line-strong: rgba(214, 168, 79, 0.30);
+  --rq-line: rgba(137, 157, 176, 0.14);
+  --rq-line-strong: rgba(201, 169, 107, 0.30);
 
-  --rq-success: #59B982;
-  --rq-warning: #E3A746;
-  --rq-danger: #D85C61;
-  --rq-info: #79BCE8;
+  --rq-success: #5FA67A;
+  --rq-warning: #D39A43;
+  --rq-danger: #B94A4F;
+  --rq-info: #6E91B4;
 
   --rq-radius: 7px;
   --rq-inner-radius: 5px;
