@@ -622,6 +622,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           <p>Level 1 full builder</p>
           <h1>{editMode ? 'Edit Character' : 'Create Character'}</h1>
           <span>Start with setup, then move through each builder section one page at a time.</span>
+          <small className="full-creator-draft-status">
+            {editMode ? 'Changes are saved when you choose Save Changes.' : 'Draft saves automatically on this device.'}
+          </small>
         </div>
         <button type="button" onClick={() => navigate('/home')}>Dashboard</button>
       </header>
@@ -641,8 +644,23 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         <nav className="full-creator-steps" aria-label="Character creation steps">
           {steps.map((item, index) => {
             const Icon = item.icon;
+            const isCurrent = index === step;
             const isComplete = item.id === 'review' ? canSave : Boolean(completionByStep[item.id]);
-            return <button key={item.id} type="button" className={`${index === step ? 'active' : ''} ${isComplete ? 'is-complete' : ''}`} onClick={() => setStep(index)}><Icon size={16} /><span>{item.label}</span></button>;
+            const stateLabel = isCurrent ? 'Current' : isComplete ? 'Done' : 'To do';
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`${isCurrent ? 'active' : ''} ${isComplete ? 'is-complete' : 'is-incomplete'}`}
+                aria-current={isCurrent ? 'step' : undefined}
+                aria-label={`${item.label}: ${stateLabel}`}
+                onClick={() => setStep(index)}
+              >
+                <Icon size={16} />
+                <span>{item.label}</span>
+                <small className="full-creator-step-state">{stateLabel}</small>
+              </button>
+            );
           })}
         </nav>
 
