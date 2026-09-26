@@ -24,7 +24,7 @@ describe('Keeper professional visual contract', () => {
     expect(landing).toContain('--landing-red: #C9A96B');
     expect(landing).toContain('--landing-secondary: #6E91B4');
     expect(landing).toContain('--landing-text: #EADFC8');
-    expect(creator).toContain('--rqk-creator-pink: var(--rq-primary, #C9A96B)');
+    expect(creator).toContain('--rqk-creator-accent: var(--rq-primary, #C9A96B)');
     expect(creator).toContain('--rqk-creator-blue: var(--rq-secondary, #6E91B4)');
   });
 
