@@ -134,6 +134,15 @@
   letter-spacing: -.025em;
 }
 
+.full-creator-draft-status {
+  display: block;
+  margin-top: 6px;
+  color: var(--rqk-creator-faint) !important;
+  font-size: .74rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .full-creator-header span,
 .full-creator-section-title p,
 .full-creator-preview span,
