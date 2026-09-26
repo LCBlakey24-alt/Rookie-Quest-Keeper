@@ -2,26 +2,26 @@
    Keep the shared deep-navy / antique-gold / cream identity with restrained blue support, but avoid
    making every text tier and divider equally bright. */
 #root .landing-page-final.keeper-product-site {
-  --landing-bg: #050E18;
+  --landing-bg: #07131F;
   --landing-bg-deep: #030912;
   --landing-surface: #0B1C2C;
-  --landing-card: #112A40;
-  --landing-card-hover: #17364F;
+  --landing-card: #263748;
+  --landing-card-hover: #334155;
 
   /* Gold is the brand/action accent. Neutral lines keep the page calm. */
-  --landing-line: rgba(166, 193, 216, 0.14);
-  --landing-line-strong: rgba(214, 168, 79, 0.30);
-  --landing-red: #D6A84F; /* legacy variable name retained for existing selectors */
-  --landing-red-bright: #E8C56E;
+  --landing-line: rgba(137, 157, 176, 0.14);
+  --landing-line-strong: rgba(201, 169, 107, 0.30);
+  --landing-red: #C9A96B; /* legacy variable name retained for existing selectors */
+  --landing-red-bright: #D9BC82;
   --landing-red-soft: rgba(214, 168, 79, 0.10);
 
   /* Blue is supporting information/focus colour, not the main CTA colour. */
-  --landing-secondary: #79BCE8;
+  --landing-secondary: #6E91B4;
   --landing-secondary-soft: rgba(121, 188, 232, 0.08);
   --landing-secondary-line: rgba(121, 188, 232, 0.22);
 
-  --landing-text: #F7F1E7;
-  --landing-muted: rgba(247, 241, 231, 0.78);
+  --landing-text: #EADFC8;
+  --landing-muted: rgba(234, 223, 200, 0.78);
   --landing-faint: rgba(247, 241, 231, 0.58);
 
   background: var(--landing-bg) !important;
