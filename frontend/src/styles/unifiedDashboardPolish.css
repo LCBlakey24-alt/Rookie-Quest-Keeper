@@ -11,7 +11,7 @@
   align-content: start !important;
   gap: 16px !important;
   background: transparent !important;
-  color: var(--rq-text, #f8fbff) !important;
+  color: var(--rq-text, #EADFC8) !important;
   box-sizing: border-box !important;
 }
 
@@ -34,9 +34,9 @@
   align-items: center !important;
   gap: 18px !important;
   padding: 20px !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #111E2B) !important;
   background-image: none !important;
-  border: 1px solid var(--rq-line, #213a54) !important;
+  border: 1px solid var(--rq-line, rgba(201, 169, 107, 0.18)) !important;
   border-radius: var(--rq-radius, 8px) !important;
   box-shadow: none !important;
 }
@@ -54,7 +54,7 @@
 #root .dashboard-eyebrow {
   margin: 0 0 5px !important;
   padding: 0 !important;
-  color: var(--rq-primary-hover, #ed3340) !important;
+  color: var(--rq-primary-hover, #D9BC82) !important;
   background: transparent !important;
   border: 0 !important;
   font-size: 10px !important;
@@ -65,7 +65,7 @@
 
 #root .unified-dashboard-header--simple h1 {
   margin: 0 !important;
-  color: var(--rq-text, #f8fbff) !important;
+  color: var(--rq-text, #EADFC8) !important;
   font-family: inherit !important;
   font-size: clamp(1.9rem, 4vw, 2.6rem) !important;
   font-weight: 800 !important;
@@ -79,13 +79,13 @@
 
 #root .dashboard-muted {
   margin: 7px 0 0 !important;
-  color: var(--rq-muted, #b8c7d8) !important;
+  color: var(--rq-muted, rgba(234, 223, 200, 0.76)) !important;
   font-size: 13px !important;
   line-height: 1.45 !important;
 }
 
 #root .dashboard-muted strong {
-  color: var(--rq-text, #f8fbff) !important;
+  color: var(--rq-text, #EADFC8) !important;
 }
 
 #root .dashboard-header-buttons {
@@ -102,10 +102,10 @@
   align-items: center !important;
   justify-content: center !important;
   padding: 0 12px !important;
-  background: var(--rq-button, #11263d) !important;
+  background: var(--rq-button, #1E2936) !important;
   background-image: none !important;
-  color: var(--rq-text, #f8fbff) !important;
-  border: 1px solid var(--rq-line, #213a54) !important;
+  color: var(--rq-text, #EADFC8) !important;
+  border: 1px solid var(--rq-line, rgba(201, 169, 107, 0.18)) !important;
   border-radius: var(--rq-inner-radius, 6px) !important;
   box-shadow: none !important;
   font: inherit !important;
@@ -116,8 +116,8 @@
 
 #root .unified-dashboard-button:hover:not(:disabled),
 #root .unified-dashboard-button:focus-visible {
-  background: var(--rq-button-hover, #19334f) !important;
-  border-color: var(--rq-line-strong, #31516f) !important;
+  background: var(--rq-button-hover, #334155) !important;
+  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
 }
 
 #root .unified-dashboard-button:disabled {
@@ -145,7 +145,7 @@
 
 #root .dashboard-simple-heading h2 {
   margin: 0 !important;
-  color: var(--rq-text, #f8fbff) !important;
+  color: var(--rq-text, #EADFC8) !important;
   font-family: inherit !important;
   font-size: 1.05rem !important;
   font-weight: 800 !important;
@@ -155,6 +155,88 @@
 #root .dashboard-simple-heading h2::after {
   content: none !important;
   display: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Continue                                                                   */
+/* -------------------------------------------------------------------------- */
+
+#root .dashboard-continue-grid {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+#root .dashboard-continue-card {
+  min-width: 0 !important;
+  min-height: 108px !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  background: #111E2B !important;
+  color: #EADFC8 !important;
+  border: 1px solid rgba(201, 169, 107, 0.18) !important;
+  border-left: 3px solid #C9A96B !important;
+  border-radius: var(--rq-radius, 8px) !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+#root .dashboard-continue-card:hover,
+#root .dashboard-continue-card:focus-visible {
+  background: #1E2936 !important;
+  border-color: rgba(201, 169, 107, 0.34) !important;
+}
+
+#root .dashboard-continue-icon {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  color: #C9A96B !important;
+  background: rgba(201, 169, 107, 0.10) !important;
+  border: 1px solid rgba(201, 169, 107, 0.18) !important;
+  border-radius: var(--rq-inner-radius, 6px) !important;
+}
+
+#root .dashboard-continue-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 3px !important;
+}
+
+#root .dashboard-continue-copy em {
+  color: #C9A96B !important;
+  font-size: 10px !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .dashboard-continue-copy strong {
+  overflow: hidden !important;
+  color: #EADFC8 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .dashboard-continue-copy span,
+#root .dashboard-continue-cta {
+  color: rgba(234, 223, 200, 0.64) !important;
+  font-size: 11px !important;
+}
+
+#root .dashboard-continue-cta {
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -177,10 +259,10 @@
   align-items: center !important;
   gap: 12px !important;
   padding: 15px !important;
-  background: var(--rq-card, #142a43) !important;
+  background: var(--rq-card, #1E2936) !important;
   background-image: none !important;
-  color: var(--rq-text, #f8fbff) !important;
-  border: 1px solid var(--rq-line, #213a54) !important;
+  color: var(--rq-text, #EADFC8) !important;
+  border: 1px solid var(--rq-line, rgba(201, 169, 107, 0.18)) !important;
   border-radius: var(--rq-radius, 8px) !important;
   box-shadow: none !important;
   text-decoration: none !important;
@@ -190,18 +272,18 @@
 
 #root .dashboard-command-card--simple:hover,
 #root .dashboard-command-card--simple:focus-visible {
-  background: var(--rq-card-hover, #19324e) !important;
-  border-color: var(--rq-line-strong, #31516f) !important;
+  background: var(--rq-card-hover, #334155) !important;
+  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
   transform: none !important;
 }
 
 #root .dashboard-command-card--simple.is-primary {
-  border-color: rgba(209, 31, 42, .55) !important;
+  border-color: rgba(201, 169, 107, .55) !important;
 }
 
 #root .dashboard-command-card--simple.is-primary .dashboard-command-icon {
-  background: var(--rq-primary, #d11f2a) !important;
-  border-color: var(--rq-primary, #d11f2a) !important;
+  background: var(--rq-primary, #C9A96B) !important;
+  border-color: var(--rq-primary, #C9A96B) !important;
 }
 
 #root .dashboard-command-icon {
@@ -210,9 +292,9 @@
   display: grid !important;
   place-items: center !important;
   align-self: center !important;
-  background: var(--rq-primary-soft, rgba(209, 31, 42, .16)) !important;
+  background: var(--rq-primary-soft, rgba(201, 169, 107, .12)) !important;
   color: #fff !important;
-  border: 1px solid rgba(209, 31, 42, .34) !important;
+  border: 1px solid rgba(201, 169, 107, .28) !important;
   border-radius: var(--rq-inner-radius, 6px) !important;
   box-shadow: none !important;
 }
@@ -224,21 +306,21 @@
 }
 
 #root .dashboard-command-copy strong {
-  color: var(--rq-text, #f8fbff) !important;
+  color: var(--rq-text, #EADFC8) !important;
   font-size: 14px !important;
   font-weight: 800 !important;
   line-height: 1.2 !important;
 }
 
 #root .dashboard-command-copy > span {
-  color: var(--rq-muted, #b8c7d8) !important;
+  color: var(--rq-muted, rgba(234, 223, 200, 0.76)) !important;
   font-size: 11px !important;
   line-height: 1.35 !important;
 }
 
 #root .dashboard-command-card--simple > em {
   justify-self: end !important;
-  color: var(--rq-text-muted, #8295aa) !important;
+  color: var(--rq-text-muted, rgba(234, 223, 200, 0.58)) !important;
   font-size: 10px !important;
   font-style: normal !important;
   font-weight: 800 !important;
@@ -265,10 +347,10 @@
   align-items: center !important;
   gap: 10px !important;
   padding: 10px 12px !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #111E2B) !important;
   background-image: none !important;
-  color: var(--rq-text, #f8fbff) !important;
-  border: 1px solid var(--rq-line, #213a54) !important;
+  color: var(--rq-text, #EADFC8) !important;
+  border: 1px solid var(--rq-line, rgba(201, 169, 107, 0.18)) !important;
   border-radius: var(--rq-inner-radius, 6px) !important;
   box-shadow: none !important;
   text-decoration: none !important;
@@ -276,8 +358,8 @@
 
 #root .dashboard-activity-item:hover,
 #root .dashboard-activity-item:focus-visible {
-  background: var(--rq-card, #142a43) !important;
-  border-color: var(--rq-line-strong, #31516f) !important;
+  background: var(--rq-card, #1E2936) !important;
+  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
 }
 
 #root .dashboard-activity-icon {
@@ -285,7 +367,7 @@
   height: 32px !important;
   display: grid !important;
   place-items: center !important;
-  background: var(--rq-primary-soft, rgba(209, 31, 42, .16)) !important;
+  background: var(--rq-primary-soft, rgba(201, 169, 107, .12)) !important;
   color: #fff !important;
   border-radius: var(--rq-inner-radius, 6px) !important;
 }
@@ -298,7 +380,7 @@
 
 #root .dashboard-activity-copy strong {
   overflow: hidden !important;
-  color: var(--rq-text, #f8fbff) !important;
+  color: var(--rq-text, #EADFC8) !important;
   font-size: 12px !important;
   font-weight: 800 !important;
   text-overflow: ellipsis !important;
@@ -307,7 +389,7 @@
 
 #root .dashboard-activity-copy span,
 #root .dashboard-activity-item time {
-  color: var(--rq-text-muted, #8295aa) !important;
+  color: var(--rq-text-muted, rgba(234, 223, 200, 0.58)) !important;
   font-size: 10px !important;
 }
 
@@ -328,16 +410,16 @@
   align-content: center !important;
   gap: 7px !important;
   padding: 16px !important;
-  background: var(--rq-surface, #102238) !important;
-  color: var(--rq-muted, #b8c7d8) !important;
-  border: 1px dashed var(--rq-line-strong, #31516f) !important;
+  background: var(--rq-surface, #111E2B) !important;
+  color: var(--rq-muted, rgba(234, 223, 200, 0.76)) !important;
+  border: 1px dashed var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
   border-radius: var(--rq-inner-radius, 6px) !important;
   text-align: center !important;
 }
 
 #root .dashboard-empty-compact p {
   margin: 0 !important;
-  color: var(--rq-muted, #b8c7d8) !important;
+  color: var(--rq-muted, rgba(234, 223, 200, 0.76)) !important;
   font-size: 12px !important;
 }
 
@@ -351,7 +433,7 @@
   place-items: center !important;
   align-content: center !important;
   gap: 9px !important;
-  color: var(--rq-muted, #b8c7d8) !important;
+  color: var(--rq-muted, rgba(234, 223, 200, 0.76)) !important;
 }
 
 #root .dashboard-loading p {
@@ -381,6 +463,32 @@
 #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-button {
   width: 100% !important;
   min-height: 46px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-continue-grid {
+  grid-template-columns: 1fr !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-continue-card {
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  grid-template-areas:
+    'icon copy'
+    'icon action' !important;
+  min-height: 92px !important;
+  padding: 13px !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-continue-icon {
+  grid-area: icon !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-continue-copy {
+  grid-area: copy !important;
+}
+
+#root .rqk-app-shell[data-rq-device='mobile'] .dashboard-continue-cta {
+  grid-area: action !important;
+  justify-self: start !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .unified-dashboard-page--simple .dashboard-command-grid--simple {
