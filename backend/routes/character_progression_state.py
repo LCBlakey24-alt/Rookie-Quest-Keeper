@@ -43,6 +43,7 @@ from routes.characters import (
     multiclass_requirement_text,
 )
 from utils.auth import get_current_user
+from utils.homebrew_spellcasting_snapshot import ensure_homebrew_spellcasting_snapshot
 
 
 router = APIRouter()
@@ -659,6 +660,7 @@ async def _apply_level_up(
     progression_type: str,
 ) -> Dict[str, Any]:
     existing = await get_owned_character(character_id, username)
+    existing, _ = await ensure_homebrew_spellcasting_snapshot(existing, username, leveled_class)
     update_data = build_state_safe_level_up_update(existing, level_up, leveled_class, progression_type)
     await db.player_characters.update_one(
         {"id": character_id, "user_id": username},
