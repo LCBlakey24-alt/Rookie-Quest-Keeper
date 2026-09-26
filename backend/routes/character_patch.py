@@ -41,7 +41,7 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "proficiency_bonus", "conditions", "exhaustion_level", "inspiration", "has_inspiration",
     "concentrating_on", "concentration",
     "saving_throw_proficiencies", "skill_proficiencies", "weapon_proficiencies", "armor_proficiencies",
-    "armour_proficiencies", "tool_proficiencies", "languages", "racial_traits", "class_features", "feats",
+    "armour_proficiencies", "tool_proficiencies", "languages", "racial_traits", "class_features", "background_features", "feats",
     "spellcasting_ability", "spell_save_dc", "spell_attack_bonus", "spell_slots", "spell_slots_remaining",
     "used_spell_slots", "spells_known", "spells_prepared", "cantrips_known", "prepared_spell_names", "spellbook", "spell_preparation_loadout",
     "equipment", "inventory", "equipped", "item_effects", "currency", "gold", "fighting_style", "equipment_choice", "starting_equipment",
@@ -65,7 +65,7 @@ NUMERIC_FIELDS = {
 
 LIST_FIELDS = {
     "conditions", "saving_throw_proficiencies", "skill_proficiencies", "weapon_proficiencies", "armor_proficiencies",
-    "armour_proficiencies", "tool_proficiencies", "languages", "racial_traits", "class_features", "feats",
+    "armour_proficiencies", "tool_proficiencies", "languages", "racial_traits", "class_features", "background_features", "feats",
     "spells_known", "spells_prepared", "cantrips_known", "spellbook", "starting_equipment", "equipment", "inventory",
 }
 
@@ -386,6 +386,7 @@ def _clean_create(payload: Dict[str, Any], username: str) -> Dict[str, Any]:
         "languages": _list(data.get("languages")),
         "racial_traits": _list(data.get("racial_traits")),
         "class_features": _list(data.get("class_features")),
+        "background_features": _list(data.get("background_features")),
         "feats": _list(data.get("feats")),
         "spell_slots": _dict(data.get("spell_slots")),
         "spell_slots_remaining": _dict(data.get("spell_slots_remaining")) or _dict(data.get("spell_slots")),

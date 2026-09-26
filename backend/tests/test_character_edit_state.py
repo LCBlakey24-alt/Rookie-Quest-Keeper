@@ -57,6 +57,7 @@ class TestCharacterEditState(unittest.TestCase):
             "race": "Human",
             "charisma": 18,
             "backstory": "Updated story",
+            "background_features": [{"name": "Military Rank", "description": "Soldier background feature."}],
             "level": 1,
             "character_class": "Fighter",
             "subclass": "Champion",
@@ -80,6 +81,7 @@ class TestCharacterEditState(unittest.TestCase):
         self.assertEqual(update["name"], "Javen Crow")
         self.assertEqual(update["charisma"], 18)
         self.assertEqual(update["backstory"], "Updated story")
+        self.assertEqual(update["background_features"][0]["name"], "Military Rank")
         for dangerous in [
             "level", "character_class", "subclass", "max_hit_points", "current_hit_points",
             "temporary_hit_points", "hit_dice_remaining", "spell_slots", "spell_slots_remaining",

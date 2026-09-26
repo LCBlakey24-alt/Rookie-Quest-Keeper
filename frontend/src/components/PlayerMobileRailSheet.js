@@ -113,7 +113,7 @@ export default function PlayerMobileRailSheet() {
         {activeTab === 'actions' && <GroupedCards groups={[['Actions', [...list(character.attacks), ...list(character.actions)]], ['Bonus Actions', list(character.bonus_actions)], ['Reactions', list(character.reactions)]]} empty="No actions listed yet." {...context} />}
         {activeTab === 'spells' && <GroupedCards groups={[['Cantrips', list(character.cantrips_known)], ['Known Spells', list(character.spells_known)], ['Prepared Spells', list(character.spells_prepared)], ['Other Spells', [...list(character.prepared_spells), ...list(character.known_spells), ...list(character.spells)]]]} empty="No spells listed yet." {...context} />}
         {activeTab === 'inventory' && <MobileInventoryTab {...context} />}
-        {activeTab === 'features' && <GroupedCards groups={[['Class Features', list(character.class_features)], ['Race Traits', [...list(character.racial_traits), ...list(character.race_features)]], ['Feats', list(character.feats)], ['Other Features', list(character.features)]]} empty="No features listed yet." {...context} />}
+        {activeTab === 'features' && <GroupedCards groups={[['Class Features', list(character.class_features)], ['Background Features', list(character.background_features)], ['Race Traits', [...list(character.racial_traits), ...list(character.race_features)]], ['Feats', list(character.feats)], ['Other Features', list(character.features)]]} empty="No features listed yet." {...context} />}
         {activeTab === 'notes' && <Panel title="Notes"><p style={body}>{character.notes || character.backstory || 'No notes saved yet.'}</p></Panel>}
         {activeTab === 'status' && <Status {...context} />}
       </section>

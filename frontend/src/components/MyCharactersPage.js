@@ -88,6 +88,7 @@ function duplicatePayload(source) {
     languages: source.languages || [],
     racial_traits: source.racial_traits || [],
     class_features: source.class_features || [],
+    background_features: source.background_features || [],
     spells_known: source.spells_known || [],
     spells_prepared: source.spells_prepared || [],
     cantrips_known: source.cantrips_known || [],

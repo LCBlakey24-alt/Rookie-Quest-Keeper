@@ -57,6 +57,7 @@ CHARACTER_FIELDS = [
     "languages_text",
     "racial_traits_text",
     "class_features_text",
+    "background_features_text",
     "feats_text",
     "equipment_text",
     "spells_text",
@@ -175,7 +176,7 @@ def _build_model_content(data: bytes, content_type: str, filename: str) -> List[
             "This importer is primarily for D&D 5e sheets, including 2014, 2024, multiclass, and homebrew characters. "
             "Never invent a value just because it would normally exist on a D&D sheet. If a field is absent, blank, or unreadable, return an empty string for that field and add the field name to needs_review when useful. "
             "Preserve custom/homebrew names verbatim. For multiclass characters, keep the class breakdown in character_class (for example 'Fighter 3 / Rogue 2') and only provide total level when it is visible or unambiguous on the sheet. "
-            "For skills, saves, languages, traits, features, feats, equipment, spells, and cantrips, return newline-separated plain text. "
+            "For skills, saves, languages, race/species traits, class features, background features, feats, equipment, spells, and cantrips, return newline-separated plain text. "
             "For edition use only '2014', '2024', or an empty string. For hit_die use d6, d8, d10, d12, or an empty string. "
             "Do not calculate missing HP, AC, ability scores, proficiency bonus, spell slots, or modifiers. "
             "The player will review every extracted value before saving it."

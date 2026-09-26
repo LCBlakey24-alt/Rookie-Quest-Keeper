@@ -59,6 +59,7 @@ SAFE_BUILDER_EDIT_FIELDS = {
     "tool_proficiencies",
     "languages",
     "racial_traits",
+    "background_features",
 }
 
 # A never-played level-1 single-class character can safely correct structural

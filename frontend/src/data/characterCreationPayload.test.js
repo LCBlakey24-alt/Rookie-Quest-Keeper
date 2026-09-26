@@ -1,4 +1,4 @@
-import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings, mergeToolProficiencies, normaliseClassFeatureForSheet, normaliseTraitForSheet } from './characterCreationPayload';
+import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, calculateArmorClass, getCharacterCreationPayloadWarnings, mergeToolProficiencies, normaliseBackgroundFeatureForSheet, normaliseClassFeatureForSheet, normaliseTraitForSheet } from './characterCreationPayload';
 
 const thorne = {
   name: 'Thorne the Blade',
@@ -26,6 +26,28 @@ const wizard = {
   spells_known: ['Magic Missile', 'Shield'],
 };
 
+describe('background feature normalization', () => {
+  test('normalizes built-in background feature names', () => {
+    expect(normaliseBackgroundFeatureForSheet({ name: 'Soldier', feature: 'Military Rank' }, 'Soldier')).toEqual({
+      name: 'Military Rank',
+      description: 'Background feature from Soldier.',
+      source: 'Soldier',
+    });
+  });
+
+  test('normalizes uploaded background feature name and description', () => {
+    expect(normaliseBackgroundFeatureForSheet({
+      name: 'Street Archivist',
+      featureName: 'City Memory',
+      featureDescription: 'You remember the hidden history of a district.',
+    }, 'Street Archivist')).toEqual({
+      name: 'City Memory',
+      description: 'You remember the hidden history of a district.',
+      source: 'Street Archivist',
+    });
+  });
+});
+
 describe('character creation payload helper', () => {
   test('builds premade fighter payload with armour, shield, HP, proficiencies, languages, traits, and features', () => {
     const payload = buildCharacterCreationPayloadFromTemplate(thorne, { name: 'Sir Test', edition: '2014', rulesetId: 'dnd5e_2014' });
@@ -41,6 +63,7 @@ describe('character creation payload helper', () => {
     expect(payload.languages).toContain('Common');
     expect(payload.racial_traits.length).toBeGreaterThan(0);
     expect(payload.class_features.map(feature => feature.name)).toEqual(expect.arrayContaining(['Fighting Style', 'Second Wind', 'Fighting Style: Defense']));
+    expect(payload.background_features.map(feature => feature.name)).toContain('Military Rank');
     expect(getCharacterCreationPayloadWarnings(payload)).toEqual([]);
   });
 
