@@ -13,7 +13,7 @@
   padding: clamp(10px, 2vw, 20px) !important;
   background: #071522 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-sizing: border-box !important;
 }
 
@@ -34,11 +34,11 @@
   min-width: 0 !important;
   position: relative !important;
   overflow: hidden !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 7px !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .uploads-dashboard-hero {
@@ -58,7 +58,7 @@
   width: fit-content !important;
   align-items: center !important;
   margin: 0 !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-size: 9px !important;
   font-weight: 900 !important;
   letter-spacing: .09em !important;
@@ -77,7 +77,7 @@
 #root .uploads-dashboard-route-card strong,
 #root .uploads-dashboard-hero-card strong {
   margin: 0 !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-family: inherit !important;
   font-weight: 850 !important;
   letter-spacing: 0 !important;
@@ -105,7 +105,7 @@
 #root .uploads-dashboard-route-card > span:not(.uploads-dashboard-route-icon):not(.uploads-dashboard-route-label),
 #root .uploads-dashboard-hero-card span {
   margin: 0 !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-size: 12px !important;
   line-height: 1.45 !important;
 }
@@ -122,8 +122,8 @@
   align-content: center !important;
   gap: 6px !important;
   padding: 11px !important;
-  background: #081B2A !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  background: #071A29 !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
 }
 
@@ -142,11 +142,11 @@
   display: inline-grid !important;
   place-items: center !important;
   padding: 8px !important;
-  border: 1px solid rgba(255,45,170,.28) !important;
+  border: 1px solid rgba(214,168,79,.28) !important;
   border-radius: 5px !important;
-  background: rgba(124,203,255,.10) !important;
+  background: rgba(121,188,232,.10) !important;
   background-image: none !important;
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root .uploads-dashboard-dropzone {
@@ -175,11 +175,11 @@
   justify-content: center !important;
   gap: 6px !important;
   padding: 0 10px !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font: inherit !important;
   font-size: 12px !important;
   font-weight: 850 !important;
@@ -187,14 +187,14 @@
 }
 
 #root .uploads-dashboard-action-row a svg {
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root .uploads-dashboard-action-row .library-page-button-primary,
 #root .uploads-dashboard-route-card em {
-  background: #102B40 !important;
-  border-color: #FF2DAA !important;
-  color: #FFFFFF !important;
+  background: #112A40 !important;
+  border-color: #D6A84F !important;
+  color: #F7F1E7 !important;
 }
 
 #root .uploads-dashboard-action-row a:hover,
@@ -205,8 +205,8 @@
 #root .uploads-dashboard-card:focus-within,
 #root .uploads-dashboard-safety-grid article:hover,
 #root .uploads-dashboard-safety-grid article:focus-within {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
+  background: #17364F !important;
+  border-color: #D6A84F !important;
   outline: none !important;
   transform: none !important;
   filter: none !important;
@@ -216,8 +216,8 @@
 #root .uploads-dashboard-action-row .library-page-button-primary:focus-visible,
 #root .uploads-dashboard-route-card:hover em,
 #root .uploads-dashboard-route-card:focus-visible em {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
+  background: #17364F !important;
+  border-color: #D6A84F !important;
 }
 
 #root .uploads-dashboard-route-grid,
