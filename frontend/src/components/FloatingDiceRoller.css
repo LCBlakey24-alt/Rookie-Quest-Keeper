@@ -3,13 +3,13 @@
 .rq-floating-dice {
   --dice-bg: #071522;
   --dice-panel: #0C2234;
-  --dice-card: #102B40;
-  --dice-input: #081B2A;
-  --dice-text: #FFFFFF;
-  --dice-blue: #7CCBFF;
-  --dice-pink: #FF2DAA;
-  --dice-line: rgba(255, 45, 170, 0.18);
-  --dice-line-strong: rgba(255, 45, 170, 0.34);
+  --dice-card: #112A40;
+  --dice-input: #071A29;
+  --dice-text: #F7F1E7;
+  --dice-blue: #79BCE8;
+  --dice-pink: #D6A84F;
+  --dice-line: rgba(214,168,79, 0.18);
+  --dice-line-strong: rgba(214,168,79, 0.34);
 
   position: fixed;
   left: max(18px, env(safe-area-inset-left));
@@ -56,7 +56,7 @@
 
 .rq-floating-dice__toggle:hover,
 .rq-floating-dice__toggle:focus-visible {
-  background: #14344C;
+  background: #17364F;
   border-color: var(--dice-pink);
   color: var(--dice-blue);
   outline: 1px solid var(--dice-pink);
@@ -133,7 +133,7 @@
 
 .rq-floating-dice__close:hover,
 .rq-floating-dice__close:focus-visible {
-  background: #14344C;
+  background: #17364F;
   border-color: var(--dice-pink);
   outline: 1px solid var(--dice-pink);
   outline-offset: 2px;
@@ -216,7 +216,7 @@
 .rq-floating-dice__custom-button:focus-visible,
 .rq-floating-dice__group-check button:hover,
 .rq-floating-dice__group-check button:focus-visible {
-  background: #14344C;
+  background: #17364F;
   border-color: var(--dice-pink);
   outline: 1px solid var(--dice-pink);
   outline-offset: 2px;
@@ -331,7 +331,7 @@
 
 .rq-floating-dice.has-group-check-request .rq-floating-dice__toggle {
   border-color: var(--dice-pink);
-  background: rgba(124, 203, 255, .10);
+  background: rgba(121,188,232, .10);
 }
 
 @media (max-width: 719px) {
