@@ -27,24 +27,26 @@ Mobile, tablet, and desktop should all support the same major tools. Mobile shou
 
 Feature reliability comes before visual polish. Design should make the app easier to use and test, not distract from working rules and stable flows.
 
-## Blue Eclipse visual direction
+## Professional Keeper visual direction
 
-The current working visual direction is **Blue Eclipse**.
+The visual direction is a refined **navy / gold / cream** evolution of the earlier Blue Eclipse idea.
 
-Rookie Quest Keeper should feel like a premium magical command journal: fantasy, clean, tabletop-friendly, consistent, and app-like.
+Rookie Quest Keeper should feel like a premium magical command journal: fantasy, clean, tabletop-friendly, consistent, and app-like without becoming neon or theatrical.
 
 Use this palette language as the guiding direction:
 
-- Very dark blue / black-purple page backgrounds: `#080816`, `#0f0e47`.
-- Blue-purple card surfaces: `#272757`, `#343463`.
-- Muted blue-grey secondary panels: `#505081`.
-- Soft muted text: `#8686ac`.
-- Warm cream / ivory text: `#f6ead2`.
-- Antique gold accents: `#d8ad4f`.
-- Gold hover / highlight: `#f2d18a`.
-- Blue-violet glow, used sparingly: `#7c78ff`.
+- Deep navy canvas: `#071522`.
+- Deepest rail/chrome: `#050E18`.
+- Main panels: `#0C2234`.
+- Cards and controls: `#112A40`.
+- Hover/elevated surface: `#17364F`.
+- Warm cream primary text: `#F7F1E7`.
+- Muted cream secondary text: `rgba(247,241,231,0.78)`.
+- Antique gold primary accent: `#D6A84F`.
+- Gold hover/highlight: `#E8C56E`.
+- Supporting blue: `#79BCE8`.
 
-Avoid making the app overly bright, neon, or visually noisy. Glow should support focus and hierarchy, not decorate every panel.
+Avoid bright neon, broad red decoration, pink theme lines, noisy gradients or glow-heavy panels. Depth should come from spacing, navy surface steps and restrained borders.
 
 ## Font direction
 
