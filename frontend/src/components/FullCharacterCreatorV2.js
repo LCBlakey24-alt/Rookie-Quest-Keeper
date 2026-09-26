@@ -17,6 +17,8 @@ import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import { mergeToolProficiencies, normaliseClassFeatureForSheet, normaliseTraitForSheet } from '@/data/characterCreationPayload';
 import { classSkillsForEdit } from '@/data/characterEditSkillHelpers';
+import { buildFullBuilderLanguages, getBackgroundLanguageBudget, splitExistingLanguagesForBuilder } from '@/data/languageFullBuilderHelpers';
+import { EXTRA_LANGUAGE_OPTIONS, countChoiceLanguages, getFixedLanguages } from '@/data/languageChoiceUtils';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
 
@@ -50,7 +52,6 @@ const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const fmt = (value) => value >= 0 ? `+${value}` : `${value}`;
 const clamp = (value) => Math.max(3, Math.min(20, Number.parseInt(value, 10) || 10));
-const isChoiceLang = (value) => /choice|additional/i.test(String(value || ''));
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const spellName = (spell) => typeof spell === 'string' ? spell : spell?.name || '';
 const getStartingGoldRule = (characterClass, edition) => edition === '2024' ? STARTING_GOLD_2024 : STARTING_GOLD_2014_BY_CLASS[characterClass] || { formula: '4d4 × 10 gp', dice: 4, die: 4, multiplier: 10, average: 100 };
@@ -89,6 +90,9 @@ function defaultDraft() {
     selectedSkills: [],
     selectedCantrips: [],
     selectedSpells: [],
+    raceChosenLanguages: [],
+    backgroundChosenLanguages: [],
+    preservedLanguages: [],
     extraFeat: 'None',
     equipmentMode: 'equipment',
     rolledStartingGold: 0,
@@ -211,8 +215,18 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const allSkills = Array.from(new Set([...backgroundSkills, ...draft.selectedSkills]));
   const floatingBudget = draft.edition === '2014' ? Number(raceData.asi2014?.choice || 0) : 0;
   const floatingSpent = Object.values(draft.floatingAsi || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-  const baseLanguages = arr(raceData.languages).filter((language) => !isChoiceLang(language));
-  const languageChoices = arr(raceData.languages).filter(isChoiceLang).length;
+  const raceLanguageEntries = [...arr(raceData.languages), ...arr(raceData.subraces?.[draft.subrace]?.languages)];
+  const baseLanguages = getFixedLanguages(raceLanguageEntries);
+  const languageChoices = countChoiceLanguages(raceLanguageEntries);
+  const backgroundLanguageBudget = getBackgroundLanguageBudget(backgroundData);
+  const speciesLanguagesComplete = arr(draft.raceChosenLanguages).length === languageChoices;
+  const backgroundLanguagesComplete = arr(draft.backgroundChosenLanguages).length === backgroundLanguageBudget;
+  const finalLanguages = buildFullBuilderLanguages({
+    raceLanguages: raceLanguageEntries,
+    raceChosenLanguages: draft.raceChosenLanguages,
+    backgroundChosenLanguages: draft.backgroundChosenLanguages,
+    preservedLanguages: draft.preservedLanguages,
+  });
   const racialTraits = [...arr(raceData.traits), ...arr(raceData.subraces?.[draft.subrace]?.traits)]
     .map(normaliseTraitForSheet)
     .filter(Boolean);
@@ -244,9 +258,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(finalScores[ability])) && finalScores[ability] >= 3 && finalScores[ability] <= 30) && (!floatingBudget || floatingSpent === floatingBudget);
   const completionByStep = {
     setup: Boolean(draft.name.trim() && draft.edition),
-    species: Boolean(draft.race && (!subraces.length || draft.subrace)),
+    species: Boolean(draft.race && (!subraces.length || draft.subrace) && speciesLanguagesComplete),
     class: Boolean(draft.characterClass && fighterStyleComplete && (!classChoicesRequired || draft.subclass) && draft.selectedSkills.length === skillTarget && spellsComplete),
-    background: Boolean(draft.background && draft.alignment && (!featRequired || chosenFeat)),
+    background: Boolean(draft.background && draft.alignment && backgroundLanguagesComplete && (!featRequired || chosenFeat)),
     abilities: abilitiesComplete,
     equipment: equipmentComplete,
     review: true,
@@ -283,13 +297,22 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         const loadedFightingStyle = arr(data.class_features).map((feature) => displayName(feature)).find((name) => name.startsWith('Fighting Style:'))?.replace('Fighting Style:', '').trim() || '';
         const loadedBackgroundName = data.background || 'Soldier';
         const loadedBackgroundSkills = arr(BACKGROUNDS[loadedBackgroundName]?.skillProficiencies);
+        const loadedRaceName = data.race || 'Human';
+        const loadedSubrace = data.subrace || '';
+        const loadedRaceData = RACES[loadedRaceName] || {};
+        const loadedRaceLanguageEntries = [...arr(loadedRaceData.languages), ...arr(loadedRaceData.subraces?.[loadedSubrace]?.languages)];
+        const loadedLanguageState = splitExistingLanguagesForBuilder({
+          savedLanguages: data.languages,
+          raceLanguages: loadedRaceLanguageEntries,
+          backgroundData: BACKGROUNDS[loadedBackgroundName] || {},
+        });
         setDraft((prev) => ({
           ...prev,
           name: data.name || '',
           edition: data.edition || (String(data.ruleset_id || '').includes('2024') ? '2024' : '2014'),
           startingLevel: Number(data.level || 1),
-          race: data.race || 'Human',
-          subrace: data.subrace || '',
+          race: loadedRaceName,
+          subrace: loadedSubrace,
           characterClass: data.character_class || 'Fighter',
           subclass: data.subclass || '',
           fighterFightingStyle: loadedFightingStyle,
@@ -299,6 +322,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           selectedSkills: classSkillsForEdit(data.skill_proficiencies, loadedBackgroundSkills),
           selectedCantrips: arr(data.cantrips_known || data.cantrips).map((spell) => spell.name || spell),
           selectedSpells: [...arr(data.spells_known || data.known_spells), ...arr(data.spellbook), ...arr(data.spells_prepared || data.prepared_spells)].map((spell) => spell.name || spell),
+          ...loadedLanguageState,
           customEquipment: '',
           equipmentMode: loadedGold > 0 && !arr(data.starting_equipment).length ? 'gold' : 'equipment',
           rolledStartingGold: loadedGold,
@@ -331,6 +355,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     if (stepId === 'species') {
       if (!draft.race) return `Choose a ${speciesLabel.toLowerCase()}.`;
       if (subraces.length && !draft.subrace) return `Choose a ${speciesLabel.toLowerCase()} option.`;
+      if (!speciesLanguagesComplete) return `Choose ${languageChoices} ${speciesLabel.toLowerCase()} language${languageChoices === 1 ? '' : 's'}.`;
     }
     if (stepId === 'class') {
       if (!draft.characterClass) return 'Choose a class.';
@@ -341,6 +366,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     }
     if (stepId === 'background') {
       if (!draft.background || !draft.alignment) return 'Choose a background and alignment.';
+      if (!backgroundLanguagesComplete) return `Choose ${backgroundLanguageBudget} background language${backgroundLanguageBudget === 1 ? '' : 's'}.`;
       if (featRequired && !chosenFeat) return 'Choose or confirm your 2024 origin feat.';
     }
     if (stepId === 'abilities' && !abilitiesComplete) return floatingBudget && floatingSpent !== floatingBudget ? `Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'}.` : 'Check your ability scores.';
@@ -455,8 +481,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     if (!arr(classData.savingThrows).length) later.push('Saving throw proficiencies are not listed for this class yet. Check the sheet after saving.');
     else complete.push('Saving throws are ready.');
 
-    if (!baseLanguages.length) later.push('Languages are missing or all language choices are unresolved. You can add these on the sheet later.');
-    if (languageChoices > 0) later.push(`This ${speciesLabel.toLowerCase()} has an extra language choice. Pick the exact language later if it is not handled here yet.`);
+    if (!speciesLanguagesComplete) priority.push(`Choose ${languageChoices} ${speciesLabel.toLowerCase()} language${languageChoices === 1 ? '' : 's'} before saving.`);
+    if (!backgroundLanguagesComplete) priority.push(`Choose ${backgroundLanguageBudget} background language${backgroundLanguageBudget === 1 ? '' : 's'} before saving.`);
+    if (speciesLanguagesComplete && backgroundLanguagesComplete) complete.push('Language choices are ready.');
     if (!racialTraits.length) later.push(`${speciesLabel} traits are missing from the rules data. You can still save, but the traits section may need review.`);
     if (!classFeatures.length) later.push('Class features are missing from the rules data. You can still save, but the features section may need review.');
 
@@ -514,7 +541,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       armor_proficiencies: arr(classData.armorProficiencies),
       weapon_proficiencies: arr(classData.weaponProficiencies),
       tool_proficiencies: mergeToolProficiencies(classData.toolProficiencies, backgroundData.toolProficiencies),
-      languages: baseLanguages,
+      languages: finalLanguages,
       racial_traits: racialTraits,
       class_features: classFeatures,
       feats: chosenFeat ? [{ name: chosenFeat, source: draft.edition === '2024' ? 'origin' : 'optional' }] : [],
@@ -620,9 +647,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           <article className="full-creator-panel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
             {stepId === 'setup' && <Setup draft={draft} update={update} />}
-            {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} />}
+            {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} selectedLanguages={draft.raceChosenLanguages} unavailableLanguages={[...baseLanguages, ...arr(draft.backgroundChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('raceChosenLanguages', language, languageChoices)} />}
             {stepId === 'class' && <ClassStep draft={draft} update={update} classData={classData} classFeatures={classFeatures} classChoicesRequired={classChoicesRequired} subclassLevel={subclassLevel} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
-            {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} />}
+            {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} backgroundLanguageBudget={backgroundLanguageBudget} unavailableLanguages={[...baseLanguages, ...arr(draft.raceChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('backgroundChosenLanguages', language, backgroundLanguageBudget)} />}
             {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
               const next = { ...draft.floatingAsi };
               if (next[ability]) delete next[ability];
@@ -640,6 +667,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             <div className="full-creator-mini-grid"><strong>{hp}</strong><span>HP</span><strong>{ac}</strong><span>AC</span><strong>{fmt(mod(finalScores.dexterity))}</strong><span>Init</span></div>
             <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
             <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
+            <small>Languages: {finalLanguages.length ? finalLanguages.join(', ') : 'none selected'}</small>
             {draft.characterClass === 'Fighter' && <small>Fighting Style: {draft.fighterFightingStyle || 'choose style'}</small>}
             {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
             <small>{equipmentMode === 'gold' ? `Gold: ${startingGold || 'not rolled'} gp` : 'Starting equipment selected'}</small>
@@ -670,6 +698,18 @@ function Choice({ title, children }) {
   return <section className="full-creator-choice-block"><h3>{title}</h3><div>{children}</div></section>;
 }
 
+function LanguagePicker({ title, count, selected = [], unavailable = [], onToggle }) {
+  if (!count) return null;
+  const blocked = new Set(unavailable);
+  const options = Array.from(new Set([...selected, ...EXTRA_LANGUAGE_OPTIONS]))
+    .filter((language) => selected.includes(language) || !blocked.has(language));
+  return (
+    <Choice title={`${title} ${selected.length}/${count}`}>
+      {options.map((language) => <Chip key={language} active={selected.includes(language)} onClick={() => onToggle(language)}>{language}</Chip>)}
+    </Choice>
+  );
+}
+
 function Setup({ draft, update }) {
   return <>
     <Title icon={Sparkles} title="Character setup" text="Start with name, rules edition, and starting level. Higher starting levels will come after the level-up pass." />
@@ -682,13 +722,13 @@ function Setup({ draft, update }) {
   </>;
 }
 
-function Species({ draft, update, subraces, raceData, racialTraits, baseLanguages, languageChoices, bonus, speciesLabel }) {
+function Species({ draft, update, subraces, raceData, racialTraits, baseLanguages, languageChoices, bonus, speciesLabel, selectedLanguages, unavailableLanguages, toggleLanguage }) {
   const speed = raceData.subraces?.[draft.subrace]?.speed || raceData.speed || 30;
   return <>
     <Title icon={Shield} title={`Choose ${speciesLabel.toLowerCase()}`} text={`Pick your character's ${speciesLabel.toLowerCase()} and review what it gives them.`} />
     <div className="full-creator-form-grid">
-      <label><span>{speciesLabel}</span><select value={draft.race} onChange={(event) => update({ race: event.target.value, subrace: '', floatingAsi: {} })}>{Object.keys(RACES).map((name) => <option key={name}>{name}</option>)}</select></label>
-      {subraces.length > 0 && <label><span>{speciesLabel} option</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>}
+      <label><span>{speciesLabel}</span><select value={draft.race} onChange={(event) => update({ race: event.target.value, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] })}>{Object.keys(RACES).map((name) => <option key={name}>{name}</option>)}</select></label>
+      {subraces.length > 0 && <label><span>{speciesLabel} option</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value, raceChosenLanguages: [], backgroundChosenLanguages: [] })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>}
     </div>
     <section className="full-creator-auto-box">
       <strong>{draft.race}{draft.subrace ? ` — ${draft.subrace}` : ''}</strong>
@@ -698,8 +738,9 @@ function Species({ draft, update, subraces, raceData, racialTraits, baseLanguage
       <ReviewItem label="Speed" value={`${speed} ft`} />
       <ReviewItem label="Size" value={raceData.size || 'Medium'} />
       <ReviewItem label="Ability bonus" value={draft.edition === '2024' ? 'From background' : bonusText(bonus)} />
-      <ReviewItem label="Languages" value={[...baseLanguages, languageChoices ? `${languageChoices} choice` : ''].filter(Boolean).join(', ') || 'None listed'} />
+      <ReviewItem label="Languages" value={[...baseLanguages, ...selectedLanguages].join(', ') || (languageChoices ? `${languageChoices} to choose` : 'None listed')} />
     </div>
+    <LanguagePicker title={`${speciesLabel} languages`} count={languageChoices} selected={selectedLanguages} unavailable={unavailableLanguages} onToggle={toggleLanguage} />
     <Choice title="Traits preview">
       {racialTraits.length ? racialTraits.slice(0, 8).map((trait) => <span className="full-creator-note" key={trait.description}>{trait.description}</span>) : <span className="full-creator-note">No traits listed yet.</span>}
     </Choice>
@@ -736,12 +777,12 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
   </>;
 }
 
-function Background({ draft, update, featRequired, originFeat }) {
+function Background({ draft, update, featRequired, originFeat, backgroundLanguageBudget, unavailableLanguages, toggleLanguage }) {
   const backgroundData = BACKGROUNDS[draft.background] || {};
   return <>
     <Title icon={BookOpen} title="Choose background" text="Pick where your character came from. Origin feat lives here for 2024 characters." />
     <div className="full-creator-form-grid">
-      <label><span>Background</span><select value={draft.background} onChange={(event) => update({ background: event.target.value, extraFeat: 'None' })}>{Object.keys(BACKGROUNDS).map((name) => <option key={name}>{name}</option>)}</select></label>
+      <label><span>Background</span><select value={draft.background} onChange={(event) => update({ background: event.target.value, extraFeat: 'None', backgroundChosenLanguages: [] })}>{Object.keys(BACKGROUNDS).map((name) => <option key={name}>{name}</option>)}</select></label>
       <label><span>Alignment</span><select value={draft.alignment} onChange={(event) => update({ alignment: event.target.value })}>{['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'].map((name) => <option key={name}>{name}</option>)}</select></label>
       {featRequired && <label><span>Origin feat</span><select value={draft.extraFeat} onChange={(event) => update({ extraFeat: event.target.value })}>{['None', ...getFeatsForRuleset({ edition: draft.edition, category: 'origin' }).map(feat => feat.name)].map((name) => <option key={name}>{name}</option>)}</select></label>}
     </div>
@@ -750,7 +791,9 @@ function Background({ draft, update, featRequired, originFeat }) {
       <ReviewItem label="Skills" value={arr(backgroundData.skillProficiencies).join(', ') || 'None listed'} />
       <ReviewItem label="Tools" value={arr(backgroundData.toolProficiencies).join(', ') || 'None listed'} />
       <ReviewItem label="Equipment" value={arr(backgroundData.equipment).slice(0, 2).join(', ') || 'None listed'} />
+      <ReviewItem label="Languages" value={backgroundLanguageBudget ? `${arr(draft.backgroundChosenLanguages).length}/${backgroundLanguageBudget} chosen` : 'None listed'} />
     </div>
+    <LanguagePicker title="Background languages" count={backgroundLanguageBudget} selected={arr(draft.backgroundChosenLanguages)} unavailable={unavailableLanguages} onToggle={toggleLanguage} />
   </>;
 }
 
