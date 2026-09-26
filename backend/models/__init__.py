@@ -629,6 +629,7 @@ class PlayerCharacter(BaseModel):
     # Features & Traits
     racial_traits: List[Dict[str, str]] = []  # [{"name": "Darkvision", "description": "..."}]
     class_features: List[Dict[str, str]] = []
+    background_features: List[Dict[str, Any]] = []
     feats: List[Dict[str, str]] = []
     
     # Spellcasting (if applicable)
@@ -727,6 +728,7 @@ class PlayerCharacterCreate(BaseModel):
     languages: Optional[List[str]] = []
     racial_traits: Optional[List[Dict[str, str]]] = []
     class_features: Optional[List[Dict[str, str]]] = []
+    background_features: Optional[List[Dict[str, Any]]] = []
     
     # Spell and feat selections from character creation
     # spells_known: for known-spell casters (Bard, Sorcerer, Ranger, Warlock)
@@ -802,6 +804,7 @@ class PlayerCharacterUpdate(BaseModel):
     # Features & Traits
     racial_traits: Optional[List[Dict[str, str]]] = None
     class_features: Optional[List[Dict[str, str]]] = None
+    background_features: Optional[List[Dict[str, Any]]] = None
     feats: Optional[List[Dict[str, str]]] = None
     
     # Spellcasting
