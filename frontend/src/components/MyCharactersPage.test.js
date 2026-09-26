@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import MyCharactersPage from './MyCharactersPage';
@@ -37,6 +37,15 @@ const character = {
   subclass: 'Pact of the Blade',
   ruleset_id: 'dnd5e_2014',
   updated_at: '2026-08-24T12:00:00Z',
+  homebrew_spellcasting: {
+    Warlock: {
+      class_name: 'Warlock',
+      ability: 'charisma',
+      type: 'known',
+      progression: 'pact',
+      start_level: 1,
+    },
+  },
 };
 
 describe('MyCharactersPage simplified library', () => {
@@ -57,6 +66,23 @@ describe('MyCharactersPage simplified library', () => {
     expect(screen.getByRole('link', { name: /Edit/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Duplicate Javen Crow' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete Javen Crow' })).toBeInTheDocument();
+  });
+
+  test('preserves the custom spellcasting snapshot when duplicating a character', async () => {
+    apiClient.get
+      .mockResolvedValueOnce({ data: [character] })
+      .mockResolvedValueOnce({ data: character })
+      .mockResolvedValue({ data: [character] });
+    apiClient.post.mockResolvedValue({ data: { success: true } });
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Duplicate Javen Crow' }));
+
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalled());
+    expect(apiClient.post).toHaveBeenCalledWith('/characters', expect.objectContaining({
+      name: 'Copy of Javen Crow',
+      homebrew_spellcasting: character.homebrew_spellcasting,
+    }));
   });
 
   test('does not render the retired stats dashboard or status toolbar', async () => {
