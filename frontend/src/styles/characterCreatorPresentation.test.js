@@ -16,9 +16,9 @@ describe('Character Creator presentation ownership', () => {
     const css = `${base}\n${flow}`;
 
     expect(css).toContain('var(--rq-bg');
-    expect(css).toContain('#D6A84F');
-    expect(css).toContain('#79BCE8');
-    expect(css).toContain('#F7F1E7');
+    expect(css).toContain('#C9A96B');
+    expect(css).toContain('#6E91B4');
+    expect(css).toContain('#EADFC8');
     expect(css).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
     expect(css).not.toMatch(/rqk-creator-sunset|rq-sunset-gradient|rq-sunset-cream/i);
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
