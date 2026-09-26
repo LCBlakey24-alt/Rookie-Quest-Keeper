@@ -26,7 +26,12 @@ from data.class_progression import (
     prepared_spell_change_rule,
     spell_selection_mode,
 )
-from data.spell_slot_rules import shared_spell_slots
+from data.spell_slot_rules import (
+    class_spell_slots,
+    homebrew_spell_progression,
+    homebrew_spellcasting_for_class,
+    shared_spell_slots,
+)
 from models import LevelUpRequest
 from routes.characters import (
     build_level_up_update,
@@ -205,7 +210,8 @@ def _apply_prepared_spell_changes(
         else:
             growth.append(clean)
 
-    rule = prepared_spell_change_rule(canonical_class, edition)
+    homebrew_casting = homebrew_spellcasting_for_class(existing, canonical_class)
+    rule = {"cadence": "none", "max_replacements": 0} if homebrew_casting else prepared_spell_change_rule(canonical_class, edition)
     if replacements:
         max_replacements = rule.get("max_replacements")
         if rule.get("cadence") != "level-up" or max_replacements in (None, 0):
@@ -242,10 +248,16 @@ def _apply_prepared_spell_changes(
     after_levels = update.get("class_levels") if isinstance(update.get("class_levels"), dict) else before_levels
     before_level = _class_level(before_levels, canonical_class)
     after_level = _class_level(after_levels, canonical_class)
-    before_capacity = prepared_spell_capacity(canonical_class, before_level, edition)
-    after_capacity = prepared_spell_capacity(canonical_class, after_level, edition)
+    if homebrew_casting:
+        homebrew_progression = homebrew_spell_progression(existing, canonical_class, before_level, after_level)
+        before_capacity = int(homebrew_progression.get("prepared_before", 0) or 0)
+        after_capacity = int(homebrew_progression.get("prepared_after", 0) or 0)
+    else:
+        before_capacity = prepared_spell_capacity(canonical_class, before_level, edition)
+        after_capacity = prepared_spell_capacity(canonical_class, after_level, edition)
 
-    if edition == "2024" and after_capacity > 0:
+    enforce_capacity = bool(homebrew_casting) or edition == "2024"
+    if enforce_capacity and after_capacity > 0:
         available_room = max(0, after_capacity - len(result))
         if len(growth) > available_room:
             raise HTTPException(
@@ -257,7 +269,7 @@ def _apply_prepared_spell_changes(
             )
 
     result = _merge_unique_spells(result, growth)
-    if edition == "2024" and after_capacity > 0 and len(result) > after_capacity:
+    if enforce_capacity and after_capacity > 0 and len(result) > after_capacity:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Prepared spell list exceeds {canonical_class}'s capacity of {after_capacity}.",
@@ -292,7 +304,8 @@ def route_level_up_spell_choices(
     update = dict(update_data)
     canonical_class = display_class_name(leveled_class)
     edition = edition_for(existing)
-    mode = spell_selection_mode(canonical_class, edition)
+    homebrew_casting = homebrew_spellcasting_for_class(existing, canonical_class)
+    mode = str(homebrew_casting.get("type") or "known") if homebrew_casting else spell_selection_mode(canonical_class, edition)
     destination = "spells_known"
     metadata: Dict[str, Any] = {}
 
@@ -348,6 +361,10 @@ def progression_spell_slot_totals(existing: Dict[str, Any], class_levels: Dict[s
         return shared_slots
     if warlock_level > 0:
         return _pact_magic_slot_shape(warlock_level)
+    for class_name, level in (class_levels or {}).items():
+        definition = homebrew_spellcasting_for_class(existing, class_name)
+        if definition and definition.get("progression") == "pact":
+            return _slot_map(class_spell_slots(existing, class_name, _int(level, 0)))
     return {}
 
 
@@ -388,16 +405,33 @@ def _tracker_number(tracker: Dict[str, Any], key: str, fallback: int) -> int:
     return max(0, _int(tracker.get(key), fallback))
 
 
-def preserve_pact_magic_resource(existing: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
-    """Scale Pact Magic to Warlock level while keeping already-spent uses spent."""
-    class_levels = update.get("class_levels") if isinstance(update.get("class_levels"), dict) else initial_class_levels(existing)
+def _pact_class_info(character: Dict[str, Any], class_levels: Dict[str, Any]) -> Tuple[str, int, Dict[str, int], int, bool]:
     warlock_level = _warlock_level(class_levels)
+    if warlock_level > 0:
+        return "Warlock", warlock_level, _pact_magic_slot_shape(warlock_level), 1, False
+
+    for class_name, raw_level in (class_levels or {}).items():
+        definition = homebrew_spellcasting_for_class(character, class_name)
+        level = max(0, _int(raw_level, 0))
+        if not definition or definition.get("progression") != "pact":
+            continue
+        start_level = max(1, _int(definition.get("start_level"), 1))
+        if level < start_level:
+            continue
+        return class_name, level, _slot_map(class_spell_slots(character, class_name, level)), start_level, True
+
+    return "", 0, {}, 1, False
+
+
+def preserve_pact_magic_resource(existing: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+    """Scale built-in or persisted custom Pact Magic without granting a free refill."""
+    class_levels = update.get("class_levels") if isinstance(update.get("class_levels"), dict) else initial_class_levels(existing)
+    pact_class, pact_level, new_shape, start_level, is_homebrew = _pact_class_info(existing, class_levels)
     resources = dict(existing.get("resources") or {}) if isinstance(existing.get("resources"), dict) else {}
 
-    if warlock_level <= 0:
+    if pact_level <= 0 or not new_shape:
         return resources
 
-    new_shape = _pact_magic_slot_shape(warlock_level)
     new_max = sum(new_shape.values())
     new_slot_level = max((_int(level, 0) for level in new_shape), default=1)
     old_tracker = resources.get("pact_magic") if isinstance(resources.get("pact_magic"), dict) else {}
@@ -407,10 +441,9 @@ def preserve_pact_magic_resource(existing: Dict[str, Any], update: Dict[str, Any
         old_current = _tracker_number(old_tracker, "current", _tracker_number(old_tracker, "remaining", old_max))
     else:
         old_levels = initial_class_levels(existing)
-        old_warlock_level = _warlock_level(old_levels)
-        old_shape = _pact_magic_slot_shape(old_warlock_level)
+        _, old_pact_level, old_shape, _, _ = _pact_class_info(existing, old_levels)
         old_max = sum(old_shape.values())
-        if old_warlock_level > 0 and len(old_levels) == 1:
+        if old_pact_level > 0 and len(old_levels) == 1:
             old_current = sum(_slot_map(existing.get("spell_slots_remaining") or old_shape).values())
         else:
             old_current = old_max
@@ -425,11 +458,11 @@ def preserve_pact_magic_resource(existing: Dict[str, Any], update: Dict[str, Any
         "max": new_max,
         "slot_level": new_slot_level,
         "restore": "short-rest",
-        "min_level": 1,
-        "className": "Warlock",
+        "min_level": start_level,
+        "className": pact_class,
+        **({"homebrew": True} if is_homebrew else {}),
     }
     return resources
-
 
 def _normalised_classes_state(
     existing: Dict[str, Any],
@@ -469,10 +502,11 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
     old_hit_dice_remaining = max(0, min(old_level, _int(existing.get("hit_dice_remaining"), old_level)))
     update["hit_dice_remaining"] = min(new_level, old_hit_dice_remaining + 1)
 
-    primary_class = _normalise_name(existing.get("character_class"))
+    primary_class_name = display_class_name(existing.get("character_class", ""))
+    primary_class = _normalise_name(primary_class_name)
     class_levels = update.get("class_levels") if isinstance(update.get("class_levels"), dict) else initial_class_levels(existing)
-    warlock_level = _warlock_level(class_levels)
-    single_pool_is_pact = primary_class == "warlock" and len(class_levels) == 1
+    pact_class, pact_level, _, _, _ = _pact_class_info(existing, class_levels)
+    single_pool_is_pact = bool(pact_class) and _normalise_name(pact_class) == primary_class and len(class_levels) == 1
 
     slot_character = dict(existing)
     if update.get("subclass"):
@@ -482,7 +516,7 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
         existing.get("spell_slots"),
         existing.get("spell_slots_remaining"),
         update.get("spell_slots"),
-        pact_style=single_pool_is_pact and warlock_level > 0,
+        pact_style=single_pool_is_pact and pact_level > 0,
     )
 
     # Pact Magic needs a legacy-slot fallback for older Warlock saves, so fix it
@@ -501,6 +535,16 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
         class_levels,
         initialise_missing=True,
     )
+
+    custom_primary = homebrew_spellcasting_for_class(existing, primary_class_name)
+    if custom_primary and custom_primary.get("ability"):
+        ability = str(custom_primary.get("ability"))
+        ability_score = _int(update.get(ability, existing.get(ability, 10)), 10)
+        ability_modifier = (ability_score - 10) // 2
+        proficiency = _int(update.get("proficiency_bonus"), _int(existing.get("proficiency_bonus"), 2))
+        update["spellcasting_ability"] = ability
+        update["spell_save_dc"] = 8 + proficiency + ability_modifier
+        update["spell_attack_bonus"] = proficiency + ability_modifier
 
     update["multiclass_levels"] = dict(class_levels) if len(class_levels) > 1 else {}
     update["multiclass_classes"] = list(class_levels.keys())
