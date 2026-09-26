@@ -16,7 +16,7 @@ export const RQKLogo = ({
   return (
     <div className={className} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', ...style }}>
       <img
-        src="/images/logo-main.png"
+        src="/brand/keeper-primary-logo.png"
         alt="Rookie Quest Keeper"
         style={{ width: `min(${width}px, 86vw)`, height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 8px 22px rgba(0,0,0,0.45))' }}
       />
@@ -46,7 +46,7 @@ export const RQKLogoInline = ({ size = 'small' }) => {
 
   return (
     <img
-      src="/images/logo-main.png"
+      src="/brand/keeper-primary-logo.png"
       alt="Rookie Quest Keeper"
       style={{ width, maxWidth: '42vw', height: 'auto', objectFit: 'contain' }}
     />
