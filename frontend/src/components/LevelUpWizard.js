@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
+import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
 import { CLASS_FEATURES } from '@/data/classFeatures';
 import {
   CANTRIPS_KNOWN,
@@ -19,6 +20,14 @@ import {
   getSpellsForClass,
 } from '@/data/spellDatabase';
 import { classHasEditionSpellcasting, getEditionMaxSpellLevel } from '@/data/editionSpellSlotRules';
+import {
+  getHomebrewMaxSpellLevel,
+  getHomebrewSpellChoiceGain,
+  getHomebrewSpellChoiceTargets,
+  homebrewSpellcastingIsActive,
+  normaliseHomebrewClassSpellcasting,
+} from '@/data/homebrewClassSpellcasting';
+import { homebrewSpellsForClass } from '@/data/homebrewSpellOptions';
 import {
   getKnownSpellTarget,
   getPreparedSpellCapacity,
@@ -190,6 +199,11 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const [replacementFrom, setReplacementFrom] = useState('');
   const [replacementTo, setReplacementTo] = useState(null);
   const [saving, setSaving] = useState(false);
+  const { options: playerRulesOptions } = usePlayerRulesOptions({
+    edition: editionFor(character),
+    campaignId: character?.campaign_id || '',
+    enabled: Boolean(isOpen && character),
+  });
 
   const isMulticlass = mode === 'new';
   const characterClass = displayClass(isMulticlass ? (newClass || multiclassOptions[0] || '') : existingClass);
@@ -283,40 +297,76 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     classes: [{ name: characterClass, level: classLevelAfter, subclass: castingSubclass }],
     rules_edition: edition,
   };
-  const isSpellcaster = classHasEditionSpellcasting(castingCharacter, characterClass, classLevelAfter);
-  const maxSpellLevel = isSpellcaster
-    ? getEditionMaxSpellLevel(castingCharacter, characterClass, classLevelAfter)
-    : 0;
-  const { cantrips, spells } = spellListFor(characterClass, maxSpellLevel);
-  const localCantripGain = localGain(CANTRIPS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter);
+  const primaryCustomClass = normaliseName(character?.character_class) === normaliseName(characterClass)
+    && !SPELLCASTING_CLASSES[characterClass]
+    && character?.homebrew_spellcasting
+    ? { name: characterClass, spellcasting: character.homebrew_spellcasting }
+    : null;
+  const customSpellcasting = primaryCustomClass ? normaliseHomebrewClassSpellcasting(primaryCustomClass) : null;
+  const isBuiltInSpellcaster = classHasEditionSpellcasting(castingCharacter, characterClass, classLevelAfter);
+  const isCustomSpellcaster = Boolean(primaryCustomClass && homebrewSpellcastingIsActive(primaryCustomClass, classLevelAfter));
+  const isSpellcaster = isBuiltInSpellcaster || isCustomSpellcaster;
+  const maxSpellLevel = isCustomSpellcaster
+    ? getHomebrewMaxSpellLevel(primaryCustomClass, classLevelAfter, edition)
+    : isBuiltInSpellcaster
+      ? getEditionMaxSpellLevel(castingCharacter, characterClass, classLevelAfter)
+      : 0;
+  const customSpellPool = isCustomSpellcaster
+    ? homebrewSpellsForClass(playerRulesOptions?.spells || [], characterClass, maxSpellLevel)
+    : [];
+  const builtInSpellPool = isCustomSpellcaster ? null : spellListFor(characterClass, maxSpellLevel);
+  const cantrips = isCustomSpellcaster
+    ? customSpellPool.filter((spell) => Number(spell.level || 0) === 0)
+    : builtInSpellPool.cantrips;
+  const spells = isCustomSpellcaster
+    ? customSpellPool.filter((spell) => Number(spell.level || 0) > 0)
+    : builtInSpellPool.spells;
+  const customGain = isCustomSpellcaster
+    ? getHomebrewSpellChoiceGain(primaryCustomClass, classLevelBefore, classLevelAfter)
+    : null;
+  const localCantripGain = isCustomSpellcaster
+    ? Number(customGain?.cantrips || 0)
+    : localGain(CANTRIPS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter);
   const cantripGain = !isMulticlass && preflight?.cantrips_to_learn !== undefined
     ? Number(preflight.cantrips_to_learn || 0)
     : localCantripGain;
 
-  const localSelectionMode = getSpellSelectionMode({ className: characterClass, edition });
+  const localSelectionMode = isCustomSpellcaster
+    ? customSpellcasting?.type || 'known'
+    : getSpellSelectionMode({ className: characterClass, edition });
   const spellChoiceMode = !isMulticlass && preflight?.spell_selection_mode
     ? preflight.spell_selection_mode
     : localSelectionMode;
-  const localKnownBefore = getKnownSpellTarget({ className: characterClass, level: classLevelBefore, edition });
-  const localKnownAfter = getKnownSpellTarget({ className: characterClass, level: classLevelAfter, edition });
+  const localKnownBefore = isCustomSpellcaster
+    ? Number(getHomebrewSpellChoiceTargets(primaryCustomClass, classLevelBefore).spells || 0)
+    : getKnownSpellTarget({ className: characterClass, level: classLevelBefore, edition });
+  const localKnownAfter = isCustomSpellcaster
+    ? Number(getHomebrewSpellChoiceTargets(primaryCustomClass, classLevelAfter).spells || 0)
+    : getKnownSpellTarget({ className: characterClass, level: classLevelAfter, edition });
   const localKnownGain = Math.max(0, localKnownAfter - localKnownBefore);
-  const localSpellbookGain = characterClass === 'Wizard'
-    ? Math.max(0, getWizardSpellbookTarget(classLevelAfter) - getWizardSpellbookTarget(classLevelBefore))
-    : 0;
-  const castingAbility = SPELLCASTING_CLASSES[characterClass]?.ability;
+  const localSpellbookGain = isCustomSpellcaster && localSelectionMode === 'spellbook'
+    ? Number(customGain?.spells || 0)
+    : characterClass === 'Wizard'
+      ? Math.max(0, getWizardSpellbookTarget(classLevelAfter) - getWizardSpellbookTarget(classLevelBefore))
+      : 0;
+  const castingAbility = customSpellcasting?.ability || SPELLCASTING_CLASSES[characterClass]?.ability;
   const castingAbilityScore = castingAbility ? abilityScore(character, castingAbility) : 10;
-  const localPreparedBefore = getPreparedSpellCapacity({
-    className: characterClass,
-    level: classLevelBefore,
-    edition,
-    abilityScore: castingAbilityScore,
-  });
-  const localPreparedAfter = getPreparedSpellCapacity({
-    className: characterClass,
-    level: classLevelAfter,
-    edition,
-    abilityScore: castingAbilityScore,
-  });
+  const localPreparedBefore = isCustomSpellcaster && localSelectionMode === 'prepared'
+    ? Number(getHomebrewSpellChoiceTargets(primaryCustomClass, classLevelBefore).spells || 0)
+    : getPreparedSpellCapacity({
+      className: characterClass,
+      level: classLevelBefore,
+      edition,
+      abilityScore: castingAbilityScore,
+    });
+  const localPreparedAfter = isCustomSpellcaster && localSelectionMode === 'prepared'
+    ? Number(getHomebrewSpellChoiceTargets(primaryCustomClass, classLevelAfter).spells || 0)
+    : getPreparedSpellCapacity({
+      className: characterClass,
+      level: classLevelAfter,
+      edition,
+      abilityScore: castingAbilityScore,
+    });
   const localPreparedGain = Math.max(0, localPreparedAfter - localPreparedBefore);
   const preparedCapacityBefore = !isMulticlass && preflight?.prepared_spell_capacity_before !== undefined
     ? Number(preflight.prepared_spell_capacity_before || 0)
@@ -329,7 +379,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     : localPreparedGain;
   const permanentSpellGain = !isMulticlass && preflight?.spells_to_learn !== undefined
     ? Number(preflight.spells_to_learn || 0)
-    : spellChoiceMode === 'spellbook' ? localSpellbookGain : localKnownGain;
+    : isCustomSpellcaster
+      ? Number(customGain?.spells || 0)
+      : spellChoiceMode === 'spellbook' ? localSpellbookGain : localKnownGain;
   const spellChoiceGain = spellChoiceMode === 'prepared' ? preparedCapacityGain : permanentSpellGain;
   const preparedCapacityNote = spellChoiceMode === 'spellbook' && preparedCapacityAfter > preparedCapacityBefore;
 
