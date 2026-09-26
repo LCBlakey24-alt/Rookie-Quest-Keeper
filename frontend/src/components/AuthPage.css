@@ -1,4 +1,4 @@
-/* Professional auth page aligned to the Sunset Gradient direction. */
+/* Rookie Quest Keeper Guild Ledger auth page. */
 
 .rqk-auth-page,
 .rqk-auth-page * {
@@ -17,10 +17,10 @@
   color: var(--rq-text-primary, #F7F1E7) !important;
   font-family: var(--rq-body-font, 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   background:
-    radial-gradient(circle at 16% 12%, rgba(115, 87, 255, 0.16), transparent 32%),
-    radial-gradient(circle at 84% 20%, rgba(255, 79, 129, 0.14), transparent 34%),
-    radial-gradient(circle at 50% 118%, rgba(255, 149, 66, 0.12), transparent 42%),
-    linear-gradient(180deg, #070713 0%, #0b0718 46%, #13081f 100%) !important;
+    radial-gradient(circle at 16% 12%, rgba(110, 145, 180, 0.16), transparent 32%),
+    radial-gradient(circle at 84% 20%, rgba(123, 45, 58, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 118%, rgba(201, 169, 107, 0.12), transparent 42%),
+    linear-gradient(180deg, #0B1B2B 0%, #111E2B 46%, #0B1B2B 100%) !important;
 }
 
 .rqk-auth-page::before,
@@ -44,16 +44,12 @@
 .rqk-auth-page::after {
   z-index: -1;
   background:
-    linear-gradient(90deg, rgba(7, 7, 19, 0.72), transparent 24%, transparent 76%, rgba(7, 7, 19, 0.72)),
+    linear-gradient(90deg, rgba(11, 27, 43, 0.72), transparent 24%, transparent 76%, rgba(11, 27, 43, 0.72)),
     radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.38) 100%);
 }
 
 .rqk-auth-ambient {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: -1;
+  display: none;
 }
 
 .rqk-auth-ambient span {
@@ -62,7 +58,7 @@
   width: clamp(180px, 24vw, 360px);
   aspect-ratio: 1;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(235, 63, 233, 0.16), transparent 68%);
+  background: radial-gradient(circle, rgba(201, 169, 107, 0.16), transparent 68%);
   filter: blur(12px);
   opacity: 0.72;
   animation: rqkAuthFloat 12s ease-in-out infinite;
@@ -77,14 +73,14 @@
   right: -6%;
   top: 22%;
   animation-delay: -3s;
-  background: radial-gradient(circle, rgba(255, 79, 129, 0.15), transparent 68%);
+  background: radial-gradient(circle, rgba(123, 45, 58, 0.15), transparent 68%);
 }
 
 .rqk-auth-ambient span:nth-child(3) {
   left: 38%;
   bottom: -18%;
   animation-delay: -6s;
-  background: radial-gradient(circle, rgba(255, 149, 66, 0.12), transparent 68%);
+  background: radial-gradient(circle, rgba(201, 169, 107, 0.12), transparent 68%);
 }
 
 .rqk-auth-shell {
@@ -113,8 +109,8 @@
   color: var(--rq-text-primary, #F7F1E7) !important;
   cursor: pointer;
   background:
-    linear-gradient(145deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.9)) padding-box,
-    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+    linear-gradient(145deg, rgba(17, 30, 43, 0.94), rgba(30, 41, 54, 0.9)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #6E91B4, #C9A96B, #7B2D3A, #D9BC82)) border-box !important;
   box-shadow: none !important;
   transition: transform 170ms ease, filter 170ms ease, border-color 170ms ease;
 }
@@ -127,17 +123,11 @@
 }
 
 .rqk-auth-brand__sigil {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
-  color: #F7F1E7;
-  font-family: var(--rq-title-font, var(--rq-font-display, Georgia, serif));
-  font-size: 0.68rem;
-  font-weight: 950;
-  letter-spacing: 0.08em;
+  width: 38px !important;
+  height: 38px !important;
+  flex: 0 0 38px;
+  object-fit: contain;
+  filter: none;
 }
 
 .rqk-auth-brand__text {
@@ -177,8 +167,8 @@
   position: relative;
   border: 1px solid transparent;
   background:
-    linear-gradient(145deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.92)) padding-box,
-    linear-gradient(135deg, rgba(115, 87, 255, 0.36), rgba(216, 77, 241, 0.26), rgba(255, 149, 66, 0.24)) border-box;
+    linear-gradient(145deg, rgba(17, 30, 43, 0.94), rgba(30, 41, 54, 0.92)) padding-box,
+    linear-gradient(135deg, rgba(110, 145, 180, 0.36), rgba(201, 169, 107, 0.26), rgba(201, 169, 107, 0.24)) border-box;
   color: var(--rq-text-primary, #F7F1E7);
   box-shadow: none;
 }
@@ -196,7 +186,7 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 16% 0%, rgba(235, 63, 233, 0.12), transparent 34%),
+    radial-gradient(circle at 16% 0%, rgba(201, 169, 107, 0.12), transparent 34%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 40%);
   opacity: 0.78;
 }
@@ -212,7 +202,7 @@
 .rqk-auth-next-steps > span {
   position: relative;
   margin: 0 0 10px;
-  color: var(--rq-accent-hover, #ff9542) !important;
+  color: var(--rq-primary, #C9A96B) !important;
   text-transform: uppercase;
   letter-spacing: 0.16em;
   font-size: 0.74rem;
@@ -263,7 +253,7 @@
   height: 34px;
   border-radius: 12px;
   color: #F7F1E7;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #6E91B4, #C9A96B, #7B2D3A, #D9BC82));
 }
 
 .rqk-auth-feature-card strong,
@@ -314,7 +304,7 @@
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #6E91B4, #C9A96B, #7B2D3A, #D9BC82));
 }
 
 .rqk-auth-card {
@@ -336,7 +326,7 @@
   width: 100%;
   height: 1px;
   margin-top: 18px;
-  background: linear-gradient(90deg, rgba(255, 149, 66, 0.72), rgba(255, 255, 255, 0.06));
+  background: linear-gradient(90deg, rgba(201, 169, 107, 0.72), rgba(255, 255, 255, 0.06));
 }
 
 .rqk-auth-heading h1 {
@@ -365,7 +355,7 @@
   padding: 6px;
   margin-bottom: 14px;
   border-radius: 16px;
-  background: rgba(7, 7, 19, 0.54);
+  background: rgba(11, 27, 43, 0.54);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -376,7 +366,7 @@
 #root .rqk-auth-page .rqk-auth-secondary {
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: var(--rq-text-primary, #F7F1E7) !important;
-  background: rgba(19, 8, 31, 0.72) !important;
+  background: rgba(30, 41, 54, 0.72) !important;
   box-shadow: none !important;
 }
 
@@ -391,7 +381,7 @@
 #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
   color: #F7F1E7 !important;
   border-color: rgba(255, 255, 255, 0.16) !important;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #6E91B4, #C9A96B, #7B2D3A, #D9BC82)) !important;
 }
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button:not(.is-active):hover,
@@ -406,7 +396,7 @@
 #root .rqk-auth-page .rqk-auth-icon-button:focus-visible {
   transform: translateY(-1px);
   filter: brightness(1.08);
-  border-color: rgba(255, 149, 66, 0.42) !important;
+  border-color: rgba(201, 169, 107, 0.42) !important;
   outline: none !important;
 }
 
@@ -430,8 +420,8 @@
 
 .rqk-auth-note svg,
 .rqk-auth-input-icon {
-  color: var(--rq-accent-hover, #ff9542) !important;
-  stroke: var(--rq-accent-hover, #ff9542) !important;
+  color: var(--rq-primary, #C9A96B) !important;
+  stroke: var(--rq-primary, #C9A96B) !important;
 }
 
 .rqk-auth-assurance strong {
@@ -463,7 +453,7 @@
 }
 
 .rqk-auth-required-mark {
-  color: var(--rq-accent-hover, #ff9542);
+  color: var(--rq-primary, #C9A96B);
 }
 
 .rqk-auth-input-shell {
@@ -474,15 +464,15 @@
   padding: 0 12px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(11, 6, 20, 0.72);
+  background: rgba(15, 26, 38, 0.72);
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
 .rqk-auth-input-shell:focus-within {
   transform: translateY(-1px);
-  border-color: rgba(255, 149, 66, 0.72);
-  background: rgba(19, 8, 31, 0.92);
-  box-shadow: 0 0 0 3px rgba(255, 149, 66, 0.16);
+  border-color: rgba(201, 169, 107, 0.72);
+  background: rgba(30, 41, 54, 0.92);
+  box-shadow: 0 0 0 3px rgba(201, 169, 107, 0.16);
 }
 
 #root .rqk-auth-page .rqk-auth-field {
@@ -508,7 +498,7 @@
 #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:active {
   -webkit-text-fill-color: var(--rq-text-primary, #F7F1E7) !important;
   caret-color: var(--rq-text-primary, #F7F1E7) !important;
-  box-shadow: 0 0 0 1000px #0b0614 inset !important;
+  box-shadow: 0 0 0 1000px #0F1A26 inset !important;
   border-radius: 10px !important;
   transition: background-color 99999s ease-in-out 0s !important;
 }
@@ -556,7 +546,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
   border-radius: 14px !important;
   color: #F7F1E7 !important;
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #6E91B4, #C9A96B, #7B2D3A, #D9BC82)) !important;
   box-shadow: none !important;
   cursor: pointer;
   font-weight: 950;
@@ -663,7 +653,7 @@
 }
 
 .rqk-auth-strength-meter span.is-filled {
-  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #6E91B4, #C9A96B, #7B2D3A, #D9BC82));
 }
 
 .rqk-auth-password-readiness ul {
@@ -916,4 +906,143 @@
 
 #root .rqk-staging-access__button:hover {
   background: #17364F !important;
+}
+
+/* Guild Ledger base authority: route geometry stays here; visual tokens stay quiet and consistent. */
+#root .rqk-auth-page {
+  background: #0B1B2B !important;
+  color: #EADFC8 !important;
+}
+
+#root .rqk-auth-page::before {
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(201, 169, 107, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 169, 107, 0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+#root .rqk-auth-page::after {
+  background: rgba(3, 9, 18, 0.34);
+}
+
+#root .rqk-auth-page .rqk-auth-brand,
+#root .rqk-auth-page .rqk-auth-hero,
+#root .rqk-auth-page .rqk-auth-card,
+#root .rqk-auth-page .rqk-auth-feature-card,
+#root .rqk-auth-page .rqk-auth-note,
+#root .rqk-auth-page .rqk-auth-assurance,
+#root .rqk-auth-page .rqk-auth-next-steps {
+  background: #111E2B !important;
+  background-image: none !important;
+  border-color: rgba(201, 169, 107, 0.20) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-auth-page .rqk-auth-hero,
+#root .rqk-auth-page .rqk-auth-card {
+  border-radius: 10px;
+  backdrop-filter: none;
+}
+
+#root .rqk-auth-page .rqk-auth-hero::before,
+#root .rqk-auth-page .rqk-auth-card::before {
+  content: none;
+  display: none;
+}
+
+#root .rqk-auth-page .rqk-auth-brand {
+  border-radius: 8px !important;
+}
+
+#root .rqk-auth-page .rqk-auth-kicker,
+#root .rqk-auth-page .rqk-auth-heading p,
+#root .rqk-auth-page .rqk-auth-assurance > span,
+#root .rqk-auth-page .rqk-auth-next-steps > span,
+#root .rqk-auth-page .rqk-auth-input-icon,
+#root .rqk-auth-page .rqk-auth-note svg {
+  color: #C9A96B !important;
+  stroke: #C9A96B !important;
+}
+
+#root .rqk-auth-page .rqk-auth-feature-icon {
+  color: #C9A96B !important;
+  background: #1E2936 !important;
+  border: 1px solid rgba(201, 169, 107, 0.24);
+  border-radius: 7px;
+}
+
+#root .rqk-auth-page .rqk-auth-preview-dot {
+  background: #7B2D3A !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-auth-page .rqk-auth-heading::after {
+  background: #C9A96B !important;
+  opacity: 0.52;
+}
+
+#root .rqk-auth-page .rqk-auth-mode-toggle,
+#root .rqk-auth-page .rqk-auth-input-shell,
+#root .rqk-auth-page .rqk-auth-password-readiness,
+#root .rqk-auth-page .rqk-auth-preview-card {
+  background: #0F1A26 !important;
+  border-color: rgba(201, 169, 107, 0.16) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-auth-page .rqk-auth-mode-toggle button,
+#root .rqk-auth-page .rqk-auth-switch-button,
+#root .rqk-auth-page .rqk-auth-link-button,
+#root .rqk-auth-page .rqk-auth-icon-button,
+#root .rqk-auth-page .rqk-auth-secondary {
+  background: #1E2936 !important;
+  color: #EADFC8 !important;
+  border-color: rgba(201, 169, 107, 0.16) !important;
+}
+
+#root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
+  background: rgba(201, 169, 107, 0.12) !important;
+  color: #EADFC8 !important;
+  border-color: #C9A96B !important;
+}
+
+#root .rqk-auth-page .rqk-auth-input-shell:focus-within {
+  background: #111E2B !important;
+  border-color: #C9A96B !important;
+  box-shadow: 0 0 0 3px rgba(201, 169, 107, 0.12) !important;
+}
+
+#root .rqk-auth-page .rqk-auth-primary {
+  background: #C9A96B !important;
+  background-image: none !important;
+  color: #0B1B2B !important;
+  border-color: #C9A96B !important;
+  border-radius: 7px !important;
+}
+
+#root .rqk-auth-page .rqk-auth-primary:hover:not(:disabled),
+#root .rqk-auth-page .rqk-auth-primary:focus-visible:not(:disabled) {
+  background: #D9BC82 !important;
+  border-color: #D9BC82 !important;
+}
+
+#root .rqk-auth-page .rqk-auth-strength-meter span.is-filled {
+  background: #C9A96B !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-auth-page :where(h1,h2,h3,strong,label) {
+  color: #EADFC8 !important;
+}
+
+#root .rqk-auth-page :where(p,small,.rqk-auth-heading > span,.rqk-auth-switch,.rqk-auth-field-hint,.rqk-auth-footer) {
+  color: rgba(234, 223, 200, 0.76) !important;
+}
+
+@media (max-width: 620px) {
+  #root .rqk-auth-page .rqk-auth-card,
+  #root .rqk-auth-page .rqk-auth-hero {
+    border-radius: 8px;
+  }
 }
