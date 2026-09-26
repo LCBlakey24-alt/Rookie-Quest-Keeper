@@ -1680,6 +1680,9 @@ class LevelUpRequest(BaseModel):
     # Spellcasting: new spells learned at this level
     new_spells: Optional[List[Dict[str, Any]]] = None
     new_cantrips: Optional[List[Dict[str, Any]]] = None
+    # Portable custom-class spellcasting contract; used to hydrate legacy
+    # custom characters that predate persisted homebrew progression metadata.
+    homebrew_spellcasting: Optional[Dict[str, Any]] = None
     # Fighter-specific
     fighting_style: Optional[str] = None
     subclass: Optional[str] = None
