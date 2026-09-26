@@ -19,6 +19,10 @@ import { mergeToolProficiencies, normaliseBackgroundFeatureForSheet, normaliseCl
 import { classSkillsForEdit } from '@/data/characterEditSkillHelpers';
 import { buildFullBuilderLanguages, getBackgroundLanguageBudget, splitExistingLanguagesForBuilder } from '@/data/languageFullBuilderHelpers';
 import { EXTRA_LANGUAGE_OPTIONS, countChoiceLanguages, getFixedLanguages } from '@/data/languageChoiceUtils';
+import {
+  CHARACTER_CREATOR_DRAFT_KEY as DRAFT_KEY,
+  clearCharacterCreatorDraftStorage,
+} from '@/data/characterCreatorDraftStorage';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
 
@@ -29,7 +33,6 @@ const LEVEL_ONE_SUBCLASS = new Set(['Cleric', 'Sorcerer', 'Warlock']);
 const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
 const FIGHTER_FIGHTING_STYLES = ['Archery', 'Defense', 'Dueling', 'Great Weapon Fighting', 'Protection', 'Two-Weapon Fighting'];
 const CORE_LEVEL_ONE_SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
-const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 
 const STARTING_GOLD_2014_BY_CLASS = {
   Barbarian: { formula: '2d4 × 10 gp', dice: 2, die: 4, multiplier: 10, average: 50 },
@@ -185,7 +188,7 @@ function bonusText(bonus) {
   return entries.length ? entries.map(([ability, value]) => `${LABELS[ability]} +${value}`).join(', ') : 'No direct ability bonus here';
 }
 
-export default function FullCharacterCreatorV2({ editMode = false }) {
+export default function FullCharacterCreatorV2({ editMode = false, onStartFresh }) {
   const navigate = useNavigate();
   const { characterId } = useParams();
   const [draft, setDraft] = useState(loadDraft);
@@ -346,6 +349,22 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }, [editMode, characterId, navigate]);
 
   const update = (patch) => setDraft((prev) => ({ ...prev, ...patch }));
+
+  const startFresh = () => {
+    if (editMode) return;
+    const confirmed = typeof window === 'undefined'
+      ? true
+      : window.confirm('Start a fresh character? This clears the saved builder draft and all unsaved starting-level choices on this device.');
+    if (!confirmed) return;
+
+    clearCharacterCreatorDraftStorage(typeof window === 'undefined' ? globalThis : window);
+    setDraft(defaultDraft());
+    setSpellSearch('');
+    setTouchStartX(null);
+    onStartFresh?.();
+    toast.success('Fresh character draft ready');
+  };
+
   const setStep = (nextStep) => update({ step: Math.max(0, Math.min(steps.length - 1, nextStep)) });
   const setScore = (ability, value) => update({ scores: { ...draft.scores, [ability]: clamp(value) } });
 
@@ -622,9 +641,12 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           <p>Level 1 full builder</p>
           <h1>{editMode ? 'Edit Character' : 'Create Character'}</h1>
           <span>Start with setup, then move through each builder section one page at a time.</span>
-          <small className="full-creator-draft-status">
-            {editMode ? 'Changes are saved when you choose Save Changes.' : 'Draft saves automatically on this device.'}
-          </small>
+          <div className="full-creator-draft-tools">
+            <small className="full-creator-draft-status">
+              {editMode ? 'Changes are saved when you choose Save Changes.' : 'Draft saves automatically on this device.'}
+            </small>
+            {!editMode && <button type="button" className="full-creator-draft-reset" onClick={startFresh}>Start fresh</button>}
+          </div>
         </div>
         <button type="button" onClick={() => navigate('/home')}>Dashboard</button>
       </header>
