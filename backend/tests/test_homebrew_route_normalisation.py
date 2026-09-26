@@ -113,6 +113,8 @@ def test_class_template_exposes_spellcasting_definition():
 
     assert '## Spellcasting' in template
     assert 'progression: full|half|third|pact' in template
+    assert 'cantrips_by_level' in template
+    assert 'spells_by_level' in template
 
 
 def test_class_parser_preserves_spellcasting_metadata():
@@ -123,6 +125,8 @@ def test_class_parser_preserves_spellcasting_metadata():
         'start_level': 1,
         'cantrips_level_1': 2,
         'spells_level_1': 3,
+        'cantrips_by_level': {'1': 2, '4': 3},
+        'spells_by_level': {'1': 3, '2': 4, '3': 5},
         'ritual': False,
     }
     parsed = _normalise_parsed('class', {

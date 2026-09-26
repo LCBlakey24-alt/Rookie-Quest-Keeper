@@ -639,6 +639,7 @@ class PlayerCharacter(BaseModel):
     spell_slots: Dict[str, int] = {}  # {"1": 2, "2": 1} - slots per level
     spell_slots_remaining: Dict[str, int] = {}
     spell_preparation_loadout: str = ""
+    homebrew_spellcasting: Dict[str, Any] = {}
     spells_known: List[Dict[str, Any]] = []  # [{"name": "Fireball", "level": 3, "school": "evocation"}]
     spells_prepared: List[Dict[str, Any]] = []  # Spells currently prepared for the day
     cantrips_known: List[Dict[str, Any]] = []  # [{"name": "Fire Bolt", "level": 0}] - Cantrips the character knows
@@ -743,6 +744,7 @@ class PlayerCharacterCreate(BaseModel):
     spell_slots: Optional[Dict[str, int]] = {}
     spell_slots_remaining: Optional[Dict[str, int]] = {}
     spell_preparation_loadout: Optional[str] = ""
+    homebrew_spellcasting: Optional[Dict[str, Any]] = {}
     feats: Optional[List[Dict[str, Any]]] = []
 
     # Equipment/inventory selections from builders and premade templates
@@ -817,6 +819,7 @@ class PlayerCharacterUpdate(BaseModel):
     spells_prepared: Optional[List[Dict[str, Any]]] = None
     cantrips_known: Optional[List[Dict[str, Any]]] = None
     spell_preparation_loadout: Optional[str] = None
+    homebrew_spellcasting: Optional[Dict[str, Any]] = None
     
     # Level Progression
     level_progression: Optional[Dict[str, Any]] = None
@@ -1677,6 +1680,9 @@ class LevelUpRequest(BaseModel):
     # Spellcasting: new spells learned at this level
     new_spells: Optional[List[Dict[str, Any]]] = None
     new_cantrips: Optional[List[Dict[str, Any]]] = None
+    # Portable custom-class spellcasting contract; used to hydrate legacy
+    # custom characters that predate persisted homebrew progression metadata.
+    homebrew_spellcasting: Optional[Dict[str, Any]] = None
     # Fighter-specific
     fighting_style: Optional[str] = None
     subclass: Optional[str] = None

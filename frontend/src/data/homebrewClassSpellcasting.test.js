@@ -2,6 +2,9 @@ import {
   buildHomebrewPactMagicTracker,
   buildHomebrewSpellcastingState,
   getHomebrewLevelOneSpellRequirements,
+  getHomebrewMaxSpellLevel,
+  getHomebrewSpellChoiceGain,
+  getHomebrewSpellChoiceTargets,
   getHomebrewSpellSlots,
   homebrewSpellcastingIsActive,
   normaliseHomebrewClassSpellcasting,
@@ -42,6 +45,41 @@ describe('homebrew class spellcasting', () => {
     expect(getHomebrewLevelOneSpellRequirements({
       spellcasting: { ability: 'wisdom', progression: 'full', start_level: 2 },
     })).toEqual({ cantrips: 0, spells: 0, type: 'none' });
+  });
+
+  test('uses authored cumulative cantrip and spell progression tables', () => {
+    const custom = {
+      spellcasting: {
+        ability: 'intelligence',
+        type: 'known',
+        progression: 'full',
+        start_level: 1,
+        cantrips_level_1: 2,
+        spells_level_1: 3,
+        cantrips_by_level: { 1: 2, 4: 3, 10: 4 },
+        spells_by_level: { 1: 3, 2: 4, 3: 5, 5: 7 },
+      },
+    };
+
+    expect(getHomebrewSpellChoiceTargets(custom, 1)).toEqual({ cantrips: 2, spells: 3, type: 'known' });
+    expect(getHomebrewSpellChoiceTargets(custom, 4)).toEqual({ cantrips: 3, spells: 5, type: 'known' });
+    expect(getHomebrewSpellChoiceTargets(custom, 5)).toEqual({ cantrips: 3, spells: 7, type: 'known' });
+    expect(getHomebrewSpellChoiceGain(custom, 4, 5)).toMatchObject({ cantrips: 0, spells: 2, type: 'known' });
+  });
+
+  test('does not invent later spell-list growth when no progression table is authored', () => {
+    expect(getHomebrewSpellChoiceGain(fullCaster, 1, 2)).toMatchObject({
+      cantrips: 0,
+      spells: 0,
+      type: 'known',
+    });
+  });
+
+  test('derives the highest castable spell level from the homebrew slot progression', () => {
+    expect(getHomebrewMaxSpellLevel(fullCaster, 5, '2014')).toBe(3);
+    expect(getHomebrewMaxSpellLevel({
+      spellcasting: { ability: 'charisma', progression: 'pact', start_level: 1 },
+    }, 5, '2014')).toBe(3);
   });
 
   test('accepts legacy caster flags and friendly progression labels', () => {

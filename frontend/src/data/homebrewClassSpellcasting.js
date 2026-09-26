@@ -20,6 +20,30 @@ const countField = (raw, ...keys) => {
   return Math.max(0, Math.trunc(toNumber(value, 0)));
 };
 
+function normaliseCountTable(value = {}, levelOneFallback = 0) {
+  const entries = Array.isArray(value)
+    ? value.map((count, index) => [index + 1, count])
+    : Object.entries(value && typeof value === 'object' ? value : {});
+
+  const table = Object.fromEntries(
+    entries
+      .map(([level, count]) => [clampLevel(level, 1), Math.max(0, Math.trunc(toNumber(count, 0)))])
+      .filter(([level]) => level >= 1 && level <= 20)
+      .sort((left, right) => left[0] - right[0]),
+  );
+
+  if (levelOneFallback > 0 && table[1] === undefined) table[1] = Math.max(0, Math.trunc(levelOneFallback));
+  return table;
+}
+
+function cumulativeCount(table = {}, level = 1) {
+  const safeLevel = clampLevel(level, 1);
+  return Object.entries(table || {})
+    .map(([entryLevel, count]) => [Number(entryLevel), Math.max(0, Math.trunc(toNumber(count, 0)))])
+    .filter(([entryLevel]) => entryLevel <= safeLevel)
+    .sort((left, right) => right[0] - left[0])?.[0]?.[1] || 0;
+}
+
 export function normaliseHomebrewClassSpellcasting(classData = {}) {
   const raw = classData?.spellcasting;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -60,6 +84,33 @@ export function normaliseHomebrewClassSpellcasting(classData = {}) {
     'spellsKnownLevel1',
   );
 
+  const cantripsByLevel = normaliseCountTable(
+    firstDefined(
+      raw.cantrips_by_level,
+      raw.cantripsByLevel,
+      raw.cantrips_known_by_level,
+      raw.cantripsKnownByLevel,
+      raw.cantrip_progression,
+      raw.cantripProgression,
+    ),
+    cantripsAtLevelOne,
+  );
+  const spellsByLevel = normaliseCountTable(
+    firstDefined(
+      raw.spells_by_level,
+      raw.spellsByLevel,
+      raw.spells_known_by_level,
+      raw.spellsKnownByLevel,
+      raw.prepared_spells_by_level,
+      raw.preparedSpellsByLevel,
+      raw.spellbook_spells_by_level,
+      raw.spellbookSpellsByLevel,
+      raw.spell_progression,
+      raw.spellProgression,
+    ),
+    spellsAtLevelOne,
+  );
+
   return {
     ...raw,
     ability,
@@ -68,6 +119,8 @@ export function normaliseHomebrewClassSpellcasting(classData = {}) {
     startLevel,
     cantripsAtLevelOne,
     spellsAtLevelOne,
+    cantripsByLevel,
+    spellsByLevel,
     ritual: Boolean(raw.ritual),
     halfCaster: progression === 'half',
     thirdCaster: progression === 'third',
@@ -106,17 +159,45 @@ export function getHomebrewSpellSlots(classData = {}, level = 1, edition = '2014
   return { ...(SPELL_SLOTS[Math.min(effectiveLevel, 20)] || {}) };
 }
 
-export function getHomebrewLevelOneSpellRequirements(classData = {}) {
+export function getHomebrewSpellChoiceTargets(classData = {}, level = 1) {
   const definition = normaliseHomebrewClassSpellcasting(classData);
-  if (!definition || definition.startLevel > 1) {
+  const safeLevel = clampLevel(level, 1);
+  if (!definition || safeLevel < definition.startLevel) {
     return { cantrips: 0, spells: 0, type: 'none' };
   }
 
   return {
-    cantrips: definition.cantripsAtLevelOne,
-    spells: definition.spellsAtLevelOne,
+    cantrips: cumulativeCount(definition.cantripsByLevel, safeLevel),
+    spells: cumulativeCount(definition.spellsByLevel, safeLevel),
     type: definition.type,
   };
+}
+
+export function getHomebrewSpellChoiceGain(classData = {}, beforeLevel = 0, afterLevel = beforeLevel + 1) {
+  const before = Number(beforeLevel) > 0
+    ? getHomebrewSpellChoiceTargets(classData, beforeLevel)
+    : { cantrips: 0, spells: 0, type: normaliseHomebrewClassSpellcasting(classData)?.type || 'none' };
+  const after = getHomebrewSpellChoiceTargets(classData, afterLevel);
+  return {
+    cantrips: Math.max(0, after.cantrips - before.cantrips),
+    spells: Math.max(0, after.spells - before.spells),
+    type: after.type,
+    before,
+    after,
+  };
+}
+
+export function getHomebrewLevelOneSpellRequirements(classData = {}) {
+  return getHomebrewSpellChoiceTargets(classData, 1);
+}
+
+export function getHomebrewMaxSpellLevel(classData = {}, level = 1, edition = '2014') {
+  const slots = getHomebrewSpellSlots(classData, level, edition);
+  if (slots?.level) return Math.max(0, toNumber(slots.level, 0));
+  return Object.keys(slots)
+    .map((slotLevel) => toNumber(slotLevel, 0))
+    .filter((slotLevel) => slotLevel > 0)
+    .sort((left, right) => right - left)[0] || 0;
 }
 
 export function buildHomebrewSpellcastingState(classData = {}, {

@@ -258,6 +258,19 @@ function DraftEditor({ contentType, draft, missing, onChange }) {
             <FieldRow label="Level 1 Spells" value={draft.spellcasting.spells_level_1 ?? 0} onChange={v => upd('spellcasting', { ...draft.spellcasting, spells_level_1: Math.max(0, Number(v) || 0) })} type="number" />
           </FormGrid>
           <CheckRow label="Supports ritual casting" checked={Boolean(draft.spellcasting.ritual)} onChange={v => upd('spellcasting', { ...draft.spellcasting, ritual: v })} />
+          <JsonField
+            label="Cantrips Known by Class Level"
+            value={draft.spellcasting.cantrips_by_level || {}}
+            onChange={v => upd('spellcasting', { ...draft.spellcasting, cantrips_by_level: v })}
+            placeholder='{"1":2,"4":3,"10":4}'
+          />
+          <JsonField
+            label={draft.spellcasting.type === 'spellbook' ? 'Spellbook Spells by Class Level' : draft.spellcasting.type === 'prepared' ? 'Prepared Spells by Class Level' : 'Spells Known by Class Level'}
+            value={draft.spellcasting.spells_by_level || {}}
+            onChange={v => upd('spellcasting', { ...draft.spellcasting, spells_by_level: v })}
+            placeholder='{"1":3,"2":4,"3":5,"5":7}'
+          />
+          <p style={helpStyle}>Use cumulative totals. Keeper uses the difference between class levels during level-up and never invents missing progression.</p>
         </>}
       </>}
       <FieldRow label="Features (Level - Name :: description)" value={toLines(draft.features)} onChange={v => upd('features', namedFromLines(v))} multiline missing={miss('features')} />

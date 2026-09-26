@@ -24,7 +24,12 @@ from data.class_progression import (
     spells_to_learn as progression_spells_to_learn,
     subclasses_for,
 )
-from routes.character_progression_state import progression_spell_slot_totals
+from routes.character_progression_state import (
+    homebrew_spell_choice_gain,
+    homebrew_spell_choice_targets,
+    homebrew_spell_selection_mode,
+    progression_spell_slot_totals,
+)
 from routes.characters import (
     display_class_name,
     edition_for,
@@ -108,10 +113,37 @@ def build_level_up_preflight(
 
     previous_slots = progression_spell_slot_totals(existing, class_levels)
     next_slots = progression_spell_slot_totals(existing, next_class_levels)
-    prepared_before = prepared_spell_capacity(character_class, class_level_before, edition)
-    prepared_after = prepared_spell_capacity(character_class, class_level_after, edition)
-    selection_mode = spell_selection_mode(character_class, edition)
-    prepared_change = prepared_spell_change_rule(character_class, edition)
+    custom_mode = homebrew_spell_selection_mode(existing, character_class)
+    custom_gain = homebrew_spell_choice_gain(existing, character_class, class_level_before, class_level_after) if custom_mode else None
+    custom_before = homebrew_spell_choice_targets(existing, character_class, class_level_before) if custom_mode else None
+    custom_after = homebrew_spell_choice_targets(existing, character_class, class_level_after) if custom_mode else None
+
+    if custom_mode:
+        prepared_before = int(custom_before.get("spells", 0)) if custom_mode == "prepared" else 0
+        prepared_after = int(custom_after.get("spells", 0)) if custom_mode == "prepared" else 0
+        selection_mode = custom_mode
+        prepared_change = {"cadence": "manual", "max_replacements": 0}
+        spells_to_learn = int(custom_gain.get("spells", 0))
+        cantrips_to_learn = int(custom_gain.get("cantrips", 0))
+        progression_reference = {
+            "source": "homebrew-character-contract",
+            "spell_selection_mode": custom_mode,
+            "cantrips_by_level": existing.get("homebrew_spellcasting", {}).get("cantrips_by_level", {}),
+            "spells_by_level": existing.get("homebrew_spellcasting", {}).get("spells_by_level", {}),
+        }
+    else:
+        prepared_before = prepared_spell_capacity(character_class, class_level_before, edition)
+        prepared_after = prepared_spell_capacity(character_class, class_level_after, edition)
+        selection_mode = spell_selection_mode(character_class, edition)
+        prepared_change = prepared_spell_change_rule(character_class, edition)
+        spells_to_learn = progression_spells_to_learn(
+            character_class,
+            class_level_before,
+            class_level_after,
+            edition,
+        )
+        cantrips_to_learn = progression_cantrips_to_learn(character_class, class_level_before, class_level_after)
+        progression_reference = class_progression_summary(character_class, edition)
 
     return {
         "character_id": character_id or existing.get("id", ""),
@@ -130,13 +162,8 @@ def build_level_up_preflight(
         "spell_slots": next_slots,
         "previous_spell_slots": previous_slots,
         "spell_selection_mode": selection_mode,
-        "spells_to_learn": progression_spells_to_learn(
-            character_class,
-            class_level_before,
-            class_level_after,
-            edition,
-        ),
-        "cantrips_to_learn": progression_cantrips_to_learn(character_class, class_level_before, class_level_after),
+        "spells_to_learn": spells_to_learn,
+        "cantrips_to_learn": cantrips_to_learn,
         "prepared_spell_capacity_before": prepared_before,
         "prepared_spell_capacity": prepared_after,
         "prepared_spell_capacity_gain": max(0, prepared_after - prepared_before),
@@ -151,7 +178,7 @@ def build_level_up_preflight(
         "origin_feat_options": origin_feats,
         "class_levels": class_levels,
         "next_class_levels": next_class_levels,
-        "progression_reference": class_progression_summary(character_class, edition),
+        "progression_reference": progression_reference,
     }
 
 

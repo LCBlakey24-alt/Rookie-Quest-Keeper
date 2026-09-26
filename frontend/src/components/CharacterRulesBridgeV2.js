@@ -382,6 +382,11 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
   enhanced.homebrew_upgrades = mechanics.upgrades;
   enhanced.homebrew_automation_notes = mechanics.automation_notes;
   enhanced.homebrew_content_refs = mechanics.refs;
+  if (!SPELLCASTING_CLASSES[className] && classData?.spellcasting) {
+    enhanced.homebrew_spellcasting = { ...classData.spellcasting };
+  } else {
+    delete enhanced.homebrew_spellcasting;
+  }
   enhanced.max_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
   enhanced.current_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
 
