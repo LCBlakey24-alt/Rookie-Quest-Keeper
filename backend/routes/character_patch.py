@@ -43,9 +43,9 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "saving_throw_proficiencies", "skill_proficiencies", "weapon_proficiencies", "armor_proficiencies",
     "armour_proficiencies", "tool_proficiencies", "languages", "racial_traits", "class_features", "background_features", "feats",
     "spellcasting_ability", "spell_save_dc", "spell_attack_bonus", "spell_slots", "spell_slots_remaining",
-    "used_spell_slots", "spells_known", "spells_prepared", "cantrips_known", "prepared_spell_names", "spellbook", "spell_preparation_loadout",
+    "used_spell_slots", "spells_known", "spells_prepared", "cantrips_known", "prepared_spell_names", "spellbook", "spell_preparation_loadout", "homebrew_spellcasting",
     "equipment", "inventory", "equipped", "item_effects", "currency", "gold", "fighting_style", "equipment_choice", "starting_equipment",
-    "resources", "class_levels", "multiclass_levels", "level_progression", "asi_increases",
+    "resources", "class_levels", "multiclass_levels", "level_progression", "asi_increases", "homebrew_spellcasting",
     "campaign_id", "campaign_name", "campaign_join_status",
 }
 
