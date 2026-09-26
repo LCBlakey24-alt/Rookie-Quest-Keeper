@@ -27,3 +27,12 @@
 [data-rq-device='tablet'] .full-creator-review-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+
+[data-rq-device='tablet'] .full-creator-step-state {
+  font-size: .66rem !important;
+}
+
+[data-rq-device='tablet'] .full-creator-header button,
+[data-rq-device='tablet'] .full-creator-footer button {
+  min-height: 44px;
+}
