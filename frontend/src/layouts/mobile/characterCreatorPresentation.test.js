@@ -16,6 +16,13 @@ describe('mobile character creator presentation', () => {
     expect(css).toContain('grid-template-columns: repeat(auto-fit, minmax(132px, 1fr))');
   });
 
+  test('contains horizontal movement inside the step rail instead of the page', () => {
+    expect(css).toContain(".full-creator-workspace .full-creator-steps");
+    expect(css).toContain('overflow-x: auto !important');
+    expect(css).toContain('grid-template-columns: 1fr !important');
+    expect(css).toContain('width: 100%');
+  });
+
   test('keeps the first mobile screen compact and navigation anchored', () => {
     expect(css).toContain('.full-creator-progress-card > p');
     expect(css).toContain('display: none');
