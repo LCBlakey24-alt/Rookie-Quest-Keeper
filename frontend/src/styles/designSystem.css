@@ -1,60 +1,60 @@
 /* ============================================
-   ROOKIE QUEST KEEPER - DESIGN SYSTEM v4.1
-   Flat navy surfaces, sky blue secondary colour, hot pink lines, white text
+   ROOKIE QUEST KEEPER - DESIGN SYSTEM v5.0
+   Deep navy surfaces, warm cream type, antique gold primary, restrained blue support
    ============================================ */
 
 :root {
   /* Shared Radix/Tailwind surfaces, including menus rendered outside #root. */
   --background: 208 66% 8%;
-  --foreground: 0 0% 100%;
+  --foreground: 38 49% 94%;
   --card: 206 60% 16%;
-  --card-foreground: 0 0% 100%;
+  --card-foreground: 38 49% 94%;
   --popover: 207 60% 13%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 206 60% 16%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 206 58% 19%;
-  --secondary-foreground: 0 0% 100%;
+  --popover-foreground: 38 49% 94%;
+  --primary: 40 62% 57%;
+  --primary-foreground: 210 65% 8%;
+  --secondary: 204 65% 69%;
+  --secondary-foreground: 210 65% 8%;
   --muted: 207 60% 13%;
-  --muted-foreground: 0 0% 100%;
-  --accent: 206 58% 19%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 206 60% 16%;
+  --muted-foreground: 38 18% 70%;
+  --accent: 40 62% 57%;
+  --accent-foreground: 210 65% 8%;
+  --destructive: 357 61% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 324 100% 59% / 0.28;
-  --input: 324 100% 59% / 0.28;
-  --ring: 204 100% 74%;
+  --border: 207 28% 60% / 0.18;
+  --input: 207 28% 60% / 0.18;
+  --ring: 204 65% 69%;
   --radius: 7px;
   --rq-bg-main: #071522;
   --rq-bg-page: #071522;
-  --rq-bg-rail: #06111C;
+  --rq-bg-rail: #050E18;
   --rq-bg-panel: #0C2234;
-  --rq-bg-panel-alt: #102B40;
-  --rq-bg-elevated: #14344C;
-  --rq-bg-input: #081B2A;
-  --rq-card: #102B40;
-  --rq-card-hover: #14344C;
+  --rq-bg-panel-alt: #112A40;
+  --rq-bg-elevated: #17364F;
+  --rq-bg-input: #071A29;
+  --rq-card: #112A40;
+  --rq-card-hover: #17364F;
 
-  --rq-secondary: #7CCBFF;
-  --rq-secondary-soft: rgba(124, 203, 255, 0.10);
-  --rq-secondary-border: rgba(124, 203, 255, 0.30);
+  --rq-secondary: #79BCE8;
+  --rq-secondary-soft: rgba(121, 188, 232, 0.10);
+  --rq-secondary-border: rgba(121, 188, 232, 0.28);
 
-  --rq-accent-primary: #FF2DAA;
-  --rq-accent-hover: #FF2DAA;
-  --rq-accent-active: #FF2DAA;
-  --rq-accent-soft: rgba(255, 45, 170, 0.08);
-  --rq-accent-border: rgba(255, 45, 170, 0.28);
-  --rq-accent-strong-border: rgba(255, 45, 170, 0.70);
+  --rq-accent-primary: #D6A84F;
+  --rq-accent-hover: #E8C56E;
+  --rq-accent-active: #C89434;
+  --rq-accent-soft: rgba(214, 168, 79, 0.12);
+  --rq-accent-border: rgba(214, 168, 79, 0.30);
+  --rq-accent-strong-border: rgba(232, 197, 110, 0.62);
 
-  --rq-text-primary: #FFFFFF;
-  --rq-text-secondary: #FFFFFF;
-  --rq-text-muted: #FFFFFF;
-  --rq-text-disabled: rgba(255, 255, 255, 0.48);
+  --rq-text-primary: #F7F1E7;
+  --rq-text-secondary: rgba(247, 241, 231, 0.78);
+  --rq-text-muted: rgba(247, 241, 231, 0.60);
+  --rq-text-disabled: rgba(247, 241, 231, 0.38);
   --rq-text-inverse: #071522;
 
-  --rq-border-default: rgba(255, 45, 170, 0.18);
-  --rq-border-strong: rgba(255, 45, 170, 0.36);
-  --rq-border-accent: #FF2DAA;
+  --rq-border-default: rgba(166, 193, 216, 0.14);
+  --rq-border-strong: rgba(214, 168, 79, 0.30);
+  --rq-border-accent: #D6A84F;
 
   --rq-radius-sm: 5px;
   --rq-radius-md: 7px;
@@ -85,11 +85,11 @@
   --bg-overlay: rgba(7, 21, 34, 0.94);
   --bg-light: var(--rq-bg-elevated);
 
-  --text-primary: #FFFFFF;
-  --text-secondary: #FFFFFF;
-  --text-muted: #FFFFFF;
-  --text-dim: rgba(255, 255, 255, 0.48);
-  --text-disabled: rgba(255, 255, 255, 0.48);
+  --text-primary: #F7F1E7;
+  --text-secondary: rgba(247, 241, 231, 0.78);
+  --text-muted: rgba(247, 241, 231, 0.60);
+  --text-dim: rgba(247, 241, 231, 0.46);
+  --text-disabled: rgba(247, 241, 231, 0.38);
 
   --accent-red: var(--rq-accent-primary);
   --accent-red-hover: var(--rq-accent-primary);
@@ -107,13 +107,18 @@
   --rq-gold-bright: var(--rq-secondary);
   --rq-gold-soft: var(--rq-secondary-soft);
   --rq-gold-border: var(--rq-secondary-border);
-  --rq-gold-border-strong: rgba(124, 203, 255, 0.52);
+  --rq-gold-border-strong: rgba(121, 188, 232, 0.48);
   --rq-charcoal: var(--rq-bg-main);
   --rq-charcoal-soft: var(--rq-bg-panel);
   --rq-navy: var(--rq-bg-main);
   --rq-navy-soft: var(--rq-bg-panel);
 
-  --rq-role-gm: var(--rq-secondary);
+  --rq-success: #59B982;
+  --rq-warning: #E3A746;
+  --rq-danger: #D85C61;
+  --rq-info: #79BCE8;
+
+  --rq-role-gm: var(--rq-accent-primary);
   --rq-role-player: var(--rq-secondary);
   --rq-role-rook: var(--rq-accent-primary);
   --rq-role-homebrew: var(--rq-secondary);
@@ -134,11 +139,11 @@
   --player-border: var(--rq-accent-border);
   --player-glow: transparent;
 
-  --border-dark: rgba(255, 45, 170, 0.10);
-  --border-subtle: rgba(255, 45, 170, 0.16);
-  --border-default: rgba(255, 45, 170, 0.22);
-  --border-hover: rgba(255, 45, 170, 0.46);
-  --border-strong: rgba(255, 45, 170, 0.46);
+  --border-dark: rgba(166, 193, 216, 0.10);
+  --border-subtle: rgba(166, 193, 216, 0.14);
+  --border-default: rgba(166, 193, 216, 0.20);
+  --border-hover: rgba(214, 168, 79, 0.36);
+  --border-strong: rgba(214, 168, 79, 0.36);
 
   --shadow-sm: none;
   --shadow-md: none;
@@ -153,13 +158,13 @@
   --font-display: var(--rq-font-display, 'Recoleta', 'RQKDisplay', Georgia, serif);
 
   --rq-bg-panel-soft: var(--rq-bg-panel-alt);
-  --rq-text-main: #FFFFFF;
-  --rq-text-soft: #FFFFFF;
+  --rq-text-main: #F7F1E7;
+  --rq-text-soft: rgba(247, 241, 231, 0.78);
   --rq-border: var(--border-subtle);
 
   /* Legacy aliases are deliberately flat so old CSS cannot recreate gradients. */
-  --rq-sunset-gradient: #FF2DAA;
-  --rq-sunset-gradient-soft: rgba(255, 45, 170, 0.08);
+  --rq-sunset-gradient: #D6A84F;
+  --rq-sunset-gradient-soft: rgba(214, 168, 79, 0.12);
 }
 
 * { box-sizing: border-box; }
@@ -170,7 +175,7 @@ body,
 .App {
   background: #071522 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary) !important;
 }
 
 body {
