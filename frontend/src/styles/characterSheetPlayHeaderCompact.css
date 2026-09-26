@@ -16,10 +16,10 @@
   font-weight: 900 !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
-  color: #FFFFFF !important;
-  background: #102B40 !important;
+  color: #F7F1E7 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.20) !important;
+  border: 1px solid rgba(214,168,79,.20) !important;
   box-shadow: none !important;
 }
 
@@ -27,7 +27,7 @@
   width: 15px !important;
   height: 15px !important;
   flex: 0 0 auto !important;
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root .character-page-v2 .clean-sheet-identity {
@@ -45,10 +45,10 @@
   min-height: 34px !important;
   padding: 0 !important;
   place-items: center !important;
-  color: #7CCBFF !important;
-  background: #102B40 !important;
+  color: #79BCE8 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid #FF2DAA !important;
+  border: 1px solid #D6A84F !important;
   border-radius: 5px !important;
   box-shadow: none !important;
   z-index: 5 !important;
@@ -64,7 +64,7 @@
   gap: 6px !important;
   background: #0C2234 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.28) !important;
+  border: 1px solid rgba(214,168,79,.28) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -84,9 +84,9 @@
   justify-content: flex-start !important;
   gap: 8px !important;
   border-radius: 5px !important;
-  color: #FFFFFF !important;
-  background: #102B40 !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #F7F1E7 !important;
+  background: #112A40 !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   box-shadow: none !important;
   font-size: 0.78rem !important;
   font-weight: 900 !important;
@@ -102,7 +102,7 @@
   padding: 12px !important;
   background: #0C2234 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -119,27 +119,27 @@
   align-items: baseline !important;
   gap: 7px !important;
   min-width: 0 !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-hp-title svg {
   position: relative !important;
   top: 2px !important;
   flex: 0 0 auto !important;
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-hp-title span {
   font-weight: 900 !important;
   font-size: 0.92rem !important;
   letter-spacing: 0.04em !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-hp-title strong {
   font-size: clamp(1.16rem, 4vw, 1.65rem) !important;
   line-height: 1 !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-top-actions {
@@ -161,11 +161,11 @@
   min-height: 28px !important;
   display: inline-grid !important;
   place-items: center !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.20) !important;
+  border: 1px solid rgba(214,168,79,.20) !important;
   border-radius: 5px !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
 }
 
@@ -199,16 +199,16 @@
 }
 
 #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active {
-  background: rgba(124,203,255,.10) !important;
-  border-color: #FF2DAA !important;
+  background: rgba(121,188,232,.10) !important;
+  border-color: #D6A84F !important;
 }
 
 #root .character-page-v2 .clean-sheet-hp-progress {
   width: 100% !important;
   height: 5px !important;
   overflow: hidden !important;
-  background: #081B2A !important;
-  border: 1px solid rgba(255,45,170,.12) !important;
+  background: #071A29 !important;
+  border: 1px solid rgba(214,168,79,.12) !important;
   border-radius: 3px !important;
 }
 
@@ -216,7 +216,7 @@
   display: block !important;
   height: 100% !important;
   border-radius: inherit !important;
-  background: #7CCBFF !important;
+  background: #79BCE8 !important;
   background-image: none !important;
   transition: width 180ms ease !important;
 }
@@ -240,10 +240,10 @@
   line-height: 1.05 !important;
   font-weight: 900 !important;
   letter-spacing: 0.02em !important;
-  color: #FFFFFF !important;
-  background: #102B40 !important;
+  color: #F7F1E7 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.20) !important;
+  border: 1px solid rgba(214,168,79,.20) !important;
   box-shadow: none !important;
 }
 
@@ -272,7 +272,7 @@
   place-items: center !important;
   gap: 2px !important;
   text-align: center !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   background: transparent !important;
   background-image: none !important;
   border: 0 !important;
@@ -285,7 +285,7 @@
 #root .character-page-v2 .clean-sheet-quick-stat svg {
   width: 13px !important;
   height: 13px !important;
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root .character-page-v2 .clean-sheet-quick-stat span {
@@ -293,14 +293,14 @@
   line-height: 1 !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-weight: 900 !important;
 }
 
 #root .character-page-v2 .clean-sheet-quick-stat strong {
   font-size: clamp(1.5rem, 7vw, 2.25rem) !important;
   line-height: 0.9 !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .character-page-v2 .clean-sheet-rest-actions {
