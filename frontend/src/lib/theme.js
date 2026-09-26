@@ -1,63 +1,64 @@
 /**
- * Rookie Quest Keeper 1.0 shared theme.
- * Flat deep navy surfaces, flat white type, light-blue secondary UI,
- * and neon-pink hairline accents. No gradients or glow effects.
+ * Rookie Quest Keeper shared presentation tokens.
+ * Deep navy surfaces, warm cream hierarchy, antique-gold actions and restrained
+ * blue support. Status colours keep semantic meaning instead of doubling as brand decoration.
  */
 
 export const theme = {
   bg: {
     primary: 'var(--rq-bg-main, #071522)',
     surface: 'var(--rq-bg-panel, #0C2234)',
-    elevated: 'var(--rq-card-hover, #14344C)',
-    deep: 'var(--rq-bg-rail, #06111C)',
+    elevated: 'var(--rq-card-hover, #17364F)',
+    deep: 'var(--rq-bg-rail, #050E18)',
     panel: 'var(--rq-bg-panel, #0C2234)',
-    card: 'var(--rq-bg-panel-alt, #102B40)',
+    card: 'var(--rq-bg-panel-alt, #112A40)',
   },
   text: {
-    primary: '#FFFFFF',
-    secondary: '#FFFFFF',
-    muted: '#FFFFFF',
-    accent: '#FFFFFF',
+    primary: 'var(--rq-text-primary, #F7F1E7)',
+    secondary: 'var(--rq-text-secondary, rgba(247,241,231,0.78))',
+    muted: 'var(--rq-text-muted, rgba(247,241,231,0.60))',
+    accent: 'var(--rq-accent-hover, #E8C56E)',
   },
   accent: {
-    primary: 'var(--rq-accent-primary, #FF2DAA)',
-    hover: 'var(--rq-accent-primary, #FF2DAA)',
-    soft: 'var(--rq-accent-soft, rgba(255,45,170,0.08))',
-    line: 'var(--rq-accent-border, rgba(255,45,170,0.28))',
-    secondary: 'var(--rq-secondary, #7CCBFF)',
-    highlight: 'var(--rq-secondary, #7CCBFF)',
-    pink: 'var(--rq-accent-primary, #FF2DAA)',
+    primary: 'var(--rq-accent-primary, #D6A84F)',
+    hover: 'var(--rq-accent-hover, #E8C56E)',
+    soft: 'var(--rq-accent-soft, rgba(214,168,79,0.12))',
+    line: 'var(--rq-accent-border, rgba(214,168,79,0.30))',
+    secondary: 'var(--rq-secondary, #79BCE8)',
+    highlight: 'var(--rq-secondary, #79BCE8)',
+    // Legacy property name retained for older components.
+    pink: 'var(--rq-accent-primary, #D6A84F)',
   },
-  border: 'var(--rq-border-default, rgba(255,45,170,0.18))',
-  borderActive: 'var(--rq-accent-primary, #FF2DAA)',
-  success: 'var(--rq-secondary, #7CCBFF)',
-  danger: 'var(--rq-accent-primary, #FF2DAA)',
-  warning: '#FFFFFF',
+  border: 'var(--rq-border-default, rgba(166,193,216,0.14))',
+  borderActive: 'var(--rq-accent-primary, #D6A84F)',
+  success: 'var(--rq-success, #59B982)',
+  danger: 'var(--rq-danger, #D85C61)',
+  warning: 'var(--rq-warning, #E3A746)',
+  info: 'var(--rq-info, #79BCE8)',
 
-  // Compatibility aliases for older components. These deliberately resolve to
-  // flat RQK 1.0 colours so legacy lookups cannot restore the old palette.
+  // Compatibility aliases deliberately resolve to the current flat system.
   sunset: {
-    purple: 'var(--rq-secondary, #7CCBFF)',
-    pink: 'var(--rq-accent-primary, #FF2DAA)',
-    gold: 'var(--rq-secondary, #7CCBFF)',
+    purple: 'var(--rq-secondary, #79BCE8)',
+    pink: 'var(--rq-accent-primary, #D6A84F)',
+    gold: 'var(--rq-accent-primary, #D6A84F)',
   },
-  gradient: 'var(--rq-accent-primary, #FF2DAA)',
+  gradient: 'var(--rq-accent-primary, #D6A84F)',
   glow: 'none',
   player: {
-    primary: 'var(--rq-accent-primary, #FF2DAA)',
-    hover: 'var(--rq-secondary, #7CCBFF)',
-    secondary: 'var(--rq-secondary, #7CCBFF)',
+    primary: 'var(--rq-secondary, #79BCE8)',
+    hover: 'var(--rq-accent-hover, #E8C56E)',
+    secondary: 'var(--rq-secondary, #79BCE8)',
   },
   gm: {
-    primary: 'var(--rq-accent-primary, #FF2DAA)',
-    hover: 'var(--rq-secondary, #7CCBFF)',
-    secondary: 'var(--rq-secondary, #7CCBFF)',
+    primary: 'var(--rq-accent-primary, #D6A84F)',
+    hover: 'var(--rq-accent-hover, #E8C56E)',
+    secondary: 'var(--rq-secondary, #79BCE8)',
   },
 };
 
 export const panelStyle = {
   background: theme.bg.surface,
-  border: `1px solid ${theme.accent.line}`,
+  border: `1px solid ${theme.border}`,
   borderRadius: 7,
   padding: 16,
   boxShadow: 'none',
@@ -67,27 +68,27 @@ export const buttonStyle = {
   background: theme.bg.card,
   border: `1px solid ${theme.accent.primary}`,
   borderRadius: 5,
-  color: '#FFFFFF',
+  color: theme.text.primary,
   padding: '8px 14px',
   fontWeight: 800,
   cursor: 'pointer',
   boxShadow: 'none',
 };
 
-const BLUE = { tint: 'rgba(124,203,255,0.24)', icon: '#7CCBFF' };
-const PINK = { tint: 'rgba(255,45,170,0.22)', icon: '#FF2DAA' };
+const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#79BCE8' };
+const GOLD = { tint: 'rgba(214,168,79,0.18)', icon: '#D6A84F' };
 
 export const CLASS_ACCENTS = {
-  Barbarian: { ...PINK, label: 'Barbarian' },
+  Barbarian: { ...GOLD, label: 'Barbarian' },
   Bard:      { ...BLUE, label: 'Bard' },
   Cleric:    { ...BLUE, label: 'Cleric' },
   Druid:     { ...BLUE, label: 'Druid' },
-  Fighter:   { ...PINK, label: 'Fighter' },
+  Fighter:   { ...GOLD, label: 'Fighter' },
   Monk:      { ...BLUE, label: 'Monk' },
-  Paladin:   { ...PINK, label: 'Paladin' },
+  Paladin:   { ...GOLD, label: 'Paladin' },
   Ranger:    { ...BLUE, label: 'Ranger' },
-  Rogue:     { ...PINK, label: 'Rogue' },
-  Sorcerer:  { ...PINK, label: 'Sorcerer' },
+  Rogue:     { ...GOLD, label: 'Rogue' },
+  Sorcerer:  { ...GOLD, label: 'Sorcerer' },
   Warlock:   { ...BLUE, label: 'Warlock' },
   Wizard:    { ...BLUE, label: 'Wizard' },
 };
