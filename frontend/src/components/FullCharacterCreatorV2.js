@@ -720,8 +720,8 @@ function Chip({ active, onClick, children }) {
   );
 }
 
-function Choice({ title, children }) {
-  return <section className="full-creator-choice-block"><h3>{title}</h3><div>{children}</div></section>;
+function Choice({ title, children, interactive = false }) {
+  return <section className={`full-creator-choice-block ${interactive ? 'is-interactive' : 'is-reference'}`}><h3>{title}</h3><div>{children}</div></section>;
 }
 
 function LanguagePicker({ title, count, selected = [], unavailable = [], onToggle }) {
@@ -730,7 +730,7 @@ function LanguagePicker({ title, count, selected = [], unavailable = [], onToggl
   const options = Array.from(new Set([...selected, ...EXTRA_LANGUAGE_OPTIONS]))
     .filter((language) => selected.includes(language) || !blocked.has(language));
   return (
-    <Choice title={`${title} ${selected.length}/${count}`}>
+    <Choice title={`${title} ${selected.length}/${count}`} interactive>
       {options.map((language) => <Chip key={language} active={selected.includes(language)} onClick={() => onToggle(language)}>{language}</Chip>)}
     </Choice>
   );
@@ -784,7 +784,7 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
       {classChoicesRequired && <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>}
     </div>
     {!classChoicesRequired && <div className="full-creator-auto-box"><strong>Subclass timing</strong><span>{draft.edition === '2024' ? 'This class chooses its subclass at level 3 in the 2024 flow.' : `This class chooses its subclass at level ${subclassLevel}. It will be handled through level-up later.`}</span></div>}
-    {draft.characterClass === 'Fighter' && <Choice title={`Fighting Style ${draft.fighterFightingStyle ? 'selected' : 'required'}`}>{FIGHTER_FIGHTING_STYLES.map((style) => <Chip key={style} active={draft.fighterFightingStyle === style} onClick={() => update({ fighterFightingStyle: draft.fighterFightingStyle === style ? '' : style })}>{style}</Chip>)}</Choice>}
+    {draft.characterClass === 'Fighter' && <Choice title={`Fighting Style ${draft.fighterFightingStyle ? 'selected' : 'required'}`} interactive>{FIGHTER_FIGHTING_STYLES.map((style) => <Chip key={style} active={draft.fighterFightingStyle === style} onClick={() => update({ fighterFightingStyle: draft.fighterFightingStyle === style ? '' : style })}>{style}</Chip>)}</Choice>}
     <div className="full-creator-review-grid">
       <ReviewItem label="Hit die" value={`d${classData.hitDie || 8}`} />
       <ReviewItem label="Primary" value={String(classData.primaryAbility || 'varies').toUpperCase()} />
@@ -830,14 +830,14 @@ function Abilities({ draft, update, setScore, finalScores, floatingBudget, float
     <Title icon={Dices} title="Ability scores" text="Use the standard array for now, or manually adjust each score." />
     <button type="button" onClick={() => update({ scores: STANDARD })}>Reset to standard array</button>
     <div className="full-creator-score-editor">{ABILITIES.map((ability) => <label key={ability}><span>{LABELS[ability]}</span><input type="number" min="3" max="20" value={draft.scores[ability]} onChange={(event) => setScore(ability, event.target.value)} /><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></label>)}</div>
-    {floatingBudget > 0 && <Choice title={`Floating species bonus ${floatingSpent}/${floatingBudget}`}>{ABILITIES.map((ability) => <Chip key={ability} active={Boolean(draft.floatingAsi[ability])} onClick={() => toggleFloating(ability)}>{LABELS[ability]} +1</Chip>)}</Choice>}
+    {floatingBudget > 0 && <Choice title={`Floating species bonus ${floatingSpent}/${floatingBudget}`} interactive>{ABILITIES.map((ability) => <Chip key={ability} active={Boolean(draft.floatingAsi[ability])} onClick={() => toggleFloating(ability)}>{LABELS[ability]} +1</Chip>)}</Choice>}
   </>;
 }
 
 function Skills({ backgroundSkills, skillOptions, selected, target, toggle }) {
   return <>
     <div className="full-creator-auto-box"><strong>Background skills</strong><span>{backgroundSkills.length ? backgroundSkills.join(', ') : 'None listed'}</span></div>
-    <Choice title={`Class skills ${selected.length}/${target}`}>{skillOptions.map((skill) => <Chip key={skill} active={selected.includes(skill)} onClick={() => toggle(skill)}>{skill}</Chip>)}</Choice>
+    <Choice title={`Class skills ${selected.length}/${target}`} interactive>{skillOptions.map((skill) => <Chip key={skill} active={selected.includes(skill)} onClick={() => toggle(skill)}>{skill}</Chip>)}</Choice>
   </>;
 }
 
@@ -846,11 +846,11 @@ function Spells({ spellSearch, setSpellSearch, spellReq, visibleCantrips, visibl
     return <div className="full-creator-auto-box"><strong>Spellcasting</strong><span>This homebrew class uses spellcasting, but no level 1 spell choices are configured yet.</span></div>;
   }
   return <>
-    <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>
+    <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`} interactive>
       <input className="full-creator-search" value={spellSearch} onChange={(event) => setSpellSearch(event.target.value)} placeholder="Search spells, damage, healing…" />
       {spellReq.cantrips > 0 && (visibleCantrips.length ? visibleCantrips.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedCantrips.includes(spellName(spell))} onClick={() => toggleCantrip(spellName(spell))} />) : <p className="full-creator-note">No cantrips match this search.</p>)}
     </Choice>
-    {spellReq.spells > 0 && <Choice title={`Level 1 spells ${selectedSpells.length}/${spellReq.spells}`}>{visibleSpells.length ? visibleSpells.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedSpells.includes(spellName(spell))} onClick={() => toggleSpell(spellName(spell))} />) : <p className="full-creator-note">No spells match this search.</p>}</Choice>}
+    {spellReq.spells > 0 && <Choice title={`Level 1 spells ${selectedSpells.length}/${spellReq.spells}`} interactive>{visibleSpells.length ? visibleSpells.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedSpells.includes(spellName(spell))} onClick={() => toggleSpell(spellName(spell))} />) : <p className="full-creator-note">No spells match this search.</p>}</Choice>}
   </>;
 }
 
