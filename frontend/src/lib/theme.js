@@ -76,7 +76,7 @@ export const buttonStyle = {
 };
 
 const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#6E91B4' };
-const GOLD = { tint: 'rgba(214,168,79,0.18)', icon: '#C9A96B' };
+const GOLD = { tint: 'rgba(201,169,107,0.18)', icon: '#C9A96B' };
 
 export const CLASS_ACCENTS = {
   Barbarian: { ...GOLD, label: 'Barbarian' },
