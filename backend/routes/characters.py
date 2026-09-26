@@ -48,6 +48,7 @@ _PASSTHROUGH_CHARACTER_FIELDS = {
     'homebrew_upgrades',
     'homebrew_automation_notes',
     'homebrew_content_refs',
+    'homebrew_spellcasting',
 }
 
 _MULTICLASS_REQUIREMENTS = {
