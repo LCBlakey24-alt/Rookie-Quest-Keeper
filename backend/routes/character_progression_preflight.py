@@ -40,6 +40,7 @@ from routes.characters import (
     asi_levels_for,
 )
 from utils.auth import get_current_user
+from utils.homebrew_spellcasting_snapshot import ensure_homebrew_spellcasting_snapshot
 
 
 router = APIRouter()
@@ -194,6 +195,8 @@ async def get_character_level_up_options_class_aware(
     username: str = Depends(get_current_user),
 ):
     existing = await get_owned_character(character_id, username)
+    requested_class = display_class_name(target_class or existing.get("character_class", "Fighter"))
+    existing, _ = await ensure_homebrew_spellcasting_snapshot(existing, username, requested_class)
     return build_level_up_preflight(
         existing,
         character_id=character_id,
