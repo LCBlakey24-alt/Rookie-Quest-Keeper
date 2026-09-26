@@ -82,6 +82,7 @@ LEVEL_ONE_BUILD_FIELDS = {
     "spells_prepared",
     "cantrips_known",
     "spellbook",
+    "homebrew_spellcasting",
 }
 
 
