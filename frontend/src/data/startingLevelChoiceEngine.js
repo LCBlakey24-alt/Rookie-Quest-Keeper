@@ -220,6 +220,68 @@ function increasePayloadAbilityScore(target = {}, ability, amount = 1) {
   writePayloadAbilityScore(target, ability, nextScore);
 }
 
+function canonicalAbilityName(value) {
+  const key = String(value || '').trim().toLowerCase();
+  if (!key) return '';
+  return ABILITY_OPTIONS.find(([ability]) => abilityAliases(ability).some((alias) => String(alias).toLowerCase() === key))?.[0] || '';
+}
+
+function positiveAmount(value, fallback = 1) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return fallback;
+  return Math.max(1, Math.floor(numeric));
+}
+
+export function normaliseFeatAbilityScoreIncrease(featOrIncrease = {}) {
+  const raw = featOrIncrease?.ability_score_increase
+    ?? featOrIncrease?.abilityScoreIncrease
+    ?? featOrIncrease;
+
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { raw: {}, fixed: [], choice: null };
+  }
+
+  const fixed = [];
+  ABILITY_OPTIONS.forEach(([ability]) => {
+    const key = findAbilityKey(raw, ability);
+    if (!key) return;
+    const amount = Number(raw[key]);
+    if (!Number.isFinite(amount) || amount === 0) return;
+    fixed.push({ ability, amount: Math.trunc(amount) });
+  });
+
+  const from = arr(raw.from ?? raw.options ?? raw.abilities)
+    .map(canonicalAbilityName)
+    .filter(Boolean)
+    .filter((ability, index, values) => values.indexOf(ability) === index);
+  const choose = Math.max(0, Math.floor(Number(raw.choose ?? raw.count ?? raw.limit ?? 0) || 0));
+  const amount = positiveAmount(raw.amount ?? raw.value, 1);
+
+  const directAbility = canonicalAbilityName(raw.ability ?? raw.stat);
+  if (!from.length && !choose && directAbility && !fixed.some((entry) => entry.ability === directAbility)) {
+    fixed.push({ ability: directAbility, amount });
+  }
+
+  return {
+    raw: { ...raw },
+    fixed,
+    choice: choose > 0 && from.length
+      ? { choose: Math.min(choose, from.length), from, amount }
+      : null,
+  };
+}
+
+export function resolveFeatAbilityChoices(featOrIncrease = {}, selected = []) {
+  const increase = normaliseFeatAbilityScoreIncrease(featOrIncrease);
+  if (!increase.choice) return [];
+  const allowed = new Set(increase.choice.from);
+  return arr(selected)
+    .map(canonicalAbilityName)
+    .filter((ability) => ability && allowed.has(ability))
+    .filter((ability, index, values) => values.indexOf(ability) === index)
+    .slice(0, increase.choice.choose);
+}
+
 export function getClassSpecificChoicePlan({ className, level = 1 } = {}) {
   const numericLevel = Math.max(1, Number(level || 1));
   const fightingStyleCount = fightingStyleTarget(className, numericLevel);
@@ -358,6 +420,10 @@ export function defaultAsiSelection(existing) {
     abilityOne: existing?.abilityOne || 'strength',
     abilityTwo: existing?.abilityTwo || 'strength',
     featName: existing?.featName || '',
+    featAbilityChoices: arr(existing?.featAbilityChoices || existing?.feat_ability_choices),
+    featAbilityScoreIncrease: existing?.featAbilityScoreIncrease
+      || existing?.feat_ability_score_increase
+      || null,
   };
 }
 
@@ -420,11 +486,32 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
       const featName = selection.featName;
       if (!featName || feats.some((feat) => getFeatName(feat) === featName)) return;
       const feat = featOptions.find((item) => getFeatName(item) === featName) || { name: featName };
+      const featAbilityIncrease = normaliseFeatAbilityScoreIncrease(
+        feat?.ability_score_increase || feat?.abilityScoreIncrease || selection.featAbilityScoreIncrease || {},
+      );
+      const featAbilityChoices = resolveFeatAbilityChoices(featAbilityIncrease.raw, selection.featAbilityChoices);
+
+      featAbilityIncrease.fixed.forEach(({ ability, amount }) => {
+        increasePayloadAbilityScore(next, ability, amount);
+      });
+
+      if (featAbilityIncrease.choice && featAbilityChoices.length >= featAbilityIncrease.choice.choose) {
+        featAbilityChoices.forEach((ability) => {
+          increasePayloadAbilityScore(next, ability, featAbilityIncrease.choice.amount);
+        });
+      }
+
       feats.push({
         name: featName,
         description: feat.description || '',
         source: feat.source || feat.source_label || 'level-up',
         level_choice: Number(choiceId.replace('asi-', '')) || undefined,
+        ...(Object.keys(featAbilityIncrease.raw).length
+          ? { ability_score_increase: featAbilityIncrease.raw }
+          : {}),
+        ...(featAbilityIncrease.choice
+          ? { ability_score_choices: featAbilityChoices }
+          : {}),
       });
       return;
     }

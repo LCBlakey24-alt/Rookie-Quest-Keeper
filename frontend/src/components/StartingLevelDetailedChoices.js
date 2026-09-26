@@ -4,6 +4,7 @@ import {
   ABILITY_OPTIONS,
   defaultAsiSelection,
   getFeatName,
+  normaliseFeatAbilityScoreIncrease,
   normaliseSpellSelection,
   normaliseWarlockSelection,
 } from '@/data/startingLevelChoiceEngine';
@@ -20,13 +21,13 @@ function toggleValue(list, value, max = Infinity) {
 
 function optionValue(option) {
   if (typeof option === 'string') return option;
-  return option?.name || String(option || '');
+  return option?.value || option?.name || String(option || '');
 }
 
 function optionLabel(option) {
   if (typeof option === 'string') return option;
-  if (option?.level !== undefined && option?.level !== null) return `Level ${option.level}: ${option.name}`;
-  return option?.name || String(option || '');
+  if (option?.level !== undefined && option?.level !== null) return `Level ${option.level}: ${option.label || option.name}`;
+  return option?.label || option?.name || String(option || '');
 }
 
 function optionDescription(option) {
@@ -120,25 +121,93 @@ function ToggleChoiceList({ label, value, options, max, onChange }) {
 export function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
   const current = defaultAsiSelection(selection);
   const firstFeat = getFeatName(featOptions[0]) || '';
+  const selectedFeatName = current.featName || firstFeat;
+  const selectedFeat = featOptions.find((feat) => getFeatName(feat) === selectedFeatName) || null;
+  const featAbilityIncrease = normaliseFeatAbilityScoreIncrease(
+    selectedFeat?.ability_score_increase
+      || selectedFeat?.abilityScoreIncrease
+      || current.featAbilityScoreIncrease
+      || {},
+  );
+  const abilityLabel = Object.fromEntries(ABILITY_OPTIONS);
+  const choiceOptions = featAbilityIncrease.choice
+    ? featAbilityIncrease.choice.from.map((ability) => ({
+      value: ability,
+      label: abilityLabel[ability] || ability.toUpperCase(),
+      description: `+${featAbilityIncrease.choice.amount}`,
+    }))
+    : [];
   const update = (patch) => onChange({ ...current, ...patch });
+  const chooseFeat = (featName) => {
+    const feat = featOptions.find((item) => getFeatName(item) === featName) || null;
+    const rawIncrease = feat?.ability_score_increase || feat?.abilityScoreIncrease || null;
+    update({
+      featName,
+      featAbilityChoices: [],
+      featAbilityScoreIncrease: rawIncrease,
+    });
+  };
 
   return (
     <div className="full-creator-form-grid" key={choice.id}>
       <label>
         <span>{choice.label}</span>
-        <select value={current.mode} onChange={(event) => update({ mode: event.target.value, featName: event.target.value === 'feat' ? current.featName || firstFeat : current.featName })}>
+        <select
+          value={current.mode}
+          onChange={(event) => {
+            const mode = event.target.value;
+            if (mode !== 'feat') {
+              update({ mode });
+              return;
+            }
+            const featName = current.featName || firstFeat;
+            const feat = featOptions.find((item) => getFeatName(item) === featName) || null;
+            update({
+              mode,
+              featName,
+              featAbilityChoices: current.featName === featName ? current.featAbilityChoices : [],
+              featAbilityScoreIncrease: feat?.ability_score_increase || feat?.abilityScoreIncrease || current.featAbilityScoreIncrease,
+            });
+          }}
+        >
           <option value="asi">Ability score increase</option>
           <option value="feat">Feat</option>
         </select>
       </label>
       {current.mode === 'feat' ? (
-        <ToggleChoiceList
-          label="Feat"
-          value={current.featName ? [current.featName] : firstFeat ? [firstFeat] : []}
-          options={featOptions}
-          max={1}
-          onChange={(featNames) => update({ featName: featNames[0] || '' })}
-        />
+        <>
+          <ToggleChoiceList
+            label="Feat"
+            value={selectedFeatName ? [selectedFeatName] : []}
+            options={featOptions}
+            max={1}
+            onChange={(featNames) => chooseFeat(featNames[0] || '')}
+          />
+
+          {featAbilityIncrease.fixed.length > 0 && (
+            <div className="full-creator-auto-box">
+              <strong>Feat ability increase</strong>
+              <span>
+                {featAbilityIncrease.fixed
+                  .map(({ ability, amount }) => `${abilityLabel[ability] || ability.toUpperCase()} ${amount >= 0 ? '+' : ''}${amount}`)
+                  .join(' • ')} will be applied automatically.
+              </span>
+            </div>
+          )}
+
+          {featAbilityIncrease.choice && (
+            <ToggleChoiceList
+              label={`Feat ability increase (+${featAbilityIncrease.choice.amount})`}
+              value={current.featAbilityChoices}
+              options={choiceOptions}
+              max={featAbilityIncrease.choice.choose}
+              onChange={(featAbilityChoices) => update({
+                featAbilityChoices,
+                featAbilityScoreIncrease: featAbilityIncrease.raw,
+              })}
+            />
+          )}
+        </>
       ) : (
         <>
           <label>

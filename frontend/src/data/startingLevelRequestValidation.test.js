@@ -47,6 +47,57 @@ describe('higher-level character creation readiness', () => {
     expect(result).toEqual({ ready: true, blockers: [] });
   });
 
+  test('blocks a homebrew feat until its required ability choice is complete', () => {
+    const result = validateHigherLevelCharacterCreation({
+      payload: {
+        creation_mode: 'full',
+        level: 4,
+        character_class: 'Fighter',
+        subclass: 'Champion',
+        edition: '2014',
+      },
+      levelChoices: {
+        'asi-4': {
+          mode: 'feat',
+          featName: 'Flexible Athlete',
+          featAbilityScoreIncrease: { choose: 1, from: ['strength', 'dexterity'], amount: 1 },
+          featAbilityChoices: [],
+        },
+      },
+      detailChoices: {
+        classSpecific: { fightingStyles: ['Defense'] },
+      },
+    });
+
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain('Choose 1 more ability score increase for Flexible Athlete.');
+  });
+
+  test('accepts the homebrew feat once its required ability choice is complete', () => {
+    const result = validateHigherLevelCharacterCreation({
+      payload: {
+        creation_mode: 'full',
+        level: 4,
+        character_class: 'Fighter',
+        subclass: 'Champion',
+        edition: '2014',
+      },
+      levelChoices: {
+        'asi-4': {
+          mode: 'feat',
+          featName: 'Flexible Athlete',
+          featAbilityScoreIncrease: { choose: 1, from: ['strength', 'dexterity'], amount: 1 },
+          featAbilityChoices: ['dexterity'],
+        },
+      },
+      detailChoices: {
+        classSpecific: { fightingStyles: ['Defense'] },
+      },
+    });
+
+    expect(result).toEqual({ ready: true, blockers: [] });
+  });
+
   test('a higher-level warlock reports a missing pact boon', () => {
     const result = validateHigherLevelCharacterCreation({
       payload: {

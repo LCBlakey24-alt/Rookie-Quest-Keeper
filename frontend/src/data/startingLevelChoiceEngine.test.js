@@ -189,6 +189,85 @@ describe('starting level choice engine', () => {
     expect(enhanced.eldritch_invocations).toEqual(['Agonizing Blast', 'Devil’s Sight']);
   });
 
+  test('applies fixed homebrew feat ability increases and preserves the feat metadata', () => {
+    const enhanced = applyStartingLevelChoicesToPayload(
+      basePayload({ strength: 10, intelligence: 10 }),
+      {
+        'asi-4': { mode: 'feat', featName: 'Mighty Mind' },
+      },
+      [{
+        name: 'Mighty Mind',
+        description: 'A flexible homebrew feat.',
+        source: 'Homebrew Workshop',
+        ability_score_increase: { strength: 1, intelligence: 1 },
+      }],
+      { spellPlan: {}, spells: {}, warlockPlan: null, warlock: {} },
+    );
+
+    expect(enhanced.strength).toBe(11);
+    expect(enhanced.intelligence).toBe(11);
+    expect(enhanced.feats).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: 'Mighty Mind',
+        ability_score_increase: { strength: 1, intelligence: 1 },
+      }),
+    ]));
+  });
+
+  test('applies an explicit homebrew feat ability choice only to the selected ability', () => {
+    const abilityIncrease = { choose: 1, from: ['strength', 'dexterity'], amount: 1 };
+    const enhanced = applyStartingLevelChoicesToPayload(
+      basePayload({ strength: 10, dexterity: 10 }),
+      {
+        'asi-4': {
+          mode: 'feat',
+          featName: 'Flexible Athlete',
+          featAbilityChoices: ['dexterity'],
+          featAbilityScoreIncrease: abilityIncrease,
+        },
+      },
+      [{
+        name: 'Flexible Athlete',
+        description: 'Choose Strength or Dexterity.',
+        source: 'Homebrew Workshop',
+        ability_score_increase: abilityIncrease,
+      }],
+      { spellPlan: {}, spells: {}, warlockPlan: null, warlock: {} },
+    );
+
+    expect(enhanced.strength).toBe(10);
+    expect(enhanced.dexterity).toBe(11);
+    expect(enhanced.feats).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: 'Flexible Athlete',
+        ability_score_increase: abilityIncrease,
+        ability_score_choices: ['dexterity'],
+      }),
+    ]));
+  });
+
+  test('does not partially apply an unresolved homebrew feat ability choice', () => {
+    const abilityIncrease = { choose: 2, from: ['strength', 'dexterity', 'constitution'], amount: 1 };
+    const enhanced = applyStartingLevelChoicesToPayload(
+      basePayload({ strength: 10, dexterity: 10, constitution: 10 }),
+      {
+        'asi-4': {
+          mode: 'feat',
+          featName: 'Split Training',
+          featAbilityChoices: ['strength'],
+          featAbilityScoreIncrease: abilityIncrease,
+        },
+      },
+      [{ name: 'Split Training', ability_score_increase: abilityIncrease }],
+      { spellPlan: {}, spells: {}, warlockPlan: null, warlock: {} },
+    );
+
+    expect(enhanced.strength).toBe(10);
+    expect(enhanced.dexterity).toBe(10);
+    expect(enhanced.constitution).toBe(10);
+    expect(enhanced.feats[0].ability_score_choices).toEqual(['strength']);
+  });
+
   test('applies ASI choices to nested imported ability score shapes and aliases', () => {
     const enhanced = applyStartingLevelChoicesToPayload(
       {

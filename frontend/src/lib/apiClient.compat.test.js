@@ -118,6 +118,32 @@ describe('higher-level character creation request guard', () => {
     await expect(applyCharacterCreationReadinessPolicy(config, storage)).resolves.toBe(config);
   });
 
+  test('blocks the final character request when a selected feat still needs an ability choice', async () => {
+    const storage = mockStorage({
+      'rqk.full_character_creator_v2.level_choices': JSON.stringify({
+        'asi-4': {
+          mode: 'feat',
+          featName: 'Flexible Athlete',
+          featAbilityScoreIncrease: { choose: 1, from: ['strength', 'dexterity'], amount: 1 },
+          featAbilityChoices: [],
+        },
+      }),
+      'rqk.full_character_creator_v2.detail_choices': JSON.stringify({
+        classSpecific: { fightingStyles: ['Defense'] },
+      }),
+    });
+
+    await expect(applyCharacterCreationReadinessPolicy(
+      { method: 'post', url: '/characters', data: payload },
+      storage,
+    )).rejects.toMatchObject({
+      rqkValidation: true,
+      validationBlockers: expect.arrayContaining([
+        'Choose 1 more ability score increase for Flexible Athlete.',
+      ]),
+    });
+  });
+
   test('does not affect imports, edits, or level 1 creation', async () => {
     const storage = mockStorage();
     const imported = { method: 'post', url: '/characters', data: { creation_mode: 'import', level: 10 } };
