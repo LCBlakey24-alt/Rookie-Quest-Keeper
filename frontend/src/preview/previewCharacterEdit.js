@@ -30,6 +30,7 @@ const SAFE_BUILDER_EDIT_FIELDS = new Set([
   'tool_proficiencies',
   'languages',
   'racial_traits',
+  'background_features',
 ]);
 
 const LEVEL_ONE_BUILD_FIELDS = new Set([
