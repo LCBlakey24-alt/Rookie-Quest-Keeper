@@ -35,6 +35,20 @@ describe('Keeper professional visual contract', () => {
     expect(landingFinal).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
   });
 
+  test('signed-in shell and loading states use Guild Ledger instead of retired neon authority', () => {
+    const shell = read('appShellExperiencePolish.css');
+    const loading = read('brandedLoading.css');
+
+    expect(shell).toContain('Guild Ledger app shell authority');
+    expect(shell).toContain('#C9A96B');
+    expect(shell).toContain('#EADFC8');
+    expect(loading).toContain('Guild Ledger loading authority');
+    expect(loading).toContain('#0B1B2B');
+    expect(loading).toContain('#C9A96B');
+    expect(shell).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
+    expect(loading).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
+  });
+
   test('responsive lanes stay aligned to the device-layout contract', () => {
     const layout = read('../layouts/deviceLayout.js');
     const css = read('threeModeMinimalist.css');
