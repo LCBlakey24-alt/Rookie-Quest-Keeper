@@ -89,10 +89,14 @@
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button {
   flex: 0 0 auto;
   width: auto !important;
-  min-width: 76px !important;
-  min-height: 50px !important;
-  padding: 5px 8px !important;
+  min-width: 82px !important;
+  min-height: 58px !important;
+  padding: 6px 8px !important;
   scroll-snap-align: center;
+}
+
+[data-rq-device='mobile'] .full-creator-step-state {
+  font-size: .66rem !important;
 }
 
 [data-rq-device='mobile'] .full-creator-workspace .full-creator-steps button.active {
@@ -192,7 +196,7 @@
   border: 1px solid var(--rqk-creator-line);
   border-radius: 4px;
   background: var(--rqk-creator-deep);
-  color: #FFFFFF;
+  color: var(--rqk-creator-text);
   font-size: .76rem;
   font-weight: 900;
   line-height: 1;
@@ -203,7 +207,7 @@
 
 [data-rq-device='mobile'] .full-creator-spell-chip.active::after {
   content: 'Selected';
-  color: #FFFFFF;
+  color: var(--rqk-creator-text);
   border-color: var(--rqk-creator-accent);
   background: rgba(124,203,255,.10);
 }
