@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, status
 
 from config import db
 from data.character_resources import merge_character_resources, warlock_shape
-from data.spell_slot_rules import class_spell_slots, shared_spell_slots
+from data.spell_slot_rules import class_spell_slots, homebrew_spellcasting_for_class, shared_spell_slots
 from routes.character_patch import _clean_create
 from routes.characters import (
     display_class_name,
@@ -239,7 +239,12 @@ def normalise_created_character(payload: Dict[str, Any], username: str) -> Dict[
         payload.get("spell_slots_remaining"),
     )
 
-    casting_ability = character.get("spellcasting_ability") or _spellcasting_ability(primary_class, class_levels)
+    custom_casting = homebrew_spellcasting_for_class(character, primary_class)
+    casting_ability = (
+        character.get("spellcasting_ability")
+        or (custom_casting or {}).get("ability")
+        or _spellcasting_ability(primary_class, class_levels)
+    )
     character["spellcasting_ability"] = casting_ability
     if casting_ability and len(class_levels) == 1:
         modifier = _ability_modifier(character.get(casting_ability))
