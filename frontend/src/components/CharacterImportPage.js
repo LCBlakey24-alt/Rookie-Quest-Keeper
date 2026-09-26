@@ -51,6 +51,7 @@ const DEFAULT_IMPORT = {
   languages_text: '',
   racial_traits_text: '',
   class_features_text: '',
+  background_features_text: '',
   feats_text: '',
   equipment_text: '',
   spells_text: '',
@@ -86,6 +87,7 @@ const fieldAliases = {
   languages_text: ['languages', 'languages_text'],
   racial_traits_text: ['traits', 'racialtraits', 'racial_traits', 'racial_traits_text', 'speciestraits'],
   class_features_text: ['features', 'classfeatures', 'class_features', 'class_features_text'],
+  background_features_text: ['backgroundfeatures', 'background_features', 'background_features_text', 'backgroundfeature'],
   feats_text: ['feats', 'feats_text'],
   equipment_text: ['equipment', 'inventory', 'items', 'equipment_text'],
   spells_text: ['spells', 'spellsknown', 'spellsprepared', 'spells_text'],
@@ -283,6 +285,7 @@ function buildPayload(character) {
     languages: listFrom(character.languages_text),
     racial_traits: featureEntries(character.racial_traits_text, 'race/species trait'),
     class_features: featureEntries(character.class_features_text, 'class feature'),
+    background_features: featureEntries(character.background_features_text, 'background feature'),
     feats: featureEntries(character.feats_text, 'feat'),
     spells_known: spellEntries(character.spells_text, 1),
     spells_prepared: spellEntries(character.spells_text, 1),
@@ -608,6 +611,7 @@ export default function CharacterImportPage() {
           <TextField label="Languages" value={character.languages_text} onChange={(value) => update('languages_text', value)} multiline />
           <TextField label="Race/species traits" value={character.racial_traits_text} onChange={(value) => update('racial_traits_text', value)} multiline />
           <TextField label="Class/subclass features" value={character.class_features_text} onChange={(value) => update('class_features_text', value)} multiline />
+          <TextField label="Background features" value={character.background_features_text} onChange={(value) => update('background_features_text', value)} multiline />
           <TextField label="Feats" value={character.feats_text} onChange={(value) => update('feats_text', value)} multiline />
           <TextField label="Equipment / inventory" value={character.equipment_text} onChange={(value) => update('equipment_text', value)} multiline />
           <TextField label="Cantrips" value={character.cantrips_text} onChange={(value) => update('cantrips_text', value)} multiline />
