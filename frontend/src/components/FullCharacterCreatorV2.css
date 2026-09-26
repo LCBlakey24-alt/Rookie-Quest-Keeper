@@ -376,11 +376,34 @@
   gap: 5px;
 }
 
-.full-creator-choice-block h3::after {
-  content: ' · select an option';
-  color: var(--rqk-creator-text);
+.full-creator-choice-block.is-interactive h3::after {
+  content: ' · choose below';
+  color: var(--rqk-creator-faint);
   font-weight: 700;
   letter-spacing: .02em;
+}
+
+.full-creator-choice-label {
+  color: var(--rqk-creator-text) !important;
+}
+
+.full-creator-choice-check {
+  flex: 0 0 auto;
+  color: var(--rqk-creator-accent) !important;
+  stroke: currentColor !important;
+}
+
+.full-creator-choice-block button[aria-pressed='true'],
+.full-creator-equipment-modes button[aria-pressed='true'],
+.full-creator-spell-chip[aria-pressed='true'] {
+  border-color: var(--rqk-creator-accent) !important;
+  box-shadow: inset 3px 0 0 rgba(201,169,107,.72) !important;
+}
+
+.full-creator-choice-block button[aria-pressed='false'],
+.full-creator-equipment-modes button[aria-pressed='false'],
+.full-creator-spell-chip[aria-pressed='false'] {
+  box-shadow: none !important;
 }
 
 .full-creator-choice-block button.active,
@@ -443,14 +466,39 @@
 }
 
 .full-creator-spell-chip {
+  position: relative;
   width: 100%;
   min-height: 96px;
   display: grid;
   align-items: flex-start;
   justify-content: flex-start;
   gap: 5px;
+  padding-right: 72px;
   text-align: left;
   cursor: pointer;
+}
+
+.full-creator-spell-chip::after {
+  content: 'Select';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 6px;
+  border: 1px solid var(--rqk-creator-line);
+  border-radius: 4px;
+  color: var(--rqk-creator-faint);
+  background: var(--rqk-creator-deep);
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.full-creator-spell-chip.active::after {
+  content: 'Selected';
+  color: var(--rqk-creator-text);
+  border-color: var(--rqk-creator-accent);
+  background: rgba(201,169,107,.10);
 }
 
 .full-creator-spell-chip:hover:not(:disabled) {
@@ -500,6 +548,12 @@
 .full-creator-equipment-modes button::after {
   content: none !important;
   display: none !important;
+}
+
+.full-creator-equipment-modes button.active::before {
+  content: '✓';
+  color: var(--rqk-creator-accent);
+  font-weight: 900;
 }
 
 .full-creator-equipment-list {
