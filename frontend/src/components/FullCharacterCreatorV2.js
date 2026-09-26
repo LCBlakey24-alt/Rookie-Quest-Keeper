@@ -712,7 +712,12 @@ function Title({ icon: Icon, title, text }) {
 }
 
 function Chip({ active, onClick, children }) {
-  return <button type="button" className={active ? 'active' : ''} onClick={onClick}>{children}</button>;
+  return (
+    <button type="button" className={active ? 'active' : ''} aria-pressed={Boolean(active)} onClick={onClick}>
+      {active && <Check className="full-creator-choice-check" size={14} aria-hidden="true" />}
+      <span className="full-creator-choice-label">{children}</span>
+    </button>
+  );
 }
 
 function Choice({ title, children }) {
@@ -851,7 +856,7 @@ function Spells({ spellSearch, setSpellSearch, spellReq, visibleCantrips, visibl
 
 function SpellChip({ spell, active, onClick }) {
   const entry = toSpellEntry(spell, spell?.level || 0);
-  return <button type="button" className={`full-creator-spell-chip ${active ? 'active' : ''}`} onClick={onClick}><strong>{entry.name}</strong><span>{entry.school || 'Spell'}</span><em>{entry.description || ''}</em></button>;
+  return <button type="button" className={`full-creator-spell-chip ${active ? 'active' : ''}`} aria-pressed={Boolean(active)} onClick={onClick}><strong>{entry.name}</strong><span>{entry.school || 'Spell'}</span><em>{entry.description || ''}</em></button>;
 }
 
 function Equipment({ draft, update, equipment, startingGoldRule, startingGold }) {
@@ -860,8 +865,8 @@ function Equipment({ draft, update, equipment, startingGoldRule, startingGold })
   return <>
     <Title icon={Backpack} title="Equipment" text={is2024 ? 'Choose starting equipment or the fixed 2024 starting gold option.' : 'Choose starting equipment or roll starting gold by class.'} />
     <div className="full-creator-equipment-modes">
-      <button type="button" className={equipmentMode === 'equipment' ? 'active' : ''} onClick={() => update({ equipmentMode: 'equipment', customEquipment: '', rolledStartingGold: 0 })}>Starting equipment</button>
-      <button type="button" className={equipmentMode === 'gold' ? 'active' : ''} onClick={() => update({ equipmentMode: 'gold', customEquipment: '', rolledStartingGold: is2024 ? STARTING_GOLD_2024.average : 0 })}>{is2024 ? 'Starting gold' : 'Roll starting gold'}</button>
+      <button type="button" className={equipmentMode === 'equipment' ? 'active' : ''} aria-pressed={equipmentMode === 'equipment'} onClick={() => update({ equipmentMode: 'equipment', customEquipment: '', rolledStartingGold: 0 })}>Starting equipment</button>
+      <button type="button" className={equipmentMode === 'gold' ? 'active' : ''} aria-pressed={equipmentMode === 'gold'} onClick={() => update({ equipmentMode: 'gold', customEquipment: '', rolledStartingGold: is2024 ? STARTING_GOLD_2024.average : 0 })}>{is2024 ? 'Starting gold' : 'Roll starting gold'}</button>
     </div>
     {equipmentMode === 'gold' ? (
       <>
