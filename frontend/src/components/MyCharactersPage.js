@@ -98,6 +98,7 @@ function duplicatePayload(source) {
     spell_slots: source.spell_slots || {},
     spell_slots_remaining: source.spell_slots_remaining || source.spell_slots || {},
     spell_preparation_loadout: source.spell_preparation_loadout || '',
+    homebrew_spellcasting: source.homebrew_spellcasting || {},
     feats: source.feats || [],
     equipment_choice: source.equipment_choice || '',
     fighting_style: source.fighting_style || '',
