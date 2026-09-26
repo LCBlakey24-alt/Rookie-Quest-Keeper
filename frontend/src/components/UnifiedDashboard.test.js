@@ -18,7 +18,7 @@ function dashboardFixture(overrides = {}) {
     slowLoad: false,
     refreshing: false,
     recentCharacters: [{ id: 'char-1', name: 'Javen Crow', level: 9, race: 'Human', updated_at: '2026-08-24T12:00:00Z' }],
-    recentCampaigns: [],
+    recentCampaigns: [{ id: 'camp-1', name: 'Balderin', world_name: 'Tia-Karta', updated_at: '2026-08-23T12:00:00Z' }],
     recentHomebrew: [],
     loadDashboard: jest.fn(),
     ...overrides,
@@ -39,15 +39,20 @@ describe('UnifiedDashboard simplified home', () => {
     useDashboardData.mockReturnValue(dashboardFixture());
   });
 
-  test('keeps the home screen focused on four destinations and recent activity', () => {
+  test('prioritises continue cards and the four first-action journeys', () => {
     renderDashboard();
 
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Characters Open and manage your heroes/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Campaigns Prep, run, and return to your tables/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Create Character Start a new playable hero/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Homebrew Create and manage custom content/i })).toBeInTheDocument();
-    expect(screen.getByText('Javen Crow')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Continue' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Character Javen Crow Human • Level 9 Open/i })).toHaveAttribute('href', '/characters/char-1');
+    expect(screen.getByRole('link', { name: /Campaign Balderin Tia-Karta Open/i })).toHaveAttribute('href', '/campaign/camp-1');
+
+    expect(screen.getByRole('link', { name: /Create Character Build a new playable hero/i })).toHaveAttribute('href', '/characters/new');
+    expect(screen.getByRole('link', { name: /Import Character Bring an existing sheet into Keeper/i })).toHaveAttribute('href', '/characters/import');
+    expect(screen.getByRole('link', { name: /Create Campaign Start a new GM campaign workspace/i })).toHaveAttribute('href', '/campaigns?create=1');
+    expect(screen.getByRole('link', { name: /Join Campaign Use a GM join code/i })).toHaveAttribute('href', '/player');
+
+    expect(screen.queryByRole('link', { name: /Homebrew Create and manage custom content/i })).not.toBeInTheDocument();
   });
 
   test('does not bring the retired noticeboard sections back', () => {
