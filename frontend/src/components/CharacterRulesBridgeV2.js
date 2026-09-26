@@ -43,14 +43,17 @@ import {
 } from '@/data/startingLevelChoiceEngine';
 import apiClient from '@/lib/apiClient';
 import usePlayerRulesOptions, { buildMergedCharacterRules } from '@/hooks/usePlayerRulesOptions';
+import {
+  CHARACTER_CREATOR_DRAFT_KEY as DRAFT_KEY,
+  CHARACTER_CREATOR_LEVEL_KEY as LEVEL_KEY,
+  CHARACTER_CREATOR_SUBCLASS_KEY as SUBCLASS_KEY,
+  CHARACTER_CREATOR_CHOICES_KEY as CHOICES_KEY,
+  CHARACTER_CREATOR_DETAIL_CHOICES_KEY as DETAIL_CHOICES_KEY,
+  clearCharacterCreatorDraftStorage,
+} from '@/data/characterCreatorDraftStorage';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
 
-const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
-const LEVEL_KEY = 'rqk.full_character_creator_v2.starting_level';
-const SUBCLASS_KEY = 'rqk.full_character_creator_v2.starting_subclass';
-const CHOICES_KEY = 'rqk.full_character_creator_v2.level_choices';
-const DETAIL_CHOICES_KEY = 'rqk.full_character_creator_v2.detail_choices';
 const LEVELS = Array.from({ length: 20 }, (_, index) => index + 1);
 const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
 const ABILITY_KEYS = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
@@ -543,6 +546,15 @@ export default function CharacterRulesBridgeV2(props) {
     setDetailSelections((prev) => ({ ...prev, classSpecific: normalised }));
   }, [classSpecificPlan]);
 
+  const resetCreatorDraft = useCallback(() => {
+    clearCharacterCreatorDraftStorage(typeof window === 'undefined' ? globalThis : window);
+    setBuilderDraft({});
+    setTargetLevel(1);
+    setSelectedSubclass('');
+    setLevelChoiceSelections({});
+    setDetailSelections({ spells: {}, warlock: {}, classSpecific: {} });
+  }, []);
+
   const enhancedDetailSelections = useMemo(() => ({
     ...detailSelections,
     spellPlan: choicePlan.spellPlan,
@@ -630,7 +642,7 @@ export default function CharacterRulesBridgeV2(props) {
           <p>The builder could not load uploaded options, so it has fallen back to the bundled core rules for now.</p>
         </section>
       )}
-      <FullCharacterCreatorV2 {...props} />
+      <FullCharacterCreatorV2 {...props} onStartFresh={resetCreatorDraft} />
     </>
   );
 }
