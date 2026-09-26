@@ -297,10 +297,15 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     classes: [{ name: characterClass, level: classLevelAfter, subclass: castingSubclass }],
     rules_edition: edition,
   };
+  const libraryCustomClass = (playerRulesOptions?.classes || [])
+    .find((option) => normaliseName(option?.name || option?.title) === normaliseName(characterClass));
+  const customSpellcastingContract = character?.homebrew_spellcasting
+    || libraryCustomClass?.spellcasting
+    || null;
   const primaryCustomClass = normaliseName(character?.character_class) === normaliseName(characterClass)
     && !SPELLCASTING_CLASSES[characterClass]
-    && character?.homebrew_spellcasting
-    ? { name: characterClass, spellcasting: character.homebrew_spellcasting }
+    && customSpellcastingContract
+    ? { name: characterClass, spellcasting: customSpellcastingContract }
     : null;
   const customSpellcasting = primaryCustomClass ? normaliseHomebrewClassSpellcasting(primaryCustomClass) : null;
   const isBuiltInSpellcaster = classHasEditionSpellcasting(castingCharacter, characterClass, classLevelAfter);
@@ -327,14 +332,15 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const localCantripGain = isCustomSpellcaster
     ? Number(customGain?.cantrips || 0)
     : localGain(CANTRIPS_KNOWN[characterClass] || {}, classLevelBefore, classLevelAfter);
-  const cantripGain = !isMulticlass && preflight?.cantrips_to_learn !== undefined
+  const preflightHasCustomContract = preflight?.progression_reference?.source === 'homebrew-character-contract';
+  const cantripGain = !isMulticlass && preflight?.cantrips_to_learn !== undefined && (!isCustomSpellcaster || preflightHasCustomContract)
     ? Number(preflight.cantrips_to_learn || 0)
     : localCantripGain;
 
   const localSelectionMode = isCustomSpellcaster
     ? customSpellcasting?.type || 'known'
     : getSpellSelectionMode({ className: characterClass, edition });
-  const spellChoiceMode = !isMulticlass && preflight?.spell_selection_mode
+  const spellChoiceMode = !isMulticlass && preflight?.spell_selection_mode && (!isCustomSpellcaster || preflightHasCustomContract)
     ? preflight.spell_selection_mode
     : localSelectionMode;
   const localKnownBefore = isCustomSpellcaster
@@ -368,16 +374,16 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       abilityScore: castingAbilityScore,
     });
   const localPreparedGain = Math.max(0, localPreparedAfter - localPreparedBefore);
-  const preparedCapacityBefore = !isMulticlass && preflight?.prepared_spell_capacity_before !== undefined
+  const preparedCapacityBefore = !isMulticlass && preflight?.prepared_spell_capacity_before !== undefined && (!isCustomSpellcaster || preflightHasCustomContract)
     ? Number(preflight.prepared_spell_capacity_before || 0)
     : localPreparedBefore;
-  const preparedCapacityAfter = !isMulticlass && preflight?.prepared_spell_capacity !== undefined
+  const preparedCapacityAfter = !isMulticlass && preflight?.prepared_spell_capacity !== undefined && (!isCustomSpellcaster || preflightHasCustomContract)
     ? Number(preflight.prepared_spell_capacity || 0)
     : localPreparedAfter;
-  const preparedCapacityGain = !isMulticlass && preflight?.prepared_spell_capacity_gain !== undefined
+  const preparedCapacityGain = !isMulticlass && preflight?.prepared_spell_capacity_gain !== undefined && (!isCustomSpellcaster || preflightHasCustomContract)
     ? Number(preflight.prepared_spell_capacity_gain || 0)
     : localPreparedGain;
-  const permanentSpellGain = !isMulticlass && preflight?.spells_to_learn !== undefined
+  const permanentSpellGain = !isMulticlass && preflight?.spells_to_learn !== undefined && (!isCustomSpellcaster || preflightHasCustomContract)
     ? Number(preflight.spells_to_learn || 0)
     : isCustomSpellcaster
       ? Number(customGain?.spells || 0)
@@ -473,6 +479,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     });
     if (spellChanges.length) payload.new_spells = spellChanges;
     if (selectedNewCantrips.length) payload.new_cantrips = selectedNewCantrips.map((spell) => ({ name: spell.name, level: 0, school: spell.school || '', sourceClass: characterClass }));
+    if (isCustomSpellcaster && primaryCustomClass?.spellcasting) {
+      payload.homebrew_spellcasting = primaryCustomClass.spellcasting;
+    }
 
     try {
       setSaving(true);
