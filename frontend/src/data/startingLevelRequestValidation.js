@@ -3,7 +3,9 @@ import { buildClassSpecificChoicePlan, normaliseClassSpecificSelection } from '.
 import {
   buildStartingLevelChoicePlan,
   defaultAsiSelection,
+  normaliseFeatAbilityScoreIncrease,
   normaliseSpellSelection,
+  resolveFeatAbilityChoices,
   normaliseWarlockSelection,
 } from './startingLevelChoiceEngine';
 
@@ -51,7 +53,7 @@ function requiredSubclass(payload, level, edition, className, classData) {
   return level >= subclassUnlockLevel(className, edition, classData);
 }
 
-function validateAsiChoices(plan, selections, blockers) {
+function validateAsiChoices(plan, selections, blockers, payload = {}) {
   plan.asiChoices.forEach((choice) => {
     const raw = selections?.[choice.id];
     if (!raw) {
@@ -61,7 +63,33 @@ function validateAsiChoices(plan, selections, blockers) {
 
     const selection = defaultAsiSelection(raw);
     if (selection.mode === 'feat') {
-      if (!selection.featName) blockers.push(`Choose the feat for level ${choice.level}.`);
+      if (!selection.featName) {
+        blockers.push(`Choose the feat for level ${choice.level}.`);
+        return;
+      }
+
+      const savedFeat = arr(payload.feats).find((feat) => (
+        displayName(feat) === selection.featName
+        && (!feat?.level_choice || Number(feat.level_choice) === Number(choice.level))
+      ));
+      const increaseSource = selection.featAbilityScoreIncrease
+        || savedFeat?.ability_score_increase
+        || savedFeat?.abilityScoreIncrease
+        || {};
+      const featIncrease = normaliseFeatAbilityScoreIncrease(increaseSource);
+
+      if (featIncrease.choice) {
+        const selectedAbilities = resolveFeatAbilityChoices(
+          featIncrease.raw,
+          selection.featAbilityChoices || savedFeat?.ability_score_choices,
+        );
+        if (selectedAbilities.length < featIncrease.choice.choose) {
+          const missing = featIncrease.choice.choose - selectedAbilities.length;
+          blockers.push(
+            `Choose ${missing} more ability score increase${missing === 1 ? '' : 's'} for ${selection.featName}.`,
+          );
+        }
+      }
       return;
     }
 
@@ -138,7 +166,7 @@ export function validateHigherLevelCharacterCreation({ payload = {}, levelChoice
     subclassName: payload.subclass || '',
   });
 
-  validateAsiChoices(plan, levelChoices, blockers);
+  validateAsiChoices(plan, levelChoices, blockers, payload);
   validateSpellChoices(plan.spellPlan || {}, detailChoices.spells || {}, blockers);
   validateClassChoices(classPlan, detailChoices.classSpecific || {}, blockers);
   validateWarlockChoices(plan.warlockPlan, detailChoices.warlock || {}, blockers);
