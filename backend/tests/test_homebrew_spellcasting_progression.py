@@ -152,6 +152,56 @@ class TestHomebrewSpellcastingProgression(unittest.TestCase):
         self.assertEqual(result["spells_to_learn"], 0)
         self.assertEqual(result["spell_slots"], {"1": 3})
 
+    def test_half_and_third_custom_casters_use_server_slot_math(self):
+        half_contract = snapshot(
+            "Warden",
+            ability="wisdom",
+            progression="half",
+            spells={1: 0, 2: 1, 3: 2},
+        )
+        half = custom_character(
+            "Warden",
+            2,
+            half_contract,
+            edition="2024",
+            rules_edition="2024",
+            ruleset_id="dnd5e_2024",
+        )
+        half_result = build_level_up_preflight(half, target_class="Warden")
+        self.assertEqual(half_result["previous_spell_slots"], {"1": 2})
+        self.assertEqual(half_result["spell_slots"], {"1": 3})
+
+        third_contract = snapshot(
+            "Rune Knight",
+            progression="third",
+            spells={3: 1, 6: 2},
+        )
+        third = custom_character("Rune Knight", 5, third_contract)
+        third_result = build_level_up_preflight(third, target_class="Rune Knight")
+        self.assertEqual(third_result["previous_spell_slots"], {"1": 2})
+        self.assertEqual(third_result["spell_slots"], {"1": 3})
+
+    def test_level_up_rejects_missing_author_required_custom_spell_choice(self):
+        contract = snapshot("Runesmith", spells={1: 2, 2: 3})
+        existing = custom_character(
+            "Runesmith",
+            1,
+            contract,
+            spell_slots={"1": 2},
+            spell_slots_remaining={"1": 2},
+        )
+        request = LevelUpRequest(
+            new_level=2,
+            new_class="Runesmith",
+            hp_method="average",
+            new_spells=[],
+        )
+
+        with self.assertRaises(HTTPException) as raised:
+            build_state_safe_level_up_update(existing, request, "Runesmith", "standard")
+
+        self.assertIn("requires exactly 1 new spell", raised.exception.detail)
+
     def test_known_caster_level_up_routes_spells_and_preserves_spent_slots(self):
         contract = snapshot(
             "Runesmith",
