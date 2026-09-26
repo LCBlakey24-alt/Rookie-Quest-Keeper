@@ -120,6 +120,27 @@
   color: var(--rqk-creator-blue) !important;
 }
 
+.full-creator-workspace .full-creator-step-state {
+  color: var(--rqk-creator-faint) !important;
+  font-size: .66rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: .03em !important;
+  text-transform: uppercase !important;
+}
+
+.full-creator-workspace .full-creator-steps button.active .full-creator-step-state {
+  color: var(--rqk-creator-accent) !important;
+}
+
+.full-creator-workspace .full-creator-steps button.is-complete:not(.active) .full-creator-step-state {
+  color: var(--rqk-creator-success) !important;
+}
+
+.full-creator-workspace .full-creator-steps button.is-incomplete:not(.active) {
+  border-color: var(--rqk-creator-line) !important;
+}
+
 .full-creator-workspace .full-creator-steps button.is-complete:not(.active)::after {
   content: '';
   width: 6px;
