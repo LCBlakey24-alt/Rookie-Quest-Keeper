@@ -5,7 +5,7 @@
     padding: 10px !important;
     background: #0C2234 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 7px !important;
     box-shadow: none !important;
   }
@@ -27,7 +27,7 @@
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row h2 {
     margin: 0 !important;
     min-width: 0 !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row > span {
@@ -36,9 +36,9 @@
     min-height: 24px !important;
     display: inline-grid !important;
     place-items: center !important;
-    color: #FFFFFF !important;
-    background: #102B40 !important;
-    border: 1px solid #FF2DAA !important;
+    color: #F7F1E7 !important;
+    background: #112A40 !important;
+    border: 1px solid #D6A84F !important;
     border-radius: 5px !important;
     font-size: 0.65rem !important;
     font-weight: 950 !important;
@@ -64,16 +64,16 @@
     place-items: center !important;
     gap: 2px !important;
     text-align: center !important;
-    color: #FFFFFF !important;
-    background: #102B40 !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    background: #112A40 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary span,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary strong {
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary span {
@@ -106,9 +106,9 @@
     min-height: 28px !important;
     padding: 4px 2px !important;
     border-radius: 5px !important;
-    color: #FFFFFF !important;
-    background: #102B40 !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    background: #112A40 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     box-shadow: none !important;
     font-size: 0.62rem !important;
     font-weight: 900 !important;
@@ -116,8 +116,8 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active {
-    background: rgba(124,203,255,.10) !important;
-    border-color: #FF2DAA !important;
+    background: rgba(121,188,232,.10) !important;
+    border-color: #D6A84F !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-readable-skills {
@@ -137,9 +137,9 @@
     grid-template-columns: minmax(0, 1fr) auto !important;
     align-items: center !important;
     gap: 5px !important;
-    color: #FFFFFF !important;
-    background: #102B40 !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    background: #112A40 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
     overflow: hidden !important;
@@ -148,7 +148,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient {
     padding-left: 12px !important;
-    border-color: rgba(255,45,170,.42) !important;
+    border-color: rgba(214,168,79,.42) !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient::before {
@@ -160,7 +160,7 @@
     left: 4px !important;
     width: 3px !important;
     border-radius: 2px !important;
-    background: #FF2DAA !important;
+    background: #D6A84F !important;
     background-image: none !important;
     box-shadow: none !important;
   }
@@ -180,7 +180,7 @@
     font-size: 0.7rem !important;
     line-height: 1.05 !important;
     font-weight: 850 !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags {
@@ -204,9 +204,9 @@
     font-style: normal !important;
     letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
-    color: #FFFFFF !important;
-    background: rgba(124,203,255,.10) !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    background: rgba(121,188,232,.10) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill .clean-sheet-roll-chip {
@@ -218,9 +218,9 @@
     padding: 0 5px !important;
     display: grid !important;
     place-items: center !important;
-    color: #FFFFFF !important;
-    background: #102B40 !important;
-    border: 1px solid rgba(255,45,170,.20) !important;
+    color: #F7F1E7 !important;
+    background: #112A40 !important;
+    border: 1px solid rgba(214,168,79,.20) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
     font-size: 0.68rem !important;

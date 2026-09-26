@@ -7,7 +7,7 @@
   gap: 0 !important;
   background: #071522 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 .character-page-v2 .clean-sheet-header,
@@ -41,9 +41,9 @@
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
   scrollbar-width: none !important;
-  background: #06111C !important;
+  background: #050E18 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
@@ -70,7 +70,7 @@
   background-image: none !important;
   border: 1px solid transparent !important;
   border-radius: 5px !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
 }
 
@@ -81,7 +81,7 @@
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:hover,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:focus-visible {
   background: #0C2234 !important;
-  border-color: rgba(255,45,170,.18) !important;
+  border-color: rgba(214,168,79,.18) !important;
   outline: none !important;
 }
 
@@ -90,15 +90,15 @@
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
   width: 20px !important;
   height: 20px !important;
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
   background: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active {
-  background: rgba(124,203,255,.10) !important;
-  border-color: #FF2DAA !important;
+  background: rgba(121,188,232,.10) !important;
+  border-color: #D6A84F !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active svg {
@@ -107,7 +107,7 @@
   padding: 0 !important;
   background: transparent !important;
   background-image: none !important;
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
   border-radius: 0 !important;
   box-sizing: border-box !important;
 }
@@ -116,7 +116,7 @@
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
   display: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
   font-size: 14px !important;
   font-weight: 700 !important;
@@ -138,7 +138,7 @@
   padding: 8px !important;
   background: #0C2234 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }

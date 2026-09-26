@@ -26,7 +26,7 @@ The parent brand should feel like a **premium tabletop label**, not a generic fa
 A simple compass is the core Rookie Quest symbol. It represents the start of a journey and gives Keeper, Forge, Worlds and the future game a shared visual anchor without forcing them to use identical logos.
 
 ### Product colours
-- **Keeper / Run:** sky blue
+- **Keeper / Run:** Guild Ledger — ink navy, parchment, brass and wine-seal red
 - **Forge / Build:** ember orange
 - **Worlds / Explore:** parchment gold
 - **The Game / Play:** arcane violet

@@ -6,7 +6,7 @@ function read(relativePath) {
 }
 
 describe('Account Settings presentation ownership', () => {
-  test('Account Settings uses the flat RQK 1.0 presentation and reserves red for danger', () => {
+  test('Account Settings uses the professional Keeper presentation and reserves red for danger', () => {
     const css = read('accountSettings.css');
     const route = read('../routes/AccountSettingsRoute.js');
     const app = read('../App.js');
@@ -15,9 +15,9 @@ describe('Account Settings presentation ownership', () => {
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
     expect(css).toContain('#071522');
     expect(css).toContain('#0C2234');
-    expect(css).toContain('#102B40');
-    expect(css).toContain('#7CCBFF');
-    expect(css).toContain('#FF2DAA');
+    expect(css).toContain('#112A40');
+    expect(css).toContain('#79BCE8');
+    expect(css).toContain('#D6A84F');
     expect(css).toContain('Destructive account actions keep semantic danger colouring');
     expect(css).not.toMatch(/account-settings-primary[\s\S]{0,220}#d00000/i);
     expect(route).toContain("@/styles/accountSettings.css");

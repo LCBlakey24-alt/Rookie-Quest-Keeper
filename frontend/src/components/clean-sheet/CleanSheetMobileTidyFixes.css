@@ -11,9 +11,9 @@
   padding: 8px 10px !important;
   grid-template-columns: auto minmax(0, 1fr) auto !important;
   gap: 8px !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
 }
 
@@ -21,22 +21,22 @@
 .character-page-v2 .clean-sheet-compact-stat--hp em {
   white-space: nowrap !important;
   font-size: 0.72rem !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp strong {
   font-size: clamp(1.5rem, 7vw, 2.35rem) !important;
   text-align: right !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp em {
   grid-column: auto !important;
   justify-self: end !important;
   padding: 4px 7px !important;
-  background: rgba(124,203,255,.10) !important;
+  background: rgba(121,188,232,.10) !important;
   background-image: none !important;
-  border: 1px solid #FF2DAA !important;
+  border: 1px solid #D6A84F !important;
   border-radius: 5px !important;
 }
 
@@ -59,10 +59,10 @@
   display: grid !important;
   place-items: center !important;
   text-align: center !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.20) !important;
+  color: #F7F1E7 !important;
+  border: 1px solid rgba(214,168,79,.20) !important;
   border-radius: 5px !important;
   font-size: 0.82rem !important;
   font-weight: 950 !important;
@@ -92,9 +92,9 @@
 
 .character-page-v2 .clean-sheet-skill-card {
   overflow: hidden !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
 }
 
@@ -108,7 +108,7 @@
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 @media (max-width: 760px) {

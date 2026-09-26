@@ -9,14 +9,14 @@ const IDLE_POLL_MS = 15000;
 const theme = {
   bg: '#071522',
   panel: '#0C2234',
-  card: '#102B40',
-  cardHover: '#14344C',
-  input: '#081B2A',
-  text: '#FFFFFF',
-  line: 'rgba(255,45,170,.18)',
-  lineStrong: '#FF2DAA',
-  blue: '#7CCBFF',
-  blueSoft: 'rgba(124,203,255,.10)',
+  card: '#112A40',
+  cardHover: '#17364F',
+  input: '#071A29',
+  text: '#F7F1E7',
+  line: 'rgba(214,168,79,.18)',
+  lineStrong: '#D6A84F',
+  blue: '#79BCE8',
+  blueSoft: 'rgba(121,188,232,.10)',
 };
 
 export default function CombatInitiativeSubmitter({ campaignId, compact = false }) {
@@ -189,11 +189,11 @@ const shellStyle = {
 const unavailableShellStyle = { borderLeft: `1px solid ${theme.blue}` };
 const headerStyle = { display: 'flex', gap: 8, alignItems: 'center' };
 const iconWrapStyle = { width: 32, height: 32, background: theme.blueSoft, border: `1px solid ${theme.line}`, borderRadius: 5, display: 'grid', placeItems: 'center', flex: '0 0 32px' };
-const warningIconWrapStyle = { ...iconWrapStyle, border: '1px solid rgba(124,203,255,.34)' };
+const warningIconWrapStyle = { ...iconWrapStyle, border: '1px solid rgba(121,188,232,.34)' };
 const titleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 900 };
 const subtitleStyle = { display: 'block', marginTop: 1, color: theme.text, fontSize: 11, lineHeight: 1.3 };
 const iconButtonStyle = { width: 32, height: 32, border: `1px solid ${theme.line}`, borderRadius: 5, background: theme.card, color: theme.text, display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'none' };
-const inlineWarningStyle = { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', background: theme.blueSoft, border: '1px solid rgba(124,203,255,.24)', borderRadius: 5, color: theme.text, fontSize: 10, fontWeight: 800 };
+const inlineWarningStyle = { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', background: theme.blueSoft, border: '1px solid rgba(121,188,232,.24)', borderRadius: 5, color: theme.text, fontSize: 10, fontWeight: 800 };
 const controlsStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 1fr) auto auto', gap: 5, alignItems: 'end' };
 const fieldStyle = { display: 'grid', gap: 3, color: theme.text, fontSize: 9, fontWeight: 900, letterSpacing: '.06em', textTransform: 'uppercase' };
 const inputStyle = { width: '100%', minWidth: 0, height: 38, boxSizing: 'border-box', background: theme.input, border: `1px solid ${theme.line}`, borderRadius: 5, color: theme.text, padding: '0 8px', fontSize: 13, outline: 'none', boxShadow: 'none' };

@@ -36,7 +36,7 @@
 .character-page-v2 .clean-sheet-feature-lane h3,
 .character-page-v2 .clean-sheet-spell-level-group h3 {
   margin: 0 !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-family: inherit !important;
   font-weight: 900 !important;
   letter-spacing: -.01em !important;
@@ -49,7 +49,7 @@
 .character-page-v2 .clean-sheet-feature-empty,
 .character-page-v2 .clean-sheet-empty-note,
 .character-page-v2 .clean-sheet-muted {
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
@@ -76,7 +76,7 @@
   border-radius: 5px !important;
   background: var(--cs-card) !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
 }
 
@@ -123,7 +123,7 @@
 .character-page-v2 .clean-sheet-save-card em,
 .character-page-v2 .clean-sheet-skill-tags em,
 .character-page-v2 .clean-sheet-skill-tags small {
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card strong,
@@ -186,7 +186,7 @@
   border: 1px solid var(--cs-border) !important;
   border-radius: 4px !important;
   background: var(--cs-blue-soft) !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
 }
 
@@ -208,7 +208,7 @@
   border-radius: 5px !important;
   background: var(--cs-card) !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
 }
 
@@ -221,7 +221,7 @@
 .character-page-v2 .clean-sheet-panel button[aria-selected='true'] {
   background: var(--cs-blue-soft) !important;
   border-color: var(--cs-accent) !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 .character-page-v2 .clean-sheet-panel input,
@@ -231,7 +231,7 @@
   border-radius: 5px !important;
   background: var(--cs-input) !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
 }
 
@@ -240,12 +240,12 @@
   border: 1px solid var(--cs-border) !important;
   border-radius: 5px !important;
   background: var(--cs-input) !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i {
   border-radius: 3px !important;
-  background: rgba(124,203,255,.12) !important;
+  background: rgba(121,188,232,.12) !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i.filled {

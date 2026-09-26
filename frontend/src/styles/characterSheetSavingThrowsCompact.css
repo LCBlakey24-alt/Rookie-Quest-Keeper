@@ -5,7 +5,7 @@
     padding: 10px !important;
     background: #0C2234 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 7px !important;
     box-shadow: none !important;
   }
@@ -18,7 +18,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throws-panel h2 {
     margin-bottom: 7px !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip {
@@ -41,8 +41,8 @@
     align-content: start !important;
     gap: 4px !important;
     text-align: center !important;
-    background: #102B40 !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    background: #112A40 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
     position: relative !important;
@@ -62,7 +62,7 @@
     font-size: 0.62rem !important;
     line-height: 1 !important;
     letter-spacing: 0.04em !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     text-align: center !important;
   }
 
@@ -85,7 +85,7 @@
     height: 24px !important;
     flex: 0 0 3px !important;
     border-radius: 2px !important;
-    background: #FF2DAA !important;
+    background: #D6A84F !important;
     background-image: none !important;
     box-shadow: none !important;
   }
@@ -105,17 +105,17 @@
     line-height: 1 !important;
     font-weight: 950 !important;
     border-radius: 5px !important;
-    color: #FFFFFF !important;
-    background: #102B40 !important;
+    color: #F7F1E7 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.20) !important;
+    border: 1px solid rgba(214,168,79,.20) !important;
     box-shadow: none !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip:hover,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip:focus-visible {
-    background: #14344C !important;
-    border-color: #FF2DAA !important;
+    background: #17364F !important;
+    border-color: #D6A84F !important;
   }
 }
 

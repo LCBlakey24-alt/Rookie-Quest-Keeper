@@ -3,11 +3,11 @@
   position: relative !important;
   min-width: 46px !important;
   min-height: 38px !important;
-  border: 1px solid rgba(255, 45, 170, 0.20) !important;
+  border: 1px solid rgba(214,168,79, 0.20) !important;
   border-radius: 5px !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
   text-shadow: none !important;
   transform: none !important;
@@ -22,19 +22,19 @@
 
 .clean-sheet-roll-chip:hover,
 .clean-sheet-roll-chip:focus-visible {
-  border-color: #FF2DAA !important;
-  background: #14344C !important;
-  color: #FFFFFF !important;
+  border-color: #D6A84F !important;
+  background: #17364F !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
   text-shadow: none !important;
-  outline: 1px solid #FF2DAA !important;
+  outline: 1px solid #D6A84F !important;
   outline-offset: 2px !important;
   transform: none !important;
 }
 
 .clean-sheet-roll-chip:active {
-  background: rgba(124, 203, 255, 0.10) !important;
-  border-color: #FF2DAA !important;
+  background: rgba(121,188,232, 0.10) !important;
+  border-color: #D6A84F !important;
   transform: none !important;
   box-shadow: none !important;
 }
@@ -46,7 +46,7 @@
 .clean-sheet-compact-save:hover,
 .clean-sheet-compact-skill:hover {
   box-shadow: none !important;
-  border-color: rgba(255, 45, 170, 0.42) !important;
+  border-color: rgba(214,168,79, 0.42) !important;
 }
 
 .clean-sheet-compact-ability .clean-sheet-roll-chip,
@@ -57,7 +57,7 @@
 
 .clean-sheet-compact-skill.is-proficient .clean-sheet-roll-chip,
 .clean-sheet-compact-save.is-proficient .clean-sheet-roll-chip {
-  border-color: rgba(124, 203, 255, 0.42) !important;
+  border-color: rgba(121,188,232, 0.42) !important;
 }
 
 @media (max-width: 680px) {

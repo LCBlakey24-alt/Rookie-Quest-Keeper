@@ -13,10 +13,10 @@
     overflow: hidden !important;
     background: #0C2234 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 7px !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     box-shadow: none !important;
   }
 
@@ -31,7 +31,7 @@
   .character-page-v2 .clean-sheet-spells-tab h2,
   .character-page-v2 .clean-sheet-spells-tab h3 {
     margin: 0 !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
     font-size: 1.2rem !important;
     line-height: 1.05 !important;
@@ -41,7 +41,7 @@
   }
 
   .character-page-v2 .clean-sheet-spells-tab p {
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     font-size: .76rem !important;
     line-height: 1.35 !important;
   }
@@ -74,11 +74,11 @@
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
-    background: #102B40 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     padding: 8px !important;
     overflow: hidden !important;
@@ -117,11 +117,11 @@
     padding: 3px 5px !important;
     display: inline-grid !important;
     place-items: center !important;
-    background: rgba(124,203,255,.10) !important;
+    background: rgba(121,188,232,.10) !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.20) !important;
-    border-left: 1px solid rgba(255,45,170,.20) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.20) !important;
+    border-left: 1px solid rgba(214,168,79,.20) !important;
     border-radius: 4px !important;
     font-size: .58rem !important;
     line-height: 1 !important;
@@ -149,11 +149,11 @@
     padding: 0 7px !important;
     display: grid !important;
     place-items: center !important;
-    background: #102B40 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     font-weight: 900 !important;
     box-shadow: none !important;
@@ -165,15 +165,15 @@
   .character-page-v2 .clean-sheet-slot-actions button:focus-visible,
   .character-page-v2 .clean-sheet-spell-library-actions button:hover,
   .character-page-v2 .clean-sheet-spell-library-actions button:focus-visible {
-    background: #14344C !important;
-    border-color: #FF2DAA !important;
+    background: #17364F !important;
+    border-color: #D6A84F !important;
     outline: none !important;
   }
 
   .character-page-v2 .clean-sheet-spell-actions button svg,
   .character-page-v2 .clean-sheet-slot-actions button svg,
   .character-page-v2 .clean-sheet-spell-library-actions button svg {
-    color: #7CCBFF !important;
+    color: #79BCE8 !important;
   }
 
   .character-page-v2 .clean-sheet-spell-search,
@@ -184,10 +184,10 @@
     grid-template-columns: auto minmax(0, 1fr) !important;
     align-items: center !important;
     gap: 6px !important;
-    background: #081B2A !important;
+    background: #071A29 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     padding: 0 7px !important;
     box-shadow: none !important;
@@ -199,7 +199,7 @@
     width: 100% !important;
     min-height: 38px !important;
     background: transparent !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     border: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
@@ -207,7 +207,7 @@
 
   .character-page-v2 .clean-sheet-spell-search svg,
   .character-page-v2 .clean-sheet-spell-library-tools svg {
-    color: #7CCBFF !important;
+    color: #79BCE8 !important;
   }
 }
 

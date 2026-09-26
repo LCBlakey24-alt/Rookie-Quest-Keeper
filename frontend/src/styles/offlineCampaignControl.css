@@ -300,17 +300,17 @@
 .rqk-offline-control[data-audience='player'] .rqk-offline-launcher {
   min-height: 40px;
   padding: 0 11px;
-  border: 1px solid #FF2DAA;
+  border: 1px solid #D6A84F;
   border-left-width: 1px;
   border-radius: 5px;
-  background: #102B40;
-  color: #FFFFFF;
+  background: #112A40;
+  color: #F7F1E7;
   box-shadow: none;
   backdrop-filter: none;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-launcher svg {
-  color: #7CCBFF;
+  color: #79BCE8;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-launcher[data-tone='ready'] {
@@ -322,10 +322,10 @@
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-card {
-  border: 1px solid rgba(255,45,170,.28);
+  border: 1px solid rgba(214,168,79,.28);
   border-radius: 7px;
   background: #071522;
-  color: #FFFFFF;
+  color: #F7F1E7;
   box-shadow: none;
   backdrop-filter: none;
 }
@@ -333,7 +333,7 @@
 .rqk-offline-control[data-audience='player'] .rqk-offline-card__header {
   min-height: 44px;
   background: #0C2234;
-  border-bottom: 1px solid rgba(255,45,170,.18);
+  border-bottom: 1px solid rgba(214,168,79,.18);
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-card__title,
@@ -346,29 +346,29 @@
 .rqk-offline-control[data-audience='player'] .rqk-offline-metrics strong,
 .rqk-offline-control[data-audience='player'] .rqk-offline-metrics small,
 .rqk-offline-control[data-audience='player'] .rqk-offline-note {
-  color: #FFFFFF;
+  color: #F7F1E7;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-card__title svg,
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button svg,
 .rqk-offline-control[data-audience='player'] .rqk-offline-primary svg {
-  color: #7CCBFF;
+  color: #79BCE8;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button {
   width: 34px;
   height: 34px;
-  border: 1px solid rgba(255,45,170,.18);
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 5px;
-  background: #102B40;
-  color: #FFFFFF;
+  background: #112A40;
+  color: #F7F1E7;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-status {
-  border: 1px solid rgba(255,45,170,.18);
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 4px;
-  background: #102B40;
-  color: #FFFFFF;
+  background: #112A40;
+  color: #F7F1E7;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-status--ready {
@@ -382,25 +382,25 @@
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-status--working {
-  border-color: rgba(255,45,170,.42);
-  color: #FFFFFF;
+  border-color: rgba(214,168,79,.42);
+  color: #F7F1E7;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-note {
-  border: 1px solid rgba(255,45,170,.18);
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 5px;
-  background: #102B40;
+  background: #112A40;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-progress > div {
   height: 5px;
-  background: #081B2A;
-  border: 1px solid rgba(255,45,170,.18);
+  background: #071A29;
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 3px;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-progress i {
-  background: #7CCBFF;
+  background: #79BCE8;
   background-image: none;
   border-radius: inherit;
 }
@@ -411,26 +411,26 @@
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-metrics span {
   min-height: 48px;
-  border: 1px solid rgba(255,45,170,.18);
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 5px;
-  background: #102B40;
+  background: #112A40;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-primary {
   min-height: 40px;
-  border: 1px solid #FF2DAA;
+  border: 1px solid #D6A84F;
   border-radius: 5px;
-  background: #102B40;
+  background: #112A40;
   background-image: none;
-  color: #FFFFFF;
+  color: #F7F1E7;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-primary:hover:not(:disabled),
 .rqk-offline-control[data-audience='player'] .rqk-offline-primary:focus-visible,
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button:hover,
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button:focus-visible {
-  background: #14344C;
-  border-color: #FF2DAA;
+  background: #17364F;
+  border-color: #D6A84F;
   outline: none;
 }
 

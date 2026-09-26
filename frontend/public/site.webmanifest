@@ -1,27 +1,31 @@
 {
   "id": "/",
-  "short_name": "Rookie",
+  "short_name": "Keeper",
   "name": "Rookie Quest Keeper",
-  "description": "Build characters, prepare campaigns, run live play and keep your tabletop game moving.",
+  "description": "Plan campaigns, organise characters and run live tabletop play from one connected campaign ledger.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0a1728",
-  "theme_color": "#0a1728",
-  "categories": ["games", "productivity", "utilities"],
+  "background_color": "#0B1B2B",
+  "theme_color": "#0B1B2B",
+  "categories": [
+    "games",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/favicon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/apple-touch-icon.png",
-      "sizes": "320x320",
+      "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }

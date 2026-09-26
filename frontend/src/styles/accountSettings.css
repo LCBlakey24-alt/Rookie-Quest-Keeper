@@ -11,7 +11,7 @@
   padding: clamp(10px, 2vw, 20px) !important;
   background: #071522 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .account-settings-page *,
@@ -37,7 +37,7 @@
 
 #root .account-settings-page h1,
 #root .account-settings-page h2 {
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-family: inherit !important;
   letter-spacing: 0 !important;
   text-shadow: none !important;
@@ -65,7 +65,7 @@
 
 #root .account-settings-page p,
 #root .account-settings-page label {
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .account-settings-panel {
@@ -74,9 +74,9 @@
   padding: clamp(12px, 2vw, 16px) !important;
   background: #0C2234 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 7px !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 #root .account-settings-panel > div:first-child {
@@ -89,18 +89,18 @@
   min-width: 0 !important;
   min-height: 40px !important;
   padding: 8px 46px 8px 9px !important;
-  background: #081B2A !important;
+  background: #071A29 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #F7F1E7 !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   outline: none !important;
 }
 
 #root .account-settings-page input:focus {
-  border-color: #FF2DAA !important;
-  outline: 1px solid #FF2DAA !important;
+  border-color: #D6A84F !important;
+  outline: 1px solid #D6A84F !important;
   outline-offset: 1px !important;
   box-shadow: none !important;
 }
@@ -116,10 +116,10 @@
   justify-content: center !important;
   gap: 7px !important;
   padding: 0 11px !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #F7F1E7 !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   font-size: 13px !important;
@@ -128,26 +128,26 @@
 
 #root .account-settings-page button:hover:not(:disabled),
 #root .account-settings-page button:focus-visible {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
+  background: #17364F !important;
+  border-color: #D6A84F !important;
   outline: none !important;
 }
 
 #root .account-settings-page button svg {
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root .account-settings-primary {
   width: fit-content !important;
-  background: #102B40 !important;
-  border-color: #FF2DAA !important;
-  color: #FFFFFF !important;
+  background: #112A40 !important;
+  border-color: #D6A84F !important;
+  color: #F7F1E7 !important;
 }
 
 #root .account-settings-primary:hover:not(:disabled),
 #root .account-settings-primary:focus-visible {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
+  background: #17364F !important;
+  border-color: #D6A84F !important;
 }
 
 #root .account-settings-page button:disabled {
@@ -179,13 +179,13 @@
   transform: translateY(-50%) !important;
   background: transparent !important;
   border: 0 !important;
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root .account-password-toggle:hover:not(:disabled),
 #root .account-password-toggle:focus-visible {
   background: transparent !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
 }
 
 /* Destructive account actions keep semantic danger colouring. */
