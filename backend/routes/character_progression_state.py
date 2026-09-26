@@ -714,7 +714,11 @@ async def _apply_level_up(
     progression_type: str,
 ) -> Dict[str, Any]:
     existing = await get_owned_character(character_id, username)
+    if level_up.homebrew_spellcasting and _normalise_name(leveled_class) == _normalise_name(existing.get("character_class")):
+        existing = {**existing, "homebrew_spellcasting": dict(level_up.homebrew_spellcasting)}
     update_data = build_state_safe_level_up_update(existing, level_up, leveled_class, progression_type)
+    if level_up.homebrew_spellcasting:
+        update_data["homebrew_spellcasting"] = dict(level_up.homebrew_spellcasting)
     await db.player_characters.update_one(
         {"id": character_id, "user_id": username},
         {"$set": update_data},
