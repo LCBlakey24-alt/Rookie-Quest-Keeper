@@ -12,7 +12,7 @@
   padding: clamp(10px, 2vw, 20px) !important;
   background: #071522 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-family: inherit !important;
   box-sizing: border-box !important;
 }
@@ -39,9 +39,9 @@
   min-width: 0 !important;
   background: #0C2234 !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 7px !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   padding: 11px !important;
 }
 
@@ -59,7 +59,7 @@
 #root [data-testid='homebrew-workshop'] span,
 #root [data-testid='homebrew-workshop'] small,
 #root [data-testid='homebrew-workshop'] label {
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-family: inherit !important;
   text-shadow: none !important;
 }
@@ -94,7 +94,7 @@
 #root [data-testid='homebrew-workshop'] p[style*='text-transform: uppercase'],
 #root [data-testid='homebrew-workshop'] p[style*='textTransform'],
 #root [data-testid='homebrew-workshop'] > section > header p:first-of-type {
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   font-size: 9px !important;
   font-weight: 900 !important;
   letter-spacing: .09em !important;
@@ -108,10 +108,10 @@
   align-content: center !important;
   gap: 4px !important;
   padding: 9px !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #F7F1E7 !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
   text-align: left !important;
   cursor: pointer !important;
@@ -119,16 +119,16 @@
 
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:hover,
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:focus-visible {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
+  background: #17364F !important;
+  border-color: #D6A84F !important;
   outline: none !important;
 }
 
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='rgb(208, 0, 0)'],
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='#d00000'] {
-  background: rgba(124,203,255,.10) !important;
-  border-color: #FF2DAA !important;
-  color: #FFFFFF !important;
+  background: rgba(121,188,232,.10) !important;
+  border-color: #D6A84F !important;
+  color: #F7F1E7 !important;
 }
 
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] strong {
@@ -155,10 +155,10 @@
   min-width: 0 !important;
   min-height: 40px !important;
   padding: 8px 9px !important;
-  background: #081B2A !important;
+  background: #071A29 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #F7F1E7 !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   outline: none !important;
@@ -167,8 +167,8 @@
 #root [data-testid='homebrew-workshop'] input:not([type='file']):focus,
 #root [data-testid='homebrew-workshop'] select:focus,
 #root [data-testid='homebrew-workshop'] textarea:focus {
-  border-color: #FF2DAA !important;
-  outline: 1px solid #FF2DAA !important;
+  border-color: #D6A84F !important;
+  outline: 1px solid #D6A84F !important;
   outline-offset: 1px !important;
   box-shadow: none !important;
 }
@@ -186,10 +186,10 @@
   justify-content: center !important;
   gap: 6px !important;
   padding: 0 10px !important;
-  background: #102B40 !important;
+  background: #112A40 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  color: #F7F1E7 !important;
+  border: 1px solid rgba(214,168,79,.18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   font-size: 12px !important;
@@ -199,28 +199,28 @@
 
 #root [data-testid='homebrew-workshop'] button svg,
 #root [data-testid='homebrew-workshop'] label[for='hb-file-input'] svg {
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
 }
 
 #root [data-testid='homebrew-workshop'] button:hover:not(:disabled),
 #root [data-testid='homebrew-workshop'] button:focus-visible,
 #root [data-testid='homebrew-workshop'] label[for='hb-file-input']:hover {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
+  background: #17364F !important;
+  border-color: #D6A84F !important;
   outline: none !important;
 }
 
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn'],
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn'] {
-  background: #102B40 !important;
-  border-color: #FF2DAA !important;
-  color: #FFFFFF !important;
+  background: #112A40 !important;
+  border-color: #D6A84F !important;
+  color: #F7F1E7 !important;
 }
 
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn']:hover:not(:disabled),
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn']:hover:not(:disabled) {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
+  background: #17364F !important;
+  border-color: #D6A84F !important;
 }
 
 #root [data-testid='homebrew-workshop'] button:disabled,
@@ -236,7 +236,7 @@
 }
 
 #root [data-testid='homebrew-workshop'] article {
-  background: #102B40 !important;
+  background: #112A40 !important;
 }
 
 #root [data-testid='homebrew-workshop'] img {

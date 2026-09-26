@@ -21,8 +21,8 @@
 #root .rq-brand-emblem-core {
   color: transparent !important;
   font-size: 0 !important;
-  background-color: #0c2234 !important;
-  background-image: url('/brand/rqk-logo-mini.svg') !important;
+  background-color: #1E2936 !important;
+  background-image: url('/brand/keeper-symbol.png') !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   background-size: 88% !important;
@@ -363,7 +363,7 @@
 #root .rqk-auth-assurance,
 #root .rqk-auth-next-steps {
   border-color: rgba(124, 203, 255, 0.18) !important;
-  background: #0c2234 !important;
+  background: #1E2936 !important;
   background-image: none !important;
   box-shadow: none !important;
 }
@@ -656,7 +656,7 @@
     padding: 8px 10px !important;
     border: 1px solid rgba(124, 203, 255, 0.18) !important;
     border-radius: 8px !important;
-    background: #0c2234 !important;
+    background: #1E2936 !important;
     font-size: 10px !important;
     line-height: 1.25 !important;
   }

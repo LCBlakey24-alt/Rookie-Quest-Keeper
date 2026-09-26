@@ -327,7 +327,7 @@ function ScanSummary({ scan }) {
   if (scan.status === 'scanning') {
     return (
       <div style={styles.scanPanel} role="status" aria-live="polite">
-        <LoaderCircle size={18} color="#7CCBFF" />
+        <LoaderCircle size={18} color="#79BCE8" />
         <div>
           <strong style={styles.sectionTitle}>Reading your character sheet…</strong>
           <p style={styles.bodyCopy}>Rook is extracting the details. Nothing is saved until you review the result and press save.</p>
@@ -339,7 +339,7 @@ function ScanSummary({ scan }) {
   if (scan.status === 'error') {
     return (
       <div style={styles.scanPanel} role="alert">
-        <AlertTriangle size={18} color="#FF2DAA" />
+        <AlertTriangle size={18} color="#D6A84F" />
         <div>
           <strong style={styles.sectionTitle}>Automatic scan did not finish</strong>
           <p style={styles.bodyCopy}>{scan.message || 'You can still fill the character in manually below.'}</p>
@@ -351,7 +351,7 @@ function ScanSummary({ scan }) {
   const confidence = scan.confidence === null ? null : Math.round(scan.confidence * 100);
   return (
     <div style={styles.scanPanel} role="status" aria-live="polite">
-      <CheckCircle2 size={18} color="#7CCBFF" />
+      <CheckCircle2 size={18} color="#79BCE8" />
       <div style={{ minWidth: 0 }}>
         <strong style={styles.sectionTitle}>Sheet scanned — now give it a quick review</strong>
         <p style={styles.bodyCopy}>
@@ -495,7 +495,7 @@ export default function CharacterImportPage() {
     <main style={styles.page}>
       <header style={styles.header}>
         <button type="button" onClick={() => navigate('/characters')} style={styles.ghostButton}>
-          <ArrowLeft size={16} color="#7CCBFF" /> Characters
+          <ArrowLeft size={16} color="#79BCE8" /> Characters
         </button>
         <div>
           <p style={styles.eyebrow}>Player tools</p>
@@ -505,7 +505,7 @@ export default function CharacterImportPage() {
       </header>
 
       <section style={styles.notice}>
-        <Wand2 size={19} color="#7CCBFF" />
+        <Wand2 size={19} color="#79BCE8" />
         <div>
           <strong style={styles.sectionTitle}>Upload → scan → review → save</strong>
           <p style={styles.bodyCopy}>Nothing from the scan is saved automatically. Homebrew names and unusual character options are kept as written wherever possible.</p>
@@ -515,7 +515,7 @@ export default function CharacterImportPage() {
       <section style={styles.gridTwo}>
         <article style={styles.card}>
           <div style={styles.cardHeader}>
-            <UploadCloud size={22} color="#7CCBFF" />
+            <UploadCloud size={22} color="#79BCE8" />
             <div>
               <h2 style={styles.sectionTitle}>Upload a character sheet</h2>
               <p style={styles.bodyCopy}>PDF, PNG, JPG, and WEBP sheets are scanned automatically. JSON, TXT, and MD files are read directly.</p>
@@ -531,14 +531,14 @@ export default function CharacterImportPage() {
             style={{ ...styles.fileInput, opacity: scan.status === 'scanning' ? 0.65 : 1 }}
           />
           {character.source_file_name && (
-            <p style={styles.fileNote}><FileText size={14} color="#7CCBFF" /> Source: {character.source_file_name}</p>
+            <p style={styles.fileNote}><FileText size={14} color="#79BCE8" /> Source: {character.source_file_name}</p>
           )}
           <ScanSummary scan={scan} />
         </article>
 
         <article style={styles.card}>
           <div style={styles.cardHeader}>
-            <FileText size={22} color="#7CCBFF" />
+            <FileText size={22} color="#79BCE8" />
             <div>
               <h2 style={styles.sectionTitle}>Paste character data instead</h2>
               <p style={styles.bodyCopy}>Useful for exports or notes. JSON works best, or use lines such as <em>Name: Javen</em>, <em>Class: Warlock</em>, <em>STR: 11</em>.</p>
@@ -552,7 +552,7 @@ export default function CharacterImportPage() {
           />
           <div style={styles.rowActions}>
             <button type="button" onClick={() => applyRawText(rawText)} style={styles.primaryButton}>Use pasted text</button>
-            <button type="button" onClick={reset} style={styles.secondaryButton}><RefreshCw size={15} color="#7CCBFF" /> Reset</button>
+            <button type="button" onClick={reset} style={styles.secondaryButton}><RefreshCw size={15} color="#79BCE8" /> Reset</button>
           </div>
         </article>
       </section>
@@ -631,7 +631,7 @@ export default function CharacterImportPage() {
           disabled={saving || !canSave || scan.status === 'scanning'}
           style={{ ...styles.primaryButton, opacity: saving || !canSave || scan.status === 'scanning' ? 0.55 : 1 }}
         >
-          <Save size={16} color="#7CCBFF" /> {saving ? 'Saving…' : 'Save Reviewed Character'}
+          <Save size={16} color="#79BCE8" /> {saving ? 'Saving…' : 'Save Reviewed Character'}
         </button>
       </section>
     </main>
@@ -644,7 +644,7 @@ const styles = {
     boxSizing: 'border-box',
     padding: 'clamp(10px, 2.5vw, 24px)',
     background: '#071522',
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontFamily: 'var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)',
   },
   header: {
@@ -654,12 +654,12 @@ const styles = {
     margin: '0 auto 10px',
     padding: 'clamp(10px, 2vw, 14px)',
     background: '#0C2234',
-    border: '1px solid rgba(255,45,170,.18)',
+    border: '1px solid rgba(214,168,79,.18)',
     borderRadius: 7,
   },
   eyebrow: {
     margin: 0,
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     letterSpacing: '0.1em',
     textTransform: 'uppercase',
     fontSize: 10,
@@ -672,12 +672,12 @@ const styles = {
     fontFamily: 'inherit',
     fontWeight: 900,
     letterSpacing: '-0.025em',
-    color: '#FFFFFF',
+    color: '#F7F1E7',
   },
   subtitle: {
     margin: 0,
     maxWidth: 850,
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontSize: 13,
     lineHeight: 1.45,
   },
@@ -692,8 +692,8 @@ const styles = {
     width: 'min(1180px, 100%)',
     boxSizing: 'border-box',
     margin: '0 auto 8px',
-    background: '#102B40',
-    border: '1px solid rgba(255,45,170,.18)',
+    background: '#112A40',
+    border: '1px solid rgba(214,168,79,.18)',
     borderRadius: 7,
     padding: 'clamp(10px, 2vw, 13px)',
     boxShadow: 'none',
@@ -705,8 +705,8 @@ const styles = {
     gap: 9,
     alignItems: 'flex-start',
     margin: '0 auto 8px',
-    background: 'rgba(124,203,255,.08)',
-    border: '1px solid rgba(255,45,170,.18)',
+    background: 'rgba(121,188,232,.08)',
+    border: '1px solid rgba(214,168,79,.18)',
     borderRadius: 7,
     padding: 11,
   },
@@ -719,7 +719,7 @@ const styles = {
   sectionTitle: {
     display: 'block',
     margin: '0 0 5px',
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontSize: 15,
     lineHeight: 1.2,
     fontWeight: 900,
@@ -727,7 +727,7 @@ const styles = {
   },
   bodyCopy: {
     margin: 0,
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontSize: 12,
     lineHeight: 1.45,
   },
@@ -745,7 +745,7 @@ const styles = {
   field: {
     display: 'grid',
     gap: 4,
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontSize: 11,
     lineHeight: 1.2,
     fontWeight: 850,
@@ -754,9 +754,9 @@ const styles = {
     width: '100%',
     boxSizing: 'border-box',
     borderRadius: 5,
-    border: '1px solid rgba(255,45,170,.18)',
-    background: '#081B2A',
-    color: '#FFFFFF',
+    border: '1px solid rgba(214,168,79,.18)',
+    background: '#071A29',
+    color: '#F7F1E7',
     padding: '8px 9px',
     font: 'inherit',
     outline: 'none',
@@ -767,16 +767,16 @@ const styles = {
     boxSizing: 'border-box',
     padding: 9,
     borderRadius: 5,
-    border: '1px dashed rgba(255,45,170,.32)',
-    background: '#081B2A',
-    color: '#FFFFFF',
+    border: '1px dashed rgba(214,168,79,.32)',
+    background: '#071A29',
+    color: '#F7F1E7',
   },
   fileNote: {
     display: 'flex',
     alignItems: 'center',
     gap: 6,
     margin: '8px 0 0',
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontSize: 11,
   },
   scanPanel: {
@@ -786,15 +786,15 @@ const styles = {
     marginTop: 9,
     padding: 10,
     borderRadius: 5,
-    border: '1px solid rgba(124,203,255,.28)',
-    background: '#081B2A',
-    color: '#FFFFFF',
+    border: '1px solid rgba(121,188,232,.28)',
+    background: '#071A29',
+    color: '#F7F1E7',
   },
   warningList: {
     display: 'grid',
     gap: 3,
     marginTop: 7,
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontSize: 11,
     lineHeight: 1.4,
   },
@@ -806,16 +806,16 @@ const styles = {
     marginTop: 8,
   },
   reviewLabel: {
-    color: '#FFFFFF',
+    color: '#F7F1E7',
     fontSize: 11,
     fontWeight: 900,
   },
   reviewPill: {
-    border: '1px solid #FF2DAA',
+    border: '1px solid #D6A84F',
     borderRadius: 999,
     padding: '3px 7px',
-    color: '#FFFFFF',
-    background: '#102B40',
+    color: '#F7F1E7',
+    background: '#112A40',
     fontSize: 10,
     fontWeight: 850,
     textTransform: 'capitalize',
@@ -832,11 +832,11 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 7,
-    border: '1px solid #FF2DAA',
+    border: '1px solid #D6A84F',
     borderRadius: 5,
     padding: '0 11px',
-    background: '#102B40',
-    color: '#FFFFFF',
+    background: '#112A40',
+    color: '#F7F1E7',
     fontWeight: 900,
     cursor: 'pointer',
     boxShadow: 'none',
@@ -847,11 +847,11 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 7,
-    border: '1px solid rgba(255,45,170,.18)',
+    border: '1px solid rgba(214,168,79,.18)',
     borderRadius: 5,
     padding: '0 11px',
-    background: '#102B40',
-    color: '#FFFFFF',
+    background: '#112A40',
+    color: '#F7F1E7',
     fontWeight: 850,
     cursor: 'pointer',
     boxShadow: 'none',
@@ -862,11 +862,11 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 7,
-    border: '1px solid rgba(255,45,170,.18)',
+    border: '1px solid rgba(214,168,79,.18)',
     borderRadius: 5,
     padding: '0 10px',
-    background: '#102B40',
-    color: '#FFFFFF',
+    background: '#112A40',
+    color: '#F7F1E7',
     fontWeight: 850,
     cursor: 'pointer',
     boxShadow: 'none',
@@ -883,7 +883,7 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
     background: '#0C2234',
-    border: '1px solid rgba(255,45,170,.28)',
+    border: '1px solid rgba(214,168,79,.28)',
     borderRadius: 7,
     padding: 10,
     boxShadow: 'none',

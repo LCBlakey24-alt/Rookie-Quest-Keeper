@@ -1,772 +1,318 @@
 # Rookie Quest Keeper Design System
 
-> Product direction note: for the current long-term app strategy, Blue Eclipse visual direction, Metal Mania display-font rules, responsive layout strategy, and prototype/testing direction, read `docs/rookie-quest-keeper-product-design-vision.md` before major UI work.
+This file and `docs/UI_DESIGN_SYSTEM.md` define the same visual contract. If older documentation, CSS comments or route-specific styles disagree, this document wins.
 
-## Instruction for AI Contributors
+## 1. Product identity
 
-Any AI assistant, developer, or future contributor editing Rookie Quest Keeper must read and follow this file before making UI or UX changes.
+Rookie Quest Keeper is a premium TTRPG companion for players and GMs. It should feel like a focused fantasy command journal: dark, readable, practical, app-like and slightly dramatic without becoming theatrical.
 
-When making changes:
+The UI should not feel like:
 
-- Do not redesign the whole app unless explicitly asked.
-- Preserve the established visual identity.
-- Preserve the charcoal, red, and white palette.
-- Preserve minimalist sharp-edged panels and boxes.
-- Extend existing patterns rather than inventing a new visual language.
-- Prioritize usability over novelty.
-- Keep Rookie Quest Keeper visually cohesive across all pages.
-- Avoid changing layout behaviour while doing purely visual cleanup.
+- a generic white SaaS dashboard
+- parchment or tavern decoration
+- neon cyberpunk
+- a collage of unrelated cards
+- a different theme on every route
 
-This file is the main source of truth for visual design, UI rules, component styling, and layout behaviour.
+## 2. UX priority
 
----
-
-# 1. Product Identity
-
-## Product Name
-
-**Rookie Quest Keeper**
-
-## Legacy / Repository Name
-
-**Ultimate DM Screen**
-
-## Product Type
-
-A web-based TTRPG campaign companion for Game Masters and Players.
-
-It helps users manage:
-
-- campaigns
-- characters
-- combat
-- notes
-- maps
-- homebrew
-- NPCs
-- worldbuilding
-- session prep
-- session recaps
-- live-play tools
-
-## Brand Feeling
-
-Rookie Quest Keeper should feel like a **premium fantasy command centre**.
-
-It should not feel like:
-
-- a generic SaaS dashboard
-- a bubbly productivity app
-- a parchment-heavy medieval fan page
-- a neon cyberpunk interface
-- a soft pastel app
-
-It should feel:
-
-- sharp
-- practical
-- dark
-- readable
-- focused
-- tactical
-- modern
-- slightly dramatic
-- built for live tabletop play
-
----
-
-# 2. Design Philosophy
-
-## Core Visual Mood
-
-The design should be a minimalist tactical command interface for fantasy storytelling.
-
-Think:
-
-- dark charcoal foundations
-- crisp white text
-- controlled red highlights
-- sharp panel edges
-- compact, useful layouts
-- clear hierarchy
-- strong contrast
-- minimal visual noise
-
-## UX Priority Order
-
-Always prioritize in this order:
+Use this order when design goals conflict:
 
 1. Clarity
 2. Speed
 3. Consistency
-4. Usability
-5. Visual polish
-6. Immersion
+4. Accessibility
+5. Responsive usability
+6. Visual polish
+7. Immersion
 
-If a decorative design choice makes the app harder to read or slower to use, remove it.
+Decoration never wins over legibility or table-speed.
 
----
+## 3. Core visual language
 
-# 3. Non-Negotiable Design Rules
+The visual system is **deep navy + warm cream + antique gold**, with restrained blue support.
 
-## 3.1 Colour Rules
+- Navy supplies structure and depth.
+- Cream supplies readable hierarchy.
+- Gold is the primary brand/action accent.
+- Blue supports information, icons, progress and keyboard focus.
+- Red is semantic danger/error only.
+- Green is semantic success only.
+- Amber is semantic warning only.
 
-The app must use:
+Do not reintroduce neon pink, broad red decoration, purple theme drift, decorative gradients or glow-heavy chrome.
 
-- charcoal / near-black backgrounds
-- red accents
-- white primary text
-- muted grey secondary text
+## 4. Colour tokens
 
-Avoid:
-
-- blue/purple theme drift
-- pastel colours
-- noisy gradients
-- large glowing fantasy effects
-- random accent colours per page
-
-Status colours are allowed for success, warning, danger, and info states, but should not overpower the main palette.
-
-## 3.2 Shape Rules
-
-The app must use minimalist, sharp-edged boxes.
-
-Preferred corner radius:
-
-- Small controls: `4px`
-- Standard cards: `6px`
-- Large panels: `6px–8px`
-- Avoid anything above `10px` unless needed for a specific reason.
-
-Avoid:
-
-- huge rounded cards
-- pillowy panels
-- soft bubble UI
-- overly playful SaaS styling
-
-## 3.3 Surface Rules
-
-Every major panel should have:
-
-- a charcoal background
-- a clear border
-- consistent padding
-- sharp or lightly rounded corners
-- strong content hierarchy
-
-Panels should feel structured and deliberate.
-
-## 3.4 Typography Rules
-
-Use clean sans-serif fonts for UI.
-
-Recommended fonts:
-
-- Inter
-- Manrope
-- Geist
-- Source Sans 3
-- Montserrat if already used globally
-
-Avoid:
-
-- decorative fantasy fonts for body text
-- script fonts
-- hard-to-read display fonts
-- too many font families
-
-Fantasy-style typography may only be used sparingly for branding, logos, or decorative headings.
-
-## 3.5 Layout Rules
-
-Layouts should be:
-
-- grid-based
-- aligned
-- structured
-- practical
-- consistent across pages
-
-Avoid:
-
-- floating random widgets
-- inconsistent card sizes without purpose
-- hidden key controls
-- cramped mobile layouts
-- overloading a screen with unnecessary decoration
-
----
-
-# 4. Colour System
-
-## CSS Design Tokens
-
-Use these tokens whenever possible.
+Use tokens instead of route-specific hardcoded colours wherever possible.
 
 ```css
 :root {
-  --rq-bg-main: #1A1A1A;
-  --rq-bg-page: #181818;
-  --rq-bg-panel: #242424;
-  --rq-bg-panel-alt: #2B2B2B;
-  --rq-bg-elevated: #323232;
-  --rq-bg-input: #1F1F1F;
+  --rq-bg: #0B1B2B;
+  --rq-bg-main: #0B1B2B;
+  --rq-bg-deep: #07131F;
+  --rq-bg-rail: #07131F;
+  --rq-bg-panel: #1E2936;
+  --rq-card: #263748;
+  --rq-card-hover: #334155;
+  --rq-bg-input: #101F2D;
 
-  --rq-accent-primary: #C1121F;
-  --rq-accent-hover: #D62839;
-  --rq-accent-active: #A30F1A;
-  --rq-accent-soft: rgba(193, 18, 31, 0.12);
-  --rq-accent-border: rgba(193, 18, 31, 0.35);
-  --rq-accent-strong-border: rgba(193, 18, 31, 0.62);
+  --rq-primary: #C9A96B;
+  --rq-primary-hover: #D9BC82;
+  --rq-primary-soft: rgba(201, 169, 107, 0.12);
+  --rq-accent-primary: #C9A96B;
+  --rq-accent-hover: #D9BC82;
+  --rq-accent-soft: rgba(201, 169, 107, 0.12);
+  --rq-accent-border: rgba(201, 169, 107, 0.30);
 
-  --rq-text-primary: #FFFFFF;
-  --rq-text-secondary: #D6D6D6;
-  --rq-text-muted: #A0A0A0;
-  --rq-text-disabled: #6F6F6F;
-  --rq-text-inverse: #111111;
+  --rq-secondary: #6E91B4;
+  --rq-secondary-soft: rgba(110, 145, 180, 0.10);
 
-  --rq-border-default: #3A3A3A;
-  --rq-border-strong: #4A4A4A;
-  --rq-border-accent: #C1121F;
+  --rq-text-primary: #EADFC8;
+  --rq-text-secondary: rgba(234, 223, 200, 0.78);
+  --rq-text-muted: rgba(234, 223, 200, 0.60);
+  --rq-faint: rgba(234, 223, 200, 0.46);
 
-  --rq-success: #2E8B57;
-  --rq-warning: #F2A900;
-  --rq-danger: #C1121F;
-  --rq-info: #4F8EF7;
+  --rq-line: rgba(137, 157, 176, 0.14);
+  --rq-line-strong: rgba(201, 169, 107, 0.30);
 
-  --rq-radius-sm: 4px;
-  --rq-radius-md: 6px;
-  --rq-radius-lg: 8px;
+  --rq-success: #5FA67A;
+  --rq-warning: #D39A43;
+  --rq-danger: #B94A4F;
+  --rq-info: #6E91B4;
 
-  --rq-space-1: 4px;
-  --rq-space-2: 8px;
-  --rq-space-3: 12px;
-  --rq-space-4: 16px;
-  --rq-space-5: 20px;
-  --rq-space-6: 24px;
-  --rq-space-7: 32px;
-  --rq-space-8: 40px;
-
-  --rq-shadow-panel: 0 4px 14px rgba(0, 0, 0, 0.22);
-  --rq-shadow-heavy: 0 10px 28px rgba(0, 0, 0, 0.32);
+  --rq-radius: 7px;
+  --rq-inner-radius: 5px;
 }
 ```
 
-## Colour Usage
-
-### Main Background
-
-Use charcoal or near-black.
-
-Recommended:
-
-- `#1A1A1A`
-- `#181818`
-- `#111111`
-
-### Main Panels
-
-Use slightly lighter charcoal.
-
-Recommended:
-
-- `#242424`
-- `#2B2B2B`
-- `#323232`
-
-### Accent Red
-
-Use red for:
-
-- primary CTAs
-- selected tabs
-- active states
-- important warnings
-- danger actions
-- key highlights
-- stat emphasis where appropriate
-
-Do not flood entire pages with red.
-
-### White Text
-
-Use white for:
-
-- page titles
-- card titles
-- important stats
-- button labels
-- active states
-
-### Grey Text
-
-Use muted grey for:
-
-- descriptions
-- helper text
-- labels
-- inactive tabs
-- metadata
-
----
-
-# 5. Typography System
-
-## Type Scale
-
-### Page Title
-
-- Size: `32px–40px`
-- Weight: `800–900`
-- Colour: white
-- Letter spacing: tight
-
-### Section Title
-
-- Size: `20px–24px`
-- Weight: `700–800`
-- Colour: white
-
-### Card Title
-
-- Size: `16px–18px`
-- Weight: `700–800`
-- Colour: white
-
-### Body Text
-
-- Size: `14px–16px`
-- Weight: `400–500`
-- Colour: secondary text
-
-### Labels / Microcopy
-
-- Size: `11px–13px`
-- Weight: `700–900`
-- Colour: muted grey or accent red
-- Uppercase is allowed for category labels
-
-## Typography Rules
-
-- Keep headings short and useful.
-- Use bold text for gameplay-critical values.
-- Keep body text readable, not tiny.
-- Do not use decorative fantasy fonts for dense UI.
-- Use red text sparingly.
-
----
-
-# 6. Spacing System
-
-Use a consistent spacing scale:
-
-- `4px`
-- `8px`
-- `12px`
-- `16px`
-- `20px`
-- `24px`
-- `32px`
-- `40px`
-
-## Common Usage
-
-- Tight icon/text gap: `6px–8px`
-- Button internal padding: `10px 14px`
-- Card padding: `16px`
-- Large panel padding: `20px–24px`
-- Section spacing: `24px–32px`
-- Page padding mobile: `12px–16px`
-- Page padding desktop: `24px–32px`
-
----
-
-# 7. Borders, Shadows, and Surfaces
-
-## Borders
-
-Use borders heavily but subtly.
-
-Preferred:
-
-```css
-border: 1px solid var(--rq-border-default);
-```
-
-Active / selected:
-
-```css
-border: 1px solid var(--rq-border-accent);
-```
-
-## Shadows
-
-Use restrained shadows.
-
-Preferred:
-
-```css
-box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
-```
-
-Avoid huge neon glows.
-
-## Background Effects
-
-Subtle radial or linear gradients are allowed only if they are dark and restrained.
-
-Avoid:
-
-- rainbow gradients
-- bright purple glows
-- heavy parchment textures
-- noisy fantasy backgrounds behind dense UI
-
----
-
-# 8. Component Rules
-
-## 8.1 Buttons
-
-### Primary Buttons
-
-Used for:
-
-- Create
-- Save
-- Confirm
-- Generate
-- Continue
-- Start
-
-Style:
-
-- red fill or dark fill with red border
-- white text
-- bold label
-- sharp corners
-
-Recommended CSS:
-
-```css
-.rq-button-primary {
-  min-height: 42px;
-  padding: 10px 14px;
-  border-radius: 4px;
-  border: 1px solid var(--rq-accent-primary);
-  background: var(--rq-accent-primary);
-  color: var(--rq-text-primary);
-  font-weight: 800;
-}
-```
-
-### Secondary Buttons
-
-Used for:
-
-- Cancel
-- Edit
-- Back
-- Utility actions
-
-Style:
-
-- charcoal background
-- white or secondary text
-- grey border
-- red hover border
-
-### Danger Buttons
-
-Used for:
-
-- Delete
-- Remove
-- Reset destructive data
-
-Style:
-
-- dark background or red background
-- white text
-- red border
-- clear warning language
-
-## 8.2 Inputs
-
-Inputs should be dark, sharp, and clear.
-
-Recommended CSS:
-
-```css
-.rq-input {
-  min-height: 42px;
-  border-radius: 4px;
-  border: 1px solid var(--rq-border-default);
-  background: var(--rq-bg-input);
-  color: var(--rq-text-primary);
-  padding: 9px 12px;
-}
-
-.rq-input:focus {
-  outline: none;
-  border-color: var(--rq-accent-primary);
-  box-shadow: 0 0 0 2px rgba(193, 18, 31, 0.18);
-}
-```
-
-## 8.3 Cards and Panels
-
-Cards should:
-
-- use charcoal backgrounds
-- have visible borders
-- have sharp/lightly rounded corners
-- use consistent padding
-- avoid decorative clutter
-
-Recommended CSS:
-
-```css
-.rq-panel {
-  background: var(--rq-bg-panel);
-  border: 1px solid var(--rq-border-default);
-  border-radius: 6px;
-  padding: 16px;
-  box-shadow: var(--rq-shadow-panel);
-}
-```
-
-## 8.4 Tabs
-
-Tabs should be clear and structured.
-
-Active tabs:
-
-- red border
-- red soft background
-- white text
-
-Inactive tabs:
-
-- dark background
-- grey border
-- muted text
-
-## 8.5 Modals
-
-Modals should have:
-
-- dark overlay
-- charcoal panel
-- clear title
-- concise description
-- strong footer actions
-- red accent for confirm/active action
-
-Do not make modals feel like unrelated mini-sites.
-
-## 8.6 Tables and Lists
-
-Tables/lists should:
-
-- use clear row separation
-- support scanability
-- use red only for selection/warnings
-- avoid cramped content
-- keep action buttons aligned
-
-## 8.7 Status Chips
-
-Use chips for:
-
-- conditions
-- spell level
-- item rarity
-- encounter difficulty
-- rules edition
-- campaign status
-- unread handouts
-
-Chips may have slightly rounded corners, but should not become bubbly.
-
----
-
-# 9. Page Layout Rules
-
-## App Shell
-
-Most authenticated pages should follow this general structure:
-
-- header or top action bar
-- optional sidebar navigation
-- main content panel/grid
-- optional utility panel on dense pages
-
-## Dashboard
-
-The dashboard should feel like a command centre.
-
-It should show:
-
-- characters
-- campaigns
-- quick actions
-- recent activity
-- Rook/AI access
-- useful continuation actions
-
-Avoid making it look like a social media feed.
-
-## GM Screen
-
-The GM screen should be denser than the dashboard but still readable.
-
-It should support:
-
-- modular widgets
-- strong panels
-- quick access tools
-- live play controls
-- useful right/side utilities
-
-## Character Sheet
-
-The character sheet must prioritize gameplay essentials:
-
-- HP
-- temp HP
-- AC
-- initiative
-- speed
-- proficiency
-- conditions
-- death saves
-- spells
-- attacks
-- inventory
+### Colour rules
+
+- Default structural borders use `--rq-line`, not gold.
+- Gold marks primary actions, active states and deliberate emphasis.
+- Blue may mark information, progress, selected support and focus.
+- Body copy uses secondary text, not full-strength primary text.
+- Helper/meta copy uses muted text.
+- Destructive actions must use danger styling and must not look like normal primary actions.
+- Do not use colour alone to communicate status.
+
+## 5. Typography
+
+### UI/body
+
+Use the shared sans-serif stack (currently Manrope) for:
+
+- body copy
+- buttons
+- inputs
+- tables
+- cards
+- stats
 - notes
+- spell descriptions
+- dense GM tools
 
-Mobile layout must not be an afterthought.
+### Display branding
 
-## Homebrew Workshop
+A fantasy/display face may appear in branding or a deliberate hero/title moment. It must not leak into dense controls or long-form text.
 
-The Homebrew Workshop should feel like a focused editor.
+### Hierarchy
 
-It should use:
+Prefer:
 
-- clear forms
-- sections
-- missing-field warnings
-- preview panels
-- edit/save actions
+- weight
+- spacing
+- text tier
+- alignment
 
----
+before increasing font size.
 
-# 10. Responsive Design Rules
+Do not force all text to full white/cream. A professional screen needs visible primary, secondary and muted tiers.
 
-## Mobile
+## 6. Surfaces and shape
 
-Mobile is critical for players.
+- Page: deep navy.
+- Panel: `--rq-bg-panel`.
+- Card/control: `--rq-card`.
+- Hover: `--rq-card-hover`.
+- Input: `--rq-bg-input`.
+- Normal shadows: none or extremely restrained.
+- Normal gradients: none.
+- Standard radius: 5–9px.
+- Avoid giant pills and bubbly SaaS panels.
 
-Mobile priorities:
+Cards should organise information. Do not create a box around every sentence.
 
-1. HP and temp HP
-2. AC / initiative / speed
-3. conditions
-4. attacks
-5. spells
-6. notes
-7. inventory
+## 7. Buttons and controls
+
+### Default
+
+- Navy fill.
+- Neutral border.
+- Cream text.
+
+### Primary
+
+- Navy fill with gold border in the app.
+- A gold-filled CTA is acceptable on the public landing page when contrast remains strong.
+
+### Hover
+
+- Lighter navy.
+- Stronger gold border where the control is primary.
+
+### Focus
+
+- Clear blue focus outline.
+- Never remove focus indication without replacing it.
+
+### Touch sizes
+
+- Mobile: about 46px minimum.
+- Tablet: about 44px minimum.
+- Desktop: about 40px minimum where pointer input is expected.
+
+Phone form inputs should use at least 16px text to avoid browser focus zoom.
+
+## 8. Responsive layout contract
+
+The canonical breakpoints live in `frontend/src/layouts/deviceLayout.js`:
+
+- **Mobile:** `<= 719px`
+- **Tablet:** `720–1180px`
+- **Desktop:** `>= 1181px`
+
+CSS device lanes must agree with these values.
+
+### Mobile
+
+- Full product capability.
+- One main task/section at a time.
+- Bottom navigation dock.
+- One-column content by default.
+- No horizontal page scrolling.
+- Dense tab bars scroll horizontally rather than wrap into unusable rows.
+- Important actions remain thumb-friendly.
+
+### Tablet
+
+- First-class at-the-table experience.
+- Compact icon rail.
+- 1–2 columns where usable width permits.
+- Touch-first controls.
+- Avoid a desktop-width sidebar consuming the workspace.
+
+### Desktop
+
+- Permanent labelled rail.
+- Wider multi-column workspace.
+- Maximum useful line/content width rather than infinite stretching.
+- Desktop gets more simultaneous visibility, not exclusive features.
+
+## 9. Navigation
+
+Selected navigation uses:
+
+- subtle blue support fill
+- gold active marker/border
+- cream label
+- restrained icon emphasis
+
+Unselected navigation should remain calm and readable.
+
+Do not use gradients or filled neon states.
+
+## 10. Forms
+
+Inputs must:
+
+- use the shared input navy
+- use cream text
+- expose visible labels
+- use muted placeholder/helper text
+- show a visible focus state
+- preserve practical touch targets
+- display errors next to the relevant field where possible
+
+## 11. Status semantics
+
+Use semantic colours consistently:
+
+- Success: green.
+- Warning: amber.
+- Error/danger/destructive: red.
+- Information/focus: blue.
+- Brand/primary action: gold.
+
+Never use danger red as the normal brand accent.
+
+## 12. Route consistency
+
+Landing, auth, player, GM, character creator, character sheet, campaign tools, Rook, homebrew and admin all belong to the same product.
+
+A route may have different information density or geometry. It may not invent a different palette.
+
+Route CSS should consume global tokens. If a legacy variable name such as `pink` or `red` must remain for compatibility, map it to the correct current token and document it as a legacy alias.
+
+## 13. Accessibility
+
+- Preserve visible keyboard focus.
+- Respect `prefers-reduced-motion`.
+- Use sufficient text/background contrast.
+- Never rely only on colour for active/error state.
+- Do not shrink text below comfortable reading sizes just to make a layout fit.
+- Preserve safe-area spacing for mobile navigation.
+- Avoid focus zoom on mobile inputs.
+
+## 14. Motion
+
+Motion should communicate:
+
+- state change
+- progress
+- opening/closing
+- successful interaction
+
+Avoid ambient lasers, shimmer, constant glow, bouncing or decorative motion in normal product UI.
+
+## 15. Visual review sizes
+
+At minimum review:
+
+| Lane | Reference |
+| --- | --- |
+| Mobile portrait | 390 × 844 |
+| Tablet portrait | 768 × 1024 |
+| Tablet landscape | 1024 × 768 |
+| Desktop | 1440 × 900 |
+
+Verify no horizontal overflow, clipped controls, unreadable text, off-screen modals or desktop-only capability.
+
+## 16. CSS maintenance
+
+The repo has historical theme layers. New work must reduce drift, not add another competing skin.
 
 Rules:
 
-- No horizontal overflow.
-- Buttons must be thumb-friendly.
-- Tabs should be sticky or easy to reach.
-- Avoid tiny click targets.
-- Avoid multi-column layouts below phone width unless very simple.
+1. Prefer changing the final authority/token source.
+2. Retire superseded overrides when safe.
+3. Avoid new global `!important` layers unless resolving a documented legacy collision.
+4. Keep layout rules in device/route layout files and colour rules in theme files.
+5. Update visual contract tests whenever the intentional system changes.
+6. Do not “fix” a page by hardcoding a one-off colour that bypasses tokens.
 
-## Tablet
+## 17. Definition of visually complete
 
-Tablet should support:
+A route is visually complete when:
 
-- character sheets
-- GM screen widgets
-- combat tracker
-- map tools
+- it uses the shared palette
+- primary/secondary/muted text hierarchy is obvious
+- cards and sections align to a consistent spacing rhythm
+- controls have consistent heights and states
+- active/hover/focus/destructive states are unambiguous
+- mobile/tablet/desktop all remain usable
+- no retired theme colours or decorative gradients appear
+- empty/loading/error states match the product
+- the page looks like part of Keeper without needing route-specific explanation
 
-Use 2-column layouts where useful.
-
-## Desktop
-
-Desktop should support:
-
-- denser dashboards
-- GM workspaces
-- sidebars
-- multi-column panels
-- optional utility areas
-
----
-
-# 11. Accessibility Rules
-
-- Maintain strong contrast.
-- Do not rely on colour alone to communicate meaning.
-- Buttons must have readable labels.
-- Interactive elements must be large enough to tap/click.
-- Inputs need visible focus states.
-- Modal close actions must be obvious.
-- Avoid tiny grey text on charcoal backgrounds.
-
----
-
-# 12. AI Design Guardrails
-
-Any AI working on this project must follow these guardrails.
-
-## Must Do
-
-- Use charcoal, red, and white.
-- Use sharp-edged minimalist boxes.
-- Preserve existing workflows.
-- Keep pages readable.
-- Use consistent spacing.
-- Use consistent typography.
-- Prefer small safe changes over giant redesigns.
-- Keep mobile usability in mind.
-- Keep gameplay speed in mind.
-
-## Must Not Do
-
-- Do not change the app to blue/purple/gold unless the user explicitly asks.
-- Do not add bubbly rounded cards.
-- Do not add parchment textures everywhere.
-- Do not add excessive fantasy ornamentation.
-- Do not use decorative fonts for main UI.
-- Do not add random new colour systems.
-- Do not hide key gameplay controls.
-- Do not rewrite large components just to change colours.
-
----
-
-# 13. Implementation Strategy
-
-When updating existing UI, use this order:
-
-1. Preserve working behaviour.
-2. Apply design tokens.
-3. Normalize spacing and borders.
-4. Improve responsive behaviour.
-5. Extract repeated components only when safe.
-6. Add tests where possible.
-
-Do not bundle major visual redesigns with risky logic changes unless the user specifically requests it.
-
----
-
-# 14. Master Summary
-
-Rookie Quest Keeper is a dark, sharp, minimalist TTRPG companion app. The design must use charcoal backgrounds, red accents, and white text, with clean structure and sharp-edged boxes. The interface should feel like a premium fantasy command centre rather than a playful SaaS app. Every screen must prioritize clarity, speed, consistency, and usability. Do not drift into rounded bubbly UI, pastel colours, over-textured fantasy decoration, or inconsistent layout systems.
+The intended result is a cohesive, premium TTRPG application: **navy structure, cream readability, gold identity, blue support, semantic status colours, and device-appropriate geometry.**

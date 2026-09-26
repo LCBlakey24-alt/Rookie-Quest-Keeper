@@ -1,22 +1,26 @@
 {
   "theme": {
-    "name": "Rookie Minimal Navy",
-    "mode": "dark-only",
-    "description": "A quiet navy workspace with slate surfaces, white text, Rookie red for primary actions, and amber reserved for warnings/status. No sunset, purple, pink, fantasy-glow, coffee, parchment, or gradient skinning."
+    "name": "Guild Ledger",
+    "mode": "dark-first",
+    "description": "A premium campaign-ledger workspace with ink navy and slate structure, warm parchment/cream text, antique brass for brand and primary actions, restrained ledger blue for information/focus, and wine-seal red only for small brand or semantic accents."
   },
   "colors": {
-    "background": "#0a1728",
-    "backgroundDeep": "#06101c",
-    "panel": "#102238",
-    "card": "#14283e",
-    "cardHover": "#1a314b",
-    "primary": "#d00000",
-    "primaryHover": "#ef2b2b",
-    "foreground": "#f7f9fc",
-    "foregroundSecondary": "rgba(229, 237, 247, 0.74)",
-    "muted": "rgba(202, 216, 233, 0.58)",
-    "border": "rgba(181, 203, 226, 0.16)",
-    "warning": "#f59e0b"
+    "background": "#0B1B2B",
+    "backgroundDeep": "#030912",
+    "panel": "#111E2B",
+    "card": "#1E2936",
+    "cardHover": "#334155",
+    "primary": "#C9A96B",
+    "primaryHover": "#D9BC82",
+    "secondary": "#6E91B4",
+    "seal": "#7B2D3A",
+    "foreground": "#EADFC8",
+    "foregroundSecondary": "rgba(234, 223, 200, 0.78)",
+    "muted": "rgba(234, 223, 200, 0.60)",
+    "border": "rgba(201, 169, 107, 0.18)",
+    "success": "#5FA67A",
+    "warning": "#D39A43",
+    "danger": "#B94A4F"
   },
   "architecture": {
     "principle": "One shared product brain, isolated presentation layers.",
@@ -34,7 +38,7 @@
     "Feature/page styling must be imported by that feature or layout rather than App.js.",
     "Prefer CSS Modules or otherwise tightly scoped selectors for new layout work.",
     "Do not use global !important layers to recolour or resize unrelated screens.",
-    "Do not reintroduce sunset, twilight, velvet, Blue Eclipse, coffee, parchment, purple/pink/orange gradient or cinematic-fantasy skins.",
+    "Do not reintroduce neon-pink, broad Rookie-red, Sunset/Twilight purple, glow-heavy chrome, route-wide parchment/leather skins, or competing global visual systems.",
     "A theme change must not alter workspace geometry, rail width, card columns or page flow.",
     "Desktop, tablet and mobile may render different presentation components while sharing the same hooks, data and actions."
   ],

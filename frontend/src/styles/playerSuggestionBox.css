@@ -1,9 +1,9 @@
 .player-suggestion-box {
   margin-top: 12px;
   background: #0C2234;
-  border: 1px solid rgba(255,45,170,.18);
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 7px;
-  color: #FFFFFF;
+  color: #F7F1E7;
   box-shadow: none;
 }
 
@@ -20,10 +20,10 @@
   height: 38px;
   display: grid;
   place-items: center;
-  background: #102B40;
-  border: 1px solid rgba(255,45,170,.18);
+  background: #112A40;
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 5px;
-  color: #7CCBFF;
+  color: #79BCE8;
 }
 
 .player-suggestion-box__intro > div:nth-child(2) {
@@ -37,7 +37,7 @@
 .player-suggestion-box__intro p,
 .player-suggestion-box__form span,
 .player-suggestion-box__form small {
-  color: #FFFFFF;
+  color: #F7F1E7;
 }
 
 .player-suggestion-box__intro span {
@@ -66,10 +66,10 @@
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
-  background: #102B40;
-  border: 1px solid #FF2DAA;
+  background: #112A40;
+  border: 1px solid #D6A84F;
   border-radius: 5px;
-  color: #FFFFFF;
+  color: #F7F1E7;
   font: inherit;
   font-size: 11px;
   font-weight: 850;
@@ -79,14 +79,14 @@
 
 .player-suggestion-box__toggle svg,
 .player-suggestion-box__actions button svg {
-  color: #7CCBFF;
+  color: #79BCE8;
 }
 
 .player-suggestion-box__toggle:hover,
 .player-suggestion-box__toggle:focus-visible,
 .player-suggestion-box__actions button:hover:not(:disabled),
 .player-suggestion-box__actions button:focus-visible:not(:disabled) {
-  background: #14344C;
+  background: #17364F;
   outline: none;
 }
 
@@ -94,7 +94,7 @@
   display: grid;
   gap: 8px;
   padding: 12px;
-  border-top: 1px solid rgba(255,45,170,.18);
+  border-top: 1px solid rgba(214,168,79,.18);
   background: #071522;
 }
 
@@ -113,10 +113,10 @@
   box-sizing: border-box;
   min-height: 40px;
   padding: 8px 9px;
-  background: #081B2A;
-  border: 1px solid rgba(255,45,170,.18);
+  background: #071A29;
+  border: 1px solid rgba(214,168,79,.18);
   border-radius: 5px;
-  color: #FFFFFF;
+  color: #F7F1E7;
   font: inherit;
   font-size: 12px;
   outline: none;
@@ -130,8 +130,8 @@
 }
 
 .player-suggestion-box__form :where(input, select, textarea):focus {
-  border-color: #FF2DAA;
-  outline: 1px solid #FF2DAA;
+  border-color: #D6A84F;
+  outline: 1px solid #D6A84F;
   outline-offset: 1px;
 }
 

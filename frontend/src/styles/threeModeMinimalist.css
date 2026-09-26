@@ -1,7 +1,7 @@
 /*
  * Rookie Quest Keeper — one visual system, three deliberate layouts.
  *
- * Palette: navy background, sky blue secondary, hot pink lines, white text.
+ * Palette: deep navy, warm cream, antique gold, restrained blue accents.
  * Breakpoints come from deviceLayout.js:
  *   mobile  <= 719px
  *   tablet  720px - 1180px
@@ -14,8 +14,15 @@
 /* Important declarations in a layer outrank legacy unlayered !important rules,
  * even when a lazy-loaded tool mounts later. Include portal controls as well. */
 @layer rq-controls {
-  :where(#root, [role='dialog'], [role='alertdialog']) :where(h1, h2, h3, h4, h5, h6, p, span, label, small, strong, em, li, dt, dd, a, th, td, legend, summary) {
+  :where(#root, [role='dialog'], [role='alertdialog']) {
+    color: var(--rq-text-primary);
+  }
+  :where(#root, [role='dialog'], [role='alertdialog']) :where(h1, h2, h3, h4, h5, h6, strong) {
     color: var(--rq-text-primary) !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: none !important;
+  }
+  :where(#root, [role='dialog'], [role='alertdialog']) :where(p, span, label, small, em, li, dt, dd, a, th, td, legend, summary) {
     -webkit-text-fill-color: currentColor !important;
     text-shadow: none !important;
   }
@@ -65,40 +72,50 @@
 :root,
 html[data-theme='gm'],
 html[data-theme='player'] {
-  --rq-bg: #071522;
-  --rq-bg-main: #071522;
-  --rq-bg-deep: #06111C;
-  --rq-bg-rail: #06111C;
-  --rq-surface: #0C2234;
-  --rq-bg-panel: #0C2234;
-  --rq-card: #102B40;
-  --rq-bg-card: #102B40;
-  --rq-card-hover: #14344C;
-  --rq-bg-input: #081B2A;
-  --rq-button: #0C2234;
-  --rq-bg-button: #0C2234;
-  --rq-button-hover: #14344C;
+  --rq-bg: #0B1B2B;
+  --rq-bg-main: #0B1B2B;
+  --rq-bg-deep: #07131F;
+  --rq-bg-rail: #07131F;
+  --rq-surface: #1E2936;
+  --rq-bg-panel: #1E2936;
+  --rq-card: #263748;
+  --rq-bg-card: #263748;
+  --rq-card-hover: #334155;
+  --rq-bg-input: #101F2D;
+  --rq-button: #0E263A;
+  --rq-bg-button: #0E263A;
+  --rq-button-hover: #334155;
 
-  --rq-secondary: #7CCBFF;
-  --rq-secondary-soft: rgba(124, 203, 255, 0.10);
+  --rq-secondary: #6E91B4;
+  --rq-secondary-soft: rgba(110, 145, 180, 0.10);
+  --rq-secondary-border: rgba(121, 188, 232, 0.28);
 
-  --rq-primary: #FF2DAA;
-  --rq-primary-hover: #FF2DAA;
-  --rq-primary-soft: rgba(255, 45, 170, 0.08);
-  --rq-accent-primary: #FF2DAA;
-  --rq-accent-soft: rgba(255, 45, 170, 0.08);
+  --rq-primary: #C9A96B;
+  --rq-primary-hover: #D9BC82;
+  --rq-primary-soft: rgba(201, 169, 107, 0.12);
+  --rq-accent-primary: #C9A96B;
+  --rq-accent-hover: #D9BC82;
+  --rq-accent-soft: rgba(201, 169, 107, 0.12);
+  --rq-accent-border: rgba(201, 169, 107, 0.30);
 
-  --rq-text: #FFFFFF;
-  --rq-text-primary: #FFFFFF;
-  --rq-muted: #FFFFFF;
-  --rq-text-secondary: #FFFFFF;
-  --rq-text-muted: #FFFFFF;
-  --rq-faint: rgba(255, 255, 255, 0.52);
+  --rq-text: #EADFC8;
+  --rq-text-primary: #EADFC8;
+  --rq-muted: rgba(234, 223, 200, 0.78);
+  --rq-text-secondary: rgba(234, 223, 200, 0.78);
+  --rq-text-muted: rgba(234, 223, 200, 0.60);
+  --rq-faint: rgba(234, 223, 200, 0.46);
 
-  --rq-line: rgba(255, 45, 170, 0.18);
-  --rq-line-strong: rgba(255, 45, 170, 0.42);
-  --rq-border-default: rgba(255, 45, 170, 0.18);
-  --rq-border-strong: rgba(255, 45, 170, 0.42);
+  --rq-line: rgba(137, 157, 176, 0.14);
+  --rq-line-strong: rgba(201, 169, 107, 0.30);
+  --rq-border-default: rgba(137, 157, 176, 0.14);
+  --rq-border-strong: rgba(201, 169, 107, 0.30);
+
+  --rq-seal: #7F2D2D;
+  --rq-seal-soft: rgba(127, 45, 45, 0.14);
+  --rq-success: #5FA67A;
+  --rq-warning: #D39A43;
+  --rq-danger: #B94A4F;
+  --rq-info: #6E91B4;
 
   --rq-radius: 7px;
   --rq-inner-radius: 5px;
@@ -318,7 +335,7 @@ body {
 #root .rqk-app-rail-link.is-active {
   color: #fff !important;
   background: var(--rq-primary-soft) !important;
-  border-color: rgba(209, 31, 42, 0.42) !important;
+  border-color: rgba(214, 168, 79, 0.34) !important;
 }
 
 #root .rqk-app-rail-link.is-active::before {
@@ -381,7 +398,7 @@ body {
 #root .rqk-app-mobile-more-item.is-active,
 #root .rqk-app-mobile-more-item--rook {
   background: var(--rq-primary-soft) !important;
-  border-color: rgba(209, 31, 42, 0.42) !important;
+  border-color: rgba(214, 168, 79, 0.34) !important;
 }
 
 /* Common signed-in page wrappers. */
@@ -928,28 +945,33 @@ html[data-theme='player'] .character-page-v2.clean-sheet-page {
 
 
 /* -------------------------------------------------------------------------- */
-/* RQK 1.0 final visual authority: flat navy, white type, blue UI, pink lines */
+/* Final visual authority: navy structure, cream hierarchy, gold action, blue support */
 /* -------------------------------------------------------------------------- */
 
 html,
 body,
 #root,
 .App {
-  background-color: #071522 !important;
+  background-color: var(--rq-bg) !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary) !important;
 }
 
 #root * {
   text-shadow: none !important;
 }
 
-#root :where(
-  h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,
-  button,a,th,td,legend,summary,option
-) {
-  color: #FFFFFF !important;
+#root :where(h1,h2,h3,h4,h5,h6,strong) {
+  color: var(--rq-text-primary) !important;
   -webkit-text-fill-color: currentColor;
+}
+
+#root :where(p,span,label,small,em,b,i,li,dt,dd,a,th,td,legend,summary,option) {
+  -webkit-text-fill-color: currentColor;
+}
+
+#root :where(.muted,.helper-text,.meta,[class*='-meta'],[class*='__meta'],small) {
+  color: var(--rq-text-muted) !important;
 }
 
 #root :where(
@@ -973,7 +995,7 @@ body,
 }
 
 #root .rqk-auth-page {
-  background: #071522 !important;
+  background: var(--rq-bg) !important;
 }
 
 #root .rqk-auth-ambient {
@@ -994,9 +1016,9 @@ body,
   .library-page-hero,.library-page-toolbar,.library-page-empty,.library-card,
   .character-library-card,.campaign-library-card
 ) {
-  background-color: #0C2234 !important;
+  background-color: var(--rq-bg-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  border: 1px solid rgba(166,193,216,.14) !important;
   box-shadow: none !important;
 }
 
@@ -1008,25 +1030,25 @@ body,
   .character-library-card,
   .campaign-library-card
 ) {
-  background-color: #102B40 !important;
+  background-color: var(--rq-card) !important;
 }
 
 #root :where(input,textarea,select) {
-  background: #081B2A !important;
+  background: var(--rq-bg-input) !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.20) !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
+  border: 1px solid rgba(214,168,79,.22) !important;
+  color: var(--rq-text-primary) !important;
+  -webkit-text-fill-color: var(--rq-text-primary) !important;
   box-shadow: none !important;
 }
 
 #root :where(input,textarea)::placeholder {
-  color: rgba(255,255,255,.62) !important;
-  -webkit-text-fill-color: rgba(255,255,255,.62) !important;
+  color: rgba(247,241,231,.52) !important;
+  -webkit-text-fill-color: rgba(247,241,231,.52) !important;
 }
 
 #root :where(input,textarea,select,button,a,[role='button']):focus-visible {
-  outline: 1px solid #FF2DAA !important;
+  outline: 1px solid var(--rq-primary) !important;
   outline-offset: 2px !important;
   box-shadow: none !important;
 }
@@ -1035,10 +1057,10 @@ body,
   .btn-primary,.rq-button-primary,.dashboard-primary-button,
   .rqk-auth-primary,[data-rqk-primary='true']
 ) {
-  background: #0C2234 !important;
+  background: var(--rq-bg-panel) !important;
   background-image: none !important;
-  border: 1px solid #FF2DAA !important;
-  color: #FFFFFF !important;
+  border: 1px solid var(--rq-primary) !important;
+  color: var(--rq-text-primary) !important;
   box-shadow: none !important;
 }
 
@@ -1046,8 +1068,8 @@ body,
   .btn-primary,.rq-button-primary,.dashboard-primary-button,
   .rqk-auth-primary,[data-rqk-primary='true']
 ):hover {
-  background: #102B40 !important;
-  border-color: #FF2DAA !important;
+  background: var(--rq-card) !important;
+  border-color: var(--rq-primary) !important;
 }
 
 #root :where(
@@ -1055,9 +1077,9 @@ body,
   .tab.active,
   [aria-selected='true']
 ) {
-  background: rgba(124,203,255,.10) !important;
-  border-color: #FF2DAA !important;
-  color: #FFFFFF !important;
+  background: var(--rq-secondary-soft) !important;
+  border-color: var(--rq-primary) !important;
+  color: var(--rq-text-primary) !important;
 }
 
 #root :where(
@@ -1065,7 +1087,7 @@ body,
   .rqk-auth-feature-icon,
   .rqk-auth-preview-dot
 ) {
-  color: #7CCBFF !important;
+  color: var(--rq-secondary) !important;
 }
 
 #root :where(
@@ -1089,16 +1111,21 @@ body,
 }
 
 #root .character-page-v2 {
-  background: #071522 !important;
-  color: #FFFFFF !important;
+  background: var(--rq-bg) !important;
+  color: var(--rq-text-primary) !important;
 }
 
-#root .character-page-v2 :where(
-  h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,
-  button,a,th,td,legend,summary
-) {
-  color: #FFFFFF !important;
+#root .character-page-v2 :where(h1,h2,h3,h4,h5,h6,strong) {
+  color: var(--rq-text-primary) !important;
   -webkit-text-fill-color: currentColor !important;
+}
+
+#root .character-page-v2 :where(p,span,label,small,em,b,i,li,dt,dd,a,th,td,legend,summary) {
+  -webkit-text-fill-color: currentColor !important;
+}
+
+#root .character-page-v2 :where(.clean-sheet-muted,.clean-sheet-kicker,.clean-sheet-stat-label,small) {
+  color: var(--rq-text-muted) !important;
 }
 
 #root .character-page-v2 :where(
@@ -1119,8 +1146,8 @@ body,
   .clean-sheet-skill-card,
   .clean-sheet-save-card
 ) {
-  background-color: #0C2234 !important;
-  border-color: rgba(255,45,170,.18) !important;
+  background-color: var(--rq-bg-panel) !important;
+  border-color: rgba(166,193,216,.14) !important;
   box-shadow: none !important;
 }
 
@@ -1132,9 +1159,9 @@ body,
   textarea,
   select
 ) {
-  background-color: #102B40 !important;
-  color: #FFFFFF !important;
-  border-color: rgba(255,45,170,.18) !important;
+  background-color: var(--rq-card) !important;
+  color: var(--rq-text-primary) !important;
+  border-color: rgba(166,193,216,.14) !important;
   box-shadow: none !important;
 }
 
@@ -1146,9 +1173,9 @@ body,
   textarea,
   select
 ):focus-visible {
-  outline: 1px solid #FF2DAA !important;
+  outline: 1px solid var(--rq-primary) !important;
   outline-offset: 2px !important;
-  border-color: #FF2DAA !important;
+  border-color: var(--rq-primary) !important;
 }
 
 #root .character-page-v2 :where(
@@ -1158,11 +1185,11 @@ body,
   [aria-pressed='true']
 ) {
   background-color: rgba(124,203,255,.10) !important;
-  border-color: #FF2DAA !important;
+  border-color: var(--rq-primary) !important;
 }
 
 #root .character-page-v2 :where(svg, .icon, [data-icon]) {
-  color: #7CCBFF;
+  color: var(--rq-secondary);
 }
 
 #root .character-page-v2 :where(
@@ -1170,8 +1197,8 @@ body,
   .progress-bar,
   [role='progressbar']
 ) {
-  background-color: #102B40 !important;
-  border-color: rgba(255,45,170,.18) !important;
+  background-color: var(--rq-card) !important;
+  border-color: rgba(166,193,216,.14) !important;
 }
 
 #root .character-page-v2 :where(
@@ -1179,5 +1206,5 @@ body,
   .progress-bar-fill,
   [role='progressbar'] > *
 ) {
-  background-color: #7CCBFF !important;
+  background-color: var(--rq-secondary) !important;
 }

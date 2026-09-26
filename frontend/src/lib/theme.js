@@ -1,63 +1,64 @@
 /**
- * Rookie Quest Keeper 1.0 shared theme.
- * Flat deep navy surfaces, flat white type, light-blue secondary UI,
- * and neon-pink hairline accents. No gradients or glow effects.
+ * Rookie Quest Keeper shared presentation tokens.
+ * Deep navy surfaces, warm cream hierarchy, antique-gold actions and restrained
+ * blue support. Status colours keep semantic meaning instead of doubling as brand decoration.
  */
 
 export const theme = {
   bg: {
-    primary: 'var(--rq-bg-main, #071522)',
-    surface: 'var(--rq-bg-panel, #0C2234)',
-    elevated: 'var(--rq-card-hover, #14344C)',
-    deep: 'var(--rq-bg-rail, #06111C)',
-    panel: 'var(--rq-bg-panel, #0C2234)',
-    card: 'var(--rq-bg-panel-alt, #102B40)',
+    primary: 'var(--rq-bg-main, #0B1B2B)',
+    surface: 'var(--rq-bg-panel, #1E2936)',
+    elevated: 'var(--rq-card-hover, #334155)',
+    deep: 'var(--rq-bg-rail, #07131F)',
+    panel: 'var(--rq-bg-panel, #1E2936)',
+    card: 'var(--rq-bg-panel-alt, #263748)',
   },
   text: {
-    primary: '#FFFFFF',
-    secondary: '#FFFFFF',
-    muted: '#FFFFFF',
-    accent: '#FFFFFF',
+    primary: 'var(--rq-text-primary, #EADFC8)',
+    secondary: 'var(--rq-text-secondary, rgba(234,223,200,0.78))',
+    muted: 'var(--rq-text-muted, rgba(234,223,200,0.60))',
+    accent: 'var(--rq-accent-hover, #D9BC82)',
   },
   accent: {
-    primary: 'var(--rq-accent-primary, #FF2DAA)',
-    hover: 'var(--rq-accent-primary, #FF2DAA)',
-    soft: 'var(--rq-accent-soft, rgba(255,45,170,0.08))',
-    line: 'var(--rq-accent-border, rgba(255,45,170,0.28))',
-    secondary: 'var(--rq-secondary, #7CCBFF)',
-    highlight: 'var(--rq-secondary, #7CCBFF)',
-    pink: 'var(--rq-accent-primary, #FF2DAA)',
+    primary: 'var(--rq-accent-primary, #C9A96B)',
+    hover: 'var(--rq-accent-hover, #D9BC82)',
+    soft: 'var(--rq-accent-soft, rgba(201,169,107,0.12))',
+    line: 'var(--rq-accent-border, rgba(201,169,107,0.30))',
+    secondary: 'var(--rq-secondary, #6E91B4)',
+    highlight: 'var(--rq-secondary, #6E91B4)',
+    // Legacy property name retained for older components.
+    pink: 'var(--rq-accent-primary, #C9A96B)',
   },
-  border: 'var(--rq-border-default, rgba(255,45,170,0.18))',
-  borderActive: 'var(--rq-accent-primary, #FF2DAA)',
-  success: 'var(--rq-secondary, #7CCBFF)',
-  danger: 'var(--rq-accent-primary, #FF2DAA)',
-  warning: '#FFFFFF',
+  border: 'var(--rq-border-default, rgba(137,157,176,0.14))',
+  borderActive: 'var(--rq-accent-primary, #C9A96B)',
+  success: 'var(--rq-success, #5FA67A)',
+  danger: 'var(--rq-danger, #B94A4F)',
+  warning: 'var(--rq-warning, #D39A43)',
+  info: 'var(--rq-info, #6E91B4)',
 
-  // Compatibility aliases for older components. These deliberately resolve to
-  // flat RQK 1.0 colours so legacy lookups cannot restore the old palette.
+  // Compatibility aliases deliberately resolve to the current flat system.
   sunset: {
-    purple: 'var(--rq-secondary, #7CCBFF)',
-    pink: 'var(--rq-accent-primary, #FF2DAA)',
-    gold: 'var(--rq-secondary, #7CCBFF)',
+    purple: 'var(--rq-secondary, #6E91B4)',
+    pink: 'var(--rq-accent-primary, #C9A96B)',
+    gold: 'var(--rq-accent-primary, #C9A96B)',
   },
-  gradient: 'var(--rq-accent-primary, #FF2DAA)',
+  gradient: 'var(--rq-accent-primary, #C9A96B)',
   glow: 'none',
   player: {
-    primary: 'var(--rq-accent-primary, #FF2DAA)',
-    hover: 'var(--rq-secondary, #7CCBFF)',
-    secondary: 'var(--rq-secondary, #7CCBFF)',
+    primary: 'var(--rq-secondary, #6E91B4)',
+    hover: 'var(--rq-accent-hover, #D9BC82)',
+    secondary: 'var(--rq-secondary, #6E91B4)',
   },
   gm: {
-    primary: 'var(--rq-accent-primary, #FF2DAA)',
-    hover: 'var(--rq-secondary, #7CCBFF)',
-    secondary: 'var(--rq-secondary, #7CCBFF)',
+    primary: 'var(--rq-accent-primary, #C9A96B)',
+    hover: 'var(--rq-accent-hover, #D9BC82)',
+    secondary: 'var(--rq-secondary, #6E91B4)',
   },
 };
 
 export const panelStyle = {
   background: theme.bg.surface,
-  border: `1px solid ${theme.accent.line}`,
+  border: `1px solid ${theme.border}`,
   borderRadius: 7,
   padding: 16,
   boxShadow: 'none',
@@ -67,27 +68,27 @@ export const buttonStyle = {
   background: theme.bg.card,
   border: `1px solid ${theme.accent.primary}`,
   borderRadius: 5,
-  color: '#FFFFFF',
+  color: theme.text.primary,
   padding: '8px 14px',
   fontWeight: 800,
   cursor: 'pointer',
   boxShadow: 'none',
 };
 
-const BLUE = { tint: 'rgba(124,203,255,0.24)', icon: '#7CCBFF' };
-const PINK = { tint: 'rgba(255,45,170,0.22)', icon: '#FF2DAA' };
+const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#6E91B4' };
+const GOLD = { tint: 'rgba(201,169,107,0.18)', icon: '#C9A96B' };
 
 export const CLASS_ACCENTS = {
-  Barbarian: { ...PINK, label: 'Barbarian' },
+  Barbarian: { ...GOLD, label: 'Barbarian' },
   Bard:      { ...BLUE, label: 'Bard' },
   Cleric:    { ...BLUE, label: 'Cleric' },
   Druid:     { ...BLUE, label: 'Druid' },
-  Fighter:   { ...PINK, label: 'Fighter' },
+  Fighter:   { ...GOLD, label: 'Fighter' },
   Monk:      { ...BLUE, label: 'Monk' },
-  Paladin:   { ...PINK, label: 'Paladin' },
+  Paladin:   { ...GOLD, label: 'Paladin' },
   Ranger:    { ...BLUE, label: 'Ranger' },
-  Rogue:     { ...PINK, label: 'Rogue' },
-  Sorcerer:  { ...PINK, label: 'Sorcerer' },
+  Rogue:     { ...GOLD, label: 'Rogue' },
+  Sorcerer:  { ...GOLD, label: 'Sorcerer' },
   Warlock:   { ...BLUE, label: 'Warlock' },
   Wizard:    { ...BLUE, label: 'Wizard' },
 };

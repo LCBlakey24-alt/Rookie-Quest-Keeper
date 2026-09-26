@@ -7,22 +7,22 @@
 }
 
 #root .rqk-app-rail-rook {
-  border-color: rgba(255,45,170,.18) !important;
-  background: #102B40 !important;
+  border-color: rgba(214,168,79,.18) !important;
+  background: #112A40 !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #F7F1E7 !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-rail-rook svg {
-  color: #7CCBFF !important;
+  color: #79BCE8 !important;
   filter: none !important;
 }
 
 #root .rqk-app-rail-rook:hover,
 #root .rqk-app-rail-rook:focus-visible {
-  border-color: #FF2DAA !important;
-  background: #14344C !important;
+  border-color: #D6A84F !important;
+  background: #17364F !important;
 }
 
 @media (max-width: 719px) {
@@ -52,11 +52,11 @@
     overflow: auto !important;
     overscroll-behavior: contain !important;
     padding: 12px !important;
-    border: 1px solid rgba(255,45,170,.32) !important;
+    border: 1px solid rgba(214,168,79,.32) !important;
     border-radius: 9px !important;
     background: #0C2234 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
   }
@@ -82,7 +82,7 @@
   }
 
   #root .rqk-app-mobile-more-heading strong {
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
     font-size: 1rem !important;
     font-weight: 900 !important;
@@ -92,7 +92,7 @@
   }
 
   #root .rqk-app-mobile-more-heading span {
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     font-size: .76rem !important;
     line-height: 1.4 !important;
   }
@@ -104,17 +104,17 @@
     display: grid !important;
     place-items: center !important;
     padding: 0 !important;
-    border: 1px solid rgba(255,45,170,.22) !important;
+    border: 1px solid rgba(214,168,79,.22) !important;
     border-radius: 5px !important;
-    background: #102B40 !important;
-    color: #FFFFFF !important;
+    background: #112A40 !important;
+    color: #F7F1E7 !important;
     box-shadow: none !important;
   }
 
   #root .rqk-app-mobile-more-close:hover,
   #root .rqk-app-mobile-more-close:focus-visible {
-    border-color: #FF2DAA !important;
-    background: #14344C !important;
+    border-color: #D6A84F !important;
+    background: #17364F !important;
     outline: none !important;
   }
 
@@ -132,11 +132,11 @@
     align-items: center !important;
     gap: 9px !important;
     padding: 9px 10px !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 7px !important;
-    background: #102B40 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     text-align: left !important;
     text-decoration: none !important;
     font: inherit !important;
@@ -154,7 +154,7 @@
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
-    color: #7CCBFF !important;
+    color: #79BCE8 !important;
     box-sizing: content-box !important;
     filter: none !important;
   }
@@ -162,33 +162,33 @@
   #root .rqk-app-mobile-more-item span {
     min-width: 0 !important;
     overflow: hidden !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
   #root .rqk-app-mobile-more-item:hover,
   #root .rqk-app-mobile-more-item:focus-visible {
-    background: #14344C !important;
-    border-color: rgba(255,45,170,.42) !important;
+    background: #17364F !important;
+    border-color: rgba(214,168,79,.42) !important;
     outline: none !important;
     transform: none !important;
   }
 
   #root .rqk-app-mobile-more-item.is-active {
-    background: rgba(124,203,255,.10) !important;
-    border-color: #FF2DAA !important;
+    background: rgba(121,188,232,.10) !important;
+    border-color: #D6A84F !important;
   }
 
   #root .rqk-app-mobile-more-item--rook {
     grid-column: 1 / -1 !important;
     min-height: 56px !important;
-    background: #102B40 !important;
-    border-color: #FF2DAA !important;
+    background: #112A40 !important;
+    border-color: #D6A84F !important;
   }
 
   #root .rqk-app-mobile-more-item--rook svg {
-    color: #7CCBFF !important;
+    color: #79BCE8 !important;
   }
 
   #root .rqk-app-rail-link.is-active::before {

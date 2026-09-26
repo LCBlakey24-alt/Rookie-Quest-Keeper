@@ -6,7 +6,7 @@ function read(relativePath) {
 }
 
 describe('Clean Character Sheet presentation ownership', () => {
-  test('direct live-sheet presentation files use the RQK 1.0 palette and no retired sunset palette', () => {
+  test('direct live-sheet presentation files use the professional Keeper palette and no retired sunset palette', () => {
     const files = [
       '../components/clean-sheet/CleanCharacterSheetPolish.css',
       '../components/clean-sheet/CleanSheetListPolish.css',
@@ -20,9 +20,9 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(css).not.toMatch(/Cinzel/i);
     expect(css).not.toMatch(/#d00000|rgba\(208\s*,\s*0\s*,\s*0/i);
     expect(css).toContain('#071522');
-    expect(css).toContain('#7CCBFF');
-    expect(css).toContain('#FF2DAA');
-    expect(css).toContain('#FFFFFF');
+    expect(css).toContain('#79BCE8');
+    expect(css).toContain('#D6A84F');
+    expect(css).toContain('#F7F1E7');
   });
 
   test('late-loaded live character styles cannot restore gradients or sunset colours', () => {
@@ -55,9 +55,9 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#190728|#150721|#12051c/i);
     expect(css).toContain('#071522');
-    expect(css).toContain('#7CCBFF');
-    expect(css).toContain('#FF2DAA');
-    expect(css).toContain('#FFFFFF');
+    expect(css).toContain('#79BCE8');
+    expect(css).toContain('#D6A84F');
+    expect(css).toContain('#F7F1E7');
   });
 
   test('historical mobile import delegates to the explicit mobile lane', () => {

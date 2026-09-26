@@ -6,7 +6,7 @@ function read(relativePath) {
 }
 
 describe('Player feedback presentation ownership', () => {
-  test('global player feedback uses the flat RQK 1.0 palette', () => {
+  test('global player feedback uses the professional Keeper palette', () => {
     const css = read('globalFeedbackPlayer.css');
     const component = read('../components/GlobalFeedbackButton.js');
 
@@ -14,9 +14,9 @@ describe('Player feedback presentation ownership', () => {
     expect(css).not.toMatch(/rq-sunset-gradient|linear-gradient|radial-gradient|conic-gradient|Cinzel/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#d00000/i);
     expect(css).toContain('#071522');
-    expect(css).toContain('#102B40');
-    expect(css).toContain('#7CCBFF');
-    expect(css).toContain('#FF2DAA');
+    expect(css).toContain('#112A40');
+    expect(css).toContain('#79BCE8');
+    expect(css).toContain('#D6A84F');
     expect(css).toContain("[data-testid='global-feedback-modal'][data-testid]");
     expect(css).toContain("[data-testid='global-feedback-btn'][data-testid]");
   });
