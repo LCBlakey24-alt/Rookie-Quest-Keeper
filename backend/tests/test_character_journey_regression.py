@@ -6,12 +6,21 @@ They run in normal CI and protect the rules paths exercised by the browser smoke
 
 import os
 import sys
+import types
 import unittest
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
+
+# Import only the progression modules under test. The normal routes package
+# initializer registers the entire API surface and therefore imports optional
+# AI/email integrations that are unrelated to these pure regression tests.
+if "routes" not in sys.modules:
+    routes_package = types.ModuleType("routes")
+    routes_package.__path__ = [str(BACKEND_DIR / "routes")]
+    sys.modules["routes"] = routes_package
 
 os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
 os.environ.setdefault("DB_NAME", "rookie_quest_keeper_test")
