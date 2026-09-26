@@ -1,29 +1,28 @@
 /* Keeper landing page visual hierarchy.
-   Keep the shared flat navy / sky-blue / hot-pink identity, but avoid
+   Keep the shared deep-navy / antique-gold / cream identity with restrained blue support, but avoid
    making every text tier and divider equally bright. */
 #root .landing-page-final.keeper-product-site {
-  --landing-bg: #040d16;
-  --landing-bg-deep: #020810;
-  --landing-surface: #091a29;
-  --landing-card: #0d2436;
-  --landing-card-hover: #123149;
+  --landing-bg: #050E18;
+  --landing-bg-deep: #030912;
+  --landing-surface: #0B1C2C;
+  --landing-card: #112A40;
+  --landing-card-hover: #17364F;
 
-  /* Pink stays a deliberate action/focus accent instead of filling the page. */
-  --landing-line: rgba(255, 45, 170, 0.10);
-  --landing-line-strong: rgba(255, 45, 170, 0.30);
-  --landing-red: #ff2daa;
-  --landing-red-bright: #ff4db6;
-  --landing-red-soft: rgba(255, 45, 170, 0.045);
+  /* Gold is the brand/action accent. Neutral lines keep the page calm. */
+  --landing-line: rgba(166, 193, 216, 0.14);
+  --landing-line-strong: rgba(214, 168, 79, 0.30);
+  --landing-red: #D6A84F; /* legacy variable name retained for existing selectors */
+  --landing-red-bright: #E8C56E;
+  --landing-red-soft: rgba(214, 168, 79, 0.10);
 
-  /* Supporting emphasis uses Keeper sky blue. */
-  --landing-secondary: #7ccbff;
-  --landing-secondary-soft: rgba(124, 203, 255, 0.08);
-  --landing-secondary-line: rgba(124, 203, 255, 0.20);
+  /* Blue is supporting information/focus colour, not the main CTA colour. */
+  --landing-secondary: #79BCE8;
+  --landing-secondary-soft: rgba(121, 188, 232, 0.08);
+  --landing-secondary-line: rgba(121, 188, 232, 0.22);
 
-  /* Restore hierarchy: not every line of copy should be full white. */
-  --landing-text: #f8fbff;
-  --landing-muted: rgba(238, 246, 252, 0.76);
-  --landing-faint: rgba(238, 246, 252, 0.60);
+  --landing-text: #F7F1E7;
+  --landing-muted: rgba(247, 241, 231, 0.78);
+  --landing-faint: rgba(247, 241, 231, 0.58);
 
   background: var(--landing-bg) !important;
   color: var(--landing-text) !important;
@@ -88,7 +87,7 @@
   background-image: none !important;
 }
 
-/* Sky blue carries supporting visual emphasis; pink stays for key actions. */
+/* Blue carries supporting visual emphasis; gold stays for key actions. */
 #root .keeper-product-site .landing-final-feature svg,
 #root .keeper-product-site .landing-benefit-card svg,
 #root .keeper-product-site .landing-two-columns svg,
@@ -118,7 +117,7 @@
 #root .keeper-product-site .landing-button-ghost:hover:not(:disabled),
 #root .keeper-product-site .landing-card-action:hover:not(:disabled) {
   background: var(--landing-card-hover) !important;
-  border-color: rgba(124, 203, 255, 0.34) !important;
+  border-color: rgba(121, 188, 232, 0.38) !important;
 }
 
 .keeper-product-site .landing-button {
