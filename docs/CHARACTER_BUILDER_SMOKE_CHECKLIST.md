@@ -1,3 +1,20 @@
+# Character Builder Smoke Checklist
+
+## Automated regression gate
+
+Normal pull-request CI runs the deterministic Fighter/Wizard progression regression plus the creator presentation tests.
+
+For the real browser journey, use an isolated E2E account supplied through environment variables; never commit credentials:
+
+```bash
+cd tests
+yarn install --non-interactive
+yarn install:browsers
+RQK_E2E_EMAIL="..." RQK_E2E_PASSWORD="..." REACT_APP_BACKEND_URL="http://localhost:3000" yarn test:character-journey
+```
+
+The focused browser suite creates and then deletes its own Fighter/Wizard test characters and checks phone (390×844) and tablet (834×1112) layouts for document-level horizontal overflow.
+
 # Character Builder + Sheet Smoke Checklist
 
 Use this checklist after changes to the full character creator, starting-level supervisor, level-up choice bridge, spell setup, or clean character sheet.
