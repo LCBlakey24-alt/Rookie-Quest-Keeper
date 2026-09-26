@@ -6,53 +6,53 @@
 
 export const theme = {
   bg: {
-    primary: 'var(--rq-bg-main, #071522)',
-    surface: 'var(--rq-bg-panel, #0C2234)',
-    elevated: 'var(--rq-card-hover, #17364F)',
-    deep: 'var(--rq-bg-rail, #050E18)',
-    panel: 'var(--rq-bg-panel, #0C2234)',
-    card: 'var(--rq-bg-panel-alt, #112A40)',
+    primary: 'var(--rq-bg-main, #0B1B2B)',
+    surface: 'var(--rq-bg-panel, #1E2936)',
+    elevated: 'var(--rq-card-hover, #334155)',
+    deep: 'var(--rq-bg-rail, #07131F)',
+    panel: 'var(--rq-bg-panel, #1E2936)',
+    card: 'var(--rq-bg-panel-alt, #263748)',
   },
   text: {
-    primary: 'var(--rq-text-primary, #F7F1E7)',
-    secondary: 'var(--rq-text-secondary, rgba(247,241,231,0.78))',
-    muted: 'var(--rq-text-muted, rgba(247,241,231,0.60))',
-    accent: 'var(--rq-accent-hover, #E8C56E)',
+    primary: 'var(--rq-text-primary, #EADFC8)',
+    secondary: 'var(--rq-text-secondary, rgba(234,223,200,0.78))',
+    muted: 'var(--rq-text-muted, rgba(234,223,200,0.60))',
+    accent: 'var(--rq-accent-hover, #D9BC82)',
   },
   accent: {
-    primary: 'var(--rq-accent-primary, #D6A84F)',
-    hover: 'var(--rq-accent-hover, #E8C56E)',
-    soft: 'var(--rq-accent-soft, rgba(214,168,79,0.12))',
-    line: 'var(--rq-accent-border, rgba(214,168,79,0.30))',
-    secondary: 'var(--rq-secondary, #79BCE8)',
-    highlight: 'var(--rq-secondary, #79BCE8)',
+    primary: 'var(--rq-accent-primary, #C9A96B)',
+    hover: 'var(--rq-accent-hover, #D9BC82)',
+    soft: 'var(--rq-accent-soft, rgba(201,169,107,0.12))',
+    line: 'var(--rq-accent-border, rgba(201,169,107,0.30))',
+    secondary: 'var(--rq-secondary, #6E91B4)',
+    highlight: 'var(--rq-secondary, #6E91B4)',
     // Legacy property name retained for older components.
-    pink: 'var(--rq-accent-primary, #D6A84F)',
+    pink: 'var(--rq-accent-primary, #C9A96B)',
   },
-  border: 'var(--rq-border-default, rgba(166,193,216,0.14))',
-  borderActive: 'var(--rq-accent-primary, #D6A84F)',
-  success: 'var(--rq-success, #59B982)',
-  danger: 'var(--rq-danger, #D85C61)',
-  warning: 'var(--rq-warning, #E3A746)',
-  info: 'var(--rq-info, #79BCE8)',
+  border: 'var(--rq-border-default, rgba(137,157,176,0.14))',
+  borderActive: 'var(--rq-accent-primary, #C9A96B)',
+  success: 'var(--rq-success, #5FA67A)',
+  danger: 'var(--rq-danger, #B94A4F)',
+  warning: 'var(--rq-warning, #D39A43)',
+  info: 'var(--rq-info, #6E91B4)',
 
   // Compatibility aliases deliberately resolve to the current flat system.
   sunset: {
-    purple: 'var(--rq-secondary, #79BCE8)',
-    pink: 'var(--rq-accent-primary, #D6A84F)',
-    gold: 'var(--rq-accent-primary, #D6A84F)',
+    purple: 'var(--rq-secondary, #6E91B4)',
+    pink: 'var(--rq-accent-primary, #C9A96B)',
+    gold: 'var(--rq-accent-primary, #C9A96B)',
   },
-  gradient: 'var(--rq-accent-primary, #D6A84F)',
+  gradient: 'var(--rq-accent-primary, #C9A96B)',
   glow: 'none',
   player: {
-    primary: 'var(--rq-secondary, #79BCE8)',
-    hover: 'var(--rq-accent-hover, #E8C56E)',
-    secondary: 'var(--rq-secondary, #79BCE8)',
+    primary: 'var(--rq-secondary, #6E91B4)',
+    hover: 'var(--rq-accent-hover, #D9BC82)',
+    secondary: 'var(--rq-secondary, #6E91B4)',
   },
   gm: {
-    primary: 'var(--rq-accent-primary, #D6A84F)',
-    hover: 'var(--rq-accent-hover, #E8C56E)',
-    secondary: 'var(--rq-secondary, #79BCE8)',
+    primary: 'var(--rq-accent-primary, #C9A96B)',
+    hover: 'var(--rq-accent-hover, #D9BC82)',
+    secondary: 'var(--rq-secondary, #6E91B4)',
   },
 };
 
@@ -75,8 +75,8 @@ export const buttonStyle = {
   boxShadow: 'none',
 };
 
-const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#79BCE8' };
-const GOLD = { tint: 'rgba(214,168,79,0.18)', icon: '#D6A84F' };
+const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#6E91B4' };
+const GOLD = { tint: 'rgba(214,168,79,0.18)', icon: '#C9A96B' };
 
 export const CLASS_ACCENTS = {
   Barbarian: { ...GOLD, label: 'Barbarian' },
