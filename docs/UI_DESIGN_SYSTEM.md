@@ -6,16 +6,16 @@ This document is the visual lock for Rookie Quest Keeper.
 
 RQK uses one calm, premium interface across landing, auth, player, GM and utility routes:
 
-- **Deep navy canvas:** `#071522`
-- **Deep rail:** `#050E18`
-- **Panel navy:** `#0C2234`
-- **Card/control navy:** `#112A40`
-- **Hover navy:** `#17364F`
-- **Warm cream primary text:** `#F7F1E7`
-- **Muted cream secondary text:** `rgba(247,241,231,0.78)`
-- **Antique gold primary accent:** `#D6A84F`
-- **Gold hover/highlight:** `#E8C56E`
-- **Supporting blue:** `#79BCE8`
+- **Deep navy canvas:** `#0B1B2B`
+- **Deep rail:** `#07131F`
+- **Panel navy:** `#1E2936`
+- **Card/control navy:** `#263748`
+- **Hover navy:** `#334155`
+- **Warm cream primary text:** `#EADFC8`
+- **Muted cream secondary text:** `rgba(234,223,200,0.78)`
+- **Antique gold primary accent:** `#C9A96B`
+- **Gold hover/highlight:** `#D9BC82`
+- **Supporting blue:** `#6E91B4`
 
 There are no decorative gradients, neon theme colours or glow-heavy surfaces in the normal product UI.
 
@@ -23,21 +23,21 @@ There are no decorative gradients, neon theme colours or glow-heavy surfaces in 
 
 | Role | Colour | Rule |
 | --- | --- | --- |
-| App canvas | `#071522` | Default page background |
-| Deep rail | `#050E18` | Navigation / deepest chrome |
-| Panel | `#0C2234` | Main grouped surfaces |
-| Card/control | `#112A40` | Cards, buttons, inputs |
-| Hover | `#17364F` | Hover/raised interactive state |
-| Primary text | `#F7F1E7` | Headings, controls, key values |
-| Secondary text | `rgba(247,241,231,0.78)` | Body copy |
-| Muted text | `rgba(247,241,231,0.60)` | Metadata/helper copy |
-| Brand action | `#D6A84F` | Primary borders, active markers, CTA emphasis |
-| Supporting UI | `#79BCE8` | Icons, information, progress, keyboard focus |
-| Neutral hairline | `rgba(166,193,216,0.14)` | Default structural border |
-| Strong line | `rgba(214,168,79,0.30)` | Active/focus border |
-| Success | `#59B982` | Success only |
-| Warning | `#E3A746` | Warning only |
-| Danger | `#D85C61` | Destructive/error only |
+| App canvas | `#0B1B2B` | Default page background |
+| Deep rail | `#07131F` | Navigation / deepest chrome |
+| Panel | `#1E2936` | Main grouped surfaces |
+| Card/control | `#263748` | Cards, buttons, inputs |
+| Hover | `#334155` | Hover/raised interactive state |
+| Primary text | `#EADFC8` | Headings, controls, key values |
+| Secondary text | `rgba(234,223,200,0.78)` | Body copy |
+| Muted text | `rgba(234,223,200,0.60)` | Metadata/helper copy |
+| Brand action | `#C9A96B` | Primary borders, active markers, CTA emphasis |
+| Supporting UI | `#6E91B4` | Icons, information, progress, keyboard focus |
+| Neutral hairline | `rgba(137,157,176,0.14)` | Default structural border |
+| Strong line | `rgba(201,169,107,0.30)` | Active/focus border |
+| Success | `#5FA67A` | Success only |
+| Warning | `#D39A43` | Warning only |
+| Danger | `#B94A4F` | Destructive/error only |
 
 ## Global rules
 
@@ -80,8 +80,8 @@ Desktop gets more space, not more features.
 
 ## Cards and panels
 
-- Panel background: `#0C2234`.
-- Card background: `#112A40`.
+- Panel background: `#1E2936`.
+- Card background: `#263748`.
 - Default border: neutral blue-grey hairline.
 - Active border: antique gold.
 - Shadow: normally none.
@@ -89,7 +89,7 @@ Desktop gets more space, not more features.
 
 ## Inputs
 
-- Background: `#071A29`.
+- Background: `#101F2D`.
 - Text: warm cream.
 - Placeholder/helper copy: muted cream.
 - Default border: neutral hairline.
