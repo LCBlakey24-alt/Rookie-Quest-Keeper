@@ -145,28 +145,28 @@ Three equal action panels:
    - Remaining hit dice count in the middle
    - Short Rest button at the bottom
 
-## Colour direction: Blue Eclipse
+## Colour direction: Professional Keeper
 
-Move away from the heavy brown parchment look.
+Move away from parchment, neon and competing route themes.
 
 Recommended palette:
 
-- Page background: deep navy / black-purple
-- Main cards: dark blue-purple
-- Secondary panels: muted blue-grey
-- Text: warm ivory / cream
-- Primary accent: antique gold
-- Magical accent: blue-violet glow
-- HP: red to orange to gold to green gradient
-- Temporary HP: brighter gold
+- Page background: deep navy
+- Main panels: structured navy
+- Cards/controls: slightly lighter navy
+- Text: warm ivory / cream with clear secondary and muted tiers
+- Primary brand/action accent: antique gold
+- Supporting information/focus accent: restrained blue
+- HP/status colours: semantic and local to status widgets
+- Temporary HP: gold where it helps distinguish temporary health
 
 Theme intent:
 
-- Magical
 - Premium
 - Readable
-- Less tavern/parchment
-- More arcane dashboard
+- Calm under live-play pressure
+- Consistent across mobile, tablet and desktop
+- Fantasy-flavoured without decorative clutter
 
 ## Development rules
 
