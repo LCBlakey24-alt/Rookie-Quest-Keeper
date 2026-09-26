@@ -15,7 +15,7 @@ Core user goals:
 - Players can open and use character sheets at the table.
 - GMs can build a campaign library, prepare encounters, and run Live Play.
 - The app should feel polished, compact, clear, and beginner-friendly.
-- The visual direction is flat dark navy, sky blue secondary colour, hot pink thin lines and accents, and white text. No gradients.
+- The visual direction is **Guild Ledger**: ink/deep navy structure, slate surfaces, warm parchment/cream text hierarchy, antique brass/gold for brand and primary-action emphasis, restrained ledger blue for information/focus support, and wine-seal red only for small brand or semantic accents.
 
 ## Product principles
 
@@ -81,15 +81,16 @@ Do not create placeholder/probe files in the repository. Delete accidental files
 
 Use the current Rookie Quest direction:
 
-- Dark navy backgrounds.
-- Sky blue secondary colour and hot pink thin lines and accents.
-- White text.
-- White secondary text.
-- Sharp/minimal cards.
+- Ink/deep navy backgrounds with slate/ledger-grey surfaces.
+- Warm parchment/cream primary text with a clear muted hierarchy.
+- Antique brass/gold for brand, primary actions, selected states and restrained dividers.
+- Ledger blue for information and focus support.
+- Wine-seal red only for small brand moments or semantic states; never as the default UI accent.
+- Restrained ledger linework and wax-seal cues; no decorative glow-heavy chrome.
 - Compact information density without tiny touch targets.
 - Responsive phone/tablet/desktop layouts.
 
-Avoid reintroducing the old purple/pink/orange sunset, blue/gold, Twilight, Velvet, or similar legacy visual skins as global product themes.
+Avoid reintroducing neon pink, broad Rookie-red, purple/pink/orange Sunset or Twilight themes, route-wide parchment/leather skins, or any competing global visual system.
 
 Preferred feel:
 
