@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ChevronRight, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
@@ -62,6 +62,7 @@ async function fetchCampaignLibrary() {
 
 export default function MyCampaignsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,6 +71,11 @@ export default function MyCampaignsPage() {
   const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [deletingId, setDeletingId] = useState('');
+
+  useEffect(() => {
+    if (searchParams.get('create') === '1') setShowCreateCampaign(true);
+  }, [searchParams]);
+
 
   const sortedCampaigns = useMemo(() => [...campaigns].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
@@ -111,7 +117,13 @@ export default function MyCampaignsPage() {
   };
 
   const closeCreateCampaign = () => {
-    if (!creatingCampaign) setShowCreateCampaign(false);
+    if (creatingCampaign) return;
+    setShowCreateCampaign(false);
+    if (searchParams.get('create') === '1') {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('create');
+      setSearchParams(nextParams, { replace: true });
+    }
   };
 
   const handleCreateCampaign = async (event) => {
