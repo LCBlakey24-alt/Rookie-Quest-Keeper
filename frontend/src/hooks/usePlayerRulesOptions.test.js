@@ -115,6 +115,8 @@ describe('uploaded character rule option normalization', () => {
       start_level: 1,
       cantrips_level_1: 2,
       spells_level_1: 3,
+      cantrips_by_level: { 1: 2, 4: 3 },
+      spells_by_level: { 1: 3, 2: 4, 3: 5 },
     };
 
     expect(normaliseClassOption({ spellcasting }).spellcasting).toEqual(spellcasting);
