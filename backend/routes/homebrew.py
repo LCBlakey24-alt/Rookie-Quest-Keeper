@@ -114,7 +114,7 @@ SCHEMA_HINTS = {
         "equipment": "[string]",
         "features": "[{level: int 1-20, name, description, rules_text, resources, actions, passive_effects}]",
         "subclass_unlock_levels": "[int] — levels where subclass features are gained",
-        "spellcasting": "optional object e.g. {ability: intelligence, type: known|prepared|spellbook, progression: full|half|third|pact, start_level: 1, cantrips_level_1: 2, spells_level_1: 2, ritual: false}",
+        "spellcasting": "optional object e.g. {ability: intelligence, type: known|prepared|spellbook, progression: full|half|third|pact, start_level: 1, cantrips_level_1: 2, spells_level_1: 2, cantrips_known_table: {1: 2, 4: 3}, spells_known_table: {1: 2, 2: 3}, spellbook_spells_table: {}, prepared_spells_table: {}, ritual: false}. Progression tables are cumulative counts by class level; provide only the table matching the casting type and do not omit later values if the class should gain spells later.",
         **ADVANCED_MECHANIC_HINTS,
     },
     "subclass": {
