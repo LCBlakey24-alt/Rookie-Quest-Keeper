@@ -364,7 +364,8 @@ def _apply_prepared_spell_changes(
         before_capacity = prepared_spell_capacity(canonical_class, before_level, edition)
         after_capacity = prepared_spell_capacity(canonical_class, after_level, edition)
 
-    if edition == "2024" and after_capacity > 0:
+    enforce_prepared_capacity = edition == "2024" or homebrew_spell_selection_mode(existing, canonical_class) == "prepared"
+    if enforce_prepared_capacity and after_capacity > 0:
         available_room = max(0, after_capacity - len(result))
         if len(growth) > available_room:
             raise HTTPException(
@@ -376,7 +377,7 @@ def _apply_prepared_spell_changes(
             )
 
     result = _merge_unique_spells(result, growth)
-    if edition == "2024" and after_capacity > 0 and len(result) > after_capacity:
+    if enforce_prepared_capacity and after_capacity > 0 and len(result) > after_capacity:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Prepared spell list exceeds {canonical_class}'s capacity of {after_capacity}.",
@@ -421,7 +422,7 @@ def route_level_up_spell_choices(
         if any(_replacement_name(spell) for spell in additions):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Wizard level-up spellbook additions cannot use prepared-spell replacement markers.",
+                detail=f"{canonical_class} spellbook additions cannot use prepared-spell replacement markers.",
             )
         update.pop("spells_known", None)
         clean_additions = [_strip_replacement_metadata(spell, canonical_class) for spell in additions]
