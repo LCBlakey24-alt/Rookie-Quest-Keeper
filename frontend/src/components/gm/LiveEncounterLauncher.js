@@ -83,7 +83,7 @@ function npcToCombatant(npc) {
     initiativeMod: numberOr(npc.initiativeMod, dexMod(npc)),
     conditions: [], description: npc.description || npc.notes || '',
     actions: npc.actions || npc.attacks || [], reactions: npc.reactions || [], bonus_actions: npc.bonus_actions || [],
-    tokenColor: '#FF2DAA', tokenSize: 40,
+    tokenColor: '#D6A84F', tokenSize: 40,
   };
 }
 
@@ -211,7 +211,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
     const created = Array.from({ length: quantity }, (_, index) => ({
       id: `quick-${stamp}-${index}`,
       name: quantity === 1 ? name : `${name} ${index + 1}`,
-      type: 'enemy', hp, maxHp: hp, ac, initiativeMod, conditions: [], tokenColor: '#FF2DAA', tokenSize: 40, temporary: true,
+      type: 'enemy', hp, maxHp: hp, ac, initiativeMod, conditions: [], tokenColor: '#D6A84F', tokenSize: 40, temporary: true,
     }));
     setQuickCombatants(prev => [...prev, ...created]);
     setQuickDraft(prev => ({ ...EMPTY_QUICK, hp: prev.hp, ac: prev.ac, initiative: prev.initiative }));
@@ -357,13 +357,13 @@ const quickFormStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,
 const inputStyle = { minHeight: 34, minWidth: 0, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 7px', fontSize: 10 };
 const numberFieldStyle = { display: 'grid', gap: 2, color: rq.muted, fontSize: 7, fontWeight: 900, textTransform: 'uppercase' };
 const numberInputStyle = { width: '100%', minWidth: 0, minHeight: 34, boxSizing: 'border-box', background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 5px', fontSize: 10 };
-const addButtonStyle = { minHeight: 34, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', fontSize: 9, fontWeight: 950 };
+const addButtonStyle = { minHeight: 34, border: `1px solid ${rq.pink}`, background: rq.card, color: '#F7F1E7', padding: '0 8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', fontSize: 9, fontWeight: 950 };
 const quickRowStyle = { minHeight: 39, background: rq.bg, border: `1px solid ${rq.line}`, padding: '4px 5px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 28px', alignItems: 'center', gap: 4 };
 const removeStyle = { width: 27, height: 27, border: 0, background: rq.card, color: rq.muted, display: 'grid', placeItems: 'center', cursor: 'pointer' };
 const searchStyle = { minHeight: 34, display: 'flex', alignItems: 'center', gap: 5, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.muted, padding: '0 7px' };
 const searchInputStyle = { minWidth: 0, flex: 1, minHeight: 32, border: 0, outline: 0, background: 'transparent', color: rq.text, fontSize: 10 };
 const footerStyle = { position: 'sticky', bottom: 0, zIndex: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 7, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, padding: 7 };
 const footerTextStyle = { color: rq.muted, fontSize: 8 };
-const launchButtonStyle = { minHeight: 36, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: 950, fontSize: 10 };
+const launchButtonStyle = { minHeight: 36, border: `1px solid ${rq.pink}`, background: rq.card, color: '#F7F1E7', padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: 950, fontSize: 10 };
 const mutedStyle = { color: rq.muted, fontSize: 9, padding: 3 };
 const emptyStyle = { minHeight: 130, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, textAlign: 'center', padding: 16, fontSize: 10 };
