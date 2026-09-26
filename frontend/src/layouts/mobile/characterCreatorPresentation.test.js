@@ -23,6 +23,14 @@ describe('mobile character creator presentation', () => {
     expect(css).toContain('width: 100%');
   });
 
+  test('keeps step state labels readable and primary touch targets at least 44px', () => {
+    expect(css).toContain("min-height: 44px");
+    expect(css).toContain("min-height: 58px !important");
+    expect(css).toContain(".full-creator-step-state");
+    expect(css).toContain("font-size: .66rem !important");
+    expect(css).not.toMatch(/255\s*,\s*45\s*,\s*170|#FF2DAA/i);
+  });
+
   test('keeps the first mobile screen compact and navigation anchored', () => {
     expect(css).toContain('.full-creator-progress-card > p');
     expect(css).toContain('display: none');

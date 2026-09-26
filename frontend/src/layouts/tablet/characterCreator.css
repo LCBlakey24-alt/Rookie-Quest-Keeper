@@ -11,7 +11,7 @@
 
 [data-rq-device='tablet'] .full-creator-workspace .full-creator-steps button {
   min-height: 54px !important;
-  font-size: .66rem !important;
+  font-size: .74rem !important;
 }
 
 [data-rq-device='tablet'] .full-creator-workspace .full-creator-layout {
@@ -26,4 +26,13 @@
 [data-rq-device='tablet'] .full-creator-score-editor,
 [data-rq-device='tablet'] .full-creator-review-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+[data-rq-device='tablet'] .full-creator-step-state {
+  font-size: .66rem !important;
+}
+
+[data-rq-device='tablet'] .full-creator-header button,
+[data-rq-device='tablet'] .full-creator-footer button {
+  min-height: 44px;
 }

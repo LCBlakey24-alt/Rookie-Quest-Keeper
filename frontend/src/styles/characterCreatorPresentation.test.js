@@ -26,6 +26,22 @@ describe('Character Creator presentation ownership', () => {
     expect(css).not.toMatch(/Cinzel/i);
   });
 
+  test('creator uses explicit Guild Ledger accent and journey state language', () => {
+    const base = read('../components/FullCharacterCreatorV2.css');
+    const flow = read('../components/FullCharacterCreatorFlow.css');
+    const mobile = read('../layouts/mobile/characterCreator.css');
+    const component = read('../components/FullCharacterCreatorV2.js');
+    const css = `${base}\n${flow}\n${mobile}`;
+
+    expect(base).toContain('--rqk-creator-accent: var(--rq-primary, #C9A96B)');
+    expect(css).not.toContain('--rqk-creator-pink');
+    expect(css).not.toMatch(/255\s*,\s*45\s*,\s*170|#FF2DAA/i);
+    expect(component).toContain('Draft saves automatically on this device.');
+    expect(component).toContain("const stateLabel = isCurrent ? 'Current' : isComplete ? 'Done' : 'To do';");
+    expect(component).toContain("aria-current={isCurrent ? 'step' : undefined}");
+    expect(flow).toContain('.full-creator-step-state');
+  });
+
   test('creator base imports explicit tablet and mobile layout lanes', () => {
     const base = read('../components/FullCharacterCreatorV2.css');
     expect(base).toContain("@import '../layouts/tablet/characterCreator.css';");
