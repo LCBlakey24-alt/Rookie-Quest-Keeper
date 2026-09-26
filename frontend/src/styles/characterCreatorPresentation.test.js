@@ -10,16 +10,16 @@ function exists(relativePath) {
 }
 
 describe('Character Creator presentation ownership', () => {
-  test('live creator uses the flat RQK 1.0 presentation without retired sunset colours', () => {
+  test('live creator uses the shared navy, cream, gold and blue presentation', () => {
     const base = read('../components/FullCharacterCreatorV2.css');
     const flow = read('../components/FullCharacterCreatorFlow.css');
     const css = `${base}\n${flow}`;
 
-    expect(css).toContain('#071522');
-    expect(css).toContain('#7CCBFF');
-    expect(css).toContain('#FF2DAA');
-    expect(css).toContain('#FFFFFF');
-    expect(css).not.toMatch(/#d00000|rgba\(208\s*,\s*0\s*,\s*0/i);
+    expect(css).toContain('var(--rq-bg');
+    expect(css).toContain('#D6A84F');
+    expect(css).toContain('#79BCE8');
+    expect(css).toContain('#F7F1E7');
+    expect(css).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
     expect(css).not.toMatch(/rqk-creator-sunset|rq-sunset-gradient|rq-sunset-cream/i);
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
