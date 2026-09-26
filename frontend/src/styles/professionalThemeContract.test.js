@@ -28,6 +28,13 @@ describe('Keeper professional visual contract', () => {
     expect(creator).toContain('--rqk-creator-blue: var(--rq-secondary, #6E91B4)');
   });
 
+  test('legacy landing authority cannot restore the retired neon palette', () => {
+    const landingFinal = read('landingFinal.css');
+
+    expect(landingFinal).not.toContain('RQK 1.0 flat landing authority');
+    expect(landingFinal).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
+  });
+
   test('responsive lanes stay aligned to the device-layout contract', () => {
     const layout = read('../layouts/deviceLayout.js');
     const css = read('threeModeMinimalist.css');
