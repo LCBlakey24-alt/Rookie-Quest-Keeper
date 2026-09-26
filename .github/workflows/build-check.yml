@@ -47,7 +47,8 @@ jobs:
             backend/tests/test_handout_recipient_membership.py \
             backend/tests/test_player_content_membership.py \
             backend/tests/test_live_party_combat_state.py \
-            backend/tests/test_fast_startup.py
+            backend/tests/test_fast_startup.py \
+            backend/tests/test_character_journey_regression.py
 
   frontend-build:
     name: Frontend tests and build
