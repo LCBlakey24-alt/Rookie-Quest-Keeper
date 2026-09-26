@@ -232,7 +232,7 @@
 }
 
 
-/* RQK 1.0 app shell authority */
+/* Guild Ledger app shell authority */
 #root .rqk-app-shell,
 #root .rqk-app-rail,
 #root .rqk-app-shell-content,
@@ -244,12 +244,13 @@
 }
 
 #root .rqk-app-shell {
-  background: #071522 !important;
+  background: #0B1B2B !important;
 }
 
-#root .rqk-app-rail {
-  background: #06111C !important;
-  border-color: rgba(255,45,170,.18) !important;
+#root .rqk-app-rail,
+#root .rqk-app-mobile-more-panel {
+  background: #111E2B !important;
+  border-color: rgba(201, 169, 107, 0.18) !important;
 }
 
 #root .rqk-app-rail::after,
@@ -268,8 +269,13 @@
 #root .rqk-app-mobile-more-item {
   background: transparent !important;
   border-color: transparent !important;
-  color: #FFFFFF !important;
+  color: #EADFC8 !important;
   box-shadow: none !important;
+}
+
+#root .rqk-app-rail-section-label,
+#root .rqk-app-rail-brand-copy small {
+  color: rgba(234, 223, 200, 0.58) !important;
 }
 
 #root .rqk-app-rail-link:hover,
@@ -278,23 +284,25 @@
 #root .rqk-app-rail-feedback:hover,
 #root .rqk-app-mobile-more-item:hover,
 #root .rqk-app-mobile-more-item:focus-visible {
-  background: #0C2234 !important;
-  border-color: rgba(255,45,170,.18) !important;
+  background: rgba(51, 65, 85, 0.52) !important;
+  border-color: rgba(201, 169, 107, 0.24) !important;
 }
 
 #root .rqk-app-rail-link.is-active,
 #root .rqk-app-mobile-more-trigger.is-active,
 #root .rqk-app-mobile-more-item.is-active {
-  background: rgba(124,203,255,.10) !important;
-  border-color: #FF2DAA !important;
+  background: rgba(201, 169, 107, 0.10) !important;
+  border-color: #C9A96B !important;
+  color: #EADFC8 !important;
 }
 
 #root .rqk-app-rail-link.is-active::before {
-  background: #FF2DAA !important;
+  background: #C9A96B !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-rail-rook svg,
-#root .rqk-app-rail-link svg {
-  color: #7CCBFF !important;
+#root .rqk-app-rail-link svg,
+#root .rqk-app-mobile-more-item svg {
+  color: #C9A96B !important;
 }
