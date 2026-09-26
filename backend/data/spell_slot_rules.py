@@ -180,6 +180,30 @@ def normalise_homebrew_spellcasting_definition(raw: Any, class_name: str = "") -
     }
 
 
+def build_homebrew_spellcasting_snapshot(raw: Any, class_name: str = "") -> Optional[Dict[str, Any]]:
+    definition = normalise_homebrew_spellcasting_definition(raw, class_name)
+    if not definition:
+        return None
+
+    def serialise_table(key: str) -> Dict[str, int]:
+        return {str(level): int(count) for level, count in _count_table(definition.get(key)).items()}
+
+    return {
+        "class_name": str(definition.get("class_name") or class_name),
+        "ability": str(definition.get("ability") or ""),
+        "type": str(definition.get("type") or "known"),
+        "progression": str(definition.get("progression") or "full"),
+        "start_level": int(definition.get("start_level") or 1),
+        "cantrips_level_1": int(definition.get("cantrips_level_1") or 0),
+        "spells_level_1": int(definition.get("spells_level_1") or 0),
+        "cantrips_known_table": serialise_table("cantrips_known_table"),
+        "spells_known_table": serialise_table("spells_known_table"),
+        "spellbook_spells_table": serialise_table("spellbook_spells_table"),
+        "prepared_spells_table": serialise_table("prepared_spells_table"),
+        "ritual": bool(definition.get("ritual")),
+    }
+
+
 def homebrew_spellcasting_for_class(character: Dict[str, Any], class_name: str) -> Optional[Dict[str, Any]]:
     saved = character.get("homebrew_spellcasting")
     if not isinstance(saved, dict):
