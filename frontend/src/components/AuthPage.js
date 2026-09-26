@@ -6,13 +6,14 @@ import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { getSignInDestination } from '@/components/auth/SignInRedirect';
 import ReadOnlyDemoAccess from '@/components/auth/ReadOnlyDemoAccess';
+import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import './AuthPage.css';
 
 const AUTH_COPY = {
   login: {
     eyebrow: 'Player gateway',
     title: 'Welcome back, adventurer',
-    subtitle: 'Open your dashboard, character sheets, campaigns, and tabletop tools from one polished command post.',
+    subtitle: 'Open your characters, campaigns, and tabletop tools from one connected campaign ledger.',
     notice: (
       <>
         Sign in with your username or recovery email. New player? Create an account and keep it nickname-first.
@@ -22,7 +23,7 @@ const AUTH_COPY = {
   register: {
     eyebrow: 'Begin the quest',
     title: 'Create your keeper account',
-    subtitle: 'Save characters, prep campaigns, and build a cleaner first-session experience for every rookie at the table.',
+    subtitle: 'Save characters, prepare campaigns, and keep your table organised from the very first session.',
     notice: (
       <>
         Kid-friendly signup: use a nickname instead of a real name. Recovery email is optional, but handy if you forget your password.
@@ -65,7 +66,7 @@ const FEATURE_CARDS = [
   {
     icon: Sparkles,
     title: 'Built for the table',
-    text: 'A focused, theme-matched gateway that feels like the rest of Rookie Quest Keeper.',
+    text: 'A focused Guild Ledger gateway that matches the rest of Rookie Quest Keeper.',
   },
 ];
 
@@ -436,17 +437,17 @@ export default function AuthPage({ onLogin = () => {} }) {
           data-no-fill-animation="true"
           aria-label="Back to Rookie Quest Keeper home"
         >
-          <span className="rqk-auth-brand__sigil" aria-hidden="true">RQK</span>
+          <BrandMiniLogo className="rqk-auth-brand__sigil" size={38} alt="" />
           <span className="rqk-auth-brand__text">
             <strong>Rookie Quest Keeper</strong>
-            <small>Character tools • Campaign prep</small>
+            <small>Campaign ledger • Table tools</small>
           </span>
         </button>
 
         <div className="rqk-auth-layout">
           <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
-            <p className="rqk-auth-kicker">Character-first campaign tools</p>
-            <h2>Keep the table moving before the first initiative roll.</h2>
+            <p className="rqk-auth-kicker">Your campaign ledger</p>
+            <h2>Everything for the table, kept together.</h2>
             <p>
               A cleaner gateway for players, young adventurers, and GMs who want sheets,
               campaign prep, uploads, and table tools to feel organised from the start.
