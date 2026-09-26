@@ -805,7 +805,7 @@ class PlayerCharacterUpdate(BaseModel):
     racial_traits: Optional[List[Dict[str, str]]] = None
     class_features: Optional[List[Dict[str, str]]] = None
     background_features: Optional[List[Dict[str, Any]]] = None
-    feats: Optional[List[Dict[str, str]]] = None
+    feats: Optional[List[Dict[str, Any]]] = None
     
     # Spellcasting
     spellcasting_ability: Optional[str] = None
