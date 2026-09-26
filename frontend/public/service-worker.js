@@ -5,14 +5,16 @@
  * media uses a separate account-scoped Cache Storage name supplied by the app.
  */
 
-const SHELL_CACHE = 'rqk-shell-v3';
-const STATIC_CACHE = 'rqk-static-v3';
+const SHELL_CACHE = 'rqk-shell-v4';
+const STATIC_CACHE = 'rqk-static-v4';
 const APP_SHELL = [
   '/',
   '/asset-manifest.json',
   '/site.webmanifest',
-  '/brand/rqk-logo-mini.svg',
-  '/brand/rqk-logo-mini.png',
+  '/brand/keeper-symbol.png',
+  '/brand/keeper-compact-wordmark.png',
+  '/favicon.png',
+  '/apple-touch-icon.png',
 ];
 let activeMediaCacheName = '';
 
