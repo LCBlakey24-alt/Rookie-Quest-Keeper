@@ -20,8 +20,8 @@
     overflow: hidden !important;
     background: #0C2234 !important;
     background-image: none !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 7px !important;
     box-shadow: none !important;
   }
@@ -34,7 +34,7 @@
     font-weight: 850 !important;
     letter-spacing: 0 !important;
     text-transform: none !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card-shell {
@@ -53,19 +53,19 @@
     align-content: center !important;
     text-align: left !important;
     box-sizing: border-box !important;
-    background: #102B40 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     overflow: hidden !important;
     box-shadow: none !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card-shell.active .clean-sheet-action-card {
-    background: rgba(124,203,255,.10) !important;
-    border-color: #FF2DAA !important;
+    background: rgba(121,188,232,.10) !important;
+    border-color: #D6A84F !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-type {
@@ -75,11 +75,11 @@
     padding: 3px 5px !important;
     display: inline-grid !important;
     place-items: center !important;
-    background: rgba(124,203,255,.10) !important;
+    background: rgba(121,188,232,.10) !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.20) !important;
-    border-left: 1px solid rgba(255,45,170,.20) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.20) !important;
+    border-left: 1px solid rgba(214,168,79,.20) !important;
     border-radius: 4px !important;
     font-size: 7px !important;
     line-height: 1 !important;
@@ -94,7 +94,7 @@
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card strong {
     max-width: 100% !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     font-size: 12px !important;
     line-height: 1.08 !important;
     font-weight: 900 !important;
@@ -106,7 +106,7 @@
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card > span:not(.clean-sheet-action-type),
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-details {
     max-width: 100% !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     font-size: 9px !important;
     line-height: 1.25 !important;
     display: -webkit-box !important;
@@ -153,11 +153,11 @@
     gap: 2px !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    background: #102B40 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     overflow: hidden !important;
     box-shadow: none !important;
@@ -165,15 +165,15 @@
 
   .character-page-v2 .clean-sheet-actions-tab button.clean-sheet-attack-stat-box:hover,
   .character-page-v2 .clean-sheet-actions-tab button.clean-sheet-attack-stat-box:focus-visible {
-    background: #14344C !important;
-    border-color: #FF2DAA !important;
+    background: #17364F !important;
+    border-color: #D6A84F !important;
     outline: none !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box span,
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box strong {
     max-width: 100% !important;
-    color: #FFFFFF !important;
+    color: #F7F1E7 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -198,11 +198,11 @@
     width: 100% !important;
     min-width: 0 !important;
     padding: 7px !important;
-    background: #102B40 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
   }
@@ -210,11 +210,11 @@
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-pending-damage button {
     min-height: 30px !important;
     padding: 0 7px !important;
-    background: #102B40 !important;
+    background: #112A40 !important;
     background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255,45,170,.18) !important;
-    border-left: 1px solid rgba(255,45,170,.18) !important;
+    color: #F7F1E7 !important;
+    border: 1px solid rgba(214,168,79,.18) !important;
+    border-left: 1px solid rgba(214,168,79,.18) !important;
     border-radius: 5px !important;
     font-size: 9px !important;
     font-weight: 900 !important;
@@ -223,8 +223,8 @@
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-pending-damage button:hover,
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-pending-damage button:focus-visible {
-    background: #14344C !important;
-    border-color: #FF2DAA !important;
+    background: #17364F !important;
+    border-color: #D6A84F !important;
     outline: none !important;
   }
 
