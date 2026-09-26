@@ -11,7 +11,7 @@ function readIfExists(relativePath) {
 }
 
 describe('Homebrew presentation ownership', () => {
-  test('Homebrew uses the flat RQK 1.0 player presentation', () => {
+  test('Homebrew uses the professional Keeper player presentation', () => {
     const css = read('homebrewWorkshop.css');
     const route = read('../routes/HomebrewWorkshopRoute.js');
     const app = read('../App.js');
@@ -21,10 +21,10 @@ describe('Homebrew presentation ownership', () => {
     expect(css).not.toMatch(/background:\s*(?:var\([^;]*#d00000[^;]*\)|#d00000)\s*!important/i);
     expect(css).toContain('#071522');
     expect(css).toContain('#0C2234');
-    expect(css).toContain('#102B40');
-    expect(css).toContain('#7CCBFF');
-    expect(css).toContain('#FF2DAA');
-    expect(css).toContain('rgba(124,203,255,.10)');
+    expect(css).toContain('#112A40');
+    expect(css).toContain('#79BCE8');
+    expect(css).toContain('#D6A84F');
+    expect(css).toContain('rgba(121,188,232,.10)');
     expect(route).toContain("@/styles/homebrewWorkshop.css");
     expect(app).toContain("import('@/routes/HomebrewWorkshopRoute')");
   });
