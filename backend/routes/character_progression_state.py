@@ -284,6 +284,50 @@ def _apply_prepared_spell_changes(
     return result, metadata
 
 
+def validate_homebrew_level_up_spell_choices(
+    existing: Dict[str, Any],
+    update_data: Dict[str, Any],
+    level_up: LevelUpRequest,
+    leveled_class: str,
+) -> None:
+    definition = homebrew_spellcasting_for_class(existing, leveled_class)
+    if not definition:
+        return
+
+    before_levels = initial_class_levels(existing)
+    after_levels = update_data.get("class_levels") if isinstance(update_data.get("class_levels"), dict) else before_levels
+    before_level = _class_level(before_levels, leveled_class)
+    after_level = _class_level(after_levels, leveled_class)
+    progression = homebrew_spell_progression(existing, leveled_class, before_level, after_level)
+    required_cantrips = int(progression.get("cantrips_gain", 0) or 0)
+    required_spells = int(
+        progression.get("prepared_gain", 0)
+        if definition.get("type") == "prepared"
+        else progression.get("spells_gain", 0)
+        or 0
+    )
+    submitted_cantrips = len(list(level_up.new_cantrips or []))
+    submitted_spells = len(list(level_up.new_spells or []))
+
+    if submitted_cantrips != required_cantrips:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"{display_class_name(leveled_class)} requires exactly {required_cantrips} new cantrip"
+                f"{'s' if required_cantrips != 1 else ''} at this class level; received {submitted_cantrips}."
+            ),
+        )
+    if submitted_spells != required_spells:
+        label = "prepared spell" if definition.get("type") == "prepared" else "spell"
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"{display_class_name(leveled_class)} requires exactly {required_spells} new {label}"
+                f"{'s' if required_spells != 1 else ''} at this class level; received {submitted_spells}."
+            ),
+        )
+
+
 def route_level_up_spell_choices(
     existing: Dict[str, Any],
     update_data: Dict[str, Any],
@@ -578,7 +622,14 @@ def build_state_safe_level_up_update(
         rules_existing["subclass"] = _subclass_for_class(existing, leveled_class)
 
     update_data = build_level_up_update(rules_existing, level_up, leveled_class, progression_type)
+    validate_homebrew_level_up_spell_choices(existing, update_data, level_up, leveled_class)
     update_data = route_level_up_spell_choices(existing, update_data, level_up, leveled_class)
+
+    if homebrew_spellcasting_for_class(existing, leveled_class) and level_up.new_cantrips:
+        update_data["cantrips_known"] = _merge_unique_spells(
+            existing.get("cantrips_known") or [],
+            [_tag_spell_source(spell, leveled_class) for spell in level_up.new_cantrips],
+        )
 
     if levelling_secondary:
         # A secondary subclass belongs on its class entry, not in the legacy
