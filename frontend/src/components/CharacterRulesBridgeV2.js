@@ -18,6 +18,7 @@ import {
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import {
   buildHomebrewPactMagicTracker,
+  buildHomebrewSpellcastingSnapshot,
   buildHomebrewSpellcastingState,
   homebrewSpellcastingIsActive,
 } from '@/data/homebrewClassSpellcasting';
@@ -382,6 +383,15 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
   enhanced.homebrew_upgrades = mechanics.upgrades;
   enhanced.homebrew_automation_notes = mechanics.automation_notes;
   enhanced.homebrew_content_refs = mechanics.refs;
+  const homebrewSpellcastingSnapshot = !SPELLCASTING_CLASSES[className]
+    ? buildHomebrewSpellcastingSnapshot(classData, className)
+    : null;
+  if (homebrewSpellcastingSnapshot) {
+    enhanced.homebrew_spellcasting = {
+      ...(enhanced.homebrew_spellcasting || {}),
+      [className]: homebrewSpellcastingSnapshot,
+    };
+  }
   enhanced.max_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
   enhanced.current_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
 
