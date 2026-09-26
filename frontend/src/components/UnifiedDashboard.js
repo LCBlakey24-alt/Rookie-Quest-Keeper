@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, BookOpen, Clock3, Plus, UsersRound, Wand2 } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock3, FileUp, Link2, Plus, UsersRound, Wand2 } from 'lucide-react';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import '@/styles/unifiedDashboardPolish.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
@@ -54,35 +54,64 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
 
   const dashboardActions = useMemo(() => [
     {
-      title: 'Characters',
-      text: 'Open and manage your heroes.',
-      to: '/characters',
-      icon: UsersRound,
-      stat: `${safeCharacters.length} saved`,
-    },
-    {
-      title: 'Campaigns',
-      text: 'Prep, run, and return to your tables.',
-      to: '/campaigns',
-      icon: BookOpen,
-      stat: `${safeCampaigns.length} saved`,
-    },
-    {
       title: 'Create Character',
-      text: 'Start a new playable hero.',
+      text: 'Build a new playable hero.',
       to: '/characters/new',
       icon: Plus,
-      stat: 'New hero',
+      stat: 'Player',
       primary: true,
     },
     {
-      title: 'Homebrew',
-      text: 'Create and manage custom content.',
-      to: '/homebrew',
-      icon: Wand2,
-      stat: `${safeHomebrew.length} saved`,
+      title: 'Import Character',
+      text: 'Bring an existing sheet into Keeper.',
+      to: '/characters/import',
+      icon: FileUp,
+      stat: 'Player',
     },
-  ], [safeCampaigns.length, safeCharacters.length, safeHomebrew.length]);
+    {
+      title: 'Create Campaign',
+      text: 'Start a new GM campaign workspace.',
+      to: '/campaigns?create=1',
+      icon: BookOpen,
+      stat: 'GM',
+      primary: true,
+    },
+    {
+      title: 'Join Campaign',
+      text: 'Use a GM join code with one of your characters.',
+      to: '/player',
+      icon: Link2,
+      stat: 'Player',
+    },
+  ], []);
+
+  const continueItems = useMemo(() => {
+    const latestCharacter = safeArray(recentCharacters)[0];
+    const latestCampaign = safeArray(recentCampaigns)[0];
+    const items = [];
+
+    if (latestCharacter && recordId(latestCharacter)) {
+      items.push({
+        kind: 'Character',
+        title: characterTitle(latestCharacter),
+        text: `${latestCharacter?.race || latestCharacter?.species || 'Hero'} • Level ${latestCharacter?.level || 1}`,
+        to: `/characters/${recordId(latestCharacter)}`,
+        icon: UsersRound,
+      });
+    }
+
+    if (latestCampaign && recordId(latestCampaign)) {
+      items.push({
+        kind: 'Campaign',
+        title: campaignTitle(latestCampaign),
+        text: latestCampaign?.world_name || 'Campaign workspace',
+        to: `/campaign/${recordId(latestCampaign)}`,
+        icon: BookOpen,
+      });
+    }
+
+    return items;
+  }, [recentCampaigns, recentCharacters]);
 
   const recentActivity = useMemo(() => {
     const characterActivity = safeArray(recentCharacters).map((character) => ({
@@ -148,9 +177,22 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         </div>
       )}
 
+      {continueItems.length > 0 && (
+        <section className="dashboard-simple-section" aria-labelledby="dashboard-continue-title">
+          <div className="dashboard-simple-heading">
+            <h2 id="dashboard-continue-title">Continue</h2>
+          </div>
+          <div className="dashboard-continue-grid">
+            {continueItems.map((item) => (
+              <DashboardContinueCard key={`${item.kind}-${item.title}`} {...item} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="dashboard-simple-section" aria-labelledby="dashboard-actions-title">
         <div className="dashboard-simple-heading">
-          <h2 id="dashboard-actions-title">Jump back in</h2>
+          <h2 id="dashboard-actions-title">Start something</h2>
         </div>
         <div className="dashboard-command-grid dashboard-command-grid--simple">
           {dashboardActions.map((action) => (
@@ -178,6 +220,20 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         )}
       </section>
     </main>
+  );
+}
+
+function DashboardContinueCard({ kind, title, text, to, icon: Icon }) {
+  return (
+    <Link to={to} className="dashboard-continue-card">
+      <span className="dashboard-continue-icon" aria-hidden="true"><Icon size={19} /></span>
+      <span className="dashboard-continue-copy">
+        <em>{kind}</em>
+        <strong>{title}</strong>
+        <span>{text}</span>
+      </span>
+      <span className="dashboard-continue-cta">Open</span>
+    </Link>
   );
 }
 
