@@ -1,17 +1,18 @@
 # Site visual review guide
 
-Use this guide to verify the current Rookie Minimal Navy interface. The retired sunset/twilight/velvet/Blue Eclipse themes are not valid visual references.
+Use this guide to verify the current professional Keeper interface. Retired red, neon-pink, sunset/twilight, velvet and glow-heavy variants are not valid visual references.
 
 ## Visual baseline
 
-- Background: navy `#0a1728`.
-- Deep navigation/input areas: `#06101c`.
-- Panels: `#102238`.
-- Raised cards: `#14283e`.
-- Primary action: Rookie red `#d00000`.
-- Main text: near-white `#f7f9fc`.
-- Amber is reserved for warnings and status, not decoration.
-- No purple/pink/orange gradients, fantasy glows, parchment, coffee, velvet or sunset borders.
+- Background: deep navy `#071522`.
+- Deep navigation: `#050E18`.
+- Panels: `#0C2234`.
+- Raised cards: `#112A40`.
+- Primary action/accent: antique gold `#D6A84F`.
+- Supporting UI/focus: blue `#79BCE8`.
+- Main text: warm cream `#F7F1E7`, with explicit secondary and muted tiers.
+- Danger red is reserved for destructive/error states.
+- No neon pink, decorative gradients, fantasy glows, parchment, coffee, velvet or sunset borders.
 - Page geometry belongs to the page/device layout, not to the global theme.
 
 ## Required device lanes
@@ -53,7 +54,7 @@ Prototype routes were retired and should not be reviewed or reintroduced.
 
 ## Review checklist
 
-- No retired theme colours or gradients are visible.
+- No retired red/neon-pink theme colours or decorative gradients are visible.
 - No card, panel, modal or floating tool extends outside its usable workspace.
 - Desktop does not inherit mobile/tablet geometry and vice versa.
 - Tablet portrait does not receive a desktop-width sidebar.
@@ -63,7 +64,7 @@ Prototype routes were retired and should not be reviewed or reintroduced.
 - Empty/loading/error states use the same navy system.
 - A failed refresh visibly reports stale/unavailable data instead of showing a believable empty state.
 - The dice roller uses the compact flat result experience; there is no cinematic 3D renderer.
-- Primary actions are Rookie red; destructive actions remain clearly destructive; amber is warning/status only.
+- Primary actions use antique gold; destructive actions use semantic danger red; warning amber and info blue keep their own meaning.
 
 ## Screenshots
 
