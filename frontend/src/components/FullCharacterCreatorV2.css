@@ -4,20 +4,20 @@
 /* Character Creator — route-owned RQK 1.0 presentation. */
 
 .full-creator-page {
-  --rqk-creator-bg: var(--rq-bg, #071522);
-  --rqk-creator-deep: var(--rq-bg-input, #071A29);
-  --rqk-creator-panel: var(--rq-bg-panel, #0C2234);
-  --rqk-creator-card: var(--rq-card, #112A40);
-  --rqk-creator-card-hover: var(--rq-card-hover, #17364F);
-  --rqk-creator-text: var(--rq-text-primary, #F7F1E7);
+  --rqk-creator-bg: var(--rq-bg, #0B1B2B);
+  --rqk-creator-deep: var(--rq-bg-input, #101F2D);
+  --rqk-creator-panel: var(--rq-bg-panel, #1E2936);
+  --rqk-creator-card: var(--rq-card, #263748);
+  --rqk-creator-card-hover: var(--rq-card-hover, #334155);
+  --rqk-creator-text: var(--rq-text-primary, #EADFC8);
   --rqk-creator-muted: var(--rq-text-secondary, rgba(247,241,231,.78));
   --rqk-creator-faint: var(--rq-text-muted, rgba(247,241,231,.60));
   --rqk-creator-line: var(--rq-line, rgba(166,193,216,.14));
   --rqk-creator-line-strong: var(--rq-line-strong, rgba(214,168,79,.30));
-  --rqk-creator-pink: var(--rq-primary, #D6A84F); /* legacy alias */
-  --rqk-creator-blue: var(--rq-secondary, #79BCE8);
-  --rqk-creator-warning: var(--rq-warning, #E3A746);
-  --rqk-creator-success: var(--rq-success, #59B982);
+  --rqk-creator-pink: var(--rq-primary, #C9A96B); /* legacy alias */
+  --rqk-creator-blue: var(--rq-secondary, #6E91B4);
+  --rqk-creator-warning: var(--rq-warning, #D39A43);
+  --rqk-creator-success: var(--rq-success, #5FA67A);
 
   min-height: 100dvh;
   display: grid;
