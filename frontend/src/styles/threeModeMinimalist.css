@@ -943,28 +943,33 @@ html[data-theme='player'] .character-page-v2.clean-sheet-page {
 
 
 /* -------------------------------------------------------------------------- */
-/* RQK 1.0 final visual authority: flat navy, white type, blue UI, pink lines */
+/* Final visual authority: navy structure, cream hierarchy, gold action, blue support */
 /* -------------------------------------------------------------------------- */
 
 html,
 body,
 #root,
 .App {
-  background-color: #071522 !important;
+  background-color: var(--rq-bg) !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary) !important;
 }
 
 #root * {
   text-shadow: none !important;
 }
 
-#root :where(
-  h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,
-  button,a,th,td,legend,summary,option
-) {
-  color: #FFFFFF !important;
+#root :where(h1,h2,h3,h4,h5,h6,strong) {
+  color: var(--rq-text-primary) !important;
   -webkit-text-fill-color: currentColor;
+}
+
+#root :where(p,span,label,small,em,b,i,li,dt,dd,a,th,td,legend,summary,option) {
+  -webkit-text-fill-color: currentColor;
+}
+
+#root :where(.muted,.helper-text,.meta,[class*='-meta'],[class*='__meta'],small) {
+  color: var(--rq-text-muted) !important;
 }
 
 #root :where(
@@ -988,7 +993,7 @@ body,
 }
 
 #root .rqk-auth-page {
-  background: #071522 !important;
+  background: var(--rq-bg) !important;
 }
 
 #root .rqk-auth-ambient {
@@ -1009,7 +1014,7 @@ body,
   .library-page-hero,.library-page-toolbar,.library-page-empty,.library-card,
   .character-library-card,.campaign-library-card
 ) {
-  background-color: #0C2234 !important;
+  background-color: var(--rq-bg-panel) !important;
   background-image: none !important;
   border: 1px solid rgba(166,193,216,.14) !important;
   box-shadow: none !important;
@@ -1023,21 +1028,21 @@ body,
   .character-library-card,
   .campaign-library-card
 ) {
-  background-color: #102B40 !important;
+  background-color: var(--rq-card) !important;
 }
 
 #root :where(input,textarea,select) {
-  background: #081B2A !important;
+  background: var(--rq-bg-input) !important;
   background-image: none !important;
   border: 1px solid rgba(214,168,79,.22) !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
+  color: var(--rq-text-primary) !important;
+  -webkit-text-fill-color: var(--rq-text-primary) !important;
   box-shadow: none !important;
 }
 
 #root :where(input,textarea)::placeholder {
-  color: rgba(255,255,255,.62) !important;
-  -webkit-text-fill-color: rgba(255,255,255,.62) !important;
+  color: rgba(247,241,231,.52) !important;
+  -webkit-text-fill-color: rgba(247,241,231,.52) !important;
 }
 
 #root :where(input,textarea,select,button,a,[role='button']):focus-visible {
@@ -1050,10 +1055,10 @@ body,
   .btn-primary,.rq-button-primary,.dashboard-primary-button,
   .rqk-auth-primary,[data-rqk-primary='true']
 ) {
-  background: #0C2234 !important;
+  background: var(--rq-bg-panel) !important;
   background-image: none !important;
   border: 1px solid var(--rq-primary) !important;
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary) !important;
   box-shadow: none !important;
 }
 
@@ -1061,7 +1066,7 @@ body,
   .btn-primary,.rq-button-primary,.dashboard-primary-button,
   .rqk-auth-primary,[data-rqk-primary='true']
 ):hover {
-  background: #102B40 !important;
+  background: var(--rq-card) !important;
   border-color: var(--rq-primary) !important;
 }
 
@@ -1070,9 +1075,9 @@ body,
   .tab.active,
   [aria-selected='true']
 ) {
-  background: rgba(124,203,255,.10) !important;
+  background: var(--rq-secondary-soft) !important;
   border-color: var(--rq-primary) !important;
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary) !important;
 }
 
 #root :where(
@@ -1080,7 +1085,7 @@ body,
   .rqk-auth-feature-icon,
   .rqk-auth-preview-dot
 ) {
-  color: #7CCBFF !important;
+  color: var(--rq-secondary) !important;
 }
 
 #root :where(
@@ -1104,16 +1109,21 @@ body,
 }
 
 #root .character-page-v2 {
-  background: #071522 !important;
-  color: #FFFFFF !important;
+  background: var(--rq-bg) !important;
+  color: var(--rq-text-primary) !important;
 }
 
-#root .character-page-v2 :where(
-  h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,
-  button,a,th,td,legend,summary
-) {
-  color: #FFFFFF !important;
+#root .character-page-v2 :where(h1,h2,h3,h4,h5,h6,strong) {
+  color: var(--rq-text-primary) !important;
   -webkit-text-fill-color: currentColor !important;
+}
+
+#root .character-page-v2 :where(p,span,label,small,em,b,i,li,dt,dd,a,th,td,legend,summary) {
+  -webkit-text-fill-color: currentColor !important;
+}
+
+#root .character-page-v2 :where(.clean-sheet-muted,.clean-sheet-kicker,.clean-sheet-stat-label,small) {
+  color: var(--rq-text-muted) !important;
 }
 
 #root .character-page-v2 :where(
@@ -1134,7 +1144,7 @@ body,
   .clean-sheet-skill-card,
   .clean-sheet-save-card
 ) {
-  background-color: #0C2234 !important;
+  background-color: var(--rq-bg-panel) !important;
   border-color: rgba(166,193,216,.14) !important;
   box-shadow: none !important;
 }
@@ -1147,8 +1157,8 @@ body,
   textarea,
   select
 ) {
-  background-color: #102B40 !important;
-  color: #FFFFFF !important;
+  background-color: var(--rq-card) !important;
+  color: var(--rq-text-primary) !important;
   border-color: rgba(166,193,216,.14) !important;
   box-shadow: none !important;
 }
@@ -1177,7 +1187,7 @@ body,
 }
 
 #root .character-page-v2 :where(svg, .icon, [data-icon]) {
-  color: #7CCBFF;
+  color: var(--rq-secondary);
 }
 
 #root .character-page-v2 :where(
@@ -1185,7 +1195,7 @@ body,
   .progress-bar,
   [role='progressbar']
 ) {
-  background-color: #102B40 !important;
+  background-color: var(--rq-card) !important;
   border-color: rgba(166,193,216,.14) !important;
 }
 
@@ -1194,5 +1204,5 @@ body,
   .progress-bar-fill,
   [role='progressbar'] > *
 ) {
-  background-color: #7CCBFF !important;
+  background-color: var(--rq-secondary) !important;
 }
