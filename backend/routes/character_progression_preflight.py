@@ -24,6 +24,10 @@ from data.class_progression import (
     spells_to_learn as progression_spells_to_learn,
     subclasses_for,
 )
+from data.spell_slot_rules import (
+    homebrew_spellcasting_for_class,
+    homebrew_spell_progression,
+)
 from routes.character_progression_state import progression_spell_slot_totals
 from routes.characters import (
     display_class_name,
@@ -108,10 +112,42 @@ def build_level_up_preflight(
 
     previous_slots = progression_spell_slot_totals(existing, class_levels)
     next_slots = progression_spell_slot_totals(existing, next_class_levels)
-    prepared_before = prepared_spell_capacity(character_class, class_level_before, edition)
-    prepared_after = prepared_spell_capacity(character_class, class_level_after, edition)
-    selection_mode = spell_selection_mode(character_class, edition)
-    prepared_change = prepared_spell_change_rule(character_class, edition)
+    homebrew_casting = homebrew_spellcasting_for_class(existing, character_class)
+
+    if homebrew_casting:
+        homebrew_progression = homebrew_spell_progression(
+            existing,
+            character_class,
+            class_level_before,
+            class_level_after,
+        )
+        selection_mode = str(homebrew_casting.get("type") or "known")
+        prepared_before = int(homebrew_progression.get("prepared_before", 0) or 0)
+        prepared_after = int(homebrew_progression.get("prepared_after", 0) or 0)
+        spells_to_learn = 0 if selection_mode == "prepared" else int(homebrew_progression.get("spells_gain", 0) or 0)
+        cantrips_to_learn = int(homebrew_progression.get("cantrips_gain", 0) or 0)
+        prepared_change = {"cadence": "none", "max_replacements": 0}
+        progression_reference = {
+            "source": "homebrew-character-snapshot",
+            "spellcasting": homebrew_casting,
+            "spells_known_table": homebrew_casting.get("spells_known_table") or {},
+            "spellbook_spells_table": homebrew_casting.get("spellbook_spells_table") or {},
+            "cantrips_known_table": homebrew_casting.get("cantrips_known_table") or {},
+            "prepared_spells_table": homebrew_casting.get("prepared_spells_table") or {},
+        }
+    else:
+        prepared_before = prepared_spell_capacity(character_class, class_level_before, edition)
+        prepared_after = prepared_spell_capacity(character_class, class_level_after, edition)
+        selection_mode = spell_selection_mode(character_class, edition)
+        prepared_change = prepared_spell_change_rule(character_class, edition)
+        spells_to_learn = progression_spells_to_learn(
+            character_class,
+            class_level_before,
+            class_level_after,
+            edition,
+        )
+        cantrips_to_learn = progression_cantrips_to_learn(character_class, class_level_before, class_level_after)
+        progression_reference = class_progression_summary(character_class, edition)
 
     return {
         "character_id": character_id or existing.get("id", ""),
@@ -130,13 +166,8 @@ def build_level_up_preflight(
         "spell_slots": next_slots,
         "previous_spell_slots": previous_slots,
         "spell_selection_mode": selection_mode,
-        "spells_to_learn": progression_spells_to_learn(
-            character_class,
-            class_level_before,
-            class_level_after,
-            edition,
-        ),
-        "cantrips_to_learn": progression_cantrips_to_learn(character_class, class_level_before, class_level_after),
+        "spells_to_learn": spells_to_learn,
+        "cantrips_to_learn": cantrips_to_learn,
         "prepared_spell_capacity_before": prepared_before,
         "prepared_spell_capacity": prepared_after,
         "prepared_spell_capacity_gain": max(0, prepared_after - prepared_before),
@@ -151,7 +182,7 @@ def build_level_up_preflight(
         "origin_feat_options": origin_feats,
         "class_levels": class_levels,
         "next_class_levels": next_class_levels,
-        "progression_reference": class_progression_summary(character_class, edition),
+        "progression_reference": progression_reference,
     }
 
 
