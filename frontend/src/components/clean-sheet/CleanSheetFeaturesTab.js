@@ -356,6 +356,7 @@ export default function CleanSheetFeaturesTab({
     });
   }, [snapshot.resources, character]);
   const classChoices = useMemo(() => selectedClassChoiceGroups(character), [character]);
+  const backgroundFeatures = useMemo(() => toArray(character.background_features), [character]);
   const homebrewActions = useMemo(() => sheetActionCards(character), [character]);
   const passiveEffects = useMemo(() => passiveEffectCards(character), [character]);
   const warnings = snapshot.warnings || [];
@@ -391,6 +392,27 @@ export default function CleanSheetFeaturesTab({
           ))}
         </div>
       </section>
+
+      {!!backgroundFeatures.length && (
+        <section className="clean-sheet-panel clean-sheet-wide" data-testid="background-feature-summary">
+          <div className="clean-sheet-panel-heading">
+            <div>
+              <h2>Background Features</h2>
+              <p>Features granted by {character.background || "this character's background"}.</p>
+            </div>
+            <span>{backgroundFeatures.length}</span>
+          </div>
+          <div className="clean-sheet-readiness-grid">
+            {backgroundFeatures.map((feature, index) => (
+              <div key={feature.id || feature.name || `background-feature-${index}`}>
+                <span>{feature.source || character.background || 'Background'}</span>
+                <strong>{feature.name || feature.title || `Background Feature ${index + 1}`}</strong>
+                {(feature.description || feature.text || feature.summary) && <p>{feature.description || feature.text || feature.summary}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {!!homebrewActions.length && (
         <section className="clean-sheet-panel clean-sheet-wide" data-testid="homebrew-action-summary">
