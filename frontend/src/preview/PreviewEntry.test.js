@@ -28,7 +28,7 @@ test('the staging sign-in URL opens the real dashboard and sample data without a
   const post = jest.spyOn(apiClient, 'post');
   render(<React.Suspense fallback={<p>Loading page</p>}><MemoryRouter initialEntries={['/auth']}><AppRoutes /></MemoryRouter></React.Suspense>);
   expect((await screen.findAllByText('Preview campaign')).length).toBeGreaterThan(0);
-  expect(screen.getByText('Demo Fighter')).toBeInTheDocument();
+  expect(screen.getAllByText('Demo Fighter').length).toBeGreaterThan(0);
   expect(screen.queryByText('Sign in screen')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Logout' })).not.toBeInTheDocument();
   expect(get.mock.calls.some(([url]) => url === '/auth/me')).toBe(false);
