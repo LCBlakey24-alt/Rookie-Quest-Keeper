@@ -42,6 +42,21 @@ describe('Character Creator presentation ownership', () => {
     expect(flow).toContain('.full-creator-step-state');
   });
 
+  test('interactive creator choices expose and visibly reinforce selected state', () => {
+    const component = read('../components/FullCharacterCreatorV2.js');
+    const base = read('../components/FullCharacterCreatorV2.css');
+
+    expect(component).toContain("aria-pressed={Boolean(active)}");
+    expect(component).toContain("aria-pressed={equipmentMode === 'equipment'}");
+    expect(component).toContain("aria-pressed={equipmentMode === 'gold'}");
+    expect(component).toContain("interactive ? 'is-interactive' : 'is-reference'");
+    expect(base).toContain(".full-creator-choice-block.is-interactive h3::after");
+    expect(base).toContain("button[aria-pressed='true']");
+    expect(base).toContain(".full-creator-choice-check");
+    expect(base).toContain("content: 'Selected'");
+    expect(base).not.toContain(".full-creator-choice-block h3::after {\n  content: ' · select an option'");
+  });
+
   test('creator base imports explicit tablet and mobile layout lanes', () => {
     const base = read('../components/FullCharacterCreatorV2.css');
     expect(base).toContain("@import '../layouts/tablet/characterCreator.css';");
