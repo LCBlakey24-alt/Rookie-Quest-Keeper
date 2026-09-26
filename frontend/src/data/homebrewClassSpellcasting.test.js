@@ -1,8 +1,12 @@
 import {
   buildHomebrewPactMagicTracker,
+  buildHomebrewSpellcastingSnapshot,
   buildHomebrewSpellcastingState,
   getHomebrewLevelOneSpellRequirements,
+  getHomebrewMaxSpellLevel,
+  getHomebrewSpellProgression,
   getHomebrewSpellSlots,
+  getSavedHomebrewSpellcasting,
   homebrewSpellcastingIsActive,
   normaliseHomebrewClassSpellcasting,
 } from './homebrewClassSpellcasting';
@@ -42,6 +46,69 @@ describe('homebrew class spellcasting', () => {
     expect(getHomebrewLevelOneSpellRequirements({
       spellcasting: { ability: 'wisdom', progression: 'full', start_level: 2 },
     })).toEqual({ cantrips: 0, spells: 0, type: 'none' });
+  });
+
+  test('normalises explicit cumulative level-up progression tables without inventing later gains', () => {
+    const caster = {
+      name: 'Runesmith',
+      spellcasting: {
+        ability: 'intelligence',
+        type: 'known',
+        progression: 'full',
+        cantrips_level_1: 2,
+        spells_level_1: 2,
+        cantrips_known_table: { 4: 3 },
+        spells_known_table: { 2: 3, 3: 4 },
+      },
+    };
+
+    const definition = normaliseHomebrewClassSpellcasting(caster);
+    expect(definition.cantripsKnownTable).toEqual({ 1: 2, 4: 3 });
+    expect(definition.spellsKnownTable).toEqual({ 1: 2, 2: 3, 3: 4 });
+    expect(getHomebrewSpellProgression(caster, 1, 2)).toMatchObject({
+      cantripGain: 0,
+      spellGain: 1,
+      type: 'known',
+    });
+    expect(getHomebrewSpellProgression(caster, 3, 4)).toMatchObject({
+      cantripGain: 1,
+      spellGain: 0,
+    });
+  });
+
+  test('persists a portable snapshot and reads it back by class name', () => {
+    const caster = {
+      name: 'Runesmith',
+      spellcasting: {
+        ability: 'intelligence',
+        type: 'spellbook',
+        progression: 'full',
+        cantrips_level_1: 3,
+        spells_level_1: 6,
+        cantrips_known_table: { 4: 4 },
+        spellbook_spells_table: { 2: 8, 3: 10 },
+      },
+    };
+    const snapshot = buildHomebrewSpellcastingSnapshot(caster, 'Runesmith');
+
+    expect(snapshot).toMatchObject({
+      class_name: 'Runesmith',
+      ability: 'intelligence',
+      type: 'spellbook',
+      progression: 'full',
+      cantrips_known_table: { 1: 3, 4: 4 },
+      spellbook_spells_table: { 1: 6, 2: 8, 3: 10 },
+    });
+    expect(getSavedHomebrewSpellcasting({
+      homebrew_spellcasting: { Runesmith: snapshot },
+    }, 'runesmith')).toEqual(snapshot);
+  });
+
+  test('uses the custom slot progression to determine the highest selectable spell level', () => {
+    expect(getHomebrewMaxSpellLevel(fullCaster, 5, '2014')).toBe(3);
+    expect(getHomebrewMaxSpellLevel({
+      spellcasting: { ability: 'wisdom', progression: 'half', start_level: 1 },
+    }, 5, '2014')).toBe(2);
   });
 
   test('accepts legacy caster flags and friendly progression labels', () => {
