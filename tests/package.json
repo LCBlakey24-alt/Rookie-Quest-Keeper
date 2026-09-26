@@ -10,6 +10,7 @@
     "install:browsers": "playwright install chromium",
     "install:browsers:deps": "playwright install --with-deps chromium",
     "check:screenshot": "node scripts/check-playwright-screenshot.mjs",
-    "screenshots:site": "node scripts/capture-site-screenshots.mjs"
+    "screenshots:site": "node scripts/capture-site-screenshots.mjs",
+    "test:character-journey": "playwright test e2e/character-journey-regression.spec.ts --config=playwright.config.ts --project=chromium"
   }
 }
