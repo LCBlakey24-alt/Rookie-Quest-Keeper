@@ -315,6 +315,37 @@
   gap: 10px;
 }
 
+.library-page-stale-warning {
+  min-width: 0;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: rgba(245, 158, 11, .08);
+  border: 1px solid rgba(245, 158, 11, .3);
+  border-radius: var(--rq-inner-radius, 8px);
+}
+
+.library-page-stale-warning > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.library-page-stale-warning strong {
+  color: var(--rq-text, #f7f9fc);
+  font-size: 13px;
+}
+
+.library-page-stale-warning p {
+  margin: 0;
+  color: var(--rq-muted, rgba(229, 237, 247, .74));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .library-page-loading {
   min-height: 100vh;
   padding: 0;
