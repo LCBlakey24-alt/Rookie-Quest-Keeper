@@ -35,9 +35,6 @@ function formatDate(value) {
 
 export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const {
-    characters,
-    campaigns,
-    homebrewItems,
     loading,
     slowLoad,
     refreshing,
@@ -47,10 +44,6 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     dashboardWarning,
     loadDashboard,
   } = useDashboardData();
-
-  const safeCharacters = safeArray(characters);
-  const safeCampaigns = safeArray(campaigns);
-  const safeHomebrew = safeArray(homebrewItems);
 
   const dashboardActions = useMemo(() => [
     {
