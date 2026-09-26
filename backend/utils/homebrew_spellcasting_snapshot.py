@@ -69,15 +69,19 @@ async def ensure_homebrew_spellcasting_snapshot(
         return character, False
 
     owners = await _eligible_class_owners(character, username)
-    query: Dict[str, Any] = {"user_id": {"$in": owners}, "edition": _edition(character)}
-    records = await db.user_classes.find(query, {"_id": 0}).to_list(1000)
+    records = await db.user_classes.find({"user_id": {"$in": owners}}, {"_id": 0}).to_list(1000)
     wanted = _key(class_name)
+    character_edition = _edition(character)
     match = next(
         (
             record
             for record in records
             if _key(record.get("name") or record.get("title")) == wanted
             and isinstance(record.get("spellcasting"), dict)
+            and (
+                not str(record.get("edition") or "").strip()
+                or _edition(record) == character_edition
+            )
         ),
         None,
     )
