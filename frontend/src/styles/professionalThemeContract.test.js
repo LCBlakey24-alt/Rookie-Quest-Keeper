@@ -49,6 +49,22 @@ describe('Keeper professional visual contract', () => {
     expect(loading).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
   });
 
+  test('auth uses the approved Guild Ledger identity and Keeper mark', () => {
+    const authCss = read('../components/AuthPage.css');
+    const authPolish = read('authExperiencePolish.css');
+    const authComponent = read('../components/AuthPage.js');
+    const auth = authCss + '\n' + authPolish;
+
+    expect(authComponent).toContain('BrandMiniLogo');
+    expect(authComponent).toContain('Campaign ledger');
+    expect(authCss).toContain('Rookie Quest Keeper Guild Ledger auth page');
+    expect(auth).toContain('#0B1B2B');
+    expect(auth).toContain('#C9A96B');
+    expect(auth).toContain('#EADFC8');
+    expect(auth).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
+    expect(auth).not.toMatch(/rgba\(235\s*,\s*63\s*,\s*233|rgba\(255\s*,\s*79\s*,\s*129|rgba\(255\s*,\s*149\s*,\s*66/i);
+  });
+
   test('responsive lanes stay aligned to the device-layout contract', () => {
     const layout = read('../layouts/deviceLayout.js');
     const css = read('threeModeMinimalist.css');
