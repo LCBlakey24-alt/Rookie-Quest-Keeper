@@ -182,13 +182,45 @@ async def get_inventory_grant_targets(campaign_id: str, current_user: str = Depe
         {'campaign_id': campaign_id},
         {'_id': 0, 'id': 1, 'name': 1, 'user_id': 1, 'character_class': 1, 'level': 1}
     ).sort('name', 1).to_list(200)
+    campaign_members = getattr(db, 'campaign_members', None)
+    members = []
+    if campaign_members is not None:
+        members = await campaign_members.find(
+            {'campaign_id': campaign_id},
+            {'_id': 0, 'user_id': 1, 'character_id': 1, 'status': 1}
+        ).to_list(500)
+    member_by_character = {
+        str(member.get('character_id')): member
+        for member in members
+        if member.get('character_id')
+    }
+    member_by_user = {
+        str(member.get('user_id')): member
+        for member in members
+        if member.get('user_id')
+    }
+
+    eligible_characters = []
+    for character in characters:
+        member = member_by_character.get(str(character.get('id') or ''))
+        if member is None and character.get('user_id'):
+            member = member_by_user.get(str(character.get('user_id')))
+        if member is not None:
+            member_status = str(member.get('status') or 'active').strip().lower()
+            linked_character_id = str(member.get('character_id') or '').strip()
+            if member_status != 'active':
+                continue
+            if linked_character_id and linked_character_id != str(character.get('id') or ''):
+                continue
+        eligible_characters.append(character)
+
     npcs = await db.npcs.find(
         {'campaign_id': campaign_id},
         {'_id': 0, 'id': 1, 'name': 1, 'role': 1, 'class_name': 1, 'level': 1, 'hp': 1, 'max_hp': 1, 'ac': 1}
     ).sort('name', 1).to_list(300)
 
     targets = []
-    for character in characters:
+    for character in eligible_characters:
         targets.append({
             **character,
             'target_type': 'character',
