@@ -10,6 +10,11 @@ from data.spell_slot_rules import (
     homebrew_spellcasting_for_class,
 )
 
+CORE_CLASSES = {
+    "barbarian", "bard", "cleric", "druid", "fighter", "monk",
+    "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard",
+}
+
 
 def _key(value: Any) -> str:
     return str(value or "").strip().lower().replace(" ", "_").replace("-", "_")
@@ -58,6 +63,8 @@ async def ensure_homebrew_spellcasting_snapshot(
     Exact normalized class-name matching is required. If no matching class with
     explicit spellcasting metadata exists, the character is returned untouched.
     """
+    if _key(class_name) in CORE_CLASSES:
+        return character, False
     if homebrew_spellcasting_for_class(character, class_name):
         return character, False
 
