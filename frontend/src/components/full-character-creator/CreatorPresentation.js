@@ -20,6 +20,23 @@ export function Choice({ title, children, interactive = false }) {
   return <section className={`full-creator-choice-block ${interactive ? 'is-interactive' : 'is-reference'}`}><h3>{title}</h3><div>{children}</div></section>;
 }
 
+export function OptionCard({ title, summary, active = false, onClick }) {
+  return (
+    <button
+      type="button"
+      className={`full-creator-option-card ${active ? 'active' : ''}`}
+      aria-pressed={Boolean(active)}
+      onClick={onClick}
+    >
+      <span className="full-creator-option-card-heading">
+        <strong>{title}</strong>
+        <small>{active ? 'Selected' : 'Select'}</small>
+      </span>
+      {summary && <span className="full-creator-option-card-summary">{summary}</span>}
+    </button>
+  );
+}
+
 export function LanguagePicker({ title, count, selected = [], unavailable = [], onToggle }) {
   if (!count) return null;
   const blocked = new Set(unavailable);
