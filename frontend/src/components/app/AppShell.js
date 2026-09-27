@@ -173,7 +173,14 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
 
           const active = isActive(pathname, item);
           return (
-            <Link key={item.label} to={item.to} className={active ? 'rqk-app-mobile-more-item is-active' : 'rqk-app-mobile-more-item'} onClick={onClose} role="menuitem">
+            <Link
+              key={item.label}
+              to={item.to}
+              className={active ? 'rqk-app-mobile-more-item is-active' : 'rqk-app-mobile-more-item'}
+              onClick={onClose}
+              role="menuitem"
+              aria-current={active ? 'page' : undefined}
+            >
               <Icon size={18} aria-hidden="true" />
               <span>{item.label}</span>
             </Link>
@@ -239,6 +246,7 @@ export default function AppShell({ children }) {
     if (isAdmin) tools.push(adminNavItem);
     return tools;
   }, [isAdmin]);
+  const mobileMoreCurrentSection = mobileMoreItems.find((item) => item.to && isActive(location.pathname, item));
 
   const handleRook = () => {
     setIsMoreOpen(false);
@@ -278,11 +286,11 @@ export default function AppShell({ children }) {
         <div className="rqk-app-rail-bottom">
           {!isMobile && <>
             <p className="rqk-app-rail-section-label">Support</p>
-            <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook}>
+            <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook} aria-label="Ask Rook" title="Ask Rook">
               <Sparkles size={20} aria-hidden="true" />
               <span>Ask Rook</span>
             </button>
-            <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback}>
+            <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback} aria-label="Feedback" title="Feedback">
               <MessageSquare size={20} aria-hidden="true" />
               <span>Feedback</span>
             </button>
@@ -292,9 +300,16 @@ export default function AppShell({ children }) {
 
           {isMobile && <button
             type="button"
-            className={isMoreOpen ? 'rqk-app-rail-link rqk-app-mobile-more-trigger is-active' : 'rqk-app-rail-link rqk-app-mobile-more-trigger'}
+            className={[
+              'rqk-app-rail-link',
+              'rqk-app-mobile-more-trigger',
+              isMoreOpen ? 'is-open' : '',
+              mobileMoreCurrentSection ? 'has-current-section' : '',
+            ].filter(Boolean).join(' ')}
             onClick={() => setIsMoreOpen((value) => !value)}
-            aria-label="Open more tools"
+            aria-label={mobileMoreCurrentSection
+              ? `Open more tools, current section ${mobileMoreCurrentSection.label}`
+              : 'Open more tools'}
             aria-expanded={isMoreOpen}
             aria-controls="rqk-app-mobile-more-panel"
           >
