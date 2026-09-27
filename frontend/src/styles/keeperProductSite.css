@@ -577,14 +577,17 @@
   line-height: 1.35;
 }
 
-#root .keeper-product-site .landing-app-preview__grid button {
+#root .keeper-product-site .landing-app-preview__action {
+  width: max-content;
   min-height: 28px;
   margin-top: 9px;
+  display: inline-flex;
+  align-items: center;
   padding: 0 8px;
-  border: 1px solid var(--landing-gold) !important;
-  border-radius: 4px !important;
-  background: var(--landing-gold) !important;
-  color: var(--landing-bg-deep) !important;
+  border: 1px solid var(--landing-gold);
+  border-radius: 4px;
+  background: var(--landing-gold);
+  color: var(--landing-bg-deep);
   font-size: 8px;
   font-weight: 800;
 }
