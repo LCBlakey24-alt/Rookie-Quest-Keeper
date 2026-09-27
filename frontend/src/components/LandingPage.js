@@ -7,8 +7,6 @@ import {
   Castle,
   ChevronRight,
   Compass,
-  Crown,
-  MapPinned,
   NotebookPen,
   ScrollText,
   ShieldCheck,
@@ -274,7 +272,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <aside className="landing-product-stage" aria-label="Rookie Quest Keeper campaign workspace preview">
+          <aside className="landing-product-stage" aria-hidden="true">
             <div className="landing-stage-ornament landing-stage-ornament--top" aria-hidden="true"><Compass size={24} /></div>
             <div className="landing-app-preview">
               <div className="landing-app-preview__bar">
@@ -317,7 +315,7 @@ export default function LandingPage() {
                       <small>Next session</small>
                       <strong>The Council Convenes</strong>
                       <p>Saturday · 4:00 PM</p>
-                      <button type="button" tabIndex="-1">View session</button>
+                      <span className="landing-app-preview__action">View session</span>
                     </section>
                     <section>
                       <small>Recent activity</small>
