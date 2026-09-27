@@ -611,6 +611,7 @@ export default function CleanCharacterSheet() {
         ac={ac}
         speed={speed}
         initiative={initiative}
+        proficiencyBonus={proficiencyBonus}
         onHpAmountChange={setHpAmount}
         onTempHpAmountChange={setTempHpAmount}
         onDamage={() => updateHp(-getSafeAmount(hpAmount))}

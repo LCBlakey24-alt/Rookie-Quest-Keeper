@@ -79,4 +79,21 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalGuard).not.toMatch(/linear-gradient|radial-gradient/i);
     expect(finalGuard).toContain('background-image: none !important;');
   });
+
+  test('the live sheet authority uses Guild Ledger tokens and a horizontal phone tab rail', () => {
+    const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
+    const compactStatus = read('../components/clean-sheet/CleanSheetCompactStatus.js');
+    const sheet = read('../components/CleanCharacterSheet.js');
+
+    expect(finalAuthority).toContain('--cs-bg: #0B1B2B');
+    expect(finalAuthority).toContain('--cs-panel: #1E2936');
+    expect(finalAuthority).toContain('--cs-card: #263748');
+    expect(finalAuthority).toContain('--cs-accent: #C9A96B');
+    expect(finalAuthority).toContain('--cs-blue: #6E91B4');
+    expect(finalAuthority).toContain('flex-direction: row !important;');
+    expect(finalAuthority).toContain('overflow-x: auto !important;');
+    expect(finalAuthority).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
+    expect(compactStatus).toContain('<span>Proficiency</span>');
+    expect(sheet).toContain('proficiencyBonus={proficiencyBonus}');
+  });
 });
