@@ -3,27 +3,27 @@
    UI primitives rather than decorative one-off art assets. */
 
 #root .landing-page-final.keeper-product-site {
-  --landing-bg: #0B1B2B;
-  --landing-bg-deep: #07131F;
-  --landing-surface: #1E2936;
-  --landing-card: #263748;
-  --landing-card-hover: #334155;
-  --landing-input: #101F2D;
-  --landing-line: rgba(137, 157, 176, 0.14);
-  --landing-line-strong: rgba(201, 169, 107, 0.30);
-  --landing-gold: #C9A96B;
-  --landing-gold-bright: #D9BC82;
-  --landing-gold-soft: rgba(201, 169, 107, 0.12);
+  --landing-bg: var(--rq-bg-main, #0B1B2B);
+  --landing-bg-deep: var(--rq-bg-deep, #07131F);
+  --landing-surface: var(--rq-bg-panel, #1E2936);
+  --landing-card: var(--rq-card, #263748);
+  --landing-card-hover: var(--rq-card-hover, #334155);
+  --landing-input: var(--rq-bg-input, #101F2D);
+  --landing-line: var(--rq-line, rgba(137, 157, 176, 0.14));
+  --landing-line-strong: var(--rq-line-strong, rgba(201, 169, 107, 0.30));
+  --landing-gold: var(--rq-primary, #C9A96B);
+  --landing-gold-bright: var(--rq-primary-hover, #D9BC82);
+  --landing-gold-soft: var(--rq-primary-soft, rgba(201, 169, 107, 0.12));
   /* Compatibility aliases retained for the shared professional-theme contract. */
   --landing-red: #C9A96B;
   --landing-red-bright: #D9BC82;
   --landing-red-soft: rgba(201, 169, 107, 0.12);
-  --landing-blue: #6E91B4;
+  --landing-blue: var(--rq-secondary, #6E91B4);
   --landing-secondary: #6E91B4;
-  --landing-blue-soft: rgba(110, 145, 180, 0.10);
+  --landing-blue-soft: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10));
   --landing-text: #EADFC8;
-  --landing-muted: rgba(234, 223, 200, 0.78);
-  --landing-faint: rgba(234, 223, 200, 0.58);
+  --landing-muted: var(--rq-text-secondary, rgba(234, 223, 200, 0.78));
+  --landing-faint: var(--rq-text-muted, rgba(234, 223, 200, 0.58));
   --landing-seal: #7F2D2D;
 
   min-height: 100dvh;
