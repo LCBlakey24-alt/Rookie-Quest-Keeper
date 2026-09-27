@@ -2,6 +2,33 @@
 
 This file and `docs/UI_DESIGN_SYSTEM.md` define the same visual contract. If older documentation, CSS comments or route-specific styles disagree, this document wins.
 
+## Canonical visual references
+
+The approved visual reference assets live in Google Drive:
+
+```text
+03 - Rookie Quest Keeper/
+  00 - Brand & Visual Identity/
+    01 - Logos/
+    02 - Design Boards/
+      Rookie-Quest-Keeper__Guild-Ledger__Design-Board__Approved.png
+      Rookie-Quest-Keeper__Guild-Ledger__Logo-Board__Approved.png
+    90 - Superseded & Legacy/
+```
+
+For visual work, use this precedence:
+
+1. A newer explicit product/design decision from the project owner.
+2. The approved Guild Ledger Design Board and Logo Board above.
+3. This document and `docs/UI_DESIGN_SYSTEM.md` as the implementation contract.
+4. `AGENTS.md` as the concise agent summary.
+5. Existing route CSS, screenshots, historical docs and legacy assets.
+
+Anything under `90 - Superseded & Legacy` is historical reference only and must not be used as the basis for new UI work.
+
+If an agent cannot access Google Drive, it must use this document rather than inventing a replacement theme. Do not infer a new palette from old screenshots or existing legacy CSS.
+
+
 ## 1. Product identity
 
 Rookie Quest Keeper is a premium TTRPG companion for players and GMs. It should feel like a focused fantasy command journal: dark, readable, practical, app-like and slightly dramatic without becoming theatrical.
