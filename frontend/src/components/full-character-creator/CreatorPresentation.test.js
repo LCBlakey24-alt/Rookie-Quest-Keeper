@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Sparkles } from 'lucide-react';
 
-import { Choice, Chip, LanguagePicker, ReadinessPanel, ReviewItem, Title } from './CreatorPresentation';
+import { Choice, Chip, LanguagePicker, OptionCard, ReadinessPanel, ReviewItem, Title } from './CreatorPresentation';
 
 describe('creator presentation primitives', () => {
   test('keeps selected choice semantics and reference-vs-interactive grouping', () => {
@@ -20,6 +20,25 @@ describe('creator presentation primitives', () => {
     expect(container.querySelector('.full-creator-choice-block.is-reference')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Athletics' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'Athletics' }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  test('option cards expose clear title, summary and selected state', () => {
+    const onClick = jest.fn();
+    render(
+      <OptionCard
+        title="Elf"
+        summary="Graceful folk with keen senses."
+        active
+        onClick={onClick}
+      />,
+    );
+
+    const card = screen.getByRole('button', { name: /Elf/i });
+    expect(card).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Graceful folk with keen senses.')).toBeInTheDocument();
+    expect(screen.getByText('Selected')).toBeInTheDocument();
+    fireEvent.click(card);
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
