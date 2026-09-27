@@ -64,6 +64,7 @@ describe('Character Creator presentation ownership', () => {
 
     expect(component).toContain('full-creator-option-grid');
     expect(component).toContain('active={draft.race === name}');
+    expect(component).toContain('active={draft.characterClass === name}');
     expect(base).toContain('.full-creator-option-card');
     expect(base).toContain(".full-creator-option-card[aria-pressed='true']");
     expect(base).toContain('.full-creator-option-card-summary');
