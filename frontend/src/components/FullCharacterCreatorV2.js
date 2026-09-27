@@ -775,10 +775,26 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
   const saves = arr(classData.savingThrows);
   return <>
     <Title icon={Swords} title="Choose class" text="Class handles class, subclass timing, class skills, spells, features, and proficiencies." />
-    <div className="full-creator-form-grid">
-      <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', fighterFightingStyle: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [], rolledStartingGold: 0 })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
-      {classChoicesRequired && <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>}
+    <div className="full-creator-option-grid" role="group" aria-label="Class options">
+      {Object.keys(CLASSES).map((name) => {
+        const option = CLASSES[name] || {};
+        const summary = option.description || `Hit die d${option.hitDie || 8} · ${String(option.primaryAbility || 'varies').toUpperCase()} primary`;
+        return (
+          <OptionCard
+            key={name}
+            title={name}
+            summary={summary}
+            active={draft.characterClass === name}
+            onClick={() => update({ characterClass: name, subclass: '', fighterFightingStyle: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [], rolledStartingGold: 0 })}
+          />
+        );
+      })}
     </div>
+    {classChoicesRequired && (
+      <div className="full-creator-form-grid">
+        <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>
+      </div>
+    )}
     {!classChoicesRequired && <div className="full-creator-auto-box"><strong>Subclass timing</strong><span>{draft.edition === '2024' ? 'This class chooses its subclass at level 3 in the 2024 flow.' : `This class chooses its subclass at level ${subclassLevel}. It will be handled through level-up later.`}</span></div>}
     {draft.characterClass === 'Fighter' && <Choice title={`Fighting Style ${draft.fighterFightingStyle ? 'selected' : 'required'}`} interactive>{FIGHTER_FIGHTING_STYLES.map((style) => <Chip key={style} active={draft.fighterFightingStyle === style} onClick={() => update({ fighterFightingStyle: draft.fighterFightingStyle === style ? '' : style })}>{style}</Chip>)}</Choice>}
     <div className="full-creator-review-grid">
