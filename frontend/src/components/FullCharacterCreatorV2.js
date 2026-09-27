@@ -23,6 +23,7 @@ import {
   Choice,
   Chip,
   LanguagePicker,
+  OptionCard,
   ReadinessPanel,
   ReviewItem,
   Title,
@@ -731,10 +732,26 @@ function Species({ draft, update, subraces, raceData, racialTraits, baseLanguage
   const speed = raceData.subraces?.[draft.subrace]?.speed || raceData.speed || 30;
   return <>
     <Title icon={Shield} title={`Choose ${speciesLabel.toLowerCase()}`} text={`Pick your character's ${speciesLabel.toLowerCase()} and review what it gives them.`} />
-    <div className="full-creator-form-grid">
-      <label><span>{speciesLabel}</span><select value={draft.race} onChange={(event) => update({ race: event.target.value, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] })}>{Object.keys(RACES).map((name) => <option key={name}>{name}</option>)}</select></label>
-      {subraces.length > 0 && <label><span>{speciesLabel} option</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value, raceChosenLanguages: [], backgroundChosenLanguages: [] })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>}
+    <div className="full-creator-option-grid" role="group" aria-label={`${speciesLabel} options`}>
+      {Object.keys(RACES).map((name) => {
+        const option = RACES[name] || {};
+        const summary = option.description || `${option.size || 'Medium'} · ${option.speed || 30} ft speed`;
+        return (
+          <OptionCard
+            key={name}
+            title={name}
+            summary={summary}
+            active={draft.race === name}
+            onClick={() => update({ race: name, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] })}
+          />
+        );
+      })}
     </div>
+    {subraces.length > 0 && (
+      <div className="full-creator-form-grid">
+        <label><span>{speciesLabel} option</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value, raceChosenLanguages: [], backgroundChosenLanguages: [] })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>
+      </div>
+    )}
     <section className="full-creator-auto-box">
       <strong>{draft.race}{draft.subrace ? ` — ${draft.subrace}` : ''}</strong>
       <span>{raceData.description || `Review the ${speciesLabel.toLowerCase()} traits before moving on.`}</span>
