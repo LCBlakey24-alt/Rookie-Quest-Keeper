@@ -819,8 +819,23 @@ function Background({ draft, update, featRequired, originFeat, backgroundFeature
   const backgroundData = BACKGROUNDS[draft.background] || {};
   return <>
     <Title icon={BookOpen} title="Choose background" text="Pick where your character came from. Origin feat lives here for 2024 characters." />
+    <div className="full-creator-option-grid" role="group" aria-label="Background options">
+      {Object.keys(BACKGROUNDS).map((name) => {
+        const option = BACKGROUNDS[name] || {};
+        const skills = arr(option.skillProficiencies).slice(0, 2).join(', ');
+        const summary = option.description || (skills ? `Skills: ${skills}` : 'Review this background\'s skills, equipment, and feature.');
+        return (
+          <OptionCard
+            key={name}
+            title={name}
+            summary={summary}
+            active={draft.background === name}
+            onClick={() => update({ background: name, extraFeat: 'None', backgroundChosenLanguages: [] })}
+          />
+        );
+      })}
+    </div>
     <div className="full-creator-form-grid">
-      <label><span>Background</span><select value={draft.background} onChange={(event) => update({ background: event.target.value, extraFeat: 'None', backgroundChosenLanguages: [] })}>{Object.keys(BACKGROUNDS).map((name) => <option key={name}>{name}</option>)}</select></label>
       <label><span>Alignment</span><select value={draft.alignment} onChange={(event) => update({ alignment: event.target.value })}>{['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'].map((name) => <option key={name}>{name}</option>)}</select></label>
       {featRequired && <label><span>Origin feat</span><select value={draft.extraFeat} onChange={(event) => update({ extraFeat: event.target.value })}>{['None', ...getFeatsForRuleset({ edition: draft.edition, category: 'origin' }).map(feat => feat.name)].map((name) => <option key={name}>{name}</option>)}</select></label>}
     </div>
