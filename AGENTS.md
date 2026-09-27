@@ -79,6 +79,22 @@ Do not create placeholder/probe files in the repository. Delete accidental files
 
 ## Styling direction
 
+Before making any visual/UI change, read `docs/DESIGN_SYSTEM.md`. It is the repository implementation contract for the approved **Guild Ledger** theme.
+
+The visual source of truth is the approved Google Drive brand area:
+
+```text
+03 - Rookie Quest Keeper/
+  00 - Brand & Visual Identity/
+    01 - Logos/
+    02 - Design Boards/
+      Rookie-Quest-Keeper__Guild-Ledger__Design-Board__Approved.png
+      Rookie-Quest-Keeper__Guild-Ledger__Logo-Board__Approved.png
+    90 - Superseded & Legacy/
+```
+
+Do not use anything in `90 - Superseded & Legacy` as inspiration for new UI. If Drive is unavailable in the current agent environment, follow `docs/DESIGN_SYSTEM.md` exactly rather than inventing or extrapolating a new theme.
+
 Use the current Rookie Quest direction:
 
 - Ink/deep navy backgrounds with slate/ledger-grey surfaces.
