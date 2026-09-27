@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Footprints, HeartPulse, Moon, Shield, Sparkles, Swords, Sun } from 'lucide-react';
+import { BadgeCheck, Footprints, HeartPulse, Moon, Shield, Sparkles, Swords, Sun } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
 import { fmt } from './cleanSheetUtils';
@@ -25,6 +25,7 @@ export default function CleanSheetCompactStatus({
   ac,
   speed,
   initiative,
+  proficiencyBonus,
   onHpAmountChange,
   onTempHpAmountChange,
   onDamage,
@@ -201,6 +202,11 @@ export default function CleanSheetCompactStatus({
           <Footprints size={14} />
           <span>Speed</span>
           <strong>{speed ? `${speed}ft` : '—'}</strong>
+        </div>
+        <div className="clean-sheet-quick-stat">
+          <BadgeCheck size={14} />
+          <span>Proficiency</span>
+          <strong>{proficiencyBonus !== undefined ? fmt(proficiencyBonus) : '—'}</strong>
         </div>
       </div>
     </section>

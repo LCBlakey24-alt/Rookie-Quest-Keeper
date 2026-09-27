@@ -1,42 +1,50 @@
 /* RQK 1.0 final character-sheet authority.
-   Flat navy surfaces, white text, sky-blue secondary UI and thin neon-pink accents. */
+   Guild Ledger surfaces, warm cream hierarchy, ledger-blue support, and restrained gold emphasis. */
 
 .character-page-v2.clean-sheet-page,
 .clean-sheet-page.character-page-v2 {
-  --cs-bg: #071522 !important;
-  --cs-panel: #0C2234 !important;
-  --cs-card: #112A40 !important;
-  --cs-input: #071A29 !important;
-  --cs-text: #F7F1E7 !important;
-  --cs-text-soft: #F7F1E7 !important;
-  --cs-muted: #F7F1E7 !important;
-  --cs-border: rgba(214,168,79, 0.18) !important;
-  --cs-border-strong: rgba(214,168,79, 0.42) !important;
-  --cs-accent: #D6A84F !important;
-  --cs-accent-soft: rgba(214,168,79, 0.08) !important;
-  --cs-blue: #79BCE8 !important;
-  --cs-blue-soft: rgba(121,188,232, 0.10) !important;
-  --cs-success: #79BCE8 !important;
-  --cs-warning: #79BCE8 !important;
-  --cs-danger: #D6A84F !important;
+  --cs-bg: #0B1B2B !important;
+  --cs-panel: #1E2936 !important;
+  --cs-card: #263748 !important;
+  --cs-input: #101F2D !important;
+  --cs-text: #EADFC8 !important;
+  --cs-text-soft: rgba(234,223,200, 0.78) !important;
+  --cs-muted: rgba(234,223,200, 0.60) !important;
+  --cs-border: rgba(137,157,176, 0.14) !important;
+  --cs-border-strong: rgba(201,169,107, 0.30) !important;
+  --cs-accent: #C9A96B !important;
+  --cs-accent-soft: rgba(201,169,107, 0.12) !important;
+  --cs-blue: #6E91B4 !important;
+  --cs-blue-soft: rgba(110,145,180, 0.10) !important;
+  --cs-success: #5FA67A !important;
+  --cs-warning: #D39A43 !important;
+  --cs-danger: #B94A4F !important;
 
-  --rq-bg-main: #071522 !important;
-  --rq-bg-panel: #0C2234 !important;
-  --rq-bg-card: #112A40 !important;
-  --rq-bg-input: #071A29 !important;
-  --rq-bg-button: #112A40 !important;
-  --rq-card: #112A40 !important;
-  --rq-panel: #0C2234 !important;
-  --rq-surface: #0C2234 !important;
-  --rq-border-default: rgba(214,168,79, 0.18) !important;
-  --rq-accent-primary: #D6A84F !important;
-  --rq-secondary: #79BCE8 !important;
-  --rq-sunset-gradient: #D6A84F !important;
+  --rq-bg-main: #0B1B2B !important;
+  --rq-bg-panel: #1E2936 !important;
+  --rq-bg-card: #263748 !important;
+  --rq-bg-input: #101F2D !important;
+  --rq-bg-button: #263748 !important;
+  --rq-card: #263748 !important;
+  --rq-panel: #1E2936 !important;
+  --rq-surface: #1E2936 !important;
+  --rq-border-default: rgba(137,157,176, 0.14) !important;
+  --rq-accent-primary: #C9A96B !important;
+  --rq-secondary: #6E91B4 !important;
+  --rq-sunset-gradient: #C9A96B !important;
 
-  background: #071522 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
-  color: #F7F1E7 !important;
+  color: #EADFC8 !important;
   overflow-x: hidden !important;
+}
+
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-header-actions,
+.character-page-v2 .clean-sheet-compact-status,
+.character-page-v2 .clean-sheet-content {
+  width: min(100%, 1280px) !important;
+  margin-inline: auto !important;
 }
 
 .character-page-v2 *,
@@ -47,7 +55,7 @@
 }
 
 .character-page-v2 :where(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,button,a,th,td) {
-  color: #F7F1E7 !important;
+  color: #EADFC8 !important;
   -webkit-text-fill-color: currentColor !important;
 }
 
@@ -67,11 +75,11 @@
 .character-page-v2 .clean-sheet-skills-summary,
 .character-page-v2 .clean-sheet-readable-saves,
 .character-page-v2 .clean-sheet-readable-skills {
-  background: #0C2234 !important;
+  background: #1E2936 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79, 0.18) !important;
+  border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 7px !important;
-  color: #F7F1E7 !important;
+  color: #EADFC8 !important;
 }
 
 .character-page-v2 .clean-sheet-identity,
@@ -90,12 +98,12 @@
 .character-page-v2 .clean-sheet-note-field,
 .character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-compact-stat--hp {
-  background: #112A40 !important;
+  background: #263748 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79, 0.18) !important;
+  border: 1px solid rgba(137,157,176, 0.14) !important;
   border-left-width: 1px !important;
   border-radius: 5px !important;
-  color: #F7F1E7 !important;
+  color: #EADFC8 !important;
 }
 
 .character-page-v2 .clean-sheet-header::before,
@@ -129,11 +137,11 @@
 .character-page-v2 .clean-sheet-item-actions button,
 .character-page-v2 .clean-sheet-roll-chip {
   min-height: 42px !important;
-  border: 1px solid rgba(214,168,79, 0.18) !important;
+  border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 5px !important;
-  background: #112A40 !important;
+  background: #263748 !important;
   background-image: none !important;
-  color: #F7F1E7 !important;
+  color: #EADFC8 !important;
 }
 
 .character-page-v2 .clean-sheet-level,
@@ -141,17 +149,17 @@
 .character-page-v2 .clean-sheet-roll-mode-group button.active,
 .character-page-v2 .clean-sheet-condition-picker button.active,
 .character-page-v2 .clean-sheet-skill-filter-row button.active {
-  background: rgba(121,188,232, 0.10) !important;
+  background: rgba(110,145,180, 0.10) !important;
   background-image: none !important;
-  border-color: #D6A84F !important;
-  color: #F7F1E7 !important;
+  border-color: #C9A96B !important;
+  color: #EADFC8 !important;
 }
 
 .character-page-v2 button:hover:not(:disabled),
 .character-page-v2 button:focus-visible,
 .character-page-v2 .clean-sheet-clickable:hover {
-  background: #17364F !important;
-  border-color: #D6A84F !important;
+  background: #334155 !important;
+  border-color: #C9A96B !important;
   filter: none !important;
   transform: none !important;
 }
@@ -160,7 +168,7 @@
 .character-page-v2 input:focus-visible,
 .character-page-v2 select:focus-visible,
 .character-page-v2 textarea:focus-visible {
-  outline: 1px solid #D6A84F !important;
+  outline: 3px solid #6E91B4 !important;
   outline-offset: 2px !important;
 }
 
@@ -168,12 +176,12 @@
 .character-page-v2 input,
 .character-page-v2 select,
 .character-page-v2 textarea {
-  background: #071A29 !important;
+  background: #101F2D !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79, 0.20) !important;
+  border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 5px !important;
-  color: #F7F1E7 !important;
-  -webkit-text-fill-color: #F7F1E7 !important;
+  color: #EADFC8 !important;
+  -webkit-text-fill-color: #EADFC8 !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
@@ -192,20 +200,20 @@
 .character-page-v2 .clean-sheet-hp-bar,
 .character-page-v2 .clean-sheet-slot-pips i,
 .character-page-v2 .clean-sheet-death-track button {
-  background: #071A29 !important;
-  border-color: rgba(214,168,79, 0.18) !important;
+  background: #101F2D !important;
+  border-color: rgba(137,157,176, 0.14) !important;
 }
 
 .character-page-v2 .clean-sheet-hp-bar div,
 .character-page-v2 .clean-sheet-slot-pips i.filled {
-  background: #79BCE8 !important;
+  background: #6E91B4 !important;
   background-image: none !important;
 }
 
 .character-page-v2 .clean-sheet-tabs {
   background: #050E18 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79, 0.18) !important;
+  border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 7px !important;
 }
 
@@ -216,49 +224,53 @@
   background-image: none !important;
   border: 1px solid transparent !important;
   border-radius: 5px !important;
-  color: #F7F1E7 !important;
+  color: #EADFC8 !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button svg,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
-  color: #79BCE8 !important;
+  color: #6E91B4 !important;
   background: transparent !important;
   background-image: none !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active {
-  background: rgba(121,188,232, 0.10) !important;
-  border-color: #D6A84F !important;
+  background: rgba(110,145,180, 0.10) !important;
+  border-color: #C9A96B !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active svg {
   background: transparent !important;
   background-image: none !important;
-  color: #79BCE8 !important;
+  color: #6E91B4 !important;
+}
+
+.character-page-v2 .clean-sheet-quick-stat-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
 }
 
 .character-page-v2 .clean-sheet-tab-warning,
 .character-page-v2 .clean-sheet-save-prof-marker,
 .character-page-v2 .clean-sheet-compact-skill.is-proficient::before {
-  background: #D6A84F !important;
+  background: #C9A96B !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient {
-  border-left: 1px solid #D6A84F !important;
+  border-left: 1px solid #C9A96B !important;
 }
 
 .character-page-v2 .clean-sheet-attention-section,
 .character-page-v2 .clean-sheet-snapshot-warning,
 .character-page-v2 .clean-sheet-detail-warning,
 .character-page-v2 .clean-sheet-spell-warning {
-  background: #112A40 !important;
+  background: #263748 !important;
   background-image: none !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid #C9A96B !important;
   border-radius: 5px !important;
-  color: #F7F1E7 !important;
+  color: #EADFC8 !important;
 }
 
 @media (min-width: 760px) {
@@ -275,7 +287,7 @@
 @media (max-width: 759px) {
   .character-page-v2.clean-sheet-page,
   .clean-sheet-page.character-page-v2 {
-    padding: 8px 8px 34px 66px !important;
+    padding: 8px !important;
   }
 
   .character-page-v2 .clean-sheet-header-actions {
@@ -285,17 +297,73 @@
   .character-page-v2 .clean-sheet-header-actions button {
     font-size: 0.82rem !important;
   }
+
+  #root .character-page-v2 .clean-sheet-tabs,
+  .character-page-v2 .clean-sheet-tabs {
+    position: sticky !important;
+    inset: 50px auto auto !important;
+    z-index: 70 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 8px auto 10px !important;
+    padding: 5px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    gap: 4px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain !important;
+    scrollbar-width: thin !important;
+    background: #07131F !important;
+    border: 1px solid rgba(137,157,176, 0.14) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs button,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback,
+  .character-page-v2 .clean-sheet-tabs button,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    grid-template-columns: auto auto !important;
+    place-items: center !important;
+    gap: 5px !important;
+    padding: 6px 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs button span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span,
+  .character-page-v2 .clean-sheet-tabs button span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+    display: inline-block !important;
+    max-width: none !important;
+    overflow: visible !important;
+    font-size: 0.68rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  .character-page-v2 .clean-sheet-compact-abilities,
+  .character-page-v2 .clean-sheet-readable-saves {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
 
 @media (max-width: 420px) {
-  .character-page-v2.clean-sheet-page,
-  .clean-sheet-page.character-page-v2 {
-    padding-left: 62px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs {
-    left: 7px !important;
-    width: 46px !important;
-    max-width: 46px !important;
+  .character-page-v2 .clean-sheet-readable-skills {
+    grid-template-columns: 1fr !important;
   }
 }
