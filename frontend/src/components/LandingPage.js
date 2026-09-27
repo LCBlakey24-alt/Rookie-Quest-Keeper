@@ -43,10 +43,10 @@ const featureGroups = [
 ];
 
 const proofPoints = [
-  'Mobile-first sheets',
-  'Actions-first play',
-  'GM-ready campaigns',
-  'Built for rookies and regulars',
+  'Characters',
+  'Campaigns',
+  'Sessions',
+  'Live play',
 ];
 
 const previewItems = [
@@ -306,14 +306,18 @@ export default function LandingPage() {
       <main id="landing-main" className="landing-final-main">
         <section className="landing-final-hero" aria-labelledby="landing-hero-title">
           <div className="landing-hero-copy">
+            <p className="landing-hero-mantra" aria-label="Plan, organise, track, play">
+              <span>Plan</span><i aria-hidden="true">✦</i><span>Organise</span><i aria-hidden="true">✦</i><span>Track</span><i aria-hidden="true">✦</i><span>Play</span>
+            </p>
+
             <div className="landing-final-logo-wrap" aria-hidden="true">
               <BrandMainLogo width={480} />
             </div>
 
-            <p className="landing-kicker">Rookie Quest Keeper · Available now</p>
+            <p className="landing-kicker">Guild Ledger · A refined campaign companion</p>
             <h1 id="landing-hero-title">Your campaign. Kept together.</h1>
             <p className="landing-final-intro">
-              Build your character, prepare your campaign, and keep the tools you need close at hand when the dice start rolling.
+              Bring order to the chaos with elegant tools for characters, campaign prep, session play, and the details that make a tabletop story unforgettable.
             </p>
 
             <div className="landing-hero-actions" aria-label="Landing page actions">
@@ -332,15 +336,23 @@ export default function LandingPage() {
 
           <aside className="landing-preview-panel" aria-label="Rookie Quest Keeper product preview">
             <div className="landing-preview-topbar">
-              <div className="landing-preview-dots" aria-hidden="true"><span /><span /><span /></div>
-              <strong>Rookie Quest Keeper</strong>
-              <span>Table hub</span>
+              <span className="landing-preview-seal" aria-hidden="true"><BrandMiniLogo size={34} alt="" /></span>
+              <div>
+                <strong>Guild Ledger</strong>
+                <span>Campaign workspace</span>
+              </div>
+              <em>Keeper</em>
             </div>
             <div className="landing-preview-body">
               <div className="landing-preview-spotlight">
-                <span>One connected workspace</span>
-                <h2>Build. Play. Run.</h2>
-                <p>Create a character, keep the sheet readable at the table, and give GMs a workspace that grows with the campaign.</p>
+                <span>Campaign overview</span>
+                <h2>The Ashen Crown</h2>
+                <p>A living campaign space for characters, sessions, places, notes, and the next thing your table needs.</p>
+                <div className="landing-preview-meta" aria-label="Campaign status">
+                  <span>8 sessions</span>
+                  <span>6 characters</span>
+                  <span>12 NPCs</span>
+                </div>
               </div>
               <div className="landing-preview-list">
                 {previewItems.map((item) => {
