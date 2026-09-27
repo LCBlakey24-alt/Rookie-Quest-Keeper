@@ -4,9 +4,11 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import apiClient from '@/lib/apiClient';
 import AppShell from './AppShell';
 
+let mockPathname = '/campaigns';
+
 jest.mock('react-router-dom', () => ({
   Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>,
-  useLocation: () => ({ pathname: '/campaigns' }),
+  useLocation: () => ({ pathname: mockPathname }),
 }), { virtual: true });
 
 jest.mock('@/lib/apiClient', () => ({
@@ -20,6 +22,7 @@ describe('AppShell', () => {
   const originalWidth = window.innerWidth;
 
   beforeEach(() => {
+    mockPathname = '/campaigns';
     apiClient.get.mockResolvedValue({ data: { is_admin: false } });
   });
 
@@ -62,7 +65,19 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Open more tools' })).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test.each([720, 1180, 1440])('preserves the full navigation rail at %ipx', async (width) => {
+  test('marks the current secondary destination inside More', async () => {
+    mockPathname = '/account';
+    window.innerWidth = 390;
+    await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
+
+    const moreTrigger = screen.getByRole('button', { name: 'Open more tools, current section Settings' });
+    expect(moreTrigger).toHaveClass('has-current-section');
+    fireEvent.click(moreTrigger);
+    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Settings' }))
+      .toHaveAttribute('aria-current', 'page');
+  });
+
+  test.each([720, 1180, 1440])('keeps every navigation destination available at %ipx', async (width) => {
     window.innerWidth = width;
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
 
@@ -72,6 +87,14 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'Rookie Quest Keeper dashboard' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ask Rook' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Open more tools' })).not.toBeInTheDocument();
+  });
+
+  test('keeps icon-only tablet support actions explicitly named', async () => {
+    window.innerWidth = 768;
+    await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
+
+    expect(screen.getByRole('button', { name: 'Ask Rook' })).toHaveAttribute('title', 'Ask Rook');
+    expect(screen.getByRole('button', { name: 'Feedback' })).toHaveAttribute('title', 'Feedback');
   });
 
   test('closes More and restores the correct navigation when resizing', async () => {
