@@ -1,72 +1,232 @@
-/* Keeper landing page visual hierarchy.
-   Keep the shared deep-navy / antique-gold / cream identity with restrained blue support, but avoid
-   making every text tier and divider equally bright. */
+/* Public Keeper product page — Guild Ledger authority.
+   This file refines the existing landing composition without replacing its components or routes. */
+
 #root .landing-page-final.keeper-product-site {
-  --landing-bg: #07131F;
-  --landing-bg-deep: #030912;
-  --landing-surface: #0B1C2C;
-  --landing-card: #263748;
-  --landing-card-hover: #334155;
-
-  /* Gold is the brand/action accent. Neutral lines keep the page calm. */
-  --landing-line: rgba(137, 157, 176, 0.14);
-  --landing-line-strong: rgba(201, 169, 107, 0.30);
-  --landing-red: #C9A96B; /* legacy variable name retained for existing selectors */
-  --landing-red-bright: #D9BC82;
-  --landing-red-soft: rgba(214, 168, 79, 0.10);
-
-  /* Blue is supporting information/focus colour, not the main CTA colour. */
+  --landing-bg: var(--rq-bg-main, #0B1B2B);
+  --landing-bg-deep: var(--rq-bg-deep, #07131F);
+  --landing-surface: var(--rq-bg-panel, #1E2936);
+  --landing-card: var(--rq-card, #263748);
+  --landing-card-hover: var(--rq-card-hover, #334155);
+  --landing-line: var(--rq-line, rgba(137, 157, 176, 0.14));
+  --landing-line-strong: var(--rq-line-strong, rgba(201, 169, 107, 0.30));
+  --landing-red: #C9A96B; /* Legacy selector alias: Guild Ledger primary. */
+  --landing-red-bright: var(--rq-primary-hover, #D9BC82);
+  --landing-red-soft: var(--rq-primary-soft, rgba(201, 169, 107, 0.12));
   --landing-secondary: #6E91B4;
-  --landing-secondary-soft: rgba(121, 188, 232, 0.08);
-  --landing-secondary-line: rgba(121, 188, 232, 0.22);
-
+  --landing-secondary-soft: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10));
+  --landing-secondary-line: rgba(110, 145, 180, 0.30);
   --landing-text: #EADFC8;
-  --landing-muted: rgba(234, 223, 200, 0.78);
-  --landing-faint: rgba(247, 241, 231, 0.58);
+  --landing-muted: var(--rq-text-secondary, rgba(234, 223, 200, 0.78));
+  --landing-faint: var(--rq-text-muted, rgba(234, 223, 200, 0.60));
 
+  gap: 0;
+  padding: 0;
   background: var(--landing-bg) !important;
+  background-image: none !important;
   color: var(--landing-text) !important;
 }
 
+#root .keeper-product-site .landing-final-nav,
+#root .keeper-product-site .landing-final-main,
+#root .keeper-product-site .landing-product-footer {
+  width: min(1320px, 100%);
+}
+
 #root .keeper-product-site .landing-final-nav {
-  background: rgba(2, 8, 16, 0.94) !important;
-  border-color: var(--landing-line) !important;
-  border-radius: 7px;
-  backdrop-filter: blur(14px);
+  top: 0;
+  min-height: 74px;
+  padding: 9px clamp(16px, 3vw, 34px);
+  background: rgba(7, 19, 31, 0.96) !important;
+  border: 0;
+  border-bottom: 1px solid var(--landing-line-strong) !important;
+  border-radius: 0;
+  backdrop-filter: blur(12px);
 }
 
 .keeper-product-site .landing-brand-context {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.keeper-product-site .landing-brand-context-copy {
-  color: var(--landing-text);
-  font-size: 14px;
-  font-weight: 800;
+  min-width: 180px;
 }
 
 #root .keeper-product-site .landing-logo-button {
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
+  width: 210px;
+  height: 54px;
+  justify-content: flex-start;
+  border-radius: var(--rq-inner-radius, 5px) !important;
 }
 
-#root .keeper-product-site .landing-preview-panel,
-#root .keeper-product-site .landing-preview-spotlight,
-#root .keeper-product-site .landing-faq-heading,
-#root .keeper-product-site .landing-product-footer {
+.keeper-product-site .landing-brand-wordmark {
+  width: min(210px, 100%) !important;
+  height: 52px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+}
+
+#root .keeper-product-site .landing-anchor-button {
+  color: var(--landing-muted) !important;
+  font-size: 0.74rem;
+  letter-spacing: 0.045em;
+  text-transform: none;
+}
+
+#root .keeper-product-site .landing-anchor-button:hover,
+#root .keeper-product-site .landing-anchor-button:focus-visible {
+  color: var(--landing-text) !important;
+  background: var(--landing-secondary-soft) !important;
+  border-color: var(--landing-line) !important;
+}
+
+#root .keeper-product-site .landing-button {
+  border-radius: var(--rq-inner-radius, 5px) !important;
+}
+
+#root .keeper-product-site .landing-button-primary {
+  background: var(--landing-red) !important;
+  border-color: var(--landing-red-bright) !important;
+  color: var(--landing-bg-deep) !important;
+}
+
+#root .keeper-product-site .landing-button-ghost,
+#root .keeper-product-site .landing-card-action {
+  background: var(--landing-bg-deep) !important;
+  border-color: var(--landing-line-strong) !important;
+  color: var(--landing-text) !important;
+}
+
+#root .keeper-product-site .landing-button:focus-visible,
+#root .keeper-product-site .landing-anchor-button:focus-visible,
+#root .keeper-product-site .landing-card-action:focus-visible,
+#root .keeper-product-site .landing-logo-button:focus-visible,
+#root .keeper-product-site .landing-footer-actions button:focus-visible,
+#root .keeper-product-site .landing-faq-item summary:focus-visible {
+  outline: 3px solid var(--landing-secondary) !important;
+  outline-offset: 2px !important;
+}
+
+#root .keeper-product-site .landing-final-hero {
+  position: relative;
+  min-height: clamp(610px, 76dvh, 760px);
+  grid-template-columns: minmax(0, 0.92fr) minmax(430px, 1.08fr);
+  gap: clamp(34px, 5vw, 76px);
+  padding: clamp(70px, 8vw, 110px) clamp(20px, 4vw, 52px);
+  border-inline: 1px solid var(--landing-line);
+  border-bottom: 1px solid var(--landing-line-strong);
+}
+
+#root .keeper-product-site .landing-final-hero::before,
+#root .keeper-product-site .landing-final-hero::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+#root .keeper-product-site .landing-final-hero::before {
+  inset: 24px auto auto 24px;
+  width: 70px;
+  height: 70px;
+  border-top: 1px solid var(--landing-line-strong);
+  border-left: 1px solid var(--landing-line-strong);
+}
+
+#root .keeper-product-site .landing-final-hero::after {
+  inset: auto 24px 24px auto;
+  width: 70px;
+  height: 70px;
+  border-right: 1px solid var(--landing-line-strong);
+  border-bottom: 1px solid var(--landing-line-strong);
+}
+
+.keeper-product-site .landing-hero-copy {
+  gap: 18px;
+}
+
+#root .keeper-product-site .landing-kicker,
+#root .keeper-product-site .landing-card-eyebrow {
+  color: var(--landing-red-bright) !important;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em !important;
+}
+
+#root .keeper-product-site h1 {
+  max-width: 660px;
+  font-family: var(--rq-heading-font, Georgia, serif) !important;
+  font-size: clamp(3.4rem, 6.5vw, 6.2rem);
+  font-weight: 700;
+  letter-spacing: -0.045em !important;
+  line-height: 0.92;
+}
+
+#root .keeper-product-site .landing-final-intro {
+  max-width: 570px;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+}
+
+#root .keeper-product-site .landing-proof-strip {
+  margin-top: 10px;
+  background: transparent !important;
+  border-color: var(--landing-line);
+}
+
+#root .keeper-product-site .landing-proof-strip span {
+  color: var(--landing-muted) !important;
+  font-size: 0.66rem;
+}
+
+#root .keeper-product-site .landing-preview-panel {
+  align-self: center;
+  min-height: 500px;
+  background: var(--landing-bg-deep) !important;
+  background-image: none !important;
+  border: 1px solid var(--landing-line-strong);
+  border-radius: var(--rq-radius, 7px);
+  box-shadow: none;
+}
+
+#root .keeper-product-site .landing-preview-topbar {
   background: var(--landing-surface) !important;
+  border-color: var(--landing-line);
 }
 
-#root .keeper-product-site .landing-preview-topbar,
+#root .keeper-product-site .landing-preview-dots span {
+  border-radius: 50%;
+  background: var(--landing-red) !important;
+}
+
+#root .keeper-product-site .landing-preview-body {
+  grid-template-columns: minmax(0, 0.9fr) minmax(240px, 1.1fr);
+  align-items: stretch;
+}
+
+#root .keeper-product-site .landing-preview-spotlight {
+  min-height: 0;
+  align-content: center;
+  background: var(--landing-surface) !important;
+  background-image: none !important;
+  border-color: var(--landing-line);
+  border-radius: var(--rq-inner-radius, 5px);
+}
+
 #root .keeper-product-site .landing-preview-row {
+  min-height: 86px;
+  align-items: center;
   background: var(--landing-card) !important;
+  border-color: var(--landing-line);
+  border-radius: var(--rq-inner-radius, 5px);
 }
 
-/* Give the long landing page calm, clearly separated reading zones. */
+#root .keeper-product-site .landing-preview-row svg,
+#root .keeper-product-site .landing-final-feature svg,
+#root .keeper-product-site .landing-benefit-card svg,
+#root .keeper-product-site .landing-two-columns svg,
+#root .keeper-product-site .landing-final-strip svg,
+#root .keeper-product-site .landing-final-cta > svg,
+#root .keeper-product-site .landing-start-card svg {
+  color: var(--landing-secondary) !important;
+}
+
+#root .keeper-product-site .landing-final-main {
+  gap: clamp(48px, 7vw, 88px);
+}
+
 #root .keeper-product-site .landing-final-features,
 #root .keeper-product-site .landing-start-paths,
 #root .keeper-product-site .landing-marketing-block,
@@ -76,56 +236,305 @@
 #root .keeper-product-site .landing-final-strip,
 #root .keeper-product-site .landing-faq-panel,
 #root .keeper-product-site .landing-final-cta {
+  width: min(1180px, calc(100% - 40px));
   border-color: var(--landing-line) !important;
-  background: rgba(2, 8, 16, 0.46) !important;
+  border-radius: var(--rq-radius, 7px);
+  background: var(--landing-bg-deep) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+#root .keeper-product-site .landing-final-features {
+  margin-top: -1px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#root .keeper-product-site .landing-final-feature,
+#root .keeper-product-site .landing-start-card,
+#root .keeper-product-site .landing-benefit-card {
+  gap: 12px;
+  padding: clamp(22px, 3vw, 34px);
+}
+
+#root .keeper-product-site .landing-final-feature > svg,
+#root .keeper-product-site .landing-start-card > svg,
+#root .keeper-product-site .landing-benefit-card > svg {
+  width: 46px;
+  height: 46px;
+  padding: 10px;
+  border: 1px solid var(--landing-line-strong);
+  border-radius: 50%;
+  background: var(--landing-secondary-soft);
 }
 
 #root .keeper-product-site .landing-section-heading,
 #root .keeper-product-site .landing-roadmap-heading,
 #root .keeper-product-site .landing-faq-heading {
+  padding: clamp(26px, 4vw, 44px);
   background: var(--landing-surface) !important;
   background-image: none !important;
 }
 
-/* Blue carries supporting visual emphasis; gold stays for key actions. */
-#root .keeper-product-site .landing-final-feature svg,
-#root .keeper-product-site .landing-benefit-card svg,
-#root .keeper-product-site .landing-two-columns svg,
-#root .keeper-product-site .landing-final-strip svg,
-#root .keeper-product-site .landing-final-cta > svg,
-#root .keeper-product-site .landing-logo-button svg,
-#root .keeper-product-site .landing-start-card svg {
-  color: var(--landing-secondary) !important;
+#root .keeper-product-site .landing-section-heading h2,
+#root .keeper-product-site .landing-roadmap-heading h2,
+#root .keeper-product-site .landing-faq-heading h2,
+#root .keeper-product-site .landing-final-cta h2 {
+  font-family: var(--rq-heading-font, Georgia, serif) !important;
+  font-weight: 700;
 }
 
-#root .keeper-product-site .landing-kicker,
-#root .keeper-product-site .landing-card-eyebrow {
-  color: var(--landing-secondary) !important;
+#root .keeper-product-site .landing-audience-columns {
+  border-color: var(--landing-line-strong) !important;
 }
 
-#root .keeper-product-site .landing-button-primary {
-  color: var(--landing-bg-deep) !important;
+#root .keeper-product-site .landing-audience-columns article {
+  position: relative;
+  min-height: 390px;
+  padding: clamp(30px, 5vw, 62px);
+  align-content: center;
+  background: var(--landing-surface) !important;
 }
 
-#root .keeper-product-site .landing-button-ghost,
-#root .keeper-product-site .landing-card-action {
-  background: var(--landing-card) !important;
-  border-color: var(--landing-secondary-line) !important;
-  color: var(--landing-text) !important;
+#root .keeper-product-site .landing-audience-columns article::after {
+  content: '';
+  position: absolute;
+  inset: 22px;
+  pointer-events: none;
+  border: 1px solid var(--landing-line);
+  border-radius: var(--rq-inner-radius, 5px);
 }
 
-#root .keeper-product-site .landing-button-ghost:hover:not(:disabled),
-#root .keeper-product-site .landing-card-action:hover:not(:disabled) {
-  background: var(--landing-card-hover) !important;
-  border-color: rgba(121, 188, 232, 0.38) !important;
+#root .keeper-product-site .landing-audience-columns article > * {
+  position: relative;
+  z-index: 1;
 }
 
-.keeper-product-site .landing-button {
-  text-decoration: none;
+#root .keeper-product-site .landing-audience-columns h2 {
+  font-family: var(--rq-heading-font, Georgia, serif) !important;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
 }
 
-@media (max-width: 960px) {
-  .keeper-product-site .landing-brand-context-copy {
+#root .keeper-product-site .landing-roadmap-grid article > span {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--landing-red);
+  border-radius: 50%;
+  background: transparent !important;
+  color: var(--landing-red-bright) !important;
+}
+
+#root .keeper-product-site .landing-faq-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+  overflow: hidden;
+}
+
+#root .keeper-product-site .landing-faq-heading {
+  align-content: center;
+  border: 0;
+  border-right: 1px solid var(--landing-line);
+}
+
+#root .keeper-product-site .landing-faq-list {
+  padding: clamp(18px, 3vw, 30px);
+}
+
+#root .keeper-product-site .landing-faq-item {
+  background: var(--landing-surface) !important;
+  border-color: var(--landing-line) !important;
+  border-radius: var(--rq-inner-radius, 5px);
+}
+
+#root .keeper-product-site .landing-final-cta {
+  min-height: 330px;
+  justify-items: start;
+  align-content: center;
+  padding: clamp(38px, 7vw, 76px);
+  text-align: left;
+  border-color: var(--landing-line-strong) !important;
+}
+
+#root .keeper-product-site .landing-final-cta .landing-hero-actions {
+  justify-content: flex-start;
+}
+
+#root .keeper-product-site .landing-product-footer {
+  margin-top: clamp(48px, 7vw, 88px);
+  padding: 28px clamp(20px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) auto minmax(230px, 1fr);
+  align-items: center;
+  gap: 28px;
+  background: var(--landing-bg-deep) !important;
+  border-top: 1px solid var(--landing-line-strong);
+}
+
+#root .keeper-product-site .landing-footer-brand {
+  display: grid;
+  gap: 8px;
+}
+
+.keeper-product-site .landing-footer-wordmark {
+  height: 54px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+}
+
+#root .keeper-product-site .landing-footer-actions {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+#root .keeper-product-site .landing-footer-actions button {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--landing-muted);
+  cursor: pointer;
+}
+
+#root .keeper-product-site .landing-footer-note {
+  justify-self: end;
+  max-width: 280px;
+  text-align: right;
+}
+
+@media (max-width: 1040px) {
+  #root .keeper-product-site .landing-final-hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding-block: 64px;
+  }
+
+  #root .keeper-product-site .landing-preview-panel {
+    width: min(760px, 100%);
+    justify-self: center;
+  }
+
+  #root .keeper-product-site .landing-product-footer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  #root .keeper-product-site .landing-footer-brand {
+    justify-items: center;
+  }
+
+  #root .keeper-product-site .landing-footer-note {
+    justify-self: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 760px) {
+  #root .keeper-product-site .landing-final-nav {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 8px 10px;
+  }
+
+  #root .keeper-product-site .landing-logo-button {
+    width: min(176px, 100%);
+  }
+
+  .keeper-product-site .landing-brand-wordmark {
+    width: min(176px, 100%) !important;
+  }
+
+  #root .keeper-product-site .landing-final-hero {
+    padding: 50px 16px;
+    border-inline: 0;
+  }
+
+  #root .keeper-product-site .landing-final-hero::before,
+  #root .keeper-product-site .landing-final-hero::after {
     display: none;
+  }
+
+  #root .keeper-product-site h1 {
+    font-size: clamp(3rem, 15vw, 4.7rem);
+  }
+
+  #root .keeper-product-site .landing-preview-body,
+  #root .keeper-product-site .landing-faq-panel {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-final-features,
+  #root .keeper-product-site .landing-start-grid,
+  #root .keeper-product-site .landing-benefit-grid,
+  #root .keeper-product-site .landing-two-columns,
+  #root .keeper-product-site .landing-roadmap-grid,
+  #root .keeper-product-site .landing-final-strip {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-audience-columns article {
+    min-height: 0;
+    padding: 42px 32px;
+  }
+
+  #root .keeper-product-site .landing-faq-heading {
+    border-right: 0;
+    border-bottom: 1px solid var(--landing-line);
+  }
+
+  #root .keeper-product-site .landing-final-cta {
+    min-height: 0;
+    justify-items: stretch;
+    padding: 38px 22px;
+  }
+
+  #root .keeper-product-site .landing-final-cta .landing-hero-actions {
+    width: 100%;
+  }
+
+  #root .keeper-product-site .landing-footer-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 520px) {
+  #root .keeper-product-site .landing-final-nav {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  #root .keeper-product-site .landing-logo-button {
+    width: 190px;
+  }
+
+  #root .keeper-product-site .landing-nav-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #root .keeper-product-site .landing-final-features,
+  #root .keeper-product-site .landing-start-paths,
+  #root .keeper-product-site .landing-marketing-block,
+  #root .keeper-product-site .landing-benefit-grid,
+  #root .keeper-product-site .landing-roadmap,
+  #root .keeper-product-site .landing-two-columns,
+  #root .keeper-product-site .landing-final-strip,
+  #root .keeper-product-site .landing-faq-panel,
+  #root .keeper-product-site .landing-final-cta {
+    width: calc(100% - 20px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .keeper-product-site *,
+  #root .keeper-product-site *::before,
+  #root .keeper-product-site *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

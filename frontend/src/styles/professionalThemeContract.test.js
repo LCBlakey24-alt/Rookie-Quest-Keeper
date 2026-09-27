@@ -28,6 +28,19 @@ describe('Keeper professional visual contract', () => {
     expect(creator).toContain('--rqk-creator-blue: var(--rq-secondary, #6E91B4)');
   });
 
+  test('the product landing keeps the Guild Ledger composition responsive and gradient-free', () => {
+    const landing = read('keeperProductSite.css');
+    const component = read('../components/LandingPage.js');
+
+    expect(landing).toContain('grid-template-columns: minmax(0, 0.92fr) minmax(430px, 1.08fr)');
+    expect(landing).toContain('grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr)');
+    expect(landing).toContain('@media (max-width: 760px)');
+    expect(landing).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(landing).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
+    expect(component).toContain('className="landing-brand-wordmark"');
+    expect(component.indexOf('id="players-and-gms"')).toBeLessThan(component.indexOf('id="table-flow"'));
+  });
+
   test('legacy landing authority cannot restore the retired neon palette', () => {
     const landingFinal = read('landingFinal.css');
 

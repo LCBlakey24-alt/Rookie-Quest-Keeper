@@ -14,7 +14,7 @@ import {
   Swords,
   Users
 } from 'lucide-react';
-import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { BrandMainLogo } from '@/components/ui/BrandLogo';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
 
@@ -279,11 +279,8 @@ export default function LandingPage() {
       <nav className="landing-final-nav" aria-label="Rookie Quest Keeper navigation">
         <div className="landing-brand-context">
           <button type="button" className="landing-logo-button" onClick={() => navigate('/')} aria-label="Rookie Quest Keeper home">
-            <BrandMiniLogo size={44} />
+            <BrandMainLogo className="landing-brand-wordmark" width={210} />
           </button>
-          <div className="landing-brand-context-copy">
-            <span>Rookie Quest Keeper</span>
-          </div>
         </div>
 
         <div className="landing-nav-links" aria-label="Landing page sections">
@@ -306,11 +303,7 @@ export default function LandingPage() {
       <main id="landing-main" className="landing-final-main">
         <section className="landing-final-hero" aria-labelledby="landing-hero-title">
           <div className="landing-hero-copy">
-            <div className="landing-final-logo-wrap" aria-hidden="true">
-              <BrandMainLogo width={480} />
-            </div>
-
-            <p className="landing-kicker">Rookie Quest Keeper · Available now</p>
+            <p className="landing-kicker">A refined campaign companion</p>
             <h1 id="landing-hero-title">Your campaign. Kept together.</h1>
             <p className="landing-final-intro">
               Build your character, prepare your campaign, and keep the tools you need close at hand when the dice start rolling.
@@ -423,23 +416,6 @@ export default function LandingPage() {
           })}
         </section>
 
-        <section id="table-flow" ref={flowSectionRef} className="landing-roadmap" aria-label="How Rookie Quest Keeper supports the table">
-          <div className="landing-roadmap-heading">
-            <p className="landing-kicker">Table flow</p>
-            <h2>From your first character to your next session.</h2>
-            <p>Prepare before the game. Find what you need during play. Keep the story moving afterwards.</p>
-          </div>
-          <div className="landing-roadmap-grid">
-            {workflowSteps.map(point => (
-              <article key={point.title}>
-                <span>{point.number}</span>
-                <h3>{point.title}</h3>
-                <p>{point.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
         <section id="players-and-gms" ref={audienceSectionRef} className="landing-two-columns landing-audience-columns" aria-label="Player and game master benefits">
           <article>
             <p className="landing-kicker">Player side</p>
@@ -455,6 +431,23 @@ export default function LandingPage() {
               {gmSide.map(item => <li key={item}>{item}</li>)}
             </ul>
           </article>
+        </section>
+
+        <section id="table-flow" ref={flowSectionRef} className="landing-roadmap" aria-label="How Rookie Quest Keeper supports the table">
+          <div className="landing-roadmap-heading">
+            <p className="landing-kicker">How it works</p>
+            <h2>From idea to adventure.</h2>
+            <p>Prepare before the game. Find what you need during play. Keep the story moving afterwards.</p>
+          </div>
+          <div className="landing-roadmap-grid">
+            {workflowSteps.map(point => (
+              <article key={point.title}>
+                <span>{point.number}</span>
+                <h3>{point.title}</h3>
+                <p>{point.text}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="landing-final-strip" aria-label="Design approach">
@@ -503,9 +496,8 @@ export default function LandingPage() {
 
       <footer className="landing-final-footer landing-product-footer">
         <div className="landing-footer-brand">
-          <BrandMiniLogo size={40} />
+          <BrandMainLogo className="landing-footer-wordmark" width={190} />
           <div>
-            <strong>Rookie Quest Keeper</strong>
             <p>Independent tabletop companion for 5e-style campaigns, character sheets, live play, and GM prep.</p>
           </div>
         </div>
