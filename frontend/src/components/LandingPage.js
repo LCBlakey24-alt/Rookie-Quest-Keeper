@@ -235,9 +235,6 @@ export default function LandingPage() {
         <section className="landing-final-hero" aria-labelledby="landing-hero-title">
           <div className="landing-hero-copy">
             <p className="landing-kicker">A refined campaign companion</p>
-            <div className="landing-final-logo-wrap" aria-hidden="true">
-              <BrandMainLogo width={420} />
-            </div>
             <h1 id="landing-hero-title">Your campaign.<br />Kept together.</h1>
             <p className="landing-final-intro">
               Plan, organise, and play unforgettable adventures. Keep your characters, campaigns,
