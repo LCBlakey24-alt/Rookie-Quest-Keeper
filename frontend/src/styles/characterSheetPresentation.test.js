@@ -92,6 +92,8 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalAuthority).toContain('--cs-blue: #6E91B4');
     expect(finalAuthority).toContain('flex-direction: row !important;');
     expect(finalAuthority).toContain('overflow-x: auto !important;');
+    expect(finalAuthority).toContain('inset: 50px auto auto !important;');
+    expect(finalAuthority).toContain('display: inline-block !important;');
     expect(finalAuthority).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
     expect(compactStatus).toContain('<span>Proficiency</span>');
     expect(sheet).toContain('proficiencyBonus={proficiencyBonus}');
