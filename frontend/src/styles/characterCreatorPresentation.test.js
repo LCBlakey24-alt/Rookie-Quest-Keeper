@@ -44,12 +44,13 @@ describe('Character Creator presentation ownership', () => {
 
   test('interactive creator choices expose and visibly reinforce selected state', () => {
     const component = read('../components/FullCharacterCreatorV2.js');
+    const presentation = read('../components/full-character-creator/CreatorPresentation.js');
     const base = read('../components/FullCharacterCreatorV2.css');
 
-    expect(component).toContain("aria-pressed={Boolean(active)}");
+    expect(presentation).toContain("aria-pressed={Boolean(active)}");
     expect(component).toContain("aria-pressed={equipmentMode === 'equipment'}");
     expect(component).toContain("aria-pressed={equipmentMode === 'gold'}");
-    expect(component).toContain("interactive ? 'is-interactive' : 'is-reference'");
+    expect(presentation).toContain("interactive ? 'is-interactive' : 'is-reference'");
     expect(base).toContain(".full-creator-choice-block.is-interactive h3::after");
     expect(base).toContain("button[aria-pressed='true']");
     expect(base).toContain(".full-creator-choice-check");
