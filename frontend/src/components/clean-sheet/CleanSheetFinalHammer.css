@@ -301,7 +301,7 @@
   #root .character-page-v2 .clean-sheet-tabs,
   .character-page-v2 .clean-sheet-tabs {
     position: sticky !important;
-    inset: 0 auto auto !important;
+    inset: 50px auto auto !important;
     z-index: 70 !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -332,9 +332,24 @@
     min-width: 48px !important;
     height: 48px !important;
     min-height: 48px !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: auto auto !important;
     place-items: center !important;
+    gap: 5px !important;
     padding: 6px 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs button span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span,
+  .character-page-v2 .clean-sheet-tabs button span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+    display: inline-block !important;
+    max-width: none !important;
+    overflow: visible !important;
+    font-size: 0.68rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
   }
 
   .character-page-v2 .clean-sheet-compact-abilities,
