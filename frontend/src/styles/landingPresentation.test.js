@@ -59,4 +59,17 @@ describe('Guild Ledger public landing presentation', () => {
     expect(product).toContain("grid-template-areas:");
     expect(page).not.toContain('landing-final-logo-wrap');
   });
+
+  test('mobile finish pass prevents legacy button and display-font leakage', () => {
+    const product = read('./keeperProductSite.css');
+
+    expect(product).toContain('#root .keeper-product-site .landing-faq-item summary');
+    expect(product).toContain('font-family: var(--landing-display) !important');
+    expect(product).toContain('#root .keeper-product-site .landing-feature-card-grid button');
+    expect(product).toContain('background: transparent !important');
+    expect(product).toContain('#root .keeper-product-site .landing-footer-actions button');
+    expect(product).toContain('width: auto !important');
+    expect(product).toContain('#root .keeper-product-site .landing-character-folio strong');
+    expect(product).toContain('-webkit-text-fill-color: #203040 !important');
+  });
 });
