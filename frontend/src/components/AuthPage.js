@@ -440,13 +440,13 @@ export default function AuthPage({ onLogin = () => {} }) {
           <BrandMiniLogo className="rqk-auth-brand__sigil" size={38} alt="" />
           <span className="rqk-auth-brand__text">
             <strong>Rookie Quest Keeper</strong>
-            <small>Campaign ledger • Table tools</small>
+            <small>Guild Ledger • Table tools</small>
           </span>
         </button>
 
         <div className="rqk-auth-layout">
           <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
-            <p className="rqk-auth-kicker">Your campaign ledger</p>
+            <p className="rqk-auth-kicker">Plan • Organise • Track • Play</p>
             <h2>Everything for the table, kept together.</h2>
             <p>
               A cleaner gateway for players, young adventurers, and GMs who want sheets,
