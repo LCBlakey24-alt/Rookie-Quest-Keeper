@@ -58,6 +58,17 @@ describe('Character Creator presentation ownership', () => {
     expect(base).not.toContain(".full-creator-choice-block h3::after {\n  content: ' · select an option'");
   });
 
+  test('creator option cards have readable selected-state styling', () => {
+    const component = read('../components/FullCharacterCreatorV2.js');
+    const base = read('../components/FullCharacterCreatorV2.css');
+
+    expect(component).toContain('full-creator-option-grid');
+    expect(component).toContain('active={draft.race === name}');
+    expect(base).toContain('.full-creator-option-card');
+    expect(base).toContain(".full-creator-option-card[aria-pressed='true']");
+    expect(base).toContain('.full-creator-option-card-summary');
+  });
+
   test('creator base imports explicit tablet and mobile layout lanes', () => {
     const base = read('../components/FullCharacterCreatorV2.css');
     expect(base).toContain("@import '../layouts/tablet/characterCreator.css';");
