@@ -32,7 +32,7 @@ frontend/
   src/styles/               # Visual polish and responsive CSS
 
 docs/
-  DESIGN_SYSTEM.md          # Charcoal/red/white visual system and AI UI rules
+  DESIGN_SYSTEM.md          # Canonical Guild Ledger visual system and responsive UI rules
   FEATURE_BLUEPRINT.md      # Major product features and long-term direction
   PRODUCT_VISION.md         # What Rookie Quest Keeper is trying to become
   ARCHITECTURE.md           # Technical overview
@@ -149,7 +149,7 @@ Manual smoke test:
 4. Improve account deletion cleanup so deleted users leave no orphaned data.
 5. Keep auth, password reset, AI generation, and file parsing protected with rate limits and usage controls.
 6. Lazy-load heavy routes and tabs to reduce initial frontend bundle size.
-7. Keep visual style consistent: charcoal base, red accents, white text, sharp-edged minimalist panels.
+7. Keep the approved Guild Ledger visual system consistent: deep navy structure, warm cream hierarchy, antique gold primary accents, restrained ledger blue support, and semantic red/green/amber only.
 8. New frontend API calls should use `apiClient` rather than raw `axios` unless there is a specific reason.
 
 ## Content/IP safety
