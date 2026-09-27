@@ -47,4 +47,16 @@ describe('Guild Ledger public landing presentation', () => {
     expect(page).toContain('className="landing-skip-link"');
     expect(page).toContain('aria-hidden="true"');
   });
+
+  test('mobile reference pass keeps the landing compact and editorial', () => {
+    const product = read('./keeperProductSite.css');
+    const page = read('../components/LandingPage.js');
+
+    expect(product).toContain("--landing-display: Georgia, 'Times New Roman', serif");
+    expect(product).toContain("#root .keeper-product-site .landing-nav-actions .landing-button-ghost");
+    expect(product).toContain("#root .keeper-product-site .landing-app-preview__rail");
+    expect(product).toContain("display: none !important");
+    expect(product).toContain("grid-template-areas:");
+    expect(page).not.toContain('landing-final-logo-wrap');
+  });
 });
