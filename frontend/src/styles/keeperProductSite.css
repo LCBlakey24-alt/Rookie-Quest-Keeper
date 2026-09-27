@@ -14,7 +14,12 @@
   --landing-gold: #C9A96B;
   --landing-gold-bright: #D9BC82;
   --landing-gold-soft: rgba(201, 169, 107, 0.12);
+  /* Compatibility aliases retained for the shared professional-theme contract. */
+  --landing-red: #C9A96B;
+  --landing-red-bright: #D9BC82;
+  --landing-red-soft: rgba(201, 169, 107, 0.12);
   --landing-blue: #6E91B4;
+  --landing-secondary: #6E91B4;
   --landing-blue-soft: rgba(110, 145, 180, 0.10);
   --landing-text: #EADFC8;
   --landing-muted: rgba(234, 223, 200, 0.78);
