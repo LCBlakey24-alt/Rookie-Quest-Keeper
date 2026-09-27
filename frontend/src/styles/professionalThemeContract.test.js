@@ -56,8 +56,8 @@ describe('Keeper professional visual contract', () => {
     const auth = authCss + '\n' + authPolish;
 
     expect(authComponent).toContain('BrandMiniLogo');
-    expect(authComponent).toContain('Campaign ledger');
-    expect(authCss).toContain('Rookie Quest Keeper Guild Ledger auth page');
+    expect(authComponent).toContain('Guild Ledger');
+    expect(authCss).toContain('Rookie Quest Keeper authentication — Guild Ledger authority');
     expect(auth).toContain('#0B1B2B');
     expect(auth).toContain('#C9A96B');
     expect(auth).toContain('#EADFC8');
