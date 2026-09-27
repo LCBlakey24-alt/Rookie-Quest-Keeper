@@ -286,11 +286,11 @@ export default function AppShell({ children }) {
         <div className="rqk-app-rail-bottom">
           {!isMobile && <>
             <p className="rqk-app-rail-section-label">Support</p>
-            <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook}>
+            <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook} aria-label="Ask Rook" title="Ask Rook">
               <Sparkles size={20} aria-hidden="true" />
               <span>Ask Rook</span>
             </button>
-            <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback}>
+            <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback} aria-label="Feedback" title="Feedback">
               <MessageSquare size={20} aria-hidden="true" />
               <span>Feedback</span>
             </button>

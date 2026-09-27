@@ -89,6 +89,14 @@ describe('AppShell', () => {
     expect(screen.queryByRole('button', { name: 'Open more tools' })).not.toBeInTheDocument();
   });
 
+  test('keeps icon-only tablet support actions explicitly named', async () => {
+    window.innerWidth = 768;
+    await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
+
+    expect(screen.getByRole('button', { name: 'Ask Rook' })).toHaveAttribute('title', 'Ask Rook');
+    expect(screen.getByRole('button', { name: 'Feedback' })).toHaveAttribute('title', 'Feedback');
+  });
+
   test('closes More and restores the correct navigation when resizing', async () => {
     window.innerWidth = 390;
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
