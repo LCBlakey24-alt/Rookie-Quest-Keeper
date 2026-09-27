@@ -1,30 +1,37 @@
 /* Rookie Quest Keeper public landing authority.
-   Mirrors the approved Guild Ledger board: ink navy, slate, parchment, antique brass,
-   restrained ledger blue, compact editorial typography, and practical fantasy detail. */
+   This file implements the approved Guild Ledger landing mockup using buildable
+   UI primitives rather than decorative one-off art assets. */
 
 #root .landing-page-final.keeper-product-site {
-  --landing-bg: #0B1B2B;
-  --landing-bg-deep: #07131F;
-  --landing-surface: #1E2936;
-  --landing-card: #263748;
-  --landing-card-hover: #334155;
-  --landing-input: #101F2D;
-  --landing-line: rgba(137, 157, 176, 0.14);
-  --landing-line-strong: rgba(201, 169, 107, 0.30);
-  --landing-red: #C9A96B; /* legacy alias: antique brass */
+  --landing-bg: var(--rq-bg-main, #0B1B2B);
+  --landing-bg-deep: var(--rq-bg-deep, #07131F);
+  --landing-surface: var(--rq-bg-panel, #1E2936);
+  --landing-card: var(--rq-card, #263748);
+  --landing-card-hover: var(--rq-card-hover, #334155);
+  --landing-input: var(--rq-bg-input, #101F2D);
+  --landing-line: var(--rq-line, rgba(137, 157, 176, 0.14));
+  --landing-line-strong: var(--rq-line-strong, rgba(201, 169, 107, 0.30));
+  --landing-gold: var(--rq-primary, #C9A96B);
+  --landing-gold-bright: var(--rq-primary-hover, #D9BC82);
+  --landing-gold-soft: var(--rq-primary-soft, rgba(201, 169, 107, 0.12));
+  /* Compatibility aliases retained for the shared professional-theme contract. */
+  --landing-red: #C9A96B;
   --landing-red-bright: #D9BC82;
   --landing-red-soft: rgba(201, 169, 107, 0.12);
+  --landing-blue: var(--rq-secondary, #6E91B4);
   --landing-secondary: #6E91B4;
-  --landing-secondary-soft: rgba(110, 145, 180, 0.10);
-  --landing-secondary-line: rgba(110, 145, 180, 0.28);
+  --landing-blue-soft: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10));
   --landing-text: #EADFC8;
-  --landing-muted: rgba(234, 223, 200, 0.78);
-  --landing-faint: rgba(234, 223, 200, 0.60);
+  --landing-muted: var(--rq-text-secondary, rgba(234, 223, 200, 0.78));
+  --landing-faint: var(--rq-text-muted, rgba(234, 223, 200, 0.58));
   --landing-seal: #7F2D2D;
 
   min-height: 100dvh;
-  padding: clamp(12px, 2vw, 24px);
-  gap: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-x: hidden;
+  padding: 14px clamp(12px, 2vw, 24px) 24px;
   background: var(--landing-bg) !important;
   background-image: none !important;
   color: var(--landing-text) !important;
@@ -34,21 +41,23 @@
 #root .keeper-product-site *,
 #root .keeper-product-site *::before,
 #root .keeper-product-site *::after {
+  box-sizing: border-box;
   text-shadow: none !important;
-  box-shadow: none !important;
 }
 
 #root .keeper-product-site h1,
 #root .keeper-product-site h2,
-#root .keeper-product-site h3 {
+#root .keeper-product-site h3,
+#root .keeper-product-site .landing-footer-brand strong {
   font-family: var(--rq-font-display, 'Fraunces', 'RQKDisplay', Georgia, serif) !important;
   font-weight: 600 !important;
   letter-spacing: -0.018em !important;
 }
 
 #root .keeper-product-site :where(button, a, summary):focus-visible {
-  outline: 3px solid var(--landing-secondary) !important;
+  outline: 3px solid var(--landing-blue) !important;
   outline-offset: 3px !important;
+  box-shadow: none !important;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -59,74 +68,116 @@
 #root .keeper-product-site .landing-final-main,
 #root .keeper-product-site .landing-final-footer {
   width: min(1180px, 100%) !important;
+  margin-inline: auto;
 }
 
 #root .keeper-product-site .landing-final-nav {
+  position: sticky;
   top: 10px;
-  min-height: 60px;
-  padding: 6px 8px;
-  background: rgba(7, 19, 31, 0.96) !important;
+  z-index: 30;
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: minmax(210px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 7px 8px;
+  background: rgba(7, 19, 31, 0.97) !important;
   background-image: none !important;
   border: 1px solid var(--landing-line) !important;
+  border-bottom-color: var(--landing-line-strong) !important;
   border-radius: 7px !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18) !important;
   backdrop-filter: blur(10px);
 }
 
-.keeper-product-site .landing-brand-context {
+#root .keeper-product-site .landing-nav-brand {
+  min-width: 0;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  padding: 2px 4px;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  background-image: none !important;
+  cursor: pointer;
+}
+
+#root .keeper-product-site .landing-nav-brand > span {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
 }
 
-#root .keeper-product-site .landing-logo-button {
-  width: 44px !important;
-  height: 44px !important;
-  flex: 0 0 44px !important;
+#root .keeper-product-site .landing-nav-brand > span img {
+  width: min(168px, 23vw) !important;
+  max-height: 42px !important;
+  object-fit: contain;
+}
+
+#root .keeper-product-site .landing-nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+#root .keeper-product-site .landing-nav-links button {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid transparent !important;
   border-radius: 5px !important;
-}
-
-#root .keeper-product-site .landing-logo-button:hover {
-  background: var(--landing-secondary-soft) !important;
-}
-
-.keeper-product-site .landing-brand-context-copy {
-  min-width: 0;
-  color: var(--landing-text);
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-#root .keeper-product-site .landing-anchor-button {
-  min-height: 40px;
-  padding-inline: 10px;
+  background: transparent !important;
   color: var(--landing-faint) !important;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
+  cursor: pointer;
 }
 
-#root .keeper-product-site .landing-anchor-button:hover {
-  background: var(--landing-secondary-soft) !important;
-  border-color: var(--landing-line) !important;
+#root .keeper-product-site .landing-nav-links button:hover {
   color: var(--landing-text) !important;
+  border-color: var(--landing-line) !important;
+  background: var(--landing-blue-soft) !important;
+}
+
+#root .keeper-product-site .landing-nav-actions,
+#root .keeper-product-site .landing-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#root .keeper-product-site .landing-nav-actions {
+  justify-content: flex-end;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Buttons                                                                     */
 /* -------------------------------------------------------------------------- */
 
-#root .keeper-product-site .landing-button,
-#root .keeper-product-site .landing-card-action {
-  min-height: 44px;
+#root .keeper-product-site .landing-button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
   border-radius: 5px !important;
+  border: 1px solid var(--landing-line-strong) !important;
   font-family: var(--rq-font-sans, Inter, sans-serif) !important;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none !important;
   transform: none !important;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 #root .keeper-product-site .landing-button::before {
@@ -135,28 +186,37 @@
 }
 
 #root .keeper-product-site .landing-button-primary {
-  background: var(--landing-red) !important;
-  border-color: var(--landing-red) !important;
+  background: var(--landing-gold) !important;
+  background-image: none !important;
+  border-color: var(--landing-gold) !important;
   color: var(--landing-bg-deep) !important;
 }
 
 #root .keeper-product-site .landing-button-primary:hover:not(:disabled) {
-  background: var(--landing-red-bright) !important;
-  border-color: var(--landing-red-bright) !important;
-  color: var(--landing-bg-deep) !important;
+  background: var(--landing-gold-bright) !important;
+  border-color: var(--landing-gold-bright) !important;
 }
 
-#root .keeper-product-site .landing-button-ghost,
-#root .keeper-product-site .landing-card-action {
+#root .keeper-product-site .landing-button-ghost {
   background: var(--landing-card) !important;
-  border-color: var(--landing-line-strong) !important;
+  background-image: none !important;
   color: var(--landing-text) !important;
 }
 
-#root .keeper-product-site .landing-button-ghost:hover:not(:disabled),
-#root .keeper-product-site .landing-card-action:hover:not(:disabled) {
+#root .keeper-product-site .landing-button-ghost:hover:not(:disabled) {
   background: var(--landing-card-hover) !important;
-  border-color: var(--landing-red) !important;
+  border-color: var(--landing-gold) !important;
+}
+
+#root .keeper-product-site .landing-button-large {
+  min-height: 48px;
+  padding-inline: 18px;
+  font-size: 13px;
+}
+
+#root .keeper-product-site .landing-button:disabled {
+  opacity: 0.62;
+  cursor: wait;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -164,21 +224,30 @@
 /* -------------------------------------------------------------------------- */
 
 #root .keeper-product-site .landing-final-main {
-  gap: clamp(36px, 4.5vw, 64px) !important;
+  display: grid;
+  gap: clamp(28px, 4vw, 54px);
+}
+
+#root .keeper-product-site .landing-final-main > [id] {
+  scroll-margin-top: 92px;
 }
 
 #root .keeper-product-site .landing-final-hero {
-  min-height: min(660px, calc(100dvh - 108px)) !important;
-  grid-template-columns: minmax(0, 1.04fr) minmax(360px, 0.96fr) !important;
-  gap: clamp(28px, 4vw, 54px) !important;
-  padding: clamp(30px, 5vw, 62px) 0 clamp(24px, 4vw, 44px) !important;
-  border-bottom: 1px solid var(--landing-line);
+  min-height: min(670px, calc(100dvh - 110px));
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+  align-items: center;
+  gap: clamp(28px, 4vw, 50px);
+  padding: clamp(34px, 5vw, 64px) 0 clamp(24px, 3.5vw, 40px);
+  border-bottom: 1px solid var(--landing-line-strong);
 }
 
 #root .keeper-product-site .landing-hero-copy {
-  gap: 13px !important;
   position: relative;
-  padding-left: clamp(0px, 1.5vw, 18px);
+  display: grid;
+  gap: 13px;
+  align-content: center;
+  padding-left: clamp(14px, 1.7vw, 20px);
 }
 
 #root .keeper-product-site .landing-hero-copy::before {
@@ -186,429 +255,1001 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 1px;
-  background: var(--landing-line-strong);
+  background: var(--landing-gold);
+  opacity: 0.58;
 }
 
-#root .keeper-product-site .landing-hero-mantra {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 7px 10px;
-  margin: 0 0 4px;
-  color: var(--landing-red-bright) !important;
+#root .keeper-product-site .landing-kicker {
+  margin: 0;
+  color: var(--landing-gold-bright) !important;
   font-size: 10px;
-  font-style: normal;
   font-weight: 850;
-  letter-spacing: 0.20em;
+  letter-spacing: 0.16em !important;
   text-transform: uppercase;
 }
 
-#root .keeper-product-site .landing-hero-mantra i {
-  color: var(--landing-red) !important;
-  font-size: 7px;
-  font-style: normal;
-}
-
 #root .keeper-product-site .landing-final-logo-wrap {
-  width: min(430px, 100%) !important;
-  margin: 0 0 4px !important;
+  width: min(350px, 100%);
+  margin: 0;
 }
 
-#root .keeper-product-site .landing-final-logo-wrap img,
-#root .keeper-product-site .landing-final-logo-wrap svg {
-  width: min(420px, 100%) !important;
+#root .keeper-product-site .landing-final-logo-wrap img {
+  width: min(350px, 100%) !important;
+  height: auto !important;
   filter: none !important;
 }
 
-#root .keeper-product-site .landing-kicker,
-#root .keeper-product-site .landing-card-eyebrow {
-  color: var(--landing-red-bright) !important;
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.14em !important;
-}
-
 #root .keeper-product-site h1 {
-  max-width: 700px;
-  font-size: clamp(44px, 5.6vw, 72px) !important;
-  line-height: 0.98 !important;
+  max-width: 620px;
+  margin: 0;
+  color: var(--landing-text) !important;
+  font-size: clamp(46px, 5.9vw, 76px) !important;
+  line-height: 0.94 !important;
 }
 
 #root .keeper-product-site .landing-final-intro {
-  max-width: 650px;
+  max-width: 620px;
+  margin: 0;
   color: var(--landing-muted) !important;
-  font-size: clamp(15px, 1.45vw, 18px) !important;
-  line-height: 1.65 !important;
+  font-size: clamp(15px, 1.45vw, 18px);
+  line-height: 1.65;
 }
 
 #root .keeper-product-site .landing-hero-actions {
   margin-top: 4px;
 }
 
-#root .keeper-product-site .landing-proof-strip {
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  width: min(620px, 100%);
-  margin-top: 8px !important;
-  background: transparent !important;
-  border: 1px solid var(--landing-line) !important;
-  border-radius: 5px;
-  overflow: hidden;
+#root .keeper-product-site .landing-hero-trust {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 4px;
+  color: var(--landing-faint);
 }
 
-#root .keeper-product-site .landing-proof-strip span {
-  min-height: 40px;
-  display: grid;
-  place-items: center;
-  padding: 8px 10px !important;
-  color: var(--landing-muted) !important;
-  font-size: 9px !important;
+#root .keeper-product-site .landing-hero-trust span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--landing-faint) !important;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
-#root .keeper-product-site .landing-proof-strip span + span {
-  border-left: 1px solid var(--landing-line) !important;
+#root .keeper-product-site .landing-hero-trust svg {
+  color: var(--landing-gold) !important;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Campaign ledger preview                                                     */
+/* Product preview                                                             */
 /* -------------------------------------------------------------------------- */
 
-#root .keeper-product-site .landing-preview-panel {
-  align-self: center;
-  min-height: 0 !important;
-  background: var(--landing-bg-deep) !important;
-  background-image: none !important;
-  border: 1px solid var(--landing-line-strong) !important;
-  border-radius: 7px !important;
-  overflow: hidden;
+#root .keeper-product-site .landing-product-stage {
   position: relative;
+  align-self: center;
+  min-width: 0;
+  padding: 22px 18px 30px 26px;
+  background: var(--landing-bg-deep) !important;
+  border: 1px solid var(--landing-line);
+  border-radius: 7px;
 }
 
-#root .keeper-product-site .landing-preview-panel::after {
+#root .keeper-product-site .landing-product-stage::before,
+#root .keeper-product-site .landing-product-stage::after {
   content: '';
   position: absolute;
-  width: 54px;
-  height: 54px;
+  pointer-events: none;
+}
+
+#root .keeper-product-site .landing-product-stage::before {
+  inset: 10px;
+  border: 1px solid rgba(201, 169, 107, 0.09);
+}
+
+#root .keeper-product-site .landing-product-stage::after {
+  width: 58px;
+  height: 58px;
   right: 10px;
   bottom: 10px;
   border-right: 1px solid var(--landing-line-strong);
   border-bottom: 1px solid var(--landing-line-strong);
-  pointer-events: none;
 }
 
-#root .keeper-product-site .landing-preview-topbar {
-  min-height: 58px;
-  display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) auto !important;
-  gap: 10px !important;
-  padding: 9px 12px !important;
-  background: var(--landing-surface) !important;
-  border-bottom: 1px solid var(--landing-line) !important;
-}
-
-#root .keeper-product-site .landing-preview-seal {
-  width: 38px;
-  height: 38px;
+#root .keeper-product-site .landing-stage-ornament {
+  position: absolute;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
-  margin: 0 !important;
-  border: 1px solid rgba(127, 45, 45, 0.65);
+  color: var(--landing-gold);
+  background: var(--landing-bg-deep);
+  border: 1px solid var(--landing-line-strong);
   border-radius: 50%;
-  background: rgba(127, 45, 45, 0.16) !important;
 }
 
-#root .keeper-product-site .landing-preview-topbar > div {
+#root .keeper-product-site .landing-stage-ornament--top {
+  top: -18px;
+  right: 30px;
+}
+
+#root .keeper-product-site .landing-app-preview {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: var(--landing-surface);
+  border: 1px solid var(--landing-line-strong);
+  border-radius: 7px;
+  box-shadow: 0 24px 46px rgba(0, 0, 0, 0.30) !important;
+}
+
+#root .keeper-product-site .landing-app-preview__bar {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--landing-bg-deep);
+  border-bottom: 1px solid var(--landing-line);
+}
+
+#root .keeper-product-site .landing-app-preview__brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+#root .keeper-product-site .landing-app-preview__brand > span {
   display: grid;
-  gap: 1px;
-  min-width: 0;
+  gap: 0;
 }
 
-#root .keeper-product-site .landing-preview-topbar strong {
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
-  font-size: 15px;
-  font-weight: 600 !important;
+#root .keeper-product-site .landing-app-preview__brand strong {
+  color: var(--landing-text);
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: 12px;
+  font-weight: 600;
 }
 
-#root .keeper-product-site .landing-preview-topbar div > span {
-  color: var(--landing-faint) !important;
-  font-size: 10px;
+#root .keeper-product-site .landing-app-preview__brand small,
+#root .keeper-product-site .landing-app-preview__status {
+  color: var(--landing-faint);
+  font-size: 8px;
+  font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-#root .keeper-product-site .landing-preview-topbar > em {
-  color: var(--landing-red-bright) !important;
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 850;
-  letter-spacing: 0.13em;
+#root .keeper-product-site .landing-app-preview__body {
+  min-height: 370px;
+  display: grid;
+  grid-template-columns: 105px minmax(0, 1fr);
+}
+
+#root .keeper-product-site .landing-app-preview__rail {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 12px 8px;
+  background: #0C1A27;
+  border-right: 1px solid var(--landing-line);
+}
+
+#root .keeper-product-site .landing-app-preview__rail span {
+  min-height: 29px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 4px;
+  color: var(--landing-faint);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+#root .keeper-product-site .landing-app-preview__rail span.is-active {
+  color: var(--landing-bg-deep);
+  background: var(--landing-gold);
+}
+
+#root .keeper-product-site .landing-app-preview__main {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 14px;
+}
+
+#root .keeper-product-site .landing-app-preview__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--landing-line);
+}
+
+#root .keeper-product-site .landing-app-preview__heading small {
+  color: var(--landing-gold-bright);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
 }
 
-#root .keeper-product-site .landing-preview-body {
-  gap: 10px !important;
-  padding: 14px !important;
-}
-
-#root .keeper-product-site .landing-preview-spotlight {
-  min-height: 190px !important;
-  align-content: end;
-  gap: 8px !important;
-  padding: 18px !important;
-  background: var(--landing-card) !important;
-  background-image: none !important;
-  border: 1px solid var(--landing-line) !important;
-  border-left: 3px solid var(--landing-red) !important;
-  border-radius: 5px !important;
-}
-
-#root .keeper-product-site .landing-preview-spotlight > span {
-  color: var(--landing-red-bright) !important;
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.14em;
-}
-
-#root .keeper-product-site .landing-preview-spotlight h2 {
-  font-size: clamp(27px, 3.6vw, 42px) !important;
+#root .keeper-product-site .landing-app-preview__heading h2 {
+  margin: 2px 0 2px;
+  color: var(--landing-text);
+  font-size: clamp(20px, 2.8vw, 31px) !important;
   line-height: 1 !important;
 }
 
-#root .keeper-product-site .landing-preview-spotlight p {
-  color: var(--landing-muted) !important;
+#root .keeper-product-site .landing-app-preview__heading p {
+  max-width: 340px;
+  margin: 0;
+  color: var(--landing-faint);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+#root .keeper-product-site .landing-app-preview__heading > span {
+  flex: 0 0 auto;
+  padding: 4px 6px;
+  border: 1px solid rgba(95, 166, 122, 0.34);
+  border-radius: 4px;
+  color: #8DBA9C;
+  background: rgba(95, 166, 122, 0.08);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+#root .keeper-product-site .landing-app-preview__tabs {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  color: var(--landing-faint);
+  font-size: 8px;
+}
+
+#root .keeper-product-site .landing-app-preview__tabs strong {
+  color: var(--landing-gold-bright);
+  border-bottom: 1px solid var(--landing-gold);
+}
+
+#root .keeper-product-site .landing-app-preview__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+#root .keeper-product-site .landing-app-preview__stats div {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  padding: 8px;
+  background: var(--landing-card);
+  border: 1px solid var(--landing-line);
+  border-radius: 4px;
+}
+
+#root .keeper-product-site .landing-app-preview__stats strong {
+  color: var(--landing-text);
+  font-size: 15px;
+}
+
+#root .keeper-product-site .landing-app-preview__stats span {
+  color: var(--landing-faint);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+#root .keeper-product-site .landing-app-preview__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.88fr);
+  gap: 7px;
+}
+
+#root .keeper-product-site .landing-app-preview__grid section {
+  min-width: 0;
+  padding: 9px;
+  background: var(--landing-card);
+  border: 1px solid var(--landing-line);
+  border-radius: 4px;
+}
+
+#root .keeper-product-site .landing-app-preview__grid small {
+  color: var(--landing-gold-bright);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#root .keeper-product-site .landing-app-preview__grid strong {
+  display: block;
+  margin: 4px 0 2px;
+  color: var(--landing-text);
+  font-size: 11px;
+}
+
+#root .keeper-product-site .landing-app-preview__grid p {
+  margin: 4px 0 0;
+  color: var(--landing-faint);
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+#root .keeper-product-site .landing-app-preview__action {
+  width: max-content;
+  min-height: 28px;
+  margin-top: 9px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid var(--landing-gold);
+  border-radius: 4px;
+  background: var(--landing-gold);
+  color: var(--landing-bg-deep);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+#root .keeper-product-site .landing-stage-dice {
+  position: absolute;
+  z-index: 3;
+  right: 34px;
+  bottom: 6px;
+  display: flex;
+  align-items: end;
+  gap: 5px;
+}
+
+#root .keeper-product-site .landing-stage-dice span {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  transform: rotate(12deg);
+  background: var(--landing-bg-deep);
+  border: 1px solid var(--landing-line-strong);
+  color: var(--landing-gold-bright);
+  font-size: 8px;
+  font-weight: 850;
+}
+
+#root .keeper-product-site .landing-stage-dice span:nth-child(2) {
+  width: 23px;
+  height: 23px;
+  transform: rotate(-10deg);
+}
+
+#root .keeper-product-site .landing-stage-dice span:nth-child(3) {
+  width: 19px;
+  height: 19px;
+  transform: rotate(5deg);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Pillar strip                                                                */
+/* -------------------------------------------------------------------------- */
+
+#root .keeper-product-site .landing-pillar-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--landing-line);
+  border-radius: 7px;
+  background: var(--landing-bg-deep);
+  overflow: hidden;
+}
+
+#root .keeper-product-site .landing-pillar-strip article {
+  min-width: 0;
+  min-height: 96px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+#root .keeper-product-site .landing-pillar-strip article + article {
+  border-left: 1px solid var(--landing-line);
+}
+
+#root .keeper-product-site .landing-pillar-strip svg {
+  color: var(--landing-gold);
+}
+
+#root .keeper-product-site .landing-pillar-strip article > div {
+  display: grid;
+  gap: 3px;
+}
+
+#root .keeper-product-site .landing-pillar-strip strong {
+  color: var(--landing-gold-bright);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#root .keeper-product-site .landing-pillar-strip span {
+  color: var(--landing-faint);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Feature section                                                             */
+/* -------------------------------------------------------------------------- */
+
+#root .keeper-product-site .landing-showcase-section {
+  width: min(1080px, 100%);
+  margin-inline: auto;
+  display: grid;
+  gap: 18px;
+  padding: clamp(22px, 3vw, 34px);
+  background: var(--landing-bg-deep);
+  border: 1px solid var(--landing-line);
+  border-radius: 7px;
+  position: relative;
+}
+
+#root .keeper-product-site .landing-showcase-section::after {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  right: 16px;
+  top: 16px;
+  border: 1px solid rgba(201, 169, 107, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+#root .keeper-product-site .landing-showcase-heading {
+  max-width: 760px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+#root .keeper-product-site .landing-showcase-heading h2 {
+  margin: 5px 0 8px;
+  color: var(--landing-text);
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.05;
+}
+
+#root .keeper-product-site .landing-showcase-heading > p:last-child {
+  margin: 0;
+  color: var(--landing-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#root .keeper-product-site .landing-feature-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#root .keeper-product-site .landing-feature-card-grid article {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-height: 235px;
+  padding: 18px;
+  background: var(--landing-surface);
+  border: 1px solid var(--landing-line-strong);
+  border-radius: 5px;
+}
+
+#root .keeper-product-site .landing-feature-card-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: var(--landing-gold);
+  background: var(--landing-bg-deep);
+  border: 1px solid var(--landing-line-strong);
+  border-radius: 50%;
+}
+
+#root .keeper-product-site .landing-feature-card-grid h3 {
+  margin: 4px 0 0;
+  color: var(--landing-text);
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+#root .keeper-product-site .landing-feature-card-grid p {
+  margin: 0;
+  color: var(--landing-muted);
   font-size: 12px;
   line-height: 1.55;
 }
 
-#root .keeper-product-site .landing-preview-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 3px;
-}
-
-#root .keeper-product-site .landing-preview-meta span {
-  padding: 4px 7px;
-  color: var(--landing-muted) !important;
-  background: var(--landing-input) !important;
-  border: 1px solid var(--landing-line);
-  border-radius: 5px;
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.03em;
-  text-transform: none;
-}
-
-#root .keeper-product-site .landing-preview-list {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-}
-
-#root .keeper-product-site .landing-preview-row {
-  min-height: 76px;
-  gap: 9px !important;
-  padding: 10px !important;
-  background: var(--landing-surface) !important;
-  border: 1px solid var(--landing-line) !important;
-  border-radius: 5px !important;
-}
-
-#root .keeper-product-site .landing-preview-row svg {
-  color: var(--landing-red) !important;
-}
-
-#root .keeper-product-site .landing-preview-row strong {
-  font-size: 12px !important;
-}
-
-#root .keeper-product-site .landing-preview-row span {
-  color: var(--landing-faint) !important;
-  font-size: 10px !important;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Editorial sections                                                          */
-/* -------------------------------------------------------------------------- */
-
-#root .keeper-product-site .landing-final-features,
-#root .keeper-product-site .landing-start-paths,
-#root .keeper-product-site .landing-marketing-block,
-#root .keeper-product-site .landing-benefit-grid,
-#root .keeper-product-site .landing-roadmap,
-#root .keeper-product-site .landing-two-columns,
-#root .keeper-product-site .landing-final-strip,
-#root .keeper-product-site .landing-faq-panel,
-#root .keeper-product-site .landing-final-cta {
-  width: min(1060px, 100%) !important;
+#root .keeper-product-site .landing-feature-card-grid button {
+  width: max-content;
+  min-height: 32px;
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0 !important;
   background: transparent !important;
-  background-image: none !important;
+  color: var(--landing-gold-bright) !important;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Players + GMs                                                               */
+/* -------------------------------------------------------------------------- */
+
+#root .keeper-product-site .landing-audience-showcase {
+  width: min(1120px, 100%);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: var(--landing-bg-deep);
+  border: 1px solid var(--landing-line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+#root .keeper-product-site .landing-audience-panel {
+  min-width: 0;
+  min-height: 360px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(190px, 1.14fr);
+  align-items: center;
+  gap: 16px;
+  padding: clamp(22px, 3vw, 32px);
+  position: relative;
+  background: var(--landing-surface);
+}
+
+#root .keeper-product-site .landing-audience-panel + .landing-audience-panel {
+  border-left: 1px solid var(--landing-line-strong);
+}
+
+#root .keeper-product-site .landing-audience-copy {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+#root .keeper-product-site .landing-audience-copy h2 {
+  margin: 0;
+  color: var(--landing-text);
+  font-size: clamp(30px, 3.2vw, 43px);
+  line-height: 1;
+}
+
+#root .keeper-product-site .landing-audience-copy > p:not(.landing-kicker) {
+  margin: 0;
+  color: var(--landing-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#root .keeper-product-site .landing-audience-copy .landing-button {
+  width: max-content;
+  margin-top: 2px;
+  font-size: 10px;
+}
+
+#root .keeper-product-site .landing-character-folio {
+  min-width: 0;
+  align-self: stretch;
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: #D8C7A4;
+  color: #14202B;
+  border: 1px solid #B89B64;
+  border-radius: 5px;
+  transform: rotate(-1.5deg);
+}
+
+#root .keeper-product-site .landing-character-folio__portrait {
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+  background: #25384A;
+  color: #D9BC82;
+  border: 1px solid rgba(20, 32, 43, 0.42);
+}
+
+#root .keeper-product-site .landing-character-folio > div:nth-child(2) {
+  display: grid;
+  gap: 1px;
+}
+
+#root .keeper-product-site .landing-character-folio small {
+  color: #6A5130;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+
+#root .keeper-product-site .landing-character-folio strong {
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: 20px;
+}
+
+#root .keeper-product-site .landing-character-folio span {
+  color: #4A3E30;
+  font-size: 9px;
+}
+
+#root .keeper-product-site .landing-character-folio ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px solid rgba(20, 32, 43, 0.24);
+  list-style: none;
+}
+
+#root .keeper-product-site .landing-character-folio li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2D2A26;
+  font-size: 9px;
+}
+
+#root .keeper-product-site .landing-ledger-stack {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 9px;
+  position: relative;
+  padding: 18px 16px 28px 4px;
+}
+
+#root .keeper-product-site .landing-ledger-stack > div {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  margin-left: var(--book-offset);
+  background: #1B2631;
+  color: var(--landing-gold-bright);
+  border: 1px solid var(--landing-line-strong);
+  border-left: 5px solid #6B4E2E;
+  border-radius: 4px;
+  box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.12) !important;
+}
+
+#root .keeper-product-site .landing-ledger-stack > div span {
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: 13px;
+}
+
+#root .keeper-product-site .landing-ledger-stack__seal {
+  position: absolute;
+  right: 6px;
+  bottom: 1px;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  background: rgba(127, 45, 45, 0.18);
+  border: 1px solid rgba(127, 45, 45, 0.60);
+  border-radius: 50%;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Workflow                                                                    */
+/* -------------------------------------------------------------------------- */
+
+#root .keeper-product-site .landing-workflow-section {
+  width: min(1120px, 100%);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
+  align-items: center;
+  gap: 28px;
+  padding: 24px clamp(18px, 3vw, 28px);
+  background: var(--landing-bg-deep);
+  border: 1px solid var(--landing-line);
+  border-radius: 7px;
+}
+
+#root .keeper-product-site .landing-workflow-section h2 {
+  margin: 4px 0 6px;
+  color: var(--landing-text);
+  font-size: clamp(30px, 3.5vw, 42px);
+  line-height: 1;
+}
+
+#root .keeper-product-site .landing-workflow-section > div > p:last-child {
+  margin: 0;
+  color: var(--landing-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+#root .keeper-product-site .landing-workflow-section ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#root .keeper-product-site .landing-workflow-section li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 8px 12px;
+  position: relative;
+}
+
+#root .keeper-product-site .landing-workflow-section li + li {
+  border-left: 1px solid var(--landing-line);
+}
+
+#root .keeper-product-site .landing-workflow-section li > span {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--landing-gold);
+  border-radius: 50%;
+  color: var(--landing-gold-bright);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+#root .keeper-product-site .landing-workflow-section li strong {
+  color: var(--landing-text);
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+#root .keeper-product-site .landing-workflow-section li p {
+  margin: 3px 0 0;
+  color: var(--landing-faint);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+/* -------------------------------------------------------------------------- */
+/* FAQ                                                                         */
+/* -------------------------------------------------------------------------- */
+
+#root .keeper-product-site .landing-faq-layout {
+  width: min(1120px, 100%) !important;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
+  background: var(--landing-bg-deep) !important;
   border: 1px solid var(--landing-line) !important;
   border-radius: 7px !important;
   overflow: hidden;
 }
 
-#root .keeper-product-site .landing-section-heading,
-#root .keeper-product-site .landing-roadmap-heading,
-#root .keeper-product-site .landing-faq-heading {
-  padding: clamp(20px, 3vw, 30px) !important;
-  background: var(--landing-bg-deep) !important;
-  background-image: none !important;
-  border-bottom: 1px solid var(--landing-line) !important;
-}
-
-#root .keeper-product-site .landing-section-heading h2,
-#root .keeper-product-site .landing-roadmap-heading h2,
-#root .keeper-product-site .landing-marketing-block h2,
-#root .keeper-product-site .landing-final-cta h2 {
-  font-size: clamp(28px, 3.5vw, 42px) !important;
-  line-height: 1.08 !important;
-}
-
-#root .keeper-product-site .landing-final-feature,
-#root .keeper-product-site .landing-start-card,
-#root .keeper-product-site .landing-benefit-card,
-#root .keeper-product-site .landing-roadmap article,
-#root .keeper-product-site .landing-two-columns article {
-  background: var(--landing-surface) !important;
-  background-image: none !important;
-  border-radius: 0 !important;
-}
-
-#root .keeper-product-site .landing-final-feature svg,
-#root .keeper-product-site .landing-benefit-card svg,
-#root .keeper-product-site .landing-two-columns svg,
-#root .keeper-product-site .landing-final-strip svg,
-#root .keeper-product-site .landing-final-cta > svg,
-#root .keeper-product-site .landing-start-card svg {
-  color: var(--landing-red) !important;
-}
-
-#root .keeper-product-site .landing-final-feature h2,
-#root .keeper-product-site .landing-benefit-card h2,
-#root .keeper-product-site .landing-two-columns h2,
-#root .keeper-product-site .landing-start-card h3,
-#root .keeper-product-site .landing-roadmap h3 {
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
-  font-weight: 600 !important;
-}
-
-#root .keeper-product-site .landing-final-feature p,
-#root .keeper-product-site .landing-benefit-card p,
-#root .keeper-product-site .landing-roadmap p,
-#root .keeper-product-site .landing-marketing-block p,
-#root .keeper-product-site .landing-final-cta p,
-#root .keeper-product-site .landing-two-columns li,
-#root .keeper-product-site .landing-check-list li,
-#root .keeper-product-site .landing-section-heading p,
-#root .keeper-product-site .landing-start-card p {
-  color: var(--landing-muted) !important;
-}
-
-#root .keeper-product-site .landing-marketing-block {
-  padding: clamp(22px, 3.2vw, 34px) !important;
-  background: var(--landing-bg-deep) !important;
-}
-
-#root .keeper-product-site .landing-check-list li::before,
-#root .keeper-product-site .landing-two-columns li::before {
-  width: 6px;
-  height: 6px;
-  background: var(--landing-red) !important;
-  border-radius: 50%;
-}
-
-#root .keeper-product-site .landing-roadmap article > span {
-  background: transparent !important;
-  color: var(--landing-red-bright) !important;
-  border: 1px solid var(--landing-line-strong);
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  padding: 0 !important;
+#root .keeper-product-site .landing-faq-intro {
+  min-height: 300px;
   display: grid;
-  place-items: center;
-  font-size: 10px;
+  align-content: center;
+  gap: 9px;
+  padding: clamp(24px, 3vw, 34px);
+  border-right: 1px solid var(--landing-line-strong);
+  position: relative;
+  overflow: hidden;
 }
 
-#root .keeper-product-site .landing-final-strip {
-  background: var(--landing-bg-deep) !important;
+#root .keeper-product-site .landing-faq-intro h2 {
+  margin: 0;
+  color: var(--landing-text);
+  font-size: clamp(34px, 4vw, 48px);
+  line-height: 1;
 }
 
-#root .keeper-product-site .landing-final-strip div {
-  min-height: 62px;
-  color: var(--landing-muted) !important;
+#root .keeper-product-site .landing-faq-intro > p:not(.landing-kicker) {
+  max-width: 320px;
+  margin: 0;
+  color: var(--landing-muted);
   font-size: 12px;
-  font-weight: 750;
+  line-height: 1.55;
 }
 
-#root .keeper-product-site .landing-final-cta {
-  justify-items: start !important;
-  padding: clamp(28px, 4.5vw, 48px) !important;
+#root .keeper-product-site .landing-faq-intro > svg {
+  position: absolute;
+  right: -16px;
+  bottom: -16px;
+  color: rgba(201, 169, 107, 0.14);
+}
+
+#root .keeper-product-site .landing-faq-list {
+  align-content: start;
+}
+
+#root .keeper-product-site .landing-faq-item {
   background: var(--landing-surface) !important;
-  text-align: left !important;
-  border-top: 2px solid var(--landing-red) !important;
+  border: 0 !important;
 }
-
-#root .keeper-product-site .landing-final-cta .landing-hero-actions {
-  justify-content: flex-start !important;
-}
-
-/* -------------------------------------------------------------------------- */
-/* FAQ + footer                                                                */
-/* -------------------------------------------------------------------------- */
 
 #root .keeper-product-site .landing-faq-item + .landing-faq-item {
   border-top: 1px solid var(--landing-line) !important;
 }
 
 #root .keeper-product-site .landing-faq-item summary {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
   color: var(--landing-text) !important;
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
+  font-family: var(--rq-font-display, Georgia, serif) !important;
+  font-size: 13px;
   font-weight: 600 !important;
+  list-style: none;
+  cursor: pointer;
+}
+
+#root .keeper-product-site .landing-faq-item summary::-webkit-details-marker {
+  display: none;
 }
 
 #root .keeper-product-site .landing-faq-item summary::after {
+  content: '+';
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--landing-gold-bright);
+  border: 1px solid var(--landing-line-strong);
   border-radius: 50%;
-  color: var(--landing-red-bright) !important;
-  background: transparent !important;
-  border-color: var(--landing-line-strong) !important;
+  background: transparent;
 }
 
 #root .keeper-product-site .landing-faq-item[open] summary::after {
-  background: var(--landing-red) !important;
-  color: var(--landing-bg-deep) !important;
+  content: '–';
+  color: var(--landing-bg-deep);
+  background: var(--landing-gold);
 }
 
 #root .keeper-product-site .landing-faq-item p {
+  margin: 0;
+  padding: 0 16px 16px;
   color: var(--landing-muted) !important;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Final CTA + footer                                                          */
+/* -------------------------------------------------------------------------- */
+
+#root .keeper-product-site .landing-final-cta--reference {
+  width: min(1120px, 100%) !important;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: clamp(24px, 4vw, 36px) !important;
+  background: var(--landing-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--landing-line) !important;
+  border-top: 2px solid var(--landing-gold) !important;
+  border-radius: 7px !important;
+  text-align: left !important;
+}
+
+#root .keeper-product-site .landing-final-cta__mark {
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  color: var(--landing-gold);
+  border: 1px solid var(--landing-line-strong);
+  border-radius: 50%;
+  background: var(--landing-bg-deep);
+}
+
+#root .keeper-product-site .landing-final-cta h2 {
+  margin: 2px 0 4px;
+  color: var(--landing-text);
+  font-size: clamp(34px, 4vw, 46px);
+  line-height: 1;
+}
+
+#root .keeper-product-site .landing-final-cta p:not(.landing-kicker) {
+  max-width: 650px;
+  margin: 0;
+  color: var(--landing-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 #root .keeper-product-site .landing-product-footer {
   width: min(1180px, 100%) !important;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px 22px;
+  padding: 16px;
   background: var(--landing-bg-deep) !important;
   background-image: none !important;
   border: 1px solid var(--landing-line) !important;
   border-radius: 7px !important;
 }
 
+#root .keeper-product-site .landing-footer-brand {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
 #root .keeper-product-site .landing-footer-brand strong {
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
-  font-weight: 600 !important;
+  display: block;
+  color: var(--landing-text);
+  font-size: 14px;
+}
+
+#root .keeper-product-site .landing-footer-brand p,
+#root .keeper-product-site .landing-footer-note {
+  margin: 0;
+  color: var(--landing-faint) !important;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+#root .keeper-product-site .landing-footer-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 #root .keeper-product-site .landing-footer-actions button {
-  border-radius: 5px !important;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
   background: transparent !important;
-  border-color: var(--landing-line) !important;
-  color: var(--landing-muted) !important;
+  color: var(--landing-faint) !important;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 #root .keeper-product-site .landing-footer-actions button:hover {
-  background: var(--landing-card) !important;
-  border-color: var(--landing-red) !important;
   color: var(--landing-text) !important;
+  border-color: var(--landing-line) !important;
+}
+
+#root .keeper-product-site .landing-footer-note {
+  grid-column: 1 / -1;
+  padding-top: 10px;
+  border-top: 1px solid var(--landing-line);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -616,128 +1257,228 @@
 /* -------------------------------------------------------------------------- */
 
 @media (max-width: 1040px) {
-  #root .keeper-product-site .landing-final-hero {
-    grid-template-columns: 1fr !important;
-    min-height: 0 !important;
+  #root .keeper-product-site .landing-final-nav {
+    grid-template-columns: minmax(180px, auto) 1fr auto;
   }
 
-  #root .keeper-product-site .landing-preview-panel {
-    width: min(720px, 100%);
+  #root .keeper-product-site .landing-nav-links {
+    display: none;
+  }
+
+  #root .keeper-product-site .landing-final-hero {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-product-stage {
+    width: min(760px, 100%);
     justify-self: center;
   }
 
-  #root .keeper-product-site .landing-hero-copy {
-    max-width: 760px;
+  #root .keeper-product-site .landing-feature-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #root .keeper-product-site .landing-audience-showcase {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-audience-panel + .landing-audience-panel {
+    border-left: 0;
+    border-top: 1px solid var(--landing-line-strong);
+  }
+
+  #root .keeper-product-site .landing-workflow-section,
+  #root .keeper-product-site .landing-faq-layout {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-faq-intro {
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--landing-line-strong);
   }
 }
 
 @media (max-width: 760px) {
   #root .landing-page-final.keeper-product-site {
-    padding: 10px !important;
+    padding: 8px;
+    gap: 14px;
   }
 
   #root .keeper-product-site .landing-final-nav {
     position: relative;
     top: auto;
-    grid-template-columns: auto minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 6px;
     border-radius: 5px !important;
   }
 
-  .keeper-product-site .landing-brand-context-copy {
+  #root .keeper-product-site .landing-nav-brand > span {
     display: none;
   }
 
   #root .keeper-product-site .landing-nav-actions {
-    justify-content: flex-end !important;
-    gap: 5px !important;
+    gap: 5px;
   }
 
   #root .keeper-product-site .landing-nav-actions .landing-button {
-    min-height: 38px !important;
-    padding-inline: 9px !important;
-    font-size: 10px !important;
+    min-height: 38px;
+    padding-inline: 8px;
+    font-size: 10px;
   }
 
   #root .keeper-product-site .landing-final-hero {
-    gap: 20px !important;
-    padding: 22px 2px 28px !important;
+    gap: 22px;
+    padding: 24px 2px 30px;
   }
 
   #root .keeper-product-site .landing-hero-copy {
     padding-left: 12px;
   }
 
-  #root .keeper-product-site .landing-hero-mantra {
-    gap: 6px 7px;
-    font-size: 8px;
-  }
-
   #root .keeper-product-site h1 {
-    font-size: clamp(38px, 12vw, 52px) !important;
-  }
-
-  #root .keeper-product-site .landing-proof-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  #root .keeper-product-site .landing-proof-strip span + span {
-    border-left: 0 !important;
-  }
-
-  #root .keeper-product-site .landing-proof-strip span:nth-child(even) {
-    border-left: 1px solid var(--landing-line) !important;
-  }
-
-  #root .keeper-product-site .landing-proof-strip span:nth-child(n + 3) {
-    border-top: 1px solid var(--landing-line) !important;
-  }
-
-  #root .keeper-product-site .landing-preview-list {
-    grid-template-columns: 1fr !important;
-  }
-
-  #root .keeper-product-site .landing-preview-panel,
-  #root .keeper-product-site .landing-final-features,
-  #root .keeper-product-site .landing-start-paths,
-  #root .keeper-product-site .landing-marketing-block,
-  #root .keeper-product-site .landing-benefit-grid,
-  #root .keeper-product-site .landing-roadmap,
-  #root .keeper-product-site .landing-two-columns,
-  #root .keeper-product-site .landing-final-strip,
-  #root .keeper-product-site .landing-faq-panel,
-  #root .keeper-product-site .landing-final-cta,
-  #root .keeper-product-site .landing-product-footer {
-    border-radius: 5px !important;
-  }
-
-  #root .keeper-product-site .landing-final-cta {
-    justify-items: stretch !important;
-  }
-}
-
-@media (max-width: 430px) {
-  #root .keeper-product-site .landing-final-nav {
-    grid-template-columns: auto minmax(0, 1fr) !important;
-    justify-items: stretch !important;
-  }
-
-  #root .keeper-product-site .landing-logo-button {
-    width: 40px !important;
-    height: 40px !important;
-    flex-basis: 40px !important;
-  }
-
-  #root .keeper-product-site .landing-nav-actions .landing-button {
-    padding-inline: 7px !important;
-    font-size: 9px !important;
+    font-size: clamp(42px, 13vw, 56px) !important;
   }
 
   #root .keeper-product-site .landing-final-logo-wrap {
-    width: min(300px, 88vw) !important;
+    width: min(300px, 88vw);
   }
 
-  #root .keeper-product-site .landing-preview-topbar > em {
+  #root .keeper-product-site .landing-product-stage {
+    padding: 14px 8px 24px;
+  }
+
+  #root .keeper-product-site .landing-stage-ornament {
     display: none;
+  }
+
+  #root .keeper-product-site .landing-app-preview__body {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  #root .keeper-product-site .landing-app-preview__rail {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--landing-line);
+  }
+
+  #root .keeper-product-site .landing-app-preview__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #root .keeper-product-site .landing-pillar-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #root .keeper-product-site .landing-pillar-strip article + article {
+    border-left: 0;
+  }
+
+  #root .keeper-product-site .landing-pillar-strip article:nth-child(even) {
+    border-left: 1px solid var(--landing-line);
+  }
+
+  #root .keeper-product-site .landing-pillar-strip article:nth-child(n + 3) {
+    border-top: 1px solid var(--landing-line);
+  }
+
+  #root .keeper-product-site .landing-feature-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-feature-card-grid article {
+    min-height: 0;
+  }
+
+  #root .keeper-product-site .landing-audience-panel {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  #root .keeper-product-site .landing-character-folio,
+  #root .keeper-product-site .landing-ledger-stack {
+    width: min(360px, 100%);
+    justify-self: center;
+  }
+
+  #root .keeper-product-site .landing-workflow-section ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #root .keeper-product-site .landing-workflow-section li + li {
+    border-left: 0;
+  }
+
+  #root .keeper-product-site .landing-workflow-section li:nth-child(even) {
+    border-left: 1px solid var(--landing-line);
+  }
+
+  #root .keeper-product-site .landing-workflow-section li:nth-child(n + 3) {
+    border-top: 1px solid var(--landing-line);
+  }
+
+  #root .keeper-product-site .landing-final-cta--reference {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  #root .keeper-product-site .landing-final-cta__mark {
+    width: 52px;
+    height: 52px;
+  }
+
+  #root .keeper-product-site .landing-product-footer {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-footer-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 460px) {
+  #root .keeper-product-site .landing-app-preview__status {
+    display: none;
+  }
+
+  #root .keeper-product-site .landing-app-preview__main {
+    padding: 10px;
+  }
+
+  #root .keeper-product-site .landing-app-preview__heading {
+    display: grid;
+  }
+
+  #root .keeper-product-site .landing-app-preview__heading > span {
+    width: max-content;
+  }
+
+  #root .keeper-product-site .landing-app-preview__grid {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-pillar-strip,
+  #root .keeper-product-site .landing-workflow-section ol {
+    grid-template-columns: 1fr;
+  }
+
+  #root .keeper-product-site .landing-pillar-strip article:nth-child(even),
+  #root .keeper-product-site .landing-workflow-section li:nth-child(even) {
+    border-left: 0;
+  }
+
+  #root .keeper-product-site .landing-pillar-strip article + article,
+  #root .keeper-product-site .landing-workflow-section li + li {
+    border-top: 1px solid var(--landing-line);
+  }
+
+  #root .keeper-product-site .landing-audience-copy .landing-button {
+    width: 100%;
   }
 }
 
