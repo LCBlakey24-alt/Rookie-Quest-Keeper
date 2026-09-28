@@ -273,6 +273,57 @@
   color: #EADFC8 !important;
 }
 
+/* Guild Ledger information hierarchy: values stay prominent; labels and rules copy recede. */
+.character-page-v2 :where(
+  .clean-sheet-hero-subtitle,
+  .clean-sheet-panel-heading p,
+  .clean-sheet-section-heading-row p,
+  .clean-sheet-inventory-header p,
+  .clean-sheet-spellcasting-heading p,
+  .clean-sheet-spell-section-heading p,
+  .clean-sheet-feature-card p,
+  .clean-sheet-spell-card p,
+  .clean-sheet-item-card p,
+  .clean-sheet-caster-card p,
+  .clean-sheet-slot-card p,
+  .clean-sheet-pact-card p,
+  .clean-sheet-feature-empty,
+  .clean-sheet-empty-note,
+  .clean-sheet-muted
+) {
+  color: var(--cs-text-soft) !important;
+}
+
+.character-page-v2 :where(
+  .clean-sheet-kicker,
+  .clean-sheet-stat-label,
+  .clean-sheet-note-field span,
+  .clean-sheet-skills-summary span,
+  .clean-sheet-core-stat-card span,
+  .clean-sheet-feature-card em,
+  .clean-sheet-spell-card em,
+  .clean-sheet-item-card em,
+  .clean-sheet-caster-card em,
+  .clean-sheet-slot-card em,
+  .clean-sheet-save-card em,
+  .clean-sheet-readiness-grid em,
+  .clean-sheet-skill-tags em,
+  .clean-sheet-skill-tags small,
+  .clean-sheet-resource-rail-copy span,
+  .clean-sheet-resource-rail-heading span,
+  .clean-sheet-resource-rail-heading small
+) {
+  color: var(--cs-muted) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button:not(.active) span {
+  color: var(--cs-text-soft) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active span {
+  color: var(--cs-text) !important;
+}
+
 @media (min-width: 760px) {
   .character-page-v2 .clean-sheet-header-actions {
     grid-template-columns: repeat(2, minmax(0, 180px)) !important;

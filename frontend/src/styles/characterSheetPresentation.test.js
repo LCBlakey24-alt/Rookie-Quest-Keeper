@@ -92,6 +92,17 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalTweaks).toContain('max-height: 46px !important;');
   });
 
+  test('Guild Ledger hierarchy keeps secondary copy softer than primary values', () => {
+    const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
+    const list = read('../components/clean-sheet/CleanSheetListPolish.css');
+
+    expect(finalAuthority).toContain('color: var(--cs-text-soft) !important;');
+    expect(finalAuthority).toContain('color: var(--cs-muted) !important;');
+    expect(finalAuthority).toContain('.clean-sheet-tabs button:not(.active) span');
+    expect(list).toContain('color: var(--cs-text-soft) !important;');
+    expect(list).toContain('color: var(--cs-muted) !important;');
+  });
+
   test('the live sheet authority uses Guild Ledger tokens and a horizontal phone tab rail', () => {
     const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
     const compactStatus = read('../components/clean-sheet/CleanSheetCompactStatus.js');

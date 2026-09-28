@@ -144,7 +144,7 @@
 .character-page-v2 .clean-sheet-muted,
 .character-page-v2 small,
 .character-page-v2 em {
-  color: #F7F1E7 !important;
+  color: var(--cs-text-soft) !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions {
