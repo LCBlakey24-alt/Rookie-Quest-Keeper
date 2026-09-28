@@ -37,6 +37,22 @@ export function rollDice(count = 1, sides = 8, modifier = 0, rng = Math.random) 
   };
 }
 
+export function rollAttackDamage(damage = {}, { critical = false, rng = Math.random } = {}) {
+  const count = Math.max(1, Math.floor(Number(damage?.count) || 1));
+  const sides = Math.floor(Number(damage?.sides) || 0);
+  const modifier = Number(damage?.modifier) || 0;
+  const rolledCount = critical && sides > 1 ? count * 2 : count;
+  const result = rollDice(rolledCount, sides, modifier, rng);
+
+  return {
+    ...result,
+    count: rolledCount,
+    sides,
+    modifier,
+    critical: Boolean(critical && sides > 1),
+  };
+}
+
 function parseDamageDice(value) {
   if (!value) return null;
   const text = String(value);
