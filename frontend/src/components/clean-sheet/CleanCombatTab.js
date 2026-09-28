@@ -15,6 +15,8 @@ import {
   getItemName,
   getItemQuantity,
   getPotionHealing,
+  getFighterCriticalRange,
+  getFighterLevel,
   hasSaveProficiency,
   mod,
   rollAttackDamage,
@@ -142,6 +144,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const unarmedDamageMod = Math.max(0, strengthMod);
   const className = character?.character_class || 'Adventurer';
   const classKey = normalizeName(className);
+  const criticalRange = getFighterCriticalRange(character, getFighterLevel(character));
 
   const equippedWeaponAttacks = useMemo(
     () => gatherEquippedWeapons(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
@@ -233,7 +236,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
       toast.error('Natural 1 — the attack misses.');
       return;
     }
-    const critical = natural === 20;
+    const critical = Number.isFinite(natural) && natural >= criticalRange;
     setPendingDamage({ ...attack.damage, critical });
     setLastDamage(null);
     if (critical) {
