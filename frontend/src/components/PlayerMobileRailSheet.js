@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Backpack, ChevronDown, ChevronRight, FileText, Heart, Shield, Star, Swords, User, Wand2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
+import { getInitiativeModifier } from '@/data/initiativeRules';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: Shield },
@@ -126,7 +127,7 @@ function Panel({ title, children }) { return <section style={panel}><h3 style={p
 function Line({ label, value }) { return <div style={line}><span>{label}</span><strong>{value}</strong></div>; }
 
 function Overview({ character, ac, speed }) {
-  return <div style={stack}><div style={grid}><Line label="AC" value={ac} /><Line label="Speed" value={`${speed}ft`} /><Line label="Initiative" value={fmt(mod(character.dexterity))} /></div><Panel title="Ability Scores"><div style={grid}>{['strength','dexterity','constitution','intelligence','wisdom','charisma'].map(key => <Line key={key} label={key.slice(0,3).toUpperCase()} value={`${character[key] || 10} (${fmt(mod(character[key]))})`} />)}</div></Panel></div>;
+  return <div style={stack}><div style={grid}><Line label="AC" value={ac} /><Line label="Speed" value={`${speed}ft`} /><Line label="Initiative" value={fmt(getInitiativeModifier(character))} /></div><Panel title="Ability Scores"><div style={grid}>{['strength','dexterity','constitution','intelligence','wisdom','charisma'].map(key => <Line key={key} label={key.slice(0,3).toUpperCase()} value={`${character[key] || 10} (${fmt(mod(character[key]))})`} />)}</div></Panel></div>;
 }
 
 function GroupedCards({ groups, empty, expanded, toggleExpanded }) {
