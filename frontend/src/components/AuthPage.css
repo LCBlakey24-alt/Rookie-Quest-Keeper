@@ -25,11 +25,11 @@
 .rqk-auth-page::before {
   content: '';
   position: fixed;
-  inset: 0 max(12px, calc((100vw - 1180px) / 2));
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
-  border-left: 1px solid rgba(201, 169, 107, 0.08);
-  border-right: 1px solid rgba(201, 169, 107, 0.08);
-  z-index: -1;
+  opacity: 0.34;
+  background: url('/brand/backgrounds/guild-ledger-auth-wide.webp') center / cover no-repeat;
 }
 
 .rqk-auth-page::after {
@@ -887,5 +887,25 @@
   #root .rqk-auth-page *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+
+/* Keep the map artwork quiet and the login form first in its own card. */
+#root .rqk-auth-page--login .rqk-auth-next-steps,
+#root .rqk-auth-page--login .rqk-auth-trust-row {
+  display: none !important;
+}
+
+@media (max-width: 920px) {
+  #root .rqk-auth-page::before {
+    background-image: url('/brand/backgrounds/guild-ledger-auth-tablet.webp');
+  }
+}
+
+@media (max-width: 620px) {
+  #root .rqk-auth-page::before {
+    opacity: 0.30;
+    background-image: url('/brand/backgrounds/guild-ledger-landing-mobile.webp');
   }
 }
