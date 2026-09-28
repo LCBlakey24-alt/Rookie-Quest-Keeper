@@ -2,13 +2,18 @@ import React, { useMemo, useState } from 'react';
 
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { featureTypeLabel, fmt } from './cleanSheetUtils';
+import {
+  buildResourcePatch,
+  canPatchResource,
+  getSheetResourceCards,
+  normaliseResourceKey,
+  singularResourceKey,
+} from './cleanSheetResourceUtils';
 
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const firstArray = (...values) => values.find(value => toArray(value).length) || [];
 const oneOrArray = (value) => value ? (Array.isArray(value) ? value : [value]) : [];
 const titleFromKey = (value = '') => String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-const normaliseResourceKey = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-const singularResourceKey = (value = '') => normaliseResourceKey(value).replace(/s\b/g, '');
 const isBlankValue = (value) => value === null || value === undefined || value === '' || value === false;
 
 function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
@@ -52,80 +57,6 @@ function selectedClassChoiceGroups(character = {}) {
     ['Pact Boon', firstArray(oneOrArray(character.pact_boon), oneOrArray(character.pactBoon))],
     ['Eldritch Invocations', firstArray(character.eldritch_invocations, character.invocations)],
   ].filter(([, items]) => toArray(items).length);
-}
-
-function trackedResourceCards(character = {}) {
-  const resourceMap = character.resources || {};
-  if (!resourceMap || typeof resourceMap !== 'object' || Array.isArray(resourceMap)) return [];
-
-  return Object.entries(resourceMap).flatMap(([key, value]) => {
-    const raw = value && typeof value === 'object' ? value : { current: value, remaining: value, max: value };
-    const max = Number(raw.max ?? raw.maximum ?? raw.total ?? raw.uses ?? raw.value ?? 0);
-    if (!max) return [];
-    return [{
-      key,
-      label: raw.label || raw.name || titleFromKey(key),
-      className: raw.className || raw.class_name || raw.source || (raw.homebrew ? 'Homebrew' : 'Class'),
-      current: Number(raw.current ?? raw.remaining ?? max),
-      max,
-      restore: raw.restore || raw.recovery || raw.refresh || 'long-rest',
-      fieldKey: key,
-      raw,
-      resourceMap,
-    }];
-  });
-}
-
-function savedResourceCards(character = {}) {
-  const cards = [...trackedResourceCards(character)];
-  const sorceryMax = Number(character.sorcery_points || 0);
-  if (sorceryMax > 0) {
-    cards.push({
-      key: 'sorcery_points',
-      label: 'Sorcery Points',
-      className: 'Sorcerer',
-      current: Number(character.sorcery_points_remaining ?? sorceryMax),
-      max: sorceryMax,
-      restore: 'long-rest',
-      field: 'sorcery_points_remaining',
-    });
-  }
-
-  const superiority = character.superiority_dice || {};
-  const superiorityMax = Number(superiority.total || 0);
-  if (superiorityMax > 0) {
-    cards.push({
-      key: 'superiority_dice',
-      label: `Superiority Dice ${superiority.die || ''}`.trim(),
-      className: 'Battle Master',
-      current: Number(superiority.remaining ?? superiorityMax),
-      max: superiorityMax,
-      restore: 'short-rest',
-      nestedField: 'superiority_dice',
-      raw: superiority,
-    });
-  }
-
-  toArray(character.homebrew_resources).forEach((resource, index) => {
-    const max = Number(resource.max || resource.maximum || resource.total || resource.uses || 0);
-    if (!max) return;
-    cards.push({
-      key: resource.key || resource.name || `homebrew-resource-${index}`,
-      label: resource.label || resource.name || `Homebrew Resource ${index + 1}`,
-      className: resource.className || resource.source || 'Homebrew',
-      current: Number(resource.current ?? resource.remaining ?? max),
-      max,
-      restore: resource.restore || resource.recovery || 'long-rest',
-    });
-  });
-
-  return cards;
-}
-
-export function resourceDedupeKey(resource = {}) {
-  const readable = resource.label || resource.name || resource.raw?.label || resource.raw?.name || resource.key || resource.fieldKey;
-  const source = resource.className || resource.source || resource.raw?.source || '';
-  return `${singularResourceKey(readable)}-${normaliseResourceKey(source)}`;
 }
 
 export function formatActionCost(value) {
@@ -229,29 +160,6 @@ export function resolveActionResourceCost(action = {}, resources = []) {
   };
 }
 
-function buildResourcePatch(resource, nextValue) {
-  if (resource.field) return { [resource.field]: nextValue };
-  if (resource.nestedField) return { [resource.nestedField]: { ...(resource.raw || {}), remaining: nextValue } };
-  if (resource.fieldKey) {
-    return {
-      resources: {
-        ...(resource.resourceMap || {}),
-        [resource.fieldKey]: {
-          ...(resource.raw || {}),
-          current: nextValue,
-          remaining: nextValue,
-          max: Number(resource.max || 0),
-        },
-      },
-    };
-  }
-  return null;
-}
-
-function canPatchResource(resource = {}) {
-  return Boolean(resource.field || resource.nestedField || resource.fieldKey);
-}
-
 function ResourceCard({ resource, onChange }) {
   const [saving, setSaving] = useState(false);
   const current = Math.max(0, Math.min(Number(resource.max || 0), Number(resource.current || 0)));
@@ -345,16 +253,10 @@ export default function CleanSheetFeaturesTab({
     () => groupFeatures(canonicalFeatures.length ? canonicalFeatures : Object.values(actionEconomyGroups || {}).flat()),
     [canonicalFeatures, actionEconomyGroups],
   );
-  const resources = useMemo(() => {
-    const merged = [...savedResourceCards(character), ...(snapshot.resources || [])];
-    const seen = new Set();
-    return merged.filter((resource) => {
-      const key = resourceDedupeKey(resource);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [snapshot.resources, character]);
+  const resources = useMemo(
+    () => getSheetResourceCards(character, snapshot.resources || []),
+    [snapshot.resources, character],
+  );
   const classChoices = useMemo(() => selectedClassChoiceGroups(character), [character]);
   const backgroundFeatures = useMemo(() => toArray(character.background_features), [character]);
   const homebrewActions = useMemo(() => sheetActionCards(character), [character]);
