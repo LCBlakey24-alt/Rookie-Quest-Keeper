@@ -5,6 +5,7 @@ import {
   Wand2, Shield, Flame, Snowflake, Skull, Wind
 } from 'lucide-react';
 import DiceRollFlicker from './DiceRollFlicker';
+import { rollDie } from '@/data/diceRoller';
 
 // Parse abilities/attacks from creature data
 function parseAbilities(creature) {
@@ -85,14 +86,18 @@ function parseAbilities(creature) {
   return abilities;
 }
 
-// Roll dice utility
-function rollDice(count, sides, modifier = 0) {
-  const rolls = [];
-  for (let i = 0; i < count; i++) {
-    rolls.push(Math.floor(Math.random() * sides) + 1);
-  }
-  const total = rolls.reduce((a, b) => a + b, 0) + modifier;
-  return { rolls, total };
+// Roll creature damage through the shared die primitive. Critical hits double
+// the damage dice, not the flat modifier.
+export function rollCreatureDamage(dice, critical = false, rng = Math.random) {
+  const count = critical ? dice.count * 2 : dice.count;
+  const rolls = Array.from({ length: count }, () => rollDie(dice.sides, rng));
+  const total = rolls.reduce((sum, value) => sum + value, 0) + dice.modifier;
+  const modifierText = dice.modifier ? `${dice.modifier > 0 ? '+' : ''}${dice.modifier}` : '';
+  return {
+    rolls,
+    total,
+    dice: `${count}d${dice.sides}${modifierText}`,
+  };
 }
 
 // Icon component selector
@@ -133,7 +138,7 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
       
       // Roll to hit if applicable
       if (ability.toHitBonus !== null) {
-        const hitRoll = Math.floor(Math.random() * 20) + 1;
+        const hitRoll = rollDie(20);
         const hitTotal = hitRoll + ability.toHitBonus;
         results.push({
           type: 'attack',
@@ -145,12 +150,14 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
         });
       }
       
-      // Roll damage dice
+      // Roll damage dice. A natural 20 doubles only the damage dice, matching
+      // 5e critical-hit math while keeping the flat modifier unchanged.
+      const critical = results.some(result => result.type === 'attack' && result.isCrit);
       ability.dice.forEach(d => {
-        const damageRoll = rollDice(d.count, d.sides, d.modifier);
+        const damageRoll = rollCreatureDamage(d, critical);
         results.push({
           type: 'damage',
-          dice: d.original,
+          dice: damageRoll.dice,
           rolls: damageRoll.rolls,
           total: damageRoll.total
         });
