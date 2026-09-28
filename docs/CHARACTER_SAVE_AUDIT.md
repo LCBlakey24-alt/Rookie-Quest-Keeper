@@ -41,13 +41,13 @@ This helper is currently used for the most important live table state:
 - spell slots via the spells tab;
 - prepared spell loadouts via the spells tab.
 
-### Desktop inventory and notes tabs
+### Inventory and notes tabs
 
-`CleanInventoryTab.js` and `CleanNotesTab.js` already use `PATCH /characters/:id`, which is the correct endpoint style for live sheet state.
+The routed sheet now passes its central `patchCharacter(updates, options)` helper into both Inventory and Notes.
 
-However, they currently perform their own direct API calls rather than using the parent `patchCharacter` helper. They then call `onCharacterUpdate` as a local state update callback.
-
-This works, but it is less consistent than the combat and spells tabs. The next safe code change should centralise these saves through the parent helper before extracting more character-sheet components.
+- Inventory uses the parent helper for carried items, equipment, armour-class updates, quantities, attunement, favourites, and currency.
+- Notes uses the parent helper for autosave and manual save while preserving its local draft safety net.
+- Both child components retain a direct API fallback for isolated rendering/tests, but the live routed sheet has one persistence path.
 
 ### Mobile presentation
 
@@ -59,11 +59,10 @@ Do not split the character sheet and change save behaviour in the same PR.
 
 Safe order:
 
-1. Centralise inventory and notes tab saves through the parent live PATCH helper.
-2. Add a small regression checklist or tests for HP, temp HP, death saves, conditions, spell slots, notes, inventory, and concentration.
-3. Extract vitals/header into smaller components without changing save behaviour.
-4. Extract tab rendering into smaller components without changing save behaviour.
-5. Keep responsive layout changes separate from live-save behavior so mobile and desktop continue sharing one persistence path.
+1. Keep regression coverage for HP, temp HP, death saves, conditions, spell slots, notes, inventory, and concentration.
+2. Extract vitals/header into smaller components without changing save behaviour.
+3. Extract tab rendering into smaller components without changing save behaviour.
+4. Keep responsive layout changes separate from live-save behavior so mobile and desktop continue sharing one persistence path.
 
 ## Manual smoke test after any character-sheet save change
 
