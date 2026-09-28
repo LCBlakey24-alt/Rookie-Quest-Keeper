@@ -9,8 +9,8 @@ import {
   normaliseResourceKey,
   singularResourceKey,
 } from './cleanSheetResourceUtils';
-export { resourceDedupeKey } from './cleanSheetResourceUtils';
 import './CleanSheetFeaturesFilter.css';
+export { resourceDedupeKey } from './cleanSheetResourceUtils';
 
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const firstArray = (...values) => values.find(value => toArray(value).length) || [];
