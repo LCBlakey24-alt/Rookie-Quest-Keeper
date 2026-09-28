@@ -13,6 +13,7 @@ import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTa
 import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
 import CleanSheetOverviewTab from '@/components/clean-sheet/CleanSheetOverviewTab';
 import CleanSheetPlayTools from '@/components/clean-sheet/CleanSheetPlayTools';
+import CleanSheetResourceRail from '@/components/clean-sheet/CleanSheetResourceRail';
 import CleanSheetSpeciesTab from '@/components/clean-sheet/CleanSheetSpeciesTab';
 import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
@@ -621,6 +622,8 @@ export default function CleanCharacterSheet() {
         onToggleInspiration={toggleInspiration}
         onRollInitiative={() => makeRoll('Initiative', initiative)}
       />
+
+      <CleanSheetResourceRail character={character} onCharacterUpdate={patchCharacter} />
 
       <CleanSheetTabs tabs={sheetTabs} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
 
