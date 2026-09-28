@@ -37,7 +37,7 @@ export function clearCharacterNotesDraft(characterId) {
   }
 }
 
-export default function CleanNotesTab({ character, onCharacterUpdate }) {
+export default function CleanNotesTab({ character, onCharacterUpdate, onSaveCharacter }) {
   const characterId = character?.id || '';
   const serverNotes = String(character?.notes || '');
   const initialDraft = readCharacterNotesDraft(characterId);
@@ -68,9 +68,21 @@ export default function CleanNotesTab({ character, onCharacterUpdate }) {
     setSaving(true);
     setSaveError('');
     try {
-      await apiClient.patch(`/characters/${characterId}`, { notes: valueToSave });
+      if (onSaveCharacter) {
+        const saved = await onSaveCharacter(
+          { notes: valueToSave },
+          { error: 'Could not save notes' },
+        );
+        if (saved === false) {
+          setSaveError('Could not save notes');
+          return false;
+        }
+      } else {
+        await apiClient.patch(`/characters/${characterId}`, { notes: valueToSave });
+        onCharacterUpdate?.({ notes: valueToSave });
+      }
+
       setSavedNotes(valueToSave);
-      onCharacterUpdate?.({ notes: valueToSave });
       if (notesRef.current === valueToSave) clearCharacterNotesDraft(characterId);
       else writeCharacterNotesDraft(characterId, notesRef.current);
       if (manual) toast.success('Notes saved');
@@ -83,7 +95,7 @@ export default function CleanNotesTab({ character, onCharacterUpdate }) {
     } finally {
       setSaving(false);
     }
-  }, [characterId, onCharacterUpdate, savedNotes, saving]);
+  }, [characterId, onCharacterUpdate, onSaveCharacter, savedNotes, saving]);
 
   useEffect(() => {
     if (!dirty || saving || saveError || !characterId) return undefined;

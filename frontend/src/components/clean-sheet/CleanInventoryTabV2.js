@@ -213,7 +213,7 @@ function InventoryItemCard({ item, actions, slot }) {
   );
 }
 
-export default function CleanInventoryTabV2({ character, onCharacterUpdate, onRoll }) {
+export default function CleanInventoryTabV2({ character, onCharacterUpdate, onSaveCharacter, onRoll }) {
   const [saving, setSaving] = useState(false);
   const [savingSlot, setSavingSlot] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
@@ -292,6 +292,14 @@ export default function CleanInventoryTabV2({ character, onCharacterUpdate, onRo
     if (!character?.id || saving) return false;
     setSaving(true);
     try {
+      if (onSaveCharacter) {
+        const saved = await onSaveCharacter(updates, {
+          success,
+          error: 'Could not update inventory',
+        });
+        return saved !== false;
+      }
+
       const response = await apiClient.patch(`/characters/${character.id}`, updates);
       const serverCharacter = response?.data?.character || response?.data;
       onCharacterUpdate?.(serverCharacter && typeof serverCharacter === 'object' ? serverCharacter : updates);
