@@ -220,7 +220,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   };
 
   const resourceActions = useMemo(() => resourceActionCards(character, classResources, {
-    spendResource: (resourceKey, label, amount = 1) => updateResource(resourceKey, label, -Math.max(1, Number(amount) || 1)),
+    spendResource: (resourceKey, label, amount = 1) => updateResource(resourceKey, label, -Math.max(1, Math.floor(Number(amount) || 1))),
   }), [character, classResources]);
 
   const rollAttack = (attack) => {
