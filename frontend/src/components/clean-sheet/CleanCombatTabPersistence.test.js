@@ -103,3 +103,90 @@ test('rolls back the visible class resource draft when persistence fails', async
   expect(screen.getByRole('button', { name: /Action Surge/i })).not.toBeDisabled();
   expect(toast.success).not.toHaveBeenCalledWith(expect.stringMatching(/Action Surge:/i));
 });
+
+
+test('carries a natural 20 into doubled weapon damage dice', () => {
+  const onRoll = jest.fn().mockReturnValue({ d20: 20, total: 25 });
+  const onDiceResult = jest.fn();
+  const character = {
+    ...baseCharacter,
+    equipment: [{ id: 'longsword-1', name: 'Longsword', equipped: true }],
+  };
+
+  render(
+    <CleanCombatTab
+      character={character}
+      proficiencyBonus={2}
+      onRoll={onRoll}
+      onCharacterUpdate={jest.fn()}
+      onDiceResult={onDiceResult}
+    />,
+  );
+
+  const longswordCard = screen.getByText('Longsword').closest('.clean-sheet-action-card');
+  expect(longswordCard).toBeTruthy();
+
+  fireEvent.click(within(longswordCard).getByRole('button', { name: /To Hit/i }));
+  expect(toast.success).toHaveBeenCalledWith('Critical hit — damage dice will be doubled.');
+
+  fireEvent.click(within(longswordCard).getByRole('button', { name: /Damage/i }));
+
+  expect(onDiceResult).toHaveBeenCalledTimes(1);
+  const result = onDiceResult.mock.calls[0][0];
+  expect(result.critical).toBe(true);
+  expect(result.rolls).toHaveLength(2);
+  expect(result.label).toMatch(/Critical .*Damage/i);
+});
+
+test('natural 1 does not arm pending damage', () => {
+  const onRoll = jest.fn().mockReturnValue({ d20: 1, total: 6 });
+  const character = {
+    ...baseCharacter,
+    equipment: [{ id: 'longsword-1', name: 'Longsword', equipped: true }],
+  };
+
+  render(
+    <CleanCombatTab
+      character={character}
+      proficiencyBonus={2}
+      onRoll={onRoll}
+      onCharacterUpdate={jest.fn()}
+    />,
+  );
+
+  const longswordCard = screen.getByText('Longsword').closest('.clean-sheet-action-card');
+  fireEvent.click(within(longswordCard).getByRole('button', { name: /To Hit/i }));
+
+  expect(toast.error).toHaveBeenCalledWith('Natural 1 — the attack misses.');
+  expect(screen.queryByText('Attack rolled. If it hits, use the damage box on this card.')).not.toBeInTheDocument();
+  expect(screen.queryByText('Critical hit. Damage dice will be doubled.')).not.toBeInTheDocument();
+});
+
+test('Champion expanded critical range carries a 19 into doubled damage', () => {
+  const onRoll = jest.fn().mockReturnValue({ d20: 19, total: 24 });
+  const onDiceResult = jest.fn();
+  const character = {
+    ...baseCharacter,
+    level: 3,
+    subclass: 'Champion',
+    equipment: [{ id: 'longsword-1', name: 'Longsword', equipped: true }],
+  };
+
+  render(
+    <CleanCombatTab
+      character={character}
+      proficiencyBonus={2}
+      onRoll={onRoll}
+      onCharacterUpdate={jest.fn()}
+      onDiceResult={onDiceResult}
+    />,
+  );
+
+  const longswordCard = screen.getByText('Longsword').closest('.clean-sheet-action-card');
+  fireEvent.click(within(longswordCard).getByRole('button', { name: /To Hit/i }));
+  fireEvent.click(within(longswordCard).getByRole('button', { name: /Damage/i }));
+
+  const result = onDiceResult.mock.calls[0][0];
+  expect(result.critical).toBe(true);
+  expect(result.rolls).toHaveLength(2);
+});
