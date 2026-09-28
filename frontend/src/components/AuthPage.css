@@ -29,7 +29,7 @@
   z-index: 0;
   pointer-events: none;
   opacity: 0.34;
-  background: url('/brand/backgrounds/guild-ledger-auth-wide.webp') center / cover no-repeat;
+  
 }
 
 .rqk-auth-page::after {
@@ -899,13 +899,13 @@
 
 @media (max-width: 920px) {
   #root .rqk-auth-page::before {
-    background-image: url('/brand/backgrounds/guild-ledger-auth-tablet.webp');
+    
   }
 }
 
 @media (max-width: 620px) {
   #root .rqk-auth-page::before {
     opacity: 0.30;
-    background-image: url('/brand/backgrounds/guild-ledger-landing-mobile.webp');
+    
   }
 }
