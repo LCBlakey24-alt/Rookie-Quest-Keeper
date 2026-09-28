@@ -502,6 +502,7 @@ function SpellGroup({
 
 export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const [spellSearch, setSpellSearch] = useState('');
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [migratingLegacy, setMigratingLegacy] = useState(false);
   const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
   const rulesEdition = String(character?.rules_edition || character?.edition || snapshot.identity?.edition || '').includes('2024') ? '2024' : '2014';
@@ -680,6 +681,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       })
       .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name));
   }, [character, classLevels, homebrewClassOptions, homebrewSpellOptions, rulesEdition]);
+  const hasClassSpellLibrary = availableClassSpells.length > 0;
 
   const castOptionsForSpell = (spell) => getCastOptionsForSpell({
     spell,
@@ -893,7 +895,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <div>
             <h2>Spellcasting</h2>
             <p>
-              Cast prepared or known spells, choose the exact slot pool, manage Wizard preparation, and add spells to the correct class list.
+              Your slots and saved spells stay first for play. Open the class library only when you want to add or manage spells.
             </p>
           </div>
           <span>{spellcastingRows.length ? 'Caster' : 'No caster data'}</span>
@@ -918,21 +920,120 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           </div>
           <div><span>Lists</span><strong>{listSummary}</strong></div>
         </div>
-        <label className="clean-sheet-spell-search">
-          <Search size={16} />
-          <input
-            value={spellSearch}
-            onChange={(event) => setSpellSearch(event.target.value)}
-            placeholder="Search spells or class library…"
-          />
-        </label>
+        <div className="clean-sheet-spell-toolbar">
+          <label className="clean-sheet-spell-search">
+            <Search size={16} />
+            <input
+              value={spellSearch}
+              onChange={(event) => setSpellSearch(event.target.value)}
+              placeholder={libraryOpen ? 'Search your spells and class library…' : 'Search your saved spells…'}
+            />
+          </label>
+          {hasClassSpellLibrary && (
+            <button
+              type="button"
+              className="clean-sheet-library-toggle"
+              onClick={() => setLibraryOpen((open) => !open)}
+              aria-expanded={libraryOpen}
+            >
+              {libraryOpen ? 'Hide Class Library' : 'Manage Class Library'}
+            </button>
+          )}
+        </div>
       </section>
 
-      <SpellLibrary
-        spells={filterSpells(availableClassSpells)}
-        savedSpells={savedSpells}
-        onAdd={addSpellFromLibrary}
+      <SpellSlots
+        slots={effectiveSlots}
+        remaining={effectiveRemaining}
+        onChangeSlots={handleSlotChange}
       />
+
+      <PactMagicPool pool={pactPool} onChange={handlePactChange} />
+
+      <SpellGroup
+        title="Cantrips"
+        spells={filterSpells(cantrips)}
+        preparedSpells={prepared}
+        groupMode="known"
+        getCastOptions={castOptionsForSpell}
+        emptyText={hasClassSpellLibrary
+          ? "No cantrips found on this character. Open the class library below to add one."
+          : "No cantrips are saved on this character, and no class spell library is available at this level."}
+        onCast={castSpell}
+        onConcentrate={concentrateOn}
+        onPrepare={prepareSpell}
+        onUnprepare={unprepareSpell}
+      />
+
+      {(hasPreparedModel || hasSpellbookModel || prepared.length > 0) && (
+        <SpellGroup
+          title="Prepared Spells"
+          spells={filterSpells(prepared)}
+          preparedSpells={prepared}
+          groupMode="prepared"
+          getCastOptions={castOptionsForSpell}
+          emptyText="No prepared spells found. Open the class library below or prepare one from a Wizard spellbook."
+          onCast={castSpell}
+          onConcentrate={concentrateOn}
+          onPrepare={prepareSpell}
+          onUnprepare={unprepareSpell}
+        />
+      )}
+
+      {(hasSpellbookModel || spellbook.length > 0) && (
+        <SpellGroup
+          title="Spellbook"
+          spells={filterSpells(spellbook.filter((spell) => !spellListContains(prepared, spell)))}
+          preparedSpells={prepared}
+          groupMode="spellbook"
+          getCastOptions={castOptionsForSpell}
+          emptyText="No unprepared spellbook entries found. Open the class library below to add Wizard spells."
+          onCast={castSpell}
+          onConcentrate={concentrateOn}
+          onPrepare={prepareSpell}
+          onUnprepare={unprepareSpell}
+        />
+      )}
+
+      {(hasKnownModel || known.length > 0) && (
+        <SpellGroup
+          title="Known Spells"
+          spells={filterSpells(known)}
+          preparedSpells={prepared}
+          groupMode="known"
+          getCastOptions={castOptionsForSpell}
+          emptyText="No known spells found. Open the class library below to add one."
+          onCast={castSpell}
+          onConcentrate={concentrateOn}
+          onPrepare={prepareSpell}
+          onUnprepare={unprepareSpell}
+        />
+      )}
+
+      {!cantrips.length && !rawKnown.length && !spellbook.length && !prepared.length && (
+        <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-empty">
+          <Wand2 size={22} />
+          <h2>No spells saved yet</h2>
+          <p>
+            {hasClassSpellLibrary
+              ? 'Open the class spell library to add cantrips and levelled spells to this sheet.'
+              : 'This character has no class spell library available at its current class levels.'}
+          </p>
+          {hasClassSpellLibrary && (
+            <div className="clean-sheet-spell-actions">
+              <button type="button" onClick={() => setLibraryOpen(true)}>Browse Class Spell Library</button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {libraryOpen && hasClassSpellLibrary && (
+        <SpellLibrary
+          spells={filterSpells(availableClassSpells)}
+          savedSpells={savedSpells}
+          onAdd={addSpellFromLibrary}
+        />
+      )}
 
       <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-snapshot-board">
         <div className="clean-sheet-spell-section-heading">
@@ -989,80 +1090,6 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
               );
             })}
           </div>
-        </section>
-      )}
-
-      <SpellSlots
-        slots={effectiveSlots}
-        remaining={effectiveRemaining}
-        onChangeSlots={handleSlotChange}
-      />
-
-      <PactMagicPool pool={pactPool} onChange={handlePactChange} />
-
-      <SpellGroup
-        title="Cantrips"
-        spells={filterSpells(cantrips)}
-        preparedSpells={prepared}
-        groupMode="known"
-        getCastOptions={castOptionsForSpell}
-        emptyText="No cantrips found on this character. Add one from the class spell library above."
-        onCast={castSpell}
-        onConcentrate={concentrateOn}
-        onPrepare={prepareSpell}
-        onUnprepare={unprepareSpell}
-      />
-
-      {(hasPreparedModel || hasSpellbookModel || prepared.length > 0) && (
-        <SpellGroup
-          title="Prepared Spells"
-          spells={filterSpells(prepared)}
-          preparedSpells={prepared}
-          groupMode="prepared"
-          getCastOptions={castOptionsForSpell}
-          emptyText="No prepared spells found. Add a prepared-class spell or prepare one from a Wizard spellbook."
-          onCast={castSpell}
-          onConcentrate={concentrateOn}
-          onPrepare={prepareSpell}
-          onUnprepare={unprepareSpell}
-        />
-      )}
-
-      {(hasSpellbookModel || spellbook.length > 0) && (
-        <SpellGroup
-          title="Spellbook"
-          spells={filterSpells(spellbook.filter((spell) => !spellListContains(prepared, spell)))}
-          preparedSpells={prepared}
-          groupMode="spellbook"
-          getCastOptions={castOptionsForSpell}
-          emptyText="No unprepared spellbook entries found. Add Wizard spells from the class library above."
-          onCast={castSpell}
-          onConcentrate={concentrateOn}
-          onPrepare={prepareSpell}
-          onUnprepare={unprepareSpell}
-        />
-      )}
-
-      {(hasKnownModel || known.length > 0) && (
-        <SpellGroup
-          title="Known Spells"
-          spells={filterSpells(known)}
-          preparedSpells={prepared}
-          groupMode="known"
-          getCastOptions={castOptionsForSpell}
-          emptyText="No known spells found. Add one from the class spell library above."
-          onCast={castSpell}
-          onConcentrate={concentrateOn}
-          onPrepare={prepareSpell}
-          onUnprepare={unprepareSpell}
-        />
-      )}
-
-      {!cantrips.length && !rawKnown.length && !spellbook.length && !prepared.length && (
-        <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-empty">
-          <Wand2 size={22} />
-          <h2>No spells saved yet</h2>
-          <p>Use the class spell library above to add cantrips and levelled spells to this sheet.</p>
         </section>
       )}
     </div>
