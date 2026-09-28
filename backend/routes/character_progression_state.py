@@ -34,6 +34,7 @@ from routes.characters import (
     edition_for,
     get_owned_character,
     initial_class_levels,
+    hit_die_for,
     meets_multiclass_requirements,
     multiclass_requirement_text,
 )
@@ -709,9 +710,12 @@ def attach_level_up_receipt(
     constitution_modifier = (_int(existing.get("constitution"), 10) - 10) // 2
     hp_method = str(entry.get("hp_method") or level_up.hp_method or "average").strip().lower()
     hp_roll = entry.get("hp_roll")
+    fixed_die_value = (hit_die_for(leveled_class) // 2 + 1) if hp_method == "average" else None
     minimum_applied = False
     if hp_method in {"roll", "manual"} and hp_roll is not None:
         minimum_applied = _int(hp_roll, 0) + constitution_modifier < 1
+    elif hp_method == "average" and fixed_die_value is not None:
+        minimum_applied = fixed_die_value + constitution_modifier < 1
 
     old_prof = max(2, _int(existing.get("proficiency_bonus"), 2 + ((old_level - 1) // 4)))
     new_prof = max(2, _int(update.get("proficiency_bonus"), 2 + ((new_level - 1) // 4)))
@@ -742,6 +746,7 @@ def attach_level_up_receipt(
         "hp": {
             "method": hp_method,
             "raw_roll": hp_roll,
+            "fixed_die_value": fixed_die_value,
             "constitution_modifier": constitution_modifier,
             "gained": hp_gained,
             "max_before": old_max_hp,
