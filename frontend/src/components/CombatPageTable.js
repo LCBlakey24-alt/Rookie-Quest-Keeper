@@ -9,6 +9,8 @@ import apiClient from '@/lib/apiClient';
 import NPCCombatRecruiter from '@/components/NPCCombatRecruiter';
 import MapCanvas from '@/components/MapBuilder/MapCanvas';
 import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
+import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRules';
+import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
 import {
   combatStateSnapshot,
@@ -75,8 +77,9 @@ function inventoryPayload(item = {}, round = 1) {
 function initialiseCombatant(source, index) {
   const maxHp = Math.max(1, numberOr(source.maxHp ?? source.max_hp ?? source.hit_points ?? source.hp, 10));
   const hp = Math.max(0, Math.min(maxHp, numberOr(source.hp ?? source.current_hit_points, maxHp)));
-  const initiativeRoll = numberOr(source.initiativeRoll, Math.floor(Math.random() * 20) + 1);
-  const initiativeMod = numberOr(source.initiativeMod ?? source.initiative_bonus, 0);
+  const initiativeMod = getInitiativeModifier(source);
+  const rolledInitiative = rollInitiative(initiativeMod);
+  const initiativeRoll = numberOr(source.initiativeRoll, rolledInitiative.natural);
   return {
     ...source,
     id: source.id || `combatant-${Date.now()}-${index}`,
@@ -397,19 +400,20 @@ export default function CombatPageTable() {
   }));
 
   const rollDeathSave = (id) => {
-    const roll = Math.floor(Math.random() * 20) + 1;
+    const result = resolveDeathSaveRoll();
     setCombatants(previous => previous.map(combatant => {
       if (combatant.id !== id) return combatant;
-      if (roll === 20) {
+      const applied = applyDeathSaveResult(
+        combatant.deathSaves || { successes: 0, failures: 0 },
+        result,
+      );
+      if (result.revive) {
         toast.success(`${combatant.name}: natural 20 — back with 1 HP`);
-        return { ...combatant, hp: 1, deathSaves: { successes: 0, failures: 0 } };
+        return { ...combatant, hp: applied.hp, deathSaves: applied.deathSaves };
       }
-      const saves = { ...(combatant.deathSaves || { successes: 0, failures: 0 }) };
-      if (roll === 1) saves.failures = Math.min(3, saves.failures + 2);
-      else if (roll >= 10) saves.successes = Math.min(3, saves.successes + 1);
-      else saves.failures = Math.min(3, saves.failures + 1);
-      toast[roll >= 10 ? 'success' : 'error'](`${combatant.name}: ${roll} · ${saves.successes} success / ${saves.failures} fail`);
-      return { ...combatant, deathSaves: saves };
+      const tone = result.successesDelta > 0 ? 'success' : 'error';
+      toast[tone](`${combatant.name}: ${result.natural} · ${applied.deathSaves.successes} success / ${applied.deathSaves.failures} fail`);
+      return { ...combatant, deathSaves: applied.deathSaves };
     }));
   };
 
@@ -425,8 +429,8 @@ export default function CombatPageTable() {
     const activeId = active?.id;
     const updated = combatants.map(combatant => {
       if (id && combatant.id !== id) return combatant;
-      const initiativeRoll = Math.floor(Math.random() * 20) + 1;
-      return { ...combatant, initiativeRoll, initiative: initiativeRoll + numberOr(combatant.initiativeMod, 0), initiativeSource: 'rook' };
+      const rolled = rollInitiative(combatant.initiativeMod);
+      return { ...combatant, initiativeRoll: rolled.natural, initiative: rolled.total, initiativeSource: 'rook' };
     }).sort((a, b) => b.initiative - a.initiative);
     setCombatants(updated);
     if (id && activeId) setCurrentTurn(Math.max(0, updated.findIndex(item => item.id === activeId)));
