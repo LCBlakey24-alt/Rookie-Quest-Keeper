@@ -187,7 +187,10 @@ describe('Variable-cost resource action cards', () => {
       .find(card => card.title === 'Lay on Hands');
 
     layOnHands.onSpend(99);
-    expect(spendResource).toHaveBeenCalledWith('lay_on_hands', 'Lay on Hands', 3);
+    expect(spendResource).toHaveBeenNthCalledWith(1, 'lay_on_hands', 'Lay on Hands', 3);
+
+    layOnHands.onSpend(1.5);
+    expect(spendResource).toHaveBeenNthCalledWith(2, 'lay_on_hands', 'Lay on Hands', 1);
   });
 });
 
