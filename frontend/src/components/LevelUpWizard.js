@@ -14,6 +14,11 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { rollDie } from '@/data/diceRoller';
 import { getLevelUpHpChoice, getLevelUpHpReceipt } from '@/data/levelUpHpRules';
+import {
+  getLevelUpFeatureUnlocks,
+  getLevelUpResourceChanges,
+  resourceChangeSummary,
+} from '@/data/levelUpPreviewRules';
 import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
 import { CLASS_FEATURES } from '@/data/classFeatures';
 import {
@@ -312,6 +317,22 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     : preflight?.can_choose_subclass !== undefined ? Boolean(preflight.can_choose_subclass) : localNeedsSubclass;
   const subclassOptions = normaliseSubclassOptions(isMulticlass ? null : preflight, characterClass);
   const castingSubclass = selectedSubclass || existingSubclass;
+  const featureUnlocks = getLevelUpFeatureUnlocks({
+    character,
+    className: characterClass,
+    classLevelBefore,
+    classLevelAfter,
+    edition,
+    existingSubclass,
+    selectedSubclass: castingSubclass,
+  });
+  const resourceChanges = getLevelUpResourceChanges({
+    character,
+    className: characterClass,
+    classLevelAfter,
+    totalLevelAfter: newLevel,
+    edition,
+  });
   const castingCharacter = {
     ...character,
     character_class: characterClass,
@@ -617,6 +638,15 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                     : `Proficiency bonus stays at +${currentProficiency}.`}
                 />
                 {spellSlotReceipt && <CheckLine active text={`Spell slots change: ${spellSlotReceipt}.`} />}
+                {!!featureUnlocks.length && (
+                  <CheckLine
+                    active
+                    text={`New feature${featureUnlocks.length === 1 ? '' : 's'}: ${featureUnlocks.map((feature) => feature.name).join(', ')}.`}
+                  />
+                )}
+                {resourceChanges.map((change) => (
+                  <CheckLine key={`resource-${change.key}`} active text={`Resource: ${resourceChangeSummary(change)}.`} />
+                ))}
                 {canReplacePrepared && (
                   <CheckLine active text={`You may replace up to ${replacementRule.maxReplacements} prepared spell during this level-up.`} />
                 )}
@@ -819,6 +849,16 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 <Summary label="Proficiency" value={proficiencyReceipt} />
                 <Summary label="Hit Dice" value={`${currentLevel} total → ${newLevel} total`} />
                 {spellSlotReceipt && <Summary label="Spell slots" value={spellSlotReceipt} />}
+                {featureUnlocks.map((feature) => (
+                  <Summary
+                    key={`feature-${feature.source}-${feature.level}-${feature.name}`}
+                    label={feature.source === 'subclass' ? 'Subclass feature' : 'New feature'}
+                    value={feature.name}
+                  />
+                ))}
+                {resourceChanges.map((change) => (
+                  <Summary key={`resource-${change.key}`} label="Resource" value={resourceChangeSummary(change)} />
+                ))}
                 {needsSubclass && <Summary label="Subclass" value={selectedSubclass} />}
                 {choiceType === 'feat' && selectedFeat && <Summary label="Feat" value={selectedFeat.name} />}
                 {choiceType === 'asi' && <Summary label="ASI" value={`${abilityLabel(asiChoices.ability1)} +1, ${abilityLabel(asiChoices.ability2)} +1`} />}
