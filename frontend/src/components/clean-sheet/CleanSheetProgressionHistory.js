@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 
 import {
+  asiChangeText,
   levelUpHpMath,
   progressionHistoryEntries,
   resourceChangeText,
   spellSlotChangeText,
-} from './cleanSheetProgressionHistory';
+} from './levelUpHistoryUtils';
 import './CleanSheetProgressionHistory.css';
 
 const spellName = (spell) => typeof spell === 'string' ? spell : spell?.name || spell?.title || '';
@@ -22,8 +23,8 @@ function choiceSummary(entry) {
   if (entry.subclass) items.push(`Subclass: ${entry.subclass}`);
   if (entry.feat) items.push(`Feat: ${entry.feat}`);
 
-  const asi = Object.values(entry.asiChoices || {}).filter(Boolean);
-  if (asi.length) items.push(`ASI: ${asi.map(value => String(value).slice(0, 3).toUpperCase()).join(' + ')}`);
+  const asi = asiChangeText(entry.asiChanges);
+  if (asi) items.push(`ASI: ${asi}`);
 
   const spells = entry.newSpells.map(spellName).filter(Boolean);
   if (spells.length) items.push(`Spells: ${spells.join(', ')}`);
