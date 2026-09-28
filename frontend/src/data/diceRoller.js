@@ -1,6 +1,7 @@
 export function parseDiceNotation(notation = '') {
-  const diceGroups = String(notation).match(/(\d+)?d(\d+)/gi) || [];
-  const modifierMatches = String(notation).replace(/(\d+)?d(\d+)/gi, '').match(/([+-]\d+)/g) || [];
+  const compact = String(notation).replace(/\s+/g, '');
+  const diceGroups = compact.match(/(\d+)?d(\d+)/gi) || [];
+  const modifierMatches = compact.replace(/(\d+)?d(\d+)/gi, '').match(/([+-]\d+)/g) || [];
   const modifier = modifierMatches.reduce((sum, value) => sum + Number.parseInt(value, 10), 0);
   return { diceGroups, modifier };
 }
@@ -19,7 +20,8 @@ export function rollDiceNotation(notation, options = {}) {
   const { diceGroups, modifier } = parseDiceNotation(notation);
   const rolls = [];
   let total = 0;
-  const isAdvRoll = (rollType === 'advantage' || rollType === 'disadvantage') && /^\s*(\d+)?d20\s*([+-]\d+)?\s*$/i.test(String(notation));
+  const compactNotation = String(notation).replace(/\s+/g, '');
+  const isAdvRoll = (rollType === 'advantage' || rollType === 'disadvantage') && /^(\d+)?d20([+-]\d+)?$/i.test(compactNotation);
 
   if (isAdvRoll) {
     const r1 = rollDie(20, rng);
