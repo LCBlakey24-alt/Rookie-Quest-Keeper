@@ -1,4 +1,4 @@
-import { rollDiceNotation, getAnimationTarget } from './diceRoller';
+import { rollDie, rollDiceNotation, getAnimationTarget } from './diceRoller';
 
 function rngFrom(values) {
   let index = 0;
@@ -6,6 +6,29 @@ function rngFrom(values) {
 }
 
 describe('dice roller helpers', () => {
+  test('shared die primitive maps RNG boundaries to the full die range', () => {
+    expect(rollDie(4, () => 0)).toBe(1);
+    expect(rollDie(6, () => 0.999999)).toBe(6);
+    expect(rollDie(20, () => 0.999999)).toBe(20);
+    expect(rollDie(100, () => 0.499999)).toBe(50);
+  });
+
+  test('accepts human-readable whitespace around modifiers', () => {
+    const result = rollDiceNotation('2d6 + 4', { rng: rngFrom([0, 0.999]) });
+
+    expect(result.rolls.map(roll => roll.result)).toEqual([1, 6]);
+    expect(result.modifier).toBe(4);
+    expect(result.total).toBe(11);
+  });
+
+  test('advantage still uses exactly two d20 rolls when notation contains spaces', () => {
+    const result = rollDiceNotation('1d20 + 5', { rollType: 'advantage', rng: rngFrom([0.1, 0.9]) });
+
+    expect(result.rolls.map(roll => roll.result)).toEqual([3, 19]);
+    expect(result.visibleRolls.map(roll => roll.result)).toEqual([19]);
+    expect(result.total).toBe(24);
+  });
+
   test('exploding dice add max rolls and keep exploding until not max', () => {
     const result = rollDiceNotation('1d6+2', { exploding: true, rng: rngFrom([0.999, 0.999, 0.1]) });
 
