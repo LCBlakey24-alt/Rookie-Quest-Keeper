@@ -161,3 +161,33 @@ test('natural 1 never arms pending damage as a successful attack', () => {
   expect(screen.queryByText('Attack rolled. If it hits, use the damage box on this card.')).not.toBeInTheDocument();
   expect(screen.queryByText('Critical hit. Damage dice will be doubled.')).not.toBeInTheDocument();
 });
+
+
+test('Champion improved critical range also doubles damage on a 19 at level 3+', () => {
+  const onRoll = jest.fn().mockReturnValue({ d20: 19, total: 24 });
+  const onDiceResult = jest.fn();
+  const character = {
+    ...baseCharacter,
+    level: 3,
+    subclass: 'Champion',
+    equipment: [{ id: 'longsword-1', name: 'Longsword', equipped: true }],
+  };
+
+  render(
+    <CleanCombatTab
+      character={character}
+      proficiencyBonus={2}
+      onRoll={onRoll}
+      onCharacterUpdate={jest.fn()}
+      onDiceResult={onDiceResult}
+    />,
+  );
+
+  const longswordCard = screen.getByText('Longsword').closest('.clean-sheet-action-card');
+  fireEvent.click(within(longswordCard).getByRole('button', { name: /To Hit/i }));
+  fireEvent.click(within(longswordCard).getByRole('button', { name: /Damage/i }));
+
+  const result = onDiceResult.mock.calls[0][0];
+  expect(result.critical).toBe(true);
+  expect(result.rolls).toHaveLength(2);
+});
