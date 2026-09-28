@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { fmt } from './cleanCombatTabUtils';
 
@@ -31,6 +31,47 @@ export function SimpleActionCard({ title, description, type = 'Action', onClick,
         <strong>{title}</strong>
         <span>{description}</span>
       </button>
+    </div>
+  );
+}
+
+export function VariableResourceActionCard({ card }) {
+  const available = Math.max(0, Number(card?.current || 0));
+  const [amount, setAmount] = useState(1);
+
+  useEffect(() => {
+    setAmount((previous) => Math.max(1, Math.min(Math.max(1, available), Number(previous) || 1)));
+  }, [available]);
+
+  const spend = () => {
+    if (!card?.onSpend || available <= 0) return;
+    card.onSpend(Math.max(1, Math.min(available, Number(amount) || 1)));
+  };
+
+  return (
+    <div className="clean-sheet-action-card-shell">
+      <article className="clean-sheet-action-card clean-sheet-variable-resource-card">
+        <span className="clean-sheet-action-type">{card?.type || card?.resourceLabel || 'Resource'}</span>
+        <strong>{card?.title}</strong>
+        <span>{card?.description}</span>
+        <div className="clean-sheet-variable-resource-spend">
+          <label>
+            <span>Spend</span>
+            <input
+              type="number"
+              min="1"
+              max={Math.max(1, available)}
+              value={amount}
+              disabled={available <= 0}
+              onChange={(event) => setAmount(Math.max(1, Math.min(Math.max(1, available), Number(event.target.value) || 1)))}
+              aria-label={`Amount of ${card?.resourceLabel || 'resource'} to spend`}
+            />
+          </label>
+          <button type="button" onClick={spend} disabled={available <= 0 || !card?.onSpend}>
+            {available > 0 ? `Use (-${amount})` : 'None left'}
+          </button>
+        </div>
+      </article>
     </div>
   );
 }
