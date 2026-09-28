@@ -58,8 +58,8 @@ export function getCharacterHeaderClassLabel(character = {}) {
     }).join(' / ');
   }
 
-  const primary = character?.character_class;
-  const subclass = character?.subclass;
+  const primary = titleCaseSlug(character?.character_class);
+  const subclass = titleCaseSlug(character?.subclass);
   return [primary, subclass ? `(${subclass})` : ''].filter(Boolean).join(' ');
 }
 
