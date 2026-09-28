@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Check, Dices, Shield, Swords, Target, X } from 'lucide-react';
+import { rollDie } from '@/data/diceRoller';
 
 const rq = {
   bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', red: 'var(--rq-accent-primary)',
@@ -91,19 +92,28 @@ function attacksFor(attacker = {}) {
   return lines.map(normaliseTextAttack).filter(Boolean);
 }
 
-function rollDie(sides) {
-  return Math.floor(Math.random() * sides) + 1;
-}
-
-function rollDamage(dice, critical = false) {
+export function rollTargetedDamage(dice, critical = false, rng = Math.random) {
   if (!dice) return { total: 0, rolls: [], expression: '' };
   const count = critical ? dice.count * 2 : dice.count;
-  const rolls = Array.from({ length: count }, () => rollDie(dice.sides));
+  const rolls = Array.from({ length: count }, () => rollDie(dice.sides, rng));
   return {
     total: Math.max(0, rolls.reduce((sum, value) => sum + value, 0) + dice.modifier),
     rolls,
     expression: `${count}d${dice.sides}${dice.modifier ? `${dice.modifier > 0 ? '+' : ''}${dice.modifier}` : ''}`,
   };
+}
+
+export function resolveTargetedAttack({ attackBonus = 0, targetAc = 10, dice = null } = {}, rng = Math.random) {
+  const roll = rollDie(20, rng);
+  const total = roll + Number(attackBonus || 0);
+  const critical = roll === 20;
+  const fumble = roll === 1;
+  const hit = critical || (!fumble && total >= Number(targetAc || 10));
+  const damage = hit
+    ? rollTargetedDamage(dice, critical, rng)
+    : { total: 0, rolls: [], expression: dice?.expression || '' };
+
+  return { roll, total, hit, critical, fumble, damage };
 }
 
 export default function TargetedAttackPanel({ attacker, targets = [], onClose, onApplyDamage, onAnnounce }) {
@@ -131,12 +141,11 @@ export default function TargetedAttackPanel({ attacker, targets = [], onClose, o
 
   const digitalAttack = () => {
     if (!attack || !target) return;
-    const roll = rollDie(20);
-    const total = roll + attack.toHitBonus;
-    const critical = roll === 20;
-    const fumble = roll === 1;
-    const hit = critical || (!fumble && total >= Number(target.ac || 10));
-    const damage = hit ? rollDamage(attack.dice, critical) : { total: 0, rolls: [], expression: attack.dice?.expression || '' };
+    const { roll, total, hit, critical, damage } = resolveTargetedAttack({
+      attackBonus: attack.toHitBonus,
+      targetAc: target.ac,
+      dice: attack.dice,
+    });
     if (hit && damage.total > 0) onApplyDamage?.(target.id, damage.total);
     const next = { mode: 'digital', roll, total, hit, critical, damage };
     setResult(next);
