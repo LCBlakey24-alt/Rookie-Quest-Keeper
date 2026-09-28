@@ -65,9 +65,17 @@ export function getCharacterHeaderClassLabel(character = {}) {
 
 function compactSubtitleParts(character, fallbackSubtitle) {
   const classLabel = getCharacterHeaderClassLabel(character);
+  if (classLabel.includes(' / ')) {
+    return [
+      titleCaseSlug(character?.race),
+      classLabel,
+    ].filter(Boolean);
+  }
+
   const directParts = [
     character?.race,
-    classLabel,
+    character?.character_class,
+    character?.subclass,
   ].filter(Boolean);
 
   if (directParts.length) return formatSubtitleParts(directParts);
