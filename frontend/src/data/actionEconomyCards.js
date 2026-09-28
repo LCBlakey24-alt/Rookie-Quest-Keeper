@@ -52,6 +52,30 @@ export function resourceActionCards(character, resources, handlers = { spendReso
     });
   };
 
+  const addVariable = (bucket, key, title, description, displayType = 'Resource') => {
+    const resource = byKey[key];
+    const suffix = resource ? ` • ${resource.label} ${resource.current}/${resource.max}` : '';
+    cards[bucket].push({
+      key: `${bucket}-${key}-${title}`,
+      title,
+      type: resource?.label || displayType,
+      description: `${description}${suffix}`,
+      disabled: !resource || resource.current <= 0,
+      variableCost: true,
+      resourceKey: key,
+      resourceLabel: resource?.label || displayType,
+      current: Number(resource?.current || 0),
+      max: Number(resource?.max || 0),
+      onSpend: resource
+        ? (amount) => handlers.spendResource(
+          key,
+          title,
+          Math.max(1, Math.min(Number(resource.current || 0), Number(amount) || 1)),
+        )
+        : undefined,
+    });
+  };
+
   const className = normalizeName(character?.character_class || character?.class_name || character?.class);
   if (byKey.ki || className === 'monk') {
     add('bonus', 'ki', 'Flurry of Blows', 'Spend 1 Ki/Discipline Point to make extra unarmed strikes after taking the Attack action.', () => handlers.spendResource('ki', 'Flurry of Blows'));
@@ -59,8 +83,8 @@ export function resourceActionCards(character, resources, handlers = { spendReso
     add('bonus', 'ki', 'Step of the Wind', 'Spend 1 Ki/Discipline Point to Dash or Disengage as a bonus action.', () => handlers.spendResource('ki', 'Step of the Wind'));
   }
   if (byKey.sorcery_points || className === 'sorcerer') {
-    add('bonus', 'sorcery_points', 'Convert Sorcery Points', 'Use sorcery points for Metamagic or to create spell slots if your table uses that rule.', () => handlers.spendResource('sorcery_points', 'Sorcery Points'));
-    add('bonus', 'sorcery_points', 'Metamagic', 'Spend sorcery points on a Metamagic option you know.', () => handlers.spendResource('sorcery_points', 'Metamagic'));
+    addVariable('bonus', 'sorcery_points', 'Convert Sorcery Points', 'Choose how many Sorcery Points to spend; spell-slot conversion cost depends on the slot you create.');
+    addVariable('bonus', 'sorcery_points', 'Metamagic', 'Spend the Sorcery Point cost printed by the Metamagic option you are using.');
   }
   if (byKey.rage || className === 'barbarian') add('bonus', 'rage', 'Rage', 'Enter a rage and apply your rage bonuses and resistances.', () => handlers.spendResource('rage', 'Rage'));
   if (byKey.bardic_inspiration || className === 'bard') add('bonus', 'bardic_inspiration', 'Bardic Inspiration', 'Give one creature an inspiration die.', () => handlers.spendResource('bardic_inspiration', 'Bardic Inspiration'));
@@ -72,7 +96,7 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   if (byKey.channel_divinity) add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
   if (byKey.cleric_channel_divinity) add('action', 'cleric_channel_divinity', 'Cleric Channel Divinity', 'Use a Cleric Channel Divinity option.', () => handlers.spendResource('cleric_channel_divinity', 'Cleric Channel Divinity'));
   if (byKey.paladin_channel_divinity) add('action', 'paladin_channel_divinity', 'Paladin Channel Divinity', 'Use a Paladin Channel Divinity option.', () => handlers.spendResource('paladin_channel_divinity', 'Paladin Channel Divinity'));
-  if (byKey.lay_on_hands || className === 'paladin') add('action', 'lay_on_hands', 'Lay on Hands', 'Spend points from your healing pool.', () => handlers.spendResource('lay_on_hands', 'Lay on Hands'));
+  if (byKey.lay_on_hands || className === 'paladin') addVariable('action', 'lay_on_hands', 'Lay on Hands', 'Choose how many points to spend from your healing pool.');
   if (byKey.arcane_recovery || className === 'wizard') add('action', 'arcane_recovery', 'Arcane Recovery', 'Recover spell slots during a short rest when this applies.', () => handlers.spendResource('arcane_recovery', 'Arcane Recovery'));
   if (byKey.favored_enemy || (className === 'ranger' && (is2024Rules(character) || classLevelOf(character, 'ranger') >= 2))) {
     const spendFavoredEnemy = byKey.favored_enemy ? () => handlers.spendResource('favored_enemy', "Hunter's Mark") : undefined;
