@@ -1,0 +1,107 @@
+.clean-sheet-progression-history {
+  display: grid;
+  gap: 10px;
+}
+
+.clean-sheet-progression-history .clean-sheet-section-heading-row > div {
+  display: grid;
+  gap: 3px;
+}
+
+.clean-sheet-progression-history .clean-sheet-section-heading-row p {
+  margin: 0;
+  font-size: 12px;
+  opacity: .78;
+}
+
+.clean-sheet-progression-history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.clean-sheet-progression-entry {
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-card);
+}
+
+.clean-sheet-progression-entry > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.clean-sheet-progression-entry > summary::-webkit-details-marker {
+  display: none;
+}
+
+.clean-sheet-progression-entry > summary > span {
+  display: grid;
+  gap: 2px;
+}
+
+.clean-sheet-progression-entry > summary > span:last-child {
+  text-align: right;
+}
+
+.clean-sheet-progression-entry > summary strong {
+  font-size: 13px;
+}
+
+.clean-sheet-progression-entry > summary em {
+  font-size: 11px;
+  font-style: normal;
+  opacity: .72;
+}
+
+.clean-sheet-progression-receipt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 7px;
+  padding: 0 10px 10px;
+}
+
+.clean-sheet-progression-receipt-grid > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--rq-border-default);
+  background: var(--rq-bg-main);
+}
+
+.clean-sheet-progression-receipt-grid span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  opacity: .72;
+}
+
+.clean-sheet-progression-receipt-grid strong {
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.clean-sheet-progression-receipt-grid em {
+  font-size: 11px;
+  font-style: normal;
+  opacity: .78;
+}
+
+@media (max-width: 640px) {
+  .clean-sheet-progression-entry > summary {
+    align-items: flex-start;
+  }
+
+  .clean-sheet-progression-entry > summary > span:last-child {
+    text-align: left;
+  }
+
+  .clean-sheet-progression-receipt-grid {
+    grid-template-columns: 1fr;
+  }
+}
