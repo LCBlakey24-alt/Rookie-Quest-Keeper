@@ -49,7 +49,7 @@
 .character-page-v2 .clean-sheet-feature-empty,
 .character-page-v2 .clean-sheet-empty-note,
 .character-page-v2 .clean-sheet-muted {
-  color: #F7F1E7 !important;
+  color: var(--cs-text-soft) !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
@@ -108,13 +108,19 @@
 .character-page-v2 .clean-sheet-slot-card strong,
 .character-page-v2 .clean-sheet-skill-card strong,
 .character-page-v2 .clean-sheet-save-card strong,
-.character-page-v2 .clean-sheet-core-stat-card strong,
+.character-page-v2 .clean-sheet-core-stat-card strong {
+  color: var(--cs-text) !important;
+}
+
 .character-page-v2 .clean-sheet-feature-card p,
 .character-page-v2 .clean-sheet-spell-card p,
 .character-page-v2 .clean-sheet-item-card p,
 .character-page-v2 .clean-sheet-caster-card p,
 .character-page-v2 .clean-sheet-slot-card p,
-.character-page-v2 .clean-sheet-pact-card p,
+.character-page-v2 .clean-sheet-pact-card p {
+  color: var(--cs-text-soft) !important;
+}
+
 .character-page-v2 .clean-sheet-feature-card em,
 .character-page-v2 .clean-sheet-spell-card em,
 .character-page-v2 .clean-sheet-item-card em,
@@ -123,7 +129,7 @@
 .character-page-v2 .clean-sheet-save-card em,
 .character-page-v2 .clean-sheet-skill-tags em,
 .character-page-v2 .clean-sheet-skill-tags small {
-  color: #F7F1E7 !important;
+  color: var(--cs-muted) !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card strong,
@@ -186,7 +192,7 @@
   border: 1px solid var(--cs-border) !important;
   border-radius: 4px !important;
   background: var(--cs-blue-soft) !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text-soft) !important;
   box-shadow: none !important;
 }
 
