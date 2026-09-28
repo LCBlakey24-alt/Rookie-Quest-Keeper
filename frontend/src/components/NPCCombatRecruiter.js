@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronUp, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 
 
 function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] }) {
@@ -55,8 +56,8 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
   );
   
   const addToCombat = (entity, type) => {
-    const roll = Math.floor(Math.random() * 20) + 1;
-    const dexMod = type === 'npc' ? 0 : Math.floor(((entity.dexterity || 10) - 10) / 2);
+    const initiativeMod = getInitiativeModifier(entity);
+    const initiativeRoll = rollInitiative(initiativeMod);
     
     const combatant = {
       id: `${type}-${entity.id}-${Date.now()}`,
@@ -65,9 +66,9 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
       hp: entity.hp || 10,
       maxHp: entity.hp || 10,
       ac: entity.ac || 10,
-      initiative: roll + dexMod,
-      initiativeRoll: roll,
-      initiativeMod: dexMod,
+      initiative: initiativeRoll.total,
+      initiativeRoll: initiativeRoll.natural,
+      initiativeMod,
       conditions: [],
       isEnemy: type !== 'npc',
       abilities: entity.abilities || entity.description || '',
