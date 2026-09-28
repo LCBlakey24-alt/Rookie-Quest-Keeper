@@ -103,7 +103,7 @@ async def submit_combat_initiative(campaign_id: str, payload: Dict[str, Any], us
 
     character = await db.player_characters.find_one(
         {'campaign_id': campaign_id, 'user_id': username},
-        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1},
+        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1, 'dexterity': 1},
     )
     if not character:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No linked character found for this campaign')
@@ -126,7 +126,7 @@ async def submit_combat_initiative(campaign_id: str, payload: Dict[str, Any], us
         'character_name': character.get('name') or 'Character',
         'user_id': username,
         'initiative': value,
-        'initiative_bonus': int(character.get('initiative_bonus') or 0),
+        'initiative_bonus': initiative_bonus_for(character),
         'method': method,
         'updated_at': now_iso(),
     }
