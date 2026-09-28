@@ -82,12 +82,34 @@ describe('combat consumable persistence', () => {
 });
 
 describe('combat damage rolls', () => {
-  afterEach(() => jest.restoreAllMocks());
+  test('uses the shared dice engine deterministically for ordinary damage', () => {
+    const values = [0, 0.999];
+    let index = 0;
+
+    expect(rollDice(2, 6, 3, () => values[index++])).toEqual({
+      rolls: [1, 6],
+      total: 10,
+      notation: '2d6+3',
+    });
+  });
 
   test('a damage penalty can reduce the result to zero but never below zero', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0); // rolls 1
+    expect(rollDice(1, 4, -3, () => 0)).toMatchObject({ rolls: [1], total: 0 });
+    expect(rollDice(1, 4, -99, () => 0)).toMatchObject({ rolls: [1], total: 0 });
+  });
 
-    expect(rollDice(1, 4, -3)).toMatchObject({ rolls: [1], total: 0 });
-    expect(rollDice(1, 4, -99)).toMatchObject({ rolls: [1], total: 0 });
+  test('legacy flat damage represented as d1 remains deterministic and never rolls randomness', () => {
+    let calls = 0;
+    const result = rollDice(5, 1, -2, () => {
+      calls += 1;
+      return 0.999;
+    });
+
+    expect(result).toEqual({
+      rolls: [1, 1, 1, 1, 1],
+      total: 3,
+      notation: '5 -2',
+    });
+    expect(calls).toBe(0);
   });
 });
