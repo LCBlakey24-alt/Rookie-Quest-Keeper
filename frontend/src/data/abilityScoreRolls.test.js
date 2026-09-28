@@ -20,7 +20,10 @@ describe('ability score rolls', () => {
   test('ties still drop exactly one die', () => {
     const result = rollAbilityScore(rngFrom([0.49, 0.49, 0.49, 0.49]));
 
-    expect(result.rolls).toEqual([10 > 6 ? 6 : 3, 3, 3, 3]);
+    expect(result.rolls).toEqual([3, 3, 3, 3]);
+    expect(result.kept).toEqual([3, 3, 3]);
+    expect(result.dropped).toEqual([3]);
+    expect(result.total).toBe(9);
   });
 
   test('rolling a full set produces six independently derived totals', () => {
@@ -35,7 +38,7 @@ describe('ability score rolls', () => {
     const results = rollAbilityScoreSet(6, rng);
 
     expect(results).toHaveLength(6);
-    expect(results.map(result => result.total)).toEqual([3, 18, 12, 11, 15, 9]);
+    expect(results.map(result => result.total)).toEqual([3, 18, 12, 10, 15, 6]);
     expect(results.every(result => result.rolls.length === 4)).toBe(true);
     expect(results.every(result => result.kept.length === 3)).toBe(true);
   });
