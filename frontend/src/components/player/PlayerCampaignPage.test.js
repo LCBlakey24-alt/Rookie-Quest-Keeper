@@ -8,6 +8,7 @@ import { PlayerCampaignWorkspace } from './PlayerCampaignPage';
 jest.mock('./playerCampaignData', () => ({ fetchPlayerCampaignSections: jest.fn() }));
 jest.mock('@/components/dashboard/player/playerDashboardData', () => ({ fetchPlayerHandoutSummary: jest.fn() }));
 jest.mock('./CombatInitiativeSubmitter', () => () => null);
+jest.mock('./PlayerNowPlayingPanel', () => () => null);
 jest.mock('./PlayerQuestsPanel', () => () => <div>Shared quest panel</div>);
 
 const data = {
