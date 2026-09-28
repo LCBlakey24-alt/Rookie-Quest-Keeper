@@ -50,7 +50,6 @@ export function filterClassFeatures(features = [], query = '', filter = 'all') {
       feature.source,
       feature.subclass,
       feature.uses,
-      feature.type,
     ].filter(Boolean).join(' ').toLowerCase();
     return haystack.includes(search);
   });
