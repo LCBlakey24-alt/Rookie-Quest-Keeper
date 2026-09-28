@@ -7,9 +7,9 @@
   margin: 0 auto 8px !important;
   padding: clamp(14px, 2.4vw, 24px) !important;
   display: block !important;
-  background: #0C2234 !important;
+  background: var(--cs-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -28,7 +28,7 @@
 
 .character-page-v2 .clean-sheet-identity h1 {
   margin: 0 !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
   font-size: clamp(1.85rem, 4.6vw, 3rem) !important;
   font-weight: 700 !important;
@@ -46,13 +46,13 @@
   height: 1px !important;
   margin-top: 10px !important;
   border-radius: 0 !important;
-  background: #D6A84F !important;
+  background: var(--cs-accent) !important;
   background-image: none !important;
 }
 
 .character-page-v2 .clean-sheet-identity p:last-child {
   margin: 0 !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text-soft) !important;
   font-size: clamp(0.88rem, 2.1vw, 1rem) !important;
   font-weight: 600 !important;
   line-height: 1.35 !important;
@@ -81,30 +81,34 @@
   align-items: center !important;
   justify-content: center !important;
   gap: 7px !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
   font-size: 0.92rem !important;
   font-weight: 800 !important;
-  background: #112A40 !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.20) !important;
+  border: 1px solid var(--cs-border-strong) !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions .clean-sheet-level,
 .character-page-v2 .clean-sheet-header-actions .clean-sheet-edit {
-  background: #112A40 !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid var(--cs-accent) !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions button svg {
   width: 16px !important;
   height: 16px !important;
-  color: #79BCE8 !important;
+  color: var(--cs-blue) !important;
 }
 
 @media (max-width: 520px) {
   .character-page-v2 .clean-sheet-header--simple { padding: 13px !important; }
   .character-page-v2 .clean-sheet-header-actions { justify-content: flex-start !important; }
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-header-actions button {
+  min-height: 46px !important;
 }

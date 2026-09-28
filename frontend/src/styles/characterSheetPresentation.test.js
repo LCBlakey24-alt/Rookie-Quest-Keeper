@@ -92,6 +92,24 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalTweaks).toContain('max-height: 46px !important;');
   });
 
+  test('header and rail use Guild Ledger tokens and keep phone rail controls touch-friendly', () => {
+    const header = read('../components/clean-sheet/CleanSheetHeaderCompact.css');
+    const rail = read('../components/clean-sheet/CleanSheetTabsRail.css');
+
+    expect(header).toContain('background: var(--cs-panel) !important;');
+    expect(header).toContain('color: var(--cs-text-soft) !important;');
+    expect(header).toContain("min-height: 46px !important;");
+
+    expect(rail).toContain('background: var(--cs-bg) !important;');
+    expect(rail).toContain('background: var(--cs-blue-soft) !important;');
+    expect(rail).toContain('border-color: var(--cs-accent) !important;');
+    expect(rail).toContain('width: 46px !important;');
+    expect(rail).toContain('height: 46px !important;');
+
+    expect(header).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7/i);
+    expect(rail).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7/i);
+  });
+
   test('Guild Ledger hierarchy keeps secondary copy softer than primary values', () => {
     const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
     const list = read('../components/clean-sheet/CleanSheetListPolish.css');
