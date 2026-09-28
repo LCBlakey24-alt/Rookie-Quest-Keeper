@@ -154,12 +154,6 @@ function rangeMax(range) {
   return Math.max(...numbers);
 }
 
-function rollMatches(range, roll) {
-  const min = rangeMin(range);
-  const max = rangeMax(range);
-  return roll >= min && roll <= max;
-}
-
 function hasNumericRange(range) {
   return /^\d+(?:\s*[–-]\s*\d+)?$/.test(String(range || '').trim());
 }
