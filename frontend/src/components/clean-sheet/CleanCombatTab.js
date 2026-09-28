@@ -15,8 +15,11 @@ import {
   getItemName,
   getItemQuantity,
   getPotionHealing,
+  getFighterCriticalRange,
+  getFighterLevel,
   hasSaveProficiency,
   mod,
+  rollAttackDamage,
   rollDice,
 } from './cleanCombatTabUtils';
 
@@ -141,6 +144,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const unarmedDamageMod = Math.max(0, strengthMod);
   const className = character?.character_class || 'Adventurer';
   const classKey = normalizeName(className);
+  const criticalRange = getFighterCriticalRange(character, getFighterLevel(character));
 
   const equippedWeaponAttacks = useMemo(
     () => gatherEquippedWeapons(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
@@ -224,26 +228,41 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   }), [character, classResources]);
 
   const rollAttack = (attack) => {
-    onRoll(attack.attackLabel, attack.attackMod ?? bestAttackMod);
-    setPendingDamage(attack.damage);
+    const result = onRoll(attack.attackLabel, attack.attackMod ?? bestAttackMod);
+    const natural = Number(result?.d20);
+
+    if (natural === 1) {
+      setPendingDamage(null);
+      setLastDamage(null);
+      toast.error('Natural 1 — the attack misses.');
+      return;
+    }
+
+    const critical = Number.isFinite(natural) && natural >= criticalRange;
+    setPendingDamage({ ...attack.damage, critical });
     setLastDamage(null);
+
+    if (critical) {
+      toast.success('Critical hit — damage dice will be doubled.');
+    }
   };
 
   const rollDamage = (damage) => {
-    const result = rollDice(damage.count, damage.sides, damage.modifier);
+    const result = rollAttackDamage(damage, { critical: Boolean(damage?.critical) });
     setLastDamage({ ...damage, ...result });
     setPendingDamage(null);
     onDiceResult?.({
       id: `${Date.now()}-damage`,
-      label: damage.label || 'Damage',
+      label: damage.critical ? `Critical ${damage.label || 'Damage'}` : damage.label || 'Damage',
       rolls: result.rolls,
       sides: damage.sides,
       modifier: damage.modifier,
       total: result.total,
+      critical: result.critical,
       mode: 'damage',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     });
-    toast.success(`${damage.label || 'Damage'}: ${result.total} ${damage.damageType || ''}`.trim());
+    toast.success(`${damage.critical ? 'Critical ' : ''}${damage.label || 'Damage'}: ${result.total} ${damage.damageType || ''}`.trim());
   };
 
   const castSpell = async (spell, explicitOption = null) => {
@@ -341,12 +360,12 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
               key={attack.id}
               action={attack}
               onAttack={() => rollAttack(attack)}
-              onDamage={() => rollDamage(attack.damage)}
+              onDamage={() => rollDamage(pendingDamage?.label === attack.damage.label ? pendingDamage : attack.damage)}
               active={pendingDamage?.label === attack.damage.label}
             >
               {pendingDamage?.label === attack.damage.label && (
                 <div className="clean-sheet-pending-damage">
-                  <span>Attack rolled. If it hits, use the damage box on this card.</span>
+                  <span>{pendingDamage?.critical ? 'Critical hit. Damage dice will be doubled.' : 'Attack rolled. If it hits, use the damage box on this card.'}</span>
                   <button type="button" onClick={() => setPendingDamage(null)}>Cancel</button>
                 </div>
               )}
