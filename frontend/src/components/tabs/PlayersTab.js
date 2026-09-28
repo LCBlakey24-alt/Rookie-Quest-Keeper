@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, ChevronRight, ChevronLeft, Check, User, Dices, RotateCcw, Upload, Download } from 'lucide-react';
+import { rollAbilityScore, rollAbilityScoreSet } from '@/data/abilityScoreRolls';
 
 
 // Fantasy TTRPG 5e 2024 Data
@@ -208,12 +209,8 @@ function PlayersTab({ campaignId }) {
   };
 
 
-  // Roll 4d6 drop lowest
-  const roll4d6DropLowest = () => {
-    const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1);
-    rolls.sort((a, b) => b - a);
-    return { rolls, total: rolls[0] + rolls[1] + rolls[2] };
-  };
+  // Roll 4d6 drop lowest through the same canonical dice engine used elsewhere.
+  const roll4d6DropLowest = () => rollAbilityScore();
 
   // Roll all 6 stats
   const rollAllStats = () => {
@@ -222,10 +219,7 @@ function PlayersTab({ campaignId }) {
     // Animate rolling
     let count = 0;
     const interval = setInterval(() => {
-      setRolledStats(Array.from({ length: 6 }, () => ({
-        rolls: [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1],
-        total: Math.floor(Math.random() * 13) + 6
-      })));
+      setRolledStats(rollAbilityScoreSet(6));
       count++;
       if (count >= 8) {
         clearInterval(interval);
