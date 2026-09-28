@@ -6,6 +6,7 @@ import {
   Sparkles, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { rollDiceNotation } from '@/data/diceRoller';
 
 // GM Theme - Red (Tron Aries)
 const theme = {
@@ -93,18 +94,16 @@ const TABLES = {
   }
 };
 
-// Roll function
+// Table treasure dice use the same strict engine as player/GM dice.
+export const rollGeneratorDice = (dice, rng = Math.random) => rollDiceNotation(dice, { rng });
+
 const roll = (dice) => {
-  const match = dice.match(/(\d+)?d(\d+)([+-]\d+)?/i);
-  if (!match) return 1;
-  const count = parseInt(match[1]) || 1;
-  const sides = parseInt(match[2]) || 6;
-  const mod = parseInt(match[3]) || 0;
-  let total = 0;
-  for (let i = 0; i < count; i++) {
-    total += Math.floor(Math.random() * sides) + 1;
+  const result = rollGeneratorDice(dice);
+  if (!result.valid || !result.rolls.length) {
+    toast.error('Could not roll generator dice', { description: result.error || `${dice} is not a valid dice formula.` });
+    return 0;
   }
-  return total + mod;
+  return result.total;
 };
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
