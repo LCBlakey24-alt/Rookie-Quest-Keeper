@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
 import { deriveArmorClass, deriveWeaponAttack } from '@/data/characterCombatDerivations';
+import { rollDiceNotation } from '@/data/diceRoller';
 import {
   buildCarriedInventoryView,
   buildCurrencyUpdate,
@@ -410,9 +411,17 @@ export default function CleanInventoryTabV2({ character, onCharacterUpdate, onRo
       toast.info(`${attack.damageText} ${attack.damageType || ''} damage on hit`);
       return;
     }
-    const roll = Math.floor(Math.random() * 20) + 1;
-    toast.success(`${attack.title} attack: ${roll + Number(attack.attackMod || 0)}`, {
-      description: `${roll} on d20 ${attack.attackText} • ${attack.damageText} ${attack.damageType || ''} damage on hit`,
+    const attackMod = Number(attack.attackMod || 0);
+    const modifierText = attackMod ? `${attackMod > 0 ? '+' : ''}${attackMod}` : '';
+    const result = rollDiceNotation(`1d20${modifierText}`);
+    if (!result.valid || !result.rolls.length) {
+      toast.error('Could not roll this weapon attack', { description: result.error || 'Invalid attack formula.' });
+      return;
+    }
+    const natural = result.keptRoll?.result ?? result.rolls[0]?.result;
+    const naturalLabel = result.isCrit ? ' • natural 20' : result.isFumble ? ' • natural 1' : '';
+    toast.success(`${attack.title} attack: ${result.total}`, {
+      description: `${natural} on d20${naturalLabel} ${attack.attackText} • ${attack.damageText} ${attack.damageType || ''} damage on hit`,
     });
   };
 

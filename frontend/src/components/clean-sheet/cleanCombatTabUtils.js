@@ -1,4 +1,5 @@
 import { findWeaponRule, getWeaponAbilityMod } from '@/data/equipmentRules5e';
+import { rollDiceNotation } from '@/data/diceRoller';
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 export const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -9,10 +10,31 @@ export function hasSaveProficiency(character, ability) {
   return saves.some(save => String(save).toLowerCase() === ability || String(save).toLowerCase() === short);
 }
 
-export function rollDice(count = 1, sides = 8, modifier = 0) {
-  const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
-  const total = Math.max(0, rolls.reduce((sum, value) => sum + value, 0) + modifier);
-  return { rolls, total, notation: `${count}d${sides}${modifier ? ` ${fmt(modifier)}` : ''}` };
+export function rollDice(count = 1, sides = 8, modifier = 0, rng = Math.random) {
+  const safeCount = Math.max(1, Math.floor(Number(count) || 1));
+  const safeSides = Math.floor(Number(sides) || 0);
+  const safeModifier = Number(modifier) || 0;
+
+  // Flat damage is represented internally as Nd1. Preserve that legacy shape
+  // without asking the canonical dice engine to invent a one-sided die.
+  if (safeSides <= 1) {
+    const rolls = Array.from({ length: safeCount }, () => 1);
+    const total = Math.max(0, safeCount + safeModifier);
+    return {
+      rolls,
+      total,
+      notation: `${safeCount}${safeModifier ? ` ${fmt(safeModifier)}` : ''}`,
+    };
+  }
+
+  const modifierText = safeModifier ? `${safeModifier > 0 ? '+' : ''}${safeModifier}` : '';
+  const notation = `${safeCount}d${safeSides}${modifierText}`;
+  const result = rollDiceNotation(notation, { rng });
+  return {
+    rolls: result.rolls.map(roll => roll.result),
+    total: Math.max(0, Number(result.total) || 0),
+    notation,
+  };
 }
 
 function parseDamageDice(value) {
