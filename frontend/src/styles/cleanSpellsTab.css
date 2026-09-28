@@ -353,3 +353,47 @@
     min-height: 118px;
   }
 }
+
+
+/* Play-first spell toolbar: saved spells stay primary; the full library is opt-in. */
+.character-page-v2 .clean-sheet-spell-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.character-page-v2 .clean-sheet-library-toggle {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--cs-border);
+  border-radius: 5px;
+  background: var(--cs-card);
+  color: var(--cs-text-soft);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.character-page-v2 .clean-sheet-library-toggle:hover,
+.character-page-v2 .clean-sheet-library-toggle[aria-expanded='true'] {
+  border-color: var(--cs-accent);
+  background: var(--cs-blue-soft);
+  color: var(--cs-text);
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-library-toggle {
+  min-height: 44px;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-spell-toolbar {
+  grid-template-columns: 1fr;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-library-toggle {
+  width: 100%;
+  min-height: 46px;
+}
