@@ -362,10 +362,6 @@ export default function CleanCharacterSheet() {
     );
   };
 
-  const updateCharacterLocal = (updates) => {
-    setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
-  };
-
   const makeRoll = (label, modifier = 0, metadata = {}) => {
     const result = rollD20(Number(modifier || 0), { mode: rollMode, bonus: getRollBonus(), label });
     const entry = {
@@ -651,7 +647,7 @@ export default function CleanCharacterSheet() {
         {activeTab === 'combat' && combatTools}
         {activeTab === 'rook' && <RookPlayerHelperTab character={character} />}
         {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacterWithConcentrationGuard} />}
-        {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
+        {activeTab === 'inventory' && <CleanInventoryTab character={character} onSaveCharacter={patchCharacter} onRoll={makeRoll} />}
         {activeTab === 'class' && (
           <CleanSheetFeaturesTab
             ac={ac}
@@ -684,7 +680,7 @@ export default function CleanCharacterSheet() {
         )}
         {activeTab === 'species' && <CleanSheetSpeciesTab character={character} rulesEdition={rulesEdition} />}
         {activeTab === 'feats' && <CleanSheetFeatsTab character={character} />}
-        {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
+        {activeTab === 'notes' && <CleanNotesTab character={character} onSaveCharacter={patchCharacter} />}
       </main>
     </div>
   );
