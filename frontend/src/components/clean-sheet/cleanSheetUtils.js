@@ -1,4 +1,5 @@
 import { Activity, Backpack, BookOpen, Bot, Edit3, ListChecks, Sparkles, Swords, UserCircle, UsersRound } from 'lucide-react';
+import { rollDie } from '@/data/diceRoller';
 
 export const ABILITIES = [
   ['strength', 'STR'],
@@ -128,7 +129,7 @@ export function rollD20(modifier = 0, rollOptions = 'normal') {
   const baseModifier = Number(modifier) || 0;
   const bonus = Number(options.bonus) || 0;
   const totalModifier = baseModifier + bonus;
-  const first = Math.floor(Math.random() * 20) + 1;
+  const first = rollDie(20);
 
   if (mode === 'normal') {
     const rolls = [{ sides: 20, result: first }];
@@ -145,7 +146,7 @@ export function rollD20(modifier = 0, rollOptions = 'normal') {
     };
   }
 
-  const second = Math.floor(Math.random() * 20) + 1;
+  const second = rollDie(20);
   const keepFirst = mode === 'advantage' ? first >= second : first <= second;
   const kept = keepFirst ? first : second;
   const rolls = [
@@ -166,7 +167,7 @@ export function rollD20(modifier = 0, rollOptions = 'normal') {
 }
 
 export function rollHitDie(sides = 8, modifier = 0, options = {}) {
-  const die = Math.floor(Math.random() * sides) + 1;
+  const die = rollDie(sides);
   const minimum = Math.max(0, Number(options?.minimum ?? 0) || 0);
   return { die, total: Math.max(minimum, die + modifier) };
 }
