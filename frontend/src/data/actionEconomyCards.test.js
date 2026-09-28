@@ -190,3 +190,39 @@ describe('Variable-cost resource action cards', () => {
     expect(spendResource).toHaveBeenCalledWith('lay_on_hands', 'Lay on Hands', 3);
   });
 });
+
+
+describe('Resource action unlock timing', () => {
+  test.each([
+    ['Monk', 1, ['Flurry of Blows', 'Patient Defense', 'Step of the Wind']],
+    ['Druid', 1, ['Wild Shape']],
+    ['Sorcerer', 1, ['Metamagic', 'Convert Sorcery Points']],
+  ])('%s level %i does not show actions for a resource it has not unlocked', (className, level, forbiddenTitles) => {
+    const character = {
+      character_class: className,
+      level,
+      class_levels: { [className]: level },
+      resources: {},
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    const titles = [...cards.action, ...cards.bonus, ...cards.reaction].map(card => card.title);
+
+    forbiddenTitles.forEach(title => expect(titles).not.toContain(title));
+  });
+
+  test('Monk level 2 exposes Ki-backed actions once the resource exists', () => {
+    const character = {
+      character_class: 'Monk',
+      level: 2,
+      class_levels: { Monk: 2 },
+      resources: {},
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+
+    expect(cards.bonus.map(card => card.title)).toEqual(expect.arrayContaining([
+      'Flurry of Blows',
+      'Patient Defense',
+      'Step of the Wind',
+    ]));
+  });
+});
