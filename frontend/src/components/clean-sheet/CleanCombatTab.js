@@ -350,7 +350,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
               key={attack.id}
               action={attack}
               onAttack={() => rollAttack(attack)}
-              onDamage={() => rollDamage(attack.damage)}
+              onDamage={() => rollDamage(pendingDamage?.label === attack.damage.label ? pendingDamage : attack.damage)}
               active={pendingDamage?.label === attack.damage.label}
             >
               {pendingDamage?.label === attack.damage.label && (
