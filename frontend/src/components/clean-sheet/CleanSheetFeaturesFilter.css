@@ -79,3 +79,12 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-feature-filter-chips button {
+  min-height: 46px !important;
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-feature-filter-chips button {
+  min-height: 44px !important;
+}
