@@ -45,7 +45,7 @@ export function VariableResourceActionCard({ card }) {
 
   const spend = () => {
     if (!card?.onSpend || available <= 0) return;
-    card.onSpend(Math.max(1, Math.min(available, Number(amount) || 1)));
+    card.onSpend(Math.max(1, Math.min(available, Math.floor(Number(amount) || 1))));
   };
 
   return (
@@ -61,9 +61,10 @@ export function VariableResourceActionCard({ card }) {
               type="number"
               min="1"
               max={Math.max(1, available)}
+              step="1"
               value={amount}
               disabled={available <= 0}
-              onChange={(event) => setAmount(Math.max(1, Math.min(Math.max(1, available), Number(event.target.value) || 1)))}
+              onChange={(event) => setAmount(Math.max(1, Math.min(Math.max(1, available), Math.floor(Number(event.target.value) || 1))))}
               aria-label={`Amount of ${card?.resourceLabel || 'resource'} to spend`}
             />
           </label>
