@@ -681,6 +681,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       })
       .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name));
   }, [character, classLevels, homebrewClassOptions, homebrewSpellOptions, rulesEdition]);
+  const hasClassSpellLibrary = availableClassSpells.length > 0;
 
   const castOptionsForSpell = (spell) => getCastOptionsForSpell({
     spell,
@@ -928,14 +929,16 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
               placeholder={libraryOpen ? 'Search your spells and class library…' : 'Search your saved spells…'}
             />
           </label>
-          <button
-            type="button"
-            className="clean-sheet-library-toggle"
-            onClick={() => setLibraryOpen((open) => !open)}
-            aria-expanded={libraryOpen}
-          >
-            {libraryOpen ? 'Hide Class Library' : 'Manage Class Library'}
-          </button>
+          {hasClassSpellLibrary && (
+            <button
+              type="button"
+              className="clean-sheet-library-toggle"
+              onClick={() => setLibraryOpen((open) => !open)}
+              aria-expanded={libraryOpen}
+            >
+              {libraryOpen ? 'Hide Class Library' : 'Manage Class Library'}
+            </button>
+          )}
         </div>
       </section>
 
@@ -953,7 +956,9 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         preparedSpells={prepared}
         groupMode="known"
         getCastOptions={castOptionsForSpell}
-        emptyText="No cantrips found on this character. Add one from the class spell library below."
+        emptyText={hasClassSpellLibrary
+          ? "No cantrips found on this character. Add one from the class spell library below."
+          : "No cantrips are saved on this character, and no class spell library is available at this level."}
         onCast={castSpell}
         onConcentrate={concentrateOn}
         onPrepare={prepareSpell}
@@ -1009,14 +1014,20 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-empty">
           <Wand2 size={22} />
           <h2>No spells saved yet</h2>
-          <p>Open the class spell library to add cantrips and levelled spells to this sheet.</p>
-          <div className="clean-sheet-spell-actions">
-            <button type="button" onClick={() => setLibraryOpen(true)}>Browse Class Spell Library</button>
-          </div>
+          <p>
+            {hasClassSpellLibrary
+              ? 'Open the class spell library to add cantrips and levelled spells to this sheet.'
+              : 'This character has no class spell library available at its current class levels.'}
+          </p>
+          {hasClassSpellLibrary && (
+            <div className="clean-sheet-spell-actions">
+              <button type="button" onClick={() => setLibraryOpen(true)}>Browse Class Spell Library</button>
+            </div>
+          )}
         </section>
       )}
 
-      {libraryOpen && (
+      {libraryOpen && hasClassSpellLibrary && (
         <SpellLibrary
           spells={filterSpells(availableClassSpells)}
           savedSpells={savedSpells}
