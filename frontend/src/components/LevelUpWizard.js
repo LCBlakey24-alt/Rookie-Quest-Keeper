@@ -293,6 +293,18 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     : hpChoice.valid;
   const hpGain = hpChoice.valid ? hpChoice.gain : null;
   const hpReceipt = getLevelUpHpReceipt(character, hpChoice);
+  const currentProficiency = Number(character?.proficiency_bonus) || (2 + Math.floor((Math.max(1, currentLevel) - 1) / 4));
+  const nextProficiency = Number(preflight?.proficiency_bonus) || (2 + Math.floor((Math.max(1, newLevel) - 1) / 4));
+  const proficiencyReceipt = currentProficiency === nextProficiency
+    ? `+${currentProficiency} (unchanged)`
+    : `+${currentProficiency} → +${nextProficiency}`;
+  const previousSlots = preflight?.previous_spell_slots || {};
+  const nextSlots = preflight?.spell_slots || {};
+  const spellSlotReceipt = Array.from(new Set([...Object.keys(previousSlots), ...Object.keys(nextSlots)]))
+    .filter((level) => Number(previousSlots[level] || 0) !== Number(nextSlots[level] || 0))
+    .sort((a, b) => Number(a) - Number(b))
+    .map((level) => `L${level} ${Number(previousSlots[level] || 0)}→${Number(nextSlots[level] || 0)}`)
+    .join(' • ');
 
   const localNeedsSubclass = needsSubclassChoice({ character, className: characterClass, classLevelAfter, edition });
   const needsSubclass = isMulticlass
@@ -598,6 +610,13 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 <CheckLine active={needsSubclass} text={needsSubclass ? 'Subclass choice is required at this class level.' : 'No new subclass choice required.'} />
                 <CheckLine active={isAsiLevel} text={isAsiLevel ? 'ASI or feat choice is due for this class.' : 'No ASI or feat choice at this class level.'} />
                 <CheckLine active={hasSpellChoices} text={spellChoiceSummary(spellChoiceMode, cantripGain, spellChoiceGain)} />
+                <CheckLine
+                  active={currentProficiency !== nextProficiency}
+                  text={currentProficiency !== nextProficiency
+                    ? `Proficiency bonus increases +${currentProficiency} → +${nextProficiency}.`
+                    : `Proficiency bonus stays at +${currentProficiency}.`}
+                />
+                {spellSlotReceipt && <CheckLine active text={`Spell slots change: ${spellSlotReceipt}.`} />}
                 {canReplacePrepared && (
                   <CheckLine active text={`You may replace up to ${replacementRule.maxReplacements} prepared spell during this level-up.`} />
                 )}
@@ -797,6 +816,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 <Summary label="HP method" value={hpChoice.sourceLabel} />
                 <Summary label="HP math" value={hpChoice.formula || `+${hpGain || 0} HP`} />
                 <Summary label="Max HP" value={hpReceipt.valid ? `${hpReceipt.currentMax} → ${hpReceipt.nextMax}` : 'Pending'} />
+                <Summary label="Proficiency" value={proficiencyReceipt} />
+                <Summary label="Hit Dice" value={`${currentLevel} total → ${newLevel} total`} />
+                {spellSlotReceipt && <Summary label="Spell slots" value={spellSlotReceipt} />}
                 {needsSubclass && <Summary label="Subclass" value={selectedSubclass} />}
                 {choiceType === 'feat' && selectedFeat && <Summary label="Feat" value={selectedFeat.name} />}
                 {choiceType === 'asi' && <Summary label="ASI" value={`${abilityLabel(asiChoices.ability1)} +1, ${abilityLabel(asiChoices.ability2)} +1`} />}
