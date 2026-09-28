@@ -18,7 +18,7 @@ function cleanFormula(value = '') {
 
 function describe(result) {
   const diceText = (result.rolls || [])
-    .map(roll => `d${roll.sides}: ${roll.result}${roll.dropped ? ' dropped' : roll.exploded ? ' exploding' : ''}`)
+    .map(roll => `${Number(roll.sign) < 0 ? '−' : ''}d${roll.sides}: ${roll.result}${roll.dropped ? ' dropped' : roll.exploded ? ' exploding' : ''}`)
     .join(' • ');
   const modifierText = result.modifier ? ` ${result.modifier > 0 ? '+' : '-'} ${Math.abs(result.modifier)}` : '';
   return `${diceText}${modifierText} = ${result.total}`;
@@ -147,8 +147,10 @@ export default function FloatingDiceRoller() {
   const performRoll = (notation, label = notation, options = {}) => {
     const formula = cleanFormula(notation);
     const result = rollDiceNotation(formula, options);
-    if (!formula || !result.rolls.length) {
-      toast.error('Could not roll dice', { description: `${notation || 'Empty formula'} is not a valid dice formula.` });
+    if (!formula || !result.valid || !result.rolls.length) {
+      toast.error('Could not roll dice', {
+        description: result.error || `${notation || 'Empty formula'} is not a valid dice formula.`,
+      });
       return;
     }
 
@@ -243,7 +245,7 @@ export default function FloatingDiceRoller() {
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') rollCustom();
                 }}
-                placeholder="e.g. 2d6+3"
+                placeholder="e.g. 2d6+3 or 4d6kh3"
               />
               <button type="button" className="rq-floating-dice__custom-button" data-testid="custom-roll-btn" onClick={rollCustom}>Roll</button>
             </div>

@@ -24,10 +24,14 @@ function normalizeDice(rolls, fallbackTotal) {
       .map((roll, index) => {
         const raw = typeof roll === 'object' ? roll : { result: roll };
         const sides = clampSides(raw.sides);
+        const result = Math.max(1, Math.min(sides, Number(raw.result) || 1));
+        const sign = Number(raw.sign) < 0 || Number(raw.contribution) < 0 ? -1 : 1;
         return {
           id: raw.id || `${raw.exploded ? 'x' : 'd'}-${sides}-${index}`,
           sides,
-          result: Math.max(1, Math.min(sides, Number(raw.result) || 1)),
+          result,
+          sign,
+          contribution: raw.dropped ? 0 : Number.isFinite(Number(raw.contribution)) ? Number(raw.contribution) : sign * result,
           dropped: Boolean(raw.dropped),
           exploded: Boolean(raw.exploded),
           originalIndex: index,
@@ -38,7 +42,7 @@ function normalizeDice(rolls, fallbackTotal) {
   if (dice.length) return dice;
 
   const result = Math.max(1, Number(fallbackTotal) || 1);
-  return [{ id: 'fallback', sides: Math.max(20, result), result, dropped: false, exploded: false, originalIndex: 0 }];
+  return [{ id: 'fallback', sides: Math.max(20, result), result, sign: 1, contribution: result, dropped: false, exploded: false, originalIndex: 0 }];
 }
 
 function getCharacterIdFromPath() {
@@ -110,16 +114,21 @@ export default function DiceRollFlicker({
 
   const rollDetail = useMemo(() => {
     const base = dice.map((die) => {
-      const prefix = die.exploded ? '↳ ' : '';
+      const chainPrefix = die.exploded ? '↳ ' : '';
+      const signPrefix = die.sign < 0 ? '−' : '';
       const suffix = die.dropped ? ' dropped' : die.exploded ? ' exploding' : '';
-      return `${prefix}d${die.sides}: ${die.result}${suffix}`;
+      return `${chainPrefix}${signPrefix}d${die.sides}: ${die.result}${suffix}`;
     }).join(' • ');
     return `${base}${formatModifier(modifier)}`;
   }, [modifier, dice]);
 
-  const diceSubtotal = useMemo(() => keptDice.reduce((sum, die) => sum + Number(die.result || 0), 0), [keptDice]);
-  const natural20 = useMemo(() => keptDice.some((die) => die.sides === 20 && die.result === 20), [keptDice]);
-  const natural1 = useMemo(() => keptDice.some((die) => die.sides === 20 && die.result === 1), [keptDice]);
+  const diceSubtotal = useMemo(
+    () => keptDice.reduce((sum, die) => sum + Number(die.contribution ?? ((die.sign || 1) * Number(die.result || 0))), 0),
+    [keptDice],
+  );
+  const keptPositiveD20s = useMemo(() => keptDice.filter((die) => die.sides === 20 && die.sign > 0), [keptDice]);
+  const natural20 = keptPositiveD20s.length === 1 && keptPositiveD20s[0].result === 20;
+  const natural1 = keptPositiveD20s.length === 1 && keptPositiveD20s[0].result === 1;
   const finalCrit = Boolean(isCrit || natural20);
   const finalFumble = Boolean(!finalCrit && (isFumble || natural1));
 

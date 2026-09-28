@@ -31,7 +31,7 @@ const buildNotation = (diceType, modifier = 0) => `${normalizeDiceType(diceType)
 function describeRoll(result, rollType = 'normal') {
   const rollText = (result.rolls || []).map((roll) => {
     const state = roll.dropped ? ' dropped' : roll.exploded ? ' exploding' : '';
-    return `d${roll.sides}: ${roll.result}${state}`;
+    return `${Number(roll.sign) < 0 ? '−' : ''}d${roll.sides}: ${roll.result}${state}`;
   }).join(' • ');
   const modeText = rollType === 'advantage' ? 'Advantage' : rollType === 'disadvantage' ? 'Disadvantage' : 'Roll';
   const modifierText = result.modifier ? ` ${result.modifier > 0 ? '+' : '-'} ${Math.abs(result.modifier)}` : '';
@@ -115,8 +115,8 @@ export function DiceRollButton({
     setRolling(true);
 
     const result = rollDiceNotation(notation, { rollType, exploding: allowExploding });
-    if (!result.rolls.length) {
-      toast.error('Could not roll dice', { description: `${notation} is not a valid dice formula.` });
+    if (!result.valid || !result.rolls.length) {
+      toast.error('Could not roll dice', { description: result.error || `${notation} is not a valid dice formula.` });
       setRolling(false);
       return;
     }
@@ -203,8 +203,8 @@ export function DamageRollButton({
     setRolling(true);
 
     const result = rollDiceNotation(formula);
-    if (!result.rolls.length) {
-      toast.error('Could not roll damage', { description: `${formula} is not a valid dice formula.` });
+    if (!result.valid || !result.rolls.length) {
+      toast.error('Could not roll damage', { description: result.error || `${formula} is not a valid dice formula.` });
       setRolling(false);
       return;
     }
