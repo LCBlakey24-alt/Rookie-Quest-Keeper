@@ -347,6 +347,34 @@ class TestCharacterProgressionState(unittest.TestCase):
         self.assertEqual(action_surge["after_max"], 1)
         self.assertEqual(action_surge["after_current"], 1)
 
+    def test_level_up_history_receipt_marks_average_hp_floor(self):
+        existing = {
+            "character_class": "Wizard",
+            "level": 1,
+            "class_levels": {"Wizard": 1},
+            "constitution": 3,
+            "max_hit_points": 3,
+            "current_hit_points": 3,
+            "hit_dice_remaining": 1,
+            "spell_slots": {"1": 2},
+            "spell_slots_remaining": {"1": 2},
+            "resources": {},
+            "feats": [],
+            "level_progression": {},
+        }
+        request = LevelUpRequest(
+            new_level=2,
+            hp_method="average",
+        )
+
+        update = build_state_safe_level_up_update(existing, request, "Wizard", "standard")
+        receipt = update["level_progression"]["2"]["receipt"]
+
+        self.assertEqual(receipt["hp"]["fixed_die_value"], 4)
+        self.assertEqual(receipt["hp"]["constitution_modifier"], -4)
+        self.assertEqual(receipt["hp"]["gained"], 1)
+        self.assertTrue(receipt["hp"]["minimum_one_applied"])
+
     def test_level_up_history_receipt_marks_minimum_one_hp_floor(self):
         existing = {
             "character_class": "Wizard",
