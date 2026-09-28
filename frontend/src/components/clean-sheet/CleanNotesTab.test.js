@@ -49,6 +49,28 @@ test('autosaves notes after a short pause and clears the local draft after confi
   expect(localStorage.getItem(draftKey)).toBeNull();
 });
 
+test('uses the parent live-save helper when the routed sheet provides one', async () => {
+  const onSaveCharacter = jest.fn().mockResolvedValue(true);
+  render(<CleanNotesTab character={character} onSaveCharacter={onSaveCharacter} />);
+
+  fireEvent.change(screen.getByPlaceholderText('Write live character notes here...'), {
+    target: { value: 'Shared save path' },
+  });
+
+  await act(async () => {
+    jest.advanceTimersByTime(1200);
+    await Promise.resolve();
+  });
+
+  await waitFor(() => expect(onSaveCharacter).toHaveBeenCalledWith(
+    { notes: 'Shared save path' },
+    { error: 'Could not save notes' },
+  ));
+  expect(apiClient.patch).not.toHaveBeenCalled();
+  await waitFor(() => expect(screen.getByTestId('character-notes-save-status')).toHaveTextContent('Saved'));
+  expect(localStorage.getItem(draftKey)).toBeNull();
+});
+
 test('keeps a failed autosave draft locally and restores it when the Notes tab remounts', async () => {
   apiClient.patch.mockRejectedValue(new Error('offline'));
   const first = render(<CleanNotesTab character={character} onCharacterUpdate={jest.fn()} />);
