@@ -1,4 +1,4 @@
-import { CLASSES } from './characterRules5e';
+import { BACKGROUNDS, CLASSES } from './characterRules5e';
 import { getStartingEquipmentGroups } from './startingEquipmentRules';
 import {
   buildRandomCharacterPlan,
@@ -53,8 +53,7 @@ describe('random character generation engine', () => {
     const classData = CLASSES[plan.draftPatch.characterClass] || {};
     const selected = plan.draftPatch.selectedSkills;
     const backgroundSkills = new Set(
-      (plan.revealSequence.find((step) => step.id === 'skills')?.options || [])
-        .filter((skill) => false),
+      BACKGROUNDS[plan.draftPatch.background]?.skillProficiencies || [],
     );
 
     expect(selected).toHaveLength(Number(classData.skillCount || 0));
