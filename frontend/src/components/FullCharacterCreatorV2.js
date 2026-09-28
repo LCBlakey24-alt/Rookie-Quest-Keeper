@@ -20,6 +20,12 @@ import { classSkillsForEdit } from '@/data/characterEditSkillHelpers';
 import { buildFullBuilderLanguages, getBackgroundLanguageBudget, splitExistingLanguagesForBuilder } from '@/data/languageFullBuilderHelpers';
 import { countChoiceLanguages, getFixedLanguages } from '@/data/languageChoiceUtils';
 import {
+  buildFullBuilderEquipmentState,
+  defaultStartingEquipmentChoices,
+  startingEquipmentChoicesComplete,
+} from '@/data/fullBuilderEquipment';
+import { getStartingEquipmentGroups } from '@/data/startingEquipmentRules';
+import {
   Choice,
   Chip,
   LanguagePicker,
@@ -104,6 +110,7 @@ function defaultDraft() {
     preservedLanguages: [],
     extraFeat: 'None',
     equipmentMode: 'equipment',
+    startingEquipmentChoices: defaultStartingEquipmentChoices('Fighter'),
     rolledStartingGold: 0,
     customEquipment: '',
     personalityTrait: '',
@@ -117,7 +124,19 @@ function defaultDraft() {
 function loadDraft() {
   try {
     const stored = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-    return stored ? { ...defaultDraft(), ...stored, equipmentMode: normalizeEquipmentMode(stored.equipmentMode), rolledStartingGold: Number(stored.rolledStartingGold || 0), startingLevel: 1, scores: { ...STANDARD, ...(stored.scores || {}) } } : defaultDraft();
+    if (!stored) return defaultDraft();
+    const base = defaultDraft();
+    const characterClass = stored.characterClass || base.characterClass;
+    return {
+      ...base,
+      ...stored,
+      characterClass,
+      equipmentMode: normalizeEquipmentMode(stored.equipmentMode),
+      startingEquipmentChoices: stored.startingEquipmentChoices || defaultStartingEquipmentChoices(characterClass),
+      rolledStartingGold: Number(stored.rolledStartingGold || 0),
+      startingLevel: 1,
+      scores: { ...STANDARD, ...(stored.scores || {}) },
+    };
   } catch {
     return defaultDraft();
   }
@@ -173,22 +192,6 @@ function abilityBonus({ edition, raceData, subrace, backgroundData, floatingAsi 
   return bonus;
 }
 
-function equipmentEntries(items = []) {
-  return arr(items).map((item) => ({ name: String(item), equipped: false }));
-}
-
-function inferEquipped(items = []) {
-  const lower = items.map((item) => String(item).toLowerCase());
-  const hasShield = lower.some((item) => item.includes('shield'));
-  const mainHand = items.find((item) => !/armor|armour|mail|shield|pack|kit|tools|clothes|rations|rope|torch/i.test(String(item))) || '';
-  return {
-    armor: null,
-    shield: hasShield ? { name: 'Shield', equipped: true } : null,
-    mainHand: mainHand || null,
-    offHand: hasShield ? 'Shield' : null,
-  };
-}
-
 function bonusText(bonus) {
   const entries = Object.entries(bonus || {}).filter(([, value]) => Number(value) > 0);
   return entries.length ? entries.map(([ability, value]) => `${LABELS[ability]} +${value}`).join(', ') : 'No direct ability bonus here';
@@ -219,7 +222,26 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const finalScores = Object.fromEntries(ABILITIES.map((ability) => [ability, clamp(draft.scores[ability]) + (bonus[ability] || 0)]));
   const proficiencyBonus = getProficiencyBonus(startingLevel);
   const hp = Math.max(1, (classData.hitDie || 8) + mod(finalScores.constitution));
-  const ac = 10 + mod(finalScores.dexterity);
+  const equipmentGroups = getStartingEquipmentGroups(draft.characterClass);
+  const selectedEquipmentState = buildFullBuilderEquipmentState({
+    className: draft.characterClass,
+    selections: draft.startingEquipmentChoices,
+    fallbackClassEquipment: arr(classData.startingEquipment),
+    backgroundEquipment: arr(backgroundData.equipment),
+    abilities: finalScores,
+    fightingStyle: draft.fighterFightingStyle,
+  });
+  const unarmedEquipmentState = buildFullBuilderEquipmentState({
+    className: draft.characterClass,
+    selections: {},
+    fallbackClassEquipment: [],
+    backgroundEquipment: [],
+    abilities: finalScores,
+    fightingStyle: draft.fighterFightingStyle,
+  });
+  const equipmentState = equipmentMode === 'equipment' ? selectedEquipmentState : unarmedEquipmentState;
+  const equipmentList = equipmentState.labels;
+  const ac = equipmentState.armorClass;
   const backgroundSkills = arr(backgroundData.skillProficiencies);
   const skillOptions = classSkillOptions(classData).filter((skill) => !backgroundSkills.includes(skill));
   const skillTarget = Number(classData.skillCount || 0);
@@ -253,7 +275,6 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const fighterStyleComplete = draft.characterClass !== 'Fighter' || Boolean(draft.fighterFightingStyle);
   const startingGoldRule = getStartingGoldRule(draft.characterClass, draft.edition);
   const startingGold = equipmentMode === 'gold' ? (startingGoldRule.fixed ? startingGoldRule.average : Number(draft.rolledStartingGold || 0)) : 0;
-  const equipmentList = startingEquipment();
   const spellReq = spellRequirements(draft.characterClass, classData, finalScores);
   const spellLists = getSpellsForClass(draft.characterClass) || {};
   const cantripPool = arr(spellLists.cantrips || spellLists[0]);
@@ -264,7 +285,14 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const hasSpells = spellReq.cantrips > 0 || spellReq.spells > 0 || isHomebrewSpellcaster;
   const chosenFeat = draft.extraFeat !== 'None' ? draft.extraFeat : (draft.edition === '2024' ? backgroundData.originFeat2024 || '' : '');
   const featRequired = draft.edition === '2024';
-  const equipmentComplete = equipmentMode === 'equipment' || (equipmentMode === 'gold' && (startingGoldRule.fixed || startingGold > 0));
+  const classEquipmentComplete = startingEquipmentChoicesComplete(
+    draft.characterClass,
+    draft.startingEquipmentChoices,
+    arr(classData.startingEquipment),
+  ) || (!equipmentGroups.length && equipmentList.length > 0);
+  const equipmentComplete = equipmentMode === 'equipment'
+    ? classEquipmentComplete
+    : (startingGoldRule.fixed || startingGold > 0);
   const spellsComplete = !hasSpells || (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells);
   const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(finalScores[ability])) && finalScores[ability] >= 3 && finalScores[ability] <= 30) && (!floatingBudget || floatingSpent === floatingBudget);
   const completionByStep = {
@@ -418,11 +446,6 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     update({ [field]: current.includes(value) ? current.filter((item) => item !== value) : current.length >= max ? current : [...current, value] });
   }
 
-  function startingEquipment() {
-    if (equipmentMode === 'gold') return [];
-    return Array.from(new Set([...arr(classData.startingEquipment), ...arr(backgroundData.equipment)]));
-  }
-
   function spellFields() {
     const coreClassInfo = SPELLCASTING_CLASSES[draft.characterClass];
     const homebrewClassInfo = coreClassInfo ? null : normaliseHomebrewClassSpellcasting(classData);
@@ -518,7 +541,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
 
   function buildPayload() {
     const spellData = spellFields();
-    const equipment = equipmentEntries(equipmentList);
+    const equipment = equipmentState.items;
     const basePayload = {
       name: draft.name.trim(),
       creation_mode: 'full',
@@ -562,7 +585,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       starting_equipment: equipmentList,
       equipment,
       inventory: equipment,
-      equipped: inferEquipped(equipmentList),
+      equipped: equipmentState.equipped,
       currency: { copper: 0, silver: 0, electrum: 0, gold: startingGold, platinum: 0 },
       gold: startingGold,
       personality_trait: draft.personalityTrait,
@@ -686,7 +709,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
               else if (floatingSpent < floatingBudget) next[ability] = 1;
               update({ floatingAsi: next });
             }} />}
-            {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} startingGoldRule={startingGoldRule} startingGold={startingGold} />}
+            {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} equipmentGroups={equipmentGroups} startingGoldRule={startingGoldRule} startingGold={startingGold} />}
             {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} journeyPercent={journeyPercent} />}
           </article>
 
@@ -785,7 +808,16 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
             title={name}
             summary={summary}
             active={draft.characterClass === name}
-            onClick={() => update({ characterClass: name, subclass: '', fighterFightingStyle: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [], rolledStartingGold: 0 })}
+            onClick={() => update({
+              characterClass: name,
+              subclass: '',
+              fighterFightingStyle: '',
+              selectedSkills: [],
+              selectedCantrips: [],
+              selectedSpells: [],
+              startingEquipmentChoices: defaultStartingEquipmentChoices(name),
+              rolledStartingGold: 0,
+            })}
           />
         );
       })}
@@ -886,7 +918,7 @@ function SpellChip({ spell, active, onClick }) {
   return <button type="button" className={`full-creator-spell-chip ${active ? 'active' : ''}`} aria-pressed={Boolean(active)} onClick={onClick}><strong>{entry.name}</strong><span>{entry.school || 'Spell'}</span><em>{entry.description || ''}</em></button>;
 }
 
-function Equipment({ draft, update, equipment, startingGoldRule, startingGold }) {
+function Equipment({ draft, update, equipment, equipmentGroups, startingGoldRule, startingGold }) {
   const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   const is2024 = draft.edition === '2024';
   return <>
@@ -904,7 +936,27 @@ function Equipment({ draft, update, equipment, startingGoldRule, startingGold })
         </div>
       </>
     ) : (
-      <div className="full-creator-equipment-list">{equipment.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div>
+      <>
+        {equipmentGroups.length > 0 && equipmentGroups.map((group) => (
+          <Choice key={group.id} title={group.label} interactive>
+            {arr(group.options).map((option) => (
+              <Chip
+                key={option}
+                active={draft.startingEquipmentChoices?.[group.id] === option}
+                onClick={() => update({
+                  startingEquipmentChoices: {
+                    ...(draft.startingEquipmentChoices || {}),
+                    [group.id]: option,
+                  },
+                })}
+              >
+                {option}
+              </Chip>
+            ))}
+          </Choice>
+        ))}
+        <div className="full-creator-equipment-list">{equipment.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div>
+      </>
     )}
   </>;
 }
