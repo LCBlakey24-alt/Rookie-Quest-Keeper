@@ -34,6 +34,7 @@ from routes.characters import (
     edition_for,
     get_owned_character,
     initial_class_levels,
+    hit_die_for,
     meets_multiclass_requirements,
     multiclass_requirement_text,
 )
@@ -658,6 +659,115 @@ def preserve_level_up_live_state(existing: Dict[str, Any], update_data: Dict[str
     return update
 
 
+
+def _level_up_resource_snapshot(value: Any) -> Dict[str, Dict[str, Any]]:
+    """Return a compact, history-safe view of spendable character resources."""
+    if not isinstance(value, dict):
+        return {}
+
+    snapshot: Dict[str, Dict[str, Any]] = {}
+    for key, raw in value.items():
+        if not isinstance(raw, dict):
+            continue
+        max_value = max(0, _int(raw.get("max", raw.get("maximum", raw.get("total", 0))), 0))
+        if max_value <= 0:
+            continue
+        current_value = max(
+            0,
+            min(
+                max_value,
+                _int(raw.get("current", raw.get("remaining", max_value)), max_value),
+            ),
+        )
+        snapshot[str(key)] = {
+            "label": str(raw.get("label") or raw.get("name") or key).replace("_", " ").strip().title(),
+            "current": current_value,
+            "max": max_value,
+            "restore": str(raw.get("restore") or raw.get("recovery") or raw.get("refresh") or "long-rest"),
+        }
+    return snapshot
+
+
+def attach_level_up_receipt(
+    existing: Dict[str, Any],
+    update_data: Dict[str, Any],
+    level_up: LevelUpRequest,
+    leveled_class: str,
+) -> Dict[str, Any]:
+    """Persist an explainable before/after receipt inside the existing progression history."""
+    update = dict(update_data)
+    progression = dict(update.get("level_progression") or {})
+    progression_key = str(level_up.new_level)
+    if not isinstance(progression.get(progression_key), dict):
+        return update
+
+    entry = dict(progression[progression_key])
+    old_level = max(1, _int(existing.get("level"), 1))
+    new_level = max(old_level + 1, _int(update.get("level"), level_up.new_level))
+    old_max_hp = max(1, _int(existing.get("max_hit_points"), 1))
+    new_max_hp = max(old_max_hp, _int(update.get("max_hit_points"), old_max_hp))
+    hp_gained = max(1, _int(entry.get("hp_gained"), new_max_hp - old_max_hp))
+    constitution_modifier = (_int(existing.get("constitution"), 10) - 10) // 2
+    hp_method = str(entry.get("hp_method") or level_up.hp_method or "average").strip().lower()
+    hp_roll = entry.get("hp_roll")
+    fixed_die_value = (hit_die_for(leveled_class) // 2 + 1) if hp_method == "average" else None
+    minimum_applied = False
+    if hp_method in {"roll", "manual"} and hp_roll is not None:
+        minimum_applied = _int(hp_roll, 0) + constitution_modifier < 1
+    elif hp_method == "average" and fixed_die_value is not None:
+        minimum_applied = fixed_die_value + constitution_modifier < 1
+
+    old_prof = max(2, _int(existing.get("proficiency_bonus"), 2 + ((old_level - 1) // 4)))
+    new_prof = max(2, _int(update.get("proficiency_bonus"), 2 + ((new_level - 1) // 4)))
+
+    before_resources = _level_up_resource_snapshot(existing.get("resources"))
+    after_resources = _level_up_resource_snapshot(update.get("resources"))
+    resource_changes: List[Dict[str, Any]] = []
+    for key in sorted(set(before_resources) | set(after_resources)):
+        before = before_resources.get(key, {})
+        after = after_resources.get(key, {})
+        if before == after:
+            continue
+        resource_changes.append({
+            "key": key,
+            "label": after.get("label") or before.get("label") or key.replace("_", " ").title(),
+            "before_current": before.get("current", 0),
+            "before_max": before.get("max", 0),
+            "after_current": after.get("current", 0),
+            "after_max": after.get("max", 0),
+            "restore": after.get("restore") or before.get("restore") or "long-rest",
+            "unlocked": key not in before_resources and key in after_resources,
+        })
+
+    entry["receipt"] = {
+        "class": display_class_name(leveled_class),
+        "total_level_before": old_level,
+        "total_level_after": new_level,
+        "hp": {
+            "method": hp_method,
+            "raw_roll": hp_roll,
+            "fixed_die_value": fixed_die_value,
+            "constitution_modifier": constitution_modifier,
+            "gained": hp_gained,
+            "max_before": old_max_hp,
+            "max_after": new_max_hp,
+            "minimum_one_applied": minimum_applied,
+        },
+        "proficiency": {
+            "before": old_prof,
+            "after": new_prof,
+        },
+        "spell_slots": {
+            "before": _slot_map(existing.get("spell_slots")),
+            "after": _slot_map(update.get("spell_slots")),
+        },
+        "resource_changes": resource_changes,
+    }
+    progression[progression_key] = entry
+    update["level_progression"] = progression
+    return update
+
+
 def build_state_safe_level_up_update(
     existing: Dict[str, Any],
     level_up: LevelUpRequest,
@@ -692,6 +802,7 @@ def build_state_safe_level_up_update(
         update_data.pop("subclass", None)
 
     update_data = preserve_level_up_live_state(existing, update_data)
+    update_data = attach_level_up_receipt(existing, update_data, level_up, leveled_class)
     updated_levels = update_data.get("class_levels") if isinstance(update_data.get("class_levels"), dict) else class_levels
     update_data["classes"] = _normalised_classes_state(
         existing,

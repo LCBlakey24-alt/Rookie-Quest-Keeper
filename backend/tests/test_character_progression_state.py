@@ -293,6 +293,119 @@ class TestCharacterProgressionState(unittest.TestCase):
         self.assertEqual(fixed["resources"]["pact_magic"]["current"], 1)
         self.assertEqual(fixed["resources"]["pact_magic"]["slot_level"], 5)
 
+    def test_level_up_history_receipt_records_hp_proficiency_slots_and_resource_changes(self):
+        existing = {
+            "character_class": "Fighter",
+            "level": 1,
+            "class_levels": {"Fighter": 1},
+            "constitution": 14,
+            "max_hit_points": 12,
+            "current_hit_points": 8,
+            "hit_dice_remaining": 0,
+            "spell_slots": {},
+            "spell_slots_remaining": {},
+            "resources": {
+                "second_wind": {
+                    "label": "Second Wind",
+                    "current": 0,
+                    "remaining": 0,
+                    "max": 1,
+                    "restore": "short-rest",
+                }
+            },
+            "feats": [],
+            "level_progression": {},
+        }
+        request = LevelUpRequest(
+            new_level=2,
+            hp_method="manual",
+            hp_roll=7,
+        )
+
+        update = build_state_safe_level_up_update(existing, request, "Fighter", "standard")
+        receipt = update["level_progression"]["2"]["receipt"]
+
+        self.assertEqual(receipt["class"], "Fighter")
+        self.assertEqual(receipt["total_level_before"], 1)
+        self.assertEqual(receipt["total_level_after"], 2)
+        self.assertEqual(receipt["hp"]["method"], "manual")
+        self.assertEqual(receipt["hp"]["raw_roll"], 7)
+        self.assertEqual(receipt["hp"]["constitution_modifier"], 2)
+        self.assertEqual(receipt["hp"]["gained"], 9)
+        self.assertEqual(receipt["hp"]["max_before"], 12)
+        self.assertEqual(receipt["hp"]["max_after"], 21)
+        self.assertFalse(receipt["hp"]["minimum_one_applied"])
+        self.assertEqual(receipt["proficiency"], {"before": 2, "after": 2})
+        self.assertEqual(receipt["spell_slots"], {"before": {}, "after": {}})
+
+        action_surge = next(
+            change for change in receipt["resource_changes"]
+            if change["key"] == "action_surge"
+        )
+        self.assertTrue(action_surge["unlocked"])
+        self.assertEqual(action_surge["before_max"], 0)
+        self.assertEqual(action_surge["after_max"], 1)
+        self.assertEqual(action_surge["after_current"], 1)
+
+    def test_level_up_history_receipt_marks_average_hp_floor(self):
+        existing = {
+            "character_class": "Wizard",
+            "level": 1,
+            "class_levels": {"Wizard": 1},
+            "constitution": 3,
+            "max_hit_points": 3,
+            "current_hit_points": 3,
+            "hit_dice_remaining": 1,
+            "spell_slots": {"1": 2},
+            "spell_slots_remaining": {"1": 2},
+            "resources": {},
+            "feats": [],
+            "level_progression": {},
+        }
+        request = LevelUpRequest(
+            new_level=2,
+            hp_method="average",
+        )
+
+        update = build_state_safe_level_up_update(existing, request, "Wizard", "standard")
+        receipt = update["level_progression"]["2"]["receipt"]
+
+        self.assertEqual(receipt["hp"]["fixed_die_value"], 4)
+        self.assertEqual(receipt["hp"]["constitution_modifier"], -4)
+        self.assertEqual(receipt["hp"]["gained"], 1)
+        self.assertTrue(receipt["hp"]["minimum_one_applied"])
+
+    def test_level_up_history_receipt_marks_minimum_one_hp_floor(self):
+        existing = {
+            "character_class": "Wizard",
+            "level": 1,
+            "class_levels": {"Wizard": 1},
+            "constitution": 6,
+            "max_hit_points": 4,
+            "current_hit_points": 4,
+            "hit_dice_remaining": 1,
+            "spell_slots": {"1": 2},
+            "spell_slots_remaining": {"1": 1},
+            "resources": {},
+            "feats": [],
+            "level_progression": {},
+        }
+        request = LevelUpRequest(
+            new_level=2,
+            hp_method="manual",
+            hp_roll=1,
+        )
+
+        update = build_state_safe_level_up_update(existing, request, "Wizard", "standard")
+        receipt = update["level_progression"]["2"]["receipt"]
+
+        self.assertEqual(receipt["hp"]["gained"], 1)
+        self.assertTrue(receipt["hp"]["minimum_one_applied"])
+        self.assertEqual(receipt["hp"]["max_before"], 4)
+        self.assertEqual(receipt["hp"]["max_after"], 5)
+        self.assertEqual(receipt["spell_slots"]["before"], {"1": 2})
+        self.assertEqual(receipt["spell_slots"]["after"], {"1": 3})
+
     def test_existing_secondary_class_can_gain_a_level_without_changing_primary_class(self):
         existing = {
             "character_class": "Fighter",
