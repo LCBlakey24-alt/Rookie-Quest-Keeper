@@ -1,7 +1,9 @@
 import {
   buildFullBuilderEquipmentState,
   defaultStartingEquipmentChoices,
+  rollStartingGoldRule,
   selectedStartingEquipmentLabels,
+  splitStartingCurrency,
   startingEquipmentChoicesComplete,
 } from './fullBuilderEquipment';
 
@@ -40,6 +42,51 @@ describe('full builder starting equipment', () => {
       'Insignia of rank',
       '10 gp',
     ]));
+  });
+
+  test('background coin is stored as currency instead of a fake inventory item', () => {
+    const state = buildFullBuilderEquipmentState({
+      className: 'Fighter',
+      selections: defaultStartingEquipmentChoices('Fighter'),
+      backgroundEquipment: ['Insignia of rank', '10 gp'],
+      abilities: { dexterity: 14 },
+    });
+
+    expect(state.currency).toEqual({
+      copper: 0,
+      silver: 0,
+      electrum: 0,
+      gold: 10,
+      platinum: 0,
+    });
+    expect(state.labels).toContain('Insignia of rank');
+    expect(state.labels).not.toContain('10 gp');
+    expect(state.items.some(item => item.name === '10 gp')).toBe(false);
+  });
+
+  test('currency extraction recognises each supported coin denomination', () => {
+    expect(splitStartingCurrency(['2 pp', '3 gp', '4 ep', '5 sp', '6 cp', 'Rope'])).toEqual({
+      equipmentLabels: ['Rope'],
+      currency: {
+        copper: 6,
+        silver: 5,
+        electrum: 4,
+        gold: 3,
+        platinum: 2,
+      },
+    });
+  });
+
+  test('starting gold rolls are deterministic and use the shared die primitive', () => {
+    const values = [0, 0.999, 0.5];
+    let index = 0;
+    const result = rollStartingGoldRule(
+      { dice: 3, die: 4, multiplier: 10 },
+      () => values[index++],
+    );
+
+    expect(result).toBe(80);
+    expect(rollStartingGoldRule({ fixed: true, average: 50 }, () => 0)).toBe(50);
   });
 
   test('Fighter chain mail and shield derive 18 AC and equip real combat items', () => {
