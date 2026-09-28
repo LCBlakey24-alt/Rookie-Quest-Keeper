@@ -20,3 +20,24 @@ export function rollInitiative(modifier = 0, rng = Math.random) {
     total: natural + safeModifier,
   };
 }
+
+
+export function dexterityModifier(score = 10) {
+  const numeric = Number(score);
+  const safeScore = Number.isFinite(numeric) ? numeric : 10;
+  return Math.floor((safeScore - 10) / 2);
+}
+
+export function getInitiativeModifier(source = {}) {
+  const explicit = source?.initiativeMod ?? source?.initiative_bonus ?? source?.initiative_mod;
+  if (explicit !== undefined && explicit !== null && explicit !== '') {
+    return normaliseInitiativeModifier(explicit);
+  }
+
+  const dexterity = source?.dexterity
+    ?? source?.dex
+    ?? source?.stats?.dexterity
+    ?? source?.stats?.dex
+    ?? 10;
+  return dexterityModifier(dexterity);
+}
