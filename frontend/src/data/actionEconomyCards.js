@@ -70,7 +70,7 @@ export function resourceActionCards(character, resources, handlers = { spendReso
         ? (amount) => handlers.spendResource(
           key,
           title,
-          Math.max(1, Math.min(Number(resource.current || 0), Number(amount) || 1)),
+          Math.max(1, Math.min(Number(resource.current || 0), Math.floor(Number(amount) || 1))),
         )
         : undefined,
     });
