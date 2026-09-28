@@ -6,7 +6,7 @@ import { getCharacterActionFeatures } from '../../data/characterFeatureSelectors
 import { buildCharacterSpellCastUpdate } from '../../data/characterSpellCastingActions';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
 import CombatSpellActionCard from './CombatSpellActionCard';
-import { ActionSection, AttackCard, SimpleActionCard } from './CleanCombatTabCards';
+import { ActionSection, AttackCard, SimpleActionCard, VariableResourceActionCard } from './CleanCombatTabCards';
 import {
   buildConsumableUseUpdate,
   fmt,
@@ -220,7 +220,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   };
 
   const resourceActions = useMemo(() => resourceActionCards(character, classResources, {
-    spendResource: (resourceKey, label) => updateResource(resourceKey, label, -1),
+    spendResource: (resourceKey, label, amount = 1) => updateResource(resourceKey, label, -Math.max(1, Math.floor(Number(amount) || 1))),
   }), [character, classResources]);
 
   const rollAttack = (attack) => {
@@ -318,14 +318,18 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   ));
 
   const resourceCards = (cards) => cards.map((card) => (
-    <SimpleActionCard
-      key={card.key}
-      title={card.title}
-      type={card.type}
-      description={card.description}
-      onClick={card.onClick}
-      disabled={card.disabled}
-    />
+    card.variableCost
+      ? <VariableResourceActionCard key={card.key} card={card} />
+      : (
+        <SimpleActionCard
+          key={card.key}
+          title={card.title}
+          type={card.type}
+          description={card.description}
+          onClick={card.onClick}
+          disabled={card.disabled}
+        />
+      )
   ));
 
   return (
