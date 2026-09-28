@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchPlayerCampaignSections } from './playerCampaignData';
 import { playerSheetReturnState } from './playerSheetNavigation';
 import { fetchPlayerHandoutSummary } from '@/components/dashboard/player/playerDashboardData';
+import PlayerNowPlayingPanel from './PlayerNowPlayingPanel';
 import '@/styles/playerCampaign.css';
 import '@/styles/playerCampaignCharacterStatus.css';
 import '@/styles/playerCampaignTabBadge.css';
@@ -118,6 +119,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
           ? 'Could not refresh unread Handouts. Keeping the last known count until the next successful check.'
           : 'Could not check unread Handouts yet. Open the Handouts tab or press Refresh to try again.'}
       </div>}
+      <PlayerNowPlayingPanel campaignId={campaignId} characters={characters || []} />
       <Tabs defaultValue="campaign">
         <TabsList className="player-campaign-tabs" aria-label="Campaign sections">
           {campaignTabs.map(({ id, label, badge, icon: Icon }) => <TabsTrigger key={id} value={id}>
