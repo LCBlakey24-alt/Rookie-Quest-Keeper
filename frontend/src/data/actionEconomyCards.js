@@ -77,27 +77,27 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   };
 
   const className = normalizeName(character?.character_class || character?.class_name || character?.class);
-  if (byKey.ki || className === 'monk') {
+  if (byKey.ki) {
     add('bonus', 'ki', 'Flurry of Blows', 'Spend 1 Ki/Discipline Point to make extra unarmed strikes after taking the Attack action.', () => handlers.spendResource('ki', 'Flurry of Blows'));
     add('bonus', 'ki', 'Patient Defense', 'Spend 1 Ki/Discipline Point to Dodge as a bonus action.', () => handlers.spendResource('ki', 'Patient Defense'));
     add('bonus', 'ki', 'Step of the Wind', 'Spend 1 Ki/Discipline Point to Dash or Disengage as a bonus action.', () => handlers.spendResource('ki', 'Step of the Wind'));
   }
-  if (byKey.sorcery_points || className === 'sorcerer') {
+  if (byKey.sorcery_points) {
     addVariable('bonus', 'sorcery_points', 'Convert Sorcery Points', 'Choose how many Sorcery Points to spend; spell-slot conversion cost depends on the slot you create.');
     addVariable('bonus', 'sorcery_points', 'Metamagic', 'Spend the Sorcery Point cost printed by the Metamagic option you are using.');
   }
-  if (byKey.rage || className === 'barbarian') add('bonus', 'rage', 'Rage', 'Enter a rage and apply your rage bonuses and resistances.', () => handlers.spendResource('rage', 'Rage'));
-  if (byKey.bardic_inspiration || className === 'bard') add('bonus', 'bardic_inspiration', 'Bardic Inspiration', 'Give one creature an inspiration die.', () => handlers.spendResource('bardic_inspiration', 'Bardic Inspiration'));
+  if (byKey.rage) add('bonus', 'rage', 'Rage', 'Enter a rage and apply your rage bonuses and resistances.', () => handlers.spendResource('rage', 'Rage'));
+  if (byKey.bardic_inspiration) add('bonus', 'bardic_inspiration', 'Bardic Inspiration', 'Give one creature an inspiration die.', () => handlers.spendResource('bardic_inspiration', 'Bardic Inspiration'));
   const fighterLevel = className === 'fighter' || byKey.second_wind || byKey.action_surge || byKey.indomitable ? classLevelOf(character, 'fighter') : 0;
   if (byKey.second_wind || fighterLevel >= 1) add('bonus', 'second_wind', 'Second Wind', 'Regain hit points using your fighter resource.', () => handlers.spendResource('second_wind', 'Second Wind'));
   if (byKey.action_surge || fighterLevel >= 2) add('action', 'action_surge', 'Action Surge', 'Take one additional action on your turn.', () => handlers.spendResource('action_surge', 'Action Surge'));
   if (byKey.indomitable || fighterLevel >= 9) add('reaction', 'indomitable', 'Indomitable', 'Reroll a failed saving throw when this feature applies.', () => handlers.spendResource('indomitable', 'Indomitable'));
-  if (byKey.wild_shape || className === 'druid') add('action', 'wild_shape', 'Wild Shape', 'Transform using a Wild Shape use.', () => handlers.spendResource('wild_shape', 'Wild Shape'));
+  if (byKey.wild_shape) add('action', 'wild_shape', 'Wild Shape', 'Transform using a Wild Shape use.', () => handlers.spendResource('wild_shape', 'Wild Shape'));
   if (byKey.channel_divinity) add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
   if (byKey.cleric_channel_divinity) add('action', 'cleric_channel_divinity', 'Cleric Channel Divinity', 'Use a Cleric Channel Divinity option.', () => handlers.spendResource('cleric_channel_divinity', 'Cleric Channel Divinity'));
   if (byKey.paladin_channel_divinity) add('action', 'paladin_channel_divinity', 'Paladin Channel Divinity', 'Use a Paladin Channel Divinity option.', () => handlers.spendResource('paladin_channel_divinity', 'Paladin Channel Divinity'));
-  if (byKey.lay_on_hands || className === 'paladin') addVariable('action', 'lay_on_hands', 'Lay on Hands', 'Choose how many points to spend from your healing pool.');
-  if (byKey.arcane_recovery || className === 'wizard') add('action', 'arcane_recovery', 'Arcane Recovery', 'Recover spell slots during a short rest when this applies.', () => handlers.spendResource('arcane_recovery', 'Arcane Recovery'));
+  if (byKey.lay_on_hands) addVariable('action', 'lay_on_hands', 'Lay on Hands', 'Choose how many points to spend from your healing pool.');
+  if (byKey.arcane_recovery) add('action', 'arcane_recovery', 'Arcane Recovery', 'Recover spell slots during a short rest when this applies.', () => handlers.spendResource('arcane_recovery', 'Arcane Recovery'));
   if (byKey.favored_enemy || (className === 'ranger' && (is2024Rules(character) || classLevelOf(character, 'ranger') >= 2))) {
     const spendFavoredEnemy = byKey.favored_enemy ? () => handlers.spendResource('favored_enemy', "Hunter's Mark") : undefined;
     add('bonus', 'favored_enemy', "Hunter's Mark", "Cast or move Hunter's Mark when your Ranger features or spells make it available.", spendFavoredEnemy, 'Core Ranger feature');
