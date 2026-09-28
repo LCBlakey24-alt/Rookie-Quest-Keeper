@@ -49,10 +49,10 @@
   #root .character-page-v2 .clean-sheet-hero-options-toggle {
     right: 2px !important;
     bottom: 2px !important;
-    width: 32px !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    min-height: 32px !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
     border-radius: 5px !important;
     background: #112A40 !important;
     background-image: none !important;
@@ -71,8 +71,7 @@
   #root .character-page-v2 .clean-sheet-combat-hp-title strong { font-size: 1.1rem !important; color: #F7F1E7 !important; }
   #root .character-page-v2 .clean-sheet-combat-top-actions { gap: 5px !important; }
 
-  #root .character-page-v2 .clean-sheet-combat-temp-pill,
-  #root .character-page-v2 .clean-sheet-combat-rest-toggle {
+  #root .character-page-v2 .clean-sheet-combat-temp-pill {
     min-height: 26px !important;
     padding-inline: 7px !important;
     font-size: 0.58rem !important;
@@ -82,10 +81,21 @@
     color: #F7F1E7 !important;
   }
 
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle {
+    min-height: 46px !important;
+    padding-inline: 10px !important;
+    font-size: 0.58rem !important;
+    background: #112A40 !important;
+    background-image: none !important;
+    border: 1px solid rgba(214,168,79,.20) !important;
+    color: #F7F1E7 !important;
+  }
+
   #root .character-page-v2 .clean-sheet-inspiration-toggle {
-    width: 28px !important;
-    min-width: 28px !important;
-    min-height: 26px !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
     background: #112A40 !important;
     background-image: none !important;
     border: 1px solid rgba(214,168,79,.20) !important;
@@ -106,7 +116,7 @@
 
   #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
   #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button {
-    min-height: 28px !important;
+    min-height: 46px !important;
     padding: 4px 3px !important;
     font-size: 0.56rem !important;
     background: #112A40 !important;
@@ -125,7 +135,7 @@
   #root .character-page-v2 .clean-sheet-quick-stat-strip .clean-sheet-quick-stat,
   #root .character-page-v2 .clean-sheet-quick-stat-strip button.clean-sheet-quick-stat,
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar button.clean-sheet-quick-stat.clean-sheet-quick-stat--rollable {
-    min-height: 42px !important;
+    min-height: 46px !important;
     padding: 3px 2px !important;
     background: transparent !important;
     background-image: none !important;
