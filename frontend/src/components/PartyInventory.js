@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import ImageUploadPanel from '@/components/ImageUploadPanel';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
+import { rollDiceNotation } from '@/data/diceRoller';
 
 
 const colors = {
@@ -95,11 +96,15 @@ const TREASURE_TABLES = {
   },
 };
 
-// Roll dice (NdS format)
-function rollDice(n, s) {
-  let total = 0;
-  for (let i = 0; i < n; i++) total += Math.floor(Math.random() * s) + 1;
-  return total;
+// Treasure dice use the same canonical roller as the rest of Keeper.
+export function rollTreasureDice(n, s, rng = Math.random) {
+  const count = Math.floor(Number(n) || 0);
+  const sides = Math.floor(Number(s) || 0);
+  if (count <= 0) return 0;
+  if (sides < 2) return 0;
+
+  const result = rollDiceNotation(`${count}d${sides}`, { rng });
+  return result.valid ? result.total : 0;
 }
 
 // Generate treasure based on tier
@@ -108,17 +113,17 @@ function generateTreasure(tier, isHoard) {
   const table = TREASURE_TABLES.individual[tier];
   
   if (table) {
-    if (table.cp) loot.gold += Math.round(rollDice(table.cp[0], table.cp[1]) * table.cp[2] / 100);
-    if (table.sp) loot.gold += Math.round(rollDice(table.sp[0], table.sp[1]) * table.sp[2] / 10);
-    if (table.gp) loot.gold += rollDice(table.gp[0] || 1, table.gp[1] || 1) * (table.gp[2] || 1);
-    if (table.pp) loot.gold += rollDice(table.pp[0], table.pp[1]) * (table.pp[2] || 1) * 10;
+    if (table.cp) loot.gold += Math.round(rollTreasureDice(table.cp[0], table.cp[1]) * table.cp[2] / 100);
+    if (table.sp) loot.gold += Math.round(rollTreasureDice(table.sp[0], table.sp[1]) * table.sp[2] / 10);
+    if (table.gp) loot.gold += rollTreasureDice(table.gp[0] || 1, table.gp[1] || 1) * (table.gp[2] || 1);
+    if (table.pp) loot.gold += rollTreasureDice(table.pp[0], table.pp[1]) * (table.pp[2] || 1) * 10;
   }
   
   if (isHoard) {
     loot.gold *= 3;
     // Add gems
     const gemTable = TREASURE_TABLES.gems[tier] || [];
-    const gemCount = rollDice(1, 4);
+    const gemCount = rollTreasureDice(1, 4);
     for (let i = 0; i < gemCount; i++) {
       const gem = gemTable[Math.floor(Math.random() * gemTable.length)];
       if (gem) loot.gems.push({ ...gem });
