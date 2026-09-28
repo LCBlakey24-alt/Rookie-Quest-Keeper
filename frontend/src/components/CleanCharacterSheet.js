@@ -20,6 +20,7 @@ import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerHelperTab from '@/components/clean-sheet/RookPlayerHelperTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
+import { getInitiativeModifier } from '@/data/initiativeRules';
 import {
   getConcentrationName,
   getConcentrationSaveDc,
@@ -105,7 +106,7 @@ export default function CleanCharacterSheet() {
   const concentrationSaveModifier = getConcentrationSaveModifier(character, proficiencyBonus);
   const ac = deriveArmorClass(character);
   const speed = Number(character?.speed ?? 30);
-  const initiative = mod(character?.dexterity);
+  const initiative = getInitiativeModifier(character);
   const skillProficiencies = character?.skill_proficiencies || [];
   const saveProficiencies = character?.saving_throw_proficiencies || [];
   const activeConditions = character?.conditions || [];
