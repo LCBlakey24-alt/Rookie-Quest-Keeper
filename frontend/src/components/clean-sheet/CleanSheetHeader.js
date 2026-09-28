@@ -37,11 +37,37 @@ function formatSubtitleParts(parts) {
   return parts.map((part) => titleCaseSlug(part)).filter(Boolean);
 }
 
+export function getCharacterHeaderClassLabel(character = {}) {
+  const classLevels = character?.multiclass_levels || character?.class_levels || {};
+  const entries = Object.entries(classLevels)
+    .map(([name, level]) => [name, Number(level) || 0])
+    .filter(([, level]) => level > 0);
+
+  if (entries.length > 1) {
+    const classRows = Array.isArray(character?.classes) ? character.classes : [];
+    return entries.map(([name, level]) => {
+      const savedClass = classRows.find((row) => String(row?.name || row?.class_name || '').toLowerCase() === String(name).toLowerCase());
+      const subclass = savedClass?.subclass || (
+        String(character?.character_class || '').toLowerCase() === String(name).toLowerCase()
+          ? character?.subclass
+          : ''
+      );
+      const className = titleCaseSlug(name);
+      const subclassLabel = subclass ? ` (${titleCaseSlug(subclass)})` : '';
+      return `${className} ${level}${subclassLabel}`;
+    }).join(' / ');
+  }
+
+  const primary = character?.character_class;
+  const subclass = character?.subclass;
+  return [primary, subclass ? `(${subclass})` : ''].filter(Boolean).join(' ');
+}
+
 function compactSubtitleParts(character, fallbackSubtitle) {
+  const classLabel = getCharacterHeaderClassLabel(character);
   const directParts = [
     character?.race,
-    character?.character_class,
-    character?.subclass,
+    classLabel,
   ].filter(Boolean);
 
   if (directParts.length) return formatSubtitleParts(directParts);
