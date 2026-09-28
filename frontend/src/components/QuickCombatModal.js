@@ -7,6 +7,7 @@ import {
   X, Search, Plus, Minus, Sword, Users, Shield, Heart, 
   Skull, Play, Trash2, Sparkles 
 } from 'lucide-react';
+import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 
 
 function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreatures, onStartCombat }) {
@@ -30,7 +31,7 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
         maxHp: p.maxHp || 20,
         ac: p.ac || 10,
         initiative: 0,
-        initiativeMod: p.initiativeMod || 0,
+        initiativeMod: getInitiativeModifier(p),
         isPlayer: true
       }));
       setCombatants(playerCombatants);
@@ -87,7 +88,7 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
         maxHp: creature.hp || creature.hit_points || 10,
         ac: creature.ac || creature.armor_class || 10,
         initiative: 0,
-        initiativeMod: creature.dexterity ? Math.floor((creature.dexterity - 10) / 2) : 0,
+        initiativeMod: getInitiativeModifier(creature),
         cr: creature.cr || creature.challenge_rating,
         creatureType: creature.type,
         size: creature.size,
@@ -130,10 +131,14 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
     const scenario = {
       id: `quick-${Date.now()}`,
       name: encounterName,
-      combatants: combatants.map(c => ({
-        ...c,
-        initiative: Math.floor(Math.random() * 20) + 1 + (c.initiativeMod || 0)
-      }))
+      combatants: combatants.map(c => {
+        const rolled = rollInitiative(c.initiativeMod);
+        return {
+          ...c,
+          initiativeRoll: rolled.natural,
+          initiative: rolled.total,
+        };
+      })
     };
     
     onStartCombat(scenario);
