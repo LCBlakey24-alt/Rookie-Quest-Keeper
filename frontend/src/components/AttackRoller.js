@@ -3,36 +3,78 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sword, Target, Sparkles, Dices, X, Check, Shield, Zap } from 'lucide-react';
 import DiceRollFlicker from './DiceRollFlicker';
+import { rollDie, rollDiceNotation } from '@/data/diceRoller';
 
 // Parse dice notation from ability text
-function parseDiceFromText(text) {
+export function parseDiceFromText(text) {
   if (!text) return [];
-  
-  // Match patterns like "2d6+4", "1d8", "3d10-2", "1d20+5"
-  const diceRegex = /(\d+)d(\d+)([+-]\d+)?/gi;
+
+  // Accept common stat-block spacing such as "2d6 + 4" as well as "d8-1".
+  const diceRegex = /(\d*)d(\d+)\s*([+-]\s*\d+)?/gi;
   const matches = [];
   let match;
-  
+
   while ((match = diceRegex.exec(text)) !== null) {
+    const count = match[1] ? Number.parseInt(match[1], 10) : 1;
+    const sides = Number.parseInt(match[2], 10);
+    const modifier = match[3] ? Number.parseInt(match[3].replace(/\s+/g, ''), 10) : 0;
+    if (!Number.isInteger(count) || count < 1 || !Number.isInteger(sides) || sides < 2 || sides > 100) continue;
     matches.push({
-      original: match[0],
-      count: parseInt(match[1]),
-      sides: parseInt(match[2]),
-      modifier: match[3] ? parseInt(match[3]) : 0
+      original: match[0].replace(/\s+/g, ''),
+      count,
+      sides,
+      modifier: Number.isFinite(modifier) ? modifier : 0,
     });
   }
-  
+
   return matches;
 }
 
-// Roll dice
-function rollDice(count, sides, modifier = 0) {
-  const rolls = [];
-  for (let i = 0; i < count; i++) {
-    rolls.push(Math.floor(Math.random() * sides) + 1);
+export function resolveAttackRoll({ attackBonus = 0, targetAC = 10 } = {}, rng = Math.random) {
+  const roll = rollDie(20, rng);
+  const bonus = Number(attackBonus) || 0;
+  const ac = Number(targetAC);
+  const safeAC = Number.isFinite(ac) ? ac : 10;
+  const total = roll + bonus;
+  const isCrit = roll === 20;
+  const isFumble = roll === 1;
+  const hits = isCrit || (!isFumble && total >= safeAC);
+
+  return {
+    roll,
+    bonus,
+    total,
+    targetAC: safeAC,
+    hits,
+    isCrit,
+    isFumble,
+  };
+}
+
+export function rollAttackDamage(damageDice = [], critical = false, rng = Math.random) {
+  const details = [];
+  let total = 0;
+
+  for (const dice of damageDice || []) {
+    const count = Math.max(1, Number(dice?.count) || 1);
+    const sides = Math.max(2, Number(dice?.sides) || 6);
+    const modifier = Number(dice?.modifier) || 0;
+    const diceCount = critical ? count * 2 : count;
+    const modifierText = modifier ? `${modifier > 0 ? '+' : ''}${modifier}` : '';
+    const formula = `${diceCount}d${sides}${modifierText}`;
+    const result = rollDiceNotation(formula, { rng });
+    const safeTotal = Math.max(0, Number(result.total) || 0);
+
+    details.push({
+      dice: formula,
+      rolls: result.rolls.map(roll => roll.result),
+      total: safeTotal,
+      isCrit: Boolean(critical),
+    });
+    total += safeTotal;
   }
-  const total = rolls.reduce((a, b) => a + b, 0) + modifier;
-  return { rolls, total, modifier };
+
+  return { total, details };
 }
 
 // Parse abilities/attacks from creature data
@@ -58,8 +100,8 @@ function parseAttacks(creature) {
       const name = nameMatch ? nameMatch[1].trim() : line.substring(0, 20).trim();
       
       // Check if it contains "to hit" for attack rolls
-      const toHitMatch = line.match(/([+-]?\d+)\s*to\s*hit/i);
-      const toHitBonus = toHitMatch ? parseInt(toHitMatch[1]) : 0;
+      const toHitMatch = line.match(/([+-]?\s*\d+)\s*to\s*hit/i);
+      const toHitBonus = toHitMatch ? Number.parseInt(toHitMatch[1].replace(/\s+/g, ''), 10) : 0;
       
       attacks.push({
         name: name || 'Attack',
@@ -115,21 +157,12 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
     const results = [];
     
     for (let i = 0; i < numAttacks; i++) {
-      const roll = Math.floor(Math.random() * 20) + 1;
-      const total = roll + selectedAttack.toHitBonus;
-      const isCrit = roll === 20;
-      const isFumble = roll === 1;
-      const hits = isCrit || (!isFumble && total >= ac);
-      
       results.push({
         attackNum: i + 1,
-        roll,
-        bonus: selectedAttack.toHitBonus,
-        total,
-        targetAC: ac,
-        hits,
-        isCrit,
-        isFumble
+        ...resolveAttackRoll({
+          attackBonus: selectedAttack.toHitBonus,
+          targetAC: ac,
+        }),
       });
     }
     
@@ -158,31 +191,17 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
     let totalDamage = 0;
     const rolls = [];
     
-    hits.forEach((hit, idx) => {
-      const attackRolls = [];
-      let attackDamage = 0;
-      
-      selectedAttack.damageDice.forEach(dice => {
-        // Double dice on crit
-        const diceCount = hit.isCrit ? dice.count * 2 : dice.count;
-        const result = rollDice(diceCount, dice.sides, dice.modifier);
-        attackRolls.push({
-          dice: `${diceCount}d${dice.sides}${dice.modifier >= 0 ? '+' : ''}${dice.modifier || ''}`,
-          rolls: result.rolls,
-          total: result.total,
-          isCrit: hit.isCrit
-        });
-        attackDamage += result.total;
-      });
-      
+    hits.forEach((hit) => {
+      const damage = rollAttackDamage(selectedAttack.damageDice, hit.isCrit);
+
       rolls.push({
         attackNum: hit.attackNum,
         isCrit: hit.isCrit,
-        damage: attackDamage,
-        details: attackRolls
+        damage: damage.total,
+        details: damage.details,
       });
-      
-      totalDamage += attackDamage;
+
+      totalDamage += damage.total;
     });
     
     const nextDamageResults = {
