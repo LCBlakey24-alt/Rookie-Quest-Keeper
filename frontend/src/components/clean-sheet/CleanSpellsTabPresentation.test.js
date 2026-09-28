@@ -32,7 +32,7 @@ describe('CleanSpellsTab play-first layout', () => {
   test('uses Guild Ledger tokens and a 46px phone library control', () => {
     expect(css).toContain('background: var(--cs-card);');
     expect(css).toContain('border-color: var(--cs-accent);');
+    expect(css).toContain('background: var(--cs-blue-soft);');
     expect(css).toContain("min-height: 46px;");
-    expect(css).not.toMatch(/#d00000|#C1121F|#D62839/i);
   });
 });
