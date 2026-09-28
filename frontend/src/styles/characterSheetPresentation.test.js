@@ -80,6 +80,18 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalGuard).toContain('background-image: none !important;');
   });
 
+  test('mobile character-sheet roll and filter controls keep the 46px phone touch target', () => {
+    const skills = read('characterSheetSkillsCompact.css');
+    const stats = read('../components/clean-sheet/CleanSheetStatsMobileOverrides.css');
+    const finalTweaks = read('characterSheetStatsFinalMobileTweaks.css');
+
+    expect(skills).toContain('min-height: 46px !important;');
+    expect(skills).toContain('min-width: 46px !important;');
+    expect(stats).toContain('width: 46px !important;');
+    expect(stats).toContain('height: 46px !important;');
+    expect(finalTweaks).toContain('max-height: 46px !important;');
+  });
+
   test('the live sheet authority uses Guild Ledger tokens and a horizontal phone tab rail', () => {
     const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
     const compactStatus = read('../components/clean-sheet/CleanSheetCompactStatus.js');
