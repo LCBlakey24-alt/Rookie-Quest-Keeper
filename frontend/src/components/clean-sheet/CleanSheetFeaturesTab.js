@@ -10,6 +10,7 @@ import {
   singularResourceKey,
 } from './cleanSheetResourceUtils';
 export { resourceDedupeKey } from './cleanSheetResourceUtils';
+import './CleanSheetFeaturesFilter.css';
 
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const firstArray = (...values) => values.find(value => toArray(value).length) || [];
@@ -28,6 +29,31 @@ function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
       return true;
     })
     .sort((a, b) => Number(a.level || 999) - Number(b.level || 999));
+}
+
+export function featureFilterBucket(feature = {}) {
+  const label = featureTypeLabel(feature.type);
+  if (label === 'Bonus action') return 'bonus';
+  if (label === 'Reaction') return 'reaction';
+  if (label === 'Action' || label === 'Special' || label === 'Attack modifier') return 'action';
+  return 'passive';
+}
+
+export function filterClassFeatures(features = [], query = '', filter = 'all') {
+  const search = String(query || '').trim().toLowerCase();
+  return toArray(features).filter((feature) => {
+    if (filter !== 'all' && featureFilterBucket(feature) !== filter) return false;
+    if (!search) return true;
+    const haystack = [
+      feature.name,
+      feature.description,
+      feature.source,
+      feature.subclass,
+      feature.uses,
+      feature.type,
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(search);
+  });
 }
 
 function groupFeatures(features = []) {
@@ -250,9 +276,19 @@ export default function CleanSheetFeaturesTab({
     () => mergeFeatures(snapshot.features, classFeatureSummary),
     [snapshot.features, classFeatureSummary],
   );
-  const featureGroups = useMemo(
-    () => groupFeatures(canonicalFeatures.length ? canonicalFeatures : Object.values(actionEconomyGroups || {}).flat()),
+  const [featureQuery, setFeatureQuery] = useState('');
+  const [featureFilter, setFeatureFilter] = useState('all');
+  const sourceFeatures = useMemo(
+    () => canonicalFeatures.length ? canonicalFeatures : Object.values(actionEconomyGroups || {}).flat(),
     [canonicalFeatures, actionEconomyGroups],
+  );
+  const filteredFeatures = useMemo(
+    () => filterClassFeatures(sourceFeatures, featureQuery, featureFilter),
+    [sourceFeatures, featureQuery, featureFilter],
+  );
+  const featureGroups = useMemo(
+    () => groupFeatures(filteredFeatures),
+    [filteredFeatures],
   );
   const resources = useMemo(
     () => getSheetResourceCards(character, snapshot.resources || []),
@@ -272,7 +308,40 @@ export default function CleanSheetFeaturesTab({
             <h2>Class</h2>
             <p>{rulesEdition} rules • {snapshot.identity.primaryClass || character.character_class || 'Class'} level {snapshot.identity.level || character.level || 1}</p>
           </div>
-          <span>{canonicalFeatures.length} feature{canonicalFeatures.length === 1 ? '' : 's'}</span>
+          <span>
+            {filteredFeatures.length === sourceFeatures.length
+              ? `${sourceFeatures.length} feature${sourceFeatures.length === 1 ? '' : 's'}`
+              : `${filteredFeatures.length}/${sourceFeatures.length} shown`}
+          </span>
+        </div>
+        <div className="clean-sheet-feature-filter-bar">
+          <label className="clean-sheet-feature-search">
+            <span>Find feature</span>
+            <input
+              value={featureQuery}
+              onChange={(event) => setFeatureQuery(event.target.value)}
+              placeholder="Search features…"
+            />
+          </label>
+          <div className="clean-sheet-feature-filter-chips" role="group" aria-label="Filter class features by action type">
+            {[
+              ['all', 'All'],
+              ['action', 'Actions'],
+              ['bonus', 'Bonus'],
+              ['reaction', 'Reactions'],
+              ['passive', 'Passive'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={featureFilter === value ? 'active' : ''}
+                onClick={() => setFeatureFilter(value)}
+                aria-pressed={featureFilter === value}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="clean-sheet-feature-lanes">
           {Object.entries(featureGroups).map(([label, features]) => (
