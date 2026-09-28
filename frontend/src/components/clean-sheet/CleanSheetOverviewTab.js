@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Eye } from 'lucide-react';
 
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
+import CleanSheetProgressionHistory from './CleanSheetProgressionHistory';
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
 import './CleanSheetOverviewCompact.css';
 import './CleanSheetOverviewSpacing.css';
@@ -133,6 +134,8 @@ export default function CleanSheetOverviewTab({
           ))}
         </div>
       </section>
+
+      <CleanSheetProgressionHistory character={character} />
     </div>
   );
 }
