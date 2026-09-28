@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import apiClient from '@/lib/apiClient';
 import PlayerNowPlayingPanel, { buildPlayerNowPlayingSummary } from './PlayerNowPlayingPanel';
 
@@ -81,7 +81,7 @@ describe('PlayerNowPlayingPanel', () => {
 
     const { container } = render(<PlayerNowPlayingPanel campaignId="c1" characters={[]} />);
 
-    await screen.findByRole('button', { name: 'Refresh live table status' }).catch(() => null);
+    await waitFor(() => expect(apiClient.get).toHaveBeenCalledWith('/campaigns/c1/display-state'));
     expect(container.querySelector('[data-testid="player-now-playing"]')).toBeNull();
     expect(container.querySelector('[data-testid="player-live-status-unavailable"]')).toBeNull();
   });
