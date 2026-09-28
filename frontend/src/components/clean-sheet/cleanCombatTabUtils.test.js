@@ -1,6 +1,7 @@
 import {
   buildConsumableUseUpdate,
   consumeConsumableState,
+  rollAttackDamage,
   rollDice,
 } from './cleanCombatTabUtils';
 
@@ -90,6 +91,39 @@ describe('combat damage rolls', () => {
       rolls: [1, 6],
       total: 10,
       notation: '2d6+3',
+    });
+  });
+
+  test('critical weapon damage doubles dice but never doubles the flat modifier', () => {
+    const values = [0, 0.2, 0.5, 0.999];
+    let index = 0;
+
+    expect(rollAttackDamage(
+      { count: 2, sides: 6, modifier: 3 },
+      { critical: true, rng: () => values[index++] },
+    )).toEqual({
+      rolls: [1, 2, 4, 6],
+      total: 16,
+      notation: '4d6+3',
+      count: 4,
+      sides: 6,
+      modifier: 3,
+      critical: true,
+    });
+  });
+
+  test('critical flat damage does not double a legacy fixed damage point', () => {
+    expect(rollAttackDamage(
+      { count: 1, sides: 1, modifier: 4 },
+      { critical: true, rng: () => 0.999 },
+    )).toEqual({
+      rolls: [1],
+      total: 5,
+      notation: '1 +4',
+      count: 1,
+      sides: 1,
+      modifier: 4,
+      critical: false,
     });
   });
 
