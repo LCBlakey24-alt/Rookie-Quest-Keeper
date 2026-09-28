@@ -70,7 +70,7 @@
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-skill {
-    min-height: 36px !important;
+    min-height: 46px !important;
     padding: 5px 8px 5px 9px !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) 34px !important;
@@ -113,9 +113,9 @@
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-roll-chip {
     min-width: 0 !important;
-    width: 34px !important;
-    min-height: 28px !important;
-    height: 28px !important;
+    width: 46px !important;
+    min-height: 46px !important;
+    height: 46px !important;
     padding: 0 !important;
     display: grid !important;
     place-items: center !important;
@@ -131,13 +131,13 @@
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-save .clean-sheet-roll-chip,
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-ability .clean-sheet-roll-chip {
-    width: 38px !important;
-    min-height: 30px !important;
-    height: 30px !important;
+    width: 46px !important;
+    min-height: 46px !important;
+    height: 46px !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row button {
-    min-height: 30px !important;
+    min-height: 46px !important;
     padding: 0 4px !important;
     font-size: 9px !important;
     text-align: center !important;
