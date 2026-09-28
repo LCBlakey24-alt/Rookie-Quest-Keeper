@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Dices, Heart, Minus, Plus, RotateCcw, Shield, User, Zap } from 'lucide-react';
 import { ABILITIES, STANDARD_ARRAY, POINT_BUY_TOTAL, calculatePointBuyCost } from '../../lib/characterRules';
+import { rollAbilityScoreSet } from '@/data/abilityScoreRolls';
 
 const theme = {
   bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)' },
@@ -66,10 +67,7 @@ export default function AbilitiesStepTap({ method, setMethod, stats, setStats, a
   };
 
   const rollScores = (scores) => {
-    const values = scores || Array.from({ length: 6 }, () => {
-      const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => b - a);
-      return rolls[0] + rolls[1] + rolls[2];
-    });
+    const values = scores || rollAbilityScoreSet(6).map(result => result.total);
     setPool(makePool(values, 'roll'));
     setAssigned({});
     setSelectedId(null);
@@ -84,10 +82,9 @@ export default function AbilitiesStepTap({ method, setMethod, stats, setStats, a
     setSelectedId(null);
     setStats(ABILITIES.reduce((acc, ability) => ({ ...acc, [ability]: null }), {}));
 
-    const scores = Array.from({ length: 6 }, () => {
-      const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => b - a);
-      return rolls[0] + rolls[1] + rolls[2];
-    }).sort((a, b) => a - b);
+    const scores = rollAbilityScoreSet(6)
+      .map(result => result.total)
+      .sort((a, b) => a - b);
 
     const faces = Array.from({ length: scores.length }, () => null);
     setRollingFaces(faces);

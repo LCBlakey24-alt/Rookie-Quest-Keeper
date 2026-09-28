@@ -7,6 +7,7 @@ import {
   POINT_BUY_TOTAL,
   calculatePointBuyCost
 } from "../../lib/characterRules";
+import { rollAbilityScoreSet } from '@/data/abilityScoreRolls';
 
 const theme = {
   bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)' },
@@ -143,13 +144,8 @@ export default function AbilitiesStep({
 
   const runRollAnimation = async () => {
     setRolling(true);
-    // Pre-compute final rolls
-    const finalRolls = [];
-    for (let i = 0; i < 6; i++) {
-      const d4 = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1);
-      d4.sort((x, y) => y - x);
-      finalRolls.push(d4[0] + d4[1] + d4[2]);
-    }
+    // Pre-compute final rolls through the canonical 4d6-keep-3 rules helper.
+    const finalRolls = rollAbilityScoreSet(6).map(result => result.total);
     const intermediate = [null, null, null, null, null, null];
     setDiceFaces([...intermediate]);
     // Each die rolls sequentially
