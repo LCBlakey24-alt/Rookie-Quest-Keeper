@@ -70,3 +70,123 @@ describe('Channel Divinity action cards', () => {
     expect(channelCards(character).map((card) => card.title)).toEqual(['Channel Divinity']);
   });
 });
+
+
+describe('Variable-cost resource action cards', () => {
+  test('Sorcery Point actions ask for an amount instead of silently spending one point', () => {
+    const spendResource = jest.fn();
+    const character = {
+      character_class: 'Sorcerer',
+      level: 5,
+      class_levels: { Sorcerer: 5 },
+      resources: {
+        sorcery_points: {
+          label: 'Sorcery Points',
+          current: 4,
+          remaining: 4,
+          max: 5,
+          restore: 'long-rest',
+        },
+      },
+    };
+
+    const cards = resourceActionCards(character, resourcesFor(character), { spendResource }).bonus;
+    const metamagic = cards.find(card => card.title === 'Metamagic');
+    const conversion = cards.find(card => card.title === 'Convert Sorcery Points');
+
+    expect(metamagic).toMatchObject({
+      variableCost: true,
+      resourceKey: 'sorcery_points',
+      current: 4,
+      max: 5,
+    });
+    expect(conversion.variableCost).toBe(true);
+    expect(metamagic.onClick).toBeUndefined();
+
+    metamagic.onSpend(3);
+    conversion.onSpend(2);
+
+    expect(spendResource).toHaveBeenNthCalledWith(1, 'sorcery_points', 'Metamagic', 3);
+    expect(spendResource).toHaveBeenNthCalledWith(2, 'sorcery_points', 'Convert Sorcery Points', 2);
+  });
+
+  test('Lay on Hands can spend the chosen number of healing-pool points', () => {
+    const spendResource = jest.fn();
+    const character = {
+      character_class: 'Paladin',
+      level: 4,
+      class_levels: { Paladin: 4 },
+      resources: {
+        lay_on_hands: {
+          label: 'Lay on Hands',
+          current: 13,
+          remaining: 13,
+          max: 20,
+          restore: 'long-rest',
+        },
+      },
+    };
+
+    const layOnHands = resourceActionCards(character, resourcesFor(character), { spendResource }).action
+      .find(card => card.title === 'Lay on Hands');
+
+    expect(layOnHands).toMatchObject({
+      variableCost: true,
+      resourceKey: 'lay_on_hands',
+      current: 13,
+      max: 20,
+    });
+
+    layOnHands.onSpend(7);
+    expect(spendResource).toHaveBeenCalledWith('lay_on_hands', 'Lay on Hands', 7);
+  });
+
+  test('fixed-cost resource actions keep their one-tap spend behavior', () => {
+    const spendResource = jest.fn();
+    const character = {
+      character_class: 'Monk',
+      level: 5,
+      class_levels: { Monk: 5 },
+      resources: {
+        ki: {
+          label: 'Ki',
+          current: 3,
+          remaining: 3,
+          max: 5,
+          restore: 'short-rest',
+        },
+      },
+    };
+
+    const flurry = resourceActionCards(character, resourcesFor(character), { spendResource }).bonus
+      .find(card => card.title === 'Flurry of Blows');
+
+    expect(flurry.variableCost).toBeUndefined();
+    flurry.onClick();
+    expect(spendResource).toHaveBeenCalledWith('ki', 'Flurry of Blows');
+  });
+
+  test('variable spend requests are clamped to the remaining resource', () => {
+    const spendResource = jest.fn();
+    const character = {
+      character_class: 'Paladin',
+      level: 2,
+      class_levels: { Paladin: 2 },
+      resources: {
+        lay_on_hands: {
+          label: 'Lay on Hands',
+          current: 3,
+          remaining: 3,
+          max: 10,
+          restore: 'long-rest',
+        },
+      },
+    };
+
+    const layOnHands = resourceActionCards(character, resourcesFor(character), { spendResource }).action
+      .find(card => card.title === 'Lay on Hands');
+
+    layOnHands.onSpend(99);
+    expect(spendResource).toHaveBeenCalledWith('lay_on_hands', 'Lay on Hands', 3);
+  });
+});
