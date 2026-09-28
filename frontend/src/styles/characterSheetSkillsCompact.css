@@ -103,8 +103,8 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button {
-    min-height: 28px !important;
-    padding: 4px 2px !important;
+    min-height: 46px !important;
+    padding: 6px 4px !important;
     border-radius: 5px !important;
     color: #F7F1E7 !important;
     background: #112A40 !important;
@@ -211,10 +211,10 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill .clean-sheet-roll-chip {
     width: auto !important;
-    min-width: 31px !important;
-    max-width: 42px !important;
-    min-height: 27px !important;
-    height: 27px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+    min-height: 46px !important;
+    height: 46px !important;
     padding: 0 5px !important;
     display: grid !important;
     place-items: center !important;
@@ -234,7 +234,7 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill {
-    min-height: 36px !important;
+    min-height: 46px !important;
     padding-left: 5px !important;
     padding-right: 4px !important;
     gap: 4px !important;
@@ -254,8 +254,8 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill .clean-sheet-roll-chip {
-    min-width: 28px !important;
-    max-width: 36px !important;
-    font-size: 0.62rem !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+    font-size: 0.68rem !important;
   }
 }
