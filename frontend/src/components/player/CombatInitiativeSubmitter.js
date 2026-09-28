@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Check, Dices, RefreshCw, Swords } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { rollInitiative } from '@/data/initiativeRules';
 
 const ACTIVE_POLL_MS = 4000;
 const IDLE_POLL_MS = 15000;
@@ -128,8 +129,7 @@ export default function CombatInitiativeSubmitter({ campaignId, compact = false 
   };
 
   const roll = () => {
-    const natural = Math.floor(Math.random() * 20) + 1;
-    const total = natural + bonus;
+    const { natural, total } = rollInitiative(bonus);
     toast.info(`${character.name} rolled ${natural}${bonus ? ` ${bonus >= 0 ? '+' : ''}${bonus}` : ''} = ${total}`);
     submit(total, 'rolled');
   };

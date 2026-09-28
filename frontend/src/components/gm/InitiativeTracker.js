@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Minus, Trash2, Play, Pause, SkipForward, ChevronDown, ChevronUp, Dices, Shield } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { parseInitiativeTotal, rollInitiative } from '@/data/initiativeRules';
 
 export default function InitiativeTracker({ theme, campaignId, combatants = [] }) {
   const [entries, setEntries] = useState([]);
@@ -18,7 +19,8 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
         id: `c-${i}-${Date.now()}`,
         character_id: c.type === 'player' ? (c.id || null) : null,
         name: c.name || `Creature ${i + 1}`,
-        initiative: 0,
+        initiative: parseInitiativeTotal(c.initiative) ?? 0,
+        initiativeMod: Number(c.initiativeMod ?? c.initiative_bonus ?? c.initiative_mod ?? 0) || 0,
         hp: c.hit_points || c.hp || c.maxHp || 10,
         maxHp: c.hit_points || c.hp || c.maxHp || 10,
         ac: c.armor_class || c.ac || 10,
@@ -30,7 +32,8 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
 
   const addEntry = useCallback(() => {
     if (!newName.trim()) return;
-    const init = parseInt(newInit) || Math.floor(Math.random() * 20) + 1;
+    const manualInit = parseInitiativeTotal(newInit);
+    const init = manualInit ?? rollInitiative().total;
     setEntries(prev => [...prev, {
       id: `e-${Date.now()}`,
       name: newName.trim(),
@@ -53,7 +56,7 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
 
   const rollAllInitiative = () => {
     setEntries(prev =>
-      prev.map(e => ({ ...e, initiative: Math.floor(Math.random() * 20) + 1 }))
+      prev.map(e => ({ ...e, initiative: rollInitiative(e.initiativeMod).total }))
         .sort((a, b) => b.initiative - a.initiative)
     );
     setCurrentTurn(0);
@@ -90,7 +93,7 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
 
   const updateInitiative = (id, val) => {
     setEntries(prev =>
-      prev.map(e => e.id === id ? { ...e, initiative: parseInt(val) || 0 } : e)
+      prev.map(e => e.id === id ? { ...e, initiative: parseInitiativeTotal(val) ?? 0 } : e)
         .sort((a, b) => b.initiative - a.initiative)
     );
   };
