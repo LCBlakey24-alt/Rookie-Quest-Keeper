@@ -269,7 +269,7 @@ export default function CombatPageTable() {
     const timer = window.setTimeout(() => {
       const players = combatants.filter(item => item.type === 'player').map(combatantForDisplay);
       const visibleCreatures = combatants.filter(item => item.type !== 'player').map(combatantForDisplay);
-      const activeId = active ? (active.type === 'player' ? `player-${active.id}` : active.id) : '';
+      const activeId = active?.id || '';
       const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage || selectedMap?.background_image || '';
       publishCampaignDisplayState(campaignId, createDisplayState('combat', {
         combat_id: scenario.id || scenario.name || 'combat',
