@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
 import { rollDie } from '@/data/diceRoller';
+import { getLevelUpHpChoice, getLevelUpHpReceipt } from '@/data/levelUpHpRules';
 import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
 import { CLASS_FEATURES } from '@/data/classFeatures';
 import {
@@ -273,15 +274,37 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
 
   const hitDie = Number((!isMulticlass && preflight?.hit_die) || HIT_DICE[characterClass] || CLASSES[characterClass]?.hitDie || 8);
   const conMod = abilityMod(character.constitution);
-  const averageDie = Math.floor(hitDie / 2) + 1;
-  const averageHp = Math.max(1, averageDie + conMod);
   const manualHpRollValue = Number(manualHpRoll);
-  const validManualRoll = Number.isInteger(manualHpRollValue) && manualHpRollValue >= 1 && manualHpRollValue <= hitDie;
-  const hpGain = hpMethod === 'roll'
-    ? (hpRoll ? Math.max(1, hpRoll + conMod) : null)
-    : hpMethod === 'manual'
-      ? (validManualRoll ? Math.max(1, manualHpRollValue + conMod) : null)
-      : averageHp;
+  const averageHpChoice = getLevelUpHpChoice({
+    hitDie,
+    constitutionModifier: conMod,
+    method: 'average',
+  });
+  const hpChoice = getLevelUpHpChoice({
+    hitDie,
+    constitutionModifier: conMod,
+    method: hpMethod,
+    rawRoll: hpMethod === 'roll' ? hpRoll : hpMethod === 'manual' ? manualHpRollValue : null,
+  });
+  const averageDie = averageHpChoice.dieValue;
+  const averageHp = averageHpChoice.gain;
+  const validManualRoll = hpMethod !== 'manual'
+    ? Number.isInteger(manualHpRollValue) && manualHpRollValue >= 1 && manualHpRollValue <= hitDie
+    : hpChoice.valid;
+  const hpGain = hpChoice.valid ? hpChoice.gain : null;
+  const hpReceipt = getLevelUpHpReceipt(character, hpChoice);
+  const currentProficiency = Number(character?.proficiency_bonus) || (2 + Math.floor((Math.max(1, currentLevel) - 1) / 4));
+  const nextProficiency = Number(preflight?.proficiency_bonus) || (2 + Math.floor((Math.max(1, newLevel) - 1) / 4));
+  const proficiencyReceipt = currentProficiency === nextProficiency
+    ? `+${currentProficiency} (unchanged)`
+    : `+${currentProficiency} → +${nextProficiency}`;
+  const previousSlots = preflight?.previous_spell_slots || {};
+  const nextSlots = preflight?.spell_slots || {};
+  const spellSlotReceipt = Array.from(new Set([...Object.keys(previousSlots), ...Object.keys(nextSlots)]))
+    .filter((level) => Number(previousSlots[level] || 0) !== Number(nextSlots[level] || 0))
+    .sort((a, b) => Number(a) - Number(b))
+    .map((level) => `L${level} ${Number(previousSlots[level] || 0)}→${Number(nextSlots[level] || 0)}`)
+    .join(' • ');
 
   const localNeedsSubclass = needsSubclassChoice({ character, className: characterClass, classLevelAfter, edition });
   const needsSubclass = isMulticlass
@@ -587,6 +610,13 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 <CheckLine active={needsSubclass} text={needsSubclass ? 'Subclass choice is required at this class level.' : 'No new subclass choice required.'} />
                 <CheckLine active={isAsiLevel} text={isAsiLevel ? 'ASI or feat choice is due for this class.' : 'No ASI or feat choice at this class level.'} />
                 <CheckLine active={hasSpellChoices} text={spellChoiceSummary(spellChoiceMode, cantripGain, spellChoiceGain)} />
+                <CheckLine
+                  active={currentProficiency !== nextProficiency}
+                  text={currentProficiency !== nextProficiency
+                    ? `Proficiency bonus increases +${currentProficiency} → +${nextProficiency}.`
+                    : `Proficiency bonus stays at +${currentProficiency}.`}
+                />
+                {spellSlotReceipt && <CheckLine active text={`Spell slots change: ${spellSlotReceipt}.`} />}
                 {canReplacePrepared && (
                   <CheckLine active text={`You may replace up to ${replacementRule.maxReplacements} prepared spell during this level-up.`} />
                 )}
@@ -605,26 +635,51 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
 
           {activeStep === 'hp' && (
             <section style={styles.section}>
-              <h3 style={styles.sectionTitle}>Choose hit points</h3>
+              <h3 style={styles.sectionTitle}>Choose how to gain hit points</h3>
+              <p style={styles.copy}>
+                Your {characterClass} Hit Die is <strong>d{hitDie}</strong>. Your Constitution modifier is <strong>{conMod >= 0 ? `+${conMod}` : conMod}</strong>.
+                Keeper adds the modifier for you, so physical-dice mode only asks for the number showing on the die.
+              </p>
               <div style={styles.choiceGrid}>
                 <button type="button" onClick={() => setHpMethod('average')} style={styles.choiceCard(hpMethod === 'average')}>
-                  <strong>Take average</strong><span>{averageDie} {conMod >= 0 ? `+${conMod}` : conMod} CON = +{averageHp} HP</span>
+                  <strong>Take fixed {averageDie}</strong>
+                  <span>{averageHpChoice.formula}</span>
                 </button>
                 <button type="button" onClick={rollHp} style={styles.choiceCard(hpMethod === 'roll')}>
-                  <strong>Roll d{hitDie}</strong><span>{hpRoll ? `Rolled ${hpRoll}; +${Math.max(1, hpRoll + conMod)} HP` : 'Roll digitally.'}</span>
+                  <strong>Roll in Keeper · d{hitDie}</strong>
+                  <span>{hpRoll ? hpChoice.formula : `Keeper rolls the d${hitDie} and shows the working.`}</span>
                 </button>
                 <button type="button" onClick={() => setHpMethod('manual')} style={styles.choiceCard(hpMethod === 'manual')}>
-                  <strong>Physical roll</strong><span>Enter your table roll.</span>
+                  <strong>Use physical die · d{hitDie}</strong>
+                  <span>Roll at the table, then enter only the raw die result.</span>
                 </button>
               </div>
               {hpMethod === 'manual' && (
                 <label style={styles.field}>
-                  <span>d{hitDie} result</span>
-                  <input type="number" min="1" max={hitDie} value={manualHpRoll} onChange={(event) => setManualHpRoll(event.target.value)} style={styles.input} />
+                  <span>What did the d{hitDie} show?</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={hitDie}
+                    value={manualHpRoll}
+                    onChange={(event) => setManualHpRoll(event.target.value)}
+                    style={styles.input}
+                    aria-label={`Raw d${hitDie} hit point roll`}
+                  />
+                  <small>Enter 1–{hitDie}. Do not add Constitution — Keeper does that automatically.</small>
                   {manualHpRoll && !validManualRoll && <em style={styles.error}>Enter a whole number from 1 to {hitDie}.</em>}
                 </label>
               )}
-              <div style={styles.result}><Dices size={18} /> HP gain: <strong>{hpGain ? `+${hpGain}` : 'pending'}</strong></div>
+              <div style={styles.result} data-testid="level-up-hp-receipt">
+                <Dices size={18} />
+                <div>
+                  <span>{hpChoice.sourceLabel || 'Hit points'}</span>
+                  <strong>{hpChoice.valid ? hpChoice.formula : 'Choose a valid HP result to continue.'}</strong>
+                  {hpReceipt.valid && (
+                    <small>Max HP: {hpReceipt.currentMax} → {hpReceipt.nextMax}</small>
+                  )}
+                </div>
+              </div>
             </section>
           )}
 
@@ -758,7 +813,12 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 <Summary label="Progression" value={isMulticlass ? `Add ${characterClass}` : `Advance ${characterClass}`} />
                 <Summary label="Total level" value={`${currentLevel} → ${newLevel}`} />
                 <Summary label="Class level" value={`${characterClass} ${classLevelAfter}`} />
-                <Summary label="HP" value={`+${hpGain || 0}`} />
+                <Summary label="HP method" value={hpChoice.sourceLabel} />
+                <Summary label="HP math" value={hpChoice.formula || `+${hpGain || 0} HP`} />
+                <Summary label="Max HP" value={hpReceipt.valid ? `${hpReceipt.currentMax} → ${hpReceipt.nextMax}` : 'Pending'} />
+                <Summary label="Proficiency" value={proficiencyReceipt} />
+                <Summary label="Hit Dice" value={`${currentLevel} total → ${newLevel} total`} />
+                {spellSlotReceipt && <Summary label="Spell slots" value={spellSlotReceipt} />}
                 {needsSubclass && <Summary label="Subclass" value={selectedSubclass} />}
                 {choiceType === 'feat' && selectedFeat && <Summary label="Feat" value={selectedFeat.name} />}
                 {choiceType === 'asi' && <Summary label="ASI" value={`${abilityLabel(asiChoices.ability1)} +1, ${abilityLabel(asiChoices.ability2)} +1`} />}
