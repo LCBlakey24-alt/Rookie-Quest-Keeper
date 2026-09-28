@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
+import { rollDie } from '@/data/diceRoller';
 import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
 import { CLASS_FEATURES } from '@/data/classFeatures';
 import {
@@ -500,7 +501,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   };
 
   const rollHp = () => {
-    const roll = Math.floor(Math.random() * hitDie) + 1;
+    const roll = rollDie(hitDie);
     setHpMethod('roll');
     setHpRoll(roll);
     toast.success(`Rolled ${roll} on d${hitDie}`);
