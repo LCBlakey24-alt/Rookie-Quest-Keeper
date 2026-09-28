@@ -2,9 +2,39 @@ import { calculateArmorAc, findArmorRule } from './armorRules5e';
 import { findWeaponRule } from './equipmentRules5e';
 import { itemsFromStartingEquipmentLabels } from './startingEquipmentItems';
 import { getStartingEquipmentGroups } from './startingEquipmentRules';
+import { rollDie } from './diceRoller';
 
 const asArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
+const EMPTY_CURRENCY = { copper: 0, silver: 0, electrum: 0, gold: 0, platinum: 0 };
+const CURRENCY_FIELD = { cp: 'copper', sp: 'silver', ep: 'electrum', gp: 'gold', pp: 'platinum' };
+
+export function rollStartingGoldRule(rule = {}, rng = Math.random) {
+  if (rule.fixed) return Math.max(0, Number(rule.average || 0));
+  const dice = Math.max(0, Number(rule.dice || 0));
+  const die = Math.max(1, Number(rule.die || 1));
+  const multiplier = Math.max(0, Number(rule.multiplier || 1));
+  let total = 0;
+  for (let index = 0; index < dice; index += 1) total += rollDie(die, rng);
+  return total * multiplier;
+}
+
+export function splitStartingCurrency(labels = []) {
+  const currency = { ...EMPTY_CURRENCY };
+  const equipmentLabels = [];
+
+  asArray(labels).forEach(label => {
+    const match = String(label).trim().match(/^(\d+)\s*(cp|sp|ep|gp|pp)$/i);
+    if (!match) {
+      equipmentLabels.push(label);
+      return;
+    }
+    const field = CURRENCY_FIELD[match[2].toLowerCase()];
+    currency[field] += Number(match[1]) || 0;
+  });
+
+  return { equipmentLabels, currency };
+}
 
 export function defaultStartingEquipmentChoices(className = '') {
   return Object.fromEntries(
@@ -85,12 +115,13 @@ export function buildFullBuilderEquipmentState({
   abilities = {},
   fightingStyle = '',
 } = {}) {
-  const labels = selectedStartingEquipmentLabels({
+  const sourceLabels = selectedStartingEquipmentLabels({
     className,
     selections,
     fallbackClassEquipment,
     backgroundEquipment,
   });
+  const { equipmentLabels: labels, currency } = splitStartingCurrency(sourceLabels);
   const rawItems = itemsFromStartingEquipmentLabels(labels);
   const { armorIndex, shieldIndex, weaponIndexes } = equipmentIndexes(rawItems);
   const equippedIndexes = new Set(
@@ -123,6 +154,8 @@ export function buildFullBuilderEquipmentState({
 
   return {
     labels,
+    sourceLabels,
+    currency,
     items,
     armorClass,
     equipped: {
