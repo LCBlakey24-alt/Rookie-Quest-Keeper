@@ -161,6 +161,75 @@
   text-transform: uppercase;
 }
 
+
+.clean-sheet-variable-resource-card {
+  cursor: default;
+}
+
+.clean-sheet-variable-resource-card:hover {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: #070B18;
+}
+
+.clean-sheet-variable-resource-spend {
+  display: grid;
+  grid-template-columns: minmax(82px, .8fr) minmax(110px, 1fr);
+  gap: 8px;
+  margin-top: auto;
+}
+
+.clean-sheet-variable-resource-spend label {
+  display: grid;
+  gap: 4px;
+}
+
+.clean-sheet-variable-resource-spend label > span {
+  color: #9CA3AF;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.clean-sheet-variable-resource-spend input,
+.clean-sheet-variable-resource-spend button {
+  min-height: 38px;
+  border: 1px solid rgba(192, 138, 61, 0.30);
+  border-radius: 9px;
+  background: #0D1326;
+  color: var(--rq-text-primary, #F5E6C8);
+  font: inherit;
+  font-weight: 900;
+}
+
+.clean-sheet-variable-resource-spend input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 9px;
+}
+
+.clean-sheet-variable-resource-spend button {
+  align-self: end;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.clean-sheet-variable-resource-spend button:hover:not(:disabled) {
+  background: rgba(192, 138, 61, 0.16);
+}
+
+.clean-sheet-variable-resource-spend button:disabled,
+.clean-sheet-variable-resource-spend input:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 420px) {
+  .clean-sheet-variable-resource-spend {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .clean-sheet-attack-card {
   padding: 0;
   overflow: hidden;
