@@ -109,6 +109,33 @@
   letter-spacing: 0.08em;
 }
 
+.clean-sheet-spell-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.clean-sheet-library-toggle {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16));
+  border-left: 4px solid var(--rq-primary, #d00000);
+  border-radius: 0;
+  background: var(--rq-button, #1f1f1f);
+  color: var(--rq-text, #ffffff);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.clean-sheet-library-toggle:hover {
+  background: var(--rq-button-hover, #2a2a2a);
+}
+
 .clean-sheet-spell-search {
   min-height: 42px;
   display: grid;
@@ -336,6 +363,16 @@
   .clean-sheet-spellcasting-heading,
   .clean-sheet-spell-section-heading {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 620px) {
+  .clean-sheet-spell-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .clean-sheet-library-toggle {
+    width: 100%;
   }
 }
 
