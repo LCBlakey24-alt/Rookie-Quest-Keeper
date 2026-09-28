@@ -22,6 +22,7 @@ import { countChoiceLanguages, getFixedLanguages } from '@/data/languageChoiceUt
 import {
   buildFullBuilderEquipmentState,
   defaultStartingEquipmentChoices,
+  rollStartingGoldRule,
   startingEquipmentChoicesComplete,
 } from '@/data/fullBuilderEquipment';
 import { getStartingEquipmentGroups } from '@/data/startingEquipmentRules';
@@ -72,12 +73,6 @@ const spellName = (spell) => typeof spell === 'string' ? spell : spell?.name || 
 const getStartingGoldRule = (characterClass, edition) => edition === '2024' ? STARTING_GOLD_2024 : STARTING_GOLD_2014_BY_CLASS[characterClass] || { formula: '4d4 × 10 gp', dice: 4, die: 4, multiplier: 10, average: 100 };
 const getSubclassLevel = (characterClass, edition) => edition === '2024' ? 3 : SUBCLASS_LEVEL_2014[characterClass] || 3;
 const normalizeEquipmentMode = (mode) => mode === 'gold' ? 'gold' : 'equipment';
-const rollStartingGold = (rule) => {
-  if (rule.fixed) return rule.average;
-  let total = 0;
-  for (let i = 0; i < Number(rule.dice || 0); i += 1) total += 1 + Math.floor(Math.random() * Number(rule.die || 1));
-  return total * Number(rule.multiplier || 1);
-};
 const searchMatch = (spell, search) => {
   const needle = String(search || '').trim().toLowerCase();
   if (!needle) return true;
@@ -274,7 +269,12 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }
   const fighterStyleComplete = draft.characterClass !== 'Fighter' || Boolean(draft.fighterFightingStyle);
   const startingGoldRule = getStartingGoldRule(draft.characterClass, draft.edition);
-  const startingGold = equipmentMode === 'gold' ? (startingGoldRule.fixed ? startingGoldRule.average : Number(draft.rolledStartingGold || 0)) : 0;
+  const startingGold = equipmentMode === 'gold'
+    ? (startingGoldRule.fixed ? startingGoldRule.average : Number(draft.rolledStartingGold || 0))
+    : Number(equipmentState.currency?.gold || 0);
+  const startingCurrency = equipmentMode === 'equipment'
+    ? equipmentState.currency
+    : { copper: 0, silver: 0, electrum: 0, gold: startingGold, platinum: 0 };
   const spellReq = spellRequirements(draft.characterClass, classData, finalScores);
   const spellLists = getSpellsForClass(draft.characterClass) || {};
   const cantripPool = arr(spellLists.cantrips || spellLists[0]);
@@ -586,8 +586,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       equipment,
       inventory: equipment,
       equipped: equipmentState.equipped,
-      currency: { copper: 0, silver: 0, electrum: 0, gold: startingGold, platinum: 0 },
-      gold: startingGold,
+      currency: startingCurrency,
+      gold: Number(startingCurrency.gold || 0),
       personality_trait: draft.personalityTrait,
       personality_traits: draft.personalityTrait,
       ideal: draft.ideal,
@@ -709,7 +709,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
               else if (floatingSpent < floatingBudget) next[ability] = 1;
               update({ floatingAsi: next });
             }} />}
-            {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} equipmentGroups={equipmentGroups} startingGoldRule={startingGoldRule} startingGold={startingGold} />}
+            {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} equipmentGroups={equipmentGroups} equipmentCurrency={equipmentState.currency} startingGoldRule={startingGoldRule} startingGold={startingGold} />}
             {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} journeyPercent={journeyPercent} />}
           </article>
 
@@ -918,9 +918,18 @@ function SpellChip({ spell, active, onClick }) {
   return <button type="button" className={`full-creator-spell-chip ${active ? 'active' : ''}`} aria-pressed={Boolean(active)} onClick={onClick}><strong>{entry.name}</strong><span>{entry.school || 'Spell'}</span><em>{entry.description || ''}</em></button>;
 }
 
-function Equipment({ draft, update, equipment, equipmentGroups, startingGoldRule, startingGold }) {
+function Equipment({ draft, update, equipment, equipmentGroups, equipmentCurrency, startingGoldRule, startingGold }) {
   const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   const is2024 = draft.edition === '2024';
+  const equipmentCoin = [
+    ['platinum', 'pp'],
+    ['gold', 'gp'],
+    ['electrum', 'ep'],
+    ['silver', 'sp'],
+    ['copper', 'cp'],
+  ].filter(([key]) => Number(equipmentCurrency?.[key] || 0) > 0)
+    .map(([key, suffix]) => `${Number(equipmentCurrency[key])} ${suffix}`)
+    .join(', ');
   return <>
     <Title icon={Backpack} title="Equipment" text={is2024 ? 'Choose starting equipment or the fixed 2024 starting gold option.' : 'Choose starting equipment or roll starting gold by class.'} />
     <div className="full-creator-equipment-modes">
@@ -929,7 +938,7 @@ function Equipment({ draft, update, equipment, equipmentGroups, startingGoldRule
     </div>
     {equipmentMode === 'gold' ? (
       <>
-        {!startingGoldRule.fixed && <button type="button" onClick={() => update({ rolledStartingGold: rollStartingGold(startingGoldRule) })}>Roll {startingGoldRule.formula}</button>}
+        {!startingGoldRule.fixed && <button type="button" onClick={() => update({ rolledStartingGold: rollStartingGoldRule(startingGoldRule) })}>Roll {startingGoldRule.formula}</button>}
         <div className="full-creator-review-grid">
           <ReviewItem label={startingGoldRule.fixed ? 'Gold option' : 'Gold roll'} value={startingGoldRule.formula} />
           <ReviewItem label="Saved gold" value={startingGold ? `${startingGold} gp` : 'Not rolled yet'} />
@@ -956,6 +965,7 @@ function Equipment({ draft, update, equipment, equipmentGroups, startingGoldRule
           </Choice>
         ))}
         <div className="full-creator-equipment-list">{equipment.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div>
+        {equipmentCoin && <div className="full-creator-review-grid"><ReviewItem label="Starting coin" value={equipmentCoin} /></div>}
       </>
     )}
   </>;
