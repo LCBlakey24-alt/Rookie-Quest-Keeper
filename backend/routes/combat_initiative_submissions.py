@@ -20,6 +20,21 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def initiative_bonus_for(character: Dict[str, Any] | None) -> int:
+    character = character if isinstance(character, dict) else {}
+    explicit = character.get('initiative_bonus')
+    if explicit is not None and explicit != '':
+        try:
+            return int(explicit)
+        except (TypeError, ValueError):
+            pass
+    try:
+        dexterity = int(character.get('dexterity', 10))
+    except (TypeError, ValueError):
+        dexterity = 10
+    return (dexterity - 10) // 2
+
+
 def combat_id_from_display(state: Dict[str, Any] | None) -> str:
     if not isinstance(state, dict) or state.get('mode') != 'combat':
         return ''
@@ -56,7 +71,7 @@ async def get_my_combat_initiative(campaign_id: str, username: str = Depends(get
 
     character = await db.player_characters.find_one(
         {'campaign_id': campaign_id, 'user_id': username},
-        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1},
+        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1, 'dexterity': 1},
     )
     if not character:
         return {'combat_active': True, 'combat_id': combat_id, 'submission': None, 'character': None}
@@ -73,7 +88,7 @@ async def get_my_combat_initiative(campaign_id: str, username: str = Depends(get
         'character': {
             'id': character.get('id'),
             'name': character.get('name') or 'Character',
-            'initiative_bonus': int(character.get('initiative_bonus') or 0),
+            'initiative_bonus': initiative_bonus_for(character),
         },
     }
 
@@ -88,7 +103,7 @@ async def submit_combat_initiative(campaign_id: str, payload: Dict[str, Any], us
 
     character = await db.player_characters.find_one(
         {'campaign_id': campaign_id, 'user_id': username},
-        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1},
+        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1, 'dexterity': 1},
     )
     if not character:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No linked character found for this campaign')
@@ -111,7 +126,7 @@ async def submit_combat_initiative(campaign_id: str, payload: Dict[str, Any], us
         'character_name': character.get('name') or 'Character',
         'user_id': username,
         'initiative': value,
-        'initiative_bonus': int(character.get('initiative_bonus') or 0),
+        'initiative_bonus': initiative_bonus_for(character),
         'method': method,
         'updated_at': now_iso(),
     }
