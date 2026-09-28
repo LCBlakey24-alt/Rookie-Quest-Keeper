@@ -8,9 +8,9 @@ The character sheet is one of the highest-risk areas of the app because live tab
 
 ## Current active sheet routes
 
-- Desktop/tablet route: `frontend/src/components/CleanCharacterSheet.js`
-- Mobile route: `frontend/src/components/PlayerMobileRailSheet.js`
-- Desktop tabs:
+- Responsive desktop/tablet/mobile route: `frontend/src/components/CleanCharacterSheet.js`
+- The live sheet adapts through the explicit desktop/tablet/mobile presentation lanes; there is no separate mobile character component.
+- Active tabs:
   - `frontend/src/components/clean-sheet/CleanCombatTab.js`
   - `frontend/src/components/clean-sheet/CleanSpellsTab.js`
   - `frontend/src/components/clean-sheet/CleanInventoryTab.js`
@@ -49,17 +49,9 @@ However, they currently perform their own direct API calls rather than using the
 
 This works, but it is less consistent than the combat and spells tabs. The next safe code change should centralise these saves through the parent helper before extracting more character-sheet components.
 
-### Mobile rail sheet
+### Mobile presentation
 
-`PlayerMobileRailSheet.js` has its own `saveCharacterPatch(updates, successMessage)` helper. It uses `PATCH /characters/:characterId` and performs optimistic updates with rollback on error.
-
-This is acceptable for now, but once the desktop sheet is split, consider sharing a common hook such as:
-
-```js
-useLiveCharacterPatch(characterId, character, setCharacter)
-```
-
-That hook could be reused by both desktop and mobile sheet views.
+Mobile width uses the same `CleanCharacterSheet.js` data and save path as desktop/tablet. Device-specific CSS changes layout and touch geometry without introducing a second persistence implementation.
 
 ## Refactor rule
 
@@ -71,7 +63,7 @@ Safe order:
 2. Add a small regression checklist or tests for HP, temp HP, death saves, conditions, spell slots, notes, inventory, and concentration.
 3. Extract vitals/header into smaller components without changing save behaviour.
 4. Extract tab rendering into smaller components without changing save behaviour.
-5. Extract shared desktop/mobile live-save logic only after both flows are stable.
+5. Keep responsive layout changes separate from live-save behavior so mobile and desktop continue sharing one persistence path.
 
 ## Manual smoke test after any character-sheet save change
 
