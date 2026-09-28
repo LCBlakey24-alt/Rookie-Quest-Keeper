@@ -498,7 +498,7 @@
 
 .character-page-v2 .clean-sheet-resource-rail-heading span,
 .character-page-v2 .clean-sheet-resource-rail-heading small {
-  color: #F7F1E7 !important;
+  color: var(--cs-muted) !important;
   font-size: .66rem !important;
   font-weight: 800 !important;
 }
@@ -548,7 +548,7 @@
 .character-page-v2 .clean-sheet-resource-rail-copy span {
   display: block !important;
   overflow: hidden !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-muted) !important;
   font-size: .58rem !important;
   font-weight: 800 !important;
   letter-spacing: .05em !important;
@@ -585,7 +585,7 @@
 }
 
 .character-page-v2 .clean-sheet-resource-rail-value span {
-  color: #F7F1E7 !important;
+  color: var(--cs-muted) !important;
   font-size: .68rem !important;
   font-weight: 800 !important;
 }
@@ -615,15 +615,15 @@
 .character-page-v2 .clean-sheet-resource-rail-actions {
   grid-area: actions !important;
   display: grid !important;
-  grid-template-columns: 28px 28px !important;
+  grid-template-columns: repeat(2, 40px) !important;
   gap: 4px !important;
 }
 
 .character-page-v2 .clean-sheet-resource-rail-actions button {
-  width: 28px !important;
-  min-width: 28px !important;
-  height: 28px !important;
-  min-height: 28px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
   padding: 0 !important;
   border: 1px solid var(--cs-border) !important;
   border-radius: 5px !important;
