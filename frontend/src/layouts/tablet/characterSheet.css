@@ -34,3 +34,14 @@
 [data-rq-device='tablet'] .character-page-v2 .clean-sheet-item-card {
   min-width: 0 !important;
 }
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-resource-rail-actions {
+  grid-template-columns: repeat(2, 44px) !important;
+}
+
+[data-rq-device='tablet'] .character-page-v2 .clean-sheet-resource-rail-actions button {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+}

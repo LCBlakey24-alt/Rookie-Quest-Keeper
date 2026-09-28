@@ -165,6 +165,17 @@
   scrollbar-width: thin;
 }
 
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-resource-rail-actions {
+  grid-template-columns: repeat(2, 46px) !important;
+}
+
+[data-rq-device='mobile'] .character-page-v2 .clean-sheet-resource-rail-actions button {
+  width: 46px !important;
+  min-width: 46px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+}
+
 @media (max-width: 560px) {
   [data-rq-device='mobile'] .character-page-v2 .clean-sheet-readiness-grid {
     grid-template-columns: 1fr !important;
