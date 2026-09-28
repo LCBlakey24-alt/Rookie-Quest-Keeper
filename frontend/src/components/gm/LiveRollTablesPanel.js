@@ -3,6 +3,7 @@ import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Search, Send, Trash2, Upl
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { GM_REFERENCE_PACK_TABLES_BY_EDITION } from '@/data/gmReferenceTablesByEdition';
+import { resolveRollTableResult } from '@/data/rollTableRules';
 import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -151,12 +152,6 @@ function rangeMin(range) {
 function rangeMax(range) {
   const numbers = normaliseDash(range).match(/\d+/g)?.map(Number) || [rangeMin(range)];
   return Math.max(...numbers);
-}
-
-function rollMatches(range, roll) {
-  const min = rangeMin(range);
-  const max = rangeMax(range);
-  return roll >= min && roll <= max;
 }
 
 function hasNumericRange(range) {
@@ -520,11 +515,23 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
   const rollTable = (table = activeTable) => {
     if (!isRollableTable(table)) return;
     const entries = normaliseEntries(table.entries);
-    const sides = Number(String(table.die || 'd20').replace(/\D/g, '')) || Math.max(20, ...entries.map(entry => rangeMax(entry.range)));
-    const roll = Math.floor(Math.random() * sides) + 1;
-    const entry = entries.find(item => rollMatches(item.range, roll)) || entries[entries.length - 1];
+    const result = resolveRollTableResult({ die: table.die, entries });
+    if (!result.valid || !result.entry) {
+      toast.error('Could not roll this table', { description: result.error || 'The table ranges are incomplete.' });
+      return;
+    }
+
     setActiveTableId(table.id);
-    setLastRoll({ id: Date.now(), tableId: table.id, tableName: table.name, die: `d${sides}`, roll, range: entry.range, text: entry.text, createdAt: new Date().toISOString() });
+    setLastRoll({
+      id: Date.now(),
+      tableId: table.id,
+      tableName: table.name,
+      die: `d${result.sides}`,
+      roll: result.roll,
+      range: result.entry.range,
+      text: result.entry.text,
+      createdAt: new Date().toISOString(),
+    });
   };
 
   const saveTable = async () => {
