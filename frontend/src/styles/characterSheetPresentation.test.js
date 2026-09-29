@@ -92,6 +92,28 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalTweaks).toContain('max-height: 46px !important;');
   });
 
+  test('mobile Stats, Actions, Spells and Inventory use Guild Ledger tokens and phone touch targets', () => {
+    const files = [
+      '../components/clean-sheet/CleanSheetStatsMobileOverrides.css',
+      '../components/clean-sheet/CleanSheetActionsMobileOverrides.css',
+      '../components/clean-sheet/CleanSheetSpellsMobileOverrides.css',
+      '../components/clean-sheet/CleanSheetInventoryMobileOverrides.css',
+    ].map(read);
+
+    files.forEach((source) => {
+      expect(source).toContain('var(--cs-');
+      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7|#17364F|#071A29/i);
+    });
+
+    const actions = files[1];
+    const spells = files[2];
+    const inventory = files[3];
+
+    expect(actions).toContain('min-height: 46px !important;');
+    expect(spells).toContain('min-height: 46px !important;');
+    expect(inventory).toContain('min-height: 46px !important;');
+  });
+
   test('header and rail use Guild Ledger tokens and keep phone rail controls touch-friendly', () => {
     const header = read('../components/clean-sheet/CleanSheetHeaderCompact.css');
     const rail = read('../components/clean-sheet/CleanSheetTabsRail.css');
