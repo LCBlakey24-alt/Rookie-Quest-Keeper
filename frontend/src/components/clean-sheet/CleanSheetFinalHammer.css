@@ -115,9 +115,33 @@
 .character-page-v2 .clean-sheet-identity::before,
 .character-page-v2 .clean-sheet-identity::after,
 .character-page-v2 .clean-sheet-compact-stat--hp::before,
-.character-page-v2 .clean-sheet-compact-stat--hp::after {
+.character-page-v2 .clean-sheet-compact-stat--hp::after,
+.character-page-v2 .clean-sheet-identity h1::after,
+.character-page-v2 .clean-sheet-panel h2::after,
+.character-page-v2 .clean-sheet-panel-heading h2::after,
+.character-page-v2 .clean-sheet-section-heading-row h2::after,
+.character-page-v2 .clean-sheet-inventory-header h2::after,
+.character-page-v2 .clean-sheet-spellcasting-heading h2::after,
+.character-page-v2 .clean-sheet-spell-section-heading h2::after,
+.character-page-v2 .clean-sheet-feature-lane h3::after,
+.character-page-v2 .clean-sheet-spell-level-group h3::after {
   display: none !important;
   content: none !important;
+}
+
+.character-page-v2 :where(
+  .clean-sheet-identity h1,
+  .clean-sheet-panel h2,
+  .clean-sheet-panel-heading h2,
+  .clean-sheet-section-heading-row h2,
+  .clean-sheet-inventory-header h2,
+  .clean-sheet-spellcasting-heading h2,
+  .clean-sheet-spell-section-heading h2,
+  .clean-sheet-feature-lane h3,
+  .clean-sheet-spell-level-group h3
+) {
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions {
@@ -148,11 +172,22 @@
 .character-page-v2 .clean-sheet-inspiration.active,
 .character-page-v2 .clean-sheet-roll-mode-group button.active,
 .character-page-v2 .clean-sheet-condition-picker button.active,
-.character-page-v2 .clean-sheet-skill-filter-row button.active {
-  background: rgba(110,145,180, 0.10) !important;
+.character-page-v2 .clean-sheet-skill-filter-row button.active,
+.character-page-v2 button[aria-selected='true'],
+.character-page-v2 button[aria-pressed='true'] {
+  background: var(--cs-blue-soft) !important;
   background-image: none !important;
-  border-color: #C9A96B !important;
-  color: #EADFC8 !important;
+  border-color: var(--cs-accent) !important;
+  color: var(--cs-text) !important;
+}
+
+.character-page-v2 :where(
+  .clean-sheet-skill-filter-row button.active,
+  .clean-sheet-tabs button.active,
+  button[aria-selected='true'],
+  button[aria-pressed='true']
+) svg {
+  color: var(--cs-blue) !important;
 }
 
 .character-page-v2 button:hover:not(:disabled),

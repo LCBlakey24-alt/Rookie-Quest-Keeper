@@ -11,7 +11,6 @@ describe('Clean Character Sheet presentation ownership', () => {
       '../components/clean-sheet/CleanCharacterSheetPolish.css',
       '../components/clean-sheet/CleanSheetListPolish.css',
       '../components/clean-sheet/CleanSheetMobileBoxGrid.css',
-      '../components/clean-sheet/CleanSheetSunsetFinal.css',
     ];
     const css = files.map(read).join('\n');
 
@@ -72,11 +71,18 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(read(relativePath)).toContain(`[data-rq-device='${device}']`);
   });
 
-  test('the historical final sheet file is now only a compatibility guard', () => {
-    const finalGuard = read('../components/clean-sheet/CleanSheetSunsetFinal.css');
-    expect(finalGuard).toMatch(/sunset skin is retired/i);
-    expect(finalGuard).not.toMatch(/linear-gradient|radial-gradient/i);
-    expect(finalGuard).toContain('background-image: none !important;');
+  test('retired sunset guard stays deleted and final authority owns its protections', () => {
+    const sheet = read('../components/CleanCharacterSheet.js');
+    const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
+    const retiredGuard = path.join(__dirname, '../components/clean-sheet/CleanSheetSunsetFinal.css');
+
+    expect(fs.existsSync(retiredGuard)).toBe(false);
+    expect(sheet).not.toContain('CleanSheetSunsetFinal.css');
+    expect(finalAuthority).toContain('.clean-sheet-panel h2::after');
+    expect(finalAuthority).toContain("button[aria-selected='true']");
+    expect(finalAuthority).toContain("button[aria-pressed='true']");
+    expect(finalAuthority).toContain('font-family: var(--rq-body-font');
+    expect(finalAuthority).toContain('background: var(--cs-blue-soft) !important;');
   });
 
   test('mobile character-sheet roll and filter controls keep the 46px phone touch target', () => {
