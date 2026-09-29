@@ -41,6 +41,15 @@ export function subclassForClass(character = {}, className = '') {
   return '';
 }
 
+export function formatClassProgression(character = {}) {
+  return Object.entries(normaliseClassLevels(character))
+    .map(([className, level]) => {
+      const subclass = subclassForClass(character, className);
+      return `${className} ${level}${subclass ? ` (${subclass})` : ''}`;
+    })
+    .join(' / ');
+}
+
 export function subclassUnlockLevel(className = '', edition = '2014') {
   if (String(edition).includes('2024')) return 3;
   const key = normaliseName(className);
