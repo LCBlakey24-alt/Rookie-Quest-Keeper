@@ -1,5 +1,5 @@
 /* Character sheet rail app-shell compatibility.
-   Visual rail styling lives in CleanSheetTabsRail.css and CleanSheetMobileRail.css.
+   Visual rail styling lives in CleanSheetTabsRail.css, with the phone horizontal rail finalised by CleanSheetFinalHammer.css.
    This file only keeps safe spacing when a sheet is ever rendered inside AppShell. */
 
 .character-page-v2 {
