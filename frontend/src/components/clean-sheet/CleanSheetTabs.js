@@ -5,7 +5,6 @@ import { playerSheetReturnFromLocation } from '@/components/player/playerSheetNa
 import './CleanSheetTabs.minimal.css';
 import './CleanSheetTabsRail.css';
 import './CleanSheetTabsAppShell.css';
-import './CleanSheetMobileRail.css';
 import './CleanLevelUpWizardPolish.css';
 import './CleanSheetTabAttention.css';
 import './CleanSheetFinalHammer.css';
