@@ -1,22 +1,23 @@
-/* Level Up wizard — flat RQK 1.0 presentation over the inline wizard layout. */
+/* Level Up wizard — Guild Ledger presentation over the inline wizard layout.
+   Stateful backgrounds/borders stay owned by the wizard's inline choice/step styles
+   so current, completed, and selected choices remain visibly distinct. */
 
 .character-page-v2 [data-testid="level-up-wizard"] {
   width: min(920px, calc(100vw - 24px)) !important;
   max-height: 92dvh !important;
-  background: #071522 !important;
+  background: var(--cs-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(255,45,170,.28) !important;
-  border-left: 1px solid rgba(255,45,170,.28) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
-  color: #FFFFFF !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] > header,
 .character-page-v2 [data-testid="level-up-wizard"] > footer {
-  background: #0C2234 !important;
+  background: var(--cs-bg) !important;
   background-image: none !important;
-  border-color: rgba(255,45,170,.18) !important;
+  border-color: var(--cs-border) !important;
   box-shadow: none !important;
 }
 
@@ -25,58 +26,58 @@
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] > header h2 {
-  color: #FFFFFF !important;
+  color: var(--cs-text) !important;
   font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
   font-size: clamp(24px, 4vw, 34px) !important;
   line-height: 1 !important;
   letter-spacing: -.02em !important;
 }
 
-.character-page-v2 [data-testid="level-up-wizard"] :where(p,span,label,strong,h3) {
-  color: #FFFFFF !important;
+.character-page-v2 [data-testid="level-up-wizard"] :where(strong,h3,label) {
+  color: var(--cs-text) !important;
 }
 
-.character-page-v2 [data-testid="level-up-wizard"] > header p,
-.character-page-v2 [data-testid="level-up-wizard"] h3 + p {
-  color: #FFFFFF !important;
+.character-page-v2 [data-testid="level-up-wizard"] :where(p,small) {
+  color: var(--cs-text-soft) !important;
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] > nav {
   padding: 8px 10px !important;
-  background: #0C2234 !important;
+  background: var(--cs-panel) !important;
   background-image: none !important;
-  border-color: rgba(255,45,170,.18) !important;
+  border-color: var(--cs-border) !important;
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] > nav span {
-  background: #102B40 !important;
-  background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
-  border-left: 1px solid rgba(255,45,170,.18) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > nav span[aria-current="step"] {
+  color: var(--cs-text) !important;
+  outline: 1px solid var(--cs-accent) !important;
+  outline-offset: -1px !important;
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] > div {
   padding: 12px !important;
-  background: #071522 !important;
+  background: var(--cs-bg) !important;
   background-image: none !important;
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] button {
-  min-height: 40px !important;
-  background: #102B40 !important;
-  background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
-  border-left: 1px solid rgba(255,45,170,.18) !important;
+  min-height: 44px !important;
   border-radius: 5px !important;
   box-shadow: none !important;
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
 }
 
-.character-page-v2 [data-testid="level-up-wizard"] button svg {
-  color: #7CCBFF !important;
+.character-page-v2 [data-testid="level-up-wizard"] > header button {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] button:disabled {
@@ -86,27 +87,32 @@
 
 .character-page-v2 [data-testid="level-up-wizard"] button:hover:not(:disabled),
 .character-page-v2 [data-testid="level-up-wizard"] button:focus-visible {
-  background: #14344C !important;
-  border-color: #FF2DAA !important;
-  outline: none !important;
+  background: var(--cs-blue-soft) !important;
+  border-color: var(--cs-accent) !important;
+  filter: none !important;
+  transform: none !important;
 }
 
 .character-page-v2 [data-testid="level-up-wizard"] input,
 .character-page-v2 [data-testid="level-up-wizard"] select,
 .character-page-v2 [data-testid="level-up-wizard"] textarea {
-  min-height: 40px !important;
-  background: #081B2A !important;
+  min-height: 44px !important;
+  background: var(--cs-input) !important;
   background-image: none !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  color: var(--cs-text) !important;
+  -webkit-text-fill-color: var(--cs-text) !important;
+  border: 1px solid var(--cs-border) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
 }
 
-.character-page-v2 [data-testid="level-up-wizard"] :where(input,select,textarea):focus-visible {
-  border-color: #FF2DAA !important;
-  outline: 1px solid #FF2DAA !important;
-  outline-offset: 1px !important;
+.character-page-v2 [data-testid="level-up-wizard"] :where(button,input,select,textarea):focus-visible {
+  outline: 3px solid var(--cs-blue) !important;
+  outline-offset: 2px !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] em {
+  color: var(--cs-danger) !important;
 }
 
 @media (max-width: 620px) {
@@ -128,5 +134,19 @@
 
   .character-page-v2 [data-testid="level-up-wizard"] > header h2 {
     font-size: 23px !important;
+  }
+
+  .character-page-v2 [data-testid="level-up-wizard"] button,
+  .character-page-v2 [data-testid="level-up-wizard"] input,
+  .character-page-v2 [data-testid="level-up-wizard"] select,
+  .character-page-v2 [data-testid="level-up-wizard"] textarea {
+    min-height: 46px !important;
+  }
+
+  .character-page-v2 [data-testid="level-up-wizard"] > header button {
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
   }
 }
