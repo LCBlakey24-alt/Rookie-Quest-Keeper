@@ -58,8 +58,6 @@ import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { CLASSES, MULTICLASS_REQUIREMENTS, getMulticlassOptions } from '@/data/characterRules5e';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const titleFont = 'var(--rq-title-font, "New Rocker", Georgia, serif)';
-
 const theme = {
   bg: 'var(--rq-bg-main)',
   panel: 'var(--rq-bg-panel)',
@@ -565,7 +563,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
 
         <nav style={styles.stepRail} aria-label="Level up steps">
           {steps.map((step, index) => (
-            <span key={step.id} style={styles.stepPill(index === stepIndex, index < stepIndex)}>
+            <span key={step.id} style={styles.stepPill(index === stepIndex, index < stepIndex)} aria-current={index === stepIndex ? 'step' : undefined}>
               {index < stepIndex ? <Check size={13} /> : index + 1} {step.label}
             </span>
           ))}
@@ -925,9 +923,9 @@ const styles = {
   modal: { width: 'min(920px, 100%)', maxHeight: '94dvh', display: 'grid', gridTemplateRows: 'auto auto minmax(0,1fr) auto', background: theme.panel, border: `1px solid ${theme.line}`, overflow: 'hidden' },
   header: { display: 'flex', justifyContent: 'space-between', gap: 14, padding: '16px 16px 13px', borderBottom: `1px solid ${theme.line}`, background: theme.bg },
   eyebrow: { margin: '0 0 4px', fontSize: 10, fontWeight: 950, letterSpacing: '.12em', textTransform: 'uppercase', color: theme.text },
-  title: { margin: 0, fontFamily: titleFont, fontSize: 'clamp(34px,5vw,56px)', lineHeight: .92, color: theme.text },
+  title: { margin: 0, fontFamily: fontStack, fontSize: 'clamp(34px,5vw,56px)', lineHeight: .92, color: theme.text },
   subtitle: { margin: '7px 0 0', fontSize: 13, color: theme.text },
-  iconButton: { width: 38, height: 38, display: 'grid', placeItems: 'center', border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, cursor: 'pointer' },
+  iconButton: { width: 44, height: 44, display: 'grid', placeItems: 'center', border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, cursor: 'pointer' },
   stepRail: { display: 'flex', gap: 6, flexWrap: 'wrap', padding: 10, borderBottom: `1px solid ${theme.line}` },
   stepPill: (active, done) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 8px', background: active ? theme.accent : done ? theme.accentSoft : theme.card, border: `1px solid ${active ? theme.accent : theme.line}`, color: theme.text, fontSize: 10, fontWeight: 950, textTransform: 'uppercase' }),
   body: { padding: 'clamp(12px,2vw,18px)', overflowY: 'auto', minHeight: 0 },
@@ -943,8 +941,8 @@ const styles = {
   checklist: { display: 'grid', gap: 7 },
   checkLine: (active) => ({ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: active ? theme.accentSoft : theme.card, border: `1px solid ${theme.line}`, color: theme.text, fontSize: 13 }),
   field: { display: 'grid', gap: 6, color: theme.text, fontSize: 11, fontWeight: 900, textTransform: 'uppercase' },
-  input: { width: '100%', boxSizing: 'border-box', minHeight: 42, background: theme.bg, border: `1px solid ${theme.strongLine}`, color: theme.text, padding: '0 10px', fontFamily: fontStack, colorScheme: 'dark' },
-  error: { color: '#ff7f9f', textTransform: 'none', fontStyle: 'normal' },
+  input: { width: '100%', boxSizing: 'border-box', minHeight: 44, background: theme.bg, border: `1px solid ${theme.strongLine}`, color: theme.text, padding: '0 10px', fontFamily: fontStack, colorScheme: 'dark' },
+  error: { color: 'var(--cs-danger, #B94A4F)', textTransform: 'none', fontStyle: 'normal' },
   result: { display: 'flex', alignItems: 'center', gap: 8, padding: 11, background: theme.bg, border: `1px solid ${theme.line}` },
   status: (colour) => ({ display: 'flex', alignItems: 'center', gap: 8, padding: 11, background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `5px solid ${colour}`, fontSize: 12, fontWeight: 850 }),
   spellPicker: { display: 'grid', gap: 8, padding: 11, background: theme.card, border: `1px solid ${theme.line}` },
@@ -952,6 +950,6 @@ const styles = {
   spellButtons: { display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 220, overflowY: 'auto' },
   spellButton: (active, disabled) => ({ border: `1px solid ${active ? theme.accent : theme.line}`, background: active ? theme.accentSoft : theme.bg, color: theme.text, padding: '7px 9px', opacity: disabled ? .45 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }),
   footer: { display: 'flex', justifyContent: 'space-between', gap: 10, padding: 11, borderTop: `1px solid ${theme.line}`, background: theme.bg },
-  primaryButton: { minHeight: 40, border: 0, background: theme.accent, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 14px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack },
-  secondaryButton: { minHeight: 40, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 14px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack },
+  primaryButton: { minHeight: 44, border: 0, background: theme.accent, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 14px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack },
+  secondaryButton: { minHeight: 44, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 14px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack },
 };
