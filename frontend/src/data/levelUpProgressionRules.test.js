@@ -1,5 +1,6 @@
 import {
   classLevelFor,
+  formatClassProgression,
   needsSubclassChoice,
   normaliseClassLevels,
   resolveExistingClassName,
@@ -22,6 +23,18 @@ describe('class-aware level-up progression helpers', () => {
   test('reads every existing class from class_levels', () => {
     expect(normaliseClassLevels(multiclass)).toEqual({ Fighter: 3, Wizard: 2 });
     expect(classLevelFor(multiclass, 'wizard')).toBe(2);
+  });
+
+  test('formats multiclass progression with per-class subclasses', () => {
+    expect(formatClassProgression(multiclass)).toBe('Fighter 3 (Champion) / Wizard 2 (Evocation)');
+  });
+
+  test('formats a normal single-class character without duplicating subclass text', () => {
+    expect(formatClassProgression({
+      character_class: 'Rogue',
+      subclass: 'Thief',
+      level: 4,
+    })).toBe('Rogue 4 (Thief)');
   });
 
   test('resolves secondary-class subclass independently of primary subclass', () => {
