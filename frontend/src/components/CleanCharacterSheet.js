@@ -29,6 +29,7 @@ import {
   needsConcentrationReplacement,
 } from '@/data/characterConcentrationRules';
 import { getClassFeatures } from '@/data/classFeatures';
+import { formatClassProgression } from '@/data/levelUpProgressionRules';
 import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
 import {
   PASSIVE_SKILLS,
@@ -545,11 +546,11 @@ export default function CleanCharacterSheet() {
     );
   }
 
+  const classProgression = formatClassProgression(character);
   const subtitle = [
     character.race,
     character.subrace ? `(${character.subrace})` : null,
-    character.character_class,
-    character.subclass ? `(${character.subclass})` : null,
+    classProgression,
     `Lv ${character.level || 1}`,
   ].filter(Boolean).join(' • ');
 
