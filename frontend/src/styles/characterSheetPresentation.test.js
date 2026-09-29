@@ -30,7 +30,6 @@ describe('Clean Character Sheet presentation ownership', () => {
       '../components/clean-sheet/CleanSheetFinalHammer.css',
       '../components/clean-sheet/CleanSheetDicePolish.css',
       '../components/clean-sheet/CleanSheetTabsRail.css',
-      '../components/clean-sheet/CleanSheetMobileRail.css',
       '../components/clean-sheet/CleanSheetHeaderCompact.css',
       '../components/clean-sheet/CleanSheetStatsMobileOverrides.css',
       '../components/clean-sheet/CleanSheetActionsMobileOverrides.css',
@@ -112,6 +111,18 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(actions).toContain('min-height: 46px !important;');
     expect(spells).toContain('min-height: 46px !important;');
     expect(inventory).toContain('min-height: 46px !important;');
+  });
+
+  test('obsolete vertical mobile rail layer stays deleted', () => {
+    const tabs = read('../components/clean-sheet/CleanSheetTabs.js');
+    const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
+    const retiredRail = path.join(__dirname, '../components/clean-sheet/CleanSheetMobileRail.css');
+
+    expect(fs.existsSync(retiredRail)).toBe(false);
+    expect(tabs).not.toContain('CleanSheetMobileRail.css');
+    expect(finalAuthority).toContain('flex-direction: row !important;');
+    expect(finalAuthority).toContain('min-width: 48px !important;');
+    expect(finalAuthority).toContain('height: 48px !important;');
   });
 
   test('header and rail use Guild Ledger tokens and keep phone rail controls touch-friendly', () => {
