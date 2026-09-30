@@ -1,5 +1,6 @@
 import { findWeaponRule, getWeaponAbilityMod } from '@/data/equipmentRules5e';
 import { rollDiceNotation } from '@/data/diceRoller';
+import { canonicalInventorySlot, getCanonicalEquippedItem } from '@/data/characterInventoryState';
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 export const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -240,6 +241,26 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
     damageText,
     damageType,
     damage: { label: `${name} Damage`, count: dice.count, sides: dice.sides, modifier: totalDamageMod, damageType }
+  };
+}
+
+export function getEquippedWeaponAttack(character, slot, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus) {
+  const canonicalSlot = canonicalInventorySlot(slot);
+  const equipped = character?.equipped || {};
+  let item = getCanonicalEquippedItem(equipped, canonicalSlot);
+
+  if (!item) {
+    item = [...(character?.equipment || []), ...(character?.inventory || [])].find((candidate) => (
+      Boolean(candidate?.equipped || candidate?.is_equipped)
+      && canonicalInventorySlot(candidate?.equip_slot || candidate?.equipped_slot || '') === canonicalSlot
+    )) || null;
+  }
+
+  if (!item || !isWeaponLike(item)) return null;
+
+  return {
+    ...getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
+    equipSlot: canonicalSlot,
   };
 }
 
