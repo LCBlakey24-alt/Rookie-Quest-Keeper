@@ -3,7 +3,7 @@
 }
 
 .clean-sheet-tabs button.needs-attention {
-  border-color: rgba(255, 79, 129, 0.68) !important;
+  border-color: var(--cs-warning) !important;
 }
 
 .clean-sheet-tabs button.needs-attention:not(.active)::after {
@@ -14,7 +14,7 @@
   bottom: 5px;
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #ff4f81, #ff9542);
+  background: var(--cs-warning);
   opacity: 0.95;
 }
 
@@ -26,22 +26,21 @@
   bottom: 8px;
   width: 3px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #ff4f81, #ff9542);
+  background: var(--cs-warning);
 }
 
 .clean-sheet-tab-warning {
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ff4f81, #ff9542);
-  box-shadow: 0 0 0 2px rgba(255, 79, 129, 0.18);
+  background: var(--cs-warning);
+  box-shadow: none;
 }
 
 .clean-sheet-attention-section {
-  background:
-    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
-    linear-gradient(135deg, rgba(255, 79, 129, 0.94), rgba(255, 149, 66, 0.72)) border-box !important;
-  border: 1px solid transparent !important;
+  background: var(--cs-card) !important;
+  background-image: none !important;
+  border: 1px solid var(--cs-warning) !important;
 }
 
 .clean-sheet-character-detail-grid {
@@ -59,7 +58,7 @@
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--cs-border);
   margin-bottom: 10px;
 }
 
