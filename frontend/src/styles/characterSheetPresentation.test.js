@@ -24,6 +24,21 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(css).toContain('#F7F1E7');
   });
 
+  test('redundant hero badge correction layer stays deleted', () => {
+    const stack = read('featurePresentationStack.css');
+    const alignment = read('characterSheetColumnAlignmentFix.css');
+    const finalAuthority = read('../components/clean-sheet/CleanSheetFinalHammer.css');
+    const retired = path.join(__dirname, 'characterSheetHeroBadgeFix.css');
+
+    expect(fs.existsSync(retired)).toBe(false);
+    expect(stack).not.toContain('characterSheetHeroBadgeFix.css');
+    expect(alignment).toContain('padding-right: 92px !important;');
+    expect(alignment).toContain('padding-right: 78px !important;');
+    expect(alignment).toContain('padding-right: 70px !important;');
+    expect(finalAuthority).toContain('.clean-sheet-identity h1::after');
+    expect(finalAuthority).toContain('display: none !important;');
+  });
+
   test('late-loaded live character styles cannot restore gradients or sunset colours', () => {
     const files = [
       '../components/clean-sheet/CleanSheetFinalHammer.css',
