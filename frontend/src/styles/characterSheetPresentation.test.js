@@ -146,6 +146,26 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalAuthority).toContain('height: 48px !important;');
   });
 
+  test('play header and unified mobile header use Guild Ledger tokens without retired palette colours', () => {
+    const playHeader = read('characterSheetPlayHeaderCompact.css');
+    const mobileHeader = read('characterSheetUnifiedMobileHeader.css');
+    const files = [playHeader, mobileHeader];
+
+    files.forEach((source) => {
+      expect(source).toContain('var(--cs-');
+      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7|#071A29|rgba\(214\s*,\s*168\s*,\s*79|rgba\(121\s*,\s*188\s*,\s*232/i);
+    });
+
+    expect(playHeader).toContain('.clean-sheet-inspiration-toggle.is-active');
+    expect(playHeader).toContain('background: var(--cs-blue-soft) !important;');
+    expect(playHeader).toContain('.clean-sheet-hp-progress span');
+    expect(playHeader).toContain('background: var(--cs-blue) !important;');
+
+    expect(mobileHeader).toContain('min-height: 46px !important;');
+    expect(mobileHeader).toContain('border: 1px solid var(--cs-border-strong) !important;');
+    expect(mobileHeader).toContain('color: var(--cs-text) !important;');
+  });
+
   test('header and rail use Guild Ledger tokens and keep phone rail controls touch-friendly', () => {
     const header = read('../components/clean-sheet/CleanSheetHeaderCompact.css');
     const rail = read('../components/clean-sheet/CleanSheetTabsRail.css');
