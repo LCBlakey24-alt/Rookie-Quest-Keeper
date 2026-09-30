@@ -75,10 +75,10 @@
   padding: 3px 7px !important;
   display: inline-grid !important;
   place-items: center !important;
-  background: linear-gradient(#160722, #160722) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
-  border: 1px solid transparent !important;
+  background: var(--cs-card) !important;
+  border: 1px solid var(--cs-accent) !important;
   border-radius: 4px !important;
-  color: #ffffff !important;
+  color: var(--cs-text) !important;
   font-size: 0.68rem !important;
   line-height: 1 !important;
   font-weight: 950 !important;
@@ -99,14 +99,14 @@
 }
 
 #root .character-page-v2 .clean-sheet-hero-subtitle-line {
-  color: rgba(255, 255, 255, 0.74) !important;
+  color: var(--cs-text-soft) !important;
   white-space: nowrap !important;
 }
 
 #root .character-page-v2 .clean-sheet-hero-subtitle-line + .clean-sheet-hero-subtitle-line::before {
   content: '•';
   margin-right: 8px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--cs-muted);
 }
 
 #root .character-page-v2 .clean-sheet-identity h1::after,
