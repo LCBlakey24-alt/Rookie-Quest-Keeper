@@ -50,6 +50,7 @@ describe('Clean Character Sheet presentation ownership', () => {
       '../components/clean-sheet/CleanSheetInventoryMobileOverrides.css',
       '../components/clean-sheet/CleanSheetSpellsMobileOverrides.css',
       '../components/clean-sheet/CleanSheetMobileTidyFixes.css',
+      '../components/clean-sheet/CleanSheetTabAttention.css',
       '../components/FloatingDiceRoller.css',
       '../components/FloatingDiceRollerExperience.css',
       './characterSheetRailAndHeroFix.css',
@@ -175,6 +176,23 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(mobileHeader).toContain('min-height: 46px !important;');
     expect(mobileHeader).toContain('border: 1px solid var(--cs-border-strong) !important;');
     expect(mobileHeader).toContain('color: var(--cs-text) !important;');
+  });
+
+  test('remaining rail, spell-unavailable and attention chrome use Guild Ledger semantic tokens', () => {
+    const railHero = read('characterSheetRailAndHeroFix.css');
+    const unavailable = read('characterSheetSpellUnavailableState.css');
+    const attention = read('../components/clean-sheet/CleanSheetTabAttention.css');
+    const css = [railHero, unavailable, attention].join('\n');
+
+    expect(css).toContain('var(--cs-');
+    expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#79BCE8|#D6A84F|#F7F1E7|#112A40|#0C2234|#071A29|#050E18|rgba\(214\s*,\s*168\s*,\s*79|rgba\(121\s*,\s*188\s*,\s*232/i);
+    expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
+
+    expect(railHero).toContain('background: var(--cs-blue-soft) !important;');
+    expect(unavailable).toContain('background: var(--cs-panel) !important;');
+    expect(attention).toContain('border-color: var(--cs-warning) !important;');
+    expect(attention).toContain('background: var(--cs-warning);');
+    expect(attention).toContain('background: var(--cs-card) !important;');
   });
 
   test('header and rail use Guild Ledger tokens and keep phone rail controls touch-friendly', () => {
