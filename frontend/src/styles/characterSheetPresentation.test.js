@@ -101,6 +101,21 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalAuthority).toContain('background: var(--cs-blue-soft) !important;');
   });
 
+  test('Stats, Skills and Saving Throws presentation layers use Guild Ledger tokens', () => {
+    const files = [
+      read('characterSheetStatsFinalMobileTweaks.css'),
+      read('characterSheetStatsTabFinalPolish.css'),
+      read('characterSheetSkillsCompact.css'),
+      read('characterSheetSavingThrowsCompact.css'),
+    ];
+
+    files.forEach((source) => {
+      expect(source).toContain('var(--cs-');
+      expect(source).not.toMatch(/#0C2234|#112A40|#F7F1E7|#D6A84F|#79BCE8|#071A29|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
+      expect(source).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
+    });
+  });
+
   test('mobile character-sheet roll and filter controls keep the 46px phone touch target', () => {
     const skills = read('characterSheetSkillsCompact.css');
     const stats = read('../components/clean-sheet/CleanSheetStatsMobileOverrides.css');
