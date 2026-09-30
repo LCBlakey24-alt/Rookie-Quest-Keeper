@@ -1,6 +1,8 @@
 import {
   buildConsumableUseUpdate,
   consumeConsumableState,
+  gatherEquippedWeapons,
+  hasWeaponProficiency,
   rollAttackDamage,
   rollDice,
 } from './cleanCombatTabUtils';
@@ -145,5 +147,47 @@ describe('combat damage rolls', () => {
       notation: '5 -2',
     });
     expect(calls).toBe(0);
+  });
+});
+
+describe('weapon attack proficiency', () => {
+  const longsword = { name: 'Longsword', equipped: true };
+
+  test('adds proficiency bonus when the character is proficient with the weapon category', () => {
+    const character = { weapon_proficiencies: ['Martial weapons'], equipment: [longsword] };
+    const [attack] = gatherEquippedWeapons(character, 3, 1, 3, 2);
+
+    expect(hasWeaponProficiency(character, longsword)).toBe(true);
+    expect(attack).toMatchObject({ title: 'Longsword', attackMod: 5, proficient: true });
+  });
+
+  test('does not add proficiency bonus for a known weapon outside explicit proficiencies', () => {
+    const character = { weapon_proficiencies: ['Simple weapons'], equipment: [longsword] };
+    const [attack] = gatherEquippedWeapons(character, 3, 1, 3, 2);
+
+    expect(hasWeaponProficiency(character, longsword)).toBe(false);
+    expect(attack).toMatchObject({ attackMod: 3, proficient: false });
+    expect(attack.details).toContain('Not proficient');
+  });
+
+  test('supports proficiency with a specifically named weapon', () => {
+    const character = { weapon_proficiencies: ['Longsword'], equipment: [longsword] };
+    const [attack] = gatherEquippedWeapons(character, 3, 1, 3, 2);
+
+    expect(attack).toMatchObject({ attackMod: 5, proficient: true });
+  });
+
+  test('keeps legacy characters without saved weapon proficiency data working as before', () => {
+    const character = { equipment: [longsword] };
+    const [attack] = gatherEquippedWeapons(character, 3, 1, 3, 2);
+
+    expect(attack).toMatchObject({ attackMod: 5, proficient: true });
+  });
+
+  test('an explicit item proficiency flag overrides the character list', () => {
+    const character = { weapon_proficiencies: ['Martial weapons'], equipment: [{ ...longsword, proficient: false }] };
+    const [attack] = gatherEquippedWeapons(character, 3, 1, 3, 2);
+
+    expect(attack).toMatchObject({ attackMod: 3, proficient: false });
   });
 });
