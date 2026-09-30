@@ -37,16 +37,23 @@ function formatSubtitleParts(parts) {
   return parts.map((part) => titleCaseSlug(part)).filter(Boolean);
 }
 
-function compactSubtitleParts(character, fallbackSubtitle) {
+export function compactSubtitleParts(character, fallbackSubtitle) {
+  const suppliedParts = String(fallbackSubtitle || '')
+    .split('•')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => !/^(?:lv|level)\s*\d+/i.test(part))
+    .map((part) => (/[/\d]/.test(part) ? part : titleCaseSlug(part)));
+
+  if (suppliedParts.length) return suppliedParts;
+
   const directParts = [
     character?.race,
     character?.character_class,
     character?.subclass,
   ].filter(Boolean);
 
-  if (directParts.length) return formatSubtitleParts(directParts);
-
-  return formatSubtitleParts(String(fallbackSubtitle || '').split('•')).filter((part) => !/^level\s+\d+/i.test(part));
+  return formatSubtitleParts(directParts);
 }
 
 export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, resting }) {
