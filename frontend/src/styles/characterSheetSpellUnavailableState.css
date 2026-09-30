@@ -1,4 +1,4 @@
-/* Spell tab unavailable state in the flat RQK 1.0 language. */
+/* Spell tab unavailable state in the Guild Ledger character-sheet language. */
 
 #root .character-page-v2 .clean-sheet-spells-tab:has(.clean-sheet-spell-search input:placeholder-shown):not(:has(.clean-sheet-spell-level-group)):not(:has(.clean-sheet-spell-card)):not(:has(.clean-sheet-slot-card)):not(:has(.clean-sheet-caster-card)) > .clean-spell-board {
   display: none !important;
@@ -12,10 +12,10 @@
   padding: 28px 20px !important;
   white-space: pre-line !important;
   text-align: center !important;
-  color: #F7F1E7 !important;
-  background: #0C2234 !important;
+  color: var(--cs-text) !important;
+  background: var(--cs-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.24) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   border-radius: 7px !important;
   font-size: 1rem !important;
   line-height: 1.5 !important;
@@ -29,10 +29,10 @@
   width: 44px !important;
   height: 44px !important;
   margin: -78px auto 34px !important;
-  color: #79BCE8 !important;
-  background: #112A40 !important;
+  color: var(--cs-blue) !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid var(--cs-accent) !important;
   border-radius: 5px !important;
   font-size: 1.35rem !important;
   line-height: 1 !important;
