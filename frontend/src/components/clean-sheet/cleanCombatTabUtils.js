@@ -180,7 +180,31 @@ export function getPotionHealing(item) {
   return { count: 2, sides: 4, modifier: 2 };
 }
 
-function getWeaponProfile(item, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus) {
+export function hasWeaponProficiency(character = {}, item, rule = findWeaponRule(item)) {
+  if (typeof item?.proficient === 'boolean') return item.proficient;
+  if (typeof item?.is_proficient === 'boolean') return item.is_proficient;
+
+  const saved = character?.weapon_proficiencies ?? character?.proficiencies?.weapons;
+  const proficiencies = Array.isArray(saved) ? saved.filter(Boolean) : [];
+  // Preserve legacy characters that predate saved weapon proficiency data.
+  if (!proficiencies.length) return true;
+
+  const weaponName = normaliseName(rule?.name || getItemName(item));
+  const category = normaliseName(rule?.category || item?.weapon_category || item?.category || '');
+  const categoryKnown = category.includes('simple') || category.includes('martial');
+
+  return proficiencies.some((entry) => {
+    const text = normaliseName(typeof entry === 'string' ? entry : getItemName(entry));
+    if (!text) return false;
+    if (['all', 'allweapons', 'weapons'].includes(text)) return true;
+    if (weaponName && (text === weaponName || text.includes(weaponName) || weaponName.includes(text))) return true;
+    if (category.includes('simple') && text.includes('simple')) return true;
+    if (category.includes('martial') && text.includes('martial')) return true;
+    return false;
+  }) || !categoryKnown && !rule;
+}
+
+function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus) {
   const rule = findWeaponRule(item);
   const name = rule?.name || getItemName(item) || 'Weapon Attack';
   const explicitDice = parseDamageDice(item?.damage || item?.damage_dice || item?.dice || item?.damageDice);
@@ -196,19 +220,22 @@ function getWeaponProfile(item, strengthMod, dexterityMod, bestAbilityMod, profi
   const range = item?.range || rule?.range || 'Melee or ranged';
   const properties = item?.properties || item?.property || item?.notes || (rule?.properties || []).join(', ');
   const itemBonus = Number(item?.attack_bonus || 0);
-  const attackMod = proficiencyBonus + abilityMod + itemBonus;
+  const proficient = hasWeaponProficiency(character, item, rule);
+  const attackMod = (proficient ? proficiencyBonus : 0) + abilityMod + itemBonus;
   const totalDamageMod = abilityMod + itemBonus;
   const damageText = dice.sides === 1
     ? `${dice.count}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`
     : `${dice.count}d${dice.sides}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`;
+  const detailParts = [range, properties, proficient ? null : 'Not proficient'].filter(Boolean);
 
   return {
     id: `weapon-${String(name).toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
     title: name,
     type: 'Action',
     attackLabel: `${name} Attack`,
-    details: properties ? `${range} • ${properties}` : range,
+    details: detailParts.join(' • '),
     attackMod,
+    proficient,
     saveText: null,
     damageText,
     damageType,
@@ -221,7 +248,7 @@ export function gatherEquippedWeapons(character, strengthMod, dexterityMod, best
   const equipped = character?.equipped || {};
   ['mainHand', 'main_hand', 'weapon', 'offHand', 'off_hand'].forEach(key => { if (equipped?.[key]) candidates.push(equipped[key]); });
   [...(character?.equipment || []), ...(character?.inventory || [])].forEach(item => { if (item?.equipped || item?.is_equipped) candidates.push(item); });
-  const weapons = candidates.filter(isWeaponLike).map(item => getWeaponProfile(item, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus));
+  const weapons = candidates.filter(isWeaponLike).map(item => getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus));
   const seen = new Set();
   return weapons.filter(weapon => {
     const key = weapon.title.toLowerCase();
