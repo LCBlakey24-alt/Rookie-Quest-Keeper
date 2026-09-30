@@ -1,12 +1,12 @@
-/* Mobile-only unified play header for RQK 1.0. */
+/* Mobile-only unified play header for the Guild Ledger character-sheet presentation. */
 
 @media (max-width: 759px) {
   #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple {
     margin-bottom: 0 !important;
     padding-bottom: 8px !important;
-    background: #0C2234 !important;
+    background: var(--cs-panel) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.18) !important;
+    border: 1px solid var(--cs-border-strong) !important;
     border-bottom: 0 !important;
     border-radius: 7px 7px 0 0 !important;
     box-shadow: none !important;
@@ -16,9 +16,9 @@
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
     margin-top: 0 !important;
     padding-top: 8px !important;
-    background: #0C2234 !important;
+    background: var(--cs-panel) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.18) !important;
+    border: 1px solid var(--cs-border-strong) !important;
     border-top: 0 !important;
     border-radius: 0 0 7px 7px !important;
     box-shadow: none !important;
@@ -54,10 +54,10 @@
     height: 46px !important;
     min-height: 46px !important;
     border-radius: 5px !important;
-    background: #112A40 !important;
+    background: var(--cs-card) !important;
     background-image: none !important;
-    border: 1px solid #D6A84F !important;
-    color: #79BCE8 !important;
+    border: 1px solid var(--cs-accent) !important;
+    color: var(--cs-blue) !important;
   }
 
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
@@ -67,28 +67,28 @@
 
   #root .character-page-v2 .clean-sheet-combat-dashboard-topline { gap: 7px !important; }
   #root .character-page-v2 .clean-sheet-combat-hp-title { gap: 5px !important; }
-  #root .character-page-v2 .clean-sheet-combat-hp-title span { font-size: 0.82rem !important; color: #F7F1E7 !important; }
-  #root .character-page-v2 .clean-sheet-combat-hp-title strong { font-size: 1.1rem !important; color: #F7F1E7 !important; }
+  #root .character-page-v2 .clean-sheet-combat-hp-title span { font-size: 0.82rem !important; color: var(--cs-text) !important; }
+  #root .character-page-v2 .clean-sheet-combat-hp-title strong { font-size: 1.1rem !important; color: var(--cs-text) !important; }
   #root .character-page-v2 .clean-sheet-combat-top-actions { gap: 5px !important; }
 
   #root .character-page-v2 .clean-sheet-combat-temp-pill {
     min-height: 26px !important;
     padding-inline: 7px !important;
     font-size: 0.58rem !important;
-    background: #112A40 !important;
+    background: var(--cs-card) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.20) !important;
-    color: #F7F1E7 !important;
+    border: 1px solid var(--cs-border-strong) !important;
+    color: var(--cs-text) !important;
   }
 
   #root .character-page-v2 .clean-sheet-combat-rest-toggle {
     min-height: 46px !important;
     padding-inline: 10px !important;
     font-size: 0.58rem !important;
-    background: #112A40 !important;
+    background: var(--cs-card) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.20) !important;
-    color: #F7F1E7 !important;
+    border: 1px solid var(--cs-border-strong) !important;
+    color: var(--cs-text) !important;
   }
 
   #root .character-page-v2 .clean-sheet-inspiration-toggle {
@@ -96,15 +96,15 @@
     min-width: 46px !important;
     height: 46px !important;
     min-height: 46px !important;
-    background: #112A40 !important;
+    background: var(--cs-card) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.20) !important;
-    color: #79BCE8 !important;
+    border: 1px solid var(--cs-border-strong) !important;
+    color: var(--cs-blue) !important;
   }
 
   #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active {
-    background: rgba(121,188,232,.10) !important;
-    border-color: #D6A84F !important;
+    background: var(--cs-blue-soft) !important;
+    border-color: var(--cs-accent) !important;
   }
 
   #root .character-page-v2 .clean-sheet-hp-progress { height: 4px !important; }
@@ -119,12 +119,12 @@
     min-height: 46px !important;
     padding: 4px 3px !important;
     font-size: 0.56rem !important;
-    background: #112A40 !important;
+    background: var(--cs-card) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.20) !important;
+    border: 1px solid var(--cs-border-strong) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
-    color: #F7F1E7 !important;
+    color: var(--cs-text) !important;
   }
 
   #root .character-page-v2 .clean-sheet-quick-stat-strip {
@@ -152,9 +152,9 @@
     content: none !important;
   }
 
-  #root .character-page-v2 .clean-sheet-quick-stat svg { width: 12px !important; height: 12px !important; color: #79BCE8 !important; }
-  #root .character-page-v2 .clean-sheet-quick-stat span { font-size: 0.58rem !important; color: #F7F1E7 !important; }
-  #root .character-page-v2 .clean-sheet-quick-stat strong { font-size: clamp(1.22rem, 6.5vw, 1.72rem) !important; color: #F7F1E7 !important; }
+  #root .character-page-v2 .clean-sheet-quick-stat svg { width: 12px !important; height: 12px !important; color: var(--cs-blue) !important; }
+  #root .character-page-v2 .clean-sheet-quick-stat span { font-size: 0.58rem !important; color: var(--cs-text) !important; }
+  #root .character-page-v2 .clean-sheet-quick-stat strong { font-size: clamp(1.22rem, 6.5vw, 1.72rem) !important; color: var(--cs-text) !important; }
 }
 
 #root .character-page-v2 .clean-sheet-panel,
@@ -163,9 +163,9 @@
 #root .character-page-v2 .clean-sheet-compact-save,
 #root .character-page-v2 .clean-sheet-compact-skill,
 #root .character-page-v2 .clean-sheet-passive-card {
-  background: #112A40 !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   box-shadow: none !important;
 }
 
@@ -184,10 +184,10 @@
 #root .character-page-v2 .clean-sheet-compact-save .clean-sheet-roll-chip,
 #root .character-page-v2 .clean-sheet-compact-skill .clean-sheet-roll-chip,
 #root .character-page-v2 .clean-sheet-panel button.clean-sheet-roll-chip {
-  color: #F7F1E7 !important;
-  background: #112A40 !important;
+  color: var(--cs-text) !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.20) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
 }
@@ -206,9 +206,9 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-scores-panel {
     padding: 10px !important;
-    background: #0C2234 !important;
+    background: var(--cs-panel) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.18) !important;
+    border: 1px solid var(--cs-border-strong) !important;
     border-radius: 7px !important;
     box-shadow: none !important;
   }
@@ -221,7 +221,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-scores-panel h2 {
     margin-bottom: 7px !important;
-    color: #F7F1E7 !important;
+    color: var(--cs-text) !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip {
@@ -254,7 +254,7 @@
     font-size: 0.58rem !important;
     line-height: 1 !important;
     letter-spacing: 0.04em !important;
-    color: #F7F1E7 !important;
+    color: var(--cs-text) !important;
     text-align: center !important;
   }
 
@@ -263,7 +263,7 @@
     font-size: clamp(1.35rem, 7vw, 1.85rem) !important;
     line-height: 0.95 !important;
     font-weight: 900 !important;
-    color: #F7F1E7 !important;
+    color: var(--cs-text) !important;
     text-align: center !important;
   }
 
@@ -278,9 +278,9 @@
     padding: 0 5px !important;
     font-size: 0.7rem !important;
     border-radius: 5px !important;
-    background: #112A40 !important;
+    background: var(--cs-card) !important;
     background-image: none !important;
-    border: 1px solid rgba(214,168,79,.20) !important;
+    border: 1px solid var(--cs-border-strong) !important;
     box-shadow: none !important;
   }
 }
