@@ -18,10 +18,8 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(css).not.toMatch(/cs-sunset|sheet-sunset|rq-sunset-gradient/i);
     expect(css).not.toMatch(/Cinzel/i);
     expect(css).not.toMatch(/#d00000|rgba\(208\s*,\s*0\s*,\s*0/i);
-    expect(css).toContain('#071522');
-    expect(css).toContain('#79BCE8');
-    expect(css).toContain('#D6A84F');
-    expect(css).toContain('#F7F1E7');
+    expect(css).toContain('var(--cs-');
+    expect(css).not.toMatch(/#071522|#0C2234|#112A40|#071A29|#79BCE8|#D6A84F|#F7F1E7|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
   });
 
   test('redundant hero badge correction layer stays deleted', () => {
@@ -68,10 +66,21 @@ describe('Clean Character Sheet presentation ownership', () => {
     // but they must resolve to flat colours: no gradient syntax or sunset hexes.
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#190728|#150721|#12051c/i);
-    expect(css).toContain('#071522');
-    expect(css).toContain('#79BCE8');
-    expect(css).toContain('#D6A84F');
-    expect(css).toContain('#F7F1E7');
+    expect(css).toContain('var(--cs-');
+  });
+
+  test('direct sheet, dice, mobile tidy and list polish use Guild Ledger tokens', () => {
+    const files = [
+      read('../components/clean-sheet/CleanCharacterSheetPolish.css'),
+      read('../components/clean-sheet/CleanSheetDicePolish.css'),
+      read('../components/clean-sheet/CleanSheetMobileTidyFixes.css'),
+      read('../components/clean-sheet/CleanSheetListPolish.css'),
+    ];
+
+    files.forEach((source) => {
+      expect(source).toContain('var(--cs-');
+      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#071A29|#79BCE8|#D6A84F|#F7F1E7|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
+    });
   });
 
   test('historical mobile import delegates to the explicit mobile lane', () => {

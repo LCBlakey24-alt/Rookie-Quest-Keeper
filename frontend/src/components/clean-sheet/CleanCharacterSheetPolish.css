@@ -4,24 +4,24 @@
    Phone geometry lives separately; this file owns the shared palette and surfaces. */
 
 .character-page-v2.clean-sheet-page {
-  --cs-bg: #071522;
-  --cs-panel: #0C2234;
-  --cs-card: #112A40;
+  --cs-bg: var(--cs-bg);
+  --cs-panel: var(--cs-panel);
+  --cs-card: var(--cs-card);
   --cs-card-hover: #17364F;
-  --cs-input: #071A29;
-  --cs-text: #F7F1E7;
-  --cs-text-soft: #F7F1E7;
-  --cs-muted: #F7F1E7;
-  --cs-border: rgba(214,168,79,.18);
-  --cs-border-strong: rgba(214,168,79,.42);
-  --cs-accent: #D6A84F;
-  --cs-accent-soft: rgba(121,188,232,.10);
-  --cs-accent-border: #D6A84F;
-  --cs-blue: #79BCE8;
-  --cs-blue-soft: rgba(121,188,232,.10);
-  --cs-success: #79BCE8;
-  --cs-warning: #D6A84F;
-  --cs-danger: #D6A84F;
+  --cs-input: var(--cs-input);
+  --cs-text: var(--cs-text);
+  --cs-text-soft: var(--cs-text);
+  --cs-muted: var(--cs-text);
+  --cs-border: var(--cs-border-strong);
+  --cs-border-strong: var(--cs-border-strong);
+  --cs-accent: var(--cs-accent);
+  --cs-accent-soft: var(--cs-blue-soft);
+  --cs-accent-border: var(--cs-accent);
+  --cs-blue: var(--cs-blue);
+  --cs-blue-soft: var(--cs-blue-soft);
+  --cs-success: var(--cs-blue);
+  --cs-warning: var(--cs-accent);
+  --cs-danger: var(--cs-accent);
 
   width: 100% !important;
   max-width: 100vw !important;
@@ -30,7 +30,7 @@
   overflow-x: hidden !important;
   background: var(--cs-bg) !important;
   background-image: none !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .character-page-v2 :where(h1,h2,h3,h4,h5,h6,p,span,strong,small,label,em,b,i,li,dt,dd,button,a,th,td,legend,summary) {
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   -webkit-text-fill-color: currentColor !important;
 }
 
@@ -72,7 +72,7 @@
   border: 1px solid var(--cs-border) !important;
   border-left: 1px solid var(--cs-border) !important;
   border-radius: 7px !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-header::before,
@@ -122,7 +122,7 @@
 .character-page-v2 .clean-sheet-core-stat-card strong,
 .character-page-v2 .clean-sheet-stat-value,
 .character-page-v2 .clean-sheet-compact-ability > strong {
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-family: inherit !important;
   font-weight: 900 !important;
 }
@@ -184,7 +184,7 @@
   border-radius: 5px !important;
   background: var(--cs-card) !important;
   background-image: none !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-weight: 850 !important;
   cursor: pointer;
 }
@@ -195,7 +195,7 @@
 .character-page-v2 .clean-sheet-condition-picker button.active {
   background: var(--cs-blue-soft) !important;
   border-color: var(--cs-accent) !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 button:hover:not(:disabled),
@@ -225,13 +225,13 @@
   border-radius: 5px !important;
   background: var(--cs-input) !important;
   background-image: none !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   color-scheme: dark;
 }
 
 .character-page-v2 input::placeholder,
 .character-page-v2 textarea::placeholder {
-  color: rgba(255,255,255,.62) !important;
+  color: var(--cs-muted) !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
@@ -264,7 +264,7 @@
   border: 1px solid var(--cs-border) !important;
   border-left: 1px solid var(--cs-border) !important;
   border-radius: 5px !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
@@ -282,7 +282,7 @@
   background-image: none !important;
   border: 1px solid var(--cs-border) !important;
   border-radius: 4px !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat,
@@ -317,7 +317,7 @@
   border-left: 1px solid var(--cs-accent) !important;
   border-radius: 5px !important;
   background: var(--cs-input) !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-size: .64rem !important;
   font-style: normal !important;
   font-weight: 850 !important;
@@ -362,7 +362,7 @@
   border: 1px solid var(--cs-border) !important;
   border-radius: 4px !important;
   background: var(--cs-blue-soft) !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-snapshot-warning,
@@ -373,7 +373,7 @@
   border-radius: 5px !important;
   background: var(--cs-card) !important;
   background-image: none !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-notes-textarea {
@@ -394,7 +394,7 @@
 .character-page-v2 .clean-sheet-rook-actions button {
   min-height: 40px !important;
   background: var(--cs-card) !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   border: 1px solid var(--cs-accent) !important;
   border-radius: 5px !important;
 }
@@ -478,7 +478,7 @@
   border: 1px solid var(--cs-border) !important;
   border-radius: 7px !important;
   background: var(--cs-panel) !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-resource-rail-heading {
@@ -509,7 +509,7 @@
 }
 
 .character-page-v2 .clean-sheet-resource-rail-heading strong {
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-size: .92rem !important;
   font-weight: 900 !important;
 }
@@ -561,7 +561,7 @@
   display: block !important;
   margin-top: 2px !important;
   overflow: hidden !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-size: .84rem !important;
   font-weight: 900 !important;
   text-overflow: ellipsis !important;
@@ -574,11 +574,11 @@
   align-items: baseline !important;
   justify-content: flex-end !important;
   gap: 3px !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-resource-rail-value strong {
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-size: 1.15rem !important;
   line-height: 1 !important;
   font-weight: 950 !important;
@@ -628,7 +628,7 @@
   border: 1px solid var(--cs-border) !important;
   border-radius: 5px !important;
   background: var(--cs-input) !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-size: 1rem !important;
   font-weight: 900 !important;
 }
