@@ -12,6 +12,7 @@ import {
   fmt,
   gatherConsumables,
   gatherEquippedWeapons,
+  getEquippedWeaponAttack,
   getItemName,
   getItemQuantity,
   getPotionHealing,
@@ -150,6 +151,15 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     () => gatherEquippedWeapons(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
     [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus],
   );
+  const mainHandAttack = useMemo(
+    () => getEquippedWeaponAttack(character, 'mainHand', strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
+    [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus],
+  );
+  const offHandAttack = useMemo(
+    () => getEquippedWeaponAttack(character, 'offHand', strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
+    [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus],
+  );
+  const canShowOffHandAttack = Boolean(mainHandAttack && offHandAttack);
   const consumables = useMemo(() => gatherConsumables(character), [character]);
   const spells = useMemo(() => gatherCharacterSpells(character), [character]);
   const actionFeatures = useMemo(() => gatherActionFeatures(character), [character]);
@@ -395,7 +405,14 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           {spellCards(groupedSpells.bonus, 'bonus')}
           {resourceCards(resourceActions.bonus)}
           {featureCards(groupedFeatures.bonus)}
-          <SimpleActionCard title="Off-hand Attack" type="Bonus" description="Use when dual-wielding after taking the Attack action." onClick={() => onRoll('Off-hand Attack', bestAttackMod)} />
+          {canShowOffHandAttack && (
+            <SimpleActionCard
+              title={`Off-hand Attack · ${offHandAttack.title}`}
+              type="Bonus"
+              description={`${fmt(offHandAttack.attackMod)} to hit • Use when your current two-weapon rules allow this extra attack.`}
+              onClick={() => onRoll(`${offHandAttack.title} Off-hand Attack`, offHandAttack.attackMod)}
+            />
+          )}
           {classKey === 'rogue' && <SimpleActionCard title="Cunning Action" type="Bonus" description="Dash, Disengage, or Hide as a bonus action." />}
         </ActionSection>
 
