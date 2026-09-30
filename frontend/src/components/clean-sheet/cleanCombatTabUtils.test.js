@@ -2,6 +2,7 @@ import {
   buildConsumableUseUpdate,
   consumeConsumableState,
   gatherEquippedWeapons,
+  getEquippedWeaponAttack,
   hasWeaponProficiency,
   rollAttackDamage,
   rollDice,
@@ -189,5 +190,66 @@ describe('weapon attack proficiency', () => {
     const [attack] = gatherEquippedWeapons(character, 3, 1, 3, 2);
 
     expect(attack).toMatchObject({ attackMod: 3, proficient: false });
+  });
+});
+
+
+describe('canonical hand-slot combat attacks', () => {
+  test('preserves two same-name weapons as distinct main-hand and off-hand attacks', () => {
+    const character = {
+      weapon_proficiencies: ['Simple weapons'],
+      equipped: {
+        mainHand: { id: 'dagger-main', name: 'Dagger', equip_slot: 'mainHand', equipped: true },
+        offHand: { id: 'dagger-off', name: 'Dagger', equip_slot: 'offHand', equipped: true },
+      },
+    };
+
+    const main = getEquippedWeaponAttack(character, 'mainHand', 1, 4, 4, 3);
+    const off = getEquippedWeaponAttack(character, 'offHand', 1, 4, 4, 3);
+
+    expect(main).toMatchObject({ title: 'Dagger', attackMod: 7, equipSlot: 'mainHand' });
+    expect(off).toMatchObject({ title: 'Dagger', attackMod: 7, equipSlot: 'offHand' });
+  });
+
+  test('does not treat a shield in the off-hand slot as an off-hand weapon attack', () => {
+    const character = {
+      equipped: {
+        mainHand: { name: 'Longsword', equipped: true },
+        offHand: { name: 'Shield', type: 'Armor', equipped: true },
+      },
+    };
+
+    expect(getEquippedWeaponAttack(character, 'offHand', 3, 1, 3, 2)).toBeNull();
+  });
+
+  test('falls back to equipped inventory slot metadata when the equipped map is missing', () => {
+    const character = {
+      weapon_proficiencies: ['Simple weapons'],
+      inventory: [
+        { id: 'dagger-off', name: 'Dagger', equipped: true, equip_slot: 'offHand' },
+      ],
+    };
+
+    expect(getEquippedWeaponAttack(character, 'offHand', 1, 4, 4, 3)).toMatchObject({
+      title: 'Dagger',
+      attackMod: 7,
+      equipSlot: 'offHand',
+    });
+  });
+
+  test('off-hand profile respects non-proficiency instead of adding PB', () => {
+    const character = {
+      weapon_proficiencies: ['Simple weapons'],
+      equipped: {
+        offHand: { name: 'Longsword', equipped: true },
+      },
+    };
+
+    expect(getEquippedWeaponAttack(character, 'offHand', 3, 1, 3, 2)).toMatchObject({
+      title: 'Longsword',
+      attackMod: 3,
+      proficient: false,
+      equipSlot: 'offHand',
+    });
   });
 });
