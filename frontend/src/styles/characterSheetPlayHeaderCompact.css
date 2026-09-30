@@ -1,4 +1,4 @@
-/* Compact play header for RQK 1.0. Flat navy surfaces, white text, blue UI and pink hairlines. */
+/* Compact play header for the Guild Ledger character-sheet presentation. */
 
 #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play {
   display: grid !important;
@@ -16,10 +16,10 @@
   font-weight: 900 !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
-  color: #F7F1E7 !important;
-  background: #112A40 !important;
+  color: var(--cs-text) !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.20) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   box-shadow: none !important;
 }
 
@@ -27,7 +27,7 @@
   width: 15px !important;
   height: 15px !important;
   flex: 0 0 auto !important;
-  color: #79BCE8 !important;
+  color: var(--cs-blue) !important;
 }
 
 #root .character-page-v2 .clean-sheet-identity {
@@ -45,10 +45,10 @@
   min-height: 34px !important;
   padding: 0 !important;
   place-items: center !important;
-  color: #79BCE8 !important;
-  background: #112A40 !important;
+  color: var(--cs-blue) !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid var(--cs-accent) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
   z-index: 5 !important;
@@ -62,9 +62,9 @@
   padding: 8px !important;
   display: grid !important;
   gap: 6px !important;
-  background: #0C2234 !important;
+  background: var(--cs-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.28) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -84,9 +84,9 @@
   justify-content: flex-start !important;
   gap: 8px !important;
   border-radius: 5px !important;
-  color: #F7F1E7 !important;
-  background: #112A40 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  color: var(--cs-text) !important;
+  background: var(--cs-card) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   box-shadow: none !important;
   font-size: 0.78rem !important;
   font-weight: 900 !important;
@@ -100,9 +100,9 @@
   gap: 8px !important;
   align-items: stretch !important;
   padding: 12px !important;
-  background: #0C2234 !important;
+  background: var(--cs-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -119,27 +119,27 @@
   align-items: baseline !important;
   gap: 7px !important;
   min-width: 0 !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-hp-title svg {
   position: relative !important;
   top: 2px !important;
   flex: 0 0 auto !important;
-  color: #79BCE8 !important;
+  color: var(--cs-blue) !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-hp-title span {
   font-weight: 900 !important;
   font-size: 0.92rem !important;
   letter-spacing: 0.04em !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-hp-title strong {
   font-size: clamp(1.16rem, 4vw, 1.65rem) !important;
   line-height: 1 !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 #root .character-page-v2 .clean-sheet-combat-top-actions {
@@ -161,11 +161,11 @@
   min-height: 28px !important;
   display: inline-grid !important;
   place-items: center !important;
-  background: #112A40 !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.20) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   border-radius: 5px !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   box-shadow: none !important;
 }
 
@@ -199,16 +199,16 @@
 }
 
 #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active {
-  background: rgba(121,188,232,.10) !important;
-  border-color: #D6A84F !important;
+  background: var(--cs-blue-soft) !important;
+  border-color: var(--cs-accent) !important;
 }
 
 #root .character-page-v2 .clean-sheet-hp-progress {
   width: 100% !important;
   height: 5px !important;
   overflow: hidden !important;
-  background: #071A29 !important;
-  border: 1px solid rgba(214,168,79,.12) !important;
+  background: var(--cs-input) !important;
+  border: 1px solid var(--cs-border) !important;
   border-radius: 3px !important;
 }
 
@@ -216,7 +216,7 @@
   display: block !important;
   height: 100% !important;
   border-radius: inherit !important;
-  background: #79BCE8 !important;
+  background: var(--cs-blue) !important;
   background-image: none !important;
   transition: width 180ms ease !important;
 }
@@ -240,10 +240,10 @@
   line-height: 1.05 !important;
   font-weight: 900 !important;
   letter-spacing: 0.02em !important;
-  color: #F7F1E7 !important;
-  background: #112A40 !important;
+  color: var(--cs-text) !important;
+  background: var(--cs-card) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.20) !important;
+  border: 1px solid var(--cs-border-strong) !important;
   box-shadow: none !important;
 }
 
@@ -272,7 +272,7 @@
   place-items: center !important;
   gap: 2px !important;
   text-align: center !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   background: transparent !important;
   background-image: none !important;
   border: 0 !important;
@@ -285,7 +285,7 @@
 #root .character-page-v2 .clean-sheet-quick-stat svg {
   width: 13px !important;
   height: 13px !important;
-  color: #79BCE8 !important;
+  color: var(--cs-blue) !important;
 }
 
 #root .character-page-v2 .clean-sheet-quick-stat span {
@@ -293,14 +293,14 @@
   line-height: 1 !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
   font-weight: 900 !important;
 }
 
 #root .character-page-v2 .clean-sheet-quick-stat strong {
   font-size: clamp(1.5rem, 7vw, 2.25rem) !important;
   line-height: 0.9 !important;
-  color: #F7F1E7 !important;
+  color: var(--cs-text) !important;
 }
 
 #root .character-page-v2 .clean-sheet-rest-actions {
