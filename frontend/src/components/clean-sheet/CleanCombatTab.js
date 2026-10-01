@@ -443,6 +443,12 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           <SimpleActionCard title="Use Reaction Feature" type="Reaction" description="Use a reaction from a class feature, species trait, feat, spell, or item." />
         </ActionSection>
 
+        {resourceActions.other.length > 0 && (
+          <ActionSection title="Other Features" summary="Triggered, passive, or rest-timed features that do not spend your Action, Bonus Action, or Reaction.">
+            {resourceCards(resourceActions.other)}
+          </ActionSection>
+        )}
+
         {lastDamage && (
           <section className="clean-sheet-panel clean-sheet-wide clean-sheet-last-result">
             <h2>Last Damage Roll</h2>
