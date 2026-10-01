@@ -40,7 +40,7 @@ export function resourceValue(character, rule) {
 
 export function resourceActionCards(character, resources, handlers = { spendResource: () => {} }) {
   const byKey = Object.fromEntries(resources.map((resource) => [resource.key, resource]));
-  const cards = { action: [], bonus: [], reaction: [] };
+  const cards = { action: [], bonus: [], reaction: [], other: [] };
 
   const add = (bucket, key, title, description, onClick, displayType = 'Resource') => {
     const resource = byKey[key];
@@ -94,20 +94,20 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   const fighterLevel = className === 'fighter' || byKey.second_wind || byKey.action_surge || byKey.indomitable ? classLevelOf(character, 'fighter') : 0;
   if (byKey.second_wind || fighterLevel >= 1) add('bonus', 'second_wind', 'Second Wind', 'Regain hit points using your fighter resource.', () => handlers.spendResource('second_wind', 'Second Wind'));
   if (byKey.action_surge || fighterLevel >= 2) add('action', 'action_surge', 'Action Surge', 'Take one additional action on your turn.', () => handlers.spendResource('action_surge', 'Action Surge'));
-  if (byKey.indomitable || fighterLevel >= 9) add('reaction', 'indomitable', 'Indomitable', 'Reroll a failed saving throw when this feature applies.', () => handlers.spendResource('indomitable', 'Indomitable'));
+  if (byKey.indomitable || fighterLevel >= 9) add('other', 'indomitable', 'Indomitable', 'After you fail a saving throw, reroll it when this feature applies.', () => handlers.spendResource('indomitable', 'Indomitable'), 'Triggered feature');
   if (byKey.wild_shape) add('action', 'wild_shape', 'Wild Shape', 'Transform using a Wild Shape use.', () => handlers.spendResource('wild_shape', 'Wild Shape'));
   if (byKey.channel_divinity) add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
   if (byKey.cleric_channel_divinity) add('action', 'cleric_channel_divinity', 'Cleric Channel Divinity', 'Use a Cleric Channel Divinity option.', () => handlers.spendResource('cleric_channel_divinity', 'Cleric Channel Divinity'));
   if (byKey.paladin_channel_divinity) add('action', 'paladin_channel_divinity', 'Paladin Channel Divinity', 'Use a Paladin Channel Divinity option.', () => handlers.spendResource('paladin_channel_divinity', 'Paladin Channel Divinity'));
-  if (byKey.lay_on_hands) addVariable('action', 'lay_on_hands', 'Lay on Hands', 'Choose how many points to spend from your healing pool.');
-  if (byKey.arcane_recovery) add('action', 'arcane_recovery', 'Arcane Recovery', 'Recover spell slots during a short rest when this applies.', () => handlers.spendResource('arcane_recovery', 'Arcane Recovery'));
+  if (byKey.lay_on_hands) addVariable(is2024Rules(character) ? 'bonus' : 'action', 'lay_on_hands', 'Lay on Hands', 'Choose how many points to spend from your healing pool.');
+  if (byKey.arcane_recovery) add('other', 'arcane_recovery', 'Arcane Recovery', 'When you finish a Short Rest, choose eligible expended spell slots to recover.', undefined, 'Rest feature');
   if (byKey.favored_enemy || (className === 'ranger' && (is2024Rules(character) || classLevelOf(character, 'ranger') >= 2))) {
     const spendFavoredEnemy = byKey.favored_enemy ? () => handlers.spendResource('favored_enemy', "Hunter's Mark") : undefined;
     add('bonus', 'favored_enemy', "Hunter's Mark", "Cast or move Hunter's Mark when your Ranger features or spells make it available.", spendFavoredEnemy, 'Core Ranger feature');
   }
   const rogueLevel = classLevelOf(character, 'rogue');
   if (rogueLevel >= 1) {
-    add('action', 'rogue', 'Sneak Attack', 'Once per turn, add extra damage when you hit with a finesse or ranged weapon and meet Sneak Attack conditions.', undefined, 'Core Rogue feature');
+    add('other', 'rogue', 'Sneak Attack', 'Once per turn, add extra damage when you hit with a finesse or ranged weapon and meet Sneak Attack conditions.', undefined, 'Triggered feature');
     if (rogueLevel >= 2) {
       add('bonus', 'rogue', 'Cunning Action', 'Take the Dash, Disengage, or Hide action as a bonus action.', undefined, 'Core Rogue feature');
     }

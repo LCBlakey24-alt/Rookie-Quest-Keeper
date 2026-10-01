@@ -251,7 +251,7 @@ describe('Rogue action-economy cards', () => {
       resources: {},
     };
     const cards = resourceActionCards(character, resourcesFor(character));
-    expect(cards.action.map(card => card.title)).toContain('Sneak Attack');
+    expect(cards.other.map(card => card.title)).toContain('Sneak Attack');
     expect(cards.bonus.map(card => card.title)).toContain('Cunning Action');
   });
 
@@ -263,7 +263,77 @@ describe('Rogue action-economy cards', () => {
       resources: {},
     };
     const cards = resourceActionCards(character, resourcesFor(character));
-    expect(cards.action.map(card => card.title)).not.toContain('Sneak Attack');
+    expect(cards.other.map(card => card.title)).not.toContain('Sneak Attack');
     expect(cards.bonus.map(card => card.title)).not.toContain('Cunning Action');
+  });
+});
+
+
+describe('Action-cost classification', () => {
+  test('2014 Lay on Hands is an Action', () => {
+    const character = {
+      character_class: 'Paladin',
+      level: 2,
+      rules_edition: '2014',
+      class_levels: { Paladin: 2 },
+      resources: { lay_on_hands: { label: 'Lay on Hands', current: 10, max: 10 } },
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    expect(cards.action.map(card => card.title)).toContain('Lay on Hands');
+    expect(cards.bonus.map(card => card.title)).not.toContain('Lay on Hands');
+  });
+
+  test('2024 Lay on Hands is a Bonus Action', () => {
+    const character = {
+      character_class: 'Paladin',
+      level: 2,
+      rules_edition: '2024',
+      class_levels: { Paladin: 2 },
+      resources: { lay_on_hands: { label: 'Lay on Hands', current: 10, max: 10 } },
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    expect(cards.bonus.map(card => card.title)).toContain('Lay on Hands');
+    expect(cards.action.map(card => card.title)).not.toContain('Lay on Hands');
+  });
+
+  test('Indomitable is a triggered feature rather than a Reaction', () => {
+    const character = {
+      character_class: 'Fighter',
+      level: 9,
+      class_levels: { Fighter: 9 },
+      resources: { indomitable: { label: 'Indomitable', current: 1, max: 1 } },
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    expect(cards.other.map(card => card.title)).toContain('Indomitable');
+    expect(cards.reaction.map(card => card.title)).not.toContain('Indomitable');
+  });
+
+  test('Sneak Attack is a triggered feature rather than a separate Action', () => {
+    const character = {
+      character_class: 'Rogue',
+      level: 3,
+      class_levels: { Rogue: 3 },
+      resources: {},
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    expect(cards.other.map(card => card.title)).toContain('Sneak Attack');
+    expect(cards.action.map(card => card.title)).not.toContain('Sneak Attack');
+  });
+
+  test('Arcane Recovery is a Short Rest feature and no longer spends from a combat Action card', () => {
+    const character = {
+      character_class: 'Wizard',
+      level: 4,
+      class_levels: { Wizard: 4 },
+      resources: {
+        arcane_recovery: { label: 'Arcane Recovery', current: 1, max: 1 },
+      },
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    const recovery = cards.other.find(card => card.title === 'Arcane Recovery');
+    expect(recovery).toBeTruthy();
+    expect(recovery.onClick).toBeUndefined();
+    expect(recovery.description).toContain('Short Rest');
+    expect(cards.action.map(card => card.title)).not.toContain('Arcane Recovery');
   });
 });
