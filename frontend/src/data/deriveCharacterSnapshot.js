@@ -103,6 +103,7 @@ function getActionCards(character = {}, resources = []) {
     actions: resourceCards.action,
     bonusActions: resourceCards.bonus,
     reactions: resourceCards.reaction,
+    otherFeatures: resourceCards.other,
   };
 }
 
