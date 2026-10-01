@@ -15,6 +15,7 @@ import {
   getEquippedWeaponAttack,
   getItemName,
   getItemQuantity,
+  getOpportunityAttackProfile,
   getPotionHealing,
   getFighterCriticalRange,
   getFighterLevel,
@@ -160,6 +161,10 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus],
   );
   const canShowOffHandAttack = Boolean(mainHandAttack && offHandAttack);
+  const opportunityAttack = useMemo(
+    () => getOpportunityAttackProfile(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
+    [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus],
+  );
   const consumables = useMemo(() => gatherConsumables(character), [character]);
   const spells = useMemo(() => gatherCharacterSpells(character), [character]);
   const actionFeatures = useMemo(() => gatherActionFeatures(character), [character]);
@@ -420,7 +425,12 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           {spellCards(groupedSpells.reaction, 'reaction')}
           {resourceCards(resourceActions.reaction)}
           {featureCards(groupedFeatures.reaction)}
-          <SimpleActionCard title="Opportunity Attack" type="Reaction" description="Attack a creature that leaves your reach." onClick={() => onRoll('Opportunity Attack', bestAttackMod)} />
+          <SimpleActionCard
+            title={`Opportunity Attack · ${opportunityAttack.title}`}
+            type="Reaction"
+            description={`${fmt(opportunityAttack.attackMod)} to hit • Make a melee attack when a creature leaves your reach.`}
+            onClick={() => onRoll(opportunityAttack.attackLabel, opportunityAttack.attackMod)}
+          />
           <SimpleActionCard title="Readied Action" type="Reaction" description="Use your reaction to trigger a previously readied action." />
           <SimpleActionCard title="Use Reaction Feature" type="Reaction" description="Use a reaction from a class feature, species trait, feat, spell, or item." />
         </ActionSection>

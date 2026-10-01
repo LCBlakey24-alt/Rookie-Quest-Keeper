@@ -3,6 +3,7 @@ import {
   consumeConsumableState,
   gatherEquippedWeapons,
   getEquippedWeaponAttack,
+  getOpportunityAttackProfile,
   hasWeaponProficiency,
   rollAttackDamage,
   rollDice,
@@ -250,6 +251,65 @@ describe('canonical hand-slot combat attacks', () => {
       attackMod: 3,
       proficient: false,
       equipSlot: 'offHand',
+    });
+  });
+});
+
+
+describe('opportunity attack profile', () => {
+  test('uses the equipped main-hand melee weapon and its real modifier', () => {
+    const character = {
+      weapon_proficiencies: ['Martial weapons'],
+      equipped: { mainHand: { name: 'Longsword', equipped: true } },
+    };
+
+    expect(getOpportunityAttackProfile(character, 3, 1, 3, 2)).toMatchObject({
+      title: 'Longsword',
+      attackMod: 5,
+      isMelee: true,
+    });
+  });
+
+  test('uses an off-hand melee weapon when the main hand is ranged', () => {
+    const character = {
+      weapon_proficiencies: ['Simple weapons', 'Martial weapons'],
+      equipped: {
+        mainHand: { name: 'Longbow', equipped: true },
+        offHand: { name: 'Dagger', equipped: true },
+      },
+    };
+
+    expect(getOpportunityAttackProfile(character, 1, 4, 4, 3)).toMatchObject({
+      title: 'Dagger',
+      attackMod: 7,
+      isMelee: true,
+      equipSlot: 'offHand',
+    });
+  });
+
+  test('falls back to an unarmed strike when no equipped melee weapon is available', () => {
+    const character = {
+      weapon_proficiencies: ['Martial weapons'],
+      equipped: { mainHand: { name: 'Longbow', equipped: true } },
+    };
+
+    expect(getOpportunityAttackProfile(character, 2, 4, 4, 3)).toMatchObject({
+      title: 'Unarmed Strike',
+      attackMod: 5,
+      isMelee: true,
+      damageType: 'bludgeoning',
+    });
+  });
+
+  test('a thrown melee weapon still qualifies as a melee opportunity-attack profile', () => {
+    const character = {
+      weapon_proficiencies: ['Simple weapons'],
+      equipped: { mainHand: { name: 'Dagger', equipped: true } },
+    };
+
+    expect(getOpportunityAttackProfile(character, 1, 4, 4, 3)).toMatchObject({
+      title: 'Dagger',
+      isMelee: true,
     });
   });
 });
