@@ -17,6 +17,7 @@ import {
   getItemQuantity,
   getOpportunityAttackProfile,
   getPotionHealing,
+  getAttacksPerAction,
   getFighterCriticalRange,
   getFighterLevel,
   hasSaveProficiency,
@@ -147,6 +148,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const className = character?.character_class || 'Adventurer';
   const classKey = normalizeName(className);
   const criticalRange = getFighterCriticalRange(character, getFighterLevel(character));
+  const attacksPerAction = useMemo(() => getAttacksPerAction(character), [character]);
 
   const equippedWeaponAttacks = useMemo(
     () => gatherEquippedWeapons(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
@@ -369,7 +371,10 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   return (
     <div className="clean-sheet-combat-wrap clean-sheet-actions-tab">
       <div className="clean-sheet-grid">
-        <ActionSection title="Actions">
+        <ActionSection
+          title="Actions"
+          summary={`Attack action: ${attacksPerAction} attack${attacksPerAction === 1 ? '' : 's'}`}
+        >
           {attackOptions.map(attack => (
             <AttackCard
               key={attack.id}
