@@ -131,10 +131,11 @@ export function FighterFocusPanel({ fighterLevel, fighterSubclass, fighterPlan, 
   );
 }
 
-export function ActionSection({ title, children }) {
+export function ActionSection({ title, summary = '', children }) {
   return (
     <section className="clean-sheet-panel clean-sheet-wide">
       <h2>{title}</h2>
+      {summary && <p className="clean-sheet-muted">{summary}</p>}
       <div className="clean-sheet-action-grid">{children}</div>
     </section>
   );
