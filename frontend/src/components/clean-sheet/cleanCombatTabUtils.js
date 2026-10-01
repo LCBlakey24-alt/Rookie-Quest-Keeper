@@ -227,6 +227,8 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
   const damageText = dice.sides === 1
     ? `${dice.count}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`
     : `${dice.count}d${dice.sides}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`;
+  const category = normaliseName(rule?.category || item?.weapon_category || item?.category || '');
+  const isMelee = category.includes('melee') || /^\s*(melee|reach)\b/i.test(String(range || ''));
   const detailParts = [range, properties, proficient ? null : 'Not proficient'].filter(Boolean);
 
   return {
@@ -237,6 +239,7 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
     details: detailParts.join(' • '),
     attackMod,
     proficient,
+    isMelee,
     saveText: null,
     damageText,
     damageType,
@@ -261,6 +264,33 @@ export function getEquippedWeaponAttack(character, slot, strengthMod, dexterityM
   return {
     ...getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
     equipSlot: canonicalSlot,
+  };
+}
+
+export function getOpportunityAttackProfile(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus) {
+  const mainHand = getEquippedWeaponAttack(character, 'mainHand', strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus);
+  if (mainHand?.isMelee) return mainHand;
+
+  const offHand = getEquippedWeaponAttack(character, 'offHand', strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus);
+  if (offHand?.isMelee) return offHand;
+
+  const unarmedDamageMod = Math.max(0, strengthMod);
+  return {
+    id: 'opportunity-unarmed',
+    title: 'Unarmed Strike',
+    attackLabel: 'Unarmed Opportunity Attack',
+    attackMod: proficiencyBonus + strengthMod,
+    proficient: true,
+    isMelee: true,
+    damageType: 'bludgeoning',
+    damageText: `1${unarmedDamageMod ? ` ${fmt(unarmedDamageMod)}` : ''}`,
+    damage: {
+      label: 'Unarmed Damage',
+      count: 1,
+      sides: 1,
+      modifier: unarmedDamageMod,
+      damageType: 'bludgeoning',
+    },
   };
 }
 
