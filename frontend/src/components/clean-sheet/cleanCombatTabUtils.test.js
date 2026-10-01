@@ -2,6 +2,7 @@ import {
   buildConsumableUseUpdate,
   consumeConsumableState,
   gatherEquippedWeapons,
+  getAttacksPerAction,
   getEquippedWeaponAttack,
   getOpportunityAttackProfile,
   hasWeaponProficiency,
@@ -311,5 +312,71 @@ describe('opportunity attack profile', () => {
       title: 'Dagger',
       isMelee: true,
     });
+  });
+});
+
+
+describe('attacks per Attack action', () => {
+  test.each([
+    [1, 1],
+    [5, 2],
+    [11, 3],
+    [20, 4],
+  ])('uses Fighter progression at level %i', (level, expected) => {
+    expect(getAttacksPerAction({ character_class: 'Fighter', level })).toBe(expected);
+  });
+
+  test.each(['Barbarian', 'Monk', 'Paladin', 'Ranger'])('%s gains a second attack at class level 5', (className) => {
+    expect(getAttacksPerAction({
+      character_class: 'Wizard',
+      level: 10,
+      class_levels: { [className]: 5, Wizard: 5 },
+    })).toBe(2);
+  });
+
+  test('uses class level rather than total level for multiclass Fighter progression', () => {
+    expect(getAttacksPerAction({
+      character_class: 'Wizard',
+      level: 15,
+      class_levels: { Fighter: 11, Wizard: 4 },
+    })).toBe(3);
+
+    expect(getAttacksPerAction({
+      character_class: 'Wizard',
+      level: 10,
+      class_levels: { Fighter: 4, Wizard: 6 },
+    })).toBe(1);
+  });
+
+  test('Extra Attack sources do not stack across multiclass classes', () => {
+    expect(getAttacksPerAction({
+      character_class: 'Fighter',
+      level: 10,
+      class_levels: { Fighter: 5, Ranger: 5 },
+    })).toBe(2);
+  });
+
+  test('honours an explicit saved attacks-per-action override', () => {
+    expect(getAttacksPerAction({
+      character_class: 'Wizard',
+      level: 7,
+      attacks_per_action: 3,
+    })).toBe(3);
+  });
+
+  test('recognises a saved Extra Attack feature for homebrew or unsupported class sources', () => {
+    expect(getAttacksPerAction({
+      character_class: 'Warlock',
+      level: 5,
+      class_features: [{ name: 'Extra Attack' }],
+    })).toBe(2);
+  });
+
+  test('honours a feature-provided attacksPerAction value above the class baseline', () => {
+    expect(getAttacksPerAction({
+      character_class: 'Fighter',
+      level: 5,
+      class_features: [{ name: 'Homebrew Multiattack', attacksPerAction: 3 }],
+    })).toBe(3);
   });
 });
