@@ -251,7 +251,7 @@ describe('Rogue action-economy cards', () => {
       resources: {},
     };
     const cards = resourceActionCards(character, resourcesFor(character));
-    expect(cards.action.map(card => card.title)).toContain('Sneak Attack');
+    expect(cards.other.map(card => card.title)).toContain('Sneak Attack');
     expect(cards.bonus.map(card => card.title)).toContain('Cunning Action');
   });
 
@@ -263,7 +263,7 @@ describe('Rogue action-economy cards', () => {
       resources: {},
     };
     const cards = resourceActionCards(character, resourcesFor(character));
-    expect(cards.action.map(card => card.title)).not.toContain('Sneak Attack');
+    expect(cards.other.map(card => card.title)).not.toContain('Sneak Attack');
     expect(cards.bonus.map(card => card.title)).not.toContain('Cunning Action');
   });
 });
