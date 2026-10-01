@@ -12,7 +12,10 @@ const classLevelOf = (character, className) => {
   const entryLevel = Number(entry?.level || entry?.class_level || entry?.classLevel || 0);
   if (entryLevel > 0) return entryLevel;
 
-  return Math.max(1, Number(character?.level || character?.character_level || 1));
+  const primaryClass = normalizeName(character?.character_class || character?.class_name || character?.class);
+  return primaryClass === key
+    ? Math.max(1, Number(character?.level || character?.character_level || 1))
+    : 0;
 };
 
 const is2024Rules = (character) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024');
@@ -102,9 +105,10 @@ export function resourceActionCards(character, resources, handlers = { spendReso
     const spendFavoredEnemy = byKey.favored_enemy ? () => handlers.spendResource('favored_enemy', "Hunter's Mark") : undefined;
     add('bonus', 'favored_enemy', "Hunter's Mark", "Cast or move Hunter's Mark when your Ranger features or spells make it available.", spendFavoredEnemy, 'Core Ranger feature');
   }
-  if (className === 'rogue') {
+  const rogueLevel = classLevelOf(character, 'rogue');
+  if (rogueLevel >= 1) {
     add('action', 'rogue', 'Sneak Attack', 'Once per turn, add extra damage when you hit with a finesse or ranged weapon and meet Sneak Attack conditions.', undefined, 'Core Rogue feature');
-    if (classLevelOf(character, 'rogue') >= 2) {
+    if (rogueLevel >= 2) {
       add('bonus', 'rogue', 'Cunning Action', 'Take the Dash, Disengage, or Hide action as a bonus action.', undefined, 'Core Rogue feature');
     }
   }

@@ -229,3 +229,41 @@ describe('Resource action unlock timing', () => {
     ]));
   });
 });
+
+
+describe('Rogue action-economy cards', () => {
+  test('primary Rogue gets one Cunning Action card at level 2+', () => {
+    const character = {
+      character_class: 'Rogue',
+      level: 3,
+      class_levels: { Rogue: 3 },
+      resources: {},
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    expect(cards.bonus.filter(card => card.title === 'Cunning Action')).toHaveLength(1);
+  });
+
+  test('secondary Rogue multiclass gets Cunning Action from Rogue class level', () => {
+    const character = {
+      character_class: 'Wizard',
+      level: 10,
+      class_levels: { Wizard: 8, Rogue: 2 },
+      resources: {},
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    expect(cards.action.map(card => card.title)).toContain('Sneak Attack');
+    expect(cards.bonus.map(card => card.title)).toContain('Cunning Action');
+  });
+
+  test('a character with no Rogue levels does not inherit Rogue actions from total level', () => {
+    const character = {
+      character_class: 'Wizard',
+      level: 10,
+      class_levels: { Wizard: 10 },
+      resources: {},
+    };
+    const cards = resourceActionCards(character, resourcesFor(character));
+    expect(cards.action.map(card => card.title)).not.toContain('Sneak Attack');
+    expect(cards.bonus.map(card => card.title)).not.toContain('Cunning Action');
+  });
+});

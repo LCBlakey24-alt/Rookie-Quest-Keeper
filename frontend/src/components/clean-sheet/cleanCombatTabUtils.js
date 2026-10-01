@@ -160,6 +160,24 @@ export function getAttacksPerAction(character = {}) {
   return attacks;
 }
 
+export function getMonkBonusUnarmedAction(character = {}, unarmedProfile = null) {
+  if (!unarmedProfile?.martialArtsActive) return null;
+
+  const edition = String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
+  const useText = edition === '2024'
+    ? 'Use your Bonus Action to make this Unarmed Strike.'
+    : 'After you take the Attack action with an Unarmed Strike or Monk weapon, use your Bonus Action to make this Unarmed Strike.';
+
+  return {
+    title: 'Martial Arts · Unarmed Strike',
+    type: 'Bonus',
+    attackLabel: 'Martial Arts Bonus Unarmed Strike',
+    attackMod: Number(unarmedProfile.attackMod || 0),
+    damageText: unarmedProfile.damageText || '',
+    description: `${fmt(Number(unarmedProfile.attackMod || 0))} to hit • ${unarmedProfile.damageText || 'Unarmed damage'} • ${useText}`,
+  };
+}
+
 export function getFighterSubclassKey(character) {
   return normaliseName(character?.subclass || '').replace('battlemaster', 'battle_master').replace('eldritchknight', 'eldritch_knight');
 }

@@ -15,6 +15,7 @@ import {
   getEquippedWeaponAttack,
   getItemName,
   getItemQuantity,
+  getMonkBonusUnarmedAction,
   getOpportunityAttackProfile,
   getPotionHealing,
   getUnarmedStrikeProfile,
@@ -145,8 +146,6 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const concentrationMod = constitutionMod + (hasSaveProficiency(character, 'constitution') ? proficiencyBonus : 0);
   const bestAbilityMod = Math.max(strengthMod, dexterityMod);
   const bestAttackMod = proficiencyBonus + bestAbilityMod;
-  const className = character?.character_class || 'Adventurer';
-  const classKey = normalizeName(className);
   const criticalRange = getFighterCriticalRange(character, getFighterLevel(character));
   const attacksPerAction = useMemo(() => getAttacksPerAction(character), [character]);
 
@@ -166,6 +165,10 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const unarmedAttack = useMemo(
     () => getUnarmedStrikeProfile(character, strengthMod, dexterityMod, proficiencyBonus),
     [character, strengthMod, dexterityMod, proficiencyBonus],
+  );
+  const monkBonusAttack = useMemo(
+    () => getMonkBonusUnarmedAction(character, unarmedAttack),
+    [character, unarmedAttack],
   );
   const opportunityAttack = useMemo(
     () => getOpportunityAttackProfile(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
@@ -416,7 +419,14 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
               onClick={() => onRoll(`${offHandAttack.title} Off-hand Attack`, offHandAttack.attackMod)}
             />
           )}
-          {classKey === 'rogue' && <SimpleActionCard title="Cunning Action" type="Bonus" description="Dash, Disengage, or Hide as a bonus action." />}
+          {monkBonusAttack && (
+            <SimpleActionCard
+              title={monkBonusAttack.title}
+              type={monkBonusAttack.type}
+              description={monkBonusAttack.description}
+              onClick={() => onRoll(monkBonusAttack.attackLabel, monkBonusAttack.attackMod)}
+            />
+          )}
         </ActionSection>
 
         <ActionSection title="Reactions">
