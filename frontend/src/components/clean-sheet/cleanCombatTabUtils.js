@@ -86,6 +86,78 @@ export function getFighterLevel(character) {
   return isFighter(character) ? Number(character?.level || 1) || 1 : 0;
 }
 
+function getClassLevel(character = {}, className = '') {
+  const key = normaliseName(className);
+  if (!key) return 0;
+
+  const directCandidates = [
+    character?.[`${key}_level`],
+    character?.[`${key}Level`],
+  ];
+  for (const value of directCandidates) {
+    const level = Number(value || 0);
+    if (level > 0) return level;
+  }
+
+  const maps = [
+    character?.class_levels,
+    character?.classLevels,
+    character?.multiclass_levels,
+  ];
+  for (const map of maps) {
+    if (!map || typeof map !== 'object') continue;
+    const match = Object.entries(map).find(([name]) => normaliseName(name) === key);
+    const level = Number(match?.[1] || 0);
+    if (level > 0) return level;
+  }
+
+  const classes = Array.isArray(character?.classes) ? character.classes : [];
+  const entry = classes.find((item) => normaliseName(item?.name || item?.class_name || item?.className || item?.class) === key);
+  const entryLevel = Number(entry?.level || entry?.class_level || entry?.classLevel || 0);
+  if (entryLevel > 0) return entryLevel;
+
+  const primary = normaliseName(character?.character_class || character?.class_name || character?.class);
+  return primary === key ? Math.max(1, Number(character?.level || character?.character_level || 1) || 1) : 0;
+}
+
+export function getAttacksPerAction(character = {}) {
+  const explicit = Number(
+    character?.attacks_per_action
+    ?? character?.attacksPerAction
+    ?? character?.attack_count_per_action
+    ?? 0
+  );
+  let attacks = explicit > 0 ? Math.max(1, Math.floor(explicit)) : 1;
+
+  const fighterLevel = getClassLevel(character, 'fighter');
+  if (fighterLevel >= 20) attacks = Math.max(attacks, 4);
+  else if (fighterLevel >= 11) attacks = Math.max(attacks, 3);
+  else if (fighterLevel >= 5) attacks = Math.max(attacks, 2);
+
+  ['barbarian', 'monk', 'paladin', 'ranger'].forEach((className) => {
+    if (getClassLevel(character, className) >= 5) attacks = Math.max(attacks, 2);
+  });
+
+  const featureSources = [
+    character?.features,
+    character?.class_features,
+    character?.racial_traits,
+    character?.species_features,
+    character?.feats,
+  ];
+  featureSources.flatMap((value) => Array.isArray(value) ? value : []).forEach((feature) => {
+    const featureCount = Number(feature?.attacksPerAction ?? feature?.attacks_per_action ?? 0);
+    if (featureCount > 0) attacks = Math.max(attacks, Math.floor(featureCount));
+
+    const featureName = typeof feature === 'string'
+      ? feature
+      : feature?.name || feature?.title || '';
+    if (/\bextra\s+attack\b/i.test(String(featureName))) attacks = Math.max(attacks, 2);
+  });
+
+  return attacks;
+}
+
 export function getFighterSubclassKey(character) {
   return normaliseName(character?.subclass || '').replace('battlemaster', 'battle_master').replace('eldritchknight', 'eldritch_knight');
 }
