@@ -4,6 +4,7 @@ import {
   gatherEquippedWeapons,
   getAttacksPerAction,
   getEquippedWeaponAttack,
+  getMonkBonusUnarmedAction,
   getOpportunityAttackProfile,
   getUnarmedStrikeProfile,
   hasWeaponProficiency,
@@ -509,5 +510,42 @@ describe('unarmed strike profile', () => {
       attackMod: 4,
       martialArtsActive: false,
     });
+  });
+});
+
+
+describe('Monk Martial Arts bonus action', () => {
+  test('2014 eligible Monk gets the conditional bonus unarmed strike reminder', () => {
+    const character = { character_class: 'Monk', level: 1, rules_edition: '2014', equipped: {} };
+    const unarmed = getUnarmedStrikeProfile(character, 1, 3, 2);
+    const action = getMonkBonusUnarmedAction(character, unarmed);
+
+    expect(action).toMatchObject({
+      title: 'Martial Arts · Unarmed Strike',
+      type: 'Bonus',
+      attackMod: 5,
+    });
+    expect(action.description).toContain('After you take the Attack action');
+  });
+
+  test('2024 eligible Monk gets the direct Bonus Action wording', () => {
+    const character = { character_class: 'Monk', level: 1, rules_edition: '2024', equipped: {} };
+    const unarmed = getUnarmedStrikeProfile(character, 1, 3, 2);
+    const action = getMonkBonusUnarmedAction(character, unarmed);
+
+    expect(action).toMatchObject({ attackMod: 5 });
+    expect(action.description).toContain('Use your Bonus Action');
+    expect(action.description).not.toContain('After you take the Attack action');
+  });
+
+  test('Martial Arts bonus strike is hidden while Martial Arts is inactive', () => {
+    const character = {
+      character_class: 'Monk',
+      level: 3,
+      rules_edition: '2014',
+      equipped: { armor: { name: 'Leather Armor', equipped: true } },
+    };
+    const unarmed = getUnarmedStrikeProfile(character, 2, 4, 2);
+    expect(getMonkBonusUnarmedAction(character, unarmed)).toBeNull();
   });
 });
