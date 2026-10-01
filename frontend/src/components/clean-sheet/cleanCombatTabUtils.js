@@ -1,6 +1,8 @@
 import { findWeaponRule, getWeaponAbilityMod } from '@/data/equipmentRules5e';
 import { rollDiceNotation } from '@/data/diceRoller';
 import { canonicalInventorySlot, getCanonicalEquippedItem } from '@/data/characterInventoryState';
+import { getMonkClassLevel } from '@/data/monkCharacterShape';
+import { getMonkMartialArtsDie } from '@/data/monkProgression';
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 export const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -319,17 +321,104 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
   };
 }
 
-export function getEquippedWeaponAttack(character, slot, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus) {
+function getEquippedItemForSlot(character = {}, slot = '') {
   const canonicalSlot = canonicalInventorySlot(slot);
   const equipped = character?.equipped || {};
-  let item = getCanonicalEquippedItem(equipped, canonicalSlot);
+  const mapped = getCanonicalEquippedItem(equipped, canonicalSlot);
+  if (mapped) return mapped;
 
-  if (!item) {
-    item = [...(character?.equipment || []), ...(character?.inventory || [])].find((candidate) => (
-      Boolean(candidate?.equipped || candidate?.is_equipped)
-      && canonicalInventorySlot(candidate?.equip_slot || candidate?.equipped_slot || '') === canonicalSlot
-    )) || null;
+  return [...(character?.equipment || []), ...(character?.inventory || [])].find((candidate) => (
+    Boolean(candidate?.equipped || candidate?.is_equipped)
+    && canonicalInventorySlot(candidate?.equip_slot || candidate?.equipped_slot || '') === canonicalSlot
+  )) || null;
+}
+
+function isShieldItem(item) {
+  const text = normaliseName(`${getItemName(item)} ${item?.type || ''} ${item?.category || ''}`);
+  return text.includes('shield');
+}
+
+function isMonkWeapon(item, edition = '2014') {
+  if (!item) return true;
+  if (item?.monk_weapon === true || item?.monkWeapon === true) return true;
+
+  const rule = findWeaponRule(item);
+  if (!rule) return false;
+
+  const category = normaliseName(rule?.category || item?.weapon_category || item?.category || '');
+  const properties = [
+    ...(Array.isArray(rule?.properties) ? rule.properties : []),
+    ...(Array.isArray(item?.properties) ? item.properties : [item?.properties]),
+    item?.property,
+  ].filter(Boolean).map((value) => normaliseName(value));
+
+  const isSimpleMelee = category.includes('simple') && category.includes('melee');
+  const isMartialMelee = category.includes('martial') && category.includes('melee');
+  const isLight = properties.some((value) => value.includes('light'));
+  const isHeavy = properties.some((value) => value.includes('heavy'));
+  const isTwoHanded = properties.some((value) => value.includes('twohanded'));
+  const name = normaliseName(rule?.name || getItemName(item));
+
+  if (String(edition).includes('2024')) {
+    return isSimpleMelee || (isMartialMelee && isLight);
   }
+
+  return name === 'shortsword' || (isSimpleMelee && !isHeavy && !isTwoHanded);
+}
+
+export function getUnarmedStrikeProfile(character = {}, strengthMod = 0, dexterityMod = 0, proficiencyBonus = 0) {
+  const monkLevel = getMonkClassLevel(character);
+  const edition = String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
+  const armor = getEquippedItemForSlot(character, 'armor');
+  const offHand = getEquippedItemForSlot(character, 'offHand');
+  const shield = offHand && isShieldItem(offHand) ? offHand : null;
+  const handWeapons = [
+    getEquippedItemForSlot(character, 'mainHand'),
+    offHand,
+  ].filter((item) => item && isWeaponLike(item));
+
+  const martialArtsActive = monkLevel > 0
+    && !armor
+    && !shield
+    && handWeapons.every((item) => isMonkWeapon(item, edition));
+
+  const abilityMod = martialArtsActive ? Math.max(strengthMod, dexterityMod) : strengthMod;
+  const abilityLabel = martialArtsActive && dexterityMod > strengthMod ? 'Dexterity' : 'Strength';
+  const martialArtsDie = martialArtsActive ? getMonkMartialArtsDie(monkLevel, edition) : '';
+  const sides = martialArtsActive ? Number(String(martialArtsDie).replace(/[^0-9]/g, '')) || 1 : 1;
+  const damageText = martialArtsActive
+    ? `${martialArtsDie}${abilityMod ? ` ${fmt(abilityMod)}` : ''}`
+    : `1${abilityMod ? ` ${fmt(abilityMod)}` : ''}`;
+
+  return {
+    id: 'unarmed-strike',
+    title: 'Unarmed Strike',
+    type: 'Action',
+    attackLabel: 'Unarmed Strike',
+    details: martialArtsActive
+      ? `Martial Arts ${martialArtsDie} • ${abilityLabel}`
+      : monkLevel > 0
+        ? 'Normal unarmed strike • Martial Arts inactive'
+        : 'Punch, kick, headbutt, or similar',
+    attackMod: proficiencyBonus + abilityMod,
+    proficient: true,
+    isMelee: true,
+    martialArtsActive,
+    damageText,
+    damageType: 'bludgeoning',
+    damage: {
+      label: 'Unarmed Damage',
+      count: 1,
+      sides,
+      modifier: abilityMod,
+      damageType: 'bludgeoning',
+    },
+  };
+}
+
+export function getEquippedWeaponAttack(character, slot, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus) {
+  const canonicalSlot = canonicalInventorySlot(slot);
+  const item = getEquippedItemForSlot(character, canonicalSlot);
 
   if (!item || !isWeaponLike(item)) return null;
 
@@ -346,23 +435,11 @@ export function getOpportunityAttackProfile(character, strengthMod, dexterityMod
   const offHand = getEquippedWeaponAttack(character, 'offHand', strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus);
   if (offHand?.isMelee) return offHand;
 
-  const unarmedDamageMod = Math.max(0, strengthMod);
+  const unarmed = getUnarmedStrikeProfile(character, strengthMod, dexterityMod, proficiencyBonus);
   return {
+    ...unarmed,
     id: 'opportunity-unarmed',
-    title: 'Unarmed Strike',
     attackLabel: 'Unarmed Opportunity Attack',
-    attackMod: proficiencyBonus + strengthMod,
-    proficient: true,
-    isMelee: true,
-    damageType: 'bludgeoning',
-    damageText: `1${unarmedDamageMod ? ` ${fmt(unarmedDamageMod)}` : ''}`,
-    damage: {
-      label: 'Unarmed Damage',
-      count: 1,
-      sides: 1,
-      modifier: unarmedDamageMod,
-      damageType: 'bludgeoning',
-    },
   };
 }
 

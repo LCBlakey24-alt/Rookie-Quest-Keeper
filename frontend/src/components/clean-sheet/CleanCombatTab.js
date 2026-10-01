@@ -17,6 +17,7 @@ import {
   getItemQuantity,
   getOpportunityAttackProfile,
   getPotionHealing,
+  getUnarmedStrikeProfile,
   getAttacksPerAction,
   getFighterCriticalRange,
   getFighterLevel,
@@ -144,7 +145,6 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const concentrationMod = constitutionMod + (hasSaveProficiency(character, 'constitution') ? proficiencyBonus : 0);
   const bestAbilityMod = Math.max(strengthMod, dexterityMod);
   const bestAttackMod = proficiencyBonus + bestAbilityMod;
-  const unarmedDamageMod = Math.max(0, strengthMod);
   const className = character?.character_class || 'Adventurer';
   const classKey = normalizeName(className);
   const criticalRange = getFighterCriticalRange(character, getFighterLevel(character));
@@ -163,6 +163,10 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus],
   );
   const canShowOffHandAttack = Boolean(mainHandAttack && offHandAttack);
+  const unarmedAttack = useMemo(
+    () => getUnarmedStrikeProfile(character, strengthMod, dexterityMod, proficiencyBonus),
+    [character, strengthMod, dexterityMod, proficiencyBonus],
+  );
   const opportunityAttack = useMemo(
     () => getOpportunityAttackProfile(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
     [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus],
@@ -189,19 +193,8 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
       damageType: 'weapon',
       damage: { label: 'Weapon Damage', count: 1, sides: 8, modifier: bestAbilityMod, damageType: 'weapon' },
     }]),
-    {
-      id: 'unarmed-strike',
-      title: 'Unarmed Strike',
-      type: 'Action',
-      attackLabel: 'Unarmed Strike',
-      details: 'Punch, kick, headbutt, or similar',
-      attackMod: proficiencyBonus + strengthMod,
-      saveText: null,
-      damageText: `1 ${unarmedDamageMod ? fmt(unarmedDamageMod) : ''}`.trim(),
-      damageType: 'bludgeoning',
-      damage: { label: 'Unarmed Damage', count: 1, sides: 1, modifier: unarmedDamageMod, damageType: 'bludgeoning' },
-    },
-  ]), [bestAbilityMod, bestAttackMod, equippedWeaponAttacks, proficiencyBonus, strengthMod, unarmedDamageMod]);
+    unarmedAttack,
+  ]), [bestAbilityMod, bestAttackMod, equippedWeaponAttacks, unarmedAttack]);
 
   const groupedSpells = useMemo(() => ({
     action: spells.filter((spell) => actionTypeFromText(spell.castingTime, 'action') === 'action'),

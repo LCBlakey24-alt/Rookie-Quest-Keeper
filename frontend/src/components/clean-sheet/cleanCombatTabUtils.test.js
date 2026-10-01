@@ -5,6 +5,7 @@ import {
   getAttacksPerAction,
   getEquippedWeaponAttack,
   getOpportunityAttackProfile,
+  getUnarmedStrikeProfile,
   hasWeaponProficiency,
   rollAttackDamage,
   rollDice,
@@ -378,5 +379,135 @@ describe('attacks per Attack action', () => {
       level: 5,
       class_features: [{ name: 'Homebrew Multiattack', attacksPerAction: 3 }],
     })).toBe(3);
+  });
+});
+
+
+describe('unarmed strike profile', () => {
+  test('ordinary unarmed strikes use Strength and preserve a negative modifier', () => {
+    expect(getUnarmedStrikeProfile({ character_class: 'Wizard', level: 1 }, -1, 4, 2)).toMatchObject({
+      attackMod: 1,
+      martialArtsActive: false,
+      damageText: '1 -1',
+      damage: { count: 1, sides: 1, modifier: -1 },
+    });
+  });
+
+  test('2014 Monk uses Dexterity and the Martial Arts die while eligible', () => {
+    expect(getUnarmedStrikeProfile({
+      character_class: 'Monk',
+      level: 5,
+      rules_edition: '2014',
+      equipped: {},
+    }, 1, 4, 3)).toMatchObject({
+      attackMod: 7,
+      martialArtsActive: true,
+      damageText: 'd6 +4',
+      damage: { sides: 6, modifier: 4 },
+    });
+  });
+
+  test('2024 Monk uses the revised Martial Arts die progression', () => {
+    expect(getUnarmedStrikeProfile({
+      character_class: 'Monk',
+      level: 5,
+      rules_edition: '2024',
+      equipped: {},
+    }, 1, 4, 3)).toMatchObject({
+      attackMod: 7,
+      martialArtsActive: true,
+      damageText: 'd8 +4',
+      damage: { sides: 8, modifier: 4 },
+    });
+  });
+
+  test('armour disables Martial Arts benefits for the unarmed profile', () => {
+    expect(getUnarmedStrikeProfile({
+      character_class: 'Monk',
+      level: 5,
+      rules_edition: '2014',
+      equipped: {
+        armor: { name: 'Leather Armor', equipped: true },
+      },
+    }, 2, 4, 3)).toMatchObject({
+      attackMod: 5,
+      martialArtsActive: false,
+      damage: { sides: 1, modifier: 2 },
+    });
+  });
+
+  test('a shield disables Martial Arts benefits for the unarmed profile', () => {
+    expect(getUnarmedStrikeProfile({
+      character_class: 'Monk',
+      level: 5,
+      rules_edition: '2024',
+      equipped: {
+        offHand: { name: 'Shield', type: 'Armor', equipped: true },
+      },
+    }, 2, 4, 3)).toMatchObject({
+      attackMod: 5,
+      martialArtsActive: false,
+      damage: { sides: 1, modifier: 2 },
+    });
+  });
+
+  test('2014 Monk Martial Arts stays active with a valid monk weapon', () => {
+    expect(getUnarmedStrikeProfile({
+      character_class: 'Monk',
+      level: 1,
+      rules_edition: '2014',
+      equipped: {
+        mainHand: { name: 'Quarterstaff', equipped: true },
+      },
+    }, 1, 3, 2)).toMatchObject({
+      attackMod: 5,
+      martialArtsActive: true,
+      damage: { sides: 4, modifier: 3 },
+    });
+  });
+
+  test('a non-Monk weapon disables Martial Arts benefits', () => {
+    expect(getUnarmedStrikeProfile({
+      character_class: 'Monk',
+      level: 5,
+      rules_edition: '2014',
+      equipped: {
+        mainHand: { name: 'Greatsword', equipped: true },
+      },
+    }, 2, 4, 3)).toMatchObject({
+      attackMod: 5,
+      martialArtsActive: false,
+      damage: { sides: 1, modifier: 2 },
+    });
+  });
+
+  test('2024 Monk accepts a Light martial melee weapon as a Monk weapon', () => {
+    expect(getUnarmedStrikeProfile({
+      character_class: 'Monk',
+      level: 1,
+      rules_edition: '2024',
+      equipped: {
+        mainHand: { name: 'Shortsword', equipped: true },
+      },
+    }, 1, 3, 2)).toMatchObject({
+      attackMod: 5,
+      martialArtsActive: true,
+      damage: { sides: 6, modifier: 3 },
+    });
+  });
+
+  test('opportunity-attack unarmed fallback reuses the Monk Martial Arts profile', () => {
+    expect(getOpportunityAttackProfile({
+      character_class: 'Monk',
+      level: 5,
+      rules_edition: '2024',
+      equipped: {
+        mainHand: { name: 'Longbow', equipped: true },
+      },
+    }, 1, 4, 4, 3)).toMatchObject({
+      title: 'Unarmed Strike',
+      attackMod: 4,
+      martialArtsActive: false,
+    });
   });
 });
