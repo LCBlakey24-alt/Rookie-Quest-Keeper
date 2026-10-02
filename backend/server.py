@@ -12,6 +12,7 @@ from starlette.responses import JSONResponse
 
 from config import client, db, logger, CORS_ORIGIN_LIST
 from utils.ws_manager import ws_manager
+from utils.ws_messages import is_allowed_client_message_type
 from utils.auth import verify_token, verify_campaign_membership
 from utils.rate_limit import RateLimitMiddleware
 from routes import all_routers
@@ -89,6 +90,14 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
             data = await websocket.receive_json()
             msg_type = data.get("type", "")
 
+            if not is_allowed_client_message_type(msg_type):
+                await websocket.send_json({
+                    "type": "error",
+                    "code": "unsupported_message_type",
+                    "message": "Unsupported live campaign message type.",
+                })
+                continue
+
             if msg_type == "ping":
                 await websocket.send_json({"type": "pong"})
             elif msg_type == "cursor_move":
@@ -132,13 +141,6 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
                     "type": "user_list",
                     "users": list(users)
                 })
-            else:
-                await ws_manager.broadcast_to_campaign(campaign_id, {
-                    "type": msg_type,
-                    "user_id": username,
-                    "data": data,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }, exclude=websocket)
 
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket, username, campaign_id)
