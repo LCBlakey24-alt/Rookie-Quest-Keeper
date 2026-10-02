@@ -48,7 +48,12 @@ jobs:
             backend/tests/test_player_content_membership.py \
             backend/tests/test_live_party_combat_state.py \
             backend/tests/test_fast_startup.py \
-            backend/tests/test_character_journey_regression.py
+            backend/tests/test_character_journey_regression.py \
+            backend/tests/test_account_deletion_collection_coverage.py \
+            backend/tests/test_rate_limit_utils.py \
+            backend/tests/test_ws_messages.py \
+            backend/tests/test_health_wiring.py \
+            backend/tests/test_map_media_models.py
 
   frontend-build:
     name: Frontend tests and build
@@ -71,6 +76,12 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --non-interactive
+
+      - name: Parse Playwright E2E suite
+        run: |
+          cd ../tests
+          yarn install --non-interactive
+          yarn playwright test --list --config=playwright.config.ts
 
       - name: Run frontend tests
         env:
