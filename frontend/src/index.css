@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Germania+One&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import './styles/signedInCalm.css';
 
 @tailwind base;
@@ -15,11 +15,11 @@
 }
 
 :root {
-  --rq-font-display: 'Germania One', 'RQKDisplay', Georgia, serif;
+  --rq-font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   --rq-font-sans: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Global font base. Display headings use Germania One; body/UI text uses Manrope with system fallbacks. */
+/* Global font base. Guild Ledger headings use Fraunces; body/UI text uses Manrope. */
 *, *::before, *::after {
   font-family: var(--rq-font-sans) !important;
   letter-spacing: 0;

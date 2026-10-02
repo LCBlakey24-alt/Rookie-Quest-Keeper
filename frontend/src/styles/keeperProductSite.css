@@ -1488,7 +1488,7 @@
 /* -------------------------------------------------------------------------- */
 
 #root .landing-page-final.keeper-product-site {
-  --landing-display: Georgia, 'Times New Roman', serif;
+  --landing-display: 'Fraunces', Georgia, 'Times New Roman', serif;
 }
 
 #root .keeper-product-site h1,
@@ -2149,5 +2149,43 @@
   #root .keeper-product-site *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+
+/* Approved Guild Ledger map artwork: kept behind the landing panels. */
+#root .landing-page-final.keeper-product-site {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--landing-bg) !important;
+}
+
+#root .landing-page-final.keeper-product-site::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.36;
+  
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  #root .landing-page-final.keeper-product-site::before {
+    
+  }
+}
+
+@media (min-width: 621px) and (max-width: 900px) {
+  #root .landing-page-final.keeper-product-site::before {
+    opacity: 0.32;
+    
+  }
+}
+
+@media (max-width: 620px) {
+  #root .landing-page-final.keeper-product-site::before {
+    opacity: 0.30;
+    
   }
 }

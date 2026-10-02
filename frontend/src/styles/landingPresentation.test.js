@@ -52,7 +52,7 @@ describe('Guild Ledger public landing presentation', () => {
     const product = read('./keeperProductSite.css');
     const page = read('../components/LandingPage.js');
 
-    expect(product).toContain("--landing-display: Georgia, 'Times New Roman', serif");
+    expect(product).toContain("--landing-display: 'Fraunces', Georgia, 'Times New Roman', serif");
     expect(product).toContain("#root .keeper-product-site .landing-nav-actions .landing-button-ghost");
     expect(product).toContain("#root .keeper-product-site .landing-app-preview__rail");
     expect(product).toContain("display: none !important");
