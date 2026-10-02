@@ -1,85 +1,95 @@
 # Known Issues and Technical Debt
 
-This file tracks issues that should be fixed before larger feature work continues.
+This file tracks current risks that still deserve work. Fixed items should not remain written as if they are still broken.
 
 ## High priority
 
-### Character save paths need consolidation
+### Account-deletion coverage must stay current
 
-The app has both a strict PUT character update route and a lenient PATCH route. This was useful for fixing failed character-sheet saves, but the frontend should consistently use PATCH for live sheet state and reserve PUT for full edit-mode updates.
+Account deletion now sweeps campaign-owned data and covers the current user-owned collections, including newer user NPC, monster, custom-rule, feedback, and legacy player records. Regression coverage protects the current collection list.
 
-Risk if ignored: HP, spell slots, notes, portraits, conditions, or inventory can fail to save when a frontend component sends fields not accepted by the strict model.
+Remaining risk: a future user-owned collection could be added without being registered in deletion coverage. Prefer shared ownership metadata or a central collection registry over repeatedly growing hand-written lists.
 
-### Account deletion may leave orphaned records
+### Character-save regression coverage
 
-The current account deletion route must be kept in sync with every user-owned and campaign-owned collection. It should delete or anonymise all associated user data, including characters, campaigns, content, uploads, homebrew, reset tokens, and invites.
+The active character sheet, combat flows, notes, inventory, profile editor, and current builder use the lenient character PATCH path for live/editable state. Keep the strict replacement route only for flows that intentionally replace a complete record.
 
-Risk if ignored: deleted accounts leave data in MongoDB, causing privacy and maintenance problems.
+Remaining work: expand stable regression coverage for HP, temp HP, death saves, conditions, exhaustion, spell slots, notes, inventory, portrait, personality fields, and offline combat replay.
 
-### Rate limits are missing or incomplete
+### Mobile character-sheet device QA
 
-Login, register, forgot-password, AI generation, and file parsing need basic throttling.
+The active `/characters/:characterId` route renders `CleanCharacterSheet`, and the current presentation stack includes the explicit mobile character-sheet lane.
 
-Risk if ignored: brute-force login attempts, reset-email abuse, and accidental AI budget burn.
-
-### Mobile sheet integration needs verification
-
-A mobile sheet layout exists in the repo history, but it must be verified against the active character sheet route.
-
-Risk if ignored: phone users may still get cramped desktop-style sheets.
+Remaining work: complete real-device/browser QA at representative Android Chrome and iOS Safari widths, including tabs, HP controls, combat cards, inventory, spells, dice results, and long-content overflow.
 
 ## Medium priority
 
+### Rate limiting is process-local
+
+Auth, password reset/change, Rook AI, legacy AI, and expensive homebrew parsing routes have route-level sliding-window limits.
+
+Remaining risk: the limiter is in memory and therefore only coordinates within one backend process. If Render scales to multiple instances, move rate-limit state to a shared store such as Redis/Key Value.
+
+### AI usage controls
+
+Rook usage is recorded in MongoDB, monthly usage is visible in the admin overview, and `AI_MONTHLY_LIMIT` can enforce a per-user monthly cap when set above zero.
+
+Remaining work: decide commercial/public limits before launch, make the chosen allowance clear to users, and consider daily/burst limits separately from the monthly cap.
+
 ### Large frontend components
 
-Several components are large enough to slow development and make bugs harder to isolate. Refactor carefully without changing UI behaviour.
+Several components are still large enough to slow development and make bugs harder to isolate. Refactor carefully without changing UI behaviour.
 
 Priority candidates:
 
 - `UnifiedDashboard.js`
-- active character sheet file/components
+- remaining large character-sheet orchestration
 - `GMScreen.js`
 - `CombatPage.js`
 
 ### Heavy inline styles
 
-Many components define style objects inside render functions. This makes re-renders noisier and visual consistency harder.
+Some components still define substantial style objects inside render modules. This makes visual consistency and maintenance harder.
 
-Fix gradually by extracting repeated styles into constants or CSS classes.
+Fix gradually by extracting repeated styles into the approved shared design system and responsive device lanes.
 
-### WebSocket message validation
+### Live-sync schema evolution
 
-The WebSocket handler accepts known message types but also broadcasts unknown message types with raw data.
+Client-originated campaign WebSocket messages now use an allowlist and unknown message types are rejected instead of rebroadcast.
 
-Risk if ignored: harder debugging and potential misuse as the app grows.
-
-### AI usage controls
-
-`check_ai_access` currently allows all AI calls while limits are paused. Before public launch, add usage counters and admin-visible usage tracking.
+Remaining work: give each supported message type a typed/validated payload schema as live-sync features expand.
 
 ## Lower priority
 
 ### README and docs drift
 
-Docs now exist, but they must be kept current whenever architecture changes.
+Architecture and service ownership are documented, including the separation between Keeper and Stage Flow. Keep those docs current whenever deployment or storage ownership changes.
 
 ### Test coverage gaps
 
-Backend has several iteration-specific tests, but core flows should be consolidated into stable regression suites:
+Core flows still need broader consolidated regression suites:
 
-- Auth
-- Character creation
-- Character live saves
+- Auth and account lifecycle
+- Character creation and live saves
 - Level-up
-- Campaign creation
-- GM screen basics
-- Combat persistence
+- Campaign creation and GM Home
+- Combat persistence and offline replay
 - Homebrew parsing/save
-- Account deletion cleanup
+- Account deletion
+- Live-session sync
 
 ### Design token consistency
 
-Dark navy and gold are the intended visual direction. Some older components may still have leftover gradients, non-gold accents, or inconsistent spacing.
+Deep navy, warm cream, antique gold, and restrained ledger blue are the intended Keeper direction. Older screens should continue migrating away from leftover one-off colours, gradients, and spacing rules.
+
+## Recently resolved
+
+- GM Home no longer crashes when bootstrap data is null or malformed.
+- Current auth-sensitive, Rook AI, legacy AI, and parsing routes have basic rate limiting.
+- Unknown client WebSocket message types are no longer rebroadcast to a campaign.
+- Account deletion covers the newer user-owned collections identified in the live database.
+- Campaign settings and calendars now have campaign-id indexes.
+- Monthly Rook request/user counts are exposed to Admin Mission Control.
 
 ## Do not do casually
 
@@ -88,3 +98,4 @@ Dark navy and gold are the intended visual direction. Some older components may 
 - Do not remove old backend routes until the frontend has definitely migrated away from them.
 - Do not add protected publisher rules text into the codebase.
 - Do not reintroduce AI image generation; use manual upload support for portraits, maps, items, and other visuals.
+- Do not turn Supabase into a second Keeper source-of-truth database without a deliberate migration plan.
