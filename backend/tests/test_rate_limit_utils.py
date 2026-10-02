@@ -40,3 +40,17 @@ def test_account_delete_route_matches_account_rate_limit_prefix():
     assert "/api/account" in prefixes
     assert "/api/account/delete" not in prefixes
     assert any("/api/account".startswith(prefix) for prefix in prefixes)
+
+
+def test_live_change_password_route_is_rate_limited():
+    prefixes = [prefix for prefix, _limit, _window in RATE_LIMITS]
+    assert "/api/auth/change-password" in prefixes
+
+
+def test_rook_ai_routes_are_rate_limited():
+    prefixes = [prefix for prefix, _limit, _window in RATE_LIMITS]
+    assert "/api/rook" in prefixes
+    assert any("/api/rook/generate".startswith(prefix) for prefix in prefixes)
+    assert any("/api/rook/form-fill".startswith(prefix) for prefix in prefixes)
+    assert any("/api/rook/draft".startswith(prefix) for prefix in prefixes)
+    assert "/api/unseen-servant/generate" in prefixes
