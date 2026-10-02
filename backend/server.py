@@ -59,12 +59,29 @@ async def database_unavailable_handler(request: Request, exc: PyMongoError):
     )
 
 
-# Health check endpoints
+# Liveness stays independent of MongoDB so a database outage does not make the
+# web process itself look dead. Readiness below confirms Keeper can serve data.
 @app.get("/health")
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint for deployment readiness."""
+    """Return whether the FastAPI process itself is running."""
     return {"status": "healthy", "service": "rook-backend"}
+
+
+@app.get("/ready")
+@app.get("/api/ready")
+async def readiness_check():
+    """Return 200 only when the backend can reach Keeper's primary database."""
+    try:
+        await asyncio.wait_for(db.command("ping"), timeout=3.0)
+    except Exception as exc:
+        logger.warning("Readiness check failed: %s", type(exc).__name__)
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unavailable", "service": "rook-backend", "database": "unavailable"},
+            headers={"Retry-After": "15"},
+        )
+    return {"status": "ready", "service": "rook-backend", "database": "available"}
 
 
 # WebSocket endpoint for real-time campaign sync
