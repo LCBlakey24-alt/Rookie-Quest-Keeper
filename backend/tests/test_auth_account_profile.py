@@ -16,6 +16,7 @@ def test_google_account_profile_exposes_provider_without_secrets():
         "email": "rook@gmail.com",
         "created_at": "2026-10-02T00:00:00+00:00",
         "auth_provider": "google",
+        "password_login_enabled": False,
     }
 
 
@@ -26,3 +27,4 @@ def test_legacy_password_account_defaults_to_password_provider():
     })
 
     assert profile["auth_provider"] == "password"
+    assert profile["password_login_enabled"] is True
