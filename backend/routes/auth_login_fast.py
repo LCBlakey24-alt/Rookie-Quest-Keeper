@@ -232,6 +232,7 @@ async def login_google(request: GoogleLoginRequest):
         'google_sub': google_sub,
         'google_email': google_email,
         'auth_provider': 'google',
+        'password_login_enabled': False,
         'created_at': datetime.now(timezone.utc).isoformat(),
     }
     if authoritative_email:
