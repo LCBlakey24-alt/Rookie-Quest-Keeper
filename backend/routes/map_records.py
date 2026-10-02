@@ -126,6 +126,7 @@ async def create_local_map_record(
         name=map_data.name,
         map_type=map_data.map_type,
         image_data=map_data.image_data,
+        image_url=map_data.image_url,
         notes=map_data.notes,
     )
     doc = local_map.model_dump()
