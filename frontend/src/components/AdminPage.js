@@ -122,6 +122,8 @@ function AdminPage() {
     archivedUpdates: overview.archived_site_updates_count ?? 0,
     auditLogs: overview.audit_log_count ?? 0,
     recentAudit: overview.recent_audit_count ?? 0,
+    aiRequestsThisMonth: overview.ai_requests_this_month ?? 0,
+    aiUsersThisMonth: overview.ai_users_this_month ?? 0,
   }), [reviews, users, overview]);
 
   const handleToggleReview = async (reviewId) => {
@@ -250,6 +252,8 @@ function AdminPage() {
           <StatCard label="New Testing" value={stats.newTesting} icon={ClipboardList} tone={stats.newTesting > 0 ? 'hot' : 'normal'} />
           <StatCard label="Active Testing" value={stats.activeTesting} icon={FlaskConical} tone={stats.activeTesting > 0 ? 'hot' : 'normal'} />
           <StatCard label="Audit 24h" value={stats.recentAudit} icon={ShieldCheck} />
+          <StatCard label="Rook Requests This Month" value={stats.aiRequestsThisMonth} icon={Wand2} />
+          <StatCard label="Rook Users This Month" value={stats.aiUsersThisMonth} icon={Users} />
         </section>
 
         <AdminMissionBrief onOpenTab={setActiveTab} />
