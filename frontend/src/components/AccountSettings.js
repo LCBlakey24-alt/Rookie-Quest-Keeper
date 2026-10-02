@@ -28,8 +28,10 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
   const saving = Boolean(savingAction);
   const profileSaving = savingAction === 'profile';
   const passwordSaving = savingAction === 'password';
+  const passwordSetupSaving = savingAction === 'password-setup';
   const deleteSaving = savingAction === 'delete';
   const profileEmail = profile?.email || '';
+  const googleOnlyAccount = profile?.auth_provider === 'google';
   const profileChanged = useMemo(() => newEmail.trim() !== profileEmail, [newEmail, profileEmail]);
 
   useEffect(() => {
@@ -118,6 +120,23 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
     }
   };
 
+  const handleSendPasswordSetup = async () => {
+    if (!profileEmail) {
+      toast.error('Add and save a recovery email first');
+      return;
+    }
+
+    setSavingAction('password-setup');
+    try {
+      await apiClient.post('/auth/forgot-password', { email: profileEmail });
+      toast.success('Password setup email sent. Check your inbox for the reset link.');
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to send password setup email');
+    } finally {
+      setSavingAction('');
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') {
       toast.error('Please type DELETE to confirm');
@@ -171,36 +190,56 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           </form>
         </section>
 
-        <section className="account-settings-panel" style={panelStyle} aria-busy={passwordSaving ? 'true' : 'false'}>
-          <SectionHeader icon={Shield} title="Change Password" />
-          <form onSubmit={handleChangePassword}>
-            <div style={{ display: 'grid', gap: '20px' }}>
-              <div>
-                <FieldLabel icon={Lock} text="Current Password" />
-                <PasswordInput value={currentPassword} setValue={setCurrentPassword} show={showCurrentPassword} setShow={setShowCurrentPassword} placeholder="Enter current password" testId="current-password" disabled={saving} />
-              </div>
-
-              <div>
-                <FieldLabel icon={Lock} text="New Password" />
-                <PasswordInput value={newPassword} setValue={setNewPassword} show={showNewPassword} setShow={setShowNewPassword} placeholder="Enter new password (min. 8 characters)" testId="new-password" disabled={saving} />
-              </div>
-
-              <div>
-                <FieldLabel icon={CheckCircle} text="Confirm New Password" />
-                <Input type="password" value={confirmPassword} disabled={saving} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" data-testid="confirm-password" />
-                {newPassword && confirmPassword && (
-                  <div style={{ marginTop: '8px', fontSize: '12px', color: newPassword === confirmPassword ? 'var(--rq-success, #2E8B57)' : 'var(--rq-danger, #C1121F)', fontWeight: 800 }}>
-                    {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
-                  </div>
-                )}
-              </div>
-
-              <Button type="submit" disabled={saving || !currentPassword || !newPassword || newPassword !== confirmPassword} className="btn-primary account-settings-primary" style={busyButtonStyle(passwordSaving)} data-testid="change-password-btn">
-                {passwordSaving ? <RefreshCw size={16} style={spinStyle} /> : <Lock size={16} />}
-                {passwordSaving ? 'Changing password…' : 'Change Password'}
+        <section className="account-settings-panel" style={panelStyle} aria-busy={passwordSaving || passwordSetupSaving ? 'true' : 'false'}>
+          <SectionHeader icon={Shield} title={googleOnlyAccount ? "Password & Google Sign-in" : "Change Password"} />
+          {googleOnlyAccount ? (
+            <div style={{ display: 'grid', gap: '16px' }}>
+              <p style={helpTextStyle}>
+                This account signs in with Google, so there is no current Rookie Quest password to enter.
+                {profileEmail ? ' You can create a password by sending a secure setup link to your recovery email.' : ' Add and save a recovery email above if you also want to create a Rookie Quest password.'}
+              </p>
+              <Button
+                type="button"
+                onClick={handleSendPasswordSetup}
+                disabled={saving || !profileEmail}
+                className="btn-primary account-settings-primary"
+                style={busyButtonStyle(passwordSetupSaving, !profileEmail)}
+                data-testid="google-password-setup-btn"
+              >
+                {passwordSetupSaving ? <RefreshCw size={16} style={spinStyle} /> : <Mail size={16} />}
+                {passwordSetupSaving ? 'Sending setup email…' : profileEmail ? 'Email me a password setup link' : 'Add a recovery email first'}
               </Button>
             </div>
-          </form>
+          ) : (
+            <form onSubmit={handleChangePassword}>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                <div>
+                  <FieldLabel icon={Lock} text="Current Password" />
+                  <PasswordInput value={currentPassword} setValue={setCurrentPassword} show={showCurrentPassword} setShow={setShowCurrentPassword} placeholder="Enter current password" testId="current-password" disabled={saving} />
+                </div>
+
+                <div>
+                  <FieldLabel icon={Lock} text="New Password" />
+                  <PasswordInput value={newPassword} setValue={setNewPassword} show={showNewPassword} setShow={setShowNewPassword} placeholder="Enter new password (min. 8 characters)" testId="new-password" disabled={saving} />
+                </div>
+
+                <div>
+                  <FieldLabel icon={CheckCircle} text="Confirm New Password" />
+                  <Input type="password" value={confirmPassword} disabled={saving} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" data-testid="confirm-password" />
+                  {newPassword && confirmPassword && (
+                    <div style={{ marginTop: '8px', fontSize: '12px', color: newPassword === confirmPassword ? 'var(--rq-success, #2E8B57)' : 'var(--rq-danger, #C1121F)', fontWeight: 800 }}>
+                      {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                    </div>
+                  )}
+                </div>
+
+                <Button type="submit" disabled={saving || !currentPassword || !newPassword || newPassword !== confirmPassword} className="btn-primary account-settings-primary" style={busyButtonStyle(passwordSaving)} data-testid="change-password-btn">
+                  {passwordSaving ? <RefreshCw size={16} style={spinStyle} /> : <Lock size={16} />}
+                  {passwordSaving ? 'Changing password…' : 'Change Password'}
+                </Button>
+              </div>
+            </form>
+          )}
         </section>
 
         <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle} aria-busy={deleteSaving ? 'true' : 'false'}>
