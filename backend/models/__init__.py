@@ -1386,6 +1386,7 @@ class WorldMapCreate(BaseModel):
     name: str
     map_type: str = "world"
     image_data: str = ""
+    image_url: Optional[str] = None
     scale_value: float = 1.0
     scale_unit: str = "miles"
     travel_speeds: Optional[Dict[str, float]] = None
@@ -1395,6 +1396,7 @@ class WorldMapUpdate(BaseModel):
     name: Optional[str] = None
     map_type: Optional[str] = None
     image_data: Optional[str] = None
+    image_url: Optional[str] = None
     scale_value: Optional[float] = None
     scale_unit: Optional[str] = None
     pins: Optional[List[Dict[str, Any]]] = None
@@ -1424,12 +1426,14 @@ class LocalMapCreate(BaseModel):
     name: str
     map_type: str = "city"
     image_data: str = ""
+    image_url: Optional[str] = None
     notes: str = ""
 
 class LocalMapUpdate(BaseModel):
     name: Optional[str] = None
     map_type: Optional[str] = None
     image_data: Optional[str] = None
+    image_url: Optional[str] = None
     pins: Optional[List[Dict[str, Any]]] = None
     notes: Optional[str] = None
 
