@@ -38,6 +38,7 @@ const GMHandoutsWorkspace = React.lazy(() => import('@/components/gm/GMHandoutsW
 const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKartaCampaignPackPanel'));
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
+import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
 import './CampaignDashboard.css';
 
 const uploadTheme = {
@@ -350,18 +351,6 @@ export default function CampaignDashboard() {
 
 function safeList(value) {
   return Array.isArray(value) ? value : [];
-}
-
-function normaliseHomeData(payload = {}) {
-  return {
-    quests: safeList(payload.quests),
-    arcs: safeList(payload.arcs),
-    npcs: safeList(payload.npcs),
-    locations: safeList(payload.locations),
-    notes: safeList(payload.notes),
-    calendar: payload.calendar || null,
-    events: safeList(payload.events),
-  };
 }
 
 function objectiveProgress(quest) {
