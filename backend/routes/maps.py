@@ -79,6 +79,7 @@ async def create_world_map(campaign_id: str, map_data: WorldMapCreate, username:
         name=map_data.name,
         map_type=map_data.map_type,
         image_data=map_data.image_data,
+        image_url=map_data.image_url,
         scale_value=map_data.scale_value,
         scale_unit=map_data.scale_unit,
         travel_speeds=map_data.travel_speeds or default_travel_speeds,
