@@ -55,7 +55,8 @@ jobs:
             backend/tests/test_ws_messages.py \
             backend/tests/test_health_wiring.py \
             backend/tests/test_map_media_models.py \
-            backend/tests/test_auth_password_policy.py
+            backend/tests/test_auth_password_policy.py \
+            backend/tests/test_auth_account_profile.py
 
   frontend-build:
     name: Frontend tests and build
