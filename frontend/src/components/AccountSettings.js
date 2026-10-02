@@ -31,7 +31,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
   const passwordSetupSaving = savingAction === 'password-setup';
   const deleteSaving = savingAction === 'delete';
   const profileEmail = profile?.email || '';
-  const googleOnlyAccount = profile?.auth_provider === 'google';
+  const googleOnlyAccount = profile?.auth_provider === 'google' && profile?.password_login_enabled === false;
   const profileChanged = useMemo(() => newEmail.trim() !== profileEmail, [newEmail, profileEmail]);
 
   useEffect(() => {
