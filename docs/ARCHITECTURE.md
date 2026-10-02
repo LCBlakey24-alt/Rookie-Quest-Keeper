@@ -16,6 +16,17 @@ backend FastAPI app
 MongoDB
 ```
 
+## Production services
+
+- **GitHub** — source of truth for the Keeper codebase: `LCBlakey24-alt/Rookie-Quest-Keeper`.
+- **Vercel** — hosts the production React frontend and proxies `/api/*` requests to the backend.
+- **Render** — hosts the production FastAPI API service.
+- **MongoDB Atlas** — the live primary database and source of truth for Keeper application data.
+- **Supabase** — a separate Keeper project is reserved for future features such as object/file storage or other narrowly scoped backend services. It must not be treated as a second primary application database unless a deliberate migration is designed and completed.
+- **Resend** — used for transactional account email when configured.
+
+Stage Flow is a separate product and must not share Keeper database schemas, authentication records, or application data.
+
 ## Backend
 
 ### Entry point
