@@ -64,6 +64,16 @@ USER_OWNED_COLLECTIONS = [
 ]
 
 
+def public_account_profile(user: dict) -> dict:
+    """Return account settings fields without exposing authentication secrets."""
+    return {
+        "username": user["username"],
+        "email": user.get("email"),
+        "created_at": user.get("created_at"),
+        "auth_provider": user.get("auth_provider") or "password",
+    }
+
+
 def normalize_username_for_auth(username: str) -> str:
     """Trim and validate usernames for kid-friendly, email-free auth."""
     normalized = (username or "").strip()
@@ -321,7 +331,7 @@ async def get_me(current_username: str = Depends(get_current_user)):
     user = await db.users.find_one({'username': current_username}, {'password_hash': 0, '_id': 0})
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return {"username": user['username'], "email": user.get('email'), "created_at": user.get('created_at')}
+    return public_account_profile(user)
 
 
 @router.patch("/auth/me")
