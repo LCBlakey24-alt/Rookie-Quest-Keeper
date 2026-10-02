@@ -33,6 +33,11 @@ const PIN_TYPES = [
 const EMPTY_MAP = { name: '', scale_value: 50, scale_unit: 'miles', image_data: '' };
 const EMPTY_PIN = { name: '', pin_type: 'city', description: '', linked_location_id: '', x: 50, y: 50 };
 
+export function mapImageSource(map) {
+  if (!map || typeof map !== 'object') return '';
+  return map.image_url || map.image_data || '';
+}
+
 function pinTypeFor(type) {
   return PIN_TYPES.find(pin => pin.id === type) || PIN_TYPES[PIN_TYPES.length - 1];
 }
@@ -300,7 +305,7 @@ export default function WorldMapTab({ campaignId }) {
       <main style={mapStageStyle}>
         {selectedMap ? (
           <div ref={mapRef} onClick={handleMapClick} style={mapCanvasStyle(mode === 'addPin')}>
-            <img src={selectedMap.image_data} alt={selectedMap.name} style={mapImageStyle} />
+            <img src={mapImageSource(selectedMap)} alt={selectedMap.name} style={mapImageStyle} />
             {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} onClick={openPin} />)}
           </div>
         ) : (
