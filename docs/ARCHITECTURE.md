@@ -27,6 +27,12 @@ MongoDB
 
 Stage Flow is a separate product and must not share Keeper database schemas, authentication records, or application data.
 
+### Media storage migration
+
+The dedicated Supabase project contains a private `keeper-media` bucket reserved for future user-uploaded images. MongoDB remains the application-data source of truth. Existing base64 map images remain supported while map records also accept `image_url` for a gradual move to external media storage.
+
+Do not make `keeper-media` public to simplify delivery. Keeper currently uses its own JWT authentication, so private uploads/downloads need a deliberate backend signing/authentication bridge before production traffic is switched over.
+
 ## Backend
 
 ### Entry point
