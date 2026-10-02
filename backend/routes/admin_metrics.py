@@ -64,6 +64,10 @@ async def admin_mission_overview(username: str = Depends(get_current_user)):
     recent_since = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
     recent_audit_count = await db.admin_audit_log.count_documents({'created_at': {'$gte': recent_since}})
 
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    ai_requests_this_month = await db.ai_usage.count_documents({'month': current_month})
+    ai_users_this_month = len(await db.ai_usage.distinct('username', {'month': current_month}))
+
     return {
         'users_count': users_count,
         'campaigns_count': campaigns_count,
@@ -86,4 +90,6 @@ async def admin_mission_overview(username: str = Depends(get_current_user)):
         'archived_site_updates_count': archived_site_updates_count,
         'audit_log_count': audit_log_count,
         'recent_audit_count': recent_audit_count,
+        'ai_requests_this_month': ai_requests_this_month,
+        'ai_users_this_month': ai_users_this_month,
     }
