@@ -198,6 +198,8 @@ async def run_startup_maintenance():
         await db.player_characters.create_index([("campaign_id", ASCENDING)], background=True)
         await db.campaign_members.create_index([("campaign_id", ASCENDING)], background=True)
         await db.campaign_members.create_index([("user_id", ASCENDING)], background=True)
+        await db.campaign_settings.create_index([("campaign_id", ASCENDING)], background=True)
+        await db.calendars.create_index([("campaign_id", ASCENDING)], background=True)
         for col_name in ("npcs", "notes", "ingame_notes", "locations", "maps", "world_maps",
                          "local_maps", "combat_encounters", "combat_sessions", "inventory",
                          "party_currency", "custom_items", "campaign_events", "location_economy",
