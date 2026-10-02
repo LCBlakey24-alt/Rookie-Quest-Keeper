@@ -55,7 +55,7 @@ class CampaignMember(BaseModel):
 
 class UserRegister(BaseModel):
     username: str  # Display name / login name
-    password: str
+    password: str = Field(..., min_length=8)
     email: Optional[EmailStr] = None  # Optional recovery email for adult/parent-managed accounts
 
 class UserLogin(BaseModel):
@@ -74,11 +74,11 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(..., min_length=8)
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
-    new_password: str
+    new_password: str = Field(..., min_length=8)
 
 class UpdateAccountRequest(BaseModel):
     username: Optional[str] = None

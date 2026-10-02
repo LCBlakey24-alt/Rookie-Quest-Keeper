@@ -93,8 +93,8 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       return;
     }
 
-    if (newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
@@ -182,7 +182,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
               <div>
                 <FieldLabel icon={Lock} text="New Password" />
-                <PasswordInput value={newPassword} setValue={setNewPassword} show={showNewPassword} setShow={setShowNewPassword} placeholder="Enter new password (min. 6 characters)" testId="new-password" disabled={saving} />
+                <PasswordInput value={newPassword} setValue={setNewPassword} show={showNewPassword} setShow={setShowNewPassword} placeholder="Enter new password (min. 8 characters)" testId="new-password" disabled={saving} />
               </div>
 
               <div>
