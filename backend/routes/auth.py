@@ -1,6 +1,7 @@
 """Authentication routes: register, login, password reset, account management."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
+from utils.account_profile import public_account_profile
 from utils.auth import (
     get_current_user, hash_password, verify_password, create_token,
 )
@@ -62,20 +63,6 @@ USER_OWNED_COLLECTIONS = [
     'roll_events',
     'ai_usage',
 ]
-
-
-def public_account_profile(user: dict) -> dict:
-    """Return account settings fields without exposing authentication secrets."""
-    return {
-        "username": user["username"],
-        "email": user.get("email"),
-        "created_at": user.get("created_at"),
-        "auth_provider": user.get("auth_provider") or "password",
-        "password_login_enabled": user.get(
-            "password_login_enabled",
-            user.get("auth_provider") != "google",
-        ),
-    }
 
 
 def normalize_username_for_auth(username: str) -> str:
