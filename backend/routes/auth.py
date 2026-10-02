@@ -1,6 +1,7 @@
 """Authentication routes: register, login, password reset, account management."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
+from utils.account_profile import public_account_profile
 from utils.auth import (
     get_current_user, hash_password, verify_password, create_token,
 )
@@ -185,6 +186,7 @@ async def register(user_data: UserRegister):
         'id': str(uuid.uuid4()),
         'username': normalized_username,
         'password_hash': hash_password(user_data.password),
+        'password_login_enabled': True,
         'created_at': datetime.now(timezone.utc).isoformat()
     }
     if normalized_email:
@@ -292,7 +294,10 @@ async def reset_password(request: ResetPasswordRequest):
     password_hash = hash_password(request.new_password)
     await db.users.update_one(
         {'email': reset_record['email']},
-        {'$set': {'password_hash': password_hash}}
+        {'$set': {
+            'password_hash': password_hash,
+            'password_login_enabled': True,
+        }}
     )
     
     await db.password_resets.delete_one({'token': request.token})
@@ -321,7 +326,7 @@ async def get_me(current_username: str = Depends(get_current_user)):
     user = await db.users.find_one({'username': current_username}, {'password_hash': 0, '_id': 0})
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return {"username": user['username'], "email": user.get('email'), "created_at": user.get('created_at')}
+    return public_account_profile(user)
 
 
 @router.patch("/auth/me")
