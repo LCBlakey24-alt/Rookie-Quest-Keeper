@@ -32,6 +32,7 @@ describe('AccountSettings Google-only password flow', () => {
         username: 'GoogleRook',
         email: 'rook@gmail.com',
         auth_provider: 'google',
+        password_login_enabled: false,
       },
     });
     apiClient.post.mockResolvedValue({ data: { message: 'sent' } });
@@ -66,6 +67,7 @@ describe('AccountSettings Google-only password flow', () => {
         username: 'GoogleRook',
         email: null,
         auth_provider: 'google',
+        password_login_enabled: false,
       },
     });
 
@@ -79,4 +81,25 @@ describe('AccountSettings Google-only password flow', () => {
     expect(setupButton).toBeDisabled();
     expect(setupButton).toHaveTextContent('Add a recovery email first');
   });
+});
+
+
+test('shows the normal password form after a Google account establishes password login', async () => {
+  apiClient.get.mockResolvedValueOnce({
+    data: {
+      username: 'GoogleRook',
+      email: 'rook@gmail.com',
+      auth_provider: 'google',
+      password_login_enabled: true,
+    },
+  });
+
+  render(
+    <MemoryRouter>
+      <AccountSettings username="GoogleRook" onLogout={jest.fn()} />
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByTestId('current-password')).toBeInTheDocument();
+  expect(screen.queryByTestId('google-password-setup-btn')).not.toBeInTheDocument();
 });
