@@ -71,6 +71,10 @@ def public_account_profile(user: dict) -> dict:
         "email": user.get("email"),
         "created_at": user.get("created_at"),
         "auth_provider": user.get("auth_provider") or "password",
+        "password_login_enabled": user.get(
+            "password_login_enabled",
+            user.get("auth_provider") != "google",
+        ),
     }
 
 
@@ -195,6 +199,7 @@ async def register(user_data: UserRegister):
         'id': str(uuid.uuid4()),
         'username': normalized_username,
         'password_hash': hash_password(user_data.password),
+        'password_login_enabled': True,
         'created_at': datetime.now(timezone.utc).isoformat()
     }
     if normalized_email:
@@ -302,7 +307,10 @@ async def reset_password(request: ResetPasswordRequest):
     password_hash = hash_password(request.new_password)
     await db.users.update_one(
         {'email': reset_record['email']},
-        {'$set': {'password_hash': password_hash}}
+        {'$set': {
+            'password_hash': password_hash,
+            'password_login_enabled': True,
+        }}
     )
     
     await db.password_resets.delete_one({'token': request.token})
