@@ -1,4 +1,4 @@
-from routes.auth import public_account_profile
+from utils.account_profile import public_account_profile
 
 
 def test_google_account_profile_exposes_provider_without_secrets():
