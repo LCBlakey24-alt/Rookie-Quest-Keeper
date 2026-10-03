@@ -24,13 +24,25 @@ export function AttackCard({ action, onAttack, onDamage, children, active }) {
 }
 
 export function SimpleActionCard({ title, description, type = 'Action', onClick, disabled = false }) {
+  const content = (
+    <>
+      <span className="clean-sheet-action-type">{type}</span>
+      <strong>{title}</strong>
+      <span>{description}</span>
+    </>
+  );
+
   return (
     <div className="clean-sheet-action-card-shell">
-      <button type="button" className="clean-sheet-action-card" onClick={onClick} disabled={disabled}>
-        <span className="clean-sheet-action-type">{type}</span>
-        <strong>{title}</strong>
-        <span>{description}</span>
-      </button>
+      {onClick ? (
+        <button type="button" className="clean-sheet-action-card" onClick={onClick} disabled={disabled}>
+          {content}
+        </button>
+      ) : (
+        <article className="clean-sheet-action-card clean-sheet-action-card--informational">
+          {content}
+        </article>
+      )}
     </div>
   );
 }
