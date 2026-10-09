@@ -1,0 +1,63 @@
+name: Desktop Windows Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "desktop/**"
+      - "frontend/**"
+      - ".github/workflows/desktop-windows.yml"
+
+jobs:
+  windows-installer:
+    name: Windows offline installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: yarn install --non-interactive
+
+      - name: Test desktop local-mode seam
+        working-directory: frontend
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js
+
+      - name: Build Keeper frontend
+        working-directory: frontend
+        run: yarn build
+
+      - name: Stage renderer
+        shell: pwsh
+        run: |
+          if (Test-Path desktop/renderer) { Remove-Item desktop/renderer -Recurse -Force }
+          Copy-Item frontend/build desktop/renderer -Recurse
+
+      - name: Install desktop packager
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+
+      - name: Build Windows installer
+        working-directory: desktop
+        run: npm run dist:win
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rookie-Quest-Keeper-Desktop-Windows
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.yml
+          if-no-files-found: error
+          retention-days: 14
