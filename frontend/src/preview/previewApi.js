@@ -1,7 +1,7 @@
 import { buildLongRestUpdates, buildShortRestUpdates } from '../data/characterRestRules';
 import { canonicalisePreviewCreatedCharacter } from './previewCharacterCreation';
 import { createPreviewSeed } from './previewSeed';
-import { isReadOnlyDemo, PREVIEW_STORAGE_KEY, PREVIEW_USER } from './previewMode';
+import { isOfflineDesktop, isReadOnlyDemo, localWorkspaceStorageKey, localWorkspaceUser } from './previewMode';
 
 const copy = value => JSON.parse(JSON.stringify(value));
 const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
@@ -23,15 +23,17 @@ export function createPreviewApi(
   options = {},
 ) {
   const readOnly = options.readOnly ?? isReadOnlyDemo();
+  const workspaceUser = options.user ?? localWorkspaceUser();
+  const storageKey = options.storageKey ?? localWorkspaceStorageKey();
   let state;
   if (!readOnly) {
     try {
-      const saved = JSON.parse(storage?.getItem(PREVIEW_STORAGE_KEY) || 'null');
+      const saved = JSON.parse(storage?.getItem(storageKey) || 'null');
       if (saved?.version === 1 && Array.isArray(saved.campaigns) && Array.isArray(saved.characters)
         && saved.collections && saved.objects && saved.receipts && Array.isArray(saved.notes) && Array.isArray(saved.recaps) && Array.isArray(saved.homebrew)) state = saved;
     } catch { /* Start with sample data when browser storage is unavailable. */ }
   }
-  if (!state) state = createPreviewSeed();
+  if (!state) state = createPreviewSeed({ user: workspaceUser, empty: isOfflineDesktop() });
 
   const findCampaign = id => state.campaigns.find(item => item.id === id) || fail('Preview campaign not found.', 404);
   const findCharacter = id => state.characters.find(item => item.id === id) || fail('Preview character not found.', 404);
@@ -42,7 +44,7 @@ export function createPreviewApi(
     if (!Object.hasOwn(state.collections[id], collection)) state.collections[id][collection] = [];
     return state.collections[id][collection];
   };
-  const recipients = id => party(id).length ? [{ username: PREVIEW_USER, display_name: PREVIEW_USER, character_name: party(id)[0].name }] : [];
+  const recipients = id => party(id).length ? [{ username: workspaceUser, display_name: workspaceUser, character_name: party(id)[0].name }] : [];
 
   function crud(list, method, id, body, defaults = {}) {
     if (method === 'get' && !id) return list;
@@ -78,7 +80,7 @@ export function createPreviewApi(
   function dispatch(method, path, body) {
     const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
     if (parts.some(part => ['__proto__', 'prototype', 'constructor'].includes(part))) fail('Invalid preview path.', 400);
-    if (method === 'get' && path === '/auth/me') return { username: PREVIEW_USER, is_admin: false };
+    if (method === 'get' && path === '/auth/me') return { username: workspaceUser, is_admin: false };
     if (method === 'get' && path === '/admin/check') return { is_admin: false };
     if (method === 'get' && path === '/health') return { status: 'local-preview' };
     if (method === 'get' && path === '/site-settings') return { campaign_creation_enabled: true, character_creation_enabled: true, uploads_enabled: false, rook_text_enabled: false, feedback_enabled: false };
@@ -109,11 +111,11 @@ export function createPreviewApi(
       const characterBody = method === 'post' && !parts[1]
         ? canonicalisePreviewCreatedCharacter(body)
         : body;
-      return crud(state.characters, method, parts[1], characterBody, { user_id: PREVIEW_USER });
+      return crud(state.characters, method, parts[1], characterBody, { user_id: workspaceUser });
     }
     if (parts[0] === 'campaigns' && parts.length <= 2) {
       if (method === 'post' && !String(body.name || '').trim()) fail('Give the campaign a name.', 400);
-      const result = crud(state.campaigns, method, parts[1], body, { dm_user_id: PREVIEW_USER, rules_edition: '2014', environment: {}, join_code: `PV${Math.random().toString(36).slice(2, 6).toUpperCase().padEnd(4, '0')}` });
+      const result = crud(state.campaigns, method, parts[1], body, { dm_user_id: workspaceUser, rules_edition: '2014', environment: {}, join_code: `PV${Math.random().toString(36).slice(2, 6).toUpperCase().padEnd(4, '0')}` });
       if (method === 'delete') {
         state.characters.forEach(character => { if (character.campaign_id === parts[1]) { character.campaign_id = null; character.campaign_name = ''; } });
         delete state.collections[parts[1]];
@@ -132,7 +134,7 @@ export function createPreviewApi(
     }
     if (parts[0] === 'campaign-invites' && parts.length === 3 && parts[2] === 'members' && method === 'get') {
       findCampaign(parts[1]);
-      return party(parts[1]).map(character => ({ id: character.id, character_id: character.id, character_name: character.name, character_level: character.level, character_class: character.character_class, username: PREVIEW_USER, status: character.campaign_join_status || 'active' }));
+      return party(parts[1]).map(character => ({ id: character.id, character_id: character.id, character_name: character.name, character_level: character.level, character_class: character.character_class, username: workspaceUser, status: character.campaign_join_status || 'active' }));
     }
     if (parts[0] === 'campaign-invites' && parts.length === 2 && method === 'get') {
       const campaign = findCampaign(parts[1]);
@@ -144,14 +146,14 @@ export function createPreviewApi(
     if (path === '/player/timeline' && method === 'get') return state.campaigns.flatMap(campaign => records(campaign.id, 'timeline'));
     if (path === '/player/session-recaps' && method === 'get') return state.recaps;
     if (parts[0] === 'player' && parts[1] === 'notes' && parts.length <= 3) {
-      return crud(state.notes, method, parts[2], body, { user_id: PREVIEW_USER, campaign_name: state.campaigns.find(c => c.id === body.campaign_id)?.name || '' });
+      return crud(state.notes, method, parts[2], body, { user_id: workspaceUser, campaign_name: state.campaigns.find(c => c.id === body.campaign_id)?.name || '' });
     }
     if (path === '/player/handouts' && method === 'get') {
-      return state.campaigns.flatMap(campaign => records(campaign.id, 'handouts').filter(handout => handout.shared_with?.includes(PREVIEW_USER))
+      return state.campaigns.flatMap(campaign => records(campaign.id, 'handouts').filter(handout => handout.shared_with?.includes(workspaceUser))
         .map(handout => ({ ...handout, handout_id: handout.id, read: false, saved: false, ...(state.receipts[handout.id] || {}) })));
     }
     if (parts[0] === 'player' && parts[1] === 'handouts' && parts.length === 4) {
-      const handout = state.campaigns.flatMap(c => records(c.id, 'handouts')).find(item => item.id === parts[2] && item.shared_with?.includes(PREVIEW_USER));
+      const handout = state.campaigns.flatMap(c => records(c.id, 'handouts')).find(item => item.id === parts[2] && item.shared_with?.includes(workspaceUser));
       if (!handout) fail('Handout not found in the preview.', 404);
       if (method === 'get' && parts[3] === 'share-options') return { recipients: [] };
       if (method === 'patch' && ['read', 'saved'].includes(parts[3])) {
@@ -181,7 +183,7 @@ export function createPreviewApi(
       if (resource === 'handouts' && id && action === 'share' && parts.length === 5 && method === 'post') {
         const handout = records(campaignId, 'handouts').find(item => item.id === id);
         if (!handout) fail('Handout not found in the preview.', 404);
-        handout.shared_with = [PREVIEW_USER];
+        handout.shared_with = [workspaceUser];
         handout.delivery_count = 1;
         return { message: 'Shared with the preview player.', shared_count: 1 };
       }
@@ -209,7 +211,7 @@ export function createPreviewApi(
       try {
         const result = dispatch(verb, path, body);
         if (!readOnly && verb !== 'get' && storage) {
-          try { storage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(state)); }
+          try { storage.setItem(storageKey, JSON.stringify(state)); }
           catch { fail('This browser could not save your preview change. Free some storage and try again.', 507); }
         }
         return copy(result);
