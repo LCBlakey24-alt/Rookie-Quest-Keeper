@@ -19,7 +19,7 @@ import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
-import { isLocalPreview, PREVIEW_USER } from '@/preview/previewMode';
+import { isLocalPreview, isOfflineDesktop, localWorkspaceUser } from '@/preview/previewMode';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
 const PUBLIC_BRAND_PATHS = new Set(['/', '/keeper']);
@@ -120,9 +120,10 @@ function ThemeRouter() {
 
 export function AppRoutes() {
   const preview = isLocalPreview();
+  const desktopOffline = isOfflineDesktop();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
-  const [username, setUsername] = useState(() => preview ? PREVIEW_USER : localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const [username, setUsername] = useState(() => preview ? localWorkspaceUser() : localStorage.getItem(AUTH_USERNAME_KEY) || '');
   const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth');
 
@@ -208,10 +209,10 @@ export function AppRoutes() {
         <Route path="/mobile/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <SignInRedirect />} />
         <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <SignInRedirect />} />
         <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <SignInRedirect />} />
-        <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <SignInRedirect />} />
-        <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <SignInRedirect />} />
-        <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <SignInRedirect />} />
-        <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <SignInRedirect />} />
+        <Route path="/admin" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><AdminPage /></AppShell> : <SignInRedirect />)} />
+        <Route path="/account" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <SignInRedirect />)} />
+        <Route path="/homebrew" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <SignInRedirect />)} />
+        <Route path="/uploads" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <SignInRedirect />)} />
 
         {/* One character creator. Legacy URLs remain redirects so old links and installed PWAs stay safe. */}
         <Route path="/characters/new" element={isAuthenticated ? <AppShell><CharacterCreator /></AppShell> : <SignInRedirect />} />
@@ -235,9 +236,9 @@ export function AppRoutes() {
       </Routes>
       {isAuthenticated && !isPublicBrandRoute && (
         <Suspense fallback={null}>
-          <RookGlobalAssistant />
+          {!preview && <RookGlobalAssistant />}
           <FloatingDiceRoller />
-          <GlobalFeedbackButton isAuthenticated={isAuthenticated} />
+          {!preview && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
         </Suspense>
       )}
     </>
