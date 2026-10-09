@@ -32,7 +32,7 @@ jobs:
         working-directory: frontend
         env:
           CI: true
-        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js src/preview/desktopCampaignPack.test.js
 
       - name: Build Keeper frontend
         working-directory: frontend
