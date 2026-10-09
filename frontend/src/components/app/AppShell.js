@@ -14,7 +14,7 @@ import '@/styles/appShellExperiencePolish.css';
 import '@/layouts/desktop/appShell.css';
 import '@/layouts/tablet/appShell.css';
 import '@/layouts/mobile/appShell.css';
-import { isLocalPreview } from '@/preview/previewMode';
+import { isLocalPreview, isOfflineDesktop } from '@/preview/previewMode';
 import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
 import '@/preview/previewWorkspace.css';
 
@@ -194,14 +194,23 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
 export default function AppShell({ children }) {
   const location = useLocation();
   const deviceLayout = useDeviceLayout();
+  const desktopOffline = isOfflineDesktop();
   const isMobile = deviceLayout === 'mobile';
-  const visibleNavItems = isMobile
-    ? mainNavItems.filter((item) => item.mobilePrimary)
+  const availableNavItems = desktopOffline
+    ? mainNavItems.filter((item) => !['/homebrew', '/uploads', '/account'].includes(item.to))
     : mainNavItems;
+  const visibleNavItems = isMobile
+    ? availableNavItems.filter((item) => item.mobilePrimary)
+    : availableNavItems;
   const [isAdmin, setIsAdmin] = useState(() => readCachedAdminStatus() ?? false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   useEffect(() => {
+    if (desktopOffline) {
+      setIsAdmin(false);
+      return undefined;
+    }
+
     let active = true;
 
     loadAdminStatus()
@@ -218,7 +227,7 @@ export default function AppShell({ children }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [desktopOffline]);
 
   useEffect(() => {
     setIsMoreOpen(false);
@@ -236,16 +245,21 @@ export default function AppShell({ children }) {
   }, [isMoreOpen]);
 
   const mobileMoreItems = useMemo(() => {
-    const tools = [
-      { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
-      { label: 'Dice roller', icon: Dices, kind: 'dice' },
-      ...mainNavItems.filter((item) => item.mobilePrimary === false),
-      { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
-    ];
+    const tools = desktopOffline
+      ? [
+        { label: 'Dice roller', icon: Dices, kind: 'dice' },
+        ...availableNavItems.filter((item) => item.mobilePrimary === false),
+      ]
+      : [
+        { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
+        { label: 'Dice roller', icon: Dices, kind: 'dice' },
+        ...availableNavItems.filter((item) => item.mobilePrimary === false),
+        { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
+      ];
 
-    if (isAdmin) tools.push(adminNavItem);
+    if (!desktopOffline && isAdmin) tools.push(adminNavItem);
     return tools;
-  }, [isAdmin]);
+  }, [availableNavItems, desktopOffline, isAdmin]);
   const mobileMoreCurrentSection = mobileMoreItems.find((item) => item.to && isActive(location.pathname, item));
 
   const handleRook = () => {
@@ -284,7 +298,7 @@ export default function AppShell({ children }) {
         </nav>
 
         <div className="rqk-app-rail-bottom">
-          {!isMobile && <>
+          {!isMobile && !desktopOffline && <>
             <p className="rqk-app-rail-section-label">Support</p>
             <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook} aria-label="Ask Rook" title="Ask Rook">
               <Sparkles size={20} aria-hidden="true" />
