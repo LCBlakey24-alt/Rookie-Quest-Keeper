@@ -18,7 +18,7 @@ import { installQueuedCombatPartyOverlay } from "@/offline/queuedCombatPartyOver
 import { installRookAiConsentGate } from "@/privacy/rookAiConsent";
 import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCleanup";
 import { installStaleAssetRecovery } from "@/utils/staleAssetRecovery";
-import { isLocalPreview } from '@/preview/previewMode';
+import { isLocalPreview, isOfflineDesktop } from '@/preview/previewMode';
 
 // One final product-level visual authority. App Store usability fixes load first;
 // the three-mode design then owns palette and desktop/tablet/mobile geometry.
@@ -36,9 +36,9 @@ root.render(
   <React.StrictMode>
     <AppErrorBoundary>
       <App />
-      <PwaLifecycleBanner />
+      {!isOfflineDesktop() && <PwaLifecycleBanner />}
     </AppErrorBoundary>
   </React.StrictMode>,
 );
 
-registerPwaServiceWorker();
+if (!isOfflineDesktop()) registerPwaServiceWorker();
