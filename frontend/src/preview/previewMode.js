@@ -1,13 +1,27 @@
 // This is a local sample workspace, never a server authentication bypass.
 export const PREVIEW_HOST = 'rookie-quest-keeper-git-rqk-1-0-s-14f145-lewis-blakeys-projects.vercel.app';
 export const PREVIEW_USER = 'Preview player';
+export const DESKTOP_USER = 'Local Keeper';
 export const PREVIEW_TOKEN = 'rqk-local-preview-only';
 export const PREVIEW_STORAGE_KEY = 'rqk.previewWorkspace.v1';
+export const DESKTOP_STORAGE_KEY = 'rqk.desktopWorkspace.v1';
 export const DEMO_SESSION_KEY = 'rqk.readOnlyDemo.v1';
 export const DEMO_QUERY_PARAM = 'demo';
 
 function browserRuntime() {
   return typeof window === 'undefined' ? null : window;
+}
+
+export function isOfflineDesktop(runtime = browserRuntime()) {
+  return Boolean(runtime?.rookieDesktop?.offline);
+}
+
+export function localWorkspaceUser(runtime = browserRuntime()) {
+  return isOfflineDesktop(runtime) ? DESKTOP_USER : PREVIEW_USER;
+}
+
+export function localWorkspaceStorageKey(runtime = browserRuntime()) {
+  return isOfflineDesktop(runtime) ? DESKTOP_STORAGE_KEY : PREVIEW_STORAGE_KEY;
 }
 
 export function isReadOnlyDemo(runtime = browserRuntime()) {
@@ -55,7 +69,9 @@ export function isLocalPreview(
   hostname = browserRuntime()?.location?.hostname || '',
   runtime = browserRuntime(),
 ) {
-  return String(hostname || '').toLowerCase() === PREVIEW_HOST || isReadOnlyDemo(runtime);
+  return isOfflineDesktop(runtime)
+    || String(hostname || '').toLowerCase() === PREVIEW_HOST
+    || isReadOnlyDemo(runtime);
 }
 
 export function exitReadOnlyDemo(runtime = browserRuntime()) {
@@ -67,7 +83,7 @@ export function exitReadOnlyDemo(runtime = browserRuntime()) {
 }
 
 export function resetPreviewWorkspace(runtime = browserRuntime()) {
-  if (!runtime || isReadOnlyDemo(runtime)) return;
+  if (!runtime || isReadOnlyDemo(runtime) || isOfflineDesktop(runtime)) return;
   if (!isLocalPreview(runtime.location?.hostname || '', runtime)) return;
   runtime.localStorage?.removeItem(PREVIEW_STORAGE_KEY);
   runtime.location?.assign?.('/home');
