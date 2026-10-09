@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { ChevronRight, Plus, RefreshCw, Trash2, Upload } from 'lucide-react';
 import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
 import {
   buildCampaignFeel,
@@ -11,6 +11,8 @@ import {
   rulesSystemOptions,
 } from '@/components/dashboard/home/unifiedDashboardUtils';
 import apiClient from '@/lib/apiClient';
+import { importDesktopCampaignPack } from '@/preview/desktopCampaignPack';
+import { isOfflineDesktop } from '@/preview/previewMode';
 import '@/styles/libraryPages.css';
 import '@/styles/campaignSetupModal.css';
 import './MyCampaignsPage.css';
@@ -71,6 +73,8 @@ export default function MyCampaignsPage() {
   const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [deletingId, setDeletingId] = useState('');
+  const [importingPack, setImportingPack] = useState(false);
+  const desktopOffline = isOfflineDesktop();
 
   useEffect(() => {
     if (searchParams.get('create') === '1') setShowCreateCampaign(true);
@@ -178,6 +182,21 @@ export default function MyCampaignsPage() {
     }
   };
 
+  const importCampaignPack = async () => {
+    if (!desktopOffline || importingPack) return;
+    try {
+      setImportingPack(true);
+      const result = await importDesktopCampaignPack();
+      if (result.canceled) return;
+      toast.success(`${result.pack_name} imported: ${result.campaign_count} campaign(s), ${result.character_count} character(s), ${result.attachment_count} attachment(s)`);
+      window.location.reload();
+    } catch (error) {
+      toast.error(error?.message || 'Could not import campaign pack');
+    } finally {
+      setImportingPack(false);
+    }
+  };
+
   const deleteCampaign = async (campaign) => {
     const id = recordId(campaign);
     const name = campaignTitle(campaign);
@@ -225,6 +244,18 @@ export default function MyCampaignsPage() {
             <Plus size={16} />
             Create
           </button>
+          {desktopOffline && (
+            <button
+              type="button"
+              onClick={importCampaignPack}
+              disabled={importingPack}
+              className="library-page-button-secondary library-page-loading-button"
+              aria-busy={importingPack ? 'true' : 'false'}
+            >
+              <Upload size={16} />
+              {importingPack ? 'Importing…' : 'Import Campaign Pack'}
+            </button>
+          )}
           <button
             type="button"
             onClick={refresh}
@@ -265,7 +296,7 @@ export default function MyCampaignsPage() {
       ) : sortedCampaigns.length === 0 ? (
         <section className="library-page-empty campaign-library-empty">
           <h2>No campaigns yet</h2>
-          <p>Create your first campaign to start building the world.</p>
+          <p>{desktopOffline ? 'Create a campaign or import a private campaign pack from your laptop.' : 'Create your first campaign to start building the world.'}</p>
           <div className="library-page-actions">
             <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary">Create Campaign</button>
           </div>
