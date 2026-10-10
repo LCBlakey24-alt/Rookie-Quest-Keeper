@@ -668,8 +668,8 @@ function HandoutAttachmentPanel({ title, helperText, value, onChange }) {
 function AttachmentIcon({ handout, size = 12, style = {} }) {
   const type = getAttachmentType(handout);
   if (type.startsWith('audio/')) return <Volume2 size={size} style={style} />;
-  if (type === 'application/pdf') return <FileText size={size} style={style} />;
-  return <ImageIcon size={size} style={style} />;
+  if (type.startsWith('image/')) return <ImageIcon size={size} style={style} />;
+  return <FileText size={size} style={style} />;
 }
 
 function AttachmentPreview({ handout, compact = false }) {
@@ -678,8 +678,9 @@ function AttachmentPreview({ handout, compact = false }) {
   const name = handout?.attachment_name || 'Handout attachment';
   if (!url) return null;
   if (type.startsWith('audio/')) return <audio controls src={url} style={{ width: '100%', marginTop: compact ? 8 : 0 }} />;
-  if (type === 'application/pdf') return <div style={pdfPreviewStyle(compact)}><strong>{name}</strong><a href={url} target="_blank" rel="noreferrer">Open PDF</a></div>;
-  return <img src={url} alt={name} style={imagePreviewStyle(compact)} />;
+  if (type.startsWith('image/')) return <img src={url} alt={name} style={imagePreviewStyle(compact)} />;
+  const label = type === 'application/pdf' ? 'Open PDF' : 'Open file';
+  return <div style={pdfPreviewStyle(compact)}><strong>{name}</strong><a href={url} target="_blank" rel="noreferrer">{label}</a></div>;
 }
 
 const shellStyle = { display: 'grid', gap: 16, fontFamily: fontStack };
