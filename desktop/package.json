@@ -50,7 +50,8 @@
       "provider": "github",
       "owner": "LCBlakey24-alt",
       "repo": "Rookie-Quest-Keeper",
-      "releaseType": "draft"
+      "releaseType": "draft",
+      "tagNamePrefix": "desktop-v"
     }
   },
   "dependencies": {
