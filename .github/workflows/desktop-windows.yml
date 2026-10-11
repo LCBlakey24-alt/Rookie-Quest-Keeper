@@ -48,6 +48,10 @@ jobs:
         working-directory: desktop
         run: npm install --no-audit --no-fund
 
+      - name: Test local backups and restore protection
+        working-directory: desktop
+        run: npm test
+
       - name: Build Windows installer
         working-directory: desktop
         run: npm run dist:win

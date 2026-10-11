@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import DesktopMaintenance from './DesktopMaintenance';
 import { exitReadOnlyDemo, isOfflineDesktop, isReadOnlyDemo, resetPreviewWorkspace } from './previewMode';
 
 export default function PreviewWorkspaceControls() {
@@ -17,6 +18,7 @@ export default function PreviewWorkspaceControls() {
       <nav aria-label={desktopOffline ? 'Desktop tools' : readOnlyDemo ? 'Demo tools' : 'Preview tools'}>
         <Link to="/campaigns">Campaigns</Link>
         <Link to={desktopOffline ? '/characters' : '/player'}>{desktopOffline ? 'Characters' : 'Player pages'}</Link>
+        {desktopOffline && <DesktopMaintenance />}
         {!desktopOffline && (readOnlyDemo
           ? <button type="button" onClick={() => exitReadOnlyDemo()}>Exit demo</button>
           : <button type="button" onClick={reset}>Reset preview</button>)}

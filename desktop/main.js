@@ -2,6 +2,8 @@ const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } = require('e
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
+const { createBackup, listBackups, restoreBackup } = require('./backup');
+const { registerDesktopUpdater } = require('./updates');
 
 const APP_SCHEME = 'rqk';
 const APP_HOST = 'desktop';
@@ -114,7 +116,7 @@ function writePackAttachments(pack) {
   return attachmentUrls;
 }
 
-async function importCampaignPack() {
+async function importCampaignPack(_event, workspaceRaw) {
   const result = await dialog.showOpenDialog({
     title: 'Import Rookie Quest Keeper Campaign Pack',
     properties: ['openFile'],
@@ -136,6 +138,8 @@ async function importCampaignPack() {
     throw new Error('That file is not a supported Rookie Quest Keeper campaign pack.');
   }
 
+  // Back up before an import can overwrite local attachments with matching pack IDs.
+  if (workspaceRaw != null) createBackup(app.getPath('userData'), workspaceRaw, 'before-import');
   const attachmentUrls = writePackAttachments(pack);
   return {
     canceled: false,
@@ -191,6 +195,17 @@ function createMainWindow() {
 app.whenReady().then(async () => {
   await installLocalProtocols();
   ipcMain.handle('rqk:import-campaign-pack', importCampaignPack);
+  ipcMain.handle('rqk:create-backup', (_event, raw, reason = 'manual') =>
+    createBackup(app.getPath('userData'), raw, reason));
+  ipcMain.handle('rqk:list-backups', () => listBackups(app.getPath('userData')));
+  ipcMain.handle('rqk:restore-backup', (_event, id, currentRaw) =>
+    restoreBackup(app.getPath('userData'), id, currentRaw));
+  registerDesktopUpdater({
+    app, ipcMain, BrowserWindow,
+    createSafetyBackup: (raw, reason) => raw == null
+      ? null
+      : createBackup(app.getPath('userData'), raw, reason),
+  });
   createMainWindow();
 
   app.on('activate', () => {

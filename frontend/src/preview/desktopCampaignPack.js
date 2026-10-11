@@ -112,7 +112,7 @@ export async function importDesktopCampaignPack(runtime = typeof window === 'und
     throw new Error('Campaign packs can only be imported in Rookie Quest Keeper Desktop.');
   }
 
-  const result = await runtime.rookieDesktop.importCampaignPack();
+  const result = await runtime.rookieDesktop.importCampaignPack(runtime.localStorage?.getItem(DESKTOP_STORAGE_KEY));
   if (result?.canceled) return { canceled: true };
   const pack = result?.pack;
   if (!pack || pack.format !== PACK_FORMAT || pack.version !== 1 || !pack.workspace) {
