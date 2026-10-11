@@ -1,12 +1,14 @@
 {
   "name": "rookie-quest-keeper-desktop",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Offline Windows desktop edition of Rookie Quest Keeper",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist:win": "electron-builder --win nsis --x64"
+    "dist:win": "electron-builder --win nsis --x64 --publish never",
+    "release:win": "electron-builder --win nsis --x64 --publish always",
+    "test": "node --test tests/backup.test.js"
   },
   "devDependencies": {
     "electron": "44.6.0",
@@ -17,6 +19,8 @@
     "productName": "Rookie Quest Keeper",
     "asar": true,
     "files": [
+      "backup.js",
+      "updates.js",
       "main.js",
       "preload.js",
       "renderer/**/*",
@@ -41,6 +45,15 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Rookie Quest Keeper"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "LCBlakey24-alt",
+      "repo": "Rookie-Quest-Keeper",
+      "releaseType": "draft"
     }
+  },
+  "dependencies": {
+    "electron-updater": "6.8.10"
   }
 }
