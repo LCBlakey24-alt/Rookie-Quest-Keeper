@@ -1,0 +1,80 @@
+/* Desktop-only maintenance dialog. Uses the approved Guild Ledger palette. */
+.rqk-desktop-maintenance-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90000;
+  background: rgba(4, 11, 20, .78);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.rqk-desktop-maintenance {
+  box-sizing: border-box;
+  width: min(100%, 650px);
+  max-height: min(90vh, 850px);
+  overflow-y: auto;
+  background: #142331;
+  border: 1px solid #8c784f;
+  border-radius: 9px;
+  box-shadow: 0 24px 85px rgba(0, 0, 0, .55);
+  color: #f0e8d6;
+  padding: 20px;
+  font: 14px/1.5 system-ui, sans-serif;
+}
+.rqk-desktop-maintenance-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #354452;
+  padding-bottom: 14px;
+}
+.rqk-desktop-maintenance-header strong { display: block; font-size: 19px; color: #f3d89b; }
+.rqk-desktop-maintenance p { color: #c8d0d5; margin: 7px 0; }
+.rqk-desktop-maintenance-section { padding: 14px 0; border-bottom: 1px solid #354452; }
+.rqk-desktop-maintenance h3 { color: #efdfb9; font-size: 15px; margin: 0 0 8px; }
+.rqk-desktop-maintenance-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.rqk-desktop-maintenance button {
+  min-height: 37px;
+  border-radius: 5px;
+  background: #243b4c;
+  border: 1px solid #a58d5b;
+  color: #fff4db;
+  padding: 7px 11px;
+  font: inherit;
+  cursor: pointer;
+}
+.rqk-desktop-maintenance button:hover:not(:disabled) { background: #334c59; }
+.rqk-desktop-maintenance button:disabled { opacity: .46; cursor: not-allowed; }
+.rqk-desktop-maintenance .rqk-desktop-maintenance-close {
+  width: 38px;
+  min-width: 38px;
+  font-size: 24px;
+  line-height: 1;
+}
+.rqk-desktop-maintenance progress {
+  width: 100%;
+  margin: 8px 0;
+  accent-color: #b9a175;
+}
+.rqk-desktop-maintenance-backups { display: grid; gap: 6px; margin-top: 10px; }
+.rqk-desktop-maintenance-backup {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 10px;
+  background: #1b2c39;
+  border: 1px solid #3c4a51;
+  border-radius: 5px;
+}
+.rqk-desktop-maintenance-note { font-size: 12px; }
+.rqk-desktop-maintenance-notice {
+  padding: 10px;
+  border-left: 3px solid #b9a175;
+  background: #203443;
+}
+@media (max-width: 600px) {
+  .rqk-desktop-maintenance { padding: 12px; }
+  .rqk-desktop-maintenance-backup { flex-direction: column; align-items: stretch; }
+}
