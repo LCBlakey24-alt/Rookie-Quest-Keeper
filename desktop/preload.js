@@ -4,7 +4,7 @@ contextBridge.exposeInMainWorld('rookieDesktop', Object.freeze({
   offline: true,
   platform: process.platform,
   edition: 'desktop',
-  importCampaignPack: () => ipcRenderer.invoke('rqk:import-campaign-pack'),
+  importCampaignPack: (workspaceRaw) => ipcRenderer.invoke('rqk:import-campaign-pack', workspaceRaw),
   getUpdateStatus: () => ipcRenderer.invoke('rqk:get-update-status'),
   checkUpdates: () => ipcRenderer.invoke('rqk:check-updates'),
   downloadUpdate: () => ipcRenderer.invoke('rqk:download-update'),
