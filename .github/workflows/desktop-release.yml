@@ -1,0 +1,90 @@
+name: Desktop Windows Release
+
+on:
+  push:
+    tags:
+      - "desktop-v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing desktop-vX.Y.Z tag to publish"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  windows-release:
+    name: Signed-off Desktop release build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout tagged code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Verify release version and reviewed main history
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
+          $version = node -p "require('./desktop/package.json').version"
+          if ($tag -ne "desktop-v$version") { throw "Release tag $tag does not match Desktop package version $version" }
+          git fetch origin main --quiet
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Release tag must point to a commit already on main" }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: yarn install --non-interactive
+
+      - name: Test Desktop workspace and importer
+        working-directory: frontend
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js src/preview/desktopCampaignPack.test.js
+
+      - name: Build Keeper frontend
+        working-directory: frontend
+        run: yarn build
+
+      - name: Stage renderer
+        shell: pwsh
+        run: |
+          if (Test-Path desktop/renderer) { Remove-Item desktop/renderer -Recurse -Force }
+          Copy-Item frontend/build desktop/renderer -Recurse
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+
+      - name: Test backups and restoration
+        working-directory: desktop
+        run: npm test
+
+      - name: Publish Windows installer and update manifest to a DRAFT GitHub Release
+        working-directory: desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release:win
+
+      - name: Keep a private-to-workflow artifact for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rookie-Quest-Keeper-Release-Windows
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.yml
+          retention-days: 14
+          if-no-files-found: error
