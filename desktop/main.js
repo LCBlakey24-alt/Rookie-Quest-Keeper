@@ -2,6 +2,8 @@ const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } = require('e
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
+const { createBackup, listBackups, restoreBackup } = require('./backup');
+const { registerDesktopUpdater } = require('./updates');
 
 const APP_SCHEME = 'rqk';
 const APP_HOST = 'desktop';
@@ -191,6 +193,17 @@ function createMainWindow() {
 app.whenReady().then(async () => {
   await installLocalProtocols();
   ipcMain.handle('rqk:import-campaign-pack', importCampaignPack);
+  ipcMain.handle('rqk:create-backup', (_event, raw, reason = 'manual') =>
+    createBackup(app.getPath('userData'), raw, reason));
+  ipcMain.handle('rqk:list-backups', () => listBackups(app.getPath('userData')));
+  ipcMain.handle('rqk:restore-backup', (_event, id, currentRaw) =>
+    restoreBackup(app.getPath('userData'), id, currentRaw));
+  registerDesktopUpdater({
+    app, ipcMain, BrowserWindow,
+    createSafetyBackup: (raw, reason) => raw == null
+      ? null
+      : createBackup(app.getPath('userData'), raw, reason),
+  });
   createMainWindow();
 
   app.on('activate', () => {
