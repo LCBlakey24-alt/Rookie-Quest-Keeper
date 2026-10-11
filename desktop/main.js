@@ -116,7 +116,7 @@ function writePackAttachments(pack) {
   return attachmentUrls;
 }
 
-async function importCampaignPack() {
+async function importCampaignPack(_event, workspaceRaw) {
   const result = await dialog.showOpenDialog({
     title: 'Import Rookie Quest Keeper Campaign Pack',
     properties: ['openFile'],
@@ -138,6 +138,8 @@ async function importCampaignPack() {
     throw new Error('That file is not a supported Rookie Quest Keeper campaign pack.');
   }
 
+  // Back up before an import can overwrite local attachments with matching pack IDs.
+  if (workspaceRaw != null) createBackup(app.getPath('userData'), workspaceRaw, 'before-import');
   const attachmentUrls = writePackAttachments(pack);
   return {
     canceled: false,
