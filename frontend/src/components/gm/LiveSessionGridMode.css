@@ -24,7 +24,11 @@
 }
 
 .rqk-live-grid__tool-body {
-  overflow-x: hidden;
+  /* Clip horizontally without turning the entire tall tool into a second scrollport. */
+  overflow-x: clip;
+  overflow-y: visible;
+  min-height: 0;
+  min-width: 0;
 }
 
 @media (min-width: 720px) and (max-width: 1180px) {

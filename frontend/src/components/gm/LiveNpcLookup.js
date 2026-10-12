@@ -209,7 +209,16 @@ export default function LiveNpcLookup({ campaignId }) {
 
               {open && (
                 <div style={bodyStyle}>
-                  {(npc.description || npc.notes || npc.personality) && <div style={detailStyle}>{npc.description || npc.notes || npc.personality}</div>}
+                  {[
+                    ['Description', npc.description],
+                    ['Personality', npc.personality],
+                    ['GM notes', npc.notes],
+                  ].filter(([, value]) => value != null && String(value).trim()).map(([label, value]) => (
+                    <div key={label} style={detailStyle}>
+                      <strong style={detailLabelStyle}>{label}</strong>
+                      <div>{String(value)}</div>
+                    </div>
+                  ))}
                   <div style={actionsStyle}>
                     <button type="button" disabled={savingId === npc.id} onClick={() => saveCompanionState(npc)} style={actionStyle(travelling)}>{travelling ? <X size={13} /> : <UserPlus size={13} />}{travelling ? 'Remove from Party' : 'With Party'}</button>
                     <button type="button" onClick={() => queueForEncounter(npc)} style={actionStyle(false)}><Swords size={13} /> Add to Encounter</button>
@@ -241,7 +250,9 @@ const nameStyle = { display: 'block', fontSize: 12, fontWeight: 950, overflow: '
 const metaStyle = { display: 'block', color: rq.muted, fontSize: 9, marginTop: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' };
 const travellingPillStyle = { minHeight: 23, padding: '0 6px', background: 'rgba(208,0,0,0.15)', border: `1px solid ${rq.red}`, color: rq.text, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 8, fontWeight: 950, whiteSpace: 'nowrap' };
 const bodyStyle = { display: 'grid', gap: 6, padding: 7, borderTop: `1px solid ${rq.line}` };
-const detailStyle = { background: rq.bg, color: rq.soft, padding: 7, fontSize: 10, lineHeight: 1.4, maxHeight: 110, overflowY: 'auto' };
+// The expanded card grows with the NPC record; no 110px clipping or hidden notes.
+const detailStyle = { background: rq.bg, color: rq.soft, padding: 10, fontSize: 12, lineHeight: 1.5, minWidth: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' };
+const detailLabelStyle = { display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 900, color: rq.text };
 const actionsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px,1fr))', gap: 4 };
 const actionStyle = active => ({ minHeight: 34, border: `1px solid ${active ? rq.red : rq.line}`, background: active ? 'rgba(208,0,0,0.15)' : rq.bg, color: rq.text, padding: '0 7px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontSize: 9, fontWeight: 900 });
 const emptyStyle = { minHeight: 70, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px dashed ${rq.line}`, color: rq.muted, fontSize: 10, textAlign: 'center', padding: 10 };
