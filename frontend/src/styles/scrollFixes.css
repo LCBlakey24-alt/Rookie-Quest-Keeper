@@ -2,14 +2,29 @@
    Keeps pages scrollable with laptop trackpads, mouse wheels, and touch gestures.
    This is intentionally loaded last so it can override older nested-layout rules. */
 
-html,
+/* One document scrollbar: an overflow:auto on html, body AND #root
+   creates nested vertical scrollbars and can trap desktop wheel scrolling.
+   'clip' (rather than 'hidden') prevents horizontal overflow without forcing
+   'overflow-y: visible' to compute as 'auto' on the inner containers. */
+html {
+  height: auto !important;
+  min-height: 100% !important;
+  max-width: 100%;
+  overflow-x: clip !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+  scroll-behavior: auto;
+  scrollbar-color: #d00000 #151515;
+  scrollbar-width: thin;
+}
+
 body,
 #root {
   height: auto !important;
   min-height: 100% !important;
   max-width: 100%;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
   overscroll-behavior-y: auto !important;
   scroll-behavior: auto;
   scrollbar-color: #d00000 #151515;
