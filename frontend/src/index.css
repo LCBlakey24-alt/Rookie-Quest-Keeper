@@ -29,8 +29,19 @@ html, body, #root {
   font-weight: 500;
   width: 100%;
   min-height: 100dvh;
-  overflow-x: hidden;
+  /* clip, unlike hidden, doesn't turn visible vertical overflow into a
+     second scroll container on body or #root. */
+  overflow-x: clip;
+}
+
+/* The document is the only page-length vertical scroller. Inner controls
+   (dialogs and searchable lists) keep their own native scrolling. */
+html {
   overflow-y: auto;
+}
+
+body, #root {
+  overflow-y: visible;
 }
 
 .App {
