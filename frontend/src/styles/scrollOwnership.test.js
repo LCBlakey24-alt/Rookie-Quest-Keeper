@@ -22,7 +22,7 @@ describe('document scroll ownership', () => {
   test('global recovery never hijacks wheel events from scrollable panels', () => {
     const recovery = read('../components/ui/GlobalScrollRecovery.js');
     expect(recovery).not.toMatch(/addEventListener\(['"]wheel['"]/);
-    expect(recovery).not.toMatch(/preventDefault\(\)/);
+    expect(recovery).not.toMatch(/onWheel/);
     expect(recovery).not.toMatch(/window\.scrollBy/);
   });
 
