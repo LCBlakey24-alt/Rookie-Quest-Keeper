@@ -1,29 +1,7 @@
 import { useEffect } from 'react';
 
-function wheelDelta(event) {
-  if (event.deltaMode === 1) return event.deltaY * 18;
-  if (event.deltaMode === 2) return event.deltaY * window.innerHeight;
-  return event.deltaY;
-}
-
-function maxPageScroll() {
-  const doc = document.documentElement;
-  const body = document.body;
-  return Math.max(
-    doc?.scrollHeight || 0,
-    body?.scrollHeight || 0,
-    doc?.offsetHeight || 0,
-    body?.offsetHeight || 0
-  ) - window.innerHeight;
-}
-
-function pageCanScroll(deltaY) {
-  const maxScroll = maxPageScroll();
-  if (maxScroll <= 0) return false;
-  if (deltaY > 0) return window.scrollY < maxScroll - 1;
-  if (deltaY < 0) return window.scrollY > 1;
-  return false;
-}
+// Leave wheel and trackpad scrolling to the browser. A global capture listener
+// prevented native scrolling within NPC/bestiary details, lists and dialogs.
 
 function isCampaignGroupButton(element) {
   return element instanceof HTMLElement
@@ -75,14 +53,6 @@ function isLivePlayButton(button) {
 
 export default function GlobalScrollRecovery() {
   useEffect(() => {
-    const onWheel = (event) => {
-      if (event.ctrlKey || event.metaKey) return;
-      const deltaY = wheelDelta(event);
-      if (!deltaY || !pageCanScroll(deltaY)) return;
-      window.scrollBy(0, deltaY);
-      event.preventDefault();
-    };
-
     const onCampaignGroupClick = (event) => {
       const groupButton = event.target instanceof Element
         ? event.target.closest('button[data-testid^="group-"]')
@@ -117,8 +87,6 @@ export default function GlobalScrollRecovery() {
       });
     };
 
-    window.addEventListener('wheel', onWheel, { capture: true, passive: false });
-    document.addEventListener('wheel', onWheel, { capture: true, passive: false });
     document.addEventListener('click', onLivePlayClick, { capture: true });
     document.addEventListener('click', onCampaignGroupClick, { capture: true });
     const groupObserver = new MutationObserver(initialiseCampaignGroups);
@@ -126,8 +94,6 @@ export default function GlobalScrollRecovery() {
     initialiseCampaignGroups();
 
     return () => {
-      window.removeEventListener('wheel', onWheel, { capture: true });
-      document.removeEventListener('wheel', onWheel, { capture: true });
       document.removeEventListener('click', onLivePlayClick, { capture: true });
       document.removeEventListener('click', onCampaignGroupClick, { capture: true });
       groupObserver.disconnect();
