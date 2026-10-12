@@ -252,7 +252,7 @@ function CreatureDetailSection({ title, value }) {
   );
 }
 
-function CreatureCard({ creature, count, onAdjust }) {
+export function CreatureCard({ creature, count, onAdjust }) {
   const [expanded, setExpanded] = useState(false);
   const cr = creature.cr ?? creature.challenge_rating ?? '—';
   const action = creature.actions?.[0];
