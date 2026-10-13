@@ -1,0 +1,213 @@
+import os
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from starlette.background import BackgroundTask
+
+ROOT = Path(__file__).parent
+app = FastAPI(title="Rookie Quest Slicer", version="0.2.0")
+
+BED_X = 225
+BED_Y = 225
+MAX_Z = 280
+NOZZLE = 0.4
+FILAMENT = 1.75
+MAX_UPLOAD = 75 * 1024 * 1024
+SLICE_TIMEOUT = 240
+
+PRESETS = {
+    "normal": {"label":"Normal","description":"Everyday prints","layer":0.20,"walls":3,"infill":20,"perimeter_speed":45,"infill_speed":60,"travel_speed":180},
+    "mini": {"label":"Detailed Miniature","description":"Small figures and fine detail","layer":0.12,"walls":3,"infill":15,"perimeter_speed":30,"infill_speed":40,"travel_speed":160},
+    "terrain": {"label":"Terrain","description":"D&D tiles, walls and scenery","layer":0.24,"walls":3,"infill":12,"perimeter_speed":50,"infill_speed":65,"travel_speed":180},
+    "strong": {"label":"Strong","description":"Practical parts and tougher pieces","layer":0.20,"walls":5,"infill":35,"perimeter_speed":40,"infill_speed":55,"travel_speed":170},
+    "draft": {"label":"Fast Draft","description":"Quick fit and size tests","layer":0.28,"walls":2,"infill":12,"perimeter_speed":60,"infill_speed":80,"travel_speed":200},
+}
+
+START_GCODE = """; Rookie Quest Slicer - Neptune 3 Pro
+G90 ; absolute positioning
+M83 ; relative extrusion
+G28 ; home all axes
+G92 E0
+G1 Z5 F3000
+"""
+
+END_GCODE = """; Rookie Quest Slicer - safe finish
+M104 S0 ; hotend off
+M140 S0 ; bed off
+M106 S0 ; fan off
+G91 ; relative positioning
+G1 E-2 F1800
+G1 Z10 F1200
+G90 ; absolute positioning
+G1 X10 Y210 F4000
+M84 ; motors off
+"""
+
+def engine_path():
+    return shutil.which("prusa-slicer") or shutil.which("slic3r")
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+
+@app.get("/manifest.webmanifest")
+def manifest():
+    return FileResponse(ROOT / "static" / "manifest.webmanifest", media_type="application/manifest+json")
+
+@app.get("/sw.js")
+def service_worker():
+    return FileResponse(ROOT / "static" / "sw.js", media_type="application/javascript")
+
+@app.get("/icon.svg")
+def icon():
+    return FileResponse(ROOT / "static" / "icon.svg", media_type="image/svg+xml")
+
+@app.get("/health")
+def health():
+    engine = engine_path()
+    return {
+        "status": "ok" if engine else "degraded",
+        "engine_installed": bool(engine),
+        "engine": Path(engine).name if engine else None,
+        "printer": "Elegoo Neptune 3 Pro",
+        "build_volume_mm": [BED_X, BED_Y, MAX_Z],
+        "version": app.version,
+    }
+
+@app.get("/api/profiles")
+def profiles():
+    return {
+        "printer": {"name":"Elegoo Neptune 3 Pro","build_volume_mm":[BED_X,BED_Y,MAX_Z],"nozzle_mm":NOZZLE,"filament_mm":FILAMENT},
+        "presets": PRESETS,
+        "defaults": {"nozzle_temp":215,"bed_temp":60,"retraction_mm":0.8},
+    }
+
+@app.post("/slice")
+async def slice_model(
+    model: UploadFile = File(...),
+    preset: str = Form("normal"),
+    nozzle_temp: int = Form(215),
+    bed_temp: int = Form(60),
+    supports: str = Form("off"),
+    access_pin: str = Form(""),
+):
+    required_pin = os.getenv("APP_PIN", "").strip()
+    if required_pin and access_pin.strip() != required_pin:
+        raise HTTPException(401, "Incorrect Rookie Quest Slicer PIN")
+
+    if preset not in PRESETS:
+        raise HTTPException(400, "Unknown print preset")
+    if supports not in {"off", "on"}:
+        raise HTTPException(400, "Supports must be on or off")
+    if not 190 <= nozzle_temp <= 235:
+        raise HTTPException(400, "For this PLA+ profile, nozzle temperature must be 190–235°C")
+    if not 45 <= bed_temp <= 70:
+        raise HTTPException(400, "For this PLA+ profile, bed temperature must be 45–70°C")
+
+    name = Path(model.filename or "").name
+    suffix = Path(name).suffix.lower()
+    if suffix not in {".stl", ".3mf"}:
+        raise HTTPException(400, "Upload an STL or 3MF model")
+
+    engine = engine_path()
+    if not engine:
+        raise HTTPException(503, "Slicing engine is not installed on this server")
+
+    work = Path(tempfile.mkdtemp(prefix="rqs_"))
+    source = work / f"model{suffix}"
+    output = work / "print.gcode"
+
+    try:
+        size = 0
+        with source.open("wb") as f:
+            while True:
+                data = await model.read(1024 * 1024)
+                if not data:
+                    break
+                size += len(data)
+                if size > MAX_UPLOAD:
+                    raise HTTPException(413, "Maximum upload size is 75 MB")
+                f.write(data)
+
+        if size < 100:
+            raise HTTPException(400, "That model file appears to be empty")
+
+        p = PRESETS[preset]
+        cmd = [
+            engine,
+            "--export-gcode",
+            "--output", str(output),
+            "--gcode-flavor", "marlin2",
+            "--bed-shape", f"0x0,{BED_X}x0,{BED_X}x{BED_Y},0x{BED_Y}",
+            "--max-print-height", str(MAX_Z),
+            "--print-center", f"{BED_X / 2},{BED_Y / 2}",
+            "--nozzle-diameter", str(NOZZLE),
+            "--filament-diameter", str(FILAMENT),
+            "--layer-height", str(p["layer"]),
+            "--first-layer-height", "0.20",
+            "--perimeters", str(p["walls"]),
+            "--fill-density", f'{p["infill"]}%',
+            "--perimeter-speed", str(p["perimeter_speed"]),
+            "--infill-speed", str(p["infill_speed"]),
+            "--travel-speed", str(p["travel_speed"]),
+            "--first-layer-speed", "20",
+            "--temperature", str(nozzle_temp),
+            "--first-layer-temperature", str(nozzle_temp),
+            "--bed-temperature", str(bed_temp),
+            "--first-layer-bed-temperature", str(bed_temp),
+            "--retract-length", "0.8",
+            "--retract-speed", "35",
+            "--start-gcode", START_GCODE,
+            "--end-gcode", END_GCODE,
+        ]
+        if supports == "on":
+            cmd.append("--support-material")
+        cmd.append(str(source))
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=SLICE_TIMEOUT,
+            check=False,
+            env={**os.environ, "LC_ALL":"C.UTF-8"},
+        )
+
+        if result.returncode != 0 or not output.exists() or output.stat().st_size == 0:
+            detail = (result.stderr or result.stdout or "Unknown slicing error").strip()[-1200:]
+            raise HTTPException(422, f"Slicing failed: {detail}")
+
+        body = output.read_text(encoding="utf-8", errors="replace")
+        header = (
+            "; ROOKIE QUEST SLICER v0.2.0\n"
+            "; Printer: Elegoo Neptune 3 Pro\n"
+            f"; Preset: {preset}\n"
+            f"; Source: {name}\n"
+            "; TEST PROFILE - review toolpath before first print\n"
+        )
+        output.write_text(header + body, encoding="utf-8")
+
+        filename = f"{Path(name).stem}_{preset}_N3Pro.gcode"
+        return FileResponse(
+            output,
+            filename=filename,
+            media_type="application/octet-stream",
+            background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)),
+        )
+    except subprocess.TimeoutExpired:
+        shutil.rmtree(work, ignore_errors=True)
+        raise HTTPException(504, "Slicing timed out")
+    except HTTPException:
+        shutil.rmtree(work, ignore_errors=True)
+        raise
+    except Exception as exc:
+        shutil.rmtree(work, ignore_errors=True)
+        raise HTTPException(500, f"Unexpected slicing error: {type(exc).__name__}") from exc
+
+@app.exception_handler(413)
+async def too_large(_, exc):
+    return JSONResponse(status_code=413, content={"detail":getattr(exc,"detail","File too large")})
