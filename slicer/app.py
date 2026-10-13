@@ -6,10 +6,15 @@ from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 
+from design import router as design_router, design_health
+
 ROOT = Path(__file__).parent
-app = FastAPI(title="Rookie Quest Slicer", version="0.2.0")
+app = FastAPI(title="Rookie Quest Slicer", version="0.3.0")
+app.include_router(design_router)
+app.mount("/assets", StaticFiles(directory=ROOT / "static"), name="assets")
 
 BED_X = 225
 BED_Y = 225
@@ -50,6 +55,25 @@ M84 ; motors off
 def engine_path():
     return shutil.which("prusa-slicer") or shutil.which("slic3r")
 
+def check_pin(pin: str):
+    required = os.getenv("APP_PIN", "").strip()
+    if required and pin.strip() != required:
+        raise HTTPException(401, "Incorrect Rookie Quest Slicer PIN")
+
+async def save_upload(upload: UploadFile, target: Path):
+    size = 0
+    with target.open("wb") as f:
+        while True:
+            data = await upload.read(1024 * 1024)
+            if not data:
+                break
+            size += len(data)
+            if size > MAX_UPLOAD:
+                raise HTTPException(413, "Maximum upload size is 75 MB")
+            f.write(data)
+    if size < 100:
+        raise HTTPException(400, "That model file appears to be empty")
+
 @app.get("/", response_class=HTMLResponse)
 def home():
     return (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
@@ -69,10 +93,13 @@ def icon():
 @app.get("/health")
 def health():
     engine = engine_path()
+    cad = design_health()
     return {
-        "status": "ok" if engine else "degraded",
+        "status": "ok" if engine and cad["installed"] else "degraded",
         "engine_installed": bool(engine),
         "engine": Path(engine).name if engine else None,
+        "design_engine_installed": cad["installed"],
+        "design_engine": cad["name"],
         "printer": "Elegoo Neptune 3 Pro",
         "build_volume_mm": [BED_X, BED_Y, MAX_Z],
         "version": app.version,
@@ -84,6 +111,7 @@ def profiles():
         "printer": {"name":"Elegoo Neptune 3 Pro","build_volume_mm":[BED_X,BED_Y,MAX_Z],"nozzle_mm":NOZZLE,"filament_mm":FILAMENT},
         "presets": PRESETS,
         "defaults": {"nozzle_temp":215,"bed_temp":60,"retraction_mm":0.8},
+        "design_tools": ["dice_tower"],
     }
 
 @app.post("/slice")
@@ -95,10 +123,7 @@ async def slice_model(
     supports: str = Form("off"),
     access_pin: str = Form(""),
 ):
-    required_pin = os.getenv("APP_PIN", "").strip()
-    if required_pin and access_pin.strip() != required_pin:
-        raise HTTPException(401, "Incorrect Rookie Quest Slicer PIN")
-
+    check_pin(access_pin)
     if preset not in PRESETS:
         raise HTTPException(400, "Unknown print preset")
     if supports not in {"off", "on"}:
@@ -112,92 +137,46 @@ async def slice_model(
     suffix = Path(name).suffix.lower()
     if suffix not in {".stl", ".3mf"}:
         raise HTTPException(400, "Upload an STL or 3MF model")
-
     engine = engine_path()
     if not engine:
         raise HTTPException(503, "Slicing engine is not installed on this server")
 
-    work = Path(tempfile.mkdtemp(prefix="rqs_"))
+    work = Path(tempfile.mkdtemp(prefix="rqs_slice_"))
     source = work / f"model{suffix}"
     output = work / "print.gcode"
-
     try:
-        size = 0
-        with source.open("wb") as f:
-            while True:
-                data = await model.read(1024 * 1024)
-                if not data:
-                    break
-                size += len(data)
-                if size > MAX_UPLOAD:
-                    raise HTTPException(413, "Maximum upload size is 75 MB")
-                f.write(data)
-
-        if size < 100:
-            raise HTTPException(400, "That model file appears to be empty")
-
+        await save_upload(model, source)
         p = PRESETS[preset]
         cmd = [
-            engine,
-            "--export-gcode",
-            "--output", str(output),
+            engine, "--export-gcode", "--output", str(output),
             "--gcode-flavor", "marlin2",
             "--bed-shape", f"0x0,{BED_X}x0,{BED_X}x{BED_Y},0x{BED_Y}",
-            "--max-print-height", str(MAX_Z),
-            "--print-center", f"{BED_X / 2},{BED_Y / 2}",
-            "--nozzle-diameter", str(NOZZLE),
-            "--filament-diameter", str(FILAMENT),
-            "--layer-height", str(p["layer"]),
-            "--first-layer-height", "0.20",
-            "--perimeters", str(p["walls"]),
-            "--fill-density", f'{p["infill"]}%',
-            "--perimeter-speed", str(p["perimeter_speed"]),
-            "--infill-speed", str(p["infill_speed"]),
-            "--travel-speed", str(p["travel_speed"]),
-            "--first-layer-speed", "20",
-            "--temperature", str(nozzle_temp),
-            "--first-layer-temperature", str(nozzle_temp),
-            "--bed-temperature", str(bed_temp),
-            "--first-layer-bed-temperature", str(bed_temp),
-            "--retract-length", "0.8",
-            "--retract-speed", "35",
-            "--start-gcode", START_GCODE,
-            "--end-gcode", END_GCODE,
+            "--max-print-height", str(MAX_Z), "--print-center", f"{BED_X / 2},{BED_Y / 2}",
+            "--nozzle-diameter", str(NOZZLE), "--filament-diameter", str(FILAMENT),
+            "--layer-height", str(p["layer"]), "--first-layer-height", "0.20",
+            "--perimeters", str(p["walls"]), "--fill-density", f'{p["infill"]}%',
+            "--perimeter-speed", str(p["perimeter_speed"]), "--infill-speed", str(p["infill_speed"]),
+            "--travel-speed", str(p["travel_speed"]), "--first-layer-speed", "20",
+            "--temperature", str(nozzle_temp), "--first-layer-temperature", str(nozzle_temp),
+            "--bed-temperature", str(bed_temp), "--first-layer-bed-temperature", str(bed_temp),
+            "--retract-length", "0.8", "--retract-speed", "35",
+            "--start-gcode", START_GCODE, "--end-gcode", END_GCODE,
         ]
         if supports == "on":
             cmd.append("--support-material")
         cmd.append(str(source))
-
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=SLICE_TIMEOUT,
-            check=False,
-            env={**os.environ, "LC_ALL":"C.UTF-8"},
-        )
-
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=SLICE_TIMEOUT, check=False, env={**os.environ, "LC_ALL":"C.UTF-8"})
         if result.returncode != 0 or not output.exists() or output.stat().st_size == 0:
             detail = (result.stderr or result.stdout or "Unknown slicing error").strip()[-1200:]
             raise HTTPException(422, f"Slicing failed: {detail}")
-
         body = output.read_text(encoding="utf-8", errors="replace")
         header = (
-            "; ROOKIE QUEST SLICER v0.2.0\n"
-            "; Printer: Elegoo Neptune 3 Pro\n"
-            f"; Preset: {preset}\n"
-            f"; Source: {name}\n"
-            "; TEST PROFILE - review toolpath before first print\n"
+            "; ROOKIE QUEST SLICER v0.3.0\n; Printer: Elegoo Neptune 3 Pro\n"
+            f"; Preset: {preset}\n; Source: {name}\n; TEST PROFILE - review toolpath before first print\n"
         )
         output.write_text(header + body, encoding="utf-8")
-
         filename = f"{Path(name).stem}_{preset}_N3Pro.gcode"
-        return FileResponse(
-            output,
-            filename=filename,
-            media_type="application/octet-stream",
-            background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)),
-        )
+        return FileResponse(output, filename=filename, media_type="application/octet-stream", background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)))
     except subprocess.TimeoutExpired:
         shutil.rmtree(work, ignore_errors=True)
         raise HTTPException(504, "Slicing timed out")
