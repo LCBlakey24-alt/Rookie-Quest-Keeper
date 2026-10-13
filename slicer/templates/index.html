@@ -6,81 +6,59 @@
 <meta name="theme-color" content="#111722">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css">
 <title>Rookie Quest Slicer</title>
-<style>
-:root{color-scheme:dark;--bg:#0e121a;--card:#19212e;--card2:#111722;--gold:#e1ad58;--ink:#f3f5fb;--muted:#aeb8c8;--ok:#84d9a1;--bad:#ff9b9b}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#172132 0,#0e121a 46%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif;min-height:100dvh}main{max-width:620px;margin:auto;padding:calc(20px + env(safe-area-inset-top)) 18px calc(36px + env(safe-area-inset-bottom))}.brand{font-size:12px;color:var(--gold);letter-spacing:2.4px;font-weight:800}.hero{display:flex;align-items:center;gap:14px;margin:10px 0 2px}.crest{width:52px;height:52px;border-radius:15px;background:var(--gold);color:#19150e;display:grid;place-items:center;font-weight:950;font-size:20px;box-shadow:0 8px 28px #0006}h1{font-size:32px;line-height:1.05;margin:0}p{color:var(--muted);line-height:1.5}.badge{display:inline-flex;align-items:center;gap:7px;border:1px solid #465267;background:#121925;border-radius:999px;padding:7px 10px;color:#dce4ef;font-size:12px}.dot{width:7px;height:7px;border-radius:999px;background:var(--gold)}section{background:linear-gradient(180deg,#1b2433,#171e2a);padding:18px;border:1px solid #2c3748;border-radius:19px;margin:18px 0;box-shadow:0 16px 40px #0003}label{display:block;margin:15px 0 7px;font-weight:750}input,select,button{box-sizing:border-box;width:100%;font:inherit;border-radius:12px;padding:13px 14px}input,select{background:var(--card2);color:white;border:1px solid #505d73}input[type=file]{padding:11px}button{border:0;background:var(--gold);color:#1d170f;font-weight:900;margin-top:20px;min-height:50px;box-shadow:0 8px 24px #0003}button:disabled{opacity:.55}.two{display:grid;grid-template-columns:1fr 1fr;gap:11px}.filebox{border:1px dashed #63718a;background:#111722;border-radius:15px;padding:14px}.help{font-size:12px;color:#93a0b4;margin-top:7px}.status{min-height:26px;margin-bottom:0;font-weight:650}.ok{color:var(--ok)}.bad{color:var(--bad)}.preset-note{font-size:12px;color:#aeb8c8;margin-top:7px}.warning{font-size:12px;border-left:3px solid var(--gold);padding:10px 12px;background:#211c14;border-radius:0 10px 10px 0;color:#e5d7be}.printer{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.printer strong{font-size:14px}.printer span{font-size:12px;color:var(--muted)}.install{display:none;margin-top:0;background:#29364a;color:#fff;border:1px solid #53647e}footer{text-align:center;font-size:11px;color:#7f8a9c;margin-top:22px}@media(max-width:380px){.two{grid-template-columns:1fr}h1{font-size:28px}}
-</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
-<div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Neptune 3 Pro · PLA+ · 0.4 mm</p></div></div>
-<p><span class="badge"><span class="dot"></span>Mobile test build</span></p>
-<section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · Marlin · direct drive</span></div><div>🖨️</div></section>
+<div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Print it.</p></div></div>
+<p><span class="badge"><span class="dot"></span>v0.3 · Design Lab</span></p>
+<section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.4 mm</span></div><div>🖨️</div></section>
+
+<section style="padding:10px"><div class="tabs"><button class="tab active" data-tab="slice" type="button">Slice</button><button class="tab" data-tab="design" type="button">Design Lab</button></div></section>
+
+<div id="slicePanel" class="panel active">
 <section>
-<form id="form">
-<label for="access_pin">Access PIN</label>
-<input id="access_pin" name="access_pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter your slicer PIN">
-<div class="help">Saved only on this device.</div>
-
-<label for="model">1. Choose your model</label>
-<div class="filebox"><input required type="file" id="model" name="model" accept=".stl,.3mf"><div class="help" id="fileHelp">STL or 3MF · up to 75 MB</div></div>
-
-<label for="preset">2. Choose what you're printing</label>
-<select name="preset" id="preset">
-<option value="normal">Normal · Everyday prints</option>
-<option value="mini">Detailed Miniature · Fine detail</option>
-<option value="terrain">Terrain · D&D tiles & scenery</option>
-<option value="strong">Strong · Practical parts</option>
-<option value="draft">Fast Draft · Quick tests</option>
-</select>
-<div class="preset-note" id="presetNote">0.20 mm layers · 3 walls · 20% infill</div>
-
-<label for="supports">3. Supports</label>
-<select name="supports" id="supports"><option value="off">Off</option><option value="on">On</option></select>
-
-<div class="two">
-<div><label for="nozzle_temp">Nozzle °C</label><input id="nozzle_temp" name="nozzle_temp" type="number" value="215" min="190" max="235" inputmode="numeric"></div>
-<div><label for="bed_temp">Bed °C</label><input id="bed_temp" name="bed_temp" type="number" value="60" min="45" max="70" inputmode="numeric"></div>
-</div>
-<button id="go" type="submit">Slice to G-code</button>
-</form>
-<p id="status" class="status" role="status"></p>
-<button id="install" class="install" type="button">Add Rookie Quest Slicer to Home Screen</button>
+<h2>Quick Slicer</h2><p style="margin-top:5px">Upload a model, pick what you're making and get Neptune 3 Pro G-code.</p>
+<form id="sliceForm">
+<label for="access_pin">Access PIN</label><input id="access_pin" name="access_pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter your slicer PIN"><div class="help">Saved only on this device.</div>
+<label for="model">Model</label><div class="filebox"><input required type="file" id="model" name="model" accept=".stl,.3mf"><div class="help" id="fileHelp">STL or 3MF · up to 75 MB</div></div>
+<label for="preset">Print type</label><select name="preset" id="preset"><option value="normal">Normal · Everyday prints</option><option value="mini">Detailed Miniature · Fine detail</option><option value="terrain">Terrain · D&D tiles & scenery</option><option value="strong">Strong · Practical parts</option><option value="draft">Fast Draft · Quick tests</option></select><div class="help" id="presetNote">0.20 mm layers · 3 walls · 20% infill</div>
+<label for="supports">Supports</label><select name="supports" id="supports"><option value="off">Off</option><option value="on">On</option></select>
+<div class="two"><div><label for="nozzle_temp">Nozzle °C</label><input id="nozzle_temp" name="nozzle_temp" type="number" value="215" min="190" max="235" inputmode="numeric"></div><div><label for="bed_temp">Bed °C</label><input id="bed_temp" name="bed_temp" type="number" value="60" min="45" max="70" inputmode="numeric"></div></div>
+<button id="sliceGo" type="submit">Slice to G-code</button>
+</form><p id="sliceStatus" class="status" role="status"></p>
 </section>
-<p class="warning"><strong>Test build:</strong> first G-code from each profile should be previewed before printing. Embedded printer settings in uploaded 3MF files are not trusted.</p>
-<footer>Rookie Quest Forge · Slicer v0.2</footer>
+</div>
+
+<div id="designPanel" class="panel">
+<section>
+<div class="design-hero"><div class="design-icon">🎲</div><div><h2>Dice Tower Builder</h2><p style="margin:4px 0 0">Turn a chunky STL into a working dice tower with an internal chute, alternating baffles, exit ramp and catch tray.</p></div></div>
+<div class="pillrow" style="margin-top:12px"><span class="pill">Touch 3D preview</span><span class="pill">Auto chute sizing</span><span class="pill">Neptune bed check</span><span class="pill">Export STL</span></div>
+</section>
+<section>
+<h3>1 · Choose the outside design</h3><p class="mini-note">v1 works best with solid, tower-like models: castles, skulls, statues, buildings and chunky scenery.</p>
+<div class="filebox"><input type="file" id="towerModel" accept=".stl"><div class="help" id="towerFileHelp">STL only for Dice Tower Builder v1</div></div>
+<div id="viewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Drag to rotate · pinch to zoom</div></div>
+<div class="checks"><div id="dimCheck" class="check"><strong>—</strong>Model size</div><div id="chuteCheck" class="check"><strong>—</strong>Chute fit</div><div id="bedCheck" class="check"><strong>—</strong>Printer fit</div></div>
+</section>
+<section>
+<h3>2 · Set up the tower</h3>
+<label for="towerScale">Model scale</label><input id="towerScale" type="range" min="50" max="250" step="5" value="100"><div class="range-line"><span>50%</span><strong id="towerScaleValue">100%</strong><span>250%</span></div>
+<label for="towerRotation">Which side faces the tray?</label><select id="towerRotation"><option value="0">Current front</option><option value="90">Turn right 90°</option><option value="180">Use the back</option><option value="270">Turn left 90°</option></select>
+<label for="diceSize">Largest dice</label><select id="diceSize"><option value="20">Normal RPG dice · up to ~20 mm</option><option value="22" selected>Comfortable D20 clearance · ~22 mm</option><option value="25">Large dice · ~25 mm</option><option value="28">Extra-large dice · ~28 mm</option></select>
+<label for="trayDepth">Catch tray depth</label><input id="trayDepth" type="range" min="50" max="100" step="5" value="70"><div class="range-line"><span>50 mm</span><strong id="trayDepthValue">70 mm</strong><span>100 mm</span></div>
+<div class="warning" style="margin-top:16px"><strong>What gets changed:</strong> the app cuts a central dice shaft and lower exit through the STL, inserts a structural chute core with support-friendly ramps, then attaches a walled tray to the selected front side.</div>
+<button id="buildTower" type="button">Build Dice Tower STL</button><p id="towerStatus" class="status" role="status"></p>
+<div id="resultActions" class="result-actions"><button id="downloadTower" class="secondary" type="button">Download STL</button><button id="sliceTower" type="button">Slice Tower</button></div>
+</section>
+<section><h3>How this version works</h3><div class="step"><div class="stepno">1</div><p>We measure and centre the STL, then check there is enough room for the chosen dice.</p></div><div class="step"><div class="stepno">2</div><p>A reinforced internal chute is placed through the middle so the dice path does not depend on the downloaded model's internal geometry.</p></div><div class="step"><div class="stepno">3</div><p>The tray is attached to the chosen front. The finished STL is checked against the Neptune 3 Pro's build volume before it is returned.</p></div></section>
+</div>
+
+<button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
+<p class="warning"><strong>Prototype rule:</strong> preview converted towers before printing. Very thin, hollow or strongly tapered decorative STLs may need the next version's movable chute controls.</p>
+<footer>Rookie Quest Forge · Slicer v0.3</footer>
 </main>
-<script>
-const form=document.querySelector('#form');
-const status=document.querySelector('#status');
-const go=document.querySelector('#go');
-const model=document.querySelector('#model');
-const fileHelp=document.querySelector('#fileHelp');
-const preset=document.querySelector('#preset');
-const presetNote=document.querySelector('#presetNote');
-const install=document.querySelector('#install');
-const pin=document.querySelector('#access_pin');
-pin.value=localStorage.getItem('rqs_pin')||'';
-pin.addEventListener('change',()=>localStorage.setItem('rqs_pin',pin.value));
-const notes={normal:'0.20 mm layers · 3 walls · 20% infill',mini:'0.12 mm layers · slower for detail',terrain:'0.24 mm layers · 12% infill · terrain focused',strong:'0.20 mm layers · 5 walls · 35% infill',draft:'0.28 mm layers · quickest test profile'};
-preset.addEventListener('change',()=>presetNote.textContent=notes[preset.value]);
-model.addEventListener('change',()=>{const f=model.files[0];fileHelp.textContent=f?(f.name+' · '+(f.size/1024/1024).toFixed(1)+' MB'):'STL or 3MF · up to 75 MB'});
-form.addEventListener('submit',async e=>{
- e.preventDefault();go.disabled=true;status.className='status';status.textContent='Slicing your model…';
- try{
-  const r=await fetch('/slice',{method:'POST',body:new FormData(form)});
-  if(!r.ok){let msg=await r.text();try{msg=JSON.parse(msg).detail}catch{}throw Error(msg)}
-  const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download=(model.files[0].name.replace(/\.(stl|3mf)$/i,'')||'print')+'_'+preset.value+'_N3Pro.gcode';
-  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status.className='status ok';status.textContent='Done — G-code downloaded to your phone.';
- }catch(err){status.className='status bad';status.textContent=err.message}
- finally{go.disabled=false}
-});
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;install.style.display='block'});
-install.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;install.style.display='none'});
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
-</script>
+<script type="module" src="/assets/app.js"></script>
 </body></html>
