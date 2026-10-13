@@ -1,7 +1,7 @@
 FROM python:3.12-slim-bookworm
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends prusa-slicer ca-certificates \
+    && apt-get install -y --no-install-recommends prusa-slicer openscad ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
