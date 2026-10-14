@@ -10,6 +10,8 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
+from geometry_ai import recommend_dice_tower
+
 router = APIRouter(prefix="/design", tags=["design"])
 MAX_UPLOAD = 75 * 1024 * 1024
 BED_X = 225
@@ -43,6 +45,51 @@ async def save_upload(upload: UploadFile, target: Path):
     if size < 100:
         raise HTTPException(400, "That model file appears to be empty")
 
+@router.post("/dice-tower-suggest")
+async def suggest_dice_tower(
+    model: UploadFile = File(...),
+    dice_mm: float = Form(22.0),
+    tray_depth: float = Form(70.0),
+    front_rotation: str = Form("auto"),
+    access_pin: str = Form(""),
+):
+    check_pin(access_pin)
+    name = Path(model.filename or "").name
+    if Path(name).suffix.lower() != ".stl":
+        raise HTTPException(400, "Smart Dice Tower currently needs an STL file")
+    if not 16 <= dice_mm <= 30:
+        raise HTTPException(400, "Dice size must be between 16 mm and 30 mm")
+    if not 50 <= tray_depth <= 100:
+        raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
+    if not -80 <= chute_x_mm <= 80 or not -80 <= chute_y_mm <= 80:
+        raise HTTPException(400, "Chute offset must stay within ±80 mm")
+
+    rotation = None
+    if front_rotation != "auto":
+        try:
+            rotation = int(front_rotation)
+        except Exception:
+            raise HTTPException(400, "Front rotation must be auto, 0, 90, 180 or 270")
+        if rotation not in {0,90,180,270}:
+            raise HTTPException(400, "Front rotation must be auto, 0, 90, 180 or 270")
+
+    work = Path(tempfile.mkdtemp(prefix="rqs_tower_suggest_"))
+    source = work / "source.stl"
+    try:
+        await save_upload(model, source)
+        mesh = trimesh.load(source, force="mesh", process=True)
+        if mesh.is_empty:
+            raise HTTPException(422, "That STL could not be analysed")
+        return recommend_dice_tower(
+            mesh, dice_mm=dice_mm, tray_depth=tray_depth, front_rotation=rotation
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(422, f"Smart suggestion failed: {type(exc).__name__}") from exc
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
 @router.post("/dice-tower")
 async def build_dice_tower(
     model: UploadFile = File(...),
@@ -50,6 +97,8 @@ async def build_dice_tower(
     rotation_z: int = Form(0),
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
+    chute_x_mm: float = Form(0.0),
+    chute_y_mm: float = Form(0.0),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -96,6 +145,13 @@ async def build_dice_tower(
         outer_w = channel_w + 6.0
         outer_d = channel_d + 6.0
         exit_h = max(30.0, dice_mm + 10.0)
+        max_x = max(0.0, w / 2.0 - channel_w / 2.0 - 5.0)
+        max_y = max(0.0, d / 2.0 - channel_d / 2.0 - 5.0)
+        if abs(chute_x_mm) > max_x + 0.01 or abs(chute_y_mm) > max_y + 0.01:
+            raise HTTPException(
+                422,
+                f"Requested chute offset ({chute_x_mm:.1f}, {chute_y_mm:.1f}) mm would push the dice channel outside the model. Maximum safe offset here is about ±{max_x:.1f} X and ±{max_y:.1f} Y."
+            )
         min_w = outer_w + 8.0
         min_d = outer_d + 8.0
         min_h = max(95.0, exit_h + 55.0)
@@ -129,19 +185,20 @@ model_w={w:.4f}; model_d={d:.4f}; model_h={h:.4f};
 channel_w={channel_w:.4f}; channel_d={channel_d:.4f}; outer_w={outer_w:.4f}; outer_d={outer_d:.4f};
 exit_h={exit_h:.4f}; tray_d={tray_depth:.4f}; tray_w={tray_w:.4f}; tray_wall=3; tray_lip=12;
 y_front={y_front:.4f}; foundation_w={foundation_w:.4f}; foundation_d={foundation_d:.4f};
+chute_x={chute_x_mm:.4f}; chute_y={chute_y_mm:.4f};
 module carved_body() {{
   difference() {{
     union() {{
       import("normalized.stl", convexity=10);
-      translate([0,0,model_h/2]) cube([outer_w,outer_d,model_h],center=true);
-      translate([0,0,1]) cube([foundation_w,foundation_d,2],center=true);
+      translate([chute_x,chute_y,model_h/2]) cube([outer_w,outer_d,model_h],center=true);
+      translate([chute_x,chute_y,1]) cube([foundation_w,foundation_d,2],center=true);
     }}
-    translate([0,0,(model_h+exit_h)/2]) cube([channel_w,channel_d,model_h-exit_h+8],center=true);
-    translate([0,(y_front-channel_d/2)/2,exit_h/2+1]) cube([channel_w,channel_d/2-y_front+10,exit_h+4],center=true);
+    translate([chute_x,chute_y,(model_h+exit_h)/2]) cube([channel_w,channel_d,model_h-exit_h+8],center=true);
+    translate([chute_x,(y_front+chute_y-channel_d/2)/2,exit_h/2+1]) cube([channel_w,chute_y+channel_d/2-y_front+10,exit_h+4],center=true);
   }}
 }}
 module wedge_left(z0) {{
-  translate([0,0,z0]) rotate([90,0,0]) linear_extrude(height=channel_d-6,center=true)
+  translate([chute_x,chute_y,z0]) rotate([90,0,0]) linear_extrude(height=channel_d-6,center=true)
     polygon(points=[[-channel_w/2-4,0],[-channel_w/2-4,24],[0,0]]);
 }}
 module wedge_right(z0) {{
@@ -149,8 +206,8 @@ module wedge_right(z0) {{
     polygon(points=[[channel_w/2+4,0],[channel_w/2+4,24],[0,0]]);
 }}
 module exit_floor() {{
-  rotate([0,90,0]) linear_extrude(height=channel_w-6,center=true)
-    polygon(points=[[0,channel_d/2],[-18,channel_d/2],[-6,y_front-5],[0,y_front-5]]);
+  translate([chute_x,chute_y,0]) rotate([0,90,0]) linear_extrude(height=channel_w-6,center=true)
+    polygon(points=[[0,channel_d/2],[-18,channel_d/2],[-6,y_front-chute_y-5],[0,y_front-chute_y-5]]);
 }}
 module tray() {{
   y0=y_front-tray_d/2+3;
@@ -181,6 +238,8 @@ union() {{
             "X-RQ-Dimensions": ",".join(f"{v:.1f}" for v in out_extents),
             "X-RQ-Baffles": str(len(positions)),
             "X-RQ-Watertight": "yes" if check.is_watertight else "no",
+            "X-RQ-Chute-X": f"{chute_x_mm:.1f}",
+            "X-RQ-Chute-Y": f"{chute_y_mm:.1f}",
         }
         filename = f"{Path(name).stem}_Dice_Tower.stl"
         return FileResponse(output, filename=filename, media_type="model/stl", headers=headers, background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)))
