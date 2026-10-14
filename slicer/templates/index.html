@@ -13,15 +13,16 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.7 · Multi-Nozzle</span></p>
+<p><span class="badge"><span class="dot"></span>v0.8 · AI Bridge</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
-<div class="tabs tabs4">
+<div class="tabs tabs5">
 <button class="tab active" data-tab="slice" type="button">Slice</button>
 <button class="tab" data-tab="edit" type="button">Edit</button>
 <button class="tab" data-tab="design" type="button">Design</button>
 <button class="tab" data-tab="doctor" type="button">Check & Fix</button>
+<button class="tab" data-tab="ai" type="button">AI Link</button>
 </div>
 </section>
 
@@ -217,7 +218,13 @@
 <label for="towerRotation">Which side faces the tray?</label><select id="towerRotation"><option value="0">Current front</option><option value="90">Turn right 90°</option><option value="180">Use the back</option><option value="270">Turn left 90°</option></select>
 <label for="diceSize">Largest dice</label><select id="diceSize"><option value="20">Normal RPG dice · up to ~20 mm</option><option value="22" selected>Comfortable D20 clearance · ~22 mm</option><option value="25">Large dice · ~25 mm</option><option value="28">Extra-large dice · ~28 mm</option></select>
 <label for="trayDepth">Catch tray depth</label><input id="trayDepth" type="range" min="50" max="100" step="5" value="70"><div class="range-line"><span>50 mm</span><strong id="trayDepthValue">70 mm</strong><span>100 mm</span></div>
-<div class="warning" style="margin-top:16px"><strong>What gets changed:</strong> the app cuts a central dice shaft and lower exit through the STL, inserts a structural chute core with support-friendly ramps, then attaches a walled tray to the selected front side.</div>
+<div class="two">
+<div><label for="chuteX">Chute X offset mm</label><input id="chuteX" type="number" value="0" min="-80" max="80" step="1" inputmode="decimal"></div>
+<div><label for="chuteY">Chute Y offset mm</label><input id="chuteY" type="number" value="0" min="-80" max="80" step="1" inputmode="decimal"></div>
+</div>
+<button id="smartTower" class="secondary" type="button">Smart Suggest Chute + Tray Side</button>
+<div id="smartTowerNote" class="support-note neutral"><strong>Smart placement</strong><span>Analyses bed fit, available channel clearance, the model's mid-height bulk and low front geometry. You can still override its answer.</span></div>
+<div class="warning" style="margin-top:16px"><strong>What gets changed:</strong> the app cuts the dice shaft and lower exit through the STL, inserts a structural chute core with support-friendly ramps, then attaches a walled tray. Smart placement can move the chute away from dead-centre when the geometry suggests it.</div>
 <button id="buildTower" type="button">Build Dice Tower STL</button><p id="towerStatus" class="status" role="status"></p>
 <div id="resultActions" class="result-actions"><button id="downloadTower" class="secondary" type="button">Download STL</button><button id="sliceTower" type="button">Slice Tower</button></div>
 </section>
@@ -255,8 +262,44 @@
 <div class="warning"><strong>Repair rule:</strong> automatic mesh repair can fix many holes and normal-direction problems, but it cannot magically reconstruct missing sculpture detail. Always rotate the repaired preview before printing.</div>
 </div>
 
+<div id="aiPanel" class="panel">
+<section>
+<div class="design-hero"><div class="design-icon">🤖</div><div><h2>AI Link</h2><p style="margin:4px 0 0">Upload a model once, then let a connected AI inspect, modify and slice it using a temporary asset ID.</p></div></div>
+<div class="pillrow" style="margin-top:12px"><span class="pill">ChatGPT / MCP</span><span class="pill">Claude / MCP</span><span class="pill">Temporary assets</span><span class="pill">No giant file in chat</span></div>
+</section>
+<section class="desktop-workspace">
+<div>
+<h3>1 · Upload model for AI</h3>
+<div class="filebox"><input type="file" id="aiModel" accept=".stl,.3mf,.obj,.ply"><div class="help" id="aiFileHelp">STL, 3MF, OBJ or PLY · up to 75 MB</div></div>
+<button id="uploadAI" type="button">Create Temporary AI Asset</button>
+<p id="aiStatus" class="status"></p>
+<div id="aiResult" class="ai-result hidden">
+<label>Asset ID</label>
+<div class="copy-row"><code id="aiAssetId">—</code><button id="copyAssetId" class="secondary" type="button">Copy</button></div>
+<div class="doctor-grid" style="margin-top:10px">
+<div class="doctor-stat"><strong id="aiDims">—</strong><span>Dimensions</span></div>
+<div class="doctor-stat"><strong id="aiMesh">—</strong><span>Mesh</span></div>
+</div>
+<a id="aiPreviewLink" class="button-link secondary" target="_blank" rel="noopener">Open 3-view preview</a>
+</div>
+</div>
+<div>
+<h3>2 · Give the ID to your AI</h3>
+<p class="mini-note">Once Rookie Quest Slicer is connected as an MCP tool, say something like:</p>
+<div class="prompt-card">Inspect Rookie Quest Slicer asset <strong id="aiPromptAsset">ASSET_ID</strong>. Tell me the safest settings for my Neptune 3 Pro, then slice it after I approve the settings.</div>
+<p class="mini-note">Assets expire after about 4 hours and disappear when the temporary server storage is cleared.</p>
+<div class="warning"><strong>AI safety rule:</strong> the AI connector gets only specific slicer tools. It does not get shell access, printer control, or unrestricted access to the server.</div>
+</div>
+</section>
+<section>
+<h3>AI connector status</h3>
+<p class="mini-note">We are using the Model Context Protocol (MCP), so one connector can be used by compatible AI platforms. Connection availability depends on the AI plan and client.</p>
+<div class="connection-card"><strong>Remote MCP endpoint</strong><code id="mcpEndpoint">Preparing connector…</code><span id="mcpStatus">Connector deployment pending.</span></div>
+</section>
+</div>
+
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.7</footer>
+<footer>Rookie Quest Forge · Slicer v0.8</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
