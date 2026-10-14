@@ -1,6 +1,3 @@
-import base64
-import hashlib
-import hmac
 import json
 import os
 import re
@@ -13,6 +10,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse, Response
 
 from geometry_ai import load_mesh, basic_report, recommend_dice_tower, svg_preview
+from connector_auth import issue_token
 
 router = APIRouter(prefix="/ai", tags=["ai-bridge"])
 ASSET_DIR = Path("/tmp/rqs_ai_assets")
@@ -21,27 +19,14 @@ MAX_UPLOAD = 75 * 1024 * 1024
 TTL_SECONDS = 4 * 60 * 60
 
 
-def _b64url(data: bytes) -> str:
-    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
-
-
 def make_connector_token(label: str, days: int):
-    secret = os.getenv("MCP_SIGNING_SECRET", "").encode("utf-8")
+    secret = os.getenv("MCP_SIGNING_SECRET", "")
     if not secret:
         raise HTTPException(503, "Shareable AI connections are not configured")
-    now = int(time.time())
-    payload = {
-        "v": 1,
-        "sub": "rqs-mcp",
-        "label": (label or "Shared connection").strip()[:50],
-        "iat": now,
-        "exp": now + days * 86400,
-        "nonce": uuid.uuid4().hex[:12],
-    }
-    raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
-    encoded = _b64url(raw)
-    sig = _b64url(hmac.new(secret, encoded.encode("ascii"), hashlib.sha256).digest())
-    return f"rq1.{encoded}.{sig}", payload
+    try:
+        return issue_token(secret, label, days)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 def check_pin(pin: str):
