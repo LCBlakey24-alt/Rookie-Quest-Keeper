@@ -213,6 +213,7 @@ def suggest_ai_dice_tower(
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
     front_rotation: str = Form("auto"),
+    tray_x_mm: str = Form("auto"),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -235,6 +236,15 @@ def suggest_ai_dice_tower(
         if rotation not in {0, 90, 180, 270}:
             raise HTTPException(400, "Front rotation must be auto, 0, 90, 180 or 270")
 
+    locked_tray_x = None
+    if tray_x_mm != "auto":
+        try:
+            locked_tray_x = float(tray_x_mm)
+        except Exception:
+            raise HTTPException(400, "Tray position must be auto or a number in mm")
+        if not -80 <= locked_tray_x <= 80:
+            raise HTTPException(400, "Tray position must stay within ±80 mm")
+
     try:
         mesh = load_mesh(source)
         mesh.apply_scale(scale_percent / 100.0)
@@ -243,6 +253,7 @@ def suggest_ai_dice_tower(
             dice_mm=dice_mm,
             tray_depth=tray_depth,
             front_rotation=rotation,
+            tray_x_mm=locked_tray_x,
         )
     except Exception as exc:
         raise HTTPException(422, f"Could not analyse this model: {type(exc).__name__}") from exc
