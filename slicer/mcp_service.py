@@ -282,6 +282,56 @@ async def build_dice_tower(
 
 
 @mcp.tool()
+async def rescue_ai_dice_tower(
+    asset_id: str,
+    dice_mm: float = 22.0,
+    target_height_mm: float = 160.0,
+    tray_mode: str = "auto",
+    tray_depth_mm: float = 70.0,
+    rotation_z: int = 0,
+) -> dict:
+    """Convert a solid/high-poly AI or Meshy STL into a functional dice tower using low-memory voxel repair and carving."""
+    try:
+        source, filename = await _download_asset(asset_id)
+        if not filename.lower().endswith(".stl"):
+            return {"error": "AI Dice Tower Rescue currently requires an STL asset."}
+        _require_core_pin()
+        async with httpx.AsyncClient(timeout=480) as client:
+            r = await client.post(
+                f"{CORE_URL}/design/ai-dice-tower",
+                data={
+                    "dice_mm": dice_mm,
+                    "target_height_mm": target_height_mm,
+                    "tray_depth": tray_depth_mm,
+                    "tray_mode": tray_mode,
+                    "rotation_z": rotation_z,
+                    "access_pin": CORE_PIN,
+                },
+                files={"model": (filename, source, "model/stl")},
+            )
+            r.raise_for_status()
+
+        out_name = filename.rsplit(".", 1)[0] + "_AI_Rescued_Dice_Tower.stl"
+        output = await _register_output(r.content, out_name)
+        return {
+            "source_asset_id": asset_id,
+            "output_asset_id": output["asset_id"],
+            "download_url": output["download_url"],
+            "preview_url": output.get("preview_url"),
+            "dimensions": r.headers.get("X-RQ-Dimensions"),
+            "source_triangles": r.headers.get("X-RQ-Source-Triangles"),
+            "tray_mode": r.headers.get("X-RQ-Tray-Mode"),
+            "existing_tray_detected": r.headers.get("X-RQ-Existing-Tray"),
+            "channel_mm": r.headers.get("X-RQ-Channel"),
+            "baffles": r.headers.get("X-RQ-Baffles"),
+            "watertight": r.headers.get("X-RQ-Watertight"),
+            "warning": "This is an automatically rebuilt functional mesh. Rotate the result and inspect the dice path before its first physical print.",
+        }
+    except Exception as exc:
+        return {"error": _http_error(exc), "asset_id": asset_id}
+
+
+@mcp.tool()
 async def slice_model(
     asset_id: str,
     preset: str = "normal",
@@ -406,6 +456,7 @@ async def health(request: Request):
             "recommend_print_settings",
             "recommend_dice_tower",
             "build_dice_tower",
+            "rescue_ai_dice_tower",
             "slice_model",
             "repair_model",
             "split_model",
