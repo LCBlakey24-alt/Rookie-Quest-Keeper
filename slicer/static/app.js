@@ -66,9 +66,21 @@ async function sliceFile(file,name,statusEl,button,supportMode=null,presetMode=n
   try{
     const r=await fetch('/slice',{method:'POST',body:fd});
     if(!r.ok)throw Error(await err(r));
+    const printTime=r.headers.get('X-RQ-Print-Time');
+    const filamentG=r.headers.get('X-RQ-Filament-G');
+    const filamentMM=r.headers.get('X-RQ-Filament-MM');
     downloadBlob(await r.blob(),name.replace(/\.(stl|3mf|obj|ply)$/i,'')+'_N3Pro.gcode');
+    const bits=[];
+    if(printTime&&printTime!=='unknown')bits.push(printTime);
+    if(filamentG&&filamentG!=='unknown')bits.push(Number(filamentG).toFixed(1)+' g filament');
+    else if(filamentMM&&filamentMM!=='unknown')bits.push((Number(filamentMM)/1000).toFixed(2)+' m filament');
     statusEl.className='status ok';
-    statusEl.textContent='Done — G-code downloaded to your phone.';
+    statusEl.textContent='Done — G-code downloaded'+(bits.length?' · '+bits.join(' · '):'')+'.';
+    try{
+      const history=JSON.parse(localStorage.getItem('rqs_history')||'[]');
+      history.unshift({name,when:new Date().toISOString(),preset:presetMode||$('#preset').value,support:supportMode||$('#supports').value,time:printTime||'',filament_g:filamentG||''});
+      localStorage.setItem('rqs_history',JSON.stringify(history.slice(0,10)));
+    }catch{}
   }catch(x){
     statusEl.className='status bad';
     statusEl.textContent=x.message;
