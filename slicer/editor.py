@@ -371,19 +371,19 @@ async def split_model(
         if axis == "x":
             split = -w/2 + w*p
             a_min = [-w/2-margin,-d/2-margin,-margin]
-            a_size = [w*p+2*margin,d+2*margin,h+2*margin]
+            a_size = [w*p+margin,d+2*margin,h+2*margin]
             b_min = [split,-d/2-margin,-margin]
             b_size = [w*(1-p)+margin,d+2*margin,h+2*margin]
         elif axis == "y":
             split = -d/2 + d*p
             a_min = [-w/2-margin,-d/2-margin,-margin]
-            a_size = [w+2*margin,d*p+2*margin,h+2*margin]
+            a_size = [w+2*margin,d*p+margin,h+2*margin]
             b_min = [-w/2-margin,split,-margin]
             b_size = [w+2*margin,d*(1-p)+margin,h+2*margin]
         else:
             split = h*p
             a_min = [-w/2-margin,-d/2-margin,-margin]
-            a_size = [w+2*margin,d+2*margin,h*p+2*margin]
+            a_size = [w+2*margin,d+2*margin,h*p+margin]
             b_min = [-w/2-margin,-d/2-margin,split]
             b_size = [w+2*margin,d+2*margin,h*(1-p)+margin]
 
