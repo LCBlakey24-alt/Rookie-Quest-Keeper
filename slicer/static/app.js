@@ -382,6 +382,7 @@ $('#smartTower').addEventListener('click',async()=>{
   b.disabled=true;s.className='status';s.textContent='Analysing tower geometry…';
   const fd=new FormData();
   fd.append('model',f);
+  fd.append('scale_percent',$('#towerScale').value);
   fd.append('dice_mm',$('#diceSize').value);
   fd.append('tray_depth',$('#trayDepth').value);
   fd.append('front_rotation','auto');
