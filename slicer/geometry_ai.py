@@ -80,12 +80,38 @@ def _front_complexity(mesh, exit_h):
         (centers[:, 1] <= front_y + max(12.0, d * 0.16))
         & (centers[:, 2] <= exit_h * 1.4)
     ]
-    # Normalise by total triangle count. Lower means less decorative geometry
-    # around the region we would cut for the exit.
     return min(1.0, len(strip) / max(1.0, len(centers) * 0.08))
 
 
-def recommend_dice_tower(mesh, dice_mm=22.0, tray_depth=70.0, front_rotation=None):
+def _front_window_complexity(mesh, x_center, window_w, exit_h):
+    centers = np.asarray(mesh.triangles_center)
+    if len(centers) == 0:
+        return 1.0
+    d = float(mesh.extents[1])
+    front_y = -d / 2.0
+    strip = centers[
+        (centers[:, 1] <= front_y + max(12.0, d * 0.18))
+        & (centers[:, 2] <= exit_h * 1.5)
+        & (centers[:, 0] >= x_center - window_w / 2.0)
+        & (centers[:, 0] <= x_center + window_w / 2.0)
+    ]
+    expected = max(1.0, len(centers) * min(0.18, window_w / max(float(mesh.extents[0]), 1.0)) * 0.28)
+    return min(1.0, len(strip) / expected)
+
+
+def _finished_width(model_w, tray_w, tray_x):
+    left = min(-model_w / 2.0, tray_x - tray_w / 2.0)
+    right = max(model_w / 2.0, tray_x + tray_w / 2.0)
+    return right - left
+
+
+def recommend_dice_tower(
+    mesh,
+    dice_mm=22.0,
+    tray_depth=70.0,
+    front_rotation=None,
+    tray_x_mm=None,
+):
     dice_mm = float(dice_mm)
     tray_depth = float(tray_depth)
     channel = max(44.0, dice_mm * 2.3)
@@ -98,9 +124,10 @@ def recommend_dice_tower(mesh, dice_mm=22.0, tray_depth=70.0, front_rotation=Non
     for rotation in rotations:
         m = rotate_z(mesh, rotation)
         w, d, h = [float(v) for v in m.extents]
-        tray_w = w + 10.0
+        # Keep the tray compact enough to move along a wider model.
+        tray_w = min(w + 10.0, max(channel + 24.0, 82.0))
         total_d = d + tray_depth + 3.0
-        fit = tray_w <= BED_X and total_d <= BED_Y and h <= MAX_Z
+
         clearance_x = w - outer - 8.0
         clearance_y = d - outer - 8.0
         tall_enough = h >= max(95.0, exit_h + 55.0)
@@ -109,8 +136,47 @@ def recommend_dice_tower(mesh, dice_mm=22.0, tray_depth=70.0, front_rotation=Non
         cx, cy = _bulk_center(m)
         max_x = max(0.0, w / 2.0 - channel / 2.0 - 5.0)
         max_y = max(0.0, d / 2.0 - channel / 2.0 - 5.0)
-        chute_x = max(-max_x, min(max_x, cx))
+
+        if tray_x_mm is None:
+            tray_span = max(0.0, min(w / 2.0, (BED_X - tray_w) / 2.0, 60.0))
+            probe = [-tray_span, -tray_span / 2.0, 0.0, tray_span / 2.0, tray_span]
+            # Pick a low-complexity exit region, but mildly prefer positions closer
+            # to the middle-height bulk so the path does not snake unnecessarily.
+            scored_trays = []
+            for tx in probe:
+                local_complexity = _front_window_complexity(m, tx, tray_w * 0.72, exit_h)
+                scored_trays.append((
+                    local_complexity * 10.0 + abs(tx - cx) * 0.035,
+                    tx,
+                    local_complexity,
+                ))
+            scored_trays.sort(key=lambda item: item[0])
+            tray_x = float(scored_trays[0][1])
+            local_complexity = float(scored_trays[0][2])
+        else:
+            tray_x = float(tray_x_mm)
+            local_complexity = _front_window_complexity(m, tray_x, tray_w * 0.72, exit_h)
+
+        # Tray-first planner: pull the chute toward the requested tray while
+        # retaining some preference for the model's internal bulk centre.
+        desired_chute_x = tray_x * 0.68 + cx * 0.32
+        transition_run = max(28.0, min(55.0, d * 0.34))
+        max_side_shift = transition_run * math.tan(math.radians(32.0))
+        desired_chute_x = max(tray_x - max_side_shift, min(tray_x + max_side_shift, desired_chute_x))
+        chute_x = max(-max_x, min(max_x, desired_chute_x))
         chute_y = max(-max_y, min(max_y, cy))
+
+        lateral_shift = tray_x - chute_x
+        path_angle = math.degrees(math.atan2(abs(lateral_shift), transition_run))
+        path_ok = path_angle <= 34.0
+
+        finished_w = _finished_width(w, tray_w, tray_x)
+        fit = finished_w <= BED_X and total_d <= BED_Y and h <= MAX_Z
+        tray_overlap = not (
+            tray_x + tray_w / 2.0 < -w / 2.0 - 4.0
+            or tray_x - tray_w / 2.0 > w / 2.0 + 4.0
+        )
+        physically_possible = physically_possible and tray_overlap and path_ok
 
         complexity = _front_complexity(m, exit_h)
         margin = min(clearance_x, clearance_y)
@@ -119,9 +185,9 @@ def recommend_dice_tower(mesh, dice_mm=22.0, tray_depth=70.0, front_rotation=Non
         score += 60.0 if physically_possible else -120.0
         score += min(45.0, max(-30.0, margin * 0.7))
         score += min(35.0, h * 0.16)
-        score += (1.0 - complexity) * 22.0
-        # Prefer smaller lateral offsets unless geometry bulk clearly pulls us away.
-        score -= abs(chute_x) * 0.15
+        score += (1.0 - complexity) * 12.0
+        score += (1.0 - local_complexity) * 24.0
+        score -= path_angle * 0.45
         score -= abs(chute_y) * 0.08
 
         candidates.append({
@@ -130,16 +196,21 @@ def recommend_dice_tower(mesh, dice_mm=22.0, tray_depth=70.0, front_rotation=Non
             "channel_mm": round(channel, 2),
             "chute_x_mm": round(chute_x, 2),
             "chute_y_mm": round(chute_y, 2),
+            "tray_x_mm": round(tray_x, 2),
+            "tray_width_mm": round(tray_w, 2),
             "tray_depth_mm": round(tray_depth, 2),
-            "finished_footprint_mm": [round(tray_w, 2), round(total_d, 2)],
+            "finished_footprint_mm": [round(finished_w, 2), round(total_d, 2)],
             "fits_printer": fit,
             "physically_possible": physically_possible,
             "front_complexity": round(complexity, 3),
+            "tray_region_complexity": round(local_complexity, 3),
+            "transition_angle_deg": round(path_angle, 1),
+            "transition_shift_mm": round(lateral_shift, 2),
             "clearance_margin_mm": round(margin, 2),
             "score": round(score, 2),
         })
 
-    candidates.sort(key=lambda c: c["score"], reverse=True)
+    candidates.sort(key=lambda item: item["score"], reverse=True)
     best = candidates[0]
     confidence = "high"
     if not best["physically_possible"] or not best["fits_printer"]:
@@ -148,29 +219,34 @@ def recommend_dice_tower(mesh, dice_mm=22.0, tray_depth=70.0, front_rotation=Non
         confidence = "medium"
 
     reasons = []
+    if tray_x_mm is None:
+        reasons.append("tray position was scanned across the front and placed in a lower-complexity exit region")
+    else:
+        reasons.append("tray position was kept where requested and the chute was recalculated around it")
     if best["fits_printer"]:
-        reasons.append("finished tower and tray fit the Neptune 3 Pro build area")
+        reasons.append("finished tower and offset tray fit the Neptune 3 Pro build area")
     else:
-        reasons.append("the proposed finished tower does not fit the build area")
+        reasons.append("the proposed finished tower or offset tray does not fit the build area")
     if best["physically_possible"]:
-        reasons.append("model has enough width, depth and height for the selected dice channel")
+        reasons.append("the internal channel and tray-to-chute transition stay within the current geometry limits")
     else:
-        reasons.append("model is too narrow or short for a reliable channel at this dice size")
-    if abs(best["chute_x_mm"]) > 2 or abs(best["chute_y_mm"]) > 2:
-        reasons.append("chute is shifted toward the model's middle-height bulk instead of forcing it through geometric centre")
-    else:
-        reasons.append("model bulk is close to centre, so a near-centred chute is sensible")
-    if best["front_complexity"] < 0.45:
-        reasons.append("selected front has relatively little low-level surface complexity around the exit zone")
+        reasons.append("the requested layout creates an unsafe channel, tray overlap or transition angle")
+    if abs(best["transition_shift_mm"]) > 2:
+        reasons.append(
+            f"lower path shifts {abs(best['transition_shift_mm']):.1f} mm sideways at about {best['transition_angle_deg']:.1f}° to meet the tray"
+        )
+    if best["tray_region_complexity"] < 0.45:
+        reasons.append("tray/exit region has relatively little low-level surface complexity")
 
     return {
         "recommendation": best,
         "confidence": confidence,
         "reasons": reasons,
         "alternatives": candidates[1:4],
-        "method": "geometry heuristic: bed fit + internal clearance + mid-height bulk centre + lower-front surface complexity",
-        "warning": "This is a geometry recommendation, not a physical dice simulation. Preview the chute before printing.",
+        "method": "tray-first geometry heuristic: bed fit + channel clearance + front-region complexity + bulk centre + transition-angle limit",
+        "warning": "This is a geometry recommendation, not a physical dice simulation. Preview the generated path before printing.",
     }
+
 
 
 def svg_preview(mesh, width=960, height=340):
@@ -278,9 +354,12 @@ def geometry_selftest():
         mesh = trimesh.creation.box(extents=[82, 78, 145])
         mesh.apply_translation([0, 0, 72.5])
         rec = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60)
+        locked = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60, front_rotation=0, tray_x_mm=18)
         img = png_preview(mesh, width=600, height=240)
         ok = (
             rec.get("recommendation", {}).get("physically_possible") is True
+            and locked.get("recommendation", {}).get("tray_x_mm") == 18.0
+            and locked.get("recommendation", {}).get("transition_angle_deg", 99) <= 34.0
             and img.size == (600, 240)
         )
         return {
@@ -288,6 +367,8 @@ def geometry_selftest():
             "confidence": rec.get("confidence"),
             "rotation_z": rec.get("recommendation", {}).get("rotation_z"),
             "chute_x_mm": rec.get("recommendation", {}).get("chute_x_mm"),
+            "auto_tray_x_mm": rec.get("recommendation", {}).get("tray_x_mm"),
+            "locked_tray_x_mm": locked.get("recommendation", {}).get("tray_x_mm"),
             "png_size": list(img.size),
         }
     except Exception as exc:
