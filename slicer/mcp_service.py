@@ -157,6 +157,7 @@ async def recommend_print_settings(
 @mcp.tool()
 async def recommend_dice_tower(
     asset_id: str,
+    scale_percent: int = 100,
     dice_mm: float = 22.0,
     tray_depth_mm: float = 70.0,
     tray_front: str = "auto",
@@ -168,6 +169,7 @@ async def recommend_dice_tower(
             r = await client.post(
                 f"{CORE_URL}/ai/assets/{asset_id}/dice-suggest",
                 data={
+                    "scale_percent": scale_percent,
                     "dice_mm": dice_mm,
                     "tray_depth": tray_depth_mm,
                     "front_rotation": tray_front,
@@ -200,7 +202,7 @@ async def build_dice_tower(
         chute_y = 0.0
         suggestion = None
         if smart_place_chute:
-            suggestion = await recommend_dice_tower(asset_id, dice_mm, tray_depth_mm, tray_front)
+            suggestion = await recommend_dice_tower(asset_id, scale_percent, dice_mm, tray_depth_mm, tray_front)
             if "error" in suggestion:
                 return suggestion
             rec = suggestion["recommendation"]
