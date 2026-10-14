@@ -548,6 +548,40 @@ $('#uploadAI').addEventListener('click',async()=>{
   }finally{b.disabled=false}
 });
 
+$('#createConnectorKey').addEventListener('click',async()=>{
+  const s=$('#connectorStatus'),b=$('#createConnectorKey');
+  b.disabled=true;s.className='status';s.textContent='Creating private expiring connection…';
+  const fd=new FormData();
+  fd.append('label',$('#connectorLabel').value.trim()||"Friend's AI");
+  fd.append('days',$('#connectorDays').value);
+  fd.append('access_pin',pin.value);
+  try{
+    const r=await fetch('/ai/connector-key',{method:'POST',body:fd});
+    if(!r.ok)throw Error(await err(r));
+    const data=await r.json();
+    $('#connectorUrl').textContent=data.connection_url;
+    $('#connectorResult').classList.remove('hidden');
+    const date=new Date(data.expires_at*1000);
+    s.className='status ok';
+    s.textContent='Connection ready for '+data.label+' · expires '+date.toLocaleString()+'.';
+  }catch(x){
+    s.className='status bad';s.textContent=x.message;
+  }finally{b.disabled=false}
+});
+
+$('#copyConnectorUrl').addEventListener('click',async()=>{
+  const url=$('#connectorUrl').textContent;
+  if(!url||url==='—')return;
+  try{
+    await navigator.clipboard.writeText(url);
+    $('#connectorStatus').className='status ok';
+    $('#connectorStatus').textContent='Private connection URL copied.';
+  }catch{
+    $('#connectorStatus').className='status bad';
+    $('#connectorStatus').textContent='Could not use clipboard — press and hold the URL to copy it.';
+  }
+});
+
 $('#copyAssetId').addEventListener('click',async()=>{
   const id=$('#aiAssetId').textContent;
   if(!id||id==='—')return;
