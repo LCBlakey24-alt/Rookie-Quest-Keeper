@@ -449,7 +449,7 @@ $('#sliceTower').addEventListener('click',async()=>{
 
 /* Model Doctor */
 const doctorViewer=createViewer($('#doctorViewer'));
-let doctorOriginal=null,doctorRepaired=null,doctorRepairedName='Repaired.stl';
+let doctorOriginal=null,doctorRepaired=null,doctorRepairedName='Repaired.stl',suggestedSupportMode='gentle_bed';
 
 $('#doctorModel').addEventListener('change',async e=>{
   const f=e.target.files[0];
@@ -470,6 +470,14 @@ function renderDoctor(report){
   $('#docTriangles').textContent=Number(report.triangles).toLocaleString();
   $('#docParts').textContent=report.connected_parts;
   $('#docWater').textContent=report.watertight?'Watertight':'Needs repair';
+  const advice=report.support_advice||{};
+  suggestedSupportMode=advice.recommended_mode||'gentle_bed';
+  const supportBox=$('#supportAdvisor');
+  supportBox.className='support-note '+(suggestedSupportMode==='off'||suggestedSupportMode.includes('_bed')?'safe':'warn');
+  $('#supportMode').textContent='Suggested · '+(advice.recommended_label||supportLabel(suggestedSupportMode))+(advice.confidence?' · '+advice.confidence+' confidence':'');
+  $('#supportReasons').textContent=(advice.reasons||['Support analysis unavailable.']).join(' · ');
+  $('#supportOverhang').textContent=advice.overhang_area_pct==null?'—':Number(advice.overhang_area_pct).toFixed(1)+'%';
+  $('#supportBlocked').textContent=advice.blocked_overhang_pct==null?'—':Number(advice.blocked_overhang_pct).toFixed(0)+'%';
   const list=$('#doctorIssues');list.innerHTML='';
   for(const issue of report.issues){
     const div=document.createElement('div');
@@ -480,6 +488,15 @@ function renderDoctor(report){
   $('#repairActions').classList.add('show');
   $('#repairModel').style.display=report.repair_recommended?'block':'none';
 }
+
+$('#useSuggestedSupport').addEventListener('click',()=>{
+  $('#supports').value=suggestedSupportMode;
+  updateSupportNote();
+  const sliceTab=document.querySelector('.tab[data-tab="slice"]');
+  if(sliceTab)sliceTab.click();
+  $('#sliceStatus').className='status ok';
+  $('#sliceStatus').textContent='Support Advisor applied: '+supportLabel(suggestedSupportMode)+'. Review the model orientation before slicing.';
+});
 
 $('#inspectModel').addEventListener('click',async()=>{
   const f=$('#doctorModel').files[0],s=$('#doctorStatus'),b=$('#inspectModel');
