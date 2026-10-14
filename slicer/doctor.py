@@ -41,6 +41,138 @@ def load_mesh(path: Path):
         raise HTTPException(422, "That file does not contain a usable mesh")
     return loaded
 
+def support_analysis(mesh):
+    """Heuristic support analysis in the model's current orientation."""
+    try:
+        if mesh.is_empty or len(mesh.faces) < 4:
+            return {"recommended_mode":"off","confidence":"low","reasons":["mesh is empty"]}
+
+        normals = mesh.face_normals
+        centers = mesh.triangles_center
+        areas = mesh.area_faces
+        min_z = float(mesh.bounds[0][2])
+        total_area = max(float(areas.sum()), 1e-6)
+
+        # Ignore the bottom-most skin because it is assumed to sit on the bed.
+        above_bed = centers[:, 2] > min_z + 0.8
+        moderate = (normals[:, 2] < -0.28) & above_bed
+        severe = (normals[:, 2] < -0.66) & above_bed
+
+        overhang_area = float(areas[moderate].sum())
+        severe_area = float(areas[severe].sum())
+        overhang_pct = overhang_area / total_area * 100.0
+        severe_pct = severe_area / total_area * 100.0
+
+        blocked_area = 0.0
+        max_height = 0.0
+        if moderate.any():
+            max_height = float((centers[moderate, 2] - min_z).max())
+
+            # Approximate whether a vertical bed-only support column can reach a
+            # downward-facing patch without first encountering model geometry.
+            # A 3 mm XY grid keeps this fast enough for phone-uploaded meshes.
+            cell = 3.0
+            all_cells = {}
+            for idx, p in enumerate(centers):
+                key = (int(math.floor(float(p[0]) / cell)), int(math.floor(float(p[1]) / cell)))
+                z = float(p[2])
+                current = all_cells.get(key)
+                if current is None or z < current:
+                    all_cells[key] = z
+
+            for idx in list(map(int, __import__("numpy").nonzero(moderate)[0])):
+                p = centers[idx]
+                key = (int(math.floor(float(p[0]) / cell)), int(math.floor(float(p[1]) / cell)))
+                lower_z = all_cells.get(key, min_z)
+                if lower_z < float(p[2]) - 3.0 and lower_z > min_z + 1.2:
+                    blocked_area += float(areas[idx])
+
+        blocked_pct = (blocked_area / overhang_area * 100.0) if overhang_area > 1e-6 else 0.0
+
+        if overhang_pct < 1.2 and severe_pct < 0.35:
+            mode = "off"
+            confidence = "high"
+        elif blocked_pct < 10 and overhang_pct < 8:
+            mode = "gentle_bed"
+            confidence = "high"
+        elif blocked_pct < 18 and overhang_pct < 18:
+            mode = "snug_bed"
+            confidence = "medium"
+        elif blocked_pct >= 18 and overhang_pct < 22:
+            mode = "snug_everywhere"
+            confidence = "medium"
+        elif blocked_pct < 22:
+            mode = "grid_bed"
+            confidence = "medium"
+        else:
+            mode = "grid_everywhere"
+            confidence = "medium"
+
+        labels = {
+            "off":"Off",
+            "gentle_bed":"Gentle · Build Plate Only",
+            "snug_bed":"Snug · Build Plate Only",
+            "snug_everywhere":"Snug · Everywhere",
+            "grid_bed":"Strong Grid · Build Plate Only",
+            "grid_everywhere":"Strong Grid · Everywhere",
+        }
+        reasons = []
+        if mode == "off":
+            reasons.append("very little downward-facing overhang area was detected")
+        else:
+            reasons.append(f"about {overhang_pct:.1f}% of surface area is downward-facing enough to merit checking")
+            if severe_pct > 0.5:
+                reasons.append(f"about {severe_pct:.1f}% is a steeper underside")
+            if blocked_pct >= 18:
+                reasons.append(f"about {blocked_pct:.0f}% of overhang area appears blocked from a straight bed-only column")
+            else:
+                reasons.append("most detected overhangs appear reachable from the build plate")
+            if max_height > 80:
+                reasons.append(f"some overhangs are high on the model (up to roughly {max_height:.0f} mm above the base)")
+
+        return {
+            "recommended_mode": mode,
+            "recommended_label": labels[mode],
+            "confidence": confidence,
+            "overhang_area_pct": round(overhang_pct, 2),
+            "severe_overhang_pct": round(severe_pct, 2),
+            "blocked_overhang_pct": round(blocked_pct, 1),
+            "max_overhang_height_mm": round(max_height, 1),
+            "reasons": reasons,
+            "note": "This is a geometry heuristic in the model's current orientation. Rotate the model and re-check if you change orientation.",
+        }
+    except Exception as exc:
+        return {
+            "recommended_mode":"gentle_bed",
+            "recommended_label":"Gentle · Build Plate Only",
+            "confidence":"low",
+            "overhang_area_pct":None,
+            "severe_overhang_pct":None,
+            "blocked_overhang_pct":None,
+            "max_overhang_height_mm":None,
+            "reasons":[f"support analysis fell back safely ({type(exc).__name__})"],
+            "note":"Fallback recommendation only.",
+        }
+
+
+def support_advisor_selftest():
+    try:
+        stem = trimesh.creation.box(extents=[20, 20, 40])
+        stem.apply_translation([0, 0, 20])
+        cap = trimesh.creation.box(extents=[60, 60, 8])
+        cap.apply_translation([0, 0, 44])
+        model = trimesh.util.concatenate([stem, cap])
+        advice = support_analysis(model)
+        return {
+            "ok": advice.get("recommended_mode") != "off" and (advice.get("overhang_area_pct") or 0) > 1,
+            "mode": advice.get("recommended_mode"),
+            "overhang_area_pct": advice.get("overhang_area_pct"),
+            "blocked_overhang_pct": advice.get("blocked_overhang_pct"),
+        }
+    except Exception as exc:
+        return {"ok":False,"error":type(exc).__name__}
+
+
 def mesh_report(mesh):
     ext = [float(x) for x in mesh.extents]
     bounds = mesh.bounds
@@ -73,6 +205,7 @@ def mesh_report(mesh):
         "fits_if_rotated_xy":bool((not current_fit) and xy_swapped_fit),
         "volume_cm3":round(abs(float(mesh.volume))/1000.0,2) if mesh.is_volume else None,
         "repair_recommended":repairable,
+        "support_advice":support_analysis(mesh),
         "issues":issues,
     }
 
