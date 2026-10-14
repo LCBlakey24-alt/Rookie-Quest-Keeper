@@ -154,7 +154,32 @@ export function createViewer(container){
     return {w:size.x,d:size.y,h:size.z,fit:size.x<=225&&size.y<=225&&size.z<=280};
   }
 
+  function splitPreview(opts){
+    if(!modelRoot||!baseDims)return null;
+    resetTransform();clear(overlay);overlay=new THREE.Group();
+    const box=new THREE.Box3().setFromObject(modelRoot),size=box.getSize(new THREE.Vector3());
+    const p=Math.max(.1,Math.min(.9,(Number(opts.percent)||50)/100));
+    const pm=new THREE.MeshBasicMaterial({color:0xff7a7a,transparent:true,opacity:.38,side:THREE.DoubleSide});
+    let plane,a,b;
+    if(opts.axis==='y'){
+      const y=-size.y/2+size.y*p;
+      plane=new THREE.Mesh(new THREE.BoxGeometry(size.x+8,.8,size.z+8),pm);plane.position.set(0,y,size.z/2);
+      a=[size.x,size.y*p,size.z];b=[size.x,size.y*(1-p),size.z];
+    }else if(opts.axis==='z'){
+      const z=size.z*p;
+      plane=new THREE.Mesh(new THREE.BoxGeometry(size.x+8,size.y+8,.8),pm);plane.position.set(0,0,z);
+      a=[size.x,size.y,size.z*p];b=[size.x,size.y,size.z*(1-p)];
+    }else{
+      const x=-size.x/2+size.x*p;
+      plane=new THREE.Mesh(new THREE.BoxGeometry(.8,size.y+8,size.z+8),pm);plane.position.set(x,0,size.z/2);
+      a=[size.x*p,size.y,size.z];b=[size.x*(1-p),size.y,size.z];
+    }
+    overlay.add(plane);scene.add(overlay);
+    const fitPart=v=>v[0]<=225&&v[1]<=225&&v[2]<=280;
+    return {a,b,aFit:fitPart(a),bFit:fitPart(b)};
+  }
+
   function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera)}
   resize();loop();
-  return {showFile,preview,editPreview,hasModel:()=>!!modelRoot};
+  return {showFile,preview,editPreview,splitPreview,hasModel:()=>!!modelRoot};
 }
