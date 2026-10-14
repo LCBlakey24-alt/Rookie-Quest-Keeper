@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import trimesh
+from PIL import Image, ImageDraw
 
 BED_X = 225.0
 BED_Y = 225.0
@@ -216,3 +217,57 @@ def svg_preview(mesh, width=960, height=340):
             )
     pieces.append("</svg>")
     return "".join(pieces)
+
+
+def png_preview(mesh, width=1200, height=420):
+    """Render lightweight orthographic front/side/top views for AI vision."""
+    mesh = normalized(mesh)
+    verts = np.asarray(mesh.vertices)
+    if len(verts) > 9000:
+        step = max(1, len(verts) // 9000)
+        verts = verts[::step]
+
+    img = Image.new("RGB", (width, height), (14, 18, 26))
+    draw = ImageDraw.Draw(img)
+    views = [
+        ("FRONT", verts[:, [0, 2]], verts[:, 1]),
+        ("SIDE", verts[:, [1, 2]], verts[:, 0]),
+        ("TOP", verts[:, [0, 1]], verts[:, 2]),
+    ]
+    panel_w = width / 3.0
+    pad = 38.0
+    for idx, (label, pts, depth) in enumerate(views):
+        x0 = idx * panel_w
+        px, py = pts[:, 0], pts[:, 1]
+        minx, maxx = float(px.min()), float(px.max())
+        miny, maxy = float(py.min()), float(py.max())
+        sx = (panel_w - 2 * pad) / max(1e-6, maxx - minx)
+        sy = (height - 2 * pad - 28) / max(1e-6, maxy - miny)
+        scale = min(sx, sy)
+        cx = (minx + maxx) / 2.0
+        cy = (miny + maxy) / 2.0
+        dmin, dmax = float(depth.min()), float(depth.max())
+        denom = max(1e-6, dmax - dmin)
+
+        # Draw far points first and near points brighter to give some depth cue.
+        order = np.argsort(depth)
+        for k in order:
+            x, y = pts[k]
+            t = (float(depth[k]) - dmin) / denom
+            val = int(125 + 110 * t)
+            xx = x0 + panel_w / 2 + (float(x) - cx) * scale
+            yy = height / 2 - (float(y) - cy) * scale + 10
+            r = 1 if len(verts) > 3500 else 2
+            draw.ellipse((xx-r, yy-r, xx+r, yy+r), fill=(val, val, min(255, val + 12)))
+
+        # Gold bounding rectangle and heading.
+        bx0 = x0 + panel_w / 2 + (minx - cx) * scale
+        bx1 = x0 + panel_w / 2 + (maxx - cx) * scale
+        by0 = height / 2 - (maxy - cy) * scale + 10
+        by1 = height / 2 - (miny - cy) * scale + 10
+        draw.rectangle((bx0, by0, bx1, by1), outline=(225, 173, 88), width=2)
+        draw.text((x0 + 16, 12), label, fill=(225, 173, 88))
+        if idx < 2:
+            draw.line((x0 + panel_w, 14, x0 + panel_w, height - 14), fill=(39, 50, 71), width=2)
+
+    return img
