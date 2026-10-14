@@ -138,6 +138,9 @@ async def build_edit(
     name_text: str = Form(""),
     name_size: float = Form(5),
     name_height: float = Form(0.8),
+    magnet_count: int = Form(0),
+    magnet_diameter: float = Form(6.0),
+    magnet_depth: float = Form(2.0),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -165,6 +168,16 @@ async def build_edit(
         raise HTTPException(400, "Add a base before adding a nameplate")
     if not 2 <= name_size <= 16 or not 0.4 <= name_height <= 3:
         raise HTTPException(400, "Nameplate size or height is outside the allowed range")
+    if magnet_count not in {0,1,2,4}:
+        raise HTTPException(400, "Magnet count must be 0, 1, 2 or 4")
+    if magnet_count and base_type == "none":
+        raise HTTPException(400, "Add a base before adding magnet sockets")
+    if not 3 <= magnet_diameter <= 15:
+        raise HTTPException(400, "Magnet diameter must be between 3 mm and 15 mm")
+    if not 0.8 <= magnet_depth <= 6:
+        raise HTTPException(400, "Magnet depth must be between 0.8 mm and 6 mm")
+    if magnet_count and magnet_depth > base_thickness - 0.4:
+        raise HTTPException(400, "Magnet depth must leave at least 0.4 mm of material above the socket")
 
     work = Path(tempfile.mkdtemp(prefix="rqs_edit_"))
     source = work / "source.stl"
@@ -193,14 +206,36 @@ async def build_edit(
         mesh.export(transformed)
 
         safe_text = name_text.replace("\\", "\\\\").replace('"','\\"')
+        effective_depth = base_width if base_type in {"round","hex"} else base_depth
         if base_type == "round":
-            base_code = f'cylinder(h={base_thickness:.4f}, d={base_width:.4f}, $fn=96);'
+            base_shape = f'cylinder(h={base_thickness:.4f}, d={base_width:.4f}, $fn=96);'
         elif base_type == "hex":
-            base_code = f'cylinder(h={base_thickness:.4f}, d={base_width:.4f}, $fn=6);'
+            base_shape = f'cylinder(h={base_thickness:.4f}, d={base_width:.4f}, $fn=6);'
         elif base_type == "square":
-            base_code = f'translate([0,0,{base_thickness/2:.4f}]) cube([{base_width:.4f},{base_depth:.4f},{base_thickness:.4f}], center=true);'
+            base_shape = f'translate([0,0,{base_thickness/2:.4f}]) cube([{base_width:.4f},{base_depth:.4f},{base_thickness:.4f}], center=true);'
         else:
-            base_code = ""
+            base_shape = ""
+
+        magnet_holes = ""
+        if magnet_count:
+            if magnet_diameter > min(base_width, effective_depth) * 0.45:
+                raise HTTPException(400, "Magnet diameter is too large for this base")
+            xoff = min(base_width * 0.24, 14.0)
+            yoff = min(effective_depth * 0.24, 14.0)
+            if magnet_count == 1:
+                pts = [(0.0,0.0)]
+            elif magnet_count == 2:
+                pts = [(-xoff,0.0),(xoff,0.0)]
+            else:
+                pts = [(-xoff,-yoff),(xoff,-yoff),(-xoff,yoff),(xoff,yoff)]
+            magnet_holes = "\n".join(
+                f'translate([{x:.4f},{y:.4f},{magnet_depth/2-0.05:.4f}]) cylinder(h={magnet_depth+0.2:.4f}, d={magnet_diameter:.4f}, center=true, $fn=48);'
+                for x,y in pts
+            )
+        if base_shape and magnet_holes:
+            base_code = f'difference() {{ {base_shape} {magnet_holes} }}'
+        else:
+            base_code = base_shape
 
         # A shallow front plaque is attached to the base. Raised lettering is horizontal
         # so it prints without needing supports.
@@ -244,6 +279,7 @@ union() {{
             "X-RQ-Dimensions": ",".join(f"{v:.1f}" for v in out_ext),
             "X-RQ-Watertight": "yes" if result_mesh.is_watertight else "no",
             "X-RQ-Base": base_type,
+            "X-RQ-Magnets": str(magnet_count),
         }
         filename = f"{Path(name).stem}_Edited.stl"
         return FileResponse(
