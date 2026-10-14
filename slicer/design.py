@@ -26,6 +26,81 @@ def design_health():
     cad = openscad_path()
     return {"installed": bool(cad), "name": Path(cad).name if cad else None}
 
+def dice_tower_path_selftest():
+    cad = openscad_path()
+    if not cad:
+        return {"ok": False, "error": "openscad missing"}
+    work = Path(tempfile.mkdtemp(prefix="rqs_tower_path_test_"))
+    script = work / "path_test.scad"
+    output = work / "path_test.stl"
+    try:
+        script.write_text(r'''$fn=24;
+channel_w=50; channel_d=50; model_h=130; exit_h=32;
+chute_x=-5; chute_y=0; tray_x=18; y_front=-40;
+tray_w=82; tray_d=60; tray_wall=3; tray_lip=12;
+module transition_void() {
+  hull() {
+    translate([chute_x,chute_y-channel_d/2+3,exit_h/2+1]) cube([channel_w,8,exit_h+4],center=true);
+    translate([tray_x,y_front-5,exit_h/2+1]) cube([channel_w,8,exit_h+4],center=true);
+  }
+}
+module carved_body() {
+  difference() {
+    translate([0,0,model_h/2]) cube([90,80,model_h],center=true);
+    translate([chute_x,chute_y,(model_h+exit_h)/2]) cube([channel_w,channel_d,model_h-exit_h+8],center=true);
+    transition_void();
+  }
+}
+module wedge_left(z0) {
+  translate([chute_x,chute_y,z0]) rotate([90,0,0]) linear_extrude(height=channel_d-6,center=true)
+    polygon(points=[[-channel_w/2-4,0],[-channel_w/2-4,24],[0,0]]);
+}
+module wedge_right(z0) {
+  translate([chute_x,chute_y,z0]) rotate([90,0,0]) linear_extrude(height=channel_d-6,center=true)
+    polygon(points=[[channel_w/2+4,0],[channel_w/2+4,24],[0,0]]);
+}
+module exit_floor() {
+  hull() {
+    translate([chute_x,chute_y-channel_d/2+4,5]) cube([channel_w-6,10,5],center=true);
+    translate([tray_x,y_front-7,2.5]) cube([channel_w-6,10,5],center=true);
+  }
+}
+module tray() {
+  y0=y_front-tray_d/2+3;
+  union() {
+    translate([tray_x,y0,1.5]) cube([tray_w,tray_d+6,3],center=true);
+    translate([tray_x-(tray_w/2-tray_wall/2),y0,tray_lip/2]) cube([tray_wall,tray_d+6,tray_lip],center=true);
+    translate([tray_x+(tray_w/2-tray_wall/2),y0,tray_lip/2]) cube([tray_wall,tray_d+6,tray_lip],center=true);
+    translate([tray_x,y_front-tray_d+tray_wall/2+3,tray_lip/2]) cube([tray_w,tray_wall,tray_lip],center=true);
+  }
+}
+union() {
+  carved_body();
+  wedge_left(82);
+  wedge_right(46);
+  exit_floor();
+  tray();
+}
+''', encoding="utf-8")
+        result = subprocess.run(
+            [cad, "-q", "-o", str(output), str(script)],
+            cwd=work,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+        if result.returncode != 0 or not output.exists() or output.stat().st_size < 100:
+            return {"ok": False, "error": (result.stderr or result.stdout or "OpenSCAD failed")[-400:]}
+        mesh = trimesh.load(output, force="mesh", process=True)
+        extents = [round(float(v), 1) for v in mesh.extents]
+        return {"ok": not mesh.is_empty, "faces": int(len(mesh.faces)), "dimensions_mm": extents}
+    except Exception as exc:
+        return {"ok": False, "error": type(exc).__name__}
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
 def check_pin(pin: str):
     required = os.getenv("APP_PIN", "").strip()
     if required and pin.strip() != required:
