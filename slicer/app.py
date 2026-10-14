@@ -274,6 +274,27 @@ def support_capabilities():
         "modes":list(SUPPORT_MODES.keys()),
     }
 
+def nozzle_parser_selftest():
+    engine = engine_path()
+    if not engine:
+        return {"ok":False,"error":"engine missing"}
+    tests = {"0.2mm":["0.2","0.08"],"1.0mm":["1.0","0.65"]}
+    out = {}
+    for name,(diameter,layer) in tests.items():
+        try:
+            r = subprocess.run(
+                [engine,"--nozzle-diameter",diameter,"--layer-height",layer,"--help"],
+                capture_output=True,text=True,timeout=15,check=False
+            )
+            out[name] = (r.returncode == 0)
+            if r.returncode != 0:
+                out[name+"_error"] = (r.stderr or r.stdout or "")[-300:]
+        except Exception as exc:
+            out[name] = False
+            out[name+"_error"] = type(exc).__name__
+    out["ok"] = all(out.get(k,False) for k in tests)
+    return out
+
 def support_parser_selftest():
     engine = engine_path()
     if not engine:
@@ -305,6 +326,7 @@ def support_parser_selftest():
 @app.on_event("startup")
 def log_startup_capabilities():
     print("RQS_SUPPORT_SELFTEST", support_parser_selftest(), flush=True)
+    print("RQS_NOZZLE_SELFTEST", nozzle_parser_selftest(), flush=True)
     print("RQS_EDITOR_SELFTEST", editor_selftest(), flush=True)
 
 @app.get("/api/profiles")
