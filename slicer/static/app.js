@@ -363,7 +363,7 @@ $('#towerModel').addEventListener('change',async e=>{
   const f=e.target.files[0];
   generatedBlob=null;
   $('#resultActions').classList.remove('show');
-  $('#towerFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL only for Dice Tower Builder v1';
+  $('#towerFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL · up to 125 MB · AI/Meshy files supported';
   if(!f)return;
   try{
     await viewer.showFile(f,true);
@@ -417,6 +417,46 @@ async function requestTowerSuggestion(keepTray){
 }
 $('#smartTower').addEventListener('click',()=>requestTowerSuggestion(false));
 $('#smartFromTray').addEventListener('click',()=>requestTowerSuggestion(true));
+
+$('#rescueTower').addEventListener('click',async()=>{
+  const f=$('#towerModel').files[0],s=$('#towerStatus'),b=$('#rescueTower');
+  if(!f){s.className='status bad';s.textContent='Choose the solid AI-generated STL first.';return}
+  if(f.size>125*1024*1024){s.className='status bad';s.textContent='That file is over the 125 MB AI Rescue limit.';return}
+  b.disabled=true;s.className='status';
+  s.textContent='AI Rescue: rebuilding mesh, fixing scale, detecting tray and carving dice path…';
+  const fd=new FormData();
+  fd.append('model',f);
+  fd.append('dice_mm',$('#diceSize').value);
+  fd.append('target_height_mm',$('#aiTowerHeight').value);
+  fd.append('tray_depth',$('#trayDepth').value);
+  fd.append('tray_mode',$('#aiTrayMode').value);
+  fd.append('rotation_z',$('#towerRotation').value);
+  fd.append('access_pin',pin.value);
+  try{
+    const r=await fetch('/design/ai-dice-tower',{method:'POST',body:fd});
+    if(!r.ok)throw Error(await err(r));
+    generatedBlob=await r.blob();
+    generatedName=f.name.replace(/\.stl$/i,'')+'_AI_Rescued_Dice_Tower.stl';
+    await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
+    const dm=r.headers.get('X-RQ-Dimensions');
+    const tris=r.headers.get('X-RQ-Source-Triangles');
+    const tray=r.headers.get('X-RQ-Tray-Mode');
+    const existing=r.headers.get('X-RQ-Existing-Tray');
+    const channel=r.headers.get('X-RQ-Channel');
+    const bf=r.headers.get('X-RQ-Baffles');
+    s.className='status ok';
+    s.textContent='AI Rescue complete'
+      +(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')
+      +(tris?' · source '+Number(tris).toLocaleString()+' triangles':'')
+      +(channel?' · channel '+channel+' mm':'')
+      +(bf?' · '+bf+' baffles':'')
+      +(tray?' · tray '+tray+(existing==='yes'?' (detected in model)':''):'')
+      +'. Rotate the result before printing.';
+    $('#resultActions').classList.add('show');
+  }catch(x){
+    s.className='status bad';s.textContent=x.message;
+  }finally{b.disabled=false}
+});
 
 $('#buildTower').addEventListener('click',async()=>{
   const f=$('#towerModel').files[0],s=$('#towerStatus'),b=$('#buildTower');
