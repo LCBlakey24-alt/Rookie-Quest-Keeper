@@ -16,7 +16,7 @@ from editor import router as editor_router, editor_selftest
 from ai_bridge import router as ai_router
 
 ROOT = Path(__file__).parent
-app = FastAPI(title="Rookie Quest Slicer", version="0.8.0")
+app = FastAPI(title="Rookie Quest Slicer", version="0.9.0")
 app.include_router(design_router)
 app.include_router(doctor_router)
 app.include_router(editor_router)
@@ -407,7 +407,7 @@ async def slice_model(
             raise HTTPException(422, f"Slicing failed: {detail}")
         body = output.read_text(encoding="utf-8", errors="replace")
         header = (
-            "; ROOKIE QUEST SLICER v0.8.0\n; Printer: Elegoo Neptune 3 Pro\n"
+            "; ROOKIE QUEST SLICER v0.9.0\n; Printer: Elegoo Neptune 3 Pro\n"
             f"; Preset: {preset}\n; Nozzle: {nozzle_key} mm\n; Layer: {layer_height} mm\n; Supports: {supports}\n; Source: {name}\n"
             "; TEST PROFILE - review toolpath before first print\n"
         )
