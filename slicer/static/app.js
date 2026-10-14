@@ -335,6 +335,7 @@ function towerOpts(){
     rotation:Number($('#towerRotation').value),
     dice:Number($('#diceSize').value),
     tray:Number($('#trayDepth').value),
+    trayX:Number($('#trayX').value||0),
     chuteX:Number($('#chuteX').value||0),
     chuteY:Number($('#chuteY').value||0)
   };
@@ -351,8 +352,11 @@ function towerChecks(){
   $('#bedCheck').innerHTML='<strong>'+(fit?'Fits':'Too large')+'</strong>'+d.outW.toFixed(0)+'×'+d.outD.toFixed(0);
   $('#bedCheck').className='check '+(fit?'good':'bad');
   if(!d.chuteSafe){
-    $('#chuteCheck').innerHTML='<strong>Offset unsafe</strong>Max ±'+d.maxX.toFixed(0)+' X / ±'+d.maxY.toFixed(0)+' Y';
+    $('#chuteCheck').innerHTML='<strong>Path unsafe</strong>'+d.transitionAngle.toFixed(1)+'° tray turn';
     $('#chuteCheck').className='check bad';
+  }else{
+    $('#chuteCheck').innerHTML='<strong>'+(good?'Good':'Too small')+'</strong>'+d.channel.toFixed(0)+' mm · '+d.transitionAngle.toFixed(1)+'° path';
+    $('#chuteCheck').className='check '+(good?'good':'bad');
   }
 }
 $('#towerModel').addEventListener('change',async e=>{
@@ -369,40 +373,50 @@ $('#towerModel').addEventListener('change',async e=>{
     $('#towerStatus').textContent='Preview failed: '+x.message;
   }
 });
-for(const id of ['towerScale','towerRotation','diceSize','trayDepth','chuteX','chuteY']){
+for(const id of ['towerScale','towerRotation','diceSize','trayDepth','trayX','chuteX','chuteY']){
   $('#'+id).addEventListener('input',()=>{
     $('#towerScaleValue').textContent=$('#towerScale').value+'%';
     $('#trayDepthValue').textContent=$('#trayDepth').value+' mm';
+    const tx=Number($('#trayX').value||0);
+    $('#trayXValue').textContent=(Math.abs(tx)<.5?'Centre':(tx<0?'Left ':'Right ')+Math.abs(tx).toFixed(0)+' mm');
     towerChecks();
   });
 }
-$('#smartTower').addEventListener('click',async()=>{
-  const f=$('#towerModel').files[0],s=$('#towerStatus'),b=$('#smartTower'),note=$('#smartTowerNote');
+async function requestTowerSuggestion(keepTray){
+  const f=$('#towerModel').files[0],s=$('#towerStatus');
+  const b=keepTray?$('#smartFromTray'):$('#smartTower'),note=$('#smartTowerNote');
   if(!f){s.className='status bad';s.textContent='Choose an STL first.';return}
-  b.disabled=true;s.className='status';s.textContent='Analysing tower geometry…';
+  b.disabled=true;s.className='status';
+  s.textContent=keepTray?'Keeping the tray here and calculating a path…':'Scanning tray side, tray position and chute path…';
   const fd=new FormData();
   fd.append('model',f);
   fd.append('scale_percent',$('#towerScale').value);
   fd.append('dice_mm',$('#diceSize').value);
   fd.append('tray_depth',$('#trayDepth').value);
-  fd.append('front_rotation','auto');
+  fd.append('front_rotation',keepTray?$('#towerRotation').value:'auto');
+  fd.append('tray_x_mm',keepTray?$('#trayX').value:'auto');
   fd.append('access_pin',pin.value);
   try{
     const r=await fetch('/design/dice-tower-suggest',{method:'POST',body:fd});
     if(!r.ok)throw Error(await err(r));
     const result=await r.json(),rec=result.recommendation;
     $('#towerRotation').value=String(rec.rotation_z);
+    $('#trayX').value=Math.max(-60,Math.min(60,Number(rec.tray_x_mm))).toFixed(0);
     $('#chuteX').value=Number(rec.chute_x_mm).toFixed(1);
     $('#chuteY').value=Number(rec.chute_y_mm).toFixed(1);
+    const tx=Number($('#trayX').value||0);
+    $('#trayXValue').textContent=(Math.abs(tx)<.5?'Centre':(tx<0?'Left ':'Right ')+Math.abs(tx).toFixed(0)+' mm');
     towerChecks();
     note.className='support-note '+(result.confidence==='high'?'safe':'warn');
-    note.innerHTML='<strong>Smart suggestion · '+result.confidence+' confidence</strong><span>'+result.reasons.join(' · ')+'</span>';
+    note.innerHTML='<strong>Path suggestion · '+result.confidence+' confidence</strong><span>'+result.reasons.join(' · ')+'</span>';
     s.className=rec.fits_printer&&rec.physically_possible?'status ok':'status bad';
-    s.textContent='Suggestion applied · front '+rec.rotation_z+'° · chute '+rec.chute_x_mm+' X / '+rec.chute_y_mm+' Y mm.';
+    s.textContent='Applied · front '+rec.rotation_z+'° · tray '+rec.tray_x_mm+' mm · chute '+rec.chute_x_mm+' / '+rec.chute_y_mm+' mm · '+rec.transition_angle_deg+'° transition.';
   }catch(x){
     s.className='status bad';s.textContent=x.message;
   }finally{b.disabled=false}
-});
+}
+$('#smartTower').addEventListener('click',()=>requestTowerSuggestion(false));
+$('#smartFromTray').addEventListener('click',()=>requestTowerSuggestion(true));
 
 $('#buildTower').addEventListener('click',async()=>{
   const f=$('#towerModel').files[0],s=$('#towerStatus'),b=$('#buildTower');
@@ -410,7 +424,7 @@ $('#buildTower').addEventListener('click',async()=>{
   b.disabled=true;s.className='status';s.textContent='Building chute, ramps and catch tray…';
   const fd=new FormData(),o=towerOpts();
   fd.append('model',f);fd.append('scale_percent',o.scale);fd.append('rotation_z',o.rotation);
-  fd.append('dice_mm',o.dice);fd.append('tray_depth',o.tray);
+  fd.append('dice_mm',o.dice);fd.append('tray_depth',o.tray);fd.append('tray_x_mm',o.trayX);
   fd.append('chute_x_mm',o.chuteX);fd.append('chute_y_mm',o.chuteY);
   fd.append('access_pin',pin.value);
   try{
@@ -419,9 +433,9 @@ $('#buildTower').addEventListener('click',async()=>{
     generatedBlob=await r.blob();
     generatedName=f.name.replace(/\.stl$/i,'')+'_Dice_Tower.stl';
     await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
-    const dm=r.headers.get('X-RQ-Dimensions'),bf=r.headers.get('X-RQ-Baffles'),cx=r.headers.get('X-RQ-Chute-X'),cy=r.headers.get('X-RQ-Chute-Y');
+    const dm=r.headers.get('X-RQ-Dimensions'),bf=r.headers.get('X-RQ-Baffles'),cx=r.headers.get('X-RQ-Chute-X'),cy=r.headers.get('X-RQ-Chute-Y'),tx=r.headers.get('X-RQ-Tray-X'),angle=r.headers.get('X-RQ-Transition-Angle');
     s.className='status ok';
-    s.textContent='Tower built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+(bf?' · '+bf+' baffles':'')+(cx&&cy?' · chute '+cx+' / '+cy+' mm':'')+'. Rotate the preview and check it.';
+    s.textContent='Tower built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+(bf?' · '+bf+' baffles':'')+(tx?' · tray '+tx+' mm':'')+(cx&&cy?' · chute '+cx+' / '+cy+' mm':'')+(angle?' · path '+angle+'°':'')+'. Rotate the preview and check it.';
     $('#resultActions').classList.add('show');
   }catch(x){
     s.className='status bad';s.textContent=x.message;
