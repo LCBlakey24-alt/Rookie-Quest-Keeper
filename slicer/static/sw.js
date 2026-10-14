@@ -1,4 +1,4 @@
-const CACHE='rqs-shell-v7';
+const CACHE='rqs-shell-v8';
 const SHELL=['/','/manifest.webmanifest','/icon.svg','/assets/app.css','/assets/app.js','/assets/viewer.js'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
