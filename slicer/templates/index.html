@@ -13,7 +13,7 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.8 · AI Bridge</span></p>
+<p><span class="badge"><span class="dot"></span>v0.9 · Shareable AI</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
@@ -295,11 +295,24 @@
 <h3>AI connector status</h3>
 <p class="mini-note">We are using the Model Context Protocol (MCP), so one connector can be used by compatible AI platforms. Connection availability depends on the AI plan and client.</p>
 <div class="connection-card"><strong>Remote MCP endpoint</strong><code id="mcpEndpoint">Preparing connector…</code><span id="mcpStatus">Connector deployment pending.</span></div>
+
+<h3 style="margin-top:18px">Create a shareable AI connection</h3>
+<div class="two">
+<div><label for="connectorLabel">Connection name</label><input id="connectorLabel" type="text" maxlength="50" value="Friend's AI" placeholder="e.g. Dave's Claude"></div>
+<div><label for="connectorDays">Expires after</label><select id="connectorDays"><option value="1">1 day</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></div>
+</div>
+<button id="createConnectorKey" class="secondary" type="button">Create Expiring Connection Link</button>
+<p id="connectorStatus" class="status"></p>
+<div id="connectorResult" class="hidden">
+<label>Private connection URL</label>
+<div class="copy-row"><code id="connectorUrl">—</code><button id="copyConnectorUrl" class="secondary" type="button">Copy</button></div>
+<div class="warning" style="margin-top:10px"><strong>Treat this link like a password:</strong> anyone who has it can use the authorised slicer tools until it expires. It does not reveal your main slicer PIN.</div>
+</div>
 </section>
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.8</footer>
+<footer>Rookie Quest Forge · Slicer v0.9</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
