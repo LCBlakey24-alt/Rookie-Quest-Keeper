@@ -15,7 +15,7 @@ from doctor import router as doctor_router
 from editor import router as editor_router, editor_selftest
 
 ROOT = Path(__file__).parent
-app = FastAPI(title="Rookie Quest Slicer", version="0.6.0")
+app = FastAPI(title="Rookie Quest Slicer", version="0.7.0")
 app.include_router(design_router)
 app.include_router(doctor_router)
 app.include_router(editor_router)
@@ -24,7 +24,7 @@ app.mount("/assets", StaticFiles(directory=ROOT / "static"), name="assets")
 BED_X = 225
 BED_Y = 225
 MAX_Z = 280
-NOZZLE = 0.4
+DEFAULT_NOZZLE = 0.4
 FILAMENT = 1.75
 MAX_UPLOAD = 75 * 1024 * 1024
 SLICE_TIMEOUT = 240
@@ -35,6 +35,34 @@ PRESETS = {
     "terrain": {"label":"Terrain","description":"D&D tiles, walls and scenery","layer":0.24,"walls":3,"infill":12,"perimeter_speed":50,"infill_speed":65,"travel_speed":180},
     "strong": {"label":"Strong","description":"Practical parts and tougher pieces","layer":0.20,"walls":5,"infill":35,"perimeter_speed":40,"infill_speed":55,"travel_speed":170},
     "draft": {"label":"Fast Draft","description":"Quick fit and size tests","layer":0.28,"walls":2,"infill":12,"perimeter_speed":60,"infill_speed":80,"travel_speed":200},
+}
+
+NOZZLE_PROFILES = {
+    0.2: {
+        "label":"0.2 mm · Mini/detail",
+        "layers":{"mini":0.08,"normal":0.12,"terrain":0.14,"strong":0.12,"draft":0.16},
+        "first_layer":0.12,"speed_factor":0.80,
+    },
+    0.4: {
+        "label":"0.4 mm · Standard",
+        "layers":{"mini":0.12,"normal":0.20,"terrain":0.24,"strong":0.20,"draft":0.28},
+        "first_layer":0.20,"speed_factor":1.00,
+    },
+    0.6: {
+        "label":"0.6 mm · Fast terrain/strong parts",
+        "layers":{"mini":0.18,"normal":0.28,"terrain":0.32,"strong":0.28,"draft":0.36},
+        "first_layer":0.28,"speed_factor":0.65,
+    },
+    0.8: {
+        "label":"0.8 mm · Large/fast prints",
+        "layers":{"mini":0.24,"normal":0.36,"terrain":0.44,"strong":0.36,"draft":0.52},
+        "first_layer":0.32,"speed_factor":0.50,
+    },
+    1.0: {
+        "label":"1.0 mm · Very large/rough prints",
+        "layers":{"mini":0.30,"normal":0.45,"terrain":0.55,"strong":0.45,"draft":0.65},
+        "first_layer":0.40,"speed_factor":0.40,
+    },
 }
 
 SUPPORT_MODES = {
@@ -282,10 +310,11 @@ def log_startup_capabilities():
 @app.get("/api/profiles")
 def profiles():
     return {
-        "printer": {"name":"Elegoo Neptune 3 Pro","build_volume_mm":[BED_X,BED_Y,MAX_Z],"nozzle_mm":NOZZLE,"filament_mm":FILAMENT},
+        "printer": {"name":"Elegoo Neptune 3 Pro","build_volume_mm":[BED_X,BED_Y,MAX_Z],"default_nozzle_mm":DEFAULT_NOZZLE,"filament_mm":FILAMENT},
         "presets": PRESETS,
+        "nozzles": {str(k):v for k,v in NOZZLE_PROFILES.items()},
         "supports": {k:{"label":v["label"],"description":v["description"],"buildplate_only":v["buildplate_only"],"style":v["style"]} for k,v in SUPPORT_MODES.items()},
-        "defaults": {"nozzle_temp":215,"bed_temp":60,"retraction_mm":0.8,"support_mode":"gentle_bed"},
+        "defaults": {"nozzle_temp":215,"bed_temp":60,"retraction_mm":0.8,"support_mode":"gentle_bed","nozzle_diameter":DEFAULT_NOZZLE},
         "design_tools": ["dice_tower","model_doctor","visual_editor","base_maker","nameplate","magnet_sockets","model_splitter"],
         "organic_supports":{"available":False,"note":"True organic/tree mode needs the newer slicing engine; conventional bed-only and snug modes are available now."},
     }
@@ -294,6 +323,7 @@ def profiles():
 async def slice_model(
     model: UploadFile = File(...),
     preset: str = Form("normal"),
+    nozzle_diameter: float = Form(DEFAULT_NOZZLE),
     nozzle_temp: int = Form(215),
     bed_temp: int = Form(60),
     supports: str = Form("gentle_bed"),
@@ -304,6 +334,10 @@ async def slice_model(
         raise HTTPException(400, "Unknown print preset")
     if supports not in SUPPORT_MODES:
         raise HTTPException(400, "Unknown support mode")
+    nozzle_key = round(float(nozzle_diameter), 1)
+    if nozzle_key not in NOZZLE_PROFILES:
+        raise HTTPException(400, "Supported nozzles are 0.2, 0.4, 0.6, 0.8 and 1.0 mm")
+    nozzle_profile = NOZZLE_PROFILES[nozzle_key]
     if not 190 <= nozzle_temp <= 235:
         raise HTTPException(400, "For this PLA+ profile, nozzle temperature must be 190–235°C")
     if not 45 <= bed_temp <= 70:
@@ -323,16 +357,19 @@ async def slice_model(
     try:
         await save_upload(model, source)
         p = PRESETS[preset]
+        layer_height = nozzle_profile["layers"][preset]
+        speed_factor = nozzle_profile["speed_factor"]
         cmd = [
             engine, "--export-gcode", "--output", str(output),
             "--gcode-flavor", "marlin2",
             "--bed-shape", f"0x0,{BED_X}x0,{BED_X}x{BED_Y},0x{BED_Y}",
             "--max-print-height", str(MAX_Z), "--print-center", f"{BED_X / 2},{BED_Y / 2}",
-            "--nozzle-diameter", str(NOZZLE), "--filament-diameter", str(FILAMENT),
-            "--layer-height", str(p["layer"]), "--first-layer-height", "0.20",
+            "--nozzle-diameter", str(nozzle_key), "--filament-diameter", str(FILAMENT),
+            "--layer-height", str(layer_height), "--first-layer-height", str(nozzle_profile["first_layer"]),
             "--perimeters", str(p["walls"]), "--fill-density", f'{p["infill"]}%',
-            "--perimeter-speed", str(p["perimeter_speed"]), "--infill-speed", str(p["infill_speed"]),
-            "--travel-speed", str(p["travel_speed"]), "--first-layer-speed", "20",
+            "--perimeter-speed", str(round(p["perimeter_speed"] * speed_factor, 1)),
+            "--infill-speed", str(round(p["infill_speed"] * speed_factor, 1)),
+            "--travel-speed", str(p["travel_speed"]), "--first-layer-speed", str(min(20, round(20 * speed_factor, 1))),
             "--temperature", str(nozzle_temp), "--first-layer-temperature", str(nozzle_temp),
             "--bed-temperature", str(bed_temp), "--first-layer-bed-temperature", str(bed_temp),
             "--retract-length", "0.8", "--retract-speed", "35",
@@ -346,8 +383,8 @@ async def slice_model(
             raise HTTPException(422, f"Slicing failed: {detail}")
         body = output.read_text(encoding="utf-8", errors="replace")
         header = (
-            "; ROOKIE QUEST SLICER v0.6.0\n; Printer: Elegoo Neptune 3 Pro\n"
-            f"; Preset: {preset}\n; Supports: {supports}\n; Source: {name}\n"
+            "; ROOKIE QUEST SLICER v0.7.0\n; Printer: Elegoo Neptune 3 Pro\n"
+            f"; Preset: {preset}\n; Nozzle: {nozzle_key} mm\n; Layer: {layer_height} mm\n; Supports: {supports}\n; Source: {name}\n"
             "; TEST PROFILE - review toolpath before first print\n"
         )
         output.write_text(header + body, encoding="utf-8")
@@ -357,8 +394,10 @@ async def slice_model(
             "X-RQ-Filament-MM": stats["filament_mm"] or "unknown",
             "X-RQ-Filament-G": stats["filament_g"] or "unknown",
             "X-RQ-Support-Mode": supports,
+            "X-RQ-Nozzle-MM": str(nozzle_key),
+            "X-RQ-Layer-MM": str(layer_height),
         }
-        filename = f"{Path(name).stem}_{preset}_{supports}_N3Pro.gcode"
+        filename = f"{Path(name).stem}_{preset}_{nozzle_key}mm_{supports}_N3Pro.gcode"
         return FileResponse(output, filename=filename, media_type="application/octet-stream", headers=headers, background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)))
     except subprocess.TimeoutExpired:
         shutil.rmtree(work, ignore_errors=True)
