@@ -174,6 +174,40 @@ export function createViewer(container){
     return {w:size.x,d:size.y,h:size.z,fit:size.x<=225&&size.y<=225&&size.z<=280};
   }
 
+  function overhangHeatmap(){
+    if(!modelRoot)return {moderate:0,severe:0};
+    let moderate=0,severe=0;
+    modelRoot.traverse(obj=>{
+      if(!obj.isMesh||!obj.geometry?.attributes?.position||!obj.geometry?.attributes?.normal)return;
+      const g=obj.geometry,pos=g.attributes.position,norm=g.attributes.normal;
+      if(pos.count<3)return;
+      g.computeBoundingBox();
+      const minZ=g.boundingBox?.min?.z??0;
+      const colors=new Float32Array(pos.count*3);
+      const normalColor=new THREE.Color(0xd6dae3);
+      const moderateColor=new THREE.Color(0xffc970);
+      const severeColor=new THREE.Color(0xff6b6b);
+      for(let i=0;i<pos.count;i+=3){
+        const end=Math.min(i+3,pos.count);
+        let z=0,nz=0;
+        for(let j=i;j<end;j++){z+=pos.getZ(j);nz+=norm.getZ(j)}
+        z/=(end-i);nz/=(end-i);
+        let col=normalColor;
+        if(z>minZ+.8&&nz<-.66){col=severeColor;severe++}
+        else if(z>minZ+.8&&nz<-.28){col=moderateColor;moderate++}
+        for(let j=i;j<end;j++){
+          colors[j*3]=col.r;colors[j*3+1]=col.g;colors[j*3+2]=col.b;
+        }
+      }
+      g.setAttribute('color',new THREE.BufferAttribute(colors,3));
+      obj.material?.dispose?.();
+      obj.material=new THREE.MeshStandardMaterial({
+        vertexColors:true,roughness:.62,metalness:.05,side:THREE.DoubleSide
+      });
+    });
+    return {moderate,severe};
+  }
+
   function splitPreview(opts){
     if(!modelRoot||!baseDims)return null;
     resetTransform();clear(overlay);overlay=new THREE.Group();
@@ -201,5 +235,5 @@ export function createViewer(container){
 
   function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera)}
   resize();loop();
-  return {showFile,preview,editPreview,splitPreview,hasModel:()=>!!modelRoot};
+  return {showFile,preview,editPreview,splitPreview,overhangHeatmap,hasModel:()=>!!modelRoot};
 }
