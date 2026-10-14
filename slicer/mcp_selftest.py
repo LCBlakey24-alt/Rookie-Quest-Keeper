@@ -10,6 +10,7 @@ EXPECTED = {
     "recommend_print_settings",
     "recommend_dice_tower",
     "build_dice_tower",
+    "rescue_ai_dice_tower",
     "slice_model",
     "repair_model",
     "split_model",
