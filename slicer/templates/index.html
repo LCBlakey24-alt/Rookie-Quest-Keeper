@@ -13,7 +13,7 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.12 · Support Advisor</span></p>
+<p><span class="badge"><span class="dot"></span>v0.13 · AI Model Rescue</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
@@ -204,11 +204,11 @@
 <div id="designPanel" class="panel">
 <section>
 <div class="design-hero"><div class="design-icon">🎲</div><div><h2>Dice Tower Builder</h2><p style="margin:4px 0 0">Turn a chunky STL into a working dice tower with an internal chute, alternating baffles, exit ramp and catch tray.</p></div></div>
-<div class="pillrow" style="margin-top:12px"><span class="pill">Touch 3D preview</span><span class="pill">Auto chute sizing</span><span class="pill">Neptune bed check</span><span class="pill">Export STL</span></div>
+<div class="pillrow" style="margin-top:12px"><span class="pill">Touch 3D preview</span><span class="pill">Auto chute sizing</span><span class="pill">AI / Meshy rescue</span><span class="pill">Neptune bed check</span><span class="pill">Export STL</span></div>
 </section>
 <section>
 <h3>1 · Choose the outside design</h3><p class="mini-note">Works best with solid tower-like models: castles, skulls, statues, buildings and chunky scenery.</p>
-<div class="filebox"><input type="file" id="towerModel" accept=".stl"><div class="help" id="towerFileHelp">STL only for Dice Tower Builder v1</div></div>
+<div class="filebox"><input type="file" id="towerModel" accept=".stl"><div class="help" id="towerFileHelp">STL · up to 125 MB · AI/Meshy files supported</div></div>
 <div id="viewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Drag to rotate · pinch to zoom</div></div>
 <div class="checks"><div id="dimCheck" class="check"><strong>—</strong>Model size</div><div id="chuteCheck" class="check"><strong>—</strong>Chute fit</div><div id="bedCheck" class="check"><strong>—</strong>Printer fit</div></div>
 </section>
@@ -228,6 +228,17 @@
 <button id="smartFromTray" class="secondary" type="button">Keep Tray Here · Calculate Chute</button>
 </div>
 <div id="smartTowerNote" class="support-note neutral"><strong>Tray-first path planner</strong><span>Auto mode can choose the tray side and position. Or move the tray yourself and the planner recalculates a support-friendly diagonal path back into the model.</span></div>
+
+<div class="support-note warn" style="margin-top:14px">
+<strong>AI / Meshy Solid Model Rescue</strong>
+<span>Use this when an AI-generated STL looks like a dice tower but is one solid sculpture, microscopic because its units are wrong, extremely high-poly, or not watertight. Rookie Quest rebuilds it as a clean printable solid, hollows the dice path and adds baffles.</span>
+</div>
+<div class="two">
+<div><label for="aiTowerHeight">Finished tower height</label><select id="aiTowerHeight"><option value="140">140 mm · compact</option><option value="160" selected>160 mm · recommended</option><option value="180">180 mm · larger</option><option value="200">200 mm · display size</option></select></div>
+<div><label for="aiTrayMode">Catch tray</label><select id="aiTrayMode"><option value="auto" selected>Auto-detect existing tray</option><option value="reuse">Use tray/base already in model</option><option value="add">Add a new tray</option></select></div>
+</div>
+<button id="rescueTower" class="secondary" type="button">AI / Meshy Rescue Convert</button>
+
 <div class="warning" style="margin-top:16px"><strong>What gets changed:</strong> the app cuts the dice shaft and lower exit through the STL, inserts a structural chute core with support-friendly ramps, then attaches a walled tray. Smart placement can move the chute away from dead-centre when the geometry suggests it.</div>
 <button id="buildTower" type="button">Build Dice Tower STL</button><p id="towerStatus" class="status" role="status"></p>
 <div id="resultActions" class="result-actions"><button id="downloadTower" class="secondary" type="button">Download STL</button><button id="sliceTower" type="button">Slice Tower</button></div>
@@ -325,7 +336,7 @@
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.12</footer>
+<footer>Rookie Quest Forge · Slicer v0.13</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
