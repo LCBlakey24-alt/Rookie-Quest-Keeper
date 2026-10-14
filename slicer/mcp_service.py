@@ -181,6 +181,7 @@ async def recommend_dice_tower(
     dice_mm: float = 22.0,
     tray_depth_mm: float = 70.0,
     tray_front: str = "auto",
+    tray_x_mm: float | None = None,
 ) -> dict:
     """Calculate a suggested tray-facing side and chute position from STL geometry."""
     try:
@@ -193,6 +194,7 @@ async def recommend_dice_tower(
                     "dice_mm": dice_mm,
                     "tray_depth": tray_depth_mm,
                     "front_rotation": tray_front,
+                    "tray_x_mm": "auto" if tray_x_mm is None else tray_x_mm,
                     "access_pin": CORE_PIN,
                 },
             )
@@ -210,6 +212,7 @@ async def build_dice_tower(
     tray_front: str = "auto",
     scale_percent: int = 100,
     smart_place_chute: bool = True,
+    tray_x_mm: float | None = None,
 ) -> dict:
     """Build a dice-tower STL from an uploaded STL and return a new temporary asset/download link."""
     try:
@@ -220,15 +223,17 @@ async def build_dice_tower(
         rotation = 0
         chute_x = 0.0
         chute_y = 0.0
+        tray_x = 0.0 if tray_x_mm is None else float(tray_x_mm)
         suggestion = None
         if smart_place_chute:
-            suggestion = await recommend_dice_tower(asset_id, scale_percent, dice_mm, tray_depth_mm, tray_front)
+            suggestion = await recommend_dice_tower(asset_id, scale_percent, dice_mm, tray_depth_mm, tray_front, tray_x_mm)
             if "error" in suggestion:
                 return suggestion
             rec = suggestion["recommendation"]
             rotation = int(rec["rotation_z"])
             chute_x = float(rec["chute_x_mm"])
             chute_y = float(rec["chute_y_mm"])
+            tray_x = float(rec["tray_x_mm"])
         elif tray_front != "auto":
             rotation = int(tray_front)
 
@@ -241,6 +246,7 @@ async def build_dice_tower(
                     "rotation_z": rotation,
                     "dice_mm": dice_mm,
                     "tray_depth": tray_depth_mm,
+                    "tray_x_mm": tray_x,
                     "chute_x_mm": chute_x,
                     "chute_y_mm": chute_y,
                     "access_pin": CORE_PIN,
@@ -260,6 +266,9 @@ async def build_dice_tower(
             "baffles": r.headers.get("X-RQ-Baffles"),
             "chute_x_mm": r.headers.get("X-RQ-Chute-X"),
             "chute_y_mm": r.headers.get("X-RQ-Chute-Y"),
+            "tray_x_mm": r.headers.get("X-RQ-Tray-X"),
+            "tray_width_mm": r.headers.get("X-RQ-Tray-Width"),
+            "transition_angle_deg": r.headers.get("X-RQ-Transition-Angle"),
             "smart_suggestion": suggestion,
             "warning": "Rotate and inspect the generated STL before its first physical print.",
         }
