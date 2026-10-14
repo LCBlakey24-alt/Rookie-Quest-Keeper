@@ -1,3 +1,6 @@
+import base64
+import hashlib
+import hmac
 import json
 import os
 import re
@@ -16,6 +19,29 @@ ASSET_DIR = Path("/tmp/rqs_ai_assets")
 ASSET_DIR.mkdir(parents=True, exist_ok=True)
 MAX_UPLOAD = 75 * 1024 * 1024
 TTL_SECONDS = 4 * 60 * 60
+
+
+def _b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def make_connector_token(label: str, days: int):
+    secret = os.getenv("MCP_SIGNING_SECRET", "").encode("utf-8")
+    if not secret:
+        raise HTTPException(503, "Shareable AI connections are not configured")
+    now = int(time.time())
+    payload = {
+        "v": 1,
+        "sub": "rqs-mcp",
+        "label": (label or "Shared connection").strip()[:50],
+        "iat": now,
+        "exp": now + days * 86400,
+        "nonce": uuid.uuid4().hex[:12],
+    }
+    raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    encoded = _b64url(raw)
+    sig = _b64url(hmac.new(secret, encoded.encode("ascii"), hashlib.sha256).digest())
+    return f"rq1.{encoded}.{sig}", payload
 
 
 def check_pin(pin: str):
@@ -54,6 +80,31 @@ def asset_path(asset_id: str):
     if not source.exists():
         raise HTTPException(404, "AI asset file missing")
     return p, meta, source
+
+
+@router.post("/connector-key")
+def create_connector_key(
+    label: str = Form("Friend"),
+    days: int = Form(7),
+    access_pin: str = Form(""),
+):
+    check_pin(access_pin)
+    if not 1 <= days <= 30:
+        raise HTTPException(400, "Connection expiry must be between 1 and 30 days")
+    token, payload = make_connector_token(label, days)
+    endpoint = os.getenv(
+        "PUBLIC_MCP_URL",
+        "https://rookie-quest-slicer-ai.onrender.com/mcp",
+    )
+    return {
+        "label": payload["label"],
+        "expires_at": payload["exp"],
+        "expires_in_days": days,
+        "endpoint": endpoint,
+        "token": token,
+        "connection_url": f"{endpoint}?token={token}",
+        "note": "Share this connection URL only with the person or AI client you intend to authorize. It expires automatically.",
+    }
 
 
 @router.post("/assets")
