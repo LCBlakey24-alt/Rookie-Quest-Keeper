@@ -5,14 +5,39 @@ const pin=$('#access_pin');
 pin.value=localStorage.getItem('rqs_pin')||'';
 pin.addEventListener('change',()=>localStorage.setItem('rqs_pin',pin.value));
 
-const presetNotes={
-  normal:'0.20 mm layers · 3 walls · 20% infill',
-  mini:'0.12 mm layers · slower for detail',
-  terrain:'0.24 mm layers · 3 walls · 12% infill',
-  strong:'0.20 mm layers · 5 walls · 35% infill',
-  draft:'0.28 mm layers · quickest test profile'
+const nozzleLayers={
+  '0.2':{mini:0.08,normal:0.12,terrain:0.14,strong:0.12,draft:0.16},
+  '0.4':{mini:0.12,normal:0.20,terrain:0.24,strong:0.20,draft:0.28},
+  '0.6':{mini:0.18,normal:0.28,terrain:0.32,strong:0.28,draft:0.36},
+  '0.8':{mini:0.24,normal:0.36,terrain:0.44,strong:0.36,draft:0.52},
+  '1.0':{mini:0.30,normal:0.45,terrain:0.55,strong:0.45,draft:0.65}
 };
-$('#preset').addEventListener('change',e=>$('#presetNote').textContent=presetNotes[e.target.value]);
+const presetMeta={
+  normal:'3 walls · 20% infill',
+  mini:'3 walls · detail focused',
+  terrain:'3 walls · 12% infill',
+  strong:'5 walls · 35% infill',
+  draft:'2 walls · quickest test'
+};
+const nozzleNotes={
+  '0.2':{title:'0.2 mm · Mini/detail',text:'Finest detail and slowest output. Best for miniatures and small engraved features.',tone:'safe'},
+  '0.4':{title:'0.4 mm · Standard',text:'Balanced default. Make sure the physical nozzle fitted to the Neptune matches this selection.',tone:'safe'},
+  '0.6':{title:'0.6 mm · Terrain/strong',text:'Thicker lines and layers. Faster for terrain and practical parts; detail is reduced.',tone:'safe'},
+  '0.8':{title:'0.8 mm · Large prints',text:'Large layers with deliberately reduced extrusion speeds to keep PLA+ flow sensible.',tone:'warn'},
+  '1.0':{title:'1.0 mm · Coarse/huge prints',text:'Very coarse detail. Speeds are heavily limited to avoid demanding excessive flow from the stock hotend.',tone:'warn'}
+};
+function updatePresetNote(){
+  const n=$('#nozzle_diameter').value,p=$('#preset').value;
+  $('#presetNote').textContent=nozzleLayers[n][p].toFixed(2)+' mm layers · '+presetMeta[p];
+}
+function updateNozzleNote(){
+  const n=nozzleNotes[$('#nozzle_diameter').value],box=$('#nozzleNote');
+  box.className='support-note '+n.tone;box.innerHTML='<strong>'+n.title+'</strong><span>'+n.text+'</span>';
+  updatePresetNote();
+}
+$('#preset').addEventListener('change',updatePresetNote);
+$('#nozzle_diameter').addEventListener('change',updateNozzleNote);
+updateNozzleNote();
 
 const supportNotes={
   off:{title:'Off',text:'No supports will be generated.',tone:'neutral'},
@@ -49,7 +74,7 @@ function renderHistory(){
   for(const item of history.slice(0,6)){
     const row=document.createElement('div');row.className='history-row';
     const when=item.when?new Date(item.when).toLocaleString([], {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-    const bits=[item.preset,supportLabel(item.support)];
+    const bits=[item.preset,(item.nozzle?item.nozzle+' mm nozzle':null),supportLabel(item.support)].filter(Boolean);
     if(item.time&&item.time!=='unknown')bits.push(item.time);
     if(item.filament_g&&item.filament_g!=='unknown')bits.push(Number(item.filament_g).toFixed(1)+' g');
     row.innerHTML='<div><strong>'+item.name.replace(/[<>]/g,'')+'</strong><span>'+bits.join(' · ')+'</span></div><small>'+when+'</small>';
@@ -68,6 +93,7 @@ async function err(r){
   return m||('Request failed: '+r.status);
 }
 function currentTemps(fd){
+  fd.append('nozzle_diameter',$('#nozzle_diameter').value);
   fd.append('nozzle_temp',$('#nozzle_temp').value);
   fd.append('bed_temp',$('#bed_temp').value);
   fd.append('access_pin',pin.value);
@@ -87,7 +113,8 @@ async function sliceFile(file,name,statusEl,button,supportMode=null,presetMode=n
     const printTime=r.headers.get('X-RQ-Print-Time');
     const filamentG=r.headers.get('X-RQ-Filament-G');
     const filamentMM=r.headers.get('X-RQ-Filament-MM');
-    downloadBlob(await r.blob(),name.replace(/\.(stl|3mf|obj|ply)$/i,'')+'_N3Pro.gcode');
+    const nozzleUsed=r.headers.get('X-RQ-Nozzle-MM')||$('#nozzle_diameter').value;
+    downloadBlob(await r.blob(),name.replace(/\.(stl|3mf|obj|ply)$/i,'')+'_'+nozzleUsed+'mm_N3Pro.gcode');
     const bits=[];
     if(printTime&&printTime!=='unknown')bits.push(printTime);
     if(filamentG&&filamentG!=='unknown')bits.push(Number(filamentG).toFixed(1)+' g filament');
@@ -96,7 +123,7 @@ async function sliceFile(file,name,statusEl,button,supportMode=null,presetMode=n
     statusEl.textContent='Done — G-code downloaded'+(bits.length?' · '+bits.join(' · '):'')+'.';
     try{
       const history=JSON.parse(localStorage.getItem('rqs_history')||'[]');
-      history.unshift({name,when:new Date().toISOString(),preset:presetMode||$('#preset').value,support:supportMode||$('#supports').value,time:printTime||'',filament_g:filamentG||''});
+      history.unshift({name,when:new Date().toISOString(),preset:presetMode||$('#preset').value,nozzle:nozzleUsed,support:supportMode||$('#supports').value,time:printTime||'',filament_g:filamentG||''});
       localStorage.setItem('rqs_history',JSON.stringify(history.slice(0,10)));
       renderHistory();
     }catch{}
