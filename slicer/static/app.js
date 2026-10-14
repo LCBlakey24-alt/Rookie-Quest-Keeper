@@ -34,6 +34,7 @@ for(const b of document.querySelectorAll('.tab')){
   b.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));
     $('#slicePanel').classList.toggle('active',b.dataset.tab==='slice');
+    $('#editorPanel').classList.toggle('active',b.dataset.tab==='edit');
     $('#designPanel').classList.toggle('active',b.dataset.tab==='design');
     $('#doctorPanel').classList.toggle('active',b.dataset.tab==='doctor');
   });
@@ -116,6 +117,116 @@ $('#sliceForm').addEventListener('submit',async e=>{
   const file=$('#model').files[0];
   if(!file)return;
   await sliceFile(file,file.name,$('#sliceStatus'),$('#sliceGo'));
+});
+
+/* Visual Editor */
+const editViewer=createViewer($('#editViewer'));
+let editOriginal=null,editBlob=null,editName='Edited.stl';
+
+function editOpts(){
+  return {
+    scale:Number($('#editScale').value),
+    rx:Number($('#editRx').value||0),
+    ry:Number($('#editRy').value||0),
+    rz:Number($('#editRz').value||0),
+    mirror:$('#editMirror').value==='on',
+    baseType:$('#editBaseType').value,
+    baseWidth:Number($('#editBaseWidth').value||35),
+    baseDepth:Number($('#editBaseDepth').value||35),
+    baseThickness:Number($('#editBaseThickness').value||3),
+    nameText:$('#editName').value.trim(),
+    nameSize:Number($('#editNameSize').value||5)
+  };
+}
+
+function updateEditPreview(){
+  $('#editScaleValue').textContent=$('#editScale').value+'%';
+  $('#editBaseThicknessValue').textContent=$('#editBaseThickness').value+' mm';
+  const d=editViewer.editPreview(editOpts());
+  if(!d)return;
+  $('#editDimCheck').innerHTML='<strong>'+d.w.toFixed(0)+'×'+d.d.toFixed(0)+'×'+d.h.toFixed(0)+'</strong>Edited mm';
+  $('#editDimCheck').className='check '+(d.fit?'good':'bad');
+  $('#editBedCheck').innerHTML='<strong>'+(d.fit?'Fits':'Too large')+'</strong>Neptune 3 Pro';
+  $('#editBedCheck').className='check '+(d.fit?'good':'bad');
+  const bt=$('#editBaseType').value;
+  $('#editBaseCheck').innerHTML='<strong>'+(bt==='none'?'None':bt[0].toUpperCase()+bt.slice(1))+'</strong>'+(bt==='none'?'No base':$('#editBaseWidth').value+' mm');
+  $('#editBaseCheck').className='check '+(bt==='none'?'':'good');
+}
+
+$('#editModel').addEventListener('change',async e=>{
+  const f=e.target.files[0];
+  editOriginal=f||null;editBlob=null;
+  $('#editActions').classList.remove('show');
+  $('#editFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL only for Visual Editor v1';
+  if(!f)return;
+  try{
+    await editViewer.showFile(f,true);
+    updateEditPreview();
+    $('#editStatus').className='status ok';
+    $('#editStatus').textContent='Model loaded — edits below update the preview immediately.';
+  }catch(x){
+    $('#editStatus').className='status bad';
+    $('#editStatus').textContent='Preview failed: '+x.message;
+  }
+});
+
+for(const id of ['editScale','editRx','editRy','editRz','editMirror','editBaseType','editBaseWidth','editBaseDepth','editBaseThickness','editName','editNameSize']){
+  $('#'+id).addEventListener('input',updateEditPreview);
+  $('#'+id).addEventListener('change',updateEditPreview);
+}
+
+$('#autoFitEdit').addEventListener('click',async()=>{
+  const f=$('#editModel').files[0],s=$('#editStatus'),b=$('#autoFitEdit');
+  if(!f){s.className='status bad';s.textContent='Choose an STL first.';return}
+  b.disabled=true;s.className='status';s.textContent='Testing sensible 90° orientations…';
+  const fd=new FormData();fd.append('model',f);fd.append('access_pin',pin.value);
+  try{
+    const r=await fetch('/edit/orientation',{method:'POST',body:fd});
+    if(!r.ok)throw Error(await err(r));
+    const o=await r.json();
+    $('#editRx').value=o.rotation_x;$('#editRy').value=o.rotation_y;$('#editRz').value=o.rotation_z;
+    updateEditPreview();
+    s.className=o.fits_printer?'status ok':'status bad';
+    s.textContent=(o.fits_printer?'Auto Fit found a bed-fitting orientation':'No tested face orientation fits')+' · '+o.dimensions_mm.map(v=>Number(v).toFixed(0)).join(' × ')+' mm.';
+  }catch(x){
+    s.className='status bad';s.textContent=x.message;
+  }finally{b.disabled=false}
+});
+
+$('#buildEdit').addEventListener('click',async()=>{
+  const f=$('#editModel').files[0],s=$('#editStatus'),b=$('#buildEdit');
+  if(!f){s.className='status bad';s.textContent='Choose an STL first.';return}
+  const o=editOpts();
+  if(o.nameText&&o.baseType==='none'){s.className='status bad';s.textContent='Choose a base before adding nameplate text.';return}
+  b.disabled=true;s.className='status';s.textContent='Building edited STL…';
+  const fd=new FormData();
+  fd.append('model',f);
+  fd.append('scale_percent',o.scale);
+  fd.append('rotation_x',o.rx);fd.append('rotation_y',o.ry);fd.append('rotation_z',o.rz);
+  fd.append('mirror_x',o.mirror?'on':'off');
+  fd.append('base_type',o.baseType);
+  fd.append('base_width',o.baseWidth);fd.append('base_depth',o.baseDepth);fd.append('base_thickness',o.baseThickness);
+  fd.append('name_text',o.nameText);fd.append('name_size',o.nameSize);fd.append('name_height',$('#editNameHeight').value);
+  fd.append('access_pin',pin.value);
+  try{
+    const r=await fetch('/edit/build',{method:'POST',body:fd});
+    if(!r.ok)throw Error(await err(r));
+    editBlob=await r.blob();
+    editName=f.name.replace(/\.stl$/i,'')+'_Edited.stl';
+    await editViewer.showFile(new File([editBlob],editName,{type:'model/stl'}),false);
+    const dm=r.headers.get('X-RQ-Dimensions');
+    s.className='status ok';
+    s.textContent='Edited STL built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+'. Rotate the finished preview before printing.';
+    $('#editActions').classList.add('show');
+  }catch(x){
+    s.className='status bad';s.textContent=x.message;
+  }finally{b.disabled=false}
+});
+
+$('#downloadEdit').addEventListener('click',()=>{if(editBlob)downloadBlob(editBlob,editName)});
+$('#sliceEdit').addEventListener('click',async()=>{
+  if(!editBlob)return;
+  await sliceFile(new File([editBlob],editName,{type:'model/stl'}),editName,$('#editStatus'),$('#sliceEdit'));
 });
 
 /* Dice Tower Builder */
