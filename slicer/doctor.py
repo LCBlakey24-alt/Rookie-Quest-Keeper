@@ -4,6 +4,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+import numpy as np
 import trimesh
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
@@ -80,7 +81,7 @@ def support_analysis(mesh):
                 if current is None or z < current:
                     all_cells[key] = z
 
-            for idx in list(map(int, __import__("numpy").nonzero(moderate)[0])):
+            for idx in list(map(int, np.nonzero(moderate)[0])):
                 p = centers[idx]
                 key = (int(math.floor(float(p[0]) / cell)), int(math.floor(float(p[1]) / cell)))
                 lower_z = all_cells.get(key, min_z)
