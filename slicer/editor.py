@@ -109,7 +109,23 @@ difference() {
         if r.returncode != 0 or not out.exists() or out.stat().st_size < 100:
             return {"ok":False,"error":(r.stderr or r.stdout or "unknown")[-300:]}
         mesh = trimesh.load(out, force="mesh", process=True)
-        return {"ok":bool(mesh is not None and not mesh.is_empty and len(mesh.faces)>10),"faces":int(len(mesh.faces)) if mesh is not None and not mesh.is_empty else 0}
+        base_ok = bool(mesh is not None and not mesh.is_empty and len(mesh.faces)>10)
+
+        split_scad = work / "split_test.scad"
+        split_out = work / "split_test.stl"
+        split_scad.write_text('''
+intersection() {
+  cube([20,20,20], center=false);
+  translate([-2,-2,-2]) cube([12,24,24], center=false);
+}
+''', encoding="utf-8")
+        sr = subprocess.run([cad,"-q","-o",str(split_out),str(split_scad)],cwd=work,capture_output=True,text=True,timeout=45,check=False)
+        split_ok = sr.returncode == 0 and split_out.exists() and split_out.stat().st_size > 100
+        return {
+            "ok":bool(base_ok and split_ok),
+            "faces":int(len(mesh.faces)) if base_ok else 0,
+            "split_ok":bool(split_ok),
+        }
     except Exception as exc:
         return {"ok":False,"error":type(exc).__name__}
     finally:
