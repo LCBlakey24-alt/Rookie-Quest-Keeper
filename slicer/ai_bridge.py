@@ -65,8 +65,8 @@ async def upload_ai_asset(
     clean_old_assets()
     name = Path(model.filename or "").name
     suffix = Path(name).suffix.lower()
-    if suffix not in {".stl", ".3mf", ".obj", ".ply"}:
-        raise HTTPException(400, "AI Bridge accepts STL, 3MF, OBJ or PLY")
+    if suffix not in {".stl", ".3mf", ".obj", ".ply", ".gcode", ".zip"}:
+        raise HTTPException(400, "AI Bridge accepts STL, 3MF, OBJ, PLY, G-code or ZIP")
 
     asset_id = uuid.uuid4().hex[:24]
     folder = ASSET_DIR / asset_id
