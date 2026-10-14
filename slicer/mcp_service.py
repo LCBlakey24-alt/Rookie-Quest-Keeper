@@ -1,5 +1,10 @@
+import base64
+import hashlib
+import hmac
+import json
 import os
 import secrets
+import time
 from urllib.parse import parse_qs
 
 import httpx
@@ -11,6 +16,7 @@ from starlette.responses import JSONResponse
 CORE_URL = os.getenv("CORE_URL", "https://rookie-quest-slicer.onrender.com").rstrip("/")
 CORE_PIN = os.getenv("CORE_PIN", "")
 MCP_TOKEN = os.getenv("MCP_TOKEN", "")
+MCP_SIGNING_SECRET = os.getenv("MCP_SIGNING_SECRET", "")
 PUBLIC_MCP_URL = os.getenv("PUBLIC_MCP_URL", "https://rookie-quest-slicer-ai.onrender.com/mcp")
 
 mcp = MCPServer(
@@ -402,6 +408,41 @@ _mcp_app = mcp.streamable_http_app(
 )
 
 
+def _b64decode(value: str) -> bytes:
+    padding = "=" * (-len(value) % 4)
+    return base64.urlsafe_b64decode(value + padding)
+
+
+def _valid_signed_token(token: str) -> bool:
+    if not MCP_SIGNING_SECRET or not token.startswith("rq1."):
+        return False
+    try:
+        _, payload_b64, sig_b64 = token.split(".", 2)
+        expected = base64.urlsafe_b64encode(
+            hmac.new(
+                MCP_SIGNING_SECRET.encode("utf-8"),
+                payload_b64.encode("ascii"),
+                hashlib.sha256,
+            ).digest()
+        ).decode("ascii").rstrip("=")
+        if not secrets.compare_digest(sig_b64, expected):
+            return False
+        payload = json.loads(_b64decode(payload_b64).decode("utf-8"))
+        return (
+            payload.get("v") == 1
+            and payload.get("sub") == "rqs-mcp"
+            and int(payload.get("exp", 0)) > int(time.time())
+        )
+    except Exception:
+        return False
+
+
+def _authorized_token(token: str) -> bool:
+    if MCP_TOKEN and secrets.compare_digest(token, MCP_TOKEN):
+        return True
+    return _valid_signed_token(token)
+
+
 class TokenAuthApp:
     def __init__(self, inner):
         self.inner = inner
@@ -416,7 +457,7 @@ class TokenAuthApp:
                 supplied = auth[7:].strip()
             elif query.get("token"):
                 supplied = query["token"][0]
-            if not secrets.compare_digest(supplied, MCP_TOKEN):
+            if not _authorized_token(supplied):
                 body = b'{"error":"Unauthorized Rookie Quest Slicer AI connector"}'
                 await send({
                     "type": "http.response.start",
