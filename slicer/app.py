@@ -234,6 +234,38 @@ def support_capabilities():
         "modes":list(SUPPORT_MODES.keys()),
     }
 
+def support_parser_selftest():
+    engine = engine_path()
+    if not engine:
+        return {"snug_bed":False,"grid_bed":False,"details":"engine missing"}
+    tests = {
+        "snug_bed":[
+            "--support-material","--support-material-auto",
+            "--support-material-style","snug",
+            "--support-material-buildplate-only","--help"
+        ],
+        "grid_bed":[
+            "--support-material","--support-material-auto",
+            "--support-material-style","grid",
+            "--support-material-buildplate-only","--help"
+        ],
+    }
+    out = {}
+    for name,args in tests.items():
+        try:
+            r = subprocess.run([engine,*args], capture_output=True, text=True, timeout=15, check=False)
+            out[name] = (r.returncode == 0)
+            if r.returncode != 0:
+                out[name+"_error"] = (r.stderr or r.stdout or "")[-300:]
+        except Exception as exc:
+            out[name] = False
+            out[name+"_error"] = type(exc).__name__
+    return out
+
+@app.on_event("startup")
+def log_startup_capabilities():
+    print("RQS_SUPPORT_SELFTEST", support_parser_selftest(), flush=True)
+
 @app.get("/api/profiles")
 def profiles():
     return {
