@@ -1,10 +1,5 @@
-import base64
-import hashlib
-import hmac
-import json
 import os
 import secrets
-import time
 from urllib.parse import parse_qs
 
 import httpx
@@ -12,6 +7,7 @@ from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from connector_auth import validate_token
 
 CORE_URL = os.getenv("CORE_URL", "https://rookie-quest-slicer.onrender.com").rstrip("/")
 CORE_PIN = os.getenv("CORE_PIN", "")
@@ -408,39 +404,11 @@ _mcp_app = mcp.streamable_http_app(
 )
 
 
-def _b64decode(value: str) -> bytes:
-    padding = "=" * (-len(value) % 4)
-    return base64.urlsafe_b64decode(value + padding)
-
-
-def _valid_signed_token(token: str) -> bool:
-    if not MCP_SIGNING_SECRET or not token.startswith("rq1."):
-        return False
-    try:
-        _, payload_b64, sig_b64 = token.split(".", 2)
-        expected = base64.urlsafe_b64encode(
-            hmac.new(
-                MCP_SIGNING_SECRET.encode("utf-8"),
-                payload_b64.encode("ascii"),
-                hashlib.sha256,
-            ).digest()
-        ).decode("ascii").rstrip("=")
-        if not secrets.compare_digest(sig_b64, expected):
-            return False
-        payload = json.loads(_b64decode(payload_b64).decode("utf-8"))
-        return (
-            payload.get("v") == 1
-            and payload.get("sub") == "rqs-mcp"
-            and int(payload.get("exp", 0)) > int(time.time())
-        )
-    except Exception:
-        return False
-
-
 def _authorized_token(token: str) -> bool:
     if MCP_TOKEN and secrets.compare_digest(token, MCP_TOKEN):
         return True
-    return _valid_signed_token(token)
+    valid, _ = validate_token(MCP_SIGNING_SECRET, token)
+    return valid
 
 
 class TokenAuthApp:
