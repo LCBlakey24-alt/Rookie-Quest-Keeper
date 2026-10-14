@@ -271,3 +271,24 @@ def png_preview(mesh, width=1200, height=420):
             draw.line((x0 + panel_w, 14, x0 + panel_w, height - 14), fill=(39, 50, 71), width=2)
 
     return img
+
+
+def geometry_selftest():
+    try:
+        mesh = trimesh.creation.box(extents=[82, 78, 145])
+        mesh.apply_translation([0, 0, 72.5])
+        rec = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60)
+        img = png_preview(mesh, width=600, height=240)
+        ok = (
+            rec.get("recommendation", {}).get("physically_possible") is True
+            and img.size == (600, 240)
+        )
+        return {
+            "ok": bool(ok),
+            "confidence": rec.get("confidence"),
+            "rotation_z": rec.get("recommendation", {}).get("rotation_z"),
+            "chute_x_mm": rec.get("recommendation", {}).get("chute_x_mm"),
+            "png_size": list(img.size),
+        }
+    except Exception as exc:
+        return {"ok": False, "error": type(exc).__name__}
