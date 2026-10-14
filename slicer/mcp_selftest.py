@@ -6,6 +6,7 @@ from connector_auth import issue_token
 EXPECTED = {
     "get_upload_instructions",
     "inspect_model",
+    "get_model_views",
     "recommend_print_settings",
     "recommend_dice_tower",
     "build_dice_tower",
