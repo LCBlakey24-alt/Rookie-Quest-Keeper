@@ -52,6 +52,7 @@ async def suggest_dice_tower(
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
     front_rotation: str = Form("auto"),
+    tray_x_mm: str = Form("auto"),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -74,6 +75,15 @@ async def suggest_dice_tower(
         if rotation not in {0,90,180,270}:
             raise HTTPException(400, "Front rotation must be auto, 0, 90, 180 or 270")
 
+    locked_tray_x = None
+    if tray_x_mm != "auto":
+        try:
+            locked_tray_x = float(tray_x_mm)
+        except Exception:
+            raise HTTPException(400, "Tray position must be auto or a number in mm")
+        if not -80 <= locked_tray_x <= 80:
+            raise HTTPException(400, "Tray position must stay within ±80 mm")
+
     work = Path(tempfile.mkdtemp(prefix="rqs_tower_suggest_"))
     source = work / "source.stl"
     try:
@@ -83,7 +93,11 @@ async def suggest_dice_tower(
             raise HTTPException(422, "That STL could not be analysed")
         mesh.apply_scale(scale_percent / 100.0)
         return recommend_dice_tower(
-            mesh, dice_mm=dice_mm, tray_depth=tray_depth, front_rotation=rotation
+            mesh,
+            dice_mm=dice_mm,
+            tray_depth=tray_depth,
+            front_rotation=rotation,
+            tray_x_mm=locked_tray_x,
         )
     except HTTPException:
         raise
@@ -99,6 +113,7 @@ async def build_dice_tower(
     rotation_z: int = Form(0),
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
+    tray_x_mm: float = Form(0.0),
     chute_x_mm: float = Form(0.0),
     chute_y_mm: float = Form(0.0),
     access_pin: str = Form(""),
@@ -118,6 +133,8 @@ async def build_dice_tower(
         raise HTTPException(400, "Dice size must be between 16 mm and 30 mm")
     if not 50 <= tray_depth <= 100:
         raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
+    if not -80 <= tray_x_mm <= 80:
+        raise HTTPException(400, "Tray position must stay within ±80 mm")
 
     work = Path(tempfile.mkdtemp(prefix="rqs_tower_"))
     source = work / "source.stl"
@@ -162,10 +179,27 @@ async def build_dice_tower(
             suggested = min(250, int(math.ceil(scale_percent * factor / 5.0) * 5))
             raise HTTPException(422, f"This model is too small for a reliable dice chute at {scale_percent}%. Try about {suggested}% scale, or use a larger/wider model.")
 
-        tray_w = w + 10.0
+        tray_w = min(w + 10.0, max(channel_w + 24.0, 82.0))
         output_depth = d + tray_depth + 3.0
-        if tray_w > BED_X or output_depth > BED_Y or h > MAX_Z:
-            raise HTTPException(422, f"The converted tower would be about {tray_w:.0f} × {output_depth:.0f} × {h:.0f} mm, so it would not fit the Neptune 3 Pro bed. Reduce scale/tray depth or rotate the model.")
+        finished_left = min(-w / 2.0, tray_x_mm - tray_w / 2.0)
+        finished_right = max(w / 2.0, tray_x_mm + tray_w / 2.0)
+        output_width = finished_right - finished_left
+        tray_overlap = not (
+            tray_x_mm + tray_w / 2.0 < -w / 2.0 - 4.0
+            or tray_x_mm - tray_w / 2.0 > w / 2.0 + 4.0
+        )
+        transition_run = max(28.0, min(55.0, d * 0.34))
+        transition_shift = tray_x_mm - chute_x_mm
+        transition_angle = math.degrees(math.atan2(abs(transition_shift), transition_run))
+        if not tray_overlap:
+            raise HTTPException(422, "The tray is too far sideways to connect safely to the model.")
+        if transition_angle > 34.0:
+            raise HTTPException(
+                422,
+                f"The tray-to-chute path would turn about {transition_angle:.1f}°, which is too sharp for the current support-free transition. Move the tray closer to the chute or use Smart Calculate."
+            )
+        if output_width > BED_X or output_depth > BED_Y or h > MAX_Z:
+            raise HTTPException(422, f"The converted tower would be about {output_width:.0f} × {output_depth:.0f} × {h:.0f} mm, so it would not fit the Neptune 3 Pro bed. Move the tray inward, reduce scale/tray depth or rotate the model.")
 
         y_front = -d / 2.0
         foundation_w = min(w, outer_w + 20.0)
@@ -187,7 +221,13 @@ model_w={w:.4f}; model_d={d:.4f}; model_h={h:.4f};
 channel_w={channel_w:.4f}; channel_d={channel_d:.4f}; outer_w={outer_w:.4f}; outer_d={outer_d:.4f};
 exit_h={exit_h:.4f}; tray_d={tray_depth:.4f}; tray_w={tray_w:.4f}; tray_wall=3; tray_lip=12;
 y_front={y_front:.4f}; foundation_w={foundation_w:.4f}; foundation_d={foundation_d:.4f};
-chute_x={chute_x_mm:.4f}; chute_y={chute_y_mm:.4f};
+chute_x={chute_x_mm:.4f}; chute_y={chute_y_mm:.4f}; tray_x={tray_x_mm:.4f};
+module transition_void() {{
+  hull() {{
+    translate([chute_x,chute_y-channel_d/2+3,exit_h/2+1]) cube([channel_w,8,exit_h+4],center=true);
+    translate([tray_x,y_front-5,exit_h/2+1]) cube([channel_w,8,exit_h+4],center=true);
+  }}
+}}
 module carved_body() {{
   difference() {{
     union() {{
@@ -196,7 +236,7 @@ module carved_body() {{
       translate([chute_x,chute_y,1]) cube([foundation_w,foundation_d,2],center=true);
     }}
     translate([chute_x,chute_y,(model_h+exit_h)/2]) cube([channel_w,channel_d,model_h-exit_h+8],center=true);
-    translate([chute_x,(y_front+chute_y-channel_d/2)/2,exit_h/2+1]) cube([channel_w,chute_y+channel_d/2-y_front+10,exit_h+4],center=true);
+    transition_void();
   }}
 }}
 module wedge_left(z0) {{
@@ -204,20 +244,22 @@ module wedge_left(z0) {{
     polygon(points=[[-channel_w/2-4,0],[-channel_w/2-4,24],[0,0]]);
 }}
 module wedge_right(z0) {{
-  translate([0,0,z0]) rotate([90,0,0]) linear_extrude(height=channel_d-6,center=true)
+  translate([chute_x,chute_y,z0]) rotate([90,0,0]) linear_extrude(height=channel_d-6,center=true)
     polygon(points=[[channel_w/2+4,0],[channel_w/2+4,24],[0,0]]);
 }}
 module exit_floor() {{
-  translate([chute_x,chute_y,0]) rotate([0,90,0]) linear_extrude(height=channel_w-6,center=true)
-    polygon(points=[[0,channel_d/2],[-18,channel_d/2],[-6,y_front-chute_y-5],[0,y_front-chute_y-5]]);
+  hull() {{
+    translate([chute_x,chute_y-channel_d/2+4,5]) cube([channel_w-6,10,5],center=true);
+    translate([tray_x,y_front-7,2.5]) cube([channel_w-6,10,5],center=true);
+  }}
 }}
 module tray() {{
   y0=y_front-tray_d/2+3;
   union() {{
-    translate([0,y0,1.5]) cube([tray_w,tray_d+6,3],center=true);
-    translate([-(tray_w/2-tray_wall/2),y0,tray_lip/2]) cube([tray_wall,tray_d+6,tray_lip],center=true);
-    translate([(tray_w/2-tray_wall/2),y0,tray_lip/2]) cube([tray_wall,tray_d+6,tray_lip],center=true);
-    translate([0,y_front-tray_d+tray_wall/2+3,tray_lip/2]) cube([tray_w,tray_wall,tray_lip],center=true);
+    translate([tray_x,y0,1.5]) cube([tray_w,tray_d+6,3],center=true);
+    translate([tray_x-(tray_w/2-tray_wall/2),y0,tray_lip/2]) cube([tray_wall,tray_d+6,tray_lip],center=true);
+    translate([tray_x+(tray_w/2-tray_wall/2),y0,tray_lip/2]) cube([tray_wall,tray_d+6,tray_lip],center=true);
+    translate([tray_x,y_front-tray_d+tray_wall/2+3,tray_lip/2]) cube([tray_w,tray_wall,tray_lip],center=true);
   }}
 }}
 union() {{
@@ -242,6 +284,9 @@ union() {{
             "X-RQ-Watertight": "yes" if check.is_watertight else "no",
             "X-RQ-Chute-X": f"{chute_x_mm:.1f}",
             "X-RQ-Chute-Y": f"{chute_y_mm:.1f}",
+            "X-RQ-Tray-X": f"{tray_x_mm:.1f}",
+            "X-RQ-Tray-Width": f"{tray_w:.1f}",
+            "X-RQ-Transition-Angle": f"{transition_angle:.1f}",
         }
         filename = f"{Path(name).stem}_Dice_Tower.stl"
         return FileResponse(output, filename=filename, media_type="model/stl", headers=headers, background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)))
