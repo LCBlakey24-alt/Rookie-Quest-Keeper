@@ -80,17 +80,35 @@ export function createViewer(container){
     let w=sz.x,d=sz.y,h=sz.z;
     clear(overlay);overlay=new THREE.Group();
     const channel=Math.max(44,opts.dice*2.3),cm=new THREE.MeshBasicMaterial({color:0xe1ad58,transparent:true,opacity:.24,wireframe:true});
-    const chuteX=Number(opts.chuteX||0),chuteY=Number(opts.chuteY||0);
+    const chuteX=Number(opts.chuteX||0),chuteY=Number(opts.chuteY||0),trayX=Number(opts.trayX||0);
     const chute=new THREE.Mesh(new THREE.BoxGeometry(channel,channel,h),cm);chute.position.set(chuteX,chuteY,h/2);overlay.add(chute);
-    const tm=new THREE.MeshBasicMaterial({color:0x84d9a1,transparent:true,opacity:.28}),tray=new THREE.Mesh(new THREE.BoxGeometry(w+10,opts.tray,3),tm);
-    tray.position.set(0,-d/2-opts.tray/2+3,1.5);overlay.add(tray);
+    const trayW=Math.min(w+10,Math.max(channel+24,82));
+    const tm=new THREE.MeshBasicMaterial({color:0x84d9a1,transparent:true,opacity:.28}),tray=new THREE.Mesh(new THREE.BoxGeometry(trayW,opts.tray,3),tm);
+    tray.position.set(trayX,-d/2-opts.tray/2+3,1.5);overlay.add(tray);
+
+    const pathPoints=[
+      new THREE.Vector3(chuteX,chuteY-channel/2,Math.max(7,opts.dice*.5)),
+      new THREE.Vector3(trayX,-d/2-7,3)
+    ];
+    const pathGeom=new THREE.BufferGeometry().setFromPoints(pathPoints);
+    const pathLine=new THREE.Line(pathGeom,new THREE.LineBasicMaterial({color:0x62d6ff,transparent:true,opacity:.9}));
+    overlay.add(pathLine);
     for(let z=h-42,i=0;z>Math.max(30,opts.dice+10)+38&&i<4;z-=42,i++){
       const b=new THREE.Mesh(new THREE.BoxGeometry(channel*.58,channel-7,4),new THREE.MeshBasicMaterial({color:0xffc970,transparent:true,opacity:.55}));
       b.rotation.y=THREE.MathUtils.degToRad(i%2?35:-35);b.position.set(chuteX+(i%2?channel*.13:-channel*.13),chuteY,z+8);overlay.add(b);
     }
     scene.add(overlay);
     const maxX=Math.max(0,w/2-channel/2-5),maxY=Math.max(0,d/2-channel/2-5);
-    return {w,d,h,channel,outW:w+10,outD:d+opts.tray+3,chuteSafe:Math.abs(chuteX)<=maxX+.01&&Math.abs(chuteY)<=maxY+.01,maxX,maxY};
+    const left=Math.min(-w/2,trayX-trayW/2),right=Math.max(w/2,trayX+trayW/2);
+    const outW=right-left,outD=d+opts.tray+3;
+    const transitionRun=Math.max(28,Math.min(55,d*.34));
+    const transitionAngle=THREE.MathUtils.radToDeg(Math.atan2(Math.abs(trayX-chuteX),transitionRun));
+    const trayOverlap=!(trayX+trayW/2<-w/2-4||trayX-trayW/2>w/2+4);
+    return {
+      w,d,h,channel,trayW,outW,outD,transitionAngle,trayOverlap,
+      chuteSafe:Math.abs(chuteX)<=maxX+.01&&Math.abs(chuteY)<=maxY+.01&&transitionAngle<=34&&trayOverlap,
+      maxX,maxY
+    };
   }
 
   function editPreview(opts){
