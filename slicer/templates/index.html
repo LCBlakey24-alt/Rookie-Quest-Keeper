@@ -13,7 +13,7 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.11 · Tray Path Planner</span></p>
+<p><span class="badge"><span class="dot"></span>v0.12 · Support Advisor</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
@@ -252,6 +252,15 @@
 <div class="doctor-stat"><strong id="docParts">—</strong><span>Parts</span></div>
 <div class="doctor-stat"><strong id="docWater">—</strong><span>Mesh</span></div>
 </div>
+<div id="supportAdvisor" class="support-note neutral" style="margin-top:12px">
+<strong id="supportMode">Support Advisor · analysing…</strong>
+<span id="supportReasons">Checks downward-facing geometry in the current orientation.</span>
+<div class="doctor-grid" style="margin-top:8px">
+<div class="doctor-stat"><strong id="supportOverhang">—</strong><span>Overhang area</span></div>
+<div class="doctor-stat"><strong id="supportBlocked">—</strong><span>Blocked from bed</span></div>
+</div>
+<button id="useSuggestedSupport" class="secondary" type="button" style="margin-top:10px">Use Suggested Supports</button>
+</div>
 <div id="doctorIssues" class="issue-list"></div>
 <div id="repairActions" class="result-actions">
 <button id="repairModel" class="secondary" type="button">Repair Model</button>
@@ -316,7 +325,7 @@
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.11</footer>
+<footer>Rookie Quest Forge · Slicer v0.12</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
