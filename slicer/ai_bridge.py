@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse, Response
 
 from geometry_ai import load_mesh, basic_report, recommend_dice_tower, svg_preview, png_preview
 from connector_auth import issue_token
+from doctor import support_analysis
 
 router = APIRouter(prefix="/ai", tags=["ai-bridge"])
 ASSET_DIR = Path("/tmp/rqs_ai_assets")
@@ -136,7 +137,9 @@ async def upload_ai_asset(
         report = None
         if suffix in {".stl", ".obj", ".ply"}:
             try:
-                report = basic_report(load_mesh(target))
+                mesh = load_mesh(target)
+                report = basic_report(mesh)
+                report["support_advice"] = support_analysis(mesh)
             except Exception:
                 report = None
 
@@ -165,7 +168,9 @@ def get_ai_asset(asset_id: str, access_pin: str = ""):
     report = None
     if source.suffix.lower() in {".stl", ".obj", ".ply"}:
         try:
-            report = basic_report(load_mesh(source))
+            mesh = load_mesh(source)
+            report = basic_report(mesh)
+            report["support_advice"] = support_analysis(mesh)
         except Exception:
             pass
     return {**meta, "report": report}
