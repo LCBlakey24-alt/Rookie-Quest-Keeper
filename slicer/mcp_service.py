@@ -146,12 +146,17 @@ async def recommend_print_settings(
         else:
             preset, nozzle = "normal", 0.4
 
-        support = "gentle_bed"
+        support_advice = report.get("support_advice") or {}
+        support = support_advice.get("recommended_mode") or "gentle_bed"
         reasons = [
             f"model envelope is approximately {dims[0]:.1f} × {dims[1]:.1f} × {dims[2]:.1f} mm" if len(dims) == 3 else "model dimensions were inspected",
             f"goal interpreted as {goal_key or 'balanced'}",
-            "bed-only support is the safer default until overhang/toolpath preview is available to the AI",
+            (
+                "support mode comes from Rookie Quest overhang analysis: "
+                + (support_advice.get("recommended_label") or support)
+            ),
         ]
+        reasons.extend(support_advice.get("reasons") or [])
         if not report.get("watertight", True):
             reasons.append("mesh is not watertight, so repair before slicing is recommended")
         if not report.get("fits_neptune_3_pro", True):
