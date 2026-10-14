@@ -223,6 +223,7 @@ $('#buildEdit').addEventListener('click',async()=>{
     s.className='status ok';
     s.textContent='Edited STL built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+'. Rotate the finished preview before printing.';
     $('#editActions').classList.add('show');
+    $('#useEditedForSplit').disabled=false;
   }catch(x){
     s.className='status bad';s.textContent=x.message;
   }finally{b.disabled=false}
@@ -232,6 +233,69 @@ $('#downloadEdit').addEventListener('click',()=>{if(editBlob)downloadBlob(editBl
 $('#sliceEdit').addEventListener('click',async()=>{
   if(!editBlob)return;
   await sliceFile(new File([editBlob],editName,{type:'model/stl'}),editName,$('#editStatus'),$('#sliceEdit'));
+});
+
+/* Model Splitter */
+const splitViewer=createViewer($('#splitViewer'));
+let splitSource=null;
+
+function splitOpts(){
+  return {axis:$('#splitAxis').value,percent:Number($('#splitPercent').value||50)};
+}
+function updateSplitPreview(){
+  $('#splitPercentValue').textContent=$('#splitPercent').value+'%';
+  const d=splitViewer.splitPreview(splitOpts());
+  if(!d)return;
+  const fmt=v=>v.map(x=>x.toFixed(0)).join('×');
+  $('#splitACheck').innerHTML='<strong>'+fmt(d.a)+'</strong>Part A mm';
+  $('#splitACheck').className='check '+(d.aFit?'good':'bad');
+  $('#splitBCheck').innerHTML='<strong>'+fmt(d.b)+'</strong>Part B mm';
+  $('#splitBCheck').className='check '+(d.bFit?'good':'bad');
+  const both=d.aFit&&d.bFit;
+  $('#splitFitCheck').innerHTML='<strong>'+(both?'Yes':'No')+'</strong>Both fit';
+  $('#splitFitCheck').className='check '+(both?'good':'bad');
+}
+async function loadSplitSource(file,label){
+  splitSource=file;
+  $('#splitFileHelp').textContent=label+' · '+(file.size/1048576).toFixed(1)+' MB';
+  try{
+    await splitViewer.showFile(file,true);
+    updateSplitPreview();
+    $('#splitStatus').className='status ok';
+    $('#splitStatus').textContent='Split preview ready.';
+  }catch(x){
+    $('#splitStatus').className='status bad';$('#splitStatus').textContent='Preview failed: '+x.message;
+  }
+}
+$('#splitModel').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(f)await loadSplitSource(f,f.name);
+});
+$('#useEditedForSplit').addEventListener('click',async()=>{
+  if(!editBlob)return;
+  const f=new File([editBlob],editName,{type:'model/stl'});
+  await loadSplitSource(f,'Using '+editName);
+});
+for(const id of ['splitAxis','splitPercent']){
+  $('#'+id).addEventListener('input',updateSplitPreview);
+  $('#'+id).addEventListener('change',updateSplitPreview);
+}
+$('#buildSplit').addEventListener('click',async()=>{
+  const s=$('#splitStatus'),b=$('#buildSplit');
+  if(!splitSource){s.className='status bad';s.textContent='Choose an STL or use the last edited STL first.';return}
+  b.disabled=true;s.className='status';s.textContent='Cutting model into two STL parts…';
+  const o=splitOpts(),fd=new FormData();
+  fd.append('model',splitSource);fd.append('axis',o.axis);fd.append('split_percent',o.percent);fd.append('access_pin',pin.value);
+  try{
+    const r=await fetch('/edit/split',{method:'POST',body:fd});
+    if(!r.ok)throw Error(await err(r));
+    const a=r.headers.get('X-RQ-Part-A'),bb=r.headers.get('X-RQ-Part-B'),fit=r.headers.get('X-RQ-Both-Fit');
+    const zipName=splitSource.name.replace(/\.stl$/i,'')+'_Split_Parts.zip';
+    downloadBlob(await r.blob(),zipName);
+    s.className=fit==='yes'?'status ok':'status bad';
+    s.textContent='Split complete — ZIP downloaded'+(a&&bb?' · A: '+a.replaceAll(',','×')+' mm · B: '+bb.replaceAll(',','×')+' mm':'')+(fit==='yes'?' · both parts fit the Neptune.':' · at least one part is still too large.');
+  }catch(x){
+    s.className='status bad';s.textContent=x.message;
+  }finally{b.disabled=false}
 });
 
 /* Dice Tower Builder */
