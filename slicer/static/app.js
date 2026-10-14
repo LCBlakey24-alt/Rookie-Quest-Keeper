@@ -475,7 +475,7 @@ function renderDoctor(report){
   const supportBox=$('#supportAdvisor');
   supportBox.className='support-note '+(suggestedSupportMode==='off'||suggestedSupportMode.includes('_bed')?'safe':'warn');
   $('#supportMode').textContent='Suggested · '+(advice.recommended_label||supportLabel(suggestedSupportMode))+(advice.confidence?' · '+advice.confidence+' confidence':'');
-  $('#supportReasons').textContent=(advice.reasons||['Support analysis unavailable.']).join(' · ');
+  $('#supportReasons').textContent=(advice.reasons||['Support analysis unavailable.']).join(' · ')+' · Preview: amber = overhang, red = steep underside.';
   $('#supportOverhang').textContent=advice.overhang_area_pct==null?'—':Number(advice.overhang_area_pct).toFixed(1)+'%';
   $('#supportBlocked').textContent=advice.blocked_overhang_pct==null?'—':Number(advice.blocked_overhang_pct).toFixed(0)+'%';
   const list=$('#doctorIssues');list.innerHTML='';
@@ -487,6 +487,7 @@ function renderDoctor(report){
   }
   $('#repairActions').classList.add('show');
   $('#repairModel').style.display=report.repair_recommended?'block':'none';
+  doctorViewer.overhangHeatmap();
 }
 
 $('#useSuggestedSupport').addEventListener('click',()=>{
