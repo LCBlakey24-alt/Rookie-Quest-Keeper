@@ -157,6 +157,7 @@ def preview_ai_asset(asset_id: str):
 @router.post("/assets/{asset_id}/dice-suggest")
 def suggest_ai_dice_tower(
     asset_id: str,
+    scale_percent: int = Form(100),
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
     front_rotation: str = Form("auto"),
@@ -166,6 +167,8 @@ def suggest_ai_dice_tower(
     _, meta, source = asset_path(asset_id)
     if source.suffix.lower() != ".stl":
         raise HTTPException(400, "Dice Tower recommendations currently require STL")
+    if not 50 <= scale_percent <= 250:
+        raise HTTPException(400, "Scale must be between 50% and 250%")
     if not 16 <= dice_mm <= 30:
         raise HTTPException(400, "Dice size must be between 16 mm and 30 mm")
     if not 50 <= tray_depth <= 100:
@@ -181,8 +184,10 @@ def suggest_ai_dice_tower(
             raise HTTPException(400, "Front rotation must be auto, 0, 90, 180 or 270")
 
     try:
+        mesh = load_mesh(source)
+        mesh.apply_scale(scale_percent / 100.0)
         suggestion = recommend_dice_tower(
-            load_mesh(source),
+            mesh,
             dice_mm=dice_mm,
             tray_depth=tray_depth,
             front_rotation=rotation,
