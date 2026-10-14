@@ -127,9 +127,23 @@ export function createViewer(container){
       if(opts.nameText){
         const plaqueW=Math.min(Math.max(opts.baseWidth*.72,opts.nameText.length*(opts.nameSize||5)*.62+8),160);
         const plaqueD=Math.max(10,(opts.nameSize||5)+5);
-        const y=-(opts.baseDepth/2+plaqueD/2-1.5);
+        const effectiveDepth=(opts.baseType==='round'||opts.baseType==='hex')?opts.baseWidth:opts.baseDepth;
+        const y=-(effectiveDepth/2+plaqueD/2-1.5);
         const plaque=new THREE.Mesh(new THREE.BoxGeometry(plaqueW,plaqueD,lift),mat(.6,0x84d9a1));
         plaque.position.set(0,y,lift/2);overlay.add(plaque);
+      }
+
+      const mc=Number(opts.magnetCount||0);
+      if(mc){
+        const effectiveDepth=(opts.baseType==='round'||opts.baseType==='hex')?opts.baseWidth:opts.baseDepth;
+        const xoff=Math.min(opts.baseWidth*.24,14),yoff=Math.min(effectiveDepth*.24,14);
+        const pts=mc===1?[[0,0]]:(mc===2?[[-xoff,0],[xoff,0]]:[[-xoff,-yoff],[xoff,-yoff],[-xoff,yoff],[xoff,yoff]]);
+        const holeMat=new THREE.MeshBasicMaterial({color:0xff6b6b,transparent:true,opacity:.7,wireframe:true});
+        for(const [x,y] of pts){
+          const h=Math.min(Number(opts.magnetDepth||2),lift);
+          const hole=new THREE.Mesh(new THREE.CylinderGeometry(Number(opts.magnetDiameter||6)/2,Number(opts.magnetDiameter||6)/2,h,32),holeMat);
+          hole.rotation.x=Math.PI/2;hole.position.set(x,y,h/2);overlay.add(hole);
+        }
       }
     }
     scene.add(overlay);
