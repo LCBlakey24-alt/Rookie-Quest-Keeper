@@ -134,6 +134,16 @@ def engine_version():
     except Exception:
         return None
 
+def parse_gcode_stats(text: str):
+    def find(pattern):
+        m = re.search(pattern, text, re.IGNORECASE)
+        return m.group(1).strip() if m else None
+    return {
+        "time": find(r";\s*estimated printing time[^=]*=\s*([^\r\n]+)"),
+        "filament_mm": find(r";\s*filament used \[mm\]\s*=\s*([0-9.]+)"),
+        "filament_g": find(r";\s*filament used \[g\]\s*=\s*([0-9.]+)"),
+    }
+
 def check_pin(pin: str):
     required = os.getenv("APP_PIN", "").strip()
     if required and pin.strip() != required:
@@ -338,8 +348,15 @@ async def slice_model(
             "; TEST PROFILE - review toolpath before first print\n"
         )
         output.write_text(header + body, encoding="utf-8")
+        stats = parse_gcode_stats(body)
+        headers = {
+            "X-RQ-Print-Time": stats["time"] or "unknown",
+            "X-RQ-Filament-MM": stats["filament_mm"] or "unknown",
+            "X-RQ-Filament-G": stats["filament_g"] or "unknown",
+            "X-RQ-Support-Mode": supports,
+        }
         filename = f"{Path(name).stem}_{preset}_{supports}_N3Pro.gcode"
-        return FileResponse(output, filename=filename, media_type="application/octet-stream", background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)))
+        return FileResponse(output, filename=filename, media_type="application/octet-stream", headers=headers, background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)))
     except subprocess.TimeoutExpired:
         shutil.rmtree(work, ignore_errors=True)
         raise HTTPException(504, "Slicing timed out")
