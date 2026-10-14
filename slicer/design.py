@@ -48,6 +48,7 @@ async def save_upload(upload: UploadFile, target: Path):
 @router.post("/dice-tower-suggest")
 async def suggest_dice_tower(
     model: UploadFile = File(...),
+    scale_percent: int = Form(100),
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
     front_rotation: str = Form("auto"),
@@ -61,8 +62,8 @@ async def suggest_dice_tower(
         raise HTTPException(400, "Dice size must be between 16 mm and 30 mm")
     if not 50 <= tray_depth <= 100:
         raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
-    if not -80 <= chute_x_mm <= 80 or not -80 <= chute_y_mm <= 80:
-        raise HTTPException(400, "Chute offset must stay within ±80 mm")
+    if not 50 <= scale_percent <= 250:
+        raise HTTPException(400, "Scale must be between 50% and 250%")
 
     rotation = None
     if front_rotation != "auto":
@@ -80,6 +81,7 @@ async def suggest_dice_tower(
         mesh = trimesh.load(source, force="mesh", process=True)
         if mesh.is_empty:
             raise HTTPException(422, "That STL could not be analysed")
+        mesh.apply_scale(scale_percent / 100.0)
         return recommend_dice_tower(
             mesh, dice_mm=dice_mm, tray_depth=tray_depth, front_rotation=rotation
         )
