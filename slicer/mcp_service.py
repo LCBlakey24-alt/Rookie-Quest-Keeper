@@ -4,6 +4,7 @@ from urllib.parse import parse_qs
 
 import httpx
 from mcp.server import MCPServer
+from mcp.server.mcpserver import Image
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -103,6 +104,21 @@ async def inspect_model(asset_id: str) -> dict:
         }
     except Exception as exc:
         return {"error": _http_error(exc), "asset_id": asset_id}
+
+
+@mcp.tool()
+async def get_model_views(asset_id: str) -> Image:
+    """Return front, side and top orthographic views as image content for the AI to inspect visually."""
+    try:
+        await _get_asset(asset_id)
+        async with httpx.AsyncClient(timeout=120) as client:
+            r = await client.get(f"{CORE_URL}/ai/assets/{asset_id}/preview.png")
+            r.raise_for_status()
+        return Image(data=r.content, format="png")
+    except Exception as exc:
+        # Image-returning tools cannot return our normal structured error without
+        # changing their protocol shape, so raise a readable tool error.
+        raise RuntimeError(_http_error(exc)) from exc
 
 
 @mcp.tool()
@@ -372,6 +388,7 @@ async def health(request: Request):
         "tools": [
             "get_upload_instructions",
             "inspect_model",
+            "get_model_views",
             "recommend_print_settings",
             "recommend_dice_tower",
             "build_dice_tower",
