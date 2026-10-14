@@ -10,14 +10,14 @@ from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 
-from design import router as design_router, design_health
+from design import router as design_router, design_health, dice_tower_path_selftest
 from doctor import router as doctor_router
 from editor import router as editor_router, editor_selftest
 from ai_bridge import router as ai_router
 from geometry_ai import geometry_selftest
 
 ROOT = Path(__file__).parent
-app = FastAPI(title="Rookie Quest Slicer", version="0.10.0")
+app = FastAPI(title="Rookie Quest Slicer", version="0.11.0")
 app.include_router(design_router)
 app.include_router(doctor_router)
 app.include_router(editor_router)
@@ -332,10 +332,12 @@ def log_startup_capabilities():
     nozzle = nozzle_parser_selftest()
     editor = editor_selftest()
     geometry = geometry_selftest()
+    tower_path = dice_tower_path_selftest()
     print("RQS_SUPPORT_SELFTEST", support, flush=True)
     print("RQS_NOZZLE_SELFTEST", nozzle, flush=True)
     print("RQS_EDITOR_SELFTEST", editor, flush=True)
     print("RQS_GEOMETRY_SELFTEST", geometry, flush=True)
+    print("RQS_TOWER_PATH_SELFTEST", tower_path, flush=True)
 
     failures = []
     if not (support.get("snug_bed") and support.get("grid_bed")):
@@ -346,6 +348,8 @@ def log_startup_capabilities():
         failures.append("editor/splitter")
     if not geometry.get("ok"):
         failures.append("smart geometry / AI preview")
+    if not tower_path.get("ok"):
+        failures.append("offset tray CAD path")
     if failures:
         raise RuntimeError("Rookie Quest Slicer startup self-test failed: " + ", ".join(failures))
 
@@ -357,7 +361,7 @@ def profiles():
         "nozzles": {str(k):v for k,v in NOZZLE_PROFILES.items()},
         "supports": {k:{"label":v["label"],"description":v["description"],"buildplate_only":v["buildplate_only"],"style":v["style"]} for k,v in SUPPORT_MODES.items()},
         "defaults": {"nozzle_temp":215,"bed_temp":60,"retraction_mm":0.8,"support_mode":"gentle_bed","nozzle_diameter":DEFAULT_NOZZLE},
-        "design_tools": ["dice_tower","model_doctor","visual_editor","base_maker","nameplate","magnet_sockets","model_splitter","ai_bridge","smart_dice_tower"],
+        "design_tools": ["dice_tower","model_doctor","visual_editor","base_maker","nameplate","magnet_sockets","model_splitter","ai_bridge","smart_dice_tower","tray_first_path_planner"],
         "organic_supports":{"available":False,"note":"True organic/tree mode needs the newer slicing engine; conventional bed-only and snug modes are available now."},
     }
 
@@ -425,7 +429,7 @@ async def slice_model(
             raise HTTPException(422, f"Slicing failed: {detail}")
         body = output.read_text(encoding="utf-8", errors="replace")
         header = (
-            "; ROOKIE QUEST SLICER v0.10.0\n; Printer: Elegoo Neptune 3 Pro\n"
+            "; ROOKIE QUEST SLICER v0.11.0\n; Printer: Elegoo Neptune 3 Pro\n"
             f"; Preset: {preset}\n; Nozzle: {nozzle_key} mm\n; Layer: {layer_height} mm\n; Supports: {supports}\n; Source: {name}\n"
             "; TEST PROFILE - review toolpath before first print\n"
         )
