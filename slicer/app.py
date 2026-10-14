@@ -13,12 +13,14 @@ from starlette.background import BackgroundTask
 from design import router as design_router, design_health
 from doctor import router as doctor_router
 from editor import router as editor_router, editor_selftest
+from ai_bridge import router as ai_router
 
 ROOT = Path(__file__).parent
-app = FastAPI(title="Rookie Quest Slicer", version="0.7.0")
+app = FastAPI(title="Rookie Quest Slicer", version="0.8.0")
 app.include_router(design_router)
 app.include_router(doctor_router)
 app.include_router(editor_router)
+app.include_router(ai_router)
 app.mount("/assets", StaticFiles(directory=ROOT / "static"), name="assets")
 
 BED_X = 225
@@ -337,7 +339,7 @@ def profiles():
         "nozzles": {str(k):v for k,v in NOZZLE_PROFILES.items()},
         "supports": {k:{"label":v["label"],"description":v["description"],"buildplate_only":v["buildplate_only"],"style":v["style"]} for k,v in SUPPORT_MODES.items()},
         "defaults": {"nozzle_temp":215,"bed_temp":60,"retraction_mm":0.8,"support_mode":"gentle_bed","nozzle_diameter":DEFAULT_NOZZLE},
-        "design_tools": ["dice_tower","model_doctor","visual_editor","base_maker","nameplate","magnet_sockets","model_splitter"],
+        "design_tools": ["dice_tower","model_doctor","visual_editor","base_maker","nameplate","magnet_sockets","model_splitter","ai_bridge","smart_dice_tower"],
         "organic_supports":{"available":False,"note":"True organic/tree mode needs the newer slicing engine; conventional bed-only and snug modes are available now."},
     }
 
@@ -405,7 +407,7 @@ async def slice_model(
             raise HTTPException(422, f"Slicing failed: {detail}")
         body = output.read_text(encoding="utf-8", errors="replace")
         header = (
-            "; ROOKIE QUEST SLICER v0.7.0\n; Printer: Elegoo Neptune 3 Pro\n"
+            "; ROOKIE QUEST SLICER v0.8.0\n; Printer: Elegoo Neptune 3 Pro\n"
             f"; Preset: {preset}\n; Nozzle: {nozzle_key} mm\n; Layer: {layer_height} mm\n; Supports: {supports}\n; Source: {name}\n"
             "; TEST PROFILE - review toolpath before first print\n"
         )
