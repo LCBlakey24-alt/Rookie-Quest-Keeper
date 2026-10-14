@@ -84,6 +84,35 @@ def dims(mesh):
 def fits(ext):
     return ext[0] <= BED_X and ext[1] <= BED_Y and ext[2] <= MAX_Z
 
+def editor_selftest():
+    cad = openscad_path()
+    if not cad:
+        return {"ok":False,"error":"openscad missing"}
+    work = Path(tempfile.mkdtemp(prefix="rqs_editor_test_"))
+    try:
+        scad = work / "test.scad"
+        out = work / "test.stl"
+        scad.write_text('''
+$fn=32;
+difference() {
+  union() {
+    cube([24,24,3], center=false);
+    translate([12,12,3]) linear_extrude(height=0.8)
+      text("RQ", size=5, halign="center", valign="center", font="DejaVu Sans:style=Bold");
+  }
+  translate([12,12,0.95]) cylinder(h=2.1, d=6, center=true);
+}
+''', encoding="utf-8")
+        r = subprocess.run([cad,"-q","-o",str(out),str(scad)],cwd=work,capture_output=True,text=True,timeout=45,check=False)
+        if r.returncode != 0 or not out.exists() or out.stat().st_size < 100:
+            return {"ok":False,"error":(r.stderr or r.stdout or "unknown")[-300:]}
+        mesh = trimesh.load(out, force="mesh", process=True)
+        return {"ok":bool(mesh is not None and not mesh.is_empty and len(mesh.faces)>10),"faces":int(len(mesh.faces)) if mesh is not None and not mesh.is_empty else 0}
+    except Exception as exc:
+        return {"ok":False,"error":type(exc).__name__}
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
 @router.post("/orientation")
 async def recommend_orientation(
     model: UploadFile = File(...),
