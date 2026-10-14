@@ -14,6 +14,7 @@ from design import router as design_router, design_health
 from doctor import router as doctor_router
 from editor import router as editor_router, editor_selftest
 from ai_bridge import router as ai_router
+from geometry_ai import geometry_selftest
 
 ROOT = Path(__file__).parent
 app = FastAPI(title="Rookie Quest Slicer", version="0.10.0")
@@ -330,6 +331,7 @@ def log_startup_capabilities():
     print("RQS_SUPPORT_SELFTEST", support_parser_selftest(), flush=True)
     print("RQS_NOZZLE_SELFTEST", nozzle_parser_selftest(), flush=True)
     print("RQS_EDITOR_SELFTEST", editor_selftest(), flush=True)
+    print("RQS_GEOMETRY_SELFTEST", geometry_selftest(), flush=True)
 
 @app.get("/api/profiles")
 def profiles():
