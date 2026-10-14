@@ -215,7 +215,8 @@ def _add_new_tray(solid, geom, channel_w, tray_depth_mm, tray_x_mm, voxel_mm):
     # Shift geometry indices after padding.
     geom = _occupied_geometry(solid)
     cx = int(round((geom["xmin"] + geom["xmax"]) / 2 + tray_x_mm / voxel_mm))
-    y_back = geom["ymin"] + pad_front
+    # After padding, geom["ymin"] is the original model's front shifted inward.
+    y_back = geom["ymin"] + 2
     y_front = max(2, y_back - int(round(tray_depth_mm / voxel_mm)))
     tray_w = max(channel_w + 24.0, 82.0)
     halfw = int(round(tray_w / (2 * voxel_mm)))
@@ -266,7 +267,8 @@ def convert_ai_solid_to_tower(
 
     geom = _occupied_geometry(solid)
     channel_w, channel_d = _adaptive_channel(geom, dice_mm, 1.0)
-    reuse = geom["existing_tray"] if tray_mode == "auto" else tray_mode == "reuse"
+    existing_detected = bool(geom["existing_tray"])
+    reuse = existing_detected if tray_mode == "auto" else tray_mode == "reuse"
 
     if not reuse:
         solid, geom = _add_new_tray(
@@ -298,7 +300,11 @@ def convert_ai_solid_to_tower(
 
     # Transition to the model/front tray. Keep x centred for auto mode.
     start_y = chy - halfd + 3
-    end_y = max(1, ymin - 1) if reuse else ymin + 2
+    end_y = (
+        max(1, ymin - 1)
+        if reuse
+        else min(ymax - 2, ymin + int(round(float(tray_depth_mm))) - 3)
+    )
     target_x = int(round((xmin + xmax) / 2))
     steps = max(2, abs(start_y - end_y) + 1)
     floor_hw = max(2, halfw - 3)
@@ -367,7 +373,7 @@ def convert_ai_solid_to_tower(
         "output_faces": int(len(mesh.faces)),
         "watertight": bool(mesh.is_watertight),
         "connected_parts": int(mesh.body_count),
-        "existing_tray_detected": bool(geom["existing_tray"]),
+        "existing_tray_detected": existing_detected,
         "tray_mode_used": "reuse" if reuse else "add",
         "front_extension_mm": round(float(geom["front_extension"]), 1),
         "channel_width_mm": round(channel_w, 1),
