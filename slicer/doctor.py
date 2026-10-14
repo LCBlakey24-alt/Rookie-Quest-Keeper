@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 router = APIRouter(prefix="/doctor", tags=["doctor"])
-MAX_UPLOAD = 75 * 1024 * 1024
+MAX_UPLOAD = 125 * 1024 * 1024
 BED = (225.0, 225.0, 280.0)
 
 def check_pin(pin: str):
@@ -28,7 +28,7 @@ async def save_upload(upload: UploadFile, target: Path):
                 break
             total += len(chunk)
             if total > MAX_UPLOAD:
-                raise HTTPException(413, "Maximum upload size is 75 MB")
+                raise HTTPException(413, "Maximum upload size is 125 MB")
             f.write(chunk)
     if total < 100:
         raise HTTPException(400, "That model file appears to be empty")
