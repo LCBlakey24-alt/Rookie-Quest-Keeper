@@ -3,6 +3,8 @@ import os
 import shutil
 import subprocess
 import tempfile
+import json
+import zipfile
 from pathlib import Path
 
 import trimesh
@@ -324,3 +326,127 @@ union() {{
     except Exception as exc:
         shutil.rmtree(work, ignore_errors=True)
         raise HTTPException(500, f"Unexpected editor error: {type(exc).__name__}") from exc
+
+
+@router.post("/split")
+async def split_model(
+    model: UploadFile = File(...),
+    axis: str = Form("x"),
+    split_percent: float = Form(50),
+    access_pin: str = Form(""),
+):
+    check_pin(access_pin)
+    cad = openscad_path()
+    if not cad:
+        raise HTTPException(503, "Model splitting engine is not installed")
+    name = Path(model.filename or "").name
+    if Path(name).suffix.lower() != ".stl":
+        raise HTTPException(400, "Model Splitter currently uses STL files")
+    axis = axis.lower().strip()
+    if axis not in {"x","y","z"}:
+        raise HTTPException(400, "Split axis must be X, Y or Z")
+    if not 10 <= split_percent <= 90:
+        raise HTTPException(400, "Split position must be between 10% and 90%")
+
+    work = Path(tempfile.mkdtemp(prefix="rqs_split_"))
+    source = work / "source.stl"
+    normalized = work / "normalized.stl"
+    part_a_raw = work / "part_a_raw.stl"
+    part_b_raw = work / "part_b_raw.stl"
+    part_a = work / f"{Path(name).stem}_Part_A.stl"
+    part_b = work / f"{Path(name).stem}_Part_B.stl"
+    scad_a = work / "part_a.scad"
+    scad_b = work / "part_b.scad"
+    bundle = work / f"{Path(name).stem}_Split_Parts.zip"
+    try:
+        await save_upload(model, source)
+        mesh = load_stl(source)
+        normalize_to_bed(mesh)
+        mesh.export(normalized)
+        ext = dims(mesh)
+        w,d,h = ext
+        margin = 8.0
+        p = split_percent / 100.0
+
+        if axis == "x":
+            split = -w/2 + w*p
+            a_min = [-w/2-margin,-d/2-margin,-margin]
+            a_size = [w*p+2*margin,d+2*margin,h+2*margin]
+            b_min = [split,-d/2-margin,-margin]
+            b_size = [w*(1-p)+margin,d+2*margin,h+2*margin]
+        elif axis == "y":
+            split = -d/2 + d*p
+            a_min = [-w/2-margin,-d/2-margin,-margin]
+            a_size = [w+2*margin,d*p+2*margin,h+2*margin]
+            b_min = [-w/2-margin,split,-margin]
+            b_size = [w+2*margin,d*(1-p)+margin,h+2*margin]
+        else:
+            split = h*p
+            a_min = [-w/2-margin,-d/2-margin,-margin]
+            a_size = [w+2*margin,d+2*margin,h*p+2*margin]
+            b_min = [-w/2-margin,-d/2-margin,split]
+            b_size = [w+2*margin,d+2*margin,h*(1-p)+margin]
+
+        def cut_scad(mins, sizes):
+            return f'''intersection() {{
+  import("normalized.stl", convexity=10);
+  translate([{mins[0]:.4f},{mins[1]:.4f},{mins[2]:.4f}])
+    cube([{sizes[0]:.4f},{sizes[1]:.4f},{sizes[2]:.4f}], center=false);
+}}
+'''
+        scad_a.write_text(cut_scad(a_min,a_size), encoding="utf-8")
+        scad_b.write_text(cut_scad(b_min,b_size), encoding="utf-8")
+
+        for script,out in ((scad_a,part_a_raw),(scad_b,part_b_raw)):
+            r = subprocess.run([cad,"-q","-o",str(out),str(script)],cwd=work,capture_output=True,text=True,timeout=EDIT_TIMEOUT,check=False)
+            if r.returncode != 0 or not out.exists() or out.stat().st_size < 100:
+                detail=(r.stderr or r.stdout or "unknown split error")[-1000:]
+                raise HTTPException(422, f"Could not create both split parts: {detail}")
+
+        reports=[]
+        for raw,final,label in ((part_a_raw,part_a,"A"),(part_b_raw,part_b,"B")):
+            pm=load_stl(raw)
+            normalize_to_bed(pm)
+            pm.export(final)
+            pe=dims(pm)
+            if min(pe) < 0.5:
+                raise HTTPException(422, f"Split produced an unusably thin Part {label}. Move the split position.")
+            reports.append({
+                "part":label,
+                "filename":final.name,
+                "dimensions_mm":[round(v,2) for v in pe],
+                "fits_printer":fits(pe),
+                "watertight":bool(pm.is_watertight),
+            })
+
+        info={
+            "source":name,
+            "axis":axis.upper(),
+            "split_percent":split_percent,
+            "parts":reports,
+            "printer":"Elegoo Neptune 3 Pro",
+            "note":"Flat cut only. Alignment pegs/connectors are not added in this version."
+        }
+        with zipfile.ZipFile(bundle,"w",compression=zipfile.ZIP_DEFLATED) as z:
+            z.write(part_a,arcname=part_a.name)
+            z.write(part_b,arcname=part_b.name)
+            z.writestr("split_info.json",json.dumps(info,indent=2))
+
+        headers={
+            "X-RQ-Part-A":",".join(str(v) for v in reports[0]["dimensions_mm"]),
+            "X-RQ-Part-B":",".join(str(v) for v in reports[1]["dimensions_mm"]),
+            "X-RQ-Both-Fit":"yes" if all(x["fits_printer"] for x in reports) else "no",
+        }
+        return FileResponse(
+            bundle, filename=bundle.name, media_type="application/zip", headers=headers,
+            background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True))
+        )
+    except subprocess.TimeoutExpired:
+        shutil.rmtree(work, ignore_errors=True)
+        raise HTTPException(504, "Model splitting timed out")
+    except HTTPException:
+        shutil.rmtree(work, ignore_errors=True)
+        raise
+    except Exception as exc:
+        shutil.rmtree(work, ignore_errors=True)
+        raise HTTPException(500, f"Unexpected split error: {type(exc).__name__}") from exc
