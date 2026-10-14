@@ -186,7 +186,10 @@ async def build_edit(
 
         lift = base_thickness if base_type != "none" else 0.0
         if lift:
-            mesh.apply_translation([0,0,lift])
+            # Sink the model very slightly into the base so boolean union produces
+            # one physical body instead of two shells touching on a zero-thickness plane.
+            overlap = min(0.20, base_thickness * 0.10)
+            mesh.apply_translation([0,0,lift - overlap])
         mesh.export(transformed)
 
         safe_text = name_text.replace("\\", "\\\\").replace('"','\\"')
