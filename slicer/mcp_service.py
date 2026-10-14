@@ -5,6 +5,8 @@ from urllib.parse import parse_qs
 import httpx
 from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 CORE_URL = os.getenv("CORE_URL", "https://rookie-quest-slicer.onrender.com").rstrip("/")
 CORE_PIN = os.getenv("CORE_PIN", "")
@@ -358,6 +360,26 @@ async def split_model(
         return {"error": _http_error(exc), "asset_id": asset_id}
 
 
+@mcp.custom_route("/health", methods=["GET"])
+async def health(request: Request):
+    return JSONResponse({
+        "status": "ok",
+        "service": "Rookie Quest Slicer AI",
+        "protocol": "MCP Streamable HTTP",
+        "core_url": CORE_URL,
+        "tools": [
+            "get_upload_instructions",
+            "inspect_model",
+            "recommend_print_settings",
+            "recommend_dice_tower",
+            "build_dice_tower",
+            "slice_model",
+            "repair_model",
+            "split_model",
+        ],
+    })
+
+
 security = TransportSecuritySettings(
     enable_dns_rebinding_protection=True,
     allowed_hosts=[
@@ -385,7 +407,7 @@ class TokenAuthApp:
         self.inner = inner
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] == "http" and MCP_TOKEN:
+        if scope["type"] == "http" and MCP_TOKEN and scope.get("path") != "/health":
             headers = {k.lower(): v for k, v in scope.get("headers", [])}
             auth = headers.get(b"authorization", b"").decode("utf-8", "ignore")
             query = parse_qs(scope.get("query_string", b"").decode("utf-8", "ignore"))
