@@ -206,6 +206,34 @@ def health():
         "version": app.version,
     }
 
+@app.get("/api/support-capabilities")
+def support_capabilities():
+    engine = engine_path()
+    if not engine:
+        return {"engine":None,"version":None,"supported":{}}
+    try:
+        result = subprocess.run([engine, "--help"], capture_output=True, text=True, timeout=15, check=False)
+        help_text = (result.stdout or "") + "\n" + (result.stderr or "")
+    except Exception:
+        help_text = ""
+    names = [
+        "support-material",
+        "support-material-auto",
+        "support-material-style",
+        "support-material-buildplate-only",
+        "support-material-threshold",
+        "support-material-contact-distance",
+        "support-material-xy-spacing",
+        "support-material-interface-layers",
+        "support-material-spacing",
+    ]
+    return {
+        "engine":Path(engine).name,
+        "version":engine_version(),
+        "supported":{name:(("--"+name) in help_text) for name in names},
+        "modes":list(SUPPORT_MODES.keys()),
+    }
+
 @app.get("/api/profiles")
 def profiles():
     return {
