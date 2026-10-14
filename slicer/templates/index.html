@@ -12,23 +12,73 @@
 </head>
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
-<div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.3 · Design Lab</span></p>
+<div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
+<p><span class="badge"><span class="dot"></span>v0.4 · Support Lab + Model Doctor</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.4 mm</span></div><div>🖨️</div></section>
 
-<section style="padding:10px"><div class="tabs"><button class="tab active" data-tab="slice" type="button">Slice</button><button class="tab" data-tab="design" type="button">Design Lab</button></div></section>
+<section style="padding:10px">
+<div class="tabs tabs3">
+<button class="tab active" data-tab="slice" type="button">Slice</button>
+<button class="tab" data-tab="design" type="button">Design Lab</button>
+<button class="tab" data-tab="doctor" type="button">Check & Fix</button>
+</div>
+</section>
 
 <div id="slicePanel" class="panel active">
 <section>
-<h2>Quick Slicer</h2><p style="margin-top:5px">Upload a model, pick what you're making and get Neptune 3 Pro G-code.</p>
+<h2>Quick Slicer</h2><p style="margin-top:5px">Upload a model, choose how it should print, and get Neptune 3 Pro G-code.</p>
 <form id="sliceForm">
-<label for="access_pin">Access PIN</label><input id="access_pin" name="access_pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter your slicer PIN"><div class="help">Saved only on this device.</div>
-<label for="model">Model</label><div class="filebox"><input required type="file" id="model" name="model" accept=".stl,.3mf"><div class="help" id="fileHelp">STL or 3MF · up to 75 MB</div></div>
-<label for="preset">Print type</label><select name="preset" id="preset"><option value="normal">Normal · Everyday prints</option><option value="mini">Detailed Miniature · Fine detail</option><option value="terrain">Terrain · D&D tiles & scenery</option><option value="strong">Strong · Practical parts</option><option value="draft">Fast Draft · Quick tests</option></select><div class="help" id="presetNote">0.20 mm layers · 3 walls · 20% infill</div>
-<label for="supports">Supports</label><select name="supports" id="supports"><option value="off">Off</option><option value="on">On</option></select>
-<div class="two"><div><label for="nozzle_temp">Nozzle °C</label><input id="nozzle_temp" name="nozzle_temp" type="number" value="215" min="190" max="235" inputmode="numeric"></div><div><label for="bed_temp">Bed °C</label><input id="bed_temp" name="bed_temp" type="number" value="60" min="45" max="70" inputmode="numeric"></div></div>
+<label for="access_pin">Access PIN</label>
+<input id="access_pin" name="access_pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter your slicer PIN">
+<div class="help">Saved only on this device.</div>
+
+<label for="model">Model</label>
+<div class="filebox"><input required type="file" id="model" name="model" accept=".stl,.3mf"><div class="help" id="fileHelp">STL or 3MF · up to 75 MB</div></div>
+
+<label for="preset">Print type</label>
+<select name="preset" id="preset">
+<option value="normal">Normal · Everyday prints</option>
+<option value="mini">Detailed Miniature · Fine detail</option>
+<option value="terrain">Terrain · D&D tiles & scenery</option>
+<option value="strong">Strong · Practical parts</option>
+<option value="draft">Fast Draft · Quick tests</option>
+</select>
+<div class="help" id="presetNote">0.20 mm layers · 3 walls · 20% infill</div>
+
+<label for="supports">Support type</label>
+<select name="supports" id="supports">
+<option value="off">Off · No supports</option>
+<option value="gentle_bed" selected>Gentle · Build Plate Only</option>
+<option value="snug_bed">Snug · Build Plate Only</option>
+<option value="snug_everywhere">Snug · Everywhere</option>
+<option value="grid_bed">Strong Grid · Build Plate Only</option>
+<option value="grid_everywhere">Strong Grid · Everywhere</option>
+<option disabled>Organic / Tree · engine upgrade next</option>
+</select>
+<div id="supportNote" class="support-note safe"><strong>Gentle · Build Plate Only</strong><span>Supports may only begin on the bed. Extra clearance makes them easier to remove from delicate details.</span></div>
+
+<div class="support-key">
+<div><span class="support-dot bed"></span><strong>Build Plate Only</strong><small>Cannot use your model as a support foundation.</small></div>
+<div><span class="support-dot model"></span><strong>Everywhere</strong><small>Can begin on the model when an overhang cannot be reached from the bed.</small></div>
+</div>
+
+<div class="two">
+<div><label for="nozzle_temp">Nozzle °C</label><input id="nozzle_temp" name="nozzle_temp" type="number" value="215" min="190" max="235" inputmode="numeric"></div>
+<div><label for="bed_temp">Bed °C</label><input id="bed_temp" name="bed_temp" type="number" value="60" min="45" max="70" inputmode="numeric"></div>
+</div>
 <button id="sliceGo" type="submit">Slice to G-code</button>
-</form><p id="sliceStatus" class="status" role="status"></p>
+</form>
+<p id="sliceStatus" class="status" role="status"></p>
+</section>
+
+<section>
+<h3>Which support should I use?</h3>
+<div class="support-cards">
+<div class="support-card recommended"><b>Gentle · Bed Only</b><span>Best first choice for minis, figures and detailed models.</span></div>
+<div class="support-card"><b>Snug · Bed Only</b><span>More coverage while still protecting the model from support foundations.</span></div>
+<div class="support-card"><b>Snug · Everywhere</b><span>For awkward shapes where bed-only supports physically cannot reach.</span></div>
+<div class="support-card"><b>Strong Grid</b><span>For heavy bridges and large overhangs. Stronger, but more material and harder removal.</span></div>
+</div>
 </section>
 </div>
 
@@ -38,7 +88,7 @@
 <div class="pillrow" style="margin-top:12px"><span class="pill">Touch 3D preview</span><span class="pill">Auto chute sizing</span><span class="pill">Neptune bed check</span><span class="pill">Export STL</span></div>
 </section>
 <section>
-<h3>1 · Choose the outside design</h3><p class="mini-note">v1 works best with solid, tower-like models: castles, skulls, statues, buildings and chunky scenery.</p>
+<h3>1 · Choose the outside design</h3><p class="mini-note">Works best with solid tower-like models: castles, skulls, statues, buildings and chunky scenery.</p>
 <div class="filebox"><input type="file" id="towerModel" accept=".stl"><div class="help" id="towerFileHelp">STL only for Dice Tower Builder v1</div></div>
 <div id="viewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Drag to rotate · pinch to zoom</div></div>
 <div class="checks"><div id="dimCheck" class="check"><strong>—</strong>Model size</div><div id="chuteCheck" class="check"><strong>—</strong>Chute fit</div><div id="bedCheck" class="check"><strong>—</strong>Printer fit</div></div>
@@ -53,12 +103,42 @@
 <button id="buildTower" type="button">Build Dice Tower STL</button><p id="towerStatus" class="status" role="status"></p>
 <div id="resultActions" class="result-actions"><button id="downloadTower" class="secondary" type="button">Download STL</button><button id="sliceTower" type="button">Slice Tower</button></div>
 </section>
-<section><h3>How this version works</h3><div class="step"><div class="stepno">1</div><p>We measure and centre the STL, then check there is enough room for the chosen dice.</p></div><div class="step"><div class="stepno">2</div><p>A reinforced internal chute is placed through the middle so the dice path does not depend on the downloaded model's internal geometry.</p></div><div class="step"><div class="stepno">3</div><p>The tray is attached to the chosen front. The finished STL is checked against the Neptune 3 Pro's build volume before it is returned.</p></div></section>
+</div>
+
+<div id="doctorPanel" class="panel">
+<section>
+<div class="design-hero"><div class="design-icon">🩺</div><div><h2>Model Doctor</h2><p style="margin:4px 0 0">Check a model before wasting filament. We look for size problems, open meshes and disconnected geometry.</p></div></div>
+<div class="pillrow" style="margin-top:12px"><span class="pill">Bed fit</span><span class="pill">Watertight check</span><span class="pill">Disconnected parts</span><span class="pill">Auto repair</span></div>
+</section>
+<section>
+<h3>Choose a model</h3>
+<div class="filebox"><input type="file" id="doctorModel" accept=".stl,.obj,.ply"><div class="help" id="doctorFileHelp">STL, OBJ or PLY · up to 75 MB</div></div>
+<div id="doctorViewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Drag to rotate · pinch to zoom</div></div>
+<button id="inspectModel" type="button">Check Model</button>
+<p id="doctorStatus" class="status"></p>
+<div id="doctorSummary" class="doctor-summary hidden">
+<div class="doctor-grid">
+<div class="doctor-stat"><strong id="docDims">—</strong><span>Dimensions</span></div>
+<div class="doctor-stat"><strong id="docTriangles">—</strong><span>Triangles</span></div>
+<div class="doctor-stat"><strong id="docParts">—</strong><span>Parts</span></div>
+<div class="doctor-stat"><strong id="docWater">—</strong><span>Mesh</span></div>
+</div>
+<div id="doctorIssues" class="issue-list"></div>
+<div id="repairActions" class="result-actions">
+<button id="repairModel" class="secondary" type="button">Repair Model</button>
+<button id="sliceChecked" type="button">Slice Original</button>
+</div>
+<div id="repairedActions" class="result-actions">
+<button id="downloadRepaired" class="secondary" type="button">Download Repaired STL</button>
+<button id="sliceRepaired" type="button">Slice Repaired</button>
+</div>
+</div>
+</section>
+<div class="warning"><strong>Repair rule:</strong> automatic mesh repair can fix many holes and normal-direction problems, but it cannot magically reconstruct missing sculpture detail. Always rotate the repaired preview before printing.</div>
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<p class="warning"><strong>Prototype rule:</strong> preview converted towers before printing. Very thin, hollow or strongly tapered decorative STLs may need the next version's movable chute controls.</p>
-<footer>Rookie Quest Forge · Slicer v0.3</footer>
+<footer>Rookie Quest Forge · Slicer v0.4</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
