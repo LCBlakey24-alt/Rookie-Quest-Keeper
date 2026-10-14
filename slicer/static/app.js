@@ -62,6 +62,7 @@ for(const b of document.querySelectorAll('.tab')){
     $('#editorPanel').classList.toggle('active',b.dataset.tab==='edit');
     $('#designPanel').classList.toggle('active',b.dataset.tab==='design');
     $('#doctorPanel').classList.toggle('active',b.dataset.tab==='doctor');
+    $('#aiPanel').classList.toggle('active',b.dataset.tab==='ai');
   });
 }
 
@@ -329,7 +330,14 @@ $('#buildSplit').addEventListener('click',async()=>{
 const viewer=createViewer($('#viewer'));
 let generatedBlob=null,generatedName='Rookie_Quest_Dice_Tower.stl';
 function towerOpts(){
-  return {scale:Number($('#towerScale').value),rotation:Number($('#towerRotation').value),dice:Number($('#diceSize').value),tray:Number($('#trayDepth').value)};
+  return {
+    scale:Number($('#towerScale').value),
+    rotation:Number($('#towerRotation').value),
+    dice:Number($('#diceSize').value),
+    tray:Number($('#trayDepth').value),
+    chuteX:Number($('#chuteX').value||0),
+    chuteY:Number($('#chuteY').value||0)
+  };
 }
 function towerChecks(){
   const d=viewer.preview(towerOpts());
@@ -342,6 +350,10 @@ function towerChecks(){
   const fit=d.outW<=225&&d.outD<=225&&d.h<=280;
   $('#bedCheck').innerHTML='<strong>'+(fit?'Fits':'Too large')+'</strong>'+d.outW.toFixed(0)+'×'+d.outD.toFixed(0);
   $('#bedCheck').className='check '+(fit?'good':'bad');
+  if(!d.chuteSafe){
+    $('#chuteCheck').innerHTML='<strong>Offset unsafe</strong>Max ±'+d.maxX.toFixed(0)+' X / ±'+d.maxY.toFixed(0)+' Y';
+    $('#chuteCheck').className='check bad';
+  }
 }
 $('#towerModel').addEventListener('change',async e=>{
   const f=e.target.files[0];
@@ -357,29 +369,58 @@ $('#towerModel').addEventListener('change',async e=>{
     $('#towerStatus').textContent='Preview failed: '+x.message;
   }
 });
-for(const id of ['towerScale','towerRotation','diceSize','trayDepth']){
+for(const id of ['towerScale','towerRotation','diceSize','trayDepth','chuteX','chuteY']){
   $('#'+id).addEventListener('input',()=>{
     $('#towerScaleValue').textContent=$('#towerScale').value+'%';
     $('#trayDepthValue').textContent=$('#trayDepth').value+' mm';
     towerChecks();
   });
 }
+$('#smartTower').addEventListener('click',async()=>{
+  const f=$('#towerModel').files[0],s=$('#towerStatus'),b=$('#smartTower'),note=$('#smartTowerNote');
+  if(!f){s.className='status bad';s.textContent='Choose an STL first.';return}
+  b.disabled=true;s.className='status';s.textContent='Analysing tower geometry…';
+  const fd=new FormData();
+  fd.append('model',f);
+  fd.append('dice_mm',$('#diceSize').value);
+  fd.append('tray_depth',$('#trayDepth').value);
+  fd.append('front_rotation','auto');
+  fd.append('access_pin',pin.value);
+  try{
+    const r=await fetch('/design/dice-tower-suggest',{method:'POST',body:fd});
+    if(!r.ok)throw Error(await err(r));
+    const result=await r.json(),rec=result.recommendation;
+    $('#towerRotation').value=String(rec.rotation_z);
+    $('#chuteX').value=Number(rec.chute_x_mm).toFixed(1);
+    $('#chuteY').value=Number(rec.chute_y_mm).toFixed(1);
+    towerChecks();
+    note.className='support-note '+(result.confidence==='high'?'safe':'warn');
+    note.innerHTML='<strong>Smart suggestion · '+result.confidence+' confidence</strong><span>'+result.reasons.join(' · ')+'</span>';
+    s.className=rec.fits_printer&&rec.physically_possible?'status ok':'status bad';
+    s.textContent='Suggestion applied · front '+rec.rotation_z+'° · chute '+rec.chute_x_mm+' X / '+rec.chute_y_mm+' Y mm.';
+  }catch(x){
+    s.className='status bad';s.textContent=x.message;
+  }finally{b.disabled=false}
+});
+
 $('#buildTower').addEventListener('click',async()=>{
   const f=$('#towerModel').files[0],s=$('#towerStatus'),b=$('#buildTower');
   if(!f){s.className='status bad';s.textContent='Choose an STL first.';return;}
   b.disabled=true;s.className='status';s.textContent='Building chute, ramps and catch tray…';
   const fd=new FormData(),o=towerOpts();
   fd.append('model',f);fd.append('scale_percent',o.scale);fd.append('rotation_z',o.rotation);
-  fd.append('dice_mm',o.dice);fd.append('tray_depth',o.tray);fd.append('access_pin',pin.value);
+  fd.append('dice_mm',o.dice);fd.append('tray_depth',o.tray);
+  fd.append('chute_x_mm',o.chuteX);fd.append('chute_y_mm',o.chuteY);
+  fd.append('access_pin',pin.value);
   try{
     const r=await fetch('/design/dice-tower',{method:'POST',body:fd});
     if(!r.ok)throw Error(await err(r));
     generatedBlob=await r.blob();
     generatedName=f.name.replace(/\.stl$/i,'')+'_Dice_Tower.stl';
     await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
-    const dm=r.headers.get('X-RQ-Dimensions'),bf=r.headers.get('X-RQ-Baffles');
+    const dm=r.headers.get('X-RQ-Dimensions'),bf=r.headers.get('X-RQ-Baffles'),cx=r.headers.get('X-RQ-Chute-X'),cy=r.headers.get('X-RQ-Chute-Y');
     s.className='status ok';
-    s.textContent='Tower built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+(bf?' · '+bf+' baffles':'')+'. Rotate the preview and check it.';
+    s.textContent='Tower built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+(bf?' · '+bf+' baffles':'')+(cx&&cy?' · chute '+cx+' / '+cy+' mm':'')+'. Rotate the preview and check it.';
     $('#resultActions').classList.add('show');
   }catch(x){
     s.className='status bad';s.textContent=x.message;
@@ -470,6 +511,54 @@ $('#sliceRepaired').addEventListener('click',async()=>{
   if(!doctorRepaired)return;
   await sliceFile(new File([doctorRepaired],doctorRepairedName,{type:'model/stl'}),doctorRepairedName,$('#doctorStatus'),$('#sliceRepaired'));
 });
+
+/* AI Link */
+const MCP_PUBLIC_ENDPOINT='https://rookie-quest-slicer-ai.onrender.com/mcp';
+$('#mcpEndpoint').textContent=MCP_PUBLIC_ENDPOINT;
+$('#mcpStatus').textContent='Use this remote MCP endpoint after adding the private connector token.';
+
+$('#aiModel').addEventListener('change',e=>{
+  const f=e.target.files[0];
+  $('#aiFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL, 3MF, OBJ or PLY · up to 75 MB';
+  $('#aiResult').classList.add('hidden');
+});
+
+$('#uploadAI').addEventListener('click',async()=>{
+  const f=$('#aiModel').files[0],s=$('#aiStatus'),b=$('#uploadAI');
+  if(!f){s.className='status bad';s.textContent='Choose a model first.';return}
+  b.disabled=true;s.className='status';s.textContent='Creating temporary AI asset…';
+  const fd=new FormData();fd.append('model',f);fd.append('access_pin',pin.value);
+  try{
+    const r=await fetch('/ai/assets',{method:'POST',body:fd});
+    if(!r.ok)throw Error(await err(r));
+    const data=await r.json();
+    $('#aiAssetId').textContent=data.asset_id;
+    $('#aiPromptAsset').textContent=data.asset_id;
+    const report=data.report||{};
+    $('#aiDims').textContent=report.dimensions_mm?report.dimensions_mm.map(v=>Number(v).toFixed(0)).join(' × '):'—';
+    $('#aiMesh').textContent=report.watertight===true?'Watertight':(report.watertight===false?'Needs repair':'Stored');
+    const link=$('#aiPreviewLink');
+    if(data.preview_url){link.href=data.preview_url;link.style.display='block'}else{link.style.display='none'}
+    $('#aiResult').classList.remove('hidden');
+    s.className='status ok';
+    s.textContent='AI asset ready · expires in about '+data.expires_in_hours+' hours.';
+  }catch(x){
+    s.className='status bad';s.textContent=x.message;
+  }finally{b.disabled=false}
+});
+
+$('#copyAssetId').addEventListener('click',async()=>{
+  const id=$('#aiAssetId').textContent;
+  if(!id||id==='—')return;
+  try{await navigator.clipboard.writeText(id);$('#aiStatus').className='status ok';$('#aiStatus').textContent='Asset ID copied.'}
+  catch{$('#aiStatus').className='status bad';$('#aiStatus').textContent='Could not use clipboard — press and hold the asset ID to copy it.'}
+});
+
+const requestedTab=new URLSearchParams(location.search).get('tab');
+if(requestedTab){
+  const target=document.querySelector('.tab[data-tab="'+requestedTab+'"]');
+  if(target)target.click();
+}
 
 /* PWA */
 let deferredPrompt;
