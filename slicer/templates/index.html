@@ -13,7 +13,7 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.5 · Visual Editor</span></p>
+<p><span class="badge"><span class="dot"></span>v0.6 · Editor + Splitter</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.4 mm</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
@@ -168,6 +168,26 @@
 <button id="sliceEdit" type="button">Slice Edited Model</button>
 </div>
 </section>
+
+<section>
+<div class="design-hero"><div class="design-icon">✂️</div><div><h3>Split Large Model</h3><p style="margin:4px 0 0">Cut an STL into two separate printable parts when the complete model is too large or awkward for the bed.</p></div></div>
+<div class="filebox" style="margin-top:14px"><input type="file" id="splitModel" accept=".stl"><div class="help" id="splitFileHelp">Choose any STL, or use the edited STL you just built.</div></div>
+<button id="useEditedForSplit" class="secondary" type="button" disabled>Use Last Edited STL</button>
+<div id="splitViewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Red plane = cut position · drag to rotate</div></div>
+<div class="checks">
+<div id="splitACheck" class="check"><strong>—</strong>Part A</div>
+<div id="splitBCheck" class="check"><strong>—</strong>Part B</div>
+<div id="splitFitCheck" class="check"><strong>—</strong>Both fit</div>
+</div>
+<label for="splitAxis">Cut direction</label>
+<select id="splitAxis"><option value="x">X · left / right</option><option value="y">Y · front / back</option><option value="z">Z · bottom / top</option></select>
+<label for="splitPercent">Cut position</label>
+<input id="splitPercent" type="range" min="10" max="90" step="5" value="50">
+<div class="range-line"><span>10%</span><strong id="splitPercentValue">50%</strong><span>90%</span></div>
+<div class="warning" style="margin-top:14px"><strong>Splitter v1:</strong> this makes a clean flat cut and returns both STLs in a ZIP. It does not add alignment pegs automatically yet.</div>
+<button id="buildSplit" type="button">Split into 2 STL Parts</button>
+<p id="splitStatus" class="status"></p>
+</section>
 </div>
 
 <div id="designPanel" class="panel">
@@ -226,7 +246,7 @@
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.5</footer>
+<footer>Rookie Quest Forge · Slicer v0.6</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
