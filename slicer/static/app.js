@@ -497,7 +497,7 @@ $('#doctorModel').addEventListener('change',async e=>{
   doctorRepaired=null;
   $('#doctorSummary').classList.add('hidden');
   $('#repairedActions').classList.remove('show');
-  $('#doctorFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL, OBJ or PLY · up to 75 MB';
+  $('#doctorFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL, OBJ or PLY · up to 125 MB';
   if(!f)return;
   if(f.name.toLowerCase().endsWith('.stl')){
     try{await doctorViewer.showFile(f,false)}catch{}
@@ -592,7 +592,7 @@ $('#mcpStatus').textContent='Use this remote MCP endpoint after adding the priva
 
 $('#aiModel').addEventListener('change',e=>{
   const f=e.target.files[0];
-  $('#aiFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL, 3MF, OBJ or PLY · up to 75 MB';
+  $('#aiFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL, 3MF, OBJ or PLY · up to 125 MB';
   $('#aiResult').classList.add('hidden');
 });
 
