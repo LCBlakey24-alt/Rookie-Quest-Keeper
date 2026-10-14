@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse, Response
 
-from geometry_ai import load_mesh, basic_report, recommend_dice_tower, svg_preview
+from geometry_ai import load_mesh, basic_report, recommend_dice_tower, svg_preview, png_preview
 from connector_auth import issue_token
 
 router = APIRouter(prefix="/ai", tags=["ai-bridge"])
@@ -145,7 +145,8 @@ async def upload_ai_asset(
             **meta,
             "expires_in_hours": 4,
             "report": report,
-            "preview_url": f"{base}/ai/assets/{asset_id}/preview.svg" if report else None,
+            "preview_url": f"{base}/ai/assets/{asset_id}/preview.png" if report else None,
+            "preview_svg_url": f"{base}/ai/assets/{asset_id}/preview.svg" if report else None,
             "download_url": f"{base}/ai/assets/{asset_id}/download",
             "ai_instruction": f"Use Rookie Quest Slicer asset {asset_id}. Inspect it before changing or slicing it.",
         }
@@ -174,6 +175,21 @@ def get_ai_asset(asset_id: str, access_pin: str = ""):
 def download_ai_asset(asset_id: str):
     _, meta, source = asset_path(asset_id)
     return FileResponse(source, filename=meta["filename"], media_type="application/octet-stream")
+
+
+@router.get("/assets/{asset_id}/preview.png")
+def preview_ai_asset_png(asset_id: str):
+    folder, _, source = asset_path(asset_id)
+    if source.suffix.lower() not in {".stl", ".obj", ".ply"}:
+        raise HTTPException(400, "PNG preview generation currently requires STL, OBJ or PLY")
+    cache = folder / "preview.png"
+    if not cache.exists():
+        try:
+            image = png_preview(load_mesh(source))
+            image.save(cache, format="PNG", optimize=True)
+        except Exception as exc:
+            raise HTTPException(422, f"Could not build PNG preview: {type(exc).__name__}") from exc
+    return FileResponse(cache, media_type="image/png", filename=f"{asset_id}_views.png")
 
 
 @router.get("/assets/{asset_id}/preview.svg")
