@@ -13,7 +13,7 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.10 · AI Vision</span></p>
+<p><span class="badge"><span class="dot"></span>v0.11 · Tray Path Planner</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
@@ -218,12 +218,16 @@
 <label for="towerRotation">Which side faces the tray?</label><select id="towerRotation"><option value="0">Current front</option><option value="90">Turn right 90°</option><option value="180">Use the back</option><option value="270">Turn left 90°</option></select>
 <label for="diceSize">Largest dice</label><select id="diceSize"><option value="20">Normal RPG dice · up to ~20 mm</option><option value="22" selected>Comfortable D20 clearance · ~22 mm</option><option value="25">Large dice · ~25 mm</option><option value="28">Extra-large dice · ~28 mm</option></select>
 <label for="trayDepth">Catch tray depth</label><input id="trayDepth" type="range" min="50" max="100" step="5" value="70"><div class="range-line"><span>50 mm</span><strong id="trayDepthValue">70 mm</strong><span>100 mm</span></div>
+<label for="trayX">Tray position · left / right</label><input id="trayX" type="range" min="-60" max="60" step="1" value="0"><div class="range-line"><span>Left</span><strong id="trayXValue">Centre · 0 mm</strong><span>Right</span></div>
 <div class="two">
 <div><label for="chuteX">Chute X offset mm</label><input id="chuteX" type="number" value="0" min="-80" max="80" step="1" inputmode="decimal"></div>
 <div><label for="chuteY">Chute Y offset mm</label><input id="chuteY" type="number" value="0" min="-80" max="80" step="1" inputmode="decimal"></div>
 </div>
-<button id="smartTower" class="secondary" type="button">Smart Suggest Chute + Tray Side</button>
-<div id="smartTowerNote" class="support-note neutral"><strong>Smart placement</strong><span>Analyses bed fit, available channel clearance, the model's mid-height bulk and low front geometry. You can still override its answer.</span></div>
+<div class="two">
+<button id="smartTower" class="secondary" type="button">Smart Suggest Everything</button>
+<button id="smartFromTray" class="secondary" type="button">Keep Tray Here · Calculate Chute</button>
+</div>
+<div id="smartTowerNote" class="support-note neutral"><strong>Tray-first path planner</strong><span>Auto mode can choose the tray side and position. Or move the tray yourself and the planner recalculates a support-friendly diagonal path back into the model.</span></div>
 <div class="warning" style="margin-top:16px"><strong>What gets changed:</strong> the app cuts the dice shaft and lower exit through the STL, inserts a structural chute core with support-friendly ramps, then attaches a walled tray. Smart placement can move the chute away from dead-centre when the geometry suggests it.</div>
 <button id="buildTower" type="button">Build Dice Tower STL</button><p id="towerStatus" class="status" role="status"></p>
 <div id="resultActions" class="result-actions"><button id="downloadTower" class="secondary" type="button">Download STL</button><button id="sliceTower" type="button">Slice Tower</button></div>
@@ -312,7 +316,7 @@
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.10</footer>
+<footer>Rookie Quest Forge · Slicer v0.11</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
