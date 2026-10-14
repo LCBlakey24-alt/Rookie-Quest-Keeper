@@ -67,7 +67,8 @@ def apply_transform(mesh, scale_percent, rx, ry, rz, mirror_x):
     mesh = mesh.copy()
     mesh.apply_scale(scale_percent / 100.0)
     if mirror_x:
-        mirror = trimesh.transformations.scale_matrix(-1, [0,0,0], [1,0,0])
+        mirror = trimesh.transformations.identity_matrix()
+        mirror[0,0] = -1.0
         mesh.apply_transform(mirror)
         try:
             mesh.invert()
