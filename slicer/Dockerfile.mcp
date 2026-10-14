@@ -5,6 +5,7 @@ COPY requirements-mcp.txt .
 RUN pip install --no-cache-dir -r requirements-mcp.txt
 COPY mcp_service.py .
 COPY mcp_selftest.py .
+COPY connector_auth.py .
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
