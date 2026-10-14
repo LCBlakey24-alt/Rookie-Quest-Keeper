@@ -13,13 +13,14 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.4 · Support Lab + Model Doctor</span></p>
+<p><span class="badge"><span class="dot"></span>v0.5 · Visual Editor</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.4 mm</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
-<div class="tabs tabs3">
+<div class="tabs tabs4">
 <button class="tab active" data-tab="slice" type="button">Slice</button>
-<button class="tab" data-tab="design" type="button">Design Lab</button>
+<button class="tab" data-tab="edit" type="button">Edit</button>
+<button class="tab" data-tab="design" type="button">Design</button>
 <button class="tab" data-tab="doctor" type="button">Check & Fix</button>
 </div>
 </section>
@@ -87,6 +88,75 @@
 </section>
 </div>
 
+<div id="editorPanel" class="panel">
+<section>
+<div class="design-hero"><div class="design-icon">🛠️</div><div><h2>Visual Editor</h2><p style="margin:4px 0 0">Rotate, scale, mirror and add a printable base or raised nameplate without leaving your phone.</p></div></div>
+<div class="pillrow" style="margin-top:12px"><span class="pill">Live 3D preview</span><span class="pill">Auto Fit</span><span class="pill">Base Maker</span><span class="pill">Raised text</span></div>
+</section>
+
+<section>
+<h3>1 · Choose an STL</h3>
+<div class="filebox"><input type="file" id="editModel" accept=".stl"><div class="help" id="editFileHelp">STL only for Visual Editor v1</div></div>
+<div id="editViewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Drag to rotate · pinch to zoom</div></div>
+<div class="checks">
+<div id="editDimCheck" class="check"><strong>—</strong>Edited size</div>
+<div id="editBedCheck" class="check"><strong>—</strong>Printer fit</div>
+<div id="editBaseCheck" class="check"><strong>None</strong>Base</div>
+</div>
+</section>
+
+<section>
+<h3>2 · Transform</h3>
+<label for="editScale">Scale</label>
+<input id="editScale" type="range" min="20" max="300" step="5" value="100">
+<div class="range-line"><span>20%</span><strong id="editScaleValue">100%</strong><span>300%</span></div>
+
+<div class="three">
+<div><label for="editRx">Rotate X°</label><input id="editRx" type="number" value="0" min="-360" max="360" step="5" inputmode="numeric"></div>
+<div><label for="editRy">Rotate Y°</label><input id="editRy" type="number" value="0" min="-360" max="360" step="5" inputmode="numeric"></div>
+<div><label for="editRz">Rotate Z°</label><input id="editRz" type="number" value="0" min="-360" max="360" step="5" inputmode="numeric"></div>
+</div>
+
+<label for="editMirror">Mirror</label>
+<select id="editMirror"><option value="off">Normal</option><option value="on">Mirror left ↔ right</option></select>
+<button id="autoFitEdit" class="secondary" type="button">Auto Fit Orientation</button>
+<div class="help">Auto Fit checks six 90° orientations and chooses a low-height one that fits the Neptune 3 Pro. It does not decide where supports should go.</div>
+</section>
+
+<section>
+<h3>3 · Base Maker</h3>
+<label for="editBaseType">Base</label>
+<select id="editBaseType">
+<option value="none">No base</option>
+<option value="round">Round base</option>
+<option value="hex">Hex base</option>
+<option value="square">Square / rectangular base</option>
+</select>
+<div class="two">
+<div><label for="editBaseWidth">Width / diameter mm</label><input id="editBaseWidth" type="number" value="35" min="10" max="180" step="1" inputmode="decimal"></div>
+<div><label for="editBaseDepth">Depth mm</label><input id="editBaseDepth" type="number" value="35" min="10" max="180" step="1" inputmode="decimal"></div>
+</div>
+<label for="editBaseThickness">Thickness mm</label>
+<input id="editBaseThickness" type="range" min="1" max="10" step="0.5" value="3">
+<div class="range-line"><span>1 mm</span><strong id="editBaseThicknessValue">3 mm</strong><span>10 mm</span></div>
+
+<label for="editName">Raised nameplate text</label>
+<input id="editName" type="text" maxlength="28" placeholder="e.g. OWLBEAR, TIA KARTA, ROOKIE QUEST">
+<div class="two">
+<div><label for="editNameSize">Text size mm</label><input id="editNameSize" type="number" value="5" min="2" max="16" step="0.5" inputmode="decimal"></div>
+<div><label for="editNameHeight">Text height mm</label><input id="editNameHeight" type="number" value="0.8" min="0.4" max="3" step="0.1" inputmode="decimal"></div>
+</div>
+<div class="help">Text is added as raised lettering on a small front plaque attached to the base, so it stays support-friendly.</div>
+
+<button id="buildEdit" type="button">Build Edited STL</button>
+<p id="editStatus" class="status"></p>
+<div id="editActions" class="result-actions">
+<button id="downloadEdit" class="secondary" type="button">Download STL</button>
+<button id="sliceEdit" type="button">Slice Edited Model</button>
+</div>
+</section>
+</div>
+
 <div id="designPanel" class="panel">
 <section>
 <div class="design-hero"><div class="design-icon">🎲</div><div><h2>Dice Tower Builder</h2><p style="margin:4px 0 0">Turn a chunky STL into a working dice tower with an internal chute, alternating baffles, exit ramp and catch tray.</p></div></div>
@@ -143,7 +213,7 @@
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.4</footer>
+<footer>Rookie Quest Forge · Slicer v0.5</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
