@@ -11,9 +11,10 @@ from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 from geometry_ai import recommend_dice_tower
+from ai_tower import convert_ai_solid_to_tower
 
 router = APIRouter(prefix="/design", tags=["design"])
-MAX_UPLOAD = 75 * 1024 * 1024
+MAX_UPLOAD = 125 * 1024 * 1024
 BED_X = 225
 BED_Y = 225
 MAX_Z = 280
@@ -119,6 +120,83 @@ async def save_upload(upload: UploadFile, target: Path):
             f.write(data)
     if size < 100:
         raise HTTPException(400, "That model file appears to be empty")
+
+@router.post("/ai-dice-tower")
+async def build_ai_dice_tower(
+    model: UploadFile = File(...),
+    dice_mm: float = Form(22.0),
+    target_height_mm: float = Form(160.0),
+    tray_depth: float = Form(70.0),
+    tray_mode: str = Form("auto"),
+    rotation_z: int = Form(0),
+    access_pin: str = Form(""),
+):
+    check_pin(access_pin)
+    name = Path(model.filename or "").name
+    if Path(name).suffix.lower() != ".stl":
+        raise HTTPException(400, "AI / Meshy Rescue currently needs an STL file")
+    if not 16 <= dice_mm <= 30:
+        raise HTTPException(400, "Dice size must be between 16 mm and 30 mm")
+    if not 125 <= target_height_mm <= 220:
+        raise HTTPException(400, "Target height must be between 125 mm and 220 mm")
+    if not 50 <= tray_depth <= 100:
+        raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
+    if tray_mode not in {"auto","reuse","add"}:
+        raise HTTPException(400, "Tray mode must be auto, reuse or add")
+    if rotation_z not in {0,90,180,270}:
+        raise HTTPException(400, "Front rotation must be 0°, 90°, 180° or 270°")
+
+    work = Path(tempfile.mkdtemp(prefix="rqs_ai_tower_"))
+    source = work / "source.stl"
+    output = work / "ai_dice_tower.stl"
+    try:
+        await save_upload(model, source)
+        try:
+            meta = convert_ai_solid_to_tower(
+                source,
+                output,
+                dice_mm=dice_mm,
+                target_height_mm=target_height_mm,
+                tray_depth_mm=tray_depth,
+                tray_mode=tray_mode,
+                rotation_z=rotation_z,
+            )
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+
+        if not output.exists() or output.stat().st_size < 100:
+            raise HTTPException(422, "AI Rescue produced no usable STL")
+
+        headers = {
+            "X-RQ-AI-Prep": "yes",
+            "X-RQ-Source-Triangles": str(meta.get("source_triangles","")),
+            "X-RQ-Dimensions": ",".join(str(v) for v in meta.get("output_dimensions",[])),
+            "X-RQ-Watertight": "yes" if meta.get("watertight") else "no",
+            "X-RQ-Parts": str(meta.get("connected_parts","")),
+            "X-RQ-Tray-Mode": str(meta.get("tray_mode_used","")),
+            "X-RQ-Existing-Tray": "yes" if meta.get("existing_tray_detected") else "no",
+            "X-RQ-Channel": f'{meta.get("channel_width_mm","")}x{meta.get("channel_depth_mm","")}',
+            "X-RQ-Baffles": str(meta.get("baffles","")),
+            "X-RQ-Prep-Scale": str(meta.get("source_scale_factor","")),
+        }
+        filename = f"{Path(name).stem}_AI_Rescued_Dice_Tower.stl"
+        return FileResponse(
+            output,
+            filename=filename,
+            media_type="model/stl",
+            headers=headers,
+            background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)),
+        )
+    except HTTPException:
+        shutil.rmtree(work, ignore_errors=True)
+        raise
+    except MemoryError as exc:
+        shutil.rmtree(work, ignore_errors=True)
+        raise HTTPException(507, "AI Rescue ran out of memory. Try a smaller target height.") from exc
+    except Exception as exc:
+        shutil.rmtree(work, ignore_errors=True)
+        raise HTTPException(500, f"AI Rescue failed: {type(exc).__name__}") from exc
+
 
 @router.post("/dice-tower-suggest")
 async def suggest_dice_tower(
