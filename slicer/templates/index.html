@@ -13,8 +13,8 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.6 · Editor + Splitter</span></p>
-<section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.4 mm</span></div><div>🖨️</div></section>
+<p><span class="badge"><span class="dot"></span>v0.7 · Multi-Nozzle</span></p>
+<section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
 <div class="tabs tabs4">
@@ -45,6 +45,16 @@
 <option value="draft">Fast Draft · Quick tests</option>
 </select>
 <div class="help" id="presetNote">0.20 mm layers · 3 walls · 20% infill</div>
+
+<label for="nozzle_diameter">Nozzle installed on the printer</label>
+<select name="nozzle_diameter" id="nozzle_diameter">
+<option value="0.2">0.2 mm · Miniatures / finest detail</option>
+<option value="0.4" selected>0.4 mm · Standard / general use</option>
+<option value="0.6">0.6 mm · Terrain / stronger faster prints</option>
+<option value="0.8">0.8 mm · Large terrain / very fast rough detail</option>
+<option value="1.0">1.0 mm · Huge parts / coarse detail</option>
+</select>
+<div id="nozzleNote" class="support-note safe"><strong>0.4 mm · Standard</strong><span>Balanced default. Make sure the physical nozzle fitted to the Neptune matches this selection.</span></div>
 
 <label for="supports">Support type</label>
 <select name="supports" id="supports">
@@ -246,7 +256,7 @@
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.6</footer>
+<footer>Rookie Quest Forge · Slicer v0.7</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
