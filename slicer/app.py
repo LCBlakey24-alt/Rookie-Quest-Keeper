@@ -328,10 +328,26 @@ def support_parser_selftest():
 
 @app.on_event("startup")
 def log_startup_capabilities():
-    print("RQS_SUPPORT_SELFTEST", support_parser_selftest(), flush=True)
-    print("RQS_NOZZLE_SELFTEST", nozzle_parser_selftest(), flush=True)
-    print("RQS_EDITOR_SELFTEST", editor_selftest(), flush=True)
-    print("RQS_GEOMETRY_SELFTEST", geometry_selftest(), flush=True)
+    support = support_parser_selftest()
+    nozzle = nozzle_parser_selftest()
+    editor = editor_selftest()
+    geometry = geometry_selftest()
+    print("RQS_SUPPORT_SELFTEST", support, flush=True)
+    print("RQS_NOZZLE_SELFTEST", nozzle, flush=True)
+    print("RQS_EDITOR_SELFTEST", editor, flush=True)
+    print("RQS_GEOMETRY_SELFTEST", geometry, flush=True)
+
+    failures = []
+    if not (support.get("snug_bed") and support.get("grid_bed")):
+        failures.append("support parser")
+    if not nozzle.get("ok"):
+        failures.append("multi-nozzle parser")
+    if not editor.get("ok"):
+        failures.append("editor/splitter")
+    if not geometry.get("ok"):
+        failures.append("smart geometry / AI preview")
+    if failures:
+        raise RuntimeError("Rookie Quest Slicer startup self-test failed: " + ", ".join(failures))
 
 @app.get("/api/profiles")
 def profiles():
