@@ -16,7 +16,7 @@ from doctor import support_analysis
 router = APIRouter(prefix="/ai", tags=["ai-bridge"])
 ASSET_DIR = Path("/tmp/rqs_ai_assets")
 ASSET_DIR.mkdir(parents=True, exist_ok=True)
-MAX_UPLOAD = 75 * 1024 * 1024
+MAX_UPLOAD = 125 * 1024 * 1024
 TTL_SECONDS = 4 * 60 * 60
 
 
@@ -119,7 +119,7 @@ async def upload_ai_asset(
                     break
                 total += len(chunk)
                 if total > MAX_UPLOAD:
-                    raise HTTPException(413, "Maximum upload size is 75 MB")
+                    raise HTTPException(413, "Maximum upload size is 125 MB")
                 f.write(chunk)
         if total < 100:
             raise HTTPException(400, "That model file appears to be empty")
