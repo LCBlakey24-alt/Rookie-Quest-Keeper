@@ -135,7 +135,10 @@ function editOpts(){
     baseDepth:Number($('#editBaseDepth').value||35),
     baseThickness:Number($('#editBaseThickness').value||3),
     nameText:$('#editName').value.trim(),
-    nameSize:Number($('#editNameSize').value||5)
+    nameSize:Number($('#editNameSize').value||5),
+    magnetCount:Number($('#editMagnetCount').value||0),
+    magnetDiameter:Number($('#editMagnetDiameter').value||6),
+    magnetDepth:Number($('#editMagnetDepth').value||2)
   };
 }
 
@@ -149,7 +152,8 @@ function updateEditPreview(){
   $('#editBedCheck').innerHTML='<strong>'+(d.fit?'Fits':'Too large')+'</strong>Neptune 3 Pro';
   $('#editBedCheck').className='check '+(d.fit?'good':'bad');
   const bt=$('#editBaseType').value;
-  $('#editBaseCheck').innerHTML='<strong>'+(bt==='none'?'None':bt[0].toUpperCase()+bt.slice(1))+'</strong>'+(bt==='none'?'No base':$('#editBaseWidth').value+' mm');
+  const mag=Number($('#editMagnetCount').value||0);
+  $('#editBaseCheck').innerHTML='<strong>'+(bt==='none'?'None':bt[0].toUpperCase()+bt.slice(1))+'</strong>'+(bt==='none'?'No base':$('#editBaseWidth').value+' mm'+(mag?' · '+mag+' magnet'+(mag>1?'s':''):''));
   $('#editBaseCheck').className='check '+(bt==='none'?'':'good');
 }
 
@@ -170,7 +174,7 @@ $('#editModel').addEventListener('change',async e=>{
   }
 });
 
-for(const id of ['editScale','editRx','editRy','editRz','editMirror','editBaseType','editBaseWidth','editBaseDepth','editBaseThickness','editName','editNameSize']){
+for(const id of ['editScale','editRx','editRy','editRz','editMirror','editBaseType','editBaseWidth','editBaseDepth','editBaseThickness','editName','editNameSize','editMagnetCount','editMagnetDiameter','editMagnetDepth']){
   $('#'+id).addEventListener('input',updateEditPreview);
   $('#'+id).addEventListener('change',updateEditPreview);
 }
@@ -207,6 +211,7 @@ $('#buildEdit').addEventListener('click',async()=>{
   fd.append('base_type',o.baseType);
   fd.append('base_width',o.baseWidth);fd.append('base_depth',o.baseDepth);fd.append('base_thickness',o.baseThickness);
   fd.append('name_text',o.nameText);fd.append('name_size',o.nameSize);fd.append('name_height',$('#editNameHeight').value);
+  fd.append('magnet_count',o.magnetCount);fd.append('magnet_diameter',o.magnetDiameter);fd.append('magnet_depth',o.magnetDepth);
   fd.append('access_pin',pin.value);
   try{
     const r=await fetch('/edit/build',{method:'POST',body:fd});
