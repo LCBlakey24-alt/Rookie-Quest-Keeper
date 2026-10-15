@@ -165,63 +165,55 @@
 }
 
 
-/* RQK 1.0 loading polish authority */
-#root .loading-screen,
-#root .clean-sheet-loading,
-#root .full-creator-loading,
-#root .loading-screen::before,
-#root .clean-sheet-loading::before,
-#root .loading-screen .loading-spinner,
-#root .loading-brand-mark,
-#root .route-loading-steps li {
-  background-image: none !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
-
+/* Guild Ledger loading authority. */
 #root .loading-screen,
 #root .clean-sheet-loading {
-  background: #071522 !important;
-  color: #FFFFFF !important;
+  background: #0B1B2B !important;
+  background-image: none !important;
+  color: #EADFC8 !important;
 }
 
 #root .loading-screen::before,
 #root .clean-sheet-loading::before,
 #root .full-creator-loading {
-  background: #0C2234 !important;
-  border: 1px solid rgba(255,45,170,.22) !important;
+  background: #1E2936 !important;
+  background-image: none !important;
+  border: 1px solid rgba(201, 169, 107, 0.32) !important;
   border-radius: 7px !important;
+  box-shadow: none !important;
 }
 
 #root .loading-card::before,
 #root .loading-screen .loading-title::after,
 #root .clean-sheet-loading p:first-of-type::after,
 #root .full-creator-loading::after {
-  background: #FF2DAA !important;
+  background: #C9A96B !important;
   background-image: none !important;
 }
 
 #root .loading-screen .loading-spinner {
-  background: #102B40 !important;
-  border: 1px solid #FF2DAA !important;
-  border-radius: 5px !important;
+  background: #101F2D !important;
+  border: 2px solid #C9A96B !important;
+  border-right-color: #6E91B4 !important;
+  border-radius: 50% !important;
 }
 
 #root .loading-screen .loading-spinner::before,
 #root .clean-sheet-loading::after,
 #root .full-creator-loading::before {
-  background: #7CCBFF !important;
+  background: #6E91B4 !important;
   background-image: none !important;
 }
 
 #root .route-loading-steps li {
-  background: #102B40 !important;
-  border: 1px solid rgba(255,45,170,.18) !important;
+  background: #101F2D !important;
+  border: 1px solid rgba(137, 157, 176, 0.18) !important;
   border-radius: 5px !important;
-  color: #FFFFFF !important;
+  color: #EADFC8 !important;
+  animation: none !important;
 }
 
 #root :where(.loading-kicker,.loading-title,.loading-tip,.loading-brand-mark),
 #root .clean-sheet-loading :where(p,span,strong,small) {
-  color: #FFFFFF !important;
+  color: #EADFC8 !important;
 }

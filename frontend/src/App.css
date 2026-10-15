@@ -996,20 +996,22 @@ select option {
 
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: #0B1B2B;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-elevated);
+  background: #334155;
+  border: 2px solid #0B1B2B;
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-red);
+  background: #C9A96B;
 }
 
 /* ===== UTILITIES ===== */

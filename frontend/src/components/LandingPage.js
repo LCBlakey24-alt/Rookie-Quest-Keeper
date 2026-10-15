@@ -194,7 +194,6 @@ export default function LandingPage() {
           onClick={() => navigate('/')}
           aria-label="Rookie Quest Keeper home"
         >
-          <BrandMiniLogo size={42} alt="" />
           <span>
             <BrandMainLogo width={168} alt="Rookie Quest Keeper" />
           </span>
