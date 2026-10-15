@@ -17,6 +17,32 @@ export function createViewer(container){
 
   let modelRoot=null,overlay=null,baseDims=null,isMeshRoot=false;
   let lastTowerPath=null,lastTowerDiagnostics=null,simDice=null,simRun=0,demoMode=false,demoParts=null,demoTray=null;
+  let nativeDims=null,sourceUnitScale=1,sourceUnitMode='auto',previewSimplified=false,finalModel=false,sourceTriangleCount=0;
+  const UNIT_THRESHOLD_MM=12,PREVIEW_FACES=110000;
+  function sourceFactor(){
+    if(!nativeDims)return 1;
+    const h=Math.max(nativeDims.z,1e-8);
+    if(sourceUnitMode==='native')return 1;
+    if(sourceUnitMode==='metres')return 1000;
+    if(sourceUnitMode==='height160')return 160/h;
+    // Only auto-correct suspiciously small dice-tower files; an STL has no unit metadata.
+    if(sourceUnitMode==='auto'&&h<UNIT_THRESHOLD_MM)return 160/h;
+    return 1;
+  }
+  function sourceInfo(){
+    const raw=nativeDims;
+    return {nativeDims:raw?{x:raw.x,y:raw.y,z:raw.z}:null,
+      unitScale:sourceUnitScale,autoRescaled:sourceUnitMode==='auto'&&sourceUnitScale!==1,
+      sampledPreview:previewSimplified,triangleCount:sourceTriangleCount,mode:sourceUnitMode,
+      targetDims:raw?{x:raw.x*sourceUnitScale,y:raw.y*sourceUnitScale,z:raw.z*sourceUnitScale}:null};
+  }
+  function setSourceUnitMode(mode){
+    if(!['auto','native','metres','height160'].includes(mode))throw Error('Unsupported scale interpretation.');
+    sourceUnitMode=mode;
+    sourceUnitScale=finalModel||demoMode?1:sourceFactor();
+    if(nativeDims)fit(new THREE.Vector3(nativeDims.x*sourceUnitScale,nativeDims.y*sourceUnitScale,nativeDims.z*sourceUnitScale));
+    return sourceInfo();
+  }
 
   function resize(){const r=container.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}
   new ResizeObserver(resize).observe(container);
@@ -24,7 +50,10 @@ export function createViewer(container){
   function mat(opacity=.95,color=0xd6dae3){return new THREE.MeshStandardMaterial({color,roughness:.62,metalness:.08,transparent:opacity<1,opacity,side:THREE.DoubleSide})}
 
   function normalize(obj){
-    const box=new THREE.Box3().setFromObject(obj),c=box.getCenter(new THREE.Vector3());
+    // Sampled mobile meshes carry the FULL original bounds, not the sampled triangles'.
+    const bounds=obj.userData?.rqOriginalBounds;
+    const box=bounds?bounds.clone():new THREE.Box3().setFromObject(obj);
+    const c=box.getCenter(new THREE.Vector3());
     isMeshRoot=!!obj.isMesh;
     if(obj.isMesh){
       obj.geometry.translate(-c.x,-c.y,-box.min.z);
@@ -34,7 +63,7 @@ export function createViewer(container){
       obj.position.x-=c.x;obj.position.y-=c.y;obj.position.z-=box.min.z;
     }
     obj.rotation.set(0,0,0);obj.scale.set(1,1,1);obj.updateMatrixWorld(true);
-    baseDims=new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
+    baseDims=box.getSize(new THREE.Vector3());
     return baseDims;
   }
 
@@ -45,27 +74,72 @@ export function createViewer(container){
     camera.far=Math.max(1800,m*8);camera.updateProjectionMatrix();controls.update();
   }
 
+  // Build a mobile-friendly DISPLAY mesh from very dense binary STL data.
+  // Every facet contributes to exact bounds; only some facets are drawn.
+  // The untouched original file goes to the CAD backend. Physics refuses a
+  // simplified mesh rather than mistakenly treating a sampled preview as exact.
+  function sampledBinaryStl(buffer){
+    if(buffer.byteLength<84)return null;
+    const data=new DataView(buffer),count=data.getUint32(80,true);
+    if(!count||84+count*50!==buffer.byteLength)return null;
+    const step=Math.max(1,Math.ceil(count/PREVIEW_FACES)),kept=Math.ceil(count/step);
+    const positions=new Float32Array(kept*9);
+    const mn=[Infinity,Infinity,Infinity],mx=[-Infinity,-Infinity,-Infinity];
+    let written=0;
+    for(let face=0;face<count;face++){
+      const start=84+face*50+12, keep=face%step===0;
+      for(let j=0;j<3;j++){
+        const off=start+j*12;
+        for(let axis=0;axis<3;axis++){
+          const value=data.getFloat32(off+axis*4,true);
+          if(!Number.isFinite(value))throw Error('The STL contains invalid coordinates.');
+          mn[axis]=Math.min(mn[axis],value);mx[axis]=Math.max(mx[axis],value);
+          if(keep)positions[written*9+j*3+axis]=value;
+        }
+      }
+      if(keep)written++;
+    }
+    if(!written||mn.some((v,i)=>!Number.isFinite(v)||mx[i]-v<=0))throw Error('Invalid STL geometry.');
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.BufferAttribute(positions.subarray(0,written*9),3));
+    g.computeVertexNormals();
+    const mesh=new THREE.Mesh(g,mat());
+    mesh.userData.rqOriginalBounds=new THREE.Box3(new THREE.Vector3(...mn),new THREE.Vector3(...mx));
+    mesh.userData.rqPreviewSimplified=step>1;
+    mesh.userData.rqSourceTriangleCount=count;
+    return mesh;
+  }
   async function parse(file){
     const b=await file.arrayBuffer();
     if(file.name.toLowerCase().endsWith('.stl')){
-      const g=new STLLoader().parse(b);g.computeVertexNormals();return new THREE.Mesh(g,mat());
+      if(b.byteLength>13*1024*1024){
+        const sampled=sampledBinaryStl(b);
+        if(sampled)return sampled;
+      }
+      const g=new STLLoader().parse(b);
+      g.computeBoundingBox();
+      const mesh=new THREE.Mesh(g,mat());
+      mesh.userData.rqSourceTriangleCount=Math.floor(g.attributes.position.count/3);
+      return mesh;
     }
     if(file.name.toLowerCase().endsWith('.3mf')){
       const o=new ThreeMFLoader().parse(b);o.traverse(x=>{if(x.isMesh)x.material=mat()});return o;
     }
     throw Error('Preview supports STL and 3MF');
   }
-
   async function showFile(file,design=false){
     simRun++;
     clear(simDice);simDice=null;
     clear(modelRoot);clear(overlay);overlay=null;
-    demoMode=false;demoParts=null;demoTray=null;
+    demoMode=false;demoParts=null;demoTray=null;finalModel=!design;
     modelRoot=await parse(file);scene.add(modelRoot);
     const d=normalize(modelRoot);
-    if(design)modelRoot.traverse(x=>{if(x.isMesh)x.material=mat(.34,0xaebbd0)});
-    fit(d);
-    return {x:d.x,y:d.y,z:d.z};
+    nativeDims=d.clone();previewSimplified=!!modelRoot.userData.rqPreviewSimplified;
+    sourceTriangleCount=modelRoot.userData.rqSourceTriangleCount||0;
+    sourceUnitScale=finalModel?1:sourceFactor();
+    if(design)modelRoot.traverse(x=>{if(x.isMesh)x.material=mat(.58,0xaebbd0)});
+    fit(new THREE.Vector3(d.x*sourceUnitScale,d.y*sourceUnitScale,d.z*sourceUnitScale));
+    return sourceInfo();
   }
 
   // Physical Gothic sample: every wall, sloped ramp and tray piece
@@ -74,7 +148,7 @@ export function createViewer(container){
     simRun++;
     clear(simDice);simDice=null;
     clear(modelRoot);clear(overlay);overlay=null;
-    demoMode=true;
+    demoMode=true;finalModel=false;nativeDims=null;sourceUnitScale=1;previewSimplified=false;sourceTriangleCount=0;
     const group=new THREE.Group();
     function block(parent,x,y,z,w,d,h,color=0x9baabd,rx=0,ry=0,rz=0,alpha=.55){
       const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,d,h),mat(alpha,color));
@@ -234,8 +308,14 @@ export function createViewer(container){
     if(!modelRoot||!baseDims)return null;
     simRun++;
     clear(simDice);simDice=null;
+    if(finalModel){
+      const actualBox=new THREE.Box3().setFromObject(modelRoot);
+      const actual=actualBox.getSize(new THREE.Vector3());
+      return {w:actual.x,d:actual.y,h:actual.z,channel:0,trayW:0,outW:actual.x,outD:actual.y,
+        chuteSafe:false,finalModel:true,minClearance:NaN,minH:0,turns:0,transitionAngle:0};
+    }
     resetTransform();
-    const s=opts.scale/100,rot=opts.rotation;
+    const s=(Number(opts.scale)||100)/100*sourceUnitScale,rot=opts.rotation;
     modelRoot.scale.setScalar(s);modelRoot.rotation.z=THREE.MathUtils.degToRad(rot);modelRoot.updateMatrixWorld(true);
     let box=new THREE.Box3().setFromObject(modelRoot),sz=box.getSize(new THREE.Vector3());
     if(isMeshRoot){modelRoot.position.z-=box.min.z;modelRoot.updateMatrixWorld(true);box=new THREE.Box3().setFromObject(modelRoot);sz=box.getSize(new THREE.Vector3())}
@@ -303,8 +383,10 @@ export function createViewer(container){
   }
 
   async function runDiceSimulation(opts){
-    const dims=preview(opts);
+    const dims=finalModel?{minClearance:NaN}:preview(opts);
     if(!dims||!modelRoot)return {ok:false,message:'Load a model first.'};
+    if(previewSimplified)return {ok:false,physicsUnavailable:true,
+      message:'This large STL is displayed using a reduced-detail preview. Testing collisions against that approximation would be misleading. Build the actual printable STL or use AI Rescue, then test the resulting full-resolution mesh.'};
     const token=++simRun;
     clear(simDice);simDice=null;
     simDice=new THREE.Mesh(
@@ -456,5 +538,5 @@ export function createViewer(container){
 
   function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera)}
   resize();loop();
-  return {showFile,showDemoTower,preview,runDiceSimulation,editPreview,splitPreview,overhangHeatmap,hasModel:()=>!!modelRoot};
+  return {showFile,showDemoTower,preview,runDiceSimulation,editPreview,splitPreview,overhangHeatmap,setSourceUnitMode,sourceInfo,hasModel:()=>!!modelRoot};
 }
