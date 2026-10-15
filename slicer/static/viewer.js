@@ -24,9 +24,13 @@ export function createViewer(container){
     const h=Math.max(nativeDims.z,1e-8);
     if(sourceUnitMode==='native')return 1;
     if(sourceUnitMode==='metres')return 1000;
-    if(sourceUnitMode==='height160')return 160/h;
+    if(sourceUnitMode==='height160')return Math.min(10000,160/h);
     // Only auto-correct suspiciously small dice-tower files; an STL has no unit metadata.
-    if(sourceUnitMode==='auto'&&h<UNIT_THRESHOLD_MM)return 160/h;
+    if(sourceUnitMode==='auto'&&h<UNIT_THRESHOLD_MM){
+      // Allow room for a 70 mm catch tray on the Neptune's 225 mm bed.
+      const printHeight=Math.min(160,145*h/Math.max(nativeDims.y,1e-8),215*h/Math.max(nativeDims.x,1e-8));
+      return Math.min(10000,Math.max(.0001,printHeight/h));
+    }
     return 1;
   }
   function sourceInfo(){
@@ -318,7 +322,17 @@ export function createViewer(container){
     const s=(Number(opts.scale)||100)/100*sourceUnitScale,rot=opts.rotation;
     modelRoot.scale.setScalar(s);modelRoot.rotation.z=THREE.MathUtils.degToRad(rot);modelRoot.updateMatrixWorld(true);
     let box=new THREE.Box3().setFromObject(modelRoot),sz=box.getSize(new THREE.Vector3());
-    if(isMeshRoot){modelRoot.position.z-=box.min.z;modelRoot.updateMatrixWorld(true);box=new THREE.Box3().setFromObject(modelRoot);sz=box.getSize(new THREE.Vector3())}
+    if(isMeshRoot){
+      modelRoot.position.z-=box.min.z;modelRoot.updateMatrixWorld(true);
+      box=new THREE.Box3().setFromObject(modelRoot);sz=box.getSize(new THREE.Vector3());
+      // Drawn triangles were sampled, but bed-fit and chute planning MUST
+      // use the exact original file's min/max extents.
+      if(previewSimplified&&baseDims){
+        const quarter=Math.abs(Number(rot)%180)===90;
+        sz.set((quarter?baseDims.y:baseDims.x)*s,
+          (quarter?baseDims.x:baseDims.y)*s,baseDims.z*s);
+      }
+    }
     const w=demoMode?108*s:sz.x,d=demoMode?108*s:sz.y,h=demoMode?174*s:sz.z;
     if(demoMode)configureDemoChute(opts.chuteStyle,opts.tray,opts.trayX,opts.dice,opts.chuteX,opts.chuteY);
     clear(overlay);overlay=new THREE.Group();
