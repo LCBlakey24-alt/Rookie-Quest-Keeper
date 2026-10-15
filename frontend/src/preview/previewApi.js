@@ -84,6 +84,19 @@ export function createPreviewApi(
     if (method === 'get' && path === '/admin/check') return { is_admin: false };
     if (method === 'get' && path === '/health') return { status: 'local-preview' };
     if (method === 'get' && path === '/site-settings') return { campaign_creation_enabled: true, character_creation_enabled: true, uploads_enabled: false, rook_text_enabled: false, feedback_enabled: false };
+    // The desktop Campaigns library uses the same compact route as the web app.
+    // Derive local membership counts rather than requesting the cloud database.
+    if (method === 'get' && path === '/library/campaigns') {
+      return state.campaigns.map(campaign => {
+        const linked = party(campaign.id).filter(character => character.campaign_join_status !== 'removed');
+        return {
+          ...campaign,
+          player_count: linked.length,
+          linked_character_count: linked.length,
+          pending_approval_count: linked.filter(character => character.campaign_join_status === 'pending').length,
+        };
+      });
+    }
     if (method === 'get' && path === '/dashboard/bootstrap') return {
       characters: state.characters,
       campaigns: state.campaigns,
@@ -164,6 +177,21 @@ export function createPreviewApi(
     if (parts[0] === 'campaigns' && parts.length >= 3) {
       const [, campaignId, resource, id, action] = parts;
       const campaign = findCampaign(campaignId);
+      // Opening the GM's campaign Home must also work with the network off.
+      // Keep this read-only: loading the dashboard should not rewrite the workspace.
+      if (method === 'get' && resource === 'home-bootstrap' && !id) {
+        const collections = state.collections[campaignId] || {};
+        return {
+          campaign,
+          quests: collections.quests || [],
+          arcs: collections['story-arcs'] || [],
+          npcs: collections.npcs || [],
+          locations: collections.locations || [],
+          notes: collections['ingame-notes'] || [],
+          calendar: state.objects[`${campaignId}/calendar`] || null,
+          events: collections['calendar-events'] || [],
+        };
+      }
       if (method === 'get' && ['players', 'live-party'].includes(resource) && !id) return party(campaignId).map(character => ({
         ...character, character_id: character.id, character_name: character.name, source: 'character',
         current_hp: character.current_hit_points, max_hp: character.max_hit_points, hp: character.current_hit_points,
