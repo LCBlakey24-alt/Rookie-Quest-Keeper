@@ -187,6 +187,7 @@ async def recommend_dice_tower(
     tray_depth_mm: float = 70.0,
     tray_front: str = "auto",
     tray_x_mm: float | None = None,
+    chute_style: str = "zigzag",
 ) -> dict:
     """Calculate a suggested tray-facing side and chute position from STL geometry."""
     try:
@@ -200,6 +201,7 @@ async def recommend_dice_tower(
                     "tray_depth": tray_depth_mm,
                     "front_rotation": tray_front,
                     "tray_x_mm": "auto" if tray_x_mm is None else tray_x_mm,
+                    "chute_style": chute_style,
                     "access_pin": CORE_PIN,
                 },
             )
@@ -218,6 +220,7 @@ async def build_dice_tower(
     scale_percent: int = 100,
     smart_place_chute: bool = True,
     tray_x_mm: float | None = None,
+    chute_style: str = "zigzag",
 ) -> dict:
     """Build a dice-tower STL from an uploaded STL and return a new temporary asset/download link."""
     try:
@@ -231,7 +234,7 @@ async def build_dice_tower(
         tray_x = 0.0 if tray_x_mm is None else float(tray_x_mm)
         suggestion = None
         if smart_place_chute:
-            suggestion = await recommend_dice_tower(asset_id, scale_percent, dice_mm, tray_depth_mm, tray_front, tray_x_mm)
+            suggestion = await recommend_dice_tower(asset_id, scale_percent, dice_mm, tray_depth_mm, tray_front, tray_x_mm, chute_style)
             if "error" in suggestion:
                 return suggestion
             rec = suggestion["recommendation"]
@@ -254,6 +257,7 @@ async def build_dice_tower(
                     "tray_x_mm": tray_x,
                     "chute_x_mm": chute_x,
                     "chute_y_mm": chute_y,
+                    "chute_style": chute_style,
                     "access_pin": CORE_PIN,
                 },
                 files={"model": (filename, source, "model/stl")},
@@ -274,6 +278,8 @@ async def build_dice_tower(
             "tray_x_mm": r.headers.get("X-RQ-Tray-X"),
             "tray_width_mm": r.headers.get("X-RQ-Tray-Width"),
             "transition_angle_deg": r.headers.get("X-RQ-Transition-Angle"),
+            "chute_style": r.headers.get("X-RQ-Chute-Style") or chute_style,
+            "spiral_turns": r.headers.get("X-RQ-Spiral-Turns"),
             "smart_suggestion": suggestion,
             "warning": "Rotate and inspect the generated STL before its first physical print.",
         }
@@ -289,6 +295,7 @@ async def rescue_ai_dice_tower(
     tray_mode: str = "auto",
     tray_depth_mm: float = 70.0,
     rotation_z: int = 0,
+    chute_style: str = "zigzag",
 ) -> dict:
     """Convert a solid/high-poly AI or Meshy STL into a functional dice tower using low-memory voxel repair and carving."""
     try:
@@ -305,6 +312,7 @@ async def rescue_ai_dice_tower(
                     "tray_depth": tray_depth_mm,
                     "tray_mode": tray_mode,
                     "rotation_z": rotation_z,
+                    "chute_style": chute_style,
                     "access_pin": CORE_PIN,
                 },
                 files={"model": (filename, source, "model/stl")},
@@ -324,6 +332,8 @@ async def rescue_ai_dice_tower(
             "existing_tray_detected": r.headers.get("X-RQ-Existing-Tray"),
             "channel_mm": r.headers.get("X-RQ-Channel"),
             "baffles": r.headers.get("X-RQ-Baffles"),
+            "chute_style": r.headers.get("X-RQ-Chute-Style") or chute_style,
+            "spiral_turns": r.headers.get("X-RQ-Spiral-Turns"),
             "watertight": r.headers.get("X-RQ-Watertight"),
             "warning": "This is an automatically rebuilt functional mesh. Rotate the result and inspect the dice path before its first physical print.",
         }
