@@ -111,7 +111,7 @@ export function createViewer(container){
     return {x:108,y:108,z:174};
   }
 
-  function configureDemoChute(style,trayDepth,trayX,dice){
+  function configureDemoChute(style,trayDepth,trayX,dice,chuteX=0,chuteY=0){
     if(!demoMode||!demoParts||!demoTray)return;
     for(const group of [demoParts,demoTray]){
       for(const child of [...group.children]){
@@ -150,6 +150,7 @@ export function createViewer(container){
         solid(demoParts,x*.38,y*.38,z+7,4,16,16,0xb6cbdd,0,0,a);
       }
     }
+    demoParts.position.set(Number(chuteX)||0,Number(chuteY)||0,0);
     modelRoot.updateMatrixWorld(true);
   }
 
@@ -237,7 +238,7 @@ export function createViewer(container){
     let box=new THREE.Box3().setFromObject(modelRoot),sz=box.getSize(new THREE.Vector3());
     if(isMeshRoot){modelRoot.position.z-=box.min.z;modelRoot.updateMatrixWorld(true);box=new THREE.Box3().setFromObject(modelRoot);sz=box.getSize(new THREE.Vector3())}
     const w=demoMode?108*s:sz.x,d=demoMode?108*s:sz.y,h=demoMode?174*s:sz.z;
-    if(demoMode)configureDemoChute(opts.chuteStyle,opts.tray,opts.trayX,opts.dice);
+    if(demoMode)configureDemoChute(opts.chuteStyle,opts.tray,opts.trayX,opts.dice,opts.chuteX,opts.chuteY);
     clear(overlay);overlay=new THREE.Group();
 
     const spec=towerPathSpec(opts,w,d,h);
