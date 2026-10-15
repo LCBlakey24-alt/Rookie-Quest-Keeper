@@ -586,7 +586,7 @@ $('#rescueTower').addEventListener('click',async()=>{
     generatedBlob=await r.blob();
     generatedName=f.name.replace(/\.stl$/i,'')+'_AI_Rescued_Dice_Tower.stl';
     await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
-    towerUnitScale=1;towerHasFinal=true;towerPreviewReduced=!!viewer.sourceInfo?.().sampledPreview;
+    towerHasFinal=true;towerPreviewReduced=!!viewer.sourceInfo?.().sampledPreview;
     $('#towerUnits').value='native';
     $('#towerUnitsNote').className='support-note safe';
     $('#towerUnitsNote').innerHTML='<strong>Generated STL uses millimetres</strong><span>The visible mesh is the exported geometry. Its chute must be checked against the printed result.</span>';
@@ -630,7 +630,7 @@ $('#buildTower').addEventListener('click',async()=>{
     generatedBlob=await r.blob();
     generatedName=f.name.replace(/\.stl$/i,'')+'_Dice_Tower.stl';
     await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
-    towerUnitScale=1;towerHasFinal=true;towerPreviewReduced=!!viewer.sourceInfo?.().sampledPreview;
+    towerHasFinal=true;towerPreviewReduced=!!viewer.sourceInfo?.().sampledPreview;
     $('#towerUnits').value='native';
     $('#towerUnitsNote').className='support-note safe';
     $('#towerUnitsNote').innerHTML='<strong>Generated STL uses millimetres</strong><span>The visible mesh is the exported geometry. Its chute must be checked against the printed result.</span>';
