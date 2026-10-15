@@ -2,7 +2,7 @@
 // Physics supplied by cannon-es 0.20.0 (MIT). No scripted guide-path motion.
 let cannonPromise;
 async function engine(){
-  cannonPromise ||= import('https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm');
+  cannonPromise ||= import('https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm').catch(error=>{cannonPromise=null;throw error;});
   return cannonPromise;
 }
 function D20(THREE,CANNON,diameter){
@@ -85,15 +85,15 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,style='zi
   }
   const body=new CANNON.Body({
     mass:25,
-    position:new CANNON.Vec3(start.x,start.y,start.z),
+    position:new CANNON.Vec3(start.x+(Math.random()-.5)*3,start.y+(Math.random()-.5)*3,start.z),
     linearDamping:.025,angularDamping:.15,
     allowSleep:true,sleepSpeedLimit:2,sleepTimeLimit:1.1
   });
   body.addShape(D20(THREE,CANNON,diameter));
   // Repeatability matters: the test has a modest starting tilt and spin,
   // not a random track-snap or a forced direction towards the tray.
-  body.quaternion.setFromEuler(.31,.17,.26);
-  body.angularVelocity.set(3.2,-1.8,2.4);
+  body.quaternion.setFromEuler(.24+Math.random()*.22,.12+Math.random()*.21,.16+Math.random()*.25);
+  body.angularVelocity.set(2.1+Math.random()*2.5,-3.3+Math.random()*2.2,1.6+Math.random()*2.5);
   world.addBody(body);
   let contacts=0,worldTime=0,last=performance.now(),acc=0,reach=false,previous=null;
   const tracePoints=[],limit=3.7;
@@ -105,11 +105,11 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,style='zi
       if(aborted()){resolve({ok:false,cancelled:true,message:'Test cancelled.'});return;}
       const elapsed=Math.min(.04,(t-last)/1000);last=t;
       // Render in quarter-speed slow motion, but integrate actual gravity
-      // with a fixed 1/240 s time step for reliable contact calculations.
+      // with a fixed 1/360 s time step for reliable contact calculations.
       acc+=elapsed*.25;
       let sub=0;
-      while(acc>=1/240&&sub<10&&worldTime<limit){
-        world.step(1/240);worldTime+=1/240;acc-=1/240;sub++;
+      while(acc>=1/360&&sub<16&&worldTime<limit){
+        world.step(1/360);worldTime+=1/360;acc-=1/360;sub++;
       }
       const position=new THREE.Vector3(body.position.x,body.position.y,body.position.z);
       if(![position.x,position.y,position.z].every(Number.isFinite)){
