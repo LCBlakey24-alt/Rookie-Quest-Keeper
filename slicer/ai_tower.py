@@ -156,23 +156,30 @@ def _occupied_geometry(solid):
     }
 
 
-def _adaptive_channel(geom, dice_mm, voxel_mm=1.0):
+def _adaptive_channel(geom, dice_mm, voxel_mm=1.0, chute_style="zigzag"):
     dice_mm = float(dice_mm)
-    # This was calibrated against a real Meshy-style gothic tower. The older
-    # square 2.3×dice shaft was unnecessarily destructive on narrow façades.
-    target_w = max(36.0, dice_mm * 1.90)
-    target_d = max(34.0, dice_mm * 1.65)
-
-    # Conservative available envelope from overall mid-height body dimensions.
+    chute_style = (chute_style or "zigzag").lower()
     safe_w = max(0.0, geom["width"] * voxel_mm - 12.0)
     safe_d = max(0.0, geom["depth"] * voxel_mm - 12.0)
+
+    if chute_style == "spiral":
+        tube_d = max(34.0, dice_mm * 1.55)
+        helix_r = max(6.0, dice_mm * 0.42)
+        target_w = 2.0 * (tube_d / 2.0 + helix_r) + 8.0
+        target_d = target_w
+        if safe_w < target_w or safe_d < target_d:
+            raise ValueError("This AI model is too narrow for a spiral chute at the selected dice size. Try Zig-Zag or Straight.")
+    elif chute_style == "straight":
+        target_w = max(36.0, dice_mm * 1.75)
+        target_d = max(34.0, dice_mm * 1.60)
+    else:
+        target_w = max(36.0, dice_mm * 1.90)
+        target_d = max(34.0, dice_mm * 1.65)
 
     if safe_w < dice_mm * 1.5 or safe_d < dice_mm * 1.45:
         raise ValueError("Model is too narrow for a safe dice passage at this dice size")
 
-    channel_w = min(target_w, safe_w)
-    channel_d = min(target_d, safe_d)
-    return float(channel_w), float(channel_d)
+    return float(min(target_w, safe_w)), float(min(target_d, safe_d))
 
 
 def _add_wedge(solid, zbase, chx, chy, halfw, halfd, zmin, left=True):
@@ -237,6 +244,84 @@ def _add_new_tray(solid, geom, channel_w, tray_depth_mm, tray_x_mm, voxel_mm):
     return solid, _occupied_geometry(solid)
 
 
+def _ball_offsets(radius):
+    r = max(1, int(radius))
+    zz, yy, xx = np.mgrid[-r:r+1, -r:r+1, -r:r+1]
+    mask = (xx * xx + yy * yy + zz * zz) <= r * r
+    return np.stack([zz[mask], yy[mask], xx[mask]], axis=1).astype(np.int16)
+
+
+def _carve_ball(solid, x, y, z, offsets):
+    pts = offsets.astype(np.int32).copy()
+    pts[:, 0] += int(round(z))
+    pts[:, 1] += int(round(y))
+    pts[:, 2] += int(round(x))
+    ok = (
+        (pts[:, 0] >= 0) & (pts[:, 0] < solid.shape[0])
+        & (pts[:, 1] >= 0) & (pts[:, 1] < solid.shape[1])
+        & (pts[:, 2] >= 0) & (pts[:, 2] < solid.shape[2])
+    )
+    pts = pts[ok]
+    solid[pts[:, 0], pts[:, 1], pts[:, 2]] = False
+
+
+def _carve_segment(solid, p1, p2, radius, offsets):
+    p1 = np.asarray(p1, dtype=np.float32)
+    p2 = np.asarray(p2, dtype=np.float32)
+    dist = float(np.linalg.norm(p2 - p1))
+    steps = max(2, int(math.ceil(dist / max(1.0, radius * 0.65))))
+    for t in np.linspace(0.0, 1.0, steps):
+        p = p1 + (p2 - p1) * float(t)
+        _carve_ball(solid, p[0], p[1], p[2], offsets)
+
+
+def _carve_spiral_tunnel(solid, geom, dice_mm, chx, chy, z_exit, target_x, end_y):
+    tube_r = int(round(max(17.0, float(dice_mm) * 0.775)))
+    margin_r = min(
+        chx - geom["xmin"],
+        geom["xmax"] - chx,
+        chy - geom["ymin"],
+        geom["ymax"] - chy,
+    ) - tube_r - 5
+    helix_r = int(math.floor(min(max(6.0, float(dice_mm) * 0.42), margin_r)))
+    if helix_r < 4:
+        raise ValueError("Not enough wall thickness for a spiral tunnel. Try Zig-Zag or Straight.")
+
+    z_top = geom["zmax"] - tube_r - 5
+    z_bottom = z_exit + tube_r + 7
+    drop = z_top - z_bottom
+    min_pitch = 2 * tube_r + 6
+    turns = min(3.0, drop / max(1.0, min_pitch))
+    if turns < 1.25:
+        raise ValueError("This model is too short for a useful spiral. Try Zig-Zag or Straight.")
+
+    offsets = _ball_offsets(tube_r)
+    segments = max(44, int(math.ceil(turns * 32)))
+    end_angle = -math.pi / 2.0
+    start_angle = end_angle - 2.0 * math.pi * turns
+    points = []
+    for i in range(segments + 1):
+        t = i / segments
+        a = start_angle + (end_angle - start_angle) * t
+        points.append((
+            chx + helix_r * math.cos(a),
+            chy + helix_r * math.sin(a),
+            z_top - drop * t,
+        ))
+
+    _carve_segment(solid, (chx, chy, geom["zmax"] + 2), points[0], tube_r, offsets)
+    for p1, p2 in zip(points[:-1], points[1:]):
+        _carve_segment(solid, p1, p2, tube_r, offsets)
+    _carve_segment(
+        solid,
+        points[-1],
+        (target_x, end_y, geom["zmin"] + tube_r + 2),
+        tube_r,
+        offsets,
+    )
+    return float(turns), float(tube_r * 2), float(helix_r)
+
+
 def convert_ai_solid_to_tower(
     source: Path,
     output: Path,
@@ -245,6 +330,7 @@ def convert_ai_solid_to_tower(
     tray_depth_mm=70.0,
     tray_mode="auto",
     rotation_z=0,
+    chute_style="zigzag",
 ):
     from scipy import ndimage
     from skimage import measure
@@ -257,6 +343,9 @@ def convert_ai_solid_to_tower(
         raise ValueError("Tray mode must be auto, reuse or add")
     if int(rotation_z) not in {0, 90, 180, 270}:
         raise ValueError("Rotation must be 0, 90, 180 or 270 degrees")
+    chute_style = (chute_style or "zigzag").strip().lower()
+    if chute_style not in {"straight","zigzag","spiral"}:
+        raise ValueError("Chute style must be straight, zigzag or spiral")
 
     solid, meta = _stream_solid_grid(source, target_height_mm, voxel_mm=1.0)
 
@@ -266,7 +355,7 @@ def convert_ai_solid_to_tower(
         solid = np.rot90(solid, k=k, axes=(1, 2)).copy()
 
     geom = _occupied_geometry(solid)
-    channel_w, channel_d = _adaptive_channel(geom, dice_mm, 1.0)
+    channel_w, channel_d = _adaptive_channel(geom, dice_mm, 1.0, chute_style)
     existing_detected = bool(geom["existing_tray"])
     reuse = existing_detected if tray_mode == "auto" else tray_mode == "reuse"
 
@@ -291,14 +380,11 @@ def convert_ai_solid_to_tower(
     exit_h = max(30.0, float(dice_mm) + 10.0)
     z_exit = zmin + int(round(exit_h))
 
-    # Main vertical shaft.
-    solid[
-        z_exit:min(solid.shape[0], zmax + 2),
-        max(0, chy - halfd):min(solid.shape[1], chy + halfd + 1),
-        max(0, chx - halfw):min(solid.shape[2], chx + halfw + 1),
-    ] = False
+    spiral_turns = 0.0
+    spiral_tube_d = 0.0
+    spiral_radius = 0.0
 
-    # Transition to the model/front tray. Keep x centred for auto mode.
+    # The front transition target is shared by all three styles.
     start_y = chy - halfd + 3
     end_y = (
         max(1, ymin - 1)
@@ -309,34 +395,51 @@ def convert_ai_solid_to_tower(
     steps = max(2, abs(start_y - end_y) + 1)
     floor_hw = max(2, halfw - 3)
 
-    for t in np.linspace(0.0, 1.0, steps):
-        y = int(round(start_y + (end_y - start_y) * t))
-        x = int(round(chx + (target_x - chx) * t))
-        y0, y1 = max(0, y - 2), min(solid.shape[1], y + 3)
-        x0, x1 = max(0, x - halfw), min(solid.shape[2], x + halfw + 1)
-        solid[zmin:z_exit + 1, y0:y1, x0:x1] = False
+    if chute_style == "spiral":
+        spiral_turns, spiral_tube_d, spiral_radius = _carve_spiral_tunnel(
+            solid, geom, dice_mm, chx, chy, z_exit, target_x, end_y
+        )
+        positions = []
+    else:
+        # Straight and Zig-Zag share the same open shaft and support-free exit.
+        solid[
+            z_exit:min(solid.shape[0], zmax + 2),
+            max(0, chy - halfd):min(solid.shape[1], chy + halfd + 1),
+            max(0, chx - halfw):min(solid.shape[2], chx + halfw + 1),
+        ] = False
 
-    # Rebuild a shallow support-free floor through the exit.
-    for t in np.linspace(0.0, 1.0, steps):
-        y = int(round(start_y + (end_y - start_y) * t))
-        x = int(round(chx + (target_x - chx) * t))
-        top = int(round(zmin + 5 - (2.5 * t)))
-        y0, y1 = max(0, y - 2), min(solid.shape[1], y + 3)
-        x0, x1 = max(0, x - floor_hw), min(solid.shape[2], x + floor_hw + 1)
-        solid[zmin:top + 1, y0:y1, x0:x1] = True
+        for t in np.linspace(0.0, 1.0, steps):
+            y = int(round(start_y + (end_y - start_y) * t))
+            x = int(round(chx + (target_x - chx) * t))
+            y0, y1 = max(0, y - 2), min(solid.shape[1], y + 3)
+            x0, x1 = max(0, x - halfw), min(solid.shape[2], x + halfw + 1)
+            solid[zmin:z_exit + 1, y0:y1, x0:x1] = False
 
-    # Baffles: require two, add more only on taller models.
-    usable_h = zmax - zmin + 1
-    positions = []
-    z = usable_h - 48
-    while z > exit_h + 38 and len(positions) < 4:
-        positions.append(float(z))
-        z -= 36
-    if len(positions) < 2:
-        raise ValueError("Prepared model is not tall enough for two useful baffles")
+        for t in np.linspace(0.0, 1.0, steps):
+            y = int(round(start_y + (end_y - start_y) * t))
+            x = int(round(chx + (target_x - chx) * t))
+            top = int(round(zmin + 5 - (2.5 * t)))
+            y0, y1 = max(0, y - 2), min(solid.shape[1], y + 3)
+            x0, x1 = max(0, x - floor_hw), min(solid.shape[2], x + floor_hw + 1)
+            solid[zmin:top + 1, y0:y1, x0:x1] = True
 
-    for i, zpos in enumerate(positions):
-        _add_wedge(solid, zpos, chx, chy, halfw, halfd, zmin, left=(i % 2 == 0))
+        positions = []
+        if chute_style == "zigzag":
+            usable_h = zmax - zmin + 1
+            low = exit_h + 30.0
+            high = usable_h - 30.0
+            if high <= low + 12.0:
+                raise ValueError("Prepared model is not tall enough for two useful zig-zag platforms")
+            count = max(2, min(4, 1 + int((high - low) // 34.0)))
+            positions = [
+                high - i * (high - low) / (count - 1)
+                for i in range(count)
+            ]
+            for i, zpos in enumerate(positions):
+                _add_wedge(
+                    solid, zpos, chx, chy, halfw, halfd, zmin,
+                    left=(i % 2 == 0),
+                )
 
     # Remove tiny disconnected voxel islands before meshing.
     structure = ndimage.generate_binary_structure(3, 1)
@@ -378,7 +481,11 @@ def convert_ai_solid_to_tower(
         "front_extension_mm": round(float(geom["front_extension"]), 1),
         "channel_width_mm": round(channel_w, 1),
         "channel_depth_mm": round(channel_d, 1),
+        "chute_style": chute_style,
         "baffles": int(len(positions)),
+        "spiral_turns": round(float(spiral_turns), 2),
+        "spiral_tube_diameter_mm": round(float(spiral_tube_d), 1),
+        "spiral_radius_mm": round(float(spiral_radius), 1),
         "removed_voxel_components": removed_components,
     })
     return meta
