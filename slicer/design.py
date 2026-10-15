@@ -95,7 +95,67 @@ union() {
             return {"ok": False, "error": (result.stderr or result.stdout or "OpenSCAD failed")[-400:]}
         mesh = trimesh.load(output, force="mesh", process=True)
         extents = [round(float(v), 1) for v in mesh.extents]
-        return {"ok": not mesh.is_empty, "faces": int(len(mesh.faces)), "dimensions_mm": extents}
+        zigzag_ok = not mesh.is_empty
+
+        spiral_script = work / "spiral_test.scad"
+        spiral_output = work / "spiral_test.stl"
+        turns = 1.6
+        radius = 10.0
+        tube_r = 17.0
+        top = 128.0
+        bottom = 44.0
+        segments = 34
+        points = []
+        end_angle = -math.pi / 2.0
+        start_angle = end_angle - 2.0 * math.pi * turns
+        for i in range(segments + 1):
+            t = i / segments
+            a = start_angle + (end_angle - start_angle) * t
+            points.append((
+                radius * math.cos(a),
+                radius * math.sin(a),
+                top - (top - bottom) * t,
+            ))
+        calls = []
+        for p1, p2 in zip(points[:-1], points[1:]):
+            calls.append(
+                f"capsule([{p1[0]:.3f},{p1[1]:.3f},{p1[2]:.3f}],"
+                f"[{p2[0]:.3f},{p2[1]:.3f},{p2[2]:.3f}],{tube_r:.3f});"
+            )
+        spiral_script.write_text(
+            "$fn=18;\n"
+            "module capsule(p1,p2,r){ hull(){ translate(p1) sphere(r=r); translate(p2) sphere(r=r); } }\n"
+            "difference(){ translate([0,0,75]) cube([90,90,150],center=true); union(){\n"
+            + "\n".join(calls)
+            + "\n} }\n",
+            encoding="utf-8",
+        )
+        spiral_result = subprocess.run(
+            [cad, "-q", "-o", str(spiral_output), str(spiral_script)],
+            cwd=work,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+        spiral_ok = (
+            spiral_result.returncode == 0
+            and spiral_output.exists()
+            and spiral_output.stat().st_size > 100
+        )
+        spiral_faces = 0
+        if spiral_ok:
+            spiral_mesh = trimesh.load(spiral_output, force="mesh", process=True)
+            spiral_ok = not spiral_mesh.is_empty
+            spiral_faces = int(len(spiral_mesh.faces))
+
+        return {
+            "ok": bool(zigzag_ok and spiral_ok),
+            "faces": int(len(mesh.faces)),
+            "dimensions_mm": extents,
+            "spiral_ok": bool(spiral_ok),
+            "spiral_faces": spiral_faces,
+        }
     except Exception as exc:
         return {"ok": False, "error": type(exc).__name__}
     finally:
