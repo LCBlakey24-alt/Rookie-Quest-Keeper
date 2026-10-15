@@ -18,7 +18,7 @@ from geometry_ai import geometry_selftest
 from ai_tower import ai_tower_selftest
 
 ROOT = Path(__file__).parent
-app = FastAPI(title="Rookie Quest Slicer", version="0.14.0")
+app = FastAPI(title="Rookie Quest Slicer", version="0.15.0")
 app.include_router(design_router)
 app.include_router(doctor_router)
 app.include_router(editor_router)
