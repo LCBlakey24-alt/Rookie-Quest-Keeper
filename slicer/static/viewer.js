@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
+import { dropD20 } from './physics.js';
 
 export function createViewer(container){
   const scene=new THREE.Scene();
@@ -15,7 +16,7 @@ export function createViewer(container){
   const bed=new THREE.Mesh(new THREE.BoxGeometry(225,225,1),new THREE.MeshStandardMaterial({color:0x111722,roughness:.9,metalness:.05,transparent:true,opacity:.45}));bed.position.z=-.6;scene.add(bed);
 
   let modelRoot=null,overlay=null,baseDims=null,isMeshRoot=false;
-  let lastTowerPath=null,lastTowerDiagnostics=null,simDice=null,simRun=0;
+  let lastTowerPath=null,lastTowerDiagnostics=null,simDice=null,simRun=0,demoMode=false,demoParts=null,demoTray=null;
 
   function resize(){const r=container.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}
   new ResizeObserver(resize).observe(container);
@@ -59,6 +60,7 @@ export function createViewer(container){
     simRun++;
     clear(simDice);simDice=null;
     clear(modelRoot);clear(overlay);overlay=null;
+    demoMode=false;demoParts=null;demoTray=null;
     modelRoot=await parse(file);scene.add(modelRoot);
     const d=normalize(modelRoot);
     if(design)modelRoot.traverse(x=>{if(x.isMesh)x.material=mat(.34,0xaebbd0)});
@@ -66,41 +68,89 @@ export function createViewer(container){
     return {x:d.x,y:d.y,z:d.z};
   }
 
-  // Built-in sample: enough real 3D geometry to explore the tower without an upload.
-  // It is a preview shell, not a pre-cut/printable final STL.
+  // Physical Gothic sample: every wall, sloped ramp and tray piece
+  // is a box mesh used unchanged as a rigid-body collision surface.
   function showDemoTower(){
     simRun++;
     clear(simDice);simDice=null;
     clear(modelRoot);clear(overlay);overlay=null;
+    demoMode=true;
     const group=new THREE.Group();
-    function block(x,y,z,w,d,h,color=0x9baabd){
-      const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,d,h),mat(.39,color));
-      mesh.position.set(x,y,z);group.add(mesh);
+    function block(parent,x,y,z,w,d,h,color=0x9baabd,rx=0,ry=0,rz=0,alpha=.55){
+      const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,d,h),mat(alpha,color));
+      mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);
+      mesh.userData.rqCollider=true;
+      parent.add(mesh);
+      return mesh;
     }
-    // Open central cavity, deliberate front exit gap and top crenellations.
-    block(-52,0,78,9,102,148);
-    block(52,0,78,9,102,148);
-    block(0,47,78,108,8,148);
-    block(-39,-47,85,24,8,134);
-    block(39,-47,85,24,8,134);
-    block(0,-47,121,54,8,66);
-    block(0,0,7,114,110,12,0x647f9e);
+    // Open top with central void; the front has a 54 mm wide exit.
+    block(group,-52,0,78,9,102,148);
+    block(group,52,0,78,9,102,148);
+    block(group,0,47,78,108,8,148);
+    block(group,-39,-47,79,24,8,146);
+    block(group,39,-47,79,24,8,146);
+    block(group,0,-47,119,54,8,66);
+    block(group,0,0,4,107,105,8,0x647f9e);
     for(const z of [56,135]){
-      block(0,48,z,117,12,5,0x758da4);
-      block(-53,0,z,5,111,5,0x758da4);
-      block(53,0,z,5,111,5,0x758da4);
+      block(group,-53,0,z,5,111,5,0x758da4);
+      block(group,53,0,z,5,111,5,0x758da4);
     }
-    for(const x of [-49,-24,0,24,49]){
-      for(const y of [-48,48])block(x,y,164,15,12,18,0x7894ae);
+    for(const x of [-48,-24,0,24,48]){
+      for(const y of [-48,48])block(group,x,y,164,16,13,18,0x7894ae);
     }
     for(const x of [-53,53]){
-      for(const y of [-26,0,26])block(x,y,164,12,16,18,0x7894ae);
+      for(const y of [-24,0,24])block(group,x,y,164,13,16,18,0x7894ae);
     }
-    modelRoot=group;
-    scene.add(modelRoot);
-    const dims=normalize(modelRoot);
-    fit(dims);
-    return {x:dims.x,y:dims.y,z:dims.z};
+    demoParts=new THREE.Group();group.add(demoParts);
+    demoTray=new THREE.Group();group.add(demoTray);
+    modelRoot=group;scene.add(modelRoot);isMeshRoot=false;
+    baseDims=new THREE.Vector3(108,108,174);
+    // Geometry extends further in front for the tray; do not normalize
+    // that footprint or the physical entrance would move away from the shaft.
+    fit(new THREE.Vector3(148,232,174));
+    return {x:108,y:108,z:174};
+  }
+
+  function configureDemoChute(style,trayDepth,trayX,dice){
+    if(!demoMode||!demoParts||!demoTray)return;
+    for(const group of [demoParts,demoTray]){
+      for(const child of [...group.children]){
+        group.remove(child);child.geometry?.dispose?.();child.material?.dispose?.();
+      }
+    }
+    function solid(parent,x,y,z,w,d,h,color,rx=0,ry=0,rz=0){
+      const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,d,h),mat(.83,color));
+      mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);
+      mesh.userData.rqCollider=true;parent.add(mesh);return mesh;
+    }
+    // A real ramp spans the base of the tower and slopes out of the exit.
+    solid(demoParts,0,-18,26,66,101,4,0xffc878,.34);
+    const d=Math.max(50,Math.min(100,Number(trayDepth)||70));
+    const x=Number(trayX)||0,ty=-54-d/2;
+    solid(demoTray,x,ty,4,118,d,7,0x779fbe);
+    solid(demoTray,x-57,ty,16,5,d,23,0x779fbe);
+    solid(demoTray,x+57,ty,16,5,d,23,0x779fbe);
+    solid(demoTray,x,-54-d,16,118,5,23,0x779fbe);
+    if(style==='zigzag'){
+      // Alternating broad, tilted ledges leave opposing free gaps of ~36 mm.
+      // The die has to bounce, roll and fall under gravity: no scripted route.
+      solid(demoParts,-21,0,132,66,78,5,0xf9b85c,0,.22);
+      solid(demoParts,21,0,96,66,78,5,0xf9b85c,0,-.22);
+      solid(demoParts,-21,0,61,66,78,5,0xf9b85c,0,.22);
+    }else if(style==='spiral'){
+      // Overlapping physical helical ramp segments with side guard rails.
+      // If the die falls through a gap or jams, that is a genuine failed run.
+      const turns=2.1,segments=48,radius=24,top=150,drop=113;
+      const tilt=-Math.atan(drop/(Math.PI*2*turns*radius));
+      for(let i=0;i<segments;i++){
+        const t=(i+.5)/segments,a=t*turns*Math.PI*2-Math.PI/2;
+        const x=radius*Math.cos(a),y=radius*Math.sin(a),z=top-drop*t;
+        solid(demoParts,x,y,z,35,16,3,0xe4b96c,tilt,0,a);
+        solid(demoParts,x*1.69,y*1.69,z+9,4,18,21,0xb6cbdd,0,0,a);
+        solid(demoParts,x*.38,y*.38,z+7,4,16,16,0xb6cbdd,0,0,a);
+      }
+    }
+    modelRoot.updateMatrixWorld(true);
   }
 
   function resetTransform(){
@@ -186,7 +236,8 @@ export function createViewer(container){
     modelRoot.scale.setScalar(s);modelRoot.rotation.z=THREE.MathUtils.degToRad(rot);modelRoot.updateMatrixWorld(true);
     let box=new THREE.Box3().setFromObject(modelRoot),sz=box.getSize(new THREE.Vector3());
     if(isMeshRoot){modelRoot.position.z-=box.min.z;modelRoot.updateMatrixWorld(true);box=new THREE.Box3().setFromObject(modelRoot);sz=box.getSize(new THREE.Vector3())}
-    const w=sz.x,d=sz.y,h=sz.z;
+    const w=demoMode?108*s:sz.x,d=demoMode?108*s:sz.y,h=demoMode?174*s:sz.z;
+    if(demoMode)configureDemoChute(opts.chuteStyle,opts.tray,opts.trayX,opts.dice);
     clear(overlay);overlay=new THREE.Group();
 
     const spec=towerPathSpec(opts,w,d,h);
@@ -197,10 +248,14 @@ export function createViewer(container){
     const internalMat=new THREE.MeshBasicMaterial({color:internalColor,transparent:true,opacity:.25,wireframe:false,depthWrite:false});
     const edgeMat=new THREE.MeshBasicMaterial({color:internalColor,transparent:true,opacity:.78,wireframe:true});
     const trayMat=new THREE.MeshBasicMaterial({color:0x84d9a1,transparent:true,opacity:.28});
-    const tray=new THREE.Mesh(new THREE.BoxGeometry(spec.trayW,opts.tray,3),trayMat);
-    tray.position.set(Number(opts.trayX||0),-d/2-opts.tray/2+3,1.5);overlay.add(tray);
+    if(!demoMode){
+      const tray=new THREE.Mesh(new THREE.BoxGeometry(spec.trayW,opts.tray,3),trayMat);
+      tray.position.set(Number(opts.trayX||0),-d/2-opts.tray/2+3,1.5);overlay.add(tray);
+    }
 
-    if(spec.style==='spiral'){
+    if(demoMode){
+      // Actual colliding ledges and rails are visible; no ghosted train track.
+    }else if(spec.style==='spiral'){
       const curve=new THREE.CatmullRomCurve3(spec.points,false,'centripetal',.2);
       const tube=new THREE.Mesh(
         new THREE.TubeGeometry(curve,Math.max(64,spec.points.length*2),spec.tubeD/2,12,false),
@@ -245,52 +300,33 @@ export function createViewer(container){
   }
 
   async function runDiceSimulation(opts){
-    const d=preview(opts);
-    if(!d||!lastTowerDiagnostics)return {ok:false,message:'Load a model first.'};
-    const diag=lastTowerDiagnostics;
-    if(!diag.safe){
-      return {
-        ok:false,
-        message:!diag.envelopeInside?'Internal chute envelope reaches outside the model bounding envelope.'
-          :(d.h<diag.minH?'Tower is too short for this chute style.'
-          :(diag.minClearance<4?'Dice clearance is too tight.'
-          :'Tray/chute transition is too sharp or disconnected.')),
-        minClearance:diag.minClearance,
-        durationMs:diag.duration
-      };
-    }
-
-    simRun++;const myRun=simRun;
-    clear(simDice);
+    const dims=preview(opts);
+    if(!dims||!modelRoot)return {ok:false,message:'Load a model first.'};
+    const token=++simRun;
+    clear(simDice);simDice=null;
     simDice=new THREE.Mesh(
       new THREE.IcosahedronGeometry(Math.max(4,Number(opts.dice||22)/2),0),
-      new THREE.MeshStandardMaterial({color:0xff4fd8,emissive:0x4c103f,roughness:.35,metalness:.15})
+      new THREE.MeshStandardMaterial({color:0xff4fd8,emissive:0x3b0d2d,roughness:.45,metalness:.08})
     );
     scene.add(simDice);
-    const curve=new THREE.CatmullRomCurve3(lastTowerPath,false,'centripetal',.28);
-    const start=performance.now(),duration=diag.duration;
-    await new Promise(resolve=>{
-      function step(now){
-        if(myRun!==simRun){resolve();return}
-        const raw=Math.min(1,(now-start)/duration);
-        // Ease in slightly but keep the motion readable through ramps/spiral.
-        const t=raw<.12?raw*.72:Math.min(1,.0864+(raw-.12)*1.0382);
-        const p=curve.getPointAt(Math.max(0,Math.min(1,t)));
-        simDice.position.copy(p);
-        simDice.rotation.x+=.08;simDice.rotation.y+=.115;simDice.rotation.z+=.045;
-        if(raw<1)requestAnimationFrame(step);else resolve();
-      }
-      requestAnimationFrame(step);
-    });
-    return {
-      ok:true,
-      style:diag.style,
-      minClearance:diag.minClearance,
-      durationMs:duration,
-      envelopeInside:diag.envelopeInside,
-      turns:diag.turns||0,
-      message:'Virtual dice completed the planned centreline without a clearance violation.'
-    };
+    try{
+      const result=await dropD20({
+        THREE,scene,root:modelRoot,demo:demoMode,diameter:Number(opts.dice||22),
+        style:opts.chuteStyle,
+        aborted:()=>token!==simRun,
+        onPose:({position,quaternion})=>{
+          if(token!==simRun)return;
+          simDice.position.copy(position);
+          simDice.quaternion.copy(quaternion);
+        }
+      });
+      if(result.cancelled)return result;
+      return {...result,style:opts.chuteStyle,minClearance:dims.minClearance,
+        message:(demoMode?'Sample tower: ':'Actual STL: ')+result.message};
+    }catch(error){
+      return {ok:false,physicsUnavailable:true,
+        message:'Rigid-body test could not run: '+(error?.message||String(error))+'. No pass is reported.'};
+    }
   }
 
   function editPreview(opts){
