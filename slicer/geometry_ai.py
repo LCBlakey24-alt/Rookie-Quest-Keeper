@@ -111,26 +111,44 @@ def recommend_dice_tower(
     tray_depth=70.0,
     front_rotation=None,
     tray_x_mm=None,
+    chute_style="zigzag",
 ):
     dice_mm = float(dice_mm)
     tray_depth = float(tray_depth)
-    channel = max(44.0, dice_mm * 2.3)
+    chute_style = (chute_style or "zigzag").strip().lower()
+    if chute_style not in {"straight", "zigzag", "spiral"}:
+        raise ValueError("Unknown chute style")
+
+    if chute_style == "spiral":
+        tube_d = max(34.0, dice_mm * 1.55)
+        helix_r = max(6.0, dice_mm * 0.42)
+        channel = 2.0 * (tube_d / 2.0 + helix_r) + 10.0
+        min_height = max(118.0, dice_mm * 4.8)
+    elif chute_style == "straight":
+        tube_d = max(34.0, dice_mm * 1.55)
+        helix_r = 0.0
+        channel = max(40.0, dice_mm * 1.9)
+        min_height = max(86.0, dice_mm + 58.0)
+    else:
+        tube_d = max(34.0, dice_mm * 1.55)
+        helix_r = 0.0
+        channel = max(44.0, dice_mm * 2.3)
+        min_height = max(125.0, dice_mm + 102.0)
+
     outer = channel + 6.0
     exit_h = max(30.0, dice_mm + 10.0)
-
     rotations = [0, 90, 180, 270] if front_rotation is None else [int(front_rotation) % 360]
     candidates = []
 
     for rotation in rotations:
         m = rotate_z(mesh, rotation)
         w, d, h = [float(v) for v in m.extents]
-        # Keep the tray compact enough to move along a wider model.
         tray_w = min(w + 10.0, max(channel + 24.0, 82.0))
         total_d = d + tray_depth + 3.0
 
         clearance_x = w - outer - 8.0
         clearance_y = d - outer - 8.0
-        tall_enough = h >= max(95.0, exit_h + 55.0)
+        tall_enough = h >= min_height
         physically_possible = clearance_x >= 0 and clearance_y >= 0 and tall_enough
 
         cx, cy = _bulk_center(m)
@@ -140,8 +158,6 @@ def recommend_dice_tower(
         if tray_x_mm is None:
             tray_span = max(0.0, min(w / 2.0, (BED_X - tray_w) / 2.0, 60.0))
             probe = [-tray_span, -tray_span / 2.0, 0.0, tray_span / 2.0, tray_span]
-            # Pick a low-complexity exit region, but mildly prefer positions closer
-            # to the middle-height bulk so the path does not snake unnecessarily.
             scored_trays = []
             for tx in probe:
                 local_complexity = _front_window_complexity(m, tx, tray_w * 0.72, exit_h)
@@ -157,8 +173,6 @@ def recommend_dice_tower(
             tray_x = float(tray_x_mm)
             local_complexity = _front_window_complexity(m, tray_x, tray_w * 0.72, exit_h)
 
-        # Tray-first planner: pull the chute toward the requested tray while
-        # retaining some preference for the model's internal bulk centre.
         desired_chute_x = tray_x * 0.68 + cx * 0.32
         transition_run = max(28.0, min(55.0, d * 0.34))
         max_side_shift = transition_run * math.tan(math.radians(32.0))
@@ -189,11 +203,17 @@ def recommend_dice_tower(
         score += (1.0 - local_complexity) * 24.0
         score -= path_angle * 0.45
         score -= abs(chute_y) * 0.08
+        if chute_style == "spiral":
+            score -= max(0.0, min_height - h) * 0.6
 
         candidates.append({
             "rotation_z": rotation,
+            "chute_style": chute_style,
             "dimensions_mm": [round(w, 2), round(d, 2), round(h, 2)],
+            "minimum_height_mm": round(min_height, 1),
             "channel_mm": round(channel, 2),
+            "tube_diameter_mm": round(tube_d, 2),
+            "helix_radius_mm": round(helix_r, 2),
             "chute_x_mm": round(chute_x, 2),
             "chute_y_mm": round(chute_y, 2),
             "tray_x_mm": round(tray_x, 2),
@@ -218,7 +238,12 @@ def recommend_dice_tower(
     elif len(candidates) > 1 and (best["score"] - candidates[1]["score"]) < 8:
         confidence = "medium"
 
-    reasons = []
+    style_labels = {
+        "straight": "Straight Drop",
+        "zigzag": "Zig-Zag Platforms",
+        "spiral": "Spiral / Spring",
+    }
+    reasons = [f"{style_labels[chute_style]} geometry was used for clearance and height checks"]
     if tray_x_mm is None:
         reasons.append("tray position was scanned across the front and placed in a lower-complexity exit region")
     else:
@@ -228,23 +253,25 @@ def recommend_dice_tower(
     else:
         reasons.append("the proposed finished tower or offset tray does not fit the build area")
     if best["physically_possible"]:
-        reasons.append("the internal channel and tray-to-chute transition stay within the current geometry limits")
+        reasons.append("the selected chute style fits the current width, depth, height and transition limits")
+    elif best["dimensions_mm"][2] < best["minimum_height_mm"]:
+        reasons.append(
+            f"{style_labels[chute_style]} needs about {best['minimum_height_mm']:.0f} mm of height; this orientation has {best['dimensions_mm'][2]:.0f} mm"
+        )
     else:
-        reasons.append("the requested layout creates an unsafe channel, tray overlap or transition angle")
+        reasons.append("the selected chute style is too wide for the available internal envelope or creates an unsafe exit transition")
     if abs(best["transition_shift_mm"]) > 2:
         reasons.append(
             f"lower path shifts {abs(best['transition_shift_mm']):.1f} mm sideways at about {best['transition_angle_deg']:.1f}° to meet the tray"
         )
-    if best["tray_region_complexity"] < 0.45:
-        reasons.append("tray/exit region has relatively little low-level surface complexity")
 
     return {
         "recommendation": best,
         "confidence": confidence,
         "reasons": reasons,
         "alternatives": candidates[1:4],
-        "method": "tray-first geometry heuristic: bed fit + channel clearance + front-region complexity + bulk centre + transition-angle limit",
-        "warning": "This is a geometry recommendation, not a physical dice simulation. Preview the generated path before printing.",
+        "method": "style-aware tray-first geometry heuristic",
+        "warning": "This is a geometric clearance check. Use Virtual Dice Drop and rotate the transparent preview before printing.",
     }
 
 
