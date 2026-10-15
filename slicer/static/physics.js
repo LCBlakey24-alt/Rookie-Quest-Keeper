@@ -64,7 +64,7 @@ function makeCollisionBodies(THREE,CANNON,world,root,demo){
   if(!colliders.length)throw Error('No solid collision surfaces found.');
   return {triangles,surfaces:colliders.length};
 }
-export async function dropD20({THREE,scene,root,diameter=22,demo=false,onPose,aborted,trace,onContact}){
+export async function dropD20({THREE,scene,root,diameter=22,demo=false,style='zigzag',onPose,aborted,trace,onContact}){
   const CANNON=await engine();
   if(aborted())return {ok:false,cancelled:true,message:'Test cancelled.'};
   const world=new CANNON.World({gravity:new CANNON.Vec3(0,0,-9810)});
@@ -79,7 +79,9 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,onPose,ab
   const start=new THREE.Vector3(0,0,height+radius+7);
   if(demo){
     // Demo root is centered on the tower shaft, and the tray is in front.
-    start.set(0,0,174+radius+7).applyMatrix4(root.matrixWorld);
+    const entrance=style==='spiral'?[0,-24]:[0,0];
+    start.set(entrance[0],entrance[1],174).applyMatrix4(root.matrixWorld);
+    start.z+=radius+8;
   }
   const body=new CANNON.Body({
     mass:25,
@@ -93,7 +95,7 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,onPose,ab
   body.quaternion.setFromEuler(.31,.17,.26);
   body.angularVelocity.set(3.2,-1.8,2.4);
   world.addBody(body);
-  let contacts=0,worldTime=0,last=performance.now(),acc=0,reach=false,maxAngle=0,previous=null;
+  let contacts=0,worldTime=0,last=performance.now(),acc=0,reach=false,previous=null;
   const tracePoints=[],limit=3.7;
   body.addEventListener('collide',()=>{contacts++;onContact?.(contacts)});
   const inverse=root.matrixWorld.clone().invert();
@@ -126,8 +128,8 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,onPose,ab
            Math.abs(local.x)<66 && local.z>radius*.7 &&
            local.z<37 && contacts>0)reach=true;
       }else{
-        // Uploaded tower detection uses the model's actual bounding envelope.
-        // Verify that it got beyond the tower towards the front and is low.
+        // Imported/generated STL is used as the *actual collider*. The exit zone
+        // is an approximate front-bottom region, not proof of a correct catch tray.
         const halfY=(bbox.max.y-bbox.min.y)/2;
         if(position.y<bbox.min.y+halfY*.23 &&
            position.z<bbox.min.z+radius+28 && contacts>0)reach=true;
@@ -140,7 +142,7 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,onPose,ab
         trace?.(tracePoints);
         const ok=reach;
         const outcome=ok?'reached_tray':escaped?'escaped':settled?'jammed_or_settled':'timed_out';
-        let message=ok?'The freely moving D20 reached the external tray after colliding with solid geometry.'
+        let message=ok?(demo?'The freely moving D20 reached the sample catch tray after colliding with solid geometry.':'The D20 reached the lower-front region of the imported mesh; inspect the tray manually.')
           :escaped?'The die escaped the structure or fell outside the tray.'
           :settled?'The D20 stopped without reaching the tray: possible jam or dead end.'
           :'Time limit reached before a successful drop: possible jam or an unsuitable route.';
