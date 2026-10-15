@@ -121,7 +121,9 @@ export function createViewer(container){
     function solid(parent,x,y,z,w,d,h,color,rx=0,ry=0,rz=0){
       const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,d,h),mat(.83,color));
       mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);
-      mesh.userData.rqCollider=true;parent.add(mesh);return mesh;
+      mesh.userData.rqCollider=true;
+      mesh.userData.rqTray=(parent===demoTray);
+      parent.add(mesh);return mesh;
     }
     // A real ramp spans the base of the tower and slopes out of the exit.
     solid(demoParts,0,-18,26,66,101,4,0xffc878,.34);
