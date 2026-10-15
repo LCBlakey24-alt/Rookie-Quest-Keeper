@@ -380,13 +380,16 @@ def geometry_selftest():
     try:
         mesh = trimesh.creation.box(extents=[82, 78, 145])
         mesh.apply_translation([0, 0, 72.5])
-        rec = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60)
-        locked = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60, front_rotation=0, tray_x_mm=18)
+        rec = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60, chute_style="zigzag")
+        locked = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60, front_rotation=0, tray_x_mm=18, chute_style="straight")
+        spiral = recommend_dice_tower(mesh, dice_mm=22, tray_depth=60, chute_style="spiral")
         img = png_preview(mesh, width=600, height=240)
         ok = (
             rec.get("recommendation", {}).get("physically_possible") is True
             and locked.get("recommendation", {}).get("tray_x_mm") == 18.0
             and locked.get("recommendation", {}).get("transition_angle_deg", 99) <= 34.0
+            and spiral.get("recommendation", {}).get("chute_style") == "spiral"
+            and spiral.get("recommendation", {}).get("tube_diameter_mm", 0) >= 34
             and img.size == (600, 240)
         )
         return {
@@ -396,6 +399,8 @@ def geometry_selftest():
             "chute_x_mm": rec.get("recommendation", {}).get("chute_x_mm"),
             "auto_tray_x_mm": rec.get("recommendation", {}).get("tray_x_mm"),
             "locked_tray_x_mm": locked.get("recommendation", {}).get("tray_x_mm"),
+            "spiral_possible": spiral.get("recommendation", {}).get("physically_possible"),
+            "spiral_channel_mm": spiral.get("recommendation", {}).get("channel_mm"),
             "png_size": list(img.size),
         }
     except Exception as exc:
