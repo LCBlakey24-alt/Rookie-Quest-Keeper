@@ -1,4 +1,35 @@
-import { createViewer } from '/assets/viewer.js';
+// The forms must keep working even if a phone blocks WebGL or the 3D CDN.
+// Load the full 3D module separately; Canvas 2D remains the visual fallback.
+function backupViewer(container,error){
+  console.warn('Using software 3D viewer:',error);
+  const isTower=container?.id==='viewer';
+  const software=window.rqSoftwareViewer?.tower;
+  if(!isTower && container){
+    const note=container.querySelector('.viewer-note');
+    if(note)note.textContent='Advanced 3D graphics unavailable on this device. File tools remain usable.';
+  }
+  let loaded=false;
+  return {
+    softwareFallback:true,
+    async showFile(file){loaded=true;if(isTower&&software)await software.showFile(file);return {x:0,y:0,z:0}},
+    showDemoTower(){loaded=true;software?.reset();return {x:112,y:105,z:172}},
+    preview(){return null},
+    async runDiceSimulation(){software?.drop();return {ok:false,message:'Visual-only software preview: collision/fit not verified. You can still watch the animation.',minClearance:0,durationMs:0}},
+    editPreview(){return null},splitPreview(){return null},
+    overhangHeatmap(){return {moderate:0,severe:0}},hasModel(){return loaded}
+  };
+}
+let createViewer;
+try{
+  const threeViewer=await import('/assets/viewer.js');
+  createViewer=container=>{
+    try{return threeViewer.createViewer(container)}
+    catch(error){return backupViewer(container,error)}
+  };
+}catch(error){
+  createViewer=container=>backupViewer(container,error);
+}
+
 
 const $=s=>document.querySelector(s);
 const pin=$('#access_pin');
@@ -330,8 +361,8 @@ $('#buildSplit').addEventListener('click',async()=>{
 const viewer=createViewer($('#viewer'));
 let towerIsDemo=true;
 // This real mesh can be rotated; exports still require an uploaded STL.
-window.rqSoftwareViewer?.hideTower();
 viewer.showDemoTower();
+if(!viewer.softwareFallback)window.rqSoftwareViewer?.hideTower();
 let generatedBlob=null,generatedName='Rookie_Quest_Dice_Tower.stl';
 function towerOpts(){
   return {
