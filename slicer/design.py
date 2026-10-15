@@ -116,7 +116,7 @@ async def save_upload(upload: UploadFile, target: Path):
                 break
             size += len(data)
             if size > MAX_UPLOAD:
-                raise HTTPException(413, "Maximum upload size is 75 MB")
+                raise HTTPException(413, "Maximum upload size is 125 MB")
             f.write(data)
     if size < 100:
         raise HTTPException(400, "That model file appears to be empty")
@@ -129,6 +129,7 @@ async def build_ai_dice_tower(
     tray_depth: float = Form(70.0),
     tray_mode: str = Form("auto"),
     rotation_z: int = Form(0),
+    chute_style: str = Form("zigzag"),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -145,6 +146,9 @@ async def build_ai_dice_tower(
         raise HTTPException(400, "Tray mode must be auto, reuse or add")
     if rotation_z not in {0,90,180,270}:
         raise HTTPException(400, "Front rotation must be 0°, 90°, 180° or 270°")
+    chute_style = (chute_style or "zigzag").strip().lower()
+    if chute_style not in {"straight","zigzag","spiral"}:
+        raise HTTPException(400, "Chute style must be straight, zigzag or spiral")
 
     work = Path(tempfile.mkdtemp(prefix="rqs_ai_tower_"))
     source = work / "source.stl"
@@ -160,6 +164,7 @@ async def build_ai_dice_tower(
                 tray_depth_mm=tray_depth,
                 tray_mode=tray_mode,
                 rotation_z=rotation_z,
+                chute_style=chute_style,
             )
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
@@ -178,6 +183,8 @@ async def build_ai_dice_tower(
             "X-RQ-Channel": f'{meta.get("channel_width_mm","")}x{meta.get("channel_depth_mm","")}',
             "X-RQ-Baffles": str(meta.get("baffles","")),
             "X-RQ-Prep-Scale": str(meta.get("source_scale_factor","")),
+            "X-RQ-Chute-Style": str(meta.get("chute_style",chute_style)),
+            "X-RQ-Spiral-Turns": str(meta.get("spiral_turns",0)),
         }
         filename = f"{Path(name).stem}_AI_Rescued_Dice_Tower.stl"
         return FileResponse(
@@ -206,6 +213,7 @@ async def suggest_dice_tower(
     tray_depth: float = Form(70.0),
     front_rotation: str = Form("auto"),
     tray_x_mm: str = Form("auto"),
+    chute_style: str = Form("zigzag"),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -218,6 +226,9 @@ async def suggest_dice_tower(
         raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
     if not 50 <= scale_percent <= 250:
         raise HTTPException(400, "Scale must be between 50% and 250%")
+    chute_style = (chute_style or "zigzag").strip().lower()
+    if chute_style not in {"straight","zigzag","spiral"}:
+        raise HTTPException(400, "Chute style must be straight, zigzag or spiral")
 
     rotation = None
     if front_rotation != "auto":
@@ -251,6 +262,7 @@ async def suggest_dice_tower(
             tray_depth=tray_depth,
             front_rotation=rotation,
             tray_x_mm=locked_tray_x,
+            chute_style=chute_style,
         )
     except HTTPException:
         raise
