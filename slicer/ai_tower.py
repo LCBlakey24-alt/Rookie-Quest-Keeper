@@ -513,10 +513,29 @@ def ai_tower_selftest():
         mesh = trimesh.Trimesh(
             vertices=verts[:, [2, 1, 0]], faces=faces, process=True
         )
+
+        spiral = np.zeros((165, 110, 110), dtype=np.bool_)
+        spiral[2:163, 5:105, 5:105] = True
+        geom = _occupied_geometry(spiral)
+        turns, tube_d, radius = _carve_spiral_tunnel(
+            spiral, geom, 22.0, 55, 55, 34, 55, 5
+        )
+        spiral_removed = int((~spiral).sum())
+
         return {
-            "ok": bool(mesh.is_watertight and len(mesh.faces) > 1000),
+            "ok": bool(
+                mesh.is_watertight
+                and len(mesh.faces) > 1000
+                and turns >= 1.25
+                and tube_d >= 34
+                and radius >= 4
+                and spiral_removed > 10000
+            ),
             "faces": int(len(mesh.faces)),
             "watertight": bool(mesh.is_watertight),
+            "spiral_turns": round(float(turns), 2),
+            "spiral_tube_diameter_mm": round(float(tube_d), 1),
+            "spiral_radius_mm": round(float(radius), 1),
         }
     except Exception as exc:
         return {"ok": False, "error": type(exc).__name__}
