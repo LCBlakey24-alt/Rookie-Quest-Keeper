@@ -219,6 +219,7 @@ def suggest_ai_dice_tower(
     tray_depth: float = Form(70.0),
     front_rotation: str = Form("auto"),
     tray_x_mm: str = Form("auto"),
+    chute_style: str = Form("zigzag"),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -231,6 +232,9 @@ def suggest_ai_dice_tower(
         raise HTTPException(400, "Dice size must be between 16 mm and 30 mm")
     if not 50 <= tray_depth <= 100:
         raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
+    chute_style = (chute_style or "zigzag").strip().lower()
+    if chute_style not in {"straight","zigzag","spiral"}:
+        raise HTTPException(400, "Chute style must be straight, zigzag or spiral")
 
     rotation = None
     if front_rotation != "auto":
@@ -259,6 +263,7 @@ def suggest_ai_dice_tower(
             tray_depth=tray_depth,
             front_rotation=rotation,
             tray_x_mm=locked_tray_x,
+            chute_style=chute_style,
         )
     except Exception as exc:
         raise HTTPException(422, f"Could not analyse this model: {type(exc).__name__}") from exc
