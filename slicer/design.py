@@ -99,35 +99,24 @@ union() {
 
         spiral_script = work / "spiral_test.scad"
         spiral_output = work / "spiral_test.stl"
-        turns = 1.6
-        radius = 10.0
-        tube_r = 17.0
-        top = 128.0
-        bottom = 44.0
-        segments = 34
-        points = []
-        end_angle = -math.pi / 2.0
-        start_angle = end_angle - 2.0 * math.pi * turns
-        for i in range(segments + 1):
-            t = i / segments
-            a = start_angle + (end_angle - start_angle) * t
-            points.append((
-                radius * math.cos(a),
-                radius * math.sin(a),
-                top - (top - bottom) * t,
-            ))
-        calls = []
-        for p1, p2 in zip(points[:-1], points[1:]):
-            calls.append(
-                f"capsule([{p1[0]:.3f},{p1[1]:.3f},{p1[2]:.3f}],"
-                f"[{p2[0]:.3f},{p2[1]:.3f},{p2[2]:.3f}],{tube_r:.3f});"
-            )
         spiral_script.write_text(
-            "$fn=18;\n"
-            "module capsule(p1,p2,r){ hull(){ translate(p1) sphere(r=r); translate(p2) sphere(r=r); } }\n"
-            "difference(){ translate([0,0,75]) cube([90,90,150],center=true); union(){\n"
-            + "\n".join(calls)
-            + "\n} }\n",
+            r'''$fn=14;
+turns=1.6;
+helix_r=10;
+tube_r=17;
+bottom=44;
+drop=84;
+twist=360*turns;
+slices=30;
+difference() {
+  translate([0,0,75]) cube([90,90,150],center=true);
+  translate([0,0,bottom])
+    linear_extrude(height=drop,twist=twist,slices=slices,convexity=10)
+      rotate(-90)
+        translate([helix_r,0])
+          circle(r=tube_r,$fn=14);
+}
+''',
             encoding="utf-8",
         )
         spiral_result = subprocess.run(
@@ -135,7 +124,7 @@ union() {
             cwd=work,
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=25,
             check=False,
         )
         spiral_ok = (
@@ -492,37 +481,22 @@ async def build_dice_tower(
                     422,
                     "This model is too short for a useful spiral chute. Choose Zig-Zag or Straight, or make the tower taller."
                 )
-            spiral_segments = max(30, int(math.ceil(spiral_turns * 20.0)))
-            points = []
-            # Finish the helix at the front side so the exit transition is short.
-            end_angle = -math.pi / 2.0
-            start_angle = end_angle - 2.0 * math.pi * spiral_turns
-            for i in range(spiral_segments + 1):
-                t = i / spiral_segments
-                a = start_angle + (end_angle - start_angle) * t
-                x = chute_x_mm + helix_radius * math.cos(a)
-                y = chute_y_mm + helix_radius * math.sin(a)
-                z = spiral_top - spiral_drop * t
-                points.append((x, y, z))
-            calls = []
-            top_entry = (chute_x_mm, chute_y_mm, h + 2.0)
-            calls.append(
-                f"capsule([{top_entry[0]:.3f},{top_entry[1]:.3f},{top_entry[2]:.3f}],"
-                f"[{points[0][0]:.3f},{points[0][1]:.3f},{points[0][2]:.3f}],tube_r);"
-            )
-            for p1, p2 in zip(points[:-1], points[1:]):
-                calls.append(
-                    f"capsule([{p1[0]:.3f},{p1[1]:.3f},{p1[2]:.3f}],"
-                    f"[{p2[0]:.3f},{p2[1]:.3f},{p2[2]:.3f}],tube_r);"
-                )
-            last = points[-1]
-            exit_point = (tray_x_mm, y_front - 5.0, max(tube_r + 2.0, exit_h / 2.0))
-            calls.append(
-                f"capsule([{last[0]:.3f},{last[1]:.3f},{last[2]:.3f}],"
-                f"[{exit_point[0]:.3f},{exit_point[1]:.3f},{exit_point[2]:.3f}],tube_r);"
-            )
-            spiral_void_calls = "\n    ".join(calls)
-            spiral_preview_points = len(points)
+
+            # The helical void is a single twisted extrusion rather than dozens
+            # of sphere-to-sphere hulls. It is dramatically cheaper for CGAL.
+            spiral_start_deg = -90.0
+            spiral_twist_deg = 360.0 * spiral_turns
+            spiral_slices = max(28, int(math.ceil(spiral_turns * 18.0)))
+            spiral_end_deg = spiral_start_deg + spiral_twist_deg
+
+            bottom_angle = math.radians(spiral_start_deg)
+            top_angle = math.radians(spiral_end_deg)
+            spiral_bottom_x = chute_x_mm + helix_radius * math.cos(bottom_angle)
+            spiral_bottom_y = chute_y_mm + helix_radius * math.sin(bottom_angle)
+            spiral_top_x = chute_x_mm + helix_radius * math.cos(top_angle)
+            spiral_top_y = chute_y_mm + helix_radius * math.sin(top_angle)
+            spiral_exit_z = max(tube_r + 2.0, exit_h / 2.0)
+            spiral_preview_points = spiral_slices + 1
 
         common_modules = f'''$fn=36;
 model_w={w:.4f}; model_d={d:.4f}; model_h={h:.4f};
@@ -531,6 +505,18 @@ exit_h={exit_h:.4f}; tray_d={tray_depth:.4f}; tray_w={tray_w:.4f}; tray_wall=3; 
 y_front={y_front:.4f}; foundation_w={foundation_w:.4f}; foundation_d={foundation_d:.4f};
 chute_x={chute_x_mm:.4f}; chute_y={chute_y_mm:.4f}; tray_x={tray_x_mm:.4f};
 tube_r={tube_d/2.0:.4f};
+spiral_bottom={locals().get("spiral_bottom", 0.0):.4f};
+spiral_drop={locals().get("spiral_drop", 0.0):.4f};
+spiral_start_deg={locals().get("spiral_start_deg", 0.0):.4f};
+spiral_twist_deg={locals().get("spiral_twist_deg", 0.0):.4f};
+spiral_slices={locals().get("spiral_slices", 1)};
+helix_radius={helix_radius:.4f};
+spiral_bottom_x={locals().get("spiral_bottom_x", chute_x_mm):.4f};
+spiral_bottom_y={locals().get("spiral_bottom_y", chute_y_mm):.4f};
+spiral_top_x={locals().get("spiral_top_x", chute_x_mm):.4f};
+spiral_top_y={locals().get("spiral_top_y", chute_y_mm):.4f};
+spiral_top_z={locals().get("spiral_top", h):.4f};
+spiral_exit_z={locals().get("spiral_exit_z", exit_h/2.0):.4f};
 module transition_void() {{
   hull() {{
     translate([chute_x,chute_y-channel_d/2+3,exit_h/2+1]) cube([min(channel_w,50),8,exit_h+4],center=true);
@@ -570,9 +556,31 @@ module tray() {{
 
         if chute_style == "spiral":
             scad = common_modules + f'''
+module spiral_core() {{
+  translate([chute_x,chute_y,spiral_bottom])
+    linear_extrude(
+      height=spiral_drop,
+      twist=spiral_twist_deg,
+      slices=spiral_slices,
+      convexity=10
+    )
+      rotate(spiral_start_deg)
+        translate([helix_radius,0])
+          circle(r=tube_r,$fn=16);
+}}
 module spiral_void() {{
   union() {{
-    {spiral_void_calls}
+    spiral_core();
+    capsule(
+      [chute_x,chute_y,model_h+2],
+      [spiral_top_x,spiral_top_y,spiral_top_z],
+      tube_r
+    );
+    capsule(
+      [spiral_bottom_x,spiral_bottom_y,spiral_bottom],
+      [tray_x,y_front-5,spiral_exit_z],
+      tube_r
+    );
   }}
 }}
 module carved_body() {{
