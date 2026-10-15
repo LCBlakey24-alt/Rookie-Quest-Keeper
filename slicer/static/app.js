@@ -337,15 +337,27 @@ function towerOpts(){
     tray:Number($('#trayDepth').value),
     trayX:Number($('#trayX').value||0),
     chuteX:Number($('#chuteX').value||0),
-    chuteY:Number($('#chuteY').value||0)
+    chuteY:Number($('#chuteY').value||0),
+    chuteStyle:$('#chuteStyle').value
   };
 }
+const chuteStyleNotes={
+  straight:{title:'Straight Drop',text:'Shortest route. Least internal geometry and the fastest dice exit. Good when the tower is narrow or compact.',tone:'safe'},
+  zigzag:{title:'Zig-Zag Platforms',text:'Alternating ramps force side-to-side impacts for a more satisfying tumble and slower exit.',tone:'safe'},
+  spiral:{title:'Spiral / Spring',text:'A real helical tunnel gives the longest travel. It needs more width and height than the other styles.',tone:'warn'}
+};
+function updateChuteStyleNote(){
+  const v=$('#chuteStyle').value,n=chuteStyleNotes[v],box=$('#chuteStyleNote');
+  box.className='support-note '+n.tone;
+  box.innerHTML='<strong>'+n.title+'</strong><span>'+n.text+'</span>';
+}
+
 function towerChecks(){
   const d=viewer.preview(towerOpts());
   if(!d)return;
   $('#dimCheck').innerHTML='<strong>'+d.w.toFixed(0)+'×'+d.d.toFixed(0)+'×'+d.h.toFixed(0)+'</strong>Model mm';
   $('#dimCheck').className='check good';
-  const min=d.channel+14,minH=Math.max(95,towerOpts().dice+65),good=d.w>=min&&d.d>=min&&d.h>=minH;
+  const min=d.channel+14,minH=d.minH||Math.max(95,towerOpts().dice+65),good=d.w>=min&&d.d>=min&&d.h>=minH;
   $('#chuteCheck').innerHTML='<strong>'+(good?'Good':'Too small')+'</strong>'+d.channel.toFixed(0)+' mm chute';
   $('#chuteCheck').className='check '+(good?'good':'bad');
   const fit=d.outW<=225&&d.outD<=225&&d.h<=280;
@@ -355,7 +367,7 @@ function towerChecks(){
     $('#chuteCheck').innerHTML='<strong>Path unsafe</strong>'+d.transitionAngle.toFixed(1)+'° tray turn';
     $('#chuteCheck').className='check bad';
   }else{
-    $('#chuteCheck').innerHTML='<strong>'+(good?'Good':'Too small')+'</strong>'+d.channel.toFixed(0)+' mm · '+d.transitionAngle.toFixed(1)+'° path';
+    $('#chuteCheck').innerHTML='<strong>'+(good?'Good':'Too small')+'</strong>'+d.style+' · '+d.minClearance.toFixed(1)+' mm clearance';
     $('#chuteCheck').className='check '+(good?'good':'bad');
   }
 }
@@ -373,15 +385,17 @@ $('#towerModel').addEventListener('change',async e=>{
     $('#towerStatus').textContent='Preview failed: '+x.message;
   }
 });
-for(const id of ['towerScale','towerRotation','diceSize','trayDepth','trayX','chuteX','chuteY']){
+for(const id of ['towerScale','towerRotation','diceSize','chuteStyle','trayDepth','trayX','chuteX','chuteY']){
   $('#'+id).addEventListener('input',()=>{
     $('#towerScaleValue').textContent=$('#towerScale').value+'%';
     $('#trayDepthValue').textContent=$('#trayDepth').value+' mm';
     const tx=Number($('#trayX').value||0);
     $('#trayXValue').textContent=(Math.abs(tx)<.5?'Centre':(tx<0?'Left ':'Right ')+Math.abs(tx).toFixed(0)+' mm');
+    if(id==='chuteStyle')updateChuteStyleNote();
     towerChecks();
   });
 }
+updateChuteStyleNote();
 async function requestTowerSuggestion(keepTray){
   const f=$('#towerModel').files[0],s=$('#towerStatus');
   const b=keepTray?$('#smartFromTray'):$('#smartTower'),note=$('#smartTowerNote');
@@ -395,6 +409,7 @@ async function requestTowerSuggestion(keepTray){
   fd.append('tray_depth',$('#trayDepth').value);
   fd.append('front_rotation',keepTray?$('#towerRotation').value:'auto');
   fd.append('tray_x_mm',keepTray?$('#trayX').value:'auto');
+  fd.append('chute_style',$('#chuteStyle').value);
   fd.append('access_pin',pin.value);
   try{
     const r=await fetch('/design/dice-tower-suggest',{method:'POST',body:fd});
@@ -418,6 +433,33 @@ async function requestTowerSuggestion(keepTray){
 $('#smartTower').addEventListener('click',()=>requestTowerSuggestion(false));
 $('#smartFromTray').addEventListener('click',()=>requestTowerSuggestion(true));
 
+$('#simulateDice').addEventListener('click',async()=>{
+  const f=$('#towerModel').files[0],box=$('#diceSimResult'),b=$('#simulateDice');
+  if(!f){
+    box.className='support-note warn';
+    box.innerHTML='<strong>No model loaded</strong><span>Choose an STL first.</span>';
+    return;
+  }
+  b.disabled=true;
+  box.className='support-note neutral';
+  box.innerHTML='<strong>Running virtual drop…</strong><span>Following the planned '+$('#chuteStyle').value+' path.</span>';
+  try{
+    const result=await viewer.runDiceSimulation(towerOpts());
+    box.className='support-note '+(result.ok?'safe':'warn');
+    if(result.ok){
+      const seconds=(result.durationMs/1000).toFixed(1);
+      box.innerHTML='<strong>Virtual drop passed · '+seconds+' s path</strong><span>Minimum planned clearance: '+Number(result.minClearance).toFixed(1)+' mm'
+        +(result.turns?(' · '+Number(result.turns).toFixed(2)+' spiral turns'):'')
+        +' · The path stayed within the planned envelope.</span>';
+    }else{
+      box.innerHTML='<strong>Potential jam / geometry problem</strong><span>'+result.message+' Minimum planned clearance: '+Number(result.minClearance||0).toFixed(1)+' mm.</span>';
+    }
+  }catch(x){
+    box.className='support-note warn';
+    box.innerHTML='<strong>Simulation error</strong><span>'+x.message+'</span>';
+  }finally{b.disabled=false}
+});
+
 $('#rescueTower').addEventListener('click',async()=>{
   const f=$('#towerModel').files[0],s=$('#towerStatus'),b=$('#rescueTower');
   if(!f){s.className='status bad';s.textContent='Choose the solid AI-generated STL first.';return}
@@ -431,6 +473,7 @@ $('#rescueTower').addEventListener('click',async()=>{
   fd.append('tray_depth',$('#trayDepth').value);
   fd.append('tray_mode',$('#aiTrayMode').value);
   fd.append('rotation_z',$('#towerRotation').value);
+  fd.append('chute_style',$('#chuteStyle').value);
   fd.append('access_pin',pin.value);
   try{
     const r=await fetch('/design/ai-dice-tower',{method:'POST',body:fd});
@@ -444,12 +487,16 @@ $('#rescueTower').addEventListener('click',async()=>{
     const existing=r.headers.get('X-RQ-Existing-Tray');
     const channel=r.headers.get('X-RQ-Channel');
     const bf=r.headers.get('X-RQ-Baffles');
+    const style=r.headers.get('X-RQ-Chute-Style');
+    const turns=r.headers.get('X-RQ-Spiral-Turns');
     s.className='status ok';
     s.textContent='AI Rescue complete'
       +(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')
       +(tris?' · source '+Number(tris).toLocaleString()+' triangles':'')
+      +(style?' · '+style+' chute':'')
       +(channel?' · channel '+channel+' mm':'')
-      +(bf?' · '+bf+' baffles':'')
+      +(bf&&Number(bf)>0?' · '+bf+' baffles':'')
+      +(turns&&Number(turns)>0?' · '+Number(turns).toFixed(2)+' spiral turns':'')
       +(tray?' · tray '+tray+(existing==='yes'?' (detected in model)':''):'')
       +'. Rotate the result before printing.';
     $('#resultActions').classList.add('show');
@@ -466,6 +513,7 @@ $('#buildTower').addEventListener('click',async()=>{
   fd.append('model',f);fd.append('scale_percent',o.scale);fd.append('rotation_z',o.rotation);
   fd.append('dice_mm',o.dice);fd.append('tray_depth',o.tray);fd.append('tray_x_mm',o.trayX);
   fd.append('chute_x_mm',o.chuteX);fd.append('chute_y_mm',o.chuteY);
+  fd.append('chute_style',o.chuteStyle);
   fd.append('access_pin',pin.value);
   try{
     const r=await fetch('/design/dice-tower',{method:'POST',body:fd});
@@ -473,9 +521,9 @@ $('#buildTower').addEventListener('click',async()=>{
     generatedBlob=await r.blob();
     generatedName=f.name.replace(/\.stl$/i,'')+'_Dice_Tower.stl';
     await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
-    const dm=r.headers.get('X-RQ-Dimensions'),bf=r.headers.get('X-RQ-Baffles'),cx=r.headers.get('X-RQ-Chute-X'),cy=r.headers.get('X-RQ-Chute-Y'),tx=r.headers.get('X-RQ-Tray-X'),angle=r.headers.get('X-RQ-Transition-Angle');
+    const dm=r.headers.get('X-RQ-Dimensions'),bf=r.headers.get('X-RQ-Baffles'),cx=r.headers.get('X-RQ-Chute-X'),cy=r.headers.get('X-RQ-Chute-Y'),tx=r.headers.get('X-RQ-Tray-X'),angle=r.headers.get('X-RQ-Transition-Angle'),style=r.headers.get('X-RQ-Chute-Style'),turns=r.headers.get('X-RQ-Spiral-Turns');
     s.className='status ok';
-    s.textContent='Tower built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+(bf?' · '+bf+' baffles':'')+(tx?' · tray '+tx+' mm':'')+(cx&&cy?' · chute '+cx+' / '+cy+' mm':'')+(angle?' · path '+angle+'°':'')+'. Rotate the preview and check it.';
+    s.textContent='Tower built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+(style?' · '+style:'')+(bf&&Number(bf)>0?' · '+bf+' baffles':'')+(turns&&Number(turns)>0?' · '+Number(turns).toFixed(2)+' turns':'')+(tx?' · tray '+tx+' mm':'')+(cx&&cy?' · chute '+cx+' / '+cy+' mm':'')+(angle?' · path '+angle+'°':'')+'. Rotate the preview and check it.';
     $('#resultActions').classList.add('show');
   }catch(x){
     s.className='status bad';s.textContent=x.message;
