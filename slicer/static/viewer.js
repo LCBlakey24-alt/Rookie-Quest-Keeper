@@ -66,6 +66,43 @@ export function createViewer(container){
     return {x:d.x,y:d.y,z:d.z};
   }
 
+  // Built-in sample: enough real 3D geometry to explore the tower without an upload.
+  // It is a preview shell, not a pre-cut/printable final STL.
+  function showDemoTower(){
+    simRun++;
+    clear(simDice);simDice=null;
+    clear(modelRoot);clear(overlay);overlay=null;
+    const group=new THREE.Group();
+    function block(x,y,z,w,d,h,color=0x9baabd){
+      const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,d,h),mat(.39,color));
+      mesh.position.set(x,y,z);group.add(mesh);
+    }
+    // Open central cavity, deliberate front exit gap and top crenellations.
+    block(-52,0,78,9,102,148);
+    block(52,0,78,9,102,148);
+    block(0,47,78,108,8,148);
+    block(-39,-47,85,24,8,134);
+    block(39,-47,85,24,8,134);
+    block(0,-47,121,54,8,66);
+    block(0,0,7,114,110,12,0x647f9e);
+    for(const z of [56,135]){
+      block(0,48,z,117,12,5,0x758da4);
+      block(-53,0,z,5,111,5,0x758da4);
+      block(53,0,z,5,111,5,0x758da4);
+    }
+    for(const x of [-49,-24,0,24,49]){
+      for(const y of [-48,48])block(x,y,164,15,12,18,0x7894ae);
+    }
+    for(const x of [-53,53]){
+      for(const y of [-26,0,26])block(x,y,164,12,16,18,0x7894ae);
+    }
+    modelRoot=group;
+    scene.add(modelRoot);
+    const dims=normalize(modelRoot);
+    fit(dims);
+    return {x:dims.x,y:dims.y,z:dims.z};
+  }
+
   function resetTransform(){
     if(!modelRoot)return;
     modelRoot.scale.set(1,1,1);modelRoot.rotation.set(0,0,0);
@@ -380,5 +417,5 @@ export function createViewer(container){
 
   function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera)}
   resize();loop();
-  return {showFile,preview,runDiceSimulation,editPreview,splitPreview,overhangHeatmap,hasModel:()=>!!modelRoot};
+  return {showFile,showDemoTower,preview,runDiceSimulation,editPreview,splitPreview,overhangHeatmap,hasModel:()=>!!modelRoot};
 }
