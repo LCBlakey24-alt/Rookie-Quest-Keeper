@@ -258,6 +258,7 @@ async def build_ai_dice_tower(
 async def suggest_dice_tower(
     model: UploadFile = File(...),
     scale_percent: int = Form(100),
+    source_unit_scale: float = Form(1.0),
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
     front_rotation: str = Form("auto"),
@@ -275,6 +276,8 @@ async def suggest_dice_tower(
         raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
     if not 50 <= scale_percent <= 250:
         raise HTTPException(400, "Scale must be between 50% and 250%")
+    if not math.isfinite(source_unit_scale) or not 0.0001 <= source_unit_scale <= 10000:
+        raise HTTPException(400, "STL unit conversion factor must be between 0.0001 and 10000")
     chute_style = (chute_style or "zigzag").strip().lower()
     if chute_style not in {"straight","zigzag","spiral"}:
         raise HTTPException(400, "Chute style must be straight, zigzag or spiral")
@@ -304,7 +307,7 @@ async def suggest_dice_tower(
         mesh = trimesh.load(source, force="mesh", process=True)
         if mesh.is_empty:
             raise HTTPException(422, "That STL could not be analysed")
-        mesh.apply_scale(scale_percent / 100.0)
+        mesh.apply_scale((scale_percent / 100.0) * source_unit_scale)
         return recommend_dice_tower(
             mesh,
             dice_mm=dice_mm,
@@ -324,6 +327,7 @@ async def suggest_dice_tower(
 async def build_dice_tower(
     model: UploadFile = File(...),
     scale_percent: int = Form(100),
+    source_unit_scale: float = Form(1.0),
     rotation_z: int = Form(0),
     dice_mm: float = Form(22.0),
     tray_depth: float = Form(70.0),
@@ -342,6 +346,8 @@ async def build_dice_tower(
         raise HTTPException(400, "Dice Tower Builder v1 currently needs an STL file")
     if not 50 <= scale_percent <= 250:
         raise HTTPException(400, "Scale must be between 50% and 250%")
+    if not math.isfinite(source_unit_scale) or not 0.0001 <= source_unit_scale <= 10000:
+        raise HTTPException(400, "STL unit conversion factor must be between 0.0001 and 10000")
     if rotation_z not in {0, 90, 180, 270}:
         raise HTTPException(400, "Front rotation must be 0°, 90°, 180° or 270°")
     if not 16 <= dice_mm <= 30:
@@ -364,7 +370,7 @@ async def build_dice_tower(
         mesh = trimesh.load(source, force="mesh", process=True)
         if mesh.is_empty or len(mesh.vertices) < 4 or len(mesh.faces) < 4:
             raise HTTPException(422, "That STL could not be read as a usable 3D mesh")
-        mesh.apply_scale(scale_percent / 100.0)
+        mesh.apply_scale((scale_percent / 100.0) * source_unit_scale)
         if rotation_z:
             matrix = trimesh.transformations.rotation_matrix(math.radians(rotation_z), [0, 0, 1])
             mesh.apply_transform(matrix)
