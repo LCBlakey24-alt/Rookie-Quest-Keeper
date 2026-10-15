@@ -13,7 +13,7 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.13 · AI Model Rescue</span></p>
+<p><span class="badge"><span class="dot"></span>v0.14 · AI Model Rescue</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
@@ -217,6 +217,16 @@
 <label for="towerScale">Model scale</label><input id="towerScale" type="range" min="50" max="250" step="5" value="100"><div class="range-line"><span>50%</span><strong id="towerScaleValue">100%</strong><span>250%</span></div>
 <label for="towerRotation">Which side faces the tray?</label><select id="towerRotation"><option value="0">Current front</option><option value="90">Turn right 90°</option><option value="180">Use the back</option><option value="270">Turn left 90°</option></select>
 <label for="diceSize">Largest dice</label><select id="diceSize"><option value="20">Normal RPG dice · up to ~20 mm</option><option value="22" selected>Comfortable D20 clearance · ~22 mm</option><option value="25">Large dice · ~25 mm</option><option value="28">Extra-large dice · ~28 mm</option></select>
+<label for="chuteStyle">Internal chute style</label>
+<select id="chuteStyle">
+<option value="straight">Straight Drop · fastest exit</option>
+<option value="zigzag" selected>Zig-Zag Platforms · classic tumble</option>
+<option value="spiral">Spiral / Spring · longest travel</option>
+</select>
+<div id="chuteStyleNote" class="support-note safe">
+<strong>Zig-Zag Platforms</strong>
+<span>Alternating internal ramps make the die hit side-to-side before reaching the tray.</span>
+</div>
 <label for="trayDepth">Catch tray depth</label><input id="trayDepth" type="range" min="50" max="100" step="5" value="70"><div class="range-line"><span>50 mm</span><strong id="trayDepthValue">70 mm</strong><span>100 mm</span></div>
 <label for="trayX">Tray position · left / right</label><input id="trayX" type="range" min="-60" max="60" step="1" value="0"><div class="range-line"><span>Left</span><strong id="trayXValue">Centre · 0 mm</strong><span>Right</span></div>
 <div class="two">
@@ -226,6 +236,11 @@
 <div class="two">
 <button id="smartTower" class="secondary" type="button">Smart Suggest Everything</button>
 <button id="smartFromTray" class="secondary" type="button">Keep Tray Here · Calculate Chute</button>
+</div>
+<button id="simulateDice" class="ghost" type="button">▶ Run Virtual Dice Drop</button>
+<div id="diceSimResult" class="support-note neutral">
+<strong>Virtual drop not run yet</strong>
+<span>The magenta D20 follows the planned centreline. This checks path clearance and envelope fit; it is not yet a full rigid-body physics simulation.</span>
 </div>
 <div id="smartTowerNote" class="support-note neutral"><strong>Tray-first path planner</strong><span>Auto mode can choose the tray side and position. Or move the tray yourself and the planner recalculates a support-friendly diagonal path back into the model.</span></div>
 
@@ -336,7 +351,7 @@
 </div>
 
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
-<footer>Rookie Quest Forge · Slicer v0.13</footer>
+<footer>Rookie Quest Forge · Slicer v0.14</footer>
 </main>
 <script type="module" src="/assets/app.js"></script>
 </body></html>
