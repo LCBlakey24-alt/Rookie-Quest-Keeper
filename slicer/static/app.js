@@ -14,7 +14,7 @@ function backupViewer(container,error){
     async showFile(file){loaded=true;if(isTower&&software)await software.showFile(file);return {x:0,y:0,z:0}},
     showDemoTower(){loaded=true;software?.reset();return {x:112,y:105,z:172}},
     preview(){return null},
-    async runDiceSimulation(){software?.drop();return {ok:false,message:'Visual-only software preview: collision/fit not verified. You can still watch the animation.',minClearance:0,durationMs:0}},
+    async runDiceSimulation(){return {ok:false,physicsUnavailable:true,message:'WebGL or the physics library is unavailable on this device. The visual backup cannot perform a real collision simulation; no pass has been reported.'}},
     editPreview(){return null},splitPreview(){return null},
     overhangHeatmap(){return {moderate:0,severe:0}},hasModel(){return loaded}
   };
@@ -500,7 +500,7 @@ $('#simulateDice').addEventListener('click',async()=>{
     box.className='support-note '+(result.ok?'safe':'warn');
     box.replaceChildren();
     const strong=document.createElement('strong');
-    strong.textContent=result.ok?'Physical drop reached the tray'
+    strong.textContent=result.ok?(towerIsDemo?'Physical drop reached sample tray':'D20 reached STL lower exit region')
       :result.physicsUnavailable?'Physics engine unavailable · no test performed'
       :'Physical drop did not pass';
     const span=document.createElement('span');
