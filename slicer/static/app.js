@@ -328,6 +328,10 @@ $('#buildSplit').addEventListener('click',async()=>{
 
 /* Dice Tower Builder */
 const viewer=createViewer($('#viewer'));
+let towerIsDemo=true;
+// This real mesh can be rotated; exports still require an uploaded STL.
+window.rqSoftwareViewer?.hideTower();
+viewer.showDemoTower();
 let generatedBlob=null,generatedName='Rookie_Quest_Dice_Tower.stl';
 function towerOpts(){
   return {
@@ -379,6 +383,7 @@ $('#towerModel').addEventListener('change',async e=>{
   if(!f)return;
   try{
     await viewer.showFile(f,true);
+    towerIsDemo=false;
     towerChecks();
   }catch(x){
     $('#towerStatus').className='status bad';
@@ -396,6 +401,21 @@ for(const id of ['towerScale','towerRotation','diceSize','chuteStyle','trayDepth
   });
 }
 updateChuteStyleNote();
+towerChecks();
+$('#towerDemoReset').addEventListener('click',()=>{
+  $('#towerModel').value='';
+  towerIsDemo=true;
+  generatedBlob=null;
+  $('#resultActions').classList.remove('show');
+  viewer.showDemoTower();
+  towerChecks();
+  $('#towerStatus').className='status ok';
+  $('#towerStatus').textContent='Sample 3D tower reloaded. You can test its chute and D20; upload your own STL to build or export.';
+});
+$('#jumpTowerBuilder').addEventListener('click',()=>{
+  document.querySelector('.tab[data-tab="design"]').click();
+  $('#designPanel').scrollIntoView({behavior:'smooth',block:'start'});
+});
 async function requestTowerSuggestion(keepTray){
   const f=$('#towerModel').files[0],s=$('#towerStatus');
   const b=keepTray?$('#smartFromTray'):$('#smartTower'),note=$('#smartTowerNote');
@@ -435,9 +455,9 @@ $('#smartFromTray').addEventListener('click',()=>requestTowerSuggestion(true));
 
 $('#simulateDice').addEventListener('click',async()=>{
   const f=$('#towerModel').files[0],box=$('#diceSimResult'),b=$('#simulateDice');
-  if(!f){
+  if(!f && !towerIsDemo){
     box.className='support-note warn';
-    box.innerHTML='<strong>No model loaded</strong><span>Choose an STL first.</span>';
+    box.innerHTML='<strong>No model loaded</strong><span>Choose an STL or reload the sample tower.</span>';
     return;
   }
   b.disabled=true;
@@ -448,9 +468,9 @@ $('#simulateDice').addEventListener('click',async()=>{
     box.className='support-note '+(result.ok?'safe':'warn');
     if(result.ok){
       const seconds=(result.durationMs/1000).toFixed(1);
-      box.innerHTML='<strong>Virtual drop passed · '+seconds+' s path</strong><span>Minimum planned clearance: '+Number(result.minClearance).toFixed(1)+' mm'
+      box.innerHTML='<strong>Visual centreline completed · '+seconds+' s path</strong><span>Estimated clearance: '+Number(result.minClearance).toFixed(1)+' mm'
         +(result.turns?(' · '+Number(result.turns).toFixed(2)+' spiral turns'):'')
-        +' · The path stayed within the planned envelope.</span>';
+        +' · This is not a full collision-physics test or final STL certification.</span>';
     }else{
       box.innerHTML='<strong>Potential jam / geometry problem</strong><span>'+result.message+' Minimum planned clearance: '+Number(result.minClearance||0).toFixed(1)+' mm.</span>';
     }
@@ -728,3 +748,5 @@ $('#install').addEventListener('click',async()=>{
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
 renderHistory();
+
+window.rqAppReady=true;
