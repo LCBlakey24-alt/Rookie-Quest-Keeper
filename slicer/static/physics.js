@@ -59,6 +59,7 @@ function makeCollisionBodies(THREE,CANNON,world,root,demo){
       }
       body.addShape(new CANNON.Trimesh(transformed,inds));
     }
+    body.rqTray=!!mesh.userData.rqTray;
     world.addBody(body);colliders.push(body);
   });
   if(!colliders.length)throw Error('No solid collision surfaces found.');
@@ -95,9 +96,9 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,style='zi
   body.quaternion.setFromEuler(.24+Math.random()*.22,.12+Math.random()*.21,.16+Math.random()*.25);
   body.angularVelocity.set(2.1+Math.random()*2.5,-3.3+Math.random()*2.2,1.6+Math.random()*2.5);
   world.addBody(body);
-  let contacts=0,worldTime=0,last=performance.now(),acc=0,reach=false,previous=null;
+  let contacts=0,trayContacts=0,worldTime=0,last=performance.now(),acc=0,reach=false,previous=null;
   const tracePoints=[],limit=3.7;
-  body.addEventListener('collide',()=>{contacts++;onContact?.(contacts)});
+  body.addEventListener('collide',event=>{contacts++;if(event.body?.rqTray)trayContacts++;onContact?.(contacts)});
   const inverse=root.matrixWorld.clone().invert();
   const initialHeight=start.z;
   return await new Promise(resolve=>{
@@ -126,7 +127,7 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,style='zi
       if(demo){
         if(local.y < -63 && local.y > -190 &&
            Math.abs(local.x)<66 && local.z>radius*.7 &&
-           local.z<37 && contacts>0)reach=true;
+           local.z<37 && trayContacts>0)reach=true;
       }else{
         // Imported/generated STL is used as the *actual collider*. The exit zone
         // is an approximate front-bottom region, not proof of a correct catch tray.
@@ -148,7 +149,7 @@ export async function dropD20({THREE,scene,root,diameter=22,demo=false,style='zi
           :'Time limit reached before a successful drop: possible jam or an unsuitable route.';
         resolve({ok,outcome,contacts,simulatedSeconds:+worldTime.toFixed(2),
           frames:tracePoints.length,final:[+position.x.toFixed(1),+position.y.toFixed(1),+position.z.toFixed(1)],
-          triangles:colliderInfo.triangles,surfaces:colliderInfo.surfaces,message});
+          triangles:colliderInfo.triangles,surfaces:colliderInfo.surfaces,trayContacts,message});
         return;
       }
       requestAnimationFrame(frame);
