@@ -13,7 +13,7 @@
 <body><main>
 <div class="brand">ROOKIE QUEST FORGE</div>
 <div class="hero"><div class="crest">RQ</div><div><h1>Rookie Quest Slicer</h1><p style="margin:5px 0 0">Slice it. Design it. Fix it. Print it.</p></div></div>
-<p><span class="badge"><span class="dot"></span>v0.14 · AI Model Rescue</span></p>
+<p><span class="badge"><span class="dot"></span>v0.15 · 3D Viewer + Chute Lab</span></p>
 <section class="printer"><div><strong>Elegoo Neptune 3 Pro</strong><br><span>225 × 225 × 280 mm · PLA+ · 0.2–1.0 mm nozzles</span></div><div>🖨️</div></section>
 
 <section style="padding:10px">
@@ -36,6 +36,11 @@
 
 <label for="model">Model</label>
 <div class="filebox"><input required type="file" id="model" name="model" accept=".stl,.3mf"><div class="help" id="fileHelp">STL or 3MF · up to 75 MB</div></div>
+<div class="preview-heading"><strong>3D model preview</strong><span>Drag to rotate · scroll to zoom</span></div>
+<div id="sliceViewer" class="viewer" style="height:310px"><div class="viewer-note">Software 3D viewer · choose an STL to inspect your own model</div></div>
+<div class="two"><button type="button" id="quickDemoReset" class="secondary">Reset sample preview</button><button type="button" id="quickDiceDrop" class="ghost">▶ Demo D20 drop</button></div>
+<button type="button" id="jumpTowerBuilder" class="secondary">🎲 Open Dice Tower Builder</button>
+<div class="help">The sample tower is just a demonstration. Upload your own STL or 3MF before generating G-code. The backup viewer supports STL; full 3MF preview uses the graphics engine.</div>
 
 <label for="preset">Print type</label>
 <select name="preset" id="preset">
@@ -207,9 +212,9 @@
 <div class="pillrow" style="margin-top:12px"><span class="pill">Touch 3D preview</span><span class="pill">Auto chute sizing</span><span class="pill">AI / Meshy rescue</span><span class="pill">Neptune bed check</span><span class="pill">Export STL</span></div>
 </section>
 <section>
-<h3>1 · Choose the outside design</h3><p class="mini-note">Works best with solid tower-like models: castles, skulls, statues, buildings and chunky scenery.</p>
+<h3>1 · Choose the outside design</h3><p class="mini-note">The sample Gothic tower is loaded automatically for 3D testing. Upload your own STL to design and export a real file. The transparent model and cyan chute are visual planning overlays.</p>
 <div class="filebox"><input type="file" id="towerModel" accept=".stl"><div class="help" id="towerFileHelp">STL · up to 125 MB · AI/Meshy files supported</div></div>
-<div id="viewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Drag to rotate · pinch to zoom</div></div>
+<div id="viewer" class="viewer" style="margin-top:14px"><div class="viewer-note">Drag to rotate · pinch to zoom · cyan = chute, pink = D20</div></div><button id="towerDemoReset" class="secondary" type="button">↺ Reload sample 3D tower</button>
 <div class="checks"><div id="dimCheck" class="check"><strong>—</strong>Model size</div><div id="chuteCheck" class="check"><strong>—</strong>Chute fit</div><div id="bedCheck" class="check"><strong>—</strong>Printer fit</div></div>
 </section>
 <section>
@@ -240,7 +245,7 @@
 <button id="simulateDice" class="ghost" type="button">▶ Run Virtual Dice Drop</button>
 <div id="diceSimResult" class="support-note neutral">
 <strong>Virtual drop not run yet</strong>
-<span>The magenta D20 follows the planned centreline. This checks path clearance and envelope fit; it is not yet a full rigid-body physics simulation.</span>
+<span>The magenta D20 follows the planned centreline. This is a visual route/clearance estimate, not actual collision physics or proof a printed STL is passable.</span>
 </div>
 <div id="smartTowerNote" class="support-note neutral"><strong>Tray-first path planner</strong><span>Auto mode can choose the tray side and position. Or move the tray yourself and the planner recalculates a support-friendly diagonal path back into the model.</span></div>
 
@@ -353,5 +358,5 @@
 <button id="install" class="secondary install" type="button">Add Rookie Quest Slicer to Home Screen</button>
 <footer>Rookie Quest Forge · Slicer v0.14</footer>
 </main>
-<script type="module" src="/assets/app.js"></script>
+<script defer src="/assets/software-viewer.js?v=15"></script><script type="module" src="/assets/app.js?v=15"></script>
 </body></html>
