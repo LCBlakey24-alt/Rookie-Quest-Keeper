@@ -485,29 +485,34 @@ $('#smartTower').addEventListener('click',()=>requestTowerSuggestion(false));
 $('#smartFromTray').addEventListener('click',()=>requestTowerSuggestion(true));
 
 $('#simulateDice').addEventListener('click',async()=>{
-  const f=$('#towerModel').files[0],box=$('#diceSimResult'),b=$('#simulateDice');
-  if(!f && !towerIsDemo){
+  const box=$('#diceSimResult'),b=$('#simulateDice');
+  if(!viewer.hasModel()){
     box.className='support-note warn';
-    box.innerHTML='<strong>No model loaded</strong><span>Choose an STL or reload the sample tower.</span>';
+    box.textContent='No physical model loaded. Choose an STL or reset the sample tower.';
     return;
   }
   b.disabled=true;
   box.className='support-note neutral';
-  box.innerHTML='<strong>Running virtual drop…</strong><span>Following the planned '+$('#chuteStyle').value+' path.</span>';
+  box.innerHTML='<strong>Simulating gravity and collisions…</strong><span>The die is free to bounce, tumble, jam or escape. This is not a predefined animation.</span>';
   try{
     const result=await viewer.runDiceSimulation(towerOpts());
+    if(result.cancelled)return;
     box.className='support-note '+(result.ok?'safe':'warn');
-    if(result.ok){
-      const seconds=(result.durationMs/1000).toFixed(1);
-      box.innerHTML='<strong>Visual centreline completed · '+seconds+' s path</strong><span>Estimated clearance: '+Number(result.minClearance).toFixed(1)+' mm'
-        +(result.turns?(' · '+Number(result.turns).toFixed(2)+' spiral turns'):'')
-        +' · This is not a full collision-physics test or final STL certification.</span>';
-    }else{
-      box.innerHTML='<strong>Potential jam / geometry problem</strong><span>'+result.message+' Minimum planned clearance: '+Number(result.minClearance||0).toFixed(1)+' mm.</span>';
-    }
+    box.replaceChildren();
+    const strong=document.createElement('strong');
+    strong.textContent=result.ok?'Physical drop reached the tray'
+      :result.physicsUnavailable?'Physics engine unavailable · no test performed'
+      :'Physical drop did not pass';
+    const span=document.createElement('span');
+    span.textContent=result.message
+      +(Number.isFinite(result.contacts)?' · Solid contacts: '+result.contacts:'')
+      +(Number.isFinite(result.simulatedSeconds)?' · Simulated: '+result.simulatedSeconds+' s':'')
+      +(result.outcome?' · Result: '+result.outcome.replaceAll('_',' '):'')
+      +(towerIsDemo?' · This is the sample tower; export still requires an uploaded STL.':' · Review the actual mesh and try more drops before printing.');
+    box.append(strong,span);
   }catch(x){
     box.className='support-note warn';
-    box.innerHTML='<strong>Simulation error</strong><span>'+x.message+'</span>';
+    box.textContent='Physics simulation failed: '+x.message+'. No pass has been recorded.';
   }finally{b.disabled=false}
 });
 
