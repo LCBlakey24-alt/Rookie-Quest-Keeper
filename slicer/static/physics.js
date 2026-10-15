@@ -45,7 +45,7 @@ function makeCollisionBodies(THREE,CANNON,world,root,demo){
       if(!pos)return;
       const faceCount=(idx?idx.count:pos.count)/3;
       triangles+=faceCount;
-      if(triangles>55000)throw Error('This STL has over 55,000 collision triangles. Reduce its mesh first; the test will not silently substitute a simpler shape.');
+      if(triangles>180000)throw Error('This STL has over 180,000 collision triangles. Reduce its mesh first; the test will not silently substitute a simpler shape.');
       const transformed=[],inds=[];
       // Non-indexed mesh is accepted. Transform vertices into world coordinates
       // so the static triangle collider matches the displayed STL exactly.
