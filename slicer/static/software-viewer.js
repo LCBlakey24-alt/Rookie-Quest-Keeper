@@ -159,11 +159,10 @@ byId('quickDemoReset')?.addEventListener('click',()=>{quick?.reset();});
 byId('towerDemoReset')?.addEventListener('click',()=>{
  if(window.rqAppReady)return; tower?.reset();
 });
-byId('quickDiceDrop')?.addEventListener('click',()=>quick?.drop());
+byId('quickDiceDrop')?.addEventListener('click',()=>byId('jumpTowerBuilder')?.click());
 byId('simulateDice')?.addEventListener('click',()=>{
  if(window.rqAppReady)return;
- tower?.drop();
  const result=byId('diceSimResult');
- if(result){result.className='support-note warn';result.innerHTML='<strong>Visual drop running</strong><span>Software preview only. Cannot verify an imported STL for collisions or produce G-code without the main slicer engine.</span>';}
+ if(result){result.className='support-note warn';result.innerHTML='<strong>Physics unavailable</strong><span>This device is showing the non-physics software preview. No drop has been simulated or validated.</span>';}
 });
 })();
