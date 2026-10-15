@@ -269,6 +269,7 @@ async def build_dice_tower(
     tray_x_mm: float = Form(0.0),
     chute_x_mm: float = Form(0.0),
     chute_y_mm: float = Form(0.0),
+    chute_style: str = Form("zigzag"),
     access_pin: str = Form(""),
 ):
     check_pin(access_pin)
@@ -288,6 +289,9 @@ async def build_dice_tower(
         raise HTTPException(400, "Tray depth must be between 50 mm and 100 mm")
     if not -80 <= tray_x_mm <= 80:
         raise HTTPException(400, "Tray position must stay within ±80 mm")
+    chute_style = (chute_style or "zigzag").strip().lower()
+    if chute_style not in {"straight","zigzag","spiral"}:
+        raise HTTPException(400, "Chute style must be straight, zigzag or spiral")
 
     work = Path(tempfile.mkdtemp(prefix="rqs_tower_"))
     source = work / "source.stl"
@@ -312,25 +316,45 @@ async def build_dice_tower(
         mesh.export(normalized)
         w, d, h = [float(v) for v in mesh.extents]
 
-        channel_w = max(44.0, dice_mm * 2.3)
-        channel_d = channel_w
+        exit_h = max(30.0, dice_mm + 10.0)
+        tube_d = max(34.0, dice_mm * 1.55)
+        helix_radius = 0.0
+        spiral_turns = 0.0
+        spiral_segments = 0
+
+        if chute_style == "straight":
+            channel_w = max(40.0, dice_mm * 1.9)
+            channel_d = channel_w
+            min_h = max(86.0, dice_mm + 58.0)
+        elif chute_style == "spiral":
+            helix_radius = max(6.0, dice_mm * 0.42)
+            channel_w = 2.0 * (tube_d / 2.0 + helix_radius) + 10.0
+            channel_d = channel_w
+            min_h = max(118.0, dice_mm * 4.8)
+        else:
+            channel_w = max(44.0, dice_mm * 2.3)
+            channel_d = channel_w
+            min_h = max(125.0, dice_mm + 102.0)
+
         outer_w = channel_w + 6.0
         outer_d = channel_d + 6.0
-        exit_h = max(30.0, dice_mm + 10.0)
         max_x = max(0.0, w / 2.0 - channel_w / 2.0 - 5.0)
         max_y = max(0.0, d / 2.0 - channel_d / 2.0 - 5.0)
         if abs(chute_x_mm) > max_x + 0.01 or abs(chute_y_mm) > max_y + 0.01:
             raise HTTPException(
                 422,
-                f"Requested chute offset ({chute_x_mm:.1f}, {chute_y_mm:.1f}) mm would push the dice channel outside the model. Maximum safe offset here is about ±{max_x:.1f} X and ±{max_y:.1f} Y."
+                f"Requested chute offset ({chute_x_mm:.1f}, {chute_y_mm:.1f}) mm would push the {chute_style} chute outside the model envelope. Maximum safe offset here is about ±{max_x:.1f} X and ±{max_y:.1f} Y."
             )
+
         min_w = outer_w + 8.0
         min_d = outer_d + 8.0
-        min_h = max(95.0, exit_h + 55.0)
         if w < min_w or d < min_d or h < min_h:
             factor = max(min_w / max(w, 0.1), min_d / max(d, 0.1), min_h / max(h, 0.1))
             suggested = min(250, int(math.ceil(scale_percent * factor / 5.0) * 5))
-            raise HTTPException(422, f"This model is too small for a reliable dice chute at {scale_percent}%. Try about {suggested}% scale, or use a larger/wider model.")
+            raise HTTPException(
+                422,
+                f"This model is too small for the {chute_style} chute at {scale_percent}%. Try about {suggested}% scale, choose a simpler chute style, or use a larger/wider model."
+            )
 
         tray_w = min(w + 10.0, max(channel_w + 24.0, 82.0))
         output_depth = d + tray_depth + 3.0
@@ -349,47 +373,102 @@ async def build_dice_tower(
         if transition_angle > 34.0:
             raise HTTPException(
                 422,
-                f"The tray-to-chute path would turn about {transition_angle:.1f}°, which is too sharp for the current support-free transition. Move the tray closer to the chute or use Smart Calculate."
+                f"The tray-to-chute path would turn about {transition_angle:.1f}°, which is too sharp. Move the tray closer to the chute or use Smart Calculate."
             )
         if output_width > BED_X or output_depth > BED_Y or h > MAX_Z:
-            raise HTTPException(422, f"The converted tower would be about {output_width:.0f} × {output_depth:.0f} × {h:.0f} mm, so it would not fit the Neptune 3 Pro bed. Move the tray inward, reduce scale/tray depth or rotate the model.")
+            raise HTTPException(
+                422,
+                f"The converted tower would be about {output_width:.0f} × {output_depth:.0f} × {h:.0f} mm, so it would not fit the Neptune 3 Pro bed."
+            )
 
         y_front = -d / 2.0
         foundation_w = min(w, outer_w + 20.0)
         foundation_d = min(d, outer_d + 20.0)
-        positions = []
-        z = h - 42.0
-        while z > exit_h + 38.0 and len(positions) < 4:
-            positions.append(z)
-            z -= 42.0
-        if len(positions) < 2:
-            raise HTTPException(422, "This model is not tall enough to make a useful multi-baffle dice tower")
-        baffles = "\n".join(
-            f"wedge_left({zv:.3f});" if i % 2 == 0 else f"wedge_right({zv:.3f});"
-            for i, zv in enumerate(positions)
-        )
 
-        scad = f'''$fn=48;
+        positions = []
+        baffles = ""
+        spiral_void_calls = ""
+        spiral_preview_points = 0
+
+        if chute_style == "zigzag":
+            low = exit_h + 30.0
+            high = h - 30.0
+            if high <= low + 12.0:
+                raise HTTPException(422, "This model is not tall enough for two useful zig-zag platforms")
+            count = max(2, min(4, 1 + int((high - low) // 34.0)))
+            if count == 1:
+                positions = [high]
+            else:
+                positions = [
+                    high - i * (high - low) / (count - 1)
+                    for i in range(count)
+                ]
+            baffles = "\n".join(
+                f"wedge_left({zv:.3f});" if i % 2 == 0 else f"wedge_right({zv:.3f});"
+                for i, zv in enumerate(positions)
+            )
+
+        elif chute_style == "spiral":
+            tube_r = tube_d / 2.0
+            spiral_top = h - tube_r - 6.0
+            spiral_bottom = exit_h + tube_r + 8.0
+            spiral_drop = spiral_top - spiral_bottom
+            min_pitch = tube_d + 6.0
+            spiral_turns = min(3.0, spiral_drop / min_pitch)
+            if spiral_turns < 1.25:
+                raise HTTPException(
+                    422,
+                    "This model is too short for a useful spiral chute. Choose Zig-Zag or Straight, or make the tower taller."
+                )
+            spiral_segments = max(30, int(math.ceil(spiral_turns * 20.0)))
+            points = []
+            # Finish the helix at the front side so the exit transition is short.
+            end_angle = -math.pi / 2.0
+            start_angle = end_angle - 2.0 * math.pi * spiral_turns
+            for i in range(spiral_segments + 1):
+                t = i / spiral_segments
+                a = start_angle + (end_angle - start_angle) * t
+                x = chute_x_mm + helix_radius * math.cos(a)
+                y = chute_y_mm + helix_radius * math.sin(a)
+                z = spiral_top - spiral_drop * t
+                points.append((x, y, z))
+            calls = []
+            top_entry = (chute_x_mm, chute_y_mm, h + 2.0)
+            calls.append(
+                f"capsule([{top_entry[0]:.3f},{top_entry[1]:.3f},{top_entry[2]:.3f}],"
+                f"[{points[0][0]:.3f},{points[0][1]:.3f},{points[0][2]:.3f}],tube_r);"
+            )
+            for p1, p2 in zip(points[:-1], points[1:]):
+                calls.append(
+                    f"capsule([{p1[0]:.3f},{p1[1]:.3f},{p1[2]:.3f}],"
+                    f"[{p2[0]:.3f},{p2[1]:.3f},{p2[2]:.3f}],tube_r);"
+                )
+            last = points[-1]
+            exit_point = (tray_x_mm, y_front - 5.0, max(tube_r + 2.0, exit_h / 2.0))
+            calls.append(
+                f"capsule([{last[0]:.3f},{last[1]:.3f},{last[2]:.3f}],"
+                f"[{exit_point[0]:.3f},{exit_point[1]:.3f},{exit_point[2]:.3f}],tube_r);"
+            )
+            spiral_void_calls = "\n    ".join(calls)
+            spiral_preview_points = len(points)
+
+        common_modules = f'''$fn=36;
 model_w={w:.4f}; model_d={d:.4f}; model_h={h:.4f};
 channel_w={channel_w:.4f}; channel_d={channel_d:.4f}; outer_w={outer_w:.4f}; outer_d={outer_d:.4f};
 exit_h={exit_h:.4f}; tray_d={tray_depth:.4f}; tray_w={tray_w:.4f}; tray_wall=3; tray_lip=12;
 y_front={y_front:.4f}; foundation_w={foundation_w:.4f}; foundation_d={foundation_d:.4f};
 chute_x={chute_x_mm:.4f}; chute_y={chute_y_mm:.4f}; tray_x={tray_x_mm:.4f};
+tube_r={tube_d/2.0:.4f};
 module transition_void() {{
   hull() {{
-    translate([chute_x,chute_y-channel_d/2+3,exit_h/2+1]) cube([channel_w,8,exit_h+4],center=true);
-    translate([tray_x,y_front-5,exit_h/2+1]) cube([channel_w,8,exit_h+4],center=true);
+    translate([chute_x,chute_y-channel_d/2+3,exit_h/2+1]) cube([min(channel_w,50),8,exit_h+4],center=true);
+    translate([tray_x,y_front-5,exit_h/2+1]) cube([min(channel_w,50),8,exit_h+4],center=true);
   }}
 }}
-module carved_body() {{
-  difference() {{
-    union() {{
-      import("normalized.stl", convexity=10);
-      translate([chute_x,chute_y,model_h/2]) cube([outer_w,outer_d,model_h],center=true);
-      translate([chute_x,chute_y,1]) cube([foundation_w,foundation_d,2],center=true);
-    }}
-    translate([chute_x,chute_y,(model_h+exit_h)/2]) cube([channel_w,channel_d,model_h-exit_h+8],center=true);
-    transition_void();
+module capsule(p1,p2,r) {{
+  hull() {{
+    translate(p1) sphere(r=r,$fn=20);
+    translate(p2) sphere(r=r,$fn=20);
   }}
 }}
 module wedge_left(z0) {{
@@ -402,8 +481,8 @@ module wedge_right(z0) {{
 }}
 module exit_floor() {{
   hull() {{
-    translate([chute_x,chute_y-channel_d/2+4,5]) cube([channel_w-6,10,5],center=true);
-    translate([tray_x,y_front-7,2.5]) cube([channel_w-6,10,5],center=true);
+    translate([chute_x,chute_y-channel_d/2+4,5]) cube([min(channel_w-6,46),10,5],center=true);
+    translate([tray_x,y_front-7,2.5]) cube([min(channel_w-6,46),10,5],center=true);
   }}
 }}
 module tray() {{
@@ -415,6 +494,39 @@ module tray() {{
     translate([tray_x,y_front-tray_d+tray_wall/2+3,tray_lip/2]) cube([tray_w,tray_wall,tray_lip],center=true);
   }}
 }}
+'''
+
+        if chute_style == "spiral":
+            scad = common_modules + f'''
+module spiral_void() {{
+  union() {{
+    {spiral_void_calls}
+  }}
+}}
+module carved_body() {{
+  difference() {{
+    import("normalized.stl", convexity=10);
+    spiral_void();
+  }}
+}}
+union() {{
+  carved_body();
+  tray();
+}}
+'''
+        else:
+            scad = common_modules + f'''
+module carved_body() {{
+  difference() {{
+    union() {{
+      import("normalized.stl", convexity=10);
+      translate([chute_x,chute_y,model_h/2]) cube([outer_w,outer_d,model_h],center=true);
+      translate([chute_x,chute_y,1]) cube([foundation_w,foundation_d,2],center=true);
+    }}
+    translate([chute_x,chute_y,(model_h+exit_h)/2]) cube([channel_w,channel_d,model_h-exit_h+8],center=true);
+    transition_void();
+  }}
+}}
 union() {{
   carved_body();
   {baffles}
@@ -423,6 +535,7 @@ union() {{
 }}
 '''
         script.write_text(scad, encoding="utf-8")
+
         result = subprocess.run([cad, "-q", "-o", str(output), str(script)], cwd=work, capture_output=True, text=True, timeout=DESIGN_TIMEOUT, check=False)
         if result.returncode != 0 or not output.exists() or output.stat().st_size < 100:
             detail = (result.stderr or result.stdout or "Unknown OpenSCAD error").strip()[-1200:]
@@ -440,6 +553,9 @@ union() {{
             "X-RQ-Tray-X": f"{tray_x_mm:.1f}",
             "X-RQ-Tray-Width": f"{tray_w:.1f}",
             "X-RQ-Transition-Angle": f"{transition_angle:.1f}",
+            "X-RQ-Chute-Style": chute_style,
+            "X-RQ-Spiral-Turns": f"{spiral_turns:.2f}" if chute_style == "spiral" else "0",
+            "X-RQ-Path-Points": str(spiral_preview_points) if chute_style == "spiral" else str(len(positions) + 2),
         }
         filename = f"{Path(name).stem}_Dice_Tower.stl"
         return FileResponse(output, filename=filename, media_type="model/stl", headers=headers, background=BackgroundTask(lambda: shutil.rmtree(work, ignore_errors=True)))
