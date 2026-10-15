@@ -47,3 +47,6 @@ footer{text-align:center;font-size:11px;color:#7f8a9c;margin-top:22px}
   .tabs5::-webkit-scrollbar{display:none}
   .tabs5 .tab{min-width:82px;flex:0 0 auto;font-size:11px;padding:11px 7px}
 }
+
+/* v0.15: the 3D preview is visible before slicing, including on mobile. */
+.preview-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:17px 1px 8px}.preview-heading strong{font-size:14px;color:#eef5ff}.preview-heading span{font-size:11px;color:#a3b5c9}.rq-software-canvas{display:block}#sliceViewer{min-height:240px}#sliceViewer .viewer-note{background:#0b1b2bdc}#jumpTowerBuilder{margin-top:9px}#towerDemoReset{margin-top:9px}@media(max-width:420px){#sliceViewer{height:275px!important}.preview-heading{flex-wrap:wrap}}
