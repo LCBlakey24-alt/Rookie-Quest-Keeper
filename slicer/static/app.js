@@ -11,7 +11,7 @@ function backupViewer(container,error){
   let loaded=false;
   return {
     softwareFallback:true,
-    async showFile(file){loaded=true;if(isTower&&software)await software.showFile(file);return {x:0,y:0,z:0}},
+    async showFile(file){loaded=true;if(isTower&&software)await software.showFile(file);return {nativeDims:null,unitScale:1}},
     showDemoTower(){loaded=true;software?.reset();return {x:112,y:105,z:172}},
     preview(){return null},
     async runDiceSimulation(){return {ok:false,physicsUnavailable:true,message:'WebGL or the physics library is unavailable on this device. The visual backup cannot perform a real collision simulation; no pass has been reported.'}},
@@ -364,6 +364,29 @@ let towerIsDemo=true;
 viewer.showDemoTower();
 if(!viewer.softwareFallback)window.rqSoftwareViewer?.hideTower();
 let generatedBlob=null,generatedName='Rookie_Quest_Dice_Tower.stl';
+let towerUnitScale=1,towerPreviewReduced=false,towerHasFinal=false;
+function formattedMm(n){return n>=10?n.toFixed(1):n>=1?n.toFixed(2):n.toPrecision(2)}
+function updateTowerUnitNote(info){
+  const el=$('#towerUnitsNote');
+  if(!info?.nativeDims){
+    el.className='support-note warn';
+    el.innerHTML='<strong>Source dimensions unverified</strong><span>Software-only preview cannot confirm STL units. Do not build until dimensions are verified.</span>';
+    return;
+  }
+  const raw=info.nativeDims,phys=info.targetDims,unit=info.unitScale;
+  towerUnitScale=unit;towerPreviewReduced=!!info.sampledPreview;
+  const changed=Math.abs(unit-1)>1e-7;
+  const header=changed?'Size interpretation applied · ×'+unit.toFixed(unit>=10?1:3):'Original STL units retained';
+  const notice=changed?' STL has no unit metadata. This is a proposed scale, not a known measurement. Change it above if needed.':'';
+  const reduced=info.sampledPreview?' Large STL: the visual mesh has reduced detail to work on a phone. The original file is unchanged. Full collision testing cannot use the simplified preview.':'';
+  el.className='support-note '+(changed||info.sampledPreview?'warn':'safe');
+  el.replaceChildren();
+  const strong=document.createElement('strong'),span=document.createElement('span');
+  strong.textContent=header;
+  span.textContent='Original: '+[raw.x,raw.y,raw.z].map(formattedMm).join(' × ')+' coordinate units.'
+    +' Interpreted: '+[phys.x,phys.y,phys.z].map(formattedMm).join(' × ')+' mm.'+notice+reduced;
+  el.append(strong,span);
+}
 function towerOpts(){
   return {
     scale:Number($('#towerScale').value),
@@ -390,16 +413,23 @@ function updateChuteStyleNote(){
 function towerChecks(){
   const d=viewer.preview(towerOpts());
   if(!d)return;
-  $('#dimCheck').innerHTML='<strong>'+d.w.toFixed(0)+'×'+d.d.toFixed(0)+'×'+d.h.toFixed(0)+'</strong>Model mm';
-  $('#dimCheck').className='check good';
-  const min=d.channel+14,minH=d.minH||Math.max(95,towerOpts().dice+65),good=d.w>=min&&d.d>=min&&d.h>=minH;
-  $('#chuteCheck').innerHTML='<strong>'+(good?'Good':'Too small')+'</strong>'+d.channel.toFixed(0)+' mm chute';
+  $('#dimCheck').innerHTML='<strong>'+[d.w,d.d,d.h].map(formattedMm).join('×')+'</strong>Model mm';
+  $('#dimCheck').className='check '+(d.h<50?'bad':'good');
+  const min=d.channel+14,minH=d.minH||Math.max(95,towerOpts().dice+65),
+    good=d.finalModel?true:(d.w>=min&&d.d>=min&&d.h>=minH);
+  $('#chuteCheck').innerHTML=d.finalModel?'<strong>Built STL</strong>Test the actual mesh'
+    :'<strong>'+(good?'Good':'Too small')+'</strong>'+d.channel.toFixed(0)+' mm chute';
   $('#chuteCheck').className='check '+(good?'good':'bad');
   const fit=d.outW<=225&&d.outD<=225&&d.h<=280;
   $('#bedCheck').innerHTML='<strong>'+(fit?'Fits':'Too large')+'</strong>'+d.outW.toFixed(0)+'×'+d.outD.toFixed(0);
   $('#bedCheck').className='check '+(fit?'good':'bad');
-  if(!d.chuteSafe){
-    $('#chuteCheck').innerHTML='<strong>Path unsafe</strong>'+d.transitionAngle.toFixed(1)+'° tray turn';
+  if(d.finalModel){
+    $('#chuteCheck').className='check good';
+  }else if(!good){
+    $('#chuteCheck').innerHTML='<strong>Too small</strong>Change unit interpretation or model scale';
+    $('#chuteCheck').className='check bad';
+  }else if(!d.chuteSafe){
+    $('#chuteCheck').innerHTML='<strong>Path unsafe</strong>Offset, clearance or tray connection';
     $('#chuteCheck').className='check bad';
   }else{
     $('#chuteCheck').innerHTML='<strong>'+(good?'Good':'Too small')+'</strong>'+d.style+' · '+d.minClearance.toFixed(1)+' mm clearance';
@@ -412,16 +442,30 @@ $('#towerModel').addEventListener('change',async e=>{
   $('#resultActions').classList.remove('show');
   $('#towerFileHelp').textContent=f?(f.name+' · '+(f.size/1048576).toFixed(1)+' MB'):'STL · up to 125 MB · AI/Meshy files supported';
   if(!f)return;
+  $('#towerStatus').className='status';
+  $('#towerStatus').textContent='Reading STL bounds and preparing the mobile preview…';
+  $('#towerUnits').value='auto';
   try{
-    await viewer.showFile(f,true);
-    towerIsDemo=false;
+    const info=await viewer.showFile(f,true);
+    towerIsDemo=false;towerHasFinal=false;
+    if(viewer.setSourceUnitMode)updateTowerUnitNote(viewer.setSourceUnitMode('auto')||info);
+    else updateTowerUnitNote(info);
     towerChecks();
+    $('#towerStatus').className='status ok';
+    $('#towerStatus').textContent='STL loaded. Check the interpreted dimensions above before building. The coloured chute is only a planning overlay.';
   }catch(x){
     $('#towerStatus').className='status bad';
     $('#towerStatus').textContent='Preview failed: '+x.message;
   }
 });
-for(const id of ['towerScale','towerRotation','diceSize','chuteStyle','trayDepth','trayX','chuteX','chuteY']){
+$('#towerUnits').addEventListener('change',()=>{
+  if(towerIsDemo){$('#towerUnitsNote').textContent='The built-in sample tower uses millimetres.';return}
+  if(towerHasFinal){$('#towerUnitsNote').textContent='The completed STL uses millimetres. Upload a new original to change its source units.';return}
+  if(!viewer.setSourceUnitMode){updateTowerUnitNote(null);return}
+  updateTowerUnitNote(viewer.setSourceUnitMode($('#towerUnits').value));
+  towerChecks();
+});
+for(const id of ['towerScale','towerRotation','diceSize','chuteStyle','trayDepth','trayX','chuteY']){
   $('#'+id).addEventListener('input',()=>{
     $('#towerScaleValue').textContent=$('#towerScale').value+'%';
     $('#trayDepthValue').textContent=$('#trayDepth').value+' mm';
@@ -439,6 +483,10 @@ $('#towerDemoReset').addEventListener('click',()=>{
   generatedBlob=null;
   $('#resultActions').classList.remove('show');
   viewer.showDemoTower();
+  towerUnitScale=1;towerPreviewReduced=false;towerHasFinal=false;
+  $('#towerUnits').value='auto';
+  $('#towerUnitsNote').className='support-note safe';
+  $('#towerUnitsNote').innerHTML='<strong>Sample tower · millimetres</strong><span>The sample has physical baffles for testing.</span>';
   towerChecks();
   $('#towerStatus').className='status ok';
   $('#towerStatus').textContent='Sample 3D tower reloaded. You can test its chute and D20; upload your own STL to build or export.';
@@ -456,6 +504,7 @@ async function requestTowerSuggestion(keepTray){
   const fd=new FormData();
   fd.append('model',f);
   fd.append('scale_percent',$('#towerScale').value);
+  fd.append('source_unit_scale',String(towerUnitScale));
   fd.append('dice_mm',$('#diceSize').value);
   fd.append('tray_depth',$('#trayDepth').value);
   fd.append('front_rotation',keepTray?$('#towerRotation').value:'auto');
@@ -537,6 +586,10 @@ $('#rescueTower').addEventListener('click',async()=>{
     generatedBlob=await r.blob();
     generatedName=f.name.replace(/\.stl$/i,'')+'_AI_Rescued_Dice_Tower.stl';
     await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
+    towerUnitScale=1;towerHasFinal=true;towerPreviewReduced=!!viewer.sourceInfo?.().sampledPreview;
+    $('#towerUnits').value='native';
+    $('#towerUnitsNote').className='support-note safe';
+    $('#towerUnitsNote').innerHTML='<strong>Generated STL uses millimetres</strong><span>The visible mesh is the exported geometry. Its chute must be checked against the printed result.</span>';
     const dm=r.headers.get('X-RQ-Dimensions');
     const tris=r.headers.get('X-RQ-Source-Triangles');
     const tray=r.headers.get('X-RQ-Tray-Mode');
@@ -566,7 +619,7 @@ $('#buildTower').addEventListener('click',async()=>{
   if(!f){s.className='status bad';s.textContent='Choose an STL first.';return;}
   b.disabled=true;s.className='status';s.textContent='Building chute, ramps and catch tray…';
   const fd=new FormData(),o=towerOpts();
-  fd.append('model',f);fd.append('scale_percent',o.scale);fd.append('rotation_z',o.rotation);
+  fd.append('model',f);fd.append('scale_percent',o.scale);fd.append('source_unit_scale',String(towerUnitScale));fd.append('rotation_z',o.rotation);
   fd.append('dice_mm',o.dice);fd.append('tray_depth',o.tray);fd.append('tray_x_mm',o.trayX);
   fd.append('chute_x_mm',o.chuteX);fd.append('chute_y_mm',o.chuteY);
   fd.append('chute_style',o.chuteStyle);
@@ -577,6 +630,10 @@ $('#buildTower').addEventListener('click',async()=>{
     generatedBlob=await r.blob();
     generatedName=f.name.replace(/\.stl$/i,'')+'_Dice_Tower.stl';
     await viewer.showFile(new File([generatedBlob],generatedName,{type:'model/stl'}),false);
+    towerUnitScale=1;towerHasFinal=true;towerPreviewReduced=!!viewer.sourceInfo?.().sampledPreview;
+    $('#towerUnits').value='native';
+    $('#towerUnitsNote').className='support-note safe';
+    $('#towerUnitsNote').innerHTML='<strong>Generated STL uses millimetres</strong><span>The visible mesh is the exported geometry. Its chute must be checked against the printed result.</span>';
     const dm=r.headers.get('X-RQ-Dimensions'),bf=r.headers.get('X-RQ-Baffles'),cx=r.headers.get('X-RQ-Chute-X'),cy=r.headers.get('X-RQ-Chute-Y'),tx=r.headers.get('X-RQ-Tray-X'),angle=r.headers.get('X-RQ-Transition-Angle'),style=r.headers.get('X-RQ-Chute-Style'),turns=r.headers.get('X-RQ-Spiral-Turns');
     s.className='status ok';
     s.textContent='Tower built'+(dm?' · '+dm.replaceAll(',',' × ')+' mm':'')+(style?' · '+style:'')+(bf&&Number(bf)>0?' · '+bf+' baffles':'')+(turns&&Number(turns)>0?' · '+Number(turns).toFixed(2)+' turns':'')+(tx?' · tray '+tx+' mm':'')+(cx&&cy?' · chute '+cx+' / '+cy+' mm':'')+(angle?' · path '+angle+'°':'')+'. Rotate the preview and check it.';
