@@ -362,15 +362,22 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     reader.onload = () => {
       const picture = new Image();
       picture.onerror = () => toast.error('Could not decode that map image');
-      picture.onload = () => {
+      picture.onload = async () => {
         try {
           const scale = Math.min(1, 2600 / Math.max(picture.width, picture.height));
           const canvas = document.createElement('canvas');
           canvas.width = Math.max(1, Math.round(picture.width * scale));
           canvas.height = Math.max(1, Math.round(picture.height * scale));
           canvas.getContext('2d').drawImage(picture, 0, 0, canvas.width, canvas.height);
-          const url = canvas.toDataURL('image/jpeg', 0.83);
-          if (url.length > 4.5 * 1024 * 1024) { toast.error('Map is too large after resizing; try a smaller image'); return; }
+          let url = canvas.toDataURL('image/jpeg', 0.83);
+          if (window.rookieDesktop?.storeLocalMapImage) {
+            const saved = await window.rookieDesktop.storeLocalMapImage(url);
+            if (!saved?.url) throw new Error('Could not save that map locally.');
+            url = saved.url;
+          } else if (url.length > 4.5 * 1024 * 1024) {
+            toast.error('Map is too large after resizing; try a smaller image');
+            return;
+          }
           setImageUrl(url);
           void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload });
         } catch { toast.error('Could not prepare the map for display'); }
