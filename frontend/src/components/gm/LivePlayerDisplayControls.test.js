@@ -39,6 +39,17 @@ describe('LivePlayerDisplayControls reliability', () => {
     publishCampaignDisplayStateWithStatus.mockImplementation(async (_campaignId, state) => ({ state, remoteSynced: true }));
   });
 
+  test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
+    render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
+    fireEvent.click(screen.getByRole('button', { name: /Battle Starting!/i }));
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1',
+      expect.objectContaining({ mode: 'battle-start', payload: expect.objectContaining({ title: 'Battle Starting' }) }),
+    ));
+    const call = publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state.mode === 'battle-start');
+    expect(call[1].payload).not.toHaveProperty('tokens');
+  });
+
   test('warns instead of reporting remote success when a reveal only synced locally', async () => {
     publishCampaignDisplayStateWithStatus.mockImplementation(async (_campaignId, state) => ({ state, remoteSynced: false }));
 
