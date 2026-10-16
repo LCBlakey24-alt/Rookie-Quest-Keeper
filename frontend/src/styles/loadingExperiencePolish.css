@@ -225,3 +225,82 @@
 #root .clean-sheet-loading :where(p,span,strong,small) {
   color: #FFFFFF !important;
 }
+
+
+/* Laptop-first Guild Ledger loading screen — explicit override of legacy loader
+   layers. No giant blurred logo, double spinner, or scrolling on 720p displays. */
+#root .rqk-desktop-loading {
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  padding: clamp(12px, 3vw, 28px) !important;
+  overflow: hidden !important;
+  background: radial-gradient(ellipse at 50% 20%, #17374a 0%, #071522 66%) !important;
+}
+#root .rqk-desktop-loading::before,
+#root .rqk-desktop-loading::after {
+  display: none !important;
+}
+#root .rqk-desktop-loading .rqk-loading-guild-card {
+  width: min(620px, 100%) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 30px) !important;
+  padding: clamp(16px, 3vw, 34px) !important;
+  border: 1px solid rgba(201, 169, 107, 0.38) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(145deg, #102d40, #091b2a) !important;
+  box-shadow: 0 22px 76px rgba(0, 0, 0, 0.5) !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: clamp(7px, 1.3vh, 13px) !important;
+  overflow-y: auto !important;
+}
+#root .rqk-desktop-loading .rqk-loading-guild-card::before {
+  background: #c9a96b !important;
+  height: 3px !important;
+}
+#root .rqk-desktop-loading .rqk-loading-logo {
+  display: block;
+  width: min(400px, 87%);
+  max-height: clamp(76px, 17vh, 160px);
+  object-fit: contain;
+  margin: 0 auto 2px;
+}
+#root .rqk-desktop-loading .loading-title {
+  margin: 0 !important;
+  font-size: clamp(23px, 3.4vw, 34px) !important;
+  color: #f2ead9 !important;
+  line-height: 1.1 !important;
+}
+#root .rqk-desktop-loading .loading-kicker {
+  margin: 0 !important;
+  color: #c9a96b !important;
+  letter-spacing: .16em !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+}
+#root .rqk-desktop-loading .loading-tip {
+  max-width: 450px !important;
+  color: #d2d9dd !important;
+  font-size: clamp(11px, 1.5vw, 13px) !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+#root .rqk-desktop-loading .rqk-loading-activity {
+  display: flex; justify-content: center; align-items: center;
+  gap: 8px; height: 18px;
+}
+#root .rqk-desktop-loading .rqk-loading-activity span {
+  width: 7px; height: 7px; border-radius: 50%; background: #c9a96b;
+  animation: rqk-guild-wait 1.3s ease-in-out infinite;
+}
+#root .rqk-desktop-loading .rqk-loading-activity span:nth-child(2) { animation-delay: .17s; }
+#root .rqk-desktop-loading .rqk-loading-activity span:nth-child(3) { animation-delay: .34s; }
+#root .rqk-desktop-loading .route-loading-steps { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; width: min(430px, 100%) !important; }
+#root .rqk-desktop-loading .route-loading-steps li { border-color: rgba(201, 169, 107, .36) !important; color: #e7dfd1 !important; font-size: 10px !important; }
+@keyframes rqk-guild-wait { 0%, 60%, 100% { opacity: .35; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-5px); } }
+@media (max-width: 450px) {
+  #root .rqk-desktop-loading .route-loading-steps { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  #root .rqk-desktop-loading .route-loading-steps li { font-size: 8px !important; }
+}
+@media (prefers-reduced-motion: reduce) { #root .rqk-desktop-loading .rqk-loading-activity span { animation: none; opacity: .8; } }
