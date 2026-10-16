@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld('rookieDesktop', Object.freeze({
   platform: process.platform,
   edition: 'desktop',
   importCampaignPack: (workspaceRaw) => ipcRenderer.invoke('rqk:import-campaign-pack', workspaceRaw),
+  getLanDisplayLink: () => ipcRenderer.invoke('rqk:get-lan-display'),
+  publishLanDisplay: (campaignId, state) => ipcRenderer.invoke('rqk:publish-lan-display', campaignId, state),
   getUpdateStatus: () => ipcRenderer.invoke('rqk:get-update-status'),
   checkUpdates: () => ipcRenderer.invoke('rqk:check-updates'),
   downloadUpdate: () => ipcRenderer.invoke('rqk:download-update'),
