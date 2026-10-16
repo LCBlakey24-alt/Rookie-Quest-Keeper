@@ -160,7 +160,17 @@ export default function WorldMapTab({ campaignId }) {
     }
     setSaving(true);
     try {
-      const payload = { ...newMapData, name: newMapData.name.trim(), scale_value: Number(newMapData.scale_value) || 50 };
+      // Electron stores the image as a real local file included in desktop backups.
+      // Keep the campaign record small so many maps do not exhaust localStorage.
+      const savedImage = window.rookieDesktop?.storeLocalMapImage
+        ? await window.rookieDesktop.storeLocalMapImage(newMapData.image_data)
+        : null;
+      const payload = {
+        ...newMapData,
+        name: newMapData.name.trim(),
+        scale_value: Number(newMapData.scale_value) || 50,
+        ...(savedImage?.url ? { image_url: savedImage.url, image_data: '' } : {}),
+      };
       const response = await apiClient.post(`/campaigns/${campaignId}/world-maps`, payload);
       const created = response.data;
       setWorldMaps(prev => [...prev, created]);
