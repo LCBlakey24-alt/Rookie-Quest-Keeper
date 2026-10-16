@@ -6,6 +6,8 @@ import { createDisplayState, loadDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/livePlayerDisplayResources';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
+import { isPointRevealed, loadFog, normaliseFog, saveFog } from '@/lib/fogOfWar';
+import FogOfWarEditor from '@/components/gm/FogOfWarEditor';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -148,6 +150,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [quickAnnouncement, setQuickAnnouncement] = useState('');
   const [bannerMessage, setBannerMessage] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [fog, setFog] = useState({ enabled: false, reveals: [] });
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
   const [visibleCombatantIds, setVisibleCombatantIds] = useState([]);
@@ -212,6 +215,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const selectedNpcs = useMemo(() => npcs.filter(npc => selectedNpcIds.includes(String(npc.id))), [npcs, selectedNpcIds]);
   const allMaps = useMemo(() => [...maps, ...worldMaps], [maps, worldMaps]);
   const selectedScenario = useMemo(() => scenarios.find(scenario => String(scenario.id) === String(selectedScenarioId)), [scenarios, selectedScenarioId]);
+  const activeMapUrl = imageUrl.trim() || imageFrom(selectedScenario);
+  useEffect(() => { setFog(loadFog(campaignId, activeMapUrl)); }, [campaignId, activeMapUrl]);
   const combatants = useMemo(() => scenarioParticipants(selectedScenario), [selectedScenario]);
   const playerFacingCombatants = useMemo(() => combatants.filter(item => !isPlayerCombatant(item)), [combatants]);
   const visibleCombatantEntries = useMemo(() => playerFacingCombatants.map((item, index) => ({ item, index, id: combatantId(item, index) })).filter(entry => visibleCombatantIds.includes(entry.id)), [playerFacingCombatants, visibleCombatantIds]);
@@ -332,6 +337,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       image_url: imageUrl.trim(),
       caption: sceneSubtitle,
       party: partyPayload,
+      fog: normaliseFog(fog),
     });
   };
 
@@ -381,7 +387,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             return;
           }
           setImageUrl(url);
-          void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload });
+          void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload, fog: loadFog(campaignId, url) });
         } catch { toast.error('Could not prepare the map for display'); }
       };
       picture.src = String(reader.result || '');
@@ -389,7 +395,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     reader.readAsDataURL(file);
   };
 
-  const combatPayload = (activeId = activeCombatantId, roundValue = combatRound) => ({
+  const combatPayload = (activeId = activeCombatantId, roundValue = combatRound, fogValue = fog) => ({
     title: selectedScenario?.name || sceneTitle || 'Combat',
     map_url: imageUrl.trim() || imageFrom(selectedScenario),
     caption: sceneSubtitle,
@@ -399,8 +405,24 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     party: partyPayload.map(({ id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus, initiative, initiativeLabel }) => ({
       id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus, initiative, initiativeLabel,
     })),
-    tokens: combatTokenPayload,
+    fog: normaliseFog(fogValue),
+    // Fog-hidden creatures must not appear in player roster or raw LAN state.
+    tokens: combatTokenPayload.filter(token => !fogValue?.enabled || ((Number(token.x) || Number(token.y)) && isPointRevealed(fogValue, token.x, token.y))),
   });
+
+  const updateFog = (nextFog) => {
+    if (!activeMapUrl) return;
+    const safe = normaliseFog(nextFog);
+    setFog(safe);
+    try { saveFog(campaignId, activeMapUrl, safe); }
+    catch { toast.warning('Could not save fog for this map'); }
+    const current = loadDisplayState(campaignId);
+    const displayedUrl = current?.mode === 'combat' ? current.payload?.map_url : current?.mode === 'image' ? current.payload?.image_url : '';
+    if (displayedUrl !== activeMapUrl) return;
+    // Keep live reveals silent. The player screen updates with each GM click.
+    const nextPayload = current.mode === 'combat' ? combatPayload(activeCombatantId, combatRound, safe) : { ...current.payload, fog: safe };
+    void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(current.mode, { ...nextPayload, display_target: displayTarget }));
+  };
 
   const sendBattleStart = () => publish('battle-start', {
     title: 'Battle Starting',
@@ -566,6 +588,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <div style={quickSendHeaderStyle}><div><strong>Show a map from this laptop</strong><p>Works offline. The image is resized and sent straight to the TV/table — no upload service required.</p></div><span style={safeBadgeStyle}><ImageIcon size={13} /> Local image</span></div>
           <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Choose a local battle or world map" onChange={event => { sendLaptopMap(event.target.files?.[0]); event.target.value = ''; }} style={{ ...inputStyle, paddingTop: 7 }} />
         </section>
+        <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} />
         <section style={commandDeckStyle}>
           <div style={targetGridStyle} data-testid="player-display-target-selector">
             {DISPLAY_TARGETS.map(target => {
