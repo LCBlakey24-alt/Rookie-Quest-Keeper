@@ -310,7 +310,8 @@ export default function WorldMapTab({ campaignId }) {
               const original = mapImageSource(selectedMap);
               const backup = selectedMap.image_data && selectedMap.image_data !== original ? selectedMap.image_data : '';
               const failed = brokenMapImageId === String(selectedMap.id);
-              return failed && !backup ? (
+              const backupFailed = brokenMapImageId === `${selectedMap.id}:backup`;
+              return backupFailed || (!original && !backup) || (failed && !backup) ? (
                 <div role="status" style={{ ...emptyStateStyle, minHeight: 250 }}>
                   This map image couldn't load. Re-upload it from your laptop to restore the picture.
                 </div>
@@ -320,7 +321,7 @@ export default function WorldMapTab({ campaignId }) {
                   src={failed ? backup : original}
                   alt={selectedMap.name}
                   style={mapImageStyle}
-                  onError={() => setBrokenMapImageId(String(selectedMap.id))}
+                  onError={() => setBrokenMapImageId(failed ? `${selectedMap.id}:backup` : String(selectedMap.id))}
                 />
               );
             })()}
