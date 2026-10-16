@@ -1,4 +1,4 @@
-import { normaliseTactical, gridRows, rulerFeet, tacticalStorageKey, loadTactical, saveTactical } from './vttTacticalOverlay';
+import { normaliseTactical, publicTactical, gridRows, rulerFeet, tacticalStorageKey, loadTactical, saveTactical } from './vttTacticalOverlay';
 
 describe('map-safe tactical grid and ruler', () => {
   test('defaults to no visible grid or ruler', () => {
@@ -29,4 +29,12 @@ describe('map-safe tactical grid and ruler', () => {
     expect(loadTactical('gm-campaign', hugeMap, storage)).toEqual(cfg);
     expect(loadTactical('gm-campaign', 'other', storage).grid).toBe(false);
   });
+});
+
+test('unshared GM ruler endpoints are absent from player sync state', () => {
+  const ruler = { start: { x: 4, y: 8 }, end: { x: 31, y: 76 } };
+  expect(publicTactical({ grid: true, columns: 24, ruler, showRuler: false })).toEqual({
+    grid: true, columns: 24, ruler: null, showRuler: false,
+  });
+  expect(publicTactical({ grid: true, columns: 24, ruler, showRuler: true }).ruler).toEqual(ruler);
 });
