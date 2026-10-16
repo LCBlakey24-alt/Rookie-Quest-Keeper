@@ -41,6 +41,36 @@ describe('LivePlayerDisplayControls reliability', () => {
     publishCampaignDisplayStateWithStatus.mockImplementation(async (_campaignId, state) => ({ state, remoteSynced: true }));
   });
 
+  test('shows all NPCs together or only checked NPCs without leaking private notes', async () => {
+    const entries = ['Alys', 'Bram', 'Cora', 'Dain'].map((name, index) => ({
+      id: 'npc-' + index, name, role: 'Townsfolk', notes: 'GM secret ' + name,
+      public_description: 'Met at the inn',
+    }));
+    apiClient.get.mockImplementation(url => Promise.resolve({
+      data: url.endsWith('/npcs') ? entries : [],
+    }));
+
+    render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+    const all = await screen.findByRole('button', { name: /Show All/i });
+    fireEvent.click(all);
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1',
+      expect.objectContaining({ mode: 'npc-grid', payload: expect.objectContaining({
+        npcs: expect.arrayContaining(entries.map(({ id, name }) => expect.objectContaining({ id, name }))),
+      }) }),
+    ));
+    let sent = publishCampaignDisplayStateWithStatus.mock.calls.filter(([, state]) => state.mode === 'npc-grid').at(-1)[1];
+    expect(sent.payload.npcs).toHaveLength(4);
+    expect(JSON.stringify(sent)).not.toContain('GM secret');
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Alys' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Cora' }));
+    fireEvent.click(screen.getByRole('button', { name: /Show Selected \(2\)/i }));
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus.mock.calls.filter(([, state]) => state.mode === 'npc-grid')).toHaveLength(2));
+    sent = publishCampaignDisplayStateWithStatus.mock.calls.filter(([, state]) => state.mode === 'npc-grid').at(-1)[1];
+    expect(sent.payload.npcs.map(npc => npc.name)).toEqual(['Alys', 'Cora']);
+  });
+
   test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
     fireEvent.click(screen.getAllByRole('button', { name: /Battle Starting!/i })[0]);
