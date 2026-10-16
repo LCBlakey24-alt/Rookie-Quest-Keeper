@@ -46,7 +46,8 @@ function ActionList({ title, items }) {
 }
 
 export default function NpcCompactStatBlock({ npc = {} }) {
-  const stats = npc.stats || {};
+  const unverified = npc.combat_ready === false;
+  const stats = unverified ? {} : (npc.stats || {});
   const attacks = Array.isArray(npc.attacks) ? npc.attacks : [];
   const actions = Array.isArray(npc.actions) ? npc.actions : [];
   const specialAbilities = Array.isArray(npc.abilities) ? npc.abilities : [];
@@ -65,13 +66,14 @@ export default function NpcCompactStatBlock({ npc = {} }) {
           <p style={{ margin: '2px 0 0', fontSize: 12, opacity: .8 }}>{[npc.role || npc.class_name, npc.race, Number(npc.level) > 0 ? `Level ${npc.level}` : ''].filter(Boolean).join(' · ')}</p>
         </div>
       </div>
+      {unverified && <p role="note" style={{ margin: 0, color: 'var(--rq-warning, #D39A43)', fontSize: 12 }}>Combat stats not yet verified — keep this NPC out of encounters until equipped with a confirmed stat block.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 }}>
-        <div style={box}><span style={label}>HP</span><strong style={{ fontSize: 20 }}>{confirmedPositive(npc.hp)}{Number(npc.max_hp) > 0 && npc.max_hp !== npc.hp ? `/${npc.max_hp}` : ''}</strong></div>
-        <div style={box}><span style={label}>AC</span><strong style={{ fontSize: 20 }}>{confirmedPositive(npc.ac)}</strong></div>
+        <div style={box}><span style={label}>HP</span><strong style={{ fontSize: 20 }}>{unverified ? '—' : confirmedPositive(npc.hp)}{!unverified && Number(npc.max_hp) > 0 && npc.max_hp !== npc.hp ? `/${npc.max_hp}` : ''}</strong></div>
+        <div style={box}><span style={label}>AC</span><strong style={{ fontSize: 20 }}>{unverified ? '—' : confirmedPositive(npc.ac)}</strong></div>
         <div style={box}><span style={label}>Speed</span><strong style={{ fontSize: 15, textAlign: 'center' }}>{readable(npc.speed)}</strong></div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
-        {abilities.map(([title, field]) => <AbilityBox key={field} title={title} score={stats[field] ?? npc[field]} />)}
+        {abilities.map(([title, field]) => <AbilityBox key={field} title={title} score={unverified ? null : (stats[field] ?? npc[field])} />)}
       </div>
       <ActionList title="Attacks" items={attacks.length ? attacks : actions} />
       <ActionList title="Bonus actions" items={bonusActions} />
