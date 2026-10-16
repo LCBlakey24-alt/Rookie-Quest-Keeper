@@ -5,12 +5,14 @@ const { pathToFileURL } = require('url');
 const { createBackup, listBackups, restoreBackup } = require('./backup');
 const { registerDesktopUpdater } = require('./updates');
 const { isSafePlayerDisplayUrl } = require('./playerDisplayWindow');
+const { createLanDisplayServer } = require('./lanDisplayServer');
 
 const APP_SCHEME = 'rqk';
 const APP_HOST = 'desktop';
 const ATTACHMENT_SCHEME = 'rqk-attachment';
 const START_URL = `${APP_SCHEME}://${APP_HOST}/home`;
 const PACK_FORMAT = 'rookie-quest-keeper-campaign-pack';
+let lanViewer;
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -228,6 +230,12 @@ function createMainWindow() {
 
 app.whenReady().then(async () => {
   await installLocalProtocols();
+  lanViewer = createLanDisplayServer({ userDataDir: app.getPath('userData') });
+  ipcMain.handle('rqk:get-lan-display', async () => {
+    try { return await lanViewer.start(); }
+    catch (error) { return { error: `Could not start Wi-Fi display: ${error.message}` }; }
+  });
+  ipcMain.handle('rqk:publish-lan-display', (_event, _campaignId, state) => lanViewer.publish(state));
   ipcMain.handle('rqk:import-campaign-pack', importCampaignPack);
   ipcMain.handle('rqk:create-backup', (_event, raw, reason = 'manual') =>
     createBackup(app.getPath('userData'), raw, reason));
@@ -246,6 +254,8 @@ app.whenReady().then(async () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
   });
 });
+
+app.on('before-quit', () => lanViewer?.close());
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
