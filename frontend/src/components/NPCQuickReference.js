@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import NpcCompactStatBlock from '@/components/gm/NpcCompactStatBlock';
 import { 
   Users, Search, MapPin, ChevronDown, ChevronUp, 
   User, Scroll, Star, Eye, X
@@ -287,130 +288,7 @@ function NPCQuickReference({ campaignId, currentLocationId }) {
                       marginTop: '4px'
                     }}
                   >
-                    {/* Quick Stats */}
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: '8px',
-                      marginTop: '12px',
-                      marginBottom: '12px'
-                    }}>
-                      {npc.race && (
-                        <div style={{ 
-                          background: theme.bg, 
-                          padding: '8px', 
-                          textAlign: 'center' 
-                        }}>
-                          <div style={{ color: theme.muted, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Race</div>
-                          <div style={{ color: theme.text, fontSize: '12px', fontWeight: '400', marginTop: '2px' }}>{npc.race}</div>
-                        </div>
-                      )}
-                      {npc.alignment && (
-                        <div style={{ 
-                          background: theme.bg, 
-                          padding: '8px', 
-                          textAlign: 'center' 
-                        }}>
-                          <div style={{ color: theme.muted, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Align</div>
-                          <div style={{ color: theme.text, fontSize: '12px', fontWeight: '400', marginTop: '2px' }}>{npc.alignment}</div>
-                        </div>
-                      )}
-                      {npc.status && (
-                        <div style={{ 
-                          background: theme.bg, 
-                          padding: '8px', 
-                          textAlign: 'center' 
-                        }}>
-                          <div style={{ color: theme.muted, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</div>
-                          <div style={{ 
-                            color: npc.status === 'alive' ? theme.success : npc.status === 'dead' ? '#D97706' : theme.warning, 
-                            fontSize: '12px', 
-                            fontWeight: '400', 
-                            marginTop: '2px',
-                            textTransform: 'capitalize'
-                          }}>
-                            {npc.status}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Description */}
-                    {npc.description && (
-                      <div style={{ marginBottom: '12px' }}>
-                        <div style={{ 
-                          color: theme.muted, 
-                          fontSize: '10px', 
-                          textTransform: 'uppercase', 
-                          letterSpacing: '0.5px',
-                          marginBottom: '4px'
-                        }}>
-                          Description
-                        </div>
-                        <p style={{ 
-                          color: theme.textSecondary, 
-                          fontSize: '12px', 
-                          lineHeight: '1.5',
-                          margin: 0
-                        }}>
-                          {npc.description.slice(0, 200)}{npc.description.length > 200 ? '...' : ''}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Personality / Notes */}
-                    {(npc.personality || npc.notes) && (
-                      <div style={{ marginBottom: '12px' }}>
-                        <div style={{ 
-                          color: theme.muted, 
-                          fontSize: '10px', 
-                          textTransform: 'uppercase', 
-                          letterSpacing: '0.5px',
-                          marginBottom: '4px'
-                        }}>
-                          {npc.personality ? 'Personality' : 'Notes'}
-                        </div>
-                        <p style={{ 
-                          color: theme.textSecondary, 
-                          fontSize: '12px', 
-                          lineHeight: '1.5',
-                          margin: 0,
-                          fontStyle: 'italic'
-                        }}>
-                          "{(npc.personality || npc.notes).slice(0, 150)}{(npc.personality || npc.notes).length > 150 ? '...' : ''}"
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Secret (GM Only) */}
-                    {npc.secret && (
-                      <div style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        padding: '8px 10px'
-                      }}>
-                        <div style={{ 
-                          color: '#D97706', 
-                          fontSize: '10px', 
-                          textTransform: 'uppercase', 
-                          letterSpacing: '0.5px',
-                          marginBottom: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <Eye size={10} /> Secret (GM Only)
-                        </div>
-                        <p style={{ 
-                          color: '#FCA5A5', 
-                          fontSize: '11px', 
-                          lineHeight: '1.4',
-                          margin: 0
-                        }}>
-                          {npc.secret}
-                        </p>
-                      </div>
-                    )}
+                    <NpcCompactStatBlock npc={npc} />
 
                     {/* View Full Button */}
                     <Button
