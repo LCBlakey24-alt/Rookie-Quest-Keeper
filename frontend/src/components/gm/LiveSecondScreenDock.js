@@ -22,7 +22,7 @@ const theme = {
 };
 
 function imageFrom(item) {
-  return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.token_url || '';
+  return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.token_url || item?.image_data || '';
 }
 
 function normaliseTarget(target) {
@@ -47,7 +47,9 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const initialExtras = getLiveBootstrapExtras(campaignId);
   const [state, setState] = useState(() => initialExtras?.displayState || loadDisplayState(campaignId));
   const [maps, setMaps] = useState(() => Array.isArray(initialExtras?.maps) ? initialExtras.maps : []);
+  const [worldMaps, setWorldMaps] = useState([]);
   const [npcs, setNpcs] = useState(() => Array.isArray(initialExtras?.npcs) ? initialExtras.npcs : []);
+  const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [target, setTarget] = useState('standing-tv');
   const [busy, setBusy] = useState('');
   const [refreshingAssets, setRefreshingAssets] = useState(false);
@@ -67,9 +69,10 @@ export default function LiveSecondScreenDock({ campaignId }) {
     if (!campaignId) return { ok: false, failures: ['campaign'] };
     setRefreshingAssets(true);
     try {
-      const [mapsResult, npcsResult] = await Promise.allSettled([
+      const [mapsResult, npcsResult, worldMapsResult] = await Promise.allSettled([
         apiClient.get(`/campaigns/${campaignId}/maps`),
         apiClient.get(`/campaigns/${campaignId}/npcs`),
+        apiClient.get(`/campaigns/${campaignId}/world-maps`),
       ]);
       const failures = [];
 
@@ -82,6 +85,12 @@ export default function LiveSecondScreenDock({ campaignId }) {
         setNpcs(Array.isArray(npcsResult.value?.data) ? npcsResult.value.data : []);
       } else {
         failures.push('NPC pictures');
+      }
+
+      if (worldMapsResult.status === 'fulfilled') {
+        setWorldMaps(Array.isArray(worldMapsResult.value?.data) ? worldMapsResult.value.data : []);
+      } else {
+        failures.push('world maps');
       }
 
       const warning = failures.length
@@ -102,18 +111,20 @@ export default function LiveSecondScreenDock({ campaignId }) {
   useEffect(() => {
     const cached = getLiveBootstrapExtras(campaignId);
     setAssetWarning('');
-    if (Array.isArray(cached?.maps) && Array.isArray(cached?.npcs)) {
-      setMaps(cached.maps);
-      setNpcs(cached.npcs);
-      return;
-    }
-    setMaps([]);
-    setNpcs([]);
+    setSelectedNpcIds([]);
+    setWorldMaps([]);
+    if (Array.isArray(cached?.maps)) setMaps(cached.maps);
+    else setMaps([]);
+    if (Array.isArray(cached?.npcs)) setNpcs(cached.npcs);
+    else setNpcs([]);
+    // The live bootstrap carries battle maps, not the separately stored world maps.
+    // Always fetch both media collections so old image_data maps are discoverable.
     refreshAssets({ silent: true });
   }, [campaignId, refreshAssets]);
 
-  const visibleMaps = useMemo(() => maps.filter(imageFrom).slice(0, 8), [maps]);
-  const visibleNpcs = useMemo(() => npcs.filter(imageFrom).slice(0, 8), [npcs]);
+  const visibleMaps = useMemo(() => [...maps, ...worldMaps].filter(imageFrom), [maps, worldMaps]);
+  const visibleNpcs = useMemo(() => npcs.filter(imageFrom), [npcs]);
+  const selectedNpcs = useMemo(() => visibleNpcs.filter(npc => selectedNpcIds.includes(String(npc.id))), [visibleNpcs, selectedNpcIds]);
   const currentTarget = normaliseTarget(state?.payload?.display_target || target);
 
   const publish = async (mode, payload, actionId) => {
@@ -147,16 +158,19 @@ export default function LiveSecondScreenDock({ campaignId }) {
     caption: map.description || map.notes || '',
   }, `map-${map.id}`);
 
-  const sendNpc = (npc) => publish('npc-grid', {
-    eyebrow: 'Who you can see',
-    title: npc.name || 'NPC',
-    npcs: [{
-      id: npc.id,
-      name: npc.name || 'NPC',
-      subtitle: npc.role || npc.race || npc.location || '',
-      image_url: imageFrom(npc),
-    }],
-  }, `npc-${npc.id}`);
+  const showSelectedNpcs = () => {
+    if (!selectedNpcs.length) return;
+    return publish('npc-grid', {
+      eyebrow: 'Who you can see',
+      title: selectedNpcs.length === 1 ? selectedNpcs[0].name || 'NPC' : 'People before you',
+      npcs: selectedNpcs.map(npc => ({
+        id: npc.id,
+        name: npc.name || 'NPC',
+        subtitle: npc.role || npc.race || npc.location || '',
+        image_url: imageFrom(npc),
+      })),
+    }, 'npc-gallery');
+  };
 
   const openDisplay = () => {
     const url = `${window.location.origin}/player-display/${campaignId}?target=${encodeURIComponent(currentTarget)}`;
@@ -211,12 +225,24 @@ export default function LiveSecondScreenDock({ campaignId }) {
       </section>
 
       <section style={buttonGroupStyle}>
-        <p style={sectionLabelStyle}>NPC pictures</p>
-        {visibleNpcs.length ? visibleNpcs.map(npc => <button key={npc.id} type="button" onClick={() => sendNpc(npc)} style={mediaButtonStyle}><Users size={13} /> {npc.name || 'NPC'}</button>) : <p style={mutedStyle}>Upload NPC portraits to show them here.</p>}
+        <p style={sectionLabelStyle}>NPC pictures · select multiple</p>
+        <button type="button" onClick={showSelectedNpcs} disabled={!selectedNpcs.length || Boolean(busy)} style={revealButtonStyle}><Users size={13} /> Show selected NPCs ({selectedNpcs.length})</button>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => setSelectedNpcIds(visibleNpcs.map(npc => String(npc.id)))} style={smallButtonStyle}>Select all</button>
+          <button type="button" onClick={() => setSelectedNpcIds([])} style={smallButtonStyle}>Clear selection</button>
+        </div>
+        <div style={{ display: 'grid', gap: 5, maxHeight: 280, overflowY: 'auto' }}>
+          {visibleNpcs.length ? visibleNpcs.map(npc => (
+            <label key={npc.id} style={{ ...mediaButtonStyle, cursor: 'pointer' }}>
+              <input type="checkbox" checked={selectedNpcIds.includes(String(npc.id))} onChange={() => setSelectedNpcIds(previous => previous.includes(String(npc.id)) ? previous.filter(id => id !== String(npc.id)) : [...previous, String(npc.id)])} />
+              <Users size={13} /> {npc.name || 'NPC'}
+            </label>
+          )) : <p style={mutedStyle}>Upload NPC portraits to show them here.</p>}
+        </div>
       </section>
 
       <section style={buttonGroupStyle}>
-        <p style={sectionLabelStyle}>Maps / images</p>
+        <p style={sectionLabelStyle}>Maps / world maps</p>
         <button type="button" onClick={() => refreshAssets({ silent: false })} disabled={refreshingAssets} style={smallButtonStyle}><RefreshCw size={13} /> {refreshingAssets ? 'Refreshing…' : 'Refresh assets'}</button>
         {visibleMaps.length ? visibleMaps.map(map => <button key={map.id} type="button" onClick={() => sendMap(map)} style={mediaButtonStyle}><ImageIcon size={13} /> {map.name || map.title || 'Map'}</button>) : <p style={mutedStyle}>Upload maps/images to show them here.</p>}
       </section>
