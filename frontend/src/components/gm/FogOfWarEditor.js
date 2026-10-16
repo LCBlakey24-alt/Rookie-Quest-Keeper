@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Eye, EyeOff, RotateCcw, Undo2 } from 'lucide-react';
 import FogMask from '@/components/gm/FogMask';
 import VttTacticalLayer from '@/components/gm/VttTacticalLayer';
+import VttTokenEditorLayer from '@/components/gm/VttTokenEditorLayer';
 import { addFogReveal, normaliseFog } from '@/lib/fogOfWar';
 import { gridRows, normaliseTactical, rulerFeet } from '@/lib/vttTacticalOverlay';
 import { containedImageBounds } from '@/components/gm/playerDisplayGeometry';
 
-export default function FogOfWarEditor({ mapUrl, fog, onChange, tactical, onTacticalChange }) {
+export default function FogOfWarEditor({ mapUrl, fog, onChange, tactical, onTacticalChange, tokens = [], onTokenMove, onTokenVisibilityChange, snap = false, onSnapChange }) {
   const frame = useRef(null);
   const image = useRef(null);
   const [size, setSize] = useState(null);
@@ -78,7 +79,8 @@ export default function FogOfWarEditor({ mapUrl, fog, onChange, tactical, onTact
               onChange={e => onTacticalChange({ ...options, columns: Number(e.target.value) })}
               style={{ width: 62, minHeight: 32, padding: 5, background: '#102538', color: '#eee5cf', border: '1px solid #a88a52' }}/>
           </label>
-          <span style={{ fontSize: 11, color: '#b7c9d5', alignSelf: 'center' }}>5 ft per square</span>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}><input type="checkbox" aria-label="Snap tokens to grid" checked={snap} onChange={e=>onSnapChange?.(e.target.checked)} /> Snap tokens to grid</label>
+          <span style={{ fontSize: 11, color: '#b7c9d5', alignSelf: 'center' }}>5 ft per square · Drag creatures below to move · Double-click to toggle reveal</span>
         </div>
         <div ref={frame} data-testid="gm-fog-preview" onClick={onMapClick} role="img"
           aria-label={tool === 'ruler' ? 'Map: click a start and end point to measure distance' : 'Map: click to reveal fog-covered areas'}
@@ -88,6 +90,7 @@ export default function FogOfWarEditor({ mapUrl, fog, onChange, tactical, onTact
             <VttTacticalLayer tactical={options} width={imageWidth} height={imageHeight} layer="grid" editor />
             <FogMask fog={value} editor />
             <VttTacticalLayer tactical={options} width={imageWidth} height={imageHeight} layer="ruler" editor />
+            <VttTokenEditorLayer tokens={tokens} onTokenMove={onTokenMove} onTokenVisibilityChange={onTokenVisibilityChange} snap={snap} columns={options.columns} imageWidth={imageWidth} imageHeight={imageHeight} />
             {measureStart && <span style={{ position: 'absolute', left: measureStart.x+'%', top: measureStart.y+'%', width: 9, height: 9, background: '#f5d182', borderRadius: '50%', border: '2px solid #0a121a', transform: 'translate(-50%,-50%)' }} />}
           </div>}
         </div>
