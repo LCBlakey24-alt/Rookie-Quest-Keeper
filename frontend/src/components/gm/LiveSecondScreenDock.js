@@ -161,7 +161,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const openDisplay = () => {
     const url = `${window.location.origin}/player-display/${campaignId}?target=${encodeURIComponent(currentTarget)}`;
     const opened = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!opened) toast.error('Pop-up blocked. Copy the display link instead.');
+    if (!opened && !window.rookieDesktop?.offline) toast.error('Pop-up blocked. Copy the display link instead.');
   };
 
   const copyDisplayLink = async () => {

@@ -4,6 +4,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const { createBackup, listBackups, restoreBackup } = require('./backup');
 const { registerDesktopUpdater } = require('./updates');
+const { isSafePlayerDisplayUrl } = require('./playerDisplayWindow');
 
 const APP_SCHEME = 'rqk';
 const APP_HOST = 'desktop';
@@ -156,6 +157,33 @@ async function importCampaignPack(_event, workspaceRaw) {
   };
 }
 
+function openPlayerDisplayWindow(requestUrl) {
+  const viewer = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 800,
+    minHeight: 480,
+    title: 'Rookie Quest Keeper · Player Display',
+    backgroundColor: '#07131f',
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  // The dedicated audience screen is read-only navigation; it must never become
+  // another GM workspace or open an external page from untrusted display data.
+  viewer.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  viewer.webContents.on('will-navigate', (event, nextUrl) => {
+    if (!isSafePlayerDisplayUrl(nextUrl)) event.preventDefault();
+  });
+  viewer.loadURL(requestUrl);
+  return viewer;
+}
+
 function createMainWindow() {
   const window = new BrowserWindow({
     width: 1440,
@@ -176,6 +204,12 @@ function createMainWindow() {
   window.once('ready-to-show', () => window.show());
 
   window.webContents.setWindowOpenHandler(({ url }) => {
+    if (isSafePlayerDisplayUrl(url)) {
+      // In Windows Extend mode the audience window can be dragged to the TV.
+      // Keep the GM's main window, workspace and keyboard focus intact.
+      openPlayerDisplayWindow(url);
+      return { action: 'deny' };
+    }
     if (url.startsWith(`${APP_SCHEME}://${APP_HOST}/`)) {
       window.loadURL(url);
       return { action: 'deny' };
