@@ -329,7 +329,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         id: npc.id,
         name: npc.name,
         subtitle: npc.role || npc.race || npc.location || '',
-        description: npc.description || npc.notes || '',
+        // Portrait reveals must not accidentally publish private GM NPC notes.
+        description: npc.public_description || '',
         image_url: imageFrom(npc),
       })),
     });
