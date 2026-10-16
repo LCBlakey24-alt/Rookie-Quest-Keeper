@@ -9,6 +9,7 @@ import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { isPointRevealed, loadFog, normaliseFog, saveFog } from '@/lib/fogOfWar';
 import FogOfWarEditor from '@/components/gm/FogOfWarEditor';
 import { loadTactical, normaliseTactical, publicTactical, saveTactical } from '@/lib/vttTacticalOverlay';
+import { loadEncounterPresets, saveEncounterPresets, normaliseTokenPositions } from '@/lib/vttEncounterPresets';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -153,6 +154,11 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [imageUrl, setImageUrl] = useState('');
   const [fog, setFog] = useState({ enabled: false, reveals: [] });
   const [tactical, setTactical] = useState({ grid: false, columns: 24, ruler: null, showRuler: false });
+  const [tokenPositions, setTokenPositions] = useState({});
+  const [snapTokens, setSnapTokens] = useState(false);
+  const [encounterName, setEncounterName] = useState('');
+  const [savedEncounters, setSavedEncounters] = useState(() => loadEncounterPresets(campaignId));
+  const [selectedEncounterId, setSelectedEncounterId] = useState('');
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
   const [visibleCombatantIds, setVisibleCombatantIds] = useState([]);
@@ -188,6 +194,10 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setSelectedNpcIds([]);
     setSelectedScenarioId('');
     setVisibleCombatantIds([]);
+    setTokenPositions({});
+    setSnapTokens(false);
+    setSavedEncounters(loadEncounterPresets(campaignId));
+    setSelectedEncounterId('');
     setActiveCombatantId('');
     setResourceWarning('');
     setDisplayTarget(loadTarget(campaignId));
@@ -244,7 +254,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     speed: member.speed,
     passivePerception: member.passivePerception,
   })), [party]);
-  const combatTokenPayload = useMemo(() => visibleCombatantEntries.map(({ item, id }) => normaliseCombatantPayload(item, id)), [visibleCombatantEntries]);
+  const combatTokenPayload = useMemo(() => visibleCombatantEntries.map(({ item, id }) => ({ ...normaliseCombatantPayload(item, id), ...(tokenPositions[id] || {}) })), [visibleCombatantEntries, tokenPositions]);
+  const gmEditorTokens = useMemo(() => playerFacingCombatants.map((item, index) => { const id = combatantId(item, index); return { ...normaliseCombatantPayload(item, id), ...(tokenPositions[id] || {}), visible: visibleCombatantIds.includes(id) }; }), [playerFacingCombatants, tokenPositions, visibleCombatantIds]);
   const combatRosterOptions = useMemo(() => [
     ...partyPayload.map(member => ({ id: `player-${member.id}`, name: member.name, type: 'player', initiative: member.initiative || 0, label: `${member.name} · Player ${member.initiativeLabel || signed(member.initiative)}` })),
     ...combatTokenPayload.map(token => ({ id: token.id, name: token.name, type: token.type, initiative: token.initiative || 0, label: `${token.name} · ${token.type === 'npc' ? 'NPC' : 'Enemy'} ${token.initiativeLabel || signed(token.initiative)}` })),
@@ -401,7 +412,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     reader.readAsDataURL(file);
   };
 
-  const combatPayload = (activeId = activeCombatantId, roundValue = combatRound, fogValue = fog, tacticalValue = tactical) => ({
+  const combatPayload = (activeId = activeCombatantId, roundValue = combatRound, fogValue = fog, tacticalValue = tactical, positions = tokenPositions) => ({
     title: selectedScenario?.name || sceneTitle || 'Combat',
     map_url: imageUrl.trim() || imageFrom(selectedScenario),
     caption: sceneSubtitle,
@@ -414,7 +425,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     fog: normaliseFog(fogValue),
     tactical: publicTactical(tacticalValue),
     // Fog-hidden creatures must not appear in player roster or raw LAN state.
-    tokens: combatTokenPayload.filter(token => !fogValue?.enabled || ((Number(token.x) || Number(token.y)) && isPointRevealed(fogValue, token.x, token.y))),
+    tokens: combatTokenPayload.map(token => ({ ...token, ...(positions[token.id] || {}) })).filter(token => !fogValue?.enabled || ((Number(token.x) || Number(token.y)) && isPointRevealed(fogValue, token.x, token.y))),
   });
 
   const updateFog = (nextFog) => {
@@ -444,6 +455,71 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       ? combatPayload(activeCombatantId, combatRound, fog, safe)
       : { ...current.payload, tactical: publicTactical(safe) };
     void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(current.mode, { ...payload, display_target: displayTarget }));
+  };
+
+  const updateTokenPosition = (id, point) => {
+    if (!activeMapUrl) return;
+    const next = normaliseTokenPositions({ [id]: point })[id];
+    if (!next) return;
+    const nextPositions = { ...tokenPositions, [id]: next };
+    setTokenPositions(nextPositions);
+    const current = loadDisplayState(campaignId);
+    if (current?.mode !== 'combat' || current.payload?.map_url !== activeMapUrl) return;
+    const payload = combatPayload(activeCombatantId, combatRound, fog, tactical, nextPositions);
+    void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState('combat', { ...payload, display_target: displayTarget }));
+  };
+
+  const saveEncounter = () => {
+    const name = encounterName.trim() || sceneTitle.trim() || 'Saved Encounter';
+    if (!activeMapUrl) { toast.error('Choose a map before saving the encounter'); return; }
+    if (activeMapUrl.length > 900000) { toast.error('Map too large to save here. Use a Keeper local map first.'); return; }
+    const entry = {
+      id: 'gm-scene-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7),
+      name, mapUrl: activeMapUrl, sceneTitle, sceneSubtitle,
+      scenarioId: selectedScenarioId, visibleIds: visibleCombatantIds, tokenPositions,
+      round: combatRound, activeId: activeCombatantId, fog, tactical, snap: snapTokens,
+    };
+    try {
+      const existing = savedEncounters.filter(item => item.name !== name);
+      const next = saveEncounterPresets(campaignId, [entry, ...existing]);
+      setSavedEncounters(next);
+      setSelectedEncounterId(next[0].id);
+      toast.success('Encounter saved privately on this laptop');
+    } catch { toast.error('Could not save encounter. Check local storage space.'); }
+  };
+
+  const loadEncounter = () => {
+    const item = savedEncounters.find(scene => scene.id === selectedEncounterId);
+    if (!item) { toast.error('Choose a saved encounter'); return; }
+    if (item.mapUrl) {
+      // Restoring a saved scene is a deliberate GM action: restore its map fog and grid too.
+      try {
+        saveFog(campaignId, item.mapUrl, item.fog);
+        saveTactical(campaignId, item.mapUrl, item.tactical);
+      } catch { toast.warning('Map preferences could not be saved'); }
+    }
+    setImageUrl(item.mapUrl);
+    setSceneTitle(item.sceneTitle || item.name);
+    setSceneSubtitle(item.sceneSubtitle || '');
+    setSelectedScenarioId(item.scenarioId);
+    setVisibleCombatantIds(item.visibleIds);
+    setTokenPositions(item.tokenPositions);
+    setCombatRound(item.round);
+    setActiveCombatantId(item.activeId);
+    setFog(item.fog);
+    setTactical(item.tactical);
+    setSnapTokens(item.snap);
+    toast.success('Encounter restored to GM preview. Click Start / Update Combat HUD when ready.');
+  };
+
+  const deleteEncounter = () => {
+    if (!selectedEncounterId) return;
+    try {
+      const next = saveEncounterPresets(campaignId, savedEncounters.filter(x => x.id !== selectedEncounterId));
+      setSavedEncounters(next);
+      setSelectedEncounterId('');
+      toast.success('Saved encounter removed');
+    } catch { toast.error('Could not delete encounter'); }
   };
 
   const sendBattleStart = () => publish('battle-start', {
@@ -543,6 +619,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     const nextCombatants = scenarioParticipants(scenario).filter(item => !isPlayerCombatant(item));
     const nextIds = nextCombatants.filter(item => item.hidden !== true).map((item, index) => combatantId(item, index));
     setVisibleCombatantIds(nextIds);
+    setTokenPositions({});
     setCombatRound(1);
     setActiveCombatantId(party[0]?.id ? `player-${party[0].id}` : nextIds[0] || '');
     if (scenario) {
@@ -610,7 +687,22 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <div style={quickSendHeaderStyle}><div><strong>Show a map from this laptop</strong><p>Works offline. The image is resized and sent straight to the TV/table — no upload service required.</p></div><span style={safeBadgeStyle}><ImageIcon size={13} /> Local image</span></div>
           <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Choose a local battle or world map" onChange={event => { sendLaptopMap(event.target.files?.[0]); event.target.value = ''; }} style={{ ...inputStyle, paddingTop: 7 }} />
         </section>
-        <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} tactical={tactical} onTacticalChange={updateTactical} />
+        <section data-testid="vtt-saved-encounters" style={combatCommanderStyle}>
+          <div style={quickSendHeaderStyle}><div><strong>Saved Battle Scenes</strong><p>Keep map, monsters, token positions, fog, grid, ruler and combat round together. Loading is GM-only until you send it to players.</p></div><span style={safeBadgeStyle}><Layers size={13} /> {savedEncounters.length} saved</span></div>
+          <div style={{ display:'flex', gap:7, flexWrap:'wrap', alignItems:'center' }}>
+            <input aria-label="Encounter scene name" value={encounterName} onChange={e=>setEncounterName(e.target.value)} placeholder="Encounter name, e.g. The Crypt" style={{ ...inputStyle, flex:'1 1 160px' }} />
+            <button type="button" onClick={saveEncounter} style={primaryButtonStyle}>Save This Battle</button>
+            <select aria-label="Saved encounter" value={selectedEncounterId} onChange={e=>setSelectedEncounterId(e.target.value)} style={{ ...inputStyle, flex:'1 1 210px' }}>
+              <option value="">Choose saved battle...</option>
+              {savedEncounters.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}
+            </select>
+            <button type="button" disabled={!selectedEncounterId} onClick={loadEncounter} style={secondaryButtonStyle}>Load to GM Preview</button>
+            <button type="button" disabled={!selectedEncounterId} onClick={deleteEncounter} style={dangerButtonStyle}>Delete</button>
+          </div>
+        </section>
+        <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} tactical={tactical} onTacticalChange={updateTactical}
+          tokens={gmEditorTokens} onTokenMove={updateTokenPosition} onTokenVisibilityChange={toggleCombatant}
+          snap={snapTokens} onSnapChange={setSnapTokens} />
         <section style={commandDeckStyle}>
           <div style={targetGridStyle} data-testid="player-display-target-selector">
             {DISPLAY_TARGETS.map(target => {
