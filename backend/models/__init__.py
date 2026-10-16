@@ -1171,6 +1171,7 @@ class NPC(BaseModel):
     name: str
     image_url: str = ""
     portrait_url: str = ""
+    combat_ready: bool = True
     race: str = ""
     class_name: str = ""
     level: int = 1
@@ -1200,6 +1201,7 @@ class NPCCreate(BaseModel):
     name: str
     image_url: str = ""
     portrait_url: str = ""
+    combat_ready: bool = True
     race: str = ""
     class_name: str = ""
     level: int = 1
@@ -1229,6 +1231,7 @@ class NPCUpdate(BaseModel):
     name: Optional[str] = None
     image_url: Optional[str] = None
     portrait_url: Optional[str] = None
+    combat_ready: Optional[bool] = None
     race: Optional[str] = None
     class_name: Optional[str] = None
     level: Optional[int] = None
