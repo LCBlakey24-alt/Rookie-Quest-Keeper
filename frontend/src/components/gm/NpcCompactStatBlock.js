@@ -16,6 +16,7 @@ function readable(value) {
 }
 
 export function npcModifier(score) {
+  if (score === '' || score === null || score === undefined) return null;
   const parsed = Number(score);
   return Number.isFinite(parsed) ? Math.floor((parsed - 10) / 2) : null;
 }
