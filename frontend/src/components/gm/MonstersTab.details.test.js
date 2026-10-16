@@ -23,6 +23,8 @@ describe('Bestiary stat-block expansion', () => {
     ],
     bonus_actions: [{ name: 'Wing Shift', notes: 'Move 20 ft.' }],
     reactions: [{ name: 'Counterstrike', notes: 'Retaliate against a nearby attacker.' }],
+    senses: { darkvision: '120 ft.', passive_perception: 17 },
+    resistances: ['cold', 'fire'],
   };
 
   test('shows all original monster text on demand without clipping or discarding later attacks', () => {
@@ -36,6 +38,11 @@ describe('Bestiary stat-block expansion', () => {
     expect(within(detail).getByText(/Magic Resistance/)).toBeInTheDocument();
     expect(within(detail).getByText(/Tail · \+9 · 2d8\+6 bludgeoning · Reach 15 ft/)).toBeInTheDocument();
     expect(within(detail).getByText(/Counterstrike/)).toBeInTheDocument();
+    expect(within(detail).getByText(/darkvision: 120 ft/)).toBeInTheDocument();
+    expect(within(detail).getByText(/cold/)).toBeInTheDocument();
+    const scores = within(detail).getByRole('region', { name: 'Ability scores' });
+    expect(within(scores).getByText('STR')).toBeInTheDocument();
+    expect(within(scores).getByText('+6')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Hide full details' }));
     expect(screen.queryByTestId('bestiary-full-details')).not.toBeInTheDocument();
   });
