@@ -22,6 +22,15 @@ Windows-first, laptop-only edition of Rookie Quest Keeper.
 - Fog records currently live in the local display's browser storage, separate from the desktop campaign pack. Keep the original app data intact during upgrades; an ordinary exported `.rqkpack` does not yet guarantee fog transfer to a different laptop.
 - **Another laptop may drive the projector/TV:** while Keeper runs on the GM laptop, choose **Copy Wi-Fi Link**. The second laptop opens that link in a browser on the **same private LAN/Wi-Fi**, then connects HDMI to the screen. Keep Keeper open and permit Private-network firewall access if prompted. Public internet access, cloud sync and guest networks with client isolation are not supported by this local link.
 
+### Grid and range ruler (desktop and trusted Wi-Fi)
+
+- In **Live Play → Extended Display Command Centre**, select/upload a map. Under **Battle Map: Fog, Grid & Ruler**, choose **Show grid** and calibrate **Squares across** (assumes square cells of 5 feet).
+- Click **Distance ruler**, then click a start point and an end point in the GM map preview. The displayed distance is approximate and uses the map image's actual width/height.
+- Measurements are private until you click **Show ruler to players**. Hidden ruler endpoints are omitted from Wi-Fi player state, not merely made invisible.
+- The browser/HDMI TV and Wi-Fi spectator player screens both show the grid and any explicitly shared ruler, fitted to the map image instead of the surrounding letterbox.
+- Settings are saved per map to the GM laptop's local storage. These settings currently are not guaranteed to migrate with campaign packs. No network is required for a directly connected TV; a second laptop must be on the same private LAN.
+- Review the gaps and next ideas from the user-supplied Battle Table project in `docs/BATTLE_TABLE_REFERENCE_REVIEW.md`.
+
 ### Upright portrait TV and compact VTT display
 
 - Windows should be set to **Portrait** if the physical TV is rotated upright. Keeper reads the display's actual width and height; it does not force a TV rotation itself.
