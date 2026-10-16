@@ -1169,6 +1169,8 @@ class NPC(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
     name: str
+    image_url: str = ""
+    portrait_url: str = ""
     race: str = ""
     class_name: str = ""
     level: int = 1
@@ -1196,6 +1198,8 @@ class NPC(BaseModel):
 
 class NPCCreate(BaseModel):
     name: str
+    image_url: str = ""
+    portrait_url: str = ""
     race: str = ""
     class_name: str = ""
     level: int = 1
@@ -1223,6 +1227,8 @@ class NPCCreate(BaseModel):
 
 class NPCUpdate(BaseModel):
     name: Optional[str] = None
+    image_url: Optional[str] = None
+    portrait_url: Optional[str] = None
     race: Optional[str] = None
     class_name: Optional[str] = None
     level: Optional[int] = None
