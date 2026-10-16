@@ -41,6 +41,7 @@ jest.mock('@/data/tiaKartaSecondScreenPresets', () => [{
 describe('LiveSecondScreenDock reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    liveDisplayBus.createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
     liveDisplayBus.loadDisplayState.mockReturnValue({ mode: 'blank', payload: {} });
     liveDisplayBus.subscribeDisplayState.mockImplementation(() => () => {});
     liveDisplayBus.subscribeRemoteDisplayState.mockImplementation(() => () => {});
