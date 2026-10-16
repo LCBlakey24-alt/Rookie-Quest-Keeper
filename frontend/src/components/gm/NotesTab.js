@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Check, FileText, Send, Swords, Users, X } from 'lucide-react';
+import { Bookmark, Check, Edit3, FileText, Search, Send, Swords, Trash2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { persistLivePlayHandoff } from '@/lib/livePlayHandoffs';
@@ -8,6 +8,22 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
   const [saving, setSaving] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [applyingId, setApplyingId] = useState('');
+  const [category, setCategory] = useState('Session');
+  const [search, setSearch] = useState('');
+  const [onlyPinned, setOnlyPinned] = useState(false);
+  const [editingId, setEditingId] = useState('');
+  const [editedContent, setEditedContent] = useState('');
+  const [pinnedIds, setPinnedIds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`gm.pinnedSessionNotes.${campaignId}`) || '[]'); }
+    catch { return []; }
+  });
+  const noteCategories = ['Session', 'NPC', 'Quest', 'Combat', 'Loot', 'Ruling', 'Secret'];
+  const draftKey = `gm.liveNoteDraft.${campaignId}`;
+  const filteredNotes = (Array.isArray(sessionNotes) ? sessionNotes : [])
+    .filter(note => (!search.trim() || String(note.content || '').toLowerCase().includes(search.trim().toLowerCase())
+      || String(note.category || '').toLowerCase().includes(search.trim().toLowerCase()))
+      && (!onlyPinned || pinnedIds.includes(String(note.id))))
+    .sort((a, b) => Number(pinnedIds.includes(String(b.id))) - Number(pinnedIds.includes(String(a.id))));
 
   const accent = theme?.accent?.gm || theme?.accent?.primary || '#d00000';
   const border = theme?.border || 'rgba(255,255,255,0.16)';
@@ -29,6 +45,52 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
     } catch { /* ignore */ }
   }, [campaignId, setQuickNote]);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) setQuickNote?.(prev => String(prev || '').trim() ? prev : saved);
+    } catch { /* Draft recovery is best-effort. */ }
+  }, [draftKey, setQuickNote]);
+
+  useEffect(() => {
+    try {
+      if (quickNote) localStorage.setItem(draftKey, quickNote.slice(0, 50000));
+      else localStorage.removeItem(draftKey);
+    } catch { /* Saving the draft is optional; explicit notes still work. */ }
+  }, [draftKey, quickNote]);
+
+  useEffect(() => {
+    try { localStorage.setItem(`gm.pinnedSessionNotes.${campaignId}`, JSON.stringify(pinnedIds)); }
+    catch { /* The note remains available even if this preference is lost. */ }
+  }, [campaignId, pinnedIds]);
+
+  const togglePinned = noteId => setPinnedIds(prev => {
+    const id = String(noteId);
+    return prev.includes(id) ? prev.filter(value => value !== id) : [...prev, id];
+  });
+
+  const updateNote = async () => {
+    if (!editingId || !editedContent.trim()) return;
+    setSaving(true);
+    try {
+      const response = await apiClient.put(`/campaigns/${campaignId}/ingame-notes/${editingId}`, { content: editedContent.trim() });
+      setSessionNotes?.(prev => prev.map(note => String(note.id) === String(editingId) ? { ...note, ...response.data, content: editedContent.trim() } : note));
+      setEditingId('');
+      toast.success('Note updated');
+    } catch (error) { toast.error(error?.response?.data?.detail || 'Could not update note'); }
+    finally { setSaving(false); }
+  };
+
+  const removeNote = async note => {
+    if (!window.confirm('Delete this saved GM note?')) return;
+    try {
+      await apiClient.delete(`/campaigns/${campaignId}/ingame-notes/${note.id}`);
+      setSessionNotes?.(prev => prev.filter(entry => String(entry.id) !== String(note.id)));
+      setPinnedIds(prev => prev.filter(id => id !== String(note.id)));
+      toast.success('Note deleted');
+    } catch (error) { toast.error(error?.response?.data?.detail || 'Could not delete note'); }
+  };
+
   const checkSuggestions = async (content) => {
     try {
       const response = await apiClient.post(`/campaigns/${campaignId}/live-state/suggestions`, { content });
@@ -43,10 +105,11 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
     if (!content || saving) return;
     setSaving(true);
     try {
-      const response = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content });
-      const note = { ...response.data, content };
+      const response = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content, category, is_private: true });
+      const note = { ...response.data, content, category, is_private: true };
       setSessionNotes?.(prev => [note, ...(Array.isArray(prev) ? prev : [])]);
       setQuickNote('');
+      try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
       await checkSuggestions(content);
       toast.success('Note saved');
     } catch (error) {
@@ -57,7 +120,8 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
   };
 
   const syncNoteToPlayers = async (note) => {
-    if (!note?.content) return;
+    if (!note?.content || window.rookieDesktop?.offline) return;
+    if (!window.confirm('Share this note with your players? GM secrets must stay private.')) return;
     try {
       await apiClient.post(`/campaigns/${campaignId}/sync-note`, {
         note_content: note.content,
@@ -119,14 +183,18 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
 
   const ignoreSuggestion = (suggestionId) => setSuggestions(prev => prev.filter(item => item.id !== suggestionId));
 
+  const noteActionStyle = { minHeight: 30, border: `1px solid ${border}`, background: cardBg, color: textSecondary, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 800 };
+
   return (
     <div data-testid="live-notes-panel" style={{ display: 'grid', gap: 9, color: textPrimary }}>
       <header style={{ background: cardBg, border: `1px solid ${border}`, borderLeft: `5px solid ${accent}`, padding: 11 }}>
         <p style={{ margin: 0, color: textMuted, fontSize: 9, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Live Play</p>
-        <h2 style={{ margin: '3px 0 0', color: textPrimary, fontSize: 21, fontWeight: 950, display: 'flex', alignItems: 'center', gap: 7 }}><FileText size={20} /> Notes</h2>
+        <h2 style={{ margin: '3px 0 0', color: textPrimary, fontSize: 21, fontWeight: 950, display: 'flex', alignItems: 'center', gap: 7 }}><FileText size={20} /> Session Ledger</h2>
+        <p style={{ color: textSecondary, fontSize: 12, margin: '6px 0 0' }}>Fast GM notes, searchable history and recoverable drafts. Nothing is sent to the player display unless you explicitly share it online.</p>
       </header>
 
       <section style={{ background: panelBg, border: `1px solid ${border}`, padding: 10 }}>
+        <div style={{ display: 'flex', gap: 7, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 9 }}><strong style={{ fontSize: 12 }}>Capture a moment</strong><label style={{ fontSize: 12, color: textSecondary }}>Category <select aria-label="Note category" value={category} onChange={event => setCategory(event.target.value)} style={{ marginLeft: 5, minHeight: 32, background: inputBg, color: textPrimary, border: `1px solid ${border}`, padding: '0 8px' }}>{noteCategories.map(name => <option key={name}>{name}</option>)}</select></label></div>
         <textarea
           data-testid="live-quick-note"
           value={quickNote}
@@ -138,9 +206,10 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
             }
           }}
           placeholder="What just changed? NPC choices, clues, rulings, loot…"
-          style={{ minHeight: 100, width: '100%', boxSizing: 'border-box', background: inputBg, border: `1px solid ${border}`, color: textPrimary, padding: 10, resize: 'vertical', fontSize: 13 }}
+          style={{ minHeight: 160, width: '100%', boxSizing: 'border-box', background: inputBg, border: `1px solid ${border}`, color: textPrimary, padding: 12, resize: 'vertical', fontSize: 14, lineHeight: 1.55 }}
         />
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+          <small style={{ color: textMuted }}>Draft kept on this laptop · Ctrl/⌘ + Enter saves</small>
           <button type="button" onClick={saveNote} disabled={saving || !quickNote.trim()} style={{ minHeight: 34, border: 0, background: accent, color: '#fff', padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer' }}>
             <Send size={14} /> {saving ? 'Saving…' : 'Save Note'}
           </button>
@@ -177,16 +246,22 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
 
       <section style={{ background: panelBg, border: `1px solid ${border}`, padding: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginBottom: 7 }}>
-          <strong style={{ fontSize: 12, color: textPrimary }}>Recent Notes</strong>
-          <span style={{ fontSize: 10, color: textMuted }}>{sessionNotes.length}</span>
+          <strong style={{ fontSize: 13, color: textPrimary }}>Your campaign notes</strong>
+          <span style={{ fontSize: 11, color: textMuted }}>{filteredNotes.length} shown / {sessionNotes.length} saved</span>
         </div>
-        <div style={{ display: 'grid', gap: 5, maxHeight: 360, overflowY: 'auto' }}>
-          {sessionNotes.length === 0 && <div style={{ padding: 14, color: textMuted, textAlign: 'center', fontSize: 11, background: inputBg }}>No notes yet.</div>}
-          {sessionNotes.map(note => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}><label style={{ flex: '1 1 240px', display: 'flex', alignItems: 'center', gap: 6, padding: '0 9px', border: `1px solid ${border}`, background: inputBg }}><Search size={15} /><input aria-label="Search saved notes" placeholder="Search your notes…" value={search} onChange={event => setSearch(event.target.value)} style={{ flex: 1, minWidth: 100, border: 0, background: 'transparent', color: textPrimary, minHeight: 36, outline: 0 }} /></label><label style={{ display: 'flex', gap: 5, alignItems: 'center', fontSize: 12 }}><input type="checkbox" checked={onlyPinned} onChange={event => setOnlyPinned(event.target.checked)} /> Pinned only</label></div>
+        <div style={{ display: 'grid', gap: 7, maxHeight: 'min(62vh, 600px)', overflowY: 'auto' }}>
+          {filteredNotes.length === 0 && <div style={{ padding: 14, color: textMuted, textAlign: 'center', fontSize: 12, background: inputBg }}>{sessionNotes.length ? 'No matching notes.' : 'No saved notes yet. Start with the quick capture box above.'}</div>}
+          {filteredNotes.map(note => (
             <article key={note.id} style={{ background: inputBg, border: `1px solid ${border}`, padding: 8 }}>
-              <div style={{ color: textMuted, fontSize: 9, marginBottom: 4 }}>{note.created_at ? new Date(note.created_at).toLocaleString() : ''}</div>
-              <div style={{ color: textPrimary, fontSize: 12, lineHeight: 1.4 }}>{note.content}</div>
-              <button type="button" onClick={() => syncNoteToPlayers(note)} style={{ marginTop: 6, minHeight: 27, border: `1px solid ${border}`, background: cardBg, color: textSecondary, padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 850 }}><Users size={12} /> Share with Players</button>
+              <div style={{ color: textMuted, fontSize: 10, marginBottom: 7, display: 'flex', justifyContent: 'space-between' }}><span>{note.created_at ? new Date(note.created_at).toLocaleString() : 'Saved note'} · {note.category || 'Session'}</span>{pinnedIds.includes(String(note.id)) && <span>★ Pinned</span>}</div>
+              {String(editingId) === String(note.id) ? <textarea aria-label="Edit saved note" value={editedContent} onChange={event => setEditedContent(event.target.value)} style={{ width: '100%', minHeight: 110, boxSizing: 'border-box', background: cardBg, color: textPrimary, border: `1px solid ${border}`, padding: 9 }} /> : <div style={{ color: textPrimary, fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{note.content}</div>}
+              <div style={{ marginTop: 9, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button type="button" aria-label={`Pin ${note.id}`} onClick={() => togglePinned(note.id)} style={{ ...noteActionStyle, color: pinnedIds.includes(String(note.id)) ? '#c9a96b' : textSecondary }}><Bookmark size={13} /> {pinnedIds.includes(String(note.id)) ? 'Unpin' : 'Pin'}</button>
+                {String(editingId) === String(note.id) ? <><button type="button" onClick={updateNote} disabled={saving || !editedContent.trim()} style={noteActionStyle}><Check size={13} /> Save edit</button><button type="button" onClick={() => setEditingId('')} style={noteActionStyle}><X size={13} /> Cancel</button></> : <button type="button" onClick={() => { setEditingId(String(note.id)); setEditedContent(String(note.content || '')); }} style={noteActionStyle}><Edit3 size={13} /> Edit</button>}
+                <button type="button" onClick={() => removeNote(note)} style={noteActionStyle}><Trash2 size={13} /> Delete</button>
+                {!window.rookieDesktop?.offline && <button type="button" onClick={() => syncNoteToPlayers(note)} style={noteActionStyle}><Users size={12} /> Share with Players</button>}
+              </div>
             </article>
           ))}
         </div>
