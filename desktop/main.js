@@ -1,5 +1,6 @@
 const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } = require('electron');
 const fs = require('fs');
+const crypto = require('crypto');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { createBackup, listBackups, restoreBackup } = require('./backup');
@@ -119,6 +120,25 @@ function writePackAttachments(pack) {
   return attachmentUrls;
 }
 
+// Store user-chosen images in Keeper's backed-up local attachment folder.
+function storeLocalMapImage(_event, dataUrl) {
+  if (typeof dataUrl !== 'string' || dataUrl.length > 36 * 1024 * 1024) {
+    throw new Error('That map image is too large. Choose one under 25 MB.');
+  }
+  const matched = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/i.exec(dataUrl);
+  if (!matched) throw new Error('Choose a PNG, JPG or WebP image.');
+  const bytes = Buffer.from(matched[2], 'base64');
+  if (bytes.length === 0 || bytes.length > 25 * 1024 * 1024) {
+    throw new Error('That map image is empty or too large.');
+  }
+  const ext = { png: '.png', jpeg: '.jpg', webp: '.webp' }[matched[1].toLowerCase()];
+  const folder = path.join(attachmentRoot(), 'local-media');
+  fs.mkdirSync(folder, { recursive: true });
+  const name = `${crypto.randomUUID()}${ext}`;
+  fs.writeFileSync(path.join(folder, name), bytes, { flag: 'wx', mode: 0o600 });
+  return { url: `${ATTACHMENT_SCHEME}://local-media/${name}` };
+}
+
 async function importCampaignPack(_event, workspaceRaw) {
   const result = await dialog.showOpenDialog({
     title: 'Import Rookie Quest Keeper Campaign Pack',
@@ -236,6 +256,7 @@ app.whenReady().then(async () => {
     catch (error) { return { error: `Could not start Wi-Fi display: ${error.message}` }; }
   });
   ipcMain.handle('rqk:publish-lan-display', (_event, _campaignId, state) => lanViewer.publish(state));
+  ipcMain.handle('rqk:store-local-map-image', storeLocalMapImage);
   ipcMain.handle('rqk:import-campaign-pack', importCampaignPack);
   ipcMain.handle('rqk:create-backup', (_event, raw, reason = 'manual') =>
     createBackup(app.getPath('userData'), raw, reason));
