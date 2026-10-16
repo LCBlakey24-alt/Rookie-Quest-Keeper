@@ -542,7 +542,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <div style={npcHeaderStyle}>
             <div><strong>Show NPCs together</strong><p style={hintStyle}>Tick as many NPCs as you need, then reveal them all in one go.</p></div>
             <span style={combatToolbarStyle}>
-              <button type="button" onClick={() => setSelectedNpcIds(npcs.slice(0, 24).map(npc => String(npc.id)))} style={miniButtonStyle}>Select All</button>
+              <button type="button" onClick={() => setSelectedNpcIds(npcs.map(npc => String(npc.id)))} style={miniButtonStyle}>Select All</button>
               <button type="button" onClick={() => setSelectedNpcIds([])} style={miniButtonStyle}>Clear</button>
               <button type="button" disabled={!selectedNpcs.length} onClick={sendNpcGrid} style={primaryButtonStyle}><Users size={14} /> Show Selected ({selectedNpcs.length})</button>
             </span>
