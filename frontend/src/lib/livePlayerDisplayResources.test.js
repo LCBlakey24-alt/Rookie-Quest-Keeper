@@ -4,12 +4,14 @@ describe('live player display resource loading', () => {
   test('keeps failed sections absent instead of converting them into empty campaign data', () => {
     const result = resolvePlayerDisplayResourceResults([
       { status: 'fulfilled', value: { data: [{ id: 'map-1' }] } },
+      { status: 'fulfilled', value: { data: [{ id: 'world-1' }] } },
       { status: 'rejected', reason: new Error('offline') },
       { status: 'fulfilled', value: { data: [{ id: 'encounter-1' }] } },
       { status: 'rejected', reason: new Error('offline') },
     ]);
 
     expect(result.data.maps).toEqual([{ id: 'map-1' }]);
+    expect(result.data.worldMaps).toEqual([{ id: 'world-1' }]);
     expect(result.data.scenarios).toEqual([{ id: 'encounter-1' }]);
     expect(result.data).not.toHaveProperty('npcs');
     expect(result.data).not.toHaveProperty('players');
@@ -27,9 +29,11 @@ describe('live player display resource loading', () => {
 
     const result = await loadPlayerDisplayResources(apiClient, 'campaign-1');
 
-    expect(apiClient.get).toHaveBeenCalledTimes(4);
+    expect(apiClient.get).toHaveBeenCalledTimes(5);
+    expect(apiClient.get).toHaveBeenCalledWith('/campaigns/campaign-1/world-maps');
     expect(result.failures).toEqual(['NPCs']);
     expect(result.data.maps).toHaveLength(1);
+    expect(result.data.worldMaps).toHaveLength(1);
     expect(result.data.scenarios).toHaveLength(1);
     expect(result.data.players).toHaveLength(1);
     expect(result.data).not.toHaveProperty('npcs');
