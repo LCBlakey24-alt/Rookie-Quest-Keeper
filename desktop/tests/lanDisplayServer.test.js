@@ -127,3 +127,41 @@ test('Wi-Fi viewer includes player-side SVG fog masking support', async () => {
     assert.match(page, /function map\(p,combat\)/);
   } finally { server.close(); }
 });
+
+test('Wi-Fi VTT allows a shared grid/ruler but never leaks an unshared ruler', () => {
+  const server = createLanDisplayServer({ userDataDir: os.tmpdir() });
+  const ruler = { start: { x: 5, y: 7 }, end: { x: 31, y: 79 } };
+  const hidden = server.projectDisplayState({
+    mode: 'image',
+    payload: { image_url: 'data:image/png;base64,QUJD', tactical: { grid: true, columns: 30, ruler, showRuler: false, notes: 'GM path' } },
+  });
+  assert.equal(hidden.payload.tactical.grid, true);
+  assert.equal(hidden.payload.tactical.columns, 30);
+  assert.equal(hidden.payload.tactical.ruler, null);
+  assert.doesNotMatch(JSON.stringify(hidden), /GM path|"x":5/);
+  const shared = server.projectDisplayState({
+    mode: 'image',
+    payload: { image_url: 'data:image/png;base64,QUJD', tactical: { grid: true, columns: 30, ruler, showRuler: true } },
+  });
+  assert.deepEqual(shared.payload.tactical.ruler, ruler);
+  const unsafe = server.projectDisplayState({
+    mode: 'image',
+    payload: { tactical: { grid: true, columns: 700, ruler: { start: { x: -1, y: 0 }, end: { x: 200, y: 500 } }, showRuler: true } },
+  });
+  assert.equal(unsafe.payload.tactical.columns, 60);
+  assert.equal(unsafe.payload.tactical.ruler, null);
+});
+
+test('Wi-Fi viewer contains original grid/ruler projection tools', async () => {
+  const server = createLanDisplayServer({ userDataDir: os.tmpdir() });
+  try {
+    const info = await server.start();
+    const url = new URL(info.url);
+    url.hostname = '127.0.0.1';
+    const page = await (await fetch(url)).text();
+    assert.match(page, /function tacticalSvg/);
+    assert.match(page, /tactical-grid/);
+    assert.match(page, /tactical-ruler/);
+    assert.match(page, /layer\.insertBefore\(grid,layer\.firstChild\)/);
+  } finally { server.close(); }
+});
