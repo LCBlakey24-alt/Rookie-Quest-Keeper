@@ -59,14 +59,14 @@ describe('LiveSecondScreenDock reliability', () => {
     render(<LiveSecondScreenDock campaignId="campaign-1" />);
 
     expect(await screen.findByRole('button', { name: /Vault Map/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Mira/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Mira/i })).toBeInTheDocument();
 
     failRefresh = true;
     fireEvent.click(screen.getByRole('button', { name: 'Refresh assets' }));
 
     expect(await screen.findByTestId('second-screen-asset-warning')).toHaveTextContent('Keeping the last known assets');
     expect(screen.getByRole('button', { name: /Vault Map/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Mira/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Mira/i })).toBeInTheDocument();
     await waitFor(() => expect(toast.warning).toHaveBeenCalledWith(
       'Second screen assets only partly refreshed',
       expect.any(Object),
@@ -90,9 +90,8 @@ describe('LiveSecondScreenDock reliability', () => {
     fireEvent.click(screen.getByRole('button', { name: /Show selected NPCs \(2\)/i }));
 
     await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalled());
-    const sent = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls.at(-1)[1];
-    expect(sent.mode).toBe('npc-grid');
-    expect(sent.payload.npcs).toHaveLength(2);
+    const sent = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state?.mode === 'npc-grid')?.[1];
+    expect(sent?.payload?.npcs).toHaveLength(2);
     expect(sent.payload.npcs.map(item => item.name)).toEqual(['Mira', 'Thorgar']);
     expect(JSON.stringify(sent.payload)).not.toMatch(/GM secret/);
   });
@@ -106,8 +105,8 @@ describe('LiveSecondScreenDock reliability', () => {
     render(<LiveSecondScreenDock campaignId="campaign-1" />);
     fireEvent.click(await screen.findByRole('button', { name: /Tia-Karta World/i }));
     await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalled());
-    const sent = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls.at(-1)[1];
-    expect(sent.mode).toBe('image');
+    const sent = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state?.mode === 'image')?.[1];
+    expect(sent?.mode).toBe('image');
     expect(sent.payload.image_url).toBe('data:image/jpeg;base64,worldpicture');
   });
 
