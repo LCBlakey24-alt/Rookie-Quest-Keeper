@@ -6,6 +6,7 @@ import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } 
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import { containedImageBounds } from '@/components/gm/playerDisplayGeometry';
+import FogMask from '@/components/gm/FogMask';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -232,7 +233,7 @@ function PlayerBanner({ banner, target }) {
 function BlankDisplay({ payload, target }) { return <section style={blankStyle(target)}><div style={sigilStyle(target)}><Monitor size={isTable(target) ? 34 : 54} /></div><p style={eyebrowStyle(target)}>{isTable(target) ? 'Virtual table ready' : 'Player screen ready'}</p><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'Scenes, maps, handouts, NPCs, combat reveals, and table results will appear here.'}</p><div style={readyGridStyle(target)}><span>Clean player view</span><span>No GM notes</span><span>Live synced</span></div></section>; }
 function TitleDisplay({ payload, target, hasPartySidebar }) { return <section style={titleDisplayStyle(target, hasPartySidebar)}><div style={titlePlateStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target, hasPartySidebar)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</div></section>; }
 function TableResultDisplay({ payload, target }) { return <section style={tableResultShellStyle(target)}><div style={diceSealStyle(target)}><Dice6 size={isTable(target) ? 32 : 54} /></div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Table Roll'}</p><h1 style={tableResultTitleStyle(target)}>{payload.title || 'Roll Table'}</h1><strong style={tableRollNumberStyle(target)}>{payload.die || 'd20'} → {payload.roll || '?'}</strong><p style={tableResultTextStyle(target)}>{payload.result || 'No result sent yet.'}</p></section>; }
-function ImageDisplay({ payload, target, hasPartySidebar }) { return <section style={imageShellStyle(target, hasPartySidebar)}><div style={imageStageStyle(target)}>{payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle(target)} /> : <div style={missingImageStyle(target)}>No image selected</div>}</div>{(payload.title || payload.caption) && <div style={imageCaptionPanelStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</div>}</section>; }
+function ImageDisplay({ payload, target, hasPartySidebar }) { return <section style={imageShellStyle(target, hasPartySidebar)}><div style={imageStageStyle(target)}><FittedCombatMap mapUrl={payload.image_url} title={payload.title || 'Player display image'} tokens={[]} target={target} fog={payload.fog} /></div>{(payload.title || payload.caption) && <div style={imageCaptionPanelStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</div>}</section>; }
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
@@ -278,7 +279,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} />
+          <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} fog={payload.fog} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -302,7 +303,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} />
+        <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} fog={payload.fog} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -316,7 +317,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
 }
 
 
-function FittedCombatMap({ mapUrl, title, tokens, target }) {
+function FittedCombatMap({ mapUrl, title, tokens, target, fog }) {
   const frameRef = useRef(null);
   const imageRef = useRef(null);
   const [bounds, setBounds] = useState(null);
@@ -351,6 +352,7 @@ function FittedCombatMap({ mapUrl, title, tokens, target }) {
       {!!mapUrl && !!bounds && (
         <div data-testid="fitted-map-token-layer" style={{ ...tokenOverlayStyle, inset: 'auto', left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }}>
           {tokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}
+          <FogMask fog={fog} />
         </div>
       )}
     </div>
@@ -447,7 +449,7 @@ const tableResultTitleStyle = (target) => ({ margin: 0, color: theme.text, fontF
 const tableRollNumberStyle = (target) => ({ display: 'inline-grid', placeItems: 'center', minWidth: isTable(target) ? 130 : 190, minHeight: isTable(target) ? 72 : 108, background: theme.red, color: theme.text, padding: isTable(target) ? '8px 18px' : '12px 28px', fontSize: isTable(target) ? 'clamp(26px, 4vw, 62px)' : 'clamp(42px, 6vw, 86px)', fontWeight: 950, boxShadow: '0 24px 90px rgba(208,0,0,0.24)' });
 const tableResultTextStyle = (target) => ({ margin: 0, color: theme.text, fontSize: isTable(target) ? 'clamp(17px, 2.6vw, 36px)' : 'clamp(28px, 4vw, 58px)', lineHeight: 1.2, maxWidth: 1120, fontWeight: 850, textWrap: 'balance' });
 const imageShellStyle = (target, hasPartySidebar) => ({ minHeight: 0, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: isTable(target) ? 6 : 12, padding: isTable(target) ? 0 : hasPartySidebar ? 0 : 10, animation: 'rqkDisplayReveal 600ms ease both' });
-const imageStageStyle = (target) => ({ minHeight: 0, display: 'grid', placeItems: 'center', background: '#000', border: `1px solid ${theme.line}`, boxShadow: isTable(target) ? 'none' : '0 30px 100px rgba(0,0,0,0.55)', overflow: 'hidden' });
+const imageStageStyle = (target) => ({ minHeight: 0, display: 'grid', placeItems: 'center', position: 'relative', background: '#000', border: `1px solid ${theme.line}`, boxShadow: isTable(target) ? 'none' : '0 30px 100px rgba(0,0,0,0.55)', overflow: 'hidden' });
 const imageTitleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(20px, 2.6vw, 42px)' : 'clamp(30px, 4vw, 64px)', textAlign: 'center' });
 const mainImageStyle = () => ({ width: '100%', height: '100%', objectFit: 'contain', minHeight: 0, background: '#000' });
 const missingImageStyle = (target) => ({ display: 'grid', placeItems: 'center', minHeight: isTable(target) ? 180 : 280, width: '100%', height: '100%', background: theme.panel, border: `1px dashed ${theme.line}`, color: theme.muted, fontSize: isTable(target) ? 16 : 22 });
