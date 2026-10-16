@@ -79,6 +79,20 @@ function createLanDisplayServer({ userDataDir } = {}) {
     return fog.reveals.some(spot => Math.hypot(x - spot.x, y - spot.y) <= spot.radius);
   }
 
+  function safeTactical(source) {
+    const cols = Math.max(4, Math.min(60, Math.round(number(source?.columns) || 24)));
+    const start = source?.ruler?.start, end = source?.ruler?.end;
+    const nums = [start?.x, start?.y, end?.x, end?.y].map(Number);
+    const valid = nums.every(Number.isFinite) && nums.every(v => v >= 0 && v <= 100);
+    const visible = source?.showRuler === true && valid;
+    return {
+      grid: source?.grid === true,
+      columns: cols,
+      showRuler: visible,
+      ruler: visible ? { start: { x: nums[0], y: nums[1] }, end: { x: nums[2], y: nums[3] } } : null,
+    };
+  }
+
   function projectDisplayState(state) {
     const mode = MODES.has(state?.mode) ? state.mode : 'blank';
     const source = state?.payload && typeof state.payload === 'object' ? state.payload : {};
@@ -90,7 +104,10 @@ function createLanDisplayServer({ userDataDir } = {}) {
       display_target: source.display_target === 'virtual-table' ? 'virtual-table' : 'standing-tv',
     };
     if (mode === 'image') payload.image_url = imageUrl(source.image_url || source.map_url || source.image_data);
-    if (mode === 'image' || mode === 'combat') payload.fog = safeFog(source.fog);
+    if (mode === 'image' || mode === 'combat') {
+      payload.fog = safeFog(source.fog);
+      payload.tactical = safeTactical(source.tactical);
+    }
     if (mode === 'npc-grid') {
       payload.npcs = (Array.isArray(source.npcs) ? source.npcs : []).slice(0, 48).map((npc) => ({
         name: text(npc?.name, 100),
@@ -212,7 +229,7 @@ h1{font-size:clamp(25px,5vw,68px);margin:0;line-height:1.05;color:#f3e9d5}p{marg
 .map{width:100%;height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:4px}
 .picture{height:100%;min-height:0;min-width:0;background:#000;position:relative;display:grid;place-items:center;overflow:hidden}
 .picture img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain}
-.token-layer{position:absolute;pointer-events:none;z-index:2;inset:0}.fog-layer{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}.map-token{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;min-width:32px;min-height:32px;border:2px solid #d6a84f;border-radius:50%;background:#0b1b2be8;color:#f2e4c4;font-weight:900;font-size:11px;box-shadow:0 6px 20px #000c;max-width:100px;text-align:center;padding:3px}.map-token img{width:30px;height:30px;object-fit:cover;border-radius:50%}
+.token-layer{position:absolute;pointer-events:none;z-index:2;inset:0}.fog-layer{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}.tactical-grid{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}.tactical-ruler{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none}.map-token{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;min-width:32px;min-height:32px;border:2px solid #d6a84f;border-radius:50%;background:#0b1b2be8;color:#f2e4c4;font-weight:900;font-size:11px;box-shadow:0 6px 20px #000c;max-width:100px;text-align:center;padding:3px}.map-token img{width:30px;height:30px;object-fit:cover;border-radius:50%}
 .caption{text-align:center;font-size:clamp(13px,2vw,22px);padding:2px 8px;color:#efe6d5}
 .grid{width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;padding:6px}
 .cards{display:grid;min-height:0;grid-template-columns:repeat(auto-fit,minmax(min(22vw,170px),1fr));grid-auto-rows:minmax(0,1fr);gap:clamp(5px,1vw,14px);overflow:hidden}
@@ -273,10 +290,26 @@ var ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),defs=
 svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('class','fog-layer');mask.id='fog-cutout';white.setAttribute('width','100');white.setAttribute('height','100');white.setAttribute('fill','white');mask.appendChild(white);
 (value.reveals||[]).forEach(function(spot){var e=document.createElementNS(ns,'ellipse');e.setAttribute('cx',spot.x);e.setAttribute('cy',spot.y);e.setAttribute('rx',spot.radius);e.setAttribute('ry',spot.radius);e.setAttribute('fill','black');mask.appendChild(e)});
 defs.appendChild(mask);svg.appendChild(defs);var cover=document.createElementNS(ns,'rect');cover.setAttribute('width','100');cover.setAttribute('height','100');cover.setAttribute('fill','#030a14');cover.setAttribute('mask','url(#fog-cutout)');svg.appendChild(cover);return svg}
+function tacticalSvg(t,width,height,kind){
+if(!t)return null;
+var ns='http://www.w3.org/2000/svg',cols=Math.max(4,Math.min(60,Number(t.columns)||24)),rows=Math.max(1,Math.min(100,Math.round(cols*height/width))),svg=document.createElementNS(ns,'svg');
+svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('class',kind==='grid'?'tactical-grid':'tactical-ruler');
+if(kind==='grid'&&t.grid===true){
+  var line=function(x1,y1,x2,y2){var e=document.createElementNS(ns,'line');e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);e.setAttribute('stroke','rgba(250,230,178,.46)');e.setAttribute('stroke-width','.13');svg.appendChild(e)};
+  for(var i=1;i<cols;i++)line(i*100/cols,0,i*100/cols,100);
+  for(var j=1;j<rows;j++)line(0,j*100/rows,100,j*100/rows);
+} else if(kind==='ruler'&&t.showRuler===true&&t.ruler){
+  var a=t.ruler.start,b=t.ruler.end,l=document.createElementNS(ns,'line');l.setAttribute('x1',a.x);l.setAttribute('y1',a.y);l.setAttribute('x2',b.x);l.setAttribute('y2',b.y);l.setAttribute('stroke','#ffdc85');l.setAttribute('stroke-width','.8');l.setAttribute('stroke-dasharray','1.6 .8');svg.appendChild(l);
+  var feet=Math.round(5*Math.hypot((b.x-a.x)/100*cols,(b.y-a.y)/100*rows)),txt=document.createElementNS(ns,'text');txt.setAttribute('x',Math.max(10,Math.min(87,(a.x+b.x)/2)));txt.setAttribute('y',Math.max(8,Math.min(96,(a.y+b.y)/2)));txt.setAttribute('text-anchor','middle');txt.setAttribute('font-size','3.8');txt.setAttribute('font-weight','bold');txt.setAttribute('fill','#ffecbd');txt.setAttribute('stroke','#0a1b2f');txt.setAttribute('stroke-width','.95');txt.setAttribute('paint-order','stroke');txt.textContent='~'+feet+' ft';svg.appendChild(txt);
+}
+return svg}
 function map(p,combat){var outer=el('section','map');var box=el('div','picture');var src=combat?p.map_url:p.image_url;var img=src?image(src,p.title):null;if(img)box.appendChild(img);else box.appendChild(el('p','','No map image selected'));outer.appendChild(box);
 var layer=el('div','token-layer');if(combat){box.appendChild(el('div','badge',String(p.title||'Combat')+' · Round '+String(p.round||1)));var strip=el('div','token-list');(p.tokens||[]).forEach(function(t){var x=Number(t.x)||0,y=Number(t.y)||0;if(x||y){var token=el('div','map-token');token.title=t.name||'Token';token.style.left=Math.max(2,Math.min(98,x))+'%';token.style.top=Math.max(2,Math.min(98,y))+'%';if(t.image_url)token.appendChild(image(t.image_url,t.name));else token.textContent=(t.name||'?').slice(0,8);layer.appendChild(token)}else strip.appendChild(el('span','',t.name))});box.appendChild(strip)}
-var fog=fogSvg(p.fog);if(fog)layer.appendChild(fog);box.appendChild(layer);
-var fit=function(){if(!box.isConnected||!img||!img.naturalWidth)return;var w=box.clientWidth,h=box.clientHeight,s=Math.min(w/img.naturalWidth,h/img.naturalHeight),iw=img.naturalWidth*s,ih=img.naturalHeight*s;layer.style.left=(w-iw)/2+'px';layer.style.top=(h-ih)/2+'px';layer.style.width=iw+'px';layer.style.height=ih+'px';layer.style.right='auto';layer.style.bottom='auto'};if(img){img.addEventListener('load',fit);if(typeof ResizeObserver!=='undefined'){mapObserver=new ResizeObserver(fit);mapObserver.observe(box)}else window.addEventListener('resize',fit)}
+var fog=fogSvg(p.fog);box.appendChild(layer);
+var overlays=null;
+var fit=function(){if(!box.isConnected||!img||!img.naturalWidth)return;var w=box.clientWidth,h=box.clientHeight,s=Math.min(w/img.naturalWidth,h/img.naturalHeight),iw=img.naturalWidth*s,ih=img.naturalHeight*s;layer.style.left=(w-iw)/2+'px';layer.style.top=(h-ih)/2+'px';layer.style.width=iw+'px';layer.style.height=ih+'px';layer.style.right='auto';layer.style.bottom='auto';
+if(!overlays){overlays=true;var grid=tacticalSvg(p.tactical,img.naturalWidth,img.naturalHeight,'grid');if(grid)layer.insertBefore(grid,layer.firstChild);if(fog)layer.appendChild(fog);var ruler=tacticalSvg(p.tactical,img.naturalWidth,img.naturalHeight,'ruler');if(ruler)layer.appendChild(ruler)}
+};if(img){img.addEventListener('load',fit);if(typeof ResizeObserver!=='undefined'){mapObserver=new ResizeObserver(fit);mapObserver.observe(box)}else window.addEventListener('resize',fit)}
 if(p.title||p.caption)outer.appendChild(el('div','caption',p.title||p.caption));return outer}
 function npcs(p){var outer=el('section','grid');outer.appendChild(el('h1','',p.title||'People in the scene'));var cards=el('div','cards');cards.dataset.count=String((p.npcs||[]).length);cards.dataset.dense=(p.npcs||[]).length>=7?'yes':'no';(p.npcs||[]).forEach(function(n){var card=el('article','card');card.appendChild(n.image_url?image(n.image_url,n.name):el('div','initial',(n.name||'?').slice(0,1).toUpperCase()));var info=el('div','details');info.appendChild(el('strong','',n.name||'Unknown figure'));if(n.subtitle)info.appendChild(el('small','',n.subtitle));card.appendChild(info);cards.appendChild(card)});if(!(p.npcs||[]).length)cards.appendChild(el('p','','No NPCs selected'));outer.appendChild(cards);return outer}
 function draw(state){var p=state.payload||{},mode=state.mode||'blank';if(mapObserver){mapObserver.disconnect();mapObserver=null}stage.replaceChildren();if(mode==='image'||mode==='combat')stage.appendChild(map(p,mode==='combat'));else if(mode==='npc-grid')stage.appendChild(npcs(p));else if(mode==='table-result'){var s=scene(p,mode);s.appendChild(el('h1','',String(p.die||'d20')+' → '+String(p.roll||'?')));s.appendChild(el('p','',p.result||''));stage.appendChild(s)}else stage.appendChild(scene(p,mode));banner.textContent=p.banner&&p.banner.text||''}
