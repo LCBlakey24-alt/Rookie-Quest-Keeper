@@ -8,7 +8,7 @@ import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { isPointRevealed, loadFog, normaliseFog, saveFog } from '@/lib/fogOfWar';
 import FogOfWarEditor from '@/components/gm/FogOfWarEditor';
-import { loadTactical, normaliseTactical, saveTactical } from '@/lib/vttTacticalOverlay';
+import { loadTactical, normaliseTactical, publicTactical, saveTactical } from '@/lib/vttTacticalOverlay';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -343,7 +343,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       caption: sceneSubtitle,
       party: partyPayload,
       fog: normaliseFog(fog),
-      tactical: normaliseTactical(tactical),
+      tactical: publicTactical(tactical),
     });
   };
 
@@ -393,7 +393,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             return;
           }
           setImageUrl(url);
-          void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload, fog: loadFog(campaignId, url), tactical: loadTactical(campaignId, url) });
+          void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload, fog: loadFog(campaignId, url), tactical: publicTactical(loadTactical(campaignId, url)) });
         } catch { toast.error('Could not prepare the map for display'); }
       };
       picture.src = String(reader.result || '');
@@ -412,7 +412,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus, initiative, initiativeLabel,
     })),
     fog: normaliseFog(fogValue),
-    tactical: normaliseTactical(tacticalValue),
+    tactical: publicTactical(tacticalValue),
     // Fog-hidden creatures must not appear in player roster or raw LAN state.
     tokens: combatTokenPayload.filter(token => !fogValue?.enabled || ((Number(token.x) || Number(token.y)) && isPointRevealed(fogValue, token.x, token.y))),
   });
@@ -442,7 +442,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     if (displayedUrl !== activeMapUrl) return;
     const payload = current.mode === 'combat'
       ? combatPayload(activeCombatantId, combatRound, fog, safe)
-      : { ...current.payload, tactical: safe };
+      : { ...current.payload, tactical: publicTactical(safe) };
     void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(current.mode, { ...payload, display_target: displayTarget }));
   };
 
