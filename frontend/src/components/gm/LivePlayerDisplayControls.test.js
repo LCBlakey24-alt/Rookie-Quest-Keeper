@@ -41,7 +41,7 @@ describe('LivePlayerDisplayControls reliability', () => {
 
   test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
-    fireEvent.click(screen.getByRole('button', { name: /Battle Starting!/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Battle Starting!/i })[0]);
     await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
       'campaign-1',
       expect.objectContaining({ mode: 'battle-start', payload: expect.objectContaining({ title: 'Battle Starting' }) }),
