@@ -14,6 +14,9 @@ function readable(value) {
   if (value === null || value === undefined || value === '') return '—';
   return String(value);
 }
+function confirmedPositive(value) {
+  return Number.isFinite(Number(value)) && Number(value) > 0 ? String(value) : '—';
+}
 
 export function npcModifier(score) {
   if (score === '' || score === null || score === undefined) return null;
@@ -59,12 +62,12 @@ export default function NpcCompactStatBlock({ npc = {} }) {
         {portrait && <img src={portrait} alt={npc.name || 'NPC portrait'} style={{ width: 54, height: 54, objectFit: 'cover', border: '1px solid var(--rq-line)' }} />}
         <div style={{ minWidth: 0 }}>
           <strong style={{ fontSize: 17 }}>{npc.name || 'NPC'}</strong>
-          <p style={{ margin: '2px 0 0', fontSize: 12, opacity: .8 }}>{[npc.role || npc.class_name, npc.race, npc.level ? `Level ${npc.level}` : ''].filter(Boolean).join(' · ')}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 12, opacity: .8 }}>{[npc.role || npc.class_name, npc.race, Number(npc.level) > 0 ? `Level ${npc.level}` : ''].filter(Boolean).join(' · ')}</p>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 }}>
-        <div style={box}><span style={label}>HP</span><strong style={{ fontSize: 20 }}>{readable(npc.hp)}{npc.max_hp && npc.max_hp !== npc.hp ? `/${npc.max_hp}` : ''}</strong></div>
-        <div style={box}><span style={label}>AC</span><strong style={{ fontSize: 20 }}>{readable(npc.ac)}</strong></div>
+        <div style={box}><span style={label}>HP</span><strong style={{ fontSize: 20 }}>{confirmedPositive(npc.hp)}{Number(npc.max_hp) > 0 && npc.max_hp !== npc.hp ? `/${npc.max_hp}` : ''}</strong></div>
+        <div style={box}><span style={label}>AC</span><strong style={{ fontSize: 20 }}>{confirmedPositive(npc.ac)}</strong></div>
         <div style={box}><span style={label}>Speed</span><strong style={{ fontSize: 15, textAlign: 'center' }}>{readable(npc.speed)}</strong></div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
