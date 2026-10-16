@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import LivePlayerDisplayControls from './LivePlayerDisplayControls';
 import apiClient from '@/lib/apiClient';
+import { createDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import { toast } from 'sonner';
 
@@ -35,6 +36,7 @@ jest.mock('sonner', () => ({
 describe('LivePlayerDisplayControls reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
     apiClient.get.mockResolvedValue({ data: [] });
     publishCampaignDisplayStateWithStatus.mockImplementation(async (_campaignId, state) => ({ state, remoteSynced: true }));
   });
