@@ -335,13 +335,15 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     });
   };
 
-  const sendNpcGrid = () => {
-    if (selectedNpcs.length === 0) { toast.error('Select at least one NPC first'); return; }
+  const sendNpcGrid = (overrideNpcs) => {
+    // React onClick sends an event; only an actual NPC array can override selection.
+    const reveal = Array.isArray(overrideNpcs) ? overrideNpcs : selectedNpcs;
+    if (reveal.length === 0) { toast.error('Select at least one NPC first'); return; }
     publish('npc-grid', {
       title: sceneTitle || 'Who you can see',
       eyebrow: 'People in the scene',
       party: partyPayload,
-      npcs: selectedNpcs.map(npc => ({
+      npcs: reveal.map(npc => ({
         id: npc.id,
         name: npc.name,
         subtitle: npc.role || npc.race || npc.location || '',
@@ -551,6 +553,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             <span style={combatToolbarStyle}>
               <button type="button" onClick={() => setSelectedNpcIds(npcs.map(npc => String(npc.id)))} style={miniButtonStyle}>Select All</button>
               <button type="button" onClick={() => setSelectedNpcIds([])} style={miniButtonStyle}>Clear</button>
+              <button type="button" disabled={!npcs.length} onClick={() => sendNpcGrid(npcs)} style={miniButtonStyle}><Users size={13} /> Show All</button>
               <button type="button" disabled={!selectedNpcs.length} onClick={sendNpcGrid} style={primaryButtonStyle}><Users size={14} /> Show Selected ({selectedNpcs.length})</button>
             </span>
           </div>
