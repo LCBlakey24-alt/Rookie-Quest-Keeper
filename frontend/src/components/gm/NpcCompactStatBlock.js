@@ -55,6 +55,22 @@ export default function NpcCompactStatBlock({ npc = {} }) {
   const bonusActions = Array.isArray(npc.bonus_actions) ? npc.bonus_actions : [];
   const spells = npc.spells;
   const lore = [npc.description, npc.personality, npc.backstory, npc.notes].filter(Boolean);
+  const quickDetails = [
+    ['Initiative', npc.initiative_bonus ?? npc.initiative],
+    ['Passive perception', npc.passive_perception ?? npc.passivePerception],
+    ['Proficiency', npc.proficiency_bonus],
+    ['Challenge', npc.challenge_rating ?? npc.cr],
+  ].filter(([, value]) => value !== null && value !== undefined && value !== '');
+  const defenses = [
+    ['Damage resistances', npc.damage_resistances ?? npc.resistances],
+    ['Damage immunities', npc.damage_immunities ?? npc.immunities],
+    ['Condition immunities', npc.condition_immunities],
+    ['Damage vulnerabilities', npc.damage_vulnerabilities ?? npc.vulnerabilities],
+    ['Saving throws', npc.saving_throws],
+    ['Skills', npc.skills],
+    ['Senses', npc.senses],
+    ['Languages', npc.languages],
+  ].filter(([, value]) => value != null && value !== '' && (!Array.isArray(value) || value.length > 0));
   const portrait = npc.image_url || npc.portrait_url || '';
 
   return (
@@ -72,13 +88,21 @@ export default function NpcCompactStatBlock({ npc = {} }) {
         <div style={box}><span style={label}>AC</span><strong style={{ fontSize: 20 }}>{unverified ? '—' : confirmedPositive(npc.ac)}</strong></div>
         <div style={box}><span style={label}>Speed</span><strong style={{ fontSize: 15, textAlign: 'center' }}>{readable(npc.speed)}</strong></div>
       </div>
+      {!!quickDetails.length && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 5 }}>
+        {quickDetails.map(([title, value]) => <div key={title} style={box}><span style={label}>{title}</span><strong style={{ fontSize: 13 }}>{readable(value)}</strong></div>)}
+      </div>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
         {abilities.map(([title, field]) => <AbilityBox key={field} title={title} score={unverified ? null : (stats[field] ?? npc[field])} />)}
       </div>
-      <ActionList title="Attacks" items={attacks.length ? attacks : actions} />
+      <ActionList title="Attacks" items={attacks} />
+      <ActionList title="Actions" items={actions} />
       <ActionList title="Bonus actions" items={bonusActions} />
       <ActionList title="Reactions" items={reactions} />
       <ActionList title="Special abilities" items={specialAbilities} />
+      {defenses.length > 0 && <div style={{ ...entry, display: 'grid', gap: 5 }}>
+        <strong style={{ fontSize: 13 }}>Defences & proficiencies</strong>
+        {defenses.map(([title, value]) => <p key={title} style={{ margin: 0, fontSize: 12, lineHeight: 1.4 }}><b>{title}:</b> {Array.isArray(value) ? value.map(item => typeof item === 'object' ? JSON.stringify(item) : String(item)).join(', ') : typeof value === 'object' ? JSON.stringify(value) : String(value)}</p>)}
+      </div>}
       {spells && <section style={entry}><strong style={{ fontSize: 13 }}>Spells</strong>
         <p style={{ fontSize: 12, margin: '4px 0' }}>DC {readable(spells.spell_save_dc)} · Attack {readable(spells.spell_attack_bonus)}</p>
         {!!spells.cantrips?.length && <p style={{ fontSize: 12, margin: '3px 0' }}><b>Cantrips:</b> {spells.cantrips.join(', ')}</p>}
