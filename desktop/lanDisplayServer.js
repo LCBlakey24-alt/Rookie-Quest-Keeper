@@ -24,7 +24,10 @@ function localIpv4() {
 
 function attachmentPath(src, userDataDir) {
   try {
-    const url = new URL(src);
+    // URL() normalises dot segments, so reject traversal before parsing.
+    const raw = String(src || '');
+    if (/(?:%2e|%2f|%5c)/i.test(raw) || /(?:^|\/)\.\.(?:\/|$)/.test(raw) || raw.includes('\\')) return null;
+    const url = new URL(raw);
     if (url.protocol !== 'rqk-attachment:') return null;
     if (!/^[a-zA-Z0-9._-]{1,120}$/.test(url.hostname) || url.hostname === '.' || url.hostname === '..') return null;
     const rel = decodeURIComponent(url.pathname).replace(/^\/+/, '');
