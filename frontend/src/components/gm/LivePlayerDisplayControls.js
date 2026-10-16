@@ -9,7 +9,7 @@ import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { isPointRevealed, loadFog, normaliseFog, saveFog } from '@/lib/fogOfWar';
 import FogOfWarEditor from '@/components/gm/FogOfWarEditor';
 import { loadTactical, normaliseTactical, publicTactical, saveTactical } from '@/lib/vttTacticalOverlay';
-import { loadEncounterPresets, saveEncounterPresets, normaliseTokenPositions } from '@/lib/vttEncounterPresets';
+import { loadEncounterPresets, saveEncounterPresets, normaliseTokenPositions, normaliseManualTokens } from '@/lib/vttEncounterPresets';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -155,6 +155,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [fog, setFog] = useState({ enabled: false, reveals: [] });
   const [tactical, setTactical] = useState({ grid: false, columns: 24, ruler: null, showRuler: false });
   const [tokenPositions, setTokenPositions] = useState({});
+  const [manualTokens, setManualTokens] = useState([]);
+  const [newTokenName, setNewTokenName] = useState('');
   const [snapTokens, setSnapTokens] = useState(false);
   const [encounterName, setEncounterName] = useState('');
   const [savedEncounters, setSavedEncounters] = useState(() => loadEncounterPresets(campaignId));
@@ -195,6 +197,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setSelectedScenarioId('');
     setVisibleCombatantIds([]);
     setTokenPositions({});
+    setManualTokens([]);
+    setNewTokenName('');
     setSnapTokens(false);
     setSavedEncounters(loadEncounterPresets(campaignId));
     setSelectedEncounterId('');
@@ -254,8 +258,14 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     speed: member.speed,
     passivePerception: member.passivePerception,
   })), [party]);
-  const combatTokenPayload = useMemo(() => visibleCombatantEntries.map(({ item, id }) => ({ ...normaliseCombatantPayload(item, id), ...(tokenPositions[id] || {}) })), [visibleCombatantEntries, tokenPositions]);
-  const gmEditorTokens = useMemo(() => playerFacingCombatants.map((item, index) => { const id = combatantId(item, index); return { ...normaliseCombatantPayload(item, id), ...(tokenPositions[id] || {}), visible: visibleCombatantIds.includes(id) }; }), [playerFacingCombatants, tokenPositions, visibleCombatantIds]);
+  const combatTokenPayload = useMemo(() => [
+    ...visibleCombatantEntries.map(({ item, id }) => ({ ...normaliseCombatantPayload(item, id), ...(tokenPositions[id] || {}) })),
+    ...manualTokens.filter(token => token.visible).map(token => ({ ...token, ...(tokenPositions[token.id] || {}), visible: undefined })),
+  ], [visibleCombatantEntries, manualTokens, tokenPositions]);
+  const gmEditorTokens = useMemo(() => [
+    ...playerFacingCombatants.map((item, index) => { const id = combatantId(item, index); return { ...normaliseCombatantPayload(item, id), ...(tokenPositions[id] || {}), visible: visibleCombatantIds.includes(id) }; }),
+    ...manualTokens.map(token => ({ ...token, ...(tokenPositions[token.id] || {}) })),
+  ], [playerFacingCombatants, manualTokens, tokenPositions, visibleCombatantIds]);
   const combatRosterOptions = useMemo(() => [
     ...partyPayload.map(member => ({ id: `player-${member.id}`, name: member.name, type: 'player', initiative: member.initiative || 0, label: `${member.name} · Player ${member.initiativeLabel || signed(member.initiative)}` })),
     ...combatTokenPayload.map(token => ({ id: token.id, name: token.name, type: token.type, initiative: token.initiative || 0, label: `${token.name} · ${token.type === 'npc' ? 'NPC' : 'Enemy'} ${token.initiativeLabel || signed(token.initiative)}` })),
@@ -476,7 +486,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     const entry = {
       id: 'gm-scene-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7),
       name, mapUrl: activeMapUrl, sceneTitle, sceneSubtitle,
-      scenarioId: selectedScenarioId, visibleIds: visibleCombatantIds, tokenPositions,
+      scenarioId: selectedScenarioId, visibleIds: visibleCombatantIds, tokenPositions, manualTokens,
       round: combatRound, activeId: activeCombatantId, fog, tactical, snap: snapTokens,
     };
     try {
@@ -504,6 +514,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setSelectedScenarioId(item.scenarioId);
     setVisibleCombatantIds(item.visibleIds);
     setTokenPositions(item.tokenPositions);
+    setManualTokens(normaliseManualTokens(item.manualTokens));
     setCombatRound(item.round);
     setActiveCombatantId(item.activeId);
     setFog(item.fog);
@@ -620,6 +631,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     const nextIds = nextCombatants.filter(item => item.hidden !== true).map((item, index) => combatantId(item, index));
     setVisibleCombatantIds(nextIds);
     setTokenPositions({});
+    setManualTokens([]);
     setCombatRound(1);
     setActiveCombatantId(party[0]?.id ? `player-${party[0].id}` : nextIds[0] || '');
     if (scenario) {
@@ -630,6 +642,21 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   };
 
   const toggleCombatant = (id) => setVisibleCombatantIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  const toggleEditorToken = (id) => {
+    if (String(id).startsWith('gm-custom-')) {
+      setManualTokens(prev => prev.map(token => token.id === id ? { ...token, visible: !token.visible } : token));
+    } else toggleCombatant(id);
+  };
+  const addManualToken = () => {
+    const name = newTokenName.trim().slice(0,100);
+    if (!name) { toast.error('Give the creature a name first'); return; }
+    if (!activeMapUrl) { toast.error('Choose a map before adding a token'); return; }
+    if (manualTokens.length >= 80) { toast.error('This battle has reached its token limit'); return; }
+    const token = { id: 'gm-custom-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7), name, type: 'enemy', x:50, y:50, visible:false };
+    setManualTokens(prev => [...prev, token]);
+    setNewTokenName('');
+    toast.info('Token added to the GM map, hidden from players until revealed');
+  };
   const selectAllCombatants = () => setVisibleCombatantIds(playerFacingCombatants.map((item, index) => combatantId(item, index)));
   const clearCombatants = () => setVisibleCombatantIds([]);
 
@@ -700,8 +727,24 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             <button type="button" disabled={!selectedEncounterId} onClick={deleteEncounter} style={dangerButtonStyle}>Delete</button>
           </div>
         </section>
+        <section data-testid="vtt-manual-token-tools" style={combatCommanderStyle}>
+          <div style={quickSendHeaderStyle}><strong>Creature Tokens</strong><span style={safeBadgeStyle}>{gmEditorTokens.length} creature(s) prepared</span></div>
+          <p style={hintStyle}>Create a creature even without a saved combat scenario. It begins hidden from players. Double-click its map token to reveal it, or use the control below.</p>
+          <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
+            <input aria-label="New creature token name" value={newTokenName} onChange={e=>setNewTokenName(e.target.value)}
+              placeholder="Creature name, e.g. Skeleton 1" style={{ ...inputStyle, flex:'1 1 200px' }} />
+            <button type="button" onClick={addManualToken} style={primaryButtonStyle}>Add Creature Token</button>
+          </div>
+          {!!manualTokens.length && <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+            {manualTokens.map(token=><span key={token.id} style={{ display:'inline-flex',gap:6,alignItems:'center',padding:5,border:`1px solid ${theme.lineStrong}`,fontSize:12 }}>
+              <strong>{token.name}</strong>
+              <button type="button" style={miniButtonStyle} onClick={()=>toggleEditorToken(token.id)}>{token.visible ? 'Visible' : 'Hidden'}</button>
+              <button type="button" style={miniButtonStyle} aria-label={`Remove ${token.name}`} onClick={()=>setManualTokens(prev=>prev.filter(t=>t.id!==token.id))}>Remove</button>
+            </span>)}
+          </div>}
+        </section>
         <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} tactical={tactical} onTacticalChange={updateTactical}
-          tokens={gmEditorTokens} onTokenMove={updateTokenPosition} onTokenVisibilityChange={toggleCombatant}
+          tokens={gmEditorTokens} onTokenMove={updateTokenPosition} onTokenVisibilityChange={toggleEditorToken}
           snap={snapTokens} onSnapChange={setSnapTokens} />
         <section style={commandDeckStyle}>
           <div style={targetGridStyle} data-testid="player-display-target-selector">
