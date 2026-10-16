@@ -67,3 +67,22 @@ test('read-only LAN HTTP viewer serves a map and requires its private link', asy
     assert.match(await html.text(), /Rookie Quest Keeper/);
   } finally { server.close(); }
 });
+
+test('Wi-Fi VTT includes portrait/fullscreen layout and ResizeObserver token positioning', async () => {
+  const server = createLanDisplayServer({ userDataDir: os.tmpdir() });
+  try {
+    const info = await server.start();
+    const viewer = new URL(info.url);
+    viewer.hostname = '127.0.0.1';
+    const response = await fetch(viewer);
+    assert.equal(response.status, 200);
+    const page = await response.text();
+    assert.match(page, /@media \(orientation:portrait\)/);
+    assert.match(page, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+    assert.match(page, /cards\.dataset\.dense/);
+    assert.match(page, /ResizeObserver\(fit\)/);
+    assert.match(page, /classList\.toggle\('clean'\)/);
+    assert.match(page, /overflow:hidden/);
+    assert.doesNotMatch(page, /GM secret|private_description/);
+  } finally { server.close(); }
+});
