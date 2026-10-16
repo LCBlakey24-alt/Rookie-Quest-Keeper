@@ -24,7 +24,7 @@ describe('NPC GM combat card', () => {
     render(<NpcCompactStatBlock npc={{ name: 'Unstatted NPC' }} />);
     expect(screen.getByText(/No combat actions recorded yet/)).toBeInTheDocument();
     expect(npcModifier(18)).toBe(4);
-    expect(npcModifier('')).toBe(0);
-    expect(npcModifier(null)).toBe(0);
+    expect(npcModifier('')).toBe(null);
+    expect(npcModifier(null)).toBe(null);
   });
 });
