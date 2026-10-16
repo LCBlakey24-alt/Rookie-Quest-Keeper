@@ -52,6 +52,7 @@ describe('LivePlayerDisplayControls reliability', () => {
 
     render(<LivePlayerDisplayControls campaignId="campaign-1" />);
     const all = await screen.findByRole('button', { name: /Show All/i });
+    await waitFor(() => expect(all).toBeEnabled());
     fireEvent.click(all);
     await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
       'campaign-1',
