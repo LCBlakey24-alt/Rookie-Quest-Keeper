@@ -76,11 +76,14 @@ describe('desktop campaign packs', () => {
             pack_name: 'Tia-Karta Campaign Library',
             attachment_urls: {
               'world-map': 'rqk-attachment://tia-karta/world-map.jpg',
+              'npc-face': 'rqk-attachment://tia-karta/npc-face.jpg',
             },
             workspace: workspace({
               campaigns: [{ id: 'eldritch-heralds', name: 'Eldritch Heralds' }],
               collections: {
                 'eldritch-heralds': {
+                  'world-maps': [{ id: 'world-1', name: 'Balderin', attachment_ref: 'world-map', image_url: 'https://old.example.invalid/map.jpg' }],
+                  npcs: [{ id: 'npc-1', name: 'Town Guard', portrait_ref: 'npc-face' }],
                   handouts: [{
                     id: 'map-handout',
                     title: 'World Map',
@@ -100,9 +103,13 @@ describe('desktop campaign packs', () => {
 
     expect(result.pack_name).toBe('Tia-Karta Campaign Library');
     expect(result.campaign_count).toBe(1);
-    expect(result.attachment_count).toBe(1);
+    expect(result.attachment_count).toBe(2);
     expect(saved.campaigns[0].name).toBe('Eldritch Heralds');
     expect(saved.collections['eldritch-heralds'].handouts[0].attachment_url)
       .toBe('rqk-attachment://tia-karta/world-map.jpg');
+    expect(saved.collections['eldritch-heralds']['world-maps'][0].image_url)
+      .toBe('rqk-attachment://tia-karta/world-map.jpg');
+    expect(saved.collections['eldritch-heralds'].npcs[0].portrait_url)
+      .toBe('rqk-attachment://tia-karta/npc-face.jpg');
   });
 });
