@@ -139,6 +139,25 @@ function storeLocalMapImage(_event, dataUrl) {
   return { url: `${ATTACHMENT_SCHEME}://local-media/${name}` };
 }
 
+// Saved in backed-up Keeper data, not an ephemeral blob URL or a browser quota.
+function storeLocalAudioFile(_event, dataUrl) {
+  if (typeof dataUrl !== 'string' || dataUrl.length > 36 * 1024 * 1024) {
+    throw new Error('Choose an MP3 smaller than 25 MB.');
+  }
+  const match = /^data:audio\/(?:mpeg|mp3);base64,([A-Za-z0-9+/=]+)$/i.exec(dataUrl);
+  if (!match) throw new Error('Choose a valid MP3 audio file.');
+  const bytes = Buffer.from(match[1], 'base64');
+  if (bytes.length === 0 || bytes.length > 25 * 1024 * 1024 ||
+      !(bytes.toString('latin1', 0, 3) === 'ID3' || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0))) {
+    throw new Error('MP3 file is damaged or exceeds the 25 MB limit.');
+  }
+  const folder = path.join(attachmentRoot(), 'local-audio');
+  fs.mkdirSync(folder, { recursive: true });
+  const name = crypto.randomUUID() + '.mp3';
+  fs.writeFileSync(path.join(folder, name), bytes, { flag: 'wx', mode: 0o600 });
+  return { url: `${ATTACHMENT_SCHEME}://local-audio/${name}` };
+}
+
 async function importCampaignPack(_event, workspaceRaw) {
   const result = await dialog.showOpenDialog({
     title: 'Import Rookie Quest Keeper Campaign Pack',
@@ -257,6 +276,7 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('rqk:publish-lan-display', (_event, _campaignId, state) => lanViewer.publish(state));
   ipcMain.handle('rqk:store-local-map-image', storeLocalMapImage);
+  ipcMain.handle('rqk:store-local-audio-file', storeLocalAudioFile);
   ipcMain.handle('rqk:import-campaign-pack', importCampaignPack);
   ipcMain.handle('rqk:create-backup', (_event, raw, reason = 'manual') =>
     createBackup(app.getPath('userData'), raw, reason));
