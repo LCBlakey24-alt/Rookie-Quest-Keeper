@@ -15,6 +15,7 @@ import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
 import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
 import LiveDataWarning from '@/components/gm/LiveDataWarning';
 import PlayerDisplayDeliveryStatus from '@/components/gm/PlayerDisplayDeliveryStatus';
+import GMAudioDock from '@/components/gm/GMAudioDock';
 
 const LootGenerator = React.lazy(() => import('@/components/LootGenerator'));
 const PartyLocationTracker = React.lazy(() => import('@/components/PartyLocationTracker'));
@@ -293,6 +294,7 @@ export default function LiveSessionGridPage() {
         </header>
 
         <LiveDataWarning errors={loadErrors} onRetry={fetchAllData} />
+        <GMAudioDock campaignId={campaignId} />
         <PlayerDisplayDeliveryStatus campaignId={campaignId} />
         <LiveStoryFocusPanel campaignId={campaignId} />
         <GroupCheckRequestPanel campaignId={campaignId} players={players} />
