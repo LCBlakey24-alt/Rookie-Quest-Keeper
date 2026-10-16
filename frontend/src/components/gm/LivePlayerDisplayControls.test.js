@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import LivePlayerDisplayControls from './LivePlayerDisplayControls';
 import apiClient from '@/lib/apiClient';
+import { createDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import { toast } from 'sonner';
 
@@ -35,8 +36,20 @@ jest.mock('sonner', () => ({
 describe('LivePlayerDisplayControls reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
     apiClient.get.mockResolvedValue({ data: [] });
     publishCampaignDisplayStateWithStatus.mockImplementation(async (_campaignId, state) => ({ state, remoteSynced: true }));
+  });
+
+  test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
+    render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /Battle Starting!/i })[0]);
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1',
+      expect.objectContaining({ mode: 'battle-start', payload: expect.objectContaining({ title: 'Battle Starting' }) }),
+    ));
+    const call = publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state.mode === 'battle-start');
+    expect(call[1].payload).not.toHaveProperty('tokens');
   });
 
   test('warns instead of reporting remote success when a reveal only synced locally', async () => {

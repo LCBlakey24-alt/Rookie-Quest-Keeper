@@ -103,9 +103,6 @@ function normalisePartyMember(value = {}) {
 
 function normaliseCombatantPayload(item = {}, id = '') {
   const type = String(item.type || item.kind || item.role || '').toLowerCase().includes('npc') ? 'npc' : 'enemy';
-  const maxHp = safeNumber(item.max_hp, item.maxHp, item.hp_max, item.maximum_hp);
-  const hp = safeNumber(item.current_hp, item.currentHp, item.hp, maxHp);
-  const hpPercent = maxHp ? Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100))) : 0;
   const initiative = safeNumber(item.initiative, item.initiative_bonus, item.init);
   return {
     id,
@@ -115,15 +112,9 @@ function normaliseCombatantPayload(item = {}, id = '') {
     image_url: imageFrom(item),
     x: safeNumber(item.x, item.position?.x, item.token_x),
     y: safeNumber(item.y, item.position?.y, item.token_y),
-    ac: safeNumber(item.ac, item.armor_class, item.armorClass),
-    hp,
-    max_hp: maxHp,
-    hpPercent,
-    hpStatus: maxHp && hp <= 0 ? 'down' : hpPercent <= 33 ? 'bloodied' : hpPercent <= 66 ? 'hurt' : 'healthy',
+    // Never send enemy/NPC HP or AC to the player-facing screen.
     initiative,
     initiativeLabel: signed(initiative),
-    speed: safeNumber(item.speed, item.walking_speed, item.movement_speed),
-    passivePerception: safeNumber(item.passive_perception, item.passivePerception),
     hidden: item.hidden === true,
   };
 }
@@ -340,7 +331,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         id: npc.id,
         name: npc.name,
         subtitle: npc.role || npc.race || npc.location || '',
-        description: npc.description || npc.notes || '',
+        // Portrait reveals must not accidentally publish private GM NPC notes.
+        description: npc.public_description || '',
         image_url: imageFrom(npc),
       })),
     });
@@ -352,8 +344,19 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     caption: sceneSubtitle,
     round: Math.max(1, Number(roundValue) || 1),
     active_id: activeId || combatRosterOptions[0]?.id || '',
-    party: partyPayload,
+    // Only character HP is public during combat; other character sheet stats stay with the GM.
+    party: partyPayload.map(({ id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus, initiative, initiativeLabel }) => ({
+      id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus, initiative, initiativeLabel,
+    })),
     tokens: combatTokenPayload,
+  });
+
+  const sendBattleStart = () => publish('battle-start', {
+    title: 'Battle Starting',
+    subtitle: 'Roll initiative!',
+    party: partyPayload.map(({ id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus }) => ({
+      id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus,
+    })),
   });
 
   const sendCombat = (activeId = activeCombatantId, roundValue = combatRound) => {
@@ -535,6 +538,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             <button type="button" onClick={announceRound} style={secondaryButtonStyle}><Sparkles size={14} /> Round Banner</button>
           </div>
           <div style={presetGridStyle}>
+            <button type="button" onClick={sendBattleStart} style={dangerPresetButtonStyle}><Skull size={14} /> Battle Starting!</button>
             <button type="button" onClick={() => sendCombat(activeCombatantId, combatRound)} style={primaryButtonStyle}><Skull size={14} /> Start / Update Combat HUD</button>
             <button type="button" onClick={() => { setCombatRound(prev => Math.max(1, Number(prev || 1) + 1)); publishBannerOverlay({ eyebrow: 'Combat Round', text: `Round ${Math.max(1, Number(combatRound || 1) + 1)} begins`, subtitle: selectedScenario?.name || sceneTitle || 'Combat' }); }} style={presetButtonStyle}>+ Round</button>
             <button type="button" onClick={selectAllCombatants} style={presetButtonStyle}>Reveal All Enemies/NPCs</button>
@@ -580,7 +584,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
               <button type="button" onClick={sendTitle} style={primaryButtonStyle}><Send size={14} /> Send Scene Title</button>
               <button type="button" onClick={sendImage} style={primaryButtonStyle}><ImageIcon size={14} /> Send Image / Map</button>
               <button type="button" onClick={sendNpcGrid} style={primaryButtonStyle}><Users size={14} /> Send NPC Grid ({selectedNpcs.length})</button>
-              <button type="button" onClick={() => sendCombat(activeCombatantId, combatRound)} style={primaryButtonStyle}><Skull size={14} /> Send Combat HUD ({combatRosterOptions.length})</button>
+              <button type="button" onClick={sendBattleStart} style={dangerPresetButtonStyle}><Skull size={14} /> Battle Starting!</button>
+            <button type="button" onClick={() => sendCombat(activeCombatantId, combatRound)} style={primaryButtonStyle}><Skull size={14} /> Send Combat HUD ({combatRosterOptions.length})</button>
             </section>
 
             <section style={controlGridStyle}>

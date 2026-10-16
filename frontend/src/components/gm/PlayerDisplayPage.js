@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dice6, HeartPulse, Maximize2, Monitor, Shield, ShieldCheck, Sparkles, Table2, Users, Zap } from 'lucide-react';
+import { Dice6, HeartPulse, Maximize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
@@ -30,6 +30,7 @@ function modeLabel(mode) {
   if (mode === 'image') return 'Map / image';
   if (mode === 'npc-grid') return 'NPC reveal';
   if (mode === 'combat') return 'Combat HUD';
+  if (mode === 'battle-start') return 'Battle Starting';
   if (mode === 'group-check') return 'Group check';
   if (mode === 'end-session-stats') return 'Session recap';
   return 'Ready screen';
@@ -145,7 +146,7 @@ export default function PlayerDisplayPage() {
     const fromPayload = Array.isArray(payload.party) ? payload.party.map(normalisePartyMember) : [];
     return (fromPayload.length ? fromPayload : party).filter(member => member?.name).slice(0, 10);
   }, [payload.party, party]);
-  const showPartySidebar = !isTable(target) && mode !== 'combat' && mode !== 'group-check' && partyMembers.length > 0;
+  const showPartySidebar = !isTable(target) && !['combat', 'battle-start', 'group-check'].includes(mode) && partyMembers.length > 0;
 
   return (
     <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
@@ -179,6 +180,7 @@ function DisplayContent({ state, target, hasPartySidebar = false, partyMembers =
   if (mode === 'table-result') return <TableResultDisplay key={key} payload={payload} target={target} />;
   if (mode === 'image') return <ImageDisplay key={key} payload={payload} target={target} hasPartySidebar={hasPartySidebar} />;
   if (mode === 'npc-grid') return <NPCGridDisplay key={key} payload={payload} target={target} />;
+  if (mode === 'battle-start') return <BattleStartDisplay target={target} />;
   if (mode === 'combat') return <CombatDisplay key={key} payload={payload} target={target} partyMembers={partyMembers} />;
   if (mode === 'group-check') return <GroupCheckDisplay key={key} payload={payload} target={target} fallbackParty={partyMembers} />;
   if (mode === 'end-session-stats') return <EndSessionStatsDisplay key={key} payload={payload} target={target} />;
@@ -233,7 +235,33 @@ function NPCGridDisplay({ payload, target }) {
 }
 function NPCCard({ npc, target }) { return <article style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>; }
 
+function BattleStartDisplay({ target }) {
+  return (
+    <section className="rqk-battle-start" role="status" aria-live="polite" data-testid="battle-start-announcement">
+      <div className="rqk-battle-start__frame">
+        <Swords size={isTable(target) ? 56 : 80} aria-hidden="true" />
+        <p>Prepare for combat</p>
+        <h1>BATTLE STARTING</h1>
+        <strong><Skull size={20} aria-hidden="true" /> ROLL INITIATIVE <Skull size={20} aria-hidden="true" /></strong>
+      </div>
+    </section>
+  );
+}
+
 function CombatDisplay({ payload, target, partyMembers = [] }) {
+  // A new combat briefly reveals the warning before the map appears.
+  // Restoring an old fight never restarts the warning.
+  const startTime = Number(payload.battle_started_at) || 0;
+  const remaining = () => startTime ? Math.max(0, 5200 - (Date.now() - startTime)) : 0;
+  const [showIntro, setShowIntro] = useState(() => remaining() > 0);
+  useEffect(() => {
+    const timeLeft = remaining();
+    setShowIntro(timeLeft > 0);
+    if (!timeLeft) return undefined;
+    const timer = window.setTimeout(() => setShowIntro(false), timeLeft);
+    return () => window.clearTimeout(timer);
+  }, [startTime]);
+  const battleIntro = showIntro ? <div className="rqk-battle-start__overlay"><BattleStartDisplay target={target} /></div> : null;
   const tokens = Array.isArray(payload.tokens) ? payload.tokens.map(normaliseCombatToken) : [];
   const roster = buildCombatRoster(partyMembers, tokens);
   const positionedTokens = tokens.filter(token => Number(token.x) || Number(token.y));
@@ -250,6 +278,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
+          {battleIntro}
         </div>
       </section>
     );
@@ -278,6 +307,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
           {payload.caption && <span>{payload.caption}</span>}
         </div>
       </div>
+      {battleIntro}
     </section>
   );
 }
@@ -291,19 +321,17 @@ function CombatRosterCard({ item, active }) {
       <div style={{ minWidth: 0 }}>
         <div style={combatNameRowStyle}><strong>{item.name || 'Combatant'}</strong><span>{isPlayer ? 'Player' : item.type === 'npc' ? 'NPC' : 'Enemy'}</span></div>
         <p style={partySubStyle}>{item.subtitle || (isPlayer ? item.className : 'Visible combatant')}</p>
-        <div style={hpBarShellStyle}><span style={hpBarFillStyle(item.hpPercent || 0, item.hpStatus)} /></div>
+        {isPlayer && <div style={hpBarShellStyle}><span style={hpBarFillStyle(item.hpPercent || 0, item.hpStatus)} /></div>}
         <div style={combatMiniGridStyle}>
           <StatPill icon={<Zap size={12} />} label="INIT" value={item.initiativeLabel || signed(item.initiative)} />
-          <StatPill icon={<HeartPulse size={12} />} label="HP" value={hpText} />
-          <StatPill icon={<Shield size={12} />} label="AC" value={item.ac || '-'} />
-          <StatPill icon={<Sparkles size={12} />} label="PP" value={item.passivePerception || '-'} />
+          {isPlayer && <StatPill icon={<HeartPulse size={12} />} label="HP" value={hpText} />}
         </div>
       </div>
     </article>
   );
 }
 
-function CombatRailPill({ item, active }) { return <span style={combatRailPillStyle(item.type, active)}><strong>{item.initiativeLabel || signed(item.initiative)}</strong>{item.name}</span>; }
+function CombatRailPill({ item, active }) { return <span style={combatRailPillStyle(item.type, active)}><strong>{item.initiativeLabel || signed(item.initiative)}</strong>{item.name}{item.type === 'player' && <em>HP {item.hp ?? 0}/{item.maxHp ?? 0}</em>}</span>; }
 
 function EndSessionStatsDisplay({ payload, target }) {
   const session = payload.session || {};
@@ -438,6 +466,15 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     @keyframes rqkStatsReveal { from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(5px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     @keyframes rqkDisplayPulse { 0%, 100% { transform: translateY(0); box-shadow: 0 22px 80px rgba(208,0,0,0.2); } 50% { transform: translateY(-4px); box-shadow: 0 28px 100px rgba(208,0,0,0.38); } }
     @keyframes rqkBannerPop { from { opacity: 0; transform: translateY(28px) scale(0.98); filter: blur(7px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+    @keyframes rqkBattleBorder { 0%, 100% { box-shadow: inset 0 0 36px rgba(185,74,79,0.8), inset 0 0 90px rgba(185,74,79,0.25); } 50% { box-shadow: inset 0 0 70px rgba(185,74,79,1), inset 0 0 150px rgba(185,74,79,0.48); } }
+    .rqk-battle-start { width: 100%; height: 100%; min-height: 0; background: radial-gradient(ellipse at center, rgba(95,17,21,0.22), #07131f 68%); color: #eadfc8; display: grid; place-items: center; border: clamp(9px, 1.5vw, 22px) solid #b94a4f; box-sizing: border-box; animation: rqkBattleBorder 1.5s ease-in-out infinite; }
+    .rqk-battle-start__frame { text-align: center; display: grid; justify-items: center; align-content: center; gap: clamp(10px, 2vw, 25px); padding: 20px; }
+    .rqk-battle-start__frame > svg { color: #c9a96b; }
+    .rqk-battle-start__frame p { margin: 0; font-size: clamp(13px, 2vw, 24px); letter-spacing: 0.22em; text-transform: uppercase; color: #d39a43; font-weight: 800; }
+    .rqk-battle-start__frame h1 { margin: 0; font-size: clamp(42px, 8vw, 128px); font-family: var(--rq-font-display, Georgia, serif); line-height: 0.9; text-shadow: 0 10px 36px rgba(0,0,0,0.8); }
+    .rqk-battle-start__frame strong { display: inline-flex; align-items: center; gap: 14px; font-size: clamp(17px, 2.4vw, 33px); letter-spacing: 0.1em; color: #c9a96b; }
+    .rqk-battle-start__overlay { position: absolute; inset: 0; z-index: 11; background: #07131f; }
+    @media (prefers-reduced-motion: reduce) { .rqk-battle-start { animation: none; box-shadow: inset 0 0 70px rgba(185,74,79,0.55); } }
     @keyframes rqkPartyReveal { from { opacity: 0; transform: translateX(-20px); filter: blur(5px); } to { opacity: 1; transform: translateX(0); filter: blur(0); } }
     [data-testid="player-display-page"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 100% 4px; mix-blend-mode: screen; opacity: 0.28; z-index: 2; }
     [data-testid="player-display-page"]::after { content: ''; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px rgba(0,0,0,0.78); z-index: 2; }

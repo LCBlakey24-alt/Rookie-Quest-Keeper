@@ -118,13 +118,11 @@ function combatantForDisplay(combatant) {
     id: combatant.id,
     name: combatant.name,
     type: combatant.type,
-    hp: combatant.hp,
-    current_hp: combatant.hp,
-    maxHp: combatant.maxHp,
-    max_hp: combatant.maxHp,
-    ac: combatant.ac,
+    // Never publish monster/NPC HP, AC, or private conditions to player displays.
+    ...(combatant.type === 'player' ? {
+      hp: combatant.hp, current_hp: combatant.hp, maxHp: combatant.maxHp, max_hp: combatant.maxHp,
+    } : {}),
     initiative: combatant.initiative,
-    conditions: safeArray(combatant.conditions),
     image_url: combatant.image_url || combatant.portrait_url || combatant.token_url || '',
     subtitle: combatant.role || combatant.occupation || (combatant.type === 'npc' ? 'NPC' : combatant.type === 'player' ? 'Player' : 'Enemy'),
   };
@@ -164,6 +162,7 @@ export default function CombatPageTable() {
   const [initialised, setInitialised] = useState(false);
   const [combatBanner, setCombatBanner] = useState(null);
   const bannerTimerRef = useRef(null);
+  const battleStartTimeRef = useRef(0);
   const initiativeSubmissionRef = useRef({});
   const initialPlayerStatesRef = useRef({});
 
@@ -191,6 +190,7 @@ export default function CombatPageTable() {
     const scenarioBaseStates = playerBaseStates(scenarioStart);
 
     if (restored?.combatants?.length) {
+      battleStartTimeRef.current = 0;
       initialPlayerStatesRef.current = {
         ...scenarioBaseStates,
         ...(restored.initialPlayerStates || {}),
@@ -204,6 +204,7 @@ export default function CombatPageTable() {
       setExpandedId(restored.combatants[Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1))]?.id || '');
       toast.info('Combat restored', { description: `Round ${Math.max(1, restored.round || 1)} checkpoint recovered.` });
     } else {
+      battleStartTimeRef.current = Date.now();
       const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
       initialPlayerStatesRef.current = playerBaseStates(loaded);
       setCombatants(loaded);
@@ -278,6 +279,7 @@ export default function CombatPageTable() {
         title: scenario.name || 'Combat',
         round,
         active_id: activeId,
+        battle_started_at: battleStartTimeRef.current,
         party: players,
         tokens: visibleCreatures,
         map_url: mapUrl,
