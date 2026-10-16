@@ -22,6 +22,16 @@ Windows-first, laptop-only edition of Rookie Quest Keeper.
 - Fog records currently live in the local display's browser storage, separate from the desktop campaign pack. Keep the original app data intact during upgrades; an ordinary exported `.rqkpack` does not yet guarantee fog transfer to a different laptop.
 - **Another laptop may drive the projector/TV:** while Keeper runs on the GM laptop, choose **Copy Wi-Fi Link**. The second laptop opens that link in a browser on the **same private LAN/Wi-Fi**, then connects HDMI to the screen. Keep Keeper open and permit Private-network firewall access if prompted. Public internet access, cloud sync and guest networks with client isolation are not supported by this local link.
 
+### Saved encounters and draggable monster tokens (v0.4.0)
+
+- Use **Live Play → Extended Display Command Centre → Saved Battle Scenes** to save a prepared battle with its map reference, selected encounter, creature visibility choices, relative token positions, fog, grid, ruler, active combatant and round.
+- Saved battle scenes live in **local browser data for this campaign on the GM laptop**. They are *not* currently part of the imported/exported `.rqkpack` data model, so do not rely on an ordinary campaign export alone to preserve them when switching laptops.
+- To place creatures, choose a **Combat scenario** in the advanced controls. Their GM-only tokens appear over the fitted map. **Drag** a token with the mouse/pointer or use arrow keys. Enable **Snap tokens to grid** if desired; squares use the configured **Squares across** figure and the source image's aspect ratio.
+- Double-click a creature's GM token to toggle whether it is eligible for player reveal. Creatures behind active fog stay omitted from the player-facing token data.
+- A scene load is **GM preview only**, not an automatic projection to the table. Click **Start / Update Combat HUD** when ready to reveal the current battle. During live combat, dragging a visible, fog-revealed token updates the Wi-Fi browser and HDMI window via the player-safe display bus.
+- The player screen remains a **read-only spectator**. Player dragging, permission controls, network-wide scene editing and automatic door/wall line of sight are separate future features.
+- Source images referenced through the portable app's `rqk-attachment://` local URLs are stored in the backed-up Windows app data. Maps added as large browser-only `data:` images may not be eligible for small local encounter snapshots.
+
 ### Grid and range ruler (desktop and trusted Wi-Fi)
 
 - In **Live Play → Extended Display Command Centre**, select/upload a map. Under **Battle Map: Fog, Grid & Ruler**, choose **Show grid** and calibrate **Squares across** (assumes square cells of 5 feet).
