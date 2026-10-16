@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import NPCCombatRecruiter from '@/components/NPCCombatRecruiter';
+import QuickBestiaryCombatPicker from '@/components/gm/QuickBestiaryCombatPicker';
 import MapCanvas from '@/components/MapBuilder/MapCanvas';
 import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
 import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRules';
@@ -730,6 +731,7 @@ export default function CombatPageTable() {
           <details className="combat-add-panel">
             <summary><Plus size={14} /> Add combatant</summary>
             <div><NPCCombatRecruiter campaignId={campaignId} existingCombatantIds={combatants.map(item => item.id)} onAddNPC={addCombatant} /></div>
+            <div><QuickBestiaryCombatPicker onAdd={addCombatant} /></div>
           </details>
 
           {collectedLoot.length > 0 && (
