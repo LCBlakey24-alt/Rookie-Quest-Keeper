@@ -20,6 +20,7 @@
     "asar": true,
     "files": [
       "backup.js",
+      "playerDisplayWindow.js",
       "updates.js",
       "main.js",
       "preload.js",
