@@ -72,6 +72,28 @@ describe('LivePlayerDisplayControls reliability', () => {
     expect(sent.payload.npcs.map(npc => npc.name)).toEqual(['Alys', 'Cora']);
   });
 
+  test('GM can cover a selected map; fog is included in map reveals', async () => {
+    apiClient.get.mockImplementation(url => Promise.resolve({
+      data: url.endsWith('/maps') ? [{
+        id: 'fog-map-one', name: 'Hidden Castle', image_url: 'https://example.test/fog-map-one.png',
+      }] : [],
+    }));
+    render(<LivePlayerDisplayControls campaignId="fog-campaign" />);
+    await screen.findByRole('option', { name: 'Hidden Castle' });
+    fireEvent.change(screen.getByRole('combobox', { name: /Saved map/i }), { target: { value: 'fog-map-one' } });
+    fireEvent.click(screen.getByRole('button', { name: /Cover map/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Send Image \/ Map/i }));
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'fog-campaign',
+      expect.objectContaining({
+        mode: 'image',
+        payload: expect.objectContaining({
+          fog: expect.objectContaining({ enabled: true, reveals: [] }),
+        }),
+      }),
+    ));
+  });
+
   test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
     fireEvent.click(screen.getAllByRole('button', { name: /Battle Starting!/i })[0]);
