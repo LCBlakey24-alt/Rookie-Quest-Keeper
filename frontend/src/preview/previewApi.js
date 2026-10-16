@@ -217,9 +217,9 @@ export function createPreviewApi(
       }
       // World-map pins are editable offline too. A pinned map must remain a
       // single local campaign record, not require the cloud map API.
-      if (resource === 'world-maps' && id && action === 'pins' && (parts.length === 5 || parts.length === 6)) {
-        const map = records(campaignId, 'world-maps').find(item => item.id === id);
-        if (!map) fail('World map not found.', 404);
+      if (['world-maps', 'local-maps'].includes(resource) && id && action === 'pins' && (parts.length === 5 || parts.length === 6)) {
+        const map = records(campaignId, resource).find(item => item.id === id);
+        if (!map) fail('Map not found.', 404);
         if (!Array.isArray(map.pins)) map.pins = [];
         return crud(map.pins, method, parts[5], body, { map_id: id });
       }
