@@ -41,6 +41,7 @@ jest.mock('@/data/tiaKartaSecondScreenPresets', () => [{
 describe('LiveSecondScreenDock reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    liveDisplayBus.createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
     liveDisplayBus.loadDisplayState.mockReturnValue({ mode: 'blank', payload: {} });
     liveDisplayBus.subscribeDisplayState.mockImplementation(() => () => {});
     liveDisplayBus.subscribeRemoteDisplayState.mockImplementation(() => () => {});
@@ -59,19 +60,55 @@ describe('LiveSecondScreenDock reliability', () => {
     render(<LiveSecondScreenDock campaignId="campaign-1" />);
 
     expect(await screen.findByRole('button', { name: /Vault Map/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Mira/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Mira/i })).toBeInTheDocument();
 
     failRefresh = true;
     fireEvent.click(screen.getByRole('button', { name: 'Refresh assets' }));
 
     expect(await screen.findByTestId('second-screen-asset-warning')).toHaveTextContent('Keeping the last known assets');
     expect(screen.getByRole('button', { name: /Vault Map/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Mira/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Mira/i })).toBeInTheDocument();
     await waitFor(() => expect(toast.warning).toHaveBeenCalledWith(
       'Second screen assets only partly refreshed',
       expect.any(Object),
     ));
     expect(toast.success).not.toHaveBeenCalledWith('Second screen assets refreshed');
+  });
+
+  test('shows multiple selected NPC portraits in a single player-safe gallery', async () => {
+    apiClient.get.mockImplementation(url => {
+      if (url.endsWith('/npcs')) return Promise.resolve({ data: [
+        { id: 'n1', name: 'Mira', portrait_url: '/mira.png', notes: 'GM secret one' },
+        { id: 'n2', name: 'Thorgar', portrait_url: '/thorgar.png', gm_notes: 'GM secret two' },
+      ] });
+      return Promise.resolve({ data: [] });
+    });
+
+    render(<LiveSecondScreenDock campaignId="campaign-1" />);
+    expect(await screen.findByLabelText(/Mira/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/Mira/i));
+    fireEvent.click(screen.getByLabelText(/Thorgar/i));
+    fireEvent.click(screen.getByRole('button', { name: /Show selected NPCs \(2\)/i }));
+
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalled());
+    const sent = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state?.mode === 'npc-grid')?.[1];
+    expect(sent?.payload?.npcs).toHaveLength(2);
+    expect(sent.payload.npcs.map(item => item.name)).toEqual(['Mira', 'Thorgar']);
+    expect(JSON.stringify(sent.payload)).not.toMatch(/GM secret/);
+  });
+
+  test('finds world map uploads stored as legacy image_data', async () => {
+    apiClient.get.mockImplementation(url => {
+      if (url.endsWith('/world-maps')) return Promise.resolve({ data: [{ id: 'w1', name: 'Tia-Karta World', image_data: 'data:image/jpeg;base64,worldpicture' }] });
+      return Promise.resolve({ data: [] });
+    });
+
+    render(<LiveSecondScreenDock campaignId="campaign-1" />);
+    fireEvent.click(await screen.findByRole('button', { name: /Tia-Karta World/i }));
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalled());
+    const sent = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state?.mode === 'image')?.[1];
+    expect(sent?.mode).toBe('image');
+    expect(sent.payload.image_url).toBe('data:image/jpeg;base64,worldpicture');
   });
 
   test('warns when a reveal only updates the local display', async () => {

@@ -61,7 +61,7 @@ const BANNER_PRESETS = [
 ];
 
 function imageFrom(item) {
-  return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.portraitUrl || item?.imageUrl || item?.token_url || item?.character_image || item?.character_portrait || '';
+  return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.portraitUrl || item?.imageUrl || item?.token_url || item?.character_image || item?.character_portrait || item?.image_data || '';
 }
 
 function scenarioParticipants(scenario) {
@@ -134,6 +134,7 @@ function loadTarget(campaignId) {
 export default function LivePlayerDisplayControls({ campaignId, campaignName = 'Campaign' }) {
   const [open, setOpen] = useState(true);
   const [maps, setMaps] = useState([]);
+  const [worldMaps, setWorldMaps] = useState([]);
   const [npcs, setNpcs] = useState([]);
   const [party, setParty] = useState([]);
   const [scenarios, setScenarios] = useState([]);
@@ -153,6 +154,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
   const applyResourceResult = useCallback(({ data, failures }) => {
     if (Object.prototype.hasOwnProperty.call(data, 'maps')) setMaps(data.maps);
+    if (Object.prototype.hasOwnProperty.call(data, 'worldMaps')) setWorldMaps(data.worldMaps);
     if (Object.prototype.hasOwnProperty.call(data, 'npcs')) setNpcs(data.npcs);
     if (Object.prototype.hasOwnProperty.call(data, 'scenarios')) setScenarios(data.scenarios);
     if (Object.prototype.hasOwnProperty.call(data, 'players')) {
@@ -171,6 +173,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
   useEffect(() => {
     setMaps([]);
+    setWorldMaps([]);
     setNpcs([]);
     setParty([]);
     setScenarios([]);
@@ -204,6 +207,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
   const displayUrlFor = (targetId = displayTarget) => `/campaign/${campaignId}/player-display?target=${encodeURIComponent(normaliseTarget(targetId))}`;
   const selectedNpcs = useMemo(() => npcs.filter(npc => selectedNpcIds.includes(String(npc.id))), [npcs, selectedNpcIds]);
+  const allMaps = useMemo(() => [...maps, ...worldMaps], [maps, worldMaps]);
   const selectedScenario = useMemo(() => scenarios.find(scenario => String(scenario.id) === String(selectedScenarioId)), [scenarios, selectedScenarioId]);
   const combatants = useMemo(() => scenarioParticipants(selectedScenario), [selectedScenario]);
   const playerFacingCombatants = useMemo(() => combatants.filter(item => !isPlayerCombatant(item)), [combatants]);
@@ -515,7 +519,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             <strong style={previewTitleStyle}>{sceneTitle || campaignName || 'Scene'}</strong>
             <span style={previewTextStyle}>{sceneSubtitle || 'No caption set yet.'}</span>
             <div style={previewMetaStyle}>
-              <span><Layers size={12} /> {maps.length} maps</span>
+              <span><Layers size={12} /> {allMaps.length} maps</span>
               <span><Users size={12} /> {partyPayload.length} players</span>
               <span><Skull size={12} /> {visibleCombatantEntries.length} visible enemies/NPCs</span>
             </div>
@@ -575,7 +579,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
               <label style={fieldStyle}><span style={labelStyle}>Display title</span><input value={sceneTitle} onChange={(event) => setSceneTitle(event.target.value)} placeholder="Scene title" style={inputStyle} /></label>
               <label style={fieldStyle}><span style={labelStyle}>Caption / subtitle</span><input value={sceneSubtitle} onChange={(event) => setSceneSubtitle(event.target.value)} placeholder="Optional player-facing caption" style={inputStyle} /></label>
               <label style={fieldStyle}><span style={labelStyle}>Image / map URL</span><input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Paste image/map URL or choose a map below" style={inputStyle} /></label>
-              <label style={fieldStyle}><span style={labelStyle}>Saved map</span><select value="" onChange={(event) => { const map = maps.find(item => String(item.id) === event.target.value); if (map) { setSceneTitle(map.name || map.title || 'Map'); setImageUrl(imageFrom(map)); } }} style={inputStyle}><option value="">Choose saved map...</option>{maps.map(map => <option key={map.id} value={map.id}>{map.name || map.title || 'Untitled map'}</option>)}</select></label>
+              <label style={fieldStyle}><span style={labelStyle}>Saved map</span><select value="" onChange={(event) => { const map = allMaps.find(item => String(item.id) === event.target.value); if (map) { setSceneTitle(map.name || map.title || 'Map'); setImageUrl(imageFrom(map)); } }} style={inputStyle}><option value="">Choose saved map...</option>{allMaps.map(map => <option key={map.id} value={map.id}>{map.name || map.title || 'Untitled map'}</option>)}</select></label>
               <label style={fieldStyle}><span style={labelStyle}>Combat scenario</span><select value={selectedScenarioId} onChange={(event) => chooseScenario(event.target.value)} style={inputStyle}><option value="">Choose encounter...</option>{scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Unnamed encounter'}</option>)}</select></label>
             </div>
 
