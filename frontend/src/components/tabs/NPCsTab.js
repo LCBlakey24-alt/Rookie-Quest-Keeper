@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import NpcCompactStatBlock from '@/components/gm/NpcCompactStatBlock';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,7 @@ function NPCsTab({ campaignId }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    image_url: '',
     hp: 10,
     ac: 10,
     location: '',
@@ -90,6 +92,7 @@ function NPCsTab({ campaignId }) {
     setFormData({
       name: npc.name,
       description: npc.description,
+      image_url: npc.image_url || npc.portrait_url || '',
       hp: npc.hp,
       ac: npc.ac,
       location: npc.location,
@@ -122,6 +125,7 @@ function NPCsTab({ campaignId }) {
     setFormData({
       name: '',
       description: '',
+      image_url: '',
       hp: 10,
       ac: 10,
       location: '',
@@ -274,6 +278,8 @@ function NPCsTab({ campaignId }) {
                 />
               </div>
               <div style={{ marginBottom: '16px' }}>
+                <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Portrait URL (optional)</label>
+                <Input value={formData.image_url || ''} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} className="input" placeholder="Image URL or embedded portrait" style={{ marginBottom: 12 }} />
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Description</label>
                 <textarea
                   value={formData.description}
@@ -338,6 +344,8 @@ function NPCsTab({ campaignId }) {
                 />
               </div>
               <div style={{ marginBottom: '16px' }}>
+                <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Portrait URL (optional)</label>
+                <Input value={formData.image_url || ''} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} className="input" placeholder="Image URL or embedded portrait" style={{ marginBottom: 12 }} />
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Description</label>
                 <textarea
                   data-testid="npc-description-input"
@@ -460,7 +468,7 @@ function NPCsTab({ campaignId }) {
                     alignItems: 'center', 
                     justifyContent: 'center'
                   }}>
-                    <User size={24} color="white" />
+                    {(npc.image_url || npc.portrait_url) ? <img src={npc.image_url || npc.portrait_url} alt={npc.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} /> : <User size={24} color="white" />}
                   </div>
                   <div style={{ flex: 1 }}>
                     <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -519,22 +527,12 @@ function NPCsTab({ campaignId }) {
                 </div>
               </CardHeader>
               <CardContent>
-                {npc.description && (
-                  <p style={{ fontSize: '14px', color: '#ffffff', marginBottom: '12px', lineHeight: '1.5' }}>{npc.description}</p>
-                )}
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div style={{ padding: '8px 16px', background: 'rgba(239, 68, 68, 0.15)', borderRadius: '8px' }}>
-                    <p style={{ fontSize: '12px', color: '#ef4444', marginBottom: '2px' }}>HP</p>
-                    <p style={{ fontSize: '18px', color: '#ffffff', fontWeight: '700' }}>{npc.hp}</p>
-                  </div>
-                  <div style={{ padding: '8px 16px', background: 'rgba(74, 125, 255, 0.15)', borderRadius: '8px' }}>
-                    <p style={{ fontSize: '12px', color: '#4a7dff', marginBottom: '2px' }}>AC</p>
-                    <p style={{ fontSize: '18px', color: '#ffffff', fontWeight: '700' }}>{npc.ac}</p>
-                  </div>
-                </div>
-                {npc.notes && (
-                  <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '12px', fontStyle: 'italic' }}>{npc.notes}</p>
-                )}
+                <details data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
+                  <summary style={{ cursor: 'pointer', color: 'var(--rq-text-primary)', fontSize: 13, fontWeight: 800, padding: '8px 0' }}>
+                    Combat card · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {Array.isArray(npc.attacks) ? npc.attacks.length : 0} attacks
+                  </summary>
+                  <NpcCompactStatBlock npc={npc} />
+                </details>
               </CardContent>
             </Card>
           ))}
