@@ -12,6 +12,16 @@ Windows-first, laptop-only edition of Rookie Quest Keeper.
 6. **For a TV, tablet or another device on the same Wi-Fi instead of HDMI:** click **Copy Wi-Fi Link**. Paste that link into the other device's browser. Accept a Windows firewall permission prompt only for your trusted **Private** network. The laptop must stay awake and Keeper must remain running.
 7. Choose a saved map or **Choose a local battle or world map** to send a picture. Tick NPCs, then press **Show Selected** to reveal them together. The player screen hides GM-only notes and enemy mechanics.
 
+### Live fog of war (desktop and trusted Wi-Fi)
+
+- In **Live Play → Extended Display Command Centre**, choose a saved or local map first.
+- In **Fog of War**, click **Cover map**. The GM keeps a faint map preview while the player screen starts completely covered.
+- Click areas of the map in the GM preview to reveal them. Use the **Small / Medium / Large** reveal size. **Undo reveal** reverses the most recent edit; **Reset to covered** re-hides the whole map.
+- Edits automatically save locally **per map and campaign** on this laptop, and immediately update the currently displayed map or combat HUD.
+- The player window and Wi-Fi spectator viewer show the same revealed areas. The LAN viewer filters covered combatant tokens out of its public JSON response. This is a manual reveal tool, **not yet line-of-sight automation**.
+- Fog records currently live in the local display's browser storage, separate from the desktop campaign pack. Keep the original app data intact during upgrades; an ordinary exported `.rqkpack` does not yet guarantee fog transfer to a different laptop.
+- **Another laptop may drive the projector/TV:** while Keeper runs on the GM laptop, choose **Copy Wi-Fi Link**. The second laptop opens that link in a browser on the **same private LAN/Wi-Fi**, then connects HDMI to the screen. Keep Keeper open and permit Private-network firewall access if prompted. Public internet access, cloud sync and guest networks with client isolation are not supported by this local link.
+
 ### Upright portrait TV and compact VTT display
 
 - Windows should be set to **Portrait** if the physical TV is rotated upright. Keeper reads the display's actual width and height; it does not force a TV rotation itself.
