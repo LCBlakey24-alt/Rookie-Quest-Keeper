@@ -12,6 +12,17 @@ Windows-first, laptop-only edition of Rookie Quest Keeper.
 6. **For a TV, tablet or another device on the same Wi-Fi instead of HDMI:** click **Copy Wi-Fi Link**. Paste that link into the other device's browser. Accept a Windows firewall permission prompt only for your trusted **Private** network. The laptop must stay awake and Keeper must remain running.
 7. Choose a saved map or **Choose a local battle or world map** to send a picture. Tick NPCs, then press **Show Selected** to reveal them together. The player screen hides GM-only notes and enemy mechanics.
 
+### Upright portrait TV and compact VTT display
+
+- Windows should be set to **Portrait** if the physical TV is rotated upright. Keeper reads the display's actual width and height; it does not force a TV rotation itself.
+- The player window and the private Wi-Fi browser both adapt to landscape and upright portrait screens. At 1080 × 1920, NPC portraits wrap into tall grids, the standing-TV combat roster moves underneath the map and the party details become a compact strip.
+- Maps remain letterboxed rather than stretched. In combat, tokens are positioned relative to the displayed **map image**, not the unused margins, and follow the image when the TV resolution changes.
+- Press **F** on the player screen to enter fullscreen. Press **H** to hide or show the header/footer framing for a map-first cinematic view. Press **Esc** to leave browser/Windows fullscreen.
+- At low 720p resolutions, the player-screen chrome is reduced so the map remains the focus. The outer player view must not create a page scrollbar.
+- Many NPCs/combatants are fitted inside the fixed-size TV canvas. If roster entries exceed usable space, use the GM's **Show Selected** function to reveal a readable group rather than showing 30+ portraits at once.
+- Confirm the actual TV's Windows scaling and overscan settings. Set Windows display scaling to 100% first if the TV crops edges, and adjust the TV's aspect/overscan to **Just Scan / Screen Fit**.
+
+
 **Two different second-screen choices:** an HDMI/Windows extended monitor needs no Wi-Fi server. A separate browser device needs both devices on the same private network and the **Copy Wi-Fi Link** link. A TV without a web browser may need HDMI or another browser-capable device.
 
 **Save and backup:** maps selected inside the desktop version are saved under Keeper's local application-data directory (`campaign-packs/local-media`), and **Back up now** includes those files. Export/backup your campaign before reinstalling Windows or changing computers. All offline campaigns stay on this laptop, not automatically in the cloud.
