@@ -7,6 +7,7 @@ import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import { containedImageBounds } from '@/components/gm/playerDisplayGeometry';
 import FogMask from '@/components/gm/FogMask';
+import VttTacticalLayer from '@/components/gm/VttTacticalLayer';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -233,7 +234,7 @@ function PlayerBanner({ banner, target }) {
 function BlankDisplay({ payload, target }) { return <section style={blankStyle(target)}><div style={sigilStyle(target)}><Monitor size={isTable(target) ? 34 : 54} /></div><p style={eyebrowStyle(target)}>{isTable(target) ? 'Virtual table ready' : 'Player screen ready'}</p><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'Scenes, maps, handouts, NPCs, combat reveals, and table results will appear here.'}</p><div style={readyGridStyle(target)}><span>Clean player view</span><span>No GM notes</span><span>Live synced</span></div></section>; }
 function TitleDisplay({ payload, target, hasPartySidebar }) { return <section style={titleDisplayStyle(target, hasPartySidebar)}><div style={titlePlateStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target, hasPartySidebar)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</div></section>; }
 function TableResultDisplay({ payload, target }) { return <section style={tableResultShellStyle(target)}><div style={diceSealStyle(target)}><Dice6 size={isTable(target) ? 32 : 54} /></div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Table Roll'}</p><h1 style={tableResultTitleStyle(target)}>{payload.title || 'Roll Table'}</h1><strong style={tableRollNumberStyle(target)}>{payload.die || 'd20'} → {payload.roll || '?'}</strong><p style={tableResultTextStyle(target)}>{payload.result || 'No result sent yet.'}</p></section>; }
-function ImageDisplay({ payload, target, hasPartySidebar }) { return <section style={imageShellStyle(target, hasPartySidebar)}><div style={imageStageStyle(target)}><FittedCombatMap mapUrl={payload.image_url} title={payload.title || 'Player display image'} tokens={[]} target={target} fog={payload.fog} /></div>{(payload.title || payload.caption) && <div style={imageCaptionPanelStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</div>}</section>; }
+function ImageDisplay({ payload, target, hasPartySidebar }) { return <section style={imageShellStyle(target, hasPartySidebar)}><div style={imageStageStyle(target)}><FittedCombatMap mapUrl={payload.image_url} title={payload.title || 'Player display image'} tokens={[]} target={target} fog={payload.fog} tactical={payload.tactical} /></div>{(payload.title || payload.caption) && <div style={imageCaptionPanelStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</div>}</section>; }
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
@@ -279,7 +280,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} fog={payload.fog} />
+          <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} fog={payload.fog} tactical={payload.tactical} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -303,7 +304,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} fog={payload.fog} />
+        <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} fog={payload.fog} tactical={payload.tactical} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -317,7 +318,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
 }
 
 
-function FittedCombatMap({ mapUrl, title, tokens, target, fog }) {
+function FittedCombatMap({ mapUrl, title, tokens, target, fog, tactical }) {
   const frameRef = useRef(null);
   const imageRef = useRef(null);
   const [bounds, setBounds] = useState(null);
@@ -351,8 +352,10 @@ function FittedCombatMap({ mapUrl, title, tokens, target, fog }) {
       ) : <div style={missingImageStyle(target)}>Battle map waiting</div>}
       {!!mapUrl && !!bounds && (
         <div data-testid="fitted-map-token-layer" style={{ ...tokenOverlayStyle, inset: 'auto', left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }}>
+          <VttTacticalLayer tactical={tactical} width={imageRef.current?.naturalWidth} height={imageRef.current?.naturalHeight} layer="grid" />
           {tokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}
           <FogMask fog={fog} />
+          <VttTacticalLayer tactical={tactical} width={imageRef.current?.naturalWidth} height={imageRef.current?.naturalHeight} layer="ruler" />
         </div>
       )}
     </div>
