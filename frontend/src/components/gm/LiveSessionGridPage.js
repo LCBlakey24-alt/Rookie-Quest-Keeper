@@ -5,6 +5,7 @@ import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import { loadLiveSessionSections } from '@/data/livePlayLoaders';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
@@ -268,7 +269,7 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  if (loading) return <div className="loading-screen"><div className="loading-spinner" /></div>;
+  if (loading) return <RouteLoadingScreen message="Preparing your GM table…" />;
 
   return (
     <>
