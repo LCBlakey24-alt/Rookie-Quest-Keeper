@@ -36,6 +36,19 @@ const POI_TYPES = [
   { id: 'other', label: 'Other', icon: MapPin, color: '#8A2BE2' }
 ];
 
+function LocalMapPicture({ map }) {
+  const src = map.image_url || map.image_data || '';
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+  if (!src || failed) {
+    return <p role="status" style={{ padding: 20, color: theme.text }}>
+      This map's image could not be loaded. Upload a fresh copy to restore the picture.
+    </p>;
+  }
+  return <img src={src} alt={map.name || 'Local map'} onError={() => setFailed(true)}
+    style={{ width: '100%', height: 'auto', display: 'block' }} />;
+}
+
 function LocalMapTab({ campaignId }) {
   const [locations, setLocations] = useState([]);
   const [localMaps, setLocalMaps] = useState([]);
@@ -110,14 +123,18 @@ function LocalMapTab({ campaignId }) {
     }
 
     try {
-      const response = await apiClient.post(`/campaigns/${campaignId}/local-maps`, newMapData);
+      const saved = window.rookieDesktop?.storeLocalMapImage
+        ? await window.rookieDesktop.storeLocalMapImage(newMapData.image_data)
+        : null;
+      const payload = saved?.url ? { ...newMapData, image_data: '', image_url: saved.url } : newMapData;
+      const response = await apiClient.post(`/campaigns/${campaignId}/local-maps`, payload);
       setLocalMaps([...localMaps, response.data]);
       setSelectedMap(response.data);
       setShowUpload(false);
       setNewMapData({ name: '', location_id: '', map_type: 'city', image_data: '' });
       toast.success('Local map created!');
     } catch (error) {
-      toast.error('Failed to create map');
+      toast.error(error?.message || 'Failed to create map');
     }
   };
 
@@ -412,13 +429,7 @@ function LocalMapTab({ campaignId }) {
                 cursor: mode === 'addPin' ? 'crosshair' : 'default'
               }}
             >
-              {selectedMap.image_data && (
-                <img
-                  src={selectedMap.image_data}
-                  alt={selectedMap.name}
-                  style={{ width: '100%', height: 'auto', display: 'block' }}
-                />
-              )}
+              <LocalMapPicture map={selectedMap} />
 
               {/* Pins */}
               {selectedMap.pins?.map(pin => {
