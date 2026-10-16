@@ -94,6 +94,22 @@ describe('LivePlayerDisplayControls reliability', () => {
     ));
   });
 
+  test('GM saves and reloads a private map battle scene before projecting', async () => {
+    apiClient.get.mockImplementation(url => Promise.resolve({
+      data: url.endsWith('/maps') ? [{ id: 'battle-map-one', name: 'Ruined Keep', image_url: 'https://example.test/keep-map.jpg' }] : [],
+    }));
+    render(<LivePlayerDisplayControls campaignId="scene-save-keeper" />);
+    await screen.findByRole('option', { name: 'Ruined Keep' });
+    fireEvent.change(screen.getByRole('combobox', { name: /Saved map/i }), { target: { value: 'battle-map-one' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /Encounter scene name/i }), { target: { value: 'Hidden Keep Ambush' } });
+    fireEvent.click(screen.getByRole('button', { name: /Save This Battle/i }));
+    expect(await screen.findByRole('option', { name: 'Hidden Keep Ambush' })).toBeInTheDocument();
+    expect(toast.success).toHaveBeenCalledWith('Encounter saved privately on this laptop');
+    fireEvent.click(screen.getByRole('button', { name: /Load to GM Preview/i }));
+    expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/Encounter restored to GM preview/));
+    expect(publishCampaignDisplayStateWithStatus.mock.calls.filter(([,state])=>state.mode==='combat')).toHaveLength(0);
+  });
+
   test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
     fireEvent.click(screen.getAllByRole('button', { name: /Battle Starting!/i })[0]);
