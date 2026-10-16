@@ -78,6 +78,29 @@ describe('offline desktop workspace', () => {
     expect(() => createPreviewApi(storage).request('get', '/campaigns/missing/home-bootstrap')).toThrow('Preview campaign not found.');
   });
 
+  test('creates offline world maps, pins, local maps and custom creatures without a backend', () => {
+    const storage = memoryStorage();
+    const api = createPreviewApi(storage);
+    const campaign = api.request('post', '/campaigns', { name: 'Tabletop test' });
+    const root = `/campaigns/${campaign.id}`;
+    const worldMap = api.request('post', `${root}/world-maps`, {
+      name: 'City of Balderin', image_url: 'rqk-attachment://local-media/balderin.jpg',
+    });
+    const pin = api.request('post', `${root}/world-maps/${worldMap.id}/pins`, {
+      name: 'The Gate', x: 42, y: 77, pin_type: 'city',
+    });
+    api.request('put', `${root}/world-maps/${worldMap.id}/pins/${pin.id}`, { name: 'North Gate' });
+    expect(api.request('get', `${root}/world-maps`)[0].pins[0].name).toBe('North Gate');
+    const region = api.request('post', `${root}/local-maps`, { name: 'Cellar Map' });
+    const creature = api.request('post', `${root}/custom-creatures`, { name: 'Owlbear', hp: 59, ac: 13 });
+    const reload = createPreviewApi(storage);
+    expect(reload.request('get', `${root}/world-maps`)[0].image_url).toContain('rqk-attachment://');
+    expect(reload.request('get', `${root}/local-maps`)[0].id).toBe(region.id);
+    expect(reload.request('get', `${root}/custom-creatures`)[0].id).toBe(creature.id);
+    api.request('delete', `${root}/world-maps/${worldMap.id}/pins/${pin.id}`);
+    expect(api.request('get', `${root}/world-maps`)[0].pins).toHaveLength(0);
+  });
+
   test('starts empty and persists desktop data under its own storage key', () => {
     const storage = memoryStorage();
     const api = createPreviewApi(storage);
