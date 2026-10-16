@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
+import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Music2, Swords, Target, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
 import './LiveSessionGridMode.css';
 
@@ -20,6 +20,7 @@ export const LIVE_GRID_TOOLS = [
   { id: 'notes', label: 'Notes', icon: FileText, primary: true },
   { id: 'maps', label: 'Maps', icon: Map, primary: true },
   { id: 'player-display', label: 'Display', icon: Monitor, primary: true },
+  { id: 'sound', label: 'Music', icon: Music2, primary: true },
   { id: 'more', label: 'More', icon: MoreHorizontal, primary: true },
   { id: 'party', label: 'Party', icon: Users },
   { id: 'handouts', label: 'Handouts', icon: Mail },
