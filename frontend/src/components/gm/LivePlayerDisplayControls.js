@@ -8,6 +8,7 @@ import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { isPointRevealed, loadFog, normaliseFog, saveFog } from '@/lib/fogOfWar';
 import FogOfWarEditor from '@/components/gm/FogOfWarEditor';
+import { loadTactical, normaliseTactical, saveTactical } from '@/lib/vttTacticalOverlay';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -151,6 +152,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [bannerMessage, setBannerMessage] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [fog, setFog] = useState({ enabled: false, reveals: [] });
+  const [tactical, setTactical] = useState({ grid: false, columns: 24, ruler: null, showRuler: false });
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
   const [visibleCombatantIds, setVisibleCombatantIds] = useState([]);
@@ -216,7 +218,10 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const allMaps = useMemo(() => [...maps, ...worldMaps], [maps, worldMaps]);
   const selectedScenario = useMemo(() => scenarios.find(scenario => String(scenario.id) === String(selectedScenarioId)), [scenarios, selectedScenarioId]);
   const activeMapUrl = imageUrl.trim() || imageFrom(selectedScenario);
-  useEffect(() => { setFog(loadFog(campaignId, activeMapUrl)); }, [campaignId, activeMapUrl]);
+  useEffect(() => {
+    setFog(loadFog(campaignId, activeMapUrl));
+    setTactical(loadTactical(campaignId, activeMapUrl));
+  }, [campaignId, activeMapUrl]);
   const combatants = useMemo(() => scenarioParticipants(selectedScenario), [selectedScenario]);
   const playerFacingCombatants = useMemo(() => combatants.filter(item => !isPlayerCombatant(item)), [combatants]);
   const visibleCombatantEntries = useMemo(() => playerFacingCombatants.map((item, index) => ({ item, index, id: combatantId(item, index) })).filter(entry => visibleCombatantIds.includes(entry.id)), [playerFacingCombatants, visibleCombatantIds]);
@@ -338,6 +343,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       caption: sceneSubtitle,
       party: partyPayload,
       fog: normaliseFog(fog),
+      tactical: normaliseTactical(tactical),
     });
   };
 
@@ -387,7 +393,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             return;
           }
           setImageUrl(url);
-          void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload, fog: loadFog(campaignId, url) });
+          void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload, fog: loadFog(campaignId, url), tactical: loadTactical(campaignId, url) });
         } catch { toast.error('Could not prepare the map for display'); }
       };
       picture.src = String(reader.result || '');
@@ -395,7 +401,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     reader.readAsDataURL(file);
   };
 
-  const combatPayload = (activeId = activeCombatantId, roundValue = combatRound, fogValue = fog) => ({
+  const combatPayload = (activeId = activeCombatantId, roundValue = combatRound, fogValue = fog, tacticalValue = tactical) => ({
     title: selectedScenario?.name || sceneTitle || 'Combat',
     map_url: imageUrl.trim() || imageFrom(selectedScenario),
     caption: sceneSubtitle,
@@ -406,6 +412,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       id, name, className, imageUrl, hp, maxHp, hpPercent, hpStatus, initiative, initiativeLabel,
     })),
     fog: normaliseFog(fogValue),
+    tactical: normaliseTactical(tacticalValue),
     // Fog-hidden creatures must not appear in player roster or raw LAN state.
     tokens: combatTokenPayload.filter(token => !fogValue?.enabled || ((Number(token.x) || Number(token.y)) && isPointRevealed(fogValue, token.x, token.y))),
   });
@@ -422,6 +429,21 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     // Keep live reveals silent. The player screen updates with each GM click.
     const nextPayload = current.mode === 'combat' ? combatPayload(activeCombatantId, combatRound, safe) : { ...current.payload, fog: safe };
     void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(current.mode, { ...nextPayload, display_target: displayTarget }));
+  };
+
+  const updateTactical = (nextTactical) => {
+    if (!activeMapUrl) return;
+    const safe = normaliseTactical(nextTactical);
+    setTactical(safe);
+    try { saveTactical(campaignId, activeMapUrl, safe); }
+    catch { toast.warning('Could not save ruler and grid settings'); }
+    const current = loadDisplayState(campaignId);
+    const displayedUrl = current?.mode === 'combat' ? current.payload?.map_url : current?.mode === 'image' ? current.payload?.image_url : '';
+    if (displayedUrl !== activeMapUrl) return;
+    const payload = current.mode === 'combat'
+      ? combatPayload(activeCombatantId, combatRound, fog, safe)
+      : { ...current.payload, tactical: safe };
+    void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(current.mode, { ...payload, display_target: displayTarget }));
   };
 
   const sendBattleStart = () => publish('battle-start', {
@@ -588,7 +610,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <div style={quickSendHeaderStyle}><div><strong>Show a map from this laptop</strong><p>Works offline. The image is resized and sent straight to the TV/table — no upload service required.</p></div><span style={safeBadgeStyle}><ImageIcon size={13} /> Local image</span></div>
           <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Choose a local battle or world map" onChange={event => { sendLaptopMap(event.target.files?.[0]); event.target.value = ''; }} style={{ ...inputStyle, paddingTop: 7 }} />
         </section>
-        <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} />
+        <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} tactical={tactical} onTacticalChange={updateTactical} />
         <section style={commandDeckStyle}>
           <div style={targetGridStyle} data-testid="player-display-target-selector">
             {DISPLAY_TARGETS.map(target => {
