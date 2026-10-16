@@ -33,6 +33,17 @@ export function snapTokenPoint(x, y, columns, imageWidth, imageHeight, enabled) 
   };
 }
 
+export function normaliseManualTokens(raw) {
+  return (Array.isArray(raw) ? raw : []).slice(0, 80).flatMap(item => {
+    if (!item || typeof item !== 'object') return [];
+    const id=String(item.id || '').slice(0, 140);
+    const name=String(item.name || '').trim().slice(0, 100);
+    const x=Number(item.x), y=Number(item.y);
+    if (!id.startsWith('gm-custom-') || !name || !Number.isFinite(x) || !Number.isFinite(y) || x<0 || x>100 || y<0 || y>100) return [];
+    return [{ id, name, x, y, type:'enemy', visible:item.visible===true }];
+  });
+}
+
 export function normaliseEncounter(input) {
   if (!input || typeof input !== 'object') return null;
   const id = String(input.id || '').slice(0, 100);
@@ -46,6 +57,7 @@ export function normaliseEncounter(input) {
     scenarioId: String(input.scenarioId || '').slice(0, 140),
     visibleIds: (Array.isArray(input.visibleIds) ? input.visibleIds : []).slice(0, 100).map(id => String(id).slice(0, 140)),
     tokenPositions: normaliseTokenPositions(input.tokenPositions),
+    manualTokens: normaliseManualTokens(input.manualTokens),
     round: Math.max(1, Math.min(5000, Math.round(Number(input.round) || 1))),
     activeId: String(input.activeId || '').slice(0, 140),
     fog: normaliseFog(input.fog),
