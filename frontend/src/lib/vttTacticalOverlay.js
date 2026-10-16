@@ -27,6 +27,14 @@ export function normaliseTactical(raw) {
   };
 }
 
+// Only send an explicitly shared ruler to player-facing displays. A hidden GM
+// measurement is never included in player sync traffic.
+export function publicTactical(raw) {
+  const settings = normaliseTactical(raw);
+  if (!settings.showRuler) return { ...settings, ruler: null };
+  return settings;
+}
+
 export function gridRows(columns, width, height) {
   const cols = Math.max(4, Math.min(60, Math.round(Number(columns) || 24)));
   const w = Number(width), h = Number(height);
