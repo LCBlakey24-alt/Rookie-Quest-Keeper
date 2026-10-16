@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dice6, HeartPulse, Maximize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
+import { containedImageBounds } from '@/components/gm/playerDisplayGeometry';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -101,6 +102,7 @@ export default function PlayerDisplayPage() {
   const urlTarget = normaliseTarget(searchParams.get('target'));
   const [state, setState] = useState(() => loadDisplayState(campaignId));
   const [party, setParty] = useState([]);
+  const [cleanView, setCleanView] = useState(false);
   const goFullscreen = useCallback(async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {} }, []);
 
   useEffect(() => {
@@ -111,7 +113,10 @@ export default function PlayerDisplayPage() {
   }, [campaignId]);
 
   useEffect(() => {
-    const onKeyDown = (event) => { if (event.key?.toLowerCase() === 'f') goFullscreen(); };
+    const onKeyDown = (event) => {
+      if (event.key?.toLowerCase() === 'f') goFullscreen();
+      if (event.key?.toLowerCase() === 'h' && !event.repeat) setCleanView(value => !value);
+    };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [goFullscreen]);
@@ -146,28 +151,28 @@ export default function PlayerDisplayPage() {
     const fromPayload = Array.isArray(payload.party) ? payload.party.map(normalisePartyMember) : [];
     return (fromPayload.length ? fromPayload : party).filter(member => member?.name).slice(0, 10);
   }, [payload.party, party]);
-  const showPartySidebar = !isTable(target) && !['combat', 'battle-start', 'group-check'].includes(mode) && partyMembers.length > 0;
+  const showPartySidebar = !cleanView && !isTable(target) && !['combat', 'battle-start', 'group-check'].includes(mode) && partyMembers.length > 0;
 
   return (
-    <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
-      <button type="button" onClick={goFullscreen} style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button>
+    <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode} data-clean-view={cleanView ? "yes" : "no"}>
+      <button type="button" onClick={goFullscreen} title="F: fullscreen · H: hide or show the display chrome" style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button>
       <div style={chromeFrameStyle(target)}>
-        <header style={displayStatusBarStyle(target)}>
+        {!cleanView && <header style={displayStatusBarStyle(target)}>
           <span style={brandMarkStyle}><Sparkles size={14} /> Rookie Quest Keeper</span>
           <span style={statusPillStyle(target)}>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Virtual Table' : 'Standing TV'}</span>
           <span style={statusPillStyle(target)}><ShieldCheck size={13} /> Player-safe</span>
           <span style={modeChipStyle}>{modeLabel(mode)}</span>
-        </header>
-        <div style={displayGridStyle(target, showPartySidebar)}>
+        </header>}
+        <div data-testid="player-display-layout" data-has-party={showPartySidebar ? "yes" : "no"} style={displayGridStyle(target, showPartySidebar)}>
           {showPartySidebar && <PartySidebar members={partyMembers} />}
           <DisplayContent state={state} target={target} hasPartySidebar={showPartySidebar} partyMembers={partyMembers} />
         </div>
         <PlayerBanner banner={payload.banner} target={target} />
       </div>
-      <footer style={footerStyle(target)}>
+      {!cleanView && <footer style={footerStyle(target)}>
         <span>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Map-first table display' : 'Cinematic player display'}</span>
-        <span>{updatedLabel ? `Synced ${updatedLabel}` : 'Waiting for GM sync'} · Press F for fullscreen</span>
-      </footer>
+        <span>{updatedLabel ? `Synced ${updatedLabel}` : 'Waiting for GM sync'} · F: fullscreen · H: hide HUD</span>
+      </footer>}
     </main>
   );
 }
@@ -191,7 +196,7 @@ function PartySidebar({ members }) {
   return (
     <aside style={partySidebarStyle} data-testid="standing-tv-party-sidebar">
       <div style={partyHeaderStyle}><p style={partyEyebrowStyle}>Party Status</p><strong>{members.length} Player{members.length === 1 ? '' : 's'}</strong></div>
-      <div style={partyListStyle}>{members.map(member => <PartyCard key={member.id || member.name} member={member} />)}</div>
+      <div style={partyListStyle} data-testid="player-display-party-list">{members.map(member => <PartyCard key={member.id || member.name} member={member} />)}</div>
     </aside>
   );
 }
@@ -200,7 +205,7 @@ function PartyCard({ member }) {
   const hpPercent = Number.isFinite(Number(member.hpPercent)) ? Number(member.hpPercent) : member.maxHp ? Math.max(0, Math.min(100, Math.round((Number(member.hp || 0) / Number(member.maxHp || 1)) * 100))) : 0;
   const initLabel = member.initiativeLabel || signed(member.initiative);
   return (
-    <article style={partyCardStyle(member.hpStatus)}>
+    <article className="rqk-display-party-card" style={partyCardStyle(member.hpStatus)}>
       <div style={portraitStyle}>{member.imageUrl ? <img src={member.imageUrl} alt={member.name} style={portraitImageStyle} /> : <span>{String(member.name || '?').slice(0, 1).toUpperCase()}</span>}</div>
       <div style={partyInfoStyle}>
         <div style={partyNameRowStyle}><strong>{member.name || 'Unknown Hero'}</strong><span>Lv {member.level || 1}</span></div>
@@ -231,7 +236,7 @@ function ImageDisplay({ payload, target, hasPartySidebar }) { return <section st
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
-  return <section style={npcShellStyle(target)}><div style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div style={npcGridStyle(target, npcs.length)}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
+  return <section style={npcShellStyle(target)}><div style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div style={npcGridStyle(target, npcs.length)} data-testid="player-display-npc-grid" data-count={npcs.length} data-dense={npcs.length >= 7 ? "yes" : "no"}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
 }
 function NPCCard({ npc, target, compact = false }) { return <article style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>; }
 
@@ -273,8 +278,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-          <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
+          <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -286,20 +290,19 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
 
   return (
     <section style={combatHudShellStyle} data-testid="standing-tv-combat-hud">
-      <aside style={combatRosterPanelStyle}>
+      <aside data-testid="standing-tv-combat-roster" style={combatRosterPanelStyle}>
         <div style={combatRosterHeaderStyle}>
           <p style={partyEyebrowStyle}>Combat Roster</p>
           <strong>{roster.length} Actor{roster.length === 1 ? '' : 's'}</strong>
           {round && <span>Round {round}</span>}
         </div>
-        <div style={combatRosterListStyle}>
+        <div data-testid="standing-tv-combat-roster-list" style={combatRosterListStyle}>
           {roster.map(item => <CombatRosterCard key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}
           {roster.length === 0 && <p style={blankTextStyle(target)}>No combatants sent yet.</p>}
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-        <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
+        <FittedCombatMap mapUrl={payload.map_url} title={payload.title || 'Battle map'} tokens={positionedTokens} target={target} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -309,6 +312,48 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
       </div>
       {battleIntro}
     </section>
+  );
+}
+
+
+function FittedCombatMap({ mapUrl, title, tokens, target }) {
+  const frameRef = useRef(null);
+  const imageRef = useRef(null);
+  const [bounds, setBounds] = useState(null);
+  const measure = useCallback(() => {
+    const frame = frameRef.current;
+    const image = imageRef.current;
+    if (!frame || !image?.naturalWidth || !image?.naturalHeight) {
+      setBounds(null);
+      return;
+    }
+    setBounds(containedImageBounds(frame.clientWidth, frame.clientHeight, image.naturalWidth, image.naturalHeight));
+  }, []);
+
+  useEffect(() => {
+    const node = frameRef.current;
+    if (!node) return undefined;
+    measure();
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(measure);
+      observer.observe(node);
+      return () => observer.disconnect();
+    }
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [measure, mapUrl]);
+
+  return (
+    <div ref={frameRef} data-testid="fitted-combat-map" style={{ width: '100%', height: '100%', minHeight: 0, minWidth: 0, position: 'absolute', inset: 0, overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
+      {mapUrl ? (
+        <img ref={imageRef} src={mapUrl} alt={title} onLoad={measure} onError={() => setBounds(null)} style={combatMapImageStyle(target)} />
+      ) : <div style={missingImageStyle(target)}>Battle map waiting</div>}
+      {!!mapUrl && !!bounds && (
+        <div data-testid="fitted-map-token-layer" style={{ ...tokenOverlayStyle, inset: 'auto', left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }}>
+          {tokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -485,6 +530,75 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     [data-testid="standing-tv-party-sidebar"]::-webkit-scrollbar, [data-testid="standing-tv-party-sidebar"] *::-webkit-scrollbar, [data-testid="standing-tv-combat-hud"] *::-webkit-scrollbar, [data-testid="virtual-table-combat-hud"] *::-webkit-scrollbar { width: 8px; height: 8px; }
     [data-testid="standing-tv-party-sidebar"]::-webkit-scrollbar-thumb, [data-testid="standing-tv-party-sidebar"] *::-webkit-scrollbar-thumb, [data-testid="standing-tv-combat-hud"] *::-webkit-scrollbar-thumb, [data-testid="virtual-table-combat-hud"] *::-webkit-scrollbar-thumb { background: rgba(208,0,0,0.55); }
     @media (max-width: 980px) { [data-testid="player-display-page"] [data-testid="standing-tv-party-sidebar"] { display: none !important; } [data-testid="standing-tv-combat-hud"] { grid-template-columns: 1fr !important; } }
+
+    /* Player-facing layout is always a fixed canvas: no document scrollbars on a TV. */
+    html:has([data-testid="player-display-page"]), body:has([data-testid="player-display-page"]), #root:has([data-testid="player-display-page"]) { height: 100%; max-height: 100dvh; overflow: hidden !important; }
+    [data-testid="player-display-page"], [data-testid="player-display-layout"], [data-testid="standing-tv-combat-hud"], [data-testid="standing-tv-combat-roster"] { min-width: 0; min-height: 0; }
+    [data-testid="player-display-page"] > button { opacity: 0.3; transition: opacity .2s ease; }
+    [data-testid="player-display-page"] > button:hover, [data-testid="player-display-page"] > button:focus-visible { opacity: 1; }
+    [data-testid="player-display-page"][data-clean-view="yes"] > button { opacity: 0.15; }
+    [data-testid="player-display-page"][data-clean-view="yes"] > button:focus-visible, [data-testid="player-display-page"][data-clean-view="yes"] > button:hover { opacity: 1; }
+    [data-testid="fitted-combat-map"] img { max-width: 100%; max-height: 100%; }
+    @media (orientation: portrait) {
+      [data-display-target="standing-tv"] [data-testid="player-display-layout"][data-has-party="yes"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: minmax(110px, 17dvh) minmax(0, 1fr) !important;
+        gap: 8px !important;
+        padding-top: 6px !important;
+      }
+      [data-display-target="standing-tv"] [data-testid="standing-tv-party-sidebar"] {
+        display: grid !important;
+        height: 100%; grid-template-rows: minmax(0, 1fr); padding: 4px; gap: 0; border-left-width: 3px;
+      }
+      [data-display-target="standing-tv"] [data-testid="standing-tv-party-sidebar"] > div:first-child { display: none; }
+      [data-display-target="standing-tv"] [data-testid="player-display-party-list"] {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 44vw), 1fr)); gap: 4px;
+        align-items: stretch; align-content: stretch; grid-auto-rows: minmax(0, 1fr);
+        overflow: hidden !important;
+      }
+      [data-display-target="standing-tv"] .rqk-display-party-card { min-height: 0; padding: 3px !important; gap: 4px !important; overflow: hidden; }
+      [data-display-target="standing-tv"] [data-testid="player-display-npc-grid"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        grid-template-rows: none !important; grid-auto-rows: minmax(0, 1fr);
+      }
+      [data-display-target="standing-tv"] [data-testid="player-display-npc-grid"][data-count="1"] {
+        grid-template-columns: minmax(0, 80%) !important; justify-content: center;
+      }
+      [data-display-target="standing-tv"] [data-testid="player-display-npc-grid"][data-dense="yes"] {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+      [data-testid="standing-tv-combat-hud"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: minmax(0, 1fr) minmax(120px, 23dvh) !important;
+        gap: 6px !important;
+      }
+      [data-testid="standing-tv-combat-hud"] > [data-testid="standing-tv-combat-roster"] {
+        grid-row: 2; grid-column: 1; padding: 4px !important; grid-template-rows: minmax(0, 1fr);
+      }
+      [data-testid="standing-tv-combat-hud"] > [data-testid="standing-tv-combat-roster"] > div:first-child { display: none; }
+      [data-testid="standing-tv-combat-hud"] > div:not(.rqk-battle-start__overlay) { grid-row: 1; grid-column: 1; min-width: 0; }
+      [data-testid="standing-tv-combat-roster-list"] { grid-template-columns: repeat(auto-fit, minmax(min(155px, 42vw), 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 4px !important; overflow: hidden !important; }
+      [data-testid="standing-tv-combat-roster-list"] > article { min-height: 0; padding: 4px !important; }
+    }
+    @media (max-width: 980px) and (orientation: landscape) {
+      [data-testid="standing-tv-combat-hud"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: minmax(0, 1fr) minmax(90px, 23dvh) !important;
+      }
+      [data-testid="standing-tv-combat-hud"] > [data-testid="standing-tv-combat-roster"] { grid-row: 2; grid-column: 1; padding: 4px !important; }
+      [data-testid="standing-tv-combat-hud"] > div:not(.rqk-battle-start__overlay) { grid-row: 1; grid-column: 1; }
+      [data-testid="standing-tv-combat-roster-list"] { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); grid-auto-rows: minmax(0, 1fr); overflow: hidden; }
+    }
+    @media (max-height: 740px) {
+      [data-testid="player-display-page"] > div:first-of-type { padding: 5px !important; }
+      [data-testid="player-display-page"] header { min-height: 24px !important; padding: 2px 5px !important; flex-wrap: nowrap !important; overflow: hidden; }
+      [data-testid="player-display-page"] footer { padding: 2px 7px !important; }
+      [data-testid="player-display-page"] > button { min-height: 29px !important; padding-inline: 7px !important; font-size: 11px !important; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      [data-testid="player-display-page"] *, [data-testid="player-display-page"] *::before { animation-duration: .01ms !important; }
+    }
+
   `;
   document.head.appendChild(style);
 }
