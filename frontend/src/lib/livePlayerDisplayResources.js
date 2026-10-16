@@ -1,5 +1,6 @@
 const RESOURCE_DEFINITIONS = [
   { key: 'maps', label: 'maps', path: (campaignId) => `/campaigns/${campaignId}/maps` },
+  { key: 'worldMaps', label: 'world maps', path: (campaignId) => `/campaigns/${campaignId}/world-maps` },
   { key: 'npcs', label: 'NPCs', path: (campaignId) => `/campaigns/${campaignId}/npcs` },
   { key: 'scenarios', label: 'combat scenarios', path: (campaignId) => `/campaigns/${campaignId}/combat-scenarios` },
   { key: 'players', label: 'players', path: (campaignId) => `/campaigns/${campaignId}/players` },
