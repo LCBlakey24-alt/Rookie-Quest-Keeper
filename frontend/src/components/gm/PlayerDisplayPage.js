@@ -146,7 +146,7 @@ export default function PlayerDisplayPage() {
     const fromPayload = Array.isArray(payload.party) ? payload.party.map(normalisePartyMember) : [];
     return (fromPayload.length ? fromPayload : party).filter(member => member?.name).slice(0, 10);
   }, [payload.party, party]);
-  const showPartySidebar = !isTable(target) && mode !== 'combat' && mode !== 'group-check' && partyMembers.length > 0;
+  const showPartySidebar = !isTable(target) && !['combat', 'battle-start', 'group-check'].includes(mode) && partyMembers.length > 0;
 
   return (
     <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
