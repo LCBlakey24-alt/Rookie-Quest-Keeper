@@ -293,7 +293,9 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setDisplayTarget(safeTarget);
     void sendDisplayTarget(safeTarget);
     const opened = window.open(displayUrlFor(safeTarget), '_blank', 'noopener,noreferrer');
-    if (!opened) toast.error('The display tab was blocked. Allow pop-ups, then try again.');
+    // Electron creates the second BrowserWindow via setWindowOpenHandler and
+    // noopener intentionally returns null even when the window opened.
+    if (!opened && !window.rookieDesktop?.offline) toast.error('The display tab was blocked. Allow pop-ups, then try again.');
   };
 
   const copyDisplayLink = async (targetId = displayTarget) => {
