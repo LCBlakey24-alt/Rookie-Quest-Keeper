@@ -8,7 +8,6 @@ let playback = null;
 const listeners = new Set();
 let playing = { campaignId: null, trackId: null, status: 'stopped', volume: 0.7, loop: true, error: '' };
 let temporaryUrl = '';
-let hydrated = false;
 const notify = () => listeners.forEach(fn => fn(getAudioState()));
 
 function metaKey(campaignId) { return META_PREFIX + encodeURIComponent(String(campaignId || 'campaign')); }
@@ -93,7 +92,11 @@ async function deleteMp3(id) {
 function asDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onload = () => {
+      // Windows sometimes supplies an MP3 with an empty or generic MIME type.
+      // The desktop backend validates the actual MPEG/ID3 bytes before saving.
+      resolve(String(reader.result || '').replace(/^data:[^;]*;base64,/i, 'data:audio/mpeg;base64,'));
+    };
     reader.onerror = () => reject(new Error('Could not read MP3'));
     reader.readAsDataURL(file);
   });
