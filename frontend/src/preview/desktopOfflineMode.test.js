@@ -92,6 +92,8 @@ describe('offline desktop workspace', () => {
     api.request('put', `${root}/world-maps/${worldMap.id}/pins/${pin.id}`, { name: 'North Gate' });
     expect(api.request('get', `${root}/world-maps`)[0].pins[0].name).toBe('North Gate');
     const region = api.request('post', `${root}/local-maps`, { name: 'Cellar Map' });
+    const localPin = api.request('post', `${root}/local-maps/${region.id}/pins`, { name: 'The Inn', x: 50, y: 50 });
+    expect(api.request('get', `${root}/local-maps/${region.id}`).pins[0].id).toBe(localPin.id);
     const creature = api.request('post', `${root}/custom-creatures`, { name: 'Owlbear', hp: 59, ac: 13 });
     const reload = createPreviewApi(storage);
     expect(reload.request('get', `${root}/world-maps`)[0].image_url).toContain('rqk-attachment://');
