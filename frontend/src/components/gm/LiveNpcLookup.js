@@ -210,7 +210,17 @@ export default function LiveNpcLookup({ campaignId }) {
 
               {open && (
                 <div style={bodyStyle}>
-                  <NpcCompactStatBlock npc={npc} />
+                  {[
+                    ['Description', npc.description],
+                    ['Personality', npc.personality],
+                    ['GM notes', npc.notes],
+                  ].filter(([, value]) => value != null && String(value).trim()).map(([label, value]) => (
+                    <div key={label} style={detailStyle}>
+                      <strong style={detailLabelStyle}>{label}</strong>
+                      <div>{String(value)}</div>
+                    </div>
+                  ))}
+                  <NpcCompactStatBlock npc={npc} showLore={false} />
                   <div style={actionsStyle}>
                     <button type="button" disabled={savingId === npc.id} onClick={() => saveCompanionState(npc)} style={actionStyle(travelling)}>{travelling ? <X size={13} /> : <UserPlus size={13} />}{travelling ? 'Remove from Party' : 'With Party'}</button>
                     <button type="button" onClick={() => queueForEncounter(npc)} style={actionStyle(false)}><Swords size={13} /> Add to Encounter</button>
