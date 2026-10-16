@@ -45,7 +45,7 @@ function ActionList({ title, items }) {
   </section>;
 }
 
-export default function NpcCompactStatBlock({ npc = {} }) {
+export default function NpcCompactStatBlock({ npc = {}, showLore = true }) {
   const unverified = npc.combat_ready === false;
   const stats = unverified ? {} : (npc.stats || {});
   const attacks = Array.isArray(npc.attacks) ? npc.attacks : [];
@@ -110,7 +110,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       </section>}
       {!attacks.length && !actions.length && !bonusActions.length && !reactions.length && !specialAbilities.length && !spells &&
         <p style={{ fontSize: 12, opacity: .8, margin: 0 }}>No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
-      {!!lore.length && <details><summary style={{ ...label, cursor: 'pointer', minHeight: 30, display: 'flex', alignItems: 'center' }}>GM notes & story details</summary><div style={{ fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{lore.map((text, index) => <p key={index}>{text}</p>)}</div></details>}
+      {!!lore.length && showLore && <details><summary style={{ ...label, cursor: 'pointer', minHeight: 30, display: 'flex', alignItems: 'center' }}>GM notes & story details</summary><div style={{ fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{lore.map((text, index) => <p key={index}>{text}</p>)}</div></details>}
     </section>
   );
 }
