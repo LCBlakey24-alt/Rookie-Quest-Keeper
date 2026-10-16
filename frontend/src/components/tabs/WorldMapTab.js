@@ -81,6 +81,7 @@ async function compressImage(file) {
 export default function WorldMapTab({ campaignId }) {
   const [worldMaps, setWorldMaps] = useState([]);
   const [selectedMap, setSelectedMap] = useState(null);
+  const [brokenMapImageId, setBrokenMapImageId] = useState('');
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
@@ -305,7 +306,24 @@ export default function WorldMapTab({ campaignId }) {
       <main style={mapStageStyle}>
         {selectedMap ? (
           <div ref={mapRef} onClick={handleMapClick} style={mapCanvasStyle(mode === 'addPin')}>
-            <img src={mapImageSource(selectedMap)} alt={selectedMap.name} style={mapImageStyle} />
+            {(() => {
+              const original = mapImageSource(selectedMap);
+              const backup = selectedMap.image_data && selectedMap.image_data !== original ? selectedMap.image_data : '';
+              const failed = brokenMapImageId === String(selectedMap.id);
+              return failed && !backup ? (
+                <div role="status" style={{ ...emptyStateStyle, minHeight: 250 }}>
+                  This map image couldn't load. Re-upload it from your laptop to restore the picture.
+                </div>
+              ) : (
+                <img
+                  key={`${selectedMap.id}-${failed ? 'backup' : 'primary'}`}
+                  src={failed ? backup : original}
+                  alt={selectedMap.name}
+                  style={mapImageStyle}
+                  onError={() => setBrokenMapImageId(String(selectedMap.id))}
+                />
+              );
+            })()}
             {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} onClick={openPin} />)}
           </div>
         ) : (
