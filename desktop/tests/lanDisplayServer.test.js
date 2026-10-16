@@ -86,3 +86,44 @@ test('Wi-Fi VTT includes portrait/fullscreen layout and ResizeObserver token pos
     assert.doesNotMatch(page, /GM secret|private_description/);
   } finally { server.close(); }
 });
+
+test('fog covers the LAN map and strips unrevealed enemies from player JSON', () => {
+  const server = createLanDisplayServer({ userDataDir: os.tmpdir() });
+  const visible = server.projectDisplayState({
+    mode: 'combat',
+    payload: {
+      title: 'Hidden crypt',
+      map_url: 'data:image/png;base64,QUJD',
+      fog: { enabled: true, reveals: [{ x: 24, y: 30, radius: 10 }, { x: 999, y: -10, radius: 500 }] },
+      tokens: [
+        { name: 'Discovered guardian', x: 25, y: 34, privateNotes: 'Keep safe' },
+        { name: 'Surprise vampire', x: 84, y: 66, hp: 99, gm_only: true },
+        { name: 'Secret unplaced figure' },
+      ],
+    },
+  });
+  assert.equal(visible.payload.fog.enabled, true);
+  assert.equal(visible.payload.fog.reveals.length, 1);
+  assert.deepEqual(visible.payload.tokens.map(token => token.name), ['Discovered guardian']);
+  assert.doesNotMatch(JSON.stringify(visible), /Surprise vampire|Secret unplaced figure|privateNotes|gm_only/);
+
+  const uncovered = server.projectDisplayState({
+    mode: 'image', payload: { image_url: 'data:image/png;base64,QUJD', fog: { enabled: true, reveals: [] } },
+  });
+  assert.equal(uncovered.payload.fog.enabled, true);
+  assert.equal(uncovered.payload.fog.reveals.length, 0);
+});
+
+test('Wi-Fi viewer includes player-side SVG fog masking support', async () => {
+  const server = createLanDisplayServer({ userDataDir: os.tmpdir() });
+  try {
+    const info = await server.start();
+    const viewer = new URL(info.url);
+    viewer.hostname = '127.0.0.1';
+    const page = await (await fetch(viewer)).text();
+    assert.match(page, /function fogSvg/);
+    assert.match(page, /fog-cutout/);
+    assert.match(page, /layer\.appendChild\(fog\)/);
+    assert.match(page, /function map\(p,combat\)/);
+  } finally { server.close(); }
+});
