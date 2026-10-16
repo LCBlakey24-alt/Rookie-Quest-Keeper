@@ -203,23 +203,57 @@ h1{font-size:clamp(25px,5vw,68px);margin:0;line-height:1.05;color:#f3e9d5}p{marg
 #banner{display:none;position:absolute;bottom:2%;left:10%;width:80%;text-align:center;background:#12263deb;border:1px solid #c9a96b;padding:12px;font-size:clamp(16px,2.5vw,32px)}
 #banner:not(:empty){display:block}.token-list{position:absolute;bottom:8px;left:6px;right:6px;display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
 .token-list span{background:#071522db;border:1px solid #a68d58;padding:5px 8px}
+
+/* Portrait TVs get an upright composition; landscape TVs preserve the map-first canvas. */
+@media (orientation:portrait){
+  #frame{padding:clamp(5px,.8vw,14px);gap:5px}
+  header{font-size:clamp(10px,1.45vw,20px);padding:5px 7px;gap:5px}
+  .scene{padding:clamp(8px,2.5vw,32px);gap:clamp(8px,2vh,20px)}
+  .scene h1{font-size:clamp(30px,7.4vw,100px);overflow-wrap:anywhere}
+  .map{gap:3px}
+  .caption{font-size:clamp(14px,2vw,24px);max-height:9dvh;overflow:hidden}
+  .grid{gap:clamp(5px,1vh,16px);padding:4px}
+  .grid > h1{font-size:clamp(20px,4.7vw,58px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:clamp(5px,.8vw,12px)}
+  .cards[data-count="1"]{grid-template-columns:minmax(0,80%);justify-content:center}
+  .cards[data-dense="yes"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .card .details{padding:clamp(4px,.65vw,10px)}
+  .card strong{font-size:clamp(12px,1.9vw,24px);overflow:hidden;text-overflow:ellipsis}
+  .card small{font-size:clamp(10px,1.35vw,17px)}
+  .map-token{min-width:26px;min-height:26px;font-size:10px;padding:2px}
+  .map-token img{width:25px;height:25px}
+  .token-list{max-height:16%;overflow:hidden}
+  #banner{left:5%;width:90%;bottom:1%;font-size:clamp(15px,2.4vw,34px);padding:8px}
+}
+@media (orientation:landscape) and (max-height:740px){
+  #frame{padding:4px;gap:2px}
+  header{padding:2px 8px;font-size:11px}
+  .grid{padding:3px;gap:4px}
+  .grid > h1{font-size:clamp(20px,3vw,38px)}
+  .caption{padding:1px 6px;font-size:clamp(12px,1.5vw,18px)}
+  .cards{gap:5px}
+  .card .details{padding:4px}
+}
+body.clean #frame{grid-template-rows:minmax(0,1fr);padding:3px}
+body.clean header{display:none}
+
 </style></head><body><div id="frame"><header><strong>Rookie Quest Keeper</strong><span>Live tabletop · Player safe</span></header><main id="stage"></main></div><div id="banner"></div>
 <script>
 (function(){
 'use strict';
-var stage=document.getElementById('stage'),banner=document.getElementById('banner');
+var stage=document.getElementById('stage'),banner=document.getElementById('banner'),mapObserver=null;
 var key=new URL(location.href).searchParams.get('key')||'',last='';
 function el(tag,className,txt){var node=document.createElement(tag);if(className)node.className=className;if(txt!==undefined)node.textContent=String(txt);return node}
 function image(src,alt){var node=el('img');node.alt=alt||'';node.src=src;node.onerror=function(){node.replaceWith(el('p','', 'Image could not load — check map or portrait file'))};return node}
 function scene(p,mode){var div=el('section','scene');div.appendChild(el('p','eyebrow',p.eyebrow||(mode==='battle-start'?'Combat':'Scene')));div.appendChild(el('h1','',p.title||(mode==='battle-start'?'BATTLE STARTING':'Waiting for the GM')));if(p.subtitle)div.appendChild(el('p','',p.subtitle));return div}
 function map(p,combat){var outer=el('section','map');var box=el('div','picture');var src=combat?p.map_url:p.image_url;var img=src?image(src,p.title):null;if(img)box.appendChild(img);else box.appendChild(el('p','','No map image selected'));outer.appendChild(box);
 if(combat){box.appendChild(el('div','badge',String(p.title||'Combat')+' · Round '+String(p.round||1)));var layer=el('div','token-layer'),strip=el('div','token-list');(p.tokens||[]).forEach(function(t){var x=Number(t.x)||0,y=Number(t.y)||0;if(x||y){var token=el('div','map-token');token.title=t.name||'Token';token.style.left=Math.max(2,Math.min(98,x))+'%';token.style.top=Math.max(2,Math.min(98,y))+'%';if(t.image_url)token.appendChild(image(t.image_url,t.name));else token.textContent=(t.name||'?').slice(0,8);layer.appendChild(token)}else strip.appendChild(el('span','',t.name))});box.appendChild(layer);box.appendChild(strip);
-var fit=function(){if(!img||!img.naturalWidth)return;var w=box.clientWidth,h=box.clientHeight,s=Math.min(w/img.naturalWidth,h/img.naturalHeight),iw=img.naturalWidth*s,ih=img.naturalHeight*s;layer.style.left=(w-iw)/2+'px';layer.style.top=(h-ih)/2+'px';layer.style.width=iw+'px';layer.style.height=ih+'px';layer.style.right='auto';layer.style.bottom='auto'};if(img){img.addEventListener('load',fit);window.onresize=fit}}
+var fit=function(){if(!box.isConnected||!img||!img.naturalWidth)return;var w=box.clientWidth,h=box.clientHeight,s=Math.min(w/img.naturalWidth,h/img.naturalHeight),iw=img.naturalWidth*s,ih=img.naturalHeight*s;layer.style.left=(w-iw)/2+'px';layer.style.top=(h-ih)/2+'px';layer.style.width=iw+'px';layer.style.height=ih+'px';layer.style.right='auto';layer.style.bottom='auto'};if(img){img.addEventListener('load',fit);if(typeof ResizeObserver!=='undefined'){mapObserver=new ResizeObserver(fit);mapObserver.observe(box)}else window.addEventListener('resize',fit)}}
 if(p.title||p.caption)outer.appendChild(el('div','caption',p.title||p.caption));return outer}
-function npcs(p){var outer=el('section','grid');outer.appendChild(el('h1','',p.title||'People in the scene'));var cards=el('div','cards');(p.npcs||[]).forEach(function(n){var card=el('article','card');card.appendChild(n.image_url?image(n.image_url,n.name):el('div','initial',(n.name||'?').slice(0,1).toUpperCase()));var info=el('div','details');info.appendChild(el('strong','',n.name||'Unknown figure'));if(n.subtitle)info.appendChild(el('small','',n.subtitle));card.appendChild(info);cards.appendChild(card)});if(!(p.npcs||[]).length)cards.appendChild(el('p','','No NPCs selected'));outer.appendChild(cards);return outer}
-function draw(state){var p=state.payload||{},mode=state.mode||'blank';stage.replaceChildren();if(mode==='image'||mode==='combat')stage.appendChild(map(p,mode==='combat'));else if(mode==='npc-grid')stage.appendChild(npcs(p));else if(mode==='table-result'){var s=scene(p,mode);s.appendChild(el('h1','',String(p.die||'d20')+' → '+String(p.roll||'?')));s.appendChild(el('p','',p.result||''));stage.appendChild(s)}else stage.appendChild(scene(p,mode));banner.textContent=p.banner&&p.banner.text||''}
+function npcs(p){var outer=el('section','grid');outer.appendChild(el('h1','',p.title||'People in the scene'));var cards=el('div','cards');cards.dataset.count=String((p.npcs||[]).length);cards.dataset.dense=(p.npcs||[]).length>=7?'yes':'no';(p.npcs||[]).forEach(function(n){var card=el('article','card');card.appendChild(n.image_url?image(n.image_url,n.name):el('div','initial',(n.name||'?').slice(0,1).toUpperCase()));var info=el('div','details');info.appendChild(el('strong','',n.name||'Unknown figure'));if(n.subtitle)info.appendChild(el('small','',n.subtitle));card.appendChild(info);cards.appendChild(card)});if(!(p.npcs||[]).length)cards.appendChild(el('p','','No NPCs selected'));outer.appendChild(cards);return outer}
+function draw(state){var p=state.payload||{},mode=state.mode||'blank';if(mapObserver){mapObserver.disconnect();mapObserver=null}stage.replaceChildren();if(mode==='image'||mode==='combat')stage.appendChild(map(p,mode==='combat'));else if(mode==='npc-grid')stage.appendChild(npcs(p));else if(mode==='table-result'){var s=scene(p,mode);s.appendChild(el('h1','',String(p.die||'d20')+' → '+String(p.roll||'?')));s.appendChild(el('p','',p.result||''));stage.appendChild(s)}else stage.appendChild(scene(p,mode));banner.textContent=p.banner&&p.banner.text||''}
 async function poll(){try{var ping=await fetch('/version?key='+encodeURIComponent(key),{cache:'no-store'});if(!ping.ok)throw Error('Not connected');var version=await ping.text();if(version===last)return;var res=await fetch('/state?key='+encodeURIComponent(key),{cache:'no-store'});if(!res.ok)throw Error('Not connected');draw(await res.json());last=version}catch(e){if(!last)stage.replaceChildren(scene({title:'Waiting for laptop',subtitle:'Check the Wi-Fi connection and keep Keeper open'},'blank'))}}
-poll();setInterval(poll,850);document.addEventListener('keydown',function(e){if(e.key==='f'||e.key==='F'){document.documentElement.requestFullscreen().catch(function(){})}});
+poll();setInterval(poll,850);document.addEventListener('keydown',function(e){if(e.key==='f'||e.key==='F'){document.documentElement.requestFullscreen().catch(function(){})}if((e.key==='h'||e.key==='H')&&!e.repeat){document.body.classList.toggle('clean')}});
 })();
 </script></body></html>`;
 }
