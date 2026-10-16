@@ -110,6 +110,26 @@ describe('LivePlayerDisplayControls reliability', () => {
     expect(publishCampaignDisplayStateWithStatus.mock.calls.filter(([,state])=>state.mode==='combat')).toHaveLength(0);
   });
 
+  test('new custom monster token remains off the player HUD until the GM reveals it', async () => {
+    apiClient.get.mockImplementation(url => Promise.resolve({
+      data: url.endsWith('/maps') ? [{ id:'gm-map-one', name:'Ambush Clearing', image_url:'https://example.test/clearing.jpg' }] : [],
+    }));
+    render(<LivePlayerDisplayControls campaignId="manual-actor-test" />);
+    await screen.findByRole('option', { name:'Ambush Clearing' });
+    fireEvent.change(screen.getByRole('combobox', { name:/Saved map/i }), { target:{ value:'gm-map-one' } });
+    fireEvent.change(screen.getByRole('textbox', { name:/New creature token name/i }), { target:{ value:'Wolf in the bushes' } });
+    fireEvent.click(screen.getByRole('button', { name:/Add Creature Token/i }));
+    expect(await screen.findByRole('button', { name:/Move Wolf in the bushes/i })).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name:/Start \/ Update Combat HUD/i })[0]);
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus.mock.calls.some(([,state])=>state.mode==='combat')).toBe(true));
+    let latest=publishCampaignDisplayStateWithStatus.mock.calls.filter(([,state])=>state.mode==='combat').at(-1)[1];
+    expect(JSON.stringify(latest)).not.toContain('Wolf in the bushes');
+    fireEvent.click(screen.getByRole('button', { name:'Hidden' }));
+    fireEvent.click(screen.getAllByRole('button', { name:/Start \/ Update Combat HUD/i })[0]);
+    latest=publishCampaignDisplayStateWithStatus.mock.calls.filter(([,state])=>state.mode==='combat').at(-1)[1];
+    expect(latest.payload.tokens.some(token=>token.name==='Wolf in the bushes')).toBe(true);
+  });
+
   test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
     fireEvent.click(screen.getAllByRole('button', { name: /Battle Starting!/i })[0]);
