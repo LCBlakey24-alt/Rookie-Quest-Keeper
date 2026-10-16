@@ -61,6 +61,9 @@ const BANNER_PRESETS = [
 ];
 
 function imageFrom(item) {
+  // Offline world maps carry image_data. Prefer the real embedded picture over a
+  // stale remote URL, which would otherwise render as a missing image on TV.
+  if (typeof item?.image_data === 'string' && item.image_data.startsWith('data:image/')) return item.image_data;
   return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.portraitUrl || item?.imageUrl || item?.token_url || item?.character_image || item?.character_portrait || item?.image_data || '';
 }
 
@@ -242,8 +245,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     const safeTarget = normaliseTarget(targetId);
     const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
     const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
-    if (result.remoteSynced) {
-      toast.success('Sent to player display', { description: label });
+    if (result.remoteSynced || window.rookieDesktop?.offline) {
+      toast.success('Sent to player display', { description: window.rookieDesktop?.offline ? 'Local laptop + Wi-Fi player view' : label });
     } else {
       toast.warning('Updated locally — remote display not synced', { description: `${label} is updated in this browser. Another device will catch up when sync reconnects.` });
     }
@@ -259,7 +262,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     else delete payload.banner;
     const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
     const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
-    if (result.remoteSynced) {
+    if (result.remoteSynced || window.rookieDesktop?.offline) {
       toast.success(banner ? 'Banner sent over current display' : 'Banner cleared', { description: label });
     } else {
       toast.warning('Updated locally — remote display not synced', { description: `${label} changed in this browser. Another device will catch up when sync reconnects.` });
@@ -275,7 +278,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       subtitle: target.help,
       display_target: target.id,
     }));
-    if (result.remoteSynced) {
+    if (result.remoteSynced || window.rookieDesktop?.offline) {
       toast.success(`Display set for ${target.label}`);
     } else {
       toast.warning('Display set locally — remote display not synced', { description: `${target.label} is ready in this browser. Another device will catch up when sync reconnects.` });
@@ -295,12 +298,18 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
   const copyDisplayLink = async (targetId = displayTarget) => {
     const safeTarget = normaliseTarget(targetId);
-    const url = `${window.location.origin}${displayUrlFor(safeTarget)}`;
+    let url = `${window.location.origin}${displayUrlFor(safeTarget)}`;
+    if (window.rookieDesktop?.offline && window.rookieDesktop?.getLanDisplayLink) {
+      const result = await window.rookieDesktop.getLanDisplayLink();
+      if (!result?.url) { toast.error(result?.error || 'Could not open the Wi-Fi display'); return; }
+      url = result.url;
+      if (url.includes('127.0.0.1')) toast.warning('No Wi-Fi address found: check the laptop is on the same network as the TV.');
+    }
     try {
       await navigator.clipboard.writeText(url);
-      toast.success(`${DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || 'Display'} link copied`);
+      toast.success('Player display link copied', { description: window.rookieDesktop?.offline ? 'Open it in a browser on a device using the same Wi-Fi.' : 'Player display link ready.' });
     } catch {
-      toast.info(url);
+      toast.info(url, { duration: 12000 });
     }
   };
 
@@ -327,6 +336,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   };
 
   const sendNpcGrid = () => {
+    if (selectedNpcs.length === 0) { toast.error('Select at least one NPC first'); return; }
     publish('npc-grid', {
       title: sceneTitle || 'Who you can see',
       eyebrow: 'People in the scene',
@@ -340,6 +350,34 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         image_url: imageFrom(npc),
       })),
     });
+  };
+
+  const sendLaptopMap = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 25 * 1024 * 1024) {
+      toast.error('Choose a PNG, JPG or WebP map smaller than 25 MB'); return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => toast.error('Could not read that map file');
+    reader.onload = () => {
+      const picture = new Image();
+      picture.onerror = () => toast.error('Could not decode that map image');
+      picture.onload = () => {
+        try {
+          const scale = Math.min(1, 2600 / Math.max(picture.width, picture.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(picture.width * scale));
+          canvas.height = Math.max(1, Math.round(picture.height * scale));
+          canvas.getContext('2d').drawImage(picture, 0, 0, canvas.width, canvas.height);
+          const url = canvas.toDataURL('image/jpeg', 0.83);
+          if (url.length > 4.5 * 1024 * 1024) { toast.error('Map is too large after resizing; try a smaller image'); return; }
+          setImageUrl(url);
+          void publish('image', { title: file.name.replace(/\.[^.]+$/, '') || 'Map', image_url: url, party: partyPayload });
+        } catch { toast.error('Could not prepare the map for display'); }
+      };
+      picture.src = String(reader.result || '');
+    };
+    reader.readAsDataURL(file);
   };
 
   const combatPayload = (activeId = activeCombatantId, roundValue = combatRound) => ({
@@ -479,7 +517,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         <div style={actionsStyle}>
           <button type="button" onClick={() => openPlayerDisplay('standing-tv')} style={primaryButtonStyle}><Projector size={14} /> Open TV</button>
           <button type="button" onClick={() => openPlayerDisplay('virtual-table')} style={primaryButtonStyle}><Table2 size={14} /> Open Table</button>
-          <button type="button" onClick={() => copyDisplayLink(displayTarget)} style={secondaryButtonStyle}><Copy size={14} /> Copy Link</button>
+          <button type="button" onClick={() => copyDisplayLink(displayTarget)} style={secondaryButtonStyle}><Copy size={14} /> {window.rookieDesktop?.offline ? 'Copy Wi-Fi Link' : 'Copy Link'}</button>
           <button type="button" onClick={refreshResources} disabled={refreshingResources} style={secondaryButtonStyle}><RefreshCw size={14} /> {refreshingResources ? 'Refreshing…' : 'Refresh Data'}</button>
           <button type="button" onClick={() => sendFlowPreset(FLOW_PRESETS[0])} style={dangerButtonStyle}><X size={14} /> Blackout</button>
           <button type="button" onClick={() => publishBannerOverlay(null)} style={secondaryButtonStyle}><X size={14} /> Clear Banner</button>
@@ -500,6 +538,24 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       )}
 
       <div style={bodyStyle}>
+        <section style={npcBoxStyle} data-testid="display-npc-multiselect">
+          <div style={npcHeaderStyle}>
+            <div><strong>Show NPCs together</strong><p style={hintStyle}>Tick as many NPCs as you need, then reveal them all in one go.</p></div>
+            <span style={combatToolbarStyle}>
+              <button type="button" onClick={() => setSelectedNpcIds(npcs.slice(0, 24).map(npc => String(npc.id)))} style={miniButtonStyle}>Select All</button>
+              <button type="button" onClick={() => setSelectedNpcIds([])} style={miniButtonStyle}>Clear</button>
+              <button type="button" disabled={!selectedNpcs.length} onClick={sendNpcGrid} style={primaryButtonStyle}><Users size={14} /> Show Selected ({selectedNpcs.length})</button>
+            </span>
+          </div>
+          <div style={npcGridStyle}>
+            {npcs.map(npc => <label key={npc.id} style={npcPillStyle(selectedNpcIds.includes(String(npc.id)))}><input type="checkbox" checked={selectedNpcIds.includes(String(npc.id))} onChange={() => toggleNpc(npc.id)} /><span>{npc.name || 'Unnamed NPC'}</span></label>)}
+            {npcs.length === 0 && <p style={mutedStyle}>No NPCs found yet. Add NPCs in Campaign Prep, then press Refresh Data.</p>}
+          </div>
+        </section>
+        <section style={quickSendPanelStyle}>
+          <div style={quickSendHeaderStyle}><div><strong>Show a map from this laptop</strong><p>Works offline. The image is resized and sent straight to the TV/table — no upload service required.</p></div><span style={safeBadgeStyle}><ImageIcon size={13} /> Local image</span></div>
+          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Choose a local battle or world map" onChange={event => { sendLaptopMap(event.target.files?.[0]); event.target.value = ''; }} style={{ ...inputStyle, paddingTop: 7 }} />
+        </section>
         <section style={commandDeckStyle}>
           <div style={targetGridStyle} data-testid="player-display-target-selector">
             {DISPLAY_TARGETS.map(target => {
@@ -593,11 +649,6 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             </section>
 
             <section style={controlGridStyle}>
-              <section style={npcBoxStyle}>
-                <div style={npcHeaderStyle}><strong>NPC portraits visible to players</strong><button type="button" onClick={() => setSelectedNpcIds([])} style={miniButtonStyle}><RefreshCw size={12} /> Clear</button></div>
-                <div style={npcGridStyle}>{npcs.slice(0, 24).map(npc => <label key={npc.id} style={npcPillStyle(selectedNpcIds.includes(String(npc.id)))}><input type="checkbox" checked={selectedNpcIds.includes(String(npc.id))} onChange={() => toggleNpc(npc.id)} /><span>{npc.name || 'Unnamed NPC'}</span></label>)}{npcs.length === 0 && <p style={mutedStyle}>No NPCs found yet.</p>}</div>
-              </section>
-
               <section style={npcBoxStyle}>
                 <div style={npcHeaderStyle}><strong>Visible enemies/NPCs for combat display</strong><span style={combatToolbarStyle}><button type="button" onClick={selectAllCombatants} style={miniButtonStyle}>All</button><button type="button" onClick={clearCombatants} style={miniButtonStyle}>None</button></span></div>
                 <p style={hintStyle}>The party is added automatically. Tick enemies/NPCs the players can currently see. Private notes and hidden creatures stay off the display.</p>
