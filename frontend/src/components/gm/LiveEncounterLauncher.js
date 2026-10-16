@@ -38,6 +38,15 @@ export function persistQueuedNpcIds(storage, campaignId, npcIds) {
   }
 }
 
+export function createImpromptuEncounter(combatants, timestamp = Date.now()) {
+  return {
+    id: `impromptu-${timestamp}`,
+    name: 'Impromptu Battle',
+    combatants: safeArray(combatants),
+    temporary: true,
+  };
+}
+
 function numberOr(value, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -219,7 +228,6 @@ export default function LiveEncounterLauncher({ campaignId }) {
   };
 
   const launch = () => {
-    if (!selected) return;
     const participantLoadFailed = loadErrors.some(item => ['players', 'npcs', 'liveState'].includes(item.key));
     if (participantLoadFailed) {
       toast.error('Participant data is incomplete. Retry Encounter Review before starting combat so nobody is accidentally omitted.');
@@ -236,10 +244,24 @@ export default function LiveEncounterLauncher({ campaignId }) {
     npcs.filter(npc => extraNpcIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
     quickCombatants.forEach(combatant => { combatants = appendUnique(combatants, combatant); });
 
-    try { localStorage.setItem(`gm.lastEncounter.${campaignId}`, selected.id || ''); } catch { /* ignore */ }
+    if (!combatants.length) {
+      toast.error('Choose a player, NPC or creature before starting combat.');
+      return;
+    }
+
+    if (selected) {
+      try { localStorage.setItem(`gm.lastEncounter.${campaignId}`, selected.id || ''); } catch { /* ignore */ }
+    }
     clearQueuedNpcIds(localStorage, campaignId);
     navigate(`/combat/${campaignId}`, {
-      state: { scenario: { ...selected, combatants, name: selected.name || 'Live Encounter' }, campaignId, campaignName, source: 'live-play' },
+      state: {
+        scenario: selected
+          ? { ...selected, combatants, name: selected.name || 'Live Encounter' }
+          : createImpromptuEncounter(combatants),
+        campaignId,
+        campaignName,
+        source: 'live-play',
+      },
     });
   };
 
@@ -250,18 +272,18 @@ export default function LiveEncounterLauncher({ campaignId }) {
   if (!scenarios.length && scenarioLoadFailed) {
     return <div style={{ display: 'grid', gap: 7 }}><LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact /><div style={emptyStyle}>Saved encounters could not be loaded. Retry instead of treating this as an empty campaign.</div></div>;
   }
-  if (!scenarios.length) return <div style={emptyStyle}>No saved encounters yet. Build one in Campaign Prep, then it will appear here.</div>;
-
   return (
     <div data-testid="live-encounter-launcher" style={shellStyle}>
       <header style={headerStyle}>
         <span style={{ minWidth: 0 }}><strong style={headerTitleStyle}><Swords size={17} /> Encounter Review</strong><span style={headerMetaStyle}>Choose who is in this fight, then start.</span></span>
-        <select value={selectedId} onChange={event => setSelectedId(event.target.value)} style={selectStyle}>
+        <select aria-label="Choose battle type" value={selectedId} onChange={event => setSelectedId(event.target.value)} style={selectStyle}>
+          <option value="">Impromptu Battle — build as you go</option>
           {scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Untitled Encounter'}</option>)}
         </select>
       </header>
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
+      {!selected && <div style={descriptionStyle}>No preparation needed. Add the party, a saved NPC, or a quick creature and start combat. You can recruit more enemies from the combat tracker at any time.</div>}
       {selected?.description && <div style={descriptionStyle}>{selected.description}</div>}
 
       {queuedNpcs.length > 0 && (
@@ -318,7 +340,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
       <footer style={footerStyle}>
         <span style={footerTextStyle}>This run does not rewrite the saved encounter.</span>
-        <button type="button" onClick={launch} style={launchButtonStyle}><Play size={15} /> Start Encounter</button>
+        <button type="button" onClick={launch} style={launchButtonStyle}><Play size={15} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
       </footer>
     </div>
   );

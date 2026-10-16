@@ -1,4 +1,4 @@
-import { clearQueuedNpcIds, persistQueuedNpcIds, playerToCombatant, readQueuedNpcIds } from './LiveEncounterLauncher';
+import { clearQueuedNpcIds, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, readQueuedNpcIds } from './LiveEncounterLauncher';
 
 describe('LiveEncounterLauncher player combat handoff', () => {
   test('preserves temp HP, death saves and concentration', () => {
@@ -67,5 +67,23 @@ describe('LiveEncounterLauncher queued NPC handoff', () => {
 
     const failingStorage = { setItem: jest.fn(() => { throw new Error('storage full'); }) };
     expect(persistQueuedNpcIds(failingStorage, 'campaign-1', [])).toBe(false);
+  });
+});
+
+describe('Impromptu live battles', () => {
+  test('creates a one-off scenario without editing a saved encounter', () => {
+    const party = [{ id: 'hero-1', name: 'Hero', type: 'player', hp: 20 }];
+    const combat = createImpromptuEncounter(party, 123456);
+    expect(combat).toEqual({
+      id: 'impromptu-123456',
+      name: 'Impromptu Battle',
+      combatants: party,
+      temporary: true,
+    });
+    expect(combat.combatants).toEqual(party);
+  });
+
+  test('safely handles an empty starting roster', () => {
+    expect(createImpromptuEncounter(null, 7).combatants).toEqual([]);
   });
 });
