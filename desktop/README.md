@@ -2,6 +2,22 @@
 
 Windows-first, laptop-only edition of Rookie Quest Keeper.
 
+## Quick start for a table session
+
+1. Open the **Desktop Windows Build** workflow on the [GitHub Actions page](https://github.com/LCBlakey24-alt/Rookie-Quest-Keeper/actions/workflows/desktop-windows.yml).
+2. Open the successful run for your preferred tested commit, scroll to **Artifacts**, and download **Rookie-Quest-Keeper-Desktop-Windows**. Unzip it and run the Windows `.exe` installer. The installer is currently unsigned: Windows SmartScreen may ask you to review it.
+3. Launch **Rookie Quest Keeper** using the Windows Start menu or desktop shortcut. This desktop workspace needs no login, Atlas, Render, or Vercel.
+4. Open **Campaigns** to create/open a local campaign. To bring your existing campaign data, import a compatible private `.rqkpack` in Campaigns. Nothing is automatically copied from your online account.
+5. In **Live Play**, use **Extended Display Command Centre**. Choose **Open Table** for a flat battle map or **Open TV** for a normal upright TV. Drag the separate player window to your extended HDMI monitor and use **F** for fullscreen.
+6. **For a TV, tablet or another device on the same Wi-Fi instead of HDMI:** click **Copy Wi-Fi Link**. Paste that link into the other device's browser. Accept a Windows firewall permission prompt only for your trusted **Private** network. The laptop must stay awake and Keeper must remain running.
+7. Choose a saved map or **Choose a local battle or world map** to send a picture. Tick NPCs, then press **Show Selected** to reveal them together. The player screen hides GM-only notes and enemy mechanics.
+
+**Two different second-screen choices:** an HDMI/Windows extended monitor needs no Wi-Fi server. A separate browser device needs both devices on the same private network and the **Copy Wi-Fi Link** link. A TV without a web browser may need HDMI or another browser-capable device.
+
+**Save and backup:** maps selected inside the desktop version are saved under Keeper's local application-data directory (`campaign-packs/local-media`), and **Back up now** includes those files. Export/backup your campaign before reinstalling Windows or changing computers. All offline campaigns stay on this laptop, not automatically in the cloud.
+
+**Testing note:** Installer artifacts built by pull requests are test builds. Only use a successful Actions artifact; the public auto-updater will not offer an unpublished draft.
+
 ## Current goals
 
 - Runs without Vercel, Render or MongoDB Atlas.
