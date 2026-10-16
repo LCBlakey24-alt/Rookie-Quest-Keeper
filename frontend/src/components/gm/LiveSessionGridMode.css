@@ -148,3 +148,49 @@
     min-height: 72px !important;
   }
 }
+
+/* Desktop GM: single-click vertical command rail. Keep play area spacious. */
+@media (min-width: 720px) {
+  .rqk-live-grid {
+    grid-template-columns: minmax(150px, 180px) minmax(0, 1fr) !important;
+    align-items: start;
+  }
+  .rqk-live-grid__primary-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    position: sticky !important;
+    top: 8px;
+  }
+  .rqk-live-grid__nav-button {
+    width: 100%;
+    min-height: 46px !important;
+    justify-content: flex-start !important;
+    padding: 0 12px !important;
+    white-space: nowrap;
+  }
+  .rqk-live-grid__main {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* When projecting from a small laptop, drop the rail above the tool. */
+@media (max-width: 719px) {
+  .rqk-live-grid { grid-template-columns: minmax(0,1fr) !important; }
+  .rqk-live-grid__primary-nav {
+    display: grid !important;
+    flex-direction: row !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .rqk-live-grid__nav-button {
+    width: 100%;
+    justify-content: center !important;
+    padding: 6px 3px !important;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 380px) {
+  .rqk-live-grid__primary-nav { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
