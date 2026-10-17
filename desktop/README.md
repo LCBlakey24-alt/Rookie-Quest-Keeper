@@ -81,6 +81,29 @@ A player's separate phone/tablet does not automatically share the laptop's
 live state. A trusted local Wi-Fi/LAN sync service or separate offline import
 workflow must be implemented and tested before claiming multi-device sync.
 
+## Portable campaign backup for laptop replacement (Desktop v0.3.6)
+
+For extra protection, use **Updates & backups → Export backup to USB / folder**.
+Keeper creates a dated **Rookie-Quest-Keeper-Backup-...** folder containing:
+
+- `workspace.json` — campaigns, characters, local session notes and reference data.
+- `manifest.json` — backup metadata and the version of the data.
+- `campaign-packs/` — imported maps, audio and document files, when present.
+
+Keep the **entire folder together**, and copy it to a USB stick, other disk,
+or a private Drive folder. This copy is never uploaded automatically.
+
+To recover on a new laptop, install the same or newer Keeper desktop app, open
+**Updates & backups → Restore from saved folder**, and select the backup folder.
+Keeper validates the workspace before importing. If the current laptop already
+has campaign data, it first saves a safety snapshot of the existing workspace.
+
+Normal Windows app updates preserve the Electron app identity and local
+workspace. For offline updates, transfer the next Windows installer and run
+it over the same installation; do **not** choose an uninstaller option that
+removes user data. This is a precaution, not a replacement for regular
+portable backups.
+
 ## Current offline scope
 
 The local Keeper transport supports the main character/campaign workspace, including campaigns, characters, player views, notes, handouts, quests, story arcs, NPCs, locations, maps, calendar events, encounters, factions, roll tables, loot tables, treasury data, session recaps, rests and character progression.

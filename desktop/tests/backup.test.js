@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { createBackup, listBackups, restoreBackup, checkWorkspace } = require('../backup');
+const { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, restorePortableBackup } = require('../backup');
 
 function workspace(name) {
   return JSON.stringify({
@@ -62,3 +62,47 @@ test('backup identifiers are distinct and a failed backup does not delete older 
   assert.throws(() => createBackup(root, '', 'before-update'), /No saved workspace/);
   assert.equal(listBackups(root).length, 2);
 }));
+
+test('portable backup can move to another laptop without losing imported maps', () => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-userdata-'));
+  const usbFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-portable-'));
+  const newLaptop = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-new-laptop-'));
+  try {
+    const image = path.join(userData, 'campaign-packs', 'tia-karta', 'map.jpg');
+    fs.mkdirSync(path.dirname(image), { recursive: true });
+    fs.writeFileSync(image, 'original private map');
+    const created = exportPortableBackup(userData, workspace('Tia Karta'), usbFolder);
+    assert.equal(fs.existsSync(path.join(created.export_path, 'manifest.json')), true);
+    assert.equal(fs.readFileSync(path.join(created.export_path, 'campaign-packs', 'tia-karta', 'map.jpg'), 'utf8'), 'original private map');
+    const restored = restorePortableBackup(newLaptop, created.export_path, workspace('Current laptop'));
+    assert.equal(JSON.parse(restored.workspace).campaigns[0].name, 'Tia Karta');
+    assert.equal(fs.readFileSync(path.join(newLaptop, 'campaign-packs', 'tia-karta', 'map.jpg'), 'utf8'), 'original private map');
+    assert.equal(restored.safety_backup.reason, 'before-restore');
+  } finally {
+    for (const folder of [userData, usbFolder, newLaptop]) fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test('portable recovery rejects corrupt copies and media links before changing active data', () => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-userdata-'));
+  const usbFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-portable-'));
+  try {
+    const created = exportPortableBackup(userData, workspace('Original'), usbFolder);
+    const saved = path.join(created.export_path, 'workspace.json');
+    fs.writeFileSync(saved, '{bad json');
+    assert.throws(() => restorePortableBackup(userData, created.export_path, workspace('Keep me')), /valid JSON/);
+    assert.equal(listBackups(userData).length, 1);
+    fs.writeFileSync(saved, workspace('Valid'));
+    if (process.platform !== 'win32') {
+      // Standard Windows CI accounts usually lack symbolic-link privileges.
+      const media = path.join(created.export_path, 'campaign-packs');
+      fs.mkdirSync(media);
+      fs.symlinkSync(path.join(userData, 'workspace-backups'), path.join(media, 'unsafe'));
+      assert.throws(() => restorePortableBackup(userData, created.export_path, workspace('Keep me')), /unsafe media link/);
+    }
+    assert.equal(listBackups(userData).length, 1);
+    assert.throws(() => exportPortableBackup(userData, workspace('Keep me'), userData), /outside Keeper application data/);
+  } finally {
+    for (const folder of [userData, usbFolder]) fs.rmSync(folder, { recursive: true, force: true });
+  }
+});

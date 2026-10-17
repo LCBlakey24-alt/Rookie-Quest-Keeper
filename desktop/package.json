@@ -1,6 +1,6 @@
 {
   "name": "rookie-quest-keeper-desktop",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "private": true,
   "description": "Offline Windows desktop edition of Rookie Quest Keeper",
   "main": "main.js",
