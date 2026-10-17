@@ -81,6 +81,7 @@ async function compressImage(file) {
 export default function WorldMapTab({ campaignId }) {
   const [worldMaps, setWorldMaps] = useState([]);
   const [selectedMap, setSelectedMap] = useState(null);
+  const [brokenMapImageId, setBrokenMapImageId] = useState('');
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
@@ -159,7 +160,17 @@ export default function WorldMapTab({ campaignId }) {
     }
     setSaving(true);
     try {
-      const payload = { ...newMapData, name: newMapData.name.trim(), scale_value: Number(newMapData.scale_value) || 50 };
+      // Electron stores the image as a real local file included in desktop backups.
+      // Keep the campaign record small so many maps do not exhaust localStorage.
+      const savedImage = window.rookieDesktop?.storeLocalMapImage
+        ? await window.rookieDesktop.storeLocalMapImage(newMapData.image_data)
+        : null;
+      const payload = {
+        ...newMapData,
+        name: newMapData.name.trim(),
+        scale_value: Number(newMapData.scale_value) || 50,
+        ...(savedImage?.url ? { image_url: savedImage.url, image_data: '' } : {}),
+      };
       const response = await apiClient.post(`/campaigns/${campaignId}/world-maps`, payload);
       const created = response.data;
       setWorldMaps(prev => [...prev, created]);
@@ -305,7 +316,25 @@ export default function WorldMapTab({ campaignId }) {
       <main style={mapStageStyle}>
         {selectedMap ? (
           <div ref={mapRef} onClick={handleMapClick} style={mapCanvasStyle(mode === 'addPin')}>
-            <img src={mapImageSource(selectedMap)} alt={selectedMap.name} style={mapImageStyle} />
+            {(() => {
+              const original = mapImageSource(selectedMap);
+              const backup = selectedMap.image_data && selectedMap.image_data !== original ? selectedMap.image_data : '';
+              const failed = brokenMapImageId === String(selectedMap.id);
+              const backupFailed = brokenMapImageId === `${selectedMap.id}:backup`;
+              return backupFailed || (!original && !backup) || (failed && !backup) ? (
+                <div role="status" style={{ ...emptyStateStyle, minHeight: 250 }}>
+                  This map image couldn't load. Re-upload it from your laptop to restore the picture.
+                </div>
+              ) : (
+                <img
+                  key={`${selectedMap.id}-${failed ? 'backup' : 'primary'}`}
+                  src={failed ? backup : original}
+                  alt={selectedMap.name}
+                  style={mapImageStyle}
+                  onError={() => setBrokenMapImageId(failed ? `${selectedMap.id}:backup` : String(selectedMap.id))}
+                />
+              );
+            })()}
             {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} onClick={openPin} />)}
           </div>
         ) : (

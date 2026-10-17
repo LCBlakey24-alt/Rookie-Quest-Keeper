@@ -55,16 +55,24 @@ function mergeRecords(existing = [], incoming = []) {
 
 function applyAttachmentUrls(workspace, attachmentUrls = {}) {
   const copy = JSON.parse(JSON.stringify(workspace));
+  const mapCollections = new Set(['maps', 'world-maps', 'worldMaps', 'local-maps', 'localMaps']);
+  const portraitCollections = new Set(['npcs', 'custom-creatures']);
   for (const campaignCollections of Object.values(copy.collections || {})) {
-    const handouts = campaignCollections?.handouts;
-    if (!Array.isArray(handouts)) continue;
-    for (const handout of handouts) {
-      if (!handout?.attachment_ref) continue;
-      const url = attachmentUrls[handout.attachment_ref];
-      if (!url) continue;
-      handout.attachment_url = url;
-      if (String(handout.attachment_type || '').startsWith('image/')) {
-        handout.image_url = url;
+    for (const [collectionName, records] of Object.entries(campaignCollections || {})) {
+      if (!Array.isArray(records)) continue;
+      for (const record of records) {
+        if (!record || typeof record !== 'object') continue;
+        const ref = record.attachment_ref || record.image_ref || record.map_attachment_ref || record.portrait_ref;
+        const url = ref ? attachmentUrls[String(ref)] : '';
+        if (!url) continue;
+        if (record.attachment_ref) record.attachment_url = url;
+        if (mapCollections.has(collectionName)) record.image_url = url;
+        else if (portraitCollections.has(collectionName)) {
+          record.portrait_url = url;
+          record.image_url = url;
+        } else if (String(record.attachment_type || '').startsWith('image/') || record.image_ref) {
+          record.image_url = url;
+        }
       }
     }
   }

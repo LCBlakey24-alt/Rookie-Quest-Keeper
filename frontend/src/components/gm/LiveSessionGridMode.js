@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
+import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Music2, Swords, Target, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
 import './LiveSessionGridMode.css';
 
@@ -18,15 +18,17 @@ export const LIVE_GRID_TOOLS = [
   { id: 'combat', label: 'Encounters', icon: Swords, primary: true },
   { id: 'npcs', label: 'NPCs', icon: UserCircle, primary: true },
   { id: 'notes', label: 'Notes', icon: FileText, primary: true },
+  { id: 'maps', label: 'Maps', icon: Map, primary: true },
+  { id: 'player-display', label: 'Display', icon: Monitor, primary: true },
+  { id: 'sound', label: 'Music', icon: Music2, primary: true },
   { id: 'more', label: 'More', icon: MoreHorizontal, primary: true },
   { id: 'party', label: 'Party', icon: Users },
-  { id: 'maps', label: 'Maps', icon: Map },
+  { id: 'player-companion', label: 'Player Phones', icon: Users },
   { id: 'handouts', label: 'Handouts', icon: Mail },
   { id: 'tables', label: 'Roll Tables', icon: Compass },
   { id: 'reference-hub', label: 'Rules', icon: BookOpen },
   { id: 'quick-dice', label: 'Dice', icon: Dices },
   { id: 'loot', label: 'Loot', icon: Coins },
-  { id: 'player-display', label: 'Player Display', icon: Monitor },
 ];
 
 const SECONDARY_IDS = new Set(LIVE_GRID_TOOLS.filter(tool => !tool.primary).map(tool => tool.id));
@@ -74,7 +76,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
 
   return (
     <div data-testid="live-session-grid" className="rqk-live-grid" style={shellStyle}>
-      <nav className="rqk-live-grid__primary-nav" style={primaryNavStyle} aria-label="Live Play">
+      <nav className="rqk-live-grid__primary-nav" style={primaryNavStyle} aria-label="GM Live Play tools">
         {LIVE_GRID_TOOLS.filter(tool => tool.primary).map(tool => {
           const Icon = tool.icon;
           const selected = primaryActiveId === tool.id;
@@ -98,7 +100,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
         {activeTool !== 'overview' && activeTool !== 'more' && (
           <header className="rqk-live-grid__tool-header" style={toolHeaderStyle}>
             <div style={toolTitleStyle}><ActiveIcon size={18} /><strong>{active.label}</strong></div>
-            <span className="rqk-live-grid__live-pill" style={livePillStyle}>Live Play</span>
+            <span className="rqk-live-grid__live-pill" style={livePillStyle}>GM only · Local first</span>
           </header>
         )}
         <section className="rqk-live-grid__tool-body" style={toolBodyStyle}>
@@ -141,7 +143,8 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
     <div className="rqk-live-grid__run" style={runScreenStyle}>
       <header style={runHeaderStyle}>
         <p style={eyebrowStyle}>Live Play</p>
-        <h2 style={runTitleStyle}>What do you need?</h2>
+        <h2 style={runTitleStyle}>Your GM command desk</h2>
+        <p style={{ color: rq.soft, margin: '5px 0 0', fontSize: 13 }}>Keep the session moving: maps, encounters and NPCs are one click away. Use Notes to record decisions while you play.</p>
       </header>
 
       {continueItems.length > 0 && (
@@ -210,10 +213,10 @@ function EmptyTool({ title }) {
   return <div style={emptyStyle}><strong>{title}</strong><span>This tool is available from Live Play.</span></div>;
 }
 
-const shellStyle = { display: 'grid', gap: 8, minWidth: 0, fontFamily: fontStack };
-const primaryNavStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 1, background: rq.line, border: `1px solid ${rq.line}` };
-const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: active ? `1px solid ${rq.pink}` : '1px solid transparent', background: active ? 'rgba(124,203,255,0.10)' : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
-const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}` };
+const shellStyle = { display: 'grid', gridTemplateColumns: 'minmax(150px, 180px) minmax(0, 1fr)', alignItems: 'start', gap: 8, minWidth: 0, fontFamily: fontStack };
+const primaryNavStyle = { display: 'flex', flexDirection: 'column', gap: 1, background: rq.line, border: `1px solid ${rq.line}`, position: 'sticky', top: 8, zIndex: 8 };
+const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 46, border: active ? `1px solid ${rq.pink}` : '1px solid transparent', background: active ? 'rgba(124,203,255,0.10)' : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 10, padding: '0 12px', cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
+const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}`, minHeight: 400 };
 const toolHeaderStyle = { minHeight: 48, padding: '0 11px', borderBottom: `1px solid ${rq.line}`, background: rq.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 };
 const toolTitleStyle = { display: 'flex', alignItems: 'center', gap: 7, color: rq.text, fontSize: 15 };
 const livePillStyle = { padding: '4px 7px', background: rq.bg, color: rq.muted, border: `1px solid ${rq.line}`, fontSize: 9, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase' };

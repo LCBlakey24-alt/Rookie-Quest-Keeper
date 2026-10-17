@@ -19,6 +19,7 @@ from data.class_progression import (
 )
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
+from utils.dndbeyond_links import parse_dndbeyond_share_link
 
 router = APIRouter()
 
@@ -600,6 +601,40 @@ async def multiclass_character(character_id: str, level_up: LevelUpRequest, user
     update_data = build_level_up_update(existing, level_up, new_class, 'multiclass')
     await db.player_characters.update_one({'id': character_id, 'user_id': username}, {'$set': update_data})
     return await get_owned_character(character_id, username)
+
+
+@router.get("/characters/{character_id}/dndbeyond-link")
+async def get_character_dndbeyond_link(character_id: str, username: str = Depends(get_current_user)):
+    """Return only this player's linked sheet address; no D&D Beyond requests."""
+    character = await get_owned_character(character_id, username)
+    return character.get("dndbeyond_link") or { "sync_status": "not_available", "import_status": "not_linked" }
+
+
+@router.put("/characters/{character_id}/dndbeyond-link")
+async def save_character_dndbeyond_link(character_id: str, payload: Dict[str, Any], username: str = Depends(get_current_user)):
+    """Save a share link; never modify stats, fetch internal APIs or copy licensed rules."""
+    await get_owned_character(character_id, username)
+    try:
+        link = parse_dndbeyond_share_link(payload.get("url"))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    link["linked_at"] = datetime.now(timezone.utc).isoformat()
+    await db.player_characters.update_one(
+        {"id": character_id, "user_id": username},
+        {"$set": {"dndbeyond_link": link}},
+    )
+    return link
+
+
+@router.delete("/characters/{character_id}/dndbeyond-link")
+async def remove_character_dndbeyond_link(character_id: str, username: str = Depends(get_current_user)):
+    """Unlink only this player's character; leave all Keeper sheet data untouched."""
+    await get_owned_character(character_id, username)
+    await db.player_characters.update_one(
+        {"id": character_id, "user_id": username},
+        {"$unset": {"dndbeyond_link": ""}},
+    )
+    return {"message": "D&D Beyond link removed", "sync_status": "not_available"}
 
 
 @router.post("/characters/{character_id}/join-campaign")

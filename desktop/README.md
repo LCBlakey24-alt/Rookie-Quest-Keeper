@@ -1,6 +1,72 @@
+## Map fitting, weather and world-party travel (0.4.1)
+
+- In Live Play → Display, select an image or upload a map. Choose **Map use: Battle map / World / travel map**. World maps show one party marker, not individual encounter creatures.
+- The GM grid chooses **whole integer rows and columns matched to the actual image dimensions**, keeping cells as square as the aspect ratio permits and never cutting partial cells at image edges. The ruler and snap tool share these calculations.
+- Add lightweight atmosphere: Rain, Embers, Heat shimmer, Snow. Effects are fitted to the map image rather than the TV letterbox and respond to reduced-motion preferences.
+- Click **Ping this area** on the GM map to briefly mark a point on the player's map. Use **Move party marker** on world maps to move the party location.
+- Existing fog, ruler, draggable creature tokens and saved encounters remain available. Fog and tactical settings save locally per map.
+- Player Phones in Live Play provides hosted-player PWA join-code setup, and accurately warns that the offline Windows campaign does **not yet sync** with hosted player character data. Spectator links must never act as player-character credentials. The separate secure-sync roadmap is in `docs/PLAYER_COMPANION_SYNC_PLAN.md`.
+- A full edge-to-edge grid of perfectly square pixels is mathematically impossible for an arbitrary image ratio: Keeper chooses a best-fit near-square integer grid with no cropped cells.
+
 # Rookie Quest Keeper Desktop
 
 Windows-first, laptop-only edition of Rookie Quest Keeper.
+
+## Quick start for a table session
+
+1. Open the **Desktop Windows Build** workflow on the [GitHub Actions page](https://github.com/LCBlakey24-alt/Rookie-Quest-Keeper/actions/workflows/desktop-windows.yml).
+2. Open the successful run for your preferred tested commit, scroll to **Artifacts**, and download **Rookie-Quest-Keeper-Desktop-Windows**. Unzip it and run the Windows `.exe` installer. The installer is currently unsigned: Windows SmartScreen may ask you to review it.
+3. Launch **Rookie Quest Keeper** using the Windows Start menu or desktop shortcut. This desktop workspace needs no login, Atlas, Render, or Vercel.
+4. Open **Campaigns** to create/open a local campaign. To bring your existing campaign data, import a compatible private `.rqkpack` in Campaigns. Nothing is automatically copied from your online account.
+5. In **Live Play**, use **Extended Display Command Centre**. Choose **Open Table** for a flat battle map or **Open TV** for a normal upright TV. Drag the separate player window to your extended HDMI monitor and use **F** for fullscreen.
+6. **For a TV, tablet or another device on the same Wi-Fi instead of HDMI:** click **Copy Wi-Fi Link**. Paste that link into the other device's browser. Accept a Windows firewall permission prompt only for your trusted **Private** network. The laptop must stay awake and Keeper must remain running.
+7. Choose a saved map or **Choose a local battle or world map** to send a picture. Tick NPCs, then press **Show Selected** to reveal them together. The player screen hides GM-only notes and enemy mechanics.
+
+### Live fog of war (desktop and trusted Wi-Fi)
+
+- In **Live Play → Extended Display Command Centre**, choose a saved or local map first.
+- In **Fog of War**, click **Cover map**. The GM keeps a faint map preview while the player screen starts completely covered.
+- Click areas of the map in the GM preview to reveal them. Use the **Small / Medium / Large** reveal size. **Undo reveal** reverses the most recent edit; **Reset to covered** re-hides the whole map.
+- Edits automatically save locally **per map and campaign** on this laptop, and immediately update the currently displayed map or combat HUD.
+- The player window and Wi-Fi spectator viewer show the same revealed areas. The LAN viewer filters covered combatant tokens out of its public JSON response. This is a manual reveal tool, **not yet line-of-sight automation**.
+- Fog records currently live in the local display's browser storage, separate from the desktop campaign pack. Keep the original app data intact during upgrades; an ordinary exported `.rqkpack` does not yet guarantee fog transfer to a different laptop.
+- **Another laptop may drive the projector/TV:** while Keeper runs on the GM laptop, choose **Copy Wi-Fi Link**. The second laptop opens that link in a browser on the **same private LAN/Wi-Fi**, then connects HDMI to the screen. Keep Keeper open and permit Private-network firewall access if prompted. Public internet access, cloud sync and guest networks with client isolation are not supported by this local link.
+
+### Saved encounters and draggable monster tokens (v0.4.0)
+
+- Use **Live Play → Extended Display Command Centre → Saved Battle Scenes** to save a prepared battle with its map reference, selected encounter, creature visibility choices, relative token positions, fog, grid, ruler, active combatant and round.
+- Saved battle scenes live in **local browser data for this campaign on the GM laptop**. They are *not* currently part of the imported/exported `.rqkpack` data model, so do not rely on an ordinary campaign export alone to preserve them when switching laptops.
+- To place creatures, choose a **Combat scenario** in advanced controls **or use Creature Tokens → Add Creature Token** to create a manually placed monster. New manual monsters begin **hidden** from players. Their GM-only tokens appear over the fitted map. **Drag** a token with the mouse/pointer or use arrow keys. Enable **Snap tokens to grid** if desired; squares use the configured **Squares across** figure and the source image's aspect ratio.
+- Double-click a creature's GM token to toggle whether it is eligible for player reveal. Creatures behind active fog stay omitted from the player-facing token data.
+- A scene load is **GM preview only**, not an automatic projection to the table. Click **Start / Update Combat HUD** when ready to reveal the current battle. During live combat, dragging a visible, fog-revealed token updates the Wi-Fi browser and HDMI window via the player-safe display bus.
+- The player screen remains a **read-only spectator**. Player dragging, permission controls, network-wide scene editing and automatic door/wall line of sight are separate future features.
+- Source images referenced through the portable app's `rqk-attachment://` local URLs are stored in the backed-up Windows app data. Maps added as large browser-only `data:` images may not be eligible for small local encounter snapshots.
+
+### Grid and range ruler (desktop and trusted Wi-Fi)
+
+- In **Live Play → Extended Display Command Centre**, select/upload a map. Under **Battle Map: Fog, Grid & Ruler**, choose **Show grid** and calibrate **Squares across** (assumes square cells of 5 feet).
+- Click **Distance ruler**, then click a start point and an end point in the GM map preview. The displayed distance is approximate and uses the map image's actual width/height.
+- Measurements are private until you click **Show ruler to players**. Hidden ruler endpoints are omitted from Wi-Fi player state, not merely made invisible.
+- The browser/HDMI TV and Wi-Fi spectator player screens both show the grid and any explicitly shared ruler, fitted to the map image instead of the surrounding letterbox.
+- Settings are saved per map to the GM laptop's local storage. These settings currently are not guaranteed to migrate with campaign packs. No network is required for a directly connected TV; a second laptop must be on the same private LAN.
+- Review the gaps and next ideas from the user-supplied Battle Table project in `docs/BATTLE_TABLE_REFERENCE_REVIEW.md`.
+
+### Upright portrait TV and compact VTT display
+
+- Windows should be set to **Portrait** if the physical TV is rotated upright. Keeper reads the display's actual width and height; it does not force a TV rotation itself.
+- The player window and the private Wi-Fi browser both adapt to landscape and upright portrait screens. At 1080 × 1920, NPC portraits wrap into tall grids, the standing-TV combat roster moves underneath the map and the party details become a compact strip.
+- Maps remain letterboxed rather than stretched. In combat, tokens are positioned relative to the displayed **map image**, not the unused margins, and follow the image when the TV resolution changes.
+- Press **F** on the player screen to enter fullscreen. Press **H** to hide or show the header/footer framing for a map-first cinematic view. Press **Esc** to leave browser/Windows fullscreen.
+- At low 720p resolutions, the player-screen chrome is reduced so the map remains the focus. The outer player view must not create a page scrollbar.
+- Many NPCs/combatants are fitted inside the fixed-size TV canvas. If roster entries exceed usable space, use the GM's **Show Selected** function to reveal a readable group rather than showing 30+ portraits at once.
+- Confirm the actual TV's Windows scaling and overscan settings. Set Windows display scaling to 100% first if the TV crops edges, and adjust the TV's aspect/overscan to **Just Scan / Screen Fit**.
+
+
+**Two different second-screen choices:** an HDMI/Windows extended monitor needs no Wi-Fi server. A separate browser device needs both devices on the same private network and the **Copy Wi-Fi Link** link. A TV without a web browser may need HDMI or another browser-capable device.
+
+**Save and backup:** maps selected inside the desktop version are saved under Keeper's local application-data directory (`campaign-packs/local-media`), and **Back up now** includes those files. Export/backup your campaign before reinstalling Windows or changing computers. All offline campaigns stay on this laptop, not automatically in the cloud.
+
+**Testing note:** Installer artifacts built by pull requests are test builds. Only use a successful Actions artifact; the public auto-updater will not offer an unpublished draft.
 
 ## Current goals
 

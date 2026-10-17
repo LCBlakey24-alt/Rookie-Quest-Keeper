@@ -236,9 +236,27 @@ function creatureDetailLines(value) {
   if (typeof value === 'object') {
     const named = [value.name, value.bonus, value.damage, value.notes, value.description]
       .filter(part => part != null && part !== '').map(String);
-    return named.length ? [named.join(' · ')] : Object.entries(value).map(([key, item]) => `${key}: ${String(item)}`);
+    if (named.length) return [named.join(' · ')];
+    return Object.entries(value).flatMap(([key, item]) => creatureDetailLines(item).map(line => `${key}: ${line}`));
   }
   return [String(value)];
+}
+
+function CreatureAbilityScores({ stats }) {
+  const scores = [ ['STR', 'strength'], ['DEX', 'dexterity'], ['CON', 'constitution'], ['INT', 'intelligence'], ['WIS', 'wisdom'], ['CHA', 'charisma'] ];
+  if (!stats || !scores.some(([, key]) => Number.isFinite(Number(stats[key])))) return null;
+  return <section aria-label="Ability scores" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
+    {scores.map(([label, key]) => {
+      const raw = stats[key];
+      const score = raw !== '' && raw != null && Number.isFinite(Number(raw)) ? Number(raw) : null;
+      const modifier = score === null ? null : Math.floor((score - 10) / 2);
+      return <div key={key} style={{ border: '1px solid var(--rq-border-default)', background: 'var(--rq-bg-main)', minWidth: 0, textAlign: 'center', padding: '8px 3px', display: 'grid', gap: 3 }}>
+        <span style={{ fontSize: 11, fontWeight: 900 }}>{label}</span>
+        <strong style={{ fontSize: 17 }}>{score ?? '—'}</strong>
+        <span style={{ fontSize: 12 }}>{modifier === null ? '—' : `${modifier < 0 ? '' : '+'}${modifier}`}</span>
+      </div>;
+    })}
+  </section>;
 }
 
 function CreatureDetailSection({ title, value }) {
@@ -257,9 +275,10 @@ export function CreatureCard({ creature, count, onAdjust }) {
   const cr = creature.cr ?? creature.challenge_rating ?? '—';
   const action = creature.actions?.[0];
   const summary = String(creature.description || creature.abilities || '');
-  const hasMore = Boolean(summary || creature.actions?.length || creature.stats ||
+  const hasMore = Boolean(summary || creature.actions?.length || creature.attacks?.length || creature.stats ||
     creature.reactions?.length || creature.bonus_actions?.length || creature.saving_throws?.length ||
-    creature.skills?.length);
+    creature.skills?.length || creature.senses || creature.languages || creature.resistances ||
+    creature.immunities || creature.vulnerabilities || creature.condition_immunities);
   return (
     <article style={creatureCardStyle(count > 0)} data-testid="bestiary-creature-card">
       <div style={{ minWidth: 0 }}>
@@ -280,14 +299,19 @@ export function CreatureCard({ creature, count, onAdjust }) {
           <div data-testid="bestiary-full-details" style={creatureFullDetailsStyle}>
             <CreatureDetailSection title="Description" value={creature.description} />
             <CreatureDetailSection title="Special abilities" value={creature.abilities} />
-            <CreatureDetailSection title="Ability scores" value={creature.stats} />
+            <CreatureAbilityScores stats={creature.stats} />
             <CreatureDetailSection title="Skills" value={creature.skills} />
             <CreatureDetailSection title="Saving throws" value={creature.saving_throws} />
-            <CreatureDetailSection title="Actions & attacks" value={creature.actions} />
+            <CreatureDetailSection title="Actions" value={creature.actions} />
+            <CreatureDetailSection title="Other attacks" value={creature.attacks} />
             <CreatureDetailSection title="Bonus actions" value={creature.bonus_actions} />
             <CreatureDetailSection title="Reactions" value={creature.reactions} />
             <CreatureDetailSection title="Resistances" value={creature.resistances} />
             <CreatureDetailSection title="Immunities" value={creature.immunities} />
+            <CreatureDetailSection title="Vulnerabilities" value={creature.vulnerabilities || creature.damage_vulnerabilities} />
+            <CreatureDetailSection title="Condition immunities" value={creature.condition_immunities} />
+            <CreatureDetailSection title="Senses" value={creature.senses} />
+            <CreatureDetailSection title="Languages" value={creature.languages} />
           </div>
         )}
       </div>

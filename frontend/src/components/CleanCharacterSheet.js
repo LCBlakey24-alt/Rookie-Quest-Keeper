@@ -11,6 +11,7 @@ import CleanSheetCompactStatus from '@/components/clean-sheet/CleanSheetCompactS
 import CleanSheetFeatsTab from '@/components/clean-sheet/CleanSheetFeatsTab';
 import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
 import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
+import DndBeyondCharacterLink from '@/components/player/DndBeyondCharacterLink';
 import CleanSheetOverviewTab from '@/components/clean-sheet/CleanSheetOverviewTab';
 import CleanSheetPlayTools from '@/components/clean-sheet/CleanSheetPlayTools';
 import CleanSheetResourceRail from '@/components/clean-sheet/CleanSheetResourceRail';
@@ -625,14 +626,18 @@ export default function CleanCharacterSheet() {
       <CleanSheetTabs tabs={sheetTabs} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
 
       <main className="clean-sheet-content">
-        {activeTab === 'character' && (
+        {activeTab === 'character' && (<>
           <CleanSheetCharacterTab
             character={character}
             ac={ac}
             speed={speed}
             proficiencyBonus={proficiencyBonus}
           />
-        )}
+          <section style={{ margin:'12px 0', padding:'12px', background:'var(--rq-bg-panel,#0b2233)', border:'1px solid var(--rq-border-default,#816d51)', borderRadius:7 }}>
+            <h3 style={{ margin:'0 0 6px', fontSize:16 }}>External character sheet</h3>
+            <DndBeyondCharacterLink characterId={characterId} characterName={character?.name} />
+          </section>
+        </>)}
         {activeTab === 'stats' && (
           <CleanSheetOverviewTab
             character={character}

@@ -5,6 +5,7 @@ import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import { loadLiveSessionSections } from '@/data/livePlayLoaders';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
@@ -14,6 +15,7 @@ import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
 import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
 import LiveDataWarning from '@/components/gm/LiveDataWarning';
 import PlayerDisplayDeliveryStatus from '@/components/gm/PlayerDisplayDeliveryStatus';
+import GMAudioDock from '@/components/gm/GMAudioDock';
 
 const LootGenerator = React.lazy(() => import('@/components/LootGenerator'));
 const PartyLocationTracker = React.lazy(() => import('@/components/PartyLocationTracker'));
@@ -23,6 +25,7 @@ const PartyTab = React.lazy(() => import('@/components/gm/PartyTab'));
 const NotesTab = React.lazy(() => import('@/components/gm/NotesTab'));
 const MonstersTab = React.lazy(() => import('@/components/gm/MonstersTab'));
 const Soundboard = React.lazy(() => import('@/components/gm/Soundboard'));
+const PlayerCompanionSetup = React.lazy(() => import('@/components/gm/PlayerCompanionSetup'));
 const StoryArcTracker = React.lazy(() => import('@/components/gm/StoryArcTracker'));
 const NPCRelationshipMap = React.lazy(() => import('@/components/gm/NPCRelationshipMap'));
 const AISessionPlanner = React.lazy(() => import('@/components/gm/AISessionPlanner'));
@@ -262,13 +265,14 @@ export default function LiveSessionGridPage() {
       case 'story': return lazyTool(<StoryArcTracker theme={theme} campaignId={campaignId} />);
       case 'planner': return lazyTool(<AISessionPlanner theme={theme} campaignId={campaignId} />);
       case 'sound': return lazyTool(<Soundboard theme={theme} campaignId={campaignId} />);
+      case 'player-companion': return lazyTool(<PlayerCompanionSetup campaignId={campaignId} />);
       case 'events': return lazyTool(<EventSystem theme={theme} campaignId={campaignId} />);
       case 'network': return lazyTool(<NPCRelationshipMap theme={theme} campaignId={campaignId} />);
       default: return null;
     }
   };
 
-  if (loading) return <div className="loading-screen"><div className="loading-spinner" /></div>;
+  if (loading) return <RouteLoadingScreen message="Preparing your GM table…" />;
 
   return (
     <>
@@ -292,6 +296,7 @@ export default function LiveSessionGridPage() {
         </header>
 
         <LiveDataWarning errors={loadErrors} onRetry={fetchAllData} />
+        <GMAudioDock campaignId={campaignId} />
         <PlayerDisplayDeliveryStatus campaignId={campaignId} />
         <LiveStoryFocusPanel campaignId={campaignId} />
         <GroupCheckRequestPanel campaignId={campaignId} players={players} />

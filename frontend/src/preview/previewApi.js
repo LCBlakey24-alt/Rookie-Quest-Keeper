@@ -4,7 +4,7 @@ import { createPreviewSeed } from './previewSeed';
 import { isOfflineDesktop, isReadOnlyDemo, localWorkspaceStorageKey, localWorkspaceUser } from './previewMode';
 
 const copy = value => JSON.parse(JSON.stringify(value));
-const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
+const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'locations', 'maps', 'world-maps', 'local-maps', 'custom-creatures', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
 const OBJECTS = new Set(['calendar', 'live-state', 'player-display', 'environment', 'settings', 'treasury', 'combat']);
 
 function fail(message, status = 501) {
@@ -214,6 +214,14 @@ export function createPreviewApi(
         handout.shared_with = [workspaceUser];
         handout.delivery_count = 1;
         return { message: 'Shared with the preview player.', shared_count: 1 };
+      }
+      // World-map pins are editable offline too. A pinned map must remain a
+      // single local campaign record, not require the cloud map API.
+      if (['world-maps', 'local-maps'].includes(resource) && id && action === 'pins' && (parts.length === 5 || parts.length === 6)) {
+        const map = records(campaignId, resource).find(item => item.id === id);
+        if (!map) fail('Map not found.', 404);
+        if (!Array.isArray(map.pins)) map.pins = [];
+        return crud(map.pins, method, parts[5], body, { map_id: id });
       }
       if (COLLECTIONS.has(resource) && parts.length <= 4) {
         let payload = body;

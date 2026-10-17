@@ -10,6 +10,7 @@ import {
   Map,
   MapPin,
   Monitor,
+  Music2,
   RefreshCw,
   ScrollText,
   Swords,
@@ -18,8 +19,10 @@ import {
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
+import GMAudioDock from '@/components/gm/GMAudioDock';
 
 const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
+const Soundboard = React.lazy(() => import('@/components/gm/Soundboard'));
 const CampaignRulesTab = React.lazy(() => import('@/components/tabs/CampaignRulesTab'));
 const GodsTab = React.lazy(() => import('@/components/tabs/GodsTab'));
 const InGameNotesTab = React.lazy(() => import('@/components/tabs/InGameNotesTab'));
@@ -65,6 +68,7 @@ export default function CampaignDashboard() {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [showGMMusic, setShowGMMusic] = useState(false);
 
   const activeTabMeta = useMemo(
     () => allTabs.find((tab) => tab.id === activeTab) || allTabs[0],
@@ -289,6 +293,7 @@ export default function CampaignDashboard() {
             <button type="button" onClick={copyInviteCode} className="campaign-button">
               {inviteLoading ? 'Loading…' : 'Join Code'}
             </button>
+            <button type="button" onClick={() => setShowGMMusic(value => !value)} aria-expanded={showGMMusic} aria-controls="gm-prep-audio-library" className="campaign-button"><Music2 size={16} aria-hidden="true" /> Music</button>
             <button type="button" onClick={handleOpenGMScreen} className="campaign-button campaign-button-primary">
               <Monitor size={16} aria-hidden="true" />
               Live Play
@@ -296,6 +301,8 @@ export default function CampaignDashboard() {
           </div>
         </div>
       </header>
+      <GMAudioDock campaignId={campaignId} />
+      {showGMMusic && <div id="gm-prep-audio-library"><Suspense fallback={<p>Loading music library…</p>}><Soundboard campaignId={campaignId} /></Suspense></div>}
 
       <nav className="campaign-dashboard-nav" aria-label="Campaign workspace">
         <div className="campaign-dashboard-group-row" aria-label="Campaign tool groups">

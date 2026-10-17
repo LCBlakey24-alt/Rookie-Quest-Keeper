@@ -181,6 +181,10 @@ export function publishDisplayState(campaignId, state) {
   const safeState = normaliseDisplayState(state);
   saveDisplayState(campaignId, safeState);
   if (!runtimeWindow) return;
+  // Desktop relays the player-safe projection over local Wi-Fi without a cloud backend.
+  if (typeof runtimeWindow.rookieDesktop?.publishLanDisplay === 'function') {
+    void runtimeWindow.rookieDesktop.publishLanDisplay(campaignId, safeState).catch(() => {});
+  }
   try {
     runtimeWindow.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: safeState }));
   } catch {
