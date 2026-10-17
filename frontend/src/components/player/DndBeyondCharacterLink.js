@@ -9,9 +9,9 @@ export function normaliseDndBeyondLink(value) {
   try {
     const url = new URL(raw);
     if (url.protocol !== 'https:' || !['dndbeyond.com', 'www.dndbeyond.com'].includes(url.hostname.toLowerCase()) || url.username || url.password || url.port) return null;
-    const match = url.pathname.match(/^\/(?:characters|profile\/[^/]+\/characters)\/([1-9]\d{0,19})\/?$/i);
+    const match = url.pathname.match(/^\/(?:characters|profile\/[^/]+\/characters)\/([1-9]\d{0,19})(?:\/([A-Za-z0-9_-]{1,40}))?\/?$/i);
     if (!match) return null;
-    return `https://www.dndbeyond.com/characters/${match[1]}`;
+    return `https://www.dndbeyond.com/characters/${match[1]}${match[2] ? `/${match[2]}` : ''}`;
   } catch {
     return null;
   }
