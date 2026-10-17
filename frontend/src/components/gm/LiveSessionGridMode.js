@@ -23,6 +23,7 @@ export const LIVE_GRID_TOOLS = [
   { id: 'sound', label: 'Music', icon: Music2, primary: true },
   { id: 'more', label: 'More', icon: MoreHorizontal, primary: true },
   { id: 'party', label: 'Party', icon: Users },
+  { id: 'player-companion', label: 'Player Phones', icon: Users },
   { id: 'handouts', label: 'Handouts', icon: Mail },
   { id: 'tables', label: 'Roll Tables', icon: Compass },
   { id: 'reference-hub', label: 'Rules', icon: BookOpen },
