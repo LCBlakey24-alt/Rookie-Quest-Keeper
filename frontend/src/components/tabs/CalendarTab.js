@@ -2,18 +2,17 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Calendar as CalendarIcon, ChevronRight, Edit, Plus, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { isOfflineDesktop } from '@/preview/previewMode';
+import {
+  advanceCustomCalendar,
+  calendarDaysUntil,
+  TIA_KARTA_REFERENCE_EVENTS,
+  tiaKartaCalendar,
+} from '@/data/tiaKartaCalendar';
 
 const emptyEvent = { name: '', description: '', day: 1, month: 1, year: 1, is_recurring: false, recurrence_type: 'none' };
 const fallbackCalendar = { calendar_type: 'gregorian', current_day: 1, current_month: 1, current_year: 1, custom_months: [{ name: 'Month 1', days: 30 }] };
 
-function getDaysUntil(event, calendar) {
-  if (!calendar) return 0;
-  if (event.year > calendar.current_year) return 999;
-  if (event.year < calendar.current_year) return -1;
-  if (event.month > calendar.current_month) return ((event.month - calendar.current_month) * 30) + (event.day - calendar.current_day);
-  if (event.month < calendar.current_month) return -1;
-  return event.day - calendar.current_day;
-}
 
 export default function CalendarTab({ campaignId }) {
   const [calendar, setCalendar] = useState(null);
@@ -22,6 +21,7 @@ export default function CalendarTab({ campaignId }) {
   const [advanceDays, setAdvanceDays] = useState(1);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState(emptyEvent);
+  const [applyingTiaKarta, setApplyingTiaKarta] = useState(false);
 
   const loadCalendar = useCallback(async () => {
     try {
@@ -49,14 +49,47 @@ export default function CalendarTab({ campaignId }) {
   }), [events]);
 
   const upcomingEvents = useMemo(() => events
-    .map(event => ({ ...event, daysUntil: getDaysUntil(event, calendar) }))
-    .filter(event => event.daysUntil >= 0 && event.daysUntil <= 30)
+    .map(event => ({ ...event, daysUntil: calendarDaysUntil(event, calendar) }))
+    .filter(event => event.daysUntil !== null && event.daysUntil >= 0 && event.daysUntil <= 30)
     .sort((a, b) => a.daysUntil - b.daysUntil), [events, calendar]);
 
-  const currentMonth = calendar?.custom_months?.[(calendar.current_month || 1) - 1]?.name || 'Month';
+  const selectedMonth = calendar?.custom_months?.[(calendar?.current_month || 1) - 1];
+  const currentMonth = selectedMonth?.name || 'Month';
+  const daysThisMonth = Math.max(1, Math.min(45, Number(selectedMonth?.days) || 30));
+  const daysPerWeek = Math.max(1, Math.min(10, Number(calendar?.days_per_week) || 7));
+  const monthEvents = events.filter(event => Number(event.month) === Number(calendar?.current_month) && Number(event.year) === Number(calendar?.current_year));
+
+  const applyTiaKarta = async () => {
+    if (!window.confirm('Replace this campaign calendar layout and current date with the Tia-Karta canon (24 Dawnseed, 592 PC)? Existing non-canon events will not be deleted. A backup is recommended first.')) return;
+    setApplyingTiaKarta(true);
+    try {
+      await apiClient.put(`/campaigns/${campaignId}/calendar`, tiaKartaCalendar(campaignId, calendar));
+      const existingKeys = new Set(events.map(event => `${event.name}|${event.day}|${event.month}|${event.year}`));
+      for (const event of TIA_KARTA_REFERENCE_EVENTS) {
+        const key = `${event.name}|${event.day}|${event.month}|${event.year}`;
+        if (!existingKeys.has(key)) {
+          await apiClient.post(`/campaigns/${campaignId}/calendar-events`, {
+            name: event.name, description: event.description,
+            day: event.day, month: event.month, year: event.year,
+            is_recurring: false, recurrence_type: 'none',
+          });
+        }
+      }
+      toast.success('Tia-Karta calendar restored: 6-day weeks, 12 named months, 24 Dawnseed 592 PC.');
+      await loadCalendar();
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || error?.message || 'Could not apply Tia-Karta calendar');
+    } finally {
+      setApplyingTiaKarta(false);
+    }
+  };
 
   const saveEvent = async (event) => {
     event.preventDefault();
+    if (calendarDaysUntil(eventForm, { ...calendar, current_day: 1, current_month: 1, current_year: eventForm.year }) === null) {
+      toast.error('Choose a valid date for this campaign calendar.');
+      return;
+    }
     try {
       if (editingEvent) {
         await apiClient.put(`/campaigns/${campaignId}/calendar-events/${editingEvent.id}`, eventForm);
@@ -91,7 +124,12 @@ export default function CalendarTab({ campaignId }) {
 
   const advanceTime = async () => {
     try {
-      await apiClient.post(`/campaigns/${campaignId}/calendar/advance?days=${advanceDays}`);
+      if (isOfflineDesktop()) {
+        const next = advanceCustomCalendar(calendar, Number(advanceDays));
+        await apiClient.put(`/campaigns/${campaignId}/calendar`, next);
+      } else {
+        await apiClient.post(`/campaigns/${campaignId}/calendar/advance?days=${advanceDays}`);
+      }
       toast.success(`Advanced ${advanceDays} day(s)`);
       loadCalendar();
     } catch (error) {
@@ -106,14 +144,45 @@ export default function CalendarTab({ campaignId }) {
       <main>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
           <h2 style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}><CalendarIcon size={22} /> Campaign Calendar</h2>
+          <button type="button" className="btn-secondary" onClick={applyTiaKarta} disabled={applyingTiaKarta}>{applyingTiaKarta ? 'Restoring…' : 'Use Tia-Karta Calendar'}</button>
         </header>
 
         <section className="rqk-calendar-panel" style={{ padding: 20, textAlign: 'center', marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
-          <h3 style={{ color: '#FFFFFF', fontSize: 34, margin: '0 0 6px' }}>{currentMonth} {calendar?.current_day || 1}, {calendar?.current_year || 1}</h3>
+          <h3 style={{ color: '#FFFFFF', fontSize: 34, margin: '0 0 6px' }}>{calendar?.current_day || 1} {currentMonth}, {calendar?.current_year || 1}{calendar?.calendar_type === 'custom' ? ' PC' : ''}</h3>
+          {selectedMonth?.season && <p style={{ color: '#a9ddff', margin: '0 0 8px' }}>{selectedMonth.season} · {daysPerWeek}-day week · {daysThisMonth}-day month</p>}
           <p style={{ color: '#FFFFFF', margin: '0 0 14px' }}>Current in-game date</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input data-testid="advance-days-input" type="number" min="1" value={advanceDays} onChange={e => setAdvanceDays(parseInt(e.target.value, 10) || 1)} className="input" style={{ width: 80, textAlign: 'center' }} />
+            <input data-testid="advance-days-input" type="number" min="1" max="10000" value={advanceDays} onChange={e => setAdvanceDays(parseInt(e.target.value, 10) || 1)} className="input" style={{ width: 80, textAlign: 'center' }} />
             <button data-testid="advance-time-btn" type="button" onClick={advanceTime} className="btn-primary"><ChevronRight size={16} /> Advance Time</button>
+          </div>
+        </section>
+
+        <section className="rqk-calendar-panel" style={{ padding: 18, marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
+          <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>{currentMonth} — Days of the Month</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${daysPerWeek}, minmax(48px, 1fr))`, gap: 5, minWidth: daysPerWeek * 48 }}>
+              {Array.from({ length: daysPerWeek }, (_, index) => (
+                <strong key={index} style={{ color: '#9cceed', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
+              ))}
+              {Array.from({ length: daysThisMonth }, (_, index) => {
+                const day = index + 1;
+                const matching = monthEvents.filter(item => Number(item.day) === day);
+                const today = Number(calendar?.current_day) === day;
+                return (
+                  <div key={day} aria-label={`${day} ${currentMonth}${today ? ', current day' : ''}`} style={{
+                    padding: 6, minHeight: 54, borderRadius: 5, overflow: 'hidden',
+                    background: today ? '#174c64' : '#102B40',
+                    border: today ? '2px solid #58daf2' : '1px solid #244459',
+                  }}>
+                    <strong style={{ color: today ? '#a7f2ff' : '#fff' }}>{day}{today ? ' ★' : ''}</strong>
+                    {matching.slice(0, 2).map(item => (
+                      <div key={item.id || item.name} title={item.name} style={{ color: '#f1c78b', fontSize: 10, overflowWrap: 'anywhere' }}>{item.name}</div>
+                    ))}
+                    {matching.length > 2 && <span style={{ color: '#bcd', fontSize: 10 }}>+{matching.length - 2} more</span>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 
