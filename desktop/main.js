@@ -5,12 +5,18 @@ const { pathToFileURL } = require('url');
 const { createBackup, listBackups, restoreBackup, exportPortableBackup, restorePortableBackup } = require('./backup');
 const { registerDesktopUpdater } = require('./updates');
 const { isSafePlayerDisplayUrl } = require('./playerDisplayWindow');
+const { preparePortableStorage } = require('./portable');
 
 const APP_SCHEME = 'rqk';
 const APP_HOST = 'desktop';
 const ATTACHMENT_SCHEME = 'rqk-attachment';
 const START_URL = `${APP_SCHEME}://${APP_HOST}/home`;
 const PACK_FORMAT = 'rookie-quest-keeper-campaign-pack';
+
+// Must run before app.whenReady and before Chromium initialises storage.
+// A portable launch must fail closed if the USB is read-only/unavailable;
+// silently falling back to C: would risk 'missing' campaigns.
+const portableStorage = preparePortableStorage(app);
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -288,7 +294,7 @@ app.whenReady().then(async () => {
     return { canceled: false, ...restorePortableBackup(app.getPath('userData'), choice.filePaths[0], currentRaw) };
   });
   registerDesktopUpdater({
-    app, ipcMain, BrowserWindow,
+    app, ipcMain, BrowserWindow, portable: Boolean(portableStorage),
     createSafetyBackup: (raw, reason) => raw == null
       ? null
       : createBackup(app.getPath('userData'), raw, reason),

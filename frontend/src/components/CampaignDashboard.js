@@ -17,6 +17,7 @@ import {
   Users,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { calendarDaysUntil } from '@/data/tiaKartaCalendar';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 
 const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
@@ -393,11 +394,8 @@ function chooseStoryFocus(arcs) {
 }
 
 function daysUntilEvent(event, calendar) {
-  if (!event || !calendar) return Number.POSITIVE_INFINITY;
-  const yearDiff = Number(event.year || 0) - Number(calendar.current_year || 0);
-  if (yearDiff > 0) return (yearDiff * 360) + ((Number(event.month || 1) - Number(calendar.current_month || 1)) * 30) + (Number(event.day || 1) - Number(calendar.current_day || 1));
-  if (yearDiff < 0) return -1;
-  return ((Number(event.month || 1) - Number(calendar.current_month || 1)) * 30) + (Number(event.day || 1) - Number(calendar.current_day || 1));
+  const difference = calendarDaysUntil(event, calendar);
+  return difference === null ? Number.POSITIVE_INFINITY : difference;
 }
 
 function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {

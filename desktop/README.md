@@ -104,6 +104,58 @@ it over the same installation; do **not** choose an uninstaller option that
 removes user data. This is a precaution, not a replacement for regular
 portable backups.
 
+## Windows USB portable edition (v0.3.7)
+
+The Windows Desktop build now produces **two different executables**:
+- **Setup .exe**: normal installer, application and local campaign data live
+  on the Windows PC (upgradable via the published NSIS update service).
+- **Portable .exe**: **run directly from a USB drive**. The portable launcher
+  tells Electron its original USB directory via
+  `PORTABLE_EXECUTABLE_DIR`. All Keeper data (campaigns, characters,
+  imported maps/music, backups, browser localStorage and Chromium profile)
+  is redirected to **RookieQuestKeeperData/** next to the portable executable.
+  No cloud login or online API service is required.
+
+### How to use it
+1. Copy `Rookie Quest Keeper Portable 0.3.7.exe` to the USB.
+2. Double-click the portable executable **on the USB drive**, not an old
+   shortcut on the desktop. A `RookieQuestKeeperData` folder appears next
+   to it automatically. Keep the folder together with the executable.
+3. Import campaign packs or export backups in **Updates & backups**.
+4. Close Keeper fully before ejecting the USB. Use a second USB/disk or
+   another independent location for backup; a single USB is not redundancy.
+5. For a future **program** update, copy the newer Portable .exe to the same
+   drive, then remove or rename the old executable. **Do not delete
+   RookieQuestKeeperData**. For a **campaign** update, use the existing
+   `.rqkupdate` importer.
+
+**Practical requirements:** Windows 10/11 x64, a writable USB drive, enough
+free space for the app, campaigns, media and backups; USB 3.x SSD preferred
+for maps and music. Portable self-extracting Electron still uses a **temporary
+working directory on the host Windows PC** while launching, so *zero*
+PC disk usage is not guaranteed. Windows security controls on school/work
+computers may also block unsigned portable executables or USB programs.
+
+**Do not confuse** the USB portable edition with merely putting the
+Windows installer on a USB and running Setup: that installs the app to the PC.
+
+## Tia-Karta / Eldritch Heralds calendar
+
+The active Google Drive wall calendar and campaign timeline specify:
+6-day weeks, 5 weeks per month, 30 days per month, 12 months per
+360-day year. Its seasons and month names are now available in Keeper.
+
+Current documented Eldritch Heralds date: **24 Dawnseed 592 PC**.
+Previous **17 Dawnseed** references are superseded. In the campaign GM
+**Timeline & Calendar → Calendar**, choose **Use Tia-Karta Calendar**
+to load the corrected calendar and public/reference milestones.
+The action explicitly confirms before replacing the calendar date,
+and does not delete unrelated events or alter character stats.
+Player-sensitive future plot events are intentionally NOT included in
+calendar event records that may be shared. Existing cloud campaigns
+must be corrected through this action or a deliberately reviewed import;
+upgrading the software alone does not rewrite saved campaign records.
+
 ## Current offline scope
 
 The local Keeper transport supports the main character/campaign workspace, including campaigns, characters, player views, notes, handouts, quests, story arcs, NPCs, locations, maps, calendar events, encounters, factions, roll tables, loot tables, treasury data, session recaps, rests and character progression.

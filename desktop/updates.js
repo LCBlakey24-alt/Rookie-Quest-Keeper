@@ -4,13 +4,13 @@ const { autoUpdater } = require('electron-updater');
 
 // Updates are offered, never installed without an explicit click.
 // The installed Electron app reads the GitHub provider from app-update.yml.
-function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBackup }) {
+function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBackup, portable = false }) {
   const status = {
-    state: 'idle',
+    state: portable ? 'portable' : 'idle',
     installed_version: app.getVersion(),
     available_version: null,
     progress: 0,
-    message: 'Ready to check for updates.',
+    message: portable ? 'USB edition: update by replacing the program file. Your campaign data remains in RookieQuestKeeperData on this USB.' : 'Ready to check for updates.',
   };
   let busy = false;
 
@@ -51,6 +51,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBacku
   });
 
   async function checkForUpdates() {
+    if (portable) return announce({ state: 'portable', message: 'USB edition: save a backup and replace the portable program with the next download to update. Your RookieQuestKeeperData folder stays separate.' });
     if (!app.isPackaged) return announce({
       state: 'development', message: 'Update checks work in an installed Windows version of Keeper.',
     });
@@ -70,6 +71,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBacku
   ipcMain.handle('rqk:get-update-status', () => ({ ...status }));
   ipcMain.handle('rqk:check-updates', () => checkForUpdates());
   ipcMain.handle('rqk:download-update', async () => {
+    if (portable) throw new Error('USB portable apps are updated manually, not with the Windows installed-app updater.');
     if (status.state !== 'available') throw new Error('Check for an available update first.');
     if (busy) return { ...status };
     busy = true;
@@ -84,6 +86,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBacku
     return { ...status };
   });
   ipcMain.handle('rqk:install-update', (event, workspaceRaw) => {
+    if (portable) throw new Error('Back up the USB data and replace the program executable with the newer portable download.');
     if (status.state !== 'downloaded') throw new Error('Download the new version before installing.');
     // A failed backup prevents installation. This is intentional.
     const backup = createSafetyBackup(workspaceRaw, 'before-update');
@@ -101,7 +104,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBacku
   });
 
   // An optional background *check* only. Never downloads or installs without user approval.
-  if (app.isPackaged) setTimeout(() => { if (status.state === 'idle') checkForUpdates(); }, 15000);
+  if (app.isPackaged && !portable) setTimeout(() => { if (status.state === 'idle') checkForUpdates(); }, 15000);
   return { getStatus: () => ({ ...status }) };
 }
 

@@ -2,6 +2,7 @@ import { buildLongRestUpdates, buildShortRestUpdates } from '../data/characterRe
 import { canonicalisePreviewCreatedCharacter } from './previewCharacterCreation';
 import { createPreviewSeed } from './previewSeed';
 import { isOfflineDesktop, isReadOnlyDemo, localWorkspaceStorageKey, localWorkspaceUser } from './previewMode';
+import { advanceCustomCalendar } from '@/data/tiaKartaCalendar';
 
 const copy = value => JSON.parse(JSON.stringify(value));
 const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
@@ -199,6 +200,13 @@ export function createPreviewApi(
       }));
       if (method === 'get' && resource === 'handout-recipients' && !id) return { recipients: recipients(campaignId) };
       if (method === 'get' && resource === 'combat-initiative' && id === 'mine') return { combat_active: false };
+      if (resource === 'calendar' && id === 'advance' && method === 'post') {
+        const key = `${campaignId}/calendar`;
+        if (!state.objects[key]) fail('Set up the campaign calendar first.', 404);
+        const advanced = advanceCustomCalendar(state.objects[key], Number(body.days));
+        state.objects[key] = { ...state.objects[key], ...advanced };
+        return state.objects[key];
+      }
       if (OBJECTS.has(resource) && !id) {
         const key = `${campaignId}/${resource}`;
         if (method === 'get') return state.objects[key] || (resource === 'environment' ? campaign.environment : resource === 'calendar' || resource === 'combat' ? null : {});

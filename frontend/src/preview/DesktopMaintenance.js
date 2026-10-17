@@ -124,9 +124,10 @@ export default function DesktopMaintenance() {
               <p>Installed version: <strong>{status.installed_version}</strong></p>
               {status.available_version && <p>Available version: <strong>{status.available_version}</strong></p>}
               <p role="status" aria-live="polite">{status.message}</p>
+              {status.state === 'portable' && <p>Portable USB edition: download the next portable .exe, close Keeper, and replace the old .exe on the same USB drive. Leave the <strong>RookieQuestKeeperData</strong> folder untouched. Back up your USB before major updates.</p>}
               {downloading && <progress value={status.progress} max="100" aria-label="Update download progress" />}
               <div className="rqk-desktop-maintenance-actions">
-                <button type="button" disabled={busy || checking || status.state === 'downloaded'} onClick={() => doWork('check', () => desktop.checkUpdates())}>Check for updates</button>
+                {status.state !== 'portable' && <button type="button" disabled={busy || checking || status.state === 'downloaded'} onClick={() => doWork('check', () => desktop.checkUpdates())}>Check for updates</button>}
                 {status.state === 'available' && <button type="button" disabled={busy} onClick={() => doWork('download', () => desktop.downloadUpdate())}>Download update</button>}
                 {status.state === 'downloaded' && <button type="button" disabled={busy} onClick={install}>Back up, install &amp; restart</button>}
               </div>
