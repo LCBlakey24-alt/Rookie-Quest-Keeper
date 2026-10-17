@@ -62,6 +62,25 @@ export default function DesktopMaintenance() {
     setNotice(`Backup saved on this computer: ${readableTime(info.created_at)}.`);
   });
 
+  const exportPortable = () => doWork('export', async () => {
+    const raw = localStorage.getItem(DESKTOP_STORAGE_KEY);
+    if (!raw) throw new Error('No saved workspace yet. Create or import a campaign first.');
+    const result = await desktop.exportPortableBackup(raw);
+    if (result?.canceled) return;
+    await refreshBackups();
+    setNotice('Complete backup exported to your chosen folder. Keep that folder and its contents together on a USB stick or another drive.');
+  });
+
+  const restorePortable = () => {
+    if (!window.confirm('Restore a portable Keeper backup? This will replace the active workspace after saving a safety copy of your current campaign.')) return;
+    doWork('portable-restore', async () => {
+      const result = await desktop.restorePortableBackup(localStorage.getItem(DESKTOP_STORAGE_KEY));
+      if (result?.canceled) return;
+      localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
+      window.location.reload();
+    });
+  };
+
   const restore = backup => {
     if (!window.confirm(`Restore backup from ${readableTime(backup.created_at)}? This replaces the current Keeper workspace. Keeper will save a safety copy of your current data first.`)) return;
     doWork('restore', async () => {
@@ -117,6 +136,8 @@ export default function DesktopMaintenance() {
               <p>Backups include your saved campaigns, characters, notes and locally imported files. They stay on this PC, not in GitHub.</p>
               <div className="rqk-desktop-maintenance-actions">
                 <button type="button" disabled={busy} onClick={makeBackup}>Back up now</button>
+                <button type="button" disabled={busy} onClick={exportPortable}>Export backup to USB / folder</button>
+                <button type="button" disabled={busy} onClick={restorePortable}>Restore from saved folder</button>
                 <button type="button" disabled={busy} onClick={() => doWork('list', refreshBackups)}>Refresh backups</button>
               </div>
               {backups.length === 0
@@ -129,7 +150,7 @@ export default function DesktopMaintenance() {
                       </div>
                     ))}
                   </div>}
-              <p className="rqk-desktop-maintenance-note">Before an update, Keeper refuses to install if it cannot save an existing workspace backup. Backups are local: keep another copy of irreplaceable data on a separate drive as well.</p>
+              <p className="rqk-desktop-maintenance-note">Before installing an update, Keeper backs up your workspace automatically. Use Export backup to USB / folder for a separate portable copy containing your campaigns and imported media. Do not move, rename or remove individual files inside that exported backup folder.</p>
             </div>
             {notice && <p className="rqk-desktop-maintenance-notice" role="alert">{notice}</p>}
           </section>
