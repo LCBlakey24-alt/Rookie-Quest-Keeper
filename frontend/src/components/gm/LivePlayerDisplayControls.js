@@ -154,6 +154,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [imageUrl, setImageUrl] = useState('');
   const [fog, setFog] = useState({ enabled: false, reveals: [] });
   const [tactical, setTactical] = useState({ grid: false, columns: 24, ruler: null, showRuler: false });
+  const [mapPing, setMapPing] = useState(null);
   const [tokenPositions, setTokenPositions] = useState({});
   const [manualTokens, setManualTokens] = useState([]);
   const [newTokenName, setNewTokenName] = useState('');
@@ -198,6 +199,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setVisibleCombatantIds([]);
     setTokenPositions({});
     setManualTokens([]);
+    setMapPing(null);
     setNewTokenName('');
     setSnapTokens(false);
     setSavedEncounters(loadEncounterPresets(campaignId));
@@ -435,7 +437,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     fog: normaliseFog(fogValue),
     tactical: publicTactical(tacticalValue),
     // Fog-hidden creatures must not appear in player roster or raw LAN state.
-    tokens: combatTokenPayload.map(token => ({ ...token, ...(positions[token.id] || {}) })).filter(token => !fogValue?.enabled || ((Number(token.x) || Number(token.y)) && isPointRevealed(fogValue, token.x, token.y))),
+    tokens: tacticalValue.mapKind === 'world' ? [] : combatTokenPayload.map(token => ({ ...token, ...(positions[token.id] || {}) })).filter(token => !fogValue?.enabled || ((Number(token.x) || Number(token.y)) && isPointRevealed(fogValue, token.x, token.y))),
   });
 
   const updateFog = (nextFog) => {
@@ -465,6 +467,20 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       ? combatPayload(activeCombatantId, combatRound, fog, safe)
       : { ...current.payload, tactical: publicTactical(safe) };
     void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(current.mode, { ...payload, display_target: displayTarget }));
+  };
+
+  const pingMap = (point) => {
+    if (!activeMapUrl) return;
+    const ping = { x: point.x, y: point.y, at: Date.now() };
+    setMapPing(ping);
+    const current = loadDisplayState(campaignId);
+    const displayedUrl = current?.mode === 'combat' ? current.payload?.map_url : current?.mode === 'image' ? current.payload?.image_url : '';
+    if (displayedUrl !== activeMapUrl) {
+      toast.info('Ping is in your GM preview. Send this map to show it on the player screen.');
+      return;
+    }
+    // Pings are temporary and never saved as campaign data.
+    void publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(current.mode, { ...current.payload, ping, display_target: displayTarget }));
   };
 
   const updateTokenPosition = (id, point) => {
@@ -743,7 +759,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             </span>)}
           </div>}
         </section>
-        <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} tactical={tactical} onTacticalChange={updateTactical}
+        <FogOfWarEditor mapUrl={activeMapUrl} fog={fog} onChange={updateFog} tactical={tactical} onTacticalChange={updateTactical} onPing={pingMap} ping={mapPing}
           tokens={gmEditorTokens} onTokenMove={updateTokenPosition} onTokenVisibilityChange={toggleEditorToken}
           snap={snapTokens} onSnapChange={setSnapTokens} />
         <section style={commandDeckStyle}>
@@ -825,7 +841,14 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
               <label style={fieldStyle}><span style={labelStyle}>Display title</span><input value={sceneTitle} onChange={(event) => setSceneTitle(event.target.value)} placeholder="Scene title" style={inputStyle} /></label>
               <label style={fieldStyle}><span style={labelStyle}>Caption / subtitle</span><input value={sceneSubtitle} onChange={(event) => setSceneSubtitle(event.target.value)} placeholder="Optional player-facing caption" style={inputStyle} /></label>
               <label style={fieldStyle}><span style={labelStyle}>Image / map URL</span><input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Paste image/map URL or choose a map below" style={inputStyle} /></label>
-              <label style={fieldStyle}><span style={labelStyle}>Saved map</span><select value="" onChange={(event) => { const map = allMaps.find(item => String(item.id) === event.target.value); if (map) { setSceneTitle(map.name || map.title || 'Map'); setImageUrl(imageFrom(map)); } }} style={inputStyle}><option value="">Choose saved map...</option>{allMaps.map(map => <option key={map.id} value={map.id}>{map.name || map.title || 'Untitled map'}</option>)}</select></label>
+              <label style={fieldStyle}><span style={labelStyle}>Saved map</span><select value="" onChange={(event) => { const map = allMaps.find(item => String(item.id) === event.target.value); if (map) {
+                  const url = imageFrom(map);
+                  const next = { ...loadTactical(campaignId, url), mapKind: worldMaps.some(world => String(world.id) === String(map.id)) ? 'world' : 'battle' };
+                  try { saveTactical(campaignId, url, next); } catch {}
+                  setSceneTitle(map.name || map.title || 'Map');
+                  setImageUrl(url);
+                  setTactical(next);
+                } }} style={inputStyle}><option value="">Choose saved map...</option>{allMaps.map(map => <option key={map.id} value={map.id}>{map.name || map.title || 'Untitled map'}</option>)}</select></label>
               <label style={fieldStyle}><span style={labelStyle}>Combat scenario</span><select value={selectedScenarioId} onChange={(event) => chooseScenario(event.target.value)} style={inputStyle}><option value="">Choose encounter...</option>{scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Unnamed encounter'}</option>)}</select></label>
             </div>
 
