@@ -22,7 +22,7 @@ export const TIA_KARTA_REFERENCE_EVENTS = [
   { id: 'tk-calendar-cleanup-target', name: 'Stage 1 cleanup target', day: 28, month: 1, year: 592, description: 'Locked target: end of the fourth six-day week.' },
   { id: 'tk-calendar-stage-two', name: 'Stage 2 may begin', day: 29, month: 1, year: 592, description: 'Earliest full-capacity start; draft work dates may change.' },
   { id: 'tk-calendar-jordan-post', name: 'Jordan permanent post target', day: 22, month: 2, year: 592, description: 'DM planning estimate, not a locked completion.' },
-  { id: 'tk-calendar-godfrey-mother', name: 'DM: Godfrey mother — Darktoe', day: 24, month: 2, year: 592, description: 'PRIVATE DM FUTURE: scheduled death from Darktoe unless player actions change the outcome. Do not expose on player view.' },
+  // Private future consequences are NOT placed in potentially shared calendar events.
   { id: 'tk-calendar-defence', name: 'Premium defence posture target', day: 5, month: 3, year: 592, description: 'DM planning estimate.' },
   { id: 'tk-calendar-crowns', name: 'Court of Crowns Summit', day: 1, month: 4, year: 592, description: 'Locked world event: first day of Sunhigh.' },
 ];
