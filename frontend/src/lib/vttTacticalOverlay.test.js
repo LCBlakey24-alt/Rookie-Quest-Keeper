@@ -16,7 +16,7 @@ describe('map-safe tactical grid and ruler', () => {
     expect(normaliseTactical({ grid: true, columns: 999, showRuler: true, ruler: { start: { x: -1, y: 0 }, end: { x: 10, y: 10 } } })).toEqual({
       grid: true, columns: 60, ruler: null, showRuler: false, effect: 'none', mapKind: 'battle', partyMarker: null,
     });
-    expect(fittedGrid(24, 1080, 1920)).toMatchObject({ columns: 18, rows: 32 });
+    expect(fittedGrid(24, 1080, 1920)).toMatchObject({ columns: 27, rows: 48 });
   });
 
   test('persists independently for each map without writing image content into storage key', () => {
