@@ -1,3 +1,13 @@
+## Map fitting, weather and world-party travel (0.4.1)
+
+- In Live Play → Display, select an image or upload a map. Choose **Map use: Battle map / World / travel map**. World maps show one party marker, not individual encounter creatures.
+- The GM grid chooses **whole integer rows and columns matched to the actual image dimensions**, keeping cells as square as the aspect ratio permits and never cutting partial cells at image edges. The ruler and snap tool share these calculations.
+- Add lightweight atmosphere: Rain, Embers, Heat shimmer, Snow. Effects are fitted to the map image rather than the TV letterbox and respond to reduced-motion preferences.
+- Click **Ping this area** on the GM map to briefly mark a point on the player's map. Use **Move party marker** on world maps to move the party location.
+- Existing fog, ruler, draggable creature tokens and saved encounters remain available. Fog and tactical settings save locally per map.
+- Player Phones in Live Play provides hosted-player PWA join-code setup, and accurately warns that the offline Windows campaign does **not yet sync** with hosted player character data. Spectator links must never act as player-character credentials. The separate secure-sync roadmap is in `docs/PLAYER_COMPANION_SYNC_PLAN.md`.
+- A full edge-to-edge grid of perfectly square pixels is mathematically impossible for an arbitrary image ratio: Keeper chooses a best-fit near-square integer grid with no cropped cells.
+
 # Rookie Quest Keeper Desktop
 
 Windows-first, laptop-only edition of Rookie Quest Keeper.
