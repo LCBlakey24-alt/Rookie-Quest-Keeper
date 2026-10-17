@@ -65,6 +65,9 @@ function inferredSkills(monster, stats) {
 }
 
 function inferredAttacks(monster, stats, pb) {
+  // The verified SRD collection explicitly provides actions. An empty list
+  // must stay empty; never invent attacks for a published stat block.
+  if (monster.source === 'srd-5.1' && Array.isArray(monster.actions)) return monster.actions;
   if (Array.isArray(monster.actions) && monster.actions.length) return monster.actions;
   if (Array.isArray(monster.attacks) && monster.attacks.length) return monster.attacks;
   const type = String(monster.type || '').toLowerCase();
