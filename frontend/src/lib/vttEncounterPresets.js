@@ -1,5 +1,5 @@
 import { normaliseFog } from './fogOfWar';
-import { normaliseTactical } from './vttTacticalOverlay';
+import { fittedGrid, normaliseTactical } from './vttTacticalOverlay';
 
 const PREFIX = 'rqk.vtt.encounters.v1.';
 const MAX_PRESETS = 24;
@@ -21,9 +21,9 @@ export function normaliseTokenPositions(input) {
 }
 
 export function snapTokenPoint(x, y, columns, imageWidth, imageHeight, enabled) {
-  const col = Math.max(4, Math.min(60, Math.round(Number(columns) || 24)));
-  const ratio = Number(imageWidth) > 0 && Number(imageHeight) > 0 ? Number(imageHeight) / Number(imageWidth) : 1;
-  const rows = Math.max(1, Math.min(100, Math.round(col * ratio)));
+  const fitted = fittedGrid(columns, imageWidth, imageHeight);
+  const col = fitted.columns;
+  const rows = fitted.rows;
   const clamp = n => Math.min(99.5, Math.max(0.5, n));
   if (!Number.isFinite(Number(x)) || !Number.isFinite(Number(y))) return { x: 50, y: 50 };
   if (!enabled) return { x: clamp(Number(x)), y: clamp(Number(y)) };
