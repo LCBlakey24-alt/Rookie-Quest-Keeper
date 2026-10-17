@@ -94,4 +94,66 @@ function restoreBackup(userData, id, currentRaw) {
   return { workspace: raw, backup: manifest, safety_backup: safetyCopy };
 }
 
-module.exports = { createBackup, listBackups, restoreBackup, checkWorkspace };
+
+/**
+ * A portable backup is a normal Keeper snapshot directory that can be copied
+ * onto a USB stick. No GitHub/cloud connection or proprietary archive reader
+ * is required to recover the campaign.
+ */
+function exportPortableBackup(userData, raw, destinationDir) {
+  const destination = path.resolve(destinationDir);
+  if (!fs.statSync(destination).isDirectory()) throw new Error('Choose a folder for your portable backup.');
+  const relative = path.relative(path.resolve(userData), destination);
+  if (relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative))) {
+    throw new Error('Choose a folder outside Keeper application data.');
+  }
+
+  const backup = createBackup(userData, raw, 'manual');
+  const sourceDir = path.join(backupRoot(userData), backup.id);
+  const targetDir = path.join(destination, `Rookie-Quest-Keeper-Backup-${backup.id}`);
+  fs.cpSync(sourceDir, targetDir, { recursive: true, errorOnExist: true, force: false });
+  return { ...backup, export_path: targetDir };
+}
+
+function validatePortableBackup(directory) {
+  const folder = path.resolve(directory);
+  if (!fs.statSync(folder).isDirectory()) throw new Error('Choose a Keeper backup folder.');
+  const manifestPath = path.join(folder, 'manifest.json');
+  const workspacePath = path.join(folder, 'workspace.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  if (!BACKUP_ID.test(String(manifest.id || '')) || manifest.app_data_version !== 1) {
+    throw new Error('This is not a supported Keeper backup.');
+  }
+  const raw = fs.readFileSync(workspacePath, 'utf8');
+  checkWorkspace(raw);
+  // Imported media will be served locally by the rqk-attachment: protocol.
+  // Reject symlink payloads in portable backup media folders.
+  function checkMediaTree(current) {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      if (entry.isSymbolicLink()) throw new Error('Portable backup contains an unsafe media link.');
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) checkMediaTree(full);
+      else if (!entry.isFile()) throw new Error('Portable backup has an unsupported media item.');
+    }
+  }
+  const attachments = path.join(folder, ATTACHMENTS_DIR);
+  if (fs.existsSync(attachments)) {
+    if (!fs.lstatSync(attachments).isDirectory()) throw new Error('Invalid backup media folder.');
+    checkMediaTree(attachments);
+  }
+  return { folder, raw, manifest, attachments };
+}
+
+function restorePortableBackup(userData, directory, currentRaw) {
+  // Validate fully before touching current campaign state.
+  const portable = validatePortableBackup(directory);
+  const beforeRestore = currentRaw ? createBackup(userData, currentRaw, 'before-restore') : null;
+  if (fs.existsSync(portable.attachments)) {
+    fs.mkdirSync(path.join(userData, ATTACHMENTS_DIR), { recursive: true });
+    fs.cpSync(portable.attachments, path.join(userData, ATTACHMENTS_DIR), { recursive: true, force: true });
+  }
+  // The caller commits this JSON to its local workspace only once copying ends.
+  return { workspace: portable.raw, backup: portable.manifest, safety_backup: beforeRestore };
+}
+
+module.exports = { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, restorePortableBackup };
