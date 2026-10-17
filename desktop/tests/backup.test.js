@@ -93,10 +93,13 @@ test('portable recovery rejects corrupt copies and media links before changing a
     assert.throws(() => restorePortableBackup(userData, created.export_path, workspace('Keep me')), /valid JSON/);
     assert.equal(listBackups(userData).length, 1);
     fs.writeFileSync(saved, workspace('Valid'));
-    const media = path.join(created.export_path, 'campaign-packs');
-    fs.mkdirSync(media);
-    fs.symlinkSync(path.join(userData, 'workspace-backups'), path.join(media, 'unsafe'));
-    assert.throws(() => restorePortableBackup(userData, created.export_path, workspace('Keep me')), /unsafe media link/);
+    if (process.platform !== 'win32') {
+      // Standard Windows CI accounts usually lack symbolic-link privileges.
+      const media = path.join(created.export_path, 'campaign-packs');
+      fs.mkdirSync(media);
+      fs.symlinkSync(path.join(userData, 'workspace-backups'), path.join(media, 'unsafe'));
+      assert.throws(() => restorePortableBackup(userData, created.export_path, workspace('Keep me')), /unsafe media link/);
+    }
     assert.equal(listBackups(userData).length, 1);
     assert.throws(() => exportPortableBackup(userData, workspace('Keep me'), userData), /outside Keeper application data/);
   } finally {
