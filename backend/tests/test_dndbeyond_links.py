@@ -13,6 +13,11 @@ class DndBeyondShareLinkTests(unittest.TestCase):
             "sync_status": "not_available",
         })
 
+    def test_preserves_share_code_at_end_of_character_link(self):
+        link = parse_dndbeyond_share_link("https://www.dndbeyond.com/characters/150614396/B9Mp61?foo=bar")
+        self.assertEqual(link["url"], "https://www.dndbeyond.com/characters/150614396/B9Mp61")
+        self.assertEqual(link["character_id"], "150614396")
+
     def test_profile_style_url_resolves_to_same_character(self):
         link = parse_dndbeyond_share_link(
             "https://www.dndbeyond.com/profile/example-user/characters/90001234"
