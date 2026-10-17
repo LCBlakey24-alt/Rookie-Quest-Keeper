@@ -18,4 +18,6 @@ contextBridge.exposeInMainWorld('rookieDesktop', Object.freeze({
   createBackup: (workspaceRaw, reason = 'manual') => ipcRenderer.invoke('rqk:create-backup', workspaceRaw, reason),
   listBackups: () => ipcRenderer.invoke('rqk:list-backups'),
   restoreBackup: (id, currentRaw) => ipcRenderer.invoke('rqk:restore-backup', id, currentRaw),
+  exportPortableBackup: (workspaceRaw) => ipcRenderer.invoke('rqk:export-portable-backup', workspaceRaw),
+  restorePortableBackup: (currentRaw) => ipcRenderer.invoke('rqk:restore-portable-backup', currentRaw),
 }));
