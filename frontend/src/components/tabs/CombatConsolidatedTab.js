@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, Skull, Swords } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import ChaosFateTracker from '@/components/gm/ChaosFateTracker';
 import CombatTab from '@/components/gm/CombatTab';
 import MonstersTab from '@/components/gm/MonstersTab';
 
@@ -195,6 +196,7 @@ export default function CombatConsolidatedTab({ campaignId }) {
 
   return (
     <section data-testid="combat-consolidated-tab" style={shellStyle}>
+      <ChaosFateTracker campaignId={campaignId} />
       <div style={topBarStyle}>
         <nav style={modeNavStyle} aria-label="Encounter tools">
           <button type="button" onClick={() => setActiveMode('combat')} style={modeButtonStyle(activeMode === 'combat')}><Swords size={15} /> Encounters</button>

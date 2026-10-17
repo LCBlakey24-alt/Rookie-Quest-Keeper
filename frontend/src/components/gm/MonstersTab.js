@@ -64,7 +64,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   useEffect(() => { loadLibrary(); }, [campaignId]);
 
   const creatures = useMemo(() => [
-    ...MONSTER_DATABASE.map((creature, index) => ({ ...normaliseMonsterStatBlock(creature), id: creature.id || `srd-${creature.name}-${index}`, source: 'srd' })),
+    ...MONSTER_DATABASE.map((creature, index) => ({ ...normaliseMonsterStatBlock(creature), id: creature.id || `srd-${creature.name}-${index}`, source: creature.source === 'legacy-reference' ? 'legacy-reference' : 'srd' })),
     ...customCreatures.map((creature, index) => ({ ...normaliseMonsterStatBlock(creature), id: creature.id || `custom-${creature.name}-${index}`, source: 'custom' })),
   ], [customCreatures]);
 
@@ -124,7 +124,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     try {
       const response = await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, {
         name,
-        description: `Seeded from Monsters tab. Estimated monster CR total: ${selectedCr}. Stat blocks include inferred actions when exact actions are not available. Add players from Combat when ready.`,
+        description: `Seeded from Monsters tab. Estimated monster CR total: ${selectedCr}. SRD entries include verified actions; only legacy/custom source records may contain inferred actions. Add players from Combat when ready.`,
         combatants: selectedCombatants,
         show_grid: true,
         grid_size: 40,
@@ -146,7 +146,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
         <div>
           <p style={eyebrowStyle}>Monsters</p>
           <h2 style={titleStyle}><Skull size={32} /> Combat Bestiary</h2>
-          <p style={subtitleStyle}>Search the local SRD-style monster database, custom creatures, and build combat-ready encounter seeds.</p>
+          <p style={subtitleStyle}>Search 334 complete SRD 5.1 monster stat blocks (including 87 beasts), legacy entries, and your own homebrew creatures. Offline and combat-ready.</p>
         </div>
         <div style={statGridStyle}>
           <Stat label="Bestiary Creatures" value={creatures.length} />
@@ -155,7 +155,11 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
         </div>
       </header>
 
-      <section style={noticeStyle}>The built-in list uses open/SRD-style entries and inferred combat actions where exact action text is not stored. Custom/homebrew creatures can be added or imported for exact table stat blocks.</section>
+      <section style={noticeStyle}>The 334 official SRD 5.1 entries have their real attack and ability text, where present in the SRD. Older non-SRD Keeper entries are marked legacy and may contain estimated statistics. SRD 5.1 is CC BY 4.0. Paid Monster Manual-only creatures are not included.</section>
+      <details style={{ fontSize: 12, color: rq.muted, border: `1px solid ${rq.line}`, padding: 10 }}>
+        <summary>Bestiary credits and licence</summary>
+        This work includes material taken from the System Reference Document 5.1 (“SRD 5.1”) by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode. Creature records were normalized for offline use from the 5e-bits 5e-database (v5.12.0).
+      </details>
 
       {lastSavedEncounter && (
         <section style={handoffStyle} data-testid="monster-combat-handoff">
@@ -183,7 +187,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
           <label style={searchWrapStyle}><Search size={16} /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search creatures, attacks, abilities, type…" style={inputStyle} /></label>
           <label style={selectWrapStyle}><Filter size={15} /><select value={typeFilter} onChange={event => setTypeFilter(event.target.value)} style={selectStyle}><option value="all">All types</option>{creatureTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
           <select value={crFilter} onChange={event => setCrFilter(event.target.value)} style={selectStyle}><option value="all">All CR</option><option value="low">CR 0–2</option><option value="mid">CR 3–8</option><option value="high">CR 9+</option></select>
-          <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} style={selectStyle}><option value="all">All sources</option><option value="srd">Built-in</option><option value="custom">Custom</option></select>
+          <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} style={selectStyle}><option value="all">All sources</option><option value="srd">SRD 5.1 (verified)</option><option value="legacy-reference">Legacy reference</option><option value="custom">Custom</option></select>
           <Input value={encounterName} onChange={event => setEncounterName(event.target.value)} placeholder="Encounter name, optional" style={inputStyle} />
           <Button onClick={loadLibrary} disabled={loading} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</Button>
         </div>

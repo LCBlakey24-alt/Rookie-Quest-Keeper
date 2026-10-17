@@ -200,6 +200,21 @@ export function createPreviewApi(
       }));
       if (method === 'get' && resource === 'handout-recipients' && !id) return { recipients: recipients(campaignId) };
       if (method === 'get' && resource === 'combat-initiative' && id === 'mine') return { combat_active: false };
+      if (resource === 'chaos-fate' && !id) {
+        const key = `${campaignId}/chaos-fate`;
+        if (method === 'get') return state.objects[key] || { chaos: 0, fate: 0, history: [] };
+        if (method === 'put') {
+          const chaos = Number(body.chaos), fate = Number(body.fate);
+          if (!Number.isSafeInteger(chaos) || !Number.isSafeInteger(fate)
+            || chaos < 0 || fate < 0 || chaos > 100000 || fate > 100000
+            || !Array.isArray(body.history) || body.history.length > 60) {
+            fail('Invalid shared Chaos/Fate token state.', 400);
+          }
+          const next = { chaos, fate, history: body.history.slice(-60) };
+          state.objects[key] = next;
+          return next;
+        }
+      }
       if (resource === 'calendar' && id === 'advance' && method === 'post') {
         const key = `${campaignId}/calendar`;
         if (!state.objects[key]) fail('Set up the campaign calendar first.', 404);
