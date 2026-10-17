@@ -233,6 +233,7 @@ class Calendar(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
     calendar_type: str = "custom"  # custom, gregorian, forgotten_realms
+    days_per_week: int = Field(default=7, ge=1, le=10)
     current_day: int = 1
     current_month: int = 1
     current_year: int = 1
@@ -241,6 +242,7 @@ class Calendar(BaseModel):
 
 class CalendarUpdate(BaseModel):
     calendar_type: Optional[str] = None
+    days_per_week: Optional[int] = Field(default=None, ge=1, le=10)
     current_day: Optional[int] = None
     current_month: Optional[int] = None
     current_year: Optional[int] = None
