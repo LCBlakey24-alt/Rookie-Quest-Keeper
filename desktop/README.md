@@ -21,6 +21,66 @@ A pack contains ordinary Keeper workspace records plus optional attachments. Tex
 
 The campaign pack itself can remain private. Only the generic importer lives in the public Keeper source code.
 
+## Small offline campaign updates (.rqkupdate)
+
+The **Import / Apply Update** button on **My Campaigns** now accepts two files:
+
+- `.rqkpack`: the initial full campaign library, including reference images/maps.
+- `.rqkupdate`: a small **content-only** update containing just new/changed
+  campaigns, handouts, NPCs, maps and related reference records. It is **not**
+  a program executable or an Electron code update.
+
+Install Keeper once. For a campaign update, download the `.rqkupdate` file,
+copy it to the laptop (USB stick works with no internet), open Keeper, choose
+**My Campaigns → Import / Apply Update**, select the file and confirm.
+The original campaign, local player characters, session notes and recaps remain
+on the laptop. New files are added without deleting attachments absent from the
+patch; matching included attachment IDs replace their corresponding asset.
+A before-import backup protects the workspace and imported attachments.
+
+**Authoring from Google Drive:** Keep canonical campaign documents and art in
+Drive. Convert their current contents into Keeper's version-1 workspace JSON
+with stable IDs; compare with the last published JSON snapshot and produce
+a small update file using the standard-library command below:
+
+```bash
+python desktop/tools/build_campaign_update.py \
+  --before last-published-workspace.json \
+  --after current-workspace.json \
+  --pack-id eldritch-heralds \
+  --pack-name "Eldritch Heralds — Lore Update" \
+  --attachments-manifest changed-attachments.json \
+  --output Eldritch-Heralds-Lore-Update.rqkupdate
+```
+
+The `--before` and `--attachments-manifest` arguments are optional. A
+manifest is a JSON array of `{"id": "world-map", "path": "./maps/world.jpg",
+"file_name": "world.jpg"}` entries, with paths relative to the manifest.
+The output is JSON with an `.rqkupdate` extension, readable by the desktop
+importer without any internet, Python, or development tools on the player's PC.
+Media items have the existing 25 MiB **per attachment** import limit.
+
+Updates are **additive**: absent records are never removed. Updated campaign
+reference metadata wins, but existing characters, personal notes, recaps,
+homebrew, in-progress combats and live counters are protected when applying
+`.rqkupdate` content packs. Existing world-reference records with the same
+stable ID are refreshed. Keep private GM-only content out of player-facing
+packs and never commit your private campaign packs to the public repo.
+
+**App code updates are separate.** Desktop already has **Updates & backups →
+Check for updates** for published Windows builds. Depending on Electron's
+differential update support and availability of release artifacts, an online
+app update may download only changed blocks; otherwise the full installer is
+downloaded automatically. It still updates the existing installed app without
+clearing its stored campaigns. To apply an app-code update when completely
+offline, transfer and run the new Windows installer over the existing
+installation. The `.rqkupdate` importer cannot replace executable code.
+
+**Phone/tablet caveat:** Desktop is offline and self-contained on the laptop.
+A player's separate phone/tablet does not automatically share the laptop's
+live state. A trusted local Wi-Fi/LAN sync service or separate offline import
+workflow must be implemented and tested before claiming multi-device sync.
+
 ## Current offline scope
 
 The local Keeper transport supports the main character/campaign workspace, including campaigns, characters, player views, notes, handouts, quests, story arcs, NPCs, locations, maps, calendar events, encounters, factions, roll tables, loot tables, treasury data, session recaps, rests and character progression.

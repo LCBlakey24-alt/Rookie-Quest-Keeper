@@ -94,24 +94,40 @@ async function installLocalProtocols() {
 function writePackAttachments(pack) {
   const packId = safeSegment(pack.pack_id, 'imported-pack');
   const packDir = path.join(attachmentRoot(), packId);
-  fs.rmSync(packDir, { recursive: true, force: true });
+  // Content patches are incremental: never delete older maps/music simply
+  // because they were not included in this smaller update.
   fs.mkdirSync(packDir, { recursive: true });
 
   const attachmentUrls = {};
-  for (const [index, attachment] of (Array.isArray(pack.attachments) ? pack.attachments : []).entries()) {
+  const attachments = Array.isArray(pack.attachments) ? pack.attachments : [];
+  const seen = new Set();
+  for (const [index, attachment] of attachments.entries()) {
     if (!attachment || typeof attachment !== 'object') continue;
     const id = safeSegment(attachment.id, `attachment-${index + 1}`);
+    if (seen.has(id)) throw new Error(`Duplicate attachment ID: ${id}`);
+    seen.add(id);
     const originalName = String(attachment.file_name || attachment.relative_path || attachment.title || id);
     const ext = path.extname(originalName).slice(0, 12);
     const fileName = `${id}${ext}`;
     const target = path.join(packDir, fileName);
     const base64 = String(attachment.base64 || '').replace(/^data:[^;]+;base64,/, '');
     if (!base64) continue;
+    if (base64.length > 36 * 1024 * 1024) {
+      throw new Error(`Attachment "${originalName}" exceeds Keeper's pack size limit.`);
+    }
     const bytes = Buffer.from(base64, 'base64');
     if (bytes.length > 25 * 1024 * 1024) {
       throw new Error(`Attachment "${originalName}" is larger than the 25 MB desktop pack limit.`);
     }
-    fs.writeFileSync(target, bytes);
+    // Write each asset atomically. A failed write must not leave a half-file
+    // masquerading as a valid campaign image or audio track.
+    const pending = `${target}.${process.pid}.${index}.pending`;
+    try {
+      fs.writeFileSync(pending, bytes, { flag: 'wx' });
+      fs.renameSync(pending, target);
+    } finally {
+      if (fs.existsSync(pending)) fs.rmSync(pending, { force: true });
+    }
     attachmentUrls[String(attachment.id || id)] = `${ATTACHMENT_SCHEME}://${packId}/${encodeURIComponent(fileName)}`;
   }
   return attachmentUrls;
@@ -119,10 +135,10 @@ function writePackAttachments(pack) {
 
 async function importCampaignPack(_event, workspaceRaw) {
   const result = await dialog.showOpenDialog({
-    title: 'Import Rookie Quest Keeper Campaign Pack',
+    title: 'Import Campaign or Campaign Update',
     properties: ['openFile'],
     filters: [
-      { name: 'Rookie Quest Keeper Campaign Pack', extensions: ['rqkpack', 'json'] },
+      { name: 'Keeper Campaign and Update Packs', extensions: ['rqkpack', 'rqkupdate', 'json'] },
     ],
   });
   if (result.canceled || !result.filePaths?.[0]) return { canceled: true };
@@ -138,6 +154,26 @@ async function importCampaignPack(_event, workspaceRaw) {
   if (!pack || pack.format !== PACK_FORMAT || pack.version !== 1 || !pack.workspace) {
     throw new Error('That file is not a supported Rookie Quest Keeper campaign pack.');
   }
+  const isUpdate = pack.pack_type === 'campaign-update';
+  if (pack.pack_type && !isUpdate) {
+    throw new Error('Unknown Keeper package type.');
+  }
+  if (isUpdate && !/^[a-zA-Z0-9._-]{1,120}$/.test(String(pack.pack_id || ''))) {
+    throw new Error('Campaign update is missing a safe, stable pack ID.');
+  }
+  if (isUpdate) {
+    const confirmation = await dialog.showMessageBox({
+      type: 'question',
+      title: 'Apply Campaign Update',
+      message: `Apply "${String(pack.pack_name || 'Campaign Update').slice(0, 160)}" to your offline library?`,
+      detail: 'Keeper will keep your existing characters and session notes, add or refresh campaign reference material and back up your workspace first. This is a content update, not an application update.',
+      buttons: ['Apply update', 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    });
+    if (confirmation.response !== 0) return { canceled: true };
+  }
 
   // Back up before an import can overwrite local attachments with matching pack IDs.
   if (workspaceRaw != null) createBackup(app.getPath('userData'), workspaceRaw, 'before-import');
@@ -150,6 +186,7 @@ async function importCampaignPack(_event, workspaceRaw) {
       version: pack.version,
       pack_id: String(pack.pack_id || ''),
       pack_name: String(pack.pack_name || 'Campaign Pack'),
+      pack_type: isUpdate ? 'campaign-update' : 'campaign-pack',
       created_at: pack.created_at || null,
       workspace: pack.workspace,
       attachment_urls: attachmentUrls,

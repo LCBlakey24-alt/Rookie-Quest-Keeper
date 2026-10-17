@@ -188,7 +188,8 @@ export default function MyCampaignsPage() {
       setImportingPack(true);
       const result = await importDesktopCampaignPack();
       if (result.canceled) return;
-      toast.success(`${result.pack_name} imported: ${result.campaign_count} campaign(s), ${result.character_count} character(s), ${result.attachment_count} attachment(s)`);
+      const action = result.pack_type === 'campaign-update' ? 'updated' : 'imported';
+      toast.success(`${result.pack_name} ${action}: ${result.campaign_count} campaign(s), ${result.character_count} character(s), ${result.attachment_count} attachment(s)`);
       window.location.reload();
     } catch (error) {
       toast.error(error?.message || 'Could not import campaign pack');
@@ -253,7 +254,7 @@ export default function MyCampaignsPage() {
               aria-busy={importingPack ? 'true' : 'false'}
             >
               <Upload size={16} />
-              {importingPack ? 'Importing…' : 'Import Campaign Pack'}
+              {importingPack ? 'Applying…' : 'Import / Apply Update'}
             </button>
           )}
           <button
@@ -296,7 +297,7 @@ export default function MyCampaignsPage() {
       ) : sortedCampaigns.length === 0 ? (
         <section className="library-page-empty campaign-library-empty">
           <h2>No campaigns yet</h2>
-          <p>{desktopOffline ? 'Create a campaign or import a private campaign pack from your laptop.' : 'Create your first campaign to start building the world.'}</p>
+          <p>{desktopOffline ? 'Create a campaign, import a campaign pack, or apply a small campaign update from your laptop.' : 'Create your first campaign to start building the world.'}</p>
           <div className="library-page-actions">
             <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary">Create Campaign</button>
           </div>
