@@ -14,7 +14,7 @@ PROFILE_PATH = re.compile(r"^/profile/[^/]+/characters/(?P<id>[1-9][0-9]{0,19})/
 
 def parse_dndbeyond_share_link(value: str) -> dict:
     url = str(value or "").strip()
-    if not url or len(url) > 1024 or any(c in url for c in "\\r\\n\\t"):
+    if not url or len(url) > 1024 or any(c in url for c in "\r\n\t"):
         raise ValueError("Paste a D&D Beyond character share URL.")
     try:
         target = urlsplit(url)
