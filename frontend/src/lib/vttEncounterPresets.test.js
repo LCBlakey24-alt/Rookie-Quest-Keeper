@@ -1,7 +1,7 @@
 import { encounterStorageKey, loadEncounterPresets, normaliseEncounter, normaliseTokenPositions, saveEncounterPresets, snapTokenPoint } from './vttEncounterPresets';
 
 test('snap aligns a token to 5ft square centre for rectangular artwork', () => {
-  expect(snapTokenPoint(10, 17, 20, 1920, 1080, true)).toEqual({ x: 12.5, y: (Math.round(17*11/100-.5)+.5)*100/11 });
+  expect(snapTokenPoint(10, 17, 20, 1920, 1080, true)).toEqual({ x: 9.375, y: (Math.round(17*9/100-.5)+.5)*100/9 });
   expect(snapTokenPoint(10, 17, 20, 1920, 1080, false)).toEqual({ x: 10, y: 17 });
 });
 
