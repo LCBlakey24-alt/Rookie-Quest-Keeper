@@ -2,7 +2,7 @@ const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } = require('e
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
-const { createBackup, listBackups, restoreBackup } = require('./backup');
+const { createBackup, listBackups, restoreBackup, exportPortableBackup, restorePortableBackup } = require('./backup');
 const { registerDesktopUpdater } = require('./updates');
 const { isSafePlayerDisplayUrl } = require('./playerDisplayWindow');
 
@@ -271,6 +271,22 @@ app.whenReady().then(async () => {
   ipcMain.handle('rqk:list-backups', () => listBackups(app.getPath('userData')));
   ipcMain.handle('rqk:restore-backup', (_event, id, currentRaw) =>
     restoreBackup(app.getPath('userData'), id, currentRaw));
+  ipcMain.handle('rqk:export-portable-backup', async (_event, raw) => {
+    const choice = await dialog.showOpenDialog({
+      title: 'Choose where to save a portable Keeper backup',
+      properties: ['openDirectory', 'createDirectory'],
+    });
+    if (choice.canceled || !choice.filePaths?.[0]) return { canceled: true };
+    return { canceled: false, ...exportPortableBackup(app.getPath('userData'), raw, choice.filePaths[0]) };
+  });
+  ipcMain.handle('rqk:restore-portable-backup', async (_event, currentRaw) => {
+    const choice = await dialog.showOpenDialog({
+      title: 'Choose your saved Rookie Quest Keeper backup folder',
+      properties: ['openDirectory'],
+    });
+    if (choice.canceled || !choice.filePaths?.[0]) return { canceled: true };
+    return { canceled: false, ...restorePortableBackup(app.getPath('userData'), choice.filePaths[0], currentRaw) };
+  });
   registerDesktopUpdater({
     app, ipcMain, BrowserWindow,
     createSafetyBackup: (raw, reason) => raw == null
