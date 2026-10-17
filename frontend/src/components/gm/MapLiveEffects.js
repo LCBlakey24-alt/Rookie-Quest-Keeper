@@ -2,10 +2,10 @@ import React from 'react';
 import { normaliseTactical, safePoint } from '@/lib/vttTacticalOverlay';
 
 const fxCss = `
-@keyframes rqkRainFall { from { transform:translateY(-115%);opacity:0 } 12%{opacity:.52} to{transform:translateY(130%);opacity:0} }
-@keyframes rqkEmbersRise {from {transform:translate(-15px,130%);opacity:0} 16%{opacity:.95} to{transform:translate(28px,-40%);opacity:0}}
+@keyframes rqkRainFall { from { top:-25%;opacity:0 } 12%{opacity:.52} to{top:110%;opacity:0} }
+@keyframes rqkEmbersRise {from {top:110%;transform:translateX(-15px);opacity:0} 16%{opacity:.95} to{top:-10%;transform:translateX(28px);opacity:0}}
 @keyframes rqkHeatMove {0%{transform:translateY(0);opacity:.15}50%{transform:translateY(-10%);opacity:.48}100%{transform:translateY(-20%);opacity:.12}}
-@keyframes rqkSnowFall {from{transform:translateY(-20%) translateX(-10px);opacity:0}20%{opacity:.75}to{transform:translateY(110%) translateX(20px);opacity:0}}
+@keyframes rqkSnowFall {from{top:-10%;transform:translateX(-10px);opacity:0}20%{opacity:.75}to{top:110%;transform:translateX(20px);opacity:0}}
 @keyframes rqkMapPing {0%{transform:translate(-50%,-50%) scale(.2);opacity:1}75%{opacity:.75}100%{transform:translate(-50%,-50%) scale(4.2);opacity:0}}
 @media(prefers-reduced-motion:reduce){.rqk-map-particle,.rqk-map-heat,.rqk-map-ping{animation:none!important;opacity:.22!important}}
 `;
