@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, Link2, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 export function normaliseDndBeyondLink(value) {
   const raw = String(value || '').trim();
@@ -25,7 +26,7 @@ export default function DndBeyondCharacterLink({ characterId, characterName }) {
   const [failedLoad, setFailedLoad] = useState(false);
 
   useEffect(() => {
-    if (!characterId) return undefined;
+    if (!characterId || isOfflineDesktop()) return undefined;
     let cancelled = false;
     setInput('');
     setLinked('');
@@ -45,6 +46,10 @@ export default function DndBeyondCharacterLink({ characterId, characterName }) {
 
   const save = async (event) => {
     event.preventDefault();
+    if (isOfflineDesktop()) {
+      setMessage('This offline Windows copy is not connected to hosted player character accounts yet.');
+      return;
+    }
     const url = normaliseDndBeyondLink(input);
     if (!url) {
       setMessage('Please paste the HTTPS Share link from a specific D&D Beyond character.');
@@ -67,7 +72,7 @@ export default function DndBeyondCharacterLink({ characterId, characterName }) {
     }
   };
   const unlink = async () => {
-    if (!linked) return;
+    if (!linked || isOfflineDesktop()) return;
     setBusy(true);
     try {
       await apiClient.delete(`/characters/${encodeURIComponent(characterId)}/dndbeyond-link`);
@@ -84,6 +89,7 @@ export default function DndBeyondCharacterLink({ characterId, characterName }) {
         style={{ display:'inline-flex',alignItems:'center',gap:6,background:'transparent',border:'1px solid #9b865c',borderRadius:5,color:'inherit',padding:'6px 9px',minHeight:36,cursor:'pointer' }}>
         <Link2 size={15}/>{linked ? 'D&D Beyond link saved' : 'Link D&D Beyond sheet'}
       </button>
+      {opened && isOfflineDesktop() && <p role="status" style={{ fontSize:12, margin:'7px 0' }}>Player linking is available on the hosted Keeper player account. This standalone offline edition does not yet sync to player phones.</p>}
       {opened && <form onSubmit={save} style={{ display:'grid',gap:8,marginTop:9,padding:10,border:'1px solid #7a704f',borderRadius:6,background:'rgba(4,16,26,.35)' }}>
         <label htmlFor={`ddb-link-${characterId}`} style={{ display:'grid',gap:6,fontSize:13 }}>
           D&D Beyond character share URL for {characterName || 'this character'}
@@ -93,7 +99,7 @@ export default function DndBeyondCharacterLink({ characterId, characterName }) {
             style={{ maxWidth:'100%',width:'100%',minWidth:0,boxSizing:'border-box',fontSize:14,padding:'10px 8px',borderRadius:5,color:'#e9edf4',background:'#112b3f',border:'1px solid #a7a6a1' }} />
         </label>
         <div style={{ display:'flex',gap:8,flexWrap:'wrap',alignItems:'center' }}>
-          <button type="submit" disabled={busy} style={{ display:'inline-flex',alignItems:'center',gap:6,padding:'7px 10px',cursor:'pointer' }}><Save size={14}/>{busy ? 'Saving…' : 'Save character link'}</button>
+          <button type="submit" disabled={busy || isOfflineDesktop()} style={{ display:'inline-flex',alignItems:'center',gap:6,padding:'7px 10px',cursor:'pointer' }}><Save size={14}/>{busy ? 'Saving…' : 'Save character link'}</button>
           {linked && <a href={linked} target="_blank" rel="noopener noreferrer" style={{ display:'inline-flex',gap:5,alignItems:'center',color:'#eed08d' }}>Open D&D Beyond <ExternalLink size={14}/></a>}
           {linked && <button type="button" onClick={unlink} disabled={busy} aria-label="Unlink D&D Beyond character" style={{ display:'inline-flex',gap:5,alignItems:'center',padding:'7px',cursor:'pointer' }}><Trash2 size={14}/> Unlink</button>}
         </div>
