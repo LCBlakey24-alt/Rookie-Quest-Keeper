@@ -62,7 +62,7 @@ export default function ChaosFateTracker({ campaignId, compact = false }) {
         <button type="button" style={buttonStyle} disabled={busy || loading || state.chaos < amount} onClick={() => act('spend')}>Spend Chaos → + Fate</button>
         <button type="button" style={buttonStyle} disabled={busy || loading || state.fate < amount} onClick={() => act('commit')}>Commit Fate · roll d8</button>
         <button type="button" style={buttonStyle} disabled={busy || loading || !state.history.length} onClick={() => act('undo')}>Undo last</button>
-        <button type="button" style={buttonStyle} disabled={busy || loading} onClick={load}>Refresh</button>
+        <button type="button" style={buttonStyle} disabled={busy || loading} onClick={load}>Refresh tokens</button>
       </div>
       <label>Enemy assigned Fate upgrades (optional) <input value={enemy} onChange={e => setEnemy(e.target.value)} placeholder="e.g. Old Gate captain" maxLength={120} style={{ ...buttonStyle, width: '100%', marginTop: 5 }} /></label>
       {latest?.action === 'commit' && <div role="status" style={{ padding: 10, border: '1px solid #8f6d30', borderRadius: 6 }}>
