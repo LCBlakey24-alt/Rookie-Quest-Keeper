@@ -108,9 +108,9 @@ export default function DndBeyondCharacterLink({ characterId, characterName }) {
         <p style={{fontSize:12,margin:0,lineHeight:1.5}}>
           This saves the character's source link only — it does <strong>not</strong> import or update stats automatically.
           D&D Beyond has no supported public character-sync API. To bring sheet details into Keeper, use the PDF/image
-          importer and review them before saving. Never share D&D Beyond login details.
+          importer and review them before saving. The current importer creates a separate Keeper character, rather than updating this one. Never share D&D Beyond login details.
         </p>
-        <a href="/characters/import" style={{fontSize:13,color:'#eed08d'}}>Import a PDF or image of a character sheet</a>
+        <a href="/characters/import" style={{fontSize:13,color:'#eed08d'}}>Create a new character from a PDF or image</a>
       </form>}
     </div>
   );
