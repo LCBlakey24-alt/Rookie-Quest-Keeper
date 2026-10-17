@@ -165,3 +165,45 @@ test('Wi-Fi viewer contains original grid/ruler projection tools', async () => {
     assert.match(page, /layer\.insertBefore\(grid,layer\.firstChild\)/);
   } finally { server.close(); }
 });
+
+test('world-map party, weather and pings are projected without GM fields or creature tokens', () => {
+  const server = createLanDisplayServer({ userDataDir: os.tmpdir() });
+  const at=Date.now();
+  const state=server.projectDisplayState({mode:'combat',payload:{
+    title:'Tia-Karta',map_url:'data:image/png;base64,QUJD',
+    tactical:{ mapKind:'world',partyMarker:{x:25,y:39,hiddenPlot:'Lucian'},effect:'embers',grid:true,columns:24,privateNotes:'False location' },
+    tokens:[{name:'GM only dragon',x:25,y:39,notes:'SECRET'}],
+    ping:{x:10,y:90,at,gmNote:'Hidden ambush'},
+  }});
+  assert.deepEqual(state.payload.tactical.partyMarker,{x:25,y:39});
+  assert.equal(state.payload.tactical.effect,'embers');
+  assert.equal(state.payload.tactical.mapKind,'world');
+  assert.equal(state.payload.tokens.length,0);
+  assert.deepEqual(state.payload.ping,{x:10,y:90,at});
+  assert.doesNotMatch(JSON.stringify(state),/Lucian|False location|dragon|SECRET|Hidden ambush/);
+});
+
+test('invalid atmospheres, world markers and stale pings are rejected', () => {
+  const server=createLanDisplayServer({userDataDir:os.tmpdir()});
+  const state=server.projectDisplayState({mode:'image',payload:{
+    tactical:{mapKind:'world',effect:'unsafe-css-expression',partyMarker:{x:151,y:-3}},
+    ping:{x:50,y:60,at:1},
+  }});
+  assert.equal(state.payload.tactical.effect,'none');
+  assert.equal(state.payload.tactical.partyMarker,null);
+  assert.equal(state.payload.ping,undefined);
+});
+
+test('Wi-Fi spectator has fitted whole-grid, weather and party / ping layers',async () => {
+  const server=createLanDisplayServer({userDataDir:os.tmpdir()});
+  try {
+    const info=await server.start();
+    const url=new URL(info.url);url.hostname='127.0.0.1';
+    const html=await (await fetch(url)).text();
+    assert.match(html,/function fittedCells/);
+    assert.match(html,/function visualEffects/);
+    assert.match(html,/rqk-party-pin/);
+    assert.match(html,/rqk-ping/);
+    assert.match(html,/rqk-atmosphere/);
+  } finally {server.close()}
+});
