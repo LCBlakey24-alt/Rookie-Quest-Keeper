@@ -78,6 +78,18 @@ describe('offline desktop workspace', () => {
     expect(() => createPreviewApi(storage).request('get', '/campaigns/missing/home-bootstrap')).toThrow('Preview campaign not found.');
   });
 
+  test('shared Chaos/Fate token ledger survives restart and never resets companion state', () => {
+    const storage = memoryStorage();
+    const api = createPreviewApi(storage);
+    const campaign = api.request('post', '/campaigns', { name: 'Eldritch Heralds' });
+    const route = `/campaigns/${campaign.id}/chaos-fate`;
+    api.request('put', route, { chaos: 2, fate: 3, history: [{ action: 'spend', amount: 3 }] });
+    expect(createPreviewApi(storage).request('get', route)).toMatchObject({ chaos: 2, fate: 3 });
+    expect(api.request('get', `/campaigns/${campaign.id}/live-state`)).toEqual(null);
+    api.request('put', `/campaigns/${campaign.id}/live-state`, { companion_npc_ids: [] });
+    expect(createPreviewApi(storage).request('get', route)).toMatchObject({ chaos: 2, fate: 3 });
+  });
+
   test('starts empty and persists desktop data under its own storage key', () => {
     const storage = memoryStorage();
     const api = createPreviewApi(storage);
