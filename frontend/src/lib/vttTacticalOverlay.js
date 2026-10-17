@@ -37,8 +37,11 @@ export function normaliseTactical(raw) {
 // measurement is never included in player sync traffic.
 export function publicTactical(raw) {
   const settings = normaliseTactical(raw);
-  if (!settings.showRuler) return { ...settings, ruler: null };
-  return settings;
+  return {
+    ...settings,
+    ruler: settings.showRuler ? settings.ruler : null,
+    partyMarker: settings.mapKind === 'world' ? settings.partyMarker : null,
+  };
 }
 
 /**
