@@ -156,6 +156,10 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
       </header>
 
       <section style={noticeStyle}>The 334 official SRD 5.1 entries have their real attack and ability text, where present in the SRD. Older non-SRD Keeper entries are marked legacy and may contain estimated statistics. SRD 5.1 is CC BY 4.0. Paid Monster Manual-only creatures are not included.</section>
+      <details style={{ fontSize: 12, color: rq.muted, border: `1px solid ${rq.line}`, padding: 10 }}>
+        <summary>Bestiary credits and licence</summary>
+        This work includes material taken from the System Reference Document 5.1 (“SRD 5.1”) by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode. Creature records were normalized for offline use from the 5e-bits 5e-database (v5.12.0).
+      </details>
 
       {lastSavedEncounter && (
         <section style={handoffStyle} data-testid="monster-combat-handoff">
