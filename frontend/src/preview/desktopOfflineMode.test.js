@@ -85,7 +85,7 @@ describe('offline desktop workspace', () => {
     const route = `/campaigns/${campaign.id}/chaos-fate`;
     api.request('put', route, { chaos: 2, fate: 3, history: [{ action: 'spend', amount: 3 }] });
     expect(createPreviewApi(storage).request('get', route)).toMatchObject({ chaos: 2, fate: 3 });
-    expect(api.request('get', `/campaigns/${campaign.id}/live-state`)).toEqual(null);
+    expect(api.request('get', `/campaigns/${campaign.id}/live-state`)).toEqual({});
     api.request('put', `/campaigns/${campaign.id}/live-state`, { companion_npc_ids: [] });
     expect(createPreviewApi(storage).request('get', route)).toMatchObject({ chaos: 2, fate: 3 });
   });
