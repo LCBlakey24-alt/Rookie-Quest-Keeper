@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
+import ChaosFateTracker from '@/components/gm/ChaosFateTracker';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import { loadLiveSessionSections } from '@/data/livePlayLoaders';
@@ -291,6 +292,7 @@ export default function LiveSessionGridPage() {
           </div>
         </header>
 
+        <details style={{ marginBottom: 8, border: '1px solid var(--rq-border-default)', padding: 9, borderRadius: 8 }}><summary style={{ cursor: 'pointer', fontWeight: 700 }}>🎲 Chaos & Fate — shared party tokens</summary><ChaosFateTracker campaignId={campaignId} compact /></details>
         <LiveDataWarning errors={loadErrors} onRetry={fetchAllData} />
         <PlayerDisplayDeliveryStatus campaignId={campaignId} />
         <LiveStoryFocusPanel campaignId={campaignId} />
