@@ -8,6 +8,7 @@ import { fetchPlayerCampaignSections } from './playerCampaignData';
 import { playerSheetReturnState } from './playerSheetNavigation';
 import { fetchPlayerHandoutSummary } from '@/components/dashboard/player/playerDashboardData';
 import PlayerNowPlayingPanel from './PlayerNowPlayingPanel';
+import DndBeyondCharacterLink from './DndBeyondCharacterLink';
 import '@/styles/playerCampaign.css';
 import '@/styles/playerCampaignCharacterStatus.css';
 import '@/styles/playerCampaignTabBadge.css';
@@ -143,6 +144,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
                           <span>HP {characterHp(character)}</span>
                           <span>AC {characterAc(character)}</span>
                         </div>
+                        <DndBeyondCharacterLink characterId={character.id} characterName={character.name || character.character_name} />
                       </div>
                       <Link
                         className="player-campaign-action"
