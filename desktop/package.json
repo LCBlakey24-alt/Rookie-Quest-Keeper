@@ -1,6 +1,6 @@
 {
   "name": "rookie-quest-keeper-desktop",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "private": true,
   "description": "Offline Windows desktop edition of Rookie Quest Keeper",
   "main": "main.js",
@@ -8,7 +8,8 @@
     "start": "electron .",
     "dist:win": "electron-builder --win nsis --x64 --publish never",
     "release:win": "electron-builder --win nsis --x64 --publish always",
-    "test": "node --test"
+    "test": "node --test",
+    "dist:portable": "electron-builder --win portable --x64 --publish never"
   },
   "devDependencies": {
     "electron": "44.6.0",
@@ -23,6 +24,7 @@
       "playerDisplayWindow.js",
       "updates.js",
       "main.js",
+      "portable.js",
       "preload.js",
       "renderer/**/*",
       "package.json"
@@ -53,6 +55,9 @@
       "repo": "Rookie-Quest-Keeper",
       "releaseType": "draft",
       "tagNamePrefix": "desktop-v"
+    },
+    "portable": {
+      "artifactName": "Rookie Quest Keeper Portable ${version}.${ext}"
     }
   },
   "dependencies": {
