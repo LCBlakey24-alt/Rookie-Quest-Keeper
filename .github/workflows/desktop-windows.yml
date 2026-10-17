@@ -34,6 +34,9 @@ jobs:
           CI: true
         run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js src/preview/desktopCampaignPack.test.js
 
+      - name: Test incremental campaign update package generator
+        run: python -m unittest discover -s desktop/tools -p "test_*.py"
+
       - name: Build Keeper frontend
         working-directory: frontend
         run: yarn build
