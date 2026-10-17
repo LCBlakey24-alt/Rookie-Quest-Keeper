@@ -1,7 +1,8 @@
-// Fantasy TTRPG 5e Monster Database - Comprehensive list of monsters with stats
-// Source: SRD 5.1 (Open Gaming License)
+// Full offline SRD 5.1 under CC BY 4.0 + pre-existing Keeper creature entries.
+// The SRD entries take precedence over legacy approximate stats of the same name.
+import SRD_5_1_MONSTERS from './srd5eMonsters.generated.json';
 
-export const MONSTER_DATABASE = [
+const LEGACY_MONSTER_DATABASE = [
   // CR 0
   { name: "Commoner", cr: "0", hp: 4, ac: 10, type: "humanoid", size: "Medium", speed: "30 ft.", abilities: "None" },
   { name: "Rat", cr: "0", hp: 1, ac: 10, type: "beast", size: "Tiny", speed: "20 ft.", abilities: "Keen Smell" },
@@ -361,6 +362,16 @@ export const MONSTER_DATABASE = [
   
   // CR 30
   { name: "Tarrasque", cr: "30", hp: 676, ac: 25, type: "monstrosity", size: "Gargantuan", speed: "40 ft.", abilities: "Legendary Resistance (5/day), Magic Resistance, Reflective Carapace, Siege Monster, Frightful Presence (DC 17), Swallow, Legendary Actions" },
+];
+
+// Keep any pre-existing custom/legacy creatures, but do not use their inferred
+// approximate stats in place of official SRD stat blocks.
+const canonicalNames = new Set(SRD_5_1_MONSTERS.map(creature => creature.name.toLowerCase()));
+export const MONSTER_DATABASE = [
+  ...SRD_5_1_MONSTERS,
+  ...LEGACY_MONSTER_DATABASE
+    .filter(creature => !canonicalNames.has(creature.name.toLowerCase()))
+    .map(creature => ({ ...creature, source: 'legacy-reference' })),
 ];
 
 // Monster types for filtering
