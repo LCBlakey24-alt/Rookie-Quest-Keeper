@@ -8,8 +8,8 @@ claim to have imported or synchronized a character.
 from urllib.parse import urlsplit
 import re
 
-CHARACTER_PATH = re.compile(r"^/characters/(?P<id>[1-9][0-9]{0,19})/?$", re.IGNORECASE)
-PROFILE_PATH = re.compile(r"^/profile/[^/]+/characters/(?P<id>[1-9][0-9]{0,19})/?$", re.IGNORECASE)
+CHARACTER_PATH = re.compile(r"^/characters/(?P<id>[1-9][0-9]{0,19})(?:/(?P<share>[A-Za-z0-9_-]{1,40}))?/?$", re.IGNORECASE)
+PROFILE_PATH = re.compile(r"^/profile/[^/]+/characters/(?P<id>[1-9][0-9]{0,19})(?:/(?P<share>[A-Za-z0-9_-]{1,40}))?/?$", re.IGNORECASE)
 
 
 def parse_dndbeyond_share_link(value: str) -> dict:
@@ -32,8 +32,12 @@ def parse_dndbeyond_share_link(value: str) -> dict:
         raise ValueError("Enter a valid HTTPS D&D Beyond character URL.") from exc
 
     identifier = match.group("id")
+    # The trailing share code is part of some D&D Beyond character links.
+    # Preserve it; an ID-only link may not work for the intended recipient.
+    share = match.group("share")
+    suffix = f"/{share}" if share else ""
     return {
-        "url": f"https://www.dndbeyond.com/characters/{identifier}",
+        "url": f"https://www.dndbeyond.com/characters/{identifier}{suffix}",
         "character_id": identifier,
         "import_status": "link_only_manual_import_required",
         "sync_status": "not_available",
