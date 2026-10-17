@@ -6,6 +6,8 @@ describe('D&D Beyond character share-link allowlist', () => {
       .toBe('https://www.dndbeyond.com/characters/12345678');
     expect(normaliseDndBeyondLink('https://dndbeyond.com/profile/Player_One/characters/9876543'))
       .toBe('https://www.dndbeyond.com/characters/9876543');
+    expect(normaliseDndBeyondLink('https://www.dndbeyond.com/characters/150614396/B9Mp61'))
+      .toBe('https://www.dndbeyond.com/characters/150614396/B9Mp61');
   });
 
   test('refuses other sites, private addresses and arbitrary D&D Beyond pages', () => {
