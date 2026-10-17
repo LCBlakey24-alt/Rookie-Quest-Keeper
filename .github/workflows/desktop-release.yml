@@ -82,6 +82,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run release:win
 
+      - name: Build USB portable Windows executable
+        working-directory: desktop
+        run: npm run dist:portable
+
+      - name: Attach USB portable executable to DRAFT release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
+          $portable = Get-ChildItem desktop/dist -Filter '*Portable*.exe' | Select-Object -First 1
+          if (-not $portable) { throw "Portable Windows executable was not produced." }
+          gh release upload $tag $portable.FullName --clobber
+
       - name: Keep a private-to-workflow artifact for review
         uses: actions/upload-artifact@v4
         with:
