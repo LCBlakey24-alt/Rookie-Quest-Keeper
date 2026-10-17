@@ -1,14 +1,15 @@
-import React, { useId } from 'react';
-import { gridRows, normaliseTactical, rulerFeet } from '@/lib/vttTacticalOverlay';
+import React from 'react';
+import { fittedGrid, normaliseTactical, rulerFeet } from '@/lib/vttTacticalOverlay';
 
 // A transparent overlay aligned to the FITTED map only. No clicks or GM controls
 // travel to the player screen; its public data contains geometry alone.
 export default function VttTacticalLayer({ tactical, width, height, editor = false, layer = 'grid' }) {
   const settings = normaliseTactical(tactical);
-  const rows = gridRows(settings.columns, width, height);
+  const fitted = fittedGrid(settings.columns, width, height);
+  const rows = fitted.rows;
+  const columns = fitted.columns;
   const drawGrid = layer === 'grid' && settings.grid;
   const drawRuler = layer === 'ruler' && settings.ruler && (editor || settings.showRuler);
-  const id = useId().replace(/:/g, '_');
   if (!drawGrid && !drawRuler) return null;
   const feet = drawRuler ? rulerFeet(settings, width, height) : null;
   return (
@@ -16,8 +17,8 @@ export default function VttTacticalLayer({ tactical, width, height, editor = fal
       preserveAspectRatio="none" aria-hidden="true"
       style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: drawGrid ? 2 : 6, overflow: 'visible' }}>
       {drawGrid && <>
-        {Array.from({ length: settings.columns - 1 }, (_, i) =>
-          <line key={`v${i}`} x1={(i + 1) * 100 / settings.columns} y1="0" x2={(i + 1) * 100 / settings.columns} y2="100" stroke="rgba(250,230,178,.46)" strokeWidth=".13" />
+        {Array.from({ length: columns - 1 }, (_, i) =>
+          <line key={`v${i}`} x1={(i + 1) * 100 / columns} y1="0" x2={(i + 1) * 100 / settings.columns} y2="100" stroke="rgba(250,230,178,.46)" strokeWidth=".13" />
         )}
         {Array.from({ length: rows - 1 }, (_, i) =>
           <line key={`h${i}`} x1="0" y1={(i + 1) * 100 / rows} x2="100" y2={(i + 1) * 100 / rows} stroke="rgba(250,230,178,.46)" strokeWidth=".13" />
