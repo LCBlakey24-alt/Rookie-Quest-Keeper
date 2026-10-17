@@ -25,6 +25,7 @@ const PartyTab = React.lazy(() => import('@/components/gm/PartyTab'));
 const NotesTab = React.lazy(() => import('@/components/gm/NotesTab'));
 const MonstersTab = React.lazy(() => import('@/components/gm/MonstersTab'));
 const Soundboard = React.lazy(() => import('@/components/gm/Soundboard'));
+const PlayerCompanionSetup = React.lazy(() => import('@/components/gm/PlayerCompanionSetup'));
 const StoryArcTracker = React.lazy(() => import('@/components/gm/StoryArcTracker'));
 const NPCRelationshipMap = React.lazy(() => import('@/components/gm/NPCRelationshipMap'));
 const AISessionPlanner = React.lazy(() => import('@/components/gm/AISessionPlanner'));
@@ -264,6 +265,7 @@ export default function LiveSessionGridPage() {
       case 'story': return lazyTool(<StoryArcTracker theme={theme} campaignId={campaignId} />);
       case 'planner': return lazyTool(<AISessionPlanner theme={theme} campaignId={campaignId} />);
       case 'sound': return lazyTool(<Soundboard theme={theme} campaignId={campaignId} />);
+      case 'player-companion': return lazyTool(<PlayerCompanionSetup campaignId={campaignId} />);
       case 'events': return lazyTool(<EventSystem theme={theme} campaignId={campaignId} />);
       case 'network': return lazyTool(<NPCRelationshipMap theme={theme} campaignId={campaignId} />);
       default: return null;
