@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit3, Moon, Settings, Sun, TrendingUp } from 'lucide-react';
+import { Edit3, ExternalLink, Link2, Moon, Settings, Sun, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { canStartRest, getCharacterEdition } from '@/data/characterRestRules';
 import './CleanSheetHeaderCompact.css';
@@ -56,7 +56,7 @@ export function compactSubtitleParts(character, fallbackSubtitle) {
   return formatSubtitleParts(directParts);
 }
 
-export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, resting }) {
+export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, onSaveDndBeyondLink, resting }) {
   const [showOptions, setShowOptions] = useState(false);
   const subtitleParts = compactSubtitleParts(character, subtitle);
   const primaryLine = subtitleParts.slice(0, 2).join(' • ');
@@ -110,11 +110,29 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
               <button type="button" role="menuitem" onClick={() => handleHeroAction(onEdit)}>
                 <Edit3 size={16} /> Edit Character
               </button>
+              <button type="button" role="menuitem" onClick={async () => {
+                setShowOptions(false);
+                const entered = window.prompt('Paste your D&D Beyond character sharing link (leave blank to clear):', character?.dnd_beyond_url || '');
+                if (entered === null) return;
+                const url = entered.trim();
+                if (url && !/^https:\/\/(?:www\.)?dndbeyond\.com\/characters\/\d+(?:\/[A-Za-z0-9]+)?\/?$/.test(url)) {
+                  toast.error('Please paste a valid D&D Beyond character sharing link.');
+                  return;
+                }
+                await onSaveDndBeyondLink?.(url);
+              }}>
+                <Link2 size={16} /> Link D&D Beyond
+              </button>
               <button type="button" role="menuitem" onClick={() => setShowOptions(false)}>Cancel</button>
             </div>
           )}
         </div>
       </header>
+      {character?.dnd_beyond_url && (
+        <a href={character.dnd_beyond_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: '4px 0 8px' }}>
+          <ExternalLink size={15} /> Open D&D Beyond sheet
+        </a>
+      )}
       <div className="clean-sheet-header-actions clean-sheet-header-actions--play" aria-label="Character sheet actions">
         <button className="clean-sheet-level" onClick={onLevelUp} type="button">
           <TrendingUp size={18} /> Level Up
