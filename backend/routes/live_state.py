@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 import re
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from config import db
@@ -201,6 +201,36 @@ async def update_campaign_live_state(campaign_id: str, payload: CampaignLiveStat
         upsert=True,
     )
     return state
+
+
+class ChaosFateUpdate(BaseModel):
+    chaos: int = Field(default=0, ge=0, le=100000)
+    fate: int = Field(default=0, ge=0, le=100000)
+    history: List[Dict[str, Any]] = Field(default_factory=list, max_length=60)
+
+
+@router.get("/campaigns/{campaign_id}/chaos-fate")
+async def get_chaos_fate(campaign_id: str, username: str = Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, username)
+    state = await db.campaign_live_state.find_one(
+        {"campaign_id": campaign_id}, {"_id": 0, "chaos_fate": 1}
+    )
+    return (state or {}).get("chaos_fate") or {"chaos": 0, "fate": 0, "history": []}
+
+
+@router.put("/campaigns/{campaign_id}/chaos-fate")
+async def save_chaos_fate(campaign_id: str, payload: ChaosFateUpdate, username: str = Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, username)
+    # Use a separate DB field: never reset companions, travel or live combat.
+    data = payload.model_dump()
+    if len(str(data).encode("utf-8")) > 40000:
+        raise HTTPException(status_code=413, detail="Token history is too large.")
+    await db.campaign_live_state.update_one(
+        {"campaign_id": campaign_id},
+        {"$set": {"chaos_fate": data, "updated_at": now_iso(), "updated_by": username}},
+        upsert=True,
+    )
+    return data
 
 
 @router.post("/campaigns/{campaign_id}/live-state/suggestions")
