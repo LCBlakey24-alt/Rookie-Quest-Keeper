@@ -14,7 +14,7 @@ describe('map-safe tactical grid and ruler', () => {
 
   test('rejects invalid points and out-of-range grid sizes', () => {
     expect(normaliseTactical({ grid: true, columns: 999, showRuler: true, ruler: { start: { x: -1, y: 0 }, end: { x: 10, y: 10 } } })).toEqual({
-      grid: true, columns: 60, ruler: null, showRuler: false,
+      grid: true, columns: 60, ruler: null, showRuler: false, effect: 'none', mapKind: 'battle', partyMarker: null,
     });
     expect(fittedGrid(24, 1080, 1920)).toMatchObject({ columns: 18, rows: 32 });
   });
@@ -26,7 +26,7 @@ describe('map-safe tactical grid and ruler', () => {
     const cfg = { grid: true, columns: 36, ruler: { start: { x: 10, y: 20 }, end: { x: 30, y: 40 } }, showRuler: false };
     saveTactical('gm-campaign', hugeMap, cfg, storage);
     expect(tacticalStorageKey('gm-campaign', hugeMap).length).toBeLessThan(100);
-    expect(loadTactical('gm-campaign', hugeMap, storage)).toEqual(cfg);
+    expect(loadTactical('gm-campaign', hugeMap, storage)).toMatchObject(cfg);
     expect(loadTactical('gm-campaign', 'other', storage).grid).toBe(false);
   });
 });
@@ -34,7 +34,7 @@ describe('map-safe tactical grid and ruler', () => {
 test('unshared GM ruler endpoints are absent from player sync state', () => {
   const ruler = { start: { x: 4, y: 8 }, end: { x: 31, y: 76 } };
   expect(publicTactical({ grid: true, columns: 24, ruler, showRuler: false })).toEqual({
-    grid: true, columns: 24, ruler: null, showRuler: false,
+    grid: true, columns: 24, ruler: null, showRuler: false, effect: 'none', mapKind: 'battle', partyMarker: null,
   });
   expect(publicTactical({ grid: true, columns: 24, ruler, showRuler: true }).ruler).toEqual(ruler);
 });
