@@ -34,16 +34,16 @@ function AbilityBox({ title, score }) {
 // A save DC is not an attack roll, and descriptive actions have no guessed dice.
 export function actionAttackNotation(action = {}) {
   const bonus = String(action.bonus ?? '').trim();
-  return /^[+-]\\d{1,2}$/.test(bonus) ? `1d20${bonus}` : null;
+  return /^[+-]\d{1,2}$/.test(bonus) ? `1d20${bonus}` : null;
 }
 
 export function actionDamageNotation(action = {}) {
   const damage = String(action.damage ?? '').trim();
   // Alternate and conditional damage needs a GM decision before rolling.
-  if (!damage || /\\b(or|instead|if|half)\\b/i.test(damage)) return null;
-  const groups = damage.match(/\\d{0,3}d\\d{1,3}(?:\\s*[+-]\\s*\\d{1,4})?/gi) || [];
+  if (!damage || /\b(or|instead|if|half)\b/i.test(damage)) return null;
+  const groups = damage.match(/\d{0,3}d\d{1,3}(?:\s*[+-]\s*\d{1,4})?/gi) || [];
   if (groups.length === 0) return null;
-  const notation = groups.map(group => group.replace(/\\s+/g, '')).join('+');
+  const notation = groups.map(group => group.replace(/\s+/g, '')).join('+');
   return parseDiceNotation(notation).valid ? notation : null;
 }
 
