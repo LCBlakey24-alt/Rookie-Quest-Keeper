@@ -233,30 +233,6 @@ function Stat({ label, value }) {
   return <article style={statStyle}><strong>{value}</strong><span>{label}</span></article>;
 }
 
-// Keep encounter cards compact until requested, but never discard any of a
-// creature's stored description, attacks or special abilities.
-function creatureDetailLines(value) {
-  if (value == null || value === '') return [];
-  if (Array.isArray(value)) return value.flatMap(item => creatureDetailLines(item));
-  if (typeof value === 'object') {
-    const named = [value.name, value.bonus, value.damage, value.notes, value.description]
-      .filter(part => part != null && part !== '').map(String);
-    return named.length ? [named.join(' · ')] : Object.entries(value).map(([key, item]) => `${key}: ${String(item)}`);
-  }
-  return [String(value)];
-}
-
-function CreatureDetailSection({ title, value }) {
-  const lines = creatureDetailLines(value);
-  if (lines.length === 0) return null;
-  return (
-    <div style={creatureFullSectionStyle}>
-      <strong style={creatureFullHeadingStyle}>{title}</strong>
-      {lines.map((line, index) => <p key={index} style={creatureFullLineStyle}>{line}</p>)}
-    </div>
-  );
-}
-
 export function CreatureCard({ creature, count, onAdjust }) {
   const [expanded, setExpanded] = useState(false);
   const cr = creature.cr ?? creature.challenge_rating ?? '—';
@@ -281,21 +257,11 @@ export function CreatureCard({ creature, count, onAdjust }) {
             {expanded ? 'Hide full details' : 'Show full details'}
           </button>
         )}
-        {expanded && (<>
+        {expanded && (
           <div data-testid="bestiary-full-details" style={creatureFullDetailsStyle}>
-            <CreatureDetailSection title="Description" value={creature.description} />
-            <CreatureDetailSection title="Special abilities" value={creature.abilities} />
-            <CreatureDetailSection title="Ability scores" value={creature.stats} />
-            <CreatureDetailSection title="Skills" value={creature.skills} />
-            <CreatureDetailSection title="Saving throws" value={creature.saving_throws} />
-            <CreatureDetailSection title="Actions & attacks" value={creature.actions} />
-            <CreatureDetailSection title="Bonus actions" value={creature.bonus_actions} />
-            <CreatureDetailSection title="Reactions" value={creature.reactions} />
-            <CreatureDetailSection title="Resistances" value={creature.resistances} />
-            <CreatureDetailSection title="Immunities" value={creature.immunities} />
+            <NpcCompactStatBlock npc={creature} />
           </div>
-          <NpcCompactStatBlock npc={creature} />
-        </>)}
+        )}
       </div>
       <div style={countControlStyle}>
         <button type="button" aria-label={`Remove one ${creature.name || 'creature'}`} onClick={() => onAdjust(-1)} style={countButtonStyle}>−</button>
