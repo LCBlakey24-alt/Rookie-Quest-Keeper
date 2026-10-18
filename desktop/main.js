@@ -294,7 +294,8 @@ app.whenReady().then(async () => {
     return { canceled: false, ...restorePortableBackup(app.getPath('userData'), choice.filePaths[0], currentRaw) };
   });
   registerDesktopUpdater({
-    app, ipcMain, BrowserWindow, portable: Boolean(portableStorage),
+    app, ipcMain, BrowserWindow, dialog, portable: Boolean(portableStorage),
+    portableRoot: portableStorage ? path.dirname(portableStorage.dataRoot) : null,
     createSafetyBackup: (raw, reason) => raw == null
       ? null
       : createBackup(app.getPath('userData'), raw, reason),
