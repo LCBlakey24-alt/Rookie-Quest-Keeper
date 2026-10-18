@@ -179,7 +179,15 @@ async function stagePortableUpdate({ selection, expectedSha256, runningExe, user
     await fsp.rm(scriptPath, { force: true }).catch(() => {});
     throw error;
   }
-  return { scriptPath, version: verified.version, sha256: verified.sha256, backup };
+  return { scriptPath, stagedFilePath: staged, version: verified.version, sha256: verified.sha256, backup };
+}
+
+async function discardStagedPortableUpdate(staged) {
+  if (!staged) return;
+  await Promise.all([
+    fsp.rm(staged.scriptPath, { force: true }).catch(() => {}),
+    fsp.rm(staged.stagedFilePath, { force: true }).catch(() => {}),
+  ]);
 }
 
 async function launchPortableUpdate(scriptPath, platform = process.platform) {
@@ -206,5 +214,6 @@ function readLastPortableUpdate(userData) {
 
 module.exports = {
   parsePortableVersion, newerVersion, portableExePath, sha256File, hasPortablePeHeader,
-  inspectPortableUpdate, powerShellHelper, stagePortableUpdate, launchPortableUpdate, readLastPortableUpdate,
+  inspectPortableUpdate, powerShellHelper, stagePortableUpdate, discardStagedPortableUpdate,
+  launchPortableUpdate, readLastPortableUpdate,
 };
