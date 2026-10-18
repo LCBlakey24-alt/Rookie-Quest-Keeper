@@ -16,6 +16,11 @@ test('searches the bundled monster database and quick-adds a private combatant',
     ac: expect.any(Number),
   }));
   expect(onAdd.mock.calls[0][0].hp).toBeGreaterThan(0);
+  // A monster added to combat must retain real SRD actions and stat scores.
+  expect(onAdd.mock.calls[0][0].actions).toEqual(expect.arrayContaining([
+    expect.objectContaining({ name: 'Scimitar', bonus: '+4', damage: expect.stringMatching(/1d6\+2/i) }),
+  ]));
+  expect(onAdd.mock.calls[0][0].stats).toEqual(expect.objectContaining({ dexterity: 14 }));
 });
 
 test('does not show every creature before searching', () => {
