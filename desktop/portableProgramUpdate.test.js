@@ -6,6 +6,7 @@ const fs = require('fs');
 const fsp = require('fs/promises');
 const os = require('os');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const {
   parsePortableVersion, newerVersion, portableExePath, sha256File,
   hasPortablePeHeader, inspectPortableUpdate, powerShellHelper, stagePortableUpdate,
@@ -118,4 +119,24 @@ test('last-install status remains separate from saved campaign files', async t =
   await fsp.writeFile(path.join(folder, 'last-install.json'), JSON.stringify({ state: 'failed', reason: 'OneDrive locked the EXE' }));
   assert.equal(readLastPortableUpdate(tmp).state, 'failed');
   assert.equal(await fsp.readdir(tmp).then(x => x.join(',')), 'program-updates');
+});
+
+test('generated helper is valid Windows PowerShell before packaging', async t => {
+  if (process.platform !== 'win32') { t.skip('PowerShell parser only runs on Windows'); return; }
+  const tmp = await fsp.mkdtemp(path.join(os.tmpdir(), 'rqk-script-'));
+  t.after(async () => fsp.rm(tmp, { recursive: true, force: true }));
+  const file = path.join(tmp, 'helper.ps1');
+  await fsp.writeFile(file, powerShellHelper({
+    oldPid: 123, target: 'C:\\Keeper\\Keeper.exe', staged: 'C:\\staged.exe',
+    backup: 'C:\\old.exe', expectedHash: 'a'.repeat(64), expectedVersion: '0.3.11',
+    journal: 'C:\\journal.json', temporaryTarget: 'C:\\new.tmp',
+  }));
+  const script = [
+    '$tokens = $null; $parseErrors = $null',
+    "[System.Management.Automation.Language.Parser]::ParseFile('" + file.replace(/'/g, "''") + "', [ref]$tokens, [ref]$parseErrors) | Out-Null",
+    'if ($parseErrors.Count -gt 0) { $parseErrors | ForEach-Object { Write-Error $_ }; exit 1 }',
+  ].join('; ');
+  assert.doesNotThrow(() => execFileSync('powershell.exe', [
+    '-NoProfile', '-NonInteractive', '-Command', script,
+  ], { encoding: 'utf8', timeout: 20000 }));
 });
