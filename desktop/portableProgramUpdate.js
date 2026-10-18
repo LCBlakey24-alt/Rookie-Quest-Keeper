@@ -139,6 +139,8 @@ function powerShellHelper({ oldPid, target, staged, backup, expectedHash, expect
     "    } catch { $message += '; automatic rollback failed: ' + $_.Exception.Message }",
     "  }",
     "  try { Save-Result 'failed' $message } catch {}",
+    "  # If verification or the swap failed, reopen the still-working Keeper.",
+    "  try { if (Test-Path -LiteralPath $p.target) { Start-Process -FilePath $p.target -WorkingDirectory (Split-Path -Parent $p.target) } } catch {}",
     "} finally {",
     "  try { if (Test-Path -LiteralPath $p.temporaryTarget) { Remove-Item -LiteralPath $p.temporaryTarget -Force } } catch {}",
     "  try { if (Test-Path -LiteralPath $p.staged) { Remove-Item -LiteralPath $p.staged -Force } } catch {}",
