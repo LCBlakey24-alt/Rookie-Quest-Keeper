@@ -20,7 +20,8 @@ function build({ kind, input, output, version, bootstrapMin, electron, privateKe
         if (item.isDirectory() && (name === 'renderer' || name.startsWith('renderer/'))) walk(path.join(folder, item.name), name + '/');
         else if (item.isFile() && safeAppPath(name) && !/\.test\.js$/.test(name)
             && !['bootstrap.js', 'programTrust.json'].includes(name)) {
-          const bytes = fs.readFileSync(path.join(folder, item.name));
+          let bytes = fs.readFileSync(path.join(folder, item.name));
+          if (name === 'package.json') bytes = Buffer.from(JSON.stringify({ ...JSON.parse(bytes), version }));
           files.push({ name, base64: bytes.toString('base64'), sha256: hash(bytes) });
         }
       }

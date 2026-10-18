@@ -28,7 +28,7 @@ function verifyEnvelope(envelope, keys, compatibility) {
   }
   const m = JSON.parse(envelope.manifest);
   if (m.format !== 'rqk-program-update' || m.schema !== 1 || !['app', 'portable'].includes(m.kind)
-      || !version(m.version) || !version(m.bootstrap_min) || m.platform !== 'win32' || m.arch !== 'x64'
+      || !version(m.version) || !version(m.bootstrap_min) || !version(m.electron) || m.platform !== 'win32' || m.arch !== 'x64'
       || m.data_schema !== 1 || !Number.isSafeInteger(m.size) || m.size < 1 || m.size > MAX_PAYLOAD
       || !/^[a-f0-9]{64}$/.test(m.sha256) || !Array.isArray(m.parts) || !m.parts.length || m.parts.length > 16) {
     throw new Error('Unsupported program package.');

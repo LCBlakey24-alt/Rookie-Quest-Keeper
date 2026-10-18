@@ -1,4 +1,9 @@
-# Windows portable program updates (offline)
+# Historical draft: Windows portable program updates
+
+**Superseded by bootstrap 0.4.0. Do not follow the instructions below.**
+The current updater accepts signed `.rqkprogram` descriptors and verified
+`.rqkpart` files. See [Signed Program Updates](SIGNED_PROGRAM_UPDATES.md).
+The historical draft below is retained only to explain the original PR design.
 
 Rookie Quest Keeper v0.3.10 introduces a **full Windows program update** picker in **Updates & Backups**. This changes application code, unlike the separate `.rqkupdate` campaign content import.
 

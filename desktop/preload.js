@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('rookieDesktop', Object.freeze({
   downloadUpdate: () => ipcRenderer.invoke('rqk:download-update'),
   installUpdate: (workspaceRaw) => ipcRenderer.invoke('rqk:install-update', workspaceRaw),
   selectProgramUpdate: () => ipcRenderer.invoke('rqk:select-program-update'),
-  installProgramUpdate: (workspaceRaw, expectedSha256) => ipcRenderer.invoke('rqk:install-program-update', workspaceRaw, expectedSha256),
+  installProgramUpdate: (workspaceRaw) => ipcRenderer.invoke('rqk:install-program-update', workspaceRaw),
   onUpdateStatus: (listener) => {
     if (typeof listener !== 'function') return () => {};
     const handler = (_event, status) => listener(status);

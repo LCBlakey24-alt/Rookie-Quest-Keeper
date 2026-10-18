@@ -69,7 +69,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
   });
 
   async function checkForUpdates() {
-    if (portable) return announce({ state: 'portable', message: 'Portable edition: choose a newer Keeper program and verify its SHA-256 checksum. Your campaign data stays separate.' });
+    if (portable) return announce({ state: 'portable', message: 'Choose a signed .rqkprogram file with all its parts available locally.' });
     if (!app.isPackaged) return announce({
       state: 'development', message: 'Update checks work in an installed Windows version of Keeper.',
     });
@@ -86,9 +86,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     return { ...status };
   }
 
-  // Offline portable upgrades: the EXE is only replaced after Keeper closes.
-  // A separately provided checksum establishes the identity of the chosen
-  // file; the checksum displayed by Keeper itself is not a trusted reference.
+  // Only packages authenticated by a bootstrap-pinned signing key can install.
   ipcMain.handle('rqk:select-program-update', async () => {
     if (busy) throw new Error('Keeper is already preparing an update.');
     if (!portable) throw new Error('Use the installed Windows updater on this edition.');
@@ -109,7 +107,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
       kind: inspected.manifest.kind, parts: inspected.manifest.parts.length,
     };
   });
-  ipcMain.handle('rqk:install-program-update', async (_event, workspaceRaw, expectedSha256) => {
+  ipcMain.handle('rqk:install-program-update', async (_event, workspaceRaw) => {
     if (!portable) throw new Error('Use the normal installed Windows update buttons.');
     if (!selectedProgram) throw new Error('Select a newer Keeper program update first.');
     if (!runningPortableExe) throw new Error('Could not locate the portable EXE. No files changed.');
