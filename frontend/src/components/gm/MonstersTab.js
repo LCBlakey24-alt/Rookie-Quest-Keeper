@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
 import MonsterLookup from '@/components/MonsterLookup';
+import NpcCompactStatBlock from './NpcCompactStatBlock';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
 import { monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
@@ -280,7 +281,7 @@ export function CreatureCard({ creature, count, onAdjust }) {
             {expanded ? 'Hide full details' : 'Show full details'}
           </button>
         )}
-        {expanded && (
+        {expanded && (<>
           <div data-testid="bestiary-full-details" style={creatureFullDetailsStyle}>
             <CreatureDetailSection title="Description" value={creature.description} />
             <CreatureDetailSection title="Special abilities" value={creature.abilities} />
@@ -293,7 +294,8 @@ export function CreatureCard({ creature, count, onAdjust }) {
             <CreatureDetailSection title="Resistances" value={creature.resistances} />
             <CreatureDetailSection title="Immunities" value={creature.immunities} />
           </div>
-        )}
+          <NpcCompactStatBlock npc={creature} />
+        </>)}
       </div>
       <div style={countControlStyle}>
         <button type="button" aria-label={`Remove one ${creature.name || 'creature'}`} onClick={() => onAdjust(-1)} style={countButtonStyle}>−</button>
