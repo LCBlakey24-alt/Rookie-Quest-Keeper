@@ -19,7 +19,17 @@ function toCombatant(monster) {
     initiativeMod: Number(monster.initiativeMod) || 0,
     cr: monster.cr,
     creature_type: monster.type,
-    description: String(monster.abilities || ''),
+    description: String(monster.abilities || monster.description || ''),
+    // Keep verified, published actions and scores on the encounter copy.
+    // Legacy entries with no recorded attacks must not gain invented ones.
+    stats: monster.stats ? { ...monster.stats } : undefined,
+    actions: Array.isArray(monster.actions) ? monster.actions.map(action => ({ ...action })) : [],
+    special_abilities: Array.isArray(monster.special_abilities) ? monster.special_abilities.map(ability => ({ ...ability })) : [],
+    reactions: Array.isArray(monster.reactions) ? monster.reactions.map(action => ({ ...action })) : [],
+    bonus_actions: Array.isArray(monster.bonus_actions) ? monster.bonus_actions.map(action => ({ ...action })) : [],
+    saving_throws: Array.isArray(monster.saving_throws) ? [...monster.saving_throws] : [],
+    skills: Array.isArray(monster.skills) ? [...monster.skills] : [],
+    speed: monster.speed,
     source: 'Built-in Bestiary',
     conditions: [],
   };
