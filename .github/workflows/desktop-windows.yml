@@ -59,10 +59,10 @@ jobs:
         working-directory: desktop
         shell: pwsh
         run: |
-          $electron = node -p "require('electron')"
-          $process = Start-Process -FilePath $electron -ArgumentList 'tools/startup-smoke.cjs' -PassThru -Wait -WindowStyle Hidden
+          node tools/run-startup-smoke.cjs
+          $startupExit = $LASTEXITCODE
           Get-Content startup-smoke-report.json
-          if ($process.ExitCode -ne 0) { throw "Updated application startup failed: $($process.ExitCode)" }
+          if ($startupExit -ne 0) { throw "Updated application startup failed: $startupExit" }
 
       - name: Upload startup diagnostics
         if: always()

@@ -96,3 +96,23 @@ activation, renderer failure and rollback; test a runtime update with a locked
 EXE and failed restart; compare all campaign/media/settings before and after.
 Do not merge or deploy based only on unit tests. Do not touch the owner's working
 EXE or real campaign data during these tests.
+
+## Long OneDrive paths (0.4.2 repair)
+
+The first laptop test of 0.4.1 reached a blank renderer and correctly rolled
+back to 0.4.0 on the next launch. The identical signed update confirmed startup
+in a shorter isolated folder; a longer isolated folder did not confirm startup.
+The failing OneDrive JavaScript asset path was 274 characters long.
+
+Renderer assets now use Node's long-path-capable file reads and explicit response
+MIME types instead of passing disk file URLs through Chromium's file loader.
+Campaign storage, origin, bridge isolation and signature checks are unchanged.
+Missing script/style assets return 404, not index HTML; normal application routes
+retain their index fallback. Unit tests cover paths beyond 260 characters and
+malformed/foreign/traversal URLs. The Windows build also launches a real signed
+app release with an ephemeral test key and synthetic profile in a nested folder,
+and requires both a mounted screen and the healthy-start receipt. Its diagnostic
+artifact contains only disposable test events, never the owner's campaign.
+
+The 0.4.2 repair still requires installation through the original 0.4.0 portable
+bootstrap on the laptop, campaign/media checks, and review before release/merge.
