@@ -48,4 +48,20 @@ describe('Bestiary stat-block expansion', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove one Cavern Dragon' }));
     expect(onAdjust.mock.calls).toEqual([[1], [-1]]);
   });
+
+  test('expanded Bestiary cards offer real dice controls without changing encounter quantity', () => {
+    const onAdjust = jest.fn();
+    const random = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    try {
+      render(<CreatureCard creature={creature} count={0} onAdjust={onAdjust} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Show full details' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Roll Claw to hit' }));
+      expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Claw attack: 1d20+9 [11] + 9 = 20');
+      fireEvent.click(screen.getByRole('button', { name: 'Roll Tail damage' }));
+      expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Tail damage: 2d8+6 [5, 5] + 6 = 16');
+      expect(onAdjust).not.toHaveBeenCalled();
+    } finally {
+      random.mockRestore();
+    }
+  });
 });
