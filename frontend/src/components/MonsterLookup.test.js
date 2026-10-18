@@ -5,7 +5,7 @@ import MonsterLookup from './MonsterLookup';
 test('monster lookup opens the same structured stat sheet as the main Bestiary', () => {
   render(<MonsterLookup />);
   fireEvent.change(screen.getByTestId('monster-search-input'), { target: { value: 'Wolf' } });
-  fireEvent.click(screen.getByRole('button', { name: /Wolf/ }));
+  fireEvent.click(screen.getByText('Wolf'));
   expect(screen.getByRole('region', { name: 'Wolf combat reference' })).toBeInTheDocument();
   expect(screen.getByLabelText('Ability scores')).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Wolf' })).toBeInTheDocument();
@@ -19,7 +19,7 @@ test('monster lookup keeps add-to-combat behaviour for selected creatures', () =
   const onAddToCombat = jest.fn();
   render(<MonsterLookup onAddToCombat={onAddToCombat} />);
   fireEvent.change(screen.getByTestId('monster-search-input'), { target: { value: 'Goblin' } });
-  fireEvent.click(screen.getByRole('button', { name: /Goblin/ }));
+  fireEvent.click(screen.getByText('Goblin'));
   fireEvent.click(screen.getByTestId('add-monster-to-combat-btn'));
   expect(onAddToCombat).toHaveBeenCalledWith(expect.objectContaining({
     name: 'Goblin', hp: 7, ac: 15,
