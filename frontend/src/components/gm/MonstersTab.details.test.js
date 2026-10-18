@@ -32,10 +32,16 @@ describe('Bestiary stat-block expansion', () => {
     fireEvent.click(toggle);
     const detail = screen.getByTestId('bestiary-full-details');
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(within(detail).getByText(/THE HIDDEN END OF THE DESCRIPTION/)).toBeInTheDocument();
+    // One formatted D&D block, not the old prose dump plus a second card.
+    expect(within(detail).getByRole('region', { name: 'Cavern Dragon combat reference' })).toBeInTheDocument();
+    expect(within(detail).getByText('STR')).toBeInTheDocument();
+    expect(within(detail).getByText('23')).toBeInTheDocument();
+    expect(within(detail).getByText('Tail')).toBeInTheDocument();
+    expect(within(detail).getByText('2d8+6 bludgeoning')).toBeInTheDocument();
+    expect(within(detail).getByText('Counterstrike')).toBeInTheDocument();
     expect(within(detail).getByText(/Magic Resistance/)).toBeInTheDocument();
-    expect(within(detail).getByText(/Tail · \+9 · 2d8\+6 bludgeoning · Reach 15 ft/)).toBeInTheDocument();
-    expect(within(detail).getByText(/Counterstrike/)).toBeInTheDocument();
+    expect(within(detail).getByText(/THE HIDDEN END OF THE DESCRIPTION/)).toBeInTheDocument();
+    expect(within(detail).getAllByText('Tail')).toHaveLength(1);
     fireEvent.click(screen.getByRole('button', { name: 'Hide full details' }));
     expect(screen.queryByTestId('bestiary-full-details')).not.toBeInTheDocument();
   });
