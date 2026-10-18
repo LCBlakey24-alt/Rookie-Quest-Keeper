@@ -16,7 +16,6 @@ export default function DesktopMaintenance() {
   });
   const [backups, setBackups] = useState([]);
   const [programFile, setProgramFile] = useState(null);
-  const [trustedChecksum, setTrustedChecksum] = useState('');
   const [working, setWorking] = useState('');
   const [notice, setNotice] = useState('');
   const desktop = typeof window === 'undefined' ? null : window.rookieDesktop;
@@ -104,25 +103,17 @@ export default function DesktopMaintenance() {
     const info = await desktop.selectProgramUpdate();
     if (info?.canceled) return;
     setProgramFile(info);
-    setTrustedChecksum('');
-    setNotice('Program update selected. Paste the SHA-256 code supplied separately with the trusted download to verify it.');
+    setNotice('Publisher signature and all update parts verified. Ready to back up and install.');
   });
 
   const installProgramFile = () => {
     if (!programFile) return;
-    if (!/^[a-f0-9]{64}$/i.test(trustedChecksum.trim())) {
-      setNotice('Paste the full 64-character SHA-256 code supplied with the program update.');
-      return;
-    }
-    if (trustedChecksum.trim().toLowerCase() !== programFile.sha256?.toLowerCase()) {
-      setNotice('The supplied SHA-256 checksum does not match the downloaded program. Nothing was changed.');
-      return;
-    }
+    if (programFile.authenticated !== true) return;
     if (!window.confirm('Install verified Keeper ' + programFile.version + ' and restart? Keeper will back up your campaign first. Do not delete RookieQuestKeeperData.')) return;
     doWork('program-install', async () => {
       const raw = localStorage.getItem(DESKTOP_STORAGE_KEY);
       if (!raw) throw new Error('No saved workspace was found. Back up your campaign before updating.');
-      await desktop.installProgramUpdate(raw, trustedChecksum.trim().toLowerCase());
+      await desktop.installProgramUpdate(raw);
     });
   };
 
@@ -148,40 +139,27 @@ export default function DesktopMaintenance() {
               <button type="button" className="rqk-desktop-maintenance-close" onClick={() => setOpen(false)} aria-label="Close">×</button>
             </header>
             <div className="rqk-desktop-maintenance-section">
-              <h3>Windows app</h3>
+              <h3>Program Updates</h3>
               <p>Installed version: <strong>{status.installed_version}</strong></p>
               {status.available_version && <p>Available version: <strong>{status.available_version}</strong></p>}
               <p role="status" aria-live="polite">{status.message}</p>
               {status.state === 'portable' && (
                 <div className="rqk-desktop-program-update" data-testid="portable-program-update">
-                  <p>Update the <strong>whole Windows program</strong> here. Choose the new Keeper Portable .exe supplied with the update, check its SHA-256 code, then install. This is separate from campaign content updates.</p>
+                  <p>Choose the prepared <strong>.rqkprogram</strong> file from OneDrive or any local folder. Keep its .rqkpart files beside it and make them available offline. Keeper verifies the publisher signature before installing.</p>
                   <div className="rqk-desktop-maintenance-actions">
-                    <button type="button" disabled={busy} onClick={chooseProgramFile}>Select program update file (.exe)</button>
+                    <button type="button" disabled={busy} onClick={chooseProgramFile}>Select program update file (.rqkprogram)</button>
                   </div>
                   {programFile && (
                     <div className="rqk-desktop-program-selection">
                       <p><strong>Selected:</strong> {programFile.file_name}</p>
                       <p><strong>New version:</strong> {programFile.version}</p>
-                      <p><strong>File SHA-256:</strong> <code>{programFile.sha256}</code></p>
-                      <label htmlFor="rqk-trusted-update-checksum">Paste the SHA-256 code provided with your trusted update download (not the one shown above):</label>
-                      <input
-                        id="rqk-trusted-update-checksum"
-                        type="text"
-                        inputMode="text"
-                        autoComplete="off"
-                        spellCheck={false}
-                        value={trustedChecksum}
-                        onChange={event => setTrustedChecksum(event.target.value.trim())}
-                        placeholder="64-character checksum"
-                        maxLength={64}
-                        aria-label="Trusted program update checksum"
-                      />
-                      <button type="button" disabled={busy || !/^[a-f0-9]{64}$/i.test(trustedChecksum) || trustedChecksum.toLowerCase() !== programFile.sha256?.toLowerCase()} onClick={installProgramFile}>
-                        Verify, back up, install &amp; restart
+                      <p>Publisher verified · {programFile.parts} part(s) · {(programFile.size_bytes / 1024 / 1024).toFixed(1)} MB</p>
+                      <button type="button" disabled={busy || programFile.authenticated !== true} onClick={installProgramFile}>
+                        Install Program Update
                       </button>
                     </div>
                   )}
-                  <p className="rqk-desktop-maintenance-note">Keeper protects your <strong>RookieQuestKeeperData</strong> campaign folder and saves the previous program for rollback. Only install an update from a source you trust; an unsigned .exe cannot be authenticated by its filename alone.</p>
+                  <p className="rqk-desktop-maintenance-note">Keeper creates a verified campaign backup before updating. Application updates reuse the Windows runtime; larger runtime updates replace the EXE after Keeper closes. Your campaign folder stays in place.</p>
                 </div>
               )}
               {downloading && <progress value={status.progress} max="100" aria-label="Update download progress" />}
@@ -190,6 +168,10 @@ export default function DesktopMaintenance() {
                 {status.state === 'available' && <button type="button" disabled={busy} onClick={() => doWork('download', () => desktop.downloadUpdate())}>Download update</button>}
                 {status.state === 'downloaded' && <button type="button" disabled={busy} onClick={install}>Back up, install &amp; restart</button>}
               </div>
+            </div>
+            <div className="rqk-desktop-maintenance-section">
+              <h3>Campaign Content Updates</h3>
+              <p>Use Import Campaign / Update in your campaign library for .rqkpack and .rqkupdate files. These add campaign material and do not install software.</p>
             </div>
             <div className="rqk-desktop-maintenance-section">
               <h3>Campaign backups</h3>

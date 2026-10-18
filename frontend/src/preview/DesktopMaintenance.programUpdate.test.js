@@ -22,7 +22,7 @@ describe('offline portable program update controls', () => {
       listBackups: jest.fn().mockResolvedValue([]),
       selectProgramUpdate: jest.fn().mockResolvedValue({
         canceled: false, file_name: 'Rookie Quest Keeper Portable 0.3.11.exe',
-        version: '0.3.11', sha256: checksum, size_bytes: 110000000,
+        version: '0.3.11', sha256: checksum, size_bytes: 110000000, authenticated: true, parts: 2,
       }),
       installProgramUpdate: jest.fn().mockResolvedValue({ started: true }),
     };
@@ -41,14 +41,10 @@ describe('offline portable program update controls', () => {
     expect(await screen.findByTestId('portable-program-update')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Select program update file/i }));
     expect(await screen.findByText('Rookie Quest Keeper Portable 0.3.11.exe')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Verify, back up, install/i })).toBeDisabled();
     expect(desktop.installProgramUpdate).not.toHaveBeenCalled();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Trusted program update checksum' }), { target: { value: 'a'.repeat(64) } });
-    expect(screen.getByRole('button', { name: /Verify, back up, install/i })).toBeDisabled();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Trusted program update checksum' }), { target: { value: checksum } });
-    fireEvent.click(screen.getByRole('button', { name: /Verify, back up, install/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Install Program Update' }));
     await waitFor(() => expect(desktop.installProgramUpdate).toHaveBeenCalledWith(
-      '{"version":1,"campaigns":[]}', checksum,
+      '{"version":1,"campaigns":[]}',
     ));
     expect(screen.getByText('Campaign backups')).toBeInTheDocument();
   });

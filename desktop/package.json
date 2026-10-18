@@ -1,9 +1,9 @@
 {
   "name": "rookie-quest-keeper-desktop",
-  "version": "0.3.10",
+  "version": "0.4.0",
   "private": true,
   "description": "Offline Windows desktop edition of Rookie Quest Keeper",
-  "main": "main.js",
+  "main": "bootstrap.js",
   "scripts": {
     "start": "electron .",
     "dist:win": "electron-builder --win nsis --x64 --publish never",
@@ -20,6 +20,10 @@
     "productName": "Rookie Quest Keeper",
     "asar": true,
     "files": [
+      "bootstrap.js",
+      "programTrust.json",
+      "signedProgramPackage.js",
+      "programRelease.js",
       "backup.js",
       "playerDisplayWindow.js",
       "updates.js",
