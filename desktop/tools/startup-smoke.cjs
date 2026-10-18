@@ -7,7 +7,11 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const desktop = path.resolve(__dirname, '..');
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'Keeper OneDrive Startup '));
+const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'Keeper OneDrive Startup '));
+// Match a deeply nested OneDrive portable folder: preload <260 chars while
+// renderer/static/js assets exceed legacy Windows MAX_PATH.
+const root = path.join(parent, 'Nested Keeper Testing '.padEnd(Math.max(1, 155 - parent.length - 1), 'x'));
+fs.mkdirSync(root);
 const report = { events: [], runtime: process.versions.electron };
 const output = process.env.RQK_SMOKE_REPORT || path.join(desktop, 'startup-smoke-report.json');
 function record(type, detail) {

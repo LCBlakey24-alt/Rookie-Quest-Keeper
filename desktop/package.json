@@ -29,6 +29,7 @@
       "updates.js",
       "portableProgramUpdate.js",
       "main.js",
+      "rendererProtocol.js",
       "portable.js",
       "preload.js",
       "renderer/**/*",
