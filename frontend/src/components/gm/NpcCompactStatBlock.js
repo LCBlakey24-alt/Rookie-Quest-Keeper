@@ -83,6 +83,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
     setLastRoll(`${name}: ${notation} [${dice}]${bonus} = ${result.total}${critical}`);
   };
   const unverified = npc.combat_ready === false;
+  const estimatedLegacy = npc.source === 'legacy-reference';
   const stats = unverified ? {} : (npc.stats || {});
   const attacks = Array.isArray(npc.attacks) ? npc.attacks : [];
   const actions = Array.isArray(npc.actions) ? npc.actions : [];
@@ -105,6 +106,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
         </div>
       </div>
       {unverified && <p role="note" style={{ margin: 0, color: 'var(--rq-warning, #D39A43)', fontSize: 12 }}>Combat stats not yet verified — keep this NPC out of encounters until equipped with a confirmed stat block.</p>}
+      {estimatedLegacy && <p role="note" style={{ margin: 0, color: 'var(--rq-warning, #D39A43)', fontSize: 12 }}>Legacy reference: some statistics and attacks may be estimates. Dice buttons are disabled until verified.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 }}>
         <div style={box}><span style={label}>HP</span><strong style={{ fontSize: 20 }}>{unverified ? '—' : confirmedPositive(npc.hp)}{!unverified && Number(npc.max_hp) > 0 && npc.max_hp !== npc.hp ? `/${npc.max_hp}` : ''}</strong></div>
         <div style={box}><span style={label}>AC</span><strong style={{ fontSize: 20 }}>{unverified ? '—' : confirmedPositive(npc.ac)}</strong></div>
@@ -113,12 +115,12 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
         {abilities.map(([title, field]) => <AbilityBox key={field} title={title} score={unverified ? null : (stats[field] ?? npc[field])} />)}
       </div>
-      <ActionList title="Attacks & actions" items={attacks.length ? attacks : actions} onRoll={rollAction} combatReady={!unverified} />
-      {attacks.length > 0 && actions.length > 0 && <ActionList title="Other actions" items={actions} onRoll={rollAction} combatReady={!unverified} />}
-      <ActionList title="Bonus actions" items={bonusActions} onRoll={rollAction} combatReady={!unverified} />
-      <ActionList title="Reactions" items={reactions} onRoll={rollAction} combatReady={!unverified} />
-      <ActionList title="Special abilities" items={specialAbilities} onRoll={rollAction} combatReady={!unverified} />
-      <ActionList title="Legendary actions" items={legendaryActions} onRoll={rollAction} combatReady={!unverified} />
+      <ActionList title="Attacks & actions" items={attacks.length ? attacks : actions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
+      {attacks.length > 0 && actions.length > 0 && <ActionList title="Other actions" items={actions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />}
+      <ActionList title="Bonus actions" items={bonusActions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
+      <ActionList title="Reactions" items={reactions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
+      <ActionList title="Special abilities" items={specialAbilities} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
+      <ActionList title="Legendary actions" items={legendaryActions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
       {lastRoll && <output role="status" aria-live="polite" style={{ ...entry, fontSize: 12 }} data-testid="stat-block-roll-result">{lastRoll}</output>}
       {spells && <section style={entry}><strong style={{ fontSize: 13 }}>Spells</strong>
         <p style={{ fontSize: 12, margin: '4px 0' }}>DC {readable(spells.spell_save_dc)} · Attack {readable(spells.spell_attack_bonus)}</p>
