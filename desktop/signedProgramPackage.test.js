@@ -89,6 +89,17 @@ test('modified installed code is detected before require executes it', t => {
   assert.throws(() => selectApp(data, f.keys, f.compatibility), /changed/);
 });
 
+test('unlisted dependency injection is rejected before loading an app', t => {
+  const f = fixture(t);
+  const data = path.join(f.root, 'data');
+  const staged = stageAppPackage(f.file, f.keys, f.compatibility, data);
+  activateApp(data, staged);
+  const rogue = path.join(staged.folder, 'node_modules', 'electron-updater');
+  fs.mkdirSync(rogue, { recursive: true });
+  fs.writeFileSync(path.join(rogue, 'index.js'), 'evil();');
+  assert.throws(() => selectApp(data, f.keys, f.compatibility), /Unexpected/);
+});
+
 test('signed traversal part names and duplicate part names are rejected', t => {
   const f = fixture(t);
   const e = JSON.parse(fs.readFileSync(f.file));

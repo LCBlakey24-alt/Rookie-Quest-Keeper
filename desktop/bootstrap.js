@@ -29,8 +29,15 @@ try {
 }
 if (release) {
   // Signed app-only updates reuse the dependencies shipped in this bootstrap.
-  process.env.NODE_PATH = path.join(__dirname, 'node_modules');
-  Module._initPaths();
+  const resolveFilename = Module._resolveFilename;
+  const releasePrefix = release.folder + path.sep;
+  Module._resolveFilename = function(request, parent, ...options) {
+    // Resolve bare dependencies from the immutable bootstrap, rather than
+    // searching writable OneDrive/userData ancestor node_modules directories.
+    const inRelease = parent?.filename?.startsWith(releasePrefix);
+    const bare = !request.startsWith('.') && !path.isAbsolute(request);
+    return resolveFilename.call(this, request, inRelease && bare ? module : parent, ...options);
+  };
   app.getVersion = () => release.version;
   global.__rqkMarkProgramHealthy = release.markHealthy;
   require(path.join(release.folder, 'main.js'));

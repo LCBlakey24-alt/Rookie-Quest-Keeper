@@ -90,7 +90,20 @@ function verifyInstalled(folder, envelope, keys) {
   const m = verifyEnvelope(envelope, keys);
   const payload = regularFile(path.join(folder, 'payload.gz'), MAX_PAYLOAD);
   if (m.kind !== 'app' || payload.length !== m.size || hash(payload) !== m.sha256) throw new Error('Installed program signature mismatch.');
-  for (const f of decodeApp(payload)) {
+  const files = decodeApp(payload);
+  const allowed = new Set(['payload.gz', 'envelope.json', ...files.map(f => f.name)]);
+  function checkTree(current, prefix = '') {
+    if (!fs.lstatSync(current).isDirectory() || fs.lstatSync(current).isSymbolicLink()) throw new Error('Unsafe installed program directory.');
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const name = prefix + entry.name;
+      const full = path.join(current, entry.name);
+      if (entry.isSymbolicLink()) throw new Error('Unsafe installed program link.');
+      if (entry.isDirectory()) checkTree(full, name + '/');
+      else if (!entry.isFile() || !allowed.has(name)) throw new Error('Unexpected installed program file.');
+    }
+  }
+  checkTree(folder);
+  for (const f of files) {
     if (hash(regularFile(path.join(folder, ...f.name.split('/')), MAX_EXPANDED)) !== f.sha256) throw new Error('Installed app files changed.');
   }
   return m;
