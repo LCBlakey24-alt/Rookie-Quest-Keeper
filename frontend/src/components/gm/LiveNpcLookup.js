@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, Check, ChevronDown, ChevronRight, FileText, MapPin, RefreshCw, Search, Swords, UserPlus, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import NpcCompactStatBlock from './NpcCompactStatBlock';
 import {
   describeLiveNpcLookupFailures,
   fetchLiveNpcLookupSections,
@@ -209,16 +210,7 @@ export default function LiveNpcLookup({ campaignId }) {
 
               {open && (
                 <div style={bodyStyle}>
-                  {[
-                    ['Description', npc.description],
-                    ['Personality', npc.personality],
-                    ['GM notes', npc.notes],
-                  ].filter(([, value]) => value != null && String(value).trim()).map(([label, value]) => (
-                    <div key={label} style={detailStyle}>
-                      <strong style={detailLabelStyle}>{label}</strong>
-                      <div>{String(value)}</div>
-                    </div>
-                  ))}
+                  <NpcCompactStatBlock npc={npc} />
                   <div style={actionsStyle}>
                     <button type="button" disabled={savingId === npc.id} onClick={() => saveCompanionState(npc)} style={actionStyle(travelling)}>{travelling ? <X size={13} /> : <UserPlus size={13} />}{travelling ? 'Remove from Party' : 'With Party'}</button>
                     <button type="button" onClick={() => queueForEncounter(npc)} style={actionStyle(false)}><Swords size={13} /> Add to Encounter</button>
