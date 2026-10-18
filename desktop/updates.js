@@ -1,16 +1,25 @@
 'use strict';
 
 const { autoUpdater } = require('electron-updater');
+const path = require('path');
+const { portableExePath, inspectPortableUpdate, stagePortableUpdate, launchPortableUpdate, readLastPortableUpdate } = require('./portableProgramUpdate');
 
 // Updates are offered, never installed without an explicit click.
 // The installed Electron app reads the GitHub provider from app-update.yml.
-function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBackup, portable = false }) {
+function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableRoot = null, createSafetyBackup, portable = false }) {
+  const runningPortableExe = portable ? portableExePath(portableRoot) : null;
+  const previousInstall = portable ? readLastPortableUpdate(app.getPath('userData')) : null;
+  let selectedProgram = null;
   const status = {
     state: portable ? 'portable' : 'idle',
     installed_version: app.getVersion(),
     available_version: null,
     progress: 0,
-    message: portable ? 'USB edition: update by replacing the program file. Your campaign data remains in RookieQuestKeeperData on this USB.' : 'Ready to check for updates.',
+    message: portable
+      ? previousInstall?.state === 'failed'
+        ? 'Previous program update failed: ' + String(previousInstall.reason || 'See your program backup.') 
+        : 'Portable edition: select a newer Keeper .exe and verify its trusted SHA-256 checksum to update here.'
+      : 'Ready to check for updates.',
   };
   let busy = false;
 
@@ -51,7 +60,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBacku
   });
 
   async function checkForUpdates() {
-    if (portable) return announce({ state: 'portable', message: 'USB edition: save a backup and replace the portable program with the next download to update. Your RookieQuestKeeperData folder stays separate.' });
+    if (portable) return announce({ state: 'portable', message: 'Portable edition: choose a newer Keeper program and verify its SHA-256 checksum. Your campaign data stays separate.' });
     if (!app.isPackaged) return announce({
       state: 'development', message: 'Update checks work in an installed Windows version of Keeper.',
     });
@@ -67,6 +76,59 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, createSafetyBacku
     }
     return { ...status };
   }
+
+  // Offline portable upgrades: the EXE is only replaced after Keeper closes.
+  // A separately provided checksum establishes the identity of the chosen
+  // file; the checksum displayed by Keeper itself is not a trusted reference.
+  ipcMain.handle('rqk:select-program-update', async () => {
+    if (!portable) throw new Error('Use the installed Windows updater on this edition.');
+    if (!runningPortableExe) throw new Error('Could not locate the portable EXE. Start the official portable program from File Explorer and try again.');
+    const picked = await dialog.showOpenDialog({
+      title: 'Choose your new Rookie Quest Keeper Portable program',
+      properties: ['openFile'],
+      filters: [{ name: 'Rookie Quest Keeper Portable Windows program', extensions: ['exe'] }],
+    });
+    if (picked.canceled || !picked.filePaths?.[0]) return { canceled: true };
+    selectedProgram = null;
+    const inspected = await inspectPortableUpdate(picked.filePaths[0], app.getVersion(), runningPortableExe);
+    selectedProgram = inspected;
+    return {
+      canceled: false, file_name: inspected.file_name, version: inspected.version,
+      size_bytes: inspected.size_bytes, sha256: inspected.sha256,
+    };
+  });
+  ipcMain.handle('rqk:install-program-update', async (_event, workspaceRaw, expectedSha256) => {
+    if (!portable) throw new Error('Use the normal installed Windows update buttons.');
+    if (!selectedProgram) throw new Error('Select a newer Keeper program update first.');
+    if (!runningPortableExe) throw new Error('Could not locate the portable EXE. No files changed.');
+    if (busy) throw new Error('Keeper is already working on another update.');
+    busy = true;
+    try {
+      // Validation and staging must finish successfully before backing up or
+      // asking the current process to close.
+      const staged = await stagePortableUpdate({
+        selection: selectedProgram, expectedSha256, runningExe: runningPortableExe,
+        userData: app.getPath('userData'), currentVersion: app.getVersion(),
+      });
+      // An absent, invalid or unbacked-up workspace fails the install closed.
+      if (!workspaceRaw) throw new Error('Back up your active campaign workspace before updating.');
+      const backup = createSafetyBackup(workspaceRaw, 'before-update');
+      if (!backup) throw new Error('Could not verify the campaign backup; installation cancelled.');
+      await launchPortableUpdate(staged.scriptPath);
+      selectedProgram = null;
+      announce({
+        state: 'installing', available_version: staged.version,
+        message: 'Campaign backup created. Closing Keeper to install the verified program and restart…',
+      });
+      setTimeout(() => app.quit(), 650);
+      return { started: true, backup, version: staged.version };
+    } catch (error) {
+      announce({ state: 'portable', message: 'Program update not started: ' + String(error?.message || error) });
+      throw error;
+    } finally {
+      busy = false;
+    }
+  });
 
   ipcMain.handle('rqk:get-update-status', () => ({ ...status }));
   ipcMain.handle('rqk:check-updates', () => checkForUpdates());
