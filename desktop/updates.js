@@ -2,7 +2,7 @@
 
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
-const { portableExePath, inspectPortableUpdate, stagePortableUpdate, launchPortableUpdate, readLastPortableUpdate } = require('./portableProgramUpdate');
+const { portableExePath, inspectPortableUpdate, stagePortableUpdate, discardStagedPortableUpdate, launchPortableUpdate, readLastPortableUpdate } = require('./portableProgramUpdate');
 
 // Updates are offered, never installed without an explicit click.
 // The installed Electron app reads the GitHub provider from app-update.yml.
@@ -18,7 +18,9 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     message: portable
       ? previousInstall?.state === 'failed'
         ? 'Previous program update failed: ' + String(previousInstall.reason || 'See your program backup.') 
-        : 'Portable edition: select a newer Keeper .exe and verify its trusted SHA-256 checksum to update here.'
+        : previousInstall?.state === 'installed' && previousInstall.version === app.getVersion()
+          ? 'Keeper was updated successfully. Your campaign data stayed in RookieQuestKeeperData.'
+          : 'Portable edition: select a newer Keeper .exe and verify its trusted SHA-256 checksum to update here.'
       : 'Ready to check for updates.',
   };
   let busy = false;
@@ -103,10 +105,12 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     if (!runningPortableExe) throw new Error('Could not locate the portable EXE. No files changed.');
     if (busy) throw new Error('Keeper is already working on another update.');
     busy = true;
+    let staged = null;
+    let helperStarted = false;
     try {
       // Validation and staging must finish successfully before backing up or
       // asking the current process to close.
-      const staged = await stagePortableUpdate({
+      staged = await stagePortableUpdate({
         selection: selectedProgram, expectedSha256, runningExe: runningPortableExe,
         userData: app.getPath('userData'), currentVersion: app.getVersion(),
       });
@@ -115,6 +119,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
       const backup = createSafetyBackup(workspaceRaw, 'before-update');
       if (!backup) throw new Error('Could not verify the campaign backup; installation cancelled.');
       await launchPortableUpdate(staged.scriptPath);
+      helperStarted = true;
       selectedProgram = null;
       announce({
         state: 'installing', available_version: staged.version,
@@ -123,6 +128,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
       setTimeout(() => app.quit(), 650);
       return { started: true, backup, version: staged.version };
     } catch (error) {
+      if (!helperStarted) await discardStagedPortableUpdate(staged);
       announce({ state: 'portable', message: 'Program update not started: ' + String(error?.message || error) });
       throw error;
     } finally {
