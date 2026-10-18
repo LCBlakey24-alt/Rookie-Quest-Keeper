@@ -1,23 +1,34 @@
 import React, { useState } from 'react';
 import { parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
+import './NpcCompactStatBlock.css';
 
-// A GM-only combat reference. Rolls stay local; a card never silently edits campaign or combat state.
-const abilities = [
+// One visual stat block for campaign NPCs, official SRD beasts and homebrew.
+// All values are read from the record: missing campaign canon stays missing.
+const ABILITIES = [
   ['STR', 'strength'], ['DEX', 'dexterity'], ['CON', 'constitution'],
   ['INT', 'intelligence'], ['WIS', 'wisdom'], ['CHA', 'charisma'],
 ];
-const frame = { background: 'var(--rq-bg-panel, #1E2936)', border: '1px solid var(--rq-line, rgba(137,157,176,.25))', padding: 10, color: 'var(--rq-text-primary, #EADFC8)', display: 'grid', gap: 9 };
-const label = { display: 'block', fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--rq-text-secondary, #C9C4B7)' };
-const box = { display: 'grid', justifyItems: 'center', alignContent: 'center', minWidth: 0, gap: 3, padding: 7, background: 'var(--rq-bg-main, #0B1B2B)', border: '1px solid var(--rq-line, rgba(137,157,176,.25))' };
-const rollButton = { minHeight: 34, padding: '5px 10px', border: '1px solid var(--rq-line, rgba(201,169,107,.5))', background: 'var(--rq-bg-elevated, #263748)', color: 'var(--rq-text-primary, #EADFC8)', fontSize: 12, fontWeight: 800, cursor: 'pointer' };
-const entry = { border: '1px solid var(--rq-line, rgba(137,157,176,.25))', background: 'var(--rq-bg-main, #0B1B2B)', padding: 8, minWidth: 0 };
 
 function readable(value) {
   if (value === null || value === undefined || value === '') return '—';
   return String(value);
 }
-function confirmedPositive(value) {
-  return Number.isFinite(Number(value)) && Number(value) > 0 ? String(value) : '—';
+
+function labelForKey(key) {
+  return String(key).replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
+function describe(value) {
+  if (value === null || value === undefined || value === '') return '';
+  if (Array.isArray(value)) return value.map(describe).filter(Boolean).join(', ');
+  if (typeof value === 'object') {
+    if (value.name) return [value.name, value.bonus ?? value.value].filter(item => item !== undefined && item !== '').join(' ');
+    return Object.entries(value)
+      .filter(([, entry]) => entry !== null && entry !== undefined && entry !== '')
+      .map(([key, entry]) => labelForKey(key) + ' ' + describe(entry)).join(', ');
+  }
+  return String(value);
 }
 
 export function npcModifier(score) {
@@ -26,110 +37,202 @@ export function npcModifier(score) {
   return Number.isFinite(parsed) ? Math.floor((parsed - 10) / 2) : null;
 }
 
-function AbilityBox({ title, score }) {
-  const modifier = npcModifier(score);
-  return <div style={box}><span style={label}>{title}</span><strong style={{ fontSize: 17 }}>{readable(score)}</strong><span style={{ fontSize: 12 }}>{modifier === null ? '—' : modifier >= 0 ? `+${modifier}` : modifier}</span></div>;
+function signed(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return readable(value);
+  return numeric >= 0 ? '+' + numeric : String(numeric);
 }
 
-// A save DC is not an attack roll, and descriptive actions have no guessed dice.
+function confirmedNumber(value, allowZero = false) {
+  if (value === null || value === undefined || value === '') return '—';
+  const num = Number(value);
+  return Number.isFinite(num) && (allowZero ? num >= 0 : num > 0) ? String(num) : '—';
+}
+
+function AbilityBox({ title, score }) {
+  const modifier = npcModifier(score);
+  return (
+    <div className="rqk-stat-block__ability">
+      <span className="rqk-stat-block__ability-label">{title}</span>
+      <strong className="rqk-stat-block__ability-score">{readable(score)}</strong>
+      <span className="rqk-stat-block__ability-mod">{modifier === null ? '—' : signed(modifier)}</span>
+    </div>
+  );
+}
+
+// A saving-throw DC is not an attack bonus. Don't invent dice for narrative actions.
 export function actionAttackNotation(action = {}) {
   const bonus = String(action.bonus ?? '').trim();
-  return /^[+-]\d{1,2}$/.test(bonus) ? `1d20${bonus}` : null;
+  return /^[+-]\d{1,2}$/.test(bonus) ? '1d20' + bonus : null;
 }
 
 export function actionDamageNotation(action = {}) {
   const damage = String(action.damage ?? '').trim();
-  // Alternate and conditional damage needs a GM decision before rolling.
+  // Alternative, conditional or reduced damage requires a GM decision first.
   if (!damage || /\b(or|instead|if|half)\b/i.test(damage)) return null;
   const groups = damage.match(/\d{0,3}d\d{1,3}(?:\s*[+-]\s*\d{1,4})?/gi) || [];
-  if (groups.length === 0) return null;
+  if (!groups.length) return null;
   const notation = groups.map(group => group.replace(/\s+/g, '')).join('+');
   return parseDiceNotation(notation).valid ? notation : null;
 }
 
+function MetaRow({ title, value }) {
+  const text = describe(value);
+  if (!text || text === 'None') return null;
+  return <div className="rqk-stat-block__meta-row"><strong>{title}:</strong><span>{text}</span></div>;
+}
+
 function ActionList({ title, items, onRoll, combatReady }) {
   if (!items.length) return null;
-  return <section style={{ display: 'grid', gap: 5 }}>
-    <h4 style={{ ...label, margin: 0 }}>{title}</h4>
-    <div style={{ display: 'grid', gap: 5, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))' }}>
-      {items.map((item, index) => (
-        <article key={item.id || `${item.name || 'action'}-${index}`} style={entry}>
-          <strong style={{ fontSize: 13 }}>{item.name || 'Action'}</strong>
-          {(item.bonus || item.damage) && <div style={{ fontSize: 12, marginTop: 4 }}>{item.bonus && <b>Hit {item.bonus}</b>}{item.bonus && item.damage ? ' · ' : ''}{item.damage && <b>{item.damage}</b>}</div>}
-          {(item.description || item.notes) && <p style={{ fontSize: 12, lineHeight: 1.35, margin: '4px 0 0' }}>{item.description || item.notes}</p>}
-          {combatReady && (actionAttackNotation(item) || actionDamageNotation(item)) && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 7 }}>
-              {actionAttackNotation(item) && <button type="button" onClick={() => onRoll(`${item.name || 'Action'} attack`, actionAttackNotation(item))} style={rollButton} aria-label={`Roll ${item.name || 'Action'} to hit`}>Roll to hit</button>}
-              {actionDamageNotation(item) && <button type="button" onClick={() => onRoll(`${item.name || 'Action'} damage`, actionDamageNotation(item))} style={rollButton} aria-label={`Roll ${item.name || 'Action'} damage`}>Roll damage</button>}
-            </div>
-          )}
-        </article>
-      ))}
-    </div>
-  </section>;
+  return (
+    <section className="rqk-stat-block__section" aria-label={title}>
+      <h3 className="rqk-stat-block__section-title">{title}</h3>
+      {items.map((original, index) => {
+        const item = typeof original === 'string' ? { name: original } : (original || {});
+        const name = item.name || 'Action';
+        const attack = combatReady ? actionAttackNotation(item) : null;
+        const damage = combatReady ? actionDamageNotation(item) : null;
+        return (
+          <article className="rqk-stat-block__action" key={item.id || name + '-' + index}>
+            <strong className="rqk-stat-block__action-heading">{name}</strong>
+            {(item.bonus || item.damage) && (
+              <div className="rqk-stat-block__action-stats">
+                {item.bonus && <span>{/^DC\b/i.test(String(item.bonus)) ? '' : 'Hit '}{item.bonus}</span>}
+                {item.damage && <span>{item.damage}</span>}
+              </div>
+            )}
+            {(item.description || item.notes) && (
+              <p className="rqk-stat-block__action-notes">{item.description || item.notes}</p>
+            )}
+            {(attack || damage) && (
+              <div className="rqk-stat-block__roll-actions">
+                {attack && <button type="button" className="rqk-stat-block__roll-button" aria-label={'Roll ' + name + ' to hit'} onClick={() => onRoll(name + ' attack', attack)}>Roll to hit</button>}
+                {damage && <button type="button" className="rqk-stat-block__roll-button" aria-label={'Roll ' + name + ' damage'} onClick={() => onRoll(name + ' damage', damage)}>Roll damage</button>}
+              </div>
+            )}
+          </article>
+        );
+      })}
+    </section>
+  );
 }
 
 export default function NpcCompactStatBlock({ npc = {} }) {
   const [lastRoll, setLastRoll] = useState('');
+  const unverified = npc.combat_ready === false;
+  const estimatedLegacy = npc.source === 'legacy-reference';
+  const stats = unverified ? {} : (npc.stats || npc.ability_scores || {});
+  const attacks = Array.isArray(npc.attacks) ? npc.attacks : [];
+  const actions = Array.isArray(npc.actions) ? npc.actions : [];
+  const specialAbilities = Array.isArray(npc.special_abilities)
+    ? npc.special_abilities
+    : (Array.isArray(npc.abilities) ? npc.abilities : []);
+  const bonusActions = Array.isArray(npc.bonus_actions) ? npc.bonus_actions : [];
+  const reactions = Array.isArray(npc.reactions) ? npc.reactions : [];
+  const legendaryActions = Array.isArray(npc.legendary_actions) ? npc.legendary_actions : [];
+  const allActions = attacks.length || actions.length || specialAbilities.length ||
+    bonusActions.length || reactions.length || legendaryActions.length;
+  const spells = npc.spells && typeof npc.spells === 'object' && !Array.isArray(npc.spells) ? npc.spells : null;
+  const lore = [
+    ['Description', npc.description],
+    ['Appearance', npc.appearance],
+    ['Personality', npc.personality],
+    ['Backstory', npc.backstory],
+    ['GM notes', npc.notes],
+  ].filter(([, value]) => value != null && String(value).trim());
+  const portrait = npc.image_url || npc.portrait_url || '';
+  const hp = unverified ? '—' : confirmedNumber(npc.hp ?? npc.hit_points ?? npc.current_hp, true);
+  const hpMax = unverified ? '—' : confirmedNumber(npc.max_hp ?? npc.maxHp ?? npc.max_hit_points);
+  const hpDisplay = hp !== '—' && hpMax !== '—' && hp !== hpMax ? hp + '/' + hpMax : hp;
+  const kind = npc.type ? [npc.size, npc.type, npc.subtype ? '(' + npc.subtype + ')' : '', npc.alignment].filter(Boolean).join(' ') :
+    [npc.role || npc.occupation || npc.class_name, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ');
+  const source = npc.source === 'srd-5.1' || npc.source === 'srd' ? 'SRD 5.1' : npc.type ? 'Bestiary' : 'Campaign NPC';
   const rollAction = (name, notation) => {
     const result = rollDiceNotation(notation);
     if (!result.valid) {
-      setLastRoll(`${name}: ${result.error}`);
+      setLastRoll(name + ': ' + result.error);
       return;
     }
     const dice = result.rolls.map(roll => roll.result).join(', ');
-    const bonus = result.modifier ? ` ${result.modifier > 0 ? '+' : '-'} ${Math.abs(result.modifier)}` : '';
+    const bonus = result.modifier ? ' ' + (result.modifier > 0 ? '+' : '-') + ' ' + Math.abs(result.modifier) : '';
     const critical = result.isCrit ? ' (natural 20)' : result.isFumble ? ' (natural 1)' : '';
-    setLastRoll(`${name}: ${notation} [${dice}]${bonus} = ${result.total}${critical}`);
+    setLastRoll(name + ': ' + notation + ' [' + dice + ']' + bonus + ' = ' + result.total + critical);
   };
-  const unverified = npc.combat_ready === false;
-  const estimatedLegacy = npc.source === 'legacy-reference';
-  const stats = unverified ? {} : (npc.stats || {});
-  const attacks = Array.isArray(npc.attacks) ? npc.attacks : [];
-  const actions = Array.isArray(npc.actions) ? npc.actions : [];
-  const specialAbilities = Array.isArray(npc.special_abilities) ? npc.special_abilities : (Array.isArray(npc.abilities) ? npc.abilities : []);
-  const legendaryActions = Array.isArray(npc.legendary_actions) ? npc.legendary_actions : [];
-  const reactions = Array.isArray(npc.reactions) ? npc.reactions : [];
-  const bonusActions = Array.isArray(npc.bonus_actions) ? npc.bonus_actions : [];
-  const spells = npc.spells;
-  const combatActionsPresent = attacks.length || actions.length || bonusActions.length || reactions.length || specialAbilities.length || legendaryActions.length;
-  const lore = [npc.description, npc.personality, npc.backstory, npc.notes].filter(Boolean);
-  const portrait = npc.image_url || npc.portrait_url || '';
+  const canRoll = !unverified && !estimatedLegacy;
 
   return (
-    <section data-testid="npc-combat-stat-block" style={frame} aria-label={`${npc.name || 'NPC'} combat reference`}>
-      <div style={{ display: 'flex', gap: 10, minWidth: 0, alignItems: 'center' }}>
-        {portrait && <img src={portrait} alt={npc.name || 'NPC portrait'} style={{ width: 54, height: 54, objectFit: 'cover', border: '1px solid var(--rq-line)' }} />}
-        <div style={{ minWidth: 0 }}>
-          <strong style={{ fontSize: 17 }}>{npc.name || 'NPC'}</strong>
-          <p style={{ margin: '2px 0 0', fontSize: 12, opacity: .8 }}>{[npc.role || npc.class_name, npc.race, npc.size && npc.type ? `${npc.size} ${npc.type}` : '', npc.cr != null ? `CR ${npc.cr}` : '', Number(npc.level) > 0 ? `Level ${npc.level}` : ''].filter(Boolean).join(' · ')}</p>
+    <section className="rqk-stat-block" data-testid="npc-combat-stat-block" aria-label={(npc.name || 'NPC') + ' combat reference'}>
+      <header className="rqk-stat-block__header">
+        {portrait && <img className="rqk-stat-block__portrait" src={portrait} alt={npc.name || 'NPC portrait'} />}
+        <div className="rqk-stat-block__identity">
+          <p className="rqk-stat-block__eyebrow">{source} · Stat block</p>
+          <h2 className="rqk-stat-block__name">{npc.name || 'NPC'}</h2>
+          {kind && <p className="rqk-stat-block__subtitle">{kind}</p>}
+          {npc.cr != null && npc.cr !== '' && (
+            <span className="rqk-stat-block__cr">CR {npc.cr}{npc.xp != null ? ' · ' + npc.xp + ' XP' : ''}</span>
+          )}
         </div>
+      </header>
+
+      {unverified && <p className="rqk-stat-block__warning" role="note">Combat stats not yet verified — keep this NPC out of encounters until equipped with a confirmed stat block.</p>}
+      {estimatedLegacy && <p className="rqk-stat-block__warning" role="note">Legacy reference: some statistics and attacks may be estimates. Dice buttons are disabled until verified.</p>}
+
+      <div className="rqk-stat-block__vitals" aria-label="Defence and movement">
+        <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Armour Class">AC</span><strong className="rqk-stat-block__vital-value">{unverified ? '—' : confirmedNumber(npc.ac ?? npc.armor_class)}</strong></div>
+        <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Hit Points">HP</span><strong className="rqk-stat-block__vital-value">{hpDisplay}</strong></div>
+        <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label">Speed</span><strong className="rqk-stat-block__vital-value rqk-stat-block__vital-value--speed">{readable(npc.speed)}</strong></div>
       </div>
-      {unverified && <p role="note" style={{ margin: 0, color: 'var(--rq-warning, #D39A43)', fontSize: 12 }}>Combat stats not yet verified — keep this NPC out of encounters until equipped with a confirmed stat block.</p>}
-      {estimatedLegacy && <p role="note" style={{ margin: 0, color: 'var(--rq-warning, #D39A43)', fontSize: 12 }}>Legacy reference: some statistics and attacks may be estimates. Dice buttons are disabled until verified.</p>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 }}>
-        <div style={box}><span style={label}>HP</span><strong style={{ fontSize: 20 }}>{unverified ? '—' : confirmedPositive(npc.hp)}{!unverified && Number(npc.max_hp) > 0 && npc.max_hp !== npc.hp ? `/${npc.max_hp}` : ''}</strong></div>
-        <div style={box}><span style={label}>AC</span><strong style={{ fontSize: 20 }}>{unverified ? '—' : confirmedPositive(npc.ac)}</strong></div>
-        <div style={box}><span style={label}>Speed</span><strong style={{ fontSize: 15, textAlign: 'center' }}>{readable(npc.speed)}</strong></div>
+
+      <div className="rqk-stat-block__abilities" aria-label="Ability scores">
+        {ABILITIES.map(([title, field]) => <AbilityBox key={field} title={title} score={unverified ? null : (stats[field] ?? npc[field])} />)}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
-        {abilities.map(([title, field]) => <AbilityBox key={field} title={title} score={unverified ? null : (stats[field] ?? npc[field])} />)}
+
+      <div className="rqk-stat-block__metadata" aria-label="Other statistics">
+        <MetaRow title="Proficiency Bonus" value={npc.proficiency_bonus != null ? signed(npc.proficiency_bonus) : null} />
+        <MetaRow title="Saving Throws" value={npc.saving_throws || npc.saves} />
+        <MetaRow title="Skills" value={npc.skills} />
+        <MetaRow title="Damage Vulnerabilities" value={npc.damage_vulnerabilities || npc.vulnerabilities} />
+        <MetaRow title="Damage Resistances" value={npc.damage_resistances || npc.resistances} />
+        <MetaRow title="Damage Immunities" value={npc.damage_immunities || npc.immunities} />
+        <MetaRow title="Condition Immunities" value={npc.condition_immunities} />
+        <MetaRow title="Senses" value={npc.senses} />
+        <MetaRow title="Languages" value={npc.languages} />
       </div>
-      <ActionList title="Attacks & actions" items={attacks.length ? attacks : actions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
-      {attacks.length > 0 && actions.length > 0 && <ActionList title="Other actions" items={actions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />}
-      <ActionList title="Bonus actions" items={bonusActions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
-      <ActionList title="Reactions" items={reactions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
-      <ActionList title="Special abilities" items={specialAbilities} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
-      <ActionList title="Legendary actions" items={legendaryActions} onRoll={rollAction} combatReady={!unverified && !estimatedLegacy} />
-      {lastRoll && <output role="status" aria-live="polite" style={{ ...entry, fontSize: 12 }} data-testid="stat-block-roll-result">{lastRoll}</output>}
-      {spells && <section style={entry}><strong style={{ fontSize: 13 }}>Spells</strong>
-        <p style={{ fontSize: 12, margin: '4px 0' }}>DC {readable(spells.spell_save_dc)} · Attack {readable(spells.spell_attack_bonus)}</p>
-        {!!spells.cantrips?.length && <p style={{ fontSize: 12, margin: '3px 0' }}><b>Cantrips:</b> {spells.cantrips.join(', ')}</p>}
-        {!!spells.known_spells?.length && <p style={{ fontSize: 12, margin: '3px 0' }}><b>Known:</b> {spells.known_spells.join(', ')}</p>}
-      </section>}
-      {!combatActionsPresent && !spells &&
-        <p style={{ fontSize: 12, opacity: .8, margin: 0 }}>No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
-      {!!lore.length && <details><summary style={{ ...label, cursor: 'pointer', minHeight: 30, display: 'flex', alignItems: 'center' }}>GM notes & story details</summary><div style={{ fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{lore.map((text, index) => <p key={index}>{text}</p>)}</div></details>}
+
+      <ActionList title="Traits" items={specialAbilities} onRoll={rollAction} combatReady={canRoll} />
+      {!specialAbilities.length && npc.abilities && !Array.isArray(npc.abilities) && npc.abilities !== 'None' && (
+        <section className="rqk-stat-block__section" aria-label="Traits">
+          <h3 className="rqk-stat-block__section-title">Traits</h3>
+          <p className="rqk-stat-block__action-notes">{String(npc.abilities)}</p>
+        </section>
+      )}
+      <ActionList title="Actions" items={attacks.length ? attacks : actions} onRoll={rollAction} combatReady={canRoll} />
+      {attacks.length > 0 && actions.length > 0 && <ActionList title="Other actions" items={actions} onRoll={rollAction} combatReady={canRoll} />}
+      <ActionList title="Bonus Actions" items={bonusActions} onRoll={rollAction} combatReady={canRoll} />
+      <ActionList title="Reactions" items={reactions} onRoll={rollAction} combatReady={canRoll} />
+      <ActionList title="Legendary Actions" items={legendaryActions} onRoll={rollAction} combatReady={canRoll} />
+      {spells && (
+        <section className="rqk-stat-block__section" aria-label="Spells">
+          <h3 className="rqk-stat-block__section-title">Spells</h3>
+          <div className="rqk-stat-block__metadata">
+            <MetaRow title="Spell Save DC" value={spells.spell_save_dc} />
+            <MetaRow title="Spell Attack" value={spells.spell_attack_bonus != null ? signed(spells.spell_attack_bonus) : null} />
+            <MetaRow title="Cantrips" value={spells.cantrips} />
+            <MetaRow title="Known Spells" value={spells.known_spells} />
+            <MetaRow title="Spell Slots" value={spells.slot_count != null ? String(spells.slot_count) + (spells.slot_level != null ? ' at level ' + spells.slot_level : '') : null} />
+          </div>
+        </section>
+      )}
+      {!allActions && !spells && <p className="rqk-stat-block__empty">No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
+      {lastRoll && <output role="status" aria-live="polite" className="rqk-stat-block__roll-result" data-testid="stat-block-roll-result">{lastRoll}</output>}
+      {lore.length > 0 && (
+        <details className="rqk-stat-block__notes">
+          <summary>GM notes & story details</summary>
+          {lore.map(([title, value]) => (
+            <div key={title}><h3 className="rqk-stat-block__note-label">{title}</h3><p className="rqk-stat-block__note-text">{String(value)}</p></div>
+          ))}
+        </details>
+      )}
     </section>
   );
 }
