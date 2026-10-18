@@ -64,4 +64,35 @@ describe('NPC GM combat card', () => {
     expect(screen.getByText(/some statistics and attacks may be estimates/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Roll Inferred Bite/ })).not.toBeInTheDocument();
   });
+  test('renders a compact SRD creature sheet with organised official details', () => {
+    render(<NpcCompactStatBlock npc={{
+      name: 'Goblin', source: 'srd-5.1', type: 'humanoid', size: 'Small', cr: '1/4', xp: 50,
+      hp: 7, ac: 15, speed: '30 ft.',
+      stats: { strength: 8, dexterity: 14, constitution: 10, intelligence: 10, wisdom: 8, charisma: 8 },
+      proficiency_bonus: 2, skills: ['Stealth +6'],
+      senses: { darkvision: '60 ft.', passive_perception: 9 },
+      languages: 'Common, Goblin',
+      special_abilities: [{ name: 'Nimble Escape', notes: 'Disengage or Hide as a bonus action.' }],
+      actions: [{ name: 'Scimitar', bonus: '+4', damage: '1d6+2 slashing', notes: 'Melee attack, reach 5 ft.' }],
+    }} />);
+    expect(screen.getByRole('heading', { name: 'Goblin' })).toBeInTheDocument();
+    expect(screen.getByText('CR 1/4 · 50 XP')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ability scores')).toBeInTheDocument();
+    expect(screen.getByText('STR')).toBeInTheDocument();
+    expect(screen.getByText('DEX')).toBeInTheDocument();
+    expect(screen.getByText('Nimble Escape')).toBeInTheDocument();
+    expect(screen.getByText('Scimitar')).toBeInTheDocument();
+    expect(screen.getByText('Darkvision 60 ft., Passive Perception 9')).toBeInTheDocument();
+    expect(screen.getByText('Common, Goblin')).toBeInTheDocument();
+  });
+
+  test('keeps missing campaign NPC scores unfilled and private notes collapsible', () => {
+    render(<NpcCompactStatBlock npc={{ name: 'Unstatted Ally', description: 'The missing lore is preserved.', hp: null, ac: null }} />);
+    const abilitySection = screen.getByLabelText('Ability scores');
+    expect(abilitySection.textContent).toContain('STR—');
+    expect(abilitySection.textContent).toContain('CHA—');
+    expect(screen.getByText('GM notes & story details')).toBeInTheDocument();
+    expect(screen.getByText('The missing lore is preserved.')).toBeInTheDocument();
+  });
+
 });
