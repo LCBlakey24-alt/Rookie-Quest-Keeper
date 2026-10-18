@@ -60,5 +60,8 @@ describe('NPC GM combat card', () => {
     rerender(<NpcCompactStatBlock npc={{ name: 'Acolyte', attacks: [{ name: 'Sacred Flame', bonus: 'DC 13', damage: '1d8 radiant' }] }} />);
     expect(screen.queryByRole('button', { name: 'Roll Sacred Flame to hit' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Roll Sacred Flame damage' })).toBeInTheDocument();
+    rerender(<NpcCompactStatBlock npc={{ name: 'Legacy Wolf', source: 'legacy-reference', hp: 11, ac: 13, actions: [{ name: 'Inferred Bite', bonus: '+4', damage: '2d4+2 piercing' }] }} />);
+    expect(screen.getByText(/some statistics and attacks may be estimates/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Roll Inferred Bite/ })).not.toBeInTheDocument();
   });
 });
