@@ -233,30 +233,6 @@ function Stat({ label, value }) {
   return <article style={statStyle}><strong>{value}</strong><span>{label}</span></article>;
 }
 
-// Keep encounter cards compact until requested, but never discard any of a
-// creature's stored description, attacks or special abilities.
-function creatureDetailLines(value) {
-  if (value == null || value === '') return [];
-  if (Array.isArray(value)) return value.flatMap(item => creatureDetailLines(item));
-  if (typeof value === 'object') {
-    const named = [value.name, value.bonus, value.damage, value.notes, value.description]
-      .filter(part => part != null && part !== '').map(String);
-    return named.length ? [named.join(' · ')] : Object.entries(value).map(([key, item]) => `${key}: ${String(item)}`);
-  }
-  return [String(value)];
-}
-
-function CreatureDetailSection({ title, value }) {
-  const lines = creatureDetailLines(value);
-  if (lines.length === 0) return null;
-  return (
-    <div style={creatureFullSectionStyle}>
-      <strong style={creatureFullHeadingStyle}>{title}</strong>
-      {lines.map((line, index) => <p key={index} style={creatureFullLineStyle}>{line}</p>)}
-    </div>
-  );
-}
-
 export function CreatureCard({ creature, count, onAdjust }) {
   const [expanded, setExpanded] = useState(false);
   const cr = creature.cr ?? creature.challenge_rating ?? '—';
@@ -281,21 +257,11 @@ export function CreatureCard({ creature, count, onAdjust }) {
             {expanded ? 'Hide full details' : 'Show full details'}
           </button>
         )}
-        {expanded && (<>
+        {expanded && (
           <div data-testid="bestiary-full-details" style={creatureFullDetailsStyle}>
-            <CreatureDetailSection title="Description" value={creature.description} />
-            <CreatureDetailSection title="Special abilities" value={creature.abilities} />
-            <CreatureDetailSection title="Ability scores" value={creature.stats} />
-            <CreatureDetailSection title="Skills" value={creature.skills} />
-            <CreatureDetailSection title="Saving throws" value={creature.saving_throws} />
-            <CreatureDetailSection title="Actions & attacks" value={creature.actions} />
-            <CreatureDetailSection title="Bonus actions" value={creature.bonus_actions} />
-            <CreatureDetailSection title="Reactions" value={creature.reactions} />
-            <CreatureDetailSection title="Resistances" value={creature.resistances} />
-            <CreatureDetailSection title="Immunities" value={creature.immunities} />
+            <NpcCompactStatBlock npc={creature} />
           </div>
-          <NpcCompactStatBlock npc={creature} />
-        </>)}
+        )}
       </div>
       <div style={countControlStyle}>
         <button type="button" aria-label={`Remove one ${creature.name || 'creature'}`} onClick={() => onAdjust(-1)} style={countButtonStyle}>−</button>
@@ -339,9 +305,6 @@ const creatureMetaStyle = { margin: '5px 0 0', color: rq.muted, fontSize: 12 };
 const creatureDescStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 12, lineHeight: 1.35 };
 const creatureToggleStyle = { display: 'inline-flex', marginTop: 10, padding: '5px 9px', minHeight: 32, color: rq.text, background: rq.bg, border: `1px solid ${rq.pink}`, cursor: 'pointer', fontSize: 12, fontWeight: 850 };
 const creatureFullDetailsStyle = { display: 'grid', gap: 10, marginTop: 9, minWidth: 0, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' };
-const creatureFullSectionStyle = { minWidth: 0, background: rq.bg, border: `1px solid ${rq.line}`, padding: 9 };
-const creatureFullHeadingStyle = { display: 'block', marginBottom: 5, fontSize: 12, color: rq.text };
-const creatureFullLineStyle = { margin: '4px 0', color: rq.soft, lineHeight: 1.45, fontSize: 12 };
 const countControlStyle = { display: 'grid', gridTemplateRows: '28px 24px 28px', alignItems: 'center', justifyItems: 'center' };
 const countButtonStyle = { width: 30, height: 28, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, fontWeight: 950, cursor: 'pointer' };
 const emptyStyle = { margin: 0, color: rq.muted, background: rq.bg, border: `1px dashed ${rq.line}`, padding: 14, lineHeight: 1.4 };
