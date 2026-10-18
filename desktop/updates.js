@@ -4,7 +4,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { readPackage, hash } = require('./signedProgramPackage');
-const { stageAppPackage, activateApp } = require('./programRelease');
+const { stageAppPackage, activateApp, readLastAppResult } = require('./programRelease');
 const pinnedKeys = global.__rqkProgramTrust || require('./programTrust.json');
 const { portableExePath, inspectPortableUpdate, stagePortableUpdate, discardStagedPortableUpdate, launchPortableUpdate, readLastPortableUpdate } = require('./portableProgramUpdate');
 
@@ -13,6 +13,7 @@ const { portableExePath, inspectPortableUpdate, stagePortableUpdate, discardStag
 function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableRoot = null, createSafetyBackup, portable = false }) {
   const runningPortableExe = portable ? portableExePath(portableRoot) : null;
   const previousInstall = portable ? readLastPortableUpdate(app.getPath('userData')) : null;
+  const previousApp = portable ? readLastAppResult(app.getPath('userData')) : null;
   let selectedProgram = null;
   const compatibility = () => ({ currentVersion: app.getVersion(),
     bootstrapVersion: global.__rqkBootstrapVersion || app.getVersion(),
@@ -23,7 +24,9 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     available_version: null,
     progress: 0,
     message: portable
-      ? previousInstall?.state === 'failed'
+      ? previousApp?.state === 'rolled_back'
+        ? previousApp.reason
+        : previousInstall?.state === 'failed'
         ? 'Previous program update failed: ' + String(previousInstall.reason || 'See your program backup.') 
         : previousInstall?.state === 'installed' && previousInstall.version === app.getVersion()
           ? 'Keeper was updated successfully. Your campaign data stayed in RookieQuestKeeperData.'

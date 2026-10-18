@@ -58,10 +58,13 @@ function selectApp(userData, keys, compatibility) {
   const paths = releasePaths(userData);
   let entry = readActive(userData);
   if (!entry) return null;
-  if (!/^[a-f0-9]{32}$/.test(entry.id)) throw new Error('Invalid installed program selection.');
+  if (!/^[a-f0-9]{32}$/.test(entry.id) || !['pending', 'trying', 'healthy'].includes(entry.state)
+      || (entry.previous != null && !/^[a-f0-9]{32}$/.test(entry.previous))) throw new Error('Invalid installed program selection.');
   // An update that never reported a visible, loaded window gets rolled back on
   // the next start. No campaign files or database migrations are reverted here.
   if (entry.state === 'trying') {
+    atomicJson(path.join(paths.root, 'last-app-result.json'), { state: 'rolled_back', version: entry.version,
+      reason: 'The updated app did not confirm a successful first start. Keeper returned to the previous program.' });
     entry = entry.previous ? { id: entry.previous, state: 'healthy', previous: null } : null;
     if (entry) atomicJson(paths.active, entry);
     else fs.unlinkSync(paths.active);
@@ -76,7 +79,13 @@ function selectApp(userData, keys, compatibility) {
   return { folder, version: manifest.version, markHealthy() {
     const current = readActive(userData);
     if (current?.id === entry.id && current.state === 'trying') atomicJson(paths.active, { ...current, state: 'healthy' });
+    try { atomicJson(path.join(paths.root, 'last-app-result.json'), { state: 'installed', version: manifest.version }); } catch { /* Activation is already committed; a status write must not undo it. */ }
   } };
 }
 
-module.exports = { atomicJson, releasePaths, stageAppPackage, readActive, activateApp, selectApp };
+function readLastAppResult(userData) {
+  try { return JSON.parse(fs.readFileSync(path.join(releasePaths(userData).root, 'last-app-result.json'), 'utf8')); }
+  catch { return null; }
+}
+
+module.exports = { atomicJson, releasePaths, stageAppPackage, readActive, activateApp, selectApp, readLastAppResult };

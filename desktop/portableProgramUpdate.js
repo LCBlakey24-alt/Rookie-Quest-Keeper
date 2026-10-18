@@ -201,7 +201,9 @@ async function discardStagedPortableUpdate(staged) {
 
 async function launchPortableUpdate(scriptPath, platform = process.platform) {
   if (platform !== 'win32') throw new Error('The program updater requires Windows.');
-  const child = spawn('powershell.exe', [
+  // Do not search the current OneDrive/download folder for an executable.
+  const powershell = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  const child = spawn(powershell, [
     '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath,
   ], { detached: true, windowsHide: true, stdio: 'ignore' });
   await new Promise((resolve, reject) => {

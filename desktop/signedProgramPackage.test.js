@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 const { build } = require('./tools/build-program-package');
 const { hash, readPackage, verifyEnvelope, decodeApp, safeAppPath } = require('./signedProgramPackage');
-const { stageAppPackage, activateApp, selectApp, readActive } = require('./programRelease');
+const { stageAppPackage, activateApp, selectApp, readActive, readLastAppResult } = require('./programRelease');
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-signed-'));
@@ -49,6 +49,7 @@ test('failed first start rolls back to bundled app without changing campaigns', 
   selectApp(data, f.keys, f.compatibility);
   assert.equal(selectApp(data, f.keys, f.compatibility), null);
   assert.equal(readActive(data), null);
+  assert.equal(readLastAppResult(data).state, 'rolled_back');
 });
 
 test('unknown publisher, unsigned and altered manifests cannot install', t => {
