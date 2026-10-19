@@ -20,7 +20,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: yarn
           cache-dependency-path: frontend/yarn.lock
 
@@ -32,7 +32,7 @@ jobs:
         working-directory: frontend
         env:
           CI: true
-        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js src/preview/desktopCampaignPack.test.js src/data/offlineBestiaryChaosFate.test.js src/data/tiaKartaCalendar.test.js
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js src/preview/desktopCampaignPack.test.js src/data/offlineBestiaryChaosFate.test.js src/data/tiaKartaCalendar.test.js src/components/gm/NpcCompactStatBlock.test.js src/components/tabs/NPCsTab.statBlock.test.js
 
       - name: Test incremental campaign update package generator
         run: python -m unittest discover -s desktop/tools -p "test_*.py"
@@ -70,5 +70,13 @@ jobs:
           path: |
             desktop/dist/*.exe
             desktop/dist/*.yml
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload NPC renderer for offline package signing
+        uses: actions/upload-artifact@v4
+        with:
+          name: Keeper-NPC-Renderer-For-Signing
+          path: desktop/renderer/**
           if-no-files-found: error
           retention-days: 14

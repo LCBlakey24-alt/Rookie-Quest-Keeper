@@ -3,6 +3,27 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import NpcCompactStatBlock, { actionAttackNotation, actionDamageNotation, npcModifier } from './NpcCompactStatBlock';
 
 describe('NPC GM combat card', () => {
+  test('library story references show saved description instead of empty combat boxes', () => {
+    const npc = {name:'Story Ally', role:'Town guide', combat_ready:false, hp:999, description:'Existing saved description.', notes:'Existing private note.'};
+    const before = JSON.stringify(npc);
+    render(<NpcCompactStatBlock npc={npc} library />);
+    expect(screen.getByText('Existing saved description.')).toBeVisible();
+    expect(screen.getByText(/Combat statistics not confirmed/)).toBeVisible();
+    expect(screen.queryByLabelText('Ability scores')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Defence and movement')).not.toBeInTheDocument();
+    expect(screen.queryByText('999')).not.toBeInTheDocument();
+    expect(screen.getByText('Existing private note.')).toBeInTheDocument();
+    expect(JSON.stringify(npc)).toBe(before);
+  });
+
+  test('library combat details are visible without opening a combat-card disclosure', () => {
+    render(<NpcCompactStatBlock npc={{name:'Test Guard',hp:21,ac:14,stats:{strength:14},attacks:[{name:'Test Spear',bonus:'+4',damage:'1d6+2 piercing'}]}} library />);
+    expect(screen.getByText('21')).toBeVisible();
+    expect(screen.getByText('Test Spear')).toBeVisible();
+    expect(screen.getByRole('button',{name:'Roll Test Spear to hit'})).toBeVisible();
+    expect(screen.queryByRole('heading',{name:'Test Guard'})).not.toBeInTheDocument();
+  });
+
   test('prints quick stats, modifiers and attacks before optional lore', () => {
     render(<NpcCompactStatBlock npc={{
       name: 'Edwin Hollowmere', role: 'Master of Revels', image_url: '/edwin.jpg',
