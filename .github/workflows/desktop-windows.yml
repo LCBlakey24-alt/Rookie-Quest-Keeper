@@ -41,6 +41,12 @@ jobs:
         working-directory: frontend
         run: yarn build
 
+      - name: Test full frontend regression suite
+        working-directory: frontend
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand
+
       - name: Stage renderer
         shell: pwsh
         run: |
