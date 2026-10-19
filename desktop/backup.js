@@ -33,6 +33,29 @@ function backupRoot(userData) {
   return path.join(userData, BACKUPS_DIR);
 }
 
+function treeDigests(folder) {
+  const result = {};
+  function visit(current, prefix = '') {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      if (entry.isSymbolicLink()) throw new Error('Cannot back up linked campaign media safely.');
+      const file = path.join(current, entry.name);
+      const name = prefix + entry.name;
+      if (entry.isDirectory()) visit(file, name + '/');
+      else if (entry.isFile()) result[name] = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+      else throw new Error('Unsupported backup file.');
+    }
+  }
+  visit(folder);
+  return result;
+}
+
+function verifyBackupDigests(folder, manifest) {
+  if (!manifest.sha256) return; // Existing version-1 backups remain readable.
+  const actual = treeDigests(folder);
+  delete actual['manifest.json'];
+  if (JSON.stringify(actual) !== JSON.stringify(manifest.sha256)) throw new Error('Backup checksum verification failed. Current campaign was not changed.');
+}
+
 function createBackup(userData, raw, reason = 'manual') {
   const data = checkWorkspace(raw);
   const id = `snapshot-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
@@ -51,7 +74,12 @@ function createBackup(userData, raw, reason = 'manual') {
     const attachments = path.join(userData, ATTACHMENTS_DIR);
     if (fs.existsSync(attachments)) {
       fs.cpSync(attachments, path.join(pendingDir, ATTACHMENTS_DIR), { recursive: true, errorOnExist: true });
+      const before = treeDigests(attachments);
+      const copied = treeDigests(path.join(pendingDir, ATTACHMENTS_DIR));
+      if (JSON.stringify(before) !== JSON.stringify(copied)) throw new Error('Campaign media backup verification failed.');
     }
+    if (fs.readFileSync(path.join(pendingDir, 'workspace.json'), 'utf8') !== raw) throw new Error('Workspace backup verification failed.');
+    info.sha256 = treeDigests(pendingDir);
     fs.writeFileSync(path.join(pendingDir, 'manifest.json'), JSON.stringify(info, null, 2), { encoding: 'utf8', mode: 0o600, flag: 'wx' });
     fs.renameSync(pendingDir, finalDir);
   } catch (error) {
@@ -82,6 +110,7 @@ function restoreBackup(userData, id, currentRaw) {
   if (!manifest) throw new Error('That backup could not be found.');
   const raw = fs.readFileSync(path.join(folder, 'workspace.json'), 'utf8');
   checkWorkspace(raw); // Never replace existing data with an invalid snapshot.
+  verifyBackupDigests(folder, manifest);
 
   // Before ANY restore, take a snapshot of the workspace currently on this laptop.
   const safetyCopy = currentRaw ? createBackup(userData, currentRaw, 'before-restore') : null;
@@ -141,6 +170,7 @@ function validatePortableBackup(directory) {
     if (!fs.lstatSync(attachments).isDirectory()) throw new Error('Invalid backup media folder.');
     checkMediaTree(attachments);
   }
+  verifyBackupDigests(folder, manifest);
   return { folder, raw, manifest, attachments };
 }
 

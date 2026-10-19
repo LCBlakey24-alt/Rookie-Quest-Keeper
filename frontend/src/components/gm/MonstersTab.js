@@ -9,6 +9,7 @@ import NpcCompactStatBlock from './NpcCompactStatBlock';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
 import { monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
+import { canUseCombatRecord, combatReferenceStatus } from '@/lib/combatReadiness';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -43,14 +44,19 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   const [encounterName, setEncounterName] = useState('');
   const [lastSavedEncounter, setLastSavedEncounter] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [libraryError, setLibraryError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const loadLibrary = async () => {
     if (!campaignId) return;
     setLoading(true);
+    setLibraryError('');
     try {
       const [creatureRes, scenarioRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => ({ data: [] })),
+        apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => {
+          setLibraryError('Custom Bestiary could not load. Your saved records have not been removed. Try Refresh.');
+          return { data: [] };
+        }),
         apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
       ]);
       setCustomCreatures(normaliseCreatures(creatureRes.data).map(creature => ({ ...creature, source: 'custom' })));
@@ -76,18 +82,18 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     const matchesSearch = !term || searchBlob.includes(term);
     const matchesType = typeFilter === 'all' || (creature.type || 'creature') === typeFilter;
     const cr = monsterCrValue(creature.cr ?? creature.challenge_rating);
-    const matchesCr = crFilter === 'all' || (crFilter === 'low' && cr <= 2) || (crFilter === 'mid' && cr > 2 && cr <= 8) || (crFilter === 'high' && cr > 8);
+    const matchesCr = crFilter === 'all' || (cr !== null && ((crFilter === 'low' && cr <= 2) || (crFilter === 'mid' && cr > 2 && cr <= 8) || (crFilter === 'high' && cr > 8)));
     const matchesSource = sourceFilter === 'all' || creature.source === sourceFilter;
     return matchesSearch && matchesType && matchesCr && creatureId(creature, index);
   }), [creatures, query, typeFilter, crFilter, sourceFilter]);
 
   const selectedCreatures = useMemo(() => creatures.flatMap((creature, index) => {
     const count = selected[creatureId(creature, index)] || 0;
-    return count > 0 ? [{ creature, index, count }] : [];
+    return count > 0 && canUseCombatRecord(creature) ? [{ creature, index, count }] : [];
   }), [creatures, selected]);
 
   const selectedCount = selectedCreatures.reduce((sum, entry) => sum + entry.count, 0);
-  const selectedCr = Math.round(selectedCreatures.reduce((sum, entry) => sum + (monsterCrValue(entry.creature.cr ?? entry.creature.challenge_rating) * entry.count), 0) * 100) / 100;
+  const selectedCr = selectedCreatures.some(entry => monsterCrValue(entry.creature.cr ?? entry.creature.challenge_rating) === null) ? 'Unknown (one or more CR values are missing)' : Math.round(selectedCreatures.reduce((sum, entry) => sum + (monsterCrValue(entry.creature.cr ?? entry.creature.challenge_rating) * entry.count), 0) * 100) / 100;
   const selectedCombatants = useMemo(() => selectedCreatures.flatMap(entry => Array.from({ length: entry.count }, (_, copyIndex) => monsterToCombatant(entry.creature, copyIndex))), [selectedCreatures]);
   const recentScenarios = useMemo(() => [...scenarios].sort((a, b) => String(b.updated_at || b.created_at || '').localeCompare(String(a.updated_at || a.created_at || ''))).slice(0, 5), [scenarios]);
 
@@ -101,6 +107,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   };
 
   const adjustCreature = (id, delta) => {
+    if (delta > 0 && !creatures.some((creature, index) => creatureId(creature, index) === id && canUseCombatRecord(creature))) return;
     setSelected(prev => {
       const next = Math.max(0, (prev[id] || 0) + delta);
       const copy = { ...prev, [id]: next };
@@ -125,7 +132,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     try {
       const response = await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, {
         name,
-        description: `Seeded from Monsters tab. Estimated monster CR total: ${selectedCr}. SRD entries include verified actions; only legacy/custom source records may contain inferred actions. Add players from Combat when ready.`,
+        description: `Seeded from Monsters tab. Recorded monster CR total: ${selectedCr}. Review custom draft mechanics before use. Add players from Combat when ready.`,
         combatants: selectedCombatants,
         show_grid: true,
         grid_size: 40,
@@ -147,7 +154,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
         <div>
           <p style={eyebrowStyle}>Monsters</p>
           <h2 style={titleStyle}><Skull size={32} /> Combat Bestiary</h2>
-          <p style={subtitleStyle}>Search 334 complete SRD 5.1 monster stat blocks (including 87 beasts), legacy entries, and your own homebrew creatures. Offline and combat-ready.</p>
+          <p style={subtitleStyle}>Search SRD 5.1 stat blocks, legacy references and your custom creatures offline. Story-only and unverified records stay out of combat.</p>
         </div>
         <div style={statGridStyle}>
           <Stat label="Bestiary Creatures" value={creatures.length} />
@@ -172,6 +179,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
         </section>
       )}
 
+      {libraryError && <p role="alert" style={noticeStyle}>{libraryError}</p>}
       <section style={encounterBuilderStyle}>
         <div style={builderHeaderStyle}>
           <div>
@@ -248,7 +256,9 @@ export function CreatureCard({ creature, count, onAdjust }) {
           <strong>{creature.name || 'Unnamed creature'}</strong>
           <span style={crPillStyle}>CR {cr}</span>
         </div>
-        <p style={creatureMetaStyle}>{creature.size || 'Medium'} {creature.type || 'creature'} · AC {creature.ac || creature.armor_class || '—'} · HP {creature.hp || creature.hit_points || '—'} · PB +{creature.proficiency_bonus || 2} · Speed {creature.speed || '—'}</p>
+        <p style={creatureMetaStyle}>{creature.size || 'Size unknown'} {creature.type || 'creature'} · AC {creature.ac ?? creature.armor_class ?? '—'} · HP {creature.hp ?? creature.hit_points ?? '—'} · PB {creature.proficiency_bonus == null ? '—' : '+' + creature.proficiency_bonus} · Speed {creature.speed || '—'}</p>
+        {combatReferenceStatus(creature) && <p role="note" style={smallHelpStyle}>{combatReferenceStatus(creature)}</p>}
+        {!canUseCombatRecord(creature) && <p style={smallHelpStyle}>Reference only — confirm combat readiness, HP and AC before adding.</p>}
         {!expanded && action && <p style={creatureDescStyle}><strong>{action.name}:</strong> {action.bonus ? `${action.bonus} · ` : ''}{action.damage || action.notes}</p>}
         {!expanded && summary && <p style={creatureDescStyle}>{summary.slice(0, 150)}{summary.length > 150 ? '…' : ''}</p>}
         {hasMore && (
@@ -266,7 +276,7 @@ export function CreatureCard({ creature, count, onAdjust }) {
       <div style={countControlStyle}>
         <button type="button" aria-label={`Remove one ${creature.name || 'creature'}`} onClick={() => onAdjust(-1)} style={countButtonStyle}>−</button>
         <strong>{count}</strong>
-        <button type="button" aria-label={`Add one ${creature.name || 'creature'}`} onClick={() => onAdjust(1)} style={countButtonStyle}>+</button>
+        <button type="button" disabled={!canUseCombatRecord(creature)} aria-label={`Add one ${creature.name || 'creature'}`} onClick={() => onAdjust(1)} style={countButtonStyle}>+</button>
       </div>
     </article>
   );

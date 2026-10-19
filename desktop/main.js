@@ -6,6 +6,7 @@ const { createBackup, listBackups, restoreBackup, exportPortableBackup, restoreP
 const { registerDesktopUpdater } = require('./updates');
 const { isSafePlayerDisplayUrl } = require('./playerDisplayWindow');
 const { preparePortableStorage } = require('./portable');
+const { rendererResponse } = require('./rendererProtocol');
 
 const APP_SCHEME = 'rqk';
 const APP_HOST = 'desktop';
@@ -39,27 +40,6 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 
-function rendererFileFor(requestUrl) {
-  const url = new URL(requestUrl);
-  const rendererRoot = path.resolve(__dirname, 'renderer');
-  let relativePath = decodeURIComponent(url.pathname || '/').replace(/^\/+/, '');
-
-  if (!relativePath || !path.extname(relativePath)) {
-    relativePath = 'index.html';
-  }
-
-  let candidate = path.resolve(rendererRoot, relativePath);
-  if (!candidate.startsWith(rendererRoot)) {
-    candidate = path.join(rendererRoot, 'index.html');
-  }
-
-  if (!fs.existsSync(candidate) || fs.statSync(candidate).isDirectory()) {
-    candidate = path.join(rendererRoot, 'index.html');
-  }
-
-  return candidate;
-}
-
 function safeSegment(value, fallback = 'item') {
   const cleaned = String(value || '')
     .replace(/[^a-zA-Z0-9._-]+/g, '-')
@@ -84,8 +64,7 @@ function attachmentFileFor(requestUrl) {
 
 async function installLocalProtocols() {
   protocol.handle(APP_SCHEME, (request) => {
-    const filePath = rendererFileFor(request.url);
-    return net.fetch(pathToFileURL(filePath).toString());
+    return rendererResponse(path.join(__dirname, 'renderer'), request.url);
   });
 
   protocol.handle(ATTACHMENT_SCHEME, (request) => {
@@ -294,7 +273,8 @@ app.whenReady().then(async () => {
     return { canceled: false, ...restorePortableBackup(app.getPath('userData'), choice.filePaths[0], currentRaw) };
   });
   registerDesktopUpdater({
-    app, ipcMain, BrowserWindow, portable: Boolean(portableStorage),
+    app, ipcMain, BrowserWindow, dialog, portable: Boolean(portableStorage),
+    portableRoot: portableStorage ? path.dirname(portableStorage.dataRoot) : null,
     createSafetyBackup: (raw, reason) => raw == null
       ? null
       : createBackup(app.getPath('userData'), raw, reason),
