@@ -837,3 +837,76 @@
     animation: none !important;
   }
 }
+
+
+/* Guild Ledger map backdrop and focused login order for the pre-bundle layer. */
+#root .rqk-auth-page::before {
+  content: '' !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  opacity: 0.34 !important;
+  background-image: url('/brand/backgrounds/guild-ledger-auth-wide.webp') !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+#root .rqk-auth-shell {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+#root .rqk-auth-page--login .rqk-auth-next-steps,
+#root .rqk-auth-page--login .rqk-auth-trust-row {
+  display: none !important;
+}
+
+@media (max-width: 920px) {
+  #root .rqk-auth-page::before {
+    background-image: url('/brand/backgrounds/guild-ledger-auth-tablet.webp') !important;
+  }
+}
+
+@media (max-width: 620px) {
+  #root .rqk-auth-page::before {
+    opacity: 0.30 !important;
+    background-image: url('/brand/backgrounds/guild-ledger-landing-mobile.webp') !important;
+  }
+}
+
+
+/* Public pre-bundle landing artwork; public URLs stay stable through the build. */
+#root .landing-page-final.keeper-product-site::before {
+  content: '' !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  opacity: 0.36 !important;
+  background-image: url('/brand/backgrounds/guild-ledger-landing-wide.webp') !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  #root .landing-page-final.keeper-product-site::before {
+    background-image: url('/brand/backgrounds/guild-ledger-auth-wide.webp') !important;
+  }
+}
+
+@media (min-width: 621px) and (max-width: 900px) {
+  #root .landing-page-final.keeper-product-site::before {
+    opacity: 0.32 !important;
+    background-image: url('/brand/backgrounds/guild-ledger-auth-tablet.webp') !important;
+  }
+}
+
+@media (max-width: 620px) {
+  #root .landing-page-final.keeper-product-site::before {
+    opacity: 0.30 !important;
+    background-image: url('/brand/backgrounds/guild-ledger-landing-mobile.webp') !important;
+  }
+}
