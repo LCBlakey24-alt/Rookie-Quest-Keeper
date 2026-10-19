@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const source = fs.readFileSync(path.join(__dirname, '..', 'PlayerDashboard.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '..', 'PlayerDashboard.js'), 'utf8').replace(/\r\n/g, '\n');
 
 describe('Player Dashboard optional tab loading', () => {
   test('notes and received handouts load only when their tabs are opened', () => {

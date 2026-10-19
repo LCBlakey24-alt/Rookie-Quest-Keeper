@@ -5,7 +5,7 @@ import { isOfflineDesktop, isReadOnlyDemo, localWorkspaceStorageKey, localWorksp
 import { advanceCustomCalendar } from '@/data/tiaKartaCalendar';
 
 const copy = value => JSON.parse(JSON.stringify(value));
-const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
+const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'custom-creatures', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
 const OBJECTS = new Set(['calendar', 'live-state', 'player-display', 'environment', 'settings', 'treasury', 'combat']);
 
 function fail(message, status = 501) {

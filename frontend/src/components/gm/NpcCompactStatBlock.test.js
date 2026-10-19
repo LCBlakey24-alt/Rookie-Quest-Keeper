@@ -3,6 +3,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import NpcCompactStatBlock, { actionAttackNotation, actionDamageNotation, npcModifier, npcIdentityLine } from './NpcCompactStatBlock';
 
 describe('NPC GM combat card', () => {
+  test('supplied draft status remains visible instead of looking like verified canon', () => {
+    render(<NpcCompactStatBlock npc={{name:'Draft guard',hp:21,ac:14,combat_ready:true,mechanics_status:'DM DRAFT - existing card',import_review_required:true}} library />);
+    expect(screen.getByText(/DM DRAFT - existing card/)).toBeVisible();
+    expect(screen.getByText(/Review source notes before play/)).toBeVisible();
+  });
   test('compact library identity retains classes, creature details and challenge rating', () => {
     expect(npcIdentityLine({class_name:'Wizard',race:'Human',level:3})).toBe('Wizard · Human · Level 3');
     expect(npcIdentityLine({size:'Small',type:'humanoid',subtype:'goblinoid',alignment:'neutral evil'})).toBe('Small humanoid (goblinoid) neutral evil');

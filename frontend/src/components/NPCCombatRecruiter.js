@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
+import { canUseCombatRecord } from '@/lib/combatReadiness';
 
 
 function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] }) {
@@ -46,16 +47,22 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
   };
   
   const filteredNPCs = npcs.filter(npc => 
+    canUseCombatRecord(npc) &&
     npc.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     !existingCombatantIds.includes(`npc-${npc.id}`)
   );
   
   const filteredCreatures = customCreatures.filter(creature =>
+    canUseCombatRecord(creature) &&
     creature.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     !existingCombatantIds.includes(`creature-${creature.id}`)
   );
   
   const addToCombat = (entity, type) => {
+    if (!canUseCombatRecord(entity)) {
+      toast.error('This reference needs confirmed combat statistics before recruitment.');
+      return;
+    }
     const initiativeMod = getInitiativeModifier(entity);
     const initiativeRoll = rollInitiative(initiativeMod);
     
@@ -63,9 +70,17 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
       id: `${type}-${entity.id}-${Date.now()}`,
       name: entity.name,
       type: type === 'npc' ? 'ally' : 'enemy',
-      hp: entity.hp || 10,
-      maxHp: entity.hp || 10,
-      ac: entity.ac || 10,
+      hp: Number(entity.hp ?? entity.hit_points),
+      maxHp: Number(entity.max_hp ?? entity.hp ?? entity.hit_points),
+      ac: Number(entity.ac ?? entity.armor_class),
+      stats: entity.stats || entity.ability_scores || {},
+      actions: entity.actions || entity.attacks || [],
+      bonus_actions: entity.bonus_actions || [],
+      reactions: entity.reactions || [],
+      special_abilities: entity.special_abilities || [],
+      legendary_actions: entity.legendary_actions || [],
+      spells: entity.spells,
+      mechanics_status: entity.mechanics_status,
       initiative: initiativeRoll.total,
       initiativeRoll: initiativeRoll.natural,
       initiativeMod,
@@ -216,6 +231,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
       </div>
       
       {/* Entity List */}
+      <p style={{ color: 'var(--rq-text-secondary)', fontSize: 13 }}>Only references with recorded HP, AC and combat readiness can be recruited. Story-only and unverified records remain in your library.</p>
       <div style={{ 
         maxHeight: '300px', 
         overflowY: 'auto',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
 import './NpcCompactStatBlock.css';
+import { combatReferenceStatus } from '@/lib/combatReadiness';
 
 // One visual stat block for campaign NPCs, official SRD beasts and homebrew.
 // All values are read from the record: missing campaign canon stays missing.
@@ -184,6 +185,8 @@ export default function NpcCompactStatBlock({ npc = {}, library = false }) {
       </header>}
 
       {library && npc.cr != null && npc.cr !== '' && <span className="rqk-stat-block__cr">CR {npc.cr}{npc.xp != null ? ' · ' + npc.xp + ' XP' : ''}</span>}
+
+      {combatReferenceStatus(npc) && <p className="rqk-stat-block__warning" role="note">{combatReferenceStatus(npc)}{npc.import_review_required ? ' · Review source notes before play.' : ''}</p>}
 
       {library && npc.description && <p className="rqk-stat-block__profile">{String(npc.description)}</p>}
       {library && missingCombat && <p className="rqk-stat-block__empty" role="note">Combat statistics not confirmed. This is a story reference; no combat numbers have been invented.</p>}

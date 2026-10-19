@@ -3,6 +3,14 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { CreatureCard } from './MonstersTab';
 
 describe('Bestiary stat-block expansion', () => {
+  test('unverified entries display their status and cannot be added to an encounter', () => {
+    const onAdjust=jest.fn();
+    render(<CreatureCard creature={{name:'Evidence only',combat_ready:false,mechanics_status:'NO VERIFIED STAT BLOCK'}} count={0} onAdjust={onAdjust} />);
+    expect(screen.getByRole('button',{name:'Add one Evidence only'})).toBeDisabled();
+    expect(screen.getByText(/Not combat-ready/)).toBeVisible();
+    fireEvent.click(screen.getByRole('button',{name:'Add one Evidence only'}));
+    expect(onAdjust).not.toHaveBeenCalled();
+  });
   const creature = {
     id: 'dragon-1',
     name: 'Cavern Dragon',

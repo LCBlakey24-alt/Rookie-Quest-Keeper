@@ -32,7 +32,7 @@ jobs:
         working-directory: frontend
         env:
           CI: true
-        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js src/preview/desktopCampaignPack.test.js src/preview/DesktopMaintenance.programUpdate.test.js src/components/gm/NpcCompactStatBlock.test.js src/components/tabs/NPCsTab.statBlock.test.js src/data/offlineBestiaryChaosFate.test.js src/data/tiaKartaCalendar.test.js
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/preview/desktopOfflineMode.test.js src/preview/desktopCampaignPack.test.js src/preview/DesktopMaintenance.programUpdate.test.js src/preview/offlineCustomBestiary.test.js src/lib/monsterStatBlockAdapter.test.js src/components/gm/NpcCompactStatBlock.test.js src/components/gm/MonstersTab.details.test.js src/components/tabs/NPCsTab.statBlock.test.js src/components/NPCCombatRecruiter.safety.test.js src/data/offlineBestiaryChaosFate.test.js src/data/tiaKartaCalendar.test.js
 
       - name: Test incremental campaign update package generator
         run: python -m unittest discover -s desktop/tools -p "test_*.py"
@@ -40,6 +40,12 @@ jobs:
       - name: Build Keeper frontend
         working-directory: frontend
         run: yarn build
+
+      - name: Test full frontend regression suite
+        working-directory: frontend
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand
 
       - name: Stage renderer
         shell: pwsh

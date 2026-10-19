@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } fro
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 const NPC_BASIC_FIELDS = [
   { name: 'name', label: 'Name', type: 'text' },
@@ -32,6 +33,7 @@ function normaliseNpcPatch(patch = {}) {
 }
 
 function NPCsTab({ campaignId }) {
+  const offline = isOfflineDesktop();
   const [npcs, setNpcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
@@ -137,6 +139,10 @@ function NPCsTab({ campaignId }) {
 
   // ROOK - Auto-generate and save
   const handleUnseenServant = async () => {
+    if (offline) {
+      toast.info('ROOK generation needs the online service. You can add or edit NPCs manually offline.');
+      return;
+    }
     if (!aiPrompt.trim()) {
       toast.error('Please describe the NPC you want');
       return;
@@ -184,18 +190,18 @@ function NPCsTab({ campaignId }) {
   // Empty state
   if (npcs.length === 0) {
     return (
-      <div className="campaign-management-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
+      <div className="campaign-management-grid" style={{ display: 'grid', gridTemplateColumns: offline ? 'minmax(0, 1fr)' : '1fr 400px', gap: '24px' }}>
         <EmptyState
           icon={User}
           title="No NPCs Yet"
-          description="Create your first NPC to populate your world. Add characters manually or use the ROOK AI to generate them automatically."
+          description={offline ? 'Add NPCs manually or import a campaign-content update. ROOK generation needs the online service.' : 'Create your first NPC to populate your world. Add characters manually or use the ROOK AI to generate them automatically.'}
           actionLabel="Create Your First NPC"
           onAction={() => setShowDialog(true)}
           color="#f97316"
         />
         
         {/* ROOK Panel - still show for empty state */}
-        <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
+        {!offline && <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
           <Card className="parchment-dark" style={{ border: '2px solid #f97316' }}>
             <CardHeader>
               <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -248,6 +254,7 @@ function NPCsTab({ campaignId }) {
           </Card>
         </div>
         
+        }
         {/* Dialog for manual creation */}
         <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowDialog(open); }}>
           <DialogContent className="modal" style={{ maxWidth: '600px' }}>
@@ -256,7 +263,7 @@ function NPCsTab({ campaignId }) {
                 Add NPC
               </DialogTitle>
             </DialogHeader>
-            <RookFormFillPanel
+            {!offline && <RookFormFillPanel
               title="Ask Rook for an NPC draft"
               helperText="Draft the core fields first, then review and save when you are happy. This does not auto-create the NPC."
               section="gm_npc"
@@ -265,7 +272,7 @@ function NPCsTab({ campaignId }) {
               currentValues={formData}
               onApply={applyRookNpcPatch}
               placeholder="Example: A wary tavern keeper who knows why travellers disappear near the old bridge..."
-            />
+            />}
             <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Name</label>
@@ -302,7 +309,7 @@ function NPCsTab({ campaignId }) {
   if (loading) return <div className="loading-spinner"></div>;
 
   return (
-    <div className="campaign-management-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
+    <div className="campaign-management-grid" style={{ display: 'grid', gridTemplateColumns: offline ? 'minmax(0, 1fr)' : '1fr 400px', gap: '24px' }}>
       {/* Main Content */}
       <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
@@ -322,7 +329,7 @@ function NPCsTab({ campaignId }) {
                 {editingNPC ? 'Edit NPC' : 'Add NPC'}
               </DialogTitle>
             </DialogHeader>
-            <RookFormFillPanel
+            {!offline && <RookFormFillPanel
               title={editingNPC ? 'Ask Rook to improve this NPC' : 'Ask Rook for an NPC draft'}
               helperText="Draft or improve fields first, then import only the suggestions you want before saving."
               section="gm_npc"
@@ -331,7 +338,7 @@ function NPCsTab({ campaignId }) {
               currentValues={formData}
               onApply={applyRookNpcPatch}
               placeholder="Example: Turn this into a charming informant with a secret debt, a useful clue, and a memorable voice..."
-            />
+            />}
             <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Name</label>
@@ -538,8 +545,9 @@ function NPCsTab({ campaignId }) {
       )}
       </div>
 
-      {/* ROOK Panel */}
-      <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
+      {/* Offline has no ROOK service; do not advertise an action that cannot run. */}
+      {offline && <details style={{ color: 'var(--rq-text-secondary)', fontSize: 13 }}><summary>About ROOK offline</summary><p>ROOK generation needs the online service. Manual NPC editing, campaign-content imports and saved stat blocks remain available offline.</p></details>}
+      {!offline && <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
         <Card className="parchment-dark" style={{ border: '2px solid #f97316' }}>
           <CardHeader>
             <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -614,6 +622,7 @@ function NPCsTab({ campaignId }) {
         </Card>
       </div>
       
+      }
       <style>{`
         @keyframes glow-pulse {
           0% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.6); }
