@@ -1,8 +1,14 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import NpcCompactStatBlock, { actionAttackNotation, actionDamageNotation, npcModifier } from './NpcCompactStatBlock';
+import NpcCompactStatBlock, { actionAttackNotation, actionDamageNotation, npcModifier, npcIdentityLine } from './NpcCompactStatBlock';
 
 describe('NPC GM combat card', () => {
+  test('compact library identity retains classes, creature details and challenge rating', () => {
+    expect(npcIdentityLine({class_name:'Wizard',race:'Human',level:3})).toBe('Wizard · Human · Level 3');
+    expect(npcIdentityLine({size:'Small',type:'humanoid',subtype:'goblinoid',alignment:'neutral evil'})).toBe('Small humanoid (goblinoid) neutral evil');
+    render(<NpcCompactStatBlock npc={{name:'Library Creature',cr:'1/4',xp:50}} library />);
+    expect(screen.getByText('CR 1/4 · 50 XP')).toBeVisible();
+  });
   test('library story references show saved description instead of empty combat boxes', () => {
     const npc = {name:'Story Ally', role:'Town guide', combat_ready:false, hp:999, description:'Existing saved description.', notes:'Existing private note.'};
     const before = JSON.stringify(npc);

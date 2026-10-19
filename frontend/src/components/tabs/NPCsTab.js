@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
-import NpcCompactStatBlock from '@/components/gm/NpcCompactStatBlock';
+import NpcCompactStatBlock, { npcIdentityLine } from '@/components/gm/NpcCompactStatBlock';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -479,7 +479,7 @@ function NPCsTab({ campaignId }) {
                         </span>
                       )}
                     </CardTitle>
-                    {(npc.role || npc.occupation || npc.race) && <p className="rqk-npc-library-card__role">{[npc.role || npc.occupation, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ')}</p>}
+                    {npcIdentityLine(npc) && <p className="rqk-npc-library-card__role">{npcIdentityLine(npc)}</p>}
                     {npc.location && (
                       <p style={{ fontSize: '14px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <MapPin size={14} /> {npc.location}

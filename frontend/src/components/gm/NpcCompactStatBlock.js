@@ -37,6 +37,11 @@ export function npcModifier(score) {
   return Number.isFinite(parsed) ? Math.floor((parsed - 10) / 2) : null;
 }
 
+export function npcIdentityLine(npc = {}) {
+  return npc.type ? [npc.size, npc.type, npc.subtype ? '(' + npc.subtype + ')' : '', npc.alignment].filter(Boolean).join(' ') :
+    [npc.role || npc.occupation || npc.class_name, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ');
+}
+
 function signed(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return readable(value);
@@ -144,8 +149,7 @@ export default function NpcCompactStatBlock({ npc = {}, library = false }) {
   const hp = unverified ? '—' : confirmedNumber(npc.hp ?? npc.hit_points ?? npc.current_hp, true);
   const hpMax = unverified ? '—' : confirmedNumber(npc.max_hp ?? npc.maxHp ?? npc.max_hit_points);
   const hpDisplay = hp !== '—' && hpMax !== '—' && hp !== hpMax ? hp + '/' + hpMax : hp;
-  const kind = npc.type ? [npc.size, npc.type, npc.subtype ? '(' + npc.subtype + ')' : '', npc.alignment].filter(Boolean).join(' ') :
-    [npc.role || npc.occupation || npc.class_name, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ');
+  const kind = npcIdentityLine(npc);
   const source = npc.source === 'srd-5.1' || npc.source === 'srd' ? 'SRD 5.1' : npc.type ? 'Bestiary' : 'Campaign NPC';
   const rollAction = (name, notation) => {
     const result = rollDiceNotation(notation);
@@ -178,6 +182,8 @@ export default function NpcCompactStatBlock({ npc = {}, library = false }) {
           )}
         </div>
       </header>}
+
+      {library && npc.cr != null && npc.cr !== '' && <span className="rqk-stat-block__cr">CR {npc.cr}{npc.xp != null ? ' · ' + npc.xp + ' XP' : ''}</span>}
 
       {library && npc.description && <p className="rqk-stat-block__profile">{String(npc.description)}</p>}
       {library && missingCombat && <p className="rqk-stat-block__empty" role="note">Combat statistics not confirmed. This is a story reference; no combat numbers have been invented.</p>}
