@@ -451,18 +451,18 @@ function NPCsTab({ campaignId }) {
             <Card 
               key={npc.id} 
               data-testid={`npc-card-${npc.id}`} 
-              className="card"
+              className="card rqk-npc-library-card"
               style={{
                 animation: lastGenerated?.entity_id === npc.id ? 'glow-pulse 2s ease-out' : 'none',
                 border: lastGenerated?.entity_id === npc.id ? '2px solid #F59E0B' : undefined
               }}
             >
-              <CardHeader>
+              <CardHeader className="rqk-npc-library-card__header">
                 <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
                   <div style={{ 
                     width: '48px', 
                     height: '48px', 
-                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', 
+                    background: 'var(--rq-bg-deep)',
                     borderRadius: '50%', 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -479,6 +479,7 @@ function NPCsTab({ campaignId }) {
                         </span>
                       )}
                     </CardTitle>
+                    {(npc.role || npc.occupation || npc.race) && <p className="rqk-npc-library-card__role">{[npc.role || npc.occupation, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ')}</p>}
                     {npc.location && (
                       <p style={{ fontSize: '14px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <MapPin size={14} /> {npc.location}
@@ -486,7 +487,7 @@ function NPCsTab({ campaignId }) {
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <Button data-testid={`edit-npc-btn-${npc.id}`} onClick={() => handleEdit(npc)} className="btn-secondary" style={{ padding: '8px' }}>
+                    <Button aria-label={`Edit ${npc.name}`} data-testid={`edit-npc-btn-${npc.id}`} onClick={() => handleEdit(npc)} className="btn-secondary" style={{ padding: '8px' }}>
                       <Edit size={14} />
                     </Button>
                     
@@ -519,20 +520,17 @@ function NPCsTab({ campaignId }) {
                         </Button>
                       </div>
                     ) : (
-                      <Button data-testid={`delete-npc-btn-${npc.id}`} onClick={() => handleDelete(npc.id)} className="btn-danger" style={{ padding: '8px' }}>
+                      <Button aria-label={`Delete ${npc.name}`} data-testid={`delete-npc-btn-${npc.id}`} onClick={() => handleDelete(npc.id)} className="btn-danger" style={{ padding: '8px' }}>
                         <Trash2 size={14} />
                       </Button>
                     )}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <details data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
-                  <summary style={{ cursor: 'pointer', color: 'var(--rq-text-primary)', fontSize: 13, fontWeight: 800, padding: '8px 0' }}>
-                    Combat card · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {Array.isArray(npc.attacks) ? npc.attacks.length : 0} attacks
-                  </summary>
-                  <NpcCompactStatBlock npc={npc} />
-                </details>
+              <CardContent className="rqk-npc-library-card__content">
+                <div data-testid={`npc-combat-card-${npc.id}`}>
+                  <NpcCompactStatBlock npc={npc} library />
+                </div>
               </CardContent>
             </Card>
           ))}
