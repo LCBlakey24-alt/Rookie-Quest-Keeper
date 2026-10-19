@@ -37,6 +37,11 @@ export function npcModifier(score) {
   return Number.isFinite(parsed) ? Math.floor((parsed - 10) / 2) : null;
 }
 
+export function npcIdentityLine(npc = {}) {
+  return npc.type ? [npc.size, npc.type, npc.subtype ? '(' + npc.subtype + ')' : '', npc.alignment].filter(Boolean).join(' ') :
+    [npc.role || npc.occupation || npc.class_name, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ');
+}
+
 function signed(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return readable(value);
@@ -117,7 +122,7 @@ function ActionList({ title, items, onRoll, combatReady }) {
   );
 }
 
-export default function NpcCompactStatBlock({ npc = {} }) {
+export default function NpcCompactStatBlock({ npc = {}, library = false }) {
   const [lastRoll, setLastRoll] = useState('');
   const unverified = npc.combat_ready === false;
   const estimatedLegacy = npc.source === 'legacy-reference';
@@ -134,7 +139,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
     bonusActions.length || reactions.length || legendaryActions.length;
   const spells = npc.spells && typeof npc.spells === 'object' && !Array.isArray(npc.spells) ? npc.spells : null;
   const lore = [
-    ['Description', npc.description],
+    ['Description', library ? null : npc.description],
     ['Appearance', npc.appearance],
     ['Personality', npc.personality],
     ['Backstory', npc.backstory],
@@ -144,8 +149,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
   const hp = unverified ? '—' : confirmedNumber(npc.hp ?? npc.hit_points ?? npc.current_hp, true);
   const hpMax = unverified ? '—' : confirmedNumber(npc.max_hp ?? npc.maxHp ?? npc.max_hit_points);
   const hpDisplay = hp !== '—' && hpMax !== '—' && hp !== hpMax ? hp + '/' + hpMax : hp;
-  const kind = npc.type ? [npc.size, npc.type, npc.subtype ? '(' + npc.subtype + ')' : '', npc.alignment].filter(Boolean).join(' ') :
-    [npc.role || npc.occupation || npc.class_name, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ');
+  const kind = npcIdentityLine(npc);
   const source = npc.source === 'srd-5.1' || npc.source === 'srd' ? 'SRD 5.1' : npc.type ? 'Bestiary' : 'Campaign NPC';
   const rollAction = (name, notation) => {
     const result = rollDiceNotation(notation);
@@ -159,10 +163,15 @@ export default function NpcCompactStatBlock({ npc = {} }) {
     setLastRoll(name + ': ' + notation + ' [' + dice + ']' + bonus + ' = ' + result.total + critical);
   };
   const canRoll = !unverified && !estimatedLegacy;
+  const hasVitals = !unverified && [npc.ac ?? npc.armor_class, npc.hp ?? npc.hit_points ?? npc.current_hp, npc.speed]
+    .some(value => value !== null && value !== undefined && value !== '');
+  const hasScores = !unverified && ABILITIES.some(([, field]) =>
+    (stats[field] ?? npc[field]) !== null && (stats[field] ?? npc[field]) !== undefined && (stats[field] ?? npc[field]) !== '');
+  const missingCombat = unverified || (!hasVitals && !hasScores && !allActions && !spells);
 
   return (
-    <section className="rqk-stat-block" data-testid="npc-combat-stat-block" aria-label={(npc.name || 'NPC') + ' combat reference'}>
-      <header className="rqk-stat-block__header">
+    <section className={'rqk-stat-block' + (library ? ' rqk-stat-block--library' : '')} data-testid="npc-combat-stat-block" aria-label={(npc.name || 'NPC') + ' combat reference'}>
+      {!library && <header className="rqk-stat-block__header">
         {portrait && <img className="rqk-stat-block__portrait" src={portrait} alt={npc.name || 'NPC portrait'} />}
         <div className="rqk-stat-block__identity">
           <p className="rqk-stat-block__eyebrow">{source} · Stat block</p>
@@ -172,20 +181,25 @@ export default function NpcCompactStatBlock({ npc = {} }) {
             <span className="rqk-stat-block__cr">CR {npc.cr}{npc.xp != null ? ' · ' + npc.xp + ' XP' : ''}</span>
           )}
         </div>
-      </header>
+      </header>}
 
-      {unverified && <p className="rqk-stat-block__warning" role="note">Combat stats not yet verified — keep this NPC out of encounters until equipped with a confirmed stat block.</p>}
+      {library && npc.cr != null && npc.cr !== '' && <span className="rqk-stat-block__cr">CR {npc.cr}{npc.xp != null ? ' · ' + npc.xp + ' XP' : ''}</span>}
+
+      {library && npc.description && <p className="rqk-stat-block__profile">{String(npc.description)}</p>}
+      {library && missingCombat && <p className="rqk-stat-block__empty" role="note">Combat statistics not confirmed. This is a story reference; no combat numbers have been invented.</p>}
+
+      {!library && unverified && <p className="rqk-stat-block__warning" role="note">Combat stats not yet verified — keep this NPC out of encounters until equipped with a confirmed stat block.</p>}
       {estimatedLegacy && <p className="rqk-stat-block__warning" role="note">Legacy reference: some statistics and attacks may be estimates. Dice buttons are disabled until verified.</p>}
 
-      <div className="rqk-stat-block__vitals" aria-label="Defence and movement">
+      {(!library || hasVitals) && <div className="rqk-stat-block__vitals" aria-label="Defence and movement">
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Armour Class">AC</span><strong className="rqk-stat-block__vital-value">{unverified ? '—' : confirmedNumber(npc.ac ?? npc.armor_class)}</strong></div>
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Hit Points">HP</span><strong className="rqk-stat-block__vital-value">{hpDisplay}</strong></div>
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label">Speed</span><strong className="rqk-stat-block__vital-value rqk-stat-block__vital-value--speed">{readable(npc.speed)}</strong></div>
-      </div>
+      </div>}
 
-      <div className="rqk-stat-block__abilities" aria-label="Ability scores">
+      {(!library || hasScores) && <div className="rqk-stat-block__abilities" aria-label="Ability scores">
         {ABILITIES.map(([title, field]) => <AbilityBox key={field} title={title} score={unverified ? null : (stats[field] ?? npc[field])} />)}
-      </div>
+      </div>}
 
       <div className="rqk-stat-block__metadata" aria-label="Other statistics">
         <MetaRow title="Proficiency Bonus" value={npc.proficiency_bonus != null ? signed(npc.proficiency_bonus) : null} />
@@ -223,7 +237,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
           </div>
         </section>
       )}
-      {!allActions && !spells && <p className="rqk-stat-block__empty">No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
+      {!allActions && !spells && (!library || !missingCombat) && <p className="rqk-stat-block__empty">No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
       {lastRoll && <output role="status" aria-live="polite" className="rqk-stat-block__roll-result" data-testid="stat-block-roll-result">{lastRoll}</output>}
       {lore.length > 0 && (
         <details className="rqk-stat-block__notes">
