@@ -1,10 +1,10 @@
-const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell, screen } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { createBackup, listBackups, restoreBackup, exportPortableBackup, restorePortableBackup } = require('./backup');
 const { registerDesktopUpdater } = require('./updates');
-const { isSafePlayerDisplayUrl } = require('./playerDisplayWindow');
+const { isSafePlayerDisplayUrl, playerDisplayBounds } = require('./playerDisplayWindow');
 const { preparePortableStorage } = require('./portable');
 const { rendererResponse } = require('./rendererProtocol');
 
@@ -179,12 +179,23 @@ async function importCampaignPack(_event, workspaceRaw) {
   };
 }
 
+let playerDisplayViewer = null;
 function openPlayerDisplayWindow(requestUrl) {
+  if (playerDisplayViewer && !playerDisplayViewer.isDestroyed()) {
+    if (playerDisplayViewer.webContents.getURL() !== requestUrl) playerDisplayViewer.loadURL(requestUrl);
+    if (playerDisplayViewer.isMinimized()) playerDisplayViewer.restore();
+    playerDisplayViewer.show();
+    playerDisplayViewer.focus();
+    return playerDisplayViewer;
+  }
+  const secondaryBounds = playerDisplayBounds(screen.getAllDisplays(), screen.getPrimaryDisplay().id);
   const viewer = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 800,
     minHeight: 480,
+    ...(secondaryBounds || {}),
+    show: false,
     title: 'Rookie Quest Keeper · Player Display',
     backgroundColor: '#07131f',
     autoHideMenuBar: true,
@@ -195,6 +206,12 @@ function openPlayerDisplayWindow(requestUrl) {
       sandbox: true,
     },
   });
+  playerDisplayViewer = viewer;
+  viewer.once('ready-to-show', () => {
+    if (secondaryBounds) viewer.maximize();
+    viewer.show();
+  });
+  viewer.on('closed', () => { if (playerDisplayViewer === viewer) playerDisplayViewer = null; });
 
   // The dedicated audience screen is read-only navigation; it must never become
   // another GM workspace or open an external page from untrusted display data.

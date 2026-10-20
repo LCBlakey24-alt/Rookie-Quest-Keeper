@@ -125,7 +125,8 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const visibleMaps = useMemo(() => [...maps, ...worldMaps].filter(imageFrom), [maps, worldMaps]);
   const visibleNpcs = useMemo(() => npcs.filter(imageFrom), [npcs]);
   const selectedNpcs = useMemo(() => visibleNpcs.filter(npc => selectedNpcIds.includes(String(npc.id))), [visibleNpcs, selectedNpcIds]);
-  const currentTarget = normaliseTarget(state?.payload?.display_target || target);
+  const currentTarget = target;
+  useEffect(() => { setTarget(normaliseTarget(state?.payload?.display_target)); }, [state?.payload?.display_target]);
 
   const publish = async (mode, payload, actionId) => {
     try {
@@ -155,7 +156,8 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const sendMap = (map) => publish('image', {
     title: map.name || map.title || 'Map',
     image_url: imageFrom(map),
-    caption: map.description || map.notes || '',
+    // Selecting a map reveals its image, not private preparation notes.
+    caption: map.player_caption || map.caption || '',
   }, `map-${map.id}`);
 
   const showSelectedNpcs = () => {
@@ -207,9 +209,9 @@ export default function LiveSecondScreenDock({ campaignId }) {
       </section>
 
       <section style={targetRowStyle}>
-        <button type="button" onClick={() => setTarget('standing-tv')} style={targetButtonStyle(currentTarget === 'standing-tv')}>TV</button>
-        <button type="button" onClick={() => setTarget('virtual-table')} style={targetButtonStyle(currentTarget === 'virtual-table')}>Table</button>
-        <button type="button" onClick={openDisplay} style={smallButtonStyle}>Open</button>
+        <button type="button" aria-pressed={currentTarget === 'standing-tv'} onClick={() => setTarget('standing-tv')} style={targetButtonStyle(currentTarget === 'standing-tv')}>TV</button>
+        <button type="button" aria-pressed={currentTarget === 'virtual-table'} onClick={() => setTarget('virtual-table')} style={targetButtonStyle(currentTarget === 'virtual-table')}>Table</button>
+        <button type="button" onClick={openDisplay} style={smallButtonStyle}>Open player display</button>
         <button type="button" onClick={copyDisplayLink} style={smallButtonStyle}><Copy size={13} /> Link</button>
       </section>
 

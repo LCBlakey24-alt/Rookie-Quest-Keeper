@@ -19,6 +19,19 @@ jest.mock('@/styles/appShellRail.css', () => ({}), { virtual: true });
 jest.mock('@/styles/railFeedbackButtons.css', () => ({}), { virtual: true });
 
 describe('AppShell', () => {
+  test.each(['/campaign/fixture', '/characters/fixture', '/player'])('focused workspace hides the large rail but keeps navigation available at %s', async route => {
+    mockPathname=route;
+    window.innerWidth=1440;
+    await act(async()=>{render(<AppShell><main>Focused work</main></AppShell>);});
+    expect(screen.queryByRole('complementary',{name:'App navigation'})).not.toBeInTheDocument();
+    const toggle=screen.getByRole('button',{name:'Navigation'});
+    expect(toggle).toHaveAttribute('aria-expanded','false');
+    fireEvent.click(toggle);
+    expect(screen.getByRole('navigation',{name:'Main app sections'})).toBeVisible();
+    fireEvent.click(screen.getByRole('button',{name:'Hide navigation'}));
+    expect(screen.queryByRole('navigation',{name:'Main app sections'})).not.toBeInTheDocument();
+    expect(screen.getByText('Focused work')).toBeVisible();
+  });
   const originalWidth = window.innerWidth;
 
   beforeEach(() => {
