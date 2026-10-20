@@ -18,6 +18,7 @@ export default function DesktopMaintenance() {
   const [programFile, setProgramFile] = useState(null);
   const [working, setWorking] = useState('');
   const [notice, setNotice] = useState('');
+  const [remindLater, setRemindLater] = useState(null);
   const desktop = typeof window === 'undefined' ? null : window.rookieDesktop;
 
   useEffect(() => {
@@ -122,12 +123,25 @@ export default function DesktopMaintenance() {
   const busy = Boolean(working) || status.state === 'installing' || status.state === 'downloading';
   const checking = status.state === 'checking';
   const downloading = status.state === 'downloading';
+  const updateOffered = ['available', 'downloaded'].includes(status.state);
+  const updateOfferId = `${status.state}:${status.available_version}`;
 
   return (
     <>
       <button type="button" onClick={show} className="rqk-desktop-maintenance-trigger">
-        Updates &amp; backups
+        Updates &amp; backups{updateOffered ? ' • Update ready' : ''}
       </button>
+      {updateOffered && !open && remindLater !== updateOfferId && createPortal(
+        <aside className="rqk-desktop-update-toast" role="status" aria-label="Rookie Quest Keeper update available">
+          <strong>Rookie Quest Keeper {status.available_version} {status.state === 'downloaded' ? 'is ready to install' : 'is available'}</strong>
+          <span>Update only when you are ready. Your offline campaign remains available.</span>
+          <div>
+            <button type="button" onClick={show}>Review update</button>
+            <button type="button" onClick={() => setRemindLater(updateOfferId)}>Later</button>
+          </div>
+        </aside>,
+        document.body,
+      )}
       {open && createPortal(
         <div className="rqk-desktop-maintenance-backdrop">
           <section className="rqk-desktop-maintenance" role="dialog" aria-modal="true" aria-label="Desktop updates and backups">
@@ -143,6 +157,7 @@ export default function DesktopMaintenance() {
               <p>Installed version: <strong>{status.installed_version}</strong></p>
               {status.available_version && <p>Available version: <strong>{status.available_version}</strong></p>}
               <p role="status" aria-live="polite">{status.message}</p>
+              {status.release_notes && <p className="rqk-desktop-release-notes"><strong>What's new:</strong> {status.release_notes}</p>}
               {status.state === 'portable' && (
                 <div className="rqk-desktop-program-update" data-testid="portable-program-update">
                   <p>Choose the prepared <strong>.rqkprogram</strong> file from OneDrive or any local folder. Keep its .rqkpart files beside it and make them available offline. Keeper verifies the publisher signature before installing.</p>
