@@ -2158,7 +2158,7 @@
   max-width: 1180px;
   margin: 24px auto 32px;
   padding: clamp(18px, 3vw, 32px);
-  background: linear-gradient(135deg, rgba(19, 36, 53, .95), rgba(13, 28, 42, .92));
+  background: rgba(19, 36, 53, .95);
   border: 1px solid var(--landing-line, #856f4a);
   border-radius: 12px;
   color: var(--landing-text, #f0e8d6);
