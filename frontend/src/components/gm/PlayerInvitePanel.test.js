@@ -73,3 +73,28 @@ describe('PlayerInvitePanel refresh reliability', () => {
     );
   });
 });
+
+
+test('offline players can link a saved character without needing a join code', async () => {
+  window.rookieDesktop = { offline: true };
+  let attached = false;
+  const hero = { id: 'hero-8', name: 'Test Paladin', level: 8, max_hit_points: 64 };
+  apiClient.get.mockImplementation(url => {
+    if (url === '/characters') return Promise.resolve({ data: [{ ...hero, campaign_id: attached ? 'campaign-1' : null }] });
+    if (url === '/campaign-invites/campaign-1') return Promise.resolve({ data: { campaign_id: 'campaign-1' } });
+    if (url === '/campaign-invites/campaign-1/members') return Promise.resolve({ data: attached ? [{ character_id: hero.id, character_name: hero.name, status: 'active' }] : [] });
+    if (url === '/campaigns/campaign-1/live-party') return Promise.resolve({ data: attached ? [{ ...hero, character_id: hero.id }] : [] });
+    return Promise.reject(new Error('Unexpected request: ' + url));
+  });
+  apiClient.post.mockImplementation(async () => { attached = true; return { data: { ...hero, campaign_id: 'campaign-1' } }; });
+  render(<PlayerInvitePanel campaignId="campaign-1" />);
+
+  expect(await screen.findByTestId('offline-player-management')).toBeInTheDocument();
+  expect(screen.queryByTestId('join-code')).not.toBeInTheDocument();
+  fireEvent.change(screen.getByRole('combobox', { name: 'Existing unlinked character' }), { target: { value: 'hero-8' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Link to campaign' }));
+  await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/campaigns/campaign-1/attach-local-character', { character_id: 'hero-8' }));
+  await waitFor(() => expect(screen.getByRole('combobox', { name: 'Existing unlinked character' })).toHaveValue(''));
+  expect(toast.success).toHaveBeenCalledWith('Character linked to this offline campaign');
+  delete window.rookieDesktop;
+});
