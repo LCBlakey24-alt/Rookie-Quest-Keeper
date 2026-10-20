@@ -77,3 +77,14 @@ test('publisher rejects wrong folder, a missing signing key and unsupported vers
   assert.throws(() => publish({ ...f.args, protectedKeyFile: path.join(f.root, 'no-key') }, { signer: f.signer, keys: f.keys }), /ENOENT/);
   assert.deepEqual(fs.readdirSync(f.args.updatesFolder), []);
 });
+
+
+test('publisher recognises an existing package in a descriptive OneDrive version folder', t => {
+  const f = fixtures(t);
+  const previous = path.join(f.args.updatesFolder, '0.4.4 - Offline Bestiary Safety');
+  fs.mkdirSync(previous);
+  fs.writeFileSync(path.join(previous, 'Keeper-0.4.4.rqkprogram'), 'existing signed descriptor');
+  assert.throws(() => publish(f.args, { signer: f.signer, keys: f.keys }), /already present/);
+  assert.equal(fs.readFileSync(path.join(previous, 'Keeper-0.4.4.rqkprogram'), 'utf8'), 'existing signed descriptor');
+  assert.equal(fs.readFileSync(f.dataFile, 'utf8'), 'campaigns stay untouched');
+});
