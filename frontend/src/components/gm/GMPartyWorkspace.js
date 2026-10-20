@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, RefreshCw, Shield, UserCheck, Users } from '
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import PlayersTab from '@/components/tabs/PlayersTab';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 const rq = {
   bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)',
@@ -23,6 +24,7 @@ function failureText(failures = []) {
 }
 
 export default function GMPartyWorkspace({ campaignId }) {
+  const offlineDesktop = isOfflineDesktop();
   const [members, setMembers] = useState([]);
   const [party, setParty] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +119,7 @@ export default function GMPartyWorkspace({ campaignId }) {
       )}
 
       {visibleMembers.length === 0 && !loading && (
-        <section style={emptyStyle}>No joined characters yet. Share the join code above and they will appear here.</section>
+        <section style={emptyStyle}>{offlineDesktop ? 'No characters are linked yet. Use the offline player controls above to attach saved character sheets.' : 'No joined characters yet. Share the join code above and they will appear here.'}</section>
       )}
 
       <section style={gridStyle}>
@@ -145,10 +147,10 @@ export default function GMPartyWorkspace({ campaignId }) {
               )}
 
               <div style={actionsStyle}>
-                {pending && <button type="button" disabled={savingId === member.id} onClick={() => updateStatus(member, 'active')} style={approveButtonStyle}><CheckCircle2 size={13} /> Approve</button>}
-                <select value={status} disabled={savingId === member.id} onChange={event => updateStatus(member, event.target.value)} style={statusSelectStyle}>
+                {!offlineDesktop && pending && <button type="button" disabled={savingId === member.id} onClick={() => updateStatus(member, 'active')} style={approveButtonStyle}><CheckCircle2 size={13} /> Approve</button>}
+                {!offlineDesktop && <select value={status} disabled={savingId === member.id} onChange={event => updateStatus(member, event.target.value)} style={statusSelectStyle}>
                   {STATUSES.map(option => <option key={option} value={option}>{nice(option)}</option>)}
-                </select>
+                </select>}
               </div>
             </article>
           );
