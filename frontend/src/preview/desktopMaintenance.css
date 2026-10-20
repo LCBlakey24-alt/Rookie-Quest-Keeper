@@ -118,3 +118,43 @@
   outline-offset: 1px;
 }
 .rqk-desktop-program-selection button { justify-self: start; }
+
+/* Passive update notice: never steals focus from an in-progress tabletop session. */
+.rqk-desktop-update-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 80000;
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 36px));
+  display: grid;
+  gap: 7px;
+  padding: 15px;
+  border: 1px solid #b59b67;
+  border-radius: 8px;
+  background: #142331;
+  box-shadow: 0 12px 35px rgba(0,0,0,.45);
+  color: #eadfc8;
+  font: 13px/1.45 system-ui, sans-serif;
+}
+.rqk-desktop-update-toast strong { color: #f3d89b; font-size: 14px; }
+.rqk-desktop-update-toast > div { display: flex; gap: 9px; margin-top: 5px; }
+.rqk-desktop-update-toast button {
+  border: 1px solid #a58d5b;
+  color: #fff4db;
+  background: #243b4c;
+  border-radius: 5px;
+  min-height: 35px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.rqk-desktop-update-toast button:hover { background: #334c59; }
+.rqk-desktop-release-notes {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 140px;
+  overflow-y: auto;
+}
+@media (max-width: 600px) {
+  .rqk-desktop-update-toast { bottom: 8px; right: 8px; width: calc(100vw - 16px); }
+}
