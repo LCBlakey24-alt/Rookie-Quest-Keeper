@@ -3,9 +3,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 const os = require('node:os');
 const path = require('node:path');
-const { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, previewPortableBackup, restorePortableBackup } = require('../backup');
+const { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, previewPortableBackup, restorePortableBackup, recoverInterruptedMediaRestore } = require('../backup');
 
 function workspace(name) {
   return JSON.stringify({
@@ -161,3 +162,139 @@ test('migration preview rejects changed backup media and never writes installed 
     for (const folder of [oldData, exports, installedData]) fs.rmSync(folder, { recursive: true, force: true });
   }
 });
+
+
+test('checksums are independent of manifest key order and preview binds all media bytes', () => withAppData(root => {
+  const originalData = path.join(root, 'old');
+  const destination = path.join(root, 'exports');
+  const media = path.join(originalData, 'campaign-packs', 'map.png');
+  fs.mkdirSync(path.dirname(media), { recursive: true });
+  fs.mkdirSync(destination);
+  fs.writeFileSync(media, 'original map');
+  const saved = exportPortableBackup(originalData, workspace('Original'), destination);
+  const first = previewPortableBackup(saved.export_path);
+  const manifestFile = path.join(saved.export_path, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+  manifest.sha256 = Object.fromEntries(Object.entries(manifest.sha256).reverse());
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+  assert.equal(previewPortableBackup(saved.export_path).backup_sha256, first.backup_sha256);
+  fs.writeFileSync(path.join(saved.export_path, 'campaign-packs', 'map.png'), 'replacement map');
+  manifest.sha256['campaign-packs/map.png'] = crypto.createHash('sha256').update('replacement map').digest('hex');
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+  const second = previewPortableBackup(saved.export_path);
+  assert.equal(second.workspace_sha256, first.workspace_sha256);
+  assert.notEqual(second.backup_sha256, first.backup_sha256, 'approval must bind media as well as workspace');
+  const installed = path.join(root, 'installed');
+  assert.throws(() => restorePortableBackup(installed, saved.export_path, workspace('Current'), first.backup_sha256), /changed since inspection/);
+  assert.equal(fs.existsSync(installed), false, 'final approval mismatch must fail before creating a target or safety backup');
+}));
+
+test('failed media staging leaves active media and the exported source unchanged', () => withAppData(root => {
+  const oldData = path.join(root, 'old');
+  const targetData = path.join(root, 'new');
+  const exports = path.join(root, 'exports');
+  for (const folder of [oldData, targetData]) {
+    fs.mkdirSync(path.join(folder, 'campaign-packs'), { recursive: true });
+  }
+  fs.mkdirSync(exports);
+  fs.writeFileSync(path.join(oldData, 'campaign-packs', 'map.png'), 'old exported map');
+  fs.writeFileSync(path.join(targetData, 'campaign-packs', 'map.png'), 'current working map');
+  fs.writeFileSync(path.join(targetData, 'campaign-packs', 'extra.mp3'), 'keep current music');
+  const saved = exportPortableBackup(oldData, workspace('Old'), exports);
+  const copy = fs.cpSync;
+  fs.cpSync = (source, destination, options) => {
+    if (source === path.join(saved.export_path, 'campaign-packs')) {
+      fs.writeFileSync(path.join(destination, 'map.png'), 'incomplete imported map');
+      throw new Error('Synthetic disk-full interruption');
+    }
+    return copy(source, destination, options);
+  };
+  try {
+    assert.throws(() => restorePortableBackup(targetData, saved.export_path, workspace('Current')), /disk-full interruption/);
+  } finally { fs.cpSync = copy; }
+  fs.cpSync = (source, destination, options) => {
+    const result = copy(source, destination, options);
+    if (source === path.join(saved.export_path, 'campaign-packs')) {
+      fs.writeFileSync(path.join(destination, 'map.png'), 'silently damaged copied map');
+    }
+    return result;
+  };
+  try {
+    assert.throws(() => restorePortableBackup(targetData, saved.export_path, workspace('Current')), /Restored media verification failed/);
+  } finally { fs.cpSync = copy; }
+  assert.equal(fs.readFileSync(path.join(targetData, 'campaign-packs', 'map.png'), 'utf8'), 'current working map');
+  assert.equal(fs.readFileSync(path.join(targetData, 'campaign-packs', 'extra.mp3'), 'utf8'), 'keep current music');
+  assert.equal(fs.readFileSync(path.join(saved.export_path, 'campaign-packs', 'map.png'), 'utf8'), 'old exported map');
+  assert.equal(listBackups(targetData)[0].reason, 'before-restore');
+  assert.equal(fs.readdirSync(targetData).some(name => name.endsWith('.pending')), false);
+}));
+
+test('media activation failure rolls back the current media directory', () => withAppData(root => {
+  const media = path.join(root, 'campaign-packs');
+  fs.mkdirSync(media);
+  fs.writeFileSync(path.join(media, 'map.png'), 'old snapshot');
+  const saved = createBackup(root, workspace('Old'));
+  fs.writeFileSync(path.join(media, 'map.png'), 'current map');
+  const rename = fs.renameSync;
+  fs.renameSync = (source, destination) => {
+    if (path.basename(source).startsWith('.campaign-media-restore-') && destination === media) {
+      throw new Error('Synthetic Windows file lock');
+    }
+    return rename(source, destination);
+  };
+  try {
+    assert.throws(() => restoreBackup(root, saved.id, workspace('Current')), /Windows file lock/);
+  } finally { fs.renameSync = rename; }
+  assert.equal(fs.readFileSync(path.join(media, 'map.png'), 'utf8'), 'current map');
+  assert.equal(fs.readdirSync(root).some(name => name.startsWith('.campaign-media-before-restore-')), false);
+}));
+
+test('startup recovers old media when interrupted between directory renames', () => withAppData(root => {
+  const retained = path.join(root, '.campaign-media-before-restore-1700000000000-1234abcd');
+  fs.mkdirSync(retained);
+  fs.writeFileSync(path.join(retained, 'map.png'), 'retained working map');
+  assert.equal(recoverInterruptedMediaRestore(root), true);
+  assert.equal(fs.readFileSync(path.join(root, 'campaign-packs', 'map.png'), 'utf8'), 'retained working map');
+  assert.equal(recoverInterruptedMediaRestore(root), false);
+  // An active tree always wins; never overwrite it by guessing crash timing.
+  fs.mkdirSync(retained);
+  fs.writeFileSync(path.join(retained, 'map.png'), 'other recovery candidate');
+  assert.equal(recoverInterruptedMediaRestore(root), false);
+  assert.equal(fs.readFileSync(path.join(root, 'campaign-packs', 'map.png'), 'utf8'), 'retained working map');
+  assert.equal(fs.existsSync(retained), true);
+}));
+
+test('complete workspace migration retains IDs, resources and all supported record fields exactly', () => withAppData(root => {
+  const source = path.join(root, 'portable');
+  const destination = path.join(root, 'installed');
+  const exports = path.join(root, 'exports');
+  fs.mkdirSync(exports);
+  const complete = JSON.stringify({
+    version: 1,
+    campaigns: [{ id: 'campaign-42', name: 'Synthetic campaign', current_quest_id: 'quest-7', settings: { rules: 'custom' } }],
+    characters: [{ id: 'character-42', campaign_id: 'campaign-42', current_hp: 7, max_hp: 31, temp_hp: 2,
+      resources: { spell_slots: { 1: { current: 0, max: 3 } }, custom: { current: 1, max: 2 } },
+      inventory: [{ id: 'item-1', quantity: 0 }], notes: 'Do not reset resources' }],
+    collections: { 'campaign-42': {
+      npcs: [{ id: 'npc-1', notes: 'GM-only note', current_hp: 3 }],
+      'custom-creatures': [{ id: 'creature-1', verified: false }],
+      encounters: [{ id: 'encounter-1', combatants: [{ id: 'npc-1', hp: 3 }] }],
+      quests: [{ id: 'quest-7', status: 'active', completed_steps: [0, 2] }],
+      'world-maps': [{ id: 'map-1', image_url: 'rqk-attachment://test/map.png' }],
+      'calendar-events': [{ id: 'event-1', day: 12 }],
+    } },
+    notes: [{ id: 'note-1', campaign_id: 'campaign-42', content: 'Exact saved text' }],
+    recaps: [{ id: 'recap-1', content: 'Last session' }],
+    receipts: { imported: { installed: true } },
+    objects: { 'campaign-42/calendar': { year: 103, month: 2, day: 12 }, 'campaign-42/combat': { round: 4 } },
+    homebrew: [{ id: 'homebrew-1', description: 'Exact homebrew rules' }],
+    future_supported_field: { preserved_without_rewriting: true },
+  });
+  const media = path.join(source, 'campaign-packs', 'test');
+  fs.mkdirSync(media, { recursive: true });
+  fs.writeFileSync(path.join(media, 'map.png'), Buffer.from([0, 1, 127, 255]));
+  const saved = exportPortableBackup(source, complete, exports);
+  const restored = restorePortableBackup(destination, saved.export_path, workspace('Current'));
+  assert.equal(restored.workspace, complete, 'workspace must pass through without schema rewriting or new IDs');
+  assert.deepEqual(fs.readFileSync(path.join(destination, 'campaign-packs', 'test', 'map.png')), Buffer.from([0, 1, 127, 255]));
+}));

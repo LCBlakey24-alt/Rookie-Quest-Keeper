@@ -4,17 +4,19 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { readPackage, hash } = require('./signedProgramPackage');
-const { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate } = require('./updateSafety');
+const { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate,
+  recordInstalledUpdateAttempt, readInstalledUpdateAttempt } = require('./updateSafety');
 const { stageAppPackage, activateApp, readLastAppResult } = require('./programRelease');
 const pinnedKeys = global.__rqkProgramTrust || require('./programTrust.json');
 const { portableExePath, inspectPortableUpdate, stagePortableUpdate, discardStagedPortableUpdate, launchPortableUpdate, readLastPortableUpdate } = require('./portableProgramUpdate');
 
 // Updates are offered, never installed without an explicit click.
 // The installed Electron app reads the GitHub provider from app-update.yml.
-function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableRoot = null, createSafetyBackup, portable = false }) {
+function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableRoot = null, createSafetyBackup, getCurrentWorkspaceRaw, portable = false }) {
   const runningPortableExe = portable ? portableExePath(portableRoot) : null;
   const previousInstall = portable ? readLastPortableUpdate(app.getPath('userData')) : null;
   const previousApp = portable ? readLastAppResult(app.getPath('userData')) : null;
+  const previousInstalled = portable ? null : readInstalledUpdateAttempt(app.getPath('userData'), app.getVersion());
   let selectedProgram = null;
   const compatibility = () => ({ currentVersion: app.getVersion(),
     bootstrapVersion: global.__rqkBootstrapVersion || app.getVersion(),
@@ -24,6 +26,8 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     installed_version: app.getVersion(),
     available_version: null,
     release_notes: null,
+    recovery_backup_id: previousInstalled?.backup_id || null,
+    previous_install_state: previousInstalled?.state || null,
     progress: 0,
     message: portable
       ? previousApp?.state === 'rolled_back'
@@ -33,7 +37,11 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
         : previousInstall?.state === 'installed' && previousInstall.version === app.getVersion()
           ? 'Keeper was updated successfully. Your campaign data stayed in RookieQuestKeeperData.'
           : 'Choose a signed .rqkprogram update. Keep all its parts in the same folder.'
-      : 'Ready to check for updates.',
+      : previousInstalled?.state === 'incomplete'
+        ? `The previous update to ${previousInstalled.to_version} did not complete. Keeper is still on ${app.getVersion()}. Your saved data and before-update backup are available in Updates & Backups.`
+        : previousInstalled?.state === 'installed'
+          ? `Keeper updated to ${app.getVersion()}. Your before-update campaign backup is available in Updates & Backups.`
+          : 'Ready to check for updates.',
   };
   let busy = false;
 
@@ -80,7 +88,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     if (!app.isPackaged) return announce({
       state: 'development', message: 'Update checks work in an installed Windows version of Keeper.',
     });
-    if (busy || status.state === 'downloading' || status.state === 'downloaded') return { ...status };
+    if (busy || ['downloading', 'downloaded', 'installing'].includes(status.state)) return { ...status };
     busy = true;
     announce({ state: 'checking', message: 'Checking GitHub Releases…', progress: 0 });
     try {
@@ -213,12 +221,26 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
         },
         createSafetyBackup,
         workspaceRaw,
+        getCurrentWorkspaceRaw: typeof getCurrentWorkspaceRaw === 'function'
+          ? () => getCurrentWorkspaceRaw(_event, workspaceRaw)
+          : undefined,
+      });
+      const installVersion = status.available_version;
+      recordInstalledUpdateAttempt(app.getPath('userData'), {
+        fromVersion: app.getVersion(), toVersion: installVersion, backup,
       });
       announce({
         state: 'installing',
+        recovery_backup_id: backup.id,
         message: 'Verified campaign backup saved. Installing the update and restarting…',
       });
       setImmediate(() => {
+        // A late updater error must still cancel the restart, even when it
+        // arrives after backup preparation and before this queued callback.
+        if (status.state !== 'installing' || status.available_version !== installVersion) {
+          announce({ state: 'error', message: 'Installation was stopped because the update is no longer ready. Your campaign backup is still available.' });
+          return;
+        }
         try { autoUpdater.quitAndInstall(false, true); }
         catch {
           announce({ state: 'error', message: 'Installer could not start. Your campaign backup is still available.' });

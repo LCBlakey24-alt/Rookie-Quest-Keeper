@@ -2,11 +2,14 @@ const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell, screen } = re
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
-const { createBackup, listBackups, restoreBackup, exportPortableBackup, previewPortableBackup, restorePortableBackup } = require('./backup');
+const { createBackup, listBackups, restoreBackup, exportPortableBackup, previewPortableBackup, restorePortableBackup, recoverInterruptedMediaRestore } = require('./backup');
+const { readCurrentWorkspace, writeCurrentWorkspace } = require('./workspaceSnapshot');
+const { commitRestoredWorkspace } = require('./workspaceRestore');
 const { registerDesktopUpdater } = require('./updates');
 const { isSafePlayerDisplayUrl, playerDisplayBounds } = require('./playerDisplayWindow');
 const { preparePortableStorage } = require('./portable');
 const { rendererResponse } = require('./rendererProtocol');
+const { resolveAttachmentFile, canOpenAttachmentExternally } = require('./attachmentSafety');
 
 const APP_SCHEME = 'rqk';
 const APP_HOST = 'desktop';
@@ -53,13 +56,7 @@ function attachmentRoot() {
 }
 
 function attachmentFileFor(requestUrl) {
-  const url = new URL(requestUrl);
-  const packId = safeSegment(url.hostname, 'pack');
-  const relativePath = decodeURIComponent(url.pathname || '/').replace(/^\/+/, '');
-  const root = path.resolve(attachmentRoot(), packId);
-  const candidate = path.resolve(root, relativePath);
-  if (!candidate.startsWith(root)) return null;
-  return candidate;
+  return resolveAttachmentFile(attachmentRoot(), requestUrl);
 }
 
 async function installLocalProtocols() {
@@ -180,6 +177,15 @@ async function importCampaignPack(_event, workspaceRaw) {
 }
 
 let playerDisplayViewer = null;
+let primaryWindow = null;
+// bootstrap.js already owns the per-profile single-instance lock. Reopening
+// the shortcut focuses that process instead of leaving the user waiting.
+app.on('second-instance', () => {
+  if (!primaryWindow || primaryWindow.isDestroyed()) return;
+  if (primaryWindow.isMinimized()) primaryWindow.restore();
+  primaryWindow.show();
+  primaryWindow.focus();
+});
 function openPlayerDisplayWindow(requestUrl) {
   if (playerDisplayViewer && !playerDisplayViewer.isDestroyed()) {
     if (playerDisplayViewer.webContents.getURL() !== requestUrl) playerDisplayViewer.loadURL(requestUrl);
@@ -240,6 +246,8 @@ function createMainWindow() {
     },
   });
 
+  primaryWindow = window;
+  window.on('closed', () => { if (primaryWindow === window) primaryWindow = null; });
   window.once('ready-to-show', () => window.show());
 
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -255,7 +263,7 @@ function createMainWindow() {
     }
     if (url.startsWith(`${ATTACHMENT_SCHEME}://`)) {
       const filePath = attachmentFileFor(url);
-      if (filePath && fs.existsSync(filePath)) shell.openPath(filePath);
+      if (filePath && canOpenAttachmentExternally(filePath)) shell.openPath(filePath);
       return { action: 'deny' };
     }
     return { action: 'deny' };
@@ -266,13 +274,23 @@ function createMainWindow() {
 }
 
 app.whenReady().then(async () => {
+  recoverInterruptedMediaRestore(app.getPath('userData'));
   await installLocalProtocols();
   ipcMain.handle('rqk:import-campaign-pack', importCampaignPack);
   ipcMain.handle('rqk:create-backup', (_event, raw, reason = 'manual') =>
     createBackup(app.getPath('userData'), raw, reason));
   ipcMain.handle('rqk:list-backups', () => listBackups(app.getPath('userData')));
-  ipcMain.handle('rqk:restore-backup', (_event, id, currentRaw) =>
-    restoreBackup(app.getPath('userData'), id, currentRaw));
+  async function finishWorkspaceRestore(event, result) {
+    return commitRestoredWorkspace({
+      result,
+      commitWorkspace: raw => writeCurrentWorkspace(primaryWindow, event.sender, raw),
+      restoreSafetyBackup: id => restoreBackup(app.getPath('userData'), id, null),
+    });
+  }
+  ipcMain.handle('rqk:restore-backup', async (event, id, currentRaw) => {
+    const latest = await readCurrentWorkspace(primaryWindow, event.sender, currentRaw);
+    return finishWorkspaceRestore(event, restoreBackup(app.getPath('userData'), id, latest));
+  });
   ipcMain.handle('rqk:export-portable-backup', async (_event, raw) => {
     const choice = await dialog.showOpenDialog({
       title: 'Choose where to save a portable Keeper backup',
@@ -281,13 +299,16 @@ app.whenReady().then(async () => {
     if (choice.canceled || !choice.filePaths?.[0]) return { canceled: true };
     return { canceled: false, ...exportPortableBackup(app.getPath('userData'), raw, choice.filePaths[0]) };
   });
-  ipcMain.handle('rqk:restore-portable-backup', async (_event, currentRaw) => {
+  ipcMain.handle('rqk:restore-portable-backup', async (event, currentRaw) => {
     const choice = await dialog.showOpenDialog({
       title: 'Choose your saved Rookie Quest Keeper backup folder',
       properties: ['openDirectory'],
     });
     if (choice.canceled || !choice.filePaths?.[0]) return { canceled: true };
-    return { canceled: false, ...restorePortableBackup(app.getPath('userData'), choice.filePaths[0], currentRaw) };
+    const latest = await readCurrentWorkspace(primaryWindow, event.sender, currentRaw);
+    const result = await finishWorkspaceRestore(event,
+      restorePortableBackup(app.getPath('userData'), choice.filePaths[0], latest));
+    return { canceled: false, ...result };
   });
   // A one-time, explicit import into the installed edition. The old
   // OneDrive/portable folder is never modified, and no automatic scanning
@@ -308,10 +329,11 @@ app.whenReady().then(async () => {
     }
     pendingOlderKeeperMigration = {
       folder, backup_id: preview.backup_id, workspace_sha256: preview.workspace_sha256,
+      backup_sha256: preview.backup_sha256,
     };
     return { canceled: false, ...preview };
   });
-  ipcMain.handle('rqk:import-older-keeper-backup', (_event, currentWorkspaceRaw) => {
+  ipcMain.handle('rqk:import-older-keeper-backup', async (event, currentWorkspaceRaw) => {
     if (portableStorage) throw new Error('Use the installed Windows Keeper for migration.');
     if (!pendingOlderKeeperMigration) throw new Error('Choose and inspect an older Keeper backup first.');
     const chosen = pendingOlderKeeperMigration;
@@ -319,11 +341,14 @@ app.whenReady().then(async () => {
     // folder's content between preview and the user's approval.
     const again = previewPortableBackup(chosen.folder);
     if (!again.checksummed || again.backup_id !== chosen.backup_id
-        || again.workspace_sha256 !== chosen.workspace_sha256) {
+        || again.workspace_sha256 !== chosen.workspace_sha256
+        || again.backup_sha256 !== chosen.backup_sha256) {
       pendingOlderKeeperMigration = null;
       throw new Error('The selected backup changed since inspection. Choose and review it again.');
     }
-    const result = restorePortableBackup(app.getPath('userData'), chosen.folder, currentWorkspaceRaw);
+    const latest = await readCurrentWorkspace(primaryWindow, event.sender, currentWorkspaceRaw);
+    const result = await finishWorkspaceRestore(event,
+      restorePortableBackup(app.getPath('userData'), chosen.folder, latest, chosen.backup_sha256));
     pendingOlderKeeperMigration = null;
     return { canceled: false, ...result };
   });
@@ -331,6 +356,7 @@ app.whenReady().then(async () => {
   registerDesktopUpdater({
     app, ipcMain, BrowserWindow, dialog, portable: Boolean(portableStorage),
     portableRoot: portableStorage ? path.dirname(portableStorage.dataRoot) : null,
+    getCurrentWorkspaceRaw: (event, fallbackRaw) => readCurrentWorkspace(primaryWindow, event.sender, fallbackRaw),
     createSafetyBackup: (raw, reason) => raw == null
       ? null
       : createBackup(app.getPath('userData'), raw, reason),

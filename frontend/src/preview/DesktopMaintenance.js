@@ -88,7 +88,7 @@ export default function DesktopMaintenance() {
     doWork('portable-restore', async () => {
       const result = await desktop.restorePortableBackup(localStorage.getItem(DESKTOP_STORAGE_KEY));
       if (result?.canceled) return;
-      localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
+      if (!result.workspace_saved) localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
       window.location.reload();
     });
   };
@@ -109,7 +109,7 @@ export default function DesktopMaintenance() {
     doWork('migration-import', async () => {
       const result = await desktop.importOlderKeeperBackup(savedWorkspaceForUpdate());
       if (result?.canceled) return;
-      localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
+      if (!result.workspace_saved) localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
       window.location.reload();
     });
   };
@@ -119,7 +119,7 @@ export default function DesktopMaintenance() {
     doWork('restore', async () => {
       const result = await desktop.restoreBackup(backup.id, localStorage.getItem(DESKTOP_STORAGE_KEY));
       // A failed browser save must not trigger a reload.
-      localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
+      if (!result.workspace_saved) localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
       window.location.reload();
     });
   };
@@ -186,6 +186,15 @@ export default function DesktopMaintenance() {
               <p>Installed version: <strong>{status.installed_version}</strong></p>
               {status.available_version && <p>Available version: <strong>{status.available_version}</strong></p>}
               <p role="status" aria-live="polite">{status.message}</p>
+              {status.recovery_backup_id && (
+                <p className="rqk-desktop-maintenance-note" data-testid="installed-update-recovery">
+                  {status.previous_install_state === 'incomplete'
+                    ? 'The previous installation did not complete. You can keep using this Keeper and try the update again.'
+                    : 'A safety backup from your last update is available.'}
+                  {' '}If campaign data needs recovery, find the before-update copy in Campaign backups below.
+                  {' '}Backup reference: {status.recovery_backup_id}.
+                </p>
+              )}
               {status.release_notes && <p className="rqk-desktop-release-notes"><strong>What's new:</strong> {status.release_notes}</p>}
               {status.state === 'portable' && (
                 <div className="rqk-desktop-program-update" data-testid="portable-program-update">
@@ -221,7 +230,8 @@ export default function DesktopMaintenance() {
             {status.state !== 'portable' && (
               <div className="rqk-desktop-maintenance-section">
                 <h3>Move from earlier Keeper</h3>
-                <p>Only needed once when changing from your older 0.4.x Windows Keeper to the new installed edition. In the older Keeper, choose <strong>Export backup to USB / folder</strong> (you can choose an ordinary computer or OneDrive folder). Then select that exported backup here. Your old program and its live files will not be changed.</p>
+                <p>Only needed once when changing from your older 0.4.x Windows Keeper to the new installed edition. In a disposable copy of your older Keeper, choose <strong>Export backup to USB / folder</strong> (an ordinary computer folder works too). Then select that exported backup here. Keep your working program and its live OneDrive files unchanged.</p>
+                <p>Older exports leave out some separate browser records, including active combat, custom soundboard tracks, upload-library records and preferences. Keep your earlier Keeper available and compare these before switching. External linked files must also remain available.</p>
                 <div className="rqk-desktop-maintenance-actions">
                   <button type="button" disabled={busy} onClick={previewOlderKeeper}>Choose and inspect earlier backup</button>
                 </div>
@@ -229,7 +239,7 @@ export default function DesktopMaintenance() {
                   <div className="rqk-desktop-program-selection" data-testid="older-keeper-migration-preview">
                     <p><strong>Backup checked:</strong> {readableTime(olderKeeperPreview.created_at)}</p>
                     <p>{olderKeeperPreview.campaign_count} campaign(s) · {olderKeeperPreview.character_count} character(s) · {olderKeeperPreview.note_count} note(s) · {olderKeeperPreview.media_file_count} imported media file(s)</p>
-                    <p>File checksums verified. This only moves the Keeper library and imported media, not every Windows/browser setting.</p>
+                    <p>File checksums verified. This moves the saved Keeper library and imported media. Separate browser records and Windows settings are not included.</p>
                     <button type="button" disabled={busy || !olderKeeperPreview.checksummed} onClick={importOlderKeeper}>Import into this Keeper</button>
                   </div>
                 )}

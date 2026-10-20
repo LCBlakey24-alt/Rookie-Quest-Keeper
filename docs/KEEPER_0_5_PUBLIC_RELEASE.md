@@ -56,7 +56,9 @@ copy has a different Electron user-data location. Showing an empty campaign
 library in the new edition does not mean the old campaigns were deleted.
 
 1. **Leave the existing working Keeper and `RookieQuestKeeperData` unchanged.**
-   From the older app's **Updates & backups**, select **Export backup to
+   Make a closed, disposable copy of the old launcher and its whole data folder
+   outside OneDrive, as described in [the validation procedure](KEEPER_0_5_MIGRATION.md).
+   From that copy's **Updates & backups**, select **Export backup to
    USB / folder** and choose a separate local or synced OneDrive folder. The
    label is historical; a USB device is *not* required. Wait for OneDrive to
    finish and make the backup folder available offline.
@@ -93,21 +95,47 @@ performed in CI. Synthetic fixture tests do not replace a real laptop trial.
 Do not publish a public version until a legitimate Windows code-signing
 certificate and protected GitHub Actions release settings are configured:
 
-- GitHub secrets: `RQK_WINDOWS_CERT_PFX` (electron-builder-compatible
+- Create a GitHub **Environment** named `windows-release` under repository
+  **Settings → Environments**. Add the owner or another trusted person as a
+  **Required reviewer**. The release workflow checks this protection before
+  it starts the signing job and fails if the environment/reviewer is missing.
+  Consider a second reviewer and **Prevent self-review** when a second trusted
+  maintainer is available. Restrict deployment branches/tags to reviewed main
+  and the `desktop-v*` release tags. Do not create an unprotected environment.
+- Put these secrets in the protected `windows-release` environment:
+  `RQK_WINDOWS_CERT_PFX` (electron-builder-compatible
   certificate reference, commonly a protected base64-encoded PFX),
   `RQK_WINDOWS_CERT_PASSWORD`.
-- GitHub Actions variable: `RQK_WINDOWS_PUBLISHER` (the exact common name
+- Put this variable in the same environment: `RQK_WINDOWS_PUBLISHER` (the exact common name
   of the approved signing certificate).
+
+Use a legitimate Windows code-signing service/certificate that supports the
+selected signing method. Do not export hardware-protected signing keys merely
+to fit this PFX workflow: a hardware/cloud signer needs a reviewed integration
+first. Never paste a certificate password or private key into ChatGPT or a PR.
+The older portable Ed25519 signing key is unrelated and must remain unchanged.
 
 `.github/workflows/desktop-release.yml` fails closed if the signing
 configuration is absent. PR builds have no access to production signing
 secrets. On an approved version tag that exists on main, the workflow
-builds Windows NSIS and portable executables, validates **Valid**
-Authenticode signatures for the configured publisher, and only then
-uploads installer and update manifest to a **draft** GitHub release.
+builds the installed Windows NSIS edition, validates **Valid** Authenticode
+signatures for both setup and the packaged app against the configured publisher,
+and checks that `latest.yml` hashes/sizes match the setup, the blockmap exists,
+and the packaged updater pins the exact publisher and official repository.
+Only those verified assets and a hash report reach a **draft** GitHub release.
 A human must review and approve the release before publication.
 Signatures alone are not substitutes for release review, revocation
-procedures, or full Windows install/migration tests.
+procedures, or full Windows install/migration tests. The signing workflow also
+runs the full frontend and desktop suites, development Electron startup, and a
+packaged installed-edition offline startup/restart check with a synthetic campaign
+and disposable profile. This is not a Windows wizard, upgrade, recovery or actual
+laptop validation result.
+
+Pull-request artifacts named `Rookie-Quest-Keeper-Desktop-Windows` are **unsigned
+QA builds**, with no production signing credentials. The portable QA binary is
+retained for legacy tests only. Do not install these over a working Keeper copy
+or present them as approved releases. Lockfiles are enforced in both Windows
+pipelines; an automatic public-publishing npm script is deliberately absent.
 
 Investigate upgrading electron-builder and adopting **cryptographically
 signed update metadata**, in addition to Authenticode and hash

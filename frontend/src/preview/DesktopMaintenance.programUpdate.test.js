@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DesktopMaintenance from './DesktopMaintenance';
 import { DESKTOP_STORAGE_KEY } from './previewMode';
 
@@ -148,6 +148,21 @@ describe('offline portable program update controls', () => {
     const button = await screen.findByRole('button', { name: /Import into this Keeper/i });
     expect(button).toBeDisabled();
     expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
+  });
+
+  test('recovery guidance remains visible after a normal update check replaces the message', async () => {
+    const recovery = { recovery_backup_id: 'snapshot-1792500000000-deadbeef', previous_install_state: 'incomplete' };
+    let updateStatus;
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'idle', installed_version: '0.5.0', message: 'Previous install failed.', ...recovery,
+    });
+    desktop.onUpdateStatus = jest.fn(listener => { updateStatus = listener; return () => {}; });
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: /Updates & backups/i }));
+    expect(await screen.findByTestId('installed-update-recovery')).toHaveTextContent(/previous installation did not complete/i);
+    act(() => updateStatus({ state: 'current', installed_version: '0.5.0', message: 'This version is up to date.', ...recovery }));
+    expect(screen.getByTestId('installed-update-recovery')).toHaveTextContent(recovery.recovery_backup_id);
+    expect(screen.getByTestId('installed-update-recovery')).toHaveTextContent(/Campaign backups below/);
   });
 
   test('keeps full-program updates distinct from campaign imports and backups', async () => {

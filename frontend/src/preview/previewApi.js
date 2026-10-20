@@ -7,6 +7,14 @@ import { advanceCustomCalendar } from '@/data/tiaKartaCalendar';
 const copy = value => JSON.parse(JSON.stringify(value));
 const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'custom-creatures', 'locations', 'maps', 'world-maps', 'local-maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
 const OBJECTS = new Set(['calendar', 'live-state', 'player-display', 'environment', 'settings', 'treasury', 'combat']);
+const DESKTOP_RECOVERY_MESSAGE = 'Keeper could not read your saved workspace safely. Editing is blocked to protect your data. Close Keeper and request help to recover a verified backup. Do not clear application data.';
+
+function recognisedWorkspace(saved) {
+  const record = value => value && typeof value === 'object' && !Array.isArray(value);
+  return saved?.version === 1 && Array.isArray(saved.campaigns) && Array.isArray(saved.characters)
+    && record(saved.collections) && record(saved.objects) && record(saved.receipts)
+    && Array.isArray(saved.notes) && Array.isArray(saved.recaps) && Array.isArray(saved.homebrew);
+}
 
 function fail(message, status = 501) {
   const error = new Error(message);
@@ -20,21 +28,46 @@ function publicCampaign(campaign) {
 }
 
 export function createPreviewApi(
-  storage = typeof localStorage === 'undefined' ? null : localStorage,
+  storage = undefined,
   options = {},
 ) {
   const readOnly = options.readOnly ?? isReadOnlyDemo();
+  const desktop = isOfflineDesktop();
   const workspaceUser = options.user ?? localWorkspaceUser();
   const storageKey = options.storageKey ?? localWorkspaceStorageKey();
   let state;
-  if (!readOnly) {
+  let storageError = null;
+  let savedRaw = null;
+  if (!readOnly || desktop) {
     try {
-      const saved = JSON.parse(storage?.getItem(storageKey) || 'null');
-      if (saved?.version === 1 && Array.isArray(saved.campaigns) && Array.isArray(saved.characters)
-        && saved.collections && saved.objects && saved.receipts && Array.isArray(saved.notes) && Array.isArray(saved.recaps) && Array.isArray(saved.homebrew)) state = saved;
-    } catch { /* Start with sample data when browser storage is unavailable. */ }
+      if (storage === undefined) storage = typeof localStorage === 'undefined' ? null : localStorage;
+      if (desktop && (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function')) {
+        throw new Error('Desktop storage is unavailable.');
+      }
+      savedRaw = storage?.getItem(storageKey) ?? null;
+      if (savedRaw !== null) {
+        const saved = JSON.parse(savedRaw);
+        if (recognisedWorkspace(saved)) state = saved;
+        else if (desktop) storageError = DESKTOP_RECOVERY_MESSAGE;
+      }
+    } catch {
+      if (desktop) storageError = DESKTOP_RECOVERY_MESSAGE;
+      // The sample web preview can still run without persisted browser data.
+    }
   }
-  if (!state) state = createPreviewSeed({ user: workspaceUser, empty: isOfflineDesktop() });
+  // Missing storage is a normal clean install. Unreadable or malformed saved
+  // desktop data must never become an editable empty replacement workspace.
+  if (!state && !storageError) state = createPreviewSeed({ user: workspaceUser, empty: desktop });
+
+  function checkDesktopStorageBeforeWrite() {
+    if (!desktop) return;
+    let latest;
+    try { latest = storage.getItem(storageKey); }
+    catch { fail(DESKTOP_RECOVERY_MESSAGE, 503); }
+    if (latest !== savedRaw) {
+      fail('Your saved workspace changed outside this window. Reopen Keeper before editing. No saved data has been changed by this action.', 409);
+    }
+  }
 
   const findCampaign = id => state.campaigns.find(item => item.id === id) || fail('Preview campaign not found.', 404);
   const findCharacter = id => state.characters.find(item => item.id === id) || fail('Preview character not found.', 404);
@@ -274,12 +307,21 @@ export function createPreviewApi(
       if (readOnly && verb !== 'get') {
         fail('Demo mode is read-only. Sign in or create an account to save changes.', 403);
       }
+      if (storageError) fail(storageError, 503);
+      if (verb !== 'get') checkDesktopStorageBeforeWrite();
       const before = verb === 'get' ? null : copy(state);
       try {
         const result = dispatch(verb, path, body);
         if (!readOnly && verb !== 'get' && storage) {
-          try { storage.setItem(storageKey, JSON.stringify(state)); }
-          catch { fail('This browser could not save your preview change. Free some storage and try again.', 507); }
+          try {
+            const nextRaw = JSON.stringify(state);
+            storage.setItem(storageKey, nextRaw);
+            savedRaw = nextRaw;
+          } catch {
+            fail(desktop
+              ? 'Keeper could not save this change. Your previous saved workspace is unchanged. Free some storage and try again; do not clear application data.'
+              : 'This browser could not save your preview change. Free some storage and try again.', 507);
+          }
         }
         return copy(result);
       } catch (error) {
