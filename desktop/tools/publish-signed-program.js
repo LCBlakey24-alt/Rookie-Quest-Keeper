@@ -68,6 +68,17 @@ function validateInputs({ source, protectedKeyFile, updatesFolder, releaseVersio
     throw new Error('Release version, bootstrap version or Electron version is unsupported.');
   }
   const final = path.join(dest, 'Keeper-' + releaseVersion);
+  const descriptor = 'Keeper-' + releaseVersion + '.rqkprogram';
+  // Existing OneDrive releases may use descriptive folder names rather than Keeper-X.Y.Z.
+  // Never create a second package for an already staged version.
+  for (const entry of fs.readdirSync(dest, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.toLowerCase() === descriptor.toLowerCase()) {
+      throw new Error('A package for this version is already present in OneDrive; refusing a duplicate.');
+    }
+    if (entry.isDirectory() && fs.existsSync(path.join(dest, entry.name, descriptor))) {
+      throw new Error('A package for this version is already present in OneDrive; refusing a duplicate.');
+    }
+  }
   if (fs.existsSync(final)) throw new Error('An update folder with this version already exists; nothing will be overwritten.');
   return { src, key, dest, final, bootstrap, electron, keyId: keyIds[0] };
 }
