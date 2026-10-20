@@ -45,7 +45,7 @@ describe('offline portable program update controls', () => {
 
     render(<DesktopMaintenance />);
     fireEvent.click(await screen.findByRole('button', { name: 'Review update' }));
-    fireEvent.click(screen.getByRole('button', { name: /Back up, install & restart/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Install update' }));
     await waitFor(() => expect(desktop.installUpdate).toHaveBeenCalledTimes(1));
     const [raw] = desktop.installUpdate.mock.calls[0];
     const workspace = JSON.parse(raw);
@@ -54,7 +54,7 @@ describe('offline portable program update controls', () => {
     expect(workspace.characters).toEqual([]);
   });
 
-  test('notifies users of a published desktop update but never downloads without consent', async () => {
+  test('offers one approved Install update action and does not download before consent', async () => {
     desktop.getUpdateStatus.mockResolvedValue({
       state: 'available',
       installed_version: '0.5.0',
@@ -72,8 +72,24 @@ describe('offline portable program update controls', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Review update' }));
     expect(screen.getByText(/Player display fixes/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Download update' }));
-    await waitFor(() => expect(desktop.downloadUpdate).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('button', { name: 'Download update' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Install update' }));
+    await waitFor(() => expect(desktop.installUpdate).toHaveBeenCalledTimes(1));
+    // The desktop backend owns the download-to-backup-to-install sequence.
+    expect(desktop.downloadUpdate).not.toHaveBeenCalled();
+  });
+
+  test('refuses installation when the confirmation is cancelled', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'available', installed_version: '0.5.0',
+      available_version: '0.5.1', message: 'Update available',
+    });
+    desktop.installUpdate = jest.fn();
+    window.confirm = jest.fn(() => false);
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Review update' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Install update' }));
+    expect(window.confirm).toHaveBeenCalledTimes(1);
     expect(desktop.installUpdate).not.toHaveBeenCalled();
   });
 
