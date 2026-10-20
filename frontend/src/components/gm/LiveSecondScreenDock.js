@@ -134,7 +134,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
       const nextState = createDisplayState(mode, { display_target: currentTarget, ...payload });
       const result = await publishCampaignDisplayStateWithStatus(campaignId, nextState);
       if (result.remoteSynced) {
-        toast.success('Second screen updated', { description: payload?.title || mode });
+        toast.success(result.localOnly ? 'Local player display updated' : 'Second screen updated', { description: payload?.title || mode });
       } else {
         toast.warning('Updated locally — remote display not synced', {
           description: 'Same-browser display is updated. Another device will catch up when sync reconnects.',

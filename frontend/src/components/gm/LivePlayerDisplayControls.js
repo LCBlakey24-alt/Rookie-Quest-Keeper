@@ -243,7 +243,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
     const result = await publishCampaignDisplayStateWithStatus(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
     if (result.remoteSynced) {
-      toast.success('Sent to player display', { description: label });
+      toast.success(result.localOnly ? 'Ready on this laptop' : 'Sent to player display', { description: label });
     } else {
       toast.warning('Updated locally — remote display not synced', { description: `${label} is updated in this browser. Another device will catch up when sync reconnects.` });
     }

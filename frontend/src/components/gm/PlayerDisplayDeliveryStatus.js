@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Monitor, RefreshCw } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 const FRESH_ACK_MS = 20000;
 
@@ -64,6 +65,7 @@ export function derivePlayerDisplayDeliveryStatus(state, nowMs = Date.now()) {
 }
 
 export default function PlayerDisplayDeliveryStatus({ campaignId, pollMs = 4000 }) {
+  const offlineDesktop = isOfflineDesktop();
   const initialDisplayState = getLiveBootstrapExtras(campaignId)?.displayState || null;
   const [displayState, setDisplayState] = useState(() => initialDisplayState);
   const [loadError, setLoadError] = useState(false);
@@ -116,14 +118,18 @@ export default function PlayerDisplayDeliveryStatus({ campaignId, pollMs = 4000 
     [displayState, clock],
   );
 
-  const view = loadError
+  const view = offlineDesktop ? {
+        state: 'local',
+        label: displayState?.mode ? 'Local player display ready.' : 'Local player display not yet configured.',
+        detail: 'This laptop can open a separate player/TV window. Check the actual window to confirm the reveal is visible; no cloud acknowledgement is required.',
+      } : loadError
     ? {
         state: 'error',
         label: 'Could not check player display delivery.',
         detail: 'The last known campaign state has been left untouched. Retry when the connection is available.',
       }
     : delivery;
-  const Icon = view.state === 'received' ? CheckCircle2 : view.state === 'pending' || view.state === 'waiting' ? Monitor : AlertTriangle;
+  const Icon = view.state === 'received' ? CheckCircle2 : view.state === 'pending' || view.state === 'waiting' || view.state === 'local' ? Monitor : AlertTriangle;
 
   return (
     <section
@@ -158,7 +164,7 @@ const shellStyle = (state) => ({
   minHeight: 44,
   padding: '7px 10px',
   background: 'var(--rq-bg-panel)',
-  border: `1px solid ${state === 'received' ? 'rgba(124,203,255,0.46)' : state === 'pending' || state === 'waiting' ? 'rgba(255,45,170,0.36)' : 'rgba(245,158,11,0.42)'}`,
+  border: `1px solid ${state === 'received' ? 'rgba(124,203,255,0.46)' : state === 'pending' || state === 'waiting' || state === 'local' ? 'rgba(124,203,255,0.36)' : 'rgba(245,158,11,0.42)'}`,
   color: 'var(--rq-text-primary)',
   fontSize: 11,
 });

@@ -3,6 +3,7 @@ import { AlertTriangle, RefreshCw, ShieldCheck, UserPlus, Users } from 'lucide-r
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -19,6 +20,10 @@ const failureLabel = labels => {
 };
 
 export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers = null }) {
+  const offlineDesktop = isOfflineDesktop();
+  const [localCharacters, setLocalCharacters] = useState([]);
+  const [selectedCharacterId, setSelectedCharacterId] = useState('');
+  const [linkingCharacter, setLinkingCharacter] = useState(false);
   const [invite, setInvite] = useState(null);
   const [players, setPlayers] = useState(Array.isArray(suppliedPlayers) ? suppliedPlayers : []);
   const [members, setMembers] = useState([]);
@@ -79,6 +84,32 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
   }, [campaignId, suppliedPlayers]);
 
   useEffect(() => { if (campaignId) loadPanel({ silent: true }); }, [campaignId, loadPanel]);
+
+  const refreshLocalCharacters = useCallback(async () => {
+    if (!offlineDesktop) return;
+    try {
+      const response = await apiClient.get('/characters');
+      setLocalCharacters(Array.isArray(response?.data) ? response.data : []);
+    } catch {
+      toast.error('Could not load saved characters from this laptop');
+    }
+  }, [offlineDesktop]);
+  useEffect(() => { refreshLocalCharacters(); }, [refreshLocalCharacters]);
+  const unlinkedCharacters = localCharacters.filter(character => !character.campaign_id);
+  const attachLocalCharacter = async () => {
+    if (!offlineDesktop || !selectedCharacterId || !campaignId || linkingCharacter) return;
+    setLinkingCharacter(true);
+    try {
+      await apiClient.post(`/campaigns/${campaignId}/attach-local-character`, { character_id: selectedCharacterId });
+      setSelectedCharacterId('');
+      await Promise.all([loadPanel({ silent: true }), refreshLocalCharacters()]);
+      toast.success('Character linked to this offline campaign');
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not link character');
+    } finally {
+      setLinkingCharacter(false);
+    }
+  };
 
   const code = invite?.join_code || invite?.code || '';
   const panelBusy = loading || rotating || copying;
@@ -142,7 +173,21 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
         </div>
       )}
 
-      <CampaignJoinCodeCard
+      {offlineDesktop ? (
+        <section data-testid="offline-player-management" style={offlinePanelStyle}>
+          <strong>Players on this laptop</strong>
+          <p style={{ margin: 0, fontSize: 12 }}>No internet or join code needed. Create a character here or link an existing saved character to this campaign. Your existing character sheet and HP will be kept.</p>
+          <div style={offlineControlStyle}>
+            <select aria-label="Existing unlinked character" value={selectedCharacterId} onChange={event => setSelectedCharacterId(event.target.value)} style={offlineSelectStyle}>
+              <option value="">{unlinkedCharacters.length ? 'Choose a saved character' : 'No unlinked characters on this laptop'}</option>
+              {unlinkedCharacters.map(character => <option key={character.id} value={character.id}>{character.name || 'Unnamed character'}{character.level ? ` · Level ${character.level}` : ''}</option>)}
+            </select>
+            <button type="button" style={offlineActionStyle} disabled={!selectedCharacterId || linkingCharacter} onClick={attachLocalCharacter}>{linkingCharacter ? 'Linking…' : 'Link to campaign'}</button>
+            <a href="/characters/new" style={offlineActionStyle}>Create character</a>
+          </div>
+          <small>To add characters from PDFs, use the character importer after reviewing the details. No player accounts are created by this local link.</small>
+        </section>
+      ) : <CampaignJoinCodeCard
         compact
         code={code}
         loading={loading}
@@ -153,7 +198,7 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
         description="Share this code with players to link their characters."
         onCopy={copyCode}
         onRotate={rotateCode}
-      />
+      />}
     </section>
   );
 }
@@ -169,3 +214,8 @@ const summaryStyle = { display: 'flex', gap: 4, flexWrap: 'wrap', marginLeft: 'a
 const miniStatStyle = { minHeight: 28, display: 'inline-flex', alignItems: 'center', gap: 4, background: theme.panel, color: theme.soft, border: `1px solid ${theme.line}`, padding: '0 6px', fontSize: 10 };
 const refreshButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 5, background: theme.panel, color: theme.soft, border: `1px solid ${theme.line}`, padding: '0 7px', fontSize: 10, fontWeight: 850, cursor: 'pointer' };
 const warningStyle = { display: 'flex', alignItems: 'flex-start', gap: 6, padding: '7px 8px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.45)', color: theme.soft, fontSize: 10, lineHeight: 1.4 };
+
+const offlinePanelStyle = { display: 'grid', gap: 9, padding: 11, background: theme.panel, border: `1px solid ${theme.line}`, fontSize: 12, lineHeight: 1.4 };
+const offlineControlStyle = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 7 };
+const offlineSelectStyle = { minWidth: 180, flex: '1 1 220px', minHeight: 36, padding: '0 8px', background: theme.bg, color: theme.text, border: `1px solid ${theme.line}` };
+const offlineActionStyle = { minHeight: 36, display: 'inline-flex', justifyContent: 'center', alignItems: 'center', padding: '0 12px', background: theme.card, color: theme.text, border: `1px solid ${theme.line}`, cursor: 'pointer', textDecoration: 'none' };

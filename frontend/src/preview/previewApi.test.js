@@ -111,3 +111,42 @@ test('public demo mode serves sample data but rejects every write without persis
   expect(api.request('get', '/characters/demo-fighter-1').current_hit_points).toBe(12);
   expect(storage.getItem(PREVIEW_STORAGE_KEY)).toBeNull();
 });
+
+
+test('offline world maps and display state save and reload without altering existing campaign assets', () => {
+  const storage = memoryStorage();
+  const api = createPreviewApi(storage);
+  const battleMap = api.request('post', `/campaigns/${campaignId}/maps`, { name: 'Battle map', image_url: '/battle.png' });
+  const world = api.request('post', `/campaigns/${campaignId}/world-maps`, { name: 'Tia-Karta', image_data: 'data:image/png;base64,example' });
+  api.request('put', `/campaigns/${campaignId}/display-state`, { mode: 'image', sync_id: 's1', payload: { title: 'Public map' } });
+
+  const reloaded = createPreviewApi(storage);
+  expect(reloaded.request('get', `/campaigns/${campaignId}/world-maps`)).toEqual([
+    expect.objectContaining({ id: world.id, image_data: 'data:image/png;base64,example' }),
+  ]);
+  expect(reloaded.request('get', `/campaigns/${campaignId}/maps`)).toEqual([
+    expect.objectContaining({ id: battleMap.id }),
+  ]);
+  expect(reloaded.request('get', `/campaigns/${campaignId}/player-display`)).toEqual(
+    expect.objectContaining({ sync_id: 's1', payload: { title: 'Public map' } }),
+  );
+  reloaded.request('patch', `/campaigns/${campaignId}/world-maps/${world.id}`, { name: 'Tia-Karta updated' });
+  expect(createPreviewApi(storage).request('get', `/campaigns/${campaignId}/world-maps/${world.id}`).name).toBe('Tia-Karta updated');
+});
+
+test('GM can attach a locally saved character without a join code, preserving its stats', () => {
+  const storage = memoryStorage();
+  const api = createPreviewApi(storage);
+  const character = api.request('post', '/characters', { name: 'Offline hero', level: 8, current_hit_points: 13, max_hit_points: 58 });
+  const attached = api.request('post', `/campaigns/${campaignId}/attach-local-character`, { character_id: character.id });
+  expect(attached).toEqual(expect.objectContaining({
+    campaign_id: campaignId, name: 'Offline hero', level: 8, current_hit_points: 13, max_hit_points: 58,
+  }));
+  const reloaded = createPreviewApi(storage);
+  expect(reloaded.request('get', `/campaigns/${campaignId}/live-party`)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ character_id: character.id })]),
+  );
+  expect(reloaded.request('get', '/characters').some(row => row.id === character.id)).toBe(true);
+  expect(() => reloaded.request('post', '/campaigns/unknown/attach-local-character', { character_id: character.id })).toThrow();
+  expect(() => reloaded.request('post', `/campaigns/${campaignId}/attach-local-character`, { character_id: 'does-not-exist' })).toThrow();
+});

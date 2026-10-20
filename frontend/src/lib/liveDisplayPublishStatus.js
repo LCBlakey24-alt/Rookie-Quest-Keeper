@@ -1,5 +1,6 @@
 import apiClient from '@/lib/apiClient';
 import { publishDisplayState } from '@/lib/liveDisplayBus';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 /**
  * Publish a display state locally first, then report whether the campaign API
@@ -14,7 +15,7 @@ export async function publishCampaignDisplayStateWithStatus(campaignId, state) {
     const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, state);
     const remoteState = response?.data || state;
     publishDisplayState(campaignId, remoteState);
-    return { state: remoteState, remoteSynced: true };
+    return { state: remoteState, remoteSynced: true, ...(isOfflineDesktop() ? { localOnly: true } : {}) };
   } catch (error) {
     return { state, remoteSynced: false, error };
   }

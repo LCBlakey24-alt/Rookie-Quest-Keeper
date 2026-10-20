@@ -5,7 +5,7 @@ import { isOfflineDesktop, isReadOnlyDemo, localWorkspaceStorageKey, localWorksp
 import { advanceCustomCalendar } from '@/data/tiaKartaCalendar';
 
 const copy = value => JSON.parse(JSON.stringify(value));
-const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'custom-creatures', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
+const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'custom-creatures', 'locations', 'maps', 'world-maps', 'local-maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);
 const OBJECTS = new Set(['calendar', 'live-state', 'player-display', 'environment', 'settings', 'treasury', 'combat']);
 
 function fail(message, status = 501) {
@@ -150,6 +150,20 @@ export function createPreviewApi(
       findCampaign(parts[1]);
       return party(parts[1]).map(character => ({ id: character.id, character_id: character.id, character_name: character.name, character_level: character.level, character_class: character.character_class, username: workspaceUser, status: character.campaign_join_status || 'active' }));
     }
+    if (parts[0] === 'campaigns' && parts.length === 3 && parts[2] === 'attach-local-character' && method === 'post') {
+      const campaign = findCampaign(parts[1]);
+      const character = findCharacter(String(body?.character_id || ''));
+      if (character.campaign_id && character.campaign_id !== campaign.id) {
+        fail('This character belongs to another campaign. Unlink it there before attaching it here.', 409);
+      }
+      Object.assign(character, {
+        campaign_id: campaign.id,
+        campaign_name: campaign.name,
+        campaign_join_status: character.campaign_join_status === 'removed' ? 'active' : (character.campaign_join_status || 'active'),
+        updated_at: new Date().toISOString(),
+      });
+      return character;
+    }
     if (parts[0] === 'campaign-invites' && parts.length === 2 && method === 'get') {
       const campaign = findCampaign(parts[1]);
       return { campaign_id: parts[1], join_code: campaign.join_code };
@@ -222,12 +236,14 @@ export function createPreviewApi(
         state.objects[key] = { ...state.objects[key], ...advanced };
         return state.objects[key];
       }
-      if (OBJECTS.has(resource) && !id) {
-        const key = `${campaignId}/${resource}`;
-        if (method === 'get') return state.objects[key] || (resource === 'environment' ? campaign.environment : resource === 'calendar' || resource === 'combat' ? null : {});
+      // Keep the historic player-display storage key while supporting the real display-state route.
+      const objectResource = resource === 'display-state' ? 'player-display' : resource;
+      if (OBJECTS.has(objectResource) && !id) {
+        const key = `${campaignId}/${objectResource}`;
+        if (method === 'get') return state.objects[key] || (objectResource === 'environment' ? campaign.environment : objectResource === 'calendar' || objectResource === 'combat' ? null : {});
         if (method === 'put' || method === 'patch') {
           state.objects[key] = { ...state.objects[key], ...body };
-          if (resource === 'environment') campaign.environment = state.objects[key];
+          if (objectResource === 'environment') campaign.environment = state.objects[key];
           return state.objects[key];
         }
       }
