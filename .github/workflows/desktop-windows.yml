@@ -82,7 +82,7 @@ jobs:
         working-directory: desktop
         run: npm run dist:win
 
-      - name: Build Windows portable USB edition
+      - name: Build Windows standalone bootstrap (laptop recovery)
         working-directory: desktop
         run: npm run dist:portable
 
@@ -93,7 +93,12 @@ jobs:
           path: |
             desktop/*.js
             desktop/package.json
+            desktop/programTrust.json
             desktop/renderer/**
+            desktop/PUBLISH-KEEPER-UPDATE.cmd
+            desktop/tools/build-program-package.js
+            desktop/tools/sign-local-program.js
+            desktop/tools/publish-signed-program.js
           if-no-files-found: error
           retention-days: 14
 
