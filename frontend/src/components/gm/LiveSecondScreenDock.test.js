@@ -39,6 +39,19 @@ jest.mock('@/data/tiaKartaSecondScreenPresets', () => [{
 }]);
 
 describe('LiveSecondScreenDock reliability', () => {
+  test('TV/Table selection overrides a previous reveal target and never sends private map notes', async()=>{
+    liveDisplayBus.loadDisplayState.mockReturnValue({mode:'image',payload:{display_target:'standing-tv'}});
+    apiClient.get.mockImplementation(url=>Promise.resolve({data:url.endsWith('/maps') ? [{id:'safe-map',name:'Safe map',image_url:'/map.png',notes:'PRIVATE GM SECRET',description:'PRIVATE PREP',player_caption:'Public caption'}] : []}));
+    render(<LiveSecondScreenDock campaignId="fixture-target" />);
+    await screen.findByRole('button',{name:/Safe map/});
+    fireEvent.click(screen.getByRole('button',{name:'Table'}));
+    expect(screen.getByRole('button',{name:'Table'})).toHaveAttribute('aria-pressed','true');
+    fireEvent.click(screen.getByRole('button',{name:/Safe map/}));
+    await waitFor(()=>expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalled());
+    const sent=liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls[0][1];
+    expect(sent.payload).toMatchObject({display_target:'virtual-table',caption:'Public caption'});
+    expect(JSON.stringify(sent)).not.toMatch(/PRIVATE/);
+  });
   beforeEach(() => {
     jest.clearAllMocks();
     liveDisplayBus.createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));

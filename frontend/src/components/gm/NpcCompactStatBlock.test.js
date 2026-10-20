@@ -1,8 +1,40 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import NpcCompactStatBlock, { actionAttackNotation, actionDamageNotation, npcModifier } from './NpcCompactStatBlock';
+import NpcCompactStatBlock, { actionAttackNotation, actionDamageNotation, npcModifier, npcIdentityLine } from './NpcCompactStatBlock';
 
 describe('NPC GM combat card', () => {
+  test('supplied draft status remains visible instead of looking like verified canon', () => {
+    render(<NpcCompactStatBlock npc={{name:'Draft guard',hp:21,ac:14,combat_ready:true,mechanics_status:'DM DRAFT - existing card',import_review_required:true}} library />);
+    expect(screen.getByText(/DM DRAFT - existing card/)).toBeVisible();
+    expect(screen.getByText(/Review source notes before play/)).toBeVisible();
+  });
+  test('compact library identity retains classes, creature details and challenge rating', () => {
+    expect(npcIdentityLine({class_name:'Wizard',race:'Human',level:3})).toBe('Wizard · Human · Level 3');
+    expect(npcIdentityLine({size:'Small',type:'humanoid',subtype:'goblinoid',alignment:'neutral evil'})).toBe('Small humanoid (goblinoid) neutral evil');
+    render(<NpcCompactStatBlock npc={{name:'Library Creature',cr:'1/4',xp:50}} library />);
+    expect(screen.getByText('CR 1/4 · 50 XP')).toBeVisible();
+  });
+  test('library story references show saved description instead of empty combat boxes', () => {
+    const npc = {name:'Story Ally', role:'Town guide', combat_ready:false, hp:999, description:'Existing saved description.', notes:'Existing private note.'};
+    const before = JSON.stringify(npc);
+    render(<NpcCompactStatBlock npc={npc} library />);
+    expect(screen.getByText('Existing saved description.')).toBeVisible();
+    expect(screen.getByText(/Combat statistics not confirmed/)).toBeVisible();
+    expect(screen.queryByLabelText('Ability scores')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Defence and movement')).not.toBeInTheDocument();
+    expect(screen.queryByText('999')).not.toBeInTheDocument();
+    expect(screen.getByText('Existing private note.')).toBeInTheDocument();
+    expect(JSON.stringify(npc)).toBe(before);
+  });
+
+  test('library combat details are visible without opening a combat-card disclosure', () => {
+    render(<NpcCompactStatBlock npc={{name:'Test Guard',hp:21,ac:14,stats:{strength:14},attacks:[{name:'Test Spear',bonus:'+4',damage:'1d6+2 piercing'}]}} library />);
+    expect(screen.getByText('21')).toBeVisible();
+    expect(screen.getByText('Test Spear')).toBeVisible();
+    expect(screen.getByRole('button',{name:'Roll Test Spear to hit'})).toBeVisible();
+    expect(screen.queryByRole('heading',{name:'Test Guard'})).not.toBeInTheDocument();
+  });
+
   test('prints quick stats, modifiers and attacks before optional lore', () => {
     render(<NpcCompactStatBlock npc={{
       name: 'Edwin Hollowmere', role: 'Master of Revels', image_url: '/edwin.jpg',

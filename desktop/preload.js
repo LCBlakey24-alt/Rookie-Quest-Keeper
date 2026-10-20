@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('rookieDesktop', Object.freeze({
   checkUpdates: () => ipcRenderer.invoke('rqk:check-updates'),
   downloadUpdate: () => ipcRenderer.invoke('rqk:download-update'),
   installUpdate: (workspaceRaw) => ipcRenderer.invoke('rqk:install-update', workspaceRaw),
+  selectProgramUpdate: () => ipcRenderer.invoke('rqk:select-program-update'),
+  installProgramUpdate: (workspaceRaw) => ipcRenderer.invoke('rqk:install-program-update', workspaceRaw),
   onUpdateStatus: (listener) => {
     if (typeof listener !== 'function') return () => {};
     const handler = (_event, status) => listener(status);

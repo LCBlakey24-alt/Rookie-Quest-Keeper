@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Plus, Edit, Trash2, Upload, Download, Skull, Save, Wand2, Loader, Sparkles } from 'lucide-react';
+import { canUseCombatRecord, combatReferenceStatus } from '@/lib/combatReadiness';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 
 const CREATURE_TYPES = [
@@ -19,6 +21,7 @@ const CR_OPTIONS = [
 ];
 
 function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, embedded = false }) {
+  const offline = isOfflineDesktop();
   const [creatures, setCreatures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -108,6 +111,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
 
   // AI Generation with ROOK
   const handleAIGenerate = async () => {
+    if (offline) return;
     if (!aiPrompt.trim()) {
       toast.error('Please describe the creature you want to create');
       return;
@@ -212,8 +216,13 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
   };
 
   const handleAddToEncounter = (creature) => {
+    if (!canUseCombatRecord(creature)) {
+      toast.error('Verify combat readiness, HP and AC before adding this reference.');
+      return;
+    }
     if (onSelectCreature) {
       onSelectCreature({
+        ...creature,
         name: creature.name,
         cr: creature.cr,
         hp: creature.hp,
@@ -342,7 +351,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
           <Sparkles size={16} color="#a855f7" style={{ opacity: 0.7 }} />
         </div>
         <p style={{ color: '#c4b5fd', fontSize: '13px', marginBottom: '16px' }}>
-          Describe a creature concept and let the AI generate a complete stat block for you!
+          {offline ? 'ROOK generation needs the online service. Create or import custom creatures manually offline.' : 'Describe a creature concept and let the AI generate a complete stat block for you!'}
         </p>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <textarea
@@ -364,7 +373,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
           />
           <Button
             onClick={handleAIGenerate}
-            disabled={generating || !aiPrompt.trim()}
+            disabled={offline || generating || !aiPrompt.trim()}
             data-testid="generate-creature-btn"
             style={{
               background: generating ? '#6b21a8' : 'linear-gradient(180deg, #a855f7 0%, #7c3aed 100%)',
@@ -598,9 +607,11 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
                 </p>
               )}
               <div style={{ display: 'flex', gap: '8px' }}>
+                {combatReferenceStatus(creature) && <span style={{ color: 'var(--rq-text-secondary)', fontSize: 12 }}>{combatReferenceStatus(creature)}</span>}
                 {onSelectCreature && (
                   <Button
                     onClick={() => handleAddToEncounter(creature)}
+                    disabled={!canUseCombatRecord(creature)}
                     className="btn-primary"
                     data-testid={`add-creature-${creature.id}`}
                     style={{ flex: 1, padding: '6px 12px', fontSize: '12px' }}

@@ -22,4 +22,13 @@ function isSafePlayerDisplayUrl(value) {
   }
 }
 
-module.exports = { isSafePlayerDisplayUrl };
+function playerDisplayBounds(displays, primaryId) {
+  const display = displays.find(item => item.id !== primaryId);
+  const area = display?.workArea || display?.bounds;
+  if (!area || !['x','y','width','height'].every(key => Number.isFinite(area[key]))
+      || area.width <= 0 || area.height <= 0) return null;
+  return { x:area.x, y:area.y, width:area.width, height:area.height,
+    minWidth:Math.min(800,area.width), minHeight:Math.min(480,area.height) };
+}
+
+module.exports = { isSafePlayerDisplayUrl, playerDisplayBounds };

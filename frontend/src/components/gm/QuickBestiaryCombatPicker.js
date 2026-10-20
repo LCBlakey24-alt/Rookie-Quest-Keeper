@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Plus, Search, Skull } from 'lucide-react';
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
+import { canUseCombatRecord } from '@/lib/combatReadiness';
 
 function toCombatant(monster) {
+  if (!canUseCombatRecord(monster)) throw new Error('Verify this reference before combat.');
   // The bundled bestiary supplies known HP and AC. Do not fabricate an
   // attack block, spells or other statistics that aren't in that entry.
   const stamp = typeof crypto !== 'undefined' && crypto.randomUUID
@@ -40,9 +42,9 @@ export default function QuickBestiaryCombatPicker({ onAdd }) {
   const results = useMemo(() => {
     const text = query.trim().toLowerCase();
     if (text.length < 2) return [];
-    return MONSTER_DATABASE.filter(monster =>
+    return MONSTER_DATABASE.filter(monster => canUseCombatRecord(monster) && (
       String(monster.name).toLowerCase().includes(text) ||
-      String(monster.type || '').toLowerCase().includes(text)
+      String(monster.type || '').toLowerCase().includes(text))
     ).slice(0, 12);
   }, [query]);
 

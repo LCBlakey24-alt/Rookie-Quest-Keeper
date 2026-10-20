@@ -138,7 +138,7 @@
   color: var(--rq-text-primary, #EADFC8) !important;
 }
 
-/* Desktop keeps the permanent labelled ledger rail. */
+/* Desktop keeps the labelled ledger rail outside focused campaign/player work. */
 #root .rqk-app-shell[data-rq-device='desktop'] {
   grid-template-columns: 236px minmax(0, 1fr) !important;
 }
@@ -172,6 +172,30 @@
 /* Tablet is a touch-first compact rail, not squeezed desktop navigation. */
 #root .rqk-app-shell[data-rq-device='tablet'] {
   grid-template-columns: 76px minmax(0, 1fr) !important;
+}
+
+/* Same final authority as the legacy !important grid rules above. A focused
+   route removes the rail element entirely, so its column must disappear too. */
+#root .rqk-app-shell.rqk-app-shell--focused[data-rq-device='desktop'],
+#root .rqk-app-shell.rqk-app-shell--focused[data-rq-device='tablet'] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.rqk-focus-navigation-toggle {
+  min-height: 44px;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--rq-line-strong);
+  border-radius: var(--rq-radius, 7px);
+  color: var(--rq-text-primary);
+  background: var(--rq-card);
+  cursor: pointer;
+}
+.rqk-focus-navigation-toggle:focus-visible {
+  outline: 2px solid var(--rq-secondary);
+  outline-offset: 2px;
 }
 
 #root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail {

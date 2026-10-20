@@ -15,6 +15,7 @@ export default function DesktopMaintenance() {
     progress: 0, message: 'Check for updates when you are ready.',
   });
   const [backups, setBackups] = useState([]);
+  const [programFile, setProgramFile] = useState(null);
   const [working, setWorking] = useState('');
   const [notice, setNotice] = useState('');
   const desktop = typeof window === 'undefined' ? null : window.rookieDesktop;
@@ -98,6 +99,24 @@ export default function DesktopMaintenance() {
     });
   };
 
+  const chooseProgramFile = () => doWork('program-select', async () => {
+    const info = await desktop.selectProgramUpdate();
+    if (info?.canceled) return;
+    setProgramFile(info);
+    setNotice('Publisher signature and all update parts verified. Ready to back up and install.');
+  });
+
+  const installProgramFile = () => {
+    if (!programFile) return;
+    if (programFile.authenticated !== true) return;
+    if (!window.confirm('Install verified Keeper ' + programFile.version + ' and restart? Keeper will back up your campaign first. Do not delete RookieQuestKeeperData.')) return;
+    doWork('program-install', async () => {
+      const raw = localStorage.getItem(DESKTOP_STORAGE_KEY);
+      if (!raw) throw new Error('No saved workspace was found. Back up your campaign before updating.');
+      await desktop.installProgramUpdate(raw);
+    });
+  };
+
   if (!desktop?.offline) return null;
 
   const busy = Boolean(working) || status.state === 'installing' || status.state === 'downloading';
@@ -120,17 +139,39 @@ export default function DesktopMaintenance() {
               <button type="button" className="rqk-desktop-maintenance-close" onClick={() => setOpen(false)} aria-label="Close">×</button>
             </header>
             <div className="rqk-desktop-maintenance-section">
-              <h3>Windows app</h3>
+              <h3>Program Updates</h3>
               <p>Installed version: <strong>{status.installed_version}</strong></p>
               {status.available_version && <p>Available version: <strong>{status.available_version}</strong></p>}
               <p role="status" aria-live="polite">{status.message}</p>
-              {status.state === 'portable' && <p>Portable USB edition: download the next portable .exe, close Keeper, and replace the old .exe on the same USB drive. Leave the <strong>RookieQuestKeeperData</strong> folder untouched. Back up your USB before major updates.</p>}
+              {status.state === 'portable' && (
+                <div className="rqk-desktop-program-update" data-testid="portable-program-update">
+                  <p>Choose the prepared <strong>.rqkprogram</strong> file from OneDrive or any local folder. Keep its .rqkpart files beside it and make them available offline. Keeper verifies the publisher signature before installing.</p>
+                  <div className="rqk-desktop-maintenance-actions">
+                    <button type="button" disabled={busy} onClick={chooseProgramFile}>Select program update file (.rqkprogram)</button>
+                  </div>
+                  {programFile && (
+                    <div className="rqk-desktop-program-selection">
+                      <p><strong>Selected:</strong> {programFile.file_name}</p>
+                      <p><strong>New version:</strong> {programFile.version}</p>
+                      <p>Publisher verified · {programFile.parts} part(s) · {(programFile.size_bytes / 1024 / 1024).toFixed(1)} MB</p>
+                      <button type="button" disabled={busy || programFile.authenticated !== true} onClick={installProgramFile}>
+                        Install Program Update
+                      </button>
+                    </div>
+                  )}
+                  <p className="rqk-desktop-maintenance-note">Keeper creates a verified campaign backup before updating. Application updates reuse the Windows runtime; larger runtime updates replace the EXE after Keeper closes. Your campaign folder stays in place.</p>
+                </div>
+              )}
               {downloading && <progress value={status.progress} max="100" aria-label="Update download progress" />}
               <div className="rqk-desktop-maintenance-actions">
                 {status.state !== 'portable' && <button type="button" disabled={busy || checking || status.state === 'downloaded'} onClick={() => doWork('check', () => desktop.checkUpdates())}>Check for updates</button>}
                 {status.state === 'available' && <button type="button" disabled={busy} onClick={() => doWork('download', () => desktop.downloadUpdate())}>Download update</button>}
                 {status.state === 'downloaded' && <button type="button" disabled={busy} onClick={install}>Back up, install &amp; restart</button>}
               </div>
+            </div>
+            <div className="rqk-desktop-maintenance-section">
+              <h3>Campaign Content Updates</h3>
+              <p>Use Import Campaign / Update in your campaign library for .rqkpack and .rqkupdate files. These add campaign material and do not install software.</p>
             </div>
             <div className="rqk-desktop-maintenance-section">
               <h3>Campaign backups</h3>

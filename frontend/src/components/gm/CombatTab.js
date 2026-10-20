@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import InitiativeTracker from './InitiativeTracker';
 import apiClient from '@/lib/apiClient';
+import { canUseCombatRecord } from '@/lib/combatReadiness';
 
 const toNumber = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const dexMod = (stats = {}) => Math.floor(((toNumber(stats.dexterity, 10)) - 10) / 2);
@@ -35,6 +36,7 @@ function playerToCombatant(player) {
 }
 
 function npcToCombatant(npc, index = 0) {
+  if (!canUseCombatRecord(npc)) throw new Error('This NPC is a reference, not combat-ready.');
   const maxHp = toNumber(npc.hp ?? npc.max_hp ?? npc.hit_points, 10);
   return {
     id: npc.id || `npc-${index}-${npc.name}`,
@@ -46,7 +48,11 @@ function npcToCombatant(npc, index = 0) {
     initiativeMod: toNumber(npc.initiativeMod, dexMod(npc.stats || npc.abilities || npc)),
     conditions: [],
     description: npc.description || npc.notes || '',
-    actions: npc.actions || [],
+    stats: npc.stats || npc.ability_scores || {},
+    actions: npc.actions || npc.attacks || [],
+    special_abilities: npc.special_abilities || [],
+    spells: npc.spells,
+    mechanics_status: npc.mechanics_status,
     reactions: npc.reactions || [],
     bonus_actions: npc.bonus_actions || [],
     tokenColor: '#EF4444',
@@ -76,6 +82,7 @@ function playtestCreatureToCreature(record, index = 0) {
 }
 
 function creatureToCombatant(creature, index = 0) {
+  if (!canUseCombatRecord(creature)) throw new Error('This creature is a reference, not combat-ready.');
   const maxHp = toNumber(creature.hp ?? creature.maxHp ?? creature.hit_points, 10);
   return {
     id: `${creature.id || creature.name || 'creature'}-${index}-${Date.now()}`,
@@ -87,7 +94,11 @@ function creatureToCombatant(creature, index = 0) {
     initiativeMod: toNumber(creature.initiativeMod, dexMod(creature.abilities || creature.stats || creature)),
     conditions: [],
     description: creature.description || creature.notes || '',
-    actions: creature.actions || [],
+    stats: creature.stats || creature.ability_scores || {},
+    actions: creature.actions || creature.attacks || [],
+    special_abilities: creature.special_abilities || [],
+    spells: creature.spells,
+    mechanics_status: creature.mechanics_status,
     reactions: creature.reactions || [],
     bonus_actions: creature.bonus_actions || [],
     tokenColor: '#EF4444',
@@ -176,8 +187,8 @@ export default function CombatTab({ theme: incomingTheme, campaignId, scenarios 
       ]);
       const customCreatures = Array.isArray(creatureRes.data) ? creatureRes.data : creatureRes.data?.creatures || [];
       const playtestCreatures = (playtestCreatureRes.data?.records || []).map(playtestCreatureToCreature);
-      setNpcs(Array.isArray(npcRes.data) ? npcRes.data : npcRes.data?.npcs || []);
-      setCreatures([...customCreatures, ...playtestCreatures]);
+      setNpcs((Array.isArray(npcRes.data) ? npcRes.data : npcRes.data?.npcs || []).filter(canUseCombatRecord));
+      setCreatures([...customCreatures, ...playtestCreatures].filter(canUseCombatRecord));
       setStoryArcs(Array.isArray(storyRes.data) ? storyRes.data : []);
     } finally {
       setLoadingLists(false);

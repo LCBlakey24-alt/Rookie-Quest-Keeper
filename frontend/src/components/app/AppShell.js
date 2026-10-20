@@ -204,6 +204,10 @@ export default function AppShell({ children }) {
     : availableNavItems;
   const [isAdmin, setIsAdmin] = useState(() => readCachedAdminStatus() ?? false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const focusedRoute = !isMobile && (/^\/campaigns?\/[^/]+/.test(location.pathname)
+    || /^\/characters\/[^/]+/.test(location.pathname) || /^\/player(?:\/|$)/.test(location.pathname));
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  useEffect(() => { setNavigationOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     if (desktopOffline) {
@@ -278,8 +282,8 @@ export default function AppShell({ children }) {
   };
 
   return (
-    <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout}>
-      <aside className="rqk-app-rail" aria-label="App navigation">
+    <div className={`rqk-app-shell${focusedRoute && !navigationOpen ? ' rqk-app-shell--focused' : ''}`} data-rq-layout-shell="app" data-rq-device={deviceLayout}>
+      {(!focusedRoute || navigationOpen) && <aside id="rqk-main-navigation" className="rqk-app-rail" aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
             <BrandMiniLogo size={36} alt="" />
@@ -293,7 +297,7 @@ export default function AppShell({ children }) {
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
           {!isMobile && <p className="rqk-app-rail-section-label">Workspace</p>}
           {visibleNavItems.map((item) => (
-            <RailLink key={item.label} item={item} pathname={location.pathname} />
+            <RailLink key={item.label} item={item} pathname={location.pathname} onClick={() => setNavigationOpen(false)} />
           ))}
         </nav>
 
@@ -342,10 +346,11 @@ export default function AppShell({ children }) {
             onFeedback={handleFeedback}
           />
         )}
-      </aside>
+      </aside>}
 
       <div className="rqk-app-workspace">
         <header className="rqk-app-topbar" aria-label="Workspace controls">
+          {focusedRoute && <button type="button" className="rqk-focus-navigation-toggle" onClick={() => setNavigationOpen(value => !value)} aria-expanded={navigationOpen} aria-controls="rqk-main-navigation"><MoreHorizontal size={18} aria-hidden="true" />{navigationOpen ? 'Hide navigation' : 'Navigation'}</button>}
           {isLocalPreview() ? <PreviewWorkspaceControls /> : <div className="rqk-app-topbar-title">
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>

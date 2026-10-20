@@ -1,10 +1,13 @@
+import { canUseCombatRecord, recordedNumber } from './combatReadiness';
+
 export function monsterCrValue(cr) {
-  const raw = String(cr || '0').trim();
+  if (cr === null || cr === undefined || String(cr).trim() === '') return null;
+  const raw = String(cr).trim();
   if (raw.includes('/')) {
     const [top, bottom] = raw.split('/').map(Number);
-    return bottom ? top / bottom : 0;
+    return Number.isFinite(top) && bottom > 0 ? top / bottom : null;
   }
-  return Number(raw) || 0;
+  return recordedNumber(raw, true);
 }
 
 function proficiencyForCr(cr) {
@@ -101,32 +104,40 @@ function inferredAttacks(monster, stats, pb) {
 }
 
 export function normaliseMonsterStatBlock(monster = {}) {
-  const cr = monster.cr ?? monster.challenge_rating ?? '0';
-  const pb = Number(monster.proficiency_bonus) || proficiencyForCr(cr);
-  const stats = inferredStats(monster);
+  // Only explicitly labelled legacy estimates retain their historical preview.
+  // Custom and verified records must never gain invented missing mechanics.
+  const legacy = monster.source === 'legacy-reference';
+  const cr = monster.cr ?? monster.challenge_rating ?? null;
+  const pb = recordedNumber(monster.proficiency_bonus) ?? (legacy ? proficiencyForCr(cr) : null);
+  const stats = monster.stats || monster.ability_scores || monster.abilities_scores || (legacy ? inferredStats(monster) : {});
   const dex = mod(stats.dexterity);
+  const hp = recordedNumber(monster.hp ?? monster.hit_points, true);
+  const ac = recordedNumber(monster.ac ?? monster.armor_class);
   return {
     ...monster,
     cr,
     challenge_rating: cr,
-    hp: Number(monster.hp ?? monster.hit_points) || 1,
-    hit_points: Number(monster.hit_points ?? monster.hp) || 1,
-    ac: Number(monster.ac ?? monster.armor_class) || 10,
-    armor_class: Number(monster.armor_class ?? monster.ac) || 10,
-    speed: monster.speed || '30 ft.',
+    hp,
+    hit_points: hp,
+    ac,
+    armor_class: ac,
+    speed: monster.speed ?? null,
     stats,
     proficiency_bonus: pb,
-    initiativeMod: Number(monster.initiativeMod) || dex,
-    skills: inferredSkills(monster, stats),
+    initiativeMod: monster.initiativeMod == null ? dex : Number(monster.initiativeMod),
+    skills: Array.isArray(monster.skills) ? monster.skills : legacy ? inferredSkills(monster, stats) : [],
     saving_throws: monster.saving_throws || [],
-    actions: inferredAttacks(monster, stats, pb),
+    actions: Array.isArray(monster.actions) && monster.actions.length ? monster.actions :
+      Array.isArray(monster.attacks) && monster.attacks.length ? monster.attacks :
+        legacy ? inferredAttacks(monster, stats, pb) : [],
     abilities_text: monster.abilities || monster.description || '',
-    combat_ready: true,
+    combat_ready: canUseCombatRecord(monster),
   };
 }
 
 export function monsterToCombatant(monster, copyIndex = 0) {
   const statBlock = normaliseMonsterStatBlock(monster);
+  if (!canUseCombatRecord(statBlock)) throw new Error('This reference needs confirmed HP and AC before combat.');
   const name = statBlock.name || 'Creature';
   return {
     id: `${statBlock.id || name}-${copyIndex}-${Date.now()}`,
@@ -144,6 +155,13 @@ export function monsterToCombatant(monster, copyIndex = 0) {
     actions: statBlock.actions,
     reactions: statBlock.reactions || [],
     bonus_actions: statBlock.bonus_actions || [],
+    special_abilities: statBlock.special_abilities || [],
+    legendary_actions: statBlock.legendary_actions || [],
+    legendary_resistance: statBlock.legendary_resistance,
+    spells: statBlock.spells,
+    speed: statBlock.speed,
+    mechanics_status: statBlock.mechanics_status,
+    import_review_required: statBlock.import_review_required,
     cr: statBlock.cr,
     creature_type: statBlock.type || 'creature',
     tokenColor: '#EF4444',
