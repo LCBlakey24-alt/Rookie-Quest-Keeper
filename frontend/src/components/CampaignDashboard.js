@@ -19,6 +19,7 @@ import {
 import apiClient from '@/lib/apiClient';
 import { calendarDaysUntil } from '@/data/tiaKartaCalendar';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
+import { isOfflineDesktop } from '@/preview/previewMode';
 
 const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
 const CampaignRulesTab = React.lazy(() => import('@/components/tabs/CampaignRulesTab'));
@@ -585,7 +586,13 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
         </div>
       </section>
 
-      <details className="campaign-home-join-code">
+      {isOfflineDesktop() ? (
+        <section className="campaign-home-join-code" data-testid="campaign-home-offline-party" style={{ padding: 14 }}>
+          <h3 style={{ margin: '0 0 8px' }}>Offline Party</h3>
+          <p>Your players and sheets are saved on this laptop. Open Players to link existing characters without an internet join code.</p>
+          <button type="button" onClick={() => onOpenTab('players')}>Manage offline players</button>
+        </section>
+      ) : <details className="campaign-home-join-code">
         <summary>Player Join Code</summary>
         <div>
           <CampaignJoinCodeCard
@@ -601,7 +608,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             copyLabel="Copy Code"
           />
         </div>
-      </details>
+      </details>}
     </div>
   );
 }
