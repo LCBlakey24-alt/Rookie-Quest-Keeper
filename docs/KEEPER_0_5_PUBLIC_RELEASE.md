@@ -25,10 +25,13 @@ music, player records, media, or user credentials**.
    Failure/offline status cannot prevent local play.
 2. A published non-prerelease update shows an unobtrusive **Review update**
    notification with **Later**. No surprise dialog and no forced download.
-3. Review shows release version, plain-text notes and an explicit **Download
-   update** button. Download progress is visible.
-4. Only after download and a second explicit **Back up, install & restart**
-   confirmation may installation begin.
+3. Review shows release version and plain-text notes alongside **Install
+   update** and **Later**. One explicit confirmation authorises downloading
+   (if required), backing up and installing this particular published update.
+4. The backend downloads only after confirmation, shows download progress and
+   requires the updater's verified **downloaded** event. It then creates a
+   verified campaign/media snapshot before scheduling installation and restart.
+   An incomplete download or failed snapshot keeps the existing app running.
 5. Before invoking the installer, the existing workspace and imported
    campaign media must be snapshotted and checked. A missing, invalid or
    unverified snapshot **blocks the restart and install**.
@@ -81,6 +84,9 @@ as a production security boundary.
 - Offline launch after reboot, no unexpected login or online dependency.
 - Detect update online but remain usable when DNS/internet is unavailable.
 - Review/Later shows only for a newer published, compatible version.
+- One Install update confirmation downloads (if needed), verifies readiness,
+  backs up local campaign/media and installs; no double-clicking update packages.
+- Interrupted downloads or failed backups never call the installer or restart.
 - Download/install only following the user's explicit actions.
 - Invalid backup, missing media, invalid signature, hash error, locked file,
   or interrupted installation cannot destroy a working campaign.
