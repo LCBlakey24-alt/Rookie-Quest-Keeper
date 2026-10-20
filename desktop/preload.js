@@ -22,4 +22,6 @@ contextBridge.exposeInMainWorld('rookieDesktop', Object.freeze({
   restoreBackup: (id, currentRaw) => ipcRenderer.invoke('rqk:restore-backup', id, currentRaw),
   exportPortableBackup: (workspaceRaw) => ipcRenderer.invoke('rqk:export-portable-backup', workspaceRaw),
   restorePortableBackup: (currentRaw) => ipcRenderer.invoke('rqk:restore-portable-backup', currentRaw),
+  previewOlderKeeperBackup: () => ipcRenderer.invoke('rqk:preview-older-keeper-backup'),
+  importOlderKeeperBackup: (currentRaw) => ipcRenderer.invoke('rqk:import-older-keeper-backup', currentRaw),
 }));
