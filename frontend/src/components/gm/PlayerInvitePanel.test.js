@@ -91,6 +91,7 @@ test('offline players can link a saved character without needing a join code', a
 
   expect(await screen.findByTestId('offline-player-management')).toBeInTheDocument();
   expect(screen.queryByTestId('join-code')).not.toBeInTheDocument();
+  await screen.findByRole('option', { name: /Test Paladin/ });
   fireEvent.change(screen.getByRole('combobox', { name: 'Existing unlinked character' }), { target: { value: 'hero-8' } });
   fireEvent.click(screen.getByRole('button', { name: 'Link to campaign' }));
   await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/campaigns/campaign-1/attach-local-character', { character_id: 'hero-8' }));
