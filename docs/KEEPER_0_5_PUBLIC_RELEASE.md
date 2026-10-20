@@ -48,6 +48,46 @@ change or bypass that trust. Existing portable users must install the new
 trusted app separately and import a tested backup. Never delete their
 `RookieQuestKeeperData` folder as part of a migration.
 
+## One-time migration from existing 0.4.x Windows Keeper
+
+The user's existing working 0.4.x portable bootstrap is **not** replaced or
+automatically trusted by the new 0.5.0 Windows installer. A newly installed
+copy has a different Electron user-data location. Showing an empty campaign
+library in the new edition does not mean the old campaigns were deleted.
+
+1. **Leave the existing working Keeper and `RookieQuestKeeperData` unchanged.**
+   From the older app's **Updates & backups**, select **Export backup to
+   USB / folder** and choose a separate local or synced OneDrive folder. The
+   label is historical; a USB device is *not* required. Wait for OneDrive to
+   finish and make the backup folder available offline.
+2. Install the separately reviewed, signed 0.5.0 edition on the Windows laptop.
+   Do not uninstall the existing Keeper, delete its data folder, or point an
+   installer at the original working data folder.
+3. In installed Keeper choose **Updates & backups → Move from earlier Keeper →
+   Choose and inspect earlier backup** and select the *dated exported backup
+   folder* containing `manifest.json`, `workspace.json` and optional
+   `campaign-packs/` media—not the entire old `RookieQuestKeeperData` folder.
+4. The preview validates the workspace and checksum-protected media, and shows
+   counts for campaigns, characters, notes and imported files. A legacy
+   unchecked backup is refused; export a fresh backup from the earlier app.
+   Preview has no side effects.
+5. Press **Import into this Keeper** and accept the explicit warning only after
+   inspecting counts. The new app snapshots its current workspace before
+   import, validates the chosen backup again, copies imported media into the
+   new installation and restores the workspace. The old installation and
+   exported backup are not changed.
+6. Restarted app: compare campaign IDs, characters, NPCs, quest progress, maps,
+   music, encounters, homebrew, current resources, and imported attachments.
+   Verify specific records (not just the headline counts). Test offline
+   startup and recovery before switching to the new shortcut.
+
+Scope caveat: this migrates **Keeper workspace data and imported media**.
+Chromium profile state, window placement, preferences stored under other
+browser-storage keys, external Google/OneDrive-linked files and unrelated
+settings are *not* in this portable backup and require separate validation.
+No auto migration, account creation, cloud upload or live-data overwrite is
+performed in CI. Synthetic fixture tests do not replace a real laptop trial.
+
 ## Release security: setup required
 
 Do not publish a public version until a legitimate Windows code-signing

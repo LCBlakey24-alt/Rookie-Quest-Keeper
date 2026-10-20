@@ -107,6 +107,49 @@ describe('offline portable program update controls', () => {
     expect(desktop.downloadUpdate).not.toHaveBeenCalled();
   });
 
+  test('installed Keeper previews older data before offering an explicit migration', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'current', installed_version: '0.5.0', message: 'Up to date.',
+    });
+    desktop.previewOlderKeeperBackup = jest.fn().mockResolvedValue({
+      canceled: false, checksummed: true, backup_id: 'snapshot-1792500000000-deadbeef',
+      created_at: '2026-10-20T20:00:00.000Z',
+      campaign_count: 2, character_count: 4, note_count: 7, media_file_count: 12,
+    });
+    desktop.importOlderKeeperBackup = jest.fn();
+    window.confirm = jest.fn(() => false);
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: /Updates & backups/i }));
+    expect(screen.queryByTestId('older-keeper-migration-preview')).not.toBeInTheDocument();
+    expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Choose and inspect earlier backup/i }));
+    const details = await screen.findByTestId('older-keeper-migration-preview');
+    expect(details).toHaveTextContent('2 campaign(s)');
+    expect(details).toHaveTextContent('4 character(s)');
+    expect(details).toHaveTextContent('12 imported media file(s)');
+    expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Import into this Keeper/i }));
+    expect(window.confirm).toHaveBeenCalledTimes(1);
+    expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
+  });
+
+  test('non-checksummed older backups cannot be imported', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'current', installed_version: '0.5.0',
+    });
+    desktop.previewOlderKeeperBackup = jest.fn().mockResolvedValue({
+      canceled: false, checksummed: false, campaign_count: 1,
+      character_count: 0, note_count: 0, media_file_count: 0,
+    });
+    desktop.importOlderKeeperBackup = jest.fn();
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: /Updates & backups/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Choose and inspect earlier backup/i }));
+    const button = await screen.findByRole('button', { name: /Import into this Keeper/i });
+    expect(button).toBeDisabled();
+    expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
+  });
+
   test('keeps full-program updates distinct from campaign imports and backups', async () => {
     render(<DesktopMaintenance />);
     fireEvent.click(screen.getByRole('button', { name: /Updates & backups/i }));

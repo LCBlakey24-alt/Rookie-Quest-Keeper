@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, restorePortableBackup } = require('../backup');
+const { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, previewPortableBackup, restorePortableBackup } = require('../backup');
 
 function workspace(name) {
   return JSON.stringify({
@@ -104,5 +104,60 @@ test('portable recovery rejects corrupt copies and media links before changing a
     assert.throws(() => exportPortableBackup(userData, workspace('Keep me'), userData), /outside Keeper application data/);
   } finally {
     for (const folder of [userData, usbFolder]) fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test('0.4.x to installed 0.5.x migration previews a verified backup and leaves original folder unchanged', () => {
+  const oldData = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-old-portable-'));
+  const exports = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-old-export-'));
+  const installedData = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-new-installed-'));
+  try {
+    const raw = JSON.stringify({
+      version: 1,
+      campaigns: [{ id: 'campaign-one', name: 'Synthetic first campaign' }, { id: 'campaign-two', name: 'Synthetic second campaign' }],
+      characters: [{ id: 'test-character', campaign_id: 'campaign-one', name: 'Test adventurer' }],
+      collections: { 'campaign-one': { npcs: [{ id: 'test-npc', name: 'Test NPC' }], maps: [{ id: 'test-map', title: 'Synthetic map' }] } },
+      notes: [{ id: 'note-one', campaign_id: 'campaign-one', content: 'Test note' }],
+      recaps: [], receipts: {}, objects: {}, homebrew: [],
+    });
+    const media = path.join(oldData, 'campaign-packs', 'test-pack');
+    fs.mkdirSync(media, { recursive: true });
+    fs.writeFileSync(path.join(media, 'map.png'), 'synthetic map bytes');
+    fs.writeFileSync(path.join(media, 'song.mp3'), 'synthetic mp3 bytes');
+    const saved = exportPortableBackup(oldData, raw, exports);
+    const before = fs.readFileSync(path.join(saved.export_path, 'workspace.json'));
+    const preview = previewPortableBackup(saved.export_path);
+    assert.equal(preview.checksummed, true);
+    assert.equal(preview.backup_id, saved.id);
+    assert.equal(preview.campaign_count, 2);
+    assert.equal(preview.character_count, 1);
+    assert.equal(preview.note_count, 1);
+    assert.equal(preview.media_file_count, 2);
+    assert.equal(fs.readdirSync(installedData).length, 0, 'preview must not create target files');
+    const restored = restorePortableBackup(installedData, saved.export_path, workspace('Empty installed Keeper'));
+    assert.equal(restored.workspace, raw);
+    assert.equal(restored.safety_backup.reason, 'before-restore');
+    assert.equal(fs.readFileSync(path.join(installedData, 'campaign-packs', 'test-pack', 'song.mp3'), 'utf8'), 'synthetic mp3 bytes');
+    assert.deepEqual(fs.readFileSync(path.join(saved.export_path, 'workspace.json')), before);
+    assert.equal(fs.readFileSync(path.join(oldData, 'campaign-packs', 'test-pack', 'map.png'), 'utf8'), 'synthetic map bytes');
+  } finally {
+    for (const folder of [oldData, exports, installedData]) fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test('migration preview rejects changed backup media and never writes installed Keeper files', () => {
+  const oldData = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-old-portable-'));
+  const exports = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-old-export-'));
+  const installedData = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-new-installed-'));
+  try {
+    const media = path.join(oldData, 'campaign-packs', 'private-test');
+    fs.mkdirSync(media, { recursive: true });
+    fs.writeFileSync(path.join(media, 'map.png'), 'original bytes');
+    const saved = exportPortableBackup(oldData, workspace('Synthetic campaign'), exports);
+    fs.writeFileSync(path.join(saved.export_path, 'campaign-packs', 'private-test', 'map.png'), 'tampered bytes');
+    assert.throws(() => previewPortableBackup(saved.export_path), /checksum verification failed/);
+    assert.equal(fs.readdirSync(installedData).length, 0);
+  } finally {
+    for (const folder of [oldData, exports, installedData]) fs.rmSync(folder, { recursive: true, force: true });
   }
 });

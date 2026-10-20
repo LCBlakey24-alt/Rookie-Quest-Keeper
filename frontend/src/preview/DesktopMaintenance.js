@@ -25,6 +25,7 @@ export default function DesktopMaintenance() {
   });
   const [backups, setBackups] = useState([]);
   const [programFile, setProgramFile] = useState(null);
+  const [olderKeeperPreview, setOlderKeeperPreview] = useState(null);
   const [working, setWorking] = useState('');
   const [notice, setNotice] = useState('');
   const [remindLater, setRemindLater] = useState(null);
@@ -86,6 +87,27 @@ export default function DesktopMaintenance() {
     if (!window.confirm('Restore a portable Keeper backup? This will replace the active workspace after saving a safety copy of your current campaign.')) return;
     doWork('portable-restore', async () => {
       const result = await desktop.restorePortableBackup(localStorage.getItem(DESKTOP_STORAGE_KEY));
+      if (result?.canceled) return;
+      localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
+      window.location.reload();
+    });
+  };
+
+  const previewOlderKeeper = () => doWork('migration-preview', async () => {
+    setOlderKeeperPreview(null);
+    const result = await desktop.previewOlderKeeperBackup();
+    if (result?.canceled) return;
+    setOlderKeeperPreview(result);
+    setNotice('Backup inspected successfully. Nothing has been imported or changed.');
+  });
+
+  const importOlderKeeper = () => {
+    if (!olderKeeperPreview || olderKeeperPreview.checksummed !== true) return;
+    if (!window.confirm(
+      'Move the inspected campaign backup into this installed Keeper? This replaces the new installation\'s current campaign library after backing it up. Your older Keeper folder will not be changed.'
+    )) return;
+    doWork('migration-import', async () => {
+      const result = await desktop.importOlderKeeperBackup(savedWorkspaceForUpdate());
       if (result?.canceled) return;
       localStorage.setItem(DESKTOP_STORAGE_KEY, result.workspace);
       window.location.reload();
@@ -196,6 +218,23 @@ export default function DesktopMaintenance() {
               <h3>Campaign Content Updates</h3>
               <p>Use Import Campaign / Update in your campaign library for .rqkpack and .rqkupdate files. These add campaign material and do not install software.</p>
             </div>
+            {status.state !== 'portable' && (
+              <div className="rqk-desktop-maintenance-section">
+                <h3>Move from earlier Keeper</h3>
+                <p>Only needed once when changing from your older 0.4.x Windows Keeper to the new installed edition. In the older Keeper, choose <strong>Export backup to USB / folder</strong> (you can choose an ordinary computer or OneDrive folder). Then select that exported backup here. Your old program and its live files will not be changed.</p>
+                <div className="rqk-desktop-maintenance-actions">
+                  <button type="button" disabled={busy} onClick={previewOlderKeeper}>Choose and inspect earlier backup</button>
+                </div>
+                {olderKeeperPreview && (
+                  <div className="rqk-desktop-program-selection" data-testid="older-keeper-migration-preview">
+                    <p><strong>Backup checked:</strong> {readableTime(olderKeeperPreview.created_at)}</p>
+                    <p>{olderKeeperPreview.campaign_count} campaign(s) · {olderKeeperPreview.character_count} character(s) · {olderKeeperPreview.note_count} note(s) · {olderKeeperPreview.media_file_count} imported media file(s)</p>
+                    <p>File checksums verified. This only moves the Keeper library and imported media, not every Windows/browser setting.</p>
+                    <button type="button" disabled={busy || !olderKeeperPreview.checksummed} onClick={importOlderKeeper}>Import into this Keeper</button>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="rqk-desktop-maintenance-section">
               <h3>Campaign backups</h3>
               <p>Backups include your saved campaigns, characters, notes and locally imported files. They stay on this PC, not in GitHub.</p>
