@@ -7,13 +7,13 @@
   "scripts": {
     "start": "electron .",
     "dist:win": "electron-builder --win nsis --x64 --publish never",
-    "release:win": "electron-builder --win nsis --x64 --publish always",
     "test": "node --test",
     "dist:portable": "electron-builder --win portable --x64 --publish never"
   },
   "devDependencies": {
     "electron": "44.6.0",
-    "electron-builder": "26.15.3"
+    "electron-builder": "26.15.3",
+    "yaml": "2.9.1"
   },
   "build": {
     "appId": "com.rookiequest.keeper.desktop",
@@ -25,9 +25,12 @@
       "signedProgramPackage.js",
       "programRelease.js",
       "backup.js",
+      "attachmentSafety.js",
       "playerDisplayWindow.js",
       "updates.js",
       "updateSafety.js",
+      "workspaceSnapshot.js",
+      "workspaceRestore.js",
       "portableProgramUpdate.js",
       "main.js",
       "rendererProtocol.js",
@@ -40,6 +43,7 @@
       "output": "dist"
     },
     "win": {
+      "verifyUpdateCodeSignature": true,
       "target": [
         {
           "target": "nsis",
@@ -50,6 +54,7 @@
       ]
     },
     "nsis": {
+      "deleteAppDataOnUninstall": false,
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
