@@ -68,9 +68,11 @@ newer 0.5.0 release base. All checked #573–#583 review-thread lists were empty
 
 ## Evidence and limits
 
-The full local frontend suite passed: **289 suites, 1,740 tests**, and the
-production renderer built successfully. Desktop, failure, integrity and
-migration tests use disposable directories and synthetic data only. Windows CI
+The final local frontend suite passed: **289 suites, 1,750 tests**, and the
+production renderer built successfully. Desktop checks passed **91 tests**
+(four Windows-only checks skipped on Linux), and four Python package-tool tests
+passed. Failure, integrity and migration tests use disposable directories and
+synthetic data only. Windows CI
 for the follow-up must validate its final commit and the newly added packaged
 installed-edition offline/restart smoke. See the follow-up PR checks for the
 current build result and QA artifacts; artifacts are not official releases.

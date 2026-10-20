@@ -366,6 +366,10 @@ app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
   });
+}).catch(error => {
+  dialog.showErrorBox('Keeper needs recovery before it can start',
+    `${String(error?.message || error)}\n\nKeep your application data folder and backups. Do not clear saved data; request recovery help before trying again.`);
+  app.quit();
 });
 
 app.on('window-all-closed', () => {
