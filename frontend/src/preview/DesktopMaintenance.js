@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DESKTOP_STORAGE_KEY } from './previewMode';
+import { createPreviewSeed } from './previewSeed';
 import './desktopMaintenance.css';
+
+// A fresh offline installation has an empty in-memory workspace but no
+// localStorage entry until its first edit. Back that valid empty state up
+// rather than blocking safe software updates for brand-new users.
+function savedWorkspaceForUpdate() {
+  const saved = localStorage.getItem(DESKTOP_STORAGE_KEY);
+  return saved === null ? JSON.stringify(createPreviewSeed({ empty: true })) : saved;
+}
 
 function readableTime(iso) {
   try { return new Date(iso).toLocaleString(); }
@@ -96,7 +105,7 @@ export default function DesktopMaintenance() {
   const install = () => {
     if (!window.confirm('Install this update and restart Keeper? Your campaign and imported files will be backed up first.')) return;
     doWork('install', async () => {
-      await desktop.installUpdate(localStorage.getItem(DESKTOP_STORAGE_KEY));
+      await desktop.installUpdate(savedWorkspaceForUpdate());
     });
   };
 
@@ -112,9 +121,7 @@ export default function DesktopMaintenance() {
     if (programFile.authenticated !== true) return;
     if (!window.confirm('Install verified Keeper ' + programFile.version + ' and restart? Keeper will back up your campaign first. Do not delete RookieQuestKeeperData.')) return;
     doWork('program-install', async () => {
-      const raw = localStorage.getItem(DESKTOP_STORAGE_KEY);
-      if (!raw) throw new Error('No saved workspace was found. Back up your campaign before updating.');
-      await desktop.installProgramUpdate(raw);
+      await desktop.installProgramUpdate(savedWorkspaceForUpdate());
     });
   };
 
