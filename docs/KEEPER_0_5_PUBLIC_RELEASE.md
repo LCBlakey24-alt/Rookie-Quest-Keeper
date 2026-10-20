@@ -35,7 +35,9 @@ music, player records, media, or user credentials**.
 5. Before invoking the installer, the existing workspace and imported
    campaign media must be snapshotted and checked. A missing, invalid or
    unverified snapshot **blocks the restart and install**.
-6. Installer runs with the existing app identity, leaving the data folder
+6. After that approval, the update installer runs unattended and requests an
+   automatic restart. The initial installation still uses the normal wizard.
+   Installer runs with the existing app identity, leaving the data folder
    intact. Verify startup, data integrity and a recovery route on a test PC
    before publishing.
 7. Program releases are separate from `.rqkupdate` and `.rqkpack` campaign

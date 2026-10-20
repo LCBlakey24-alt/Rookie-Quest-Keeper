@@ -241,7 +241,9 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
           announce({ state: 'error', message: 'Installation was stopped because the update is no longer ready. Your campaign backup is still available.' });
           return;
         }
-        try { autoUpdater.quitAndInstall(false, true); }
+        // Consent was already given for this update. Run the update installer
+        // unattended and force restart; the first installation keeps its wizard.
+        try { autoUpdater.quitAndInstall(true, true); }
         catch {
           announce({ state: 'error', message: 'Installer could not start. Your campaign backup is still available.' });
         }

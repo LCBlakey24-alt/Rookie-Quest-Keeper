@@ -61,7 +61,7 @@ test('installed update downloads, reads latest data, saves backup and recovery r
   assert.equal(receipt.backup_id, backup.id);
   assert.equal(fixture.scheduled.length, 1);
   fixture.scheduled[0]();
-  assert.deepEqual(fixture.calls.at(-1), ['install', false, true]);
+  assert.deepEqual(fixture.calls.at(-1), ['install', true, true]);
 });
 
 test('partial download cannot create a backup or schedule installation', async t => {
@@ -137,5 +137,5 @@ test('another update check cannot interrupt the prepared installer restart', asy
   assert.equal(checks, 0);
   assert.equal(fixture.getStatus().state, 'installing');
   fixture.scheduled[0]();
-  assert.deepEqual(fixture.calls.at(-1), ['install', false, true]);
+  assert.deepEqual(fixture.calls.at(-1), ['install', true, true]);
 });

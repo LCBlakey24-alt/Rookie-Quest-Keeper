@@ -54,6 +54,9 @@ newer 0.5.0 release base. All checked #573–#583 review-thread lists were empty
 - Installer failures had no durable reference to the recovery snapshot. A local
   receipt records the target and backup; startup and persistent UI explain
   incomplete installation. Late update errors cancel a queued restart.
+- The updater previously requested an interactive assisted installer. After the
+  existing explicit consent/download/backup gates, it now requests unattended
+  update installation and restart. The first-install wizard remains enabled.
 - Malformed/unreadable desktop storage previously became an editable empty
   workspace. It now blocks reads/edits without overwriting the original. Stale
   cached writes are refused, and failed saves retain disk and in-memory data.
