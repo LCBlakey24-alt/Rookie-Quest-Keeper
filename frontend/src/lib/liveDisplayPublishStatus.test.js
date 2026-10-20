@@ -29,6 +29,19 @@ describe('publishCampaignDisplayStateWithStatus', () => {
     expect(result).toEqual({ state: remoteState, remoteSynced: true });
   });
 
+  test('marks successful offline desktop persistence as local-only, not a cloud delivery receipt', async () => {
+    window.rookieDesktop = { offline: true };
+    const state = { sync_id: 'local-1', mode: 'npc-grid', payload: { npcs: [] } };
+    apiClient.put.mockResolvedValue({ data: state });
+    try {
+      const result = await publishCampaignDisplayStateWithStatus('offline-campaign', state);
+      expect(result).toEqual({ state, remoteSynced: true, localOnly: true });
+      expect(apiClient.put).toHaveBeenCalledWith('/campaigns/offline-campaign/display-state', state);
+    } finally {
+      delete window.rookieDesktop;
+    }
+  });
+
   test('keeps the local publish and reports remoteSynced false when the API fails', async () => {
     const state = { sync_id: 'state-2', mode: 'image', payload: { title: 'Map' } };
     const error = new Error('offline');
