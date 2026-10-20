@@ -103,7 +103,7 @@ export default function DesktopMaintenance() {
   };
 
   const install = () => {
-    if (!window.confirm('Install this update and restart Keeper? Your campaign and imported files will be backed up first.')) return;
+    if (!window.confirm('Download this Keeper update if needed, back up your campaigns and imported files, then install and restart? Nothing will install unless the download and backup both succeed.')) return;
     doWork('install', async () => {
       await desktop.installUpdate(savedWorkspaceForUpdate());
     });
@@ -187,8 +187,9 @@ export default function DesktopMaintenance() {
               {downloading && <progress value={status.progress} max="100" aria-label="Update download progress" />}
               <div className="rqk-desktop-maintenance-actions">
                 {status.state !== 'portable' && <button type="button" disabled={busy || checking || status.state === 'downloaded'} onClick={() => doWork('check', () => desktop.checkUpdates())}>Check for updates</button>}
-                {status.state === 'available' && <button type="button" disabled={busy} onClick={() => doWork('download', () => desktop.downloadUpdate())}>Download update</button>}
-                {status.state === 'downloaded' && <button type="button" disabled={busy} onClick={install}>Back up, install &amp; restart</button>}
+                {['available', 'downloaded'].includes(status.state) && (
+                  <button type="button" disabled={busy} onClick={install}>Install update</button>
+                )}
               </div>
             </div>
             <div className="rqk-desktop-maintenance-section">

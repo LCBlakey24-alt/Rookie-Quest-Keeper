@@ -4,7 +4,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { readPackage, hash } = require('./signedProgramPackage');
-const { requireVerifiedUpdateBackup } = require('./updateSafety');
+const { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate } = require('./updateSafety');
 const { stageAppPackage, activateApp, readLastAppResult } = require('./programRelease');
 const pinnedKeys = global.__rqkProgramTrust || require('./programTrust.json');
 const { portableExePath, inspectPortableUpdate, stagePortableUpdate, discardStagedPortableUpdate, launchPortableUpdate, readLastPortableUpdate } = require('./portableProgramUpdate');
@@ -70,7 +70,8 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     message: 'Update ready. Keeper will back up your campaign before installing.',
   }));
   autoUpdater.on('error', () => {
-    busy = false;
+    // Keep the in-progress operation locked until its own finally handler
+    // runs; releasing busy here could allow a second install mid-download.
     announce({ state: 'error', message: 'Update service unavailable or download failed. Your saved campaigns have not been changed.' });
   });
 
@@ -190,22 +191,52 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     }
     return { ...status };
   });
-  ipcMain.handle('rqk:install-update', (event, workspaceRaw) => {
-    if (portable) throw new Error('Back up the USB data and replace the program executable with the newer portable download.');
-    if (status.state !== 'downloaded') throw new Error('Download the new version before installing.');
-    // A failed backup prevents installation. This is intentional.
-    const backup = requireVerifiedUpdateBackup(createSafetyBackup, workspaceRaw);
-    announce({
-      state: 'installing',
-      message: 'Verified campaign backup saved. Installing update and restarting…',
-    });
-    setImmediate(() => {
-      try { autoUpdater.quitAndInstall(false, true); }
-      catch {
-        announce({ state: 'error', message: 'Installer could not start. Your saved campaign backup is still available.' });
+  // Installed-edition updates are a single deliberate action in the UI:
+  // download -> confirmed downloaded event -> verified campaign/media backup
+  // -> ask electron-updater to install after the current app exits.
+  ipcMain.handle('rqk:install-update', async (_event, workspaceRaw) => {
+    if (portable) throw new Error('Portable Keeper uses signed .rqkprogram updates, not the installed Windows updater.');
+    if (!app.isPackaged) throw new Error('Install updates in the signed Windows version of Keeper.');
+    if (busy) throw new Error('Keeper is already preparing an update.');
+    const initialState = status.state;
+    if (!['available', 'downloaded'].includes(initialState)) {
+      throw new Error('Check for a newer published version before installing.');
+    }
+    busy = true;
+    try {
+      const backup = await prepareVerifiedInstalledUpdate({
+        state: initialState,
+        getState: () => status.state,
+        downloadUpdate: async () => {
+          announce({ state: 'downloading', progress: 0, message: 'Downloading the published Keeper update…' });
+          await autoUpdater.downloadUpdate();
+        },
+        createSafetyBackup,
+        workspaceRaw,
+      });
+      announce({
+        state: 'installing',
+        message: 'Verified campaign backup saved. Installing the update and restarting…',
+      });
+      setImmediate(() => {
+        try { autoUpdater.quitAndInstall(false, true); }
+        catch {
+          announce({ state: 'error', message: 'Installer could not start. Your campaign backup is still available.' });
+        }
+      });
+      return { started: true, backup };
+    } catch (error) {
+      // A failed download or snapshot must not close Keeper. If the update
+      // downloaded successfully, keep it ready for a later backup retry.
+      if (status.state === 'downloaded') {
+        announce({ state: 'downloaded', message: 'Update ready, but installation was stopped: ' + String(error?.message || error) });
+      } else {
+        announce({ state: 'error', message: 'Update not installed: ' + String(error?.message || error) });
       }
-    });
-    return { installed: true, backup };
+      throw error;
+    } finally {
+      busy = false;
+    }
   });
 
   // An optional background *check* only. Never downloads or installs without user approval.
