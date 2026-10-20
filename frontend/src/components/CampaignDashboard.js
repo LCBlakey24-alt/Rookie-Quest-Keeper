@@ -588,7 +588,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
 
       {isOfflineDesktop() ? (
         <section className="campaign-home-join-code" data-testid="campaign-home-offline-party">
-          <h3 style={{ margin: '0 0 8px' }}>Offline Party</h3>
+          <h3>Offline Party</h3>
           <p>Your players and sheets are saved on this laptop. Open Players to link existing characters without an internet join code.</p>
           <button type="button" onClick={() => onOpenTab('players')}>Manage offline players</button>
         </section>
