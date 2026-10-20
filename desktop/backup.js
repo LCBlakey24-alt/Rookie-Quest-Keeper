@@ -174,6 +174,41 @@ function validatePortableBackup(directory) {
   return { folder, raw, manifest, attachments };
 }
 
+/**
+ * Read-only migration preview for the one-time transition from the existing
+ * portable Windows Keeper to the installed 0.5.x edition. Do not silently
+ * search a user's OneDrive or copy data until they choose a backup and approve.
+ * validatePortableBackup verifies workspace format and saved media digests.
+ */
+function previewPortableBackup(directory) {
+  const saved = validatePortableBackup(directory);
+  const workspace = checkWorkspace(saved.raw);
+  let mediaFileCount = 0;
+  if (fs.existsSync(saved.attachments)) {
+    function countFiles(folder) {
+      for (const item of fs.readdirSync(folder, { withFileTypes: true })) {
+        if (item.isSymbolicLink()) throw new Error('Backup contains an unsafe media link.');
+        if (item.isDirectory()) countFiles(path.join(folder, item.name));
+        else if (item.isFile()) mediaFileCount += 1;
+        else throw new Error('Backup contains unsupported media.');
+      }
+    }
+    countFiles(saved.attachments);
+  }
+  return {
+    backup_id: saved.manifest.id,
+    created_at: saved.manifest.created_at || null,
+    campaign_count: workspace.campaigns.length,
+    character_count: workspace.characters.length,
+    note_count: workspace.notes.length,
+    media_file_count: mediaFileCount,
+    workspace_sha256: crypto.createHash('sha256').update(saved.raw).digest('hex'),
+    // Older backups can be read, but migration should require fresh
+    // hash-protected exports rather than trusting unauthenticated media.
+    checksummed: Boolean(saved.manifest.sha256),
+  };
+}
+
 function restorePortableBackup(userData, directory, currentRaw) {
   // Validate fully before touching current campaign state.
   const portable = validatePortableBackup(directory);
@@ -186,4 +221,4 @@ function restorePortableBackup(userData, directory, currentRaw) {
   return { workspace: portable.raw, backup: portable.manifest, safety_backup: beforeRestore };
 }
 
-module.exports = { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, restorePortableBackup };
+module.exports = { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, previewPortableBackup, restorePortableBackup };
