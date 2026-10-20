@@ -4,6 +4,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { readPackage, hash } = require('./signedProgramPackage');
+const { requireVerifiedUpdateBackup } = require('./updateSafety');
 const { stageAppPackage, activateApp, readLastAppResult } = require('./programRelease');
 const pinnedKeys = global.__rqkProgramTrust || require('./programTrust.json');
 const { portableExePath, inspectPortableUpdate, stagePortableUpdate, discardStagedPortableUpdate, launchPortableUpdate, readLastPortableUpdate } = require('./portableProgramUpdate');
@@ -22,6 +23,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     state: portable ? 'portable' : 'idle',
     installed_version: app.getVersion(),
     available_version: null,
+    release_notes: null,
     progress: 0,
     message: portable
       ? previousApp?.state === 'rolled_back'
@@ -52,10 +54,11 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
   autoUpdater.on('checking-for-update', () => announce({ state: 'checking', message: 'Checking for a published Windows update…' }));
   autoUpdater.on('update-available', (info) => announce({
     state: 'available', available_version: info.version, progress: 0,
+    release_notes: typeof info.releaseNotes === 'string' ? info.releaseNotes.slice(0, 3000) : null,
     message: `Version ${info.version} is available. Download it when you are ready.`,
   }));
   autoUpdater.on('update-not-available', () => announce({
-    state: 'current', available_version: null, progress: 0, message: 'This version is up to date.',
+    state: 'current', available_version: null, release_notes: null, progress: 0, message: 'This version is up to date.',
   }));
   autoUpdater.on('download-progress', (progress) => announce({
     state: 'downloading',
@@ -124,9 +127,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
       const verified = readPackage(selectedProgram.file_path, pinnedKeys, compatibility());
       if (verified.manifest.sha256 !== selectedProgram.sha256 || verified.manifest.version !== selectedProgram.version) throw new Error('Selected program changed. Select it again.');
       // An absent, invalid or unbacked-up workspace fails the install closed.
-      if (!workspaceRaw) throw new Error('Back up your active campaign workspace before updating.');
-      const backup = createSafetyBackup(workspaceRaw, 'before-update');
-      if (!backup) throw new Error('Could not verify the campaign backup; installation cancelled.');
+      const backup = requireVerifiedUpdateBackup(createSafetyBackup, workspaceRaw);
       if (verified.manifest.kind === 'app') {
         const release = stageAppPackage(selectedProgram.file_path, pinnedKeys, compatibility(), app.getPath('userData'));
         // Relaunch is registered before activation; activation uses one atomic
@@ -193,10 +194,10 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     if (portable) throw new Error('Back up the USB data and replace the program executable with the newer portable download.');
     if (status.state !== 'downloaded') throw new Error('Download the new version before installing.');
     // A failed backup prevents installation. This is intentional.
-    const backup = createSafetyBackup(workspaceRaw, 'before-update');
+    const backup = requireVerifiedUpdateBackup(createSafetyBackup, workspaceRaw);
     announce({
       state: 'installing',
-      message: backup ? 'Campaign backup saved. Installing update and restarting…' : 'No saved campaign yet. Installing update…',
+      message: 'Verified campaign backup saved. Installing update and restarting…',
     });
     setImmediate(() => {
       try { autoUpdater.quitAndInstall(false, true); }
@@ -208,7 +209,14 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
   });
 
   // An optional background *check* only. Never downloads or installs without user approval.
-  if (app.isPackaged && !portable) setTimeout(() => { if (status.state === 'idle') checkForUpdates(); }, 15000);
+  if (app.isPackaged && !portable) {
+    setTimeout(() => { if (status.state === 'idle') checkForUpdates(); }, 15000);
+    // Background checks never trigger download, installation or restart.
+    const timer = setInterval(() => {
+      if (['idle', 'current', 'error'].includes(status.state)) checkForUpdates();
+    }, 6 * 60 * 60 * 1000);
+    timer.unref?.();
+  }
   return { getStatus: () => ({ ...status }) };
 }
 
