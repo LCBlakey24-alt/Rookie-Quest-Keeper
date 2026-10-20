@@ -7,6 +7,8 @@ import {
   Castle,
   ChevronRight,
   Compass,
+  Globe2,
+  MonitorDown,
   NotebookPen,
   ScrollText,
   ShieldCheck,
@@ -15,10 +17,12 @@ import {
   Users,
 } from 'lucide-react';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { publicWindowsInstallerUrl } from './landingDownload';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
 
 const BUTTON_FILL_DELAY_MS = 320;
+const windowsInstallerUrl = publicWindowsInstallerUrl(process.env.REACT_APP_KEEPER_WINDOWS_DOWNLOAD_URL);
 const LANDING_META_DESCRIPTION = 'Rookie Quest Keeper keeps characters, campaigns, session prep, notes, and live table tools together in one refined tabletop workspace.';
 
 const pillars = [
@@ -106,6 +110,10 @@ const faqItems = [
   {
     question: 'Can I use it on my phone or tablet?',
     answer: 'Yes. Mobile and tablet are treated as first-class play surfaces so Keeper remains practical at the table.',
+  },
+  {
+    question: 'Can I use the downloaded version without an account or Wi-Fi?',
+    answer: 'Yes. The Windows desktop edition is offline-first and does not require an account. Online features and optional future cloud sync are separate. Downloads will open after the signed Windows release passes testing.',
   },
   {
     question: 'Does Keeper replace my books or table rulings?',
@@ -326,6 +334,38 @@ export default function LandingPage() {
               <span>20</span><span>12</span><span>8</span>
             </div>
           </aside>
+        </section>
+
+        <section className="rqk-landing-access" aria-labelledby="rqk-access-title">
+          <div className="rqk-landing-access__intro">
+            <p className="landing-kicker">Play your way</p>
+            <h2 id="rqk-access-title">Online or offline. Your adventure.</h2>
+            <p>Choose the browser version, or install Keeper on a Windows laptop for campaigns that work without Wi-Fi.</p>
+          </div>
+          <div className="rqk-landing-access__grid">
+            <article>
+              <Globe2 size={26} aria-hidden="true" />
+              <h3>Use Keeper Online</h3>
+              <p>Sign in to use your online campaign workspace from a browser.</p>
+              <button type="button" className="landing-button landing-button-primary" onClick={goRegister}>
+                Open online Keeper <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </article>
+            <article>
+              <MonitorDown size={26} aria-hidden="true" />
+              <h3>Download for Windows</h3>
+              <p>Install once, no account required. Work with local campaigns and maps offline; get signed updates when connected.</p>
+              {windowsInstallerUrl ? (
+                <a href={windowsInstallerUrl} className="landing-button landing-button-primary">
+                  Download Windows installer <ArrowRight size={16} aria-hidden="true" />
+                </a>
+              ) : (
+                <p className="rqk-landing-access__pending" role="status">
+                  Windows download coming after security and installer testing.
+                </p>
+              )}
+            </article>
+          </div>
         </section>
 
         <section className="landing-pillar-strip" aria-label="Rookie Quest Keeper focus areas">

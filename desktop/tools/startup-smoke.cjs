@@ -21,7 +21,10 @@ function record(type, detail) {
 process.on('uncaughtException', error => { record('uncaught', String(error.stack)); app.exit(1); });
 process.on('unhandledRejection', error => { record('rejection', String(error?.stack || error)); app.exit(1); });
 const timer = setTimeout(() => { record('timeout', 'Renderer did not confirm startup'); app.exit(1); }, 45000);
-app.getVersion = () => '0.4.0';
+const bootstrapVersion = require('../package.json').version;
+const parts = bootstrapVersion.split('.').map(Number);
+const updateVersion = [parts[0], parts[1], parts[2] + 1].join('.');
+app.getVersion = () => bootstrapVersion;
 process.env.PORTABLE_EXECUTABLE_DIR = root;
 const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
 const keys = { smoke: publicKey.export({type:'spki',format:'pem'}) };
@@ -30,11 +33,11 @@ require(desktop + '/programTrust.json');
 require.cache[require.resolve(desktop + '/programTrust.json')].exports = keys;
 const { build } = require('./build-program-package');
 const { stageAppPackage, activateApp, readActive } = require('../programRelease');
-build({kind:'app',input:desktop,output:root,version:'0.4.1',bootstrapMin:'0.4.0',
+build({kind:'app',input:desktop,output:root,version:updateVersion,bootstrapMin:bootstrapVersion,
   electron:process.versions.electron,privateKey,keyId:'smoke'});
 const data = path.join(root,'RookieQuestKeeperData');
-const compat = {currentVersion:'0.4.0',bootstrapVersion:'0.4.0',platform:process.platform,arch:process.arch,electron:process.versions.electron};
-const staged = stageAppPackage(path.join(root,'Keeper-0.4.1.rqkprogram'),keys,compat,data);
+const compat = {currentVersion:bootstrapVersion,bootstrapVersion,platform:process.platform,arch:process.arch,electron:process.versions.electron};
+const staged = stageAppPackage(path.join(root,`Keeper-${updateVersion}.rqkprogram`),keys,compat,data);
 activateApp(data,staged);
 app.on('web-contents-created', (_event, contents) => {
   contents.on('console-message', (_event, details) => record('console', details));

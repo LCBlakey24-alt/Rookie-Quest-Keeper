@@ -35,6 +35,62 @@ describe('offline portable program update controls', () => {
     window.confirm = originalConfirm;
   });
 
+  test('allows a first-run desktop with no saved campaigns to back up an empty workspace before update', async () => {
+    localStorage.removeItem(DESKTOP_STORAGE_KEY);
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'downloaded', installed_version: '0.5.0', available_version: '0.5.1',
+      message: 'Update ready',
+    });
+    desktop.installUpdate = jest.fn().mockResolvedValue({ installed: true });
+
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Review update' }));
+    fireEvent.click(screen.getByRole('button', { name: /Back up, install & restart/ }));
+    await waitFor(() => expect(desktop.installUpdate).toHaveBeenCalledTimes(1));
+    const [raw] = desktop.installUpdate.mock.calls[0];
+    const workspace = JSON.parse(raw);
+    expect(workspace.version).toBe(1);
+    expect(workspace.campaigns).toEqual([]);
+    expect(workspace.characters).toEqual([]);
+  });
+
+  test('notifies users of a published desktop update but never downloads without consent', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'available',
+      installed_version: '0.5.0',
+      available_version: '0.5.1',
+      release_notes: 'Player display fixes',
+      message: 'Version 0.5.1 is available.',
+    });
+    desktop.downloadUpdate = jest.fn().mockResolvedValue({});
+    desktop.installUpdate = jest.fn().mockResolvedValue({ installed: true });
+
+    render(<DesktopMaintenance />);
+    expect(await screen.findByText(/Rookie Quest Keeper 0.5.1 is available/)).toBeInTheDocument();
+    expect(desktop.downloadUpdate).not.toHaveBeenCalled();
+    expect(desktop.installUpdate).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Review update' }));
+    expect(screen.getByText(/Player display fixes/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Download update' }));
+    await waitFor(() => expect(desktop.downloadUpdate).toHaveBeenCalledTimes(1));
+    expect(desktop.installUpdate).not.toHaveBeenCalled();
+  });
+
+  test('Later dismisses update notification for this session without downloading', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'available', installed_version: '0.5.0', available_version: '0.5.1',
+      message: 'Update available',
+    });
+    desktop.downloadUpdate = jest.fn();
+
+    render(<DesktopMaintenance />);
+    expect(await screen.findByRole('button', { name: 'Later' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Later' }));
+    expect(screen.queryByRole('button', { name: 'Review update' })).not.toBeInTheDocument();
+    expect(desktop.downloadUpdate).not.toHaveBeenCalled();
+  });
+
   test('keeps full-program updates distinct from campaign imports and backups', async () => {
     render(<DesktopMaintenance />);
     fireEvent.click(screen.getByRole('button', { name: /Updates & backups/i }));
