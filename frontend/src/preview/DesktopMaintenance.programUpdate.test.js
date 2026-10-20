@@ -35,6 +35,25 @@ describe('offline portable program update controls', () => {
     window.confirm = originalConfirm;
   });
 
+  test('allows a first-run desktop with no saved campaigns to back up an empty workspace before update', async () => {
+    localStorage.removeItem(DESKTOP_STORAGE_KEY);
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'downloaded', installed_version: '0.5.0', available_version: '0.5.1',
+      message: 'Update ready',
+    });
+    desktop.installUpdate = jest.fn().mockResolvedValue({ installed: true });
+
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Review update' }));
+    fireEvent.click(screen.getByRole('button', { name: /Back up, install & restart/ }));
+    await waitFor(() => expect(desktop.installUpdate).toHaveBeenCalledTimes(1));
+    const [raw] = desktop.installUpdate.mock.calls[0];
+    const workspace = JSON.parse(raw);
+    expect(workspace.version).toBe(1);
+    expect(workspace.campaigns).toEqual([]);
+    expect(workspace.characters).toEqual([]);
+  });
+
   test('notifies users of a published desktop update but never downloads without consent', async () => {
     desktop.getUpdateStatus.mockResolvedValue({
       state: 'available',
