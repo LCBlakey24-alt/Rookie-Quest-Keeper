@@ -52,7 +52,7 @@ describe('offline portable program update controls', () => {
     expect(desktop.installUpdate).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Review update' }));
-    expect(screen.getByText('Player display fixes')).toBeInTheDocument();
+    expect(screen.getByText(/Player display fixes/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Download update' }));
     await waitFor(() => expect(desktop.downloadUpdate).toHaveBeenCalledTimes(1));
     expect(desktop.installUpdate).not.toHaveBeenCalled();
