@@ -8,9 +8,11 @@ the same Windows account that owns the protected signing key.
 ## From a ChatGPT change request to an installable update
 
 1. Prepare and review the changes on the correct GitHub branch. The working
-   0.4.3 line comes from PR #575; proposed 0.4.4 follows PR #576, which is
-   stacked on #575, which is stacked on #573 (the updater). **Do not build a
-   release from old `main` while that chain is unmerged.**
+   offline update chain starts at PR #573 (the updater), then #575 (0.4.3),
+   #576 (0.4.4), #577 (0.4.5) and #578 (proposed 0.4.6). **Do not build
+   from old `main` while that chain is unmerged.** PR #579's public 0.5.0
+   installer has separate signing/migration gates; do not use this legacy
+   app-package publisher for that public Windows installer.
 2. Confirm Windows CI and its offline startup smoke test pass at the **exact
    reviewed commit**. This is necessary, but not a substitute for a real
    laptop test and a complete backup.
@@ -21,7 +23,7 @@ the same Windows account that owns the protected signing key.
    the renderer and the pinned public trust file.
 4. Make sure Node.js is installed. On the release-owner's Windows laptop,
    double-click `PUBLISH-KEEPER-UPDATE.cmd`. Enter the new version
-   (e.g. `0.4.4`), the location of the **existing** DPAPI-protected
+   (e.g. `0.4.6`, after approval), the location of the **existing** DPAPI-protected
    signing key, and the existing OneDrive
    `Documents/DND/02 Rookie Quest/Rookie Quest Keeper/Updates/Program Updates`
    folder (use the actual synced Windows filesystem path).
@@ -29,7 +31,8 @@ the same Windows account that owns the protected signing key.
    public key, builds a signed `.rqkprogram` and `.rqkpart`, verifies
    their complete contents, copies the parts first and descriptor last to
    a **new version folder** in OneDrive, then verifies the copied package.
-   An existing version folder is never overwritten.
+   An existing version folder is never overwritten; the publisher also refuses
+   duplicate version descriptors already staged under descriptive folder names.
 6. Wait until OneDrive shows every file fully synced and available locally.
    Before installation, back up the Keeper data folder separately. In the
    current **Windows laptop** Keeper, choose
@@ -63,7 +66,7 @@ the same Windows account that owns the protected signing key.
 Manual command, from the extracted `desktop` directory:
 
 ```powershell
-node tools/publish-signed-program.js 0.4.4 "C:\path\to\your\protected-key-file" "C:\path\to\Rookie Quest Keeper\Updates\Program Updates"
+node tools/publish-signed-program.js 0.4.6 "C:\path\to\your\protected-key-file" "C:\path\to\Rookie Quest Keeper\Updates\Program Updates"
 ```
 
 The path to the signing key must be the user's pre-existing local key path,
