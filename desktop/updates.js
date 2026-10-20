@@ -70,7 +70,8 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
     message: 'Update ready. Keeper will back up your campaign before installing.',
   }));
   autoUpdater.on('error', () => {
-    busy = false;
+    // Keep the in-progress operation locked until its own finally handler
+    // runs; releasing busy here could allow a second install mid-download.
     announce({ state: 'error', message: 'Update service unavailable or download failed. Your saved campaigns have not been changed.' });
   });
 
