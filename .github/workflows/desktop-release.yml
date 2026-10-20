@@ -105,7 +105,7 @@ jobs:
           npx electron-builder --win nsis --x64 --publish never "--config.win.publisherName=$env:RQK_WINDOWS_PUBLISHER"
           if ($LASTEXITCODE -ne 0) { throw "Signed NSIS build failed." }
 
-      - name: Build signed Windows portable edition
+      - name: Build signed Windows portable edition for QA only
         working-directory: desktop
         shell: pwsh
         env:
@@ -136,6 +136,7 @@ jobs:
           }
 
       # Keep the release as a draft until a human tests install/update/rollback.
+      # Offer only the auto-updatable signed installer; portable builds remain QA artifacts.
       # Only VERIFIED binaries and manifest assets reach the GitHub release.
       - name: Upload verified files to DRAFT GitHub release
         shell: pwsh
@@ -144,7 +145,8 @@ jobs:
         run: |
           $tag = "${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
           $assets = @(Get-ChildItem desktop/dist -File | Where-Object {
-            $_.Extension -eq '.exe' -or $_.Extension -eq '.blockmap' -or $_.Name -eq 'latest.yml'
+            $_.Name -eq 'latest.yml' -or
+            (($_.Extension -eq '.exe' -or $_.Extension -eq '.blockmap') -and $_.Name -notlike '*Portable*')
           } | ForEach-Object { $_.FullName })
           $existing = gh release view "$tag" --json isDraft --jq .isDraft 2>$null
           if ($LASTEXITCODE -eq 0) {
