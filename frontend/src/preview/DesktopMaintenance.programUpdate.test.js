@@ -35,6 +35,43 @@ describe('offline portable program update controls', () => {
     window.confirm = originalConfirm;
   });
 
+  test('notifies users of a published desktop update but never downloads without consent', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'available',
+      installed_version: '0.5.0',
+      available_version: '0.5.1',
+      release_notes: 'Player display fixes',
+      message: 'Version 0.5.1 is available.',
+    });
+    desktop.downloadUpdate = jest.fn().mockResolvedValue({});
+    desktop.installUpdate = jest.fn().mockResolvedValue({ installed: true });
+
+    render(<DesktopMaintenance />);
+    expect(await screen.findByText(/Rookie Quest Keeper 0.5.1 is available/)).toBeInTheDocument();
+    expect(desktop.downloadUpdate).not.toHaveBeenCalled();
+    expect(desktop.installUpdate).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Review update' }));
+    expect(screen.getByText('Player display fixes')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Download update' }));
+    await waitFor(() => expect(desktop.downloadUpdate).toHaveBeenCalledTimes(1));
+    expect(desktop.installUpdate).not.toHaveBeenCalled();
+  });
+
+  test('Later dismisses update notification for this session without downloading', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({
+      state: 'available', installed_version: '0.5.0', available_version: '0.5.1',
+      message: 'Update available',
+    });
+    desktop.downloadUpdate = jest.fn();
+
+    render(<DesktopMaintenance />);
+    expect(await screen.findByRole('button', { name: 'Later' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Later' }));
+    expect(screen.queryByRole('button', { name: 'Review update' })).not.toBeInTheDocument();
+    expect(desktop.downloadUpdate).not.toHaveBeenCalled();
+  });
+
   test('keeps full-program updates distinct from campaign imports and backups', async () => {
     render(<DesktopMaintenance />);
     fireEvent.click(screen.getByRole('button', { name: /Updates & backups/i }));
