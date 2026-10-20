@@ -76,25 +76,84 @@ jobs:
         working-directory: desktop
         run: npm test
 
-      - name: Publish Windows installer and update manifest to a DRAFT GitHub Release
-        working-directory: desktop
+      # Configure these as protected GitHub Actions settings before releasing:
+      # Secrets: RQK_WINDOWS_CERT_PFX, RQK_WINDOWS_CERT_PASSWORD
+      # Variable: RQK_WINDOWS_PUBLISHER (exact certificate common name).
+      # PR builds NEVER receive these signing secrets.
+      - name: Require approved Windows release signing
+        shell: pwsh
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run release:win
+          CSC_LINK: ${{ secrets.RQK_WINDOWS_CERT_PFX }}
+          CSC_KEY_PASSWORD: ${{ secrets.RQK_WINDOWS_CERT_PASSWORD }}
+          RQK_WINDOWS_PUBLISHER: ${{ vars.RQK_WINDOWS_PUBLISHER }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CSC_LINK) -or [string]::IsNullOrWhiteSpace($env:CSC_KEY_PASSWORD)) {
+            throw "Signing certificate secrets are not configured. Refusing an unsigned public release."
+          }
+          if ([string]::IsNullOrWhiteSpace($env:RQK_WINDOWS_PUBLISHER)) {
+            throw "RQK_WINDOWS_PUBLISHER is missing. Refusing to build an update without a pinned publisher."
+          }
 
-      - name: Build USB portable Windows executable
+      - name: Build signed Windows installer
         working-directory: desktop
-        run: npm run dist:portable
+        shell: pwsh
+        env:
+          CSC_LINK: ${{ secrets.RQK_WINDOWS_CERT_PFX }}
+          CSC_KEY_PASSWORD: ${{ secrets.RQK_WINDOWS_CERT_PASSWORD }}
+          RQK_WINDOWS_PUBLISHER: ${{ vars.RQK_WINDOWS_PUBLISHER }}
+        run: |
+          npx electron-builder --win nsis --x64 --publish never "--config.win.publisherName=$env:RQK_WINDOWS_PUBLISHER"
+          if ($LASTEXITCODE -ne 0) { throw "Signed NSIS build failed." }
 
-      - name: Attach USB portable executable to DRAFT release
+      - name: Build signed Windows portable edition
+        working-directory: desktop
+        shell: pwsh
+        env:
+          CSC_LINK: ${{ secrets.RQK_WINDOWS_CERT_PFX }}
+          CSC_KEY_PASSWORD: ${{ secrets.RQK_WINDOWS_CERT_PASSWORD }}
+        run: |
+          npm run dist:portable
+          if ($LASTEXITCODE -ne 0) { throw "Signed portable build failed." }
+
+      - name: Verify every Windows executable and release manifest
+        shell: pwsh
+        env:
+          RQK_WINDOWS_PUBLISHER: ${{ vars.RQK_WINDOWS_PUBLISHER }}
+        run: |
+          $executables = @(Get-ChildItem desktop/dist -Filter '*.exe')
+          if ($executables.Count -lt 2) { throw "Expected signed setup and portable executables." }
+          if (-not (Test-Path desktop/dist/latest.yml)) { throw "Missing Windows update manifest latest.yml." }
+          foreach ($file in $executables) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
+            if ($signature.Status -ne 'Valid' -or -not $signature.SignerCertificate) {
+              throw "Unsigned or untrusted Windows release binary: $($file.Name)"
+            }
+            $publisher = $signature.SignerCertificate.GetNameInfo(
+              [System.Security.Cryptography.X509Certificates.X509NameType]::SimpleName, $false)
+            if ($publisher -cne $env:RQK_WINDOWS_PUBLISHER) {
+              throw "Release publisher does not match the approved Windows signer: $($file.Name)"
+            }
+          }
+
+      # Keep the release as a draft until a human tests install/update/rollback.
+      # Only VERIFIED binaries and manifest assets reach the GitHub release.
+      - name: Upload verified files to DRAFT GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $tag = "${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
-          $portable = Get-ChildItem desktop/dist -Filter '*Portable*.exe' | Select-Object -First 1
-          if (-not $portable) { throw "Portable Windows executable was not produced." }
-          gh release upload $tag $portable.FullName --clobber
+          $assets = @(Get-ChildItem desktop/dist -File | Where-Object {
+            $_.Extension -eq '.exe' -or $_.Extension -eq '.blockmap' -or $_.Name -eq 'latest.yml'
+          } | ForEach-Object { $_.FullName })
+          $existing = gh release view "$tag" --json isDraft --jq .isDraft 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            if ($existing -ne 'true') { throw "Refusing to replace files on a published release." }
+            gh release upload "$tag" @assets --clobber
+          } else {
+            gh release create "$tag" @assets --draft --title "Rookie Quest Keeper $tag"
+          }
+          if ($LASTEXITCODE -ne 0) { throw "Failed to create verified draft release." }
 
       - name: Keep a private-to-workflow artifact for review
         uses: actions/upload-artifact@v4
@@ -103,5 +162,6 @@ jobs:
           path: |
             desktop/dist/*.exe
             desktop/dist/*.yml
+            desktop/dist/*.blockmap
           retention-days: 14
           if-no-files-found: error
