@@ -2,7 +2,7 @@ const { app, BrowserWindow, dialog, ipcMain, net, protocol, shell, screen } = re
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
-const { createBackup, listBackups, restoreBackup, exportPortableBackup, restorePortableBackup } = require('./backup');
+const { createBackup, listBackups, restoreBackup, exportPortableBackup, previewPortableBackup, restorePortableBackup } = require('./backup');
 const { registerDesktopUpdater } = require('./updates');
 const { isSafePlayerDisplayUrl, playerDisplayBounds } = require('./playerDisplayWindow');
 const { preparePortableStorage } = require('./portable');
@@ -289,6 +289,45 @@ app.whenReady().then(async () => {
     if (choice.canceled || !choice.filePaths?.[0]) return { canceled: true };
     return { canceled: false, ...restorePortableBackup(app.getPath('userData'), choice.filePaths[0], currentRaw) };
   });
+  // A one-time, explicit import into the installed edition. The old
+  // OneDrive/portable folder is never modified, and no automatic scanning
+  // or automatic first-run migration takes place.
+  let pendingOlderKeeperMigration = null;
+  ipcMain.handle('rqk:preview-older-keeper-backup', async () => {
+    if (portableStorage) throw new Error('Use this migration option in the new installed Windows Keeper.');
+    pendingOlderKeeperMigration = null;
+    const choice = await dialog.showOpenDialog({
+      title: 'Select a backup exported from your earlier Keeper',
+      properties: ['openDirectory'],
+    });
+    if (choice.canceled || !choice.filePaths?.[0]) return { canceled: true };
+    const folder = choice.filePaths[0];
+    const preview = previewPortableBackup(folder);
+    if (!preview.checksummed) {
+      throw new Error('This old backup has no complete file checksums. Export a fresh backup from your earlier Keeper, then try again.');
+    }
+    pendingOlderKeeperMigration = {
+      folder, backup_id: preview.backup_id, workspace_sha256: preview.workspace_sha256,
+    };
+    return { canceled: false, ...preview };
+  });
+  ipcMain.handle('rqk:import-older-keeper-backup', (_event, currentWorkspaceRaw) => {
+    if (portableStorage) throw new Error('Use the installed Windows Keeper for migration.');
+    if (!pendingOlderKeeperMigration) throw new Error('Choose and inspect an older Keeper backup first.');
+    const chosen = pendingOlderKeeperMigration;
+    // Revalidate immediately before import: OneDrive can replace a selected
+    // folder's content between preview and the user's approval.
+    const again = previewPortableBackup(chosen.folder);
+    if (!again.checksummed || again.backup_id !== chosen.backup_id
+        || again.workspace_sha256 !== chosen.workspace_sha256) {
+      pendingOlderKeeperMigration = null;
+      throw new Error('The selected backup changed since inspection. Choose and review it again.');
+    }
+    const result = restorePortableBackup(app.getPath('userData'), chosen.folder, currentWorkspaceRaw);
+    pendingOlderKeeperMigration = null;
+    return { canceled: false, ...result };
+  });
+
   registerDesktopUpdater({
     app, ipcMain, BrowserWindow, dialog, portable: Boolean(portableStorage),
     portableRoot: portableStorage ? path.dirname(portableStorage.dataRoot) : null,
