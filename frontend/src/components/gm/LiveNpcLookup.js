@@ -192,7 +192,15 @@ export default function LiveNpcLookup({ campaignId }) {
       )}
 
       <div style={listStyle}>
-        {filtered.length === 0 && <div style={emptyStyle}>{loadWarning ? 'No matching NPCs in the last known data.' : 'No matching NPCs.'}</div>}
+        {filtered.length === 0 && (
+          <div style={emptyStyle} data-testid="live-npc-empty-message">
+            {loadWarning && npcs.length === 0
+              ? 'Keeper could not load this campaign\'s NPC list. A loading problem does not mean your NPCs were deleted. Please press Refresh and check the warning above.'
+              : npcs.length > 0
+                ? 'No NPCs match this search. Clear the search to show your full roster.'
+                : 'No NPCs are currently available in this view.'}
+          </div>
+        )}
         {filtered.map(npc => {
           const open = expandedId === npc.id;
           const travelling = companionIds.includes(npc.id);
