@@ -889,3 +889,49 @@
     animation: none !important;
   }
 }
+
+/* Urgent usability repair: sign-in is an actual centred form, not a large hero.
+   Other auth modes keep their existing explanations. */
+#root .rqk-auth-page--login {
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh !important;
+  padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+}
+#root .rqk-auth-page--login .rqk-auth-shell {
+  width: min(430px, 100%) !important;
+  min-height: 0 !important;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#root .rqk-auth-page--login .rqk-auth-layout {
+  width: 100%;
+  min-height: 0 !important;
+  display: block !important;
+}
+#root .rqk-auth-page--login .rqk-auth-hero,
+#root .rqk-auth-page--login .rqk-auth-next-steps,
+#root .rqk-auth-page--login .rqk-auth-trust-row {
+  display: none !important;
+}
+#root .rqk-auth-page--login .rqk-auth-brand {
+  justify-self: center;
+  align-self: center;
+}
+#root .rqk-auth-page--login .rqk-auth-card {
+  width: 100%;
+  min-width: 0;
+}
+#root .rqk-auth-page--login .rqk-auth-heading {
+  margin-bottom: 14px;
+}
+@media (max-height: 720px) {
+  #root .rqk-auth-page--login {
+    align-items: flex-start;
+  }
+  #root .rqk-auth-page--login .rqk-auth-shell {
+    margin-top: 0;
+  }
+}
