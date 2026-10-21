@@ -1,7 +1,7 @@
 /**
  * Tia-Karta calendar, sourced from the active Eldritch Heralds 592 PC
  * wall calendar / Calendar Reference tab (October 2026).
- * The working date was explicitly corrected from 17 to 24 Dawnseed.
+ * The newer 25 Dawnseed, 592 PC OneDrive source supersedes the old 24 Dawnseed snapshot.
  */
 export const TIA_KARTA_MONTHS = [
   ['Dawnseed', 'Greenwake'], ['Rainmoot', 'Greenwake'],
@@ -12,7 +12,7 @@ export const TIA_KARTA_MONTHS = [
   ['Longnight', 'Frostdeep'], ['Thawrest', 'Frostdeep'],
 ].map(([name, season]) => ({ name, days: 30, season }));
 
-export const TIA_KARTA_CURRENT_DATE = { current_day: 24, current_month: 1, current_year: 592 };
+export const TIA_KARTA_CURRENT_DATE = { current_day: 25, current_month: 1, current_year: 592 };
 export const TIA_KARTA_DAYS_PER_WEEK = 6;
 
 export const TIA_KARTA_REFERENCE_EVENTS = [
