@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '@/lib/apiClient';
 import NpcCompactStatBlock from '@/components/gm/NpcCompactStatBlock';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ function NPCsTab({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const activeCampaignRef = useRef(campaignId);
   const [showDialog, setShowDialog] = useState(false);
   const [editingNPC, setEditingNPC] = useState(null);
   const [deletingNPC, setDeletingNPC] = useState(null);
@@ -54,19 +55,28 @@ function NPCsTab({ campaignId }) {
   const [lastGenerated, setLastGenerated] = useState(null);
 
   useEffect(() => {
+    // A campaign change must never display records from the previous party.
+    activeCampaignRef.current = campaignId;
+    setNpcs([]);
+    setLoadError(false);
+    setLoading(true);
     fetchNPCs();
   }, [campaignId]);
 
   const fetchNPCs = async () => {
+    const requestedCampaign = campaignId;
     try {
-      const response = await apiClient.get(`/campaigns/${campaignId}/npcs`);
-      setNpcs(Array.isArray(response.data) ? response.data : []);
+      const response = await apiClient.get(`/campaigns/${requestedCampaign}/npcs`);
+      if (activeCampaignRef.current !== requestedCampaign) return;
+      if (!Array.isArray(response.data)) throw new Error('Invalid NPC response');
+      setNpcs(response.data);
       setLoadError(false);
     } catch (error) {
+      if (activeCampaignRef.current !== requestedCampaign) return;
       setLoadError(true);
       toast.error('Could not load NPCs. Your saved records have not been deleted.');
     } finally {
-      setLoading(false);
+      if (activeCampaignRef.current === requestedCampaign) setLoading(false);
     }
   };
 
