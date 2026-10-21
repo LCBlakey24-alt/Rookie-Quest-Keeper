@@ -21,7 +21,7 @@ describe('GM NPC roster on small screens', () => {
     const css = source('./NPCsTab.css');
     expect(css).toContain('@media (max-width: 719px)');
     expect(css).toContain('grid-template-columns: 40px minmax(0, 1fr) auto !important');
-    expect(css).toContain('min-width: 40px !important');
+    expect(css).toContain('min-width: 44px !important');
     expect(css).toContain('min-height: 0 !important');
     expect(css).toContain('.rqk-npcs-roster-grid > .ai-assistant-panel');
   });
