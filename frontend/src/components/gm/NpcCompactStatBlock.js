@@ -119,6 +119,7 @@ function ActionList({ title, items, onRoll, combatReady }) {
 
 export default function NpcCompactStatBlock({ npc = {} }) {
   const [lastRoll, setLastRoll] = useState('');
+  const [notesExpanded, setNotesExpanded] = useState(true);
   const unverified = npc.combat_ready === false;
   const estimatedLegacy = npc.source === 'legacy-reference';
   const stats = unverified ? {} : (npc.stats || npc.ability_scores || {});
@@ -231,7 +232,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       {!allActions && !spells && <p className="rqk-stat-block__empty">No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
       {lastRoll && <output role="status" aria-live="polite" className="rqk-stat-block__roll-result" data-testid="stat-block-roll-result">{lastRoll}</output>}
       {lore.length > 0 && (
-        <details className="rqk-stat-block__notes" open={undefined} defaultOpen>
+        <details className="rqk-stat-block__notes" open={notesExpanded} onToggle={event => setNotesExpanded(event.currentTarget.open)}>
           <summary>GM notes & story details</summary>
           {lore.map(([title, value]) => (
             <div key={title}><h3 className="rqk-stat-block__note-label">{title}</h3><p className="rqk-stat-block__note-text">{String(value)}</p></div>
