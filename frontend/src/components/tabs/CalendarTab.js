@@ -64,8 +64,15 @@ export default function CalendarTab({ campaignId }) {
     setApplyingTiaKarta(true);
     try {
       await apiClient.put(`/campaigns/${campaignId}/calendar`, tiaKartaCalendar(campaignId, calendar));
+      // Friday campaign milestones must not be written into Wednesday's
+      // independent history. Only confirmed shared-world events are universal.
+      const campaignRes = await apiClient.get(`/campaigns/${campaignId}`);
+      const isWednesday = /spilsby\\s+wednesday/i.test(String(campaignRes.data?.name || ''));
+      const referenceEvents = isWednesday
+        ? TIA_KARTA_REFERENCE_EVENTS.filter(event => event.id === 'tk-calendar-crowns')
+        : TIA_KARTA_REFERENCE_EVENTS;
       const existingKeys = new Set(events.map(event => `${event.name}|${event.day}|${event.month}|${event.year}`));
-      for (const event of TIA_KARTA_REFERENCE_EVENTS) {
+      for (const event of referenceEvents) {
         const key = `${event.name}|${event.day}|${event.month}|${event.year}`;
         if (!existingKeys.has(key)) {
           await apiClient.post(`/campaigns/${campaignId}/calendar-events`, {
