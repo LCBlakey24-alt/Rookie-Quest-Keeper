@@ -122,7 +122,9 @@ export default function NpcCompactStatBlock({ npc = {} }) {
   const [notesExpanded, setNotesExpanded] = useState(true);
   const unverified = npc.combat_ready === false;
   const estimatedLegacy = npc.source === 'legacy-reference';
-  const stats = unverified ? {} : (npc.stats || npc.ability_scores || {});
+  // Show ability scores that are present in source records even for draft NPCs.
+  // Combat dice stay disabled until a GM verifies the full stat block.
+  const stats = npc.stats || npc.ability_scores || {};
   const attacks = Array.isArray(npc.attacks) ? npc.attacks : [];
   const actions = Array.isArray(npc.actions) ? npc.actions : [];
   const specialAbilities = Array.isArray(npc.special_abilities)
@@ -187,7 +189,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       </div>
 
       <div className="rqk-stat-block__abilities" aria-label="Ability scores">
-        {ABILITIES.map(([title, field]) => <AbilityBox key={field} title={title} score={unverified ? null : (stats[field] ?? npc[field])} />)}
+        {ABILITIES.map(([title, field]) => <AbilityBox key={field} title={title} score={stats[field] ?? npc[field]} />)}
       </div>
 
       <div className="rqk-stat-block__metadata" aria-label="Other statistics">
