@@ -768,3 +768,12 @@
     grid-column: auto !important;
   }
 }
+
+/* On phones the GM header should scroll with the page. The old sticky header
+   overlapped the NPC add/search controls after even a short scroll. */
+@media (max-width: 719px) {
+  #root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-header {
+    position: static !important;
+    top: auto !important;
+  }
+}
