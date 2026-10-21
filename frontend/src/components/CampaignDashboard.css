@@ -777,3 +777,14 @@
     top: auto !important;
   }
 }
+
+@media (max-width: 719px) {
+  #root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .campaign-button-primary {
+    width: 44px !important;
+    min-width: 44px !important;
+    padding: 0 !important;
+  }
+  #root .rqk-app-shell[data-rq-device='mobile'] .campaign-live-play-label {
+    display: none !important;
+  }
+}
