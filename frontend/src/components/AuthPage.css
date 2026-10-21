@@ -935,3 +935,34 @@
     margin-top: 0;
   }
 }
+
+/* Urgent 21 Oct 2026: login is a single centred, above-the-fold form.
+   Keep registration/recovery layouts unchanged. */
+.rqk-auth-page--login { align-items: center !important; min-height: 100dvh !important; }
+.rqk-auth-page--login .rqk-auth-shell {
+  width: min(100%, 460px) !important;
+  min-height: 0 !important;
+  margin: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+.rqk-auth-page--login .rqk-auth-layout {
+  min-height: 0 !important;
+  display: block !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.rqk-auth-page--login .rqk-auth-hero,
+.rqk-auth-page--login .rqk-auth-ambient,
+.rqk-auth-page--login .rqk-auth-assurance { display: none !important; }
+.rqk-auth-page--login .rqk-auth-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 460px !important;
+}
+.rqk-auth-page--login .rqk-auth-footer { margin: 0 !important; text-align: center !important; }
+@media (max-width: 520px) {
+  .rqk-auth-page--login { padding: 12px !important; }
+  .rqk-auth-page--login .rqk-auth-shell { width: 100% !important; }
+}
