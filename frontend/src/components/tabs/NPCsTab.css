@@ -83,10 +83,10 @@
   #root .rqk-npc-card-actions button {
     display: grid !important;
     place-items: center !important;
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
     padding: 0 !important;
     margin: 0 !important;
   }
