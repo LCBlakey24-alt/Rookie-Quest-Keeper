@@ -4,7 +4,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { readPackage, hash } = require('./signedProgramPackage');
-const { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate,
+const { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate, readUpdateWorkspace,
   recordInstalledUpdateAttempt, readInstalledUpdateAttempt } = require('./updateSafety');
 const { stageAppPackage, activateApp, readLastAppResult } = require('./programRelease');
 const pinnedKeys = global.__rqkProgramTrust || require('./programTrust.json');
@@ -12,7 +12,7 @@ const { portableExePath, inspectPortableUpdate, stagePortableUpdate, discardStag
 
 // Updates are offered, never installed without an explicit click.
 // The installed Electron app reads the GitHub provider from app-update.yml.
-function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableRoot = null, createSafetyBackup, getCurrentWorkspaceRaw, portable = false }) {
+function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableRoot = null, createSafetyBackup, getCurrentWorkspaceRaw, getCurrentWorkspaceSnapshot, portable = false }) {
   const runningPortableExe = portable ? portableExePath(portableRoot) : null;
   const previousInstall = portable ? readLastPortableUpdate(app.getPath('userData')) : null;
   const previousApp = portable ? readLastAppResult(app.getPath('userData')) : null;
@@ -44,6 +44,16 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
           : 'Ready to check for updates.',
   };
   let busy = false;
+
+  function workspaceReaders(event, workspaceRaw) {
+    return {
+      workspaceRaw,
+      getCurrentWorkspaceSnapshot: typeof getCurrentWorkspaceSnapshot === 'function'
+        ? () => getCurrentWorkspaceSnapshot(event, workspaceRaw) : undefined,
+      getCurrentWorkspaceRaw: typeof getCurrentWorkspaceRaw === 'function'
+        ? () => getCurrentWorkspaceRaw(event, workspaceRaw) : undefined,
+    };
+  }
 
   function announce(patch) {
     Object.assign(status, patch);
@@ -136,7 +146,8 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
       const verified = readPackage(selectedProgram.file_path, pinnedKeys, compatibility());
       if (verified.manifest.sha256 !== selectedProgram.sha256 || verified.manifest.version !== selectedProgram.version) throw new Error('Selected program changed. Select it again.');
       // An absent, invalid or unbacked-up workspace fails the install closed.
-      const backup = requireVerifiedUpdateBackup(createSafetyBackup, workspaceRaw);
+      const current = await readUpdateWorkspace(workspaceReaders(_event, workspaceRaw));
+      const backup = requireVerifiedUpdateBackup(createSafetyBackup, current.workspace, current.browserStorage);
       if (verified.manifest.kind === 'app') {
         const release = stageAppPackage(selectedProgram.file_path, pinnedKeys, compatibility(), app.getPath('userData'));
         // Relaunch is registered before activation; activation uses one atomic
@@ -220,10 +231,7 @@ function registerDesktopUpdater({ app, ipcMain, BrowserWindow, dialog, portableR
           await autoUpdater.downloadUpdate();
         },
         createSafetyBackup,
-        workspaceRaw,
-        getCurrentWorkspaceRaw: typeof getCurrentWorkspaceRaw === 'function'
-          ? () => getCurrentWorkspaceRaw(_event, workspaceRaw)
-          : undefined,
+        ...workspaceReaders(_event, workspaceRaw),
       });
       const installVersion = status.available_version;
       recordInstalledUpdateAttempt(app.getPath('userData'), {

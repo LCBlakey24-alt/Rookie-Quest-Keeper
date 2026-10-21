@@ -150,6 +150,34 @@ describe('offline portable program update controls', () => {
     expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
   });
 
+  test('copied-profile preparation previews supplemental records without importing them', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({ state: 'current', installed_version: '0.5.0' });
+    desktop.prepareCopiedProfileBackup = jest.fn().mockResolvedValue({
+      canceled: false, checksummed: true, campaign_count: 2, character_count: 4, note_count: 7, media_file_count: 12,
+      browser_storage_available: true, browser_storage_key_count: 15,
+    });
+    desktop.importOlderKeeperBackup = jest.fn();
+    window.confirm = jest.fn(() => false);
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: /Updates & backups/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Prepare backup from copied old data folder/i }));
+    expect(await screen.findByTestId('older-keeper-migration-preview')).toHaveTextContent('15 supported browser record(s)');
+    expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Import into this Keeper/i }));
+    expect(window.confirm).toHaveBeenCalledTimes(1);
+    expect(desktop.importOlderKeeperBackup).not.toHaveBeenCalled();
+  });
+
+  test('cancelled copied-profile preparation does not offer an import', async () => {
+    desktop.getUpdateStatus.mockResolvedValue({ state: 'current', installed_version: '0.5.0' });
+    desktop.prepareCopiedProfileBackup = jest.fn().mockResolvedValue({ canceled: true });
+    render(<DesktopMaintenance />);
+    fireEvent.click(await screen.findByRole('button', { name: /Updates & backups/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Prepare backup from copied old data folder/i }));
+    await waitFor(() => expect(desktop.prepareCopiedProfileBackup).toHaveBeenCalledTimes(1));
+    expect(screen.queryByTestId('older-keeper-migration-preview')).not.toBeInTheDocument();
+  });
+
   test('recovery guidance remains visible after a normal update check replaces the message', async () => {
     const recovery = { recovery_backup_id: 'snapshot-1792500000000-deadbeef', previous_install_state: 'incomplete' };
     let updateStatus;

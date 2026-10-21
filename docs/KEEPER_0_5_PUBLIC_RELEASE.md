@@ -52,6 +52,14 @@ trusted app separately and import a tested backup. Never delete their
 
 ## One-time migration from existing 0.4.x Windows Keeper
 
+The release follow-up now supports a more complete migration backup from a
+closed copy of `RookieQuestKeeperData`, including supported browser-only records.
+Use **Prepare backup from copied old data folder** in the new installed edition
+and follow [the copied-profile procedure](KEEPER_0_5_MIGRATION.md). Ordinary old
+exports still omit that supplemental data; the preview reports this explicitly.
+New exports and automatic before-update snapshots include supported browser
+records alongside the saved workspace and imported pack media.
+
 The user's existing working 0.4.x portable bootstrap is **not** replaced or
 automatically trusted by the new 0.5.0 Windows installer. A newly installed
 copy has a different Electron user-data location. Showing an empty campaign
@@ -85,10 +93,11 @@ library in the new edition does not mean the old campaigns were deleted.
    Verify specific records (not just the headline counts). Test offline
    startup and recovery before switching to the new shortcut.
 
-Scope caveat: this migrates **Keeper workspace data and imported media**.
-Chromium profile state, window placement, preferences stored under other
-browser-storage keys, external Google/OneDrive-linked files and unrelated
-settings are *not* in this portable backup and require separate validation.
+Scope caveat: old exports migrate **Keeper workspace data and imported media**;
+new complete exports also include explicitly supported browser-storage records.
+Whole Chromium profiles, window placement, unknown browser keys, external
+Google/OneDrive-linked files and unrelated settings are excluded and require
+separate validation.
 No auto migration, account creation, cloud upload or live-data overwrite is
 performed in CI. Synthetic fixture tests do not replace a real laptop trial.
 

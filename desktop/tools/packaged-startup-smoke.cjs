@@ -10,9 +10,18 @@ const { spawn } = require('node:child_process');
 const assert = require('node:assert/strict');
 
 const executable = path.resolve(process.argv[2] || 'dist/win-unpacked/Rookie Quest Keeper.exe');
+const action = process.argv[3] || 'roundtrip';
+if (!['roundtrip', 'seed', 'check'].includes(action)) throw new Error('Expected roundtrip, seed or check smoke action.');
 const reportPath = path.resolve(process.env.RQK_PACKAGED_SMOKE_REPORT || 'packaged-startup-smoke-report.json');
-const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'Keeper Installed QA '));
-const report = { version: require('../package.json').version, offlineProxy: true, events: [] };
+const persistentProfile = process.argv[4];
+if (persistentProfile && (process.env.GITHUB_ACTIONS !== 'true' || process.platform !== 'win32'
+  || !path.resolve(persistentProfile).startsWith(path.resolve(process.env.RUNNER_TEMP || '') + path.sep)
+  || !fs.existsSync(path.join(persistentProfile, '.keeper-disposable-installer-profile')))) {
+  throw new Error('Persistent installer smoke profiles must be marked disposable folders under GitHub RUNNER_TEMP.');
+}
+const temporary = persistentProfile ? path.resolve(persistentProfile) : fs.mkdtempSync(path.join(os.tmpdir(), 'Keeper Installed QA '));
+const expectedVersion = process.env.RQK_QA_EXPECTED_VERSION || require('../package.json').version;
+const report = { version: expectedVersion, offlineProxy: true, events: [] };
 const storageKey = 'rqk.desktopWorkspace.v1';
 const fixture = {
   version: 1,
@@ -20,10 +29,56 @@ const fixture = {
   characters: [{ id: 'windows-qa-character', name: 'Synthetic QA Hero', campaign_id: 'windows-qa-campaign', current_hp: 7, max_hp: 19, resources: { arrows: 3 } }],
   collections: {}, notes: [], recaps: [], receipts: {}, objects: {}, homebrew: [],
 };
+const browserFixture = {
+  'gm.activeCombat.windows-qa-campaign': JSON.stringify({ round: 4, combatants: [{ id: 'windows-qa-character', current_hp: 7 }] }),
+  'rqk.gm.assets.windows-qa-campaign': JSON.stringify({ portrait: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jD0kAAAAASUVORK5CYII=' }),
+  'soundboard-custom-windows-qa-campaign': JSON.stringify([{ id: 'qa-track', title: 'Synthetic music' }]),
+  'smart-sessions-windows-qa-campaign': JSON.stringify([{ id: 'qa-session', notes: 'Synthetic unfinished notes' }]),
+  'rqk.liveRollTables.windows-qa-campaign': JSON.stringify({ last_roll: 11 }),
+  'rqk.rollStats.session.windows-qa-campaign': JSON.stringify([{ roll: 17, kind: 'attack' }]),
+  'rqk.character-notes-draft:windows-qa-character': 'Synthetic unsaved character note',
+};
+// This auth sentinel stays local to the disposable profile. A portable export
+// or snapshot must never capture it as a campaign preference.
+const authSentinel = 'synthetic-local-only-never-export';
+const mediaFixture = {
+  'map.svg': Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><path d="M0 0h2v2H0z"/></svg>'),
+  // Four silent 8-bit PCM samples in a valid mono 8 kHz RIFF/WAVE container.
+  'music.wav': Buffer.from('524946462800000057415645666d74201000000001000100401f0000401f000001000800646174610400000080808080', 'hex'),
+};
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 function record(event) {
   report.events.push(event);
   fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+}
+
+function findUserData(directory) {
+  const matches = [];
+  function visit(folder) {
+    for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const child = path.join(folder, entry.name);
+      if (entry.name === 'workspace-backups') matches.push(folder);
+      else if (entry.name !== 'node_modules') visit(child);
+    }
+  }
+  visit(directory);
+  assert.equal(matches.length, 1, 'Native backup must identify exactly one isolated user-data folder.');
+  return matches[0];
+}
+
+async function verifyPreservedData(evaluate) {
+  const saved = await evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(storageKey)}))`);
+  assert.deepEqual(saved, fixture, 'Campaign IDs, character HP/resources and all saved fields must survive restart.');
+  const supplemental = await evaluate(`Object.fromEntries(${JSON.stringify(Object.keys(browserFixture))}.map(key => [key,localStorage.getItem(key)]))`);
+  assert.deepEqual(supplemental, browserFixture, 'Supplemental combat, assets, soundboard, session and draft state must survive.');
+  assert.equal(await evaluate('localStorage.getItem("auth_token")'), authSentinel, 'Installer must preserve the existing profile without exporting its auth data.');
+  const userData = findUserData(temporary);
+  for (const [name, contents] of Object.entries(mediaFixture)) {
+    assert.deepEqual(fs.readFileSync(path.join(userData, 'campaign-packs', 'windows-qa', name)), contents, 'Imported map/music bytes must survive.');
+    const rendered = await evaluate(`fetch(${JSON.stringify(`rqk-attachment://windows-qa/${name}`)}).then(async response => {if (!response.ok) throw new Error('Attachment unavailable');return Array.from(new Uint8Array(await response.arrayBuffer()))})`);
+    assert.deepEqual(Buffer.from(rendered), contents, 'Saved media must resolve through the installed attachment protocol.');
+  }
 }
 
 async function unusedPort() {
@@ -106,12 +161,35 @@ async function launchAndCheck(seed) {
     assert.equal(state?.edition, 'desktop');
     assert.ok(state.text.length > 0, 'Installed renderer must mount without internet.');
     assert.notEqual(state.path, '/auth', 'Offline startup must not require login.');
+    const updateStatus = await evaluate('window.rookieDesktop.getUpdateStatus()');
+    assert.equal(updateStatus.installed_version, expectedVersion, 'The running installed application must report the expected QA version.');
     if (seed) {
       await evaluate(`localStorage.setItem(${JSON.stringify(storageKey)}, ${JSON.stringify(JSON.stringify(fixture))})`);
-      record({ stage: 'synthetic-workspace-saved' });
+      await evaluate(`Object.entries(${JSON.stringify(browserFixture)}).forEach(([key,value]) => localStorage.setItem(key,value));localStorage.setItem('auth_token',${JSON.stringify(authSentinel)})`);
+      await evaluate(`window.rookieDesktop.createBackup(${JSON.stringify(JSON.stringify(fixture))},'manual')`);
+      const userData = findUserData(temporary);
+      const mediaFolder = path.join(userData, 'campaign-packs', 'windows-qa');
+      fs.mkdirSync(mediaFolder, { recursive: true });
+      for (const [name, contents] of Object.entries(mediaFixture)) fs.writeFileSync(path.join(mediaFolder, name), contents);
+      record({ stage: 'synthetic-workspace-browser-state-and-imported-media-saved' });
+      const backup = await evaluate(`window.rookieDesktop.createBackup(${JSON.stringify(JSON.stringify(fixture))},'manual')`);
+      const snapshot = path.join(userData, 'workspace-backups', backup.id);
+      function assertNoAuthExport(folder) {
+        for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
+          const filename = path.join(folder, entry.name);
+          if (entry.isDirectory()) assertNoAuthExport(filename);
+          else assert.equal(fs.readFileSync(filename).includes(Buffer.from(authSentinel)), false, 'Native backup must exclude authentication storage.');
+        }
+      }
+      assertNoAuthExport(snapshot);
+      const changed = JSON.stringify({ ...fixture, campaigns: [{ ...fixture.campaigns[0], name: 'Synthetic mutation to recover' }] });
+      await evaluate(`localStorage.setItem(${JSON.stringify(storageKey)},${JSON.stringify(changed)});${JSON.stringify(Object.keys(browserFixture))}.forEach(key=>localStorage.setItem(key,'synthetic changed value'))`);
+      for (const name of Object.keys(mediaFixture)) fs.writeFileSync(path.join(mediaFolder, name), 'synthetic changed media');
+      await evaluate(`window.rookieDesktop.restoreBackup(${JSON.stringify(backup.id)},${JSON.stringify(changed)})`);
+      await verifyPreservedData(evaluate);
+      record({ stage: 'native-backup-restore-preserved-workspace-browser-state-and-media-without-auth-export' });
     } else {
-      const saved = await evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(storageKey)}))`);
-      assert.deepEqual(saved, fixture, 'Campaign IDs, character HP/resources and all saved fields must survive restart.');
+      await verifyPreservedData(evaluate);
       await client.command('Page.navigate', { url: 'rqk://desktop/campaigns' });
       let campaignVisible = false;
       for (let attempt = 0; attempt < 100; attempt++) {
@@ -120,7 +198,7 @@ async function launchAndCheck(seed) {
         await delay(250);
       }
       assert.equal(campaignVisible, true, 'Campaign must be available in the installed offline library.');
-      record({ stage: 'offline-restart-preserved-workspace-and-library' });
+      record({ stage: 'offline-restart-preserved-workspace-browser-state-media-and-library' });
     }
     await client.command('Page.close');
     for (let attempt = 0; attempt < 80 && child.exitCode === null; attempt++) await delay(250);
@@ -136,13 +214,13 @@ async function launchAndCheck(seed) {
 
 (async () => {
   try {
-    await launchAndCheck(true);
-    await launchAndCheck(false);
+    if (action !== 'check') await launchAndCheck(true);
+    if (action !== 'seed') await launchAndCheck(false);
     record({ stage: 'passed' });
   } catch (error) {
     record({ stage: 'failed', error: String(error.stack || error) });
     process.exitCode = 1;
   } finally {
-    fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    if (!persistentProfile) fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 })();

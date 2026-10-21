@@ -8,14 +8,16 @@ const path = require('path');
 const vm = require('vm');
 const { createRequire } = require('module');
 const { EventEmitter } = require('events');
+const crypto = require('crypto');
 const { readInstalledUpdateAttempt } = require('./updateSafety');
+const { validateBrowserStorage } = require('./browserStorage');
 
 const backup = {
   id: 'snapshot-1792500000000-deadbeef', reason: 'before-update',
   sha256: { 'workspace.json': 'a'.repeat(64) },
 };
 
-function updaterFixture(t, overrides = {}) {
+function updaterFixture(t, overrides = {}, moduleOverrides = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-installed-updater-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const updater = new EventEmitter();
@@ -31,7 +33,8 @@ function updaterFixture(t, overrides = {}) {
   const localRequire = createRequire(filename);
   const context = {
     module: { exports: {} },
-    require: name => name === 'electron-updater' ? { autoUpdater: updater } : localRequire(name),
+    require: name => Object.hasOwn(moduleOverrides, name) ? moduleOverrides[name]
+      : name === 'electron-updater' ? { autoUpdater: updater } : localRequire(name),
     global: {}, process,
     setImmediate: fn => scheduled.push(fn),
     setTimeout: () => ({}),
@@ -138,4 +141,124 @@ test('another update check cannot interrupt the prepared installer restart', asy
   assert.equal(fixture.getStatus().state, 'installing');
   fixture.scheduled[0]();
   assert.deepEqual(fixture.calls.at(-1), ['install', true, true]);
+});
+
+function backupWithBrowserStorage(storage) {
+  return { ...backup, browser_storage_version: 1,
+    sha256: { ...backup.sha256, 'browser-storage.json': crypto.createHash('sha256')
+      .update(JSON.stringify(validateBrowserStorage(storage))).digest('hex') } };
+}
+
+test('installed update captures latest settings and combat data after download and before backup', async t => {
+  let workspace = 'workspace before download';
+  let storage = { 'rook-theme': 'light', 'gm.activeCombat.campaign': '{"hp":11}' };
+  const calls = [];
+  const fixture = updaterFixture(t, {
+    getCurrentWorkspaceSnapshot: async (event, clickRaw) => {
+      assert.equal(event.sender, 'primary window');
+      assert.equal(clickRaw, 'click snapshot');
+      calls.push('capture complete snapshot');
+      return { workspace, browserStorage: storage };
+    },
+    getCurrentWorkspaceRaw: () => { throw new Error('Legacy capture must not replace complete capture'); },
+    createSafetyBackup: (raw, reason, extras) => {
+      calls.push(['backup complete snapshot', raw, reason, extras]);
+      return backupWithBrowserStorage(extras);
+    },
+  });
+  fixture.updater.downloadUpdate = async () => {
+    calls.push('download');
+    workspace = 'workspace edited during download';
+    storage = { 'rook-theme': 'dark', 'gm.activeCombat.campaign': '{"hp":7}' };
+    fixture.updater.emit('update-downloaded', { version: '0.5.1' });
+  };
+  assert.equal((await fixture.install('click snapshot')).started, true);
+  assert.deepEqual(calls, ['download', 'capture complete snapshot',
+    ['backup complete snapshot', workspace, 'before-update', validateBrowserStorage(storage)]]);
+  assert.equal(fixture.scheduled.length, 1);
+});
+
+test('failed complete capture cannot install using an older workspace-only backup', async t => {
+  const fixture = updaterFixture(t, {
+    getCurrentWorkspaceSnapshot: async () => { throw new Error('Cannot capture saved combat state'); },
+  });
+  await assert.rejects(fixture.install('stale workspace'), /Cannot capture saved combat state/);
+  assert.deepEqual(fixture.calls, ['download']);
+  assert.equal(fixture.scheduled.length, 0);
+  assert.equal(fixture.getStatus().state, 'downloaded');
+});
+
+test('missing browser-storage checksum blocks installation even for an empty captured map', async t => {
+  const fixture = updaterFixture(t, {
+    getCurrentWorkspaceSnapshot: async () => ({ workspace: 'current workspace', browserStorage: {} }),
+    createSafetyBackup: () => backup,
+  });
+  await assert.rejects(fixture.install('stale workspace'), /other saved Keeper information/);
+  assert.equal(fixture.scheduled.length, 0);
+  assert.equal(readInstalledUpdateAttempt(fixture.directory, '0.5.0'), null);
+});
+
+function portableFixture(t, overrides = {}) {
+  const actions = [];
+  const manifest = { sha256: 'f'.repeat(64), version: '0.5.1', kind: 'app', size: 100, parts: [{}] };
+  const fixture = updaterFixture(t, {
+    portable: true, portableRoot: '/synthetic-portable-root',
+    app: { getPath: () => '/synthetic-user-data', getVersion: () => '0.5.0', isPackaged: true,
+      relaunch: () => actions.push('relaunch'), exit: () => actions.push('exit') },
+    dialog: { showOpenDialog: async () => ({ canceled: false, filePaths: ['/synthetic-program.rqkprogram'] }) },
+    ...overrides,
+  }, {
+    './signedProgramPackage': { readPackage: () => ({ manifest }) },
+    './programRelease': {
+      readLastAppResult: () => null,
+      stageAppPackage: () => { actions.push('stage program'); return { version: '0.5.1' }; },
+      activateApp: () => actions.push('activate program'),
+    },
+    './portableProgramUpdate': {
+      portableExePath: () => '/synthetic-portable-root/Keeper.exe',
+      readLastPortableUpdate: () => null,
+      discardStagedPortableUpdate: async () => {},
+    },
+  });
+  return { ...fixture, actions,
+    selectProgram: () => fixture.handlers.get('rqk:select-program-update')(),
+    installProgram: raw => fixture.handlers.get('rqk:install-program-update')({ sender: 'primary window' }, raw) };
+}
+
+test('portable program update also captures latest complete saved data immediately before backup', async t => {
+  let storage = { 'gm.activeCombat.campaign': '{"hp":11}' };
+  let captured;
+  const fixture = portableFixture(t, {
+    getCurrentWorkspaceSnapshot: async () => ({ workspace: 'current portable workspace', browserStorage: storage }),
+    createSafetyBackup: (raw, reason, extras) => {
+      captured = { raw, reason, extras };
+      return backupWithBrowserStorage(extras);
+    },
+  });
+  await fixture.selectProgram();
+  storage = { 'gm.activeCombat.campaign': '{"hp":7}' };
+  assert.equal((await fixture.installProgram('older click workspace')).started, true);
+  assert.deepEqual(captured, { raw: 'current portable workspace', reason: 'before-update', extras: storage });
+  assert.deepEqual(fixture.actions, ['stage program', 'relaunch', 'activate program']);
+});
+
+test('portable program activation is blocked when complete saved-data backup is missing', async t => {
+  const fixture = portableFixture(t, {
+    getCurrentWorkspaceSnapshot: async () => ({ workspace: 'current portable workspace', browserStorage: {} }),
+    createSafetyBackup: () => backup,
+  });
+  await fixture.selectProgram();
+  await assert.rejects(fixture.installProgram('click workspace'), /other saved Keeper information/);
+  assert.deepEqual(fixture.actions, []);
+});
+
+test('portable program update retains compatibility with fresh workspace-only capture', async t => {
+  let captured;
+  const fixture = portableFixture(t, {
+    getCurrentWorkspaceRaw: async () => 'latest legacy portable workspace',
+    createSafetyBackup: (...args) => { captured = args; return backup; },
+  });
+  await fixture.selectProgram();
+  assert.equal((await fixture.installProgram('old portable workspace')).started, true);
+  assert.deepEqual(captured, ['latest legacy portable workspace', 'before-update']);
 });
