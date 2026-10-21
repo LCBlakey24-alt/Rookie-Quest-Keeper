@@ -67,7 +67,7 @@ export default function CalendarTab({ campaignId }) {
       // Friday campaign milestones must not be written into Wednesday's
       // independent history. Only confirmed shared-world events are universal.
       const campaignRes = await apiClient.get(`/campaigns/${campaignId}`);
-      const isWednesday = /spilsby\\s+wednesday/i.test(String(campaignRes.data?.name || ''));
+      const isWednesday = /spilsby\s+wednesday/i.test(String(campaignRes.data?.name || ''));
       const referenceEvents = isWednesday
         ? TIA_KARTA_REFERENCE_EVENTS.filter(event => event.id === 'tk-calendar-crowns')
         : TIA_KARTA_REFERENCE_EVENTS;
