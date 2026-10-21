@@ -60,12 +60,19 @@ export default function CalendarTab({ campaignId }) {
   const monthEvents = events.filter(event => Number(event.month) === Number(calendar?.current_month) && Number(event.year) === Number(calendar?.current_year));
 
   const applyTiaKarta = async () => {
-    if (!window.confirm('Replace this campaign calendar layout and current date with the Tia-Karta canon (24 Dawnseed, 592 PC)? Existing non-canon events will not be deleted. A backup is recommended first.')) return;
+    if (!window.confirm('Apply the Tia-Karta 12-month calendar? If this campaign already has a custom in-world date it will be preserved. Existing events will not be deleted.')) return;
     setApplyingTiaKarta(true);
     try {
       await apiClient.put(`/campaigns/${campaignId}/calendar`, tiaKartaCalendar(campaignId, calendar));
+      // Friday campaign milestones must not be written into Wednesday's
+      // independent history. Only confirmed shared-world events are universal.
+      const campaignRes = await apiClient.get(`/campaigns/${campaignId}`);
+      const isWednesday = /spilsby\s+wednesday/i.test(String(campaignRes.data?.name || ''));
+      const referenceEvents = isWednesday
+        ? TIA_KARTA_REFERENCE_EVENTS.filter(event => event.id === 'tk-calendar-crowns')
+        : TIA_KARTA_REFERENCE_EVENTS;
       const existingKeys = new Set(events.map(event => `${event.name}|${event.day}|${event.month}|${event.year}`));
-      for (const event of TIA_KARTA_REFERENCE_EVENTS) {
+      for (const event of referenceEvents) {
         const key = `${event.name}|${event.day}|${event.month}|${event.year}`;
         if (!existingKeys.has(key)) {
           await apiClient.post(`/campaigns/${campaignId}/calendar-events`, {
@@ -75,7 +82,7 @@ export default function CalendarTab({ campaignId }) {
           });
         }
       }
-      toast.success('Tia-Karta calendar restored: 6-day weeks, 12 named months, 24 Dawnseed 592 PC.');
+      toast.success('Tia-Karta calendar restored: 6-day weeks and 12 named months.');
       await loadCalendar();
     } catch (error) {
       toast.error(error?.response?.data?.detail || error?.message || 'Could not apply Tia-Karta calendar');

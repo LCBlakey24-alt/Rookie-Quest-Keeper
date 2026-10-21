@@ -1196,6 +1196,26 @@ class NPC(BaseModel):
     spells: Optional[NPCSpells] = None
     location: str = ""
     notes: str = ""
+    # Full, explicitly sourced GM statblocks (kept separate from player-visible
+    # character summaries). Preserve action economy instead of flattening it.
+    cr: Optional[str] = None
+    armor: str = ""
+    size: str = ""
+    actions: List[Dict[str, Any]] = []
+    bonus_actions: List[Dict[str, Any]] = []
+    reactions: List[Dict[str, Any]] = []
+    legendary_actions: List[Dict[str, Any]] = []
+    special_abilities: List[Dict[str, Any]] = []
+    damage_resistances: List[str] = []
+    damage_immunities: List[str] = []
+    condition_immunities: List[str] = []
+    senses: Any = ""
+    languages: Any = ""
+    mechanics_status: str = ""
+    canon_status: str = ""
+    statblock_source: str = ""
+    statblock_notes: str = ""
+    dm_only: bool = True
     color: str = "#D4A017"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -1227,6 +1247,24 @@ class NPCCreate(BaseModel):
     location: str = ""
     notes: str = ""
     color: str = "#D4A017"
+    cr: Optional[str] = None
+    armor: str = ""
+    size: str = ""
+    actions: List[Dict[str, Any]] = []
+    bonus_actions: List[Dict[str, Any]] = []
+    reactions: List[Dict[str, Any]] = []
+    legendary_actions: List[Dict[str, Any]] = []
+    special_abilities: List[Dict[str, Any]] = []
+    damage_resistances: List[str] = []
+    damage_immunities: List[str] = []
+    condition_immunities: List[str] = []
+    senses: Any = ""
+    languages: Any = ""
+    mechanics_status: str = ""
+    canon_status: str = ""
+    statblock_source: str = ""
+    statblock_notes: str = ""
+    dm_only: bool = True
     occupation: str = ""
 
 class NPCUpdate(BaseModel):

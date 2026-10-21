@@ -1,7 +1,7 @@
 /**
  * Tia-Karta calendar, sourced from the active Eldritch Heralds 592 PC
  * wall calendar / Calendar Reference tab (October 2026).
- * The working date was explicitly corrected from 17 to 24 Dawnseed.
+ * The newer 25 Dawnseed, 592 PC OneDrive source supersedes the old 24 Dawnseed snapshot.
  */
 export const TIA_KARTA_MONTHS = [
   ['Dawnseed', 'Greenwake'], ['Rainmoot', 'Greenwake'],
@@ -12,7 +12,7 @@ export const TIA_KARTA_MONTHS = [
   ['Longnight', 'Frostdeep'], ['Thawrest', 'Frostdeep'],
 ].map(([name, season]) => ({ name, days: 30, season }));
 
-export const TIA_KARTA_CURRENT_DATE = { current_day: 24, current_month: 1, current_year: 592 };
+export const TIA_KARTA_CURRENT_DATE = { current_day: 25, current_month: 1, current_year: 592 };
 export const TIA_KARTA_DAYS_PER_WEEK = 6;
 
 export const TIA_KARTA_REFERENCE_EVENTS = [
@@ -32,9 +32,11 @@ export function tiaKartaCalendar(campaignId, original = null) {
     ...(original || {}),
     campaign_id: campaignId,
     calendar_type: 'custom',
-    current_day: TIA_KARTA_CURRENT_DATE.current_day,
-    current_month: TIA_KARTA_CURRENT_DATE.current_month,
-    current_year: TIA_KARTA_CURRENT_DATE.current_year,
+    // When a campaign already uses this world's calendar, don't overwrite
+    // its independent session date (especially the Wednesday start).
+    current_day: original?.calendar_type === 'custom' && Number(original.current_day) >= 1 ? Number(original.current_day) : TIA_KARTA_CURRENT_DATE.current_day,
+    current_month: original?.calendar_type === 'custom' && Number(original.current_month) >= 1 ? Number(original.current_month) : TIA_KARTA_CURRENT_DATE.current_month,
+    current_year: original?.calendar_type === 'custom' && Number.isInteger(Number(original.current_year)) ? Number(original.current_year) : TIA_KARTA_CURRENT_DATE.current_year,
     days_per_week: TIA_KARTA_DAYS_PER_WEEK,
     custom_months: TIA_KARTA_MONTHS,
   };

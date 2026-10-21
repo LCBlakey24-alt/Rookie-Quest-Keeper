@@ -40,6 +40,8 @@ function damageByCr(cr, attackAbilityMod) {
 
 function inferredStats(monster) {
   if (monster.stats || monster.abilities_scores) return monster.stats || monster.abilities_scores;
+  // Imported private creatures must never acquire invented ability scores.
+  if (monster.statblock_source || monster.mechanics_status || monster.source === 'custom') return {};
   const type = String(monster.type || '').toLowerCase();
   const size = String(monster.size || '').toLowerCase();
   const cr = monsterCrValue(monster.cr || monster.challenge_rating);
@@ -70,6 +72,8 @@ function inferredAttacks(monster, stats, pb) {
   if (monster.source === 'srd-5.1' && Array.isArray(monster.actions)) return monster.actions;
   if (Array.isArray(monster.actions) && monster.actions.length) return monster.actions;
   if (Array.isArray(monster.attacks) && monster.attacks.length) return monster.attacks;
+  // Homebrew and campaign records need sourced actions, not a guessed attack.
+  if (monster.statblock_source || monster.mechanics_status || monster.source === 'custom') return [];
   const type = String(monster.type || '').toLowerCase();
   const name = String(monster.name || '').toLowerCase();
   const abilityText = String(monster.abilities || '').toLowerCase();
@@ -109,10 +113,10 @@ export function normaliseMonsterStatBlock(monster = {}) {
     ...monster,
     cr,
     challenge_rating: cr,
-    hp: Number(monster.hp ?? monster.hit_points) || 1,
-    hit_points: Number(monster.hit_points ?? monster.hp) || 1,
-    ac: Number(monster.ac ?? monster.armor_class) || 10,
-    armor_class: Number(monster.armor_class ?? monster.ac) || 10,
+    hp: monster.statblock_source && !Number(monster.hp ?? monster.hit_points) ? null : Number(monster.hp ?? monster.hit_points) || 1,
+    hit_points: monster.statblock_source && !Number(monster.hit_points ?? monster.hp) ? null : Number(monster.hit_points ?? monster.hp) || 1,
+    ac: monster.statblock_source && !Number(monster.ac ?? monster.armor_class) ? null : Number(monster.ac ?? monster.armor_class) || 10,
+    armor_class: monster.statblock_source && !Number(monster.armor_class ?? monster.ac) ? null : Number(monster.armor_class ?? monster.ac) || 10,
     speed: monster.speed || '30 ft.',
     stats,
     proficiency_bonus: pb,
@@ -121,7 +125,7 @@ export function normaliseMonsterStatBlock(monster = {}) {
     saving_throws: monster.saving_throws || [],
     actions: inferredAttacks(monster, stats, pb),
     abilities_text: monster.abilities || monster.description || '',
-    combat_ready: true,
+    combat_ready: monster.statblock_source ? Boolean(monster.combat_ready ?? (Number(monster.hp) > 0 && Number(monster.ac) > 0)) : monster.combat_ready !== false,
   };
 }
 
