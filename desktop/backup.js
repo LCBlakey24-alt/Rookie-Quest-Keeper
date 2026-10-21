@@ -5,9 +5,11 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { validateBrowserStorage, summarizeBrowserStorage, MAX_BROWSER_STORAGE_BYTES } = require('./browserStorage');
 
 const BACKUPS_DIR = 'workspace-backups';
 const ATTACHMENTS_DIR = 'campaign-packs';
+const BROWSER_STORAGE_FILE = 'browser-storage.json';
 const MAX_WORKSPACE_BYTES = 40 * 1024 * 1024;
 const BACKUP_ID = /^snapshot-[0-9]{13}-[a-f0-9]{8}$/;
 const VALID_REASONS = new Set(['manual', 'before-update', 'before-restore', 'before-import']);
@@ -145,8 +147,9 @@ function recoverInterruptedMediaRestore(userData) {
   return true;
 }
 
-function createBackup(userData, raw, reason = 'manual') {
+function createBackup(userData, raw, reason = 'manual', browserStorage = null) {
   const data = checkWorkspace(raw);
+  const supplemental = browserStorage == null ? null : validateBrowserStorage(browserStorage);
   const id = `snapshot-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
   const root = backupRoot(userData);
   const finalDir = path.join(root, id);
@@ -160,6 +163,13 @@ function createBackup(userData, raw, reason = 'manual') {
   };
   try {
     fs.writeFileSync(path.join(pendingDir, 'workspace.json'), raw, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+    if (supplemental !== null) {
+      const supplementalRaw = JSON.stringify(supplemental);
+      const supplementalPath = path.join(pendingDir, BROWSER_STORAGE_FILE);
+      fs.writeFileSync(supplementalPath, supplementalRaw, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+      if (fs.readFileSync(supplementalPath, 'utf8') !== supplementalRaw) throw new Error('Supplemental browser-storage backup verification failed.');
+      info.browser_storage_version = 1;
+    }
     const attachments = path.join(userData, ATTACHMENTS_DIR);
     if (fs.existsSync(attachments)) {
       fs.cpSync(attachments, path.join(pendingDir, ATTACHMENTS_DIR), { recursive: true, errorOnExist: true });
@@ -192,7 +202,7 @@ function listBackups(userData) {
   return backups.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
 }
 
-function restoreBackup(userData, id, currentRaw) {
+function restoreBackup(userData, id, currentRaw, currentBrowserStorage = null, onPrepared = null) {
   if (typeof id !== 'string' || !BACKUP_ID.test(id)) throw new Error('Invalid backup selection.');
   const folder = path.join(backupRoot(userData), id);
   const manifest = listBackups(userData).find(item => item.id === id);
@@ -200,13 +210,16 @@ function restoreBackup(userData, id, currentRaw) {
   const raw = readWorkspaceFile(path.join(folder, 'workspace.json'));
   const digests = verifyBackupDigests(folder, manifest);
   verifyWorkspaceRead(raw, digests);
+  const browserStorage = readBrowserStorage(folder, manifest, digests);
 
   // Before ANY restore, take a snapshot of the workspace currently on this laptop.
-  const safetyCopy = currentRaw ? createBackup(userData, currentRaw, 'before-restore') : null;
+  const safetyCopy = currentRaw ? createBackup(userData, currentRaw, 'before-restore', currentBrowserStorage) : null;
+  const result = { workspace: raw, browser_storage: browserStorage, backup: manifest, safety_backup: safetyCopy };
+  if (onPrepared !== null) onPrepared(result); // Durable journal must succeed before any active media changes.
   const savedAttachments = path.join(folder, ATTACHMENTS_DIR);
   restoreMedia(userData, savedAttachments, digests);
   // The renderer saves this returned JSON only after all filesystem work succeeds.
-  return { workspace: raw, backup: manifest, safety_backup: safetyCopy };
+  return result;
 }
 
 
@@ -215,7 +228,7 @@ function restoreBackup(userData, id, currentRaw) {
  * onto a USB stick. No GitHub/cloud connection or proprietary archive reader
  * is required to recover the campaign.
  */
-function exportPortableBackup(userData, raw, destinationDir) {
+function exportPortableBackup(userData, raw, destinationDir, browserStorage = null) {
   const destination = path.resolve(destinationDir);
   if (!fs.statSync(destination).isDirectory()) throw new Error('Choose a folder for your portable backup.');
   const relative = path.relative(path.resolve(userData), destination);
@@ -223,7 +236,7 @@ function exportPortableBackup(userData, raw, destinationDir) {
     throw new Error('Choose a folder outside Keeper application data.');
   }
 
-  const backup = createBackup(userData, raw, 'manual');
+  const backup = createBackup(userData, raw, 'manual', browserStorage);
   const sourceDir = path.join(backupRoot(userData), backup.id);
   const targetDir = path.join(destination, `Rookie-Quest-Keeper-Backup-${backup.id}`);
   fs.cpSync(sourceDir, targetDir, { recursive: true, errorOnExist: true, force: false });
@@ -260,7 +273,31 @@ function validatePortableBackup(directory) {
   }
   const digests = verifyBackupDigests(folder, manifest);
   verifyWorkspaceRead(raw, digests);
-  return { folder, raw, manifest, attachments, digests };
+  const browserStorage = readBrowserStorage(folder, manifest, digests);
+  return { folder, raw, manifest, attachments, digests, browserStorage };
+}
+
+function readBrowserStorage(folder, manifest, digests) {
+  const file = path.join(folder, BROWSER_STORAGE_FILE);
+  if (!fs.existsSync(file)) {
+    if (manifest.browser_storage_version != null) throw new Error('Backup supplemental browser storage is missing. No changes were made.');
+    return null; // Legacy export: keep current extras instead of erasing them.
+  }
+  if (manifest.browser_storage_version !== 1 || !manifest.sha256
+      || !Object.hasOwn(manifest.sha256, BROWSER_STORAGE_FILE)) {
+    throw new Error('Supplemental browser storage must use the supported checksum-protected backup format.');
+  }
+  const info = fs.lstatSync(file);
+  if (!info.isFile()) throw new Error('Supplemental browser storage must be an ordinary file, not a link.');
+  if (info.size > MAX_BROWSER_STORAGE_BYTES) throw new Error('Supplemental browser storage exceeds the 64 MB backup limit.');
+  const raw = fs.readFileSync(file, 'utf8');
+  if (crypto.createHash('sha256').update(raw).digest('hex') !== digests[BROWSER_STORAGE_FILE]) {
+    throw new Error('The supplemental backup changed while being read. Choose and inspect it again.');
+  }
+  let data;
+  try { data = JSON.parse(raw); }
+  catch { throw new Error('Backup supplemental browser storage is not valid JSON. No changes were made.'); }
+  return validateBrowserStorage(data);
 }
 
 function verifyWorkspaceRead(raw, digests) {
@@ -303,6 +340,12 @@ function previewPortableBackup(directory) {
     character_count: workspace.characters.length,
     note_count: workspace.notes.length,
     media_file_count: mediaFileCount,
+    browser_storage_available: saved.browserStorage !== null,
+    browser_storage_key_count: saved.browserStorage === null ? 0 : Object.keys(saved.browserStorage).length,
+    browser_storage_categories: saved.browserStorage === null ? {} : summarizeBrowserStorage(saved.browserStorage),
+    browser_storage_warning: saved.browserStorage === null
+      ? 'This older export does not contain extra local uploads, active combat, soundboards, session logs, drafts or preferences. Export a new complete backup from an updated Keeper copy to preserve them.'
+      : null,
     workspace_sha256: crypto.createHash('sha256').update(saved.raw).digest('hex'),
     backup_sha256: backupFingerprint(saved),
     // Older backups can be read, but migration should require fresh
@@ -311,16 +354,18 @@ function previewPortableBackup(directory) {
   };
 }
 
-function restorePortableBackup(userData, directory, currentRaw, expectedBackupSha = null) {
+function restorePortableBackup(userData, directory, currentRaw, expectedBackupSha = null, currentBrowserStorage = null, onPrepared = null) {
   // Validate fully before touching current campaign state.
   const portable = validatePortableBackup(directory);
   if (expectedBackupSha !== null && backupFingerprint(portable) !== expectedBackupSha) {
     throw new Error('The selected backup changed since inspection. Choose and review it again.');
   }
-  const beforeRestore = currentRaw ? createBackup(userData, currentRaw, 'before-restore') : null;
+  const beforeRestore = currentRaw ? createBackup(userData, currentRaw, 'before-restore', currentBrowserStorage) : null;
+  const result = { workspace: portable.raw, browser_storage: portable.browserStorage, backup: portable.manifest, safety_backup: beforeRestore };
+  if (onPrepared !== null) onPrepared(result); // Preparing recovery is part of the fail-closed restore gate.
   restoreMedia(userData, portable.attachments, portable.digests);
   // The caller commits this JSON to its local workspace only once copying ends.
-  return { workspace: portable.raw, backup: portable.manifest, safety_backup: beforeRestore };
+  return result;
 }
 
 module.exports = { createBackup, listBackups, restoreBackup, checkWorkspace, exportPortableBackup, previewPortableBackup, restorePortableBackup, recoverInterruptedMediaRestore };

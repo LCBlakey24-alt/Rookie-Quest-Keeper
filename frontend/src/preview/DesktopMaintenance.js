@@ -67,16 +67,14 @@ export default function DesktopMaintenance() {
   };
 
   const makeBackup = () => doWork('backup', async () => {
-    const raw = localStorage.getItem(DESKTOP_STORAGE_KEY);
-    if (!raw) throw new Error('No saved workspace yet. Create or import a campaign first.');
+    const raw = savedWorkspaceForUpdate();
     const info = await desktop.createBackup(raw, 'manual');
     await refreshBackups();
     setNotice(`Backup saved on this computer: ${readableTime(info.created_at)}.`);
   });
 
   const exportPortable = () => doWork('export', async () => {
-    const raw = localStorage.getItem(DESKTOP_STORAGE_KEY);
-    if (!raw) throw new Error('No saved workspace yet. Create or import a campaign first.');
+    const raw = savedWorkspaceForUpdate();
     const result = await desktop.exportPortableBackup(raw);
     if (result?.canceled) return;
     await refreshBackups();
@@ -99,6 +97,14 @@ export default function DesktopMaintenance() {
     if (result?.canceled) return;
     setOlderKeeperPreview(result);
     setNotice('Backup inspected successfully. Nothing has been imported or changed.');
+  });
+
+  const prepareCopiedProfile = () => doWork('profile-preview', async () => {
+    setOlderKeeperPreview(null);
+    const result = await desktop.prepareCopiedProfileBackup();
+    if (result?.canceled) return;
+    setOlderKeeperPreview(result);
+    setNotice('Migration backup prepared and checked. Review it below before importing. Your selected source folder was not changed.');
   });
 
   const importOlderKeeper = () => {
@@ -231,15 +237,19 @@ export default function DesktopMaintenance() {
               <div className="rqk-desktop-maintenance-section">
                 <h3>Move from earlier Keeper</h3>
                 <p>Only needed once when changing from your older 0.4.x Windows Keeper to the new installed edition. In a disposable copy of your older Keeper, choose <strong>Export backup to USB / folder</strong> (an ordinary computer folder works too). Then select that exported backup here. Keep your working program and its live OneDrive files unchanged.</p>
-                <p>Older exports leave out some separate browser records, including active combat, custom soundboard tracks, upload-library records and preferences. Keep your earlier Keeper available and compare these before switching. External linked files must also remain available.</p>
+                <p>Older exports may leave out active combat, uploads, soundboards and preferences. To include supported browser records, prepare a migration backup from a closed copy of the old <strong>RookieQuestKeeperData</strong> folder. Keeper reads an isolated temporary copy. Keep external linked files available too.</p>
                 <div className="rqk-desktop-maintenance-actions">
                   <button type="button" disabled={busy} onClick={previewOlderKeeper}>Choose and inspect earlier backup</button>
+                  {desktop.prepareCopiedProfileBackup && <button type="button" disabled={busy} onClick={prepareCopiedProfile}>Prepare backup from copied old data folder</button>}
                 </div>
                 {olderKeeperPreview && (
                   <div className="rqk-desktop-program-selection" data-testid="older-keeper-migration-preview">
                     <p><strong>Backup checked:</strong> {readableTime(olderKeeperPreview.created_at)}</p>
                     <p>{olderKeeperPreview.campaign_count} campaign(s) · {olderKeeperPreview.character_count} character(s) · {olderKeeperPreview.note_count} note(s) · {olderKeeperPreview.media_file_count} imported media file(s)</p>
-                    <p>File checksums verified. This moves the saved Keeper library and imported media. Separate browser records and Windows settings are not included.</p>
+                    {olderKeeperPreview.browser_storage_available
+                      ? <p>{olderKeeperPreview.browser_storage_key_count} supported browser record(s) included: saved combat, local uploads, soundboards, session records, drafts and preferences where present. Login credentials and Windows settings are excluded.</p>
+                      : <p role="note">This older backup has no supplemental browser records. Active combat, local uploads, soundboards and some preferences may be missing. Use a copied old data folder to prepare a more complete backup before switching.</p>}
+                    <p>File checksums verified. Compare your important records and actual media before switching to this Keeper.</p>
                     <button type="button" disabled={busy || !olderKeeperPreview.checksummed} onClick={importOlderKeeper}>Import into this Keeper</button>
                   </div>
                 )}
@@ -247,7 +257,7 @@ export default function DesktopMaintenance() {
             )}
             <div className="rqk-desktop-maintenance-section">
               <h3>Campaign backups</h3>
-              <p>Backups include your saved campaigns, characters, notes and locally imported files. They stay on this PC, not in GitHub.</p>
+              <p>New backups include your saved campaigns, characters, notes, imported files and supported browser records such as combat, uploads, soundboards and preferences. They stay on this PC.</p>
               <div className="rqk-desktop-maintenance-actions">
                 <button type="button" disabled={busy} onClick={makeBackup}>Back up now</button>
                 <button type="button" disabled={busy} onClick={exportPortable}>Export backup to USB / folder</button>

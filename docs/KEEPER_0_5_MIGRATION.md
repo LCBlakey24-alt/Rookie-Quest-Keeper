@@ -4,10 +4,53 @@ Status: prepared in a draft branch; **real Windows installation and migration
 have not been accepted**. Do not replace the working Keeper or its OneDrive
 folder on the strength of automated tests.
 
+## More complete backups and copied-profile migration
+
+The follow-up to #584 adds `browser-storage.json` to new installed-edition
+backups. Its checksums cover supported local combat, uploaded asset records
+(including inline media), custom soundboards, session/roll records, note and
+character drafts, NPC relationships and safe display preferences. Values are
+preserved as exact strings. Authentication tokens, credentials, unknown keys,
+cookies, caches, Windows settings and session-only state are excluded.
+
+Old 0.4.x exports remain readable and explicitly report that this supplement is
+absent. Restoring such an export does not erase supplemental records already in
+the target. To recover supported data missing from an old export:
+
+1. Close the older Keeper. Copy its entire `RookieQuestKeeperData` folder into a
+   separate local trial folder outside OneDrive. Leave the working original in
+   place. Keep an untouched full copy for recovery.
+2. In the new installed edition, open **Updates & backups → Move from earlier
+   Keeper → Prepare backup from copied old data folder**. Select the closed
+   copied `RookieQuestKeeperData` folder, then a separate folder for the export.
+3. Keeper copies browser storage and imported pack media into isolated temporary
+   storage, verifies those copied bytes, opens only that temporary browser
+   profile with network and page scripts blocked, and exports the supported
+   workspace and browser records. It checks the selected source again before
+   finishing. The selected folder is never opened as an active Chromium profile.
+4. Inspect the new backup's counts and supplemental-record summary. Preparing
+   the backup does not import it. Choose **Import into this Keeper** only when
+   ready, then compare records, maps and music using the checklist below.
+
+The exporter cannot reconstruct unsaved memory/sessionStorage values or collect
+external linked files. Unknown storage-key values are not read into the export.
+Windows can retain temporary profile handles until Keeper closes; any retained
+inspection copy stays under the app's private temporary location. It is never
+the selected source or working OneDrive folder.
+
+New restores create a durable recovery record referring to their verified
+before-restore snapshot before activating media. A failed browser save attempts
+to restore both prior media and supported browser records; unfinished recovery
+runs through a blank local page before the real app starts. Newer autosaves
+detected before commit stop the restore and retain the newer browser values.
+Chromium flush requests do not acknowledge physical disk durability, so power
+loss and real-device recovery remain acceptance checks.
+
 ## What the current backup includes
 
-A Keeper exported backup contains `manifest.json`, `workspace.json`, and any
-locally imported files in `campaign-packs/`. It is not a copy of the whole old
+A Keeper exported backup contains `manifest.json`, `workspace.json`, any
+locally imported files in `campaign-packs/`, and `browser-storage.json` when
+captured by the new complete export. It is not a copy of the whole old
 installation. Keep the entire exported folder together.
 
 The workspace is the exact JSON value stored under `rqk.desktopWorkspace.v1`.
@@ -46,15 +89,16 @@ that these items migrated.
 
 This is a source-code audit, not an inspection of the owner's private data.
 Older deployed builds may use additional keys. Determine which omitted features
-are in use during the Windows trial. If any are required, migration remains
-blocked until a reviewed supplemental export/import path or explicit recovery
-procedure preserves them. Do not copy arbitrary browser-storage keys into an
+are in use during the Windows trial. The new copied-profile procedure captures
+the explicitly supported localStorage records. Any remaining required state
+still needs a reviewed recovery procedure. Do not copy arbitrary browser-storage keys into an
 export: profiles can contain passwords, tokens and other private information.
 Do not upload a profile or campaign backup to a public pull request or artifact.
 
 Future installed updates keep the same application data identity, so ordinary
-settings should remain on disk. The automatic before-update snapshot currently
-covers the workspace and `campaign-packs/`; it is not a complete profile image.
+settings should remain on disk. The new automatic before-update snapshot
+covers the workspace, `campaign-packs/` and supported supplemental records;
+it is not a complete profile image.
 A full profile recovery claim still requires additional implementation and
 Windows validation.
 
@@ -136,8 +180,11 @@ active media untouched. An activation rename failure attempts to put the old
 media directory back. If Keeper stops between those two renames, the next startup
 restores the retained old directory when no active media tree exists.
 
-If an active media tree already exists after a crash, Keeper does not guess which
-workspace version was committed. It retains any leftover recovery directory. An
+When a valid pending restore journal exists, Keeper recovers its referenced
+safety snapshot before the app starts. If a newer autosave caused the restore to
+stop, the journal preserves those newer browser values and recovers only media.
+Without that journal, an existing active media tree is not replaced by guessing
+which leftover directory was intended. An
 operator can inspect it against the before-restore snapshot. Multiple retained
 directories with no active tree require review instead of silently picking one.
 

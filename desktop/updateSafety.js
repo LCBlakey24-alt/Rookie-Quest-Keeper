@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { validateBrowserStorage } = require('./browserStorage');
 
 // A published Windows installer must never restart over a workspace that was
 // not successfully snapshotted. Backup integrity is checked in backup.js.
@@ -11,7 +12,7 @@ const BACKUP_ID = /^snapshot-[0-9]{13}-[a-f0-9]{8}$/;
 const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const INSTALL_RECEIPT = 'installed-update-recovery.json';
 
-function requireVerifiedUpdateBackup(createSafetyBackup, workspaceRaw) {
+function requireVerifiedUpdateBackup(createSafetyBackup, workspaceRaw, browserStorage) {
   if (typeof workspaceRaw !== 'string' || !workspaceRaw.trim()) {
     throw new Error('A saved campaign workspace is required before updating. Nothing was installed.');
   }
@@ -19,20 +20,42 @@ function requireVerifiedUpdateBackup(createSafetyBackup, workspaceRaw) {
     throw new Error('Campaign backup service is unavailable. Update cancelled.');
   }
 
-  const backup = createSafetyBackup(workspaceRaw, 'before-update');
+  const supplemental = browserStorage === undefined ? undefined : validateBrowserStorage(browserStorage);
+  const backup = supplemental === undefined
+    ? createSafetyBackup(workspaceRaw, 'before-update')
+    : createSafetyBackup(workspaceRaw, 'before-update', supplemental);
   if (!backup || backup.reason !== 'before-update'
       || !BACKUP_ID.test(String(backup.id || ''))
       || !SHA256.test(String(backup.sha256?.['workspace.json'] || ''))) {
     throw new Error('Could not verify the campaign backup. Update cancelled; your program was not changed.');
   }
+  if (supplemental !== undefined) {
+    const expected = crypto.createHash('sha256').update(JSON.stringify(supplemental)).digest('hex');
+    if (backup.browser_storage_version !== 1 || !SHA256.test(String(backup.sha256?.['browser-storage.json'] || ''))
+        || backup.sha256['browser-storage.json'] !== expected) {
+      throw new Error('Could not verify the backup of your other saved Keeper information and settings. Update cancelled; your program was not changed.');
+    }
+  }
   return backup;
+}
+
+async function readUpdateWorkspace({ workspaceRaw, getCurrentWorkspaceRaw, getCurrentWorkspaceSnapshot }) {
+  if (typeof getCurrentWorkspaceSnapshot === 'function') {
+    const snapshot = await getCurrentWorkspaceSnapshot();
+    if (!snapshot || typeof snapshot.workspace !== 'string'
+        || !Object.hasOwn(snapshot, 'browserStorage')) {
+      throw new Error('Could not capture all saved Keeper information. Nothing was installed.');
+    }
+    return { workspace: snapshot.workspace, browserStorage: validateBrowserStorage(snapshot.browserStorage) };
+  }
+  return { workspace: typeof getCurrentWorkspaceRaw === 'function' ? await getCurrentWorkspaceRaw() : workspaceRaw };
 }
 
 // One explicit Install Update action authorises a download (if needed), then
 // a verified local campaign/media snapshot, then the install. A successful
 // Promise from electron-updater alone is not enough: the downloaded event must
 // have confirmed readiness before any backup-triggered restart is scheduled.
-async function prepareVerifiedInstalledUpdate({ state, downloadUpdate, getState, createSafetyBackup, workspaceRaw, getCurrentWorkspaceRaw }) {
+async function prepareVerifiedInstalledUpdate({ state, downloadUpdate, getState, createSafetyBackup, workspaceRaw, getCurrentWorkspaceRaw, getCurrentWorkspaceSnapshot }) {
   if (!['available', 'downloaded'].includes(state)) {
     throw new Error('Check for a published update before installing. Nothing was changed.');
   }
@@ -50,13 +73,11 @@ async function prepareVerifiedInstalledUpdate({ state, downloadUpdate, getState,
   }
   // A download may take minutes. Read the saved workspace at the end so edits
   // made while it was downloading are included in the recovery snapshot.
-  const currentRaw = typeof getCurrentWorkspaceRaw === 'function'
-    ? await getCurrentWorkspaceRaw()
-    : workspaceRaw;
+  const current = await readUpdateWorkspace({ workspaceRaw, getCurrentWorkspaceRaw, getCurrentWorkspaceSnapshot });
   if (getState() !== 'downloaded') {
     throw new Error('Update is no longer ready to install. Nothing was installed.');
   }
-  return requireVerifiedUpdateBackup(createSafetyBackup, currentRaw);
+  return requireVerifiedUpdateBackup(createSafetyBackup, current.workspace, current.browserStorage);
 }
 
 // Keep the recovery reference across an installer crash, failed restart or
@@ -100,5 +121,5 @@ function readInstalledUpdateAttempt(userData, installedVersion) {
   } catch { return null; }
 }
 
-module.exports = { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate,
+module.exports = { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate, readUpdateWorkspace,
   recordInstalledUpdateAttempt, readInstalledUpdateAttempt };

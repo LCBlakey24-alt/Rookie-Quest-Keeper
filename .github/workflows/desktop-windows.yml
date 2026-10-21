@@ -65,6 +65,18 @@ jobs:
         working-directory: desktop
         run: npm test
 
+      - name: Test closed copied Chromium profile extraction in real Electron
+        working-directory: desktop
+        run: node tools/run-copied-profile-smoke.cjs
+
+      - name: Upload copied-profile extraction diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Keeper-Copied-Profile-Diagnostics
+          path: desktop/copied-profile-smoke-report.json
+          if-no-files-found: ignore
+
       - name: Test real Electron application-update startup
         working-directory: desktop
         shell: pwsh
@@ -96,6 +108,37 @@ jobs:
         with:
           name: Keeper-Packaged-Startup-Diagnostics
           path: desktop/packaged-startup-smoke-report.json
+          if-no-files-found: ignore
+
+      - name: Build next-version installer for disposable upgrade trial
+        working-directory: desktop
+        shell: pwsh
+        run: |
+          $initial = node -p "require('./package.json').version"
+          $parts = $initial.Split('.')
+          $next = "$($parts[0]).$($parts[1]).$([int]$parts[2] + 1)"
+          $nextOutput = Join-Path $env:RUNNER_TEMP 'Keeper-Synthetic-Upgrade-Build'
+          npx electron-builder --win nsis --x64 --publish never "--config.extraMetadata.version=$next" "--config.directories.output=$nextOutput"
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic QA upgrade setup build failed.' }
+          "RQK_QA_INITIAL_VERSION=$initial" >> $env:GITHUB_ENV
+          "RQK_QA_UPGRADE_VERSION=$next" >> $env:GITHUB_ENV
+          "RQK_QA_UPGRADE_OUTPUT=$nextOutput" >> $env:GITHUB_ENV
+
+      - name: Test real NSIS install upgrade uninstall and previous-installer recovery
+        working-directory: desktop
+        shell: pwsh
+        run: |
+          $initial = @(Get-ChildItem dist -File -Filter '*.exe')
+          $next = @(Get-ChildItem -LiteralPath $env:RQK_QA_UPGRADE_OUTPUT -File -Filter '*.exe')
+          if ($initial.Count -ne 1 -or $next.Count -ne 1) { throw 'Expected exactly the initial and synthetic upgrade QA installers.' }
+          ./tools/windows-installer-lifecycle.ps1 -InitialInstaller $initial[0].FullName -NextInstaller $next[0].FullName -InitialVersion $env:RQK_QA_INITIAL_VERSION -NextVersion $env:RQK_QA_UPGRADE_VERSION
+
+      - name: Upload installer lifecycle diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Keeper-Installer-Lifecycle-Diagnostics
+          path: desktop/installer-lifecycle*.json
           if-no-files-found: ignore
 
       - name: Build Windows portable USB edition

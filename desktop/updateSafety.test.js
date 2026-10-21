@@ -5,8 +5,11 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate,
+const crypto = require('crypto');
+const { requireVerifiedUpdateBackup, prepareVerifiedInstalledUpdate, readUpdateWorkspace,
   recordInstalledUpdateAttempt, readInstalledUpdateAttempt } = require('./updateSafety');
+const { validateBrowserStorage } = require('./browserStorage');
+const { createBackup } = require('./backup');
 
 const validBackup = {
   id: 'snapshot-1792500000000-deadbeef',
@@ -181,4 +184,51 @@ test('invalid recovery metadata cannot authorise an install and corrupt receipts
   ]) assert.throws(() => recordInstalledUpdateAttempt(directory, value), /recovery details/);
   fs.writeFileSync(path.join(directory, 'installed-update-recovery.json'), '{broken JSON');
   assert.equal(readInstalledUpdateAttempt(directory, '0.5.0'), null);
+});
+
+test('other saved Keeper data, including an empty map, must have a matching verified backup', () => {
+  for (const supplemental of [{}, { 'rook-theme': 'dark', 'gm.activeCombat.campaign': '{"hp":7}' }]) {
+    const digest = crypto.createHash('sha256').update(JSON.stringify(validateBrowserStorage(supplemental))).digest('hex');
+    const complete = { ...validBackup, browser_storage_version: 1,
+      sha256: { ...validBackup.sha256, 'browser-storage.json': digest } };
+    let call;
+    assert.equal(requireVerifiedUpdateBackup((...args) => { call = args; return complete; }, '{}', supplemental), complete);
+    assert.deepEqual(call, ['{}', 'before-update', validateBrowserStorage(supplemental)]);
+    for (const incomplete of [
+      validBackup,
+      { ...complete, browser_storage_version: undefined },
+      { ...complete, browser_storage_version: 2 },
+      { ...complete, sha256: { ...complete.sha256, 'browser-storage.json': 'bad' } },
+      { ...complete, sha256: { ...complete.sha256, 'browser-storage.json': 'c'.repeat(64) } },
+    ]) assert.throws(() => requireVerifiedUpdateBackup(() => incomplete, '{}', supplemental), /other saved Keeper information/);
+  }
+});
+
+test('real update snapshot preserves exact supported browser-storage strings beside the workspace', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rqk-update-extras-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const workspace = JSON.stringify({ version: 1, campaigns: [{ id: 'campaign' }],
+    characters: [], collections: {}, notes: [], recaps: [], receipts: {}, objects: {}, homebrew: [] });
+  const supplemental = { 'rook-theme': 'dark', 'gm.activeCombat.campaign': '{ "hp": 7, "round": 3 }' };
+  const backup = requireVerifiedUpdateBackup((raw, reason, extras) => createBackup(directory, raw, reason, extras), workspace, supplemental);
+  const folder = path.join(directory, 'workspace-backups', backup.id);
+  assert.equal(fs.readFileSync(path.join(folder, 'workspace.json'), 'utf8'), workspace);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(folder, 'browser-storage.json'), 'utf8')), supplemental);
+});
+
+test('incomplete or rejected current snapshots cannot silently fall back to older workspace-only capture', async () => {
+  let legacyReads = 0;
+  const base = { workspaceRaw: 'stale click workspace',
+    getCurrentWorkspaceRaw: () => { legacyReads += 1; return 'legacy workspace'; } };
+  for (const snapshot of [null, {}, { workspace: '{}' }, { workspace: '{}', browserStorage: null },
+    { workspace: '{}', browserStorage: { auth_token: 'never allowed' } }]) {
+    await assert.rejects(readUpdateWorkspace({ ...base, getCurrentWorkspaceSnapshot: async () => snapshot }));
+  }
+  await assert.rejects(readUpdateWorkspace({ ...base,
+    getCurrentWorkspaceSnapshot: async () => { throw new Error('Capture failed'); },
+  }), /Capture failed/);
+  assert.equal(legacyReads, 0);
+  assert.deepEqual(await readUpdateWorkspace({ ...base,
+    getCurrentWorkspaceSnapshot: async () => ({ workspace: 'latest workspace', browserStorage: {} }),
+  }), { workspace: 'latest workspace', browserStorage: {} });
 });

@@ -298,3 +298,130 @@ test('complete workspace migration retains IDs, resources and all supported reco
   assert.equal(restored.workspace, complete, 'workspace must pass through without schema rewriting or new IDs');
   assert.deepEqual(fs.readFileSync(path.join(destination, 'campaign-packs', 'test', 'map.png')), Buffer.from([0, 1, 127, 255]));
 }));
+
+test('complete export preserves supplemental combat, inline media and preferences with checksums and safety snapshot', () => withAppData(root => {
+  const source = path.join(root, 'old');
+  const target = path.join(root, 'new');
+  const exports = path.join(root, 'exports');
+  fs.mkdirSync(exports);
+  const supplemental = {
+    'gm.activeCombat.campaign': '{"round":4,"current_hp":0,"tokens":[{"x":3}]}',
+    'rqk.gm.assets.campaign': '[{"inline":"data:audio/mpeg;base64,' + 'A'.repeat(2 * 1024 * 1024) + '"}]',
+    'soundboard-custom-campaign': '[{"name":"Exact music","url":"rqk-attachment://pack/music.mp3"}]',
+    'smart-sessions-campaign': '{"notes":"Session notes"}',
+    'rqk.character-notes-draft:character': 'Unsaved draft\nwith exact whitespace  ',
+    'rook-theme': 'guild-ledger',
+  };
+  const currentSupplemental = { 'gm.activeCombat.current': '{"round":2}', 'rook-theme': 'previous preference' };
+  const saved = exportPortableBackup(source, workspace('Source'), exports, supplemental);
+  assert.equal(saved.browser_storage_version, 1);
+  assert.equal(typeof saved.sha256['browser-storage.json'], 'string');
+  const preview = previewPortableBackup(saved.export_path);
+  assert.equal(preview.browser_storage_available, true);
+  assert.equal(preview.browser_storage_key_count, 6);
+  assert.deepEqual(preview.browser_storage_categories, { combat: 1, preferences: 1, drafts: 1, media: 2, sessions: 1 });
+  assert.equal(preview.browser_storage_warning, null);
+  const restored = restorePortableBackup(target, saved.export_path, workspace('Current'), preview.backup_sha256, currentSupplemental);
+  assert.deepEqual(restored.browser_storage, supplemental);
+  const recovered = restoreBackup(target, restored.safety_backup.id, null);
+  assert.deepEqual(recovered.browser_storage, currentSupplemental);
+  assert.equal(recovered.workspace, workspace('Current'));
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(saved.export_path, 'browser-storage.json'), 'utf8')), supplemental);
+}));
+
+test('legacy exports signal missing supplement and never request current extras to be erased', () => withAppData(root => {
+  const source = path.join(root, 'old');
+  const target = path.join(root, 'new');
+  const exports = path.join(root, 'exports');
+  fs.mkdirSync(exports);
+  const saved = exportPortableBackup(source, workspace('Legacy source'), exports);
+  const preview = previewPortableBackup(saved.export_path);
+  assert.equal(preview.browser_storage_available, false);
+  assert.equal(preview.browser_storage_key_count, 0);
+  assert.deepEqual(preview.browser_storage_categories, {});
+  assert.match(preview.browser_storage_warning, /older export/);
+  const current = { 'rook-theme': 'current', 'gm.activeCombat.current': '{"round":3}' };
+  const restored = restorePortableBackup(target, saved.export_path, workspace('Current'), preview.backup_sha256, current);
+  assert.equal(restored.browser_storage, null, 'null means leave current supplemental keys unchanged');
+  assert.deepEqual(restoreBackup(target, restored.safety_backup.id, null).browser_storage, current);
+  const empty = createBackup(source, workspace('Empty supplemental capture'), 'manual', {});
+  const emptyRestore = restoreBackup(source, empty.id, null);
+  assert.deepEqual(emptyRestore.browser_storage, {}, 'a captured empty map differs from an older export');
+}));
+
+test('supplement tampering, unsupported keys and removed supplement are refused before any target writes', () => withAppData(root => {
+  const source = path.join(root, 'old');
+  const target = path.join(root, 'new');
+  const exports = path.join(root, 'exports');
+  fs.mkdirSync(exports);
+  const saved = exportPortableBackup(source, workspace('Source'), exports, { 'rook-theme': 'original' });
+  const approved = previewPortableBackup(saved.export_path);
+  const file = path.join(saved.export_path, 'browser-storage.json');
+  const manifestFile = path.join(saved.export_path, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+  fs.writeFileSync(file, JSON.stringify({ 'rook-theme': 'changed after inspection' }));
+  assert.throws(() => previewPortableBackup(saved.export_path), /checksum verification failed/);
+  manifest.sha256['browser-storage.json'] = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+  assert.throws(() => restorePortableBackup(target, saved.export_path, workspace('Current'), approved.backup_sha256, {}), /changed since inspection/);
+  fs.writeFileSync(file, JSON.stringify({ token: 'must not import credentials' }));
+  manifest.sha256['browser-storage.json'] = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+  assert.throws(() => restorePortableBackup(target, saved.export_path, workspace('Current'), null, {}), /unsupported browser-storage key/);
+  fs.rmSync(file);
+  delete manifest.sha256['browser-storage.json'];
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+  assert.throws(() => previewPortableBackup(saved.export_path), /supplemental browser storage is missing/);
+  assert.equal(fs.existsSync(target), false);
+}));
+
+test('invalid supplemental capture is rejected before creating snapshot files', () => withAppData(root => {
+  assert.throws(() => createBackup(root, workspace('Current'), 'before-update', { auth_token: 'never export' }), /unsupported/);
+  assert.deepEqual(fs.readdirSync(root), []);
+}));
+
+test('portable restore preparation sees a verified complete safety snapshot before media changes', () => withAppData(root => {
+  const source = path.join(root, 'old');
+  const target = path.join(root, 'new');
+  const exports = path.join(root, 'exports');
+  fs.mkdirSync(exports);
+  fs.mkdirSync(path.join(source, 'campaign-packs'), { recursive: true });
+  fs.mkdirSync(path.join(target, 'campaign-packs'), { recursive: true });
+  fs.writeFileSync(path.join(source, 'campaign-packs', 'map.png'), 'incoming map');
+  fs.writeFileSync(path.join(target, 'campaign-packs', 'map.png'), 'current map');
+  const saved = exportPortableBackup(source, workspace('Incoming'), exports, { 'rook-theme': 'incoming' });
+  let prepared;
+  const result = restorePortableBackup(target, saved.export_path, workspace('Current'), null, { 'rook-theme': 'current' }, entry => {
+    prepared = entry;
+    assert.equal(entry.workspace, workspace('Incoming'));
+    assert.deepEqual(entry.browser_storage, { 'rook-theme': 'incoming' });
+    assert.equal(entry.safety_backup.reason, 'before-restore');
+    const safety = previewPortableBackup(path.join(target, 'workspace-backups', entry.safety_backup.id));
+    assert.equal(safety.checksummed, true);
+    assert.equal(safety.browser_storage_available, true);
+    assert.equal(fs.readFileSync(path.join(target, 'campaign-packs', 'map.png'), 'utf8'), 'current map');
+  });
+  assert.equal(prepared, result);
+  assert.equal(fs.readFileSync(path.join(target, 'campaign-packs', 'map.png'), 'utf8'), 'incoming map');
+}));
+
+test('failed restore preparation blocks media changes for local and portable backups', () => withAppData(root => {
+  const media = path.join(root, 'campaign-packs');
+  fs.mkdirSync(media);
+  fs.writeFileSync(path.join(media, 'map.png'), 'snapshot map');
+  const saved = createBackup(root, workspace('Snapshot'), 'manual', { 'rook-theme': 'snapshot' });
+  fs.writeFileSync(path.join(media, 'map.png'), 'current working map');
+  let calls = 0;
+  const rejectJournal = result => {
+    calls += 1;
+    assert.equal(result.safety_backup.reason, 'before-restore');
+    assert.equal(fs.existsSync(path.join(root, 'workspace-backups', result.safety_backup.id, 'browser-storage.json')), true);
+    throw new Error('Synthetic recovery journal disk error');
+  };
+  assert.throws(() => restoreBackup(root, saved.id, workspace('Current'), { 'rook-theme': 'current' }, rejectJournal), /journal disk error/);
+  assert.equal(fs.readFileSync(path.join(media, 'map.png'), 'utf8'), 'current working map');
+  const source = path.join(root, 'workspace-backups', saved.id);
+  assert.throws(() => restorePortableBackup(root, source, workspace('Current'), null, { 'rook-theme': 'current' }, rejectJournal), /journal disk error/);
+  assert.equal(fs.readFileSync(path.join(media, 'map.png'), 'utf8'), 'current working map');
+  assert.equal(calls, 2);
+}));
