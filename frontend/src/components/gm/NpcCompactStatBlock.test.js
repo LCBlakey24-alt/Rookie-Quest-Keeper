@@ -67,6 +67,7 @@ describe('NPC GM combat card', () => {
   test('shows sourced provisional numbers and separate action sections without enabling dice', () => {
     render(<NpcCompactStatBlock npc={{
       name: 'Provisional Mabel', combat_ready: false, hp: 102, max_hp: 102, ac: 15,
+      stats: { strength: 18, dexterity: 12 },
       armor: 'Natural bark armour', mechanics_status: 'DM DRAFT',
       bonus_actions: [{ name: 'Root Step', description: 'Move 15 feet.' }],
       reactions: [{ name: 'Barkskin Ward', description: '+3 AC.' }],
@@ -75,6 +76,7 @@ describe('NPC GM combat card', () => {
     expect(screen.getByText('102')).toBeInTheDocument();
     expect(screen.getByText('15')).toBeInTheDocument();
     expect(screen.getByText('Natural bark armour')).toBeInTheDocument();
+    expect(screen.getByText('18')).toBeInTheDocument();
     expect(screen.getByText('Root Step')).toBeInTheDocument();
     expect(screen.getByText('Barkskin Ward')).toBeInTheDocument();
     expect(screen.getByText('GM-only recovered background')).toBeVisible();
