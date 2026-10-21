@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } fro
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
+import './NPCsTab.css';
 
 const NPC_BASIC_FIELDS = [
   { name: 'name', label: 'Name', type: 'text' },
@@ -34,6 +35,7 @@ function normaliseNpcPatch(patch = {}) {
 function NPCsTab({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [editingNPC, setEditingNPC] = useState(null);
   const [deletingNPC, setDeletingNPC] = useState(null);
@@ -58,9 +60,11 @@ function NPCsTab({ campaignId }) {
   const fetchNPCs = async () => {
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/npcs`);
-      setNpcs(response.data);
+      setNpcs(Array.isArray(response.data) ? response.data : []);
+      setLoadError(false);
     } catch (error) {
-      toast.error('Failed to load NPCs');
+      setLoadError(true);
+      toast.error('Could not load NPCs. Your saved records have not been deleted.');
     } finally {
       setLoading(false);
     }
@@ -181,10 +185,19 @@ function NPCsTab({ campaignId }) {
     );
   }
 
+  // A failed request must never be mistaken for an empty campaign or data loss.
+  if (loadError && npcs.length === 0) {
+    return <div className="rqk-npc-load-error" role="alert" data-testid="npc-roster-load-error">
+      <strong>NPCs could not be loaded</strong>
+      <p>This is a loading problem, not confirmation that the campaign has lost its NPCs.</p>
+      <Button type="button" onClick={fetchNPCs} className="btn-secondary">Retry loading NPCs</Button>
+    </div>;
+  }
+
   // Empty state
   if (npcs.length === 0) {
     return (
-      <div className="campaign-management-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
+      <div className="campaign-management-grid rqk-npcs-roster-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
         <EmptyState
           icon={User}
           title="No NPCs Yet"
@@ -302,7 +315,7 @@ function NPCsTab({ campaignId }) {
   if (loading) return <div className="loading-spinner"></div>;
 
   return (
-    <div className="campaign-management-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
+    <div className="campaign-management-grid rqk-npcs-roster-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
       {/* Main Content */}
       <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
@@ -446,20 +459,20 @@ function NPCsTab({ campaignId }) {
       )}
 
       {filteredNPCs.length > 0 && (
-        <div style={{ display: 'grid', gap: '16px' }}>
+        <div className="rqk-npc-list" style={{ display: 'grid', gap: '16px' }}>
           {filteredNPCs.map(npc => (
             <Card 
               key={npc.id} 
               data-testid={`npc-card-${npc.id}`} 
-              className="card"
+              className="card rqk-npc-card"
               style={{
                 animation: lastGenerated?.entity_id === npc.id ? 'glow-pulse 2s ease-out' : 'none',
                 border: lastGenerated?.entity_id === npc.id ? '2px solid #F59E0B' : undefined
               }}
             >
-              <CardHeader>
-                <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-                  <div style={{ 
+              <CardHeader className="rqk-npc-card-header">
+                <div className="rqk-npc-card-main" style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                  <div className="rqk-npc-avatar" style={{ 
                     width: '48px', 
                     height: '48px', 
                     background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', 
@@ -470,8 +483,8 @@ function NPCsTab({ campaignId }) {
                   }}>
                     {(npc.image_url || npc.portrait_url) ? <img src={npc.image_url || npc.portrait_url} alt={npc.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} /> : <User size={24} color="white" />}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="rqk-npc-identity" style={{ flex: 1 }}>
+                    <CardTitle className="medieval-heading rqk-npc-name" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {npc.name}
                       {lastGenerated?.entity_id === npc.id && (
                         <span style={{ fontSize: '12px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -485,8 +498,8 @@ function NPCsTab({ campaignId }) {
                       </p>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <Button data-testid={`edit-npc-btn-${npc.id}`} onClick={() => handleEdit(npc)} className="btn-secondary" style={{ padding: '8px' }}>
+                  <div className="rqk-npc-card-actions" style={{ display: 'flex', gap: '8px' }}>
+                    <Button type="button" aria-label={`Edit ${npc.name}`} data-testid={`edit-npc-btn-${npc.id}`} onClick={() => handleEdit(npc)} className="btn-secondary" style={{ padding: '8px' }}>
                       <Edit size={14} />
                     </Button>
                     
@@ -519,17 +532,17 @@ function NPCsTab({ campaignId }) {
                         </Button>
                       </div>
                     ) : (
-                      <Button data-testid={`delete-npc-btn-${npc.id}`} onClick={() => handleDelete(npc.id)} className="btn-danger" style={{ padding: '8px' }}>
+                      <Button type="button" aria-label={`Delete ${npc.name}`} data-testid={`delete-npc-btn-${npc.id}`} onClick={() => handleDelete(npc.id)} className="btn-danger" style={{ padding: '8px' }}>
                         <Trash2 size={14} />
                       </Button>
                     )}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <details data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
-                  <summary style={{ cursor: 'pointer', color: 'var(--rq-text-primary)', fontSize: 13, fontWeight: 800, padding: '8px 0' }}>
-                    Combat card · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {Array.isArray(npc.attacks) ? npc.attacks.length : 0} attacks
+              <CardContent className="rqk-npc-card-content">
+                <details className="rqk-npc-combat-details" data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
+                  <summary className="rqk-npc-combat-summary" style={{ cursor: 'pointer', color: 'var(--rq-text-primary)', fontSize: 13, fontWeight: 800, padding: '8px 0' }}>
+                    Full stat block · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {Array.isArray(npc.attacks) ? npc.attacks.length : 0} attacks
                   </summary>
                   <NpcCompactStatBlock npc={npc} />
                 </details>
