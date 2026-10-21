@@ -290,9 +290,9 @@ export default function CampaignDashboard() {
             <button type="button" onClick={copyInviteCode} className="campaign-button">
               {inviteLoading ? 'Loading…' : 'Join Code'}
             </button>
-            <button type="button" onClick={handleOpenGMScreen} className="campaign-button campaign-button-primary">
+            <button type="button" onClick={handleOpenGMScreen} className="campaign-button campaign-button-primary" aria-label="Open Live Play" title="Open Live Play">
               <Monitor size={16} aria-hidden="true" />
-              Live Play
+              <span className="campaign-live-play-label">Live Play</span>
             </button>
           </div>
         </div>
