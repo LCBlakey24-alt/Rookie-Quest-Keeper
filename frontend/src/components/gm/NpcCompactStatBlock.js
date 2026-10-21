@@ -130,6 +130,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
   const bonusActions = Array.isArray(npc.bonus_actions) ? npc.bonus_actions : [];
   const reactions = Array.isArray(npc.reactions) ? npc.reactions : [];
   const legendaryActions = Array.isArray(npc.legendary_actions) ? npc.legendary_actions : [];
+  const additionalActions = actions.filter(action => !attacks.some(attack => attack.name === action.name));
   const allActions = attacks.length || actions.length || specialAbilities.length ||
     bonusActions.length || reactions.length || legendaryActions.length;
   const spells = npc.spells && typeof npc.spells === 'object' && !Array.isArray(npc.spells) ? npc.spells : null;
@@ -141,8 +142,8 @@ export default function NpcCompactStatBlock({ npc = {} }) {
     ['GM notes', npc.notes],
   ].filter(([, value]) => value != null && String(value).trim());
   const portrait = npc.image_url || npc.portrait_url || '';
-  const hp = unverified ? '—' : confirmedNumber(npc.hp ?? npc.hit_points ?? npc.current_hp, true);
-  const hpMax = unverified ? '—' : confirmedNumber(npc.max_hp ?? npc.maxHp ?? npc.max_hit_points);
+  const hp = confirmedNumber(npc.hp ?? npc.hit_points ?? npc.current_hp);
+  const hpMax = confirmedNumber(npc.max_hp ?? npc.maxHp ?? npc.max_hit_points);
   const hpDisplay = hp !== '—' && hpMax !== '—' && hp !== hpMax ? hp + '/' + hpMax : hp;
   const kind = npc.type ? [npc.size, npc.type, npc.subtype ? '(' + npc.subtype + ')' : '', npc.alignment].filter(Boolean).join(' ') :
     [npc.role || npc.occupation || npc.class_name, npc.race, Number(npc.level) > 0 ? 'Level ' + npc.level : ''].filter(Boolean).join(' · ');
@@ -174,11 +175,12 @@ export default function NpcCompactStatBlock({ npc = {} }) {
         </div>
       </header>
 
-      {unverified && <p className="rqk-stat-block__warning" role="note">Combat stats not yet verified — keep this NPC out of encounters until equipped with a confirmed stat block.</p>}
+      {unverified && <p className="rqk-stat-block__warning" role="note">Combat stats not yet verified. Any recorded numbers are provisional; do not use them for combat without GM approval.</p>}
+      {npc.mechanics_status && <p className="rqk-stat-block__warning" role="note">Stat status: {npc.mechanics_status}</p>}
       {estimatedLegacy && <p className="rqk-stat-block__warning" role="note">Legacy reference: some statistics and attacks may be estimates. Dice buttons are disabled until verified.</p>}
 
       <div className="rqk-stat-block__vitals" aria-label="Defence and movement">
-        <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Armour Class">AC</span><strong className="rqk-stat-block__vital-value">{unverified ? '—' : confirmedNumber(npc.ac ?? npc.armor_class)}</strong></div>
+        <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Armour Class">AC</span><strong className="rqk-stat-block__vital-value">{confirmedNumber(npc.ac ?? npc.armor_class)}</strong></div>
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Hit Points">HP</span><strong className="rqk-stat-block__vital-value">{hpDisplay}</strong></div>
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label">Speed</span><strong className="rqk-stat-block__vital-value rqk-stat-block__vital-value--speed">{readable(npc.speed)}</strong></div>
       </div>
@@ -188,7 +190,9 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       </div>
 
       <div className="rqk-stat-block__metadata" aria-label="Other statistics">
-        <MetaRow title="Proficiency Bonus" value={npc.proficiency_bonus != null ? signed(npc.proficiency_bonus) : null} />
+        <MetaRow title="Proficiency Bonus" value={npc.proficiency_bonus ? signed(npc.proficiency_bonus) : null} />
+        <MetaRow title="Armour / AC source" value={npc.armor || 'Not recorded'} />
+        {npc.cr == null && <MetaRow title="Challenge Rating" value="Not established" />}
         <MetaRow title="Saving Throws" value={npc.saving_throws || npc.saves} />
         <MetaRow title="Skills" value={npc.skills} />
         <MetaRow title="Damage Vulnerabilities" value={npc.damage_vulnerabilities || npc.vulnerabilities} />
@@ -207,10 +211,11 @@ export default function NpcCompactStatBlock({ npc = {} }) {
         </section>
       )}
       <ActionList title="Actions" items={attacks.length ? attacks : actions} onRoll={rollAction} combatReady={canRoll} />
-      {attacks.length > 0 && actions.length > 0 && <ActionList title="Other actions" items={actions} onRoll={rollAction} combatReady={canRoll} />}
+      {attacks.length > 0 && additionalActions.length > 0 && <ActionList title="Other actions" items={additionalActions} onRoll={rollAction} combatReady={canRoll} />}
       <ActionList title="Bonus Actions" items={bonusActions} onRoll={rollAction} combatReady={canRoll} />
       <ActionList title="Reactions" items={reactions} onRoll={rollAction} combatReady={canRoll} />
       <ActionList title="Legendary Actions" items={legendaryActions} onRoll={rollAction} combatReady={canRoll} />
+      {Number(npc.legendary_resistance) > 0 && <MetaRow title="Legendary Resistance" value={npc.legendary_resistance + ' uses'} />}
       {spells && (
         <section className="rqk-stat-block__section" aria-label="Spells">
           <h3 className="rqk-stat-block__section-title">Spells</h3>
@@ -226,7 +231,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       {!allActions && !spells && <p className="rqk-stat-block__empty">No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
       {lastRoll && <output role="status" aria-live="polite" className="rqk-stat-block__roll-result" data-testid="stat-block-roll-result">{lastRoll}</output>}
       {lore.length > 0 && (
-        <details className="rqk-stat-block__notes">
+        <details className="rqk-stat-block__notes" open={undefined} defaultOpen>
           <summary>GM notes & story details</summary>
           {lore.map(([title, value]) => (
             <div key={title}><h3 className="rqk-stat-block__note-label">{title}</h3><p className="rqk-stat-block__note-text">{String(value)}</p></div>
