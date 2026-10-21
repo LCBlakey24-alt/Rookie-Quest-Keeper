@@ -1150,12 +1150,15 @@ class NPCAbility(BaseModel):
     description: str = ""
 
 class NPCSpells(BaseModel):
+    # Saved NPCs may contain detailed spell lists and undefined slot levels.
+    # Retain spell metadata when API serialises GM-only stat blocks.
+    model_config = ConfigDict(extra="allow")
     casting_ability: str = ""
     spell_save_dc: int = 0
     spell_attack_bonus: int = 0
     cantrips: List[str] = []
-    slot_level: int = 0
-    slot_count: int = 0
+    slot_level: Optional[int] = None
+    slot_count: Optional[int] = None
     known_spells: List[str] = []
 
 class NPCStats(BaseModel):
@@ -1167,7 +1170,9 @@ class NPCStats(BaseModel):
     charisma: int = 10
 
 class NPC(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    # Do not strip enriched GM stat-block fields (actions, bonus actions, reactions,
+    # challenge rating, armour, lore and mechanics provenance) from NPC API replies.
+    model_config = ConfigDict(extra="allow")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
     name: str
