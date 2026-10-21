@@ -64,6 +64,23 @@ describe('NPC GM combat card', () => {
     expect(screen.getByText(/some statistics and attacks may be estimates/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Roll Inferred Bite/ })).not.toBeInTheDocument();
   });
+  test('shows sourced provisional numbers and separate action sections without enabling dice', () => {
+    render(<NpcCompactStatBlock npc={{
+      name: 'Provisional Mabel', combat_ready: false, hp: 102, max_hp: 102, ac: 15,
+      armor: 'Natural bark armour', mechanics_status: 'DM DRAFT',
+      bonus_actions: [{ name: 'Root Step', description: 'Move 15 feet.' }],
+      reactions: [{ name: 'Barkskin Ward', description: '+3 AC.' }],
+      notes: 'GM-only recovered background',
+    }} />);
+    expect(screen.getByText('102')).toBeInTheDocument();
+    expect(screen.getByText('15')).toBeInTheDocument();
+    expect(screen.getByText('Natural bark armour')).toBeInTheDocument();
+    expect(screen.getByText('Root Step')).toBeInTheDocument();
+    expect(screen.getByText('Barkskin Ward')).toBeInTheDocument();
+    expect(screen.getByText('GM-only recovered background')).toBeVisible();
+    expect(screen.getByText(/provisional/)).toBeInTheDocument();
+  });
+
   test('renders a compact SRD creature sheet with organised official details', () => {
     render(<NpcCompactStatBlock npc={{
       name: 'Goblin', source: 'srd-5.1', type: 'humanoid', size: 'Small', cr: '1/4', xp: 50,
