@@ -23,6 +23,14 @@ describe('canonical Tia-Karta six-day calendar', () => {
     expect(calendar.custom_months[9].season).toBe('Frostdeep');
   });
 
+  test('retains a separate Wednesday session date when applying the same world calendar', () => {
+    const wednesday = tiaKartaCalendar('spilsby-wednesday', {
+      calendar_type: 'custom', current_day: 1, current_month: 1, current_year: 592,
+    });
+    expect([wednesday.current_day, wednesday.current_month, wednesday.current_year]).toEqual([1, 1, 592]);
+    expect(wednesday.custom_months).toEqual(calendar.custom_months);
+  });
+
   test('Court of Crowns is 66 days from the Heralds current date', () => {
     const event = TIA_KARTA_REFERENCE_EVENTS.find(item => item.name === 'Court of Crowns Summit');
     expect(calendarDaysUntil(event, calendar)).toBe(66);
