@@ -209,6 +209,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   const [resetData, setResetData] = useState({ token: initialToken || '', new_password: '' });
   const [loading, setLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showAdditionalAccess, setShowAdditionalAccess] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [stagingCredentials] = useState(() => createStagingCredentials());
@@ -607,9 +608,9 @@ export default function AuthPage({ onLogin = () => {} }) {
             )}
 
             {mode === 'login' && (
-              <details className="rqk-auth-more-options">
+              <details className="rqk-auth-more-options" onToggle={event => setShowAdditionalAccess(event.currentTarget.open)}>
                 <summary>Other ways to enter</summary>
-                <ReadOnlyDemoAccess />
+                {showAdditionalAccess && <ReadOnlyDemoAccess />}
               </details>
             )}
 
