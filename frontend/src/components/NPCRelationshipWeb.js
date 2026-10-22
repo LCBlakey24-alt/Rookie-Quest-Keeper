@@ -97,6 +97,8 @@ export default function NPCRelationshipWeb({ campaignId }) {
     setSelectedNpcId('');
     setGraphMode('focus');
     setEditingLinkId('');
+    setBusy(false);
+    setRemovingId('');
     setForm(EMPTY_FORM);
     setLoadError('');
     setLoading(true);
@@ -348,7 +350,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
       </div>
       {npcs.length ? <div className={`rqk-rel-graph-scroller ${focusMode ? 'rqk-rel-graph-scroller--focus' : 'rqk-rel-graph-scroller--all'}`}>
         <svg viewBox={`0 0 ${focusMode ? 390 : 1000} ${svgHeight}`}
-          role="img" aria-label={focusMode ? `Relationship network focused on ${selectedNpc?.name || 'NPC'}` : 'Complete campaign NPC network'}>
+          role="group" aria-label={focusMode ? `Relationship network focused on ${selectedNpc?.name || 'NPC'}` : 'Complete campaign NPC network'}>
           {visibleLines.map(link => {
             const from = positions[link.source_id], to = positions[link.target_id];
             if (!from || !to) return null;
@@ -407,7 +409,8 @@ export default function NPCRelationshipWeb({ campaignId }) {
           })}
         </ul> : <p>No links recorded for this NPC yet.</p>}
         <button type="button" onClick={() => {
-          setForm(previous => ({ ...previous, source_id: selectedNpc.id, target_id: '' }));
+          setEditingLinkId('');
+          setForm(previous => ({ ...EMPTY_FORM, source_id: selectedNpc.id }));
           formSectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
         }}>Create a connection for {selectedNpc.name}</button>
       </div>}
