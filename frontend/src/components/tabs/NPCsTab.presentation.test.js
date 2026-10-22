@@ -11,8 +11,11 @@ describe('GM NPC roster on small screens', () => {
     expect(jsx).toContain('rqk-npc-card');
     expect(jsx).toContain('rqk-npc-card-header');
     expect(jsx).toContain('rqk-npc-card-content');
-    expect(jsx).toContain('Full stat block · HP');
-    expect(jsx).toContain('<NpcCompactStatBlock npc={npc} />');
+    expect(jsx).toContain('Full stat block & lore');
+    expect(jsx).toContain('expandedNpcIds.has(npc.id) && <NpcCompactStatBlock npc={npc} />');
+    expect(jsx).toContain('Expand visible stat blocks');
+    expect(jsx).toContain('Collapse visible stat blocks');
+    expect(jsx).toContain('onNpcDetailsToggle(npc.id, event.currentTarget.open)');
     expect(jsx).toContain('aria-label={`Edit ${npc.name}`}');
     expect(jsx).toContain('aria-label={`Delete ${npc.name}`}');
   });
@@ -23,6 +26,9 @@ describe('GM NPC roster on small screens', () => {
     expect(css).toContain('grid-template-columns: 40px minmax(0, 1fr) auto !important');
     expect(css).toContain('min-width: 44px !important');
     expect(css).toContain('min-height: 0 !important');
+    expect(css).toContain('.rqk-npc-roster-toolbar');
+    expect(css).toContain('.rqk-npc-summary-stats');
+    expect(css).toContain('.rqk-npc-expand-toggle');
     expect(css).toContain('.rqk-npcs-roster-grid > .ai-assistant-panel');
   });
 

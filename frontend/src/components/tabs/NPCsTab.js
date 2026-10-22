@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } fro
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
+import { matchesNpcSearch } from '@/lib/npcRosterSearch';
 import './NPCsTab.css';
 
 const NPC_BASIC_FIELDS = [
@@ -41,6 +42,7 @@ function NPCsTab({ campaignId }) {
   const [editingNPC, setEditingNPC] = useState(null);
   const [deletingNPC, setDeletingNPC] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedNpcIds, setExpandedNpcIds] = useState(() => new Set());
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -58,6 +60,8 @@ function NPCsTab({ campaignId }) {
     // A campaign change must never display records from the previous party.
     activeCampaignRef.current = campaignId;
     setNpcs([]);
+    setExpandedNpcIds(new Set());
+    setSearchTerm('');
     setLoadError(false);
     setLoading(true);
     fetchNPCs();
@@ -178,12 +182,30 @@ function NPCsTab({ campaignId }) {
     }
   };
 
-  // Filter NPCs by search
-  const filteredNPCs = npcs.filter(npc =>
-    npc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    npc.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    npc.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Find NPCs by story, role, skills and GM notes as well as the displayed name.
+  // Search is always local to the active campaign; never mix the two parties.
+  const filteredNPCs = npcs.filter(npc => matchesNpcSearch(npc, searchTerm));
+
+  const allVisibleExpanded = filteredNPCs.length > 0 && filteredNPCs.every(npc => expandedNpcIds.has(npc.id));
+  const toggleAllNpcDetails = () => {
+    setExpandedNpcIds(previous => {
+      const updated = new Set(previous);
+      filteredNPCs.forEach(npc => {
+        if (allVisibleExpanded) updated.delete(npc.id);
+        else updated.add(npc.id);
+      });
+      return updated;
+    });
+  };
+  const onNpcDetailsToggle = (npcId, opened) => {
+    setExpandedNpcIds(previous => {
+      if (previous.has(npcId) === opened) return previous;
+      const updated = new Set(previous);
+      if (opened) updated.add(npcId);
+      else updated.delete(npcId);
+      return updated;
+    });
+  };
 
   // Loading state
   if (loading) {
@@ -444,13 +466,22 @@ function NPCsTab({ campaignId }) {
               }} 
             />
             <Input
-              placeholder="Search NPCs by name, location, or description..."
+              placeholder="Search names, roles, lore, skills or GM notes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input"
               style={{ paddingLeft: '40px' }}
             />
           </div>
+        </div>
+      )}
+
+      {filteredNPCs.length > 0 && (
+        <div className="rqk-npc-roster-toolbar" aria-label="NPC roster actions">
+          <span>{filteredNPCs.length} of {npcs.length} saved NPCs</span>
+          <button type="button" className="rqk-npc-expand-toggle" onClick={toggleAllNpcDetails}>
+            {allVisibleExpanded ? 'Collapse visible stat blocks' : 'Expand visible stat blocks'}
+          </button>
         </div>
       )}
 
@@ -550,11 +581,23 @@ function NPCsTab({ campaignId }) {
                 </div>
               </CardHeader>
               <CardContent className="rqk-npc-card-content">
-                <details className="rqk-npc-combat-details" data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
-                  <summary className="rqk-npc-combat-summary" style={{ cursor: 'pointer', color: 'var(--rq-text-primary)', fontSize: 13, fontWeight: 800, padding: '8px 0' }}>
-                    Full stat block · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {Array.isArray(npc.attacks) ? npc.attacks.length : 0} attacks
+                <details
+                  className="rqk-npc-combat-details"
+                  data-testid={`npc-combat-card-${npc.id}`}
+                  open={expandedNpcIds.has(npc.id)}
+                  onToggle={event => onNpcDetailsToggle(npc.id, event.currentTarget.open)}
+                >
+                  <summary className="rqk-npc-combat-summary" aria-label={`Show full stat block and story for ${npc.name}`}>
+                    <span className="rqk-npc-summary-title">Full stat block & lore</span>
+                    <span className="rqk-npc-summary-stats">
+                      <span>HP <strong>{npc.hp > 0 ? npc.hp : 'Not set'}</strong></span>
+                      <span>AC <strong>{npc.ac > 0 ? npc.ac : 'Not set'}</strong></span>
+                      {(npc.attacks?.length > 0 || npc.actions?.length > 0) &&
+                        <span>{npc.attacks?.length || npc.actions?.length} actions</span>}
+                      {npc.cr != null && npc.cr !== '' && <span>CR {npc.cr}</span>}
+                    </span>
                   </summary>
-                  <NpcCompactStatBlock npc={npc} />
+                  {expandedNpcIds.has(npc.id) && <NpcCompactStatBlock npc={npc} />}
                 </details>
               </CardContent>
             </Card>

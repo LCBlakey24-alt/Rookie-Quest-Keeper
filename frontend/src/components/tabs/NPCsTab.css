@@ -116,3 +116,73 @@
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-npc-card { animation: none !important; }
 }
+
+/* Table-ready NPC references: a compact scan line with optional deep detail.
+   Keep styles scoped to the campaign-prep NPC tab. */
+.rqk-npc-roster-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: -5px 0 12px;
+  font-size: 12px;
+  color: var(--rq-text-secondary, #b6c5d3);
+}
+.rqk-npc-expand-toggle {
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid var(--rq-line-strong, #576373);
+  border-radius: 6px;
+  background: var(--rq-bg-panel, #1e2936);
+  color: var(--rq-text-primary, #eadfc8);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+.rqk-npc-expand-toggle:hover,
+.rqk-npc-expand-toggle:focus-visible {
+  border-color: var(--rq-primary, #c9a96b);
+  outline-offset: 3px;
+}
+#root .rqk-npc-combat-summary {
+  display: list-item;
+  padding: 8px 2px;
+  color: var(--rq-text-primary, #eadfc8);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+.rqk-npc-summary-title {
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--rq-primary, #c9a96b);
+}
+.rqk-npc-summary-stats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.rqk-npc-summary-stats > span {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--rq-border-default, rgba(201,169,107,.25));
+  border-radius: 4px;
+  background: var(--rq-bg-main, #0b1b2b);
+  color: var(--rq-text-secondary, #bec7d4);
+}
+.rqk-npc-summary-stats strong { color: var(--rq-text-primary, #eadfc8); }
+.rqk-npc-combat-details[open] > .rqk-stat-block {
+  margin: 8px 0 0;
+}
+@media (max-width: 719px) {
+  #root .rqk-npc-roster-toolbar { align-items: flex-start; margin-top: 0; }
+  #root .rqk-npc-expand-toggle { width: 100%; min-height: 44px; }
+  #root .rqk-npc-combat-summary { line-height: 1.55 !important; }
+  #root .rqk-npc-summary-title { display: block; margin: 0 0 6px; }
+  #root .rqk-npc-summary-stats { display: flex; gap: 5px; }
+  #root .rqk-npc-summary-stats > span { font-size: 11px; }
+}
