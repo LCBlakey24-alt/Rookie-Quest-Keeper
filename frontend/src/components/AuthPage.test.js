@@ -43,7 +43,7 @@ describe('AuthPage', () => {
     renderAuthPage();
 
     expect(screen.getByTestId('auth-page')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /welcome back, adventurer/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
 
     const signInTab = screen.getByRole('tab', { name: /sign in/i });
     const createAccountTab = screen.getByRole('tab', { name: /create account/i });
@@ -54,10 +54,14 @@ describe('AuthPage', () => {
     expect(screen.getByTestId('login-password')).toHaveAttribute('enterKeyHint', 'go');
   });
 
-  test('offers a no-login read-only demo from the login page', () => {
+  test('keeps the login compact and offers demo access only when requested', async () => {
     renderAuthPage();
+    expect(screen.queryByRole('complementary', { name: 'Rookie Quest Keeper account benefits' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/made for quick table access/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('demo-access-btn')).not.toBeInTheDocument();
 
-    const demoLink = screen.getByTestId('demo-access-btn');
+    fireEvent.click(screen.getByText('Other ways to enter'));
+    const demoLink = await screen.findByTestId('demo-access-btn');
     expect(demoLink).toHaveAttribute('href', '/home?demo=1');
     expect(screen.getByText(/nothing can be saved, edited, or deleted/i)).toBeInTheDocument();
     expect(apiClient.post).not.toHaveBeenCalled();
@@ -88,7 +92,7 @@ describe('AuthPage', () => {
 
     expect(passwordInput).toHaveAttribute('type', 'text');
     expect(screen.getByRole('button', { name: /hide password/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('heading', { name: /welcome back, adventurer/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
   });
 
   test('opens the forgot password flow from the URL mode', () => {
