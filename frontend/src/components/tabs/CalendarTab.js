@@ -10,7 +10,7 @@ import {
   TIA_KARTA_REFERENCE_EVENTS,
   tiaKartaCalendar,
 } from '@/data/tiaKartaCalendar';
-import { eventOccursOn, calendarMonthAfter, daysUntilNextOccurrence } from '@/data/customCalendarUtilities';
+import { eventOccursOn, calendarMonthAfter, calendarWeekdayOffset, daysUntilNextOccurrence } from '@/data/customCalendarUtilities';
 
 const emptyEvent = { name: '', description: '', day: 1, month: 1, year: 1, is_recurring: false, recurrence_type: 'none' };
 const fallbackCalendar = { calendar_type: 'gregorian', current_day: 1, current_month: 1, current_year: 1, custom_months: [{ name: 'Month 1', days: 30 }] };
@@ -96,6 +96,7 @@ export default function CalendarTab({ campaignId }) {
   const currentMonth = selectedMonth?.name || 'Month';
   const daysThisMonth = Math.max(1, Math.min(45, Number(selectedMonth?.days) || 30));
   const daysPerWeek = Math.max(1, Math.min(10, Number(calendar?.days_per_week) || 7));
+  const monthStartOffset = calendarWeekdayOffset(calendar, viewYear, viewMonth) ?? 0;
   const jumpToCurrentMonth = () => {
     setViewDate({ month: calendar.current_month, year: calendar.current_year });
     setSelectedDate({ day: calendar.current_day, month: calendar.current_month, year: calendar.current_year });
@@ -384,6 +385,9 @@ export default function CalendarTab({ campaignId }) {
               {Array.from({ length: daysPerWeek }, (_, index) => (
                 <strong key={index} style={{ color: '#D9BC82', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
               ))}
+              {Array.from({ length: monthStartOffset }, (_, index) => (
+                <span key={`weekday-offset-${index}`} className="rqk-calendar-day-placeholder" aria-hidden="true" />
+              ))}
               {Array.from({ length: daysThisMonth }, (_, index) => {
                 const day = index + 1;
                 const matching = events.filter(item => eventOccursOn(item, calendar, viewYear, viewMonth, day));
@@ -449,8 +453,16 @@ export default function CalendarTab({ campaignId }) {
               </select>
             </label>
             <div className="rqk-calendar-event-date-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
-              <input aria-label="Event day" data-testid="event-day-input" className="input" type="number" min="1" value={eventForm.day} onChange={e => setEventForm({ ...eventForm, day: parseInt(e.target.value, 10) || 1 })} />
-              <input aria-label="Event month" data-testid="event-month-input" className="input" type="number" min="1" value={eventForm.month} onChange={e => setEventForm({ ...eventForm, month: parseInt(e.target.value, 10) || 1 })} />
+              <input aria-label="Event day" data-testid="event-day-input" className="input" type="number" min="1" max={calendar.custom_months?.[eventForm.month - 1]?.days || 31} value={eventForm.day} onChange={e => setEventForm({ ...eventForm, day: parseInt(e.target.value, 10) || 1 })} />
+              <select aria-label="Event month" data-testid="event-month-input" className="input"
+                value={eventForm.month} onChange={e => setEventForm(previous => ({
+                  ...previous, month: Number(e.target.value),
+                  day: Math.min(Number(previous.day), Number(calendar?.custom_months?.[Number(e.target.value) - 1]?.days) || 30),
+                }))}>
+                {calendar.custom_months?.map((month, index) => (
+                  <option key={index} value={index + 1}>{month.name}</option>
+                ))}
+              </select>
               <input aria-label="Event year" data-testid="event-year-input" className="input" type="number" value={eventForm.year} onChange={e => setEventForm({ ...eventForm, year: parseInt(e.target.value, 10) || 1 })} />
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -465,17 +477,25 @@ export default function CalendarTab({ campaignId }) {
           {sortedEvents.length === 0 ? <p style={{ color: '#EADFC8' }}>No events scheduled.</p> : sortedEvents.map(event => {
             const monthName = calendar?.custom_months?.[event.month - 1]?.name || `Month ${event.month}`;
             return (
-              <article key={event.id} data-testid={`event-${event.id}`} className="initiative-entry" style={{ marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                  <div>
-                    <h4 style={{ color: '#EADFC8', margin: '0 0 4px' }}>{event.name}</h4>
-                    <p style={{ color: '#EADFC8', margin: 0 }}>{monthName} {event.day}, {event.year}</p>
-                    {event.description && <p style={{ color: '#EADFC8', margin: '6px 0 0' }}>{event.description}</p>}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button data-testid={`edit-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => editEvent(event)}><Edit size={14} /></button>
-                    <button data-testid={`delete-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => deleteEvent(event.id)} style={{ color: '#EADFC8' }}><Trash2 size={14} /></button>
-                  </div>
+              <article key={event.id} data-testid={`event-${event.id}`} className="initiative-entry rqk-calendar-event-record">
+                <div className="rqk-calendar-event-record-content">
+                  <span className="rqk-calendar-event-record-date">{event.day} {monthName} · {event.year} PC</span>
+                  <h4>{event.name}</h4>
+                  {event.is_recurring && <span className="rqk-calendar-event-repeat">
+                    Repeats {event.recurrence_type === 'weekly' ? `every ${daysPerWeek}-day week` :
+                      event.recurrence_type === 'monthly' ? 'monthly' : event.recurrence_type === 'annual' ? 'annually' : ''}
+                  </span>}
+                  {event.description && <p>{event.description}</p>}
+                </div>
+                <div className="rqk-calendar-event-record-actions">
+                  <button data-testid={`edit-event-btn-${event.id}`} type="button" className="btn-icon"
+                    aria-label={`Edit ${event.name}`} title={`Edit ${event.name}`} onClick={() => editEvent(event)}>
+                    <Edit size={17} aria-hidden="true" />
+                  </button>
+                  <button data-testid={`delete-event-btn-${event.id}`} type="button" className="btn-icon"
+                    aria-label={`Delete ${event.name}`} title={`Delete ${event.name}`} onClick={() => deleteEvent(event.id)}>
+                    <Trash2 size={17} aria-hidden="true" />
+                  </button>
                 </div>
               </article>
             );
