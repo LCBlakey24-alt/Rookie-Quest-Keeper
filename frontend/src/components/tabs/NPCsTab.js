@@ -300,6 +300,12 @@ function NPCsTab({ campaignId }) {
                   style={{ minHeight: '100px' }}
                 />
               </div>
+              <NpcFullStatEditor
+                key="new-empty"
+                draft={formData}
+                editing={false}
+                onChange={(key, value) => setFormData(previous => ({ ...previous, [key]: value }))}
+              />
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                 <Button type="button" className="btn-secondary" onClick={resetForm}>Cancel</Button>
                 <Button type="submit" className="btn-primary">Add NPC</Button>
