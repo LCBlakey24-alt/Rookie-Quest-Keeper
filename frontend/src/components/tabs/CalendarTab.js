@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Calendar as CalendarIcon, ChevronRight, Edit, Plus, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
@@ -17,6 +17,7 @@ const fallbackCalendar = { calendar_type: 'gregorian', current_day: 1, current_m
 
 
 export default function CalendarTab({ campaignId }) {
+  const activeCampaignRef = useRef(campaignId);
   const [calendar, setCalendar] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,7 @@ export default function CalendarTab({ campaignId }) {
   const [applyingTiaKarta, setApplyingTiaKarta] = useState(false);
 
   const loadCalendar = useCallback(async () => {
+    const requestedCampaign = campaignId;
     try {
       setLoading(true);
       setLoadError('');
@@ -39,6 +41,7 @@ export default function CalendarTab({ campaignId }) {
         apiClient.get(`/campaigns/${campaignId}/calendar`),
         apiClient.get(`/campaigns/${campaignId}/calendar-events`),
       ]);
+      if (activeCampaignRef.current !== requestedCampaign) return;
       if (!calendarRes.data || !Array.isArray(eventsRes.data)) throw new Error('Invalid calendar response');
       setCalendar(calendarRes.data);
       setEvents(eventsRes.data);
@@ -52,14 +55,22 @@ export default function CalendarTab({ campaignId }) {
       setStructureDraft({ days_per_week: calendarRes.data.days_per_week,
         custom_months: (calendarRes.data.custom_months || []).map(month => ({ ...month })) });
     } catch (error) {
+      if (activeCampaignRef.current !== requestedCampaign) return;
       setLoadError(error?.response?.data?.detail || error?.message || 'Failed to load calendar');
       toast.error('Could not load calendar. Existing campaign dates were not changed.');
     } finally {
-      setLoading(false);
+      if (activeCampaignRef.current === requestedCampaign) setLoading(false);
     }
   }, [campaignId]);
 
-  useEffect(() => { loadCalendar(); }, [loadCalendar]);
+  useEffect(() => {
+    activeCampaignRef.current = campaignId;
+    setCalendar(null);
+    setEvents([]);
+    setLoadError('');
+    setLoading(true);
+    loadCalendar();
+  }, [campaignId, loadCalendar]);
 
   const sortedEvents = useMemo(() => [...events].sort((a, b) => {
     if (a.year !== b.year) return a.year - b.year;
