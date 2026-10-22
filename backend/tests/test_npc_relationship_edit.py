@@ -1,13 +1,37 @@
 """NPC relationship edits must retain IDs and never cross campaign boundaries."""
 import asyncio
+import importlib.util
+import os
+import sys
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import HTTPException
 
+os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
+os.environ.setdefault("DB_NAME", "test")
+os.environ.setdefault("JWT_SECRET_KEY", "test")
+os.environ.setdefault("APP_URL", "http://localhost:3000")
+os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BACKEND_ROOT))
+
+# Import this route module directly. The routes package imports unrelated email
+# providers that are not installed in the focused backend test environment.
+def load_route():
+    path = BACKEND_ROOT / "routes" / "npcs.py"
+    spec = importlib.util.spec_from_file_location("focused_npc_relationship_edit_module", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
+routes = load_route()
 from models import NPCRelationshipCreate
-from routes import npcs as routes
 
 
 def run_update(campaign_id, relationship_id, payload, username):
