@@ -23,6 +23,8 @@ export default function CalendarTab({ campaignId }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [viewDate, setViewDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const eventEditorRef = useRef(null);
   const [dateDraft, setDateDraft] = useState({ day: 1, month: 1, year: 592 });
   const [showCalendarEditor, setShowCalendarEditor] = useState(false);
   const [structureDraft, setStructureDraft] = useState(null);
@@ -32,7 +34,7 @@ export default function CalendarTab({ campaignId }) {
   const [eventForm, setEventForm] = useState(emptyEvent);
   const [applyingTiaKarta, setApplyingTiaKarta] = useState(false);
 
-  const loadCalendar = useCallback(async () => {
+  const loadCalendar = useCallback(async (options = {}) => {
     const requestedCampaign = campaignId;
     try {
       setLoading(true);
@@ -45,7 +47,11 @@ export default function CalendarTab({ campaignId }) {
       if (!calendarRes.data || !Array.isArray(eventsRes.data)) throw new Error('Invalid calendar response');
       setCalendar(calendarRes.data);
       setEvents(eventsRes.data);
-      setViewDate({ month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+      if (!options.preserveView) {
+        setViewDate({ month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+        setSelectedDate({ day: Number(calendarRes.data.current_day),
+          month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+      }
       setDateDraft({ day: Number(calendarRes.data.current_day), month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
       setEditingEvent(null);
       setEventForm({
@@ -67,6 +73,7 @@ export default function CalendarTab({ campaignId }) {
     activeCampaignRef.current = campaignId;
     setCalendar(null);
     setEvents([]);
+    setSelectedDate(null);
     setLoadError('');
     setLoading(true);
     loadCalendar();
@@ -89,10 +96,24 @@ export default function CalendarTab({ campaignId }) {
   const currentMonth = selectedMonth?.name || 'Month';
   const daysThisMonth = Math.max(1, Math.min(45, Number(selectedMonth?.days) || 30));
   const daysPerWeek = Math.max(1, Math.min(10, Number(calendar?.days_per_week) || 7));
-  const jumpToCurrentMonth = () => setViewDate({ month: calendar.current_month, year: calendar.current_year });
-  const browseMonth = offset => setViewDate(previous =>
-    calendarMonthAfter(calendar, previous?.year ?? calendar.current_year,
+  const jumpToCurrentMonth = () => {
+    setViewDate({ month: calendar.current_month, year: calendar.current_year });
+    setSelectedDate({ day: calendar.current_day, month: calendar.current_month, year: calendar.current_year });
+  };
+  const browseMonth = offset => {
+    setViewDate(previous => calendarMonthAfter(calendar, previous?.year ?? calendar.current_year,
       previous?.month ?? calendar.current_month, offset));
+    setSelectedDate(null);
+  };
+  const agendaEvents = selectedDate
+    ? events.filter(item => eventOccursOn(item, calendar, selectedDate.year, selectedDate.month, selectedDate.day))
+    : [];
+  const addEventOnSelectedDay = () => {
+    if (!selectedDate) return;
+    setEditingEvent(null);
+    setEventForm({ ...emptyEvent, ...selectedDate });
+    eventEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
 
   const applyTiaKarta = async () => {
     if (!window.confirm('Apply the Tia-Karta 12-month calendar? If this campaign already has a custom in-world date it will be preserved. Existing events will not be deleted.')) return;
@@ -142,7 +163,7 @@ export default function CalendarTab({ campaignId }) {
       }
       setEditingEvent(null);
       setEventForm(emptyEvent);
-      loadCalendar();
+      loadCalendar({ preserveView: true });
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save event');
     }
@@ -252,18 +273,22 @@ export default function CalendarTab({ campaignId }) {
   return (
     <div className="rqk-calendar-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 18 }}>
       <main className="rqk-calendar-main">
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          <h2 style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}><CalendarIcon size={22} /> Campaign Calendar</h2>
-          <button type="button" className="btn-secondary" onClick={applyTiaKarta} disabled={applyingTiaKarta}>{applyingTiaKarta ? 'Restoring…' : 'Use Tia-Karta Calendar'}</button>
+        <header className="rqk-calendar-title">
+          <div>
+            <p className="rqk-calendar-kicker">Chronicle / World time</p>
+            <h2><CalendarIcon size={22} aria-hidden="true" /> Campaign calendar</h2>
+            <p>Plan events, navigate the world calendar and track this party's independent date.</p>
+          </div>
+          <button type="button" className="btn-secondary" onClick={applyTiaKarta} disabled={applyingTiaKarta}>{applyingTiaKarta ? 'Restoring…' : 'Restore Tia-Karta months'}</button>
         </header>
 
-        <section className="rqk-calendar-panel" style={{ padding: 20, textAlign: 'center', marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
-          <h3 style={{ color: '#FFFFFF', fontSize: 34, margin: '0 0 6px' }}>{calendar?.current_day || 1} {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.name || 'Month'}, {calendar?.current_year || 1}{calendar?.calendar_type === 'custom' ? ' PC' : ''}</h3>
+        <section className="rqk-calendar-panel rqk-calendar-current">
+          <h3 style={{ color: '#EADFC8', fontSize: 34, margin: '0 0 6px' }}>{calendar?.current_day || 1} {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.name || 'Month'}, {calendar?.current_year || 1}{calendar?.calendar_type === 'custom' ? ' PC' : ''}</h3>
           {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.season &&
-            <p style={{ color: '#a9ddff', margin: '0 0 8px' }}>
-              {calendar.custom_months[calendar.current_month - 1].season} · {daysPerWeek}-day week · 12-month Tia-Karta year
+            <p style={{ color: '#C8BDA8', margin: '0 0 8px' }}>
+              {calendar.custom_months[calendar.current_month - 1].season} · {daysPerWeek}-day week · {calendar?.custom_months?.length || 12}-month year
             </p>}
-          <p style={{ color: '#FFFFFF', margin: '0 0 14px' }}>Current in-game date</p>
+          <p style={{ color: '#EADFC8', margin: '0 0 14px' }}>Current in-game date</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <input data-testid="advance-days-input" type="number" min="1" max="10000" value={advanceDays} onChange={e => setAdvanceDays(parseInt(e.target.value, 10) || 1)} className="input" style={{ width: 80, textAlign: 'center' }} />
             <button data-testid="advance-time-btn" type="button" onClick={advanceTime} className="btn-primary"><ChevronRight size={16} /> Advance Time</button>
@@ -345,9 +370,9 @@ export default function CalendarTab({ campaignId }) {
           )}
         </section>
 
-        <section className="rqk-calendar-panel" style={{ padding: 18, marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
+        <section className="rqk-calendar-panel rqk-calendar-month-panel">
           <div className="rqk-calendar-month-heading">
-            <h3 style={{ color: '#FFFFFF', margin: 0 }}>{currentMonth} {viewYear} — Days of the Month</h3>
+            <h3 style={{ color: '#EADFC8', margin: 0 }}>{currentMonth} {viewYear} — Days of the Month</h3>
             <div className="rqk-calendar-month-actions">
               <button type="button" className="btn-secondary" onClick={() => browseMonth(-1)} aria-label="Previous in-game month">‹ Previous</button>
               <button type="button" className="btn-secondary" onClick={jumpToCurrentMonth}>Current month</button>
@@ -357,7 +382,7 @@ export default function CalendarTab({ campaignId }) {
           <div className="rqk-calendar-month-scroller" style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${daysPerWeek}, minmax(48px, 1fr))`, gap: 5, minWidth: daysPerWeek * 48 }}>
               {Array.from({ length: daysPerWeek }, (_, index) => (
-                <strong key={index} style={{ color: '#9cceed', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
+                <strong key={index} style={{ color: '#D9BC82', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
               ))}
               {Array.from({ length: daysThisMonth }, (_, index) => {
                 const day = index + 1;
@@ -365,25 +390,47 @@ export default function CalendarTab({ campaignId }) {
                 const today = Number(calendar?.current_day) === day &&
                   Number(calendar?.current_month) === viewMonth && Number(calendar?.current_year) === viewYear;
                 return (
-                  <div key={day} aria-label={`${day} ${currentMonth}${today ? ', current day' : ''}`} style={{
-                    padding: 6, minHeight: 54, borderRadius: 5, overflow: 'hidden',
-                    background: today ? '#174c64' : '#102B40',
-                    border: today ? '2px solid #58daf2' : '1px solid #244459',
-                  }}>
-                    <strong style={{ color: today ? '#a7f2ff' : '#fff' }}>{day}{today ? ' ★' : ''}</strong>
+                  <button key={day} type="button"
+                    className={`rqk-calendar-day${today ? ' is-today' : ''}${selectedDate?.year === viewYear && selectedDate?.month === viewMonth && selectedDate?.day === day ? ' is-selected' : ''}`}
+                    aria-label={`${day} ${currentMonth} ${viewYear}${today ? ', current in-game day' : ''}, ${matching.length} events`}
+                    aria-pressed={selectedDate?.year === viewYear && selectedDate?.month === viewMonth && selectedDate?.day === day}
+                    onClick={() => setSelectedDate({ day, month: viewMonth, year: viewYear })}>
+                    <strong>{day}{today ? <span aria-hidden="true"> ★</span> : null}</strong>
                     {matching.slice(0, 2).map(item => (
-                      <div key={item.id || item.name} title={item.name} style={{ color: '#f1c78b', fontSize: 10, overflowWrap: 'anywhere' }}>{item.name}</div>
+                      <span className="rqk-calendar-day-event" key={item.id || item.name} title={item.name}>{item.name}</span>
                     ))}
-                    {matching.length > 2 && <span style={{ color: '#bcd', fontSize: 10 }}>+{matching.length - 2} more</span>}
-                  </div>
+                    {matching.length > 2 && <span className="rqk-calendar-day-more">+{matching.length - 2} more</span>}
+                  </button>
                 );
               })}
             </div>
           </div>
         </section>
 
-        <section className="rqk-calendar-panel" style={{ padding: 18, marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
-          <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>{editingEvent ? 'Edit Event' : 'Add Event'}</h3>
+        {selectedDate && (
+          <section className="rqk-calendar-panel rqk-calendar-agenda" aria-label="Selected day agenda">
+            <div className="rqk-calendar-agenda-heading">
+              <div>
+                <p className="rqk-calendar-kicker">Selected day</p>
+                <h3>{selectedDate.day} {calendar?.custom_months?.[selectedDate.month - 1]?.name || 'Month'}, {selectedDate.year} PC</h3>
+              </div>
+              <button type="button" className="btn-secondary" onClick={addEventOnSelectedDay}>+ Add event here</button>
+            </div>
+            {agendaEvents.length ? (
+              <ul className="rqk-calendar-agenda-list">
+                {agendaEvents.map(item => <li key={item.id || item.name}>
+                  <strong>{item.name}</strong>
+                  {item.description && <p>{item.description}</p>}
+                  {item.is_recurring && <small>Repeats: {item.recurrence_type}</small>}
+                  <button type="button" onClick={() => editEvent(item)} aria-label={`Edit ${item.name}`}>Edit</button>
+                </li>)}
+              </ul>
+            ) : <p className="rqk-calendar-agenda-empty">Nothing scheduled for this day yet.</p>}
+          </section>
+        )}
+
+        <section ref={eventEditorRef} className="rqk-calendar-panel rqk-calendar-event-editor">
+          <h3>{editingEvent ? 'Edit event' : 'Create an event'}</h3>
           <form onSubmit={saveEvent} style={{ display: 'grid', gap: 10 }}>
             <input data-testid="event-name-input" className="input" placeholder="Event name" value={eventForm.name} onChange={e => setEventForm({ ...eventForm, name: e.target.value })} required />
             <textarea data-testid="event-description-input" className="textarea" placeholder="Description" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} />
@@ -413,21 +460,21 @@ export default function CalendarTab({ campaignId }) {
           </form>
         </section>
 
-        <section className="rqk-calendar-panel" style={{ padding: 18, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
-          <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>All Events</h3>
-          {sortedEvents.length === 0 ? <p style={{ color: '#FFFFFF' }}>No events scheduled.</p> : sortedEvents.map(event => {
+        <section className="rqk-calendar-panel rqk-calendar-events-list">
+          <h3 style={{ color: '#EADFC8', marginTop: 0 }}>All Events</h3>
+          {sortedEvents.length === 0 ? <p style={{ color: '#EADFC8' }}>No events scheduled.</p> : sortedEvents.map(event => {
             const monthName = calendar?.custom_months?.[event.month - 1]?.name || `Month ${event.month}`;
             return (
               <article key={event.id} data-testid={`event-${event.id}`} className="initiative-entry" style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
                   <div>
-                    <h4 style={{ color: '#FFFFFF', margin: '0 0 4px' }}>{event.name}</h4>
-                    <p style={{ color: '#FFFFFF', margin: 0 }}>{monthName} {event.day}, {event.year}</p>
-                    {event.description && <p style={{ color: '#FFFFFF', margin: '6px 0 0' }}>{event.description}</p>}
+                    <h4 style={{ color: '#EADFC8', margin: '0 0 4px' }}>{event.name}</h4>
+                    <p style={{ color: '#EADFC8', margin: 0 }}>{monthName} {event.day}, {event.year}</p>
+                    {event.description && <p style={{ color: '#EADFC8', margin: '6px 0 0' }}>{event.description}</p>}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button data-testid={`edit-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => editEvent(event)}><Edit size={14} /></button>
-                    <button data-testid={`delete-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => deleteEvent(event.id)} style={{ color: '#FFFFFF' }}><Trash2 size={14} /></button>
+                    <button data-testid={`delete-event-btn-${event.id}`} type="button" className="btn-icon" onClick={() => deleteEvent(event.id)} style={{ color: '#EADFC8' }}><Trash2 size={14} /></button>
                   </div>
                 </div>
               </article>
@@ -436,12 +483,12 @@ export default function CalendarTab({ campaignId }) {
         </section>
       </main>
 
-      <aside className="rqk-calendar-panel rqk-calendar-upcoming" style={{ padding: 16, height: 'fit-content', background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
-        <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>Upcoming 30 Days</h3>
-        {upcomingEvents.length === 0 ? <p style={{ color: '#FFFFFF' }}>No upcoming events.</p> : upcomingEvents.map(event => (
-          <div key={event.id} style={{ border: '1px solid rgba(255,45,170,0.18)', background: '#102B40', padding: 10, marginBottom: 8 }}>
-            <strong style={{ color: '#FFFFFF' }}>{event.name}</strong>
-            <p style={{ color: '#FFFFFF', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
+      <aside className="rqk-calendar-panel rqk-calendar-upcoming">
+        <h3 style={{ color: '#EADFC8', marginTop: 0 }}>Upcoming 30 Days</h3>
+        {upcomingEvents.length === 0 ? <p style={{ color: '#EADFC8' }}>No upcoming events.</p> : upcomingEvents.map(event => (
+          <div key={event.id} style={{ border: '1px solid rgba(201,169,107,0.24)', background: '#263748', padding: 10, marginBottom: 8 }}>
+            <strong style={{ color: '#EADFC8' }}>{event.name}</strong>
+            <p style={{ color: '#EADFC8', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
           </div>
         ))}
       </aside>

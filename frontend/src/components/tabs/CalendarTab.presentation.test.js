@@ -60,6 +60,19 @@ describe('campaign-specific calendar editing', () => {
     expect(jsx).toContain('calendarOrdinal(candidate, calendar.current_year');
     expect(jsx).toContain('events.some(item => calendarOrdinal(candidate');
   });
+  test('month cells are accessible buttons with a selected-day agenda and creation shortcut', () => {
+    const jsx = read('./CalendarTab.js');
+    const css = read('./CalendarTab.css');
+    expect(jsx).toContain('aria-pressed={selectedDate?.year === viewYear');
+    expect(jsx).toContain('aria-label="Selected day agenda"');
+    expect(jsx).toContain('setSelectedDate({ day, month: viewMonth, year: viewYear })');
+    expect(jsx).toContain('addEventOnSelectedDay');
+    expect(jsx).toContain('loadCalendar({ preserveView: true })');
+    expect(css).toContain('.rqk-calendar-day.is-selected');
+    expect(css).toContain('@media (max-width: 719px)');
+    expect(jsx).not.toMatch(/255,45,170|#FF2DAA/);
+  });
+
   test('supports recurring events on the actual fantasy calendar', () => {
     const jsx = read('./CalendarTab.js');
     expect(jsx).toContain('calendar-event-recurrence');
