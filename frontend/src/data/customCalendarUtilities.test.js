@@ -31,6 +31,9 @@ describe('independent Tia-Karta custom calendar', () => {
     expect(eventOccursOn(event, calendar, 592, 1, 24)).toBe(true);
     expect(eventOccursOn(event, calendar, 593, 1, 24)).toBe(false);
   });
+  test('far future repeating events retain their scheduled initial occurrence', () => {
+    expect(daysUntilNextOccurrence({ ...annual, year: 595 }, calendar)).toBe(1056);
+  });
   test('an event does not recur before its recorded first occurrence', () => {
     const future = { ...weekly, year: 593 };
     expect(eventOccursOn(future, calendar, 592, 1, 25)).toBe(false);
