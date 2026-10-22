@@ -44,10 +44,12 @@ function LinesField({ label, items, onChange }) {
     <span>{label}</span>
     <textarea rows={3} value={text}
       placeholder="One item per line"
-      onChange={event => setText(event.target.value)}
-      onBlur={() => {
-        const next = text.split('\n').map(item => item.trim()).filter(Boolean);
-        if (JSON.stringify(next) !== JSON.stringify(list(items))) onChange(next);
+      onChange={event => {
+        const raw = event.target.value;
+        setText(raw);
+        // Separate editor-local text prevents deleting a trailing newline while
+        // still keeping the parent form up to date before Save is pressed.
+        onChange(raw.split('\n').map(item => item.trim()).filter(Boolean));
       }} />
   </label>;
 }
