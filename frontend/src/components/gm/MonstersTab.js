@@ -253,7 +253,7 @@ export function CreatureCard({ creature, count, onAdjust }) {
           <strong>{creature.name || 'Unnamed creature'}</strong>
           <span style={crPillStyle}>CR {cr}</span>
         </div>
-        <p style={creatureMetaStyle}>{creature.size || 'Medium'} {creature.type || 'creature'} · AC {creature.ac || creature.armor_class || '—'} · HP {creature.hp || creature.hit_points || '—'} · PB +{creature.proficiency_bonus || 2} · Speed {creature.speed || '—'}</p>
+        <p style={creatureMetaStyle}>{creature.size || 'Size not recorded'} {creature.type || 'creature'} · AC {creature.ac ?? creature.armor_class ?? '—'} · HP {creature.hp ?? creature.hit_points ?? '—'} · PB {creature.proficiency_bonus != null ? `+${creature.proficiency_bonus}` : '—'} · Speed {creature.speed || '—'}</p>
         {!expanded && action && <p style={creatureDescStyle}><strong>{action.name}:</strong> {action.bonus ? `${action.bonus} · ` : ''}{action.damage || action.notes}</p>}
         {!expanded && summary && <p style={creatureDescStyle}>{summary.slice(0, 150)}{summary.length > 150 ? '…' : ''}</p>}
         {hasMore && (
