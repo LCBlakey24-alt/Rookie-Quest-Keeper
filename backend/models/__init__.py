@@ -1140,12 +1140,15 @@ class ProgressionQueryRequest(BaseModel):
 
 
 class NPCAttack(BaseModel):
+    # Custom actions can include recharge, uses, range and other GM metadata.
+    model_config = ConfigDict(extra="allow")
     name: str = ""
     bonus: str = ""
     damage: str = ""
     notes: str = ""
 
 class NPCAbility(BaseModel):
+    model_config = ConfigDict(extra="allow")
     name: str = ""
     description: str = ""
 
@@ -1300,6 +1303,26 @@ class NPCUpdate(BaseModel):
     location: Optional[str] = None
     notes: Optional[str] = None
     color: Optional[str] = None
+    # Match the complete GM-facing NPC fields in NPC and NPCCreate. Previously
+    # these attributes could be displayed but the edit endpoint ignored them.
+    cr: Optional[str] = None
+    armor: Optional[str] = None
+    size: Optional[str] = None
+    actions: Optional[List[Dict[str, Any]]] = None
+    bonus_actions: Optional[List[Dict[str, Any]]] = None
+    reactions: Optional[List[Dict[str, Any]]] = None
+    legendary_actions: Optional[List[Dict[str, Any]]] = None
+    special_abilities: Optional[List[Dict[str, Any]]] = None
+    damage_resistances: Optional[List[str]] = None
+    damage_immunities: Optional[List[str]] = None
+    condition_immunities: Optional[List[str]] = None
+    senses: Optional[Any] = None
+    languages: Optional[Any] = None
+    mechanics_status: Optional[str] = None
+    canon_status: Optional[str] = None
+    statblock_source: Optional[str] = None
+    statblock_notes: Optional[str] = None
+    dm_only: Optional[bool] = None
 
 class InitiativeEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

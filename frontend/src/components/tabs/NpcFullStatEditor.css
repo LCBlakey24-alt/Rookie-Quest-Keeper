@@ -1,0 +1,135 @@
+/* Full NPC editing inside the existing campaign edit dialog.
+   Uses the Guild Ledger colours and respects reduced-motion preferences. */
+#root .rqk-npc-editor {
+  margin: 14px 0;
+  border: 1px solid var(--rq-line-strong, rgba(201,169,107,.35));
+  background: var(--rq-bg-panel, #1e2936);
+  border-radius: 7px;
+  color: var(--rq-text-primary, #eadfc8);
+  min-width: 0;
+}
+#root .rqk-npc-editor > summary {
+  cursor: pointer;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 850;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+#root .rqk-npc-editor > summary span {
+  color: var(--rq-primary, #c9a96b);
+  font-size: 11px;
+}
+#root .rqk-npc-editor__body {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border-top: 1px solid var(--rq-line, #34485a);
+  min-width: 0;
+}
+#root .rqk-npc-editor__two {
+  display: grid;
+  gap: 11px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#root .rqk-npc-editor__field {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  color: var(--rq-text-primary, #eadfc8);
+  font-size: 12px;
+  font-weight: 750;
+}
+#root .rqk-npc-editor__field input,
+#root .rqk-npc-editor__field textarea,
+#root .rqk-npc-editor__stat input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 10px;
+  background: var(--rq-bg-main, #0b1b2b);
+  border: 1px solid var(--rq-line-strong, #34485a);
+  border-radius: 5px;
+  color: var(--rq-text-primary, #eadfc8);
+  font-size: 14px;
+  font-weight: 500;
+}
+#root .rqk-npc-editor__field textarea { min-height: 88px; resize: vertical; line-height: 1.45; }
+#root .rqk-npc-editor :is(input, textarea, summary, button):focus-visible {
+  outline: 2px solid var(--rq-primary, #c9a96b);
+  outline-offset: 2px;
+}
+#root .rqk-npc-editor__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--rq-text-secondary, #b8c7d8);
+}
+#root .rqk-npc-editor__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#root .rqk-npc-editor__checkbox input { width: 18px; height: 18px; flex-shrink: 0; accent-color: #c9a96b; }
+#root .rqk-npc-editor__ability-heading {
+  padding: 9px 0 5px;
+  border-bottom: 1px solid var(--rq-line, #34485a);
+  color: var(--rq-primary, #c9a96b);
+  font-size: 13px;
+  font-weight: 900;
+}
+#root .rqk-npc-editor__ability-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0,1fr));
+  gap: 7px;
+}
+#root .rqk-npc-editor__stat { min-width: 0; display: grid; gap: 4px; text-align: center; }
+#root .rqk-npc-editor__stat span { font-size: 11px; font-weight: 800; }
+#root .rqk-npc-editor__stat input { text-align: center; padding: 7px 2px; }
+#root .rqk-npc-editor__action-group {
+  border: 1px solid var(--rq-line, #34485a);
+  border-radius: 5px;
+  min-width: 0;
+}
+#root .rqk-npc-editor__action-group > summary {
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#root .rqk-npc-editor__action-group > summary span { color: var(--rq-primary, #c9a96b); margin-left: 6px; }
+#root .rqk-npc-editor__action-list { display: grid; gap: 10px; padding: 10px; border-top: 1px solid var(--rq-line, #34485a); }
+#root .rqk-npc-editor__action-entry {
+  display: grid; gap: 9px; padding: 12px;
+  background: var(--rq-bg-main, #0b1b2b);
+  border: 1px solid var(--rq-line, #34485a);
+  border-radius: 5px;
+}
+#root .rqk-npc-editor__action-entry-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 12px; min-width: 0;
+}
+#root .rqk-npc-editor__action-entry-top strong { overflow-wrap: anywhere; }
+#root .rqk-npc-editor__action-entry-top button,
+#root .rqk-npc-editor__add {
+  min-height: 40px; border-radius: 5px;
+  background: transparent; padding: 8px 12px; cursor: pointer;
+  color: var(--rq-text-primary, #eadfc8);
+  border: 1px solid var(--rq-line-strong, #34485a);
+  font-size: 12px; font-weight: 800;
+}
+#root .rqk-npc-editor__action-entry-top button { border-color: #aa6262; color: #f5c3c3; }
+#root .rqk-npc-editor__add { width: 100%; border-color: var(--rq-primary, #c9a96b); }
+@media (max-width: 650px) {
+  #root .rqk-npc-editor__body { padding: 10px; }
+  #root .rqk-npc-editor__two { grid-template-columns: minmax(0, 1fr); }
+  #root .rqk-npc-editor__ability-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  #root .rqk-npc-editor__action-entry { padding: 9px; }
+}
