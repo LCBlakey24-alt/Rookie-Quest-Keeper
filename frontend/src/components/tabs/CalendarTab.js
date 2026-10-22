@@ -34,7 +34,7 @@ export default function CalendarTab({ campaignId }) {
   const [eventForm, setEventForm] = useState(emptyEvent);
   const [applyingTiaKarta, setApplyingTiaKarta] = useState(false);
 
-  const loadCalendar = useCallback(async () => {
+  const loadCalendar = useCallback(async (options = {}) => {
     const requestedCampaign = campaignId;
     try {
       setLoading(true);
@@ -47,9 +47,11 @@ export default function CalendarTab({ campaignId }) {
       if (!calendarRes.data || !Array.isArray(eventsRes.data)) throw new Error('Invalid calendar response');
       setCalendar(calendarRes.data);
       setEvents(eventsRes.data);
-      setViewDate({ month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
-      setSelectedDate({ day: Number(calendarRes.data.current_day),
-        month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+      if (!options.preserveView) {
+        setViewDate({ month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+        setSelectedDate({ day: Number(calendarRes.data.current_day),
+          month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+      }
       setDateDraft({ day: Number(calendarRes.data.current_day), month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
       setEditingEvent(null);
       setEventForm({
@@ -161,7 +163,7 @@ export default function CalendarTab({ campaignId }) {
       }
       setEditingEvent(null);
       setEventForm(emptyEvent);
-      loadCalendar();
+      loadCalendar({ preserveView: true });
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save event');
     }
