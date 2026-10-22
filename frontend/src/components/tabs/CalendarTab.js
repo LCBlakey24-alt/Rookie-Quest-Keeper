@@ -44,6 +44,11 @@ export default function CalendarTab({ campaignId }) {
       setEvents(eventsRes.data);
       setViewDate({ month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
       setDateDraft({ day: Number(calendarRes.data.current_day), month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+      setEditingEvent(null);
+      setEventForm({
+        ...emptyEvent, day: Number(calendarRes.data.current_day),
+        month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year),
+      });
       setStructureDraft({ days_per_week: calendarRes.data.days_per_week,
         custom_months: (calendarRes.data.custom_months || []).map(month => ({ ...month })) });
     } catch (error) {
@@ -149,6 +154,11 @@ export default function CalendarTab({ campaignId }) {
   };
 
   const advanceTime = async () => {
+    const days = Number(advanceDays);
+    if (!Number.isInteger(days) || days < 1 || days > 10000) {
+      toast.error('Choose 1 to 10,000 whole days to advance.');
+      return;
+    }
     try {
       if (isOfflineDesktop()) {
         const next = advanceCustomCalendar(calendar, Number(advanceDays));
