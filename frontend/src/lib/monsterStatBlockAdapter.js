@@ -119,7 +119,7 @@ function inferredAttacks(monster, stats, pb) {
 export function normaliseMonsterStatBlock(monster = {}) {
   const privateOrUnverified = isPrivateOrUnverified(monster);
   const cr = monster.cr ?? monster.challenge_rating ?? (privateOrUnverified ? 'Unrated' : '0');
-  const hasKnownCr = cr !== '' && cr !== 'Unrated' && Number.isFinite(monsterCrValue(cr));
+  const hasKnownCr = /^(?:\\d+(?:\\.\\d+)?|\\d+\\/\\d+)$/.test(String(cr).trim());
   const explicitPb = recordedPositiveNumber(monster.proficiency_bonus);
   const pb = explicitPb ?? (privateOrUnverified && !hasKnownCr ? null : proficiencyForCr(cr));
   const stats = inferredStats(monster);
