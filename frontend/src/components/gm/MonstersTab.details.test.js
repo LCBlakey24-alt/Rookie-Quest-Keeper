@@ -46,6 +46,22 @@ describe('Bestiary stat-block expansion', () => {
     expect(screen.queryByTestId('bestiary-full-details')).not.toBeInTheDocument();
   });
 
+  test('shows unknown creature vitals as unknown rather than invented defaults', () => {
+    const unverified = {
+      id: 'mystery-beast', name: 'Unverified Lake Beast',
+      type: 'beast', cr: 'Unrated', hp: null, ac: null,
+      proficiency_bonus: null, stats: {}, combat_ready: false,
+      description: 'Still being researched by the GM.',
+    };
+    render(<CreatureCard creature={unverified} count={0} onAdjust={jest.fn()} />);
+    const meta = screen.getByText(/Size not recorded/);
+    expect(meta).toHaveTextContent('AC —');
+    expect(meta).toHaveTextContent('HP —');
+    expect(meta).toHaveTextContent('PB —');
+    expect(meta).not.toHaveTextContent('PB +2');
+    expect(screen.getByText('CR Unrated')).toBeInTheDocument();
+  });
+
   test('encounter quantity buttons keep working on expanded cards', () => {
     const onAdjust = jest.fn();
     render(<CreatureCard creature={creature} count={2} onAdjust={onAdjust} />);

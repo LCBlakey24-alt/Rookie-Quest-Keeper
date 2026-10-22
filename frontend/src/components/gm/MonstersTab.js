@@ -8,7 +8,7 @@ import MonsterLookup from '@/components/MonsterLookup';
 import NpcCompactStatBlock from './NpcCompactStatBlock';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
-import { monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
+import { hasRatedMonsterCr, monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -76,7 +76,8 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     const matchesSearch = !term || searchBlob.includes(term);
     const matchesType = typeFilter === 'all' || (creature.type || 'creature') === typeFilter;
     const cr = monsterCrValue(creature.cr ?? creature.challenge_rating);
-    const matchesCr = crFilter === 'all' || (crFilter === 'low' && cr <= 2) || (crFilter === 'mid' && cr > 2 && cr <= 8) || (crFilter === 'high' && cr > 8);
+    const matchesCr = crFilter === 'all' || (hasRatedMonsterCr(creature.cr ?? creature.challenge_rating) &&
+      ((crFilter === 'low' && cr <= 2) || (crFilter === 'mid' && cr > 2 && cr <= 8) || (crFilter === 'high' && cr > 8)));
     const matchesSource = sourceFilter === 'all' || creature.source === sourceFilter;
     return matchesSearch && matchesType && matchesCr && creatureId(creature, index);
   }), [creatures, query, typeFilter, crFilter, sourceFilter]);
@@ -87,7 +88,11 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   }), [creatures, selected]);
 
   const selectedCount = selectedCreatures.reduce((sum, entry) => sum + entry.count, 0);
-  const selectedCr = Math.round(selectedCreatures.reduce((sum, entry) => sum + (monsterCrValue(entry.creature.cr ?? entry.creature.challenge_rating) * entry.count), 0) * 100) / 100;
+  const selectedCr = Math.round(selectedCreatures.reduce((sum, entry) =>
+    sum + (hasRatedMonsterCr(entry.creature.cr ?? entry.creature.challenge_rating)
+      ? monsterCrValue(entry.creature.cr ?? entry.creature.challenge_rating) * entry.count : 0), 0) * 100) / 100;
+  const unratedCount = selectedCreatures.reduce((sum, entry) =>
+    sum + (hasRatedMonsterCr(entry.creature.cr ?? entry.creature.challenge_rating) ? 0 : entry.count), 0);
   const selectedCombatants = useMemo(() => selectedCreatures.flatMap(entry => Array.from({ length: entry.count }, (_, copyIndex) => monsterToCombatant(entry.creature, copyIndex))), [selectedCreatures]);
   const recentScenarios = useMemo(() => [...scenarios].sort((a, b) => String(b.updated_at || b.created_at || '').localeCompare(String(a.updated_at || a.created_at || ''))).slice(0, 5), [scenarios]);
 
@@ -125,7 +130,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     try {
       const response = await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, {
         name,
-        description: `Seeded from Monsters tab. Estimated monster CR total: ${selectedCr}. SRD entries include verified actions; only legacy/custom source records may contain inferred actions. Add players from Combat when ready.`,
+        description: `Seeded from Monsters tab. Known CR subtotal: ${selectedCr}; ${unratedCount} creatures unrated (excluded from subtotal). SRD entries have sourced actions; custom/legacy entries show only recorded actions. Add players from Combat when ready.`,
         combatants: selectedCombatants,
         show_grid: true,
         grid_size: 40,
@@ -196,7 +201,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
         {selectedCount > 0 && (
           <div style={selectedPanelStyle}>
             <strong>{selectedCount} creature{selectedCount === 1 ? '' : 's'} selected</strong>
-            <span>Estimated monster CR total: {selectedCr}</span>
+            <span>Known CR subtotal: {selectedCr}{unratedCount > 0 ? ` · ${unratedCount} unrated (not included)` : ''}</span>
             <div style={selectedChipRowStyle}>{selectedCreatures.map(entry => <span key={entry.creature.id || entry.creature.name} style={selectedChipStyle}>{entry.count}× {entry.creature.name}</span>)}</div>
           </div>
         )}
@@ -248,7 +253,7 @@ export function CreatureCard({ creature, count, onAdjust }) {
           <strong>{creature.name || 'Unnamed creature'}</strong>
           <span style={crPillStyle}>CR {cr}</span>
         </div>
-        <p style={creatureMetaStyle}>{creature.size || 'Medium'} {creature.type || 'creature'} · AC {creature.ac || creature.armor_class || '—'} · HP {creature.hp || creature.hit_points || '—'} · PB +{creature.proficiency_bonus || 2} · Speed {creature.speed || '—'}</p>
+        <p style={creatureMetaStyle}>{creature.size || 'Size not recorded'} {creature.type || 'creature'} · AC {creature.ac ?? creature.armor_class ?? '—'} · HP {creature.hp ?? creature.hit_points ?? '—'} · PB {creature.proficiency_bonus != null ? `+${creature.proficiency_bonus}` : '—'} · Speed {creature.speed || '—'}</p>
         {!expanded && action && <p style={creatureDescStyle}><strong>{action.name}:</strong> {action.bonus ? `${action.bonus} · ` : ''}{action.damage || action.notes}</p>}
         {!expanded && summary && <p style={creatureDescStyle}>{summary.slice(0, 150)}{summary.length > 150 ? '…' : ''}</p>}
         {hasMore && (

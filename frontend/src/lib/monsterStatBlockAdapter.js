@@ -1,3 +1,7 @@
+export function hasRatedMonsterCr(cr) {
+  return /^(?:\d+(?:\.\d+)?|\d+\/\d+)$/.test(String(cr ?? '').trim());
+}
+
 export function monsterCrValue(cr) {
   const raw = String(cr || '0').trim();
   if (raw.includes('/')) {
@@ -38,10 +42,21 @@ function damageByCr(cr, attackAbilityMod) {
   return `1d4+${ability}`;
 }
 
+function isPrivateOrUnverified(monster = {}) {
+  return Boolean(monster.statblock_source || monster.mechanics_status ||
+    monster.source === 'custom' || monster.source === 'legacy-reference');
+}
+
+function recordedPositiveNumber(value) {
+  if (value === '' || value == null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 function inferredStats(monster) {
   if (monster.stats || monster.abilities_scores) return monster.stats || monster.abilities_scores;
-  // Imported private creatures must never acquire invented ability scores.
-  if (monster.statblock_source || monster.mechanics_status || monster.source === 'custom') return {};
+  // Custom and legacy sources must never acquire invented ability scores.
+  if (isPrivateOrUnverified(monster)) return {};
   const type = String(monster.type || '').toLowerCase();
   const size = String(monster.size || '').toLowerCase();
   const cr = monsterCrValue(monster.cr || monster.challenge_rating);
@@ -57,6 +72,7 @@ function inferredStats(monster) {
 
 function inferredSkills(monster, stats) {
   if (Array.isArray(monster.skills)) return monster.skills;
+  if (isPrivateOrUnverified(monster)) return [];
   const text = `${monster.abilities || ''} ${monster.name || ''}`.toLowerCase();
   const skills = [];
   if (text.includes('keen') || text.includes('sight') || text.includes('smell') || text.includes('hearing')) skills.push('perception');
@@ -73,7 +89,7 @@ function inferredAttacks(monster, stats, pb) {
   if (Array.isArray(monster.actions) && monster.actions.length) return monster.actions;
   if (Array.isArray(monster.attacks) && monster.attacks.length) return monster.attacks;
   // Homebrew and campaign records need sourced actions, not a guessed attack.
-  if (monster.statblock_source || monster.mechanics_status || monster.source === 'custom') return [];
+  if (isPrivateOrUnverified(monster)) return [];
   const type = String(monster.type || '').toLowerCase();
   const name = String(monster.name || '').toLowerCase();
   const abilityText = String(monster.abilities || '').toLowerCase();
@@ -105,27 +121,35 @@ function inferredAttacks(monster, stats, pb) {
 }
 
 export function normaliseMonsterStatBlock(monster = {}) {
-  const cr = monster.cr ?? monster.challenge_rating ?? '0';
-  const pb = Number(monster.proficiency_bonus) || proficiencyForCr(cr);
+  const privateOrUnverified = isPrivateOrUnverified(monster);
+  const cr = monster.cr ?? monster.challenge_rating ?? (privateOrUnverified ? 'Unrated' : '0');
+  const hasKnownCr = hasRatedMonsterCr(cr);
+  const explicitPb = recordedPositiveNumber(monster.proficiency_bonus);
+  const pb = explicitPb ?? (privateOrUnverified && !hasKnownCr ? null : proficiencyForCr(cr));
   const stats = inferredStats(monster);
-  const dex = mod(stats.dexterity);
+  const hasDex = recordedPositiveNumber(stats.dexterity) !== null;
+  const givenInitiative = monster.initiativeMod ?? monster.initiative_mod;
+  const hp = recordedPositiveNumber(monster.hp ?? monster.hit_points);
+  const ac = recordedPositiveNumber(monster.ac ?? monster.armor_class);
   return {
     ...monster,
     cr,
     challenge_rating: cr,
-    hp: monster.statblock_source && !Number(monster.hp ?? monster.hit_points) ? null : Number(monster.hp ?? monster.hit_points) || 1,
-    hit_points: monster.statblock_source && !Number(monster.hit_points ?? monster.hp) ? null : Number(monster.hit_points ?? monster.hp) || 1,
-    ac: monster.statblock_source && !Number(monster.ac ?? monster.armor_class) ? null : Number(monster.ac ?? monster.armor_class) || 10,
-    armor_class: monster.statblock_source && !Number(monster.armor_class ?? monster.ac) ? null : Number(monster.armor_class ?? monster.ac) || 10,
-    speed: monster.speed || '30 ft.',
+    hp,
+    hit_points: hp,
+    ac,
+    armor_class: ac,
+    speed: monster.speed || (privateOrUnverified ? '' : '30 ft.'),
     stats,
     proficiency_bonus: pb,
-    initiativeMod: Number(monster.initiativeMod) || dex,
+    initiativeMod: givenInitiative == null || givenInitiative === ''
+      ? (hasDex ? mod(stats.dexterity) : (privateOrUnverified ? null : 0))
+      : Number(givenInitiative),
     skills: inferredSkills(monster, stats),
     saving_throws: monster.saving_throws || [],
     actions: inferredAttacks(monster, stats, pb),
     abilities_text: monster.abilities || monster.description || '',
-    combat_ready: monster.statblock_source ? Boolean(monster.combat_ready ?? (Number(monster.hp) > 0 && Number(monster.ac) > 0)) : monster.combat_ready !== false,
+    combat_ready: monster.combat_ready !== false && hp !== null && ac !== null,
   };
 }
 
