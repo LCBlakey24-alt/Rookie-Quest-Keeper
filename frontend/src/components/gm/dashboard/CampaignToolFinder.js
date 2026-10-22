@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowRight, Command, Search, X } from 'lucide-react';
 import { findCampaignTools } from './campaignToolSearch';
 import './CampaignToolFinder.css';
@@ -101,7 +102,7 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
         <kbd aria-hidden="true">⌘ K</kbd>
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="rqk-tool-finder-backdrop" onMouseDown={event => {
           if (event.target === event.currentTarget) close();
         }}>
@@ -172,7 +173,7 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
             </footer>
           </section>
         </div>
-      )}
+      , document.body)}
     </>
   );
 }
