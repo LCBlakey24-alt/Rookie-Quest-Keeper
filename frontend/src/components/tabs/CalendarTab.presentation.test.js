@@ -24,7 +24,7 @@ describe('campaign calendar phone layout', () => {
     expect(component).toContain('aria-label="Event year"');
   });
 
-  test('does not replace campaign-specific dates with today's real-world date', () => {
+  test("does not replace campaign-specific dates with today's real-world date", () => {
     const component = read('./CalendarTab.js');
     expect(component).toContain('calendar?.current_day');
     expect(component).toContain('calendar?.current_year');
