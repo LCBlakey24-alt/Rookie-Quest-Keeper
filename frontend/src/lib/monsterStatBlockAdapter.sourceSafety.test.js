@@ -1,7 +1,15 @@
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
-import { normaliseMonsterStatBlock, monsterToCombatant } from './monsterStatBlockAdapter';
+import { hasRatedMonsterCr, normaliseMonsterStatBlock, monsterToCombatant } from './monsterStatBlockAdapter';
 
 describe('source-grounded Bestiary stat blocks', () => {
+  test('treats missing, unknown and unrated CR as unknown, not zero', () => {
+    expect(hasRatedMonsterCr('1/4')).toBe(true);
+    expect(hasRatedMonsterCr(0)).toBe(true);
+    expect(hasRatedMonsterCr('Unrated')).toBe(false);
+    expect(hasRatedMonsterCr('')).toBe(false);
+    expect(hasRatedMonsterCr(undefined)).toBe(false);
+  });
+
   test('never invents missing health, armour, CR, attacks or abilities for custom beasts', () => {
     const unverified = normaliseMonsterStatBlock({
       id: 'unfinished', name: 'Mystery Beast', source: 'custom',
