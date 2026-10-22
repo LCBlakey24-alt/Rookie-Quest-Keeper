@@ -1300,6 +1300,26 @@ class NPCUpdate(BaseModel):
     location: Optional[str] = None
     notes: Optional[str] = None
     color: Optional[str] = None
+    # The GM editor must be able to save the same enriched fields used by
+    # the roster response model. Otherwise edits silently discard changes.
+    cr: Optional[str] = None
+    armor: Optional[str] = None
+    size: Optional[str] = None
+    actions: Optional[List[Dict[str, Any]]] = None
+    bonus_actions: Optional[List[Dict[str, Any]]] = None
+    reactions: Optional[List[Dict[str, Any]]] = None
+    legendary_actions: Optional[List[Dict[str, Any]]] = None
+    special_abilities: Optional[List[Dict[str, Any]]] = None
+    damage_resistances: Optional[List[str]] = None
+    damage_immunities: Optional[List[str]] = None
+    condition_immunities: Optional[List[str]] = None
+    senses: Optional[str] = None
+    languages: Optional[str] = None
+    mechanics_status: Optional[str] = None
+    canon_status: Optional[str] = None
+    statblock_source: Optional[str] = None
+    statblock_notes: Optional[str] = None
+    dm_only: Optional[bool] = None
 
 class InitiativeEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
