@@ -29,6 +29,7 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
     setQuery('');
     setActiveIndex(0);
     onSelect(tab.id);
+    triggerRef.current?.focus();
   };
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
       >
         <Search size={17} aria-hidden="true" />
         <span>Find a tool</span>
-        <kbd aria-hidden="true">⌘ K</kbd>
+        <kbd aria-hidden="true">Ctrl K</kbd>
       </button>
 
       {open && createPortal(
