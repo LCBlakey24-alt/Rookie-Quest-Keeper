@@ -249,6 +249,81 @@ export default function CalendarTab({ campaignId }) {
           </div>
         </section>
 
+        <section className="rqk-calendar-panel rqk-calendar-settings-panel">
+          <h3>Set the in-game date</h3>
+          <p>Each party has its own date. Setting Wednesday's date will never move Eldritch Heralds.</p>
+          <form className="rqk-calendar-date-controls" onSubmit={setCurrentDate}>
+            <label>Day
+              <input type="number" min="1" max={calendar.custom_months?.[dateDraft.month - 1]?.days || 31}
+                data-testid="calendar-set-day" value={dateDraft.day}
+                onChange={event => setDateDraft(previous => ({ ...previous, day: Number(event.target.value) }))}/>
+            </label>
+            <label>Month
+              <select data-testid="calendar-set-month" value={dateDraft.month}
+                onChange={event => setDateDraft(previous => ({ ...previous, month: Number(event.target.value) }))}>
+                {calendar.custom_months?.map((month, index) =>
+                  <option key={index} value={index + 1}>{month.name}</option>)}
+              </select>
+            </label>
+            <label>Year (PC)
+              <input type="number" data-testid="calendar-set-year" value={dateDraft.year}
+                onChange={event => setDateDraft(previous => ({ ...previous, year: Number(event.target.value) }))}/>
+            </label>
+            <button type="submit" className="btn-primary" data-testid="calendar-set-date">Set in-game date</button>
+          </form>
+          <button type="button" className="btn-secondary"
+            onClick={() => setShowCalendarEditor(previous => !previous)}>
+            {showCalendarEditor ? 'Close calendar settings' : 'Edit custom calendar structure'}
+          </button>
+          {showCalendarEditor && structureDraft && (
+            <form className="rqk-calendar-structure-form" onSubmit={saveCalendarSettings}>
+              <p>Edit month names, lengths and seasons, or the number of days in a week.
+                This affects only this campaign. The 12-month Tia-Karta standard is available with the Restore button above.</p>
+              <label>Days per week
+                <input data-testid="calendar-week-length" type="number" min="1" max="10"
+                  value={structureDraft.days_per_week}
+                  onChange={event => setStructureDraft(previous =>
+                    ({ ...previous, days_per_week: Number(event.target.value) }))}/>
+              </label>
+              <div className="rqk-calendar-structure-months">
+                {structureDraft.custom_months.map((month, index) => (
+                  <div key={index} className="rqk-calendar-structure-month">
+                    <strong>Month {index + 1}</strong>
+                    <label>Name
+                      <input value={month.name} aria-label={`Month ${index + 1} name`}
+                        onChange={event => setStructureDraft(previous => ({
+                          ...previous,
+                          custom_months: previous.custom_months.map((item, i) =>
+                            i === index ? { ...item, name: event.target.value } : item),
+                        }))}/>
+                    </label>
+                    <label>Days
+                      <input type="number" min="1" max="100" value={month.days}
+                        aria-label={`Month ${index + 1} length`}
+                        onChange={event => setStructureDraft(previous => ({
+                          ...previous,
+                          custom_months: previous.custom_months.map((item, i) =>
+                            i === index ? { ...item, days: Number(event.target.value) } : item),
+                        }))}/>
+                    </label>
+                    <label>Season
+                      <input value={month.season || ''} aria-label={`Month ${index + 1} season`}
+                        onChange={event => setStructureDraft(previous => ({
+                          ...previous,
+                          custom_months: previous.custom_months.map((item, i) =>
+                            i === index ? { ...item, season: event.target.value } : item),
+                        }))}/>
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <button type="submit" className="btn-primary" disabled={savingSettings}>
+                {savingSettings ? 'Saving…' : 'Save custom calendar'}
+              </button>
+            </form>
+          )}
+        </section>
+
         <section className="rqk-calendar-panel" style={{ padding: 18, marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
           <div className="rqk-calendar-month-heading">
             <h3 style={{ color: '#FFFFFF', margin: 0 }}>{currentMonth} {viewYear} — Days of the Month</h3>
@@ -291,6 +366,20 @@ export default function CalendarTab({ campaignId }) {
           <form onSubmit={saveEvent} style={{ display: 'grid', gap: 10 }}>
             <input data-testid="event-name-input" className="input" placeholder="Event name" value={eventForm.name} onChange={e => setEventForm({ ...eventForm, name: e.target.value })} required />
             <textarea data-testid="event-description-input" className="textarea" placeholder="Description" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} />
+            <label className="rqk-calendar-repeat-label">Repeat event
+              <select data-testid="calendar-event-recurrence"
+                value={eventForm.is_recurring ? eventForm.recurrence_type : 'none'}
+                onChange={event => setEventForm(previous => ({
+                  ...previous,
+                  is_recurring: event.target.value !== 'none',
+                  recurrence_type: event.target.value,
+                }))}>
+                <option value="none">No repeat</option>
+                <option value="weekly">Every {daysPerWeek}-day week</option>
+                <option value="monthly">Every month</option>
+                <option value="annual">Every year</option>
+              </select>
+            </label>
             <div className="rqk-calendar-event-date-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
               <input aria-label="Event day" data-testid="event-day-input" className="input" type="number" min="1" value={eventForm.day} onChange={e => setEventForm({ ...eventForm, day: parseInt(e.target.value, 10) || 1 })} />
               <input aria-label="Event month" data-testid="event-month-input" className="input" type="number" min="1" value={eventForm.month} onChange={e => setEventForm({ ...eventForm, month: parseInt(e.target.value, 10) || 1 })} />
