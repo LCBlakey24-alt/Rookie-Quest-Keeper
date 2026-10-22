@@ -83,7 +83,7 @@ function ActionsField({ category, title, items, onChange }) {
       <label className="rqk-npc-edit-field">
         <span>Description / effects</span>
         <textarea rows={2} aria-label={title + ' description ' + (index + 1)}
-          value={display(entry.description || entry.notes)}
+          value={display(category === 'attacks' ? (entry.notes ?? entry.description) : (entry.description ?? entry.notes))}
           onChange={event => update(index, category === 'attacks' ? 'notes' : 'description', event.target.value)} />
       </label>
       <button type="button" className="rqk-npc-edit-remove" onClick={() => without(index)}
@@ -102,12 +102,17 @@ function ActionsField({ category, title, items, onChange }) {
  */
 export default function NpcAdvancedEditor({ value = {}, onChange }) {
   const update = (key, next) => onChange({ ...value, [key]: next });
-  const updateScore = (key, next) => onChange({
-    ...value,
-    stats: { ...(value.stats || {}), [key]: next },
-  });
+  const updateScore = (key, next) => {
+    // Do not replace a sourced score with an invalid null or an invented 10.
+    // Unverified scores can simply remain unfilled.
+    if (next === null) return;
+    onChange({ ...value, stats: { ...(value.stats || {}), [key]: next } });
+  };
   const spellData = value.spells || {};
-  const updateSpell = (key, next) => update('spells', { ...spellData, [key]: next });
+  const updateSpell = (key, next) => {
+    if (next === null && (key === 'spell_save_dc' || key === 'spell_attack_bonus')) return;
+    update('spells', { ...spellData, [key]: next });
+  };
 
   return <details className="rqk-npc-advanced-editor" data-testid="npc-advanced-editor">
     <summary>Full stat block, abilities & backstory <span>Optional detailed editing</span></summary>
@@ -142,7 +147,7 @@ export default function NpcAdvancedEditor({ value = {}, onChange }) {
         <NumberField label="Proficiency bonus" value={value.proficiency_bonus} onChange={next => update('proficiency_bonus', next)} min={0} max={20} />
       </div>
       <label className="rqk-npc-edit-checkbox">
-        <input type="checkbox" checked={value.combat_ready === true} onChange={event => update('combat_ready', event.target.checked)} />
+        <input type="checkbox" checked={value.combat_ready !== false} onChange={event => update('combat_ready', event.target.checked)} />
         GM has verified this NPC's combat stats (enables dice rolls)
       </label>
 
