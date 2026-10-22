@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '@/lib/apiClient';
 import NpcCompactStatBlock from '@/components/gm/NpcCompactStatBlock';
+import NpcAdvancedEditor from './NpcAdvancedEditor';
+import { changedNpcFields, normaliseNpcPatch } from './npcEditPatch';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,13 +26,6 @@ const NPC_FORM_FIELDS = [
   { name: 'location', label: 'Location', type: 'text' },
   { name: 'notes', label: 'Motivations, secrets, and hooks', type: 'textarea' },
 ];
-
-function normaliseNpcPatch(patch = {}) {
-  const next = { ...patch };
-  if (next.hp !== undefined) next.hp = parseInt(next.hp, 10) || 10;
-  if (next.ac !== undefined) next.ac = parseInt(next.ac, 10) || 10;
-  return next;
-}
 
 function NPCsTab({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
@@ -88,8 +83,14 @@ function NPCsTab({ campaignId }) {
     e.preventDefault();
     try {
       if (editingNPC) {
-        await apiClient.put(`/campaigns/${campaignId}/npcs/${editingNPC.id}`, formData);
-        toast.success('NPC updated!');
+        const changes = changedNpcFields(editingNPC, formData);
+        if (Object.keys(changes).length === 0) {
+          toast.info('No changes to save');
+          resetForm();
+          return;
+        }
+        await apiClient.put(`/campaigns/${campaignId}/npcs/${editingNPC.id}`, changes);
+        toast.success('NPC and stat block updated!');
       } else {
         await apiClient.post(`/campaigns/${campaignId}/npcs`, formData);
         toast.success('NPC added!');
@@ -103,15 +104,9 @@ function NPCsTab({ campaignId }) {
 
   const handleEdit = (npc) => {
     setEditingNPC(npc);
-    setFormData({
-      name: npc.name,
-      description: npc.description,
-      image_url: npc.image_url || npc.portrait_url || '',
-      hp: npc.hp,
-      ac: npc.ac,
-      location: npc.location,
-      notes: npc.notes
-    });
+    // Keep the source record intact in memory. The save call only sends
+    // changed, supported fields; no unrelated lore or combat data is rewritten.
+    setFormData({ ...npc });
     setShowDialog(true);
   };
 
@@ -339,7 +334,7 @@ function NPCsTab({ campaignId }) {
               Add NPC
             </Button>
           </DialogTrigger>
-          <DialogContent className="modal" style={{ maxWidth: '600px' }}>
+          <DialogContent className="modal rqk-npc-editor-dialog" style={{ maxWidth: '760px', maxHeight: '88dvh', overflowY: 'auto' }}>
             <DialogHeader>
               <DialogTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff' }}>
                 {editingNPC ? 'Edit NPC' : 'Add NPC'}
@@ -385,7 +380,7 @@ function NPCsTab({ campaignId }) {
                     data-testid="npc-hp-input"
                     type="number"
                     value={formData.hp}
-                    onChange={(e) => setFormData({ ...formData, hp: parseInt(e.target.value) || 10 })}
+                    onChange={(e) => setFormData({ ...formData, hp: e.target.value === '' ? 0 : Number(e.target.value) })}
                     className="input"
                   />
                 </div>
@@ -395,7 +390,7 @@ function NPCsTab({ campaignId }) {
                     data-testid="npc-ac-input"
                     type="number"
                     value={formData.ac}
-                    onChange={(e) => setFormData({ ...formData, ac: parseInt(e.target.value) || 10 })}
+                    onChange={(e) => setFormData({ ...formData, ac: e.target.value === '' ? 0 : Number(e.target.value) })}
                     className="input"
                   />
                 </div>
@@ -420,6 +415,7 @@ function NPCsTab({ campaignId }) {
                   placeholder="Motivations, secrets, plot hooks..."
                 />
               </div>
+              <NpcAdvancedEditor key={editingNPC?.id || 'new'} value={formData} onChange={setFormData} />
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                 <Button type="button" className="btn-secondary" onClick={resetForm}>Cancel</Button>
                 <Button data-testid="npc-submit-btn" type="submit" className="btn-primary">{editingNPC ? 'Update' : 'Add'} NPC</Button>
