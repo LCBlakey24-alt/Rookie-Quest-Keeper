@@ -41,6 +41,7 @@ function NPCsTab({ campaignId }) {
   const [editingNPC, setEditingNPC] = useState(null);
   const [deletingNPC, setDeletingNPC] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandAllCards, setExpandAllCards] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -58,6 +59,8 @@ function NPCsTab({ campaignId }) {
     // A campaign change must never display records from the previous party.
     activeCampaignRef.current = campaignId;
     setNpcs([]);
+    setExpandAllCards(false);
+    setSearchTerm('');
     setLoadError(false);
     setLoading(true);
     fetchNPCs();
@@ -328,7 +331,7 @@ function NPCsTab({ campaignId }) {
     <div className="campaign-management-grid rqk-npcs-roster-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
       {/* Main Content */}
       <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="rqk-npc-roster-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 className="medieval-heading" style={{ fontSize: '28px', color: '#ffffff' }}>
           NPCs <span style={{ fontSize: '18px', color: '#94a3b8' }}>({filteredNPCs.length})</span>
         </h2>
@@ -427,11 +430,14 @@ function NPCsTab({ campaignId }) {
             </form>
           </DialogContent>
         </Dialog>
+        <button type="button" className="rqk-npc-toggle-all" data-testid="npc-toggle-all-stats" aria-pressed={expandAllCards} onClick={() => setExpandAllCards(value => !value)}>
+          {expandAllCards ? 'Collapse all stats' : 'Show all stat blocks'}
+        </button>
       </div>
 
       {/* Search Bar */}
       {npcs.length > 3 && (
-        <div style={{ marginBottom: '20px' }}>
+        <div className="rqk-npc-search-area" style={{ marginBottom: '20px' }}>
           <div style={{ position: 'relative' }}>
             <Search 
               size={18} 
@@ -444,6 +450,7 @@ function NPCsTab({ campaignId }) {
               }} 
             />
             <Input
+              aria-label="Search campaign NPCs"
               placeholder="Search NPCs by name, location, or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -550,9 +557,14 @@ function NPCsTab({ campaignId }) {
                 </div>
               </CardHeader>
               <CardContent className="rqk-npc-card-content">
-                <details className="rqk-npc-combat-details" data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
+                <details key={`${npc.id}-${expandAllCards ? 'all' : 'individual'}`} open={expandAllCards || undefined} className="rqk-npc-combat-details" data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
                   <summary className="rqk-npc-combat-summary" style={{ cursor: 'pointer', color: 'var(--rq-text-primary)', fontSize: 13, fontWeight: 800, padding: '8px 0' }}>
-                    Full stat block · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {Array.isArray(npc.attacks) ? npc.attacks.length : 0} attacks
+                    <span className="rqk-npc-combat-summary-title">Full stat block</span>
+                    <span className="rqk-npc-combat-quick-stats">
+                      <span>HP <strong>{Number(npc.hp) > 0 ? npc.hp : '—'}</strong></span>
+                      <span>AC <strong>{Number(npc.ac) > 0 ? npc.ac : '—'}</strong></span>
+                      <span>{(Array.isArray(npc.attacks) && npc.attacks.length ? npc.attacks.length : Array.isArray(npc.actions) ? npc.actions.length : 0)} actions</span>
+                    </span>
                   </summary>
                   <NpcCompactStatBlock npc={npc} />
                 </details>
