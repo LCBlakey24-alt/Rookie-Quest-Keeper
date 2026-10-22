@@ -1,0 +1,139 @@
+/* Route-level loading only. Do not restyle GM, sheet or encounter loading.
+   The content is one real card, not multiple decorative pseudo-elements. */
+#root .route-loading-screen {
+  min-height: 100dvh !important;
+  min-height: 100svh !important;
+  width: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  padding: max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left)) !important;
+  background: #0B1B2B !important;
+  background-image: none !important;
+  color: #EADFC8 !important;
+  text-align: center !important;
+}
+#root .route-loading-screen::before,
+#root .route-loading-screen::after {
+  content: none !important;
+  display: none !important;
+}
+#root .route-loading-screen .rqk-route-card {
+  width: min(440px, 100%) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 11px !important;
+  position: relative !important;
+  padding: clamp(22px, 6vw, 34px) clamp(18px, 5vw, 32px) !important;
+  background: #1E2936 !important;
+  background-image: none !important;
+  border: 1px solid rgba(201,169,107,.25) !important;
+  border-top: 2px solid #C9A96B !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+#root .route-loading-screen .rqk-route-card::before,
+#root .route-loading-screen .rqk-route-card::after {
+  content: none !important;
+  display: none !important;
+}
+#root .route-loading-screen .rqk-route-sigil {
+  width: 55px;
+  height: 55px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(201,169,107,.45);
+  border-radius: 50%;
+  color: #D9BC82 !important;
+  background: #101F2D !important;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: .88rem;
+  letter-spacing: .07em;
+  line-height: 1;
+}
+#root .route-loading-screen .rqk-route-eyebrow {
+  margin: 3px 0 0 !important;
+  color: #C9A96B !important;
+  font-size: .67rem !important;
+  font-weight: 850 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .15em !important;
+}
+#root .route-loading-screen .rqk-route-heading {
+  margin: 0 !important;
+  color: #EADFC8 !important;
+  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
+  font-weight: 650 !important;
+  font-size: clamp(1.45rem, 4.8vw, 1.9rem) !important;
+  letter-spacing: -.02em !important;
+  line-height: 1.2 !important;
+}
+#root .route-loading-screen .rqk-route-description {
+  margin: 0 !important;
+  color: rgba(234,223,200,.74) !important;
+  font-size: .89rem !important;
+  line-height: 1.5 !important;
+}
+#root .route-loading-screen .rqk-route-activity {
+  width: min(190px, 70%) !important;
+  height: 2px !important;
+  overflow: hidden !important;
+  margin: 11px 0 3px !important;
+  border-radius: 2px !important;
+  background: rgba(201,169,107,.22) !important;
+}
+#root .route-loading-screen .rqk-route-activity > span {
+  display: block !important;
+  width: 38% !important;
+  height: 100% !important;
+  background: #D9BC82 !important;
+  animation: rqkRouteActivity 1.9s ease-in-out infinite alternate !important;
+}
+#root .route-loading-screen .rqk-route-recovery {
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(201,169,107,.2);
+  margin-top: 6px;
+}
+#root .route-loading-screen .rqk-route-recovery p {
+  margin: 0 !important;
+  color: #EADFC8 !important;
+  font-size: .84rem !important;
+  line-height: 1.5 !important;
+}
+#root .route-loading-screen .rqk-route-recovery button {
+  min-width: 140px !important;
+  min-height: 44px !important;
+  padding: 8px 14px !important;
+  border: 1px solid #C9A96B !important;
+  border-radius: 5px !important;
+  background: #C9A96B !important;
+  color: #07131F !important;
+  font: inherit !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+#root .route-loading-screen .rqk-route-recovery button:focus-visible {
+  outline: 2px solid #6E91B4 !important;
+  outline-offset: 3px !important;
+}
+@keyframes rqkRouteActivity {
+  from { transform: translateX(-112%); }
+  to { transform: translateX(272%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .route-loading-screen .rqk-route-activity > span {
+    animation: none !important;
+    transform: none !important;
+    width: 100% !important;
+  }
+}
