@@ -45,6 +45,7 @@ function ActionEditor({ field, title, descriptionKey, entries, onChange }) {
         {safeEntries.length === 0 && <p className="rqk-npc-editor__hint">None recorded. Add one only if you have its actual details.</p>}
         {safeEntries.map((raw, index) => {
           const item = typeof raw === 'object' && raw ? raw : { name: String(raw || '') };
+          const detailsField = item.description != null && item.description !== '' ? 'description' : descriptionKey;
           return (
             <div className="rqk-npc-editor__action-entry" key={index}>
               <div className="rqk-npc-editor__action-entry-top">
@@ -56,7 +57,7 @@ function ActionEditor({ field, title, descriptionKey, entries, onChange }) {
                 <TextField label="To hit / saving throw" value={item.bonus} onChange={value => changeEntry(index, 'bonus', value)} placeholder="+7 or DC 15 DEX" />
                 <TextField label="Damage / effect" value={item.damage} onChange={value => changeEntry(index, 'damage', value)} placeholder="2d6+4 slashing" />
               </div>
-              <TextField multiline label="How it works" value={item[descriptionKey] ?? item.description ?? item.notes} onChange={value => changeEntry(index, descriptionKey, value)} placeholder="Range, conditions, duration, uses..." />
+              <TextField multiline label="How it works" value={item[detailsField] ?? item.notes} onChange={value => changeEntry(index, detailsField, value)} placeholder="Range, conditions, duration, uses..." />
               <div className="rqk-npc-editor__two">
                 <TextField label="Recharge (optional)" value={item.recharge} onChange={value => changeEntry(index, 'recharge', value)} placeholder="5-6" />
                 <TextField label="Uses (optional)" value={item.uses} onChange={value => changeEntry(index, 'uses', value)} placeholder="3 / long rest" />
