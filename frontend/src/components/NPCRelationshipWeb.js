@@ -232,7 +232,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
         <button type="submit" className="rqk-rel-submit" disabled={busy || !form.source_id || !form.target_id}>
           <Link2 size={16} /> {busy ? 'Saving…' : editingId ? 'Save changes' : 'Save relationship'}
         </button>
-        {editingId && <button type="button" className="rqk-rel-cancel" onClick={cancelEdit}>Cancel editing</button>
+        {editingId && <button type="button" className="rqk-rel-cancel" onClick={cancelEdit}>Cancel editing</button>}
       </form>
     </section>
 
