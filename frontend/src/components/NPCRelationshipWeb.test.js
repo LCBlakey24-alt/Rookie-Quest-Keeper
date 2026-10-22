@@ -145,7 +145,7 @@ test('edits an existing relationship in place without deleting/recreating it', a
     expect.objectContaining({ relationship_type: 'parent', description: 'Mara is Godfrey’s mother' })
   ));
   expect(screen.getByText('1 saved links')).toBeInTheDocument();
-  expect(screen.getByText('Mara is Godfrey’s mother')).toBeInTheDocument();
+  expect(await within(list).findByText('Mara is Godfrey’s mother')).toBeInTheDocument();
   expect(apiClient.delete).not.toHaveBeenCalled();
   expect(apiClient.post).not.toHaveBeenCalled();
 });
