@@ -11,9 +11,9 @@ import './AuthPage.css';
 
 const AUTH_COPY = {
   login: {
-    eyebrow: 'Player gateway',
-    title: 'Welcome back, adventurer',
-    subtitle: 'Open your characters, campaigns, and tabletop tools from one connected campaign ledger.',
+    eyebrow: 'Guild Ledger',
+    title: 'Welcome back',
+    subtitle: 'Sign in to open your campaigns and characters.',
     notice: (
       <>
         Sign in with your username or recovery email. New player? Create an account and keep it nickname-first.
@@ -445,7 +445,7 @@ export default function AuthPage({ onLogin = () => {} }) {
         </button>
 
         <div className="rqk-auth-layout">
-          <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
+          {mode !== 'login' && <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
             <p className="rqk-auth-kicker">Plan • Organise • Track • Play</p>
             <h2>Everything for the table, kept together.</h2>
             <p>
@@ -472,7 +472,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               </div>
               <p>Dashboard → Characters → Campaign tools</p>
             </div>
-          </aside>
+          </aside>}
 
           <section className="rqk-auth-card" aria-labelledby="rqk-auth-title">
             <div className="rqk-auth-heading">
@@ -518,13 +518,13 @@ export default function AuthPage({ onLogin = () => {} }) {
               </div>
             )}
 
-            <AuthNotice>{copy.notice}</AuthNotice>
-            <AuthAssurancePanel {...assurance} />
-
-            {mode === 'login' && <ReadOnlyDemoAccess />}
+            {mode !== 'login' && <AuthNotice>{copy.notice}</AuthNotice>}
+            {mode !== 'login' && <AuthAssurancePanel {...assurance} />}
 
             {mode === 'login' && stagingCredentials && (
-              <section className="rqk-staging-access" aria-label="Staging test account">
+              <details className="rqk-auth-staging-details">
+                <summary>Staging test workspace</summary>
+                <section className="rqk-staging-access" aria-label="Staging test account">
                 <div>
                   <span>Preview only</span>
                   <strong>Test account</strong>
@@ -537,7 +537,8 @@ export default function AuthPage({ onLogin = () => {} }) {
                 <button type="button" onClick={handleStagingAccess} disabled={loading} className="rqk-staging-access__button">
                   {loading ? 'Opening test workspace…' : 'Create / enter test workspace'}
                 </button>
-              </section>
+                </section>
+              </details>
             )}
 
             {mode === 'login' && (
@@ -602,8 +603,14 @@ export default function AuthPage({ onLogin = () => {} }) {
                 </PrimaryButton>
                 <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
 
-                <AuthSwitch text="New here?" actionText="Create an account" onClick={() => goToMode('register')} disabled={loading} />
               </form>
+            )}
+
+            {mode === 'login' && (
+              <details className="rqk-auth-more-options">
+                <summary>Other ways to enter</summary>
+                <ReadOnlyDemoAccess />
+              </details>
             )}
 
             {mode === 'register' && (
@@ -784,8 +791,8 @@ export default function AuthPage({ onLogin = () => {} }) {
               </form>
             )}
 
-            <AuthNextSteps steps={nextSteps} />
-            <TrustBadges />
+            {mode !== 'login' && <AuthNextSteps steps={nextSteps} />}
+            {mode !== 'login' && <TrustBadges />}
           </section>
         </div>
 
