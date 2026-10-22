@@ -1,19 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import './RouteLoadingScreen.css';
 
-const loadingSteps = ['Sheets', 'Campaigns', 'Rook'];
-
+/**
+ * The route fallback should explain what is happening without implying that
+ * specific APIs have finished loading. A stalled chunk gives users a safe way
+ * to retry instead of trapping them behind an indefinite spinner.
+ */
 export default function RouteLoadingScreen() {
+  const [takingLonger, setTakingLonger] = useState(false);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setTakingLonger(true), 10000);
+    return () => window.clearTimeout(handle);
+  }, []);
+
   return (
     <main className="loading-screen route-loading-screen" role="status" aria-live="polite" aria-busy="true">
-      <section className="loading-card" aria-label="Rookie Quest Keeper is loading">
-        <div className="loading-brand-mark" aria-hidden="true">RQK</div>
-        <div className="loading-spinner" aria-hidden="true" />
-        <p className="loading-kicker">Preparing your table</p>
-        <p className="loading-title">Opening Rookie Quest Keeper…</p>
-        <p className="loading-tip">Gathering character sheets, campaign notes, and your next quest hook.</p>
-        <ul className="route-loading-steps" aria-label="Loading checklist">
-          {loadingSteps.map((step) => <li key={step}>{step}</li>)}
-        </ul>
+      <section className="rqk-route-card" aria-label="Rookie Quest Keeper is loading">
+        <span className="rqk-route-sigil" aria-hidden="true">RQK</span>
+        <p className="rqk-route-eyebrow">Guild Ledger</p>
+        <h1 className="rqk-route-heading">Opening Rookie Quest Keeper</h1>
+        <p className="rqk-route-description">Preparing your workspace…</p>
+        <div className="rqk-route-activity" aria-hidden="true"><span /></div>
+        {takingLonger && (
+          <div className="rqk-route-recovery">
+            <p>This is taking longer than expected. Your saved campaigns have not been reset.</p>
+            <button type="button" onClick={() => window.location.reload()}>Reload Keeper</button>
+          </div>
+        )}
       </section>
     </main>
   );
