@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Calendar as CalendarIcon, ChevronRight, Edit, Plus, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import './CalendarTab.css';
 import { isOfflineDesktop } from '@/preview/previewMode';
 import {
   advanceCustomCalendar,
@@ -147,8 +148,8 @@ export default function CalendarTab({ campaignId }) {
   if (loading) return <div className="loading-spinner" />;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 18 }}>
-      <main>
+    <div className="rqk-calendar-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 18 }}>
+      <main className="rqk-calendar-main">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
           <h2 style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}><CalendarIcon size={22} /> Campaign Calendar</h2>
           <button type="button" className="btn-secondary" onClick={applyTiaKarta} disabled={applyingTiaKarta}>{applyingTiaKarta ? 'Restoring…' : 'Use Tia-Karta Calendar'}</button>
@@ -166,7 +167,7 @@ export default function CalendarTab({ campaignId }) {
 
         <section className="rqk-calendar-panel" style={{ padding: 18, marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
           <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>{currentMonth} — Days of the Month</h3>
-          <div style={{ overflowX: 'auto' }}>
+          <div className="rqk-calendar-month-scroller" style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${daysPerWeek}, minmax(48px, 1fr))`, gap: 5, minWidth: daysPerWeek * 48 }}>
               {Array.from({ length: daysPerWeek }, (_, index) => (
                 <strong key={index} style={{ color: '#9cceed', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
@@ -198,10 +199,10 @@ export default function CalendarTab({ campaignId }) {
           <form onSubmit={saveEvent} style={{ display: 'grid', gap: 10 }}>
             <input data-testid="event-name-input" className="input" placeholder="Event name" value={eventForm.name} onChange={e => setEventForm({ ...eventForm, name: e.target.value })} required />
             <textarea data-testid="event-description-input" className="textarea" placeholder="Description" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-              <input data-testid="event-day-input" className="input" type="number" min="1" value={eventForm.day} onChange={e => setEventForm({ ...eventForm, day: parseInt(e.target.value, 10) || 1 })} />
-              <input data-testid="event-month-input" className="input" type="number" min="1" value={eventForm.month} onChange={e => setEventForm({ ...eventForm, month: parseInt(e.target.value, 10) || 1 })} />
-              <input data-testid="event-year-input" className="input" type="number" value={eventForm.year} onChange={e => setEventForm({ ...eventForm, year: parseInt(e.target.value, 10) || 1 })} />
+            <div className="rqk-calendar-event-date-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+              <input aria-label="Event day" data-testid="event-day-input" className="input" type="number" min="1" value={eventForm.day} onChange={e => setEventForm({ ...eventForm, day: parseInt(e.target.value, 10) || 1 })} />
+              <input aria-label="Event month" data-testid="event-month-input" className="input" type="number" min="1" value={eventForm.month} onChange={e => setEventForm({ ...eventForm, month: parseInt(e.target.value, 10) || 1 })} />
+              <input aria-label="Event year" data-testid="event-year-input" className="input" type="number" value={eventForm.year} onChange={e => setEventForm({ ...eventForm, year: parseInt(e.target.value, 10) || 1 })} />
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               {editingEvent && <button type="button" className="btn-secondary" onClick={() => { setEditingEvent(null); setEventForm(emptyEvent); }}>Cancel</button>}
@@ -233,7 +234,7 @@ export default function CalendarTab({ campaignId }) {
         </section>
       </main>
 
-      <aside className="rqk-calendar-panel" style={{ padding: 16, height: 'fit-content', background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
+      <aside className="rqk-calendar-panel rqk-calendar-upcoming" style={{ padding: 16, height: 'fit-content', background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
         <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>Upcoming 30 Days</h3>
         {upcomingEvents.length === 0 ? <p style={{ color: '#FFFFFF' }}>No upcoming events.</p> : upcomingEvents.map(event => (
           <div key={event.id} style={{ border: '1px solid rgba(255,45,170,0.18)', background: '#102B40', padding: 10, marginBottom: 8 }}>

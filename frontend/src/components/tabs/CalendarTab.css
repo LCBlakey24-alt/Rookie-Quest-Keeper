@@ -1,0 +1,44 @@
+/* Campaign calendar: the desktop sidebar must never force a 320px phone overflow.
+   The calendar grid scrolls inside its own panel, not the whole page. */
+.rqk-calendar-layout,
+.rqk-calendar-main,
+.rqk-calendar-layout .rqk-calendar-panel,
+.rqk-calendar-upcoming {
+  min-width: 0;
+  max-width: 100%;
+}
+.rqk-calendar-month-scroller {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.rqk-calendar-event-date-fields > input {
+  min-width: 0;
+  width: 100%;
+}
+@media (max-width: 980px) {
+  #root .rqk-calendar-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+  #root .rqk-calendar-upcoming { width: 100%; }
+}
+@media (max-width: 719px) {
+  #root .rqk-calendar-layout .rqk-calendar-panel {
+    padding: 12px !important;
+  }
+  #root .rqk-calendar-layout h2 {
+    font-size: clamp(19px, 5vw, 24px) !important;
+  }
+  #root .rqk-calendar-layout h3 {
+    overflow-wrap: anywhere;
+  }
+  #root .rqk-calendar-event-date-fields {
+    gap: 6px !important;
+  }
+  #root .rqk-calendar-month-scroller {
+    scrollbar-width: thin;
+  }
+}
