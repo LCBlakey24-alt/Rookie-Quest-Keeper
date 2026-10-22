@@ -327,32 +327,69 @@ export default function NPCRelationshipWeb({ campaignId }) {
 
     <section className="rqk-rel-panel rqk-rel-graph-panel" aria-label="Visual NPC relationship map">
       <h3><Users size={17}/> Relationship map</h3>
-      <p>Select an NPC to highlight their connections. The list above works on mobile and with a keyboard.</p>
-      {npcs.length ? <div className="rqk-rel-graph-scroller">
-        <svg viewBox={`0 0 1000 ${svgHeight}`} aria-label="NPC network diagram">
-          {validLinks.map(link => {
+      <p>Explore one NPC's connections on your phone, or switch to the full network. Select any node to focus on that person.</p>
+      <div className="rqk-rel-graph-controls">
+        <label>Focus on NPC
+          <select aria-label="Focus relationship map on NPC" value={focusNpcId}
+            onChange={event => setSelectedNpcId(event.target.value)}>
+            {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
+          </select>
+        </label>
+        <div className="rqk-rel-graph-modes" role="group" aria-label="Network view">
+          <button type="button" aria-pressed={focusMode} onClick={() => setGraphMode('focus')}>Focused view</button>
+          <button type="button" aria-pressed={!focusMode} onClick={() => setGraphMode('all')}>Whole network</button>
+        </div>
+      </div>
+      <div className="rqk-rel-network-legend" aria-label="Relationship line guide">
+        <span><i className="rqk-rel-line-swatch rqk-rel-line-swatch--family"/> Family</span>
+        <span><i className="rqk-rel-line-swatch rqk-rel-line-swatch--ally"/> Ally / friend</span>
+        <span><i className="rqk-rel-line-swatch rqk-rel-line-swatch--enemy"/> Rival / enemy</span>
+        <span><i className="rqk-rel-line-swatch rqk-rel-line-swatch--secret"/> Secret connection</span>
+      </div>
+      {npcs.length ? <div className={`rqk-rel-graph-scroller ${focusMode ? 'rqk-rel-graph-scroller--focus' : 'rqk-rel-graph-scroller--all'}`}>
+        <svg viewBox={`0 0 ${focusMode ? 390 : 1000} ${svgHeight}`}
+          role="img" aria-label={focusMode ? `Relationship network focused on ${selectedNpc?.name || 'NPC'}` : 'Complete campaign NPC network'}>
+          {visibleLines.map(link => {
             const from = positions[link.source_id], to = positions[link.target_id];
+            if (!from || !to) return null;
             const type = relationStyle(link.relationship_type);
-            return <line key={link.id} x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-              stroke={type.color} strokeWidth={selectedNpcId && (link.source_id === selectedNpcId || link.target_id === selectedNpcId) ? 3 : 1.4}
-              opacity={selectedNpcId && link.source_id !== selectedNpcId && link.target_id !== selectedNpcId ? 0.18 : 0.7}/>;
+            const secret = String(link.relationship_type).startsWith('secret_');
+            const highlighted = link.source_id === focusNpcId || link.target_id === focusNpcId;
+            const title = `${npcsById[link.source_id].name} — ${type.label} — ${npcsById[link.target_id].name}`;
+            return <g key={link.id}>
+              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                stroke={type.color} strokeWidth={highlighted ? 3.4 : 2}
+                strokeDasharray={secret ? '7 6' : undefined}
+                opacity={focusMode || highlighted ? 0.9 : 0.42}>
+                <title>{title}</title>
+              </line>
+              {focusMode && <text x={(from.x + to.x) / 2} y={(from.y + to.y) / 2 - 8}
+                textAnchor="middle" fill={type.color} fontSize="11" fontWeight="750"
+                paintOrder="stroke" stroke="#091b2a" strokeWidth="4">
+                {type.label}
+              </text>}
+            </g>;
           })}
-          {npcs.map(npc => {
+          {visibleNodes.map(npc => {
             const point = positions[npc.id];
-            const selected = npc.id === selectedNpcId;
-            const highlighted = !selectedNpcId || selected || relatedIds.includes(npc.id);
+            if (!point) return null;
+            const selected = npc.id === focusNpcId;
+            const highlighted = focusMode || !focusNpcId || selected || relatedIds.includes(npc.id);
             return <g key={npc.id} role="button" tabIndex={0}
               aria-label={`Show connections for ${npc.name}`}
-              onClick={() => setSelectedNpcId(npc.id)}
-              onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedNpcId(npc.id); } }}
-              style={{ cursor: 'pointer', opacity: highlighted ? 1 : 0.36 }}>
-              <rect x={point.x - 70} y={point.y - 28} width={140} height={55} rx={8}
-                fill={selected ? '#344753' : '#142938'} stroke={selected ? '#E1BF85' : '#455968'} strokeWidth={selected ? 2.5 : 1}/>
-              <text x={point.x} y={point.y - 5} textAnchor="middle" fill="#F2E5CD" fontSize={11.5} fontWeight="600">
+              onClick={() => { setSelectedNpcId(npc.id); setGraphMode('focus'); }}
+              onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault(); setSelectedNpcId(npc.id); setGraphMode('focus');
+              } }}
+              style={{ cursor: 'pointer', opacity: highlighted ? 1 : 0.35 }}>
+              <rect x={point.x - 70} y={point.y - 28} width="140" height="56" rx="8"
+                fill={selected ? '#344753' : '#142938'}
+                stroke={selected ? '#E1BF85' : '#455968'} strokeWidth={selected ? 2.7 : 1.4}/>
+              <text x={point.x} y={point.y - 5} textAnchor="middle" fill="#F2E5CD" fontSize="11.5" fontWeight="700">
                 {String(npc.name).length > 19 ? String(npc.name).slice(0, 17) + '…' : npc.name}
               </text>
-              <text x={point.x} y={point.y + 12} textAnchor="middle" fill="#BCA77F" fontSize={10}>
-                {relatedNpcIds(validLinks, npc.id).length} links
+              <text x={point.x} y={point.y + 13} textAnchor="middle" fill="#BCA77F" fontSize="10">
+                {relatedNpcIds(validLinks, npc.id).length} connections
               </text>
             </g>;
           })}
@@ -362,7 +399,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
         <strong>{selectedNpc.name}</strong> · {relatedIds.length} connections
         {selectedLinks.length ? <ul className="rqk-rel-selected-links">
           {selectedLinks.map(link => {
-            const otherId = link.source_id === selectedNpcId ? link.target_id : link.source_id;
+            const otherId = link.source_id === focusNpcId ? link.target_id : link.source_id;
             return <li key={link.id}>
               <strong>{npcsById[otherId]?.name}</strong> — {relationStyle(link.relationship_type).label}
               {link.description ? <span> · {link.description}</span> : null}
@@ -371,7 +408,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
         </ul> : <p>No links recorded for this NPC yet.</p>}
         <button type="button" onClick={() => {
           setForm(previous => ({ ...previous, source_id: selectedNpc.id, target_id: '' }));
-          window.scrollTo?.({ top: 0, behavior: 'smooth' });
+          formSectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
         }}>Create a connection for {selectedNpc.name}</button>
       </div>}
     </section>
