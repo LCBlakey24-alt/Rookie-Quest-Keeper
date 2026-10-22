@@ -128,7 +128,11 @@ async def advance_calendar(campaign_id: str, days: int, username: str = Depends(
 async def create_calendar_event(campaign_id: str, event_data: CalendarEventCreate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
+    calendar = await db.calendars.find_one({'campaign_id': campaign_id}, {'_id': 0})
+    if not calendar:
+        raise HTTPException(status_code=404, detail="Calendar not found")
     event_dict = event_data.model_dump()
+    validate_day(calendar, event_dict['year'], event_dict['month'], event_dict['day'])
     event_obj = CalendarEvent(campaign_id=campaign_id, **event_dict)
     doc = event_obj.model_dump()
     await db.calendar_events.insert_one(doc)
@@ -145,7 +149,15 @@ async def get_calendar_events(campaign_id: str, username: str = Depends(get_curr
 async def update_calendar_event(campaign_id: str, event_id: str, event_data: CalendarEventUpdate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
-    update_dict = {k: v for k, v in event_data.model_dump().items() if v is not None}
+    saved = await db.calendar_events.find_one({'id': event_id, 'campaign_id': campaign_id}, {'_id': 0})
+    if not saved:
+        raise HTTPException(status_code=404, detail="Event not found")
+    calendar = await db.calendars.find_one({'campaign_id': campaign_id}, {'_id': 0})
+    if not calendar:
+        raise HTTPException(status_code=404, detail="Calendar not found")
+    update_dict = event_data.model_dump(exclude_none=True)
+    proposed = {**saved, **update_dict}
+    validate_day(calendar, proposed['year'], proposed['month'], proposed['day'])
     result = await db.calendar_events.update_one(
         {'id': event_id, 'campaign_id': campaign_id},
         {'$set': update_dict}
@@ -154,7 +166,7 @@ async def update_calendar_event(campaign_id: str, event_id: str, event_data: Cal
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
     
-    event = await db.calendar_events.find_one({'id': event_id}, {'_id': 0})
+    event = await db.calendar_events.find_one({'id': event_id, 'campaign_id': campaign_id}, {'_id': 0})
     return event
 
 @router.delete("/campaigns/{campaign_id}/calendar-events/{event_id}")
