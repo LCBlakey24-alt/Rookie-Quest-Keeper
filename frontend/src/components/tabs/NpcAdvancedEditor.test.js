@@ -26,7 +26,7 @@ describe('GM detailed NPC edit form', () => {
     expect(screen.getByLabelText('DEX')).toHaveValue(12);
     expect(screen.getByLabelText('Bonus actions name 1')).toHaveValue('Shield-Line Order');
     expect(screen.getByLabelText('Actions (attack roll and damage) name 1')).toHaveValue('Great Weapon');
-    expect(screen.getByText(/Adopted by halflings/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Backstory and established lore')).toHaveValue('Adopted by halflings.');
   });
 
   test('changing a bonus action preserves its hidden metadata', () => {
