@@ -44,7 +44,7 @@ describe('independent Tia-Karta custom calendar', () => {
     const irregular = { ...calendar, current_day: 29, current_month: 1,
       custom_months: [{ name: 'Long', days: 30 }, { name: 'Short', days: 20 }, { name: 'Long Again', days: 30 }] };
     const event = { year: 592, month: 1, day: 29, is_recurring: true, recurrence_type: 'monthly' };
-    expect(daysUntilNextOccurrence(event, { ...irregular, current_day: 30 })).toBe(50);
+    expect(daysUntilNextOccurrence(event, { ...irregular, current_day: 30 })).toBe(49);
   });
   test('an event does not recur before its recorded first occurrence', () => {
     const future = { ...weekly, year: 593 };
