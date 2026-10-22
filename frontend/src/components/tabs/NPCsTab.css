@@ -186,3 +186,31 @@
   #root .rqk-npc-summary-stats { display: flex; gap: 5px; }
   #root .rqk-npc-summary-stats > span { font-size: 11px; }
 }
+
+
+/* Correct inherited Card header/content sizing which made phone NPC rows tall. */
+@media (max-width: 760px) {
+  #root .rqk-npc-list .rqk-npc-card {
+    display: block !important;
+    align-self: start !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  #root .rqk-npc-list .rqk-npc-card-header {
+    display: block !important;
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 10px 11px 4px !important;
+  }
+  #root .rqk-npc-list .rqk-npc-card-content {
+    display: block !important;
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 11px 10px !important;
+  }
+  #root .rqk-npc-list .rqk-npc-card-main { align-items: center !important; }
+  #root .rqk-npc-list .rqk-npc-combat-summary { min-height: 42px !important; }
+}
