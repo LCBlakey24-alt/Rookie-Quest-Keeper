@@ -1140,12 +1140,15 @@ class ProgressionQueryRequest(BaseModel):
 
 
 class NPCAttack(BaseModel):
+    # Preserve extra combat metadata such as uses, reach and recharge on edit.
+    model_config = ConfigDict(extra="allow")
     name: str = ""
     bonus: str = ""
     damage: str = ""
     notes: str = ""
 
 class NPCAbility(BaseModel):
+    model_config = ConfigDict(extra="allow")
     name: str = ""
     description: str = ""
 
@@ -1313,8 +1316,8 @@ class NPCUpdate(BaseModel):
     damage_resistances: Optional[List[str]] = None
     damage_immunities: Optional[List[str]] = None
     condition_immunities: Optional[List[str]] = None
-    senses: Optional[str] = None
-    languages: Optional[str] = None
+    senses: Optional[Any] = None
+    languages: Optional[Any] = None
     mechanics_status: Optional[str] = None
     canon_status: Optional[str] = None
     statblock_source: Optional[str] = None
