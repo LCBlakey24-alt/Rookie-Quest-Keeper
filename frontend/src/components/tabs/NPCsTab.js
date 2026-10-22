@@ -53,6 +53,7 @@ function NPCsTab({ campaignId }) {
     // A campaign change must never display records from the previous party.
     activeCampaignRef.current = campaignId;
     setNpcs([]);
+    setSearchTerm(''); // A previous campaign search must never hide this campaign's NPCs.
     setLoadError(false);
     setLoading(true);
     fetchNPCs();
@@ -174,11 +175,13 @@ function NPCsTab({ campaignId }) {
   };
 
   // Filter NPCs by search
-  const filteredNPCs = npcs.filter(npc =>
-    npc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    npc.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    npc.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const query = searchTerm.trim().toLowerCase();
+  const filteredNPCs = npcs.filter(npc => !query || [
+    npc.name, npc.role, npc.location, npc.description,
+    npc.backstory, npc.notes, npc.mechanics_status,
+    ...(Array.isArray(npc.skills) ? npc.skills : []),
+    ...(Array.isArray(npc.actions) ? npc.actions.map(action => action.name) : []),
+  ].some(value => String(value || '').toLowerCase().includes(query)));
 
   // Loading state
   if (loading) {
@@ -425,6 +428,9 @@ function NPCsTab({ campaignId }) {
         </Dialog>
       </div>
 
+      {loadError && npcs.length > 0 && <p role="status" className="rqk-npc-refresh-warning">
+        Could not refresh NPCs. Showing the last loaded list. Your saved records are still protected.
+      </p>}
       {/* Search Bar */}
       {npcs.length > 3 && (
         <div style={{ marginBottom: '20px' }}>
@@ -440,7 +446,8 @@ function NPCsTab({ campaignId }) {
               }} 
             />
             <Input
-              placeholder="Search NPCs by name, location, or description..."
+              aria-label="Search campaign NPCs"
+              placeholder="Search names, lore, location, skills or actions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input"
@@ -498,6 +505,7 @@ function NPCsTab({ campaignId }) {
                         </span>
                       )}
                     </CardTitle>
+                    {npc.role && <p className="rqk-npc-card-role">{npc.role}</p>}
                     {npc.location && (
                       <p style={{ fontSize: '14px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <MapPin size={14} /> {npc.location}
@@ -548,7 +556,7 @@ function NPCsTab({ campaignId }) {
               <CardContent className="rqk-npc-card-content">
                 <details className="rqk-npc-combat-details" data-testid={`npc-combat-card-${npc.id}`} style={{ width: '100%' }}>
                   <summary className="rqk-npc-combat-summary" style={{ cursor: 'pointer', color: 'var(--rq-text-primary)', fontSize: 13, fontWeight: 800, padding: '8px 0' }}>
-                    Full stat block · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {Array.isArray(npc.attacks) ? npc.attacks.length : 0} attacks
+                    Full stat block · HP {npc.hp ?? '—'} · AC {npc.ac ?? '—'} · {(npc.attacks?.length || npc.actions?.length || 0)} actions{npc.cr ? ' · CR ' + npc.cr : ''}
                   </summary>
                   <NpcCompactStatBlock npc={npc} />
                 </details>
