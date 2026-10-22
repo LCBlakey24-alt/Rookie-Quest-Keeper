@@ -45,4 +45,21 @@ describe('GM NPC roster on small screens', () => {
     expect(jsx).toContain('Retry loading NPCs');
     expect(jsx).toContain('activeCampaignRef.current !== requestedCampaign');
   });
+  test('phone campaign header stays in the page flow at narrow viewport widths', () => {
+    const css = source('../CampaignDashboard.css');
+    expect(css).toContain("@media (max-width: 760px)");
+    expect(css).toContain('#root .campaign-dashboard-simple .gm-dashboard-header.campaign-dashboard-header');
+    expect(css).toContain('inset: auto !important');
+    expect(css).toContain('-webkit-line-clamp: 2 !important');
+    expect(css).toContain('calc(104px + env(safe-area-inset-bottom, 0px))');
+  });
+
+  test('phone NPC cards do not inherit oversized header and content heights', () => {
+    const css = source('./NPCsTab.css');
+    expect(css).toContain('#root .rqk-npc-list .rqk-npc-card-header');
+    expect(css).toContain('#root .rqk-npc-list .rqk-npc-card-content');
+    expect(css).toContain('height: auto !important');
+    expect(css).toContain('min-height: 0 !important');
+  });
+
 });
