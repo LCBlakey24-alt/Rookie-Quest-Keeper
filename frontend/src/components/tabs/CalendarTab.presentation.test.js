@@ -65,6 +65,6 @@ describe('campaign-specific calendar editing', () => {
     expect(jsx).toContain('calendar-event-recurrence');
     expect(jsx).toContain('eventOccursOn');
     expect(jsx).toContain('daysUntilNextOccurrence');
-    expect(jsx).toContain('Every ${daysPerWeek}-day week');
+    expect(jsx).toContain('Every {daysPerWeek}-day week');
   });
 });
