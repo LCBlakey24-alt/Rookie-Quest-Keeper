@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowRight, Command, Search, X } from 'lucide-react';
 import { findCampaignTools } from './campaignToolSearch';
@@ -17,12 +17,12 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
   const inputRef = useRef(null);
   const matches = useMemo(() => findCampaignTools(query), [query]);
 
-  const close = () => {
+  const close = useCallback(() => {
     setOpen(false);
     setQuery('');
     setActiveIndex(0);
     triggerRef.current?.focus();
-  };
+  }, []);
 
   const select = tab => {
     setOpen(false);
@@ -47,7 +47,7 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
     };
     window.addEventListener('keydown', onShortcut);
     return () => window.removeEventListener('keydown', onShortcut);
-  }, [open]);
+  }, [open, close]);
 
   useEffect(() => {
     if (!open) return;
@@ -103,7 +103,7 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
       </button>
 
       {open && createPortal(
-        <div className="rqk-tool-finder-backdrop" onMouseDown={event => {
+        <div className="rqk-tool-finder-backdrop" role="presentation" onMouseDown={event => {
           if (event.target === event.currentTarget) close();
         }}>
           <section
