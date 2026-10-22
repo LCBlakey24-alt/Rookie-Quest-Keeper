@@ -1140,12 +1140,15 @@ class ProgressionQueryRequest(BaseModel):
 
 
 class NPCAttack(BaseModel):
+    # Custom actions can include recharge, uses, range and other GM metadata.
+    model_config = ConfigDict(extra="allow")
     name: str = ""
     bonus: str = ""
     damage: str = ""
     notes: str = ""
 
 class NPCAbility(BaseModel):
+    model_config = ConfigDict(extra="allow")
     name: str = ""
     description: str = ""
 
