@@ -78,3 +78,213 @@
   .rqk-calendar-month-actions { width: 100%; }
   .rqk-calendar-month-actions > button { flex: 1 1 90px; }
 }
+
+/* -------------------------------------------------------------------------
+   Guild Ledger calendar / day selection / agenda
+   ------------------------------------------------------------------------- */
+#root .rqk-calendar-layout {
+  color: var(--rq-text-primary, #eadfc8);
+}
+#root .rqk-calendar-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 0 0 17px;
+  border-bottom: 1px solid rgba(201,169,107,.28);
+}
+#root .rqk-calendar-kicker {
+  margin: 0 0 7px;
+  color: var(--rq-primary, #c9a96b);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+}
+#root .rqk-calendar-title h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--rq-text-primary, #eadfc8);
+  font: 700 clamp(1.5rem, 3vw, 2rem)/1.15 var(--rq-font-display, Georgia, serif);
+}
+#root .rqk-calendar-title h2 svg { color: var(--rq-primary, #c9a96b); }
+#root .rqk-calendar-title > div > p:last-child {
+  margin: 7px 0 0;
+  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  font-size: 13px;
+  line-height: 1.55;
+}
+#root .rqk-calendar-title > button {
+  min-height: 44px;
+  border: 1px solid rgba(201,169,107,.38);
+  border-radius: 6px;
+}
+#root .rqk-calendar-panel {
+  min-width: 0;
+  padding: clamp(14px, 2vw, 22px);
+  margin-bottom: 14px;
+  background: var(--rq-bg-panel, #1e2936);
+  border: 1px solid rgba(201,169,107,.25);
+  border-radius: 8px;
+  box-shadow: none;
+}
+#root .rqk-calendar-panel h3 {
+  color: var(--rq-text-primary, #eadfc8);
+}
+#root .rqk-calendar-current {
+  position: relative;
+  text-align: center;
+  border-top: 3px solid var(--rq-primary, #c9a96b);
+  background: var(--rq-bg-panel, #1e2936);
+}
+#root .rqk-calendar-current > h3 {
+  margin: 0 0 8px !important;
+  font: 700 clamp(1.7rem, 3.8vw, 2.45rem)/1.2 var(--rq-font-display, Georgia, serif) !important;
+}
+#root .rqk-calendar-current > p {
+  color: var(--rq-text-secondary, rgba(234,223,200,.78)) !important;
+}
+#root .rqk-calendar-month-panel,
+#root .rqk-calendar-agenda,
+#root .rqk-calendar-event-editor {
+  scroll-margin-top: 20px;
+}
+#root .rqk-calendar-month-heading > h3 {
+  margin: 0 !important;
+  font: 700 clamp(17px, 2.2vw, 23px)/1.25 var(--rq-font-display, Georgia, serif);
+}
+#root .rqk-calendar-month-actions button {
+  border: 1px solid rgba(201,169,107,.28) !important;
+  border-radius: 5px !important;
+}
+#root .rqk-calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  padding: 8px 7px;
+  border: 1px solid rgba(137,157,176,.24);
+  border-radius: 5px;
+  background: var(--rq-bg-deep, #07131f);
+  color: var(--rq-text-primary, #eadfc8);
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+#root .rqk-calendar-day strong {
+  color: var(--rq-text-primary, #eadfc8) !important;
+  font-size: 14px;
+  font-weight: 850;
+}
+#root .rqk-calendar-day.is-today {
+  border-color: var(--rq-secondary, #6e91b4);
+}
+#root .rqk-calendar-day.is-today strong {
+  color: #d4e5f2 !important;
+}
+#root .rqk-calendar-day.is-selected {
+  background: rgba(201,169,107,.14);
+  border: 2px solid var(--rq-primary, #c9a96b);
+  padding: 7px 6px;
+}
+#root .rqk-calendar-day:is(:hover, :focus-visible) {
+  background: var(--rq-bg-card, #263748);
+  border-color: var(--rq-primary, #c9a96b);
+  outline: 2px solid var(--rq-primary, #c9a96b);
+  outline-offset: 1px;
+}
+#root .rqk-calendar-day-event,
+#root .rqk-calendar-day-more {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--rq-primary-hover, #d9bc82);
+  font-size: 10px;
+  line-height: 1.35;
+}
+#root .rqk-calendar-day-more { color: var(--rq-text-secondary, #c5c0b5); }
+#root .rqk-calendar-agenda {
+  border-left: 3px solid var(--rq-primary, #c9a96b);
+}
+#root .rqk-calendar-agenda-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+#root .rqk-calendar-agenda-heading h3 {
+  margin: 0;
+  font: 700 clamp(18px,2.4vw,23px)/1.3 var(--rq-font-display, Georgia, serif);
+}
+#root .rqk-calendar-agenda-heading button { min-height: 44px; }
+#root .rqk-calendar-agenda-empty { margin: 8px 0 0; color: var(--rq-text-secondary, #b8c8d4); }
+#root .rqk-calendar-agenda-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 12px 0 0;
+}
+#root .rqk-calendar-agenda-list li {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  padding: 12px;
+  background: var(--rq-bg-deep, #07131f);
+  border: 1px solid rgba(201,169,107,.22);
+  border-radius: 6px;
+}
+#root .rqk-calendar-agenda-list li > :is(strong,p,small) { margin: 0; }
+#root .rqk-calendar-agenda-list li strong { font-size: 14px; }
+#root .rqk-calendar-agenda-list li p {
+  color: var(--rq-text-secondary, #c8c0b3);
+  white-space: pre-wrap;
+  font-size: 12px;
+  line-height: 1.5;
+}
+#root .rqk-calendar-agenda-list li button {
+  min-height: 38px;
+  padding: 6px 13px;
+  color: var(--rq-primary-hover, #d9bc82);
+  background: var(--rq-bg-card, #263748);
+  border: 1px solid rgba(201,169,107,.32);
+  border-radius: 5px;
+  cursor: pointer;
+}
+#root .rqk-calendar-event-editor :is(input,select,textarea) {
+  border: 1px solid rgba(201,169,107,.28);
+  background: var(--rq-bg-input, #101f2d);
+  color: var(--rq-text-primary, #eadfc8);
+}
+#root .rqk-calendar-upcoming { height: fit-content; }
+#root .rqk-calendar-events-list .initiative-entry {
+  background: var(--rq-bg-card, #263748);
+  border: 1px solid rgba(201,169,107,.18);
+  border-radius: 6px;
+  padding: 11px;
+}
+@media (min-width: 981px) {
+  #root .rqk-calendar-upcoming { position: sticky; top: 18px; }
+}
+@media (max-width: 719px) {
+  #root .rqk-calendar-title { align-items: stretch; }
+  #root .rqk-calendar-title > button { width: 100%; }
+  #root .rqk-calendar-day { min-height: 66px; padding: 6px 5px; }
+  #root .rqk-calendar-day.is-selected { padding: 5px 4px; }
+  #root .rqk-calendar-agenda-heading button { width: 100%; }
+  #root .rqk-calendar-current > h3 { font-size: clamp(1.45rem, 6vw, 1.9rem) !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-calendar-month-scroller { scroll-behavior: auto; }
+}
