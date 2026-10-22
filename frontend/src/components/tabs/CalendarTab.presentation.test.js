@@ -32,3 +32,39 @@ describe('campaign calendar phone layout', () => {
     expect(component).not.toContain('Date.now()');
   });
 });
+
+
+describe('campaign-specific calendar editing', () => {
+  test('GM can set a day/month/year without changing the other campaign', () => {
+    const jsx = read('./CalendarTab.js');
+    expect(jsx).toContain('calendar-set-date');
+    expect(jsx).toContain('calendar-set-day');
+    expect(jsx).toContain('calendar-set-month');
+    expect(jsx).toContain('calendar-set-year');
+    expect(jsx).toContain('current_day: Number(dateDraft.day)');
+    expect(jsx).toContain('current_month: Number(dateDraft.month)');
+    expect(jsx).toContain('current_year: Number(dateDraft.year)');
+  });
+  test('can browse months without changing the stored in-game date', () => {
+    const jsx = read('./CalendarTab.js');
+    expect(jsx).toContain('calendarMonthAfter');
+    expect(jsx).toContain('Previous in-game month');
+    expect(jsx).toContain('Next in-game month');
+    expect(jsx).toContain('jumpToCurrentMonth');
+  });
+  test('edits month names, lengths, seasons and week length with date preservation checks', () => {
+    const jsx = read('./CalendarTab.js');
+    expect(jsx).toContain('Save custom calendar');
+    expect(jsx).toContain('calendar-week-length');
+    expect(jsx).toContain('custom_months: candidate.custom_months');
+    expect(jsx).toContain('calendarOrdinal(candidate, calendar.current_year');
+    expect(jsx).toContain('events.some(item => calendarOrdinal(candidate');
+  });
+  test('supports recurring events on the actual fantasy calendar', () => {
+    const jsx = read('./CalendarTab.js');
+    expect(jsx).toContain('calendar-event-recurrence');
+    expect(jsx).toContain('eventOccursOn');
+    expect(jsx).toContain('daysUntilNextOccurrence');
+    expect(jsx).toContain('Every ${daysPerWeek}-day week');
+  });
+});
