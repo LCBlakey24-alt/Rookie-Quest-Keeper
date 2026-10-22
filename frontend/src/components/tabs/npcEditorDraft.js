@@ -61,9 +61,15 @@ export function prepareNpcSavePayload(draft) {
     });
   });
   if (draft.stats && typeof draft.stats === 'object') {
-    payload.stats = Object.fromEntries(NPC_STAT_NAMES.map(key => [
-      key, Number.isFinite(Number(draft.stats[key])) ? Number(draft.stats[key]) : 10,
-    ]));
+    const incomplete = NPC_STAT_NAMES.filter(key => (
+      draft.stats[key] === '' || draft.stats[key] === null ||
+      draft.stats[key] === undefined || !Number.isInteger(Number(draft.stats[key])) ||
+      Number(draft.stats[key]) < 0
+    ));
+    if (incomplete.length) {
+      throw new Error('Finish all six ability scores before saving, or clear the scores you have entered.');
+    }
+    payload.stats = Object.fromEntries(NPC_STAT_NAMES.map(key => [key, Number(draft.stats[key])]));
   } else {
     delete payload.stats;
   }
