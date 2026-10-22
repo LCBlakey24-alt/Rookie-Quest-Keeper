@@ -6,10 +6,11 @@ import './CalendarTab.css';
 import { isOfflineDesktop } from '@/preview/previewMode';
 import {
   advanceCustomCalendar,
-  calendarDaysUntil,
+  calendarOrdinal,
   TIA_KARTA_REFERENCE_EVENTS,
   tiaKartaCalendar,
 } from '@/data/tiaKartaCalendar';
+import { eventOccursOn, calendarMonthAfter, daysUntilNextOccurrence } from '@/data/customCalendarUtilities';
 
 const emptyEvent = { name: '', description: '', day: 1, month: 1, year: 1, is_recurring: false, recurrence_type: 'none' };
 const fallbackCalendar = { calendar_type: 'gregorian', current_day: 1, current_month: 1, current_year: 1, custom_months: [{ name: 'Month 1', days: 30 }] };
@@ -19,6 +20,12 @@ export default function CalendarTab({ campaignId }) {
   const [calendar, setCalendar] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [viewDate, setViewDate] = useState(null);
+  const [dateDraft, setDateDraft] = useState({ day: 1, month: 1, year: 592 });
+  const [showCalendarEditor, setShowCalendarEditor] = useState(false);
+  const [structureDraft, setStructureDraft] = useState(null);
+  const [savingSettings, setSavingSettings] = useState(false);
   const [advanceDays, setAdvanceDays] = useState(1);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState(emptyEvent);
@@ -27,15 +34,21 @@ export default function CalendarTab({ campaignId }) {
   const loadCalendar = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError('');
       const [calendarRes, eventsRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}/calendar`),
         apiClient.get(`/campaigns/${campaignId}/calendar-events`),
       ]);
-      setCalendar(calendarRes.data || fallbackCalendar);
-      setEvents(Array.isArray(eventsRes.data) ? eventsRes.data : []);
+      if (!calendarRes.data || !Array.isArray(eventsRes.data)) throw new Error('Invalid calendar response');
+      setCalendar(calendarRes.data);
+      setEvents(eventsRes.data);
+      setViewDate({ month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+      setDateDraft({ day: Number(calendarRes.data.current_day), month: Number(calendarRes.data.current_month), year: Number(calendarRes.data.current_year) });
+      setStructureDraft({ days_per_week: calendarRes.data.days_per_week,
+        custom_months: (calendarRes.data.custom_months || []).map(month => ({ ...month })) });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load calendar');
-      setCalendar(fallbackCalendar);
+      setLoadError(error?.response?.data?.detail || error?.message || 'Failed to load calendar');
+      toast.error('Could not load calendar. Existing campaign dates were not changed.');
     } finally {
       setLoading(false);
     }
@@ -50,15 +63,20 @@ export default function CalendarTab({ campaignId }) {
   }), [events]);
 
   const upcomingEvents = useMemo(() => events
-    .map(event => ({ ...event, daysUntil: calendarDaysUntil(event, calendar) }))
+    .map(event => ({ ...event, daysUntil: daysUntilNextOccurrence(event, calendar) }))
     .filter(event => event.daysUntil !== null && event.daysUntil >= 0 && event.daysUntil <= 30)
     .sort((a, b) => a.daysUntil - b.daysUntil), [events, calendar]);
 
-  const selectedMonth = calendar?.custom_months?.[(calendar?.current_month || 1) - 1];
+  const viewYear = viewDate?.year ?? calendar?.current_year ?? 592;
+  const viewMonth = viewDate?.month ?? calendar?.current_month ?? 1;
+  const selectedMonth = calendar?.custom_months?.[viewMonth - 1];
   const currentMonth = selectedMonth?.name || 'Month';
   const daysThisMonth = Math.max(1, Math.min(45, Number(selectedMonth?.days) || 30));
   const daysPerWeek = Math.max(1, Math.min(10, Number(calendar?.days_per_week) || 7));
-  const monthEvents = events.filter(event => Number(event.month) === Number(calendar?.current_month) && Number(event.year) === Number(calendar?.current_year));
+  const jumpToCurrentMonth = () => setViewDate({ month: calendar.current_month, year: calendar.current_year });
+  const browseMonth = offset => setViewDate(previous =>
+    calendarMonthAfter(calendar, previous?.year ?? calendar.current_year,
+      previous?.month ?? calendar.current_month, offset));
 
   const applyTiaKarta = async () => {
     if (!window.confirm('Apply the Tia-Karta 12-month calendar? If this campaign already has a custom in-world date it will be preserved. Existing events will not be deleted.')) return;
@@ -146,6 +164,11 @@ export default function CalendarTab({ campaignId }) {
   };
 
   if (loading) return <div className="loading-spinner" />;
+  if (loadError) return <div className="rqk-calendar-load-error" role="alert">
+    <strong>Calendar could not be loaded</strong>
+    <p>{String(loadError)} Your saved dates and events have not been reset.</p>
+    <button type="button" className="btn-secondary" onClick={loadCalendar}>Retry calendar loading</button>
+  </div>;
 
   return (
     <div className="rqk-calendar-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 18 }}>
@@ -166,7 +189,14 @@ export default function CalendarTab({ campaignId }) {
         </section>
 
         <section className="rqk-calendar-panel" style={{ padding: 18, marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
-          <h3 style={{ color: '#FFFFFF', marginTop: 0 }}>{currentMonth} — Days of the Month</h3>
+          <div className="rqk-calendar-month-heading">
+            <h3 style={{ color: '#FFFFFF', margin: 0 }}>{currentMonth} {viewYear} — Days of the Month</h3>
+            <div className="rqk-calendar-month-actions">
+              <button type="button" className="btn-secondary" onClick={() => browseMonth(-1)} aria-label="Previous in-game month">‹ Previous</button>
+              <button type="button" className="btn-secondary" onClick={jumpToCurrentMonth}>Current month</button>
+              <button type="button" className="btn-secondary" onClick={() => browseMonth(1)} aria-label="Next in-game month">Next ›</button>
+            </div>
+          </div>
           <div className="rqk-calendar-month-scroller" style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${daysPerWeek}, minmax(48px, 1fr))`, gap: 5, minWidth: daysPerWeek * 48 }}>
               {Array.from({ length: daysPerWeek }, (_, index) => (
@@ -174,8 +204,9 @@ export default function CalendarTab({ campaignId }) {
               ))}
               {Array.from({ length: daysThisMonth }, (_, index) => {
                 const day = index + 1;
-                const matching = monthEvents.filter(item => Number(item.day) === day);
-                const today = Number(calendar?.current_day) === day;
+                const matching = events.filter(item => eventOccursOn(item, calendar, viewYear, viewMonth, day));
+                const today = Number(calendar?.current_day) === day &&
+                  Number(calendar?.current_month) === viewMonth && Number(calendar?.current_year) === viewYear;
                 return (
                   <div key={day} aria-label={`${day} ${currentMonth}${today ? ', current day' : ''}`} style={{
                     padding: 6, minHeight: 54, borderRadius: 5, overflow: 'hidden',
