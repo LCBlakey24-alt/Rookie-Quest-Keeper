@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { Heart, Link2, RefreshCw, Trash2, Users, Network } from 'lucide-react';
+import { Heart, Link2, RefreshCw, Trash2, Users, Network, Pencil } from 'lucide-react';
 import './NPCRelationshipWeb.css';
 
 export const RELATIONSHIP_TYPES = [
@@ -64,6 +64,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
   const [selectedNpcId, setSelectedNpcId] = useState('');
   const [form, setForm] = useState(EMPTY_FORM);
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState('');
   const [removingId, setRemovingId] = useState('');
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
     setTypeFilter('all');
     setSelectedNpcId('');
     setForm(EMPTY_FORM);
+    setEditingId('');
     setLoadError('');
     setLoading(true);
     const load = async () => {
@@ -112,8 +114,18 @@ export default function NPCRelationshipWeb({ campaignId }) {
   const selectedNpc = npcsById[selectedNpcId];
   const selectedLinks = selectedNpcId ? validLinks.filter(link => link.source_id === selectedNpcId || link.target_id === selectedNpcId) : [];
   const relatedIds = selectedNpc ? relatedNpcIds(validLinks, selectedNpcId) : [];
-  const positions = useMemo(() => layoutNodes(npcs), [npcs]);
-  const svgHeight = Math.max(400, Math.ceil(npcs.length / 6) * 112 + 50);
+  const graphNpcs = selectedNpc ? npcs.filter(npc => npc.id === selectedNpcId || relatedIds.includes(npc.id)) : npcs;
+  const graphLinks = selectedNpc ? selectedLinks : validLinks;
+  const positions = useMemo(() => layoutNodes(graphNpcs), [npcs, selectedNpcId, relationships]);
+  const svgWidth = Math.max(420, Math.min(6, graphNpcs.length) * 154 + 24);
+  const svgHeight = Math.max(185, Math.ceil(graphNpcs.length / 6) * 112 + 65);
+  const startEdit = link => {
+    setEditingId(link.id);
+    setForm({ source_id: link.source_id, target_id: link.target_id,
+      relationship_type: link.relationship_type, description: link.description || '' });
+    setSelectedNpcId(link.source_id);
+  };
+  const cancelEdit = () => { setEditingId(''); setForm(EMPTY_FORM); };
 
   const createRelationship = async event => {
     event.preventDefault();
@@ -124,19 +136,22 @@ export default function NPCRelationshipWeb({ campaignId }) {
       toast.error('Choose two different NPCs from this campaign.');
       return;
     }
-    if (isDuplicateRelationship(validLinks, source_id, target_id)) {
-      toast.error('These two NPCs already have a relationship. Remove it first to change the type.');
+    if (!editingId && isDuplicateRelationship(validLinks, source_id, target_id)) {
+      toast.error('These NPCs already have a relationship. Edit their existing connection instead.');
       return;
     }
     setBusy(true);
     try {
-      const response = await apiClient.post(`/campaigns/${campaignId}/npc-relationships`, {
-        source_id, target_id, relationship_type, description: description.trim(),
-      });
+      const payload = { source_id, target_id, relationship_type, description: description.trim() };
+      const response = editingId
+        ? await apiClient.put(`/campaigns/${campaignId}/npc-relationships/${editingId}`, payload)
+        : await apiClient.post(`/campaigns/${campaignId}/npc-relationships`, payload);
       if (!response.data?.id) throw new Error('The save did not return a relationship ID.');
-      setRelationships(previous => [...previous, response.data]);
-      setForm(previous => ({ ...EMPTY_FORM, source_id: previous.source_id }));
-      toast.success('Relationship saved to this campaign');
+      setRelationships(previous => editingId
+        ? previous.map(link => link.id === editingId ? response.data : link)
+        : [...previous, response.data]);
+      cancelEdit();
+      toast.success(editingId ? 'Connection updated' : 'Relationship saved to this campaign');
     } catch (error) {
       toast.error(getApiError(error, 'Relationship was NOT saved. Your existing connections are unchanged.'));
     } finally {
