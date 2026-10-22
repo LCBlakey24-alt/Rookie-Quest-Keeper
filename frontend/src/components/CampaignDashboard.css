@@ -945,3 +945,52 @@
     min-height: 0 !important;
   }
 }
+
+/* Session-first usability: search stays accessible without a third navigation
+   row or a second sidebar. Mobile header contains Back, title, Search, Live. */
+#root .campaign-dashboard-actions .rqk-tool-finder-trigger {
+  min-height: 44px !important;
+  border-color: var(--rqk-campaign-hairline) !important;
+}
+#root .campaign-dashboard-actions .rqk-tool-finder-trigger:hover,
+#root .campaign-dashboard-actions .rqk-tool-finder-trigger:focus-visible {
+  border-color: var(--rqk-campaign-brass) !important;
+}
+#root .campaign-home-note-preview {
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+  -webkit-line-clamp: 4 !important;
+}
+#root .campaign-home-note-link {
+  justify-self: start !important;
+  min-height: 40px !important;
+  padding: 8px 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--rqk-campaign-brass-light) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+#root .campaign-home-note-link:hover {
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+@media (max-width: 760px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-title-row {
+    grid-template-columns: 40px minmax(0, 1fr) max-content !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-actions .rqk-tool-finder-trigger,
+  #root .campaign-dashboard-simple .campaign-dashboard-actions .campaign-button-primary {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+  }
+}

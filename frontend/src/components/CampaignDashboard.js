@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -40,6 +40,8 @@ const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKa
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
+import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
+import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
 
 const uploadTheme = {
@@ -66,6 +68,7 @@ export default function CampaignDashboard() {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
+  const tabRowRef = useRef(null);
 
   const activeTabMeta = useMemo(
     () => allTabs.find((tab) => tab.id === activeTab) || allTabs[0],
@@ -129,6 +132,13 @@ export default function CampaignDashboard() {
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+
+  // Deep links and the quick finder can select an off-screen tab. Bring its
+  // button into the horizontal navigation viewport without stealing focus.
+  useEffect(() => {
+    const selected = tabRowRef.current?.querySelector('.campaign-dashboard-tab.is-active');
+    selected?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+  }, [activeTab]);
 
   const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
 
@@ -287,6 +297,12 @@ export default function CampaignDashboard() {
           </div>
 
           <div className="gm-header-actions campaign-dashboard-actions">
+            <CampaignToolFinder
+              key={campaignId}
+              campaignName={campaign.name}
+              activeTab={activeTab}
+              onSelect={handleTabClick}
+            />
             <button type="button" onClick={copyInviteCode} className="campaign-button">
               {inviteLoading ? 'Loading…' : 'Join Code'}
             </button>
@@ -318,7 +334,7 @@ export default function CampaignDashboard() {
           })}
         </div>
 
-        <div className="campaign-dashboard-tab-row" aria-label={`${activeGroup?.label || 'Campaign'} tools`}>
+        <div ref={tabRowRef} className="campaign-dashboard-tab-row" aria-label={`${activeGroup?.label || 'Campaign'} tools`}>
           {activeGroup?.tabs.map((tab) => {
             const Icon = tab.icon;
             const active = tab.id === activeTab;
@@ -580,7 +596,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             <span>Latest Session Note</span>
             <button type="button" onClick={() => onOpenTab('ingame-notes')}>Open Notes</button>
           </div>
-          <p>{latestNote?.content || 'No session notes yet. Live notes will appear here after play.'}</p>
+          <p className="campaign-home-note-preview">{latestNote ? summariseSessionNote(latestNote.content) : 'No session notes yet. Live notes will appear here after play.'}</p>
+          {latestNote && <button type="button" className="campaign-home-note-link" onClick={() => onOpenTab('ingame-notes')}>Read the full note →</button>}
         </article>
 
         <article className="campaign-home-detail">
