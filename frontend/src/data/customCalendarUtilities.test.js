@@ -34,6 +34,18 @@ describe('independent Tia-Karta custom calendar', () => {
   test('far future repeating events retain their scheduled initial occurrence', () => {
     expect(daysUntilNextOccurrence({ ...annual, year: 595 }, calendar)).toBe(1056);
   });
+  test('a future recurring event starts on its actual first date', () => {
+    const future = { ...weekly, year: 593, month: 1, day: 2 };
+    expect(daysUntilNextOccurrence(future, calendar)).toBe(337);
+    expect(eventOccursOn(future, calendar, 592, 1, 26)).toBe(false);
+    expect(eventOccursOn(future, calendar, 593, 1, 2)).toBe(true);
+  });
+  test('monthly events skip months too short for the chosen day', () => {
+    const irregular = { ...calendar, current_day: 29, current_month: 1,
+      custom_months: [{ name: 'Long', days: 30 }, { name: 'Short', days: 20 }, { name: 'Long Again', days: 30 }] };
+    const event = { year: 592, month: 1, day: 29, is_recurring: true, recurrence_type: 'monthly' };
+    expect(daysUntilNextOccurrence(event, { ...irregular, current_day: 30 })).toBe(49);
+  });
   test('an event does not recur before its recorded first occurrence', () => {
     const future = { ...weekly, year: 593 };
     expect(eventOccursOn(future, calendar, 592, 1, 25)).toBe(false);

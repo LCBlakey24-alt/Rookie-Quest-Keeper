@@ -15,6 +15,14 @@ export const RELATIONSHIP_TYPES = [
   { id: 'servant', label: 'Serves', color: '#93B4D0' },
   { id: 'neutral', label: 'Neutral', color: '#9CAAB7' },
   { id: 'unknown', label: 'Unknown', color: '#8993A0' },
+  { id: 'parent', label: 'Parent / child', color: '#D79C97' },
+  { id: 'sibling', label: 'Siblings', color: '#D79C97' },
+  { id: 'spouse', label: 'Spouses', color: '#C88BB6' },
+  { id: 'mentor', label: 'Mentor / student', color: '#83B5A1' },
+  { id: 'friend', label: 'Friends', color: '#83B5A1' },
+  { id: 'colleague', label: 'Colleagues', color: '#D4B17C' },
+  { id: 'secret_ally', label: 'Secret allies', color: '#83B5A1' },
+  { id: 'secret_enemy', label: 'Secret enemies', color: '#D47E7E' },
 ];
 const EMPTY_FORM = { source_id: '', target_id: '', relationship_type: 'family', description: '' };
 const relationStyle = type => RELATIONSHIP_TYPES.find(item => item.id === type) || RELATIONSHIP_TYPES[9];
@@ -52,6 +60,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
   const [loadError, setLoadError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [selectedNpcId, setSelectedNpcId] = useState('');
   const [form, setForm] = useState(EMPTY_FORM);
   const [busy, setBusy] = useState(false);
@@ -62,6 +71,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
     setNpcs([]);
     setRelationships([]);
     setSearch('');
+    setTypeFilter('all');
     setSelectedNpcId('');
     setForm(EMPTY_FORM);
     setLoadError('');
@@ -93,13 +103,14 @@ export default function NPCRelationshipWeb({ campaignId }) {
     npcsById[link.source_id] && npcsById[link.target_id]), [relationships, npcsById]);
   const filteredLinks = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return validLinks;
-    return validLinks.filter(link => [
+    return validLinks.filter(link => (typeFilter === 'all' || link.relationship_type === typeFilter) &&
+      (!term || [
       npcsById[link.source_id]?.name, npcsById[link.target_id]?.name,
       link.relationship_type, link.description,
-    ].some(value => String(value || '').toLowerCase().includes(term)));
-  }, [validLinks, npcsById, search]);
+    ].some(value => String(value || '').toLowerCase().includes(term))));
+  }, [validLinks, npcsById, search, typeFilter]);
   const selectedNpc = npcsById[selectedNpcId];
+  const selectedLinks = selectedNpcId ? validLinks.filter(link => link.source_id === selectedNpcId || link.target_id === selectedNpcId) : [];
   const relatedIds = selectedNpc ? relatedNpcIds(validLinks, selectedNpcId) : [];
   const positions = useMemo(() => layoutNodes(npcs), [npcs]);
   const svgHeight = Math.max(400, Math.ceil(npcs.length / 6) * 112 + 50);
@@ -212,6 +223,10 @@ export default function NPCRelationshipWeb({ campaignId }) {
         <h3><Heart size={17}/> Saved connections</h3>
         <input aria-label="Search NPC relationships" placeholder="Search people or relationship notes…"
           value={search} onChange={event => setSearch(event.target.value)}/>
+        <select aria-label="Filter relationship type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}>
+          <option value="all">All connection types</option>
+          {RELATIONSHIP_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
+        </select>
       </div>
       {filteredLinks.length === 0 ? (
         <p className="rqk-rel-empty">{validLinks.length ? 'No connections match your search.' :
@@ -271,7 +286,15 @@ export default function NPCRelationshipWeb({ campaignId }) {
       </div> : <p>No NPCs have been added to this campaign yet.</p>}
       {selectedNpc && <div className="rqk-rel-selected" data-testid="selected-npc-relationships">
         <strong>{selectedNpc.name}</strong> · {relatedIds.length} connections
-        <p>{relatedIds.map(id => npcsById[id]?.name).filter(Boolean).join(', ') || 'No links recorded for this NPC yet.'}</p>
+        {selectedLinks.length ? <ul className="rqk-rel-selected-links">
+          {selectedLinks.map(link => {
+            const otherId = link.source_id === selectedNpcId ? link.target_id : link.source_id;
+            return <li key={link.id}>
+              <strong>{npcsById[otherId]?.name}</strong> — {relationStyle(link.relationship_type).label}
+              {link.description ? <span> · {link.description}</span> : null}
+            </li>;
+          })}
+        </ul> : <p>No links recorded for this NPC yet.</p>}
         <button type="button" onClick={() => {
           setForm(previous => ({ ...previous, source_id: selectedNpc.id, target_id: '' }));
           window.scrollTo?.({ top: 0, behavior: 'smooth' });
