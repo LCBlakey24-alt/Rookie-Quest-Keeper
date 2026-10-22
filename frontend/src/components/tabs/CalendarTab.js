@@ -112,7 +112,7 @@ export default function CalendarTab({ campaignId }) {
 
   const saveEvent = async (event) => {
     event.preventDefault();
-    if (calendarDaysUntil(eventForm, { ...calendar, current_day: 1, current_month: 1, current_year: eventForm.year }) === null) {
+    if (calendarOrdinal(calendar, eventForm.year, eventForm.month, eventForm.day) === null) {
       toast.error('Choose a valid date for this campaign calendar.');
       return;
     }
@@ -163,6 +163,64 @@ export default function CalendarTab({ campaignId }) {
     }
   };
 
+  const setCurrentDate = async event => {
+    event.preventDefault();
+    if (calendarOrdinal(calendar, dateDraft.year, dateDraft.month, dateDraft.day) === null) {
+      toast.error('Choose a valid in-world day, month and year.');
+      return;
+    }
+    try {
+      await apiClient.put(`/campaigns/${campaignId}/calendar`, {
+        current_day: Number(dateDraft.day),
+        current_month: Number(dateDraft.month),
+        current_year: Number(dateDraft.year),
+      });
+      toast.success('In-game date saved for this campaign');
+      await loadCalendar();
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not save in-game date.');
+    }
+  };
+
+  const saveCalendarSettings = async event => {
+    event.preventDefault();
+    if (!structureDraft || savingSettings) return;
+    const { custom_months, days_per_week } = structureDraft;
+    const validMonths = Array.isArray(custom_months) && custom_months.length > 0 &&
+      custom_months.length <= 24 && custom_months.every(month =>
+        String(month.name || '').trim() && Number.isInteger(Number(month.days)) &&
+        Number(month.days) >= 1 && Number(month.days) <= 100);
+    if (!validMonths || !Number.isInteger(Number(days_per_week)) ||
+        Number(days_per_week) < 1 || Number(days_per_week) > 10) {
+      toast.error('Calendar needs valid month names (1–100 days) and a 1–10 day week.');
+      return;
+    }
+    const candidate = { ...calendar, custom_months: custom_months.map(month => ({
+      name: String(month.name).trim(), days: Number(month.days), season: String(month.season || '').trim(),
+    })), days_per_week: Number(days_per_week) };
+    if (calendarOrdinal(candidate, calendar.current_year, calendar.current_month, calendar.current_day) === null ||
+        events.some(item => calendarOrdinal(candidate, item.year, item.month, item.day) === null)) {
+      toast.error('Existing campaign dates or events would fall outside the new months. Edit those dates first; nothing was changed.');
+      return;
+    }
+    if (!window.confirm('Change this campaign calendar structure? Existing events and your current date will be preserved.')) return;
+    setSavingSettings(true);
+    try {
+      await apiClient.put(`/campaigns/${campaignId}/calendar`, {
+        calendar_type: 'custom',
+        days_per_week: candidate.days_per_week,
+        custom_months: candidate.custom_months,
+      });
+      toast.success('Custom calendar settings saved');
+      setShowCalendarEditor(false);
+      await loadCalendar();
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not save calendar settings.');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   if (loading) return <div className="loading-spinner" />;
   if (loadError) return <div className="rqk-calendar-load-error" role="alert">
     <strong>Calendar could not be loaded</strong>
@@ -179,8 +237,11 @@ export default function CalendarTab({ campaignId }) {
         </header>
 
         <section className="rqk-calendar-panel" style={{ padding: 20, textAlign: 'center', marginBottom: 16, background: '#0C2234', border: '1px solid rgba(255,45,170,0.18)' }}>
-          <h3 style={{ color: '#FFFFFF', fontSize: 34, margin: '0 0 6px' }}>{calendar?.current_day || 1} {currentMonth}, {calendar?.current_year || 1}{calendar?.calendar_type === 'custom' ? ' PC' : ''}</h3>
-          {selectedMonth?.season && <p style={{ color: '#a9ddff', margin: '0 0 8px' }}>{selectedMonth.season} · {daysPerWeek}-day week · {daysThisMonth}-day month</p>}
+          <h3 style={{ color: '#FFFFFF', fontSize: 34, margin: '0 0 6px' }}>{calendar?.current_day || 1} {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.name || 'Month'}, {calendar?.current_year || 1}{calendar?.calendar_type === 'custom' ? ' PC' : ''}</h3>
+          {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.season &&
+            <p style={{ color: '#a9ddff', margin: '0 0 8px' }}>
+              {calendar.custom_months[calendar.current_month - 1].season} · {daysPerWeek}-day week · 12-month Tia-Karta year
+            </p>}
           <p style={{ color: '#FFFFFF', margin: '0 0 14px' }}>Current in-game date</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <input data-testid="advance-days-input" type="number" min="1" max="10000" value={advanceDays} onChange={e => setAdvanceDays(parseInt(e.target.value, 10) || 1)} className="input" style={{ width: 80, textAlign: 'center' }} />
