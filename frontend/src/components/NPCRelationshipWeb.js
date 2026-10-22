@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Heart, Link2, RefreshCw, Trash2, Users, Network, Pencil } from 'lucide-react';
@@ -65,6 +65,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState('');
+  const editorRef = useRef(null);
   const [removingId, setRemovingId] = useState('');
 
   useEffect(() => {
@@ -124,6 +125,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
     setForm({ source_id: link.source_id, target_id: link.target_id,
       relationship_type: link.relationship_type, description: link.description || '' });
     setSelectedNpcId(link.source_id);
+    editorRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
   };
   const cancelEdit = () => { setEditingId(''); setForm(EMPTY_FORM); };
 
@@ -198,11 +200,11 @@ export default function NPCRelationshipWeb({ campaignId }) {
       <span className="rqk-rel-count">{validLinks.length} saved links</span>
     </header>
 
-    <section className="rqk-rel-panel" aria-label="Create NPC relationship">
-      <h3><Link2 size={17} /> Connect two NPCs</h3>
+    <section ref={editorRef} className="rqk-rel-panel" aria-label="Create or edit NPC relationship">
+      <h3><Link2 size={17} /> {editingId ? 'Edit saved connection' : 'Connect two NPCs'}</h3>
       <form className="rqk-rel-form" onSubmit={createRelationship}>
         <label>First NPC
-          <select data-testid="relationship-source" value={form.source_id} onChange={event =>
+          <select data-testid="relationship-source" value={form.source_id} disabled={Boolean(editingId)} onChange={event =>
             setForm(previous => ({ ...previous, source_id: event.target.value, target_id: '' }))}>
             <option value="">Choose NPC…</option>
             {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
@@ -215,7 +217,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
           </select>
         </label>
         <label>Second NPC
-          <select data-testid="relationship-target" value={form.target_id} onChange={event =>
+          <select data-testid="relationship-target" value={form.target_id} disabled={Boolean(editingId)} onChange={event =>
             setForm(previous => ({ ...previous, target_id: event.target.value }))}>
             <option value="">Choose NPC…</option>
             {npcs.filter(npc => npc.id !== form.source_id).map(npc =>
@@ -228,8 +230,9 @@ export default function NPCRelationshipWeb({ campaignId }) {
             onChange={event => setForm(previous => ({ ...previous, description: event.target.value }))}/>
         </label>
         <button type="submit" className="rqk-rel-submit" disabled={busy || !form.source_id || !form.target_id}>
-          <Link2 size={16} /> {busy ? 'Saving…' : 'Save relationship'}
+          <Link2 size={16} /> {busy ? 'Saving…' : editingId ? 'Save changes' : 'Save relationship'}
         </button>
+        {editingId && <button type="button" className="rqk-rel-cancel" onClick={cancelEdit}>Cancel editing</button>
       </form>
     </section>
 
@@ -258,9 +261,14 @@ export default function NPCRelationshipWeb({ campaignId }) {
               </div>
               {link.description && <p>{link.description}</p>}
             </div>
-            <button type="button" className="rqk-rel-remove" disabled={removingId === link.id}
-              aria-label={`Remove relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
-              onClick={() => removeRelationship(link)}><Trash2 size={15} /> Remove</button>
+            <div className="rqk-rel-entry-actions">
+              <button type="button" className="rqk-rel-edit"
+                aria-label={`Edit relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
+                onClick={() => startEdit(link)}><Pencil size={15} /> Edit</button>
+              <button type="button" className="rqk-rel-remove" disabled={removingId === link.id}
+                aria-label={`Remove relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
+                onClick={() => removeRelationship(link)}><Trash2 size={15} /> Remove</button>
+            </div>
           </article>;
         })}
       </div>}
@@ -268,17 +276,25 @@ export default function NPCRelationshipWeb({ campaignId }) {
 
     <section className="rqk-rel-panel rqk-rel-graph-panel" aria-label="Visual NPC relationship map">
       <h3><Users size={17}/> Relationship map</h3>
-      <p>Select an NPC to highlight their connections. The list above works on mobile and with a keyboard.</p>
-      {npcs.length ? <div className="rqk-rel-graph-scroller">
-        <svg viewBox={`0 0 1000 ${svgHeight}`} aria-label="NPC network diagram">
-          {validLinks.map(link => {
+      <p>Explore the whole network, or focus on one NPC and their direct connections. Swipe to pan on a phone.</p>
+      <div className="rqk-rel-graph-toolbar">
+        <label htmlFor="rqk-rel-focus">Focus on an NPC</label>
+        <select id="rqk-rel-focus" value={selectedNpcId} onChange={event => setSelectedNpcId(event.target.value)}>
+          <option value="">All NPCs</option>
+          {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
+        </select>
+        <span>{graphNpcs.length} shown · {graphLinks.length} connections</span>
+      </div>
+      {npcs.length ? <div className={`rqk-rel-graph-scroller${selectedNpc ? ' is-focused' : ''}`}>
+        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} aria-label="NPC network diagram">
+          {graphLinks.map(link => {
             const from = positions[link.source_id], to = positions[link.target_id];
             const type = relationStyle(link.relationship_type);
             return <line key={link.id} x1={from.x} y1={from.y} x2={to.x} y2={to.y}
               stroke={type.color} strokeWidth={selectedNpcId && (link.source_id === selectedNpcId || link.target_id === selectedNpcId) ? 3 : 1.4}
               opacity={selectedNpcId && link.source_id !== selectedNpcId && link.target_id !== selectedNpcId ? 0.18 : 0.7}/>;
           })}
-          {npcs.map(npc => {
+          {graphNpcs.map(npc => {
             const point = positions[npc.id];
             const selected = npc.id === selectedNpcId;
             const highlighted = !selectedNpcId || selected || relatedIds.includes(npc.id);
