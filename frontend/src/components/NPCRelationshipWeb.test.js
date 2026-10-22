@@ -204,3 +204,30 @@ test('mobile relationship diagram is no longer hidden by responsive CSS', () => 
   expect(css).not.toContain('.rqk-rel-graph-panel { display: none; }');
   expect(css).toContain('.rqk-rel-graph-scroller--focus svg');
 });
+
+test('relationship atlas shows directed family links with arrows and keeps mutual links undirected', async () => {
+  respondWith(npcs, [
+    { id: 'a', source_id: 'mara', target_id: 'godfrey',
+      relationship_type: 'parent', description: 'Mother and son' },
+    { id: 'b', source_id: 'godfrey', target_id: 'pippa',
+      relationship_type: 'friend', description: 'Close friends' },
+  ]);
+  const { container } = render(<NPCRelationshipWeb campaignId="wednesday" />);
+  await screen.findByText('2 saved links');
+  const map = screen.getByRole('region', { name: 'Visual NPC relationship map' });
+  expect(within(map).getByText(/Directional: parent, mentor, serves/)).toBeInTheDocument();
+  const arrowLines = container.querySelectorAll('line[marker-end="url(#rqk-npc-directed-arrow)"]');
+  expect(arrowLines).toHaveLength(1);
+  expect(within(map).getByRole('button', { name: /Create a connection for/ })).toBeInTheDocument();
+});
+
+test('relationship view places the network and saved links before the creation form', async () => {
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  await screen.findByText('0 saved links');
+  const map = screen.getByRole('region', { name: 'Visual NPC relationship map' });
+  const saved = screen.getByRole('region', { name: 'Saved NPC connections' });
+  const create = screen.getByRole('region', { name: 'Create NPC relationship' });
+  expect(map.compareDocumentPosition(saved) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(saved.compareDocumentPosition(create) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Add connection' })).toBeInTheDocument();
+});
