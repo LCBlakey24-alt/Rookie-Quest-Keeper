@@ -1,3 +1,7 @@
+export function hasRatedMonsterCr(cr) {
+  return /^(?:\d+(?:\.\d+)?|\d+\/\d+)$/.test(String(cr ?? '').trim());
+}
+
 export function monsterCrValue(cr) {
   const raw = String(cr || '0').trim();
   if (raw.includes('/')) {
@@ -119,7 +123,7 @@ function inferredAttacks(monster, stats, pb) {
 export function normaliseMonsterStatBlock(monster = {}) {
   const privateOrUnverified = isPrivateOrUnverified(monster);
   const cr = monster.cr ?? monster.challenge_rating ?? (privateOrUnverified ? 'Unrated' : '0');
-  const hasKnownCr = /^(?:\d+(?:\.\d+)?|\d+\/\d+)$/.test(String(cr).trim());
+  const hasKnownCr = hasRatedMonsterCr(cr);
   const explicitPb = recordedPositiveNumber(monster.proficiency_bonus);
   const pb = explicitPb ?? (privateOrUnverified && !hasKnownCr ? null : proficiencyForCr(cr));
   const stats = inferredStats(monster);
