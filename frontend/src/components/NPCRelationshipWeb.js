@@ -26,6 +26,9 @@ export const RELATIONSHIP_TYPES = [
 ];
 const EMPTY_FORM = { source_id: '', target_id: '', relationship_type: 'family', description: '' };
 const relationStyle = type => RELATIONSHIP_TYPES.find(item => item.id === type) || RELATIONSHIP_TYPES[9];
+/** Some relationships have direction; source NPC is the parent, mentor or
+ * person serving the second NPC. Neutral and mutual links have no arrow. */
+export const isDirectionalNpcRelationship = type => ['parent', 'mentor', 'servant'].includes(type);
 
 export function relatedNpcIds(links, npcId) {
   return links.filter(link => link.source_id === npcId || link.target_id === npcId)
@@ -245,87 +248,14 @@ export default function NPCRelationshipWeb({ campaignId }) {
         <h2>NPC relationships</h2>
         <p>Every connection belongs to this campaign. Shared Tia-Karta people can have different stories in each party.</p>
       </div>
-      <span className="rqk-rel-count">{validLinks.length} saved links</span>
-    </header>
-
-    <section ref={formSectionRef} className="rqk-rel-panel" aria-label={editingLinkId ? 'Edit NPC relationship' : 'Create NPC relationship'}>
-      <h3><Link2 size={17} /> {editingLinkId ? 'Edit NPC relationship' : 'Connect two NPCs'}</h3>
-      <p className="rqk-rel-help">For directional connections, put the parent, mentor or leader first.</p>
-      <form className="rqk-rel-form" onSubmit={saveRelationship}>
-        <label>First NPC
-          <select data-testid="relationship-source" value={form.source_id} onChange={event =>
-            setForm(previous => ({ ...previous, source_id: event.target.value, target_id: '' }))}>
-            <option value="">Choose NPC…</option>
-            {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
-          </select>
-        </label>
-        <label>Connection
-          <select data-testid="relationship-type" value={form.relationship_type} onChange={event =>
-            setForm(previous => ({ ...previous, relationship_type: event.target.value }))}>
-            {RELATIONSHIP_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
-          </select>
-        </label>
-        <label>Second NPC
-          <select data-testid="relationship-target" value={form.target_id} onChange={event =>
-            setForm(previous => ({ ...previous, target_id: event.target.value }))}>
-            <option value="">Choose NPC…</option>
-            {npcs.filter(npc => npc.id !== form.source_id).map(npc =>
-              <option key={npc.id} value={npc.id}>{npc.name}</option>)}
-          </select>
-        </label>
-        <label className="rqk-rel-form-notes">How are they connected?
-          <input data-testid="relationship-description" value={form.description}
-            placeholder="e.g. Mara is Godfrey's mother"
-            onChange={event => setForm(previous => ({ ...previous, description: event.target.value }))}/>
-        </label>
-        <div className="rqk-rel-form-actions">
-          <button type="submit" className="rqk-rel-submit" disabled={busy || !form.source_id || !form.target_id}>
-            <Link2 size={16} /> {busy ? 'Saving…' : editingLinkId ? 'Save changes' : 'Save relationship'}
-          </button>
-          {editingLinkId && <button type="button" className="rqk-rel-cancel" onClick={cancelEdit} disabled={busy}>
-            <X size={16}/> Cancel edit
-          </button>}
-        </div>
-      </form>
-    </section>
-
-    <section className="rqk-rel-panel" aria-label="Saved NPC connections">
-      <div className="rqk-rel-list-heading">
-        <h3><Heart size={17}/> Saved connections</h3>
-        <input aria-label="Search NPC relationships" placeholder="Search people or relationship notes…"
-          value={search} onChange={event => setSearch(event.target.value)}/>
-        <select aria-label="Filter relationship type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}>
-          <option value="all">All connection types</option>
-          {RELATIONSHIP_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
-        </select>
+      <div className="rqk-rel-heading-actions">
+        <span className="rqk-rel-count">{validLinks.length} saved links</span>
+        <button type="button" className="rqk-rel-add-link" onClick={() =>
+          formSectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })}>
+          <Link2 size={16} aria-hidden="true" /> Add connection
+        </button>
       </div>
-      {filteredLinks.length === 0 ? (
-        <p className="rqk-rel-empty">{validLinks.length ? 'No connections match your search.' :
-          'No relationships recorded yet. Use the form above to connect established NPCs.'}</p>
-      ) : <div className="rqk-rel-list" data-testid="npc-relationship-list">
-        {filteredLinks.map(link => {
-          const type = relationStyle(link.relationship_type);
-          return <article className="rqk-rel-entry" key={link.id}>
-            <div className="rqk-rel-entry-copy">
-              <div className="rqk-rel-entry-names">
-                <button type="button" onClick={() => setSelectedNpcId(link.source_id)}>{npcsById[link.source_id].name}</button>
-                <span className="rqk-rel-type" style={{ borderColor: type.color, color: type.color }}>{type.label}</span>
-                <button type="button" onClick={() => setSelectedNpcId(link.target_id)}>{npcsById[link.target_id].name}</button>
-              </div>
-              {link.description && <p>{link.description}</p>}
-            </div>
-            <div className="rqk-rel-entry-actions">
-              <button type="button" className="rqk-rel-edit" disabled={busy || removingId === link.id}
-                aria-label={`Edit relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
-                onClick={() => beginEdit(link)}><Pencil size={15}/> Edit</button>
-              <button type="button" className="rqk-rel-remove" disabled={removingId === link.id || busy}
-                aria-label={`Remove relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
-                onClick={() => removeRelationship(link)}><Trash2 size={15} /> Remove</button>
-            </div>
-          </article>;
-        })}
-      </div>}
-    </section>
+    </header>
 
     <section className="rqk-rel-panel rqk-rel-graph-panel" aria-label="Visual NPC relationship map">
       <h3><Users size={17}/> Relationship map</h3>
@@ -347,20 +277,35 @@ export default function NPCRelationshipWeb({ campaignId }) {
         <span><i className="rqk-rel-line-swatch rqk-rel-line-swatch--ally"/> Ally / friend</span>
         <span><i className="rqk-rel-line-swatch rqk-rel-line-swatch--enemy"/> Rival / enemy</span>
         <span><i className="rqk-rel-line-swatch rqk-rel-line-swatch--secret"/> Secret connection</span>
+        <span><i className="rqk-rel-arrow-swatch" aria-hidden="true">→</i> Directional: parent, mentor, serves</span>
       </div>
       {npcs.length ? <div className={`rqk-rel-graph-scroller ${focusMode ? 'rqk-rel-graph-scroller--focus' : 'rqk-rel-graph-scroller--all'}`}>
         <svg viewBox={`0 0 ${focusMode ? 390 : 1000} ${svgHeight}`}
           role="group" aria-label={focusMode ? `Relationship network focused on ${selectedNpc?.name || 'NPC'}` : 'Complete campaign NPC network'}>
+          <defs>
+            <marker id="rqk-npc-directed-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+              markerWidth="8" markerHeight="8" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#D9BC82"/>
+            </marker>
+          </defs>
           {visibleLines.map(link => {
             const from = positions[link.source_id], to = positions[link.target_id];
             if (!from || !to) return null;
             const type = relationStyle(link.relationship_type);
             const secret = String(link.relationship_type).startsWith('secret_');
             const highlighted = link.source_id === focusNpcId || link.target_id === focusNpcId;
+            const directional = isDirectionalNpcRelationship(link.relationship_type);
+            // Stop arrows on the target card edge, not underneath its label.
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const edgeScale = Math.max(Math.abs(dx) / 70, Math.abs(dy) / 28, 1);
+            const endX = directional ? to.x - dx / edgeScale : to.x;
+            const endY = directional ? to.y - dy / edgeScale : to.y;
             const title = `${npcsById[link.source_id].name} — ${type.label} — ${npcsById[link.target_id].name}`;
             return <g key={link.id}>
-              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+              <line x1={from.x} y1={from.y} x2={endX} y2={endY}
                 stroke={type.color} strokeWidth={highlighted ? 3.4 : 2}
+                markerEnd={directional ? 'url(#rqk-npc-directed-arrow)' : undefined}
                 strokeDasharray={secret ? '7 6' : undefined}
                 opacity={focusMode || highlighted ? 0.9 : 0.42}>
                 <title>{title}</title>
@@ -415,5 +360,84 @@ export default function NPCRelationshipWeb({ campaignId }) {
         }}>Create a connection for {selectedNpc.name}</button>
       </div>}
     </section>
+    <section className="rqk-rel-panel rqk-rel-saved-panel" aria-label="Saved NPC connections">
+      <div className="rqk-rel-list-heading">
+        <h3><Heart size={17}/> Saved connections</h3>
+        <input aria-label="Search NPC relationships" placeholder="Search people or relationship notes…"
+          value={search} onChange={event => setSearch(event.target.value)}/>
+        <select aria-label="Filter relationship type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}>
+          <option value="all">All connection types</option>
+          {RELATIONSHIP_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
+        </select>
+      </div>
+      {filteredLinks.length === 0 ? (
+        <p className="rqk-rel-empty">{validLinks.length ? 'No connections match your search.' :
+          'No relationships recorded yet. Use the form above to connect established NPCs.'}</p>
+      ) : <div className="rqk-rel-list" data-testid="npc-relationship-list">
+        {filteredLinks.map(link => {
+          const type = relationStyle(link.relationship_type);
+          return <article className="rqk-rel-entry" key={link.id}>
+            <div className="rqk-rel-entry-copy">
+              <div className="rqk-rel-entry-names">
+                <button type="button" onClick={() => setSelectedNpcId(link.source_id)}>{npcsById[link.source_id].name}</button>
+                <span className="rqk-rel-type" style={{ borderColor: type.color, color: type.color }}>{type.label}</span>
+                <button type="button" onClick={() => setSelectedNpcId(link.target_id)}>{npcsById[link.target_id].name}</button>
+              </div>
+              {link.description && <p>{link.description}</p>}
+            </div>
+            <div className="rqk-rel-entry-actions">
+              <button type="button" className="rqk-rel-edit" disabled={busy || removingId === link.id}
+                aria-label={`Edit relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
+                onClick={() => beginEdit(link)}><Pencil size={15}/> Edit</button>
+              <button type="button" className="rqk-rel-remove" disabled={removingId === link.id || busy}
+                aria-label={`Remove relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
+                onClick={() => removeRelationship(link)}><Trash2 size={15} /> Remove</button>
+            </div>
+          </article>;
+        })}
+      </div>}
+    </section>
+
+    <section ref={formSectionRef} className="rqk-rel-panel rqk-rel-create-panel" aria-label={editingLinkId ? 'Edit NPC relationship' : 'Create NPC relationship'}>
+      <h3><Link2 size={17} /> {editingLinkId ? 'Edit NPC relationship' : 'Connect two NPCs'}</h3>
+      <p className="rqk-rel-help">For directional connections, put the parent, mentor or leader first.</p>
+      <form className="rqk-rel-form" onSubmit={saveRelationship}>
+        <label>First NPC
+          <select data-testid="relationship-source" value={form.source_id} onChange={event =>
+            setForm(previous => ({ ...previous, source_id: event.target.value, target_id: '' }))}>
+            <option value="">Choose NPC…</option>
+            {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
+          </select>
+        </label>
+        <label>Connection
+          <select data-testid="relationship-type" value={form.relationship_type} onChange={event =>
+            setForm(previous => ({ ...previous, relationship_type: event.target.value }))}>
+            {RELATIONSHIP_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
+          </select>
+        </label>
+        <label>Second NPC
+          <select data-testid="relationship-target" value={form.target_id} onChange={event =>
+            setForm(previous => ({ ...previous, target_id: event.target.value }))}>
+            <option value="">Choose NPC…</option>
+            {npcs.filter(npc => npc.id !== form.source_id).map(npc =>
+              <option key={npc.id} value={npc.id}>{npc.name}</option>)}
+          </select>
+        </label>
+        <label className="rqk-rel-form-notes">How are they connected?
+          <input data-testid="relationship-description" value={form.description}
+            placeholder="e.g. Mara is Godfrey's mother"
+            onChange={event => setForm(previous => ({ ...previous, description: event.target.value }))}/>
+        </label>
+        <div className="rqk-rel-form-actions">
+          <button type="submit" className="rqk-rel-submit" disabled={busy || !form.source_id || !form.target_id}>
+            <Link2 size={16} /> {busy ? 'Saving…' : editingLinkId ? 'Save changes' : 'Save relationship'}
+          </button>
+          {editingLinkId && <button type="button" className="rqk-rel-cancel" onClick={cancelEdit} disabled={busy}>
+            <X size={16}/> Cancel edit
+          </button>}
+        </div>
+      </form>
+    </section>
+
   </section>;
 }

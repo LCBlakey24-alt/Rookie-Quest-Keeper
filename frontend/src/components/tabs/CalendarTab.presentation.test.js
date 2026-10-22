@@ -81,3 +81,23 @@ describe('campaign-specific calendar editing', () => {
     expect(jsx).toContain('Every {daysPerWeek}-day week');
   });
 });
+
+describe('readable in-world event management', () => {
+  test('month cells offset for irregular week starts rather than resetting', () => {
+    const jsx = read('./CalendarTab.js');
+    expect(jsx).toContain('calendarWeekdayOffset(calendar, viewYear, viewMonth)');
+    expect(jsx).toContain('length: monthStartOffset');
+    expect(jsx).toContain('rqk-calendar-day-placeholder');
+  });
+  test('event editor uses the fantasy month names, clamps day and labels actions', () => {
+    const jsx = read('./CalendarTab.js');
+    const css = read('./CalendarTab.css');
+    expect(jsx).toContain('<select aria-label="Event month"');
+    expect(jsx).toContain('<option key={index} value={index + 1}>{month.name}</option>');
+    expect(jsx).toContain('day: Math.min(Number(previous.day)');
+    expect(jsx).toContain('aria-label={`Edit ${event.name}`}');
+    expect(jsx).toContain('aria-label={`Delete ${event.name}`}');
+    expect(css).toContain('.rqk-calendar-event-record-actions');
+    expect(css).toContain('min-height: 44px');
+  });
+});

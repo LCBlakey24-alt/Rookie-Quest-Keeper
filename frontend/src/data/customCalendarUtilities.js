@@ -13,6 +13,17 @@ export function eventOccursOn(event, calendar, year, month, day) {
   return target === start;
 }
 
+/** Weekday position of the first day of any in-world month (zero-based).
+ * Unlike Gregorian dates, this respects the campaign's own month lengths,
+ * week length and year, including irregular custom months. */
+export function calendarWeekdayOffset(calendar, year, month) {
+  if (!calendar) return null;
+  const firstDay = calendarOrdinal(calendar, year, month, 1);
+  const week = Number(calendar.days_per_week);
+  if (firstDay === null || !Number.isInteger(week) || week < 1) return null;
+  return ((firstDay % week) + week) % week;
+}
+
 export function calendarMonthAfter(calendar, year, month, delta) {
   const count = calendar.custom_months?.length || 12;
   const absolute = Number(year) * count + Number(month) - 1 + delta;

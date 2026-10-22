@@ -288,3 +288,114 @@
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-calendar-month-scroller { scroll-behavior: auto; }
 }
+
+/* Session-prep calendar: correct custom weekday alignment and one readable
+   action card per event, without shrinking touch targets on phones. */
+#root .rqk-calendar-day-placeholder {
+  min-width: 0;
+  display: block;
+  border: 1px dashed rgba(137,157,176,.12);
+  border-radius: 5px;
+  background: rgba(7,19,31,.35);
+  pointer-events: none;
+}
+#root .rqk-calendar-event-editor .rqk-calendar-event-date-fields {
+  grid-template-columns: minmax(64px,.65fr) minmax(120px,1.75fr) minmax(78px,.8fr) !important;
+  align-items: center;
+}
+#root .rqk-calendar-event-editor .rqk-calendar-event-date-fields :is(input,select) {
+  min-width: 0;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(201,169,107,.42);
+  border-radius: 6px;
+  background: var(--rq-bg-input, #101f2d);
+  color: var(--rq-text-primary, #eadfc8);
+  padding-inline: 10px;
+  font: inherit;
+}
+#root .rqk-calendar-events-list .rqk-calendar-event-record {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 15px;
+  margin-bottom: 9px;
+  background: var(--rq-bg-card, #263748);
+  border: 1px solid rgba(201,169,107,.24);
+  border-radius: 8px;
+}
+#root .rqk-calendar-event-record-content {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+#root .rqk-calendar-event-record-date {
+  color: var(--rq-primary-hover, #d9bc82);
+  font-size: 12px;
+  font-weight: 800;
+}
+#root .rqk-calendar-event-record-content h4 {
+  margin: 0;
+  font: 700 clamp(15px,1.4vw,18px)/1.3 var(--rq-font-display, Georgia, serif);
+  color: var(--rq-text-primary, #eadfc8);
+  overflow-wrap: anywhere;
+}
+#root .rqk-calendar-event-record-content p {
+  margin: 2px 0 0;
+  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.55;
+}
+#root .rqk-calendar-event-repeat {
+  width: fit-content;
+  padding: 3px 7px;
+  border: 1px solid rgba(110,145,180,.42);
+  border-radius: 5px;
+  color: #c7dced;
+  font-size: 11px;
+  font-weight: 700;
+}
+#root .rqk-calendar-event-record-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+#root .rqk-calendar-event-record-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(201,169,107,.34);
+  border-radius: 7px;
+  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-deep, #07131f);
+  cursor: pointer;
+}
+#root .rqk-calendar-event-record-actions > button:is(:hover,:focus-visible) {
+  background: var(--rq-bg-elevated, #334155);
+  border-color: var(--rq-primary, #c9a96b);
+}
+@media (max-width: 580px) {
+  #root .rqk-calendar-events-list .rqk-calendar-event-record {
+    flex-direction: column;
+    padding: 12px;
+    gap: 10px;
+  }
+  #root .rqk-calendar-event-record-actions { width: 100%; justify-content: flex-end; }
+  #root .rqk-calendar-event-editor .rqk-calendar-event-date-fields {
+    grid-template-columns: minmax(56px,.7fr) minmax(112px,1.4fr) minmax(70px,.8fr) !important;
+    gap: 5px !important;
+  }
+  #root .rqk-calendar-event-editor .rqk-calendar-event-date-fields :is(input,select) {
+    font-size: 13px;
+    padding-inline: 5px;
+  }
+}

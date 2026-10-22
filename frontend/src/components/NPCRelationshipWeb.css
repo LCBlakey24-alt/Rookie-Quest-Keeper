@@ -84,3 +84,110 @@
 
 }
 @media (prefers-reduced-motion: reduce) { .rqk-rel-workspace * { scroll-behavior: auto !important; } }
+
+/* Relationship atlas: network first, ledger and editor beside it on large
+   screens. On mobile the same DOM order stays intact for touch and keyboard. */
+#root .rqk-rel-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+}
+#root .rqk-rel-add-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 8px 13px;
+  background: var(--rq-primary, #c9a96b);
+  border: 1px solid var(--rq-primary, #c9a96b);
+  border-radius: 6px;
+  color: #07131f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+#root .rqk-rel-add-link:is(:hover,:focus-visible) {
+  background: var(--rq-primary-hover, #d9bc82);
+  color: #07131f;
+}
+#root .rqk-rel-create-panel {
+  scroll-margin-top: 20px;
+}
+#root .rqk-rel-arrow-swatch {
+  display: inline-block;
+  color: #d9bc82;
+  font-size: 18px;
+  font-weight: 900;
+  font-style: normal;
+  line-height: 1;
+}
+#root .rqk-rel-saved-panel,
+#root .rqk-rel-create-panel,
+#root .rqk-rel-graph-panel {
+  min-width: 0;
+  align-self: start;
+}
+#root .rqk-rel-saved-panel .rqk-rel-list-heading {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(140px,.7fr);
+  gap: 9px;
+}
+#root .rqk-rel-saved-panel .rqk-rel-list-heading h3 {
+  grid-column: 1 / -1;
+}
+#root .rqk-rel-saved-panel .rqk-rel-list-heading :is(input,select) {
+  max-width: none;
+}
+#root .rqk-rel-selected {
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+}
+#root .rqk-rel-graph-scroller--focus {
+  overscroll-behavior: contain;
+}
+@media (min-width: 1100px) {
+  #root .rqk-rel-workspace {
+    grid-template-columns: minmax(0,1.55fr) minmax(330px,.95fr);
+    gap: 16px;
+    align-items: start;
+  }
+  #root .rqk-rel-heading { grid-column: 1 / -1; }
+  #root .rqk-rel-graph-panel {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+  }
+  #root .rqk-rel-saved-panel {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  #root .rqk-rel-create-panel {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  #root .rqk-rel-create-panel .rqk-rel-form {
+    grid-template-columns: minmax(0,1fr);
+  }
+  #root .rqk-rel-create-panel .rqk-rel-form > :is(label,div) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 700px) {
+  #root .rqk-rel-heading-actions { width: 100%; }
+  #root .rqk-rel-add-link { flex: 1 1 auto; }
+  #root .rqk-rel-saved-panel .rqk-rel-list-heading {
+    grid-template-columns: minmax(0,1fr);
+  }
+  #root .rqk-rel-saved-panel .rqk-rel-list-heading h3 {
+    grid-column: 1;
+  }
+  #root .rqk-rel-graph-modes {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    width: 100%;
+  }
+  #root .rqk-rel-graph-modes button { min-width: 0; min-height: 44px; }
+  #root .rqk-rel-network-legend { gap: 8px 12px; }
+}
