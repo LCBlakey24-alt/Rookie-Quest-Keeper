@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '@/lib/apiClient';
 import NpcCompactStatBlock from '@/components/gm/NpcCompactStatBlock';
+import NpcFullStatEditor from './NpcFullStatEditor';
+import { createNpcDraft, prepareNpcSavePayload } from './npcEditorDraft';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,8 +29,16 @@ const NPC_FORM_FIELDS = [
 
 function normaliseNpcPatch(patch = {}) {
   const next = { ...patch };
-  if (next.hp !== undefined) next.hp = parseInt(next.hp, 10) || 10;
-  if (next.ac !== undefined) next.ac = parseInt(next.ac, 10) || 10;
+  if (next.hp !== undefined) {
+    const hp = Number(next.hp);
+    if (Number.isFinite(hp) && hp >= 0) next.hp = hp;
+    else delete next.hp;
+  }
+  if (next.ac !== undefined) {
+    const ac = Number(next.ac);
+    if (Number.isFinite(ac) && ac >= 0) next.ac = ac;
+    else delete next.ac;
+  }
   return next;
 }
 
@@ -41,15 +51,7 @@ function NPCsTab({ campaignId }) {
   const [editingNPC, setEditingNPC] = useState(null);
   const [deletingNPC, setDeletingNPC] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    image_url: '',
-    hp: 10,
-    ac: 10,
-    location: '',
-    notes: ''
-  });
+  const [formData, setFormData] = useState(() => createNpcDraft());
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [lastGenerated, setLastGenerated] = useState(null);
@@ -87,31 +89,26 @@ function NPCsTab({ campaignId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Preserve all existing GM stat block and lore fields when editing.
+      // The draft validator refuses incomplete ability-score sets.
+      const payload = prepareNpcSavePayload(formData);
       if (editingNPC) {
-        await apiClient.put(`/campaigns/${campaignId}/npcs/${editingNPC.id}`, formData);
+        await apiClient.put(`/campaigns/${campaignId}/npcs/${editingNPC.id}`, payload);
         toast.success('NPC updated!');
       } else {
-        await apiClient.post(`/campaigns/${campaignId}/npcs`, formData);
+        await apiClient.post(`/campaigns/${campaignId}/npcs`, payload);
         toast.success('NPC added!');
       }
       fetchNPCs();
       resetForm();
     } catch (error) {
-      toast.error('Failed to save NPC');
+      toast.error(error?.response?.data?.detail || error?.message || 'Failed to save NPC');
     }
   };
 
   const handleEdit = (npc) => {
     setEditingNPC(npc);
-    setFormData({
-      name: npc.name,
-      description: npc.description,
-      image_url: npc.image_url || npc.portrait_url || '',
-      hp: npc.hp,
-      ac: npc.ac,
-      location: npc.location,
-      notes: npc.notes
-    });
+    setFormData(createNpcDraft(npc));
     setShowDialog(true);
   };
 
@@ -136,15 +133,7 @@ function NPCsTab({ campaignId }) {
   };
 
   const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      image_url: '',
-      hp: 10,
-      ac: 10,
-      location: '',
-      notes: ''
-    });
+    setFormData(createNpcDraft());
     setEditingNPC(null);
     setShowDialog(false);
   };
@@ -339,7 +328,7 @@ function NPCsTab({ campaignId }) {
               Add NPC
             </Button>
           </DialogTrigger>
-          <DialogContent className="modal" style={{ maxWidth: '600px' }}>
+          <DialogContent className="modal rqk-npc-edit-dialog" style={{ maxWidth: '740px', maxHeight: '90dvh', overflowY: 'auto' }}>
             <DialogHeader>
               <DialogTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff' }}>
                 {editingNPC ? 'Edit NPC' : 'Add NPC'}
@@ -385,7 +374,7 @@ function NPCsTab({ campaignId }) {
                     data-testid="npc-hp-input"
                     type="number"
                     value={formData.hp}
-                    onChange={(e) => setFormData({ ...formData, hp: parseInt(e.target.value) || 10 })}
+                    onChange={(e) => setFormData({ ...formData, hp: e.target.value })}
                     className="input"
                   />
                 </div>
@@ -395,7 +384,7 @@ function NPCsTab({ campaignId }) {
                     data-testid="npc-ac-input"
                     type="number"
                     value={formData.ac}
-                    onChange={(e) => setFormData({ ...formData, ac: parseInt(e.target.value) || 10 })}
+                    onChange={(e) => setFormData({ ...formData, ac: e.target.value })}
                     className="input"
                   />
                 </div>
@@ -420,6 +409,12 @@ function NPCsTab({ campaignId }) {
                   placeholder="Motivations, secrets, plot hooks..."
                 />
               </div>
+              <NpcFullStatEditor
+                key={editingNPC?.id || 'new'}
+                draft={formData}
+                editing={Boolean(editingNPC)}
+                onChange={(key, value) => setFormData(previous => ({ ...previous, [key]: value }))}
+              />
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                 <Button type="button" className="btn-secondary" onClick={resetForm}>Cancel</Button>
                 <Button data-testid="npc-submit-btn" type="submit" className="btn-primary">{editingNPC ? 'Update' : 'Add'} NPC</Button>
