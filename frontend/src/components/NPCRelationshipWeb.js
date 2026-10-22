@@ -1,682 +1,282 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Users, Plus, Trash2, Save, X, Link2, Unlink, 
-  ZoomIn, ZoomOut, Move, RefreshCw, Heart, Swords,
-  AlertCircle, HandshakeIcon, HelpCircle, Crown, Shield
-} from 'lucide-react';
+import { Heart, Link2, RefreshCw, Trash2, Users, Network } from 'lucide-react';
+import './NPCRelationshipWeb.css';
 
-
-// GM theme tokens
-const theme = {
-  primary: 'var(--rq-accent-primary, #C08A3D)',
-  hover: 'var(--rq-accent-hover, #E0B46F)',
-  subtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.15))',
-  glow: '0 0 20px rgba(192, 138, 61, 0.3)',
-  bg: 'var(--rq-bg-main, #211512)',
-  card: 'var(--rq-bg-card, #2E1D18)',
-  panel: 'var(--rq-bg-card, #2E1D18)',
-  text: 'var(--rq-text-primary, #FFF8EC)',
-  textSecondary: 'var(--rq-text-secondary, #E5D3B7)',
-  muted: 'var(--rq-text-muted, #BFA98C)',
-  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.26))'
-};
-
-// Relationship types with colors and icons
-const RELATIONSHIP_TYPES = [
-  { id: 'ally', label: 'Ally', color: '#22C55E', icon: HandshakeIcon },
-  { id: 'enemy', label: 'Enemy', color: '#D97706', icon: Swords },
-  { id: 'family', label: 'Family', color: 'var(--rq-accent-hover, #E0B46F)', icon: Heart },
-  { id: 'romantic', label: 'Romantic', color: 'var(--rq-accent-secondary, #E8B4A0)', icon: Heart },
-  { id: 'business', label: 'Business', color: '#14B8A6', icon: Crown },
-  { id: 'rival', label: 'Rival', color: 'var(--rq-accent-primary, #C08A3D)', icon: AlertCircle },
-  { id: 'neutral', label: 'Neutral', color: '#6B7280', icon: HelpCircle },
-  { id: 'servant', label: 'Serves', color: 'var(--rq-accent-muted, #A76F3A)', icon: Shield },
+export const RELATIONSHIP_TYPES = [
+  { id: 'family', label: 'Family', color: '#D79C97' },
+  { id: 'romantic', label: 'Romantic', color: '#C88BB6' },
+  { id: 'ally', label: 'Ally', color: '#83B5A1' },
+  { id: 'business', label: 'Business', color: '#D4B17C' },
+  { id: 'political', label: 'Political', color: '#B3A1D0' },
+  { id: 'rival', label: 'Rival', color: '#D49A76' },
+  { id: 'enemy', label: 'Enemy', color: '#D47E7E' },
+  { id: 'servant', label: 'Serves', color: '#93B4D0' },
+  { id: 'neutral', label: 'Neutral', color: '#9CAAB7' },
+  { id: 'unknown', label: 'Unknown', color: '#8993A0' },
 ];
+const EMPTY_FORM = { source_id: '', target_id: '', relationship_type: 'family', description: '' };
+const relationStyle = type => RELATIONSHIP_TYPES.find(item => item.id === type) || RELATIONSHIP_TYPES[9];
 
-function NPCRelationshipWeb({ campaignId }) {
-  const canvasRef = useRef(null);
-  const containerRef = useRef(null);
+export function relatedNpcIds(links, npcId) {
+  return links.filter(link => link.source_id === npcId || link.target_id === npcId)
+    .map(link => link.source_id === npcId ? link.target_id : link.source_id);
+}
+
+export function isDuplicateRelationship(links, from, to) {
+  return links.some(link =>
+    (link.source_id === from && link.target_id === to) ||
+    (link.source_id === to && link.target_id === from));
+}
+
+function getApiError(error, fallback) {
+  const detail = error?.response?.data?.detail;
+  return typeof detail === 'string' ? detail : fallback;
+}
+
+function layoutNodes(npcs) {
+  const columns = 6;
+  const stepX = 154;
+  const stepY = 112;
+  return Object.fromEntries(npcs.map((npc, i) => [npc.id, {
+    x: 86 + (i % columns) * stepX,
+    y: 70 + Math.floor(i / columns) * stepY,
+  }]));
+}
+
+export default function NPCRelationshipWeb({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
   const [relationships, setRelationships] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedNpc, setSelectedNpc] = useState(null);
-  const [linkMode, setLinkMode] = useState(false);
-  const [linkSource, setLinkSource] = useState(null);
-  const [showAddRelation, setShowAddRelation] = useState(false);
-  const [newRelation, setNewRelation] = useState({ targetId: '', type: 'ally', description: '' });
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [nodePositions, setNodePositions] = useState({});
-  const [draggingNode, setDraggingNode] = useState(null);
+  const [loadError, setLoadError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+  const [search, setSearch] = useState('');
+  const [selectedNpcId, setSelectedNpcId] = useState('');
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [busy, setBusy] = useState(false);
+  const [removingId, setRemovingId] = useState('');
 
   useEffect(() => {
-    fetchData();
-  }, [campaignId]);
+    let cancelled = false;
+    setNpcs([]);
+    setRelationships([]);
+    setSearch('');
+    setSelectedNpcId('');
+    setForm(EMPTY_FORM);
+    setLoadError('');
+    setLoading(true);
+    const load = async () => {
+      try {
+        const [npcResponse, relationResponse] = await Promise.all([
+          apiClient.get(`/campaigns/${campaignId}/npcs`),
+          apiClient.get(`/campaigns/${campaignId}/npc-relationships`),
+        ]);
+        if (cancelled) return;
+        if (!Array.isArray(npcResponse.data) || !Array.isArray(relationResponse.data)) {
+          throw new Error('Invalid relationship response');
+        }
+        setNpcs(npcResponse.data);
+        setRelationships(relationResponse.data);
+      } catch (error) {
+        if (!cancelled) setLoadError(getApiError(error, 'Could not load saved relationships.'));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [campaignId, reloadKey]);
 
-  const fetchData = async () => {
-    try {
-      const [npcsRes, relRes] = await Promise.all([
-        apiClient.get(`/campaigns/${campaignId}/npcs`),
-        apiClient.get(`/campaigns/${campaignId}/npc-relationships`).catch(() => ({ data: [] }))
-      ]);
-      
-      const npcData = npcsRes.data || [];
-      setNpcs(npcData);
-      setRelationships(relRes.data || []);
-      
-      // Initialize node positions in a circle
-      const positions = {};
-      const centerX = 400;
-      const centerY = 300;
-      const radius = Math.min(200, npcData.length * 30);
-      
-      npcData.forEach((npc, i) => {
-        const angle = (2 * Math.PI * i) / npcData.length;
-        positions[npc.id] = {
-          x: centerX + radius * Math.cos(angle),
-          y: centerY + radius * Math.sin(angle)
-        };
-      });
-      
-      setNodePositions(positions);
-    } catch (error) {
+  const npcsById = useMemo(() => Object.fromEntries(npcs.map(npc => [npc.id, npc])), [npcs]);
+  const validLinks = useMemo(() => relationships.filter(link =>
+    npcsById[link.source_id] && npcsById[link.target_id]), [relationships, npcsById]);
+  const filteredLinks = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return validLinks;
+    return validLinks.filter(link => [
+      npcsById[link.source_id]?.name, npcsById[link.target_id]?.name,
+      link.relationship_type, link.description,
+    ].some(value => String(value || '').toLowerCase().includes(term)));
+  }, [validLinks, npcsById, search]);
+  const selectedNpc = npcsById[selectedNpcId];
+  const relatedIds = selectedNpc ? relatedNpcIds(validLinks, selectedNpcId) : [];
+  const positions = useMemo(() => layoutNodes(npcs), [npcs]);
+  const svgHeight = Math.max(400, Math.ceil(npcs.length / 6) * 112 + 50);
 
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddRelationship = async () => {
-    if (!selectedNpc || !newRelation.targetId) {
-      toast.error('Select both NPCs for the relationship');
+  const createRelationship = async event => {
+    event.preventDefault();
+    if (busy) return;
+    const { source_id, target_id, relationship_type, description } = form;
+    if (!source_id || !target_id || source_id === target_id ||
+        !npcsById[source_id] || !npcsById[target_id]) {
+      toast.error('Choose two different NPCs from this campaign.');
       return;
     }
-
-    const relationData = {
-      source_id: selectedNpc.id,
-      target_id: newRelation.targetId,
-      relationship_type: newRelation.type,
-      description: newRelation.description
-    };
-
+    if (isDuplicateRelationship(validLinks, source_id, target_id)) {
+      toast.error('These two NPCs already have a relationship. Remove it first to change the type.');
+      return;
+    }
+    setBusy(true);
     try {
-      const response = await apiClient.post(
-        `/campaigns/${campaignId}/npc-relationships`, 
-        relationData
-      );
-      setRelationships(prev => [...prev, response.data]);
-      toast.success('Relationship added!');
-      setShowAddRelation(false);
-      setNewRelation({ targetId: '', type: 'ally', description: '' });
+      const response = await apiClient.post(`/campaigns/${campaignId}/npc-relationships`, {
+        source_id, target_id, relationship_type, description: description.trim(),
+      });
+      if (!response.data?.id) throw new Error('The save did not return a relationship ID.');
+      setRelationships(previous => [...previous, response.data]);
+      setForm(previous => ({ ...EMPTY_FORM, source_id: previous.source_id }));
+      toast.success('Relationship saved to this campaign');
     } catch (error) {
-      // Fallback to local state
-      const localRelation = {
-        id: Date.now().toString(),
-        ...relationData
-      };
-      setRelationships(prev => [...prev, localRelation]);
-      toast.success('Relationship added locally!');
-      setShowAddRelation(false);
-      setNewRelation({ targetId: '', type: 'ally', description: '' });
+      toast.error(getApiError(error, 'Relationship was NOT saved. Your existing connections are unchanged.'));
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleDeleteRelationship = async (relationId) => {
+  const removeRelationship = async link => {
+    if (!window.confirm(
+      `Remove the relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}? Neither NPC will be deleted.`
+    )) return;
+    setRemovingId(link.id);
     try {
-      await apiClient.delete(`/campaigns/${campaignId}/npc-relationships/${relationId}`);
-      setRelationships(prev => prev.filter(r => r.id !== relationId));
+      await apiClient.delete(`/campaigns/${campaignId}/npc-relationships/${link.id}`);
+      setRelationships(previous => previous.filter(item => item.id !== link.id));
       toast.success('Relationship removed');
     } catch (error) {
-      setRelationships(prev => prev.filter(r => r.id !== relationId));
-      toast.success('Relationship removed');
+      toast.error(getApiError(error, 'Relationship could not be removed. It is still saved.'));
+    } finally {
+      setRemovingId('');
     }
-  };
-
-  const handleNodeMouseDown = (e, npcId) => {
-    e.stopPropagation();
-    if (linkMode) {
-      if (!linkSource) {
-        setLinkSource(npcId);
-        toast.info('Now click the target NPC');
-      } else if (linkSource !== npcId) {
-        // Create relationship
-        setSelectedNpc(npcs.find(n => n.id === linkSource));
-        setNewRelation({ ...newRelation, targetId: npcId });
-        setShowAddRelation(true);
-        setLinkMode(false);
-        setLinkSource(null);
-      }
-    } else {
-      setDraggingNode(npcId);
-      setDragStart({ x: e.clientX, y: e.clientY });
-    }
-  };
-
-  const handleMouseMove = useCallback((e) => {
-    if (draggingNode) {
-      const dx = e.clientX - dragStart.x;
-      const dy = e.clientY - dragStart.y;
-      setNodePositions(prev => ({
-        ...prev,
-        [draggingNode]: {
-          x: (prev[draggingNode]?.x || 0) + dx / zoom,
-          y: (prev[draggingNode]?.y || 0) + dy / zoom
-        }
-      }));
-      setDragStart({ x: e.clientX, y: e.clientY });
-    } else if (isDragging) {
-      const dx = e.clientX - dragStart.x;
-      const dy = e.clientY - dragStart.y;
-      setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-      setDragStart({ x: e.clientX, y: e.clientY });
-    }
-  }, [draggingNode, isDragging, dragStart, zoom]);
-
-  const handleMouseUp = () => {
-    setDraggingNode(null);
-    setIsDragging(false);
-  };
-
-  const handleCanvasMouseDown = (e) => {
-    if (e.target === containerRef.current || e.target.tagName === 'svg') {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX, y: e.clientY });
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [handleMouseMove]);
-
-  const getRelationType = (typeId) => RELATIONSHIP_TYPES.find(t => t.id === typeId) || RELATIONSHIP_TYPES[6];
-
-  const resetView = () => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-    
-    // Recalculate positions
-    const positions = {};
-    const centerX = 400;
-    const centerY = 300;
-    const radius = Math.min(200, npcs.length * 30);
-    
-    npcs.forEach((npc, i) => {
-      const angle = (2 * Math.PI * i) / npcs.length;
-      positions[npc.id] = {
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle)
-      };
-    });
-    
-    setNodePositions(positions);
   };
 
   if (loading) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center', color: theme.muted }}>
-        Loading NPC data...
-      </div>
-    );
+    return <p role="status" className="rqk-rel-status">Loading the campaign NPC network…</p>;
+  }
+  if (loadError) {
+    return <section role="alert" data-testid="npc-relationships-load-error" className="rqk-rel-status">
+      <strong>Could not load the NPC relationship network</strong>
+      <p>{loadError} This is a loading issue, not evidence that your data was deleted.</p>
+      <button type="button" onClick={() => setReloadKey(value => value + 1)}>
+        <RefreshCw size={16}/> Retry loading
+      </button>
+    </section>;
   }
 
-  return (
-    <div style={{
-      background: theme.panel,
-      border: `1px solid ${theme.border}`,
-      padding: '24px'
-    }}>
-      {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between',
-        alignItems: 'center', 
-        marginBottom: '24px' 
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            background: theme.subtle,
-            border: `1px solid ${theme.primary}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Users size={20} color={theme.primary} />
-          </div>
-          <div>
-            <h3 style={{ 
-              color: theme.primary, 
-              fontSize: '18px', 
-              fontWeight: '400',
-              margin: 0,
-              fontFamily: "Inter, sans-serif"
-            }}>
-              NPC RELATIONSHIP WEB
-            </h3>
-            <p style={{ color: theme.muted, fontSize: '13px', margin: 0 }}>
-              Visualize connections between NPCs
-            </p>
-          </div>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button
-            onClick={() => { setLinkMode(!linkMode); setLinkSource(null); }}
-            style={{
-              background: linkMode ? theme.primary : 'transparent',
-              border: `1px solid ${linkMode ? theme.primary : theme.border}`,
-              color: linkMode ? 'var(--rq-text-on-accent, #2A160F)' : theme.muted,
-              padding: '8px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            {linkMode ? <Unlink size={16} /> : <Link2 size={16} />}
-            {linkMode ? 'Cancel Link' : 'Link NPCs'}
-          </Button>
-          <Button
-            onClick={resetView}
-            style={{
-              background: 'transparent',
-              border: `1px solid ${theme.border}`,
-              color: theme.muted,
-              padding: '8px'
-            }}
-          >
-            <RefreshCw size={16} />
-          </Button>
-          <Button
-            onClick={() => setZoom(z => Math.min(z + 0.2, 2))}
-            style={{
-              background: 'transparent',
-              border: `1px solid ${theme.border}`,
-              color: theme.muted,
-              padding: '8px'
-            }}
-          >
-            <ZoomIn size={16} />
-          </Button>
-          <Button
-            onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))}
-            style={{
-              background: 'transparent',
-              border: `1px solid ${theme.border}`,
-              color: theme.muted,
-              padding: '8px'
-            }}
-          >
-            <ZoomOut size={16} />
-          </Button>
-        </div>
+  return <section className="rqk-rel-workspace" data-testid="npc-relationship-web">
+    <header className="rqk-rel-heading">
+      <div>
+        <p className="rqk-rel-eyebrow"><Network size={16} /> GM network</p>
+        <h2>NPC relationships</h2>
+        <p>Every connection belongs to this campaign. Shared Tia-Karta people can have different stories in each party.</p>
       </div>
+      <span className="rqk-rel-count">{validLinks.length} saved links</span>
+    </header>
 
-      {/* Legend */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '16px', 
-        marginBottom: '16px',
-        flexWrap: 'wrap'
-      }}>
-        {RELATIONSHIP_TYPES.map(type => (
-          <div key={type.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ 
-              width: '12px', 
-              height: '3px', 
-              background: type.color 
-            }} />
-            <span style={{ color: theme.muted, fontSize: '11px' }}>{type.label}</span>
-          </div>
-        ))}
+    <section className="rqk-rel-panel" aria-label="Create NPC relationship">
+      <h3><Link2 size={17} /> Connect two NPCs</h3>
+      <form className="rqk-rel-form" onSubmit={createRelationship}>
+        <label>First NPC
+          <select data-testid="relationship-source" value={form.source_id} onChange={event =>
+            setForm(previous => ({ ...previous, source_id: event.target.value, target_id: '' }))}>
+            <option value="">Choose NPC…</option>
+            {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
+          </select>
+        </label>
+        <label>Connection
+          <select data-testid="relationship-type" value={form.relationship_type} onChange={event =>
+            setForm(previous => ({ ...previous, relationship_type: event.target.value }))}>
+            {RELATIONSHIP_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
+          </select>
+        </label>
+        <label>Second NPC
+          <select data-testid="relationship-target" value={form.target_id} onChange={event =>
+            setForm(previous => ({ ...previous, target_id: event.target.value }))}>
+            <option value="">Choose NPC…</option>
+            {npcs.filter(npc => npc.id !== form.source_id).map(npc =>
+              <option key={npc.id} value={npc.id}>{npc.name}</option>)}
+          </select>
+        </label>
+        <label className="rqk-rel-form-notes">How are they connected?
+          <input data-testid="relationship-description" value={form.description}
+            placeholder="e.g. Mara is Godfrey's mother"
+            onChange={event => setForm(previous => ({ ...previous, description: event.target.value }))}/>
+        </label>
+        <button type="submit" className="rqk-rel-submit" disabled={busy || !form.source_id || !form.target_id}>
+          <Link2 size={16} /> {busy ? 'Saving…' : 'Save relationship'}
+        </button>
+      </form>
+    </section>
+
+    <section className="rqk-rel-panel" aria-label="Saved NPC connections">
+      <div className="rqk-rel-list-heading">
+        <h3><Heart size={17}/> Saved connections</h3>
+        <input aria-label="Search NPC relationships" placeholder="Search people or relationship notes…"
+          value={search} onChange={event => setSearch(event.target.value)}/>
       </div>
-
-      {/* Canvas */}
-      <div
-        ref={containerRef}
-        onMouseDown={handleCanvasMouseDown}
-        style={{
-          background: theme.bg,
-          border: `1px solid ${theme.border}`,
-          height: '500px',
-          overflow: 'hidden',
-          position: 'relative',
-          cursor: isDragging ? 'grabbing' : (linkMode ? 'crosshair' : 'grab')
-        }}
-      >
-        {npcs.length === 0 ? (
-          <div style={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: theme.muted
-          }}>
-            <Users size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
-            <h4 style={{ color: theme.text, margin: '0 0 8px' }}>No NPCs Yet</h4>
-            <p style={{ margin: 0, fontSize: '14px' }}>
-              Create NPCs in the NPCs tab to build your relationship web
-            </p>
-          </div>
-        ) : (
-          <svg
-            width="100%"
-            height="100%"
-            style={{
-              transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
-              transformOrigin: 'center center'
-            }}
-          >
-            {/* Relationship lines */}
-            {relationships.map((rel) => {
-              const sourcePos = nodePositions[rel.source_id];
-              const targetPos = nodePositions[rel.target_id];
-              if (!sourcePos || !targetPos) return null;
-              
-              const relType = getRelationType(rel.relationship_type);
-              
-              return (
-                <g key={rel.id}>
-                  <line
-                    x1={sourcePos.x}
-                    y1={sourcePos.y}
-                    x2={targetPos.x}
-                    y2={targetPos.y}
-                    stroke={relType.color}
-                    strokeWidth={2}
-                    strokeDasharray={rel.relationship_type === 'enemy' ? '5,5' : 'none'}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => handleDeleteRelationship(rel.id)}
-                  />
-                  {/* Midpoint label */}
-                  <text
-                    x={(sourcePos.x + targetPos.x) / 2}
-                    y={(sourcePos.y + targetPos.y) / 2 - 8}
-                    fill={relType.color}
-                    fontSize="10"
-                    textAnchor="middle"
-                  >
-                    {relType.label}
-                  </text>
-                </g>
-              );
-            })}
-
-            {/* NPC nodes */}
-            {npcs.map((npc) => {
-              const pos = nodePositions[npc.id] || { x: 400, y: 300 };
-              const isSelected = selectedNpc?.id === npc.id;
-              const isLinkSource = linkSource === npc.id;
-              
-              return (
-                <g
-                  key={npc.id}
-                  onMouseDown={(e) => handleNodeMouseDown(e, npc.id)}
-                  onClick={() => !linkMode && setSelectedNpc(npc)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {/* Glow effect */}
-                  {(isSelected || isLinkSource) && (
-                    <circle
-                      cx={pos.x}
-                      cy={pos.y}
-                      r={32}
-                      fill="none"
-                      stroke={theme.primary}
-                      strokeWidth={2}
-                      style={{ filter: `drop-shadow(${theme.glow})` }}
-                    />
-                  )}
-                  
-                  {/* Node circle */}
-                  <circle
-                    cx={pos.x}
-                    cy={pos.y}
-                    r={25}
-                    fill={isSelected || isLinkSource ? theme.primary : theme.card}
-                    stroke={theme.primary}
-                    strokeWidth={isSelected || isLinkSource ? 2 : 1}
-                  />
-                  
-                  {/* NPC initials */}
-                  <text
-                    x={pos.x}
-                    y={pos.y + 4}
-                    fill={theme.text}
-                    fontSize="12"
-                    fontWeight="600"
-                    textAnchor="middle"
-                  >
-                    {npc.name.slice(0, 2).toUpperCase()}
-                  </text>
-                  
-                  {/* NPC name below */}
-                  <text
-                    x={pos.x}
-                    y={pos.y + 45}
-                    fill={theme.textSecondary}
-                    fontSize="11"
-                    textAnchor="middle"
-                  >
-                    {npc.name.length > 12 ? npc.name.slice(0, 12) + '...' : npc.name}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        )}
-
-        {/* Link mode indicator */}
-        {linkMode && (
-          <div style={{
-            position: 'absolute',
-            top: '12px',
-            left: '12px',
-            background: theme.primary,
-            color: 'var(--rq-text-on-accent, #2A160F)',
-            padding: '8px 16px',
-            fontSize: '12px',
-            fontWeight: '400'
-          }}>
-            LINK MODE: {linkSource ? 'Click target NPC' : 'Click source NPC'}
-          </div>
-        )}
-      </div>
-
-      {/* Selected NPC Panel */}
-      {selectedNpc && !showAddRelation && (
-        <div style={{
-          marginTop: '16px',
-          background: theme.bg,
-          border: `1px solid ${theme.primary}`,
-          padding: '16px'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <h4 style={{ color: theme.primary, fontSize: '16px', fontWeight: '400', margin: '0 0 4px' }}>
-                {selectedNpc.name}
-              </h4>
-              <p style={{ color: theme.muted, fontSize: '13px', margin: 0 }}>
-                {selectedNpc.description || 'No description'}
-              </p>
+      {filteredLinks.length === 0 ? (
+        <p className="rqk-rel-empty">{validLinks.length ? 'No connections match your search.' :
+          'No relationships recorded yet. Use the form above to connect established NPCs.'}</p>
+      ) : <div className="rqk-rel-list" data-testid="npc-relationship-list">
+        {filteredLinks.map(link => {
+          const type = relationStyle(link.relationship_type);
+          return <article className="rqk-rel-entry" key={link.id}>
+            <div className="rqk-rel-entry-copy">
+              <div className="rqk-rel-entry-names">
+                <button type="button" onClick={() => setSelectedNpcId(link.source_id)}>{npcsById[link.source_id].name}</button>
+                <span className="rqk-rel-type" style={{ borderColor: type.color, color: type.color }}>{type.label}</span>
+                <button type="button" onClick={() => setSelectedNpcId(link.target_id)}>{npcsById[link.target_id].name}</button>
+              </div>
+              {link.description && <p>{link.description}</p>}
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Button
-                onClick={() => setShowAddRelation(true)}
-                style={{
-                  background: theme.primary,
-                  border: 'none',
-                  color: 'var(--rq-text-on-accent, #2A160F)',
-                  padding: '8px 14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '12px'
-                }}
-              >
-                <Plus size={14} />
-                Add Relationship
-              </Button>
-              <Button
-                onClick={() => setSelectedNpc(null)}
-                style={{
-                  background: 'transparent',
-                  border: `1px solid ${theme.border}`,
-                  color: theme.muted,
-                  padding: '8px'
-                }}
-              >
-                <X size={14} />
-              </Button>
-            </div>
-          </div>
+            <button type="button" className="rqk-rel-remove" disabled={removingId === link.id}
+              aria-label={`Remove relationship between ${npcsById[link.source_id].name} and ${npcsById[link.target_id].name}`}
+              onClick={() => removeRelationship(link)}><Trash2 size={15} /> Remove</button>
+          </article>;
+        })}
+      </div>}
+    </section>
 
-          {/* Existing relationships */}
-          <div style={{ marginTop: '16px' }}>
-            <h5 style={{ color: theme.text, fontSize: '12px', fontWeight: '400', marginBottom: '8px' }}>
-              Relationships ({relationships.filter(r => r.source_id === selectedNpc.id || r.target_id === selectedNpc.id).length})
-            </h5>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {relationships
-                .filter(r => r.source_id === selectedNpc.id || r.target_id === selectedNpc.id)
-                .map(rel => {
-                  const otherId = rel.source_id === selectedNpc.id ? rel.target_id : rel.source_id;
-                  const otherNpc = npcs.find(n => n.id === otherId);
-                  const relType = getRelationType(rel.relationship_type);
-                  const direction = rel.source_id === selectedNpc.id ? '→' : '←';
-                  
-                  return (
-                    <div key={rel.id} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '8px 12px',
-                      background: theme.card,
-                      border: `1px solid ${theme.border}`
-                    }}>
-                      <span style={{ color: relType.color, fontWeight: '400', fontSize: '12px' }}>
-                        {relType.label}
-                      </span>
-                      <span style={{ color: theme.muted }}>{direction}</span>
-                      <span style={{ color: theme.text, flex: 1 }}>{otherNpc?.name || 'Unknown'}</span>
-                      <Button
-                        onClick={() => handleDeleteRelationship(rel.id)}
-                        style={{
-                          padding: '4px',
-                          background: 'transparent',
-                          border: 'none',
-                          color: theme.muted
-                        }}
-                      >
-                        <Trash2 size={12} />
-                      </Button>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Relationship Form */}
-      {showAddRelation && selectedNpc && (
-        <div style={{
-          marginTop: '16px',
-          background: theme.bg,
-          border: `1px solid ${theme.primary}`,
-          padding: '20px'
-        }}>
-          <h4 style={{ color: theme.text, fontSize: '14px', fontWeight: '400', marginBottom: '16px' }}>
-            Add Relationship for {selectedNpc.name}
-          </h4>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-            <div>
-              <label style={{ display: 'block', color: theme.muted, fontSize: '11px', marginBottom: '6px', textTransform: 'uppercase' }}>
-                Related NPC
-              </label>
-              <select
-                value={newRelation.targetId}
-                onChange={(e) => setNewRelation({ ...newRelation, targetId: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: theme.card,
-                  border: `1px solid ${theme.border}`,
-                  color: theme.text
-                }}
-              >
-                <option value="">Select NPC...</option>
-                {npcs.filter(n => n.id !== selectedNpc.id).map(npc => (
-                  <option key={npc.id} value={npc.id}>{npc.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', color: theme.muted, fontSize: '11px', marginBottom: '6px', textTransform: 'uppercase' }}>
-                Relationship Type
-              </label>
-              <select
-                value={newRelation.type}
-                onChange={(e) => setNewRelation({ ...newRelation, type: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: theme.card,
-                  border: `1px solid ${theme.border}`,
-                  color: theme.text
-                }}
-              >
-                {RELATIONSHIP_TYPES.map(type => (
-                  <option key={type.id} value={type.id}>{type.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: theme.muted, fontSize: '11px', marginBottom: '6px', textTransform: 'uppercase' }}>
-              Description (optional)
-            </label>
-            <Input
-              value={newRelation.description}
-              onChange={(e) => setNewRelation({ ...newRelation, description: e.target.value })}
-              placeholder="How do they know each other?"
-              style={{ background: theme.card, border: `1px solid ${theme.border}`, color: theme.text }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <Button
-              onClick={handleAddRelationship}
-              style={{ background: theme.primary, border: 'none', color: 'var(--rq-text-on-accent, #2A160F)', padding: '10px 20px' }}
-            >
-              <Save size={16} style={{ marginRight: '8px' }} />
-              Save Relationship
-            </Button>
-            <Button
-              onClick={() => { setShowAddRelation(false); setNewRelation({ targetId: '', type: 'ally', description: '' }); }}
-              style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: theme.muted, padding: '10px 20px' }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    <section className="rqk-rel-panel rqk-rel-graph-panel" aria-label="Visual NPC relationship map">
+      <h3><Users size={17}/> Relationship map</h3>
+      <p>Select an NPC to highlight their connections. The list above works on mobile and with a keyboard.</p>
+      {npcs.length ? <div className="rqk-rel-graph-scroller">
+        <svg viewBox={`0 0 1000 ${svgHeight}`} aria-label="NPC network diagram">
+          {validLinks.map(link => {
+            const from = positions[link.source_id], to = positions[link.target_id];
+            const type = relationStyle(link.relationship_type);
+            return <line key={link.id} x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+              stroke={type.color} strokeWidth={selectedNpcId && (link.source_id === selectedNpcId || link.target_id === selectedNpcId) ? 3 : 1.4}
+              opacity={selectedNpcId && link.source_id !== selectedNpcId && link.target_id !== selectedNpcId ? 0.18 : 0.7}/>;
+          })}
+          {npcs.map(npc => {
+            const point = positions[npc.id];
+            const selected = npc.id === selectedNpcId;
+            const highlighted = !selectedNpcId || selected || relatedIds.includes(npc.id);
+            return <g key={npc.id} role="button" tabIndex={0}
+              aria-label={`Show connections for ${npc.name}`}
+              onClick={() => setSelectedNpcId(npc.id)}
+              onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedNpcId(npc.id); } }}
+              style={{ cursor: 'pointer', opacity: highlighted ? 1 : 0.36 }}>
+              <rect x={point.x - 70} y={point.y - 28} width={140} height={55} rx={8}
+                fill={selected ? '#344753' : '#142938'} stroke={selected ? '#E1BF85' : '#455968'} strokeWidth={selected ? 2.5 : 1}/>
+              <text x={point.x} y={point.y - 5} textAnchor="middle" fill="#F2E5CD" fontSize={11.5} fontWeight="600">
+                {String(npc.name).length > 19 ? String(npc.name).slice(0, 17) + '…' : npc.name}
+              </text>
+              <text x={point.x} y={point.y + 12} textAnchor="middle" fill="#BCA77F" fontSize={10}>
+                {relatedNpcIds(validLinks, npc.id).length} links
+              </text>
+            </g>;
+          })}
+        </svg>
+      </div> : <p>No NPCs have been added to this campaign yet.</p>}
+      {selectedNpc && <div className="rqk-rel-selected" data-testid="selected-npc-relationships">
+        <strong>{selectedNpc.name}</strong> · {relatedIds.length} connections
+        <p>{relatedIds.map(id => npcsById[id]?.name).filter(Boolean).join(', ') || 'No links recorded for this NPC yet.'}</p>
+        <button type="button" onClick={() => {
+          setForm(previous => ({ ...previous, source_id: selectedNpc.id, target_id: '' }));
+          window.scrollTo?.({ top: 0, behavior: 'smooth' });
+        }}>Create a connection for {selectedNpc.name}</button>
+      </div>}
+    </section>
+  </section>;
 }
-
-export default NPCRelationshipWeb;

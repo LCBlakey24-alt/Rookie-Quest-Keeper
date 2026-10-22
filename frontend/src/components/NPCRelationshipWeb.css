@@ -1,0 +1,53 @@
+/* Guild Ledger NPC network — shared GM interface, responsive and keyboard friendly. */
+.rqk-rel-workspace { display: grid; gap: 14px; min-width: 0; color: var(--rq-text-primary, #eadfc8); }
+.rqk-rel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rqk-rel-heading h2 { margin: 4px 0 5px; font-size: clamp(21px, 3vw, 28px); color: #eadfc8; }
+.rqk-rel-heading p, .rqk-rel-graph-panel > p { color: var(--rq-text-secondary, #b8c5d0); margin: 0; line-height: 1.45; font-size: 13px; }
+.rqk-rel-eyebrow { display: flex; align-items: center; gap: 6px; color: #c9a96b !important; text-transform: uppercase; letter-spacing: .08em; font-size: 11px !important; font-weight: 800; }
+.rqk-rel-count { padding: 7px 10px; border: 1px solid #74634c; border-radius: 6px; color: #eadfc8; white-space: nowrap; font-size: 12px; font-weight: 800; }
+.rqk-rel-panel { display: grid; gap: 12px; min-width: 0; padding: clamp(12px, 2.5vw, 20px); border: 1px solid var(--rq-line-strong, #435261); border-radius: 8px; background: var(--rq-bg-panel, #1e2936); }
+.rqk-rel-panel h3 { display: flex; align-items: center; gap: 7px; margin: 0; color: #e4c68d; font-size: 17px; }
+.rqk-rel-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.rqk-rel-form label { display: grid; gap: 6px; font-size: 12px; color: #e0d5c6; font-weight: 750; min-width: 0; }
+.rqk-rel-form select, .rqk-rel-form input, .rqk-rel-list-heading input { width: 100%; min-width: 0; min-height: 42px; padding: 9px 11px; border: 1px solid #667481; border-radius: 5px; background: #0b1b2b; color: #f4e9d7; font: inherit; font-size: 14px; }
+.rqk-rel-form-notes { grid-column: 1 / -1; }
+.rqk-rel-form .rqk-rel-submit { justify-self: start; }
+.rqk-rel-submit { display: inline-flex; align-items: center; gap: 7px; min-height: 43px; padding: 9px 15px; border: 1px solid #c9a96b; border-radius: 5px; background: #c9a96b; color: #161c26; font: inherit; font-weight: 850; cursor: pointer; }
+.rqk-rel-submit:disabled { opacity: .55; cursor: not-allowed; }
+.rqk-rel-list-heading { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.rqk-rel-list-heading input { max-width: 400px; }
+.rqk-rel-list { display: grid; gap: 8px; max-height: 500px; overflow-y: auto; }
+.rqk-rel-entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 13px; border: 1px solid #425668; border-radius: 6px; background: #0f2334; }
+.rqk-rel-entry-copy { flex: 1; min-width: 0; }
+.rqk-rel-entry-copy p { margin: 5px 0 0; font-size: 12px; line-height: 1.4; color: #b9c8d4; white-space: pre-wrap; }
+.rqk-rel-entry-names { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.rqk-rel-entry-names button { border: none; background: none; padding: 2px 0; color: #f1dfc4; font: inherit; font-weight: 800; text-align: left; text-decoration: underline; text-decoration-color: transparent; cursor: pointer; }
+.rqk-rel-entry-names button:hover { text-decoration-color: #c9a96b; }
+.rqk-rel-type { padding: 3px 7px; border: 1px solid; border-radius: 100px; font-size: 11px; font-weight: 850; white-space: nowrap; }
+.rqk-rel-remove { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 7px 10px; border: 1px solid #8b6970; border-radius: 5px; background: transparent; color: #f0bcbf; font: inherit; font-size: 12px; cursor: pointer; }
+.rqk-rel-remove:disabled { opacity: .55; }
+.rqk-rel-empty { margin: 0; padding: 9px 0; color: #b5c4d1; font-size: 13px; }
+.rqk-rel-graph-panel { overflow: hidden; }
+.rqk-rel-graph-scroller { max-width: 100%; max-height: 610px; overflow: auto; border: 1px solid #415465; background: #091b2a; border-radius: 6px; }
+.rqk-rel-graph-scroller svg { display: block; min-width: 780px; width: 100%; height: auto; }
+.rqk-rel-graph-scroller svg g:focus-visible { outline: 3px solid #e5c891; outline-offset: 3px; }
+.rqk-rel-selected { display: grid; gap: 6px; padding: 12px; border-left: 3px solid #c9a96b; background: #0c2234; font-size: 13px; }
+.rqk-rel-selected p { margin: 0; line-height: 1.5; color: #c5d0d9; }
+.rqk-rel-selected button, .rqk-rel-status button { justify-self: start; padding: 8px 12px; color: #e4c68d; background: #10293a; border: 1px solid #c9a96b; border-radius: 6px; cursor: pointer; }
+.rqk-rel-status { display: grid; justify-items: start; gap: 8px; padding: 18px; border: 1px solid #8a7070; border-radius: 7px; background: #1e2936; color: #eadfc8; }
+.rqk-rel-status p { margin: 0; }
+.rqk-rel-workspace :is(button, select, input):focus-visible, .rqk-rel-status button:focus-visible { outline: 2px solid #e2bc80; outline-offset: 3px; }
+@media (max-width: 780px) {
+  .rqk-rel-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rqk-rel-form label:first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 580px) {
+  .rqk-rel-form { grid-template-columns: 1fr; }
+  .rqk-rel-form label:first-child, .rqk-rel-form-notes { grid-column: auto; }
+  .rqk-rel-form .rqk-rel-submit { width: 100%; justify-content: center; }
+  .rqk-rel-list-heading input { max-width: 100%; }
+  .rqk-rel-entry { align-items: flex-start; flex-direction: column; }
+  .rqk-rel-remove { align-self: flex-end; }
+  .rqk-rel-graph-panel { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .rqk-rel-workspace * { scroll-behavior: auto !important; } }
