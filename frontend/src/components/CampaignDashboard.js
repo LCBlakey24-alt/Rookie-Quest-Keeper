@@ -40,6 +40,8 @@ const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKa
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
+import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
+import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
 
 const uploadTheme = {
@@ -287,6 +289,12 @@ export default function CampaignDashboard() {
           </div>
 
           <div className="gm-header-actions campaign-dashboard-actions">
+            <CampaignToolFinder
+              key={campaignId}
+              campaignName={campaign.name}
+              activeTab={activeTab}
+              onSelect={handleTabClick}
+            />
             <button type="button" onClick={copyInviteCode} className="campaign-button">
               {inviteLoading ? 'Loading…' : 'Join Code'}
             </button>
@@ -580,7 +588,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             <span>Latest Session Note</span>
             <button type="button" onClick={() => onOpenTab('ingame-notes')}>Open Notes</button>
           </div>
-          <p>{latestNote?.content || 'No session notes yet. Live notes will appear here after play.'}</p>
+          <p className="campaign-home-note-preview">{latestNote ? summariseSessionNote(latestNote.content) : 'No session notes yet. Live notes will appear here after play.'}</p>
+          {latestNote && <button type="button" className="campaign-home-note-link" onClick={() => onOpenTab('ingame-notes')}>Read the full note →</button>}
         </article>
 
         <article className="campaign-home-detail">
