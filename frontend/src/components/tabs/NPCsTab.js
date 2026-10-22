@@ -54,6 +54,9 @@ function NPCsTab({ campaignId }) {
     activeCampaignRef.current = campaignId;
     setNpcs([]);
     setSearchTerm(''); // A previous campaign search must never hide this campaign's NPCs.
+    setEditingNPC(null);
+    setShowDialog(false);
+    setDeletingNPC(null);
     setLoadError(false);
     setLoading(true);
     fetchNPCs();
