@@ -35,7 +35,8 @@ export default function CampaignToolFinder({ campaignName, activeTab, onSelect }
       if (event.isComposing) return;
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        setOpen(previous => !previous);
+        if (open) close();
+        else setOpen(true);
         return;
       }
       if (event.key === 'Escape' && open) {
