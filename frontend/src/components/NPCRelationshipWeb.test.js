@@ -102,3 +102,21 @@ test('network helper prevents duplicated reverse-direction links', () => {
   expect(isDuplicateRelationship(links, 'godfrey', 'pippa')).toBe(false);
   expect(relatedNpcIds(links, 'mara')).toEqual(['godfrey']);
 });
+
+test('relationship network supports specific family and secret types and filters them', async () => {
+  respondWith(npcs, [
+    { id: 'family-1', source_id: 'mara', target_id: 'godfrey',
+      relationship_type: 'parent', description: 'Mara is Godfrey’s mother.' },
+    { id: 'secret-1', source_id: 'godfrey', target_id: 'pippa',
+      relationship_type: 'secret_ally', description: 'Secret pact.' },
+  ]);
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  const list = await screen.findByTestId('npc-relationship-list');
+  expect(within(list).getByText('Parent / child')).toBeInTheDocument();
+  fireEvent.change(screen.getByRole('combobox', { name: 'Filter relationship type' }),
+    { target: { value: 'secret_ally' } });
+  expect(within(list).getByText('Secret allies')).toBeInTheDocument();
+  expect(within(list).queryByText('Parent / child')).not.toBeInTheDocument();
+  fireEvent.click(within(list).getByRole('button', { name: 'Godfrey Barfoot' }));
+  expect(screen.getByTestId('selected-npc-relationships')).toHaveTextContent('Mara is Godfrey’s mother.');
+});
