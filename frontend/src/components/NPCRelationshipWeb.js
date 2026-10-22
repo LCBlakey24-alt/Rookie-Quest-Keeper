@@ -333,7 +333,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
       <div className="rqk-rel-graph-controls">
         <label>Focus on NPC
           <select aria-label="Focus relationship map on NPC" value={focusNpcId}
-            onChange={event => setSelectedNpcId(event.target.value)}>
+            onChange={event => { setSelectedNpcId(event.target.value); setGraphMode('focus'); }}>
             {npcs.map(npc => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
           </select>
         </label>
