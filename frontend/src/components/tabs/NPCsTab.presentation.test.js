@@ -11,7 +11,10 @@ describe('GM NPC roster on small screens', () => {
     expect(jsx).toContain('rqk-npc-card');
     expect(jsx).toContain('rqk-npc-card-header');
     expect(jsx).toContain('rqk-npc-card-content');
-    expect(jsx).toContain('Full stat block · HP');
+    expect(jsx).toContain('rqk-npc-combat-summary-title');
+    expect(jsx).toContain('rqk-npc-combat-quick-stats');
+    expect(jsx).toContain('Full stat block');
+    expect(jsx).toContain('npc-toggle-all-stats');
     expect(jsx).toContain('<NpcCompactStatBlock npc={npc} />');
     expect(jsx).toContain('aria-label={`Edit ${npc.name}`}');
     expect(jsx).toContain('aria-label={`Delete ${npc.name}`}');
