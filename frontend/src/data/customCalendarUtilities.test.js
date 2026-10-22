@@ -1,4 +1,4 @@
-import { calendarMonthAfter, daysUntilNextOccurrence, eventOccursOn } from './customCalendarUtilities';
+import { calendarMonthAfter, calendarWeekdayOffset, daysUntilNextOccurrence, eventOccursOn } from './customCalendarUtilities';
 import { tiaKartaCalendar } from './tiaKartaCalendar';
 
 const calendar = tiaKartaCalendar('eldritch-heralds');
@@ -50,5 +50,28 @@ describe('independent Tia-Karta custom calendar', () => {
     const future = { ...weekly, year: 593 };
     expect(eventOccursOn(future, calendar, 592, 1, 25)).toBe(false);
     expect(daysUntilNextOccurrence(future, calendar)).toBe(336);
+  });
+});
+
+describe('custom in-world calendar weekday alignment', () => {
+  test('Tia-Karta 30-day months stay aligned to six-day weeks', () => {
+    expect(calendarWeekdayOffset(calendar, 592, 1)).toBe(0);
+    expect(calendarWeekdayOffset(calendar, 592, 2)).toBe(0);
+    expect(calendarWeekdayOffset(calendar, 592, 12)).toBe(0);
+  });
+  test('irregular custom months shift their first weekday without resetting', () => {
+    const irregular = {
+      days_per_week: 6,
+      custom_months: [{ name: 'Long', days: 7 }, { name: 'Short', days: 5 }, { name: 'Rain', days: 9 }],
+    };
+    expect(calendarWeekdayOffset(irregular, 592, 1)).toBe(0);
+    expect(calendarWeekdayOffset(irregular, 592, 2)).toBe(1);
+    expect(calendarWeekdayOffset(irregular, 592, 3)).toBe(0);
+    expect(calendarWeekdayOffset(irregular, 593, 1)).toBe(3);
+    expect(calendarWeekdayOffset(irregular, 592, 4)).toBeNull();
+  });
+  test('invalid calendar does not create fake weekday cells', () => {
+    expect(calendarWeekdayOffset(null, 592, 1)).toBeNull();
+    expect(calendarWeekdayOffset({ days_per_week: 0, custom_months: [{ name: 'A', days: 12 }] }, 592, 1)).toBeNull();
   });
 });
