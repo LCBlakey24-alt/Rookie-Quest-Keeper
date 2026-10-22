@@ -17,7 +17,16 @@ os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from models import NPCRelationshipCreate
-from routes import npcs as npc_routes
+
+# Load only this route module: importing routes.__init__ also imports email
+# providers unrelated to NPC relationships, which CI intentionally omits.
+import importlib.util
+spec = importlib.util.spec_from_file_location(
+    "npc_relationship_route_under_test",
+    Path(__file__).resolve().parents[1] / "routes" / "npcs.py",
+)
+npc_routes = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(npc_routes)
 
 
 class FakeNpcCollection:
