@@ -80,6 +80,6 @@ export function prepareNpcSavePayload(draft) {
       payload[field] = Number(draft[field]);
     }
   });
-  payload.cr = String(draft.cr ?? '').trim() || null;
+  payload.cr = String(draft.cr ?? '').trim();
   return payload;
 }
