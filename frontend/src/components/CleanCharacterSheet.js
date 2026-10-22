@@ -587,6 +587,7 @@ export default function CleanCharacterSheet() {
 
       <CleanSheetHeader
         character={character}
+        onSaveDndBeyondLink={(url) => patchCharacter({ dnd_beyond_url: url }, { success: 'D&D Beyond link saved' })}
         subtitle={subtitle}
         resting={savingQuickState}
         onEdit={() => navigate(`/characters/${character.id}/edit`)}

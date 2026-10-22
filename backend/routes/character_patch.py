@@ -8,6 +8,8 @@ spell slot state, spellbook entries, and other live-sheet fields.
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 import uuid
+import re
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -46,7 +48,7 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "used_spell_slots", "spells_known", "spells_prepared", "cantrips_known", "prepared_spell_names", "spellbook", "spell_preparation_loadout", "homebrew_spellcasting",
     "equipment", "inventory", "equipped", "item_effects", "currency", "gold", "fighting_style", "equipment_choice", "starting_equipment",
     "resources", "class_levels", "multiclass_levels", "level_progression", "asi_increases",
-    "campaign_id", "campaign_name", "campaign_join_status",
+    "campaign_id", "campaign_name", "campaign_join_status", "dnd_beyond_url",
 }
 
 # A campaign GM may persist only the state that can legitimately change while
@@ -267,6 +269,16 @@ def _clean_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
             value = _list(value)
         elif key in DICT_FIELDS:
             value = _dict(value)
+        if key == "dnd_beyond_url":
+            if not isinstance(value, str):
+                raise HTTPException(status_code=400, detail="Invalid D&D Beyond URL")
+            value = value.strip()
+            if value:
+                parsed = urlparse(value)
+                if (parsed.scheme != "https" or parsed.hostname not in ("www.dndbeyond.com", "dndbeyond.com")
+                    or not re.fullmatch(r"/characters/\d+(?:/[A-Za-z0-9]+)?/?", parsed.path)
+                    or parsed.query or parsed.fragment or parsed.username or parsed.password):
+                    raise HTTPException(status_code=400, detail="Invalid D&D Beyond character sharing link")
         update[key] = value
 
     if "rules_edition" in update and "edition" not in update:
