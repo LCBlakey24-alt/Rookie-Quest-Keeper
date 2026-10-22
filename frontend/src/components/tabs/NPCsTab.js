@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } fro
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
+import { matchesNpcSearch } from '@/lib/npcRosterSearch';
 import './NPCsTab.css';
 
 const NPC_BASIC_FIELDS = [
@@ -183,12 +184,7 @@ function NPCsTab({ campaignId }) {
 
   // Find NPCs by story, role, skills and GM notes as well as the displayed name.
   // Search is always local to the active campaign; never mix the two parties.
-  const term = searchTerm.trim().toLowerCase();
-  const filteredNPCs = npcs.filter(npc => [
-    npc.name, npc.role, npc.occupation, npc.location, npc.description,
-    npc.backstory, npc.notes, npc.appearance, npc.personality,
-    ...(Array.isArray(npc.skills) ? npc.skills : []),
-  ].filter(Boolean).some(value => String(value).toLowerCase().includes(term)));
+  const filteredNPCs = npcs.filter(npc => matchesNpcSearch(npc, searchTerm));
 
   const allVisibleExpanded = filteredNPCs.length > 0 && filteredNPCs.every(npc => expandedNpcIds.has(npc.id));
   const toggleAllNpcDetails = () => {
