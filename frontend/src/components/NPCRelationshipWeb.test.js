@@ -1,11 +1,11 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import NPCRelationshipWeb, { isDuplicateRelationship, relatedNpcIds } from './NPCRelationshipWeb';
+import NPCRelationshipWeb, { focusedRelationshipLayout, isDuplicateRelationship, relatedNpcIds } from './NPCRelationshipWeb';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 
 jest.mock('@/lib/apiClient', () => ({
-  __esModule: true, default: { get: jest.fn(), post: jest.fn(), delete: jest.fn() },
+  __esModule: true, default: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() },
 }));
 jest.mock('sonner', () => ({
   toast: { error: jest.fn(), success: jest.fn() },
@@ -119,4 +119,88 @@ test('relationship network supports specific family and secret types and filters
   expect(within(list).queryByText('Parent / child')).not.toBeInTheDocument();
   fireEvent.click(within(list).getByRole('button', { name: 'Godfrey Barfoot' }));
   expect(screen.getByTestId('selected-npc-relationships')).toHaveTextContent('Mara is Godfrey’s mother.');
+});
+
+test('editing a saved relationship updates its existing ID without delete or duplicate POST', async () => {
+  respondWith(npcs, [{
+    id: 'link-1', source_id: 'godfrey', target_id: 'mara',
+    relationship_type: 'family', description: 'Family history',
+  }]);
+  apiClient.put.mockResolvedValue({ data: {
+    id: 'link-1', source_id: 'mara', target_id: 'godfrey',
+    relationship_type: 'parent', description: 'Mara is Godfrey’s mother.',
+  } });
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  const list = await screen.findByTestId('npc-relationship-list');
+  fireEvent.click(within(list).getByRole('button', { name: /edit relationship between/i }));
+  expect(screen.getByTestId('relationship-source')).toHaveValue('godfrey');
+  fireEvent.change(screen.getByTestId('relationship-source'), { target: { value: 'mara' } });
+  fireEvent.change(screen.getByTestId('relationship-target'), { target: { value: 'godfrey' } });
+  fireEvent.change(screen.getByTestId('relationship-type'), { target: { value: 'parent' } });
+  fireEvent.change(screen.getByTestId('relationship-description'),
+    { target: { value: 'Mara is Godfrey’s mother.' } });
+  fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+  await waitFor(() => expect(apiClient.put).toHaveBeenCalledWith(
+    '/campaigns/wednesday/npc-relationships/link-1',
+    { source_id: 'mara', target_id: 'godfrey', relationship_type: 'parent',
+      description: 'Mara is Godfrey’s mother.' }
+  ));
+  expect(await within(list).findByText('Parent / child')).toBeInTheDocument();
+  expect(within(list).getByText('Mara is Godfrey’s mother.')).toBeInTheDocument();
+  expect(apiClient.post).not.toHaveBeenCalled();
+  expect(apiClient.delete).not.toHaveBeenCalled();
+});
+
+test('a failed relationship edit leaves saved connection unchanged', async () => {
+  respondWith(npcs, [{
+    id: 'link-1', source_id: 'godfrey', target_id: 'mara',
+    relationship_type: 'family', description: 'Old history',
+  }]);
+  apiClient.put.mockRejectedValue(new Error('Network offline'));
+  render(<NPCRelationshipWeb campaignId="friday" />);
+  const list = await screen.findByTestId('npc-relationship-list');
+  fireEvent.click(within(list).getByRole('button', { name: /edit relationship between/i }));
+  fireEvent.change(screen.getByTestId('relationship-description'), { target: { value: 'New history' } });
+  fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+  await waitFor(() => expect(toast.error).toHaveBeenCalled());
+  expect(within(list).getByText('Old history')).toBeInTheDocument();
+  expect(within(list).queryByText('New history')).not.toBeInTheDocument();
+  expect(apiClient.delete).not.toHaveBeenCalled();
+});
+
+test('a focused graph contains the NPC and direct connections only', () => {
+  const nodes = [{ id: 'godfrey', name: 'Godfrey' }, { id: 'mara', name: 'Mara' },
+    { id: 'pippa', name: 'Pippa' }, { id: 'unrelated', name: 'Other' }];
+  const links = [{ id: 'a', source_id: 'godfrey', target_id: 'mara' },
+    { id: 'b', source_id: 'pippa', target_id: 'godfrey' }];
+  const layout = focusedRelationshipLayout(nodes, links, 'godfrey');
+  expect(layout.ids).toEqual(expect.arrayContaining(['godfrey', 'mara', 'pippa']));
+  expect(layout.ids).not.toContain('unrelated');
+  expect(layout.positions.godfrey).toEqual({ x: 195, y: 70 });
+  expect(layout.height).toBeGreaterThanOrEqual(310);
+});
+
+test('phone map offers a readable focus selector, links and a full-network switch', async () => {
+  respondWith(npcs, [{
+    id: 'link-1', source_id: 'godfrey', target_id: 'mara',
+    relationship_type: 'parent', description: 'Mara is Godfrey’s mother.',
+  }]);
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  await screen.findByText('1 saved links');
+  const map = screen.getByRole('region', { name: 'Visual NPC relationship map' });
+  expect(within(map).getByRole('button', { name: 'Focused view' })).toHaveAttribute('aria-pressed', 'true');
+  expect(within(map).getByLabelText(/Relationship network focused on/)).toBeInTheDocument();
+  expect(within(map).getByLabelText('Focus relationship map on NPC')).toHaveValue('godfrey');
+  fireEvent.click(within(map).getByRole('button', { name: 'Whole network' }));
+  expect(within(map).getByLabelText('Complete campaign NPC network')).toBeInTheDocument();
+  fireEvent.change(within(map).getByLabelText('Focus relationship map on NPC'), { target: { value: 'mara' } });
+  expect(within(map).getByLabelText('Relationship network focused on Mara Barfoot')).toBeInTheDocument();
+});
+
+test('mobile relationship diagram is no longer hidden by responsive CSS', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const css = fs.readFileSync(path.join(__dirname, 'NPCRelationshipWeb.css'), 'utf8');
+  expect(css).not.toContain('.rqk-rel-graph-panel { display: none; }');
+  expect(css).toContain('.rqk-rel-graph-scroller--focus svg');
 });
