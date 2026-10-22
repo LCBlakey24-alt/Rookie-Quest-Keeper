@@ -28,7 +28,7 @@ export function daysUntilNextOccurrence(event, calendar) {
   const totalDays = months.reduce((sum, x) => sum + Number(x.days || 0), 0) || 365;
   const current = calendarOrdinal(calendar, calendar.current_year, calendar.current_month, calendar.current_day);
   if (current == null) return null;
-  for (let distance = Math.max(0, plain); distance <= totalDays + 10; distance++) {
+  for (let distance = Math.max(0, plain); distance <= Math.max(0, plain) + totalDays + 10; distance++) {
     const year = Math.floor((current + distance) / totalDays);
     let remaining = current + distance - year * totalDays;
     let month = 1;
