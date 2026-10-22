@@ -116,3 +116,33 @@
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-npc-card { animation: none !important; }
 }
+
+/* Related NPC record controls and the in-place full editor. */
+.rqk-npc-editor-dialog {
+  width: min(760px, calc(100vw - 24px)) !important;
+  max-height: min(88dvh, 900px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+.rqk-npc-card-role {
+  margin: 0 0 3px;
+  font-size: 12px;
+  color: var(--rq-text-secondary, #bdc8d1);
+  line-height: 1.4;
+}
+.rqk-npc-refresh-warning {
+  color: var(--rq-text-primary, #eadfc8);
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  border-left: 3px solid var(--rq-primary, #c9a96b);
+  background: var(--rq-bg-panel, #1e2936);
+}
+@media (max-width: 719px) {
+  #root .rqk-npc-editor-dialog {
+    padding: 14px !important;
+    max-height: calc(100dvh - 34px) !important;
+  }
+}
