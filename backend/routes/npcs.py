@@ -288,6 +288,66 @@ async def get_npc_relationships(campaign_id: str, username: str = Depends(get_cu
     ).to_list(500)
     return relationships
 
+@router.put("/campaigns/{campaign_id}/npc-relationships/{relationship_id}")
+async def update_npc_relationship(
+    campaign_id: str,
+    relationship_id: str,
+    rel_data: NPCRelationshipCreate,
+    username: str = Depends(get_current_user),
+):
+    """Edit an existing link in place; never delete/recreate an NPC or relationship."""
+    await verify_campaign_ownership(campaign_id, username)
+
+    existing = await db.npc_relationships.find_one({
+        "id": relationship_id, "campaign_id": campaign_id
+    })
+    if not existing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Relationship not found")
+
+    source_id = rel_data.source_id.strip()
+    target_id = rel_data.target_id.strip()
+    kind = rel_data.relationship_type.strip()
+    if not source_id or not target_id or source_id == target_id or not kind:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail="Choose two different NPCs and a relationship type.")
+    if len(rel_data.description) > 2000:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail="Relationship notes cannot exceed 2,000 characters.")
+
+    # Both endpoints must be members of the same campaign as the saved link.
+    for npc_id in (source_id, target_id):
+        if not await db.npcs.find_one({"id": npc_id, "campaign_id": campaign_id}):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="One or both NPCs not found in this campaign")
+
+    collision = await db.npc_relationships.find_one({
+        "campaign_id": campaign_id,
+        "id": {"$ne": relationship_id},
+        "$or": [
+            {"source_id": source_id, "target_id": target_id},
+            {"source_id": target_id, "target_id": source_id},
+        ],
+    })
+    if collision:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Another relationship already connects these NPCs.")
+
+    await db.npc_relationships.update_one(
+        {"id": relationship_id, "campaign_id": campaign_id},
+        {"$set": {
+            "source_id": source_id,
+            "target_id": target_id,
+            "relationship_type": kind,
+            "description": rel_data.description.strip(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+    )
+    updated = await db.npc_relationships.find_one(
+        {"id": relationship_id, "campaign_id": campaign_id}, {"_id": 0}
+    )
+    return updated
+
+
 @router.delete("/campaigns/{campaign_id}/npc-relationships/{relationship_id}")
 async def delete_npc_relationship(campaign_id: str, relationship_id: str, username: str = Depends(get_current_user)):
     """Delete an NPC relationship"""
