@@ -48,6 +48,153 @@
   .rqk-rel-list-heading input { max-width: 100%; }
   .rqk-rel-entry { align-items: flex-start; flex-direction: column; }
   .rqk-rel-remove { align-self: flex-end; }
-  .rqk-rel-graph-panel { display: none; }
+  .rqk-rel-graph-panel { display: grid; }
 }
 @media (prefers-reduced-motion: reduce) { .rqk-rel-workspace * { scroll-behavior: auto !important; } }
+
+/* Guild Ledger network explorer — accessible on phone, tablet and desktop. */
+#root .rqk-rel-workspace { gap: clamp(12px, 1.8vw, 22px); }
+#root .rqk-rel-heading {
+  align-items: center;
+  padding: clamp(14px, 2vw, 22px);
+  background: var(--rq-bg-panel, #1e2936);
+  border: 1px solid rgba(201,169,107,.25);
+  border-left: 3px solid var(--rq-primary, #c9a96b);
+  border-radius: 8px;
+}
+#root .rqk-rel-heading h2 {
+  font: 700 clamp(22px, 3vw, 30px)/1.2 var(--rq-font-display, Georgia, serif);
+}
+#root .rqk-rel-panel {
+  border-color: rgba(201,169,107,.25);
+  border-radius: 8px;
+}
+#root .rqk-rel-form :is(input, select),
+#root .rqk-rel-list-heading :is(input, select),
+#root .rqk-rel-graph-toolbar select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 11px;
+  border: 1px solid rgba(201,169,107,.33);
+  border-radius: 6px;
+  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-input, #101f2d);
+  font: inherit;
+  font-size: 13px;
+}
+#root .rqk-rel-form select:disabled { opacity: .7; }
+#root .rqk-rel-submit {
+  min-height: 44px;
+  border-color: #c9a96b;
+  background: #c9a96b;
+  color: #07131f !important;
+}
+#root .rqk-rel-cancel {
+  justify-self: start;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid rgba(201,169,107,.33);
+  border-radius: 6px;
+  background: var(--rq-bg-card, #263748);
+  color: var(--rq-text-primary, #eadfc8);
+  cursor: pointer;
+  font: inherit;
+}
+#root .rqk-rel-entry {
+  background: var(--rq-bg-deep, #07131f);
+  border-color: rgba(201,169,107,.19);
+}
+#root .rqk-rel-entry-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+#root .rqk-rel-edit {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid rgba(201,169,107,.36);
+  border-radius: 6px;
+  color: #eadfc8;
+  background: var(--rq-bg-card, #263748);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#root .rqk-rel-graph-panel { overflow: visible; display: grid; }
+#root .rqk-rel-graph-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 10px 12px;
+  background: var(--rq-bg-deep, #07131f);
+  border: 1px solid rgba(201,169,107,.2);
+  border-radius: 6px;
+}
+#root .rqk-rel-graph-toolbar label {
+  color: var(--rq-text-secondary, #d5c9b6);
+  font-size: 12px;
+  font-weight: 800;
+}
+#root .rqk-rel-graph-toolbar select {
+  flex: 0 1 280px;
+}
+#root .rqk-rel-graph-toolbar span {
+  margin-left: auto;
+  color: var(--rq-text-muted, #baac99);
+  font-size: 12px;
+}
+#root .rqk-rel-graph-scroller {
+  max-height: min(62vh, 630px);
+  width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+  background: var(--rq-bg-deep, #07131f);
+  border: 1px solid rgba(201,169,107,.28);
+  border-radius: 6px;
+}
+#root .rqk-rel-graph-scroller svg {
+  width: 100%;
+  min-width: 780px;
+  height: auto;
+}
+#root .rqk-rel-graph-scroller.is-focused svg { min-width: 420px; }
+#root .rqk-rel-selected-links {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 8px 0 0;
+  list-style: none;
+}
+#root .rqk-rel-selected-links li {
+  padding: 9px 11px;
+  border: 1px solid rgba(201,169,107,.22);
+  border-radius: 6px;
+  background: var(--rq-bg-card, #263748);
+  line-height: 1.55;
+}
+#root .rqk-rel-workspace :is(button,select,input):focus-visible {
+  outline: 2px solid #d9bc82 !important;
+  outline-offset: 3px;
+}
+@media (max-width: 580px) {
+  #root .rqk-rel-list-heading :is(input,select),
+  #root .rqk-rel-graph-toolbar select { max-width: none; flex: 1 1 100%; }
+  #root .rqk-rel-list { max-height: none; overflow: visible; }
+  #root .rqk-rel-entry-actions { width: 100%; justify-content: flex-end; }
+  #root .rqk-rel-edit, #root .rqk-rel-remove { min-height: 44px; }
+  #root .rqk-rel-graph-panel { display: grid; }
+  #root .rqk-rel-graph-toolbar span { margin-left: 0; }
+  #root .rqk-rel-graph-scroller { max-height: 380px; }
+  #root .rqk-rel-graph-scroller.is-focused svg { min-width: 400px; }
+}
