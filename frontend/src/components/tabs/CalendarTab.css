@@ -42,3 +42,39 @@
     scrollbar-width: thin;
   }
 }
+
+/* Full custom-calendar controls, shared across Friday and Wednesday without shared dates. */
+.rqk-calendar-load-error { display: grid; justify-items: start; gap: 10px; padding: 18px; border: 1px solid #9f7b67; background: #1e2936; color: #eadfc8; border-radius: 6px; }
+.rqk-calendar-load-error p { margin: 0; }
+#root .rqk-calendar-settings-panel { display: grid; gap: 13px; padding: clamp(12px, 2vw, 18px); margin-bottom: 16px; background: #0c2234; border: 1px solid rgba(201,169,107,.3); }
+#root .rqk-calendar-settings-panel h3 { margin: 0; color: #eadfc8; }
+#root .rqk-calendar-settings-panel > p, #root .rqk-calendar-structure-form > p { color: #b8c8d4; font-size: 13px; line-height: 1.5; margin: 0; }
+.rqk-calendar-date-controls { display: grid; grid-template-columns: minmax(72px,.7fr) minmax(100px,1.4fr) minmax(88px,1fr) auto; align-items: end; gap: 9px; }
+.rqk-calendar-date-controls label, .rqk-calendar-structure-form label, .rqk-calendar-repeat-label { display: grid; gap: 5px; min-width: 0; color: #eadfc8; font-size: 12px; font-weight: 800; }
+.rqk-calendar-date-controls :is(input,select), .rqk-calendar-structure-form input, .rqk-calendar-repeat-label select {
+  box-sizing: border-box; min-width: 0; width: 100%; min-height: 41px; padding: 8px;
+  background: #091a29; border: 1px solid #738392; border-radius: 5px; color: #f2e4d1;
+  font: inherit; font-size: 14px;
+}
+.rqk-calendar-month-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 13px; }
+.rqk-calendar-month-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.rqk-calendar-month-actions > button { min-height: 38px; }
+.rqk-calendar-structure-form { display: grid; gap: 12px; border-top: 1px solid #455b6c; padding-top: 12px; }
+.rqk-calendar-structure-form > label { max-width: 160px; }
+.rqk-calendar-structure-months { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.rqk-calendar-structure-month { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(72px,.6fr) minmax(0,1fr); gap: 8px; align-items: end; background: #122a3d; padding: 10px; border: 1px solid #3f5366; border-radius: 6px; }
+.rqk-calendar-structure-month > strong { grid-column: 1 / -1; color: #e9c28e; font-size: 12px; }
+.rqk-calendar-structure-form > button { justify-self: start; }
+.rqk-calendar-repeat-label { max-width: 330px; }
+#root .rqk-calendar-layout :is(input,select,button):focus-visible { outline: 2px solid #d8b879; outline-offset: 2px; }
+@media (max-width: 920px) {
+  .rqk-calendar-structure-months { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .rqk-calendar-date-controls { grid-template-columns: minmax(0,1fr) minmax(0,1.4fr); }
+  .rqk-calendar-date-controls > button { grid-column: 1 / -1; }
+  .rqk-calendar-structure-month { grid-template-columns: minmax(0,1fr) minmax(70px,.55fr); }
+  .rqk-calendar-structure-month label:last-child { grid-column: 1 / -1; }
+  .rqk-calendar-month-actions { width: 100%; }
+  .rqk-calendar-month-actions > button { flex: 1 1 90px; }
+}
