@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -68,6 +68,7 @@ export default function CampaignDashboard() {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
+  const tabRowRef = useRef(null);
 
   const activeTabMeta = useMemo(
     () => allTabs.find((tab) => tab.id === activeTab) || allTabs[0],
@@ -131,6 +132,13 @@ export default function CampaignDashboard() {
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+
+  // Deep links and the quick finder can select an off-screen tab. Bring its
+  // button into the horizontal navigation viewport without stealing focus.
+  useEffect(() => {
+    const selected = tabRowRef.current?.querySelector('.campaign-dashboard-tab.is-active');
+    selected?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+  }, [activeTab]);
 
   const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
 
@@ -326,7 +334,7 @@ export default function CampaignDashboard() {
           })}
         </div>
 
-        <div className="campaign-dashboard-tab-row" aria-label={`${activeGroup?.label || 'Campaign'} tools`}>
+        <div ref={tabRowRef} className="campaign-dashboard-tab-row" aria-label={`${activeGroup?.label || 'Campaign'} tools`}>
           {activeGroup?.tabs.map((tab) => {
             const Icon = tab.icon;
             const active = tab.id === activeTab;
