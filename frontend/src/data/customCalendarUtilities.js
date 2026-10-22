@@ -21,23 +21,34 @@ export function calendarMonthAfter(calendar, year, month, delta) {
 
 export function daysUntilNextOccurrence(event, calendar) {
   if (!event || !calendar) return null;
-  const plain = calendarDaysUntil(event, calendar);
-  if (!event.is_recurring || !['weekly','monthly','annual'].includes(event.recurrence_type)) return plain;
-  if (plain == null) return null;
-  const months = calendar.custom_months || [];
-  const totalDays = months.reduce((sum, x) => sum + Number(x.days || 0), 0) || 365;
+  const first = calendarOrdinal(calendar, event.year, event.month, event.day);
   const current = calendarOrdinal(calendar, calendar.current_year, calendar.current_month, calendar.current_day);
-  if (current == null) return null;
-  for (let distance = Math.max(0, plain); distance <= Math.max(0, plain) + totalDays + 10; distance++) {
-    const year = Math.floor((current + distance) / totalDays);
-    let remaining = current + distance - year * totalDays;
-    let month = 1;
-    for (const entry of months) {
-      if (remaining < Number(entry.days)) break;
-      remaining -= Number(entry.days);
-      month++;
+  if (first == null || current == null) return null;
+
+  const recurrence = event.is_recurring ? event.recurrence_type : 'none';
+  if (!['weekly', 'monthly', 'annual'].includes(recurrence)) return first - current;
+
+  // A recurring event must never appear before its first scheduled date.
+  const start = Math.max(first, current);
+  if (recurrence === 'weekly') {
+    const week = Math.max(1, Number(calendar.days_per_week) || 7);
+    return start + (week - ((start - first) % week)) % week - current;
+  }
+
+  const months = calendar.custom_months || [];
+  if (!months.length) return null;
+  const yearLength = months.reduce((sum, month) => sum + Number(month.days || 0), 0);
+  if (yearLength < 1) return null;
+
+  // A monthly date may not exist in a shorter month; skip it rather than
+  // silently moving it to a different date.
+  const baseYear = Math.floor(start / yearLength);
+  for (let year = baseYear; year <= baseYear + 2; year++) {
+    for (let month = 1; month <= months.length; month++) {
+      if (recurrence === 'annual' && month !== Number(event.month)) continue;
+      const candidate = calendarOrdinal(calendar, year, month, event.day);
+      if (candidate !== null && candidate >= start) return candidate - current;
     }
-    if (eventOccursOn(event, calendar, year, month, remaining + 1)) return distance;
   }
   return null;
 }
