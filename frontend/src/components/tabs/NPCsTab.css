@@ -116,3 +116,170 @@
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-npc-card { animation: none !important; }
 }
+
+
+/* Fast NPC reference: compact scan row, expandable full stats, no lost GM lore. */
+#root .rqk-npc-roster-toolbar { min-width: 0; gap: 10px !important; }
+#root .rqk-npc-roster-toolbar h2 { margin: 0 !important; }
+#root .rqk-npc-toggle-all {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--rq-line-strong, #526274);
+  border-radius: 6px;
+  background: var(--rq-card, #263748);
+  color: var(--rq-text-primary, #EADFC8);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+#root .rqk-npc-toggle-all:hover,
+#root .rqk-npc-toggle-all:focus-visible {
+  border-color: var(--rq-primary, #C9A96B);
+  outline-offset: 2px;
+}
+#root .rqk-npc-list .rqk-npc-card {
+  align-self: start !important;
+  min-height: 0 !important;
+  height: auto !important;
+  display: block !important;
+  overflow: visible !important;
+}
+#root .rqk-npc-list .rqk-npc-card-header {
+  height: auto !important;
+  min-height: 0 !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+}
+#root .rqk-npc-list .rqk-npc-card-content {
+  height: auto !important;
+  min-height: 0 !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+}
+#root .rqk-npc-combat-details { min-width: 0 !important; }
+#root .rqk-npc-combat-summary {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 6px 10px !important;
+  min-width: 0 !important;
+  list-style: none !important;
+}
+#root .rqk-npc-combat-summary::-webkit-details-marker { display: none; }
+#root .rqk-npc-combat-summary::before {
+  content: '▸';
+  flex: 0 0 auto;
+  color: var(--rq-primary, #C9A96B);
+  font-size: 17px;
+}
+#root .rqk-npc-combat-details[open] > .rqk-npc-combat-summary::before { content: '▾'; }
+#root .rqk-npc-combat-summary-title {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 800;
+  color: var(--rq-text-primary, #EADFC8);
+}
+#root .rqk-npc-combat-quick-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+}
+#root .rqk-npc-combat-quick-stats > span {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.2;
+  border: 1px solid var(--rq-line, rgba(201,169,107,.20));
+  border-radius: 4px;
+  background: var(--rq-bg-main, #0B1B2B);
+  color: var(--rq-text-primary, #EADFC8);
+}
+#root .rqk-npc-combat-quick-stats strong { color: var(--rq-primary, #C9A96B); }
+
+@media (max-width: 760px) {
+  #root .rqk-npc-roster-toolbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+  #root .rqk-npc-roster-toolbar > h2 {
+    grid-column: 1 / -1;
+    font-size: 21px !important;
+  }
+  #root .rqk-npc-roster-toolbar > button,
+  #root .rqk-npc-roster-toolbar > [data-state],
+  #root .rqk-npc-roster-toolbar > .rqk-npc-toggle-all {
+    width: 100%;
+  }
+  #root .rqk-npc-roster-toolbar > button,
+  #root .rqk-npc-roster-toolbar button[data-testid='add-npc-btn'] {
+    min-height: 42px !important;
+    justify-content: center !important;
+  }
+  #root .rqk-npc-search-area { margin-bottom: 10px !important; }
+  #root .rqk-npc-search-area input { min-height: 42px !important; }
+  #root .rqk-npc-list { gap: 9px !important; }
+  #root .rqk-npc-list .rqk-npc-card {
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 9px !important;
+  }
+  #root .rqk-npc-list .rqk-npc-card-header {
+    padding: 10px 11px 4px !important;
+    margin: 0 !important;
+  }
+  #root .rqk-npc-list .rqk-npc-card-main {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 9px !important;
+  }
+  #root .rqk-npc-list .rqk-npc-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    align-self: center !important;
+    background: var(--rq-card, #263748) !important;
+    border: 1px solid var(--rq-line-strong, #526274);
+  }
+  #root .rqk-npc-list .rqk-npc-identity {
+    min-width: 0 !important;
+    align-self: center !important;
+  }
+  #root .rqk-npc-list .rqk-npc-name {
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+    margin: 0 0 2px !important;
+    overflow-wrap: anywhere !important;
+  }
+  #root .rqk-npc-list .rqk-npc-card-actions { gap: 5px !important; }
+  #root .rqk-npc-list .rqk-npc-card-actions button {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+  }
+  #root .rqk-npc-list .rqk-npc-card-content {
+    padding: 0 11px 10px !important;
+    margin: 0 !important;
+  }
+  #root .rqk-npc-combat-summary {
+    padding: 6px 0 0 !important;
+    gap: 7px !important;
+  }
+  #root .rqk-npc-combat-quick-stats { margin-left: 0; }
+  #root .rqk-npc-combat-quick-stats > span { padding: 4px 5px; font-size: 11px; }
+  #root .rqk-npc-combat-details[open] > .rqk-stat-block { margin-top: 10px; }
+  #root .rqk-npc-list {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-npc-toggle-all { transition: none !important; }
+}
