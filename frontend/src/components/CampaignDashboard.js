@@ -43,10 +43,10 @@ import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
 import './CampaignDashboard.css';
 
 const uploadTheme = {
-  bg: { black: '#071522', panel: '#0C2234', card: '#102B40', hover: '#14344C' },
-  accent: { primary: '#FF2DAA', secondary: '#7CCBFF', subtle: 'rgba(255,45,170,0.08)' },
-  text: { white: '#FFFFFF', primary: '#FFFFFF', secondary: '#FFFFFF', muted: '#FFFFFF' },
-  border: 'rgba(255,45,170,0.18)',
+  bg: { black: '#07131F', panel: '#1E2936', card: '#263748', hover: '#334155' },
+  accent: { primary: '#C9A96B', secondary: '#6E91B4', subtle: 'rgba(201,169,107,0.12)' },
+  text: { white: '#EADFC8', primary: '#EADFC8', secondary: '#D5C9B6', muted: '#AEAB9F' },
+  border: 'rgba(201,169,107,0.26)',
 };
 
 function tabFromHash() {
@@ -401,6 +401,7 @@ function daysUntilEvent(event, calendar) {
 function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
+  const [unavailableSections, setUnavailableSections] = useState([]);
 
   const loadHome = useCallback(async () => {
     if (!campaignId) return;
@@ -412,6 +413,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
       setData(normaliseHomeData(response.data || {}));
+      setUnavailableSections([]);
       setHomeLoading(false);
       return;
     } catch (error) {
@@ -422,31 +424,34 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
       }
     }
 
-    const [questsRes, arcsRes, npcsRes, locationsRes, notesRes, calendarRes, eventsRes] = await Promise.all([
-      apiClient.get(`/campaigns/${campaignId}/quests`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/story-arcs`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/locations`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/ingame-notes`).catch(() => ({ data: [] })),
-      apiClient.get(`/campaigns/${campaignId}/calendar`).catch(() => ({ data: null })),
-      apiClient.get(`/campaigns/${campaignId}/calendar-events`).catch(() => ({ data: [] })),
-    ]);
-
-    setData(normaliseHomeData({
-      quests: questsRes.data,
-      arcs: arcsRes.data,
-      npcs: npcsRes.data,
-      locations: locationsRes.data,
-      notes: notesRes.data,
-      calendar: calendarRes.data,
-      events: eventsRes.data,
-    }));
+    // Do not translate failed requests into an apparently empty campaign.
+    // Preserve previously loaded sections and identify unavailable ones.
+    const sections = [
+      ['quests', 'quests'], ['arcs', 'story-arcs'], ['npcs', 'npcs'],
+      ['locations', 'locations'], ['notes', 'ingame-notes'],
+      ['calendar', 'calendar'], ['events', 'calendar-events'],
+    ];
+    const results = await Promise.allSettled(sections.map(([, path]) =>
+      apiClient.get(`/campaigns/${campaignId}/${path}`)));
+    const successful = {};
+    const missing = [];
+    results.forEach((result, index) => {
+      const [key] = sections[index];
+      if (result.status === 'fulfilled' && result.value?.data != null) {
+        successful[key] = result.value.data;
+      } else {
+        missing.push(key);
+      }
+    });
+    setData(previous => normaliseHomeData({ ...previous, ...successful }));
+    setUnavailableSections(missing);
     setHomeLoading(false);
   }, [campaignId]);
 
   useEffect(() => {
     if (initialData) {
       setData(normaliseHomeData(initialData));
+      setUnavailableSections([]);
       setHomeLoading(false);
       return;
     }
@@ -484,6 +489,13 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     return `${month} ${data.calendar.current_day || 1}, Year ${data.calendar.current_year || 1}`;
   }, [data.calendar]);
 
+  const overview = [
+    { id: 'story-arcs', label: 'Quests', key: 'quests', count: data.quests.length, icon: ScrollText },
+    { id: 'npcs', label: 'NPCs', key: 'npcs', count: data.npcs.length, icon: UserCircle },
+    { id: 'maps', label: 'Places', key: 'locations', count: data.locations.length, icon: MapPin },
+    { id: 'ingame-notes', label: 'Session notes', key: 'notes', count: data.notes.length, icon: FileText },
+  ];
+
   const quick = [
     { id: 'story-arcs', label: 'Quests & Story', icon: ScrollText },
     { id: 'combat', label: 'Encounters', icon: Swords },
@@ -497,9 +509,9 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     <div className="campaign-home-simple">
       <section className="campaign-home-command" aria-labelledby="campaign-home-title">
         <div className="campaign-home-command-copy">
-          <p>GM Home</p>
+          <p>Campaign command / GM workspace</p>
           <h2 id="campaign-home-title">{campaign?.name || 'Campaign'}</h2>
-          <span>{homeLoading ? 'Loading campaign focus…' : 'Your next-session essentials, without digging through tools.'}</span>
+          <span>{homeLoading ? 'Loading campaign focus…' : 'Quests, characters, places and the next scene — ready for the table.'}</span>
         </div>
         <div className="campaign-home-command-actions">
           <button type="button" className="campaign-button" onClick={loadHome} disabled={homeLoading}>
@@ -509,6 +521,27 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             <Flag size={15} aria-hidden="true" /> Prep Next Session
           </button>
         </div>
+      </section>
+
+      {unavailableSections.length > 0 && (
+        <p className="campaign-home-source-warning" role="status">
+          Some campaign records could not be loaded: {unavailableSections.join(', ')}.
+          Saved data has not been deleted. Select Refresh to try again.
+        </p>
+      )}
+
+      <section className="campaign-home-overview" aria-label="Campaign library at a glance">
+        {overview.map(item => {
+          const Icon = item.icon;
+          return (
+            <button type="button" key={item.id} className="campaign-home-overview-item"
+              onClick={() => onOpenTab(item.id)} aria-label={`Open ${item.label}`}>
+              <Icon size={19} aria-hidden="true" />
+              <strong>{homeLoading || unavailableSections.includes(item.key) ? '—' : item.count}</strong>
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
       </section>
 
       <section className="campaign-home-focus-grid" aria-label="Campaign focus">

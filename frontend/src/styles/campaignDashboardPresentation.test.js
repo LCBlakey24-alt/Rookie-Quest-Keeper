@@ -32,8 +32,21 @@ describe('Campaign Dashboard presentation ownership', () => {
     expect(css).toContain("[data-rq-device='tablet']");
     expect(css).toContain("[data-rq-device='desktop']");
     expect(css).toContain('var(--rq-bg-deep, #06111f)');
-    expect(css).toContain('var(--rq-primary, #d11f2a)');
+    expect(css).toContain('var(--rq-primary, #C9A96B)');
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
+    expect(css).not.toMatch(/#FF2DAA|rgba\(255,45,170|#7CCBFF/i);
+    expect(css).toContain('Guild Ledger campaign workspace');
+    expect(css).toContain('--rqk-campaign-brass: #c9a96b;');
+    expect(css).toContain('.campaign-home-overview');
+  });
+
+  test('home overview uses data-backed counts and reports partial loading failures', () => {
+    const source = read('../components/CampaignDashboard.js');
+    expect(source).toContain('className="campaign-home-overview"');
+    expect(source).toContain('Promise.allSettled');
+    expect(source).toContain('unavailableSections.includes(item.key)');
+    expect(source).toContain('Some campaign records could not be loaded');
+    expect(source).not.toContain("accent: { primary: '#FF2DAA'");
   });
 
   test('does not wrap the active workspace in another decorative panel', () => {
