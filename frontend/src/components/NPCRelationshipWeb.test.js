@@ -5,7 +5,7 @@ import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 
 jest.mock('@/lib/apiClient', () => ({
-  __esModule: true, default: { get: jest.fn(), post: jest.fn(), delete: jest.fn() },
+  __esModule: true, default: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() },
 }));
 jest.mock('sonner', () => ({
   toast: { error: jest.fn(), success: jest.fn() },
@@ -119,4 +119,47 @@ test('relationship network supports specific family and secret types and filters
   expect(within(list).queryByText('Parent / child')).not.toBeInTheDocument();
   fireEvent.click(within(list).getByRole('button', { name: 'Godfrey Barfoot' }));
   expect(screen.getByTestId('selected-npc-relationships')).toHaveTextContent('Mara is Godfrey’s mother.');
+});
+
+test('edits an existing relationship in place without deleting/recreating it', async () => {
+  respondWith(npcs, [{
+    id: 'godfrey-mara', source_id: 'godfrey', target_id: 'mara',
+    relationship_type: 'family', description: 'Family connection',
+  }]);
+  apiClient.put.mockResolvedValue({ data: {
+    id: 'godfrey-mara', source_id: 'godfrey', target_id: 'mara',
+    relationship_type: 'parent', description: 'Mara is Godfrey’s mother',
+  } });
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  const list = await screen.findByTestId('npc-relationship-list');
+  fireEvent.click(within(list).getByRole('button', { name: /edit relationship between/i }));
+  expect(screen.getByText('Edit saved connection')).toBeInTheDocument();
+  expect(screen.getByTestId('relationship-source')).toBeDisabled();
+  expect(screen.getByTestId('relationship-target')).toBeDisabled();
+  fireEvent.change(screen.getByTestId('relationship-type'), { target: { value: 'parent' } });
+  fireEvent.change(screen.getByTestId('relationship-description'),
+    { target: { value: 'Mara is Godfrey’s mother' } });
+  fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+  await waitFor(() => expect(apiClient.put).toHaveBeenCalledWith(
+    '/campaigns/wednesday/npc-relationships/godfrey-mara',
+    expect.objectContaining({ relationship_type: 'parent', description: 'Mara is Godfrey’s mother' })
+  ));
+  expect(screen.getByText('1 saved links')).toBeInTheDocument();
+  expect(screen.getByText('Mara is Godfrey’s mother')).toBeInTheDocument();
+  expect(apiClient.delete).not.toHaveBeenCalled();
+  expect(apiClient.post).not.toHaveBeenCalled();
+});
+
+test('relationship graph has a focus selector with linked NPC count', async () => {
+  respondWith(npcs, [{
+    id: 'mother-son', source_id: 'godfrey', target_id: 'mara',
+    relationship_type: 'parent', description: 'Mother and son',
+  }]);
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  await screen.findByText('1 saved links');
+  expect(screen.getByRole('combobox', { name: 'Focus on an NPC' })).toBeInTheDocument();
+  fireEvent.change(screen.getByRole('combobox', { name: 'Focus on an NPC' }),
+    { target: { value: 'godfrey' } });
+  expect(screen.getByText('2 shown · 1 connections')).toBeInTheDocument();
+  expect(screen.getByTestId('selected-npc-relationships')).toHaveTextContent('Mara Barfoot');
 });
