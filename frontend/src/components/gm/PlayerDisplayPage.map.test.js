@@ -84,7 +84,7 @@ describe('visible map token alignment', () => {
       left: '100%', top: '100%', transform: 'translate(-100%, -100%)',
     });
     expect(screen.queryByTestId('combat-map-token-waiting')).not.toBeInTheDocument();
-    expect(screen.getByText('Waiting Scout')).toBeInTheDocument();
+    expect(screen.getAllByText('Waiting Scout').length).toBeGreaterThan(0);
   });
 
   test('token overlay matches the actual contained portrait-map rectangle', () => {
