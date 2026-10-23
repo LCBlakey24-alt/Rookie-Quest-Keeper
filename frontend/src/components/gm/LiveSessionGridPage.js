@@ -170,7 +170,7 @@ export default function LiveSessionGridPage() {
     toast.success('Added to live notes', { description: 'Open Notes to edit or save it into the campaign log.' });
   };
 
-  const launchCombat = (scenario) => navigate(`/campaign/${campaignId}/combat`, { state: { scenario, campaignName: campaign?.name } });
+  const launchCombat = (scenario) => navigate(`/combat/${campaignId}`, { state: { scenario, campaignName: campaign?.name } });
 
   const quickStartCombat = () => {
     if (loadErrors.some(item => item.key === 'players')) {
