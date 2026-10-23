@@ -6,6 +6,7 @@ import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } 
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
+import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
 import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import './PlayerDisplayPage.css';
 
@@ -24,7 +25,7 @@ const theme = {
 };
 
 function normaliseTarget(target) { return target === 'virtual-table' ? 'virtual-table' : 'standing-tv'; }
-function displayTargetFor(state, urlTarget) { return normaliseTarget(state?.payload?.display_target || urlTarget); }
+function displayTargetFor(state, urlTarget) { return getPlayerDisplayTarget(urlTarget, state?.payload?.display_target); }
 function isTable(target) { return target === 'virtual-table'; }
 function signed(value = 0) { return Number(value || 0) >= 0 ? `+${Number(value || 0)}` : `${value}`; }
 function modeLabel(mode) {
@@ -102,7 +103,7 @@ function buildCombatRoster(partyMembers = [], tokens = []) {
 export default function PlayerDisplayPage() {
   const { campaignId } = useParams();
   const [searchParams] = useSearchParams();
-  const urlTarget = normaliseTarget(searchParams.get('target'));
+  const urlTarget = searchParams.get('target');
   const [state, setState] = useState(() => loadDisplayState(campaignId));
   const [party, setParty] = useState([]);
   const [fullscreen, setFullscreen] = useState(false);
