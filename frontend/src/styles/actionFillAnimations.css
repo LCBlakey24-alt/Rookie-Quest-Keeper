@@ -1,6 +1,6 @@
 /*
   Global action fill layer.
-  Mouse: hover previews the fill from the left.
+  Mouse: hover gradually fills the complete control from left to right.
   Touch/click: GlobalActionFillEffects adds .rq-fill-clicked so the control fills fully.
   Active tabs/buttons stay filled when they already expose active/selected state.
 */
@@ -95,7 +95,7 @@
   #root .dashboard-tabs button:not(:disabled):focus-visible::before,
   #root .rq-side-tab:not(:disabled):hover::before,
   #root .rq-side-tab:not(:disabled):focus-visible::before {
-    width: 6px;
+    width: 100%;
     opacity: 1;
   }
 }
