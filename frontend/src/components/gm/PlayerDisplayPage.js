@@ -1,10 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dice6, HeartPulse, Maximize2, Minimize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
+import { getContainedMapRect } from '@/data/containedMapGeometry';
+import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
+import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import './PlayerDisplayPage.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -22,7 +25,7 @@ const theme = {
 };
 
 function normaliseTarget(target) { return target === 'virtual-table' ? 'virtual-table' : 'standing-tv'; }
-function displayTargetFor(state, urlTarget) { return normaliseTarget(state?.payload?.display_target || urlTarget); }
+function displayTargetFor(state, urlTarget) { return getPlayerDisplayTarget(urlTarget, state?.payload?.display_target); }
 function isTable(target) { return target === 'virtual-table'; }
 function signed(value = 0) { return Number(value || 0) >= 0 ? `+${Number(value || 0)}` : `${value}`; }
 function modeLabel(mode) {
@@ -68,6 +71,7 @@ function normaliseCombatToken(token = {}, index = 0) {
   const maxHp = Number(token.max_hp ?? token.maxHp ?? token.hp_max ?? 0) || 0;
   const hp = Number(token.current_hp ?? token.currentHp ?? token.hp ?? maxHp) || 0;
   const hpPercent = maxHp ? Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100))) : 0;
+  const position = getCombatTokenMapPosition(token);
   return {
     id,
     type,
@@ -75,8 +79,8 @@ function normaliseCombatToken(token = {}, index = 0) {
     subtitle: token.subtitle || token.creature_type || token.role || (type === 'npc' ? 'NPC' : 'Enemy'),
     imageUrl: pickImage(token),
     image_url: pickImage(token),
-    x: Number(token.x ?? token.position?.x ?? token.token_x ?? 0),
-    y: Number(token.y ?? token.position?.y ?? token.token_y ?? 0),
+    x: position?.x ?? null,
+    y: position?.y ?? null,
     ac: Number(token.ac ?? token.armor_class ?? 0) || 0,
     hp,
     maxHp,
@@ -92,14 +96,14 @@ function normaliseCombatToken(token = {}, index = 0) {
 
 function buildCombatRoster(partyMembers = [], tokens = []) {
   const players = partyMembers.map((member, index) => ({ ...member, id: `player-${member.id || index}`, type: 'player', subtitle: `${member.className || 'Adventurer'}${member.race ? ` · ${member.race}` : ''}` }));
-  const creatures = tokens.map(normaliseCombatToken).filter(item => !item.hidden);
+  const creatures = tokens.filter(isPlayerVisibleCombatToken);
   return [...players, ...creatures].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0));
 }
 
 export default function PlayerDisplayPage() {
   const { campaignId } = useParams();
   const [searchParams] = useSearchParams();
-  const urlTarget = normaliseTarget(searchParams.get('target'));
+  const urlTarget = searchParams.get('target');
   const [state, setState] = useState(() => loadDisplayState(campaignId));
   const [party, setParty] = useState([]);
   const [fullscreen, setFullscreen] = useState(false);
@@ -290,10 +294,14 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return () => window.clearTimeout(timer);
   }, [startTime]);
   const battleIntro = showIntro ? <div className="rqk-battle-start__overlay"><BattleStartDisplay target={target} /></div> : null;
-  const tokens = Array.isArray(payload.tokens) ? payload.tokens.map(normaliseCombatToken) : [];
+  // Filter the display payload itself, not just the combat roster. Otherwise
+  // a hidden enemy can still leak via map pins or the unpositioned token shelf.
+  const tokens = Array.isArray(payload.tokens)
+    ? payload.tokens.filter(isPlayerVisibleCombatToken).map(normaliseCombatToken)
+    : [];
   const roster = buildCombatRoster(partyMembers, tokens);
-  const positionedTokens = tokens.filter(token => Number(token.x) || Number(token.y));
-  const unpositionedTokens = tokens.filter(token => !Number(token.x) && !Number(token.y));
+  const positionedTokens = tokens.filter(token => token.x !== null && token.y !== null);
+  const unpositionedTokens = tokens.filter(token => token.x === null || token.y === null);
   const activeId = String(payload.active_id || payload.activeCombatantId || payload.turn_id || payload.current_turn_id || roster[0]?.id || '');
   const round = payload.round || payload.round_number || payload.turn_round || '';
 
@@ -301,8 +309,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-          <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
+          <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -326,8 +333,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-        <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
+        <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -383,7 +389,81 @@ function renderStatsPage(page, session, allTime, target) {
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{award.name}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor }) { return <div style={actorRowStyle}><strong>{actor.name}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
-function MapToken({ token, target }) { const left = Math.max(2, Math.min(94, Number(token.x) || 50)); const top = Math.max(2, Math.min(90, Number(token.y) || 50)); return <div style={{ ...mapTokenStyle(target, token.type), left: `${left}%`, top: `${top}%` }}>{token.image_url ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} /> : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}</div>; }
+function CombatMapArtwork({ mapUrl, title, target, tokens }) {
+  const layerRef = useRef(null);
+  const [container, setContainer] = useState({ width: 0, height: 0 });
+  const [loadedImage, setLoadedImage] = useState(null);
+
+  useEffect(() => {
+    const element = layerRef.current;
+    if (!element) return undefined;
+    const measure = () => {
+      const { width, height } = element.getBoundingClientRect();
+      setContainer(previous => previous.width === width && previous.height === height
+        ? previous : { width, height });
+    };
+    measure();
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(measure);
+      observer.observe(element);
+      return () => observer.disconnect();
+    }
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  // Do not paint tokens over a stale image when the GM switches maps.
+  const imageReady = Boolean(mapUrl && loadedImage && loadedImage.url === mapUrl);
+  const bounds = imageReady
+    ? getContainedMapRect(container.width, container.height, loadedImage.width, loadedImage.height)
+    : null;
+  return (
+    <div ref={layerRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }} data-testid="combat-map-artwork">
+      {mapUrl
+        ? <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'} style={combatMapImageStyle(target)}
+            onLoad={event => setLoadedImage({
+              url: mapUrl,
+              width: event.currentTarget.naturalWidth,
+              height: event.currentTarget.naturalHeight,
+            })}
+            onError={() => setLoadedImage(null)} />
+        : <div style={missingImageStyle(target)}>Battle map waiting</div>}
+      {((!mapUrl && container.width > 0 && container.height > 0) || bounds) && (
+        <div data-testid="combat-map-token-overlay" style={{
+          ...tokenOverlayStyle,
+          inset: 'auto',
+          left: bounds?.left ?? 0,
+          top: bounds?.top ?? 0,
+          width: bounds?.width ?? container.width,
+          height: bounds?.height ?? container.height,
+        }}>
+          {tokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MapToken({ token, target }) {
+  const left = clampMapPercent(token.x);
+  const top = clampMapPercent(token.y);
+  // At 0% / 100%, keep the entire token inside the map instead of clipping
+  // half of its portrait outside the picture.
+  const horizontal = left <= 3 ? '0%' : left >= 97 ? '-100%' : '-50%';
+  const vertical = top <= 3 ? '0%' : top >= 97 ? '-100%' : '-50%';
+  return (
+    <div data-testid={`combat-map-token-${token.id}`} style={{
+      ...mapTokenStyle(target, token.type),
+      left: `${left}%`,
+      top: `${top}%`,
+      transform: `translate(${horizontal}, ${vertical})`,
+    }}>
+      {token.image_url
+        ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} />
+        : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}
+    </div>
+  );
+}
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = (target) => ({ height: '100dvh', maxHeight: '100dvh', minHeight: 0, width: '100%', maxWidth: '100vw', boxSizing: 'border-box', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
