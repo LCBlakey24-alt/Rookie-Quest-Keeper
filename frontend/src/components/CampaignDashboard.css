@@ -1533,3 +1533,14 @@
     scroll-snap-type: none !important;
   }
 }
+
+/* Overview numerals keep their large heading typography inside the animated
+   span, instead of inheriting the 12px caption rule for general card spans. */
+#root .campaign-home-overview-item > strong .rqk-ledger-number,
+#root .campaign-home-overview-item > strong .rqk-ledger-number__digits {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+}
