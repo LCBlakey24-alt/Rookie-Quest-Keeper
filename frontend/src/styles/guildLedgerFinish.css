@@ -309,3 +309,295 @@
     animation: none !important;
   }
 }
+
+
+/* Player UI authority: the same Guild Ledger family as the GM workspace.
+   In particular, supersede legacy mobile styles that zero out button labels. */
+@layer rq-controls {
+  #root .rqk-app-shell .player-dashboard-page,
+  #root .rqk-app-shell .player-campaign-page {
+    width: min(100%, 1440px) !important;
+    max-width: 1440px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin-inline: auto !important;
+    padding: clamp(12px, 2.2vw, 28px) !important;
+    background: transparent !important;
+    color: var(--rq-guild-copy, #F1EEE7) !important;
+  }
+  #root .rqk-app-shell .player-dashboard-page { gap: clamp(10px, 1.5vw, 18px) !important; }
+
+  #root .rqk-app-shell :is(
+    .player-dashboard-hero,
+    .player-dashboard-context,
+    .player-join-strip,
+    .player-dashboard-tab-shell,
+    .player-dashboard-card,
+    .player-campaign-header,
+    .player-campaign-card,
+    .player-now-playing
+  ) {
+    min-width: 0 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    background: var(--rq-bg-panel, #1E2936) !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-hero,.player-campaign-header) {
+    padding: clamp(14px, 2.2vw, 24px) !important;
+    gap: 16px !important;
+  }
+  #root .rqk-app-shell :is(
+    .player-dashboard-title-block h1,
+    .player-campaign-header h1,
+    .player-dashboard-card h2,
+    .player-campaign-card h2
+  ) {
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+    color: var(--rq-guild-heading, #D9BC82) !important;
+    -webkit-text-fill-color: currentColor !important;
+    line-height: 1.18 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-card p,.player-campaign-card p,.player-dashboard-title-block > p:last-child) {
+    color: var(--rq-guild-copy, #F1EEE7) !important;
+    line-height: 1.52 !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-eyebrow,.player-campaign-environment dt) {
+    color: var(--rq-guild-muted, #C9C6BF) !important;
+  }
+  #root .rqk-app-shell :is(
+    .player-dashboard-action-button,
+    .player-dashboard-icon-button,
+    .player-campaign-action,
+    .player-campaign-header button,
+    .player-dashboard-tab,
+    .player-campaign-tabs button
+  ) {
+    min-height: 44px !important;
+    color: var(--rq-guild-copy, #F1EEE7) !important;
+    font-size: clamp(12px, .95vw, 14px) !important;
+    font-weight: 750 !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+    letter-spacing: 0 !important;
+    text-indent: 0 !important;
+    border-radius: 7px !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-action-button,.player-campaign-action,.player-campaign-header button) {
+    padding: 10px 14px !important;
+    background: var(--rq-card, #263748) !important;
+    border: 1px solid transparent !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-action-button,.player-campaign-action,.player-campaign-header button):focus-visible {
+    outline: 2px solid var(--rq-guild-heading, #D9BC82) !important;
+    outline-offset: 3px !important;
+  }
+  #root .rqk-app-shell .player-dashboard-summary-grid {
+    min-width: 0 !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-summary-card,.player-dashboard-card) {
+    background: var(--rq-card, #263748) !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+  }
+  #root .rqk-app-shell .player-dashboard-card-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+    padding: clamp(12px, 1.5vw, 18px) !important;
+  }
+  #root .rqk-app-shell .player-dashboard-card-content > .player-dashboard-action-button {
+    width: 100% !important;
+    height: auto !important;
+    min-width: 0 !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-card-grid,.player-dashboard-character-main) {
+    min-width: 0 !important;
+  }
+  #root .rqk-app-shell .player-dashboard-tab-list {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    height: auto !important;
+    gap: 6px !important;
+    padding: 7px !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-tab,.player-campaign-tabs button)[data-state='active'],
+  #root .rqk-app-shell .player-dashboard-tab-active {
+    background: var(--rq-guild-wine, #7E2D2D) !important;
+    color: #F8F0E5 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+  #root .rqk-app-shell .player-dashboard-unavailable {
+    display: grid !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 18px !important;
+    background: var(--rq-bg-panel, #1E2936) !important;
+    border-radius: 9px !important;
+    border-left: 3px solid var(--rq-guild-heading, #D9BC82) !important;
+  }
+  #root .rqk-app-shell .player-dashboard-unavailable strong {
+    color: var(--rq-guild-heading, #D9BC82) !important;
+  }
+  #root .rqk-app-shell .player-dashboard-unavailable p { margin: 0 !important; line-height: 1.5 !important; }
+  #root .rqk-app-shell .player-campaign-tabs {
+    display: flex !important;
+    grid-template-columns: none !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+    gap: 5px !important;
+    padding: 6px !important;
+    background: var(--rq-bg-panel, #1E2936) !important;
+    scrollbar-width: thin !important;
+  }
+  #root .rqk-app-shell .player-campaign-tabs button {
+    min-width: 92px !important;
+    width: auto !important;
+    flex: 1 0 92px !important;
+    padding: 9px 11px !important;
+    background: var(--rq-card, #263748) !important;
+    border: 0 !important;
+  }
+  #root .rqk-app-shell .player-campaign-action {
+    width: auto !important;
+    min-width: 105px !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+  }
+  #root .rqk-app-shell .player-campaign-action::after {
+    content: none !important;
+    display: none !important;
+  }
+  #root .rqk-app-shell .player-dashboard-actions { flex-wrap: wrap !important; }
+}
+@media (max-width: 719px) {
+  @layer rq-controls {
+    #root .rqk-app-shell .player-dashboard-hero { align-items: stretch !important; }
+    #root .rqk-app-shell .player-dashboard-actions {
+      width: 100% !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+    }
+    #root .rqk-app-shell .player-dashboard-actions > :first-child {
+      grid-column: 1 / -1 !important;
+    }
+    #root .rqk-app-shell .player-dashboard-actions .player-dashboard-action-button {
+      width: 100% !important;
+      height: auto !important;
+      min-width: 0 !important;
+      min-height: 46px !important;
+      font-size: 12px !important;
+      padding: 9px !important;
+    }
+    #root .rqk-app-shell .player-join-strip {
+      grid-template-columns: minmax(0, 1fr) !important;
+      padding: 12px !important;
+    }
+    #root .rqk-app-shell .player-join-strip label { grid-column: auto !important; }
+    #root .rqk-app-shell .player-join-strip .player-dashboard-action-button {
+      width: 100% !important;
+      font-size: 12px !important;
+      min-height: 44px !important;
+    }
+    #root .rqk-app-shell .player-dashboard-summary-grid {
+      width: 100% !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    #root .rqk-app-shell .player-dashboard-summary-card:last-child {
+      grid-column: 1 / -1 !important;
+    }
+    #root .rqk-app-shell .player-dashboard-tab {
+      min-height: 52px !important;
+      font-size: 11px !important;
+      padding: 6px 3px !important;
+    }
+    #root .rqk-app-shell .player-dashboard-card-content {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 12px !important;
+      padding: 12px !important;
+    }
+    #root .rqk-app-shell .player-dashboard-card .player-dashboard-action-button {
+      width: 100% !important;
+      min-height: 44px !important;
+      height: auto !important;
+      padding: 9px 12px !important;
+      font-size: 12px !important;
+    }
+    #root .rqk-app-shell .player-campaign-page .player-campaign-header > button {
+      width: auto !important;
+      height: auto !important;
+      min-width: 96px !important;
+      font-size: 12px !important;
+      padding: 10px !important;
+    }
+    #root .rqk-app-shell .player-campaign-list li {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+    }
+    #root .rqk-app-shell .player-campaign-action {
+      min-width: 110px !important;
+      width: 100% !important;
+      font-size: 12px !important;
+      min-height: 44px !important;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  @layer rq-controls {
+    #root .rqk-app-shell :is(.player-dashboard-action-button,.player-dashboard-tab,.player-campaign-action) {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+/* Character sheet is a stand-alone route, outside AppShell.
+   Replace the old sub-10px mobile play HUD captions with legible tokens. */
+@media (max-width: 759px) {
+  @layer rq-controls {
+    #root .character-page-v2 .clean-sheet-quick-stat span,
+    #root .character-page-v2 .clean-sheet-combat-hp-title span,
+    #root .character-page-v2 .clean-sheet-compact-status :is(label,small) {
+      font-size: max(11px, .72rem) !important;
+      line-height: 1.3 !important;
+    }
+    #root .character-page-v2 .clean-sheet-tabs button span,
+    #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+    #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+      font-size: max(11px, .7rem) !important;
+      line-height: 1.25 !important;
+      overflow-wrap: anywhere !important;
+    }
+    #root .character-page-v2 :is(
+      .clean-sheet-rest,
+      .clean-sheet-level,
+      .clean-sheet-edit,
+      .clean-sheet-hero-options-toggle
+    ) {
+      min-height: 44px !important;
+    }
+    #root .character-page-v2 .clean-sheet-tabs {
+      scroll-padding-inline: 12px !important;
+      overscroll-behavior-x: contain !important;
+    }
+    #root .character-page-v2 :is(button,select,input,textarea):focus-visible {
+      outline: 2px solid var(--rq-guild-heading, #D9BC82) !important;
+      outline-offset: 2px !important;
+    }
+  }
+}

@@ -43,6 +43,7 @@ export default function PlayerCampaignPage() {
 
 export function PlayerCampaignWorkspace({ campaignId }) {
   const requestRef = useRef(0);
+  const handoutRequestRef = useRef(0);
   const [data, setData] = useState({ campaign: null, party: null, characters: null });
   const [loading, setLoading] = useState(true);
   const [failures, setFailures] = useState([]);
@@ -50,18 +51,21 @@ export function PlayerCampaignWorkspace({ campaignId }) {
   const [handoutSummaryError, setHandoutSummaryError] = useState(false);
 
   const refreshHandoutSummary = useCallback(async () => {
+    const request = ++handoutRequestRef.current;
     try {
       const summary = await fetchPlayerHandoutSummary(apiClient, campaignId);
+      if (request !== handoutRequestRef.current) return false;
       setHandoutSummary(summary);
       setHandoutSummaryError(false);
       return true;
     } catch {
-      setHandoutSummaryError(true);
+      if (request === handoutRequestRef.current) setHandoutSummaryError(true);
       return false;
     }
   }, [campaignId]);
 
   const acceptHandoutSummary = useCallback((summary) => {
+    handoutRequestRef.current += 1;
     setHandoutSummary(summary);
     setHandoutSummaryError(false);
   }, []);
@@ -90,7 +94,10 @@ export function PlayerCampaignWorkspace({ campaignId }) {
 
   useEffect(() => {
     refresh();
-    return () => { requestRef.current += 1; };
+    return () => {
+      requestRef.current += 1;
+      handoutRequestRef.current += 1;
+    };
   }, [refresh]);
 
   const { campaign, party, characters } = data;
