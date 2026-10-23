@@ -78,3 +78,43 @@
   .rqk-desktop-maintenance { padding: 12px; }
   .rqk-desktop-maintenance-backup { flex-direction: column; align-items: stretch; }
 }
+
+/* Portable full-program updates, separate from campaign pack imports. */
+.rqk-desktop-program-update { display: grid; gap: 8px; }
+.rqk-desktop-program-selection {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--rq-line-strong, #8c784f);
+  background: var(--rq-bg-main, #0b1b2b);
+  border-radius: 6px;
+  min-width: 0;
+}
+.rqk-desktop-program-selection code {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  user-select: all;
+  color: var(--rq-text-primary, #eadfc8);
+}
+.rqk-desktop-program-selection label {
+  font-size: 12px;
+  color: var(--rq-text-secondary, #c8d0d5);
+  font-weight: 750;
+}
+.rqk-desktop-program-selection input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  font: 12px system-ui, sans-serif;
+  padding: 8px 10px;
+  background: var(--rq-bg-input, #101f2d);
+  color: var(--rq-text-primary, #eadfc8);
+  border: 1px solid var(--rq-line-strong, #8c784f);
+  border-radius: 5px;
+}
+.rqk-desktop-program-selection input:focus-visible {
+  outline: 2px solid var(--rq-secondary, #6e91b4);
+  outline-offset: 1px;
+}
+.rqk-desktop-program-selection button { justify-self: start; }
