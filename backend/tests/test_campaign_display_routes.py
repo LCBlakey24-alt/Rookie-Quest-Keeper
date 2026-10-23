@@ -282,3 +282,29 @@ def test_member_get_sanitizes_an_older_saved_snapshot(monkeypatch):
         'title': 'Welcome', 'npcs': [{'name': 'Mira'}],
     }
     assert 'top_level_secret' not in state
+
+
+def test_member_get_blanks_an_unknown_legacy_mode_including_its_title(monkeypatch):
+    class FakeCollection:
+        async def find_one(self, query, projection=None):
+            return {
+                'campaign_id': 'campaign-1', 'mode': 'private-notes',
+                'sync_id': 'old-private', 'sequence': 17,
+                'payload': {'title': 'Hidden traitor', 'subtitle': 'Private plot',
+                            'secret': 'Never show this to players'},
+            }
+
+    class FakeDb:
+        campaign_display_states = FakeCollection()
+
+    async def allow_membership(campaign_id, username):
+        return True
+
+    monkeypatch.setattr(campaign_display_module, 'db', FakeDb())
+    monkeypatch.setattr(campaign_display_module, 'verify_campaign_membership', allow_membership)
+    result = asyncio.run(campaign_display_module.get_campaign_display_state(
+        'campaign-1', username='player-user',
+    ))
+    assert result['mode'] == 'blank'
+    assert result['payload'] == {}
+    assert result['sync_id'] == 'old-private'
