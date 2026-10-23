@@ -1451,3 +1451,79 @@
     transform: none !important;
   }
 }
+
+/* Guild Ledger UI polish: readable gold actions, clear keyboard focus and
+   deliberate desktop/mobile density. No data or navigation changes. */
+#root .campaign-dashboard-simple .campaign-button-primary,
+#root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
+  color: #07131f !important;
+  font-weight: 850 !important;
+}
+#root .campaign-dashboard-simple .campaign-button-primary:is(:hover,:focus-visible) {
+  color: #07131f !important;
+}
+#root .campaign-dashboard-simple :is(
+  .campaign-icon-button, .campaign-button, .campaign-dashboard-group,
+  .campaign-dashboard-tab, .campaign-home-quick-card,
+  .campaign-home-focus-card, .campaign-home-session-rail__action
+):focus-visible {
+  outline: 3px solid #e8c988 !important;
+  outline-offset: 3px !important;
+  position: relative;
+  z-index: 2;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-group-row,
+#root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-group,
+#root .campaign-dashboard-simple .campaign-dashboard-tab {
+  scroll-snap-align: start;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-workspace {
+  max-width: 1600px !important;
+  margin-inline: auto !important;
+}
+@media (min-width: 1280px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-workspace {
+    padding: 24px 28px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-title-row {
+    gap: 14px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-header {
+    padding: 12px 22px !important;
+  }
+}
+@media (max-width: 600px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-title-row {
+    grid-template-columns: 44px minmax(0,1fr) auto !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-actions {
+    gap: 6px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-actions > .campaign-button:not(.campaign-button-primary) {
+    display: none !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-title-copy > span {
+    font-size: 12px !important;
+    color: #bdc9d5 !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-group-row,
+  #root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+    scrollbar-width: none !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-group-row::-webkit-scrollbar,
+  #root .campaign-dashboard-simple .campaign-dashboard-tab-row::-webkit-scrollbar {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .campaign-dashboard-simple .campaign-dashboard-group-row,
+  #root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+    scroll-behavior: auto !important;
+    scroll-snap-type: none !important;
+  }
+}
