@@ -19,8 +19,17 @@
 }
 
 .rqk-live-grid__nav-button.is-active {
-  border-color: var(--rq-accent-primary, #FF2DAA) !important;
-  background: rgba(124, 203, 255, 0.10) !important;
+  border-color: var(--rq-guild-wine, #7E2D2D) !important;
+  background: var(--rq-guild-wine, #7E2D2D) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
+  color: #F8F0E5 !important;
+}
+.rqk-live-grid__nav-button.is-active :is(span, svg) {
+  color: #F8F0E5 !important;
+}
+.rqk-live-grid__nav-button:focus-visible {
+  outline: 3px solid var(--rq-info, #6E91B4) !important;
+  outline-offset: 2px;
 }
 
 .rqk-live-grid__tool-body {
