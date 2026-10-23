@@ -15,7 +15,13 @@ function characterVitals(character = {}) {
   return { currentHp, maxHp, armorClass };
 }
 
-export default function PlayerCharactersPanel({ characters, onCreateCharacter, onImportCharacter, onOpenCharacter }) {
+export default function PlayerCharactersPanel({ characters, unavailable = false, onCreateCharacter, onImportCharacter, onOpenCharacter }) {
+  if (unavailable && characters.length === 0) {
+    return <div className="player-dashboard-unavailable" role="status">
+      <strong>Characters could not be loaded</strong>
+      <p>Saved character sheets may still be there. Use Refresh above to try again; no characters have been deleted.</p>
+    </div>;
+  }
   if (characters.length === 0) {
     return (
       <div className="player-dashboard-card-grid">
@@ -73,7 +79,7 @@ export default function PlayerCharactersPanel({ characters, onCreateCharacter, o
                     )}
                   </div>
                 </div>
-                <Button onClick={() => onOpenCharacter(character)} className="btn-outline player-dashboard-action-button">
+                <Button onClick={() => onOpenCharacter(character)} aria-label={`Open ${character.name || 'character'} sheet`} className="btn-outline player-dashboard-action-button">
                   Open Sheet <ChevronRight size={16} />
                 </Button>
               </CardContent>
