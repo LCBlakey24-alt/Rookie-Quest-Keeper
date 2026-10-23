@@ -478,8 +478,6 @@ function NPCsTab({ campaignId }) {
         />
       )}
     </div>
-
-    </div>
   );
 }
 
