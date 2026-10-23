@@ -165,7 +165,8 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const sendMap = (map) => publish('image', {
     title: map.name || map.title || 'Map',
     image_url: imageFrom(map),
-    caption: map.description || map.notes || '',
+    // Map descriptions/notes may be GM prep. Only explicit public captions go to players.
+    caption: map.public_caption || map.public_description || '',
   }, `map-${map.id}`);
 
   const showSelectedNpcs = () => {
