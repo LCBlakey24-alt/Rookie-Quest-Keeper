@@ -54,3 +54,23 @@ describe('CleanSheetTabs player return context', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 });
+
+
+describe('selected character sheet navigation', () => {
+  test('marks only the current tab as selected for screen readers', () => {
+    render(
+      <MemoryRouter>
+        <CleanSheetTabs
+          tabs={[
+            { id: 'stats', label: 'Stats', icon: () => null },
+            { id: 'combat', label: 'Actions', icon: () => null },
+          ]}
+          activeTab="combat"
+          onSelectTab={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('button', { name: 'Actions' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Stats' })).not.toHaveAttribute('aria-current');
+  });
+});
