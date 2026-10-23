@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useId, useRef } from 'react';
 import './RosterSplitView.css';
 
 /**
@@ -20,6 +20,7 @@ export default function RosterSplitView({
   testId = 'roster-split-view',
 }) {
   const buttonRefs = useRef([]);
+  const detailId = useId();
   const active = items.find(item => String(getId(item)) === String(selectedId)) || items[0] || null;
   const activeId = active ? String(getId(active)) : '';
 
@@ -57,7 +58,7 @@ export default function RosterSplitView({
                   onClick={() => onSelect(id)}
                   onKeyDown={event => navigateList(event, index)}
                   aria-current={chosen ? 'true' : undefined}
-                  aria-controls="rqk-reference-browser-detail"
+                  aria-controls={detailId}
                   data-testid={'roster-select-' + id}
                 >
                   <span className="rqk-reference-browser__item-name">{getName(item)}</span>
@@ -69,7 +70,7 @@ export default function RosterSplitView({
           </div>
         ) : <p className="rqk-reference-browser__empty">{emptyMessage}</p>}
       </aside>
-      <section className="rqk-reference-browser__detail" id="rqk-reference-browser-detail"
+      <section className="rqk-reference-browser__detail" id={detailId}
         aria-label={active ? getName(active) + ' full details' : 'Reference details'}
         data-testid="roster-selected-detail">
         {active ? (
