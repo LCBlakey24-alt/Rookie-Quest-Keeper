@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dice6, HeartPulse, Maximize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
+import { Dice6, HeartPulse, Maximize2, Minimize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
+import './PlayerDisplayPage.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -101,7 +102,22 @@ export default function PlayerDisplayPage() {
   const urlTarget = normaliseTarget(searchParams.get('target'));
   const [state, setState] = useState(() => loadDisplayState(campaignId));
   const [party, setParty] = useState([]);
-  const goFullscreen = useCallback(async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {} }, []);
+  const [fullscreen, setFullscreen] = useState(false);
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      // Browser denied a fullscreen request; the player display remains usable.
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFullscreenChange = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    onFullscreenChange();
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
 
   useEffect(() => {
     setState(loadDisplayState(campaignId));
@@ -111,10 +127,17 @@ export default function PlayerDisplayPage() {
   }, [campaignId]);
 
   useEffect(() => {
-    const onKeyDown = (event) => { if (event.key?.toLowerCase() === 'f') goFullscreen(); };
+    const onKeyDown = (event) => {
+      const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName) || event.target?.isContentEditable;
+      if (event.key?.toLowerCase() === 'f' && !typing && !event.repeat &&
+          !event.ctrlKey && !event.altKey && !event.metaKey) {
+        event.preventDefault();
+        toggleFullscreen();
+      }
+    };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [goFullscreen]);
+  }, [toggleFullscreen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,24 +172,29 @@ export default function PlayerDisplayPage() {
   const showPartySidebar = !isTable(target) && !['combat', 'battle-start', 'group-check'].includes(mode) && partyMembers.length > 0;
 
   return (
-    <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
-      <button type="button" onClick={goFullscreen} style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button>
-      <div style={chromeFrameStyle(target)}>
-        <header style={displayStatusBarStyle(target)}>
+    <main className="rqk-player-display" style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
+      <button type="button" className="rqk-player-display__fullscreen" onClick={toggleFullscreen} style={fullscreenButtonStyle}
+        aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        title={fullscreen ? 'Exit fullscreen (F or Esc)' : 'Enter fullscreen (F)'}>
+        {fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+        {fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+      </button>
+      <div className="rqk-player-display__frame" style={chromeFrameStyle(target)}>
+        <header className="rqk-player-display__status" style={displayStatusBarStyle(target)}>
           <span style={brandMarkStyle}><Sparkles size={14} /> Rookie Quest Keeper</span>
           <span style={statusPillStyle(target)}>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Virtual Table' : 'Standing TV'}</span>
           <span style={statusPillStyle(target)}><ShieldCheck size={13} /> Player-safe</span>
           <span style={modeChipStyle}>{modeLabel(mode)}</span>
         </header>
-        <div style={displayGridStyle(target, showPartySidebar)}>
+        <div className="rqk-player-display__stage" style={displayGridStyle(target, showPartySidebar)}>
           {showPartySidebar && <PartySidebar members={partyMembers} />}
           <DisplayContent state={state} target={target} hasPartySidebar={showPartySidebar} partyMembers={partyMembers} />
         </div>
         <PlayerBanner banner={payload.banner} target={target} />
       </div>
-      <footer style={footerStyle(target)}>
+      <footer className="rqk-player-display__footer" style={footerStyle(target)}>
         <span>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Map-first table display' : 'Cinematic player display'}</span>
-        <span>{updatedLabel ? `Synced ${updatedLabel}` : 'Waiting for GM sync'} · Press F for fullscreen</span>
+        <span>{updatedLabel ? `Synced ${updatedLabel}` : 'Waiting for GM sync'} · {fullscreen ? 'F or Esc to exit fullscreen' : 'Press F for fullscreen'}</span>
       </footer>
     </main>
   );
@@ -189,7 +217,7 @@ function DisplayContent({ state, target, hasPartySidebar = false, partyMembers =
 
 function PartySidebar({ members }) {
   return (
-    <aside style={partySidebarStyle} data-testid="standing-tv-party-sidebar">
+    <aside className="rqk-player-display__party" style={partySidebarStyle} data-testid="standing-tv-party-sidebar">
       <div style={partyHeaderStyle}><p style={partyEyebrowStyle}>Party Status</p><strong>{members.length} Player{members.length === 1 ? '' : 's'}</strong></div>
       <div style={partyListStyle}>{members.map(member => <PartyCard key={member.id || member.name} member={member} />)}</div>
     </aside>
@@ -231,9 +259,9 @@ function ImageDisplay({ payload, target, hasPartySidebar }) { return <section st
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
-  return <section style={npcShellStyle(target)}><div style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div style={npcGridStyle(target, npcs.length)}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
+  return <section className="rqk-player-display__npc-shell" style={npcShellStyle(target)}><div className="rqk-player-display__npc-heading" style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div className="rqk-player-display__npc-grid" style={npcGridStyle(target, npcs.length)}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
 }
-function NPCCard({ npc, target, compact = false }) { return <article style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>; }
+function NPCCard({ npc, target, compact = false }) { return <article className="rqk-player-display__npc-card" style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div className="rqk-player-display__npc-info" style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>; }
 
 function BattleStartDisplay({ target }) {
   return (
@@ -285,8 +313,8 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
   }
 
   return (
-    <section style={combatHudShellStyle} data-testid="standing-tv-combat-hud">
-      <aside style={combatRosterPanelStyle}>
+    <section className="rqk-player-display__combat" style={combatHudShellStyle} data-testid="standing-tv-combat-hud">
+      <aside className="rqk-player-display__combat-roster" style={combatRosterPanelStyle}>
         <div style={combatRosterHeaderStyle}>
           <p style={partyEyebrowStyle}>Combat Roster</p>
           <strong>{roster.length} Actor{roster.length === 1 ? '' : 's'}</strong>
