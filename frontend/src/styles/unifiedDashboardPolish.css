@@ -206,7 +206,7 @@
   display: grid !important;
   place-items: center !important;
   color: var(--rq-primary, #C9A96B) !important;
-  background: var(--rq-secondary-soft, rgba(110,145,180,0.12))) !important;
+  background: var(--rq-secondary-soft, rgba(110,145,180,0.12)) !important;
   border: 1px solid var(--rq-accent-border, rgba(110,145,180, 0.30)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
 }
@@ -290,7 +290,7 @@
 }
 
 #root .dashboard-command-card--simple.is-primary .dashboard-command-icon {
-  background: var(--rq-secondary-soft, rgba(110,145,180,0.12))) !important;
+  background: var(--rq-secondary-soft, rgba(110,145,180,0.12)) !important;
   border-color: var(--rq-accent-border, rgba(110,145,180, 0.30)) !important;
   color: var(--rq-primary, #C9A96B) !important;
 }
