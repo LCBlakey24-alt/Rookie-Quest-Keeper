@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import NPCRelationshipWeb, { focusedRelationshipLayout, isDuplicateRelationship, relatedNpcIds } from './NPCRelationshipWeb';
+import NPCRelationshipWeb, { focusedRelationshipLayout, isDuplicateRelationship, relatedNpcIds, npcRelationshipPerspective } from './NPCRelationshipWeb';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 
@@ -230,4 +230,36 @@ test('relationship view places the network and saved links before the creation f
   expect(map.compareDocumentPosition(saved) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(saved.compareDocumentPosition(create) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Add connection' })).toBeInTheDocument();
+});
+
+test('directed relationship labels stay correct from each NPC viewpoint', () => {
+  const parent = { source_id: 'mara', target_id: 'godfrey', relationship_type: 'parent' };
+  const mentor = { source_id: 'mara', target_id: 'pippa', relationship_type: 'mentor' };
+  const service = { source_id: 'godfrey', target_id: 'mara', relationship_type: 'servant' };
+  expect(npcRelationshipPerspective(parent, 'mara')).toBe('Parent of');
+  expect(npcRelationshipPerspective(parent, 'godfrey')).toBe('Child of');
+  expect(npcRelationshipPerspective(mentor, 'mara')).toBe('Mentor of');
+  expect(npcRelationshipPerspective(mentor, 'pippa')).toBe('Student of');
+  expect(npcRelationshipPerspective(service, 'godfrey')).toBe('Serves');
+  expect(npcRelationshipPerspective(service, 'mara')).toBe('Served by');
+  expect(npcRelationshipPerspective({ relationship_type: 'sibling' }, 'mara')).toBe('Sibling of');
+  expect(npcRelationshipPerspective({ relationship_type: 'secret_ally' }, 'mara')).toBe('Secret ally of');
+});
+
+test('focused relationship map explains family direction without changing stored links', async () => {
+  respondWith(npcs, [{
+    id: 'family-a', source_id: 'mara', target_id: 'godfrey',
+    relationship_type: 'parent', description: 'Mara is Godfrey’s mother.',
+  }]);
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  const map = await screen.findByRole('region', { name: 'Visual NPC relationship map' });
+  const selector = within(map).getByLabelText('Focus relationship map on NPC');
+  fireEvent.change(selector, { target: { value: 'godfrey' } });
+  expect(within(map).getByText('Child of')).toBeInTheDocument();
+  expect(within(map).getByText('Mara Barfoot')).toBeInTheDocument();
+  fireEvent.change(selector, { target: { value: 'mara' } });
+  expect(within(map).getByText('Parent of')).toBeInTheDocument();
+  expect(within(map).getByText('Godfrey Barfoot')).toBeInTheDocument();
+  expect(apiClient.put).not.toHaveBeenCalled();
+  expect(apiClient.post).not.toHaveBeenCalled();
 });
