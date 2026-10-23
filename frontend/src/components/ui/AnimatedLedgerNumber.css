@@ -1,0 +1,59 @@
+/* Guild Ledger: subtle ink-and-gold numeric reveal, not a flashing strobe. */
+.rqk-ledger-number {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  font: inherit;
+  color: inherit;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+.rqk-ledger-number__digits {
+  display: inline-block;
+  font: inherit;
+  color: inherit;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.rqk-ledger-number--rolling .rqk-ledger-number__digits {
+  animation: rqk-ledger-numeral-settle 648ms ease-out both;
+}
+.rqk-ledger-number--rolling::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--rq-accent-primary, #c9a96b);
+  transform-origin: left;
+  animation: rqk-ledger-numeral-trace 648ms ease-out both;
+}
+@keyframes rqk-ledger-numeral-settle {
+  0% { opacity: .8; transform: translateY(2px); }
+  65% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes rqk-ledger-numeral-trace {
+  0% { transform: scaleX(.1); opacity: 0; }
+  35% { transform: scaleX(.7); opacity: .45; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+.rqk-ledger-number__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rqk-ledger-number--rolling .rqk-ledger-number__digits,
+  .rqk-ledger-number--rolling::after {
+    animation: none !important;
+  }
+}
