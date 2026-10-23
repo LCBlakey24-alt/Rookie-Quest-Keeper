@@ -71,7 +71,8 @@ async def get_campaign_display_state(campaign_id: str, username: str = Depends(g
     # Older snapshots may predate this allowlist. Never send their private fields
     # to campaign members just because they were saved by an earlier version.
     mode = state.get('mode', 'blank')
-    if mode not in ALLOWED_DISPLAY_MODES:
+    unsupported_legacy_mode = mode not in ALLOWED_DISPLAY_MODES
+    if unsupported_legacy_mode:
         mode = 'blank'
     return {
         **{key: state[key] for key in (
@@ -79,7 +80,7 @@ async def get_campaign_display_state(campaign_id: str, username: str = Depends(g
             'updated_by', 'delivery_ack', 'source_tab',
         ) if key in state},
         'mode': mode,
-        'payload': sanitize_player_display_payload(mode, state.get('payload')),
+        'payload': {} if unsupported_legacy_mode else sanitize_player_display_payload(mode, state.get('payload')),
     }
 
 
