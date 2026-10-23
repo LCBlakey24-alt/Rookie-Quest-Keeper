@@ -68,7 +68,12 @@ export default function CampaignDashboard() {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteCampaignId, setInviteCampaignId] = useState(null);
   const tabRowRef = useRef(null);
+  const activeCampaignIdRef = useRef(campaignId);
+  const campaignLoadSeqRef = useRef(0);
+  activeCampaignIdRef.current = campaignId;
+  const currentInvite = inviteCampaignId === campaignId ? invite : null;
 
   const activeTabMeta = useMemo(
     () => allTabs.find((tab) => tab.id === activeTab) || allTabs[0],
@@ -81,8 +86,13 @@ export default function CampaignDashboard() {
   );
 
   const fetchCampaign = useCallback(async () => {
+    const requestId = ++campaignLoadSeqRef.current;
+    const stillCurrent = () => requestId === campaignLoadSeqRef.current &&
+      activeCampaignIdRef.current === campaignId;
     setLoading(true);
     setLoadError('');
+    setCampaign(null);
+    setHomeBootstrap(null);
     try {
       // The ordinary GM Home route can paint its header and focus cards from
       // one ownership-scoped response. Deep links to other tabs stay lean and
@@ -90,6 +100,7 @@ export default function CampaignDashboard() {
       if (initialTab === 'command-centre') {
         try {
           const bootstrapResponse = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
+          if (!stillCurrent()) return;
           const bootstrapPayload = bootstrapResponse.data || {};
           if (bootstrapPayload.campaign) {
             setCampaign(bootstrapPayload.campaign);
@@ -97,6 +108,7 @@ export default function CampaignDashboard() {
             return;
           }
         } catch (bootstrapError) {
+          if (!stillCurrent()) return;
           const status = bootstrapError?.response?.status;
           if (status === 401 || status === 403) throw bootstrapError;
           // Older/mid-deploy backends or a partial Home failure can still open
@@ -105,21 +117,31 @@ export default function CampaignDashboard() {
       }
 
       const response = await apiClient.get(`/campaigns/${campaignId}`);
+      if (!stillCurrent()) return;
       setCampaign(response.data);
       setHomeBootstrap(null);
     } catch (error) {
+      if (!stillCurrent()) return;
       setCampaign(null);
       setHomeBootstrap(null);
       setLoadError(error?.response?.data?.detail || 'Campaign could not be loaded.');
       toast.error('Failed to load campaign');
     } finally {
-      setLoading(false);
+      if (stillCurrent()) setLoading(false);
     }
   }, [campaignId, initialTab]);
 
   useEffect(() => {
     fetchCampaign();
+    return () => { campaignLoadSeqRef.current += 1; };
   }, [fetchCampaign]);
+
+  useEffect(() => {
+    // An invite code from Friday must never appear in Wednesday.
+    setInvite(null);
+    setInviteCampaignId(null);
+    setInviteLoading(false);
+  }, [campaignId]);
 
   useEffect(() => {
     const onHashChange = () => {
@@ -163,34 +185,44 @@ export default function CampaignDashboard() {
   };
 
   const fetchInviteCode = async () => {
+    const requestedCampaign = campaignId;
     try {
       setInviteLoading(true);
-      const response = await apiClient.get(`/campaign-invites/${campaignId}`);
+      const response = await apiClient.get(`/campaign-invites/${requestedCampaign}`);
+      if (activeCampaignIdRef.current !== requestedCampaign) return null;
       setInvite(response.data);
+      setInviteCampaignId(requestedCampaign);
       return response.data;
     } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not load join code');
+      if (activeCampaignIdRef.current === requestedCampaign)
+        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not load join code');
       return null;
     } finally {
-      setInviteLoading(false);
+      if (activeCampaignIdRef.current === requestedCampaign) setInviteLoading(false);
     }
   };
 
   const rotateInviteCode = async () => {
+    const requestedCampaign = campaignId;
     try {
       setInviteLoading(true);
-      const response = await apiClient.post(`/campaign-invites/${campaignId}`);
+      const response = await apiClient.post(`/campaign-invites/${requestedCampaign}`);
+      if (activeCampaignIdRef.current !== requestedCampaign) return;
       setInvite(response.data);
+      setInviteCampaignId(requestedCampaign);
       toast.success('New join code generated');
     } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not generate join code');
+      if (activeCampaignIdRef.current === requestedCampaign)
+        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not generate join code');
     } finally {
-      setInviteLoading(false);
+      if (activeCampaignIdRef.current === requestedCampaign) setInviteLoading(false);
     }
   };
 
   const copyInviteCode = async () => {
-    const loadedInvite = invite || await fetchInviteCode();
+    const requestedCampaign = campaignId;
+    const loadedInvite = currentInvite || await fetchInviteCode();
+    if (activeCampaignIdRef.current !== requestedCampaign) return;
     const code = loadedInvite?.join_code;
     if (!code) return;
 
@@ -214,10 +246,11 @@ export default function CampaignDashboard() {
       case 'command-centre':
         return (
           <GMHome
+            key={campaignId}
             campaignId={campaignId}
             campaign={campaign}
             initialData={homeBootstrap}
-            invite={invite}
+            invite={currentInvite}
             inviteLoading={inviteLoading}
             onOpenTab={handleTabClick}
             onFetchInvite={fetchInviteCode}
@@ -244,10 +277,11 @@ export default function CampaignDashboard() {
       default:
         return (
           <GMHome
+            key={campaignId}
             campaignId={campaignId}
             campaign={campaign}
             initialData={homeBootstrap}
-            invite={invite}
+            invite={currentInvite}
             inviteLoading={inviteLoading}
             onOpenTab={handleTabClick}
             onFetchInvite={fetchInviteCode}
@@ -258,7 +292,9 @@ export default function CampaignDashboard() {
     }
   };
 
-  if (loading) {
+  // Route params change before effects run. Never flash the previous party's
+  // campaign header, join code or GM Home while the new route is loading.
+  if (loading || (campaign && campaign.id !== campaignId)) {
     return (
       <main className="campaign-dashboard-loading" role="status" aria-live="polite">
         <div className="loading-spinner" aria-hidden="true" />
