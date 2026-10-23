@@ -36,6 +36,9 @@ describe('responsive Live Play display controls', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     const close = document.querySelector('.live-display-drawer-close');
     expect(close).toHaveFocus();
+    expect(screen.getByRole('dialog', { name: 'Live display controls' })).toHaveAttribute('aria-modal', 'true');
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(close).toHaveFocus();
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.getByLabelText('Live display controls')).not.toHaveClass('is-open');
     expect(toggle).toHaveFocus();
