@@ -57,11 +57,12 @@ Decoration never wins over legibility or table-speed.
 
 ## 3. Core visual language
 
-The visual system is **deep navy + warm cream + antique gold**, with restrained blue support.
+The visual system is **deep navy + warm cream + wax-seal red controls**, with antique gold reserved for text and restrained blue support.
 
 - Navy supplies structure and depth.
 - Cream supplies readable hierarchy.
-- Gold is the primary brand/action accent.
+- **Antique gold is text-only**: titles, special headings and deliberate written emphasis. Never use antique gold for control fills, borders, icons, selected boxes or backgrounds.
+- Resting clickable controls are dark blue. Hover and press fill them wax-seal red (`#7E2D2D`) from left to right; selected controls stay red.
 - Blue supports information, icons, progress and keyboard focus.
 - Red is semantic danger/error only.
 - Green is semantic success only.
@@ -84,13 +85,16 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
   --rq-card-hover: #334155;
   --rq-bg-input: #101F2D;
 
-  --rq-primary: #C9A96B;
-  --rq-primary-hover: #D9BC82;
+  --rq-gold-text: #C9A96B; /* headings/text only */
+  --rq-control-blue: #263F59;
+  --rq-control-wax: #7E2D2D;
+  --rq-primary: #C9A96B; /* legacy text accent; NOT a control background */
+  --rq-primary-hover: #D9BC82; /* text hover only */
   --rq-primary-soft: rgba(201, 169, 107, 0.12);
-  --rq-accent-primary: #C9A96B;
-  --rq-accent-hover: #D9BC82;
+  --rq-accent-primary: #C9A96B; /* legacy; surface controls use --rq-control-wax */
+  --rq-accent-hover: #D9BC82; /* text only */
   --rq-accent-soft: rgba(201, 169, 107, 0.12);
-  --rq-accent-border: rgba(201, 169, 107, 0.30);
+  --rq-accent-border: rgba(110, 145, 180, 0.30); /* controls use neutral blue */
 
   --rq-secondary: #6E91B4;
   --rq-secondary-soft: rgba(110, 145, 180, 0.10);
@@ -116,7 +120,7 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
 ### Colour rules
 
 - Default structural borders use `--rq-line`, not gold.
-- Gold marks primary actions, active states and deliberate emphasis.
+- Wax-seal red marks active selections and the hover/press sweep; antique gold only marks text emphasis.
 - Blue may mark information, progress, selected support and focus.
 - Body copy uses secondary text, not full-strength primary text.
 - Helper/meta copy uses muted text.
@@ -164,7 +168,7 @@ Do not force all text to full white/cream. A professional screen needs visible p
 - Hover: `--rq-card-hover`.
 - Input: `--rq-bg-input`.
 - Normal shadows: none or extremely restrained.
-- Normal gradients: none.
+- Normal gradients: none; a restrained wax-red fill transition using an overlay is allowed only for interactive controls.
 - Standard radius: 5–9px.
 - Avoid giant pills and bubbly SaaS panels.
 
@@ -180,13 +184,13 @@ Cards should organise information. Do not create a box around every sentence.
 
 ### Primary
 
-- Navy fill with gold border in the app.
-- A gold-filled CTA is acceptable on the public landing page when contrast remains strong.
+- Dark navy-blue fill with neutral blue border; antique gold is not a control border.
+- Gold-filled CTAs are not allowed, including the landing page. Primary buttons use blue fill with wax-red interaction feedback.
 
 ### Hover
 
 - Lighter navy.
-- Stronger gold border where the control is primary.
+- Left-to-right wax-seal red fill on hover (desktop fine pointers) and press; no instant background swaps.
 
 ### Focus
 
@@ -240,10 +244,10 @@ CSS device lanes must agree with these values.
 
 Selected navigation uses:
 
-- subtle blue support fill
-- gold active marker/border
-- cream label
-- restrained icon emphasis
+- dark blue unselected fill
+- wax-seal red selected fill, with warm cream label/icon
+- a left-to-right blue → wax-red sweep on hover/press
+- independent blue keyboard-focus outline
 
 Unselected navigation should remain calm and readable.
 
@@ -269,7 +273,7 @@ Use semantic colours consistently:
 - Warning: amber.
 - Error/danger/destructive: red.
 - Information/focus: blue.
-- Brand/primary action: gold.
+- Selected/hovered controls: wax-seal red (`#7E2D2D`); antique gold is text-only.
 
 Never use danger red as the normal brand accent.
 
@@ -292,6 +296,9 @@ Route CSS should consume global tokens. If a legacy variable name such as `pink`
 - Avoid focus zoom on mobile inputs.
 
 ## 14. Motion
+
+The blue-to-wax-red fill is a **340ms** left-to-right overlay transition; it is interaction feedback, not a loading animation. Keep labels above the fill and do not delay navigation. Respect `prefers-reduced-motion` with an immediate state change.
+
 
 Motion should communicate:
 
@@ -338,8 +345,8 @@ A route is visually complete when:
 - controls have consistent heights and states
 - active/hover/focus/destructive states are unambiguous
 - mobile/tablet/desktop all remain usable
-- no retired theme colours or decorative gradients appear
+- no gold-filled or gold-bordered controls, and no retired theme colours or decorative gradients appear
 - empty/loading/error states match the product
 - the page looks like part of Keeper without needing route-specific explanation
 
-The intended result is a cohesive, premium TTRPG application: **navy structure, cream readability, gold identity, blue support, semantic status colours, and device-appropriate geometry.**
+The intended result is a cohesive TTRPG web app: **navy structure, cream readability, gold text only, blue resting controls, wax-red selected/hover controls, and semantic status colours.**
