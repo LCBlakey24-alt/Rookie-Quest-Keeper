@@ -14,21 +14,23 @@ describe('web controls: blue -> wax seal, antique gold only for text', () => {
     const css = read('./waxSealInteractive.css');
     expect(css).toContain('--rq-control-blue: #263F59');
     expect(css).toContain('--rq-control-wax: #7E2D2D');
-    expect(css).toContain('background: var(--rq-control-blue) !important;');
+    expect(css).toContain('background-color: var(--rq-control-blue) !important;');
     expect(css).toContain('border-color: var(--rq-control-wax) !important;');
-    expect(css).toContain("is(.active, .is-active, [aria-current='page'], [aria-selected='true'], [aria-pressed='true'])::before");
-    expect(css).toContain('transform: scaleX(1)');
+    expect(css).toContain("is(.active, .is-active, .is-open, [data-state='active'], [aria-current='page'], [aria-selected='true'], [aria-pressed='true'])");
+    expect(css).toContain('background-size: 100% 100% !important;');
     expect(css).not.toMatch(/background:\s*#[cC]9[aA]9[6][bB]/);
   });
 
-  test('desktop hover sweeps from left to right rather than instantly replacing blue', () => {
+  test('desktop hover sweeps from left to right without conflicting with existing before elements', () => {
     const css = read('./waxSealInteractive.css');
     const oldHover = read('./guildLedgerFinish.css');
-    expect(css).toContain('transform-origin: left center;');
-    expect(css).toContain('transform: scaleX(0)');
+    expect(css).toContain('background-position: left center !important;');
+    expect(css).toContain('background-image: linear-gradient(to right, var(--rq-control-wax), var(--rq-control-wax))');
+    expect(css).not.toContain('::before {');
+    expect(css).toContain('background-size: 0% 100% !important;');
     expect(css).toContain('--rq-control-sweep-duration: 340ms');
     expect(css).toContain('@media (hover: hover) and (pointer: fine)');
-    expect(css).toContain(':hover::before');
+    expect(css).toContain(':hover {');
     expect(oldHover).not.toContain('background: var(--rq-guild-wine-hover) !important');
   });
 
