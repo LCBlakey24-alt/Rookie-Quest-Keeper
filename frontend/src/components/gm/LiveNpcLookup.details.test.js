@@ -31,8 +31,9 @@ describe('Live NPC full card details', () => {
 
   test('expanded NPC shows complete description, personality and GM notes without a capped inner scroller', async () => {
     render(<LiveNpcLookup campaignId="campaign-1" />);
-    const name = await screen.findByText('Mira');
-    fireEvent.click(name.closest('button'));
+    const item = await screen.findByTestId('roster-select-mira-1');
+    fireEvent.click(item);
+    expect(screen.getByTestId('live-npc-split-reference')).toBeInTheDocument();
     expect(screen.getByText(/END OF DESCRIPTION/)).toBeInTheDocument();
     expect(screen.getByText(/Cautious but curious/)).toBeInTheDocument();
     expect(screen.getByText(/The hidden clue remains readable/)).toBeInTheDocument();
