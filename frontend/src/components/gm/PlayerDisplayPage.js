@@ -6,6 +6,7 @@ import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } 
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
+import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import './PlayerDisplayPage.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -69,6 +70,7 @@ function normaliseCombatToken(token = {}, index = 0) {
   const maxHp = Number(token.max_hp ?? token.maxHp ?? token.hp_max ?? 0) || 0;
   const hp = Number(token.current_hp ?? token.currentHp ?? token.hp ?? maxHp) || 0;
   const hpPercent = maxHp ? Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100))) : 0;
+  const position = getCombatTokenMapPosition(token);
   return {
     id,
     type,
@@ -76,8 +78,8 @@ function normaliseCombatToken(token = {}, index = 0) {
     subtitle: token.subtitle || token.creature_type || token.role || (type === 'npc' ? 'NPC' : 'Enemy'),
     imageUrl: pickImage(token),
     image_url: pickImage(token),
-    x: Number(token.x ?? token.position?.x ?? token.token_x ?? 0),
-    y: Number(token.y ?? token.position?.y ?? token.token_y ?? 0),
+    x: position?.x ?? null,
+    y: position?.y ?? null,
     ac: Number(token.ac ?? token.armor_class ?? 0) || 0,
     hp,
     maxHp,
@@ -93,7 +95,7 @@ function normaliseCombatToken(token = {}, index = 0) {
 
 function buildCombatRoster(partyMembers = [], tokens = []) {
   const players = partyMembers.map((member, index) => ({ ...member, id: `player-${member.id || index}`, type: 'player', subtitle: `${member.className || 'Adventurer'}${member.race ? ` · ${member.race}` : ''}` }));
-  const creatures = tokens.map(normaliseCombatToken).filter(item => !item.hidden);
+  const creatures = tokens.filter(isPlayerVisibleCombatToken);
   return [...players, ...creatures].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0));
 }
 
@@ -291,10 +293,14 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return () => window.clearTimeout(timer);
   }, [startTime]);
   const battleIntro = showIntro ? <div className="rqk-battle-start__overlay"><BattleStartDisplay target={target} /></div> : null;
-  const tokens = Array.isArray(payload.tokens) ? payload.tokens.map(normaliseCombatToken) : [];
+  // Filter the display payload itself, not just the combat roster. Otherwise
+  // a hidden enemy can still leak via map pins or the unpositioned token shelf.
+  const tokens = Array.isArray(payload.tokens)
+    ? payload.tokens.filter(isPlayerVisibleCombatToken).map(normaliseCombatToken)
+    : [];
   const roster = buildCombatRoster(partyMembers, tokens);
-  const positionedTokens = tokens.filter(token => Number(token.x) || Number(token.y));
-  const unpositionedTokens = tokens.filter(token => !Number(token.x) && !Number(token.y));
+  const positionedTokens = tokens.filter(token => token.x !== null && token.y !== null);
+  const unpositionedTokens = tokens.filter(token => token.x === null || token.y === null);
   const activeId = String(payload.active_id || payload.activeCombatantId || payload.turn_id || payload.current_turn_id || roster[0]?.id || '');
   const round = payload.round || payload.round_number || payload.turn_round || '';
 
@@ -437,7 +443,26 @@ function CombatMapArtwork({ mapUrl, title, target, tokens }) {
   );
 }
 
-function MapToken({ token, target }) { const left = Math.max(2, Math.min(94, Number(token.x) || 50)); const top = Math.max(2, Math.min(90, Number(token.y) || 50)); return <div style={{ ...mapTokenStyle(target, token.type), left: `${left}%`, top: `${top}%` }}>{token.image_url ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} /> : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}</div>; }
+function MapToken({ token, target }) {
+  const left = clampMapPercent(token.x);
+  const top = clampMapPercent(token.y);
+  // At 0% / 100%, keep the entire token inside the map instead of clipping
+  // half of its portrait outside the picture.
+  const horizontal = left <= 3 ? '0%' : left >= 97 ? '-100%' : '-50%';
+  const vertical = top <= 3 ? '0%' : top >= 97 ? '-100%' : '-50%';
+  return (
+    <div data-testid={`combat-map-token-${token.id}`} style={{
+      ...mapTokenStyle(target, token.type),
+      left: `${left}%`,
+      top: `${top}%`,
+      transform: `translate(${horizontal}, ${vertical})`,
+    }}>
+      {token.image_url
+        ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} />
+        : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}
+    </div>
+  );
+}
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = (target) => ({ height: '100dvh', maxHeight: '100dvh', minHeight: 0, width: '100%', maxWidth: '100vw', boxSizing: 'border-box', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
