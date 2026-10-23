@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
 import MonsterLookup from '@/components/MonsterLookup';
 import NpcCompactStatBlock from './NpcCompactStatBlock';
+import RosterSplitView from './RosterSplitView';
+import './MonstersTab.split.css';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
 import { hasRatedMonsterCr, monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
@@ -39,6 +41,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   const [typeFilter, setTypeFilter] = useState('all');
   const [crFilter, setCrFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [selectedCreatureId, setSelectedCreatureId] = useState('');
   const [selected, setSelected] = useState({});
   const [encounterName, setEncounterName] = useState('');
   const [lastSavedEncounter, setLastSavedEncounter] = useState(null);
@@ -62,7 +65,19 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     }
   };
 
-  useEffect(() => { loadLibrary(); }, [campaignId]);
+  useEffect(() => {
+    // Selection and encounter drafts always belong to the current campaign.
+    setCustomCreatures([]);
+    setScenarios([]);
+    setSelected({});
+    setSelectedCreatureId('');
+    setLastSavedEncounter(null);
+    setQuery('');
+    setTypeFilter('all');
+    setCrFilter('all');
+    setSourceFilter('all');
+    loadLibrary();
+  }, [campaignId]);
 
   const creatures = useMemo(() => [
     ...MONSTER_DATABASE.map((creature, index) => ({ ...normaliseMonsterStatBlock(creature), id: creature.id || `srd-${creature.name}-${index}`, source: creature.source === 'legacy-reference' ? 'legacy-reference' : 'srd' })),
@@ -191,7 +206,11 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
 
         <div style={filtersStyle}>
           <label style={searchWrapStyle}><Search size={16} /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search creatures, attacks, abilities, type…" style={inputStyle} /></label>
-          <label style={selectWrapStyle}><Filter size={15} /><select value={typeFilter} onChange={event => setTypeFilter(event.target.value)} style={selectStyle}><option value="all">All types</option>{creatureTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
+          <label style={selectWrapStyle}><Filter size={15} /><select aria-label="Filter creature type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)} style={selectStyle}><option value="all">All types</option>{creatureTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
+          <button type="button" className="rqk-bestiary-beast-filter" aria-pressed={typeFilter === 'beast'}
+            onClick={() => setTypeFilter(previous => previous === 'beast' ? 'all' : 'beast')}>
+            {typeFilter === 'beast' ? 'Show all creatures' : 'Beasts only'}
+          </button>
           <select value={crFilter} onChange={event => setCrFilter(event.target.value)} style={selectStyle}><option value="all">All CR</option><option value="low">CR 0–2</option><option value="mid">CR 3–8</option><option value="high">CR 9+</option></select>
           <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} style={selectStyle}><option value="all">All sources</option><option value="srd">SRD 5.1 (verified)</option><option value="legacy-reference">Legacy reference</option><option value="custom">Custom</option></select>
           <Input value={encounterName} onChange={event => setEncounterName(event.target.value)} placeholder="Encounter name, optional" style={inputStyle} />
@@ -206,11 +225,34 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
           </div>
         )}
 
-        {loading ? <p style={emptyStyle}>Loading creature library…</p> : filteredCreatures.length === 0 ? <p style={emptyStyle}>No matching creatures. Create one below or clear your filters.</p> : (
-          <div style={creatureGridStyle}>{filteredCreatures.map((creature, index) => {
-            const id = creatureId(creature, index);
-            return <CreatureCard key={id} creature={creature} count={selected[id] || 0} onAdjust={(delta) => adjustCreature(id, delta)} />;
-          })}</div>
+        {loading ? <p style={emptyStyle}>Loading creature library…</p> : (
+          <RosterSplitView
+            key={campaignId}
+            testId="gm-bestiary-split-reference"
+            title="Beasts & monsters"
+            items={filteredCreatures}
+            selectedId={selectedCreatureId}
+            onSelect={setSelectedCreatureId}
+            getSubtitle={creature => [creature.size, creature.type].filter(Boolean).join(' ') || 'Creature'}
+            getBadge={creature => `CR ${creature.cr ?? creature.challenge_rating ?? 'Unrated'} · ${creature.source === 'custom' ? 'Campaign' : creature.source === 'legacy-reference' ? 'Legacy' : 'SRD'}`}
+            emptyMessage="No matching creatures. Clear the filters or create one below."
+            renderDetail={creature => {
+              const id = creatureId(creature);
+              const count = selected[id] || 0;
+              return (
+                <div className="rqk-bestiary-selected-sheet">
+                  <div className="rqk-reference-browser__detail-actions" aria-label={`Encounter quantity for ${creature.name}`}>
+                    <strong className="rqk-bestiary-quantity-label">{count} in encounter</strong>
+                    <button type="button" aria-label={`Remove one ${creature.name}`}
+                      disabled={!count} onClick={() => adjustCreature(id, -1)}>− Remove</button>
+                    <button type="button" aria-label={`Add one ${creature.name}`}
+                      onClick={() => adjustCreature(id, 1)}>+ Add to encounter</button>
+                  </div>
+                  <NpcCompactStatBlock npc={creature} />
+                </div>
+              );
+            }}
+          />
         )}
       </section>
 
