@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AlertTriangle, BookOpen, FileText, Mail, Shield, Users } from 'lucide-react';
@@ -18,31 +18,13 @@ import {
   fetchPlayerHandoutSummary,
 } from '@/components/dashboard/player/playerDashboardData';
 import apiClient from '@/lib/apiClient';
+import { readActiveCharacterId, storeActiveCharacterId } from '@/components/dashboard/player/playerActiveCharacterStorage';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import '@/styles/playerDashboardBoard.css';
 import '@/styles/playerHandoutsPanel.css';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
-const ACTIVE_CHARACTER_KEY = 'rqk.player.active-character';
-
-function readRememberedCharacterId() {
-  try {
-    return localStorage.getItem(ACTIVE_CHARACTER_KEY) || '';
-  } catch {
-    return '';
-  }
-}
-
-function rememberCharacterId(characterId) {
-  try {
-    if (characterId) localStorage.setItem(ACTIVE_CHARACTER_KEY, characterId);
-    else localStorage.removeItem(ACTIVE_CHARACTER_KEY);
-  } catch {
-    // Storage can be unavailable in locked-down browsers; selection still works for this visit.
-  }
-}
-
 const tabs = [
   { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
   { id: 'campaigns', label: 'Campaigns', icon: BookOpen, testId: 'tab-campaigns' },
@@ -58,7 +40,12 @@ export default function PlayerDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
-  const [selectedCharacterId, setSelectedCharacterId] = useState(readRememberedCharacterId);
+  const [selectedCharacterId, setSelectedCharacterId] = useState(readActiveCharacterId);
+  const [charactersLoaded, setCharactersLoaded] = useState(false);
+  const [campaignsLoaded, setCampaignsLoaded] = useState(false);
+  const dataRequestRef = useRef(0);
+  const handoutRequestRef = useRef(0);
+  const mountedRef = useRef(false);
   const [handoutSummary, setHandoutSummary] = useState(null);
   const [handoutSummaryError, setHandoutSummaryError] = useState(false);
   const [loadWarning, setLoadWarning] = useState('');
@@ -87,13 +74,13 @@ export default function PlayerDashboard() {
   const playerSummaryCards = useMemo(() => ([
     {
       label: 'Characters',
-      value: characters.length,
+      value: charactersLoaded ? characters.length : '—',
       icon: Shield,
       detail: characters.length === 1 ? 'ready hero' : 'ready heroes',
     },
     {
       label: 'Campaigns',
-      value: linkedCampaigns.length,
+      value: campaignsLoaded ? linkedCampaigns.length : '—',
       icon: BookOpen,
       detail: linkedCampaigns.length === 1 ? 'linked table' : 'linked tables',
     },
@@ -105,14 +92,23 @@ export default function PlayerDashboard() {
         ? `Level ${selectedCharacter.level || 1} ${selectedCharacter.character_class || 'Adventurer'}`
         : 'Create or import a character',
     },
-  ]), [characters.length, linkedCampaigns.length, selectedCharacter]);
+  ]), [characters.length, linkedCampaigns.length, selectedCharacter, charactersLoaded, campaignsLoaded]);
 
   const loadPlayerData = useCallback(async ({ notifyFailure = true } = {}) => {
+    const request = ++dataRequestRef.current;
+    const isCurrent = () => mountedRef.current && request === dataRequestRef.current;
     try {
       const result = await fetchPlayerDashboardSections(apiClient, { includeHandouts: false });
+      if (!isCurrent()) return { ok: false, stale: true, failures: [] };
 
-      if (result.characters !== null) setCharacters(result.characters);
-      if (result.campaigns !== null) setCampaigns(result.campaigns);
+      if (result.characters !== null) {
+        setCharacters(result.characters);
+        setCharactersLoaded(true);
+      }
+      if (result.campaigns !== null) {
+        setCampaigns(result.campaigns);
+        setCampaignsLoaded(true);
+      }
 
       if (result.ok) {
         setLoadWarning('');
@@ -126,24 +122,28 @@ export default function PlayerDashboard() {
 
       return result;
     } catch (error) {
+      if (!isCurrent()) return { ok: false, stale: true, failures: [] };
       const description = error?.response?.data?.detail
         || 'Could not refresh the player dashboard. Showing last known data where available.';
       setLoadWarning(description);
       if (notifyFailure) toast.error('Player dashboard could not be refreshed', { description });
       return { ok: false, failures: ['dashboard'] };
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, []);
 
   const refreshHandouts = useCallback(async () => {
+    const request = ++handoutRequestRef.current;
+    const isCurrent = () => mountedRef.current && request === handoutRequestRef.current;
     try {
       const summary = await fetchPlayerHandoutSummary(apiClient);
+      if (!isCurrent()) return false;
       setHandoutSummary(summary);
       setHandoutSummaryError(false);
       return true;
     } catch {
-      setHandoutSummaryError(true);
+      if (isCurrent()) setHandoutSummaryError(true);
       return false;
     }
   }, []);
@@ -154,16 +154,22 @@ export default function PlayerDashboard() {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     loadPlayerData();
     refreshHandouts();
+    return () => {
+      mountedRef.current = false;
+      dataRequestRef.current += 1;
+      handoutRequestRef.current += 1;
+    };
   }, [loadPlayerData, refreshHandouts]);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !charactersLoaded) return;
 
     if (characters.length === 0) {
       if (selectedCharacterId) setSelectedCharacterId('');
-      rememberCharacterId('');
+      storeActiveCharacterId('');
       return;
     }
 
@@ -173,13 +179,14 @@ export default function PlayerDashboard() {
       return;
     }
 
-    rememberCharacterId(selectedCharacterId);
-  }, [characters, loading, selectedCharacterId]);
+    storeActiveCharacterId(selectedCharacterId);
+  }, [characters, loading, selectedCharacterId, charactersLoaded]);
 
   const refresh = async () => {
     setRefreshing(true);
     try {
       const [result, handoutsOk] = await Promise.all([loadPlayerData(), refreshHandouts()]);
+      if (result.stale) return;
       if (result.ok && handoutsOk) toast.success('Player dashboard refreshed');
       else if (result.ok) toast.warning('Dashboard refreshed, but received-handout status is still unavailable.');
     } finally {
@@ -254,6 +261,7 @@ export default function PlayerDashboard() {
         {activeTab === 'characters' && (
           <PlayerCharactersPanel
             characters={characters}
+            unavailable={!charactersLoaded}
             onCreateCharacter={() => navigate('/characters/new')}
             onImportCharacter={() => navigate('/characters/import')}
             onOpenCharacter={(character) => navigate(`/characters/${character.id}`, { state: playerSheetReturnState('/player') })}
@@ -263,6 +271,7 @@ export default function PlayerDashboard() {
         {activeTab === 'campaigns' && (
           <PlayerCampaignsPanel
             campaigns={linkedCampaigns}
+            unavailable={!campaignsLoaded}
             onJoinCampaign={openJoinFlow}
             onOpenCampaign={(campaign) => navigate(`/player/campaign/${campaign.id}`)}
           />
