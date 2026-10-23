@@ -269,7 +269,10 @@ function NPCGridDisplay({ payload, target }) {
   // Large scenes rotate gently so every selected person can be seen without
   // squeezing dozens of unreadable portraits into a single TV frame.
   useEffect(() => {
-    if (pageCount <= 1) return undefined;
+    const reduceMotion = typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Keep manual paging available, but never auto-advance for reduced motion.
+    if (pageCount <= 1 || reduceMotion) return undefined;
     const timer = window.setInterval(() => {
       setPageIndex(previous => (previous + 1) % pageCount);
     }, 10000);
