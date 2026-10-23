@@ -18,5 +18,5 @@ test('Guild Ledger player pages preserve readable phone actions and scrolling ca
   expect(css).toContain('prefers-reduced-motion: reduce');
   expect(auth).toContain('charactersLoaded');
   expect(auth).toContain('campaignsLoaded');
-  expect(player).toContain('aria-label="Refresh player campaign"');
+  expect(player).toContain('onClick={refresh} disabled={loading}');
 });
