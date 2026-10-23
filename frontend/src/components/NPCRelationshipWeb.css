@@ -235,3 +235,84 @@
     padding: 10px;
   }
 }
+
+/* Relationship coverage makes an unlinked NPC roster visibly distinct from missing data. */
+#root .rqk-rel-coverage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+#root .rqk-rel-coverage > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--rq-border-default, rgba(137,157,176,.25));
+  border-radius: 7px;
+  background: var(--rq-bg-panel, #1e2936);
+}
+#root .rqk-rel-coverage strong {
+  color: var(--rq-primary-hover, #d9bc82);
+  font-size: clamp(20px, 2.4vw, 26px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+#root .rqk-rel-coverage span {
+  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1.3;
+}
+#root .rqk-rel-unlinked {
+  border: 1px solid var(--rq-border-default, rgba(137,157,176,.25));
+  border-radius: 6px;
+  background: var(--rq-bg-deep, #07131f);
+  min-width: 0;
+}
+#root .rqk-rel-unlinked > summary {
+  padding: 12px 13px;
+  color: var(--rq-primary-hover, #d9bc82);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#root .rqk-rel-unlinked-list {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 7px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 12px;
+  border-top: 1px solid var(--rq-border-default, rgba(137,157,176,.25));
+}
+#root .rqk-rel-unlinked-list button {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid rgba(201,169,107,.3);
+  border-radius: 6px;
+  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-panel, #1e2936);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+#root .rqk-rel-unlinked-list button:hover,
+#root .rqk-rel-unlinked-list button:focus-visible {
+  border-color: var(--rq-primary, #c9a96b);
+  outline: 2px solid var(--rq-primary-hover, #d9bc82);
+  outline-offset: 1px;
+}
+@media (max-width: 640px) {
+  #root .rqk-rel-coverage { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
+  #root .rqk-rel-coverage > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 9px 8px;
+  }
+  #root .rqk-rel-coverage strong { font-size: 22px; }
+  #root .rqk-rel-coverage span { font-size: 10px; }
+}

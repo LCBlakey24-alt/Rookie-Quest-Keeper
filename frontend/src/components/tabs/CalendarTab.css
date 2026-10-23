@@ -399,3 +399,65 @@
     padding-inline: 5px;
   }
 }
+
+/* Table clock: deliberate quick advances and a clearly labelled custom date.
+   The other campaign's saved clock is never affected by this screen. */
+#root .rqk-calendar-clock-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr)) minmax(78px,.6fr) minmax(145px,1.1fr);
+  align-items: end;
+  gap: 9px;
+  width: min(100%, 720px);
+  margin: 0 auto;
+}
+#root .rqk-calendar-clock-actions > button {
+  min-width: 0;
+  min-height: 46px;
+  padding-inline: 11px;
+  justify-content: center;
+  white-space: normal;
+  line-height: 1.25;
+}
+#root .rqk-calendar-clock-custom {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  text-align: left;
+  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  font-size: 11px;
+  font-weight: 750;
+}
+#root .rqk-calendar-clock-custom input {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding-inline: 9px;
+  border: 1px solid rgba(201,169,107,.35);
+  border-radius: 6px;
+  background: var(--rq-bg-input, #101f2d);
+  color: var(--rq-text-primary, #eadfc8);
+  text-align: center;
+  font-size: 15px;
+}
+#root .rqk-calendar-clock-note {
+  display: block;
+  max-width: 700px;
+  margin: 10px auto 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+}
+#root .rqk-calendar-clock-actions button:disabled {
+  opacity: .6;
+  cursor: progress;
+}
+@media (max-width: 720px) {
+  #root .rqk-calendar-clock-actions {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 7px;
+  }
+  #root .rqk-calendar-clock-actions > button { min-height: 44px; }
+}
+@media (max-width: 340px) {
+  #root .rqk-calendar-clock-actions { grid-template-columns: minmax(0,1fr); }
+}
