@@ -74,6 +74,32 @@
   overflow: hidden;
 }
 
+.rqk-player-display__npc-heading { flex-wrap: wrap; }
+.rqk-player-display__npc-pages {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--rqk-tv-cream);
+  font-size: clamp(11px, 1.1vw, 14px);
+}
+.rqk-player-display__npc-pages button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(201, 169, 107, .45);
+  border-radius: 5px;
+  background: var(--rqk-tv-panel);
+  color: var(--rqk-tv-cream);
+  cursor: pointer;
+}
+.rqk-player-display__npc-pages button:focus-visible {
+  outline: 2px solid var(--rqk-tv-gold);
+  outline-offset: 2px;
+}
+@media (max-height: 800px) {
+  .rqk-player-display__npc-pages button { min-height: 34px; padding-inline: 8px; }
+}
+
 /* TV viewports frequently report 1366x768 or 1280x720, even at 1080p output.
    Reserve the height for images and combat, not oversized chrome. */
 @media (min-width: 800px) and (max-height: 800px) {

@@ -262,7 +262,49 @@ function ImageDisplay({ payload, target, hasPartySidebar }) { return <section st
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
-  return <section className="rqk-player-display__npc-shell" style={npcShellStyle(target)}><div className="rqk-player-display__npc-heading" style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div className="rqk-player-display__npc-grid" style={npcGridStyle(target, npcs.length)}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
+  const pageSize = isTable(target) ? 10 : 8;
+  const pageCount = Math.max(1, Math.ceil(npcs.length / pageSize));
+  const [pageIndex, setPageIndex] = useState(0);
+
+  // Large scenes rotate gently so every selected person can be seen without
+  // squeezing dozens of unreadable portraits into a single TV frame.
+  useEffect(() => {
+    const reduceMotion = typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Keep manual paging available, but never auto-advance for reduced motion.
+    if (pageCount <= 1 || reduceMotion) return undefined;
+    const timer = window.setInterval(() => {
+      setPageIndex(previous => (previous + 1) % pageCount);
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, [pageCount]);
+
+  const safePage = Math.min(pageIndex, pageCount - 1);
+  const first = safePage * pageSize;
+  const currentNpcs = npcs.slice(first, first + pageSize);
+
+  return (
+    <section className="rqk-player-display__npc-shell" style={npcShellStyle(target)}>
+      <div className="rqk-player-display__npc-heading" style={displayHeaderStyle(target)}>
+        <Users size={isTable(target) ? 18 : 24} aria-hidden="true" />
+        <div>
+          <p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p>
+          <h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1>
+        </div>
+        {pageCount > 1 && (
+          <div className="rqk-player-display__npc-pages" role="group" aria-label="NPC gallery pages">
+            <button type="button" aria-label="Previous NPC page" onClick={() => setPageIndex(previous => (previous - 1 + pageCount) % pageCount)}>Previous</button>
+            <span role="status" aria-live="polite">Page {safePage + 1} of {pageCount} · {npcs.length} NPCs</span>
+            <button type="button" aria-label="Next NPC page" onClick={() => setPageIndex(previous => (previous + 1) % pageCount)}>Next</button>
+          </div>
+        )}
+      </div>
+      <div className="rqk-player-display__npc-grid" style={npcGridStyle(target, currentNpcs.length)}>
+        {currentNpcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}
+        {npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}
+      </div>
+    </section>
+  );
 }
 function NPCCard({ npc, target, compact = false }) { return <article className="rqk-player-display__npc-card" style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div className="rqk-player-display__npc-info" style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>; }
 
