@@ -17,7 +17,6 @@ import {
   Users,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-import { daysUntilNextOccurrence } from '@/data/customCalendarUtilities';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 
 const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
@@ -39,7 +38,7 @@ const GMHandoutsWorkspace = React.lazy(() => import('@/components/gm/GMHandoutsW
 const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKartaCampaignPackPanel'));
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
-import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
+import { chooseNextCampaignEvent, normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
 import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
 import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
@@ -434,11 +433,6 @@ function chooseStoryFocus(arcs) {
   return { arc, chapter, nextScene };
 }
 
-function daysUntilEvent(event, calendar) {
-  const difference = daysUntilNextOccurrence(event, calendar);
-  return difference === null ? Number.POSITIVE_INFINITY : difference;
-}
-
 function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
@@ -529,10 +523,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     return [...data.notes].sort((a, b) => String(b.created_at || b.updated_at || '').localeCompare(String(a.created_at || a.updated_at || '')))[0];
   }, [data.notes]);
 
-  const nextEvent = useMemo(() => data.events
-    .map(event => ({ ...event, daysUntil: daysUntilEvent(event, data.calendar) }))
-    .filter(event => event.daysUntil >= 0)
-    .sort((a, b) => a.daysUntil - b.daysUntil)[0] || null, [data.events, data.calendar]);
+  const nextEvent = useMemo(() =>
+    chooseNextCampaignEvent(data.events, data.calendar), [data.events, data.calendar]);
 
   const calendarLabel = useMemo(() => {
     if (!data.calendar) return 'Calendar not set';
