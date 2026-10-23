@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Check, ChevronDown, ChevronRight, FileText, MapPin, RefreshCw, Search, Swords, UserPlus, Users, X } from 'lucide-react';
+import { AlertTriangle, FileText, MapPin, RefreshCw, Search, Swords, UserPlus, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import NpcCompactStatBlock from './NpcCompactStatBlock';
@@ -239,17 +239,5 @@ const summaryStyle = { minHeight: 32, display: 'flex', alignItems: 'center', jus
 const summaryCopyStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0 };
 const refreshStyle = { minHeight: 28, border: `1px solid ${rq.line}`, background: rq.panel, color: rq.soft, padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 9, fontWeight: 850 };
 const warningStyle = { minHeight: 38, display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 9px', border: '1px solid rgba(245,158,11,0.42)', borderLeft: '4px solid #f59e0b', background: 'rgba(245,158,11,0.08)', color: '#f6c25b', fontSize: 10, lineHeight: 1.4 };
-const listStyle = { display: 'grid', gap: 4 };
-const cardStyle = travelling => ({ background: rq.panel, border: `1px solid ${travelling ? rq.red : rq.line}`, borderLeft: travelling ? `4px solid ${rq.red}` : `1px solid ${rq.line}` });
-const headerStyle = { width: '100%', minHeight: 48, border: 0, background: rq.card, color: rq.text, padding: '6px 8px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr) auto', alignItems: 'center', gap: 5, cursor: 'pointer' };
-const chevronStyle = { display: 'grid', placeItems: 'center', color: rq.muted };
-const nameStyle = { display: 'block', fontSize: 12, fontWeight: 950, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' };
-const metaStyle = { display: 'block', color: rq.muted, fontSize: 9, marginTop: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' };
-const travellingPillStyle = { minHeight: 23, padding: '0 6px', background: 'rgba(208,0,0,0.15)', border: `1px solid ${rq.red}`, color: rq.text, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 8, fontWeight: 950, whiteSpace: 'nowrap' };
-const bodyStyle = { display: 'grid', gap: 6, padding: 7, borderTop: `1px solid ${rq.line}` };
-// The expanded card grows with the NPC record; no 110px clipping or hidden notes.
-const detailStyle = { background: rq.bg, color: rq.soft, padding: 10, fontSize: 12, lineHeight: 1.5, minWidth: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' };
-const detailLabelStyle = { display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 900, color: rq.text };
-const actionsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px,1fr))', gap: 4 };
 const actionStyle = active => ({ minHeight: 34, border: `1px solid ${active ? rq.red : rq.line}`, background: active ? 'rgba(208,0,0,0.15)' : rq.bg, color: rq.text, padding: '0 7px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontSize: 9, fontWeight: 900 });
 const emptyStyle = { minHeight: 70, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px dashed ${rq.line}`, color: rq.muted, fontSize: 10, textAlign: 'center', padding: 10 };
