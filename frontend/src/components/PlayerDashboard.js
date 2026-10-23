@@ -149,6 +149,8 @@ export default function PlayerDashboard() {
   }, []);
 
   const acceptHandoutSummary = useCallback((summary) => {
+    // A read/save change from Received is newer than any in-flight summary request.
+    handoutRequestRef.current += 1;
     setHandoutSummary(summary);
     setHandoutSummaryError(false);
   }, []);
