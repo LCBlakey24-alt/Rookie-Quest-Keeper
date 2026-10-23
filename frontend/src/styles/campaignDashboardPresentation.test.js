@@ -28,6 +28,29 @@ describe('Campaign Dashboard presentation ownership', () => {
     expect(source).toContain('<CampaignToolFinder');
   });
 
+  test('uses a one-control jump-to-tool picker on phones but retains desktop groups', () => {
+    const source = read('../components/CampaignDashboard.js');
+    const css = read('../components/CampaignDashboard.css');
+    const mobile = read('../components/gm/dashboard/CampaignMobileNavigator.js');
+
+    expect(source).toContain('<CampaignMobileNavigator activeTab={activeTab} onOpenTab={handleTabClick} />');
+    expect(mobile).toContain('aria-label="Jump to campaign workspace"');
+    expect(mobile).toContain('tabGroups.map');
+    expect(mobile).toContain('onOpenTab(event.target.value)');
+    expect(css).toContain('Guild Ledger mobile workspace picker');
+    expect(css).toMatch(/@media \\(max-width: 760px\\)/);
+    expect(css).toContain('display: none !important;');
+    expect(css).toContain('.campaign-dashboard-group-row');
+    expect(css).toContain('.campaign-dashboard-tab-row');
+    expect(css).toContain('.rqk-campaign-mobile-navigator__select-wrap select');
+  });
+
+  test('avoids duplicating the campaign title in the GM home hero', () => {
+    const source = read('../components/CampaignDashboard.js');
+    expect(source).toContain('id="campaign-home-title">Ready for the table');
+    expect(source).not.toContain('id="campaign-home-title">{campaign?.name');
+  });
+
   test('keeps one two-row campaign navigation system', () => {
     const source = read('../components/CampaignDashboard.js');
 
