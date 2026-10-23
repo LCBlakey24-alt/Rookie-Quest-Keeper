@@ -16,6 +16,10 @@ test('Guild Ledger player pages preserve readable phone actions and scrolling ca
   expect(css).toContain('.player-campaign-action::after');
   expect(css).toContain('outline: 2px solid var(--rq-guild-heading');
   expect(css).toContain('prefers-reduced-motion: reduce');
+  expect(css).toContain('.character-page-v2 .clean-sheet-quick-stat span');
+  expect(css).toContain('.character-page-v2 .clean-sheet-combat-hp-title span');
+  expect(css).toContain('.character-page-v2 .clean-sheet-tabs button span');
+  expect(css).toContain('font-size: max(11px, .72rem) !important');
   expect(auth).toContain('charactersLoaded');
   expect(auth).toContain('campaignsLoaded');
   expect(player).toContain('onClick={refresh} disabled={loading}');
