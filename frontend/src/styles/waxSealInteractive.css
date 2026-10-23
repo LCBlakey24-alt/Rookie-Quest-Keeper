@@ -222,7 +222,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -252,8 +252,7 @@
   .campaign-home-focus-card,
   .dashboard-action-card,
   .rqk-selectable-control
-) {
+):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
       transition: none !important;
     }
-  }
-}
+  }}
