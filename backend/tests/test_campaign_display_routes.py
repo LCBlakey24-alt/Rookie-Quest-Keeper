@@ -171,7 +171,7 @@ def test_player_display_removes_private_nested_gm_data_and_hidden_tokens():
                  'x': 0, 'y': 0, 'secret': True, 'gm_notes': 'Trap'},
                 {'id': 'visible', 'name': 'Skeleton', 'hidden': False,
                  'x': 0, 'y': 0, 'initiative': 11, 'hp': 400,
-                 'ac': 27, 'gm_notes': 'Don't reveal resistances',
+                 'ac': 27, "gm_notes": "Do not reveal resistances",
                  'position': {'x': 0, 'y': 0, 'gm_note': 'north trap'}},
                 {'id': 'invisible', 'name': 'Secret Dragon', 'visible': False},
                 {'id': 'private', 'name': 'Shadow', 'visibility': 'gm-only'},
