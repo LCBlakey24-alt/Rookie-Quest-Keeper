@@ -537,7 +537,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   const calendarLabel = useMemo(() => {
     if (!data.calendar) return 'Calendar not set';
     const month = data.calendar.custom_months?.[(data.calendar.current_month || 1) - 1]?.name || `Month ${data.calendar.current_month || 1}`;
-    return `${month} ${data.calendar.current_day || 1}, Year ${data.calendar.current_year || 1}`;
+    return `${data.calendar.current_day || 1} ${month}, ${data.calendar.current_year || 1}${data.calendar.calendar_type === 'custom' ? ' PC' : ''}`;
   }, [data.calendar]);
 
   const overview = [
@@ -554,6 +554,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     { id: 'maps', label: 'Maps & Locations', icon: Map },
     { id: 'players', label: 'Players', icon: Users },
     { id: 'ingame-notes', label: 'Notes', icon: FileText },
+    { id: 'chronicle', label: 'Calendar & Timeline', icon: CalendarDays },
   ];
 
   return (
@@ -593,6 +594,24 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             </button>
           );
         })}
+      </section>
+
+      <section className="campaign-home-section" aria-labelledby="campaign-quick-start-title">
+        <div className="campaign-home-section-heading">
+          <h2 id="campaign-quick-start-title">Session Toolbox</h2>
+          <span>Jump straight into the tools you need at the table.</span>
+        </div>
+        <div className="campaign-home-quick-grid">
+          {quick.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button key={item.id} type="button" onClick={() => onOpenTab(item.id)} className="campaign-home-quick-card">
+                <Icon size={18} aria-hidden="true" />
+                <strong>{item.label}</strong>
+              </button>
+            );
+          })}
+        </div>
       </section>
 
       <section className="campaign-home-focus-grid" aria-label="Campaign focus">
@@ -650,24 +669,6 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             <p>Link NPCs to the current quest and they will stay visible here.</p>
           )}
         </article>
-      </section>
-
-      <section className="campaign-home-section" aria-labelledby="campaign-quick-start-title">
-        <div className="campaign-home-section-heading">
-          <h2 id="campaign-quick-start-title">Open a Workspace</h2>
-          <span>Everything else stays out of the way until you need it.</span>
-        </div>
-        <div className="campaign-home-quick-grid">
-          {quick.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button key={item.id} type="button" onClick={() => onOpenTab(item.id)} className="campaign-home-quick-card">
-                <Icon size={18} aria-hidden="true" />
-                <strong>{item.label}</strong>
-              </button>
-            );
-          })}
-        </div>
       </section>
 
       <details className="campaign-home-join-code">
