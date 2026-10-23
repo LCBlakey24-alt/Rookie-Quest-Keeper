@@ -171,13 +171,13 @@ test('desktop primary control sweeps wax-red left to right and returns to blue',
   const resting = await readStyle();
   expect(resting.backgroundColor).toBe('rgb(38, 63, 89)');
   expect(resting.backgroundImage).toContain('126, 45, 45');
-  expect(resting.backgroundSize).toContain('0% 100%');
+  expect(resting.backgroundSize).toMatch(/^0(?:px|%) 100%$/);
   expect(resting.transitionDuration).toContain('0.34s');
 
   await button.hover();
   await expect.poll(async () => (await readStyle()).backgroundSize).toContain('100% 100%');
   await page.mouse.move(4, 600);
-  await expect.poll(async () => (await readStyle()).backgroundSize).toContain('0% 100%');
+  await expect.poll(async () => (await readStyle()).backgroundSize).toMatch(/^0(?:px|%) 100%$/);
 });
 
 test('auth selected tabs remain red, while inactive tabs stay blue', async ({ page }) => {
@@ -194,7 +194,7 @@ test('auth selected tabs remain red, while inactive tabs stay blue', async ({ pa
   await expect(register).toHaveCSS('background-size', '100% 100%');
   await expect(login).toHaveAttribute('aria-selected', 'false');
   await page.mouse.move(4, 600);
-  await expect(login).toHaveCSS('background-size', '0% 100%');
+  await expect(login).toHaveCSS('background-size', /^0(?:px|%) 100%$/);
   await assertFitsViewport(page, 390);
 });
 
