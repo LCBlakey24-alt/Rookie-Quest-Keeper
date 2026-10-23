@@ -9,12 +9,12 @@ jest.mock('@/lib/apiClient', () => ({
   default: { get: jest.fn() },
 }));
 jest.mock('@/lib/liveDisplayBus', () => ({
-  loadDisplayState: jest.fn(() => ({ mode: 'blank', payload: {} })),
-  subscribeDisplayState: jest.fn(() => () => {}),
-  subscribeRemoteDisplayState: jest.fn(() => () => {}),
+  loadDisplayState: () => ({ mode: 'blank', payload: {} }),
+  subscribeDisplayState: () => () => {},
+  subscribeRemoteDisplayState: () => () => {},
 }));
 jest.mock('@/data/campaignCharacterBridge', () => ({
-  normalizeCampaignCharacter: jest.fn(value => value),
+  normalizeCampaignCharacter: value => value,
 }));
 jest.mock('@/components/gm/GroupCheckDisplay', () => () => null);
 
