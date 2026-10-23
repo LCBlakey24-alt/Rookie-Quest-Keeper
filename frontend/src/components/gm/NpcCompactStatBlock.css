@@ -149,3 +149,163 @@
   .rqk-stat-block__vital, .rqk-stat-block__ability { background: #f3f3f3; }
   .rqk-stat-block__roll-actions { display: none; }
 }
+
+/* Guild Ledger combat-reference layout. Scope to the stat block so NPC lists,
+   Bestiary cards and Live Play retain their own surrounding geometry. */
+.rqk-stat-block__jump {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  padding-block: 10px 11px;
+  border-block: 1px solid var(--rq-border-default, rgba(137,157,176,.22));
+}
+.rqk-stat-block__jump-title {
+  display: block;
+  color: var(--rq-text-muted, rgba(234,223,200,.75));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.rqk-stat-block__jump-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 0;
+}
+.rqk-stat-block__jump-button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--rq-line-strong, rgba(201,169,107,.3));
+  border-radius: 5px;
+  background: var(--rq-bg-deep, #07131f);
+  color: var(--rq-text-primary, #eadfc8);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.rqk-stat-block__jump-button:is(:hover,:focus-visible) {
+  border-color: var(--rq-primary, #c9a96b);
+  background: var(--rq-card, #263748);
+}
+.rqk-stat-block__jump-button:focus-visible {
+  outline: 2px solid var(--rq-primary-hover, #d9bc82);
+  outline-offset: 2px;
+}
+.rqk-stat-block__name {
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: clamp(22px, 3cqw, 30px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.rqk-stat-block__vital {
+  padding-block: 13px;
+  border-color: var(--rq-line-strong, rgba(201,169,107,.3));
+}
+.rqk-stat-block__vital-value {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(20px, 3cqw, 26px);
+}
+.rqk-stat-block__ability {
+  min-height: 70px;
+  padding-block: 10px;
+}
+.rqk-stat-block__ability-score {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(17px, 2.6cqw, 22px);
+}
+.rqk-stat-block__metadata {
+  gap: 9px;
+  padding: 13px 14px;
+  border-radius: 4px;
+}
+.rqk-stat-block__meta-row {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.rqk-stat-block__section {
+  scroll-margin-top: 24px;
+  gap: 9px;
+}
+.rqk-stat-block__section-title {
+  padding-bottom: 8px;
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--rq-primary-hover, #d9bc82);
+}
+.rqk-stat-block__action {
+  padding: 11px 12px 13px;
+  border: 1px solid var(--rq-line, rgba(137,157,176,.18));
+  border-radius: 6px;
+  background: var(--rq-bg-main, #0b1b2b);
+}
+.rqk-stat-block__action:last-child {
+  border: 1px solid var(--rq-line, rgba(137,157,176,.18));
+  padding-bottom: 13px;
+}
+.rqk-stat-block__action-heading {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.rqk-stat-block__action-stats span {
+  padding: 5px 9px;
+  border: 1px solid var(--rq-line-strong, rgba(201,169,107,.3));
+  background: var(--rq-bg-panel, #1e2936);
+  color: var(--rq-text-primary, #eadfc8);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.rqk-stat-block__action-notes,
+.rqk-stat-block__note-text {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.rqk-stat-block__roll-button {
+  min-height: 41px;
+  padding: 9px 13px;
+  border-color: var(--rq-line-strong, rgba(201,169,107,.3));
+  background: var(--rq-card, #263748);
+  color: var(--rq-text-primary, #eadfc8);
+  font-size: 12px;
+}
+.rqk-stat-block__roll-button:is(:hover,:focus-visible) {
+  border-color: var(--rq-primary-hover, #d9bc82);
+  background: var(--rq-bg-panel, #1e2936);
+}
+.rqk-stat-block__notes {
+  scroll-margin-top: 24px;
+  border-top: 1px solid var(--rq-line-strong, rgba(201,169,107,.3));
+}
+.rqk-stat-block__notes summary {
+  min-height: 44px;
+  display: list-item;
+  padding: 12px 4px;
+  border: 0;
+  font-size: 14px;
+}
+.rqk-stat-block__note-label {
+  font-size: 13px;
+  color: var(--rq-primary-hover, #d9bc82);
+}
+@container (max-width: 360px) {
+  .rqk-stat-block { padding: 11px; gap: 11px; }
+  .rqk-stat-block__jump-list { gap: 6px; }
+  .rqk-stat-block__jump-button { min-height: 42px; padding-inline: 9px; }
+  .rqk-stat-block__portrait { width: 54px; height: 54px; flex-basis: 54px; }
+  .rqk-stat-block__action { padding: 10px; }
+  .rqk-stat-block__metadata { padding: 11px; }
+  .rqk-stat-block__vital { padding-inline: 3px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rqk-stat-block__jump-button,
+  .rqk-stat-block__roll-button { transition: none !important; }
+}
+@media print {
+  .rqk-stat-block__jump { display: none !important; }
+  .rqk-stat-block__action,
+  .rqk-stat-block__metadata { break-inside: avoid; }
+}

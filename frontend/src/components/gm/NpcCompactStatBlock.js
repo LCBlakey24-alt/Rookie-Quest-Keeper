@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
 import './NpcCompactStatBlock.css';
 
@@ -82,10 +82,10 @@ function MetaRow({ title, value }) {
   return <div className="rqk-stat-block__meta-row"><strong>{title}:</strong><span>{text}</span></div>;
 }
 
-function ActionList({ title, items, onRoll, combatReady }) {
+function ActionList({ title, items, onRoll, combatReady, sectionId }) {
   if (!items.length) return null;
   return (
-    <section className="rqk-stat-block__section" aria-label={title}>
+    <section id={sectionId} className="rqk-stat-block__section" aria-label={title}>
       <h3 className="rqk-stat-block__section-title">{title}</h3>
       {items.map((original, index) => {
         const item = typeof original === 'string' ? { name: original } : (original || {});
@@ -119,6 +119,7 @@ function ActionList({ title, items, onRoll, combatReady }) {
 
 export default function NpcCompactStatBlock({ npc = {} }) {
   const [lastRoll, setLastRoll] = useState('');
+  const sectionId = useId();
   const [notesExpanded, setNotesExpanded] = useState(true);
   const unverified = npc.combat_ready === false;
   const estimatedLegacy = npc.source === 'legacy-reference';
@@ -163,6 +164,23 @@ export default function NpcCompactStatBlock({ npc = {} }) {
     setLastRoll(name + ': ' + notation + ' [' + dice + ']' + bonus + ' = ' + result.total + critical);
   };
   const canRoll = !unverified && !estimatedLegacy;
+  const statSections = [
+    { key: 'abilities', label: 'Abilities', visible: true },
+    { key: 'traits', label: 'Traits', visible: specialAbilities.length > 0 ||
+      Boolean(npc.abilities && !Array.isArray(npc.abilities) && npc.abilities !== 'None') },
+    { key: 'actions', label: 'Actions', visible: attacks.length > 0 || actions.length > 0 },
+    { key: 'bonus', label: 'Bonus Actions', visible: bonusActions.length > 0 },
+    { key: 'reactions', label: 'Reactions', visible: reactions.length > 0 },
+    { key: 'legendary', label: 'Legendary', visible: legendaryActions.length > 0 },
+    { key: 'spells', label: 'Spells', visible: Boolean(spells) },
+    { key: 'lore', label: 'GM Lore', visible: lore.length > 0 },
+  ].filter(section => section.visible);
+  const jumpToSection = key => {
+    if (key === 'lore') setNotesExpanded(true);
+    document.getElementById(sectionId + '-' + key)?.scrollIntoView?.({
+      block: 'nearest', behavior: 'auto',
+    });
+  };
 
   return (
     <section className="rqk-stat-block" data-testid="npc-combat-stat-block" aria-label={(npc.name || 'NPC') + ' combat reference'}>
@@ -182,13 +200,26 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       {npc.mechanics_status && <p className="rqk-stat-block__warning" role="note">Stat status: {npc.mechanics_status}</p>}
       {estimatedLegacy && <p className="rqk-stat-block__warning" role="note">Legacy reference: some statistics and attacks may be estimates. Dice buttons are disabled until verified.</p>}
 
+      <nav className="rqk-stat-block__jump" aria-label="Stat block sections">
+        <span className="rqk-stat-block__jump-title">Quick jump</span>
+        <div className="rqk-stat-block__jump-list">
+          {statSections.map(section => (
+            <button
+              key={section.key} type="button" className="rqk-stat-block__jump-button"
+              aria-label={'Jump to ' + section.label}
+              onClick={() => jumpToSection(section.key)}
+            >{section.label}</button>
+          ))}
+        </div>
+      </nav>
+
       <div className="rqk-stat-block__vitals" aria-label="Defence and movement">
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Armour Class">AC</span><strong className="rqk-stat-block__vital-value">{confirmedNumber(npc.ac ?? npc.armor_class)}</strong></div>
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label" title="Hit Points">HP</span><strong className="rqk-stat-block__vital-value">{hpDisplay}</strong></div>
         <div className="rqk-stat-block__vital"><span className="rqk-stat-block__vital-label">Speed</span><strong className="rqk-stat-block__vital-value rqk-stat-block__vital-value--speed">{readable(npc.speed)}</strong></div>
       </div>
 
-      <div className="rqk-stat-block__abilities" aria-label="Ability scores">
+      <div id={sectionId + '-abilities'} className="rqk-stat-block__abilities" aria-label="Ability scores">
         {ABILITIES.map(([title, field]) => <AbilityBox key={field} title={title} score={stats[field] ?? npc[field]} />)}
       </div>
 
@@ -206,21 +237,21 @@ export default function NpcCompactStatBlock({ npc = {} }) {
         <MetaRow title="Languages" value={npc.languages} />
       </div>
 
-      <ActionList title="Traits" items={specialAbilities} onRoll={rollAction} combatReady={canRoll} />
+      <ActionList title="Traits" sectionId={sectionId + '-traits'} items={specialAbilities} onRoll={rollAction} combatReady={canRoll} />
       {!specialAbilities.length && npc.abilities && !Array.isArray(npc.abilities) && npc.abilities !== 'None' && (
-        <section className="rqk-stat-block__section" aria-label="Traits">
+        <section id={sectionId + '-traits'} className="rqk-stat-block__section" aria-label="Traits">
           <h3 className="rqk-stat-block__section-title">Traits</h3>
           <p className="rqk-stat-block__action-notes">{String(npc.abilities)}</p>
         </section>
       )}
-      <ActionList title="Actions" items={attacks.length ? attacks : actions} onRoll={rollAction} combatReady={canRoll} />
+      <ActionList title="Actions" sectionId={sectionId + '-actions'} items={attacks.length ? attacks : actions} onRoll={rollAction} combatReady={canRoll} />
       {attacks.length > 0 && additionalActions.length > 0 && <ActionList title="Other actions" items={additionalActions} onRoll={rollAction} combatReady={canRoll} />}
-      <ActionList title="Bonus Actions" items={bonusActions} onRoll={rollAction} combatReady={canRoll} />
-      <ActionList title="Reactions" items={reactions} onRoll={rollAction} combatReady={canRoll} />
-      <ActionList title="Legendary Actions" items={legendaryActions} onRoll={rollAction} combatReady={canRoll} />
+      <ActionList title="Bonus Actions" sectionId={sectionId + '-bonus'} items={bonusActions} onRoll={rollAction} combatReady={canRoll} />
+      <ActionList title="Reactions" sectionId={sectionId + '-reactions'} items={reactions} onRoll={rollAction} combatReady={canRoll} />
+      <ActionList title="Legendary Actions" sectionId={sectionId + '-legendary'} items={legendaryActions} onRoll={rollAction} combatReady={canRoll} />
       {Number(npc.legendary_resistance) > 0 && <MetaRow title="Legendary Resistance" value={npc.legendary_resistance + ' uses'} />}
       {spells && (
-        <section className="rqk-stat-block__section" aria-label="Spells">
+        <section id={sectionId + '-spells'} className="rqk-stat-block__section" aria-label="Spells">
           <h3 className="rqk-stat-block__section-title">Spells</h3>
           <div className="rqk-stat-block__metadata">
             <MetaRow title="Spell Save DC" value={spells.spell_save_dc} />
@@ -234,7 +265,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       {!allActions && !spells && <p className="rqk-stat-block__empty">No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
       {lastRoll && <output role="status" aria-live="polite" className="rqk-stat-block__roll-result" data-testid="stat-block-roll-result">{lastRoll}</output>}
       {lore.length > 0 && (
-        <details className="rqk-stat-block__notes" open={notesExpanded} onToggle={event => setNotesExpanded(event.currentTarget.open)}>
+        <details id={sectionId + '-lore'} className="rqk-stat-block__notes" open={notesExpanded} onToggle={event => setNotesExpanded(event.currentTarget.open)}>
           <summary>GM notes & story details</summary>
           {lore.map(([title, value]) => (
             <div key={title}><h3 className="rqk-stat-block__note-label">{title}</h3><p className="rqk-stat-block__note-text">{String(value)}</p></div>
