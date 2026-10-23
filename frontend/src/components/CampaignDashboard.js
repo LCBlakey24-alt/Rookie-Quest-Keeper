@@ -17,7 +17,7 @@ import {
   Users,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-import { calendarDaysUntil } from '@/data/tiaKartaCalendar';
+import { daysUntilNextOccurrence } from '@/data/customCalendarUtilities';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 
 const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
@@ -69,6 +69,7 @@ export default function CampaignDashboard() {
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const tabRowRef = useRef(null);
+  const campaignRequestRef = useRef(0);
 
   const activeTabMeta = useMemo(
     () => allTabs.find((tab) => tab.id === activeTab) || allTabs[0],
@@ -81,6 +82,7 @@ export default function CampaignDashboard() {
   );
 
   const fetchCampaign = useCallback(async () => {
+    const requestId = ++campaignRequestRef.current;
     setLoading(true);
     setLoadError('');
     try {
@@ -92,11 +94,13 @@ export default function CampaignDashboard() {
           const bootstrapResponse = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
           const bootstrapPayload = bootstrapResponse.data || {};
           if (bootstrapPayload.campaign) {
+            if (requestId !== campaignRequestRef.current) return;
             setCampaign(bootstrapPayload.campaign);
             setHomeBootstrap(bootstrapPayload);
             return;
           }
         } catch (bootstrapError) {
+          if (requestId !== campaignRequestRef.current) return;
           const status = bootstrapError?.response?.status;
           if (status === 401 || status === 403) throw bootstrapError;
           // Older/mid-deploy backends or a partial Home failure can still open
@@ -105,21 +109,30 @@ export default function CampaignDashboard() {
       }
 
       const response = await apiClient.get(`/campaigns/${campaignId}`);
+      if (requestId !== campaignRequestRef.current) return;
       setCampaign(response.data);
       setHomeBootstrap(null);
     } catch (error) {
+      if (requestId !== campaignRequestRef.current) return;
       setCampaign(null);
       setHomeBootstrap(null);
       setLoadError(error?.response?.data?.detail || 'Campaign could not be loaded.');
       toast.error('Failed to load campaign');
     } finally {
-      setLoading(false);
+      if (requestId === campaignRequestRef.current) setLoading(false);
     }
   }, [campaignId, initialTab]);
 
   useEffect(() => {
+    // Route components can survive campaign switches. Invalidate all pending
+    // reads so Eldritch Heralds can never paint over the Wednesday dashboard.
+    setCampaign(null);
+    setHomeBootstrap(null);
+    setInvite(null);
+    setActiveTab(tabFromHash());
     fetchCampaign();
-  }, [fetchCampaign]);
+    return () => { campaignRequestRef.current += 1; };
+  }, [fetchCampaign, campaignId]);
 
   useEffect(() => {
     const onHashChange = () => {
@@ -130,14 +143,24 @@ export default function CampaignDashboard() {
     };
 
     window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    window.addEventListener('popstate', onHashChange);
+    return () => {
+      window.removeEventListener('hashchange', onHashChange);
+      window.removeEventListener('popstate', onHashChange);
+    };
   }, []);
 
   // Deep links and the quick finder can select an off-screen tab. Bring its
   // button into the horizontal navigation viewport without stealing focus.
   useEffect(() => {
-    const selected = tabRowRef.current?.querySelector('.campaign-dashboard-tab.is-active');
-    selected?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+    const row = tabRowRef.current;
+    const selected = row?.querySelector('.campaign-dashboard-tab.is-active');
+    if (!row || !selected) return;
+    // Scroll only the tool strip, not the document or its parent panels.
+    const left = selected.offsetLeft - row.offsetLeft;
+    const right = left + selected.offsetWidth;
+    if (left < row.scrollLeft) row.scrollLeft = left;
+    else if (right > row.scrollLeft + row.clientWidth) row.scrollLeft = right - row.clientWidth;
   }, [activeTab]);
 
   const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
@@ -150,7 +173,7 @@ export default function CampaignDashboard() {
     if (typeof window !== 'undefined') {
       const nextHash = `#tab-${tabId}`;
       if (window.location.hash !== nextHash) {
-        window.history.pushState(null, '', `${window.location.pathname}${nextHash}`);
+        window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
       }
       window.requestAnimationFrame?.(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
@@ -214,6 +237,7 @@ export default function CampaignDashboard() {
       case 'command-centre':
         return (
           <GMHome
+            key={campaignId}
             campaignId={campaignId}
             campaign={campaign}
             initialData={homeBootstrap}
@@ -244,6 +268,7 @@ export default function CampaignDashboard() {
       default:
         return (
           <GMHome
+            key={campaignId}
             campaignId={campaignId}
             campaign={campaign}
             initialData={homeBootstrap}
@@ -410,7 +435,7 @@ function chooseStoryFocus(arcs) {
 }
 
 function daysUntilEvent(event, calendar) {
-  const difference = calendarDaysUntil(event, calendar);
+  const difference = daysUntilNextOccurrence(event, calendar);
   return difference === null ? Number.POSITIVE_INFINITY : difference;
 }
 
@@ -418,9 +443,11 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
   const [unavailableSections, setUnavailableSections] = useState([]);
+  const homeRequestRef = useRef(0);
 
   const loadHome = useCallback(async () => {
     if (!campaignId) return;
+    const requestId = ++homeRequestRef.current;
     setHomeLoading(true);
 
     // Modern path: one narrow GM-only payload instead of seven browser API
@@ -428,11 +455,13 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     // and backend deployments can arrive in either order safely.
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
+      if (requestId !== homeRequestRef.current) return;
       setData(normaliseHomeData(response.data || {}));
       setUnavailableSections([]);
       setHomeLoading(false);
       return;
     } catch (error) {
+      if (requestId !== homeRequestRef.current) return;
       const status = error?.response?.status;
       if (status !== 404 && status !== 405) {
         // A temporary bootstrap issue should not strand an existing campaign;
@@ -449,6 +478,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     ];
     const results = await Promise.allSettled(sections.map(([, path]) =>
       apiClient.get(`/campaigns/${campaignId}/${path}`)));
+    if (requestId !== homeRequestRef.current) return;
     const successful = {};
     const missing = [];
     results.forEach((result, index) => {
@@ -465,6 +495,10 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   }, [campaignId]);
 
   useEffect(() => {
+    // New campaigns and old requests must never share visible GM Home cards.
+    homeRequestRef.current += 1;
+    setData(normaliseHomeData(initialData));
+    setUnavailableSections([]);
     if (initialData) {
       setData(normaliseHomeData(initialData));
       setUnavailableSections([]);
@@ -472,6 +506,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
       return;
     }
     loadHome();
+    return () => { homeRequestRef.current += 1; };
   }, [initialData, loadHome]);
 
   const currentQuest = useMemo(() => chooseCurrentQuest(data.quests), [data.quests]);
