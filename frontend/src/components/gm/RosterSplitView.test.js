@@ -10,6 +10,7 @@ const NPCS = [
 
 function Wrapper({ items = NPCS, campaign = 'wednesday' }) {
   const [selectedId, setSelectedId] = React.useState('');
+  React.useEffect(() => setSelectedId(''), [campaign]);
   return <RosterSplitView key={campaign} items={items} selectedId={selectedId}
     onSelect={setSelectedId} title="Campaign NPCs"
     getSubtitle={npc => npc.role} getBadge={npc => 'HP ' + npc.hp}
@@ -46,7 +47,7 @@ describe('GM roster split reference', () => {
     fireEvent.click(screen.getByTestId('roster-select-lucian'));
     view.rerender(<Wrapper items={[]} />);
     expect(screen.queryByTestId('single-stat-sheet')).not.toBeInTheDocument();
-    expect(screen.getByText('No matching entries.')).toBeInTheDocument();
+    expect(screen.getAllByText('No matching entries.')).toHaveLength(2);
   });
 
   test('a campaign switch does not keep old detail selection', () => {
