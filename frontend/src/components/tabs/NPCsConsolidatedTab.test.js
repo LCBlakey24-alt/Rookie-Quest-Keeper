@@ -2,9 +2,12 @@ import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import NPCsConsolidatedTab from './NPCsConsolidatedTab';
 
-jest.mock('./NPCsTab', () => function MockNpcLibrary({ campaignId }) {
+jest.mock('./NPCsTab', () => function MockNpcLibrary({ campaignId, onOpenCreate }) {
   const React = require('react');
-  return React.createElement('div', { 'data-testid': 'mock-npc-library' }, campaignId);
+  return React.createElement('div', { 'data-testid': 'mock-npc-library' },
+    campaignId,
+    React.createElement('button', { type: 'button', onClick: onOpenCreate,
+      'data-testid': 'mock-empty-npc-create-with-rook' }, 'Create with ROOK'));
 });
 jest.mock('../gm/QuickNpcGenerator', () => function MockNpcGenerator({ campaignId }) {
   const React = require('react');
@@ -46,6 +49,13 @@ describe('Guild Ledger NPC workspace', () => {
     expect(screen.getByTestId('mock-npc-library')).toHaveTextContent('wednesday');
     fireEvent.keyDown(tabs[0], { key: 'ArrowLeft' });
     expect(tabs[2]).toHaveFocus();
+  });
+
+  test('empty NPC roster creation action opens the dedicated ROOK creator', () => {
+    render(<NPCsConsolidatedTab campaignId="spilsby-wednesday" />);
+    fireEvent.click(screen.getByTestId('mock-empty-npc-create-with-rook'));
+    expect(screen.getByTestId('mock-npc-generator')).toHaveTextContent('spilsby-wednesday');
+    expect(screen.getByTestId('npcs-subtab-generate')).toHaveAttribute('aria-selected', 'true');
   });
 
   test('changing from one campaign to another returns to the NPC library', () => {

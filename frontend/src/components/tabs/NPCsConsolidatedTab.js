@@ -120,7 +120,7 @@ export default function NPCsConsolidatedTab({ campaignId }) {
         className="rqk-npc-hub__panel"
         data-testid="npcs-active-subtab-panel"
       >
-        {activeSubTab === 'list' && <NPCsTab campaignId={campaignId} />}
+        {activeSubTab === 'list' && <NPCsTab campaignId={campaignId} onOpenCreate={() => setActiveSubTab('generate')} />}
         {activeSubTab === 'generate' && <QuickNpcGenerator campaignId={campaignId} theme={theme} />}
         {activeSubTab === 'web' && <NPCRelationshipWeb campaignId={campaignId} />}
       </div>

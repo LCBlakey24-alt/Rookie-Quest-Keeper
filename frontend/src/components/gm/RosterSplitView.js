@@ -1,4 +1,5 @@
 import React, { useId, useRef } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './RosterSplitView.css';
 
 /**
@@ -23,6 +24,15 @@ export default function RosterSplitView({
   const detailId = useId();
   const active = items.find(item => String(getId(item)) === String(selectedId)) || items[0] || null;
   const activeId = active ? String(getId(active)) : '';
+  const activeIndex = active ? items.findIndex(item => String(getId(item)) === activeId) : -1;
+
+  // Keep navigation in the filtered campaign roster; never jump to an
+  // NPC/beast outside the current visible list or fetch from another party.
+  const navigateRelative = step => {
+    const next = activeIndex + step;
+    if (next < 0 || next >= items.length) return;
+    onSelect(String(getId(items[next])));
+  };
 
   const navigateList = (event, index) => {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
@@ -74,9 +84,31 @@ export default function RosterSplitView({
         aria-label={active ? getName(active) + ' full details' : 'Reference details'}
         data-testid="roster-selected-detail">
         {active ? (
-          <div key={activeId} className="rqk-reference-browser__detail-content">
-            {renderDetail(active)}
-          </div>
+          <>
+            <div className="rqk-reference-browser__detail-toolbar" aria-label={title + ' quick navigation'}>
+              <div className="rqk-reference-browser__position">
+                <span aria-live="polite">Reference {activeIndex + 1} of {items.length}</span>
+                <strong title={getName(active)}>{getName(active)}</strong>
+              </div>
+              <div className="rqk-reference-browser__paging">
+                <button type="button" onClick={() => navigateRelative(-1)}
+                  disabled={activeIndex <= 0}
+                  aria-label={'Previous ' + title}>
+                  <ChevronLeft size={19} aria-hidden="true" />
+                  <span>Previous</span>
+                </button>
+                <button type="button" onClick={() => navigateRelative(1)}
+                  disabled={activeIndex >= items.length - 1}
+                  aria-label={'Next ' + title}>
+                  <span>Next</span>
+                  <ChevronRight size={19} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <div key={activeId} className="rqk-reference-browser__detail-content">
+              {renderDetail(active)}
+            </div>
+          </>
         ) : <div className="rqk-reference-browser__detail-placeholder">{emptyMessage}</div>}
       </section>
     </div>

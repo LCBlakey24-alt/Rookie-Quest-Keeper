@@ -33,6 +33,19 @@ describe('GM NPC roster on small screens', () => {
     expect(phoneHeader).toContain('top: auto !important');
   });
 
+  test('true empty NPC library has calm Guild Ledger onboarding instead of an orange AI sidebar', () => {
+    const jsx = source('./NPCsTab.js');
+    const css = source('./NPCsTab.css');
+    expect(jsx).toContain('data-testid="npc-empty-onboarding"');
+    expect(jsx).toContain('data-testid="create-first-npc"');
+    expect(jsx).toContain('data-testid="open-npc-generator"');
+    expect(jsx).toContain('if (onOpenCreate) onOpenCreate()');
+    expect(jsx).not.toContain('No NPCs Yet');
+    expect(jsx).not.toContain('#f97316');
+    expect(css).toContain('.rqk-npc-onboarding__actions');
+    expect(css).toContain('@media (max-width: 600px)');
+  });
+
   test('failed NPC request is not presented as deletion or an empty campaign', () => {
     const jsx = source('./NPCsTab.js');
     expect(jsx).toContain('npc-roster-load-error');

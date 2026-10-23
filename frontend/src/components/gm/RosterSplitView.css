@@ -161,3 +161,84 @@
   #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #c9a96b); }
   #root .rqk-reference-browser__detail { padding: 9px; }
 }
+
+
+/* GM reference paging. A thumb-friendly alternative to scrolling through
+   dozens of names when working from a phone or narrow Live Play sidebar. */
+#root .rqk-reference-browser__detail-toolbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 0 0 12px;
+  margin: 0 0 12px;
+  border-bottom: 1px solid var(--rq-border-default, rgba(137,157,176,.28));
+}
+#root .rqk-reference-browser__position {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+#root .rqk-reference-browser__position > span {
+  color: var(--rq-text-secondary, rgba(234,223,200,.76));
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: .065em;
+}
+#root .rqk-reference-browser__position > strong {
+  color: var(--rq-text-primary, #eadfc8);
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: clamp(15px, 1.4vw, 18px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#root .rqk-reference-browser__paging {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+#root .rqk-reference-browser__paging button {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
+  border-radius: 6px;
+  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-deep, #07131f);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#root .rqk-reference-browser__paging button:not(:disabled):is(:hover,:focus-visible) {
+  background: var(--rq-card, #263748);
+  border-color: var(--rq-accent-primary, #c9a96b);
+}
+#root .rqk-reference-browser__paging button:focus-visible {
+  outline: 2px solid var(--rq-accent-primary, #c9a96b);
+  outline-offset: 2px;
+}
+#root .rqk-reference-browser__paging button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+@media (max-width: 640px) {
+  #root .rqk-reference-browser__detail-toolbar { gap: 7px; }
+  #root .rqk-reference-browser__position { flex: 1 1 110px; }
+  #root .rqk-reference-browser__paging { gap: 4px; }
+  #root .rqk-reference-browser__paging button { padding: 8px; }
+  #root .rqk-reference-browser__paging button span { display: none; }
+}
+@container (max-width: 680px) {
+  #root .rqk-reference-browser__paging button { padding: 8px; }
+  #root .rqk-reference-browser__paging button span { display: none; }
+}

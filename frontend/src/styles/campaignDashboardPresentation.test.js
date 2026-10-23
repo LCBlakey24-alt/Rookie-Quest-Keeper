@@ -16,6 +16,18 @@ describe('Campaign Dashboard presentation ownership', () => {
     expect(source).not.toMatch(/style=\{/);
   });
 
+  test('mobile search tool stays visible instead of being hidden with the join-code button', () => {
+    const css = read('../components/CampaignDashboard.css');
+    const finderCss = read('../components/gm/dashboard/CampaignToolFinder.css');
+    const source = read('../components/CampaignDashboard.js');
+
+    expect(css).toContain('.campaign-button:not(.campaign-button-primary):not(.rqk-tool-finder-trigger)');
+    expect(css).toContain(".rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .rqk-tool-finder-trigger");
+    expect(css).not.toContain('.campaign-button:not(.campaign-button-primary) {');
+    expect(finderCss).toContain('.rqk-tool-finder-trigger');
+    expect(source).toContain('<CampaignToolFinder');
+  });
+
   test('keeps one two-row campaign navigation system', () => {
     const source = read('../components/CampaignDashboard.js');
 

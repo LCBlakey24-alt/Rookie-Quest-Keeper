@@ -7,10 +7,8 @@ import { createNpcDraft, prepareNpcSavePayload } from './npcEditorDraft';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Loader, Wand2, User, Search, X } from 'lucide-react';
-import EmptyState from '@/components/EmptyState';
+import { Plus, Edit, Trash2, Wand2, User, Search, X } from 'lucide-react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { matchesNpcSearch } from '@/lib/npcRosterSearch';
@@ -44,7 +42,7 @@ function normaliseNpcPatch(patch = {}) {
   return next;
 }
 
-function NPCsTab({ campaignId }) {
+function NPCsTab({ campaignId, onOpenCreate }) {
   const [npcs, setNpcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -55,9 +53,6 @@ function NPCsTab({ campaignId }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNpcId, setSelectedNpcId] = useState('');
   const [formData, setFormData] = useState(() => createNpcDraft());
-  // The empty-library onboarding screen can still summon a first NPC.
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiGenerating, setAiGenerating] = useState(false);
 
   useEffect(() => {
     // A campaign change must never display records from the previous party.
@@ -143,29 +138,6 @@ function NPCsTab({ campaignId }) {
     setShowDialog(false);
   };
 
-  // Only shown for an empty roster. Regular creation lives in the Create NPC tool.
-  const handleUnseenServant = async () => {
-    if (!aiPrompt.trim()) {
-      toast.error('Please describe the NPC you want');
-      return;
-    }
-    setAiGenerating(true);
-    try {
-      const response = await apiClient.post('/rook/generate', {
-        prompt: aiPrompt, entity_type: 'npc', campaign_id: campaignId,
-      });
-      if (response.data?.success) {
-        setAiPrompt('');
-        toast.success('NPC created');
-        await fetchNPCs();
-      }
-    } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not create NPC');
-    } finally {
-      setAiGenerating(false);
-    }
-  };
-
   // Find NPCs by story, role, skills and GM notes as well as the displayed name.
   // Search is always local to the active campaign; never mix the two parties.
   const filteredNPCs = npcs
@@ -194,70 +166,25 @@ function NPCsTab({ campaignId }) {
   // Empty state
   if (npcs.length === 0) {
     return (
-      <div className="campaign-management-grid rqk-npcs-roster-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
-        <EmptyState
-          icon={User}
-          title="No NPCs Yet"
-          description="Create your first NPC to populate your world. Add characters manually or use the ROOK AI to generate them automatically."
-          actionLabel="Create Your First NPC"
-          onAction={() => setShowDialog(true)}
-          color="#f97316"
-        />
-        
-        {/* ROOK Panel - still show for empty state */}
-        <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
-          <Card className="parchment-dark" style={{ border: '2px solid #f97316' }}>
-            <CardHeader>
-              <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Wand2 size={20} style={{ color: '#f97316' }} />
-                ROOK
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p style={{ fontSize: '13px', color: '#fed7aa', marginBottom: '16px', lineHeight: '1.5' }}>
-                Describe a character and the ROOK will create and save them to your NPCs automatically.
-              </p>
-              <div style={{ marginBottom: '16px' }}>
-                <textarea
-                  data-testid="rook-npc-prompt"
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  className="textarea"
-                  style={{ minHeight: '100px', fontSize: '13px', borderColor: '#f97316' }}
-                  placeholder="Example: A grizzled dwarven blacksmith with a secret past as an adventurer"
-                />
-              </div>
-              <Button
-                data-testid="summon-npc-btn"
-                onClick={handleUnseenServant}
-                disabled={aiGenerating}
-                className="btn-primary"
-                style={{ 
-                  width: '100%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  gap: '8px',
-                  background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                  border: 'none'
-                }}
-              >
-                {aiGenerating ? (
-                  <>
-                    <Loader size={16} className="animate-spin" />
-                    Summoning...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 size={16} />
-                    Summon NPC
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        
+      <div className="rqk-npc-onboarding" data-testid="npc-empty-onboarding">
+        <section className="rqk-npc-onboarding__intro" aria-labelledby="rqk-npc-empty-title">
+          <span className="rqk-npc-onboarding__icon" aria-hidden="true"><User size={30} /></span>
+          <p className="rqk-npc-onboarding__eyebrow">Guild Ledger / People & stories</p>
+          <h2 id="rqk-npc-empty-title">Your NPC library is ready</h2>
+          <p>Add your first character, then record their lore, abilities, portraits and relationships in one searchable collection.</p>
+          <div className="rqk-npc-onboarding__actions">
+            <Button type="button" className="btn-primary" data-testid="create-first-npc" onClick={() => setShowDialog(true)}>
+              <Plus size={17} /> Create NPC manually
+            </Button>
+            <Button type="button" className="btn-secondary" data-testid="open-npc-generator" onClick={() => {
+              if (onOpenCreate) onOpenCreate();
+              else setShowDialog(true);
+            }}>
+              <Wand2 size={17} /> Create with ROOK
+            </Button>
+          </div>
+          <small>Nothing is shared with players until you explicitly choose to share it.</small>
+        </section>
         {/* Dialog for manual creation */}
         <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowDialog(open); }}>
           <DialogContent className="modal" style={{ maxWidth: '600px' }}>

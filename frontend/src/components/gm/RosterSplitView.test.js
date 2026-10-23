@@ -42,6 +42,23 @@ describe('GM roster split reference', () => {
     expect(screen.getByText('Lucian Grey stat sheet')).toBeInTheDocument();
   });
 
+  test('previous and next buttons move through the filtered GM roster without leaving it', () => {
+    const view = render(<Wrapper items={NPCS.slice(0, 2)} />);
+    expect(screen.getByText('Reference 1 of 2')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Previous Campaign NPCs' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Next Campaign NPCs' }));
+    expect(screen.getByText('Mabel Barleybrook stat sheet')).toBeInTheDocument();
+    expect(screen.getByText('Reference 2 of 2')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next Campaign NPCs' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Previous Campaign NPCs' }));
+    expect(screen.getByText('Jordan Crow stat sheet')).toBeInTheDocument();
+
+    view.rerender(<Wrapper items={[NPCS[2]]} />);
+    expect(screen.getByText('Lucian Grey stat sheet')).toBeInTheDocument();
+    expect(screen.getByText('Reference 1 of 1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next Campaign NPCs' })).toBeDisabled();
+  });
+
   test('filtered empty lists never show a previous NPC stat sheet', () => {
     const view = render(<Wrapper items={NPCS} />);
     fireEvent.click(screen.getByTestId('roster-select-lucian'));

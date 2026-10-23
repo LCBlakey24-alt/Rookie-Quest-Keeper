@@ -230,3 +230,100 @@
   #root .rqk-npc-master .rqk-reference-browser__detail-actions { justify-content: flex-start; }
   #root .rqk-npc-selected-delete-confirm { width: 100%; }
 }
+
+
+/* True empty library only: a compact, legible start instead of a second AI
+   sidebar, bright orange styling, and a forced 400px column on phones. */
+#root .rqk-npc-onboarding {
+  min-width: 0;
+  width: 100%;
+}
+#root .rqk-npc-onboarding__intro {
+  width: min(100%, 720px);
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 12px;
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
+  border-top: 3px solid var(--rq-accent-primary, #c9a96b);
+  border-radius: 9px;
+  background: var(--rq-bg-panel, #1e2936);
+  box-shadow: none;
+}
+#root .rqk-npc-onboarding__icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
+  border-radius: 9px;
+  color: var(--rq-accent-primary, #c9a96b);
+  background: var(--rq-bg-deep, #07131f);
+}
+#root .rqk-npc-onboarding__eyebrow {
+  margin: 0;
+  color: var(--rq-accent-primary, #c9a96b);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 11px;
+  font-weight: 800;
+}
+#root .rqk-npc-onboarding__intro h2 {
+  margin: 0;
+  color: var(--rq-text-primary, #eadfc8);
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: clamp(24px, 3.5vw, 34px);
+  line-height: 1.15;
+}
+#root .rqk-npc-onboarding__intro > p:not(.rqk-npc-onboarding__eyebrow) {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  font-size: 14px;
+  line-height: 1.6;
+}
+#root .rqk-npc-onboarding__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  width: 100%;
+  margin: 5px 0 0;
+}
+#root .rqk-npc-onboarding__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: 6px;
+}
+#root .rqk-npc-onboarding__actions .btn-primary {
+  color: #07131f;
+  background: var(--rq-accent-primary, #c9a96b);
+  border: 1px solid var(--rq-accent-primary, #c9a96b);
+}
+#root .rqk-npc-onboarding__actions .btn-secondary {
+  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-deep, #07131f);
+  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
+}
+#root .rqk-npc-onboarding__actions button:is(:hover,:focus-visible) {
+  border-color: var(--rq-accent-hover, #d9bc82);
+  outline: 2px solid var(--rq-accent-hover, #d9bc82);
+  outline-offset: 2px;
+}
+#root .rqk-npc-onboarding__intro > small {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--rq-text-secondary, rgba(234,223,200,.7));
+}
+@media (max-width: 600px) {
+  #root .rqk-npc-onboarding__intro { width: 100%; padding: 20px 16px; }
+  #root .rqk-npc-onboarding__actions { display: grid; grid-template-columns: 1fr; }
+  #root .rqk-npc-onboarding__actions button { width: 100%; }
+}
