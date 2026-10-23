@@ -5,9 +5,9 @@ const css = fs.readFileSync(path.join(__dirname, 'CampaignDashboard.css'), 'utf8
 const jsx = fs.readFileSync(path.join(__dirname, 'CampaignDashboard.js'), 'utf8');
 
 describe('GM campaign workspace accessibility and responsive polish', () => {
-  test('gold active controls use dark ink rather than low contrast white', () => {
-    expect(css).toMatch(/\.campaign-dashboard-tab\.is-active\s*\{\s*color:\s*#07131f !important/);
-    expect(css).toContain('.campaign-button-primary,');
+  test('gold primary actions use dark ink, while burgundy active tabs use cream', () => {
+    expect(css).toMatch(/\.campaign-button-primary\s*\{\s*color:\s*#07131f !important/);
+    expect(css).toMatch(/\.campaign-dashboard-tab\.is-active\s*\{\s*color:\s*#f8f0e5 !important/);
   });
 
   test('navigation and quick actions expose visible keyboard focus', () => {
