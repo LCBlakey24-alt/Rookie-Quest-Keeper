@@ -17,9 +17,10 @@
   --rq-control-sweep-ease: cubic-bezier(.22,.78,.18,1);
 }
 
+@layer rq-controls {
 /* The specific controls below share one visual behaviour, even when older
  * route CSS and inline styles set backgrounds or gold borders. */
-#root :is(
+#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -57,7 +58,7 @@
 /* Put the filling ink above the blue *background* but underneath the content.
  * Reuses the global action fill's :before, which already handles mouse clicks,
  * touch taps and keyboard activation.  Additional link cards get the same fill. */
-#root :is(
+#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -98,7 +99,7 @@
 }
 
 /* Keep label/icon/content readable as the overlay passes beneath it. */
-#root :is(
+#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -129,7 +130,7 @@
 }
 
 /* Active selection is persistent, not a temporary press animation. */
-#root :is(
+#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .rqk-app-rail-link,
@@ -146,7 +147,7 @@
   border-color: var(--rq-control-wax) !important;
   color: var(--rq-control-ink) !important;
 }
-#root :is(
+#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .rqk-app-rail-link,
@@ -164,7 +165,7 @@
 /* On desktop, hovering fills across the button, not an instant red swap.
  * The same key action shows on keyboard focus, mouse press or touch press. */
 @media (hover: hover) and (pointer: fine) {
-  #root :is(
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
     .campaign-dashboard-tab,
     .campaign-dashboard-group,
     .campaign-home-quick-card,
@@ -191,7 +192,7 @@
     transform: scaleX(1);
   }
 }
-#root :is(
+#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -219,7 +220,7 @@
 }
 
 /* Distinguish focus from selection with blue outlines, not antique gold. */
-#root :is(
+#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-button,
@@ -235,7 +236,7 @@
   outline-offset: 2px !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  #root :is(
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
     .campaign-dashboard-tab,
     .campaign-dashboard-group,
     .campaign-home-quick-card,
@@ -260,3 +261,5 @@
     .rqk-selectable-control
   )::before { transition: none !important; }
 }
+
+} /* rq-controls: same important layer as older Guild Ledger overrides */
