@@ -293,3 +293,25 @@ test('relationship coverage counts linked NPCs without adding duplicate records'
   expect(within(coverage).getByText('1')).toBeInTheDocument();
   expect(screen.getByText('3 saved NPCs')).toBeInTheDocument();
 });
+
+test('relationship workspace navigation and clear filters preserve saved records', async () => {
+  respondWith(npcs, [
+    { id: 'family-link', source_id: 'mara', target_id: 'godfrey',
+      relationship_type: 'parent', description: 'Mother and son' },
+    { id: 'secret-link', source_id: 'godfrey', target_id: 'pippa',
+      relationship_type: 'secret_ally', description: 'Secret promise' },
+  ]);
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  const nav = await screen.findByRole('navigation', { name: 'Relationship workspace sections' });
+  expect(within(nav).getByRole('button', { name: /network map/i })).toBeInTheDocument();
+  expect(within(nav).getByRole('button', { name: /saved connections/i })).toBeInTheDocument();
+  expect(within(nav).getByRole('button', { name: /add or edit/i })).toBeInTheDocument();
+  expect(screen.getByText('Showing 2 of 2 saved connections')).toBeInTheDocument();
+  fireEvent.change(screen.getByRole('combobox', { name: 'Filter relationship type' }),
+    { target: { value: 'secret_ally' } });
+  expect(screen.getByText('Showing 1 of 2 saved connections')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+  expect(screen.getByText('Showing 2 of 2 saved connections')).toBeInTheDocument();
+  expect(apiClient.delete).not.toHaveBeenCalled();
+  expect(apiClient.put).not.toHaveBeenCalled();
+});
