@@ -994,3 +994,121 @@
     padding: 0 !important;
   }
 }
+
+
+/* ================================================================
+   Guild Ledger / session-first navigation (Oct 2026).
+   Scoped to GM Home, not login, player sheets, VTT, or TV view.
+   ================================================================ */
+#root .campaign-home-session-rail {
+  display: grid !important;
+  grid-template-columns: minmax(148px, .55fr) minmax(0, 2.45fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  min-width: 0 !important;
+  padding: clamp(12px, 1.5vw, 18px) !important;
+  background: var(--rqk-campaign-ink, #07131f) !important;
+  border: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
+  border-radius: 8px !important;
+}
+#root .campaign-home-session-rail__heading {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 5px !important;
+  align-content: center !important;
+}
+#root .campaign-home-session-rail__heading > span {
+  color: var(--rqk-campaign-brass-light, #d9bc82) !important;
+  font: 700 clamp(17px, 2vw, 22px)/1.2 var(--rq-font-display, Georgia, serif) !important;
+}
+#root .campaign-home-session-rail__heading > small {
+  color: var(--rqk-campaign-muted, #bfb9ad) !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+#root .campaign-home-session-rail__actions {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(105px, 1fr) !important;
+  gap: 7px !important;
+  overflow-x: auto !important;
+  overscroll-behavior-x: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin !important;
+  scroll-snap-type: x proximity !important;
+  padding: 2px 1px 7px !important;
+}
+#root .campaign-home-session-rail__action {
+  min-width: 0 !important;
+  min-height: 74px !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 8px !important;
+  padding: 10px 7px !important;
+  border: 1px solid rgba(201,169,107,.22) !important;
+  border-radius: 7px !important;
+  background: var(--rqk-campaign-surface, #1e2936) !important;
+  color: var(--rqk-campaign-cream, #eadfc8) !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  scroll-snap-align: start !important;
+}
+#root .campaign-home-session-rail__action > svg {
+  color: var(--rqk-campaign-brass, #c9a96b) !important;
+  flex-shrink: 0 !important;
+}
+#root .campaign-home-session-rail__action > span {
+  min-width: 0 !important;
+  color: inherit !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere !important;
+}
+#root .campaign-home-session-rail__action:hover,
+#root .campaign-home-session-rail__action:focus-visible {
+  background: var(--rqk-campaign-elevated, #263748) !important;
+  border-color: var(--rqk-campaign-brass, #c9a96b) !important;
+}
+@media (max-width: 850px) {
+  #root .campaign-home-session-rail {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+  #root .campaign-home-session-rail__heading {
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 5px 10px !important;
+  }
+  #root .campaign-home-session-rail__actions {
+    grid-auto-columns: minmax(112px, 1fr) !important;
+  }
+}
+@media (max-width: 600px) {
+  #root .campaign-home-session-rail {
+    padding: 11px !important;
+    margin-inline: 0 !important;
+  }
+  #root .campaign-home-session-rail__actions {
+    /* Two generously sized actions and a glimpse of a third. No page overflow. */
+    grid-auto-columns: minmax(116px, 41%) !important;
+    gap: 7px !important;
+  }
+  #root .campaign-home-session-rail__action {
+    min-height: 64px !important;
+    padding: 9px 7px !important;
+  }
+  #root .campaign-home-session-rail__action > span { font-size: 11px !important; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @media (hover: hover) and (pointer: fine) {
+    #root .campaign-home-session-rail__action {
+      transition: border-color 140ms ease, background-color 140ms ease !important;
+    }
+  }
+}
