@@ -117,7 +117,7 @@
 #root .unified-dashboard-button:hover:not(:disabled),
 #root .unified-dashboard-button:focus-visible {
   background: var(--rq-card-hover, #334155) !important;
-  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
+  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
 }
 
 #root .unified-dashboard-button:focus-visible,
@@ -188,7 +188,7 @@
   background: var(--rq-bg-panel, #1E2936) !important;
   color: var(--rq-text-primary, #EADFC8) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
-  border-left: 3px solid var(--rq-primary, #C9A96B) !important;
+  border-left: 3px solid var(--rq-primary, #6E91B4) !important;
   border-radius: var(--rq-radius, 7px) !important;
   box-shadow: none !important;
   text-decoration: none !important;
@@ -197,7 +197,7 @@
 #root .dashboard-continue-card:hover,
 #root .dashboard-continue-card:focus-visible {
   background: var(--rq-card, #263748) !important;
-  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
+  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
 }
 
 #root .dashboard-continue-icon {
@@ -206,8 +206,8 @@
   display: grid !important;
   place-items: center !important;
   color: var(--rq-primary, #C9A96B) !important;
-  background: var(--rq-primary-soft, rgba(201, 169, 107, 0.12)) !important;
-  border: 1px solid var(--rq-accent-border, rgba(201, 169, 107, 0.30)) !important;
+  background: var(--rq-secondary-soft, rgba(110,145,180,0.12))) !important;
+  border: 1px solid var(--rq-accent-border, rgba(110,145,180, 0.30)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
 }
 
@@ -281,17 +281,17 @@
 #root .dashboard-command-card--simple:hover,
 #root .dashboard-command-card--simple:focus-visible {
   background: var(--rq-card-hover, #334155) !important;
-  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
+  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
   transform: none !important;
 }
 
 #root .dashboard-command-card--simple.is-primary {
-  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
+  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
 }
 
 #root .dashboard-command-card--simple.is-primary .dashboard-command-icon {
-  background: var(--rq-primary-soft, rgba(201, 169, 107, 0.12)) !important;
-  border-color: var(--rq-accent-border, rgba(201, 169, 107, 0.30)) !important;
+  background: var(--rq-secondary-soft, rgba(110,145,180,0.12))) !important;
+  border-color: var(--rq-accent-border, rgba(110,145,180, 0.30)) !important;
   color: var(--rq-primary, #C9A96B) !important;
 }
 
