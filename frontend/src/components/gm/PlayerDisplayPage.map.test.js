@@ -21,13 +21,13 @@ jest.mock('@/components/gm/GroupCheckDisplay', () => () => null);
 
 function renderTable(mapUrl, tokens = [
   { id: 'goblin', name: 'Goblin', x: 50, y: 50 },
-]) {
+], linkTarget = 'virtual-table', broadcastTarget = 'virtual-table') {
   loadDisplayState.mockReturnValue({
     mode: 'combat',
-    payload: { display_target: 'virtual-table', map_url: mapUrl, tokens },
+    payload: { display_target: broadcastTarget, map_url: mapUrl, tokens },
   });
   return render(
-    <MemoryRouter initialEntries={['/campaign/example/player-display?target=virtual-table']}>
+    <MemoryRouter initialEntries={[`/campaign/example/player-display?target=${linkTarget}`]}>
       <Routes>
         <Route path="/campaign/:campaignId/player-display" element={<PlayerDisplayPage />} />
       </Routes>
@@ -42,6 +42,16 @@ describe('visible map token alignment', () => {
   });
 
   afterEach(() => jest.restoreAllMocks());
+
+  test('each physical device keeps its requested TV/table layout', () => {
+    const tv = renderTable('', undefined, 'standing-tv', 'virtual-table');
+    expect(screen.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'standing-tv');
+    expect(screen.getByTestId('standing-tv-combat-hud')).toBeInTheDocument();
+    tv.unmount();
+    renderTable('', undefined, 'virtual-table', 'standing-tv');
+    expect(screen.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'virtual-table');
+    expect(screen.getByTestId('virtual-table-combat-hud')).toBeInTheDocument();
+  });
 
   test('a mapless encounter still renders without an image-size crash', () => {
     renderTable('');
