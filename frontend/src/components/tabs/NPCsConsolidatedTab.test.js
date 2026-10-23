@@ -73,8 +73,10 @@ describe('Guild Ledger NPC workspace', () => {
     const css = fs.readFileSync(path.join(__dirname, 'NPCsConsolidatedTab.css'), 'utf8');
     expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
     expect(css).toContain('@media (max-width: 640px)');
-    expect(css).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
-    expect(css).toContain('min-height: 68px');
+    expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
+    expect(css).toContain('min-height: 60px');
+    expect(css).toContain('#root .rqk-npc-hub__tab:last-child { grid-column: auto; }');
+    expect(css).toContain('#root .rqk-npc-hub__tab-copy small { display: none; }');
     expect(css).toContain(':focus-visible');
     expect(css).toContain('prefers-reduced-motion');
     expect(css).not.toMatch(/#FF2DAA|rgba\(255,\s*45,\s*170/i);
