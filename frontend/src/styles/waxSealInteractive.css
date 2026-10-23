@@ -43,6 +43,7 @@
   .btn-player,
   .campaign-home-focus-card,
   .dashboard-action-card,
+  .rqk-calendar-day,
   .rqk-selectable-control
 ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
     position: relative !important;
@@ -87,6 +88,7 @@
   .btn-player,
   .campaign-home-focus-card,
   .dashboard-action-card,
+  .rqk-calendar-day,
   .rqk-selectable-control
 ) > :is(span, strong, small, em, svg, i) {
     color: var(--rq-control-ink) !important;
@@ -106,8 +108,9 @@
   .player-dashboard-tab,
   .player-campaign-tabs button,
   .rqk-auth-mode-toggle button,
+  .rqk-calendar-day,
   .rqk-selectable-control
-):is(.active, .is-active, .is-open, [data-state='active'], [aria-current='page'], [aria-selected='true'], [aria-pressed='true']):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
+):is(.active, .is-active, .is-selected, .is-open, [data-state='active'], [aria-current='page'], [aria-selected='true'], [aria-pressed='true']):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
     background-color: var(--rq-control-blue) !important;
     background-size: 100% 100% !important;
     border-color: var(--rq-control-wax) !important;
@@ -144,6 +147,7 @@
   .btn-player,
   .campaign-home-focus-card,
   .dashboard-action-card,
+  .rqk-calendar-day,
   .rqk-selectable-control
 ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):hover {
       background-size: 100% 100% !important;
@@ -181,6 +185,7 @@
   .btn-player,
   .campaign-home-focus-card,
   .dashboard-action-card,
+  .rqk-calendar-day,
   .rqk-selectable-control
 ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):is(:active, :focus-visible, .rq-fill-clicked) {
     background-size: 100% 100% !important;
@@ -215,6 +220,7 @@
   .btn-player,
   .campaign-home-focus-card,
   .dashboard-action-card,
+  .rqk-calendar-day,
   .rqk-selectable-control
 ):focus-visible {
     outline: 3px solid var(--rq-info, #6E91B4) !important;
@@ -251,6 +257,7 @@
   .btn-player,
   .campaign-home-focus-card,
   .dashboard-action-card,
+  .rqk-calendar-day,
   .rqk-selectable-control
 ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
       transition: none !important;
