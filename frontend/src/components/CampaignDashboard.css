@@ -397,8 +397,13 @@
   gap: 7px !important;
 }
 
-#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .campaign-button:not(.campaign-button-primary) {
+/* Hide the optional join code on phones, never the Find Tool control.
+   The latter is the only direct path to off-screen GM workspaces. */
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .campaign-button:not(.campaign-button-primary):not(.rqk-tool-finder-trigger) {
   display: none !important;
+}
+#root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .rqk-tool-finder-trigger {
+  display: inline-flex !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-actions .campaign-button-primary {
