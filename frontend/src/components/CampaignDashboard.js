@@ -460,9 +460,11 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
   const [unavailableSections, setUnavailableSections] = useState([]);
+  const homeRequestRef = useRef(0);
 
   const loadHome = useCallback(async () => {
     if (!campaignId) return;
+    const requestId = ++homeRequestRef.current;
     setHomeLoading(true);
 
     // Modern path: one narrow GM-only payload instead of seven browser API
@@ -470,11 +472,13 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     // and backend deployments can arrive in either order safely.
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
+      if (requestId !== homeRequestRef.current) return;
       setData(normaliseHomeData(response.data || {}));
       setUnavailableSections([]);
       setHomeLoading(false);
       return;
     } catch (error) {
+      if (requestId !== homeRequestRef.current) return;
       const status = error?.response?.status;
       if (status !== 404 && status !== 405) {
         // A temporary bootstrap issue should not strand an existing campaign;
@@ -491,6 +495,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     ];
     const results = await Promise.allSettled(sections.map(([, path]) =>
       apiClient.get(`/campaigns/${campaignId}/${path}`)));
+    if (requestId !== homeRequestRef.current) return;
     const successful = {};
     const missing = [];
     results.forEach((result, index) => {
@@ -507,13 +512,16 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   }, [campaignId]);
 
   useEffect(() => {
+    // Keep manual refreshes from updating a remounted campaign or newer read.
+    homeRequestRef.current += 1;
     if (initialData) {
       setData(normaliseHomeData(initialData));
       setUnavailableSections([]);
       setHomeLoading(false);
-      return;
+    } else {
+      loadHome();
     }
-    loadHome();
+    return () => { homeRequestRef.current += 1; };
   }, [initialData, loadHome]);
 
   const currentQuest = useMemo(() => chooseCurrentQuest(data.quests), [data.quests]);
