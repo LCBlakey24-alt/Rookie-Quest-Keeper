@@ -39,6 +39,7 @@ const GMHandoutsWorkspace = React.lazy(() => import('@/components/gm/GMHandoutsW
 const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKartaCampaignPackPanel'));
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
+import CampaignMobileNavigator from '@/components/gm/dashboard/CampaignMobileNavigator';
 import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
 import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
 import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
@@ -362,6 +363,7 @@ export default function CampaignDashboard() {
       </header>
 
       <nav className="campaign-dashboard-nav" aria-label="Campaign workspace">
+        <CampaignMobileNavigator activeTab={activeTab} onOpenTab={handleTabClick} />
         <div className="campaign-dashboard-group-row" aria-label="Campaign tool groups">
           {tabGroups.map((group) => {
             const GroupIcon = group.icon;
@@ -582,9 +584,9 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     <div className="campaign-home-simple">
       <section className="campaign-home-command" aria-labelledby="campaign-home-title">
         <div className="campaign-home-command-copy">
-          <p>Campaign command / GM workspace</p>
-          <h2 id="campaign-home-title">{campaign?.name || 'Campaign'}</h2>
-          <span>{homeLoading ? 'Loading campaign focus…' : 'Quests, characters, places and the next scene — ready for the table.'}</span>
+          <p>GM session desk</p>
+          <h2 id="campaign-home-title">Ready for the table</h2>
+          <span>{homeLoading ? 'Loading your campaign notes and quests…' : 'The next scene, key characters and everything you need during play.'}</span>
         </div>
         <div className="campaign-home-command-actions">
           <button type="button" className="campaign-button" onClick={loadHome} disabled={homeLoading}>

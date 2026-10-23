@@ -1214,3 +1214,118 @@
     grid-template-columns: minmax(0,1fr) !important;
   }
 }
+
+
+/* Guild Ledger mobile workspace picker.
+   One native, grouped selector replaces TWO overflowed tool strips on phones.
+   Desktop and wide tablets keep the existing overview/navigation system. */
+#root .campaign-dashboard-simple .rqk-campaign-mobile-navigator {
+  display: none !important;
+}
+@media (max-width: 760px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-nav {
+    padding: 0 !important;
+    background: var(--rqk-campaign-ink, #07131f) !important;
+    border-bottom: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-group-row,
+  #root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+    display: none !important;
+  }
+  #root .campaign-dashboard-simple .rqk-campaign-mobile-navigator {
+    display: grid !important;
+    grid-template-columns: minmax(0,.82fr) minmax(0,1.45fr) !important;
+    align-items: end !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    padding: 10px max(10px, env(safe-area-inset-right,0px)) 10px max(10px, env(safe-area-inset-left,0px)) !important;
+    color: var(--rqk-campaign-cream, #eadfc8) !important;
+  }
+  #root .rqk-campaign-mobile-navigator__context {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 44px !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    padding-bottom: 2px !important;
+  }
+  #root .rqk-campaign-mobile-navigator__context > svg {
+    color: var(--rqk-campaign-brass, #c9a96b) !important;
+    flex: 0 0 auto !important;
+  }
+  #root .rqk-campaign-mobile-navigator__context > div {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 2px !important;
+  }
+  #root .rqk-campaign-mobile-navigator__context span,
+  #root .rqk-campaign-mobile-navigator__control > label {
+    color: var(--rqk-campaign-muted, rgba(234,223,200,.75)) !important;
+    font-size: 10px !important;
+    font-weight: 750 !important;
+    line-height: 1.2 !important;
+  }
+  #root .rqk-campaign-mobile-navigator__context strong {
+    color: var(--rqk-campaign-cream, #eadfc8) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+  }
+  #root .rqk-campaign-mobile-navigator__control {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 5px !important;
+  }
+  #root .rqk-campaign-mobile-navigator__select-wrap {
+    position: relative !important;
+    min-width: 0 !important;
+  }
+  #root .rqk-campaign-mobile-navigator__select-wrap select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    width: 100% !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    min-width: 0 !important;
+    padding: 0 36px 0 12px !important;
+    background: var(--rqk-campaign-surface, #1e2936) !important;
+    border: 1px solid var(--rqk-campaign-brass, #c9a96b) !important;
+    border-radius: 7px !important;
+    color: var(--rqk-campaign-cream, #eadfc8) !important;
+    font: inherit !important;
+    font-size: 13px !important;
+    font-weight: 750 !important;
+    text-overflow: ellipsis !important;
+    cursor: pointer !important;
+  }
+  #root .rqk-campaign-mobile-navigator__select-wrap > svg {
+    position: absolute !important;
+    pointer-events: none !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: var(--rqk-campaign-brass-light, #d9bc82) !important;
+  }
+  #root .rqk-campaign-mobile-navigator__select-wrap select:focus-visible {
+    outline: 3px solid var(--rqk-campaign-brass-light, #d9bc82) !important;
+    outline-offset: 2px !important;
+  }
+  #root .campaign-home-command {
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+  #root .campaign-home-command-copy > h2 {
+    font-size: clamp(1.35rem, 5vw, 1.65rem) !important;
+  }
+}
+@media (max-width: 355px) {
+  #root .campaign-dashboard-simple .rqk-campaign-mobile-navigator {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 5px !important;
+  }
+  #root .rqk-campaign-mobile-navigator__context {
+    min-height: 24px !important;
+  }
+}
