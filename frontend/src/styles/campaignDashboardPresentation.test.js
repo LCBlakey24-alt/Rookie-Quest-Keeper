@@ -49,6 +49,37 @@ describe('Campaign Dashboard presentation ownership', () => {
     expect(source).not.toContain("accent: { primary: '#FF2DAA'");
   });
 
+  test('GM home is a readable two-column workbench on desktop and stacked on phones', () => {
+    const jsx = read('../components/CampaignDashboard.js');
+    const css = read('../components/CampaignDashboard.css');
+    expect(jsx).toContain('Session Toolbox');
+    expect(jsx).toContain("label: 'Calendar & Timeline'");
+    expect(jsx.indexOf('campaign-quick-start-title')).toBeLessThan(jsx.indexOf('className="campaign-home-focus-grid"'));
+    expect(css).toContain('@media (min-width: 1180px)');
+    expect(css).toContain('grid-template-columns: minmax(0,1fr) minmax(270px,.34fr)');
+    expect(css).toContain('@media (max-width: 760px)');
+    expect(css).toContain('campaign-home-section[aria-labelledby="campaign-quick-start-title"]');
+  });
+
+  test('navigation does not jump the whole document and browser back restores a tab', () => {
+    const jsx = read('../components/CampaignDashboard.js');
+    expect(jsx).toContain("window.addEventListener('popstate', onHashChange)");
+    expect(jsx).toContain("window.removeEventListener('popstate', onHashChange)");
+    expect(jsx).toContain('row.scrollLeft =');
+    expect(jsx).not.toContain("selected?.scrollIntoView?.(");
+    expect(jsx).toContain('window.location.search');
+  });
+
+  test('stale asynchronous responses cannot replace another campaign\'s data', () => {
+    const jsx = read('../components/CampaignDashboard.js');
+    expect(jsx).toContain('campaignRequestRef.current');
+    expect(jsx).toContain('homeRequestRef.current');
+    expect(jsx).toContain('requestId !== campaignRequestRef.current');
+    expect(jsx).toContain('requestId !== homeRequestRef.current');
+    expect(jsx).toContain('key={campaignId}');
+    expect(jsx).toContain('chooseNextCampaignEvent(data.events, data.calendar)');
+  });
+
   test('does not wrap the active workspace in another decorative panel', () => {
     const css = read('../components/CampaignDashboard.css');
     const panelRule = css.match(/#root \.campaign-dashboard-panel \{([\s\S]*?)\n\}/)?.[1] || '';
