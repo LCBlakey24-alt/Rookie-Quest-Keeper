@@ -6,7 +6,7 @@
 */
 
 :root {
-  --rq-action-fill-speed: 360ms;
+  --rq-action-fill-speed: 340ms;
   --rq-action-fill-click-speed: 260ms;
 }
 
@@ -24,7 +24,7 @@
 #root .clean-sheet-back,
 #root .clean-sheet-edit,
 #root .clean-sheet-level {
-  --rq-fill-color: var(--rq-primary, #d00000);
+  --rq-fill-color: var(--rq-control-wax, #7E2D2D);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -48,7 +48,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: var(--rq-fill-color, var(--rq-primary, #d00000));
+  background: var(--rq-fill-color, var(--rq-control-wax, #7E2D2D));
   opacity: 0;
   z-index: 0;
   transition: width var(--rq-action-fill-speed) cubic-bezier(.2,.8,.2,1), opacity 120ms ease;
