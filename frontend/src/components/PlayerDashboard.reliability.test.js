@@ -66,7 +66,7 @@ test('failed first load does not claim saved player sheets and campaigns are emp
   expect(await screen.findByText('Characters could not be loaded')).toBeInTheDocument();
   expect(screen.queryByText('No characters yet')).not.toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole('tab', { name: 'Campaigns' }));
-  expect(screen.getByText('Campaigns could not be loaded')).toBeInTheDocument();
+  fireEvent.mouseDown(screen.getByRole('tab', { name: 'Campaigns' }), { button: 0, ctrlKey: false });
+  expect(await screen.findByText('Campaigns could not be loaded')).toBeInTheDocument();
   expect(screen.queryByText('No linked campaigns')).not.toBeInTheDocument();
 });
