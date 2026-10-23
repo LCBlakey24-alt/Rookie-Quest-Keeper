@@ -6,30 +6,24 @@ function source(file) {
 }
 
 describe('GM NPC roster on small screens', () => {
-  test('keeps full stat blocks available inside compact NPC cards', () => {
+  test('uses a compact list beside exactly one selected full stat block', () => {
     const jsx = source('./NPCsTab.js');
-    expect(jsx).toContain('rqk-npc-card');
-    expect(jsx).toContain('rqk-npc-card-header');
-    expect(jsx).toContain('rqk-npc-card-content');
-    expect(jsx).toContain('Full stat block & lore');
-    expect(jsx).toContain('expandedNpcIds.has(npc.id) && <NpcCompactStatBlock npc={npc} />');
-    expect(jsx).toContain('Expand visible stat blocks');
-    expect(jsx).toContain('Collapse visible stat blocks');
-    expect(jsx).toContain('onNpcDetailsToggle(npc.id, event.currentTarget.open)');
+    expect(jsx).toContain('<RosterSplitView');
+    expect(jsx).toContain('testId="gm-npc-split-reference"');
+    expect(jsx).toContain('getSubtitle={npc => npc.role || npc.occupation || npc.location');
+    expect(jsx).toContain('<NpcCompactStatBlock npc={npc} />');
+    expect(jsx).toContain('onSelect={setSelectedNpcId}');
     expect(jsx).toContain('aria-label={`Edit ${npc.name}`}');
     expect(jsx).toContain('aria-label={`Delete ${npc.name}`}');
+    expect(jsx).not.toContain('filteredNPCs.map(npc => (');
   });
 
-  test('uses one-column roster, touch-friendly actions and leaves generator in its own tab', () => {
+  test('keeps full-size stat sheets and uses the Create NPC tool for generating', () => {
     const css = source('./NPCsTab.css');
-    expect(css).toContain('@media (max-width: 719px)');
-    expect(css).toContain('grid-template-columns: 40px minmax(0, 1fr) auto !important');
-    expect(css).toContain('min-width: 44px !important');
-    expect(css).toContain('min-height: 0 !important');
-    expect(css).toContain('.rqk-npc-roster-toolbar');
-    expect(css).toContain('.rqk-npc-summary-stats');
-    expect(css).toContain('.rqk-npc-expand-toggle');
-    expect(css).toContain('.rqk-npcs-roster-grid > .ai-assistant-panel');
+    expect(css).toContain('.rqk-npc-master');
+    expect(css).toContain('.rqk-npc-selected-sheet');
+    expect(css).toContain('.rqk-npc-selected-delete-confirm');
+    expect(source('./NPCsTab.js')).not.toContain('{/* ROOK Panel */}');
   });
 
   test('mobile campaign header cannot cover the add/search controls', () => {
@@ -54,12 +48,13 @@ describe('GM NPC roster on small screens', () => {
     expect(css).toContain('calc(104px + env(safe-area-inset-bottom, 0px))');
   });
 
-  test('phone NPC cards do not inherit oversized header and content heights', () => {
-    const css = source('./NPCsTab.css');
-    expect(css).toContain('#root .rqk-npc-list .rqk-npc-card-header');
-    expect(css).toContain('#root .rqk-npc-list .rqk-npc-card-content');
-    expect(css).toContain('height: auto !important');
-    expect(css).toContain('min-height: 0 !important');
+  test('split reader uses a swipeable short list on phones', () => {
+    const css = require('fs').readFileSync(require('path').join(__dirname, '../gm/RosterSplitView.css'), 'utf8');
+    expect(css).toContain('grid-template-columns: clamp(208px, 24vw, 284px)');
+    expect(css).toContain('@container (max-width: 680px)');
+    expect(css).toContain('overflow-x: auto');
+    expect(css).toContain('scroll-snap-type: x proximity');
+    expect(css).toContain(':focus-visible');
   });
 
 });

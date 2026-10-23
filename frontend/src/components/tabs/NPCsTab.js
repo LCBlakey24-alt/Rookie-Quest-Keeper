@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '@/lib/apiClient';
 import NpcCompactStatBlock from '@/components/gm/NpcCompactStatBlock';
+import RosterSplitView from '@/components/gm/RosterSplitView';
 import NpcFullStatEditor from './NpcFullStatEditor';
 import { createNpcDraft, prepareNpcSavePayload } from './npcEditorDraft';
 import { toast } from 'sonner';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader, Wand2, User, Search, X } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
@@ -52,17 +53,17 @@ function NPCsTab({ campaignId }) {
   const [editingNPC, setEditingNPC] = useState(null);
   const [deletingNPC, setDeletingNPC] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedNpcIds, setExpandedNpcIds] = useState(() => new Set());
+  const [selectedNpcId, setSelectedNpcId] = useState('');
   const [formData, setFormData] = useState(() => createNpcDraft());
+  // The empty-library onboarding screen can still summon a first NPC.
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState(null);
 
   useEffect(() => {
     // A campaign change must never display records from the previous party.
     activeCampaignRef.current = campaignId;
     setNpcs([]);
-    setExpandedNpcIds(new Set());
+    setSelectedNpcId('');
     setSearchTerm('');
     setLoadError(false);
     setLoading(true);
@@ -76,6 +77,7 @@ function NPCsTab({ campaignId }) {
       if (activeCampaignRef.current !== requestedCampaign) return;
       if (!Array.isArray(response.data)) throw new Error('Invalid NPC response');
       setNpcs(response.data);
+      setSelectedNpcId(previous => response.data.some(npc => npc.id === previous) ? previous : (response.data[0]?.id || ''));
       setLoadError(false);
     } catch (error) {
       if (activeCampaignRef.current !== requestedCampaign) return;
@@ -141,30 +143,24 @@ function NPCsTab({ campaignId }) {
     setShowDialog(false);
   };
 
-  // ROOK - Auto-generate and save
+  // Only shown for an empty roster. Regular creation lives in the Create NPC tool.
   const handleUnseenServant = async () => {
     if (!aiPrompt.trim()) {
       toast.error('Please describe the NPC you want');
       return;
     }
     setAiGenerating(true);
-    setLastGenerated(null);
     try {
-      const response = await apiClient.post(`/rook/generate`, {
-        prompt: aiPrompt,
-        entity_type: 'npc',
-        campaign_id: campaignId
+      const response = await apiClient.post('/rook/generate', {
+        prompt: aiPrompt, entity_type: 'npc', campaign_id: campaignId,
       });
-      
-      if (response.data.success) {
-        toast.success(`✨ ${response.data.entity_name} has joined your world!`);
-        setLastGenerated(response.data);
+      if (response.data?.success) {
         setAiPrompt('');
-        fetchNPCs();
+        toast.success('NPC created');
+        await fetchNPCs();
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.detail || 'The ROOK failed to create the NPC';
-      toast.error(errorMsg);
+      toast.error(error?.response?.data?.detail || 'Could not create NPC');
     } finally {
       setAiGenerating(false);
     }
@@ -172,28 +168,9 @@ function NPCsTab({ campaignId }) {
 
   // Find NPCs by story, role, skills and GM notes as well as the displayed name.
   // Search is always local to the active campaign; never mix the two parties.
-  const filteredNPCs = npcs.filter(npc => matchesNpcSearch(npc, searchTerm));
-
-  const allVisibleExpanded = filteredNPCs.length > 0 && filteredNPCs.every(npc => expandedNpcIds.has(npc.id));
-  const toggleAllNpcDetails = () => {
-    setExpandedNpcIds(previous => {
-      const updated = new Set(previous);
-      filteredNPCs.forEach(npc => {
-        if (allVisibleExpanded) updated.delete(npc.id);
-        else updated.add(npc.id);
-      });
-      return updated;
-    });
-  };
-  const onNpcDetailsToggle = (npcId, opened) => {
-    setExpandedNpcIds(previous => {
-      if (previous.has(npcId) === opened) return previous;
-      const updated = new Set(previous);
-      if (opened) updated.add(npcId);
-      else updated.delete(npcId);
-      return updated;
-    });
-  };
+  const filteredNPCs = npcs
+    .filter(npc => matchesNpcSearch(npc, searchTerm))
+    .sort((left, right) => String(left.name || '').localeCompare(String(right.name || '')));
 
   // Loading state
   if (loading) {
@@ -341,8 +318,13 @@ function NPCsTab({ campaignId }) {
   if (loading) return <div className="loading-spinner"></div>;
 
   return (
-    <div className="campaign-management-grid rqk-npcs-roster-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
-      {/* Main Content */}
+    <div className="rqk-npc-master">
+      {/* Full-width GM roster and details: the separate Create NPC tab owns the generator. */}
+      {loadError && <div className="rqk-npc-load-error" role="status">
+        <strong>Could not refresh the NPC list.</strong>
+        <span>Showing the last successfully loaded records; nothing was deleted.</span>
+        <Button type="button" onClick={fetchNPCs} className="btn-secondary">Retry loading NPCs</Button>
+      </div>}
       <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 className="medieval-heading" style={{ fontSize: '28px', color: '#ffffff' }}>
@@ -476,15 +458,6 @@ function NPCsTab({ campaignId }) {
         </div>
       )}
 
-      {filteredNPCs.length > 0 && (
-        <div className="rqk-npc-roster-toolbar" aria-label="NPC roster actions">
-          <span>{filteredNPCs.length} of {npcs.length} saved NPCs</span>
-          <button type="button" className="rqk-npc-expand-toggle" onClick={toggleAllNpcDetails}>
-            {allVisibleExpanded ? 'Collapse visible stat blocks' : 'Expand visible stat blocks'}
-          </button>
-        </div>
-      )}
-
       {/* No results from search */}
       {filteredNPCs.length === 0 && searchTerm && (
         <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
@@ -500,194 +473,44 @@ function NPCsTab({ campaignId }) {
       )}
 
       {filteredNPCs.length > 0 && (
-        <div className="rqk-npc-list" style={{ display: 'grid', gap: '16px' }}>
-          {filteredNPCs.map(npc => (
-            <Card 
-              key={npc.id} 
-              data-testid={`npc-card-${npc.id}`} 
-              className="card rqk-npc-card"
-              style={{
-                animation: lastGenerated?.entity_id === npc.id ? 'glow-pulse 2s ease-out' : 'none',
-                border: lastGenerated?.entity_id === npc.id ? '2px solid #F59E0B' : undefined
-              }}
-            >
-              <CardHeader className="rqk-npc-card-header">
-                <div className="rqk-npc-card-main" style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-                  <div className="rqk-npc-avatar" style={{ 
-                    width: '48px', 
-                    height: '48px', 
-                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', 
-                    borderRadius: '50%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center'
-                  }}>
-                    {(npc.image_url || npc.portrait_url) ? <img src={npc.image_url || npc.portrait_url} alt={npc.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} /> : <User size={24} color="white" />}
+        <RosterSplitView
+          key={campaignId}
+          testId="gm-npc-split-reference"
+          title="Campaign NPCs"
+          items={filteredNPCs}
+          selectedId={selectedNpcId}
+          onSelect={setSelectedNpcId}
+          getSubtitle={npc => npc.role || npc.occupation || npc.location || 'NPC'}
+          getBadge={npc => npc.location && (npc.role || npc.occupation) ? npc.location : null}
+          renderDetail={npc => (
+            <div className="rqk-npc-selected-sheet" data-testid={`npc-card-${npc.id}`}>
+              <div className="rqk-reference-browser__detail-actions">
+                <Button type="button" aria-label={`Edit ${npc.name}`}
+                  data-testid={`edit-npc-btn-${npc.id}`}
+                  onClick={() => handleEdit(npc)} className="btn-secondary">
+                  <Edit size={15} /> Edit NPC
+                </Button>
+                {deletingNPC === npc.id ? (
+                  <div className="rqk-npc-selected-delete-confirm" role="group" aria-label={`Confirm deletion of ${npc.name}`}>
+                    <strong>Delete {npc.name}?</strong>
+                    <Button type="button" data-testid={`confirm-delete-npc-${npc.id}`}
+                      onClick={() => handleDelete(npc.id)} className="btn-danger"><Trash2 size={14} /> Confirm</Button>
+                    <Button type="button" onClick={() => setDeletingNPC(null)} className="btn-secondary"><X size={14} /> Cancel</Button>
                   </div>
-                  <div className="rqk-npc-identity" style={{ flex: 1 }}>
-                    <CardTitle className="medieval-heading rqk-npc-name" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {npc.name}
-                      {lastGenerated?.entity_id === npc.id && (
-                        <span style={{ fontSize: '12px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Check size={14} /> Just created
-                        </span>
-                      )}
-                    </CardTitle>
-                    {npc.location && (
-                      <p style={{ fontSize: '14px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <MapPin size={14} /> {npc.location}
-                      </p>
-                    )}
-                  </div>
-                  <div className="rqk-npc-card-actions" style={{ display: 'flex', gap: '8px' }}>
-                    <Button type="button" aria-label={`Edit ${npc.name}`} data-testid={`edit-npc-btn-${npc.id}`} onClick={() => handleEdit(npc)} className="btn-secondary" style={{ padding: '8px' }}>
-                      <Edit size={14} />
-                    </Button>
-                    
-                    {/* Delete with confirmation */}
-                    {deletingNPC === npc.id ? (
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: '4px', 
-                        alignItems: 'center',
-                        padding: '4px 8px',
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        borderRadius: '8px',
-                        border: '1px solid #ef4444'
-                      }}>
-                        <span style={{ fontSize: '11px', color: '#fff', whiteSpace: 'nowrap' }}>Delete?</span>
-                        <Button
-                          data-testid={`confirm-delete-npc-${npc.id}`}
-                          onClick={() => handleDelete(npc.id)}
-                          className="btn-icon"
-                          style={{ background: '#ef4444', minHeight: '28px', minWidth: '28px', padding: '4px' }}
-                        >
-                          <Check size={12} />
-                        </Button>
-                        <Button
-                          onClick={() => setDeletingNPC(null)}
-                          className="btn-icon"
-                          style={{ minHeight: '28px', minWidth: '28px', padding: '4px' }}
-                        >
-                          <X size={12} />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button type="button" aria-label={`Delete ${npc.name}`} data-testid={`delete-npc-btn-${npc.id}`} onClick={() => handleDelete(npc.id)} className="btn-danger" style={{ padding: '8px' }}>
-                        <Trash2 size={14} />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="rqk-npc-card-content">
-                <details
-                  className="rqk-npc-combat-details"
-                  data-testid={`npc-combat-card-${npc.id}`}
-                  open={expandedNpcIds.has(npc.id)}
-                  onToggle={event => onNpcDetailsToggle(npc.id, event.currentTarget.open)}
-                >
-                  <summary className="rqk-npc-combat-summary" aria-label={`Show full stat block and story for ${npc.name}`}>
-                    <span className="rqk-npc-summary-title">Full stat block & lore</span>
-                    <span className="rqk-npc-summary-stats">
-                      <span>HP <strong>{npc.hp > 0 ? npc.hp : 'Not set'}</strong></span>
-                      <span>AC <strong>{npc.ac > 0 ? npc.ac : 'Not set'}</strong></span>
-                      {(npc.attacks?.length > 0 || npc.actions?.length > 0) &&
-                        <span>{npc.attacks?.length || npc.actions?.length} actions</span>}
-                      {npc.cr != null && npc.cr !== '' && <span>CR {npc.cr}</span>}
-                    </span>
-                  </summary>
-                  {expandedNpcIds.has(npc.id) && <NpcCompactStatBlock npc={npc} />}
-                </details>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                ) : (
+                  <Button type="button" aria-label={`Delete ${npc.name}`}
+                    data-testid={`delete-npc-btn-${npc.id}`}
+                    onClick={() => handleDelete(npc.id)} className="btn-secondary">
+                    <Trash2 size={15} /> Delete
+                  </Button>
+                )}
+              </div>
+              <NpcCompactStatBlock npc={npc} />
+            </div>
+          )}
+        />
       )}
       </div>
-
-      {/* ROOK Panel */}
-      <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
-        <Card className="parchment-dark" style={{ border: '2px solid #f97316' }}>
-          <CardHeader>
-            <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Wand2 size={20} style={{ color: '#f97316' }} />
-              ROOK
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p style={{ fontSize: '13px', color: '#fed7aa', marginBottom: '16px', lineHeight: '1.5' }}>
-              Describe a character and the ROOK will create and save them to your NPCs automatically.
-            </p>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#f97316', fontWeight: '600' }}>
-                Describe your NPC
-              </label>
-              <textarea
-                data-testid="rook-npc-prompt"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                className="textarea"
-                style={{ minHeight: '100px', fontSize: '13px', borderColor: '#f97316' }}
-                placeholder="Example: A grizzled dwarven blacksmith with a secret past as an adventurer"
-              />
-            </div>
-            <Button
-              data-testid="summon-npc-btn"
-              onClick={handleUnseenServant}
-              disabled={aiGenerating}
-              className="btn-primary"
-              style={{ 
-                width: '100%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: '8px',
-                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                border: 'none'
-              }}
-            >
-              {aiGenerating ? (
-                <>
-                  <Loader size={16} className="animate-spin" />
-                  Summoning...
-                </>
-              ) : (
-                <>
-                  <Wand2 size={16} />
-                  Summon NPC
-                </>
-              )}
-            </Button>
-            
-            {lastGenerated && (
-              <div style={{ 
-                marginTop: '16px', 
-                padding: '12px', 
-                background: 'rgba(34, 197, 94, 0.15)', 
-                border: '1px solid #F59E0B',
-                borderRadius: '8px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <Check size={16} style={{ color: '#F59E0B' }} />
-                  <span style={{ color: '#F59E0B', fontWeight: '600', fontSize: '13px' }}>NPC Created!</span>
-                </div>
-                <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>{lastGenerated.entity_name}</p>
-                <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>
-                  Click the edit button on the card to make changes
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      
-      <style>{`
-        @keyframes glow-pulse {
-          0% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.6); }
-          100% { box-shadow: 0 0 0px rgba(34, 197, 94, 0); }
-        }
-      `}</style>
     </div>
   );
 }

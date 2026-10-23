@@ -214,3 +214,19 @@
   #root .rqk-npc-list .rqk-npc-card-main { align-items: center !important; }
   #root .rqk-npc-list .rqk-npc-combat-summary { min-height: 42px !important; }
 }
+
+/* Full-size Guild Ledger split reference. No extra ROOK sidebar beside the reader. */
+#root .rqk-npc-master { display: grid; gap: 10px; width: 100%; min-width: 0; }
+#root .rqk-npc-master > div { min-width: 0; }
+#root .rqk-npc-selected-sheet { min-width: 0; }
+#root .rqk-npc-selected-sheet > .rqk-stat-block { margin: 0; }
+#root .rqk-npc-selected-delete-confirm {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  padding: 8px 10px; border: 1px solid var(--rq-danger, #b94a4f);
+  border-radius: 6px; color: var(--rq-text-primary, #eadfc8);
+}
+#root .rqk-npc-selected-delete-confirm strong { font-size: 12px; }
+@media (max-width: 640px) {
+  #root .rqk-npc-master .rqk-reference-browser__detail-actions { justify-content: flex-start; }
+  #root .rqk-npc-selected-delete-confirm { width: 100%; }
+}

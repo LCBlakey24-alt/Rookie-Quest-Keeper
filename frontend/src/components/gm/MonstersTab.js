@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, BookOpen, Filter, PlaySquare, Plus, RefreshCw, Save, Search, Skull, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
 import MonsterLookup from '@/components/MonsterLookup';
 import NpcCompactStatBlock from './NpcCompactStatBlock';
+import RosterSplitView from './RosterSplitView';
+import './MonstersTab.split.css';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
 import { hasRatedMonsterCr, monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
@@ -39,30 +41,48 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   const [typeFilter, setTypeFilter] = useState('all');
   const [crFilter, setCrFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [selectedCreatureId, setSelectedCreatureId] = useState('');
   const [selected, setSelected] = useState({});
   const [encounterName, setEncounterName] = useState('');
   const [lastSavedEncounter, setLastSavedEncounter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const activeCampaignRef = useRef(campaignId);
 
   const loadLibrary = async () => {
     if (!campaignId) return;
+    const requestedCampaign = campaignId;
     setLoading(true);
     try {
       const [creatureRes, scenarioRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => ({ data: [] })),
         apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
       ]);
+      if (activeCampaignRef.current !== requestedCampaign) return;
       setCustomCreatures(normaliseCreatures(creatureRes.data).map(creature => ({ ...creature, source: 'custom' })));
       setScenarios(Array.isArray(scenarioRes.data) ? scenarioRes.data : []);
     } catch (error) {
+      if (activeCampaignRef.current !== requestedCampaign) return;
       toast.error(error?.response?.data?.detail || 'Could not load monster library');
     } finally {
-      setLoading(false);
+      if (activeCampaignRef.current === requestedCampaign) setLoading(false);
     }
   };
 
-  useEffect(() => { loadLibrary(); }, [campaignId]);
+  useEffect(() => {
+    activeCampaignRef.current = campaignId;
+    // Selection and encounter drafts always belong to the current campaign.
+    setCustomCreatures([]);
+    setScenarios([]);
+    setSelected({});
+    setSelectedCreatureId('');
+    setLastSavedEncounter(null);
+    setQuery('');
+    setTypeFilter('all');
+    setCrFilter('all');
+    setSourceFilter('all');
+    loadLibrary();
+  }, [campaignId]);
 
   const creatures = useMemo(() => [
     ...MONSTER_DATABASE.map((creature, index) => ({ ...normaliseMonsterStatBlock(creature), id: creature.id || `srd-${creature.name}-${index}`, source: creature.source === 'legacy-reference' ? 'legacy-reference' : 'srd' })),
@@ -191,7 +211,11 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
 
         <div style={filtersStyle}>
           <label style={searchWrapStyle}><Search size={16} /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search creatures, attacks, abilities, type…" style={inputStyle} /></label>
-          <label style={selectWrapStyle}><Filter size={15} /><select value={typeFilter} onChange={event => setTypeFilter(event.target.value)} style={selectStyle}><option value="all">All types</option>{creatureTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
+          <label style={selectWrapStyle}><Filter size={15} /><select aria-label="Filter creature type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)} style={selectStyle}><option value="all">All types</option>{creatureTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
+          <button type="button" className="rqk-bestiary-beast-filter" aria-pressed={typeFilter === 'beast'}
+            onClick={() => setTypeFilter(previous => previous === 'beast' ? 'all' : 'beast')}>
+            {typeFilter === 'beast' ? 'Show all creatures' : 'Beasts only'}
+          </button>
           <select value={crFilter} onChange={event => setCrFilter(event.target.value)} style={selectStyle}><option value="all">All CR</option><option value="low">CR 0–2</option><option value="mid">CR 3–8</option><option value="high">CR 9+</option></select>
           <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} style={selectStyle}><option value="all">All sources</option><option value="srd">SRD 5.1 (verified)</option><option value="legacy-reference">Legacy reference</option><option value="custom">Custom</option></select>
           <Input value={encounterName} onChange={event => setEncounterName(event.target.value)} placeholder="Encounter name, optional" style={inputStyle} />
@@ -206,11 +230,34 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
           </div>
         )}
 
-        {loading ? <p style={emptyStyle}>Loading creature library…</p> : filteredCreatures.length === 0 ? <p style={emptyStyle}>No matching creatures. Create one below or clear your filters.</p> : (
-          <div style={creatureGridStyle}>{filteredCreatures.map((creature, index) => {
-            const id = creatureId(creature, index);
-            return <CreatureCard key={id} creature={creature} count={selected[id] || 0} onAdjust={(delta) => adjustCreature(id, delta)} />;
-          })}</div>
+        {loading ? <p style={emptyStyle}>Loading creature library…</p> : (
+          <RosterSplitView
+            key={campaignId}
+            testId="gm-bestiary-split-reference"
+            title="Beasts & monsters"
+            items={filteredCreatures}
+            selectedId={selectedCreatureId}
+            onSelect={setSelectedCreatureId}
+            getSubtitle={creature => [creature.size, creature.type].filter(Boolean).join(' ') || 'Creature'}
+            getBadge={creature => `CR ${creature.cr ?? creature.challenge_rating ?? 'Unrated'} · ${creature.source === 'custom' ? 'Campaign' : creature.source === 'legacy-reference' ? 'Legacy' : 'SRD'}`}
+            emptyMessage="No matching creatures. Clear the filters or create one below."
+            renderDetail={creature => {
+              const id = creatureId(creature);
+              const count = selected[id] || 0;
+              return (
+                <div className="rqk-bestiary-selected-sheet">
+                  <div className="rqk-reference-browser__detail-actions" aria-label={`Encounter quantity for ${creature.name}`}>
+                    <strong className="rqk-bestiary-quantity-label">{count} in encounter</strong>
+                    <button type="button" aria-label={`Remove one ${creature.name}`}
+                      disabled={!count} onClick={() => adjustCreature(id, -1)}>− Remove</button>
+                    <button type="button" aria-label={`Add one ${creature.name}`}
+                      onClick={() => adjustCreature(id, 1)}>+ Add to encounter</button>
+                  </div>
+                  <NpcCompactStatBlock npc={creature} />
+                </div>
+              );
+            }}
+          />
         )}
       </section>
 
@@ -302,7 +349,6 @@ const selectStyle = { minHeight: 36, background: rq.bg, border: `1px solid ${rq.
 const selectedPanelStyle = { display: 'grid', gap: 6, background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, color: rq.soft };
 const selectedChipRowStyle = { display: 'flex', gap: 6, flexWrap: 'wrap' };
 const selectedChipStyle = { background: 'rgba(124,203,255,0.10)', color: rq.text, border: `1px solid ${rq.line}`, padding: '4px 7px', fontSize: 12, fontWeight: 900 };
-const creatureGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 8, minWidth: 0 };
 const creatureCardStyle = (active) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, background: active ? 'rgba(124,203,255,0.10)' : rq.card, border: `1px solid ${active ? rq.red : rq.line}`, borderLeft: `1px solid ${active ? rq.pink : rq.line}`, padding: 10 });
 const creatureTopStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' };
 const crPillStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: '3px 6px', fontSize: 11, fontWeight: 950, whiteSpace: 'nowrap' };
