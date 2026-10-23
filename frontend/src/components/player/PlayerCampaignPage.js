@@ -116,7 +116,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
           <h1>{campaign?.name || 'Your campaign'}</h1>
           {campaign?.system && <p>{campaign.system}{campaign.rules_edition ? ` · ${campaign.rules_edition}` : ''}</p>}
         </div>
-        <Button aria-label="Refresh player campaign" onClick={refresh} disabled={loading}><RefreshCw size={16} /> {loading ? 'Loading…' : 'Refresh'}</Button>
+        <Button onClick={refresh} disabled={loading}><RefreshCw size={16} /> {loading ? 'Loading…' : 'Refresh'}</Button>
       </header>
       {failures.length > 0 && <div role="status" className="player-campaign-warning">
         Could not refresh {failures.join(', ')}. Previously loaded information remains visible. Try Refresh to check again.
