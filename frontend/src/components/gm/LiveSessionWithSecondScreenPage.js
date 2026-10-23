@@ -10,18 +10,34 @@ export default function LiveSessionWithSecondScreenPage() {
   const [displayOpen, setDisplayOpen] = useState(false);
   const triggerRef = useRef(null);
   const closeRef = useRef(null);
+  const panelRef = useRef(null);
 
   useEffect(() => {
     if (!displayOpen) return undefined;
     closeRef.current?.focus();
-    const onEscape = (event) => {
+    const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         setDisplayOpen(false);
         triggerRef.current?.focus();
+        return;
+      }
+      if (event.key !== 'Tab' || !panelRef.current) return;
+      const focusable = Array.from(panelRef.current.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !panelRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !panelRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
       }
     };
-    window.addEventListener('keydown', onEscape);
-    return () => window.removeEventListener('keydown', onEscape);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, [displayOpen]);
 
   useEffect(() => { setDisplayOpen(false); }, [campaignId]);
@@ -55,8 +71,11 @@ export default function LiveSessionWithSecondScreenPage() {
         />
       )}
       <aside
+        ref={panelRef}
         id="live-second-screen-panel"
         className={`live-second-screen-fixed${displayOpen ? ' is-open' : ''}`}
+        role={displayOpen ? 'dialog' : undefined}
+        aria-modal={displayOpen ? 'true' : undefined}
         aria-label="Live display controls"
       >
         <div className="live-display-drawer-header">
