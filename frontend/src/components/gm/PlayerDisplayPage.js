@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dice6, HeartPulse, Maximize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
+import { Dice6, HeartPulse, Maximize2, Minimize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
@@ -102,7 +102,22 @@ export default function PlayerDisplayPage() {
   const urlTarget = normaliseTarget(searchParams.get('target'));
   const [state, setState] = useState(() => loadDisplayState(campaignId));
   const [party, setParty] = useState([]);
-  const goFullscreen = useCallback(async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {} }, []);
+  const [fullscreen, setFullscreen] = useState(false);
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      // Browser denied a fullscreen request; the player display remains usable.
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFullscreenChange = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    onFullscreenChange();
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
 
   useEffect(() => {
     setState(loadDisplayState(campaignId));
@@ -112,10 +127,17 @@ export default function PlayerDisplayPage() {
   }, [campaignId]);
 
   useEffect(() => {
-    const onKeyDown = (event) => { if (event.key?.toLowerCase() === 'f') goFullscreen(); };
+    const onKeyDown = (event) => {
+      const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName) || event.target?.isContentEditable;
+      if (event.key?.toLowerCase() === 'f' && !typing && !event.repeat &&
+          !event.ctrlKey && !event.altKey && !event.metaKey) {
+        event.preventDefault();
+        toggleFullscreen();
+      }
+    };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [goFullscreen]);
+  }, [toggleFullscreen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -151,7 +173,12 @@ export default function PlayerDisplayPage() {
 
   return (
     <main className="rqk-player-display" style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
-      <button type="button" className="rqk-player-display__fullscreen" onClick={goFullscreen} style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button>
+      <button type="button" className="rqk-player-display__fullscreen" onClick={toggleFullscreen} style={fullscreenButtonStyle}
+        aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        title={fullscreen ? 'Exit fullscreen (F or Esc)' : 'Enter fullscreen (F)'}>
+        {fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+        {fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+      </button>
       <div className="rqk-player-display__frame" style={chromeFrameStyle(target)}>
         <header className="rqk-player-display__status" style={displayStatusBarStyle(target)}>
           <span style={brandMarkStyle}><Sparkles size={14} /> Rookie Quest Keeper</span>
@@ -167,7 +194,7 @@ export default function PlayerDisplayPage() {
       </div>
       <footer className="rqk-player-display__footer" style={footerStyle(target)}>
         <span>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Map-first table display' : 'Cinematic player display'}</span>
-        <span>{updatedLabel ? `Synced ${updatedLabel}` : 'Waiting for GM sync'} · Press F for fullscreen</span>
+        <span>{updatedLabel ? `Synced ${updatedLabel}` : 'Waiting for GM sync'} · {fullscreen ? 'F or Esc to exit fullscreen' : 'Press F for fullscreen'}</span>
       </footer>
     </main>
   );
