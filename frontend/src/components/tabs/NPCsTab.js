@@ -55,6 +55,10 @@ function NPCsTab({ campaignId }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNpcId, setSelectedNpcId] = useState('');
   const [formData, setFormData] = useState(() => createNpcDraft());
+  // The empty-library onboarding screen can still summon a first NPC.
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [lastGenerated, setLastGenerated] = useState(null);
 
   useEffect(() => {
     // A campaign change must never display records from the previous party.
@@ -138,6 +142,31 @@ function NPCsTab({ campaignId }) {
     setFormData(createNpcDraft());
     setEditingNPC(null);
     setShowDialog(false);
+  };
+
+  // Only shown for an empty roster. Regular creation lives in the Create NPC tool.
+  const handleUnseenServant = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error('Please describe the NPC you want');
+      return;
+    }
+    setAiGenerating(true);
+    setLastGenerated(null);
+    try {
+      const response = await apiClient.post('/rook/generate', {
+        prompt: aiPrompt, entity_type: 'npc', campaign_id: campaignId,
+      });
+      if (response.data?.success) {
+        setLastGenerated(response.data);
+        setAiPrompt('');
+        toast.success('NPC created');
+        await fetchNPCs();
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not create NPC');
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   // Find NPCs by story, role, skills and GM notes as well as the displayed name.
