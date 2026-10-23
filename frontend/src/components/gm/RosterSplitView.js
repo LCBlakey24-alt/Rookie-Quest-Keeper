@@ -36,6 +36,7 @@ export default function RosterSplitView({
   };
 
   return (
+    <div className="rqk-reference-browser-host">
     <div className="rqk-reference-browser" data-testid={testId}>
       <aside className="rqk-reference-browser__sidebar" aria-label={title}>
         <div className="rqk-reference-browser__sidebar-heading">
@@ -77,6 +78,7 @@ export default function RosterSplitView({
           </div>
         ) : <div className="rqk-reference-browser__detail-placeholder">{emptyMessage}</div>}
       </section>
+    </div>
     </div>
   );
 }
