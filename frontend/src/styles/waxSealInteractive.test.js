@@ -16,7 +16,7 @@ describe('web controls: blue -> wax seal, antique gold only for text', () => {
     expect(css).toContain('--rq-control-wax: #7E2D2D');
     expect(css).toContain('background-color: var(--rq-control-blue) !important;');
     expect(css).toContain('border-color: var(--rq-control-wax) !important;');
-    expect(css).toContain("is(.active, .is-active, .is-open, [data-state='active'], [aria-current='page'], [aria-selected='true'], [aria-pressed='true'])");
+    expect(css).toContain("is(.active, .is-active, .is-selected, .is-open, [data-state='active'], [aria-current='page'], [aria-selected='true'], [aria-pressed='true'])");
     expect(css).toContain('background-size: 100% 100% !important;');
     expect(css).not.toMatch(/background:\s*#[cC]9[aA]9[6][bB]/);
   });
