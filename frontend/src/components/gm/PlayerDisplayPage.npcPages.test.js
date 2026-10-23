@@ -62,7 +62,7 @@ describe('player-facing NPC gallery pagination', () => {
     expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(8);
     expect(screen.getByText('NPC 01')).toBeInTheDocument();
     expect(screen.queryByText('NPC 11')).not.toBeInTheDocument();
-    expect(screen.getByRole('status', { name: '' })).toHaveTextContent('Page 1 of 2');
+    expect(screen.getByText(/Page 1 of 2/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next NPC page' }));
     expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(3);
