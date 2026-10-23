@@ -199,8 +199,8 @@
       .rqk-app-mobile-more-trigger,
       .rqk-npc-expand-toggle
     ):hover:not(:disabled):not([aria-disabled='true']) {
-      background: var(--rq-guild-wine-hover) !important;
-      background-color: var(--rq-guild-wine) !important;
+      background: var(--rq-control-blue, #263F59) !important;
+      background-color: var(--rq-control-blue, #263F59) !important;
       color: #F8F0E5 !important;
       border-color: transparent !important;
       box-shadow: none !important;
@@ -219,8 +219,8 @@
       .rqk-auth-secondary,
       .rqk-auth-mode-toggle button
     ):hover:not(:disabled) {
-      background: var(--rq-guild-wine-hover) !important;
-      background-color: var(--rq-guild-wine) !important;
+      background: var(--rq-control-blue, #263F59) !important;
+      background-color: var(--rq-control-blue, #263F59) !important;
       border-color: transparent !important;
       color: #F8F0E5 !important;
     }
