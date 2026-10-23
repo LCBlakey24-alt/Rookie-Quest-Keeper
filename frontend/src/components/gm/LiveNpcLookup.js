@@ -3,6 +3,7 @@ import { AlertTriangle, Check, ChevronDown, ChevronRight, FileText, MapPin, Refr
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import NpcCompactStatBlock from './NpcCompactStatBlock';
+import RosterSplitView from './RosterSplitView';
 import {
   describeLiveNpcLookupFailures,
   fetchLiveNpcLookupSections,
@@ -191,46 +192,42 @@ export default function LiveNpcLookup({ campaignId }) {
         </div>
       )}
 
-      <div style={listStyle}>
-        {filtered.length === 0 && (
-          <div style={emptyStyle} data-testid="live-npc-empty-message">
-            {loadWarning && npcs.length === 0
-              ? 'Keeper could not load this campaign\'s NPC list. A loading problem does not mean your NPCs were deleted. Please press Refresh and check the warning above.'
-              : npcs.length > 0
-                ? 'No NPCs match this search. Clear the search to show your full roster.'
-                : 'No NPCs are currently available in this view.'}
-          </div>
-        )}
-        {filtered.map(npc => {
-          const open = expandedId === npc.id;
+      <RosterSplitView
+        key={campaignId}
+        testId="live-npc-split-reference"
+        title="Live NPCs"
+        items={filtered}
+        selectedId={expandedId}
+        onSelect={setExpandedId}
+        getSubtitle={npc => npc.role || npc.occupation || npc.location || 'NPC'}
+        getBadge={npc => companionIds.includes(npc.id) ? 'With party' : null}
+        emptyMessage={loadWarning && npcs.length === 0
+          ? 'The NPC list could not load. Your campaign records have not been deleted. Try Refresh.'
+          : npcs.length > 0 ? 'No NPCs match the search.' : 'No NPCs are available in this view.'}
+        renderDetail={npc => {
           const travelling = companionIds.includes(npc.id);
           const location = locationFor(npc);
           return (
-            <article key={npc.id} style={cardStyle(travelling)}>
-              <button type="button" onClick={() => setExpandedId(open ? '' : npc.id)} style={headerStyle}>
-                <span style={chevronStyle}>{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</span>
-                <span style={{ minWidth: 0, textAlign: 'left' }}>
-                  <strong style={nameStyle}>{npc.name || 'Unnamed NPC'}</strong>
-                  <span style={metaStyle}>{npc.role || npc.occupation || 'NPC'}{location?.name ? ` · ${location.name}` : ''}</span>
-                </span>
-                {travelling && <span style={travellingPillStyle}><Check size={11} /> With Party</span>}
-              </button>
-
-              {open && (
-                <div style={bodyStyle}>
-                  <NpcCompactStatBlock npc={npc} />
-                  <div style={actionsStyle}>
-                    <button type="button" disabled={savingId === npc.id} onClick={() => saveCompanionState(npc)} style={actionStyle(travelling)}>{travelling ? <X size={13} /> : <UserPlus size={13} />}{travelling ? 'Remove from Party' : 'With Party'}</button>
-                    <button type="button" onClick={() => queueForEncounter(npc)} style={actionStyle(false)}><Swords size={13} /> Add to Encounter</button>
-                    {(location?.name || location?.id) && <button type="button" onClick={() => openLocation(npc)} style={actionStyle(false)}><MapPin size={13} /> Location</button>}
-                    <button type="button" onClick={() => quickNote(npc)} style={actionStyle(false)}><FileText size={13} /> Quick Note</button>
-                  </div>
-                </div>
-              )}
-            </article>
+            <div className="rqk-live-npc-selected-sheet">
+              <div className="rqk-reference-browser__detail-actions">
+                <button type="button" disabled={savingId === npc.id} onClick={() => saveCompanionState(npc)} style={actionStyle(travelling)}>
+                  {travelling ? <X size={13} /> : <UserPlus size={13} />}{travelling ? 'Remove from Party' : 'With Party'}
+                </button>
+                <button type="button" onClick={() => queueForEncounter(npc)} style={actionStyle(false)}>
+                  <Swords size={13} /> Add to Encounter
+                </button>
+                {(location?.name || location?.id) && <button type="button" onClick={() => openLocation(npc)} style={actionStyle(false)}>
+                  <MapPin size={13} /> Location
+                </button>}
+                <button type="button" onClick={() => quickNote(npc)} style={actionStyle(false)}>
+                  <FileText size={13} /> Quick Note
+                </button>
+              </div>
+              <NpcCompactStatBlock npc={npc} />
+            </div>
           );
-        })}
-      </div>
+        }}
+      />
     </div>
   );
 }
