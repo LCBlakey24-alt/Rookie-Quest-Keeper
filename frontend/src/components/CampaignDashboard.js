@@ -292,7 +292,9 @@ export default function CampaignDashboard() {
     }
   };
 
-  if (loading) {
+  // Route params change before effects run. Never flash the previous party's
+  // campaign header, join code or GM Home while the new route is loading.
+  if (loading || (campaign && campaign.id !== campaignId)) {
     return (
       <main className="campaign-dashboard-loading" role="status" aria-live="polite">
         <div className="loading-spinner" aria-hidden="true" />
