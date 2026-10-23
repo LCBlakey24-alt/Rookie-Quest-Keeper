@@ -129,6 +129,25 @@ describe('LiveSecondScreenDock reliability', () => {
     expect(JSON.stringify(state.payload)).not.toContain('Private GM plot detail');
   });
 
+  test('GM can switch TV to virtual table even if the previous reveal was for TV', async () => {
+    apiClient.get.mockResolvedValue({ data: [] });
+    liveDisplayBus.loadDisplayState.mockReturnValue({
+      mode: 'image', payload: { display_target: 'standing-tv', image_url: '/old-map.png' },
+    });
+
+    render(<LiveSecondScreenDock campaignId="campaign-1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table' }));
+    fireEvent.click(screen.getByRole('button', { name: /Test Screen/i }));
+
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1',
+      expect.objectContaining({
+        mode: 'title',
+        payload: expect.objectContaining({ display_target: 'virtual-table' }),
+      }),
+    ));
+  });
+
   test('finds world map uploads stored as legacy image_data', async () => {
     apiClient.get.mockImplementation(url => {
       if (url.endsWith('/world-maps')) return Promise.resolve({ data: [{ id: 'w1', name: 'Tia-Karta World', image_data: 'data:image/jpeg;base64,worldpicture' }] });
