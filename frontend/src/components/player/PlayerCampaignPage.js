@@ -43,6 +43,7 @@ export default function PlayerCampaignPage() {
 
 export function PlayerCampaignWorkspace({ campaignId }) {
   const requestRef = useRef(0);
+  const handoutRequestRef = useRef(0);
   const [data, setData] = useState({ campaign: null, party: null, characters: null });
   const [loading, setLoading] = useState(true);
   const [failures, setFailures] = useState([]);
@@ -50,18 +51,21 @@ export function PlayerCampaignWorkspace({ campaignId }) {
   const [handoutSummaryError, setHandoutSummaryError] = useState(false);
 
   const refreshHandoutSummary = useCallback(async () => {
+    const request = ++handoutRequestRef.current;
     try {
       const summary = await fetchPlayerHandoutSummary(apiClient, campaignId);
+      if (request !== handoutRequestRef.current) return false;
       setHandoutSummary(summary);
       setHandoutSummaryError(false);
       return true;
     } catch {
-      setHandoutSummaryError(true);
+      if (request === handoutRequestRef.current) setHandoutSummaryError(true);
       return false;
     }
   }, [campaignId]);
 
   const acceptHandoutSummary = useCallback((summary) => {
+    handoutRequestRef.current += 1;
     setHandoutSummary(summary);
     setHandoutSummaryError(false);
   }, []);
@@ -90,7 +94,10 @@ export function PlayerCampaignWorkspace({ campaignId }) {
 
   useEffect(() => {
     refresh();
-    return () => { requestRef.current += 1; };
+    return () => {
+      requestRef.current += 1;
+      handoutRequestRef.current += 1;
+    };
   }, [refresh]);
 
   const { campaign, party, characters } = data;
@@ -109,7 +116,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
           <h1>{campaign?.name || 'Your campaign'}</h1>
           {campaign?.system && <p>{campaign.system}{campaign.rules_edition ? ` · ${campaign.rules_edition}` : ''}</p>}
         </div>
-        <Button onClick={refresh} disabled={loading}><RefreshCw size={16} /> {loading ? 'Loading…' : 'Refresh'}</Button>
+        <Button aria-label="Refresh player campaign" onClick={refresh} disabled={loading}><RefreshCw size={16} /> {loading ? 'Loading…' : 'Refresh'}</Button>
       </header>
       {failures.length > 0 && <div role="status" className="player-campaign-warning">
         Could not refresh {failures.join(', ')}. Previously loaded information remains visible. Try Refresh to check again.
