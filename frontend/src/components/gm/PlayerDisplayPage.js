@@ -406,7 +406,7 @@ function CombatMapArtwork({ mapUrl, title, target, tokens }) {
   }, []);
 
   // Do not paint tokens over a stale image when the GM switches maps.
-  const imageReady = loadedImage?.url === mapUrl;
+  const imageReady = Boolean(mapUrl && loadedImage && loadedImage.url === mapUrl);
   const bounds = imageReady
     ? getContainedMapRect(container.width, container.height, loadedImage.width, loadedImage.height)
     : null;
