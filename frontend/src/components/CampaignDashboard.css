@@ -1329,3 +1329,125 @@
     min-height: 24px !important;
   }
 }
+
+/* Guild Ledger workspace review, October 2026.
+   Single late-stage authority for the campaign shell: legible typography,
+   touch-friendly actions, responsive information density and gold contrast. */
+#root .campaign-dashboard-simple {
+  --rqk-workspace-content: 1480px;
+  --rqk-workspace-gutter: clamp(12px, 2.4vw, 30px);
+}
+#root .campaign-dashboard-simple .campaign-dashboard-workspace {
+  width: 100% !important;
+  padding: clamp(12px, 2vw, 26px) var(--rqk-workspace-gutter) 38px !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-panel {
+  width: min(100%, var(--rqk-workspace-content)) !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+}
+#root .campaign-dashboard-simple .campaign-home-simple {
+  width: 100% !important;
+  max-width: 100% !important;
+  gap: clamp(12px, 1.7vw, 22px) !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-title-copy h1 {
+  color: #eadfc8 !important;
+  line-height: 1.25 !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-title-copy > span {
+  color: #c7c0b4 !important;
+  font-size: 12px !important;
+}
+#root .campaign-dashboard-simple .campaign-button-primary,
+#root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
+  background: #c9a96b !important;
+  border-color: #c9a96b !important;
+  color: #07131f !important;
+}
+#root .campaign-dashboard-simple .campaign-button-primary:hover,
+#root .campaign-dashboard-simple .campaign-button-primary:focus-visible {
+  background: #d9bc82 !important;
+  border-color: #d9bc82 !important;
+  color: #07131f !important;
+}
+#root .campaign-dashboard-simple :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #d9bc82 !important;
+  outline-offset: 3px !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-group-row,
+#root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+  scroll-padding-inline: 18px;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-tab {
+  min-height: 44px !important;
+  font-size: 12px !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-group {
+  min-height: 40px !important;
+  font-size: 11px !important;
+}
+#root .campaign-dashboard-simple .campaign-home-overview {
+  min-width: 0;
+}
+#root .campaign-dashboard-simple .campaign-home-session-rail__action,
+#root .campaign-dashboard-simple .campaign-home-overview-item,
+#root .campaign-dashboard-simple .campaign-home-focus-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  transition: border-color .16s ease, background-color .16s ease, transform .16s ease;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  #root .campaign-dashboard-simple .campaign-home-session-rail__action:hover,
+  #root .campaign-dashboard-simple .campaign-home-focus-card:hover {
+    transform: translateY(-2px);
+  }
+}
+@media (min-width: 1180px) {
+  #root .campaign-dashboard-simple .campaign-home-workbench {
+    gap: 18px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-focus-grid {
+    gap: 14px !important;
+  }
+}
+@media (max-width: 760px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-header {
+    padding: 8px 10px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-title-row {
+    grid-template-columns: 44px minmax(0,1fr) auto !important;
+    gap: 8px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-icon-button {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-title-copy h1 {
+    font-size: clamp(15px, 4vw, 19px) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-actions {
+    gap: 5px !important;
+    min-width: 0;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-workspace {
+    padding: 12px 10px calc(26px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-simple {
+    gap: 12px !important;
+  }
+}
+@media (max-width: 380px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-title-row { gap: 5px !important; }
+  #root .campaign-dashboard-simple .campaign-dashboard-title-copy > span { font-size: 11px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .campaign-dashboard-simple .campaign-home-session-rail__action,
+  #root .campaign-dashboard-simple .campaign-home-overview-item,
+  #root .campaign-dashboard-simple .campaign-home-focus-card {
+    transition: none !important;
+    transform: none !important;
+  }
+}
