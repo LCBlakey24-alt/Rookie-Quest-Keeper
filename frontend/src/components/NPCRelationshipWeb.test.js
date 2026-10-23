@@ -59,7 +59,7 @@ test('saves a connection only if the server confirms it', async () => {
     expect.objectContaining({ source_id: 'godfrey', target_id: 'pippa' })
   ));
   expect(await screen.findByText('1 saved links')).toBeInTheDocument();
-  expect(screen.getByText('Brother and sister')).toBeInTheDocument();
+  expect(within(await screen.findByTestId('npc-relationship-list')).getByText('Brother and sister')).toBeInTheDocument();
 });
 
 test('a rejected save never pretends that the relationship was added locally', async () => {
@@ -256,10 +256,10 @@ test('focused relationship map explains family direction without changing stored
   const selector = within(map).getByLabelText('Focus relationship map on NPC');
   fireEvent.change(selector, { target: { value: 'godfrey' } });
   expect(within(map).getByText('Child of')).toBeInTheDocument();
-  expect(within(map).getByText('Mara Barfoot')).toBeInTheDocument();
+  expect(within(within(map).getByTestId('selected-npc-relationships')).getByText('Mara Barfoot')).toBeInTheDocument();
   fireEvent.change(selector, { target: { value: 'mara' } });
   expect(within(map).getByText('Parent of')).toBeInTheDocument();
-  expect(within(map).getByText('Godfrey Barfoot')).toBeInTheDocument();
+  expect(within(within(map).getByTestId('selected-npc-relationships')).getByText('Godfrey Barfoot')).toBeInTheDocument();
   expect(apiClient.put).not.toHaveBeenCalled();
   expect(apiClient.post).not.toHaveBeenCalled();
 });
