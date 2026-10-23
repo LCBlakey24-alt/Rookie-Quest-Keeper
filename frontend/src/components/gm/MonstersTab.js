@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, BookOpen, Filter, PlaySquare, Plus, RefreshCw, Save, Search, Skull, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -47,25 +47,30 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   const [lastSavedEncounter, setLastSavedEncounter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const activeCampaignRef = useRef(campaignId);
 
   const loadLibrary = async () => {
     if (!campaignId) return;
+    const requestedCampaign = campaignId;
     setLoading(true);
     try {
       const [creatureRes, scenarioRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => ({ data: [] })),
         apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
       ]);
+      if (activeCampaignRef.current !== requestedCampaign) return;
       setCustomCreatures(normaliseCreatures(creatureRes.data).map(creature => ({ ...creature, source: 'custom' })));
       setScenarios(Array.isArray(scenarioRes.data) ? scenarioRes.data : []);
     } catch (error) {
+      if (activeCampaignRef.current !== requestedCampaign) return;
       toast.error(error?.response?.data?.detail || 'Could not load monster library');
     } finally {
-      setLoading(false);
+      if (activeCampaignRef.current === requestedCampaign) setLoading(false);
     }
   };
 
   useEffect(() => {
+    activeCampaignRef.current = campaignId;
     // Selection and encounter drafts always belong to the current campaign.
     setCustomCreatures([]);
     setScenarios([]);
