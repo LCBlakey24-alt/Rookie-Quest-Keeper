@@ -1454,9 +1454,13 @@
 
 /* Guild Ledger UI polish: readable gold actions, clear keyboard focus and
    deliberate desktop/mobile density. No data or navigation changes. */
-#root .campaign-dashboard-simple .campaign-button-primary,
-#root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
+#root .campaign-dashboard-simple .campaign-button-primary {
   color: #07131f !important;
+  font-weight: 850 !important;
+}
+/* Selected navigation uses wax-seal burgundy, not gold: light ink retains contrast. */
+#root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
+  color: #f8f0e5 !important;
   font-weight: 850 !important;
 }
 #root .campaign-dashboard-simple .campaign-button-primary:is(:hover,:focus-visible) {
@@ -1504,7 +1508,7 @@
   #root .campaign-dashboard-simple .campaign-dashboard-actions {
     gap: 6px !important;
   }
-  #root .campaign-dashboard-simple .campaign-dashboard-actions > .campaign-button:not(.campaign-button-primary) {
+  #root .campaign-dashboard-simple .campaign-dashboard-actions > .campaign-button.rqk-tool-finder-trigger {
     min-width: 44px !important;
     padding-inline: 7px !important;
     font-size: 10px !important;
