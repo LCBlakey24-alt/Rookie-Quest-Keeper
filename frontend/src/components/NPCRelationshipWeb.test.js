@@ -263,3 +263,33 @@ test('focused relationship map explains family direction without changing stored
   expect(apiClient.put).not.toHaveBeenCalled();
   expect(apiClient.post).not.toHaveBeenCalled();
 });
+
+test('distinguishes a saved NPC roster from an empty relationship network', async () => {
+  respondWith(npcs, []);
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  expect(await screen.findByText('3 saved NPCs')).toBeInTheDocument();
+  expect(screen.getByText('0 saved links')).toBeInTheDocument();
+  expect(screen.getByText(/Your 3 saved NPCs are still here/)).toBeInTheDocument();
+  const coverage = screen.getByLabelText('Relationship network coverage');
+  expect(within(coverage).getByText('3')).toBeInTheDocument();
+  expect(within(coverage).getByText('NPCs not yet linked')).toBeInTheDocument();
+  fireEvent.click(screen.getByText(/3 NPCs still need connections/));
+  const list = screen.getByLabelText('NPCs with no saved relationships');
+  expect(within(list).getByRole('button', { name: 'Pippa Barfoot' })).toBeInTheDocument();
+  fireEvent.click(within(list).getByRole('button', { name: 'Pippa Barfoot' }));
+  expect(screen.getByLabelText('Relationship network focused on Pippa Barfoot')).toBeInTheDocument();
+  expect(apiClient.post).not.toHaveBeenCalled();
+});
+
+test('relationship coverage counts linked NPCs without adding duplicate records', async () => {
+  respondWith(npcs, [{
+    id: 'parent-link', source_id: 'mara', target_id: 'godfrey',
+    relationship_type: 'parent', description: 'Mara is Godfrey’s mother.',
+  }]);
+  render(<NPCRelationshipWeb campaignId="wednesday" />);
+  await screen.findByText('1 saved links');
+  const coverage = screen.getByLabelText('Relationship network coverage');
+  expect(within(coverage).getByText('2')).toBeInTheDocument();
+  expect(within(coverage).getByText('1')).toBeInTheDocument();
+  expect(screen.getByText('3 saved NPCs')).toBeInTheDocument();
+});
