@@ -636,6 +636,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
         })}
       </section>
 
+      <div className="campaign-home-workbench">
       <section className="campaign-home-focus-grid" aria-label="Campaign focus">
         <button type="button" className="campaign-home-focus-card campaign-home-focus-card--wide" onClick={() => onOpenTab('story-arcs')}>
           <span className="campaign-home-focus-label">Current Quest</span>
@@ -713,6 +714,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           })}
         </div>
       </section>
+
+      </div>
 
       <details className="campaign-home-join-code">
         <summary>Player Join Code</summary>
