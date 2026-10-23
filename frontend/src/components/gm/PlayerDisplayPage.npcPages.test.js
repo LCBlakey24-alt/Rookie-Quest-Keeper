@@ -84,6 +84,22 @@ describe('player-facing NPC gallery pagination', () => {
     view.unmount();
   });
 
+  test('respects reduced motion: no auto-rotation, manual paging still works', () => {
+    const previousMatchMedia = window.matchMedia;
+    window.matchMedia = jest.fn().mockReturnValue({ matches: true });
+    try {
+      const view = renderScene('standing-tv', 11);
+      act(() => { jest.advanceTimersByTime(30000); });
+      expect(screen.getByText(/Page 1 of 2/)).toBeInTheDocument();
+      expect(screen.queryByText('NPC 11')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Next NPC page' }));
+      expect(screen.getByText('NPC 11')).toBeInTheDocument();
+      view.unmount();
+    } finally {
+      window.matchMedia = previousMatchMedia;
+    }
+  });
+
   test('virtual tabletop keeps up to ten NPCs visible on one page', () => {
     const view = renderScene('virtual-table', 10);
     expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(10);
