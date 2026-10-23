@@ -97,6 +97,84 @@ describe('LiveSecondScreenDock reliability', () => {
     expect(JSON.stringify(sent.payload)).not.toMatch(/GM secret/);
   });
 
+  test('reveals a portraitless NPC beyond the first 24 while keeping other selections', async () => {
+    const npcs = Array.from({ length: 30 }, (_, index) => ({
+      id: `npc-${index + 1}`,
+      name: `NPC ${String(index + 1).padStart(2, '0')}`,
+      notes: 'Private GM plot detail',
+    }));
+    apiClient.get.mockImplementation(url => Promise.resolve({
+      data: url.endsWith('/npcs') ? npcs : [],
+    }));
+
+    render(<LiveSecondScreenDock campaignId="campaign-1" />);
+    expect(await screen.findByText('0 selected · 30 of 30 NPCs shown')).toBeInTheDocument();
+
+    const search = screen.getByRole('searchbox', { name: 'Search second screen NPCs' });
+    fireEvent.change(search, { target: { value: 'NPC 30' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Reveal NPC 30' }));
+    fireEvent.change(search, { target: { value: 'NPC 01' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Reveal NPC 01' }));
+    expect(screen.getByText('2 selected · 1 of 30 NPCs shown')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Show selected NPCs \(2\)/ }));
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1',
+      expect.objectContaining({ mode: 'npc-grid' }),
+    ));
+    const state = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls
+      .find(([, payload]) => payload?.mode === 'npc-grid')?.[1];
+    expect(state.payload.npcs.map(npc => npc.name)).toEqual(['NPC 01', 'NPC 30']);
+    expect(state.payload.npcs.every(npc => npc.image_url === '')).toBe(true);
+    expect(JSON.stringify(state.payload)).not.toContain('Private GM plot detail');
+  });
+
+  test('GM can switch TV to virtual table even if the previous reveal was for TV', async () => {
+    apiClient.get.mockResolvedValue({ data: [] });
+    liveDisplayBus.loadDisplayState.mockReturnValue({
+      mode: 'image', payload: { display_target: 'standing-tv', image_url: '/old-map.png' },
+    });
+
+    render(<LiveSecondScreenDock campaignId="campaign-1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table' }));
+    fireEvent.click(screen.getByRole('button', { name: /Test Screen/i }));
+
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1',
+      expect.objectContaining({
+        mode: 'title',
+        payload: expect.objectContaining({ display_target: 'virtual-table' }),
+      }),
+    ));
+  });
+
+  test('map reveal never publishes GM preparation notes as its caption', async () => {
+    apiClient.get.mockImplementation(url => Promise.resolve({
+      data: url.endsWith('/maps') ? [
+        { id: 'm1', name: 'Forest Map', image_url: '/forest.png',
+          description: 'Private plot twist in description', notes: 'Private dungeon traps' },
+        { id: 'm2', name: 'Public Map', image_url: '/public.png',
+          notes: 'Private prep', public_caption: 'An ancient forest' },
+      ] : [],
+    }));
+    render(<LiveSecondScreenDock campaignId="campaign-1" />);
+    fireEvent.click(await screen.findByRole('button', { name: /Forest Map/i }));
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus)
+      .toHaveBeenCalled());
+    const first = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls
+      .find(([, payload]) => payload?.mode === 'image')?.[1];
+    expect(first?.payload?.caption).toBe('');
+    expect(JSON.stringify(first.payload)).not.toMatch(/Private plot twist|Private dungeon traps/);
+
+    fireEvent.click(screen.getByRole('button', { name: /Public Map/i }));
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls
+      .filter(([, payload]) => payload?.mode === 'image')).toHaveLength(2));
+    const second = liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus.mock.calls
+      .filter(([, payload]) => payload?.mode === 'image')[1][1];
+    expect(second.payload.caption).toBe('An ancient forest');
+    expect(JSON.stringify(second.payload)).not.toContain('Private prep');
+  });
+
   test('finds world map uploads stored as legacy image_data', async () => {
     apiClient.get.mockImplementation(url => {
       if (url.endsWith('/world-maps')) return Promise.resolve({ data: [{ id: 'w1', name: 'Tia-Karta World', image_data: 'data:image/jpeg;base64,worldpicture' }] });

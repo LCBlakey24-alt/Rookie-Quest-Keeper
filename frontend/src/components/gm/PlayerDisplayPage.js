@@ -1,28 +1,33 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dice6, HeartPulse, Maximize2, Minimize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
+import { getContainedMapRect } from '@/data/containedMapGeometry';
+import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
+import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import './PlayerDisplayPage.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
+const titleFont = 'var(--rq-font-display, Fraunces, Georgia, serif)';
 const theme = {
-  bg: 'var(--rq-bg-deep, #080808)',
-  panel: 'var(--rq-surface, #242424)',
-  card: 'var(--rq-card, #3a3a3a)',
-  red: 'var(--rq-primary, #d00000)',
-  text: 'var(--rq-text, #ffffff)',
-  soft: 'var(--rq-muted, rgba(255,255,255,0.76))',
-  muted: 'var(--rq-faint, rgba(255,255,255,0.52))',
-  line: 'var(--rq-line, rgba(255,255,255,0.16))',
-  lineStrong: 'var(--rq-line-strong, rgba(255,255,255,0.28))',
+  bg: 'var(--rq-bg-main, #0B1B2B)',
+  panel: 'var(--rq-bg-panel, #1E2936)',
+  card: 'var(--rq-card, #263748)',
+  // Compatibility alias: historical code calls the brand accent 'red'.
+  red: 'var(--rq-primary, #C9A96B)',
+  danger: 'var(--rq-danger, #B94A4F)',
+  text: 'var(--rq-text-primary, #EADFC8)',
+  soft: 'var(--rq-text-secondary, rgba(234,223,200,0.78))',
+  muted: 'var(--rq-text-muted, rgba(234,223,200,0.60))',
+  line: 'var(--rq-line, rgba(137,157,176,0.14))',
+  lineStrong: 'var(--rq-line-strong, rgba(201,169,107,0.30))',
 };
 
 function normaliseTarget(target) { return target === 'virtual-table' ? 'virtual-table' : 'standing-tv'; }
-function displayTargetFor(state, urlTarget) { return normaliseTarget(state?.payload?.display_target || urlTarget); }
+function displayTargetFor(state, urlTarget) { return getPlayerDisplayTarget(urlTarget, state?.payload?.display_target); }
 function isTable(target) { return target === 'virtual-table'; }
 function signed(value = 0) { return Number(value || 0) >= 0 ? `+${Number(value || 0)}` : `${value}`; }
 function modeLabel(mode) {
@@ -68,6 +73,7 @@ function normaliseCombatToken(token = {}, index = 0) {
   const maxHp = Number(token.max_hp ?? token.maxHp ?? token.hp_max ?? 0) || 0;
   const hp = Number(token.current_hp ?? token.currentHp ?? token.hp ?? maxHp) || 0;
   const hpPercent = maxHp ? Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100))) : 0;
+  const position = getCombatTokenMapPosition(token);
   return {
     id,
     type,
@@ -75,8 +81,8 @@ function normaliseCombatToken(token = {}, index = 0) {
     subtitle: token.subtitle || token.creature_type || token.role || (type === 'npc' ? 'NPC' : 'Enemy'),
     imageUrl: pickImage(token),
     image_url: pickImage(token),
-    x: Number(token.x ?? token.position?.x ?? token.token_x ?? 0),
-    y: Number(token.y ?? token.position?.y ?? token.token_y ?? 0),
+    x: position?.x ?? null,
+    y: position?.y ?? null,
     ac: Number(token.ac ?? token.armor_class ?? 0) || 0,
     hp,
     maxHp,
@@ -92,16 +98,17 @@ function normaliseCombatToken(token = {}, index = 0) {
 
 function buildCombatRoster(partyMembers = [], tokens = []) {
   const players = partyMembers.map((member, index) => ({ ...member, id: `player-${member.id || index}`, type: 'player', subtitle: `${member.className || 'Adventurer'}${member.race ? ` · ${member.race}` : ''}` }));
-  const creatures = tokens.map(normaliseCombatToken).filter(item => !item.hidden);
+  const creatures = tokens.filter(isPlayerVisibleCombatToken);
   return [...players, ...creatures].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0));
 }
 
 export default function PlayerDisplayPage() {
   const { campaignId } = useParams();
   const [searchParams] = useSearchParams();
-  const urlTarget = normaliseTarget(searchParams.get('target'));
+  const urlTarget = searchParams.get('target');
   const [state, setState] = useState(() => loadDisplayState(campaignId));
   const [party, setParty] = useState([]);
+  const [partyRefreshFailed, setPartyRefreshFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const toggleFullscreen = useCallback(async () => {
     try {
@@ -141,14 +148,22 @@ export default function PlayerDisplayPage() {
 
   useEffect(() => {
     let cancelled = false;
+    let latestRequest = 0;
+    setParty([]);
+    setPartyRefreshFailed(false);
     const fetchParty = async () => {
       if (!campaignId) return;
+      const request = ++latestRequest;
       try {
         const response = await apiClient.get(`/campaigns/${campaignId}/players`);
-        const rows = Array.isArray(response.data) ? response.data : [];
-        if (!cancelled) setParty(rows.map(normalisePartyMember).filter(member => member?.name));
+        if (!Array.isArray(response.data)) throw new Error('Invalid party response');
+        if (!cancelled && request === latestRequest) {
+          setParty(response.data.map(normalisePartyMember).filter(member => member?.name));
+          setPartyRefreshFailed(false);
+        }
       } catch {
-        if (!cancelled) setParty([]);
+        // Keep the last successfully loaded roster; a failed poll is not a removal.
+        if (!cancelled && request === latestRequest) setPartyRefreshFailed(true);
       }
     };
     fetchParty();
@@ -185,6 +200,7 @@ export default function PlayerDisplayPage() {
           <span style={statusPillStyle(target)}>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Virtual Table' : 'Standing TV'}</span>
           <span style={statusPillStyle(target)}><ShieldCheck size={13} /> Player-safe</span>
           <span style={modeChipStyle}>{modeLabel(mode)}</span>
+          {partyRefreshFailed && <span role="status" style={partyWarningStyle}>Party sync unavailable{partyMembers.length ? ' · last-known roster shown' : ''}</span>}
         </header>
         <div className="rqk-player-display__stage" style={displayGridStyle(target, showPartySidebar)}>
           {showPartySidebar && <PartySidebar members={partyMembers} />}
@@ -259,7 +275,49 @@ function ImageDisplay({ payload, target, hasPartySidebar }) { return <section st
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
-  return <section className="rqk-player-display__npc-shell" style={npcShellStyle(target)}><div className="rqk-player-display__npc-heading" style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div className="rqk-player-display__npc-grid" style={npcGridStyle(target, npcs.length)}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
+  const pageSize = isTable(target) ? 10 : 8;
+  const pageCount = Math.max(1, Math.ceil(npcs.length / pageSize));
+  const [pageIndex, setPageIndex] = useState(0);
+
+  // Large scenes rotate gently so every selected person can be seen without
+  // squeezing dozens of unreadable portraits into a single TV frame.
+  useEffect(() => {
+    const reduceMotion = typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Keep manual paging available, but never auto-advance for reduced motion.
+    if (pageCount <= 1 || reduceMotion) return undefined;
+    const timer = window.setInterval(() => {
+      setPageIndex(previous => (previous + 1) % pageCount);
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, [pageCount]);
+
+  const safePage = Math.min(pageIndex, pageCount - 1);
+  const first = safePage * pageSize;
+  const currentNpcs = npcs.slice(first, first + pageSize);
+
+  return (
+    <section className="rqk-player-display__npc-shell" style={npcShellStyle(target)}>
+      <div className="rqk-player-display__npc-heading" style={displayHeaderStyle(target)}>
+        <Users size={isTable(target) ? 18 : 24} aria-hidden="true" />
+        <div>
+          <p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p>
+          <h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1>
+        </div>
+        {pageCount > 1 && (
+          <div className="rqk-player-display__npc-pages" role="group" aria-label="NPC gallery pages">
+            <button type="button" aria-label="Previous NPC page" onClick={() => setPageIndex(previous => (previous - 1 + pageCount) % pageCount)}>Previous</button>
+            <span role="status" aria-live="polite">Page {safePage + 1} of {pageCount} · {npcs.length} NPCs</span>
+            <button type="button" aria-label="Next NPC page" onClick={() => setPageIndex(previous => (previous + 1) % pageCount)}>Next</button>
+          </div>
+        )}
+      </div>
+      <div className="rqk-player-display__npc-grid" style={npcGridStyle(target, currentNpcs.length)}>
+        {currentNpcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}
+        {npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}
+      </div>
+    </section>
+  );
 }
 function NPCCard({ npc, target, compact = false }) { return <article className="rqk-player-display__npc-card" style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div className="rqk-player-display__npc-info" style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>; }
 
@@ -290,10 +348,14 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return () => window.clearTimeout(timer);
   }, [startTime]);
   const battleIntro = showIntro ? <div className="rqk-battle-start__overlay"><BattleStartDisplay target={target} /></div> : null;
-  const tokens = Array.isArray(payload.tokens) ? payload.tokens.map(normaliseCombatToken) : [];
+  // Filter the display payload itself, not just the combat roster. Otherwise
+  // a hidden enemy can still leak via map pins or the unpositioned token shelf.
+  const tokens = Array.isArray(payload.tokens)
+    ? payload.tokens.filter(isPlayerVisibleCombatToken).map(normaliseCombatToken)
+    : [];
   const roster = buildCombatRoster(partyMembers, tokens);
-  const positionedTokens = tokens.filter(token => Number(token.x) || Number(token.y));
-  const unpositionedTokens = tokens.filter(token => !Number(token.x) && !Number(token.y));
+  const positionedTokens = tokens.filter(token => token.x !== null && token.y !== null);
+  const unpositionedTokens = tokens.filter(token => token.x === null || token.y === null);
   const activeId = String(payload.active_id || payload.activeCombatantId || payload.turn_id || payload.current_turn_id || roster[0]?.id || '');
   const round = payload.round || payload.round_number || payload.turn_round || '';
 
@@ -301,8 +363,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-          <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
+          <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -326,8 +387,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-        <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
+        <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -383,39 +443,114 @@ function renderStatsPage(page, session, allTime, target) {
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{award.name}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor }) { return <div style={actorRowStyle}><strong>{actor.name}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
-function MapToken({ token, target }) { const left = Math.max(2, Math.min(94, Number(token.x) || 50)); const top = Math.max(2, Math.min(90, Number(token.y) || 50)); return <div style={{ ...mapTokenStyle(target, token.type), left: `${left}%`, top: `${top}%` }}>{token.image_url ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} /> : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}</div>; }
+function CombatMapArtwork({ mapUrl, title, target, tokens }) {
+  const layerRef = useRef(null);
+  const [container, setContainer] = useState({ width: 0, height: 0 });
+  const [loadedImage, setLoadedImage] = useState(null);
+
+  useEffect(() => {
+    const element = layerRef.current;
+    if (!element) return undefined;
+    const measure = () => {
+      const { width, height } = element.getBoundingClientRect();
+      setContainer(previous => previous.width === width && previous.height === height
+        ? previous : { width, height });
+    };
+    measure();
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(measure);
+      observer.observe(element);
+      return () => observer.disconnect();
+    }
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  // Do not paint tokens over a stale image when the GM switches maps.
+  const imageReady = Boolean(mapUrl && loadedImage && loadedImage.url === mapUrl);
+  const bounds = imageReady
+    ? getContainedMapRect(container.width, container.height, loadedImage.width, loadedImage.height)
+    : null;
+  return (
+    <div ref={layerRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }} data-testid="combat-map-artwork">
+      {mapUrl
+        ? <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'} style={combatMapImageStyle(target)}
+            onLoad={event => setLoadedImage({
+              url: mapUrl,
+              width: event.currentTarget.naturalWidth,
+              height: event.currentTarget.naturalHeight,
+            })}
+            onError={() => setLoadedImage(null)} />
+        : <div style={missingImageStyle(target)}>Battle map waiting</div>}
+      {((!mapUrl && container.width > 0 && container.height > 0) || bounds) && (
+        <div data-testid="combat-map-token-overlay" style={{
+          ...tokenOverlayStyle,
+          inset: 'auto',
+          left: bounds?.left ?? 0,
+          top: bounds?.top ?? 0,
+          width: bounds?.width ?? container.width,
+          height: bounds?.height ?? container.height,
+        }}>
+          {tokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MapToken({ token, target }) {
+  const left = clampMapPercent(token.x);
+  const top = clampMapPercent(token.y);
+  // At 0% / 100%, keep the entire token inside the map instead of clipping
+  // half of its portrait outside the picture.
+  const horizontal = left <= 3 ? '0%' : left >= 97 ? '-100%' : '-50%';
+  const vertical = top <= 3 ? '0%' : top >= 97 ? '-100%' : '-50%';
+  return (
+    <div data-testid={`combat-map-token-${token.id}`} style={{
+      ...mapTokenStyle(target, token.type),
+      left: `${left}%`,
+      top: `${top}%`,
+      transform: `translate(${horizontal}, ${vertical})`,
+    }}>
+      {token.image_url
+        ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} />
+        : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}
+    </div>
+  );
+}
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = (target) => ({ height: '100dvh', maxHeight: '100dvh', minHeight: 0, width: '100%', maxWidth: '100vw', boxSizing: 'border-box', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
-const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'radial-gradient(circle at 50% 50%, rgba(208,0,0,0.13), transparent 42%), #050505' : 'radial-gradient(circle at 18% 12%, rgba(208,0,0,0.2), transparent 30%), radial-gradient(circle at 82% 78%, rgba(208,0,0,0.12), transparent 36%), linear-gradient(135deg, #050505 0%, #111 48%, #050505 100%)', boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
+const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'var(--rq-bg-deep, #07131F)' : theme.bg, boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
 const displayGridStyle = (target, showParty) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateColumns: !isTable(target) && showParty ? 'minmax(155px, 205px) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: !isTable(target) && showParty ? 12 : 0, paddingTop: !isTable(target) && showParty ? 12 : 0 });
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
 const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? '4px 6px' : '7px 10px', background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
 const brandMarkStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, marginRight: 'auto' };
+const partyWarningStyle = { color: 'var(--rq-warning, #D39A43)', fontSize: 11, fontWeight: 750 };
 const statusPillStyle = (target) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: isTable(target) ? 22 : 26, padding: isTable(target) ? '0 6px' : '0 8px', background: 'rgba(255,255,255,0.07)', border: `1px solid ${theme.line}`, color: theme.soft });
-const modeChipStyle = { display: 'inline-flex', alignItems: 'center', minHeight: 26, padding: '0 9px', background: theme.red, color: theme.text, border: `1px solid ${theme.red}` };
-const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: '#050505' });
+const modeChipStyle = { display: 'inline-flex', alignItems: 'center', minHeight: 26, padding: '0 9px', background: theme.card, color: theme.text, border: `1px solid ${theme.red}` };
+const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: theme.bg });
 const partySidebarStyle = { minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 10, padding: 6, background: 'rgba(0,0,0,0.58)', border: `1px solid ${theme.line}`, borderLeft: `7px solid ${theme.red}`, boxShadow: '0 28px 90px rgba(0,0,0,0.38)', overflow: 'hidden', animation: 'rqkPartyReveal 620ms ease both' };
 const partyHeaderStyle = { display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 8, color: theme.text, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const partyEyebrowStyle = { margin: 0, color: theme.red, fontSize: 10, fontWeight: 950, letterSpacing: '0.14em', textTransform: 'uppercase' };
 const partyListStyle = { minHeight: 0, overflowY: 'auto', display: 'grid', alignContent: 'start', gap: 5, paddingRight: 2 };
-const partyCardStyle = (status) => ({ display: 'grid', gridTemplateColumns: '42px minmax(0, 1fr)', gap: 5, padding: 5, background: 'linear-gradient(135deg, rgba(58,58,58,0.94), rgba(36,36,36,0.92))', border: `1px solid ${theme.line}`, borderLeft: `5px solid ${status === 'down' || status === 'bloodied' ? theme.red : theme.lineStrong}`, boxShadow: '0 12px 34px rgba(0,0,0,0.24)' });
+const partyCardStyle = (status) => ({ display: 'grid', gridTemplateColumns: '42px minmax(0, 1fr)', gap: 5, padding: 5, background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `5px solid ${status === 'down' || status === 'bloodied' ? theme.danger : theme.lineStrong}`, boxShadow: '0 12px 34px rgba(0,0,0,0.24)' });
 const portraitStyle = { width: 42, height: 42, display: 'grid', placeItems: 'center', overflow: 'hidden', background: theme.panel, color: theme.text, fontFamily: titleFont, fontSize: 30, border: `1px solid ${theme.lineStrong}` };
 const portraitImageStyle = { width: '100%', height: '100%', objectFit: 'cover' };
 const partyInfoStyle = { minWidth: 0, display: 'grid', gap: 4 };
 const partyNameRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, color: theme.text, fontSize: 13, fontWeight: 950 };
 const partySubStyle = { margin: 0, color: theme.soft, fontSize: 10, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 const hpBarShellStyle = { height: 5, background: 'rgba(255,255,255,0.1)', border: `1px solid ${theme.line}`, overflow: 'hidden' };
-const hpBarFillStyle = (percent, status) => ({ display: 'block', width: `${Math.max(0, Math.min(100, Number(percent || 0)))}%`, height: '100%', background: status === 'down' || status === 'bloodied' ? theme.red : 'rgba(255,255,255,0.82)', boxShadow: status === 'down' || status === 'bloodied' ? '0 0 18px rgba(208,0,0,0.5)' : '0 0 18px rgba(255,255,255,0.18)' });
+const hpBarFillStyle = (percent, status) => ({ display: 'block', width: `${Math.max(0, Math.min(100, Number(percent || 0)))}%`, height: '100%', background: status === 'down' || status === 'bloodied' ? theme.danger : 'var(--rq-success, #5FA67A)', boxShadow: 'none' });
 const miniStatsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4 };
 const statPillStyle = { minHeight: 24, display: 'grid', gridTemplateColumns: '12px auto minmax(0, 1fr)', alignItems: 'center', gap: 4, background: 'rgba(0,0,0,0.36)', border: `1px solid ${theme.line}`, color: theme.text, padding: '2px 4px', fontSize: 9, fontWeight: 950, textTransform: 'uppercase' };
-const bannerOverlayStyle = (target, tone) => ({ position: 'absolute', left: isTable(target) ? 12 : '50%', right: isTable(target) ? 12 : 'auto', bottom: isTable(target) ? 12 : 34, transform: isTable(target) ? 'none' : 'translateX(-50%)', zIndex: 12, width: isTable(target) ? 'auto' : 'min(1040px, calc(100% - 80px))', display: 'grid', gridTemplateColumns: `${isTable(target) ? 34 : 48}px minmax(0, 1fr)`, gap: isTable(target) ? 8 : 12, alignItems: 'center', padding: isTable(target) ? '8px 10px' : '13px 16px', background: tone === 'danger' ? 'rgba(12,0,0,0.92)' : 'rgba(0,0,0,0.82)', border: `1px solid ${tone === 'danger' ? theme.red : theme.lineStrong}`, borderLeft: `${isTable(target) ? 5 : 8}px solid ${theme.red}`, boxShadow: '0 28px 110px rgba(0,0,0,0.66)', backdropFilter: 'blur(14px)', animation: 'rqkBannerPop 520ms ease both', pointerEvents: 'none' });
+const bannerOverlayStyle = (target, tone) => ({ position: 'absolute', left: isTable(target) ? 12 : '50%', right: isTable(target) ? 12 : 'auto', bottom: isTable(target) ? 12 : 34, transform: isTable(target) ? 'none' : 'translateX(-50%)', zIndex: 12, width: isTable(target) ? 'auto' : 'min(1040px, calc(100% - 80px))', display: 'grid', gridTemplateColumns: `${isTable(target) ? 34 : 48}px minmax(0, 1fr)`, gap: isTable(target) ? 8 : 12, alignItems: 'center', padding: isTable(target) ? '8px 10px' : '13px 16px', background: tone === 'danger' ? 'rgba(12,0,0,0.92)' : 'rgba(0,0,0,0.82)', border: `1px solid ${tone === 'danger' ? theme.danger : theme.lineStrong}`, borderLeft: `${isTable(target) ? 5 : 8}px solid ${tone === 'danger' ? theme.danger : theme.red}`, boxShadow: '0 28px 110px rgba(0,0,0,0.66)', backdropFilter: 'blur(14px)', animation: 'rqkBannerPop 520ms ease both', pointerEvents: 'none' });
 const bannerIconStyle = (target) => ({ width: isTable(target) ? 34 : 48, height: isTable(target) ? 34 : 48, display: 'grid', placeItems: 'center', background: theme.red, color: theme.text });
 const bannerEyebrowStyle = (target) => ({ margin: 0, color: theme.red, fontSize: isTable(target) ? 9 : 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.14em' });
 const bannerTextStyle = (target) => ({ display: 'block', color: theme.text, fontSize: isTable(target) ? 'clamp(16px, 2.1vw, 28px)' : 'clamp(24px, 3vw, 46px)', lineHeight: 1.05, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isTable(target) ? 'nowrap' : 'normal' });
 const bannerSubTextStyle = (target) => ({ display: 'block', marginTop: 3, color: theme.soft, fontSize: isTable(target) ? 11 : 15, lineHeight: 1.25 });
 const blankStyle = (target) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', gap: isTable(target) ? 8 : 14, textAlign: 'center', padding: isTable(target) ? 18 : 32, minHeight: 0, animation: 'rqkDisplayReveal 700ms ease both' });
-const sigilStyle = (target) => ({ width: isTable(target) ? 68 : 106, height: isTable(target) ? 68 : 106, display: 'grid', placeItems: 'center', color: theme.text, background: `linear-gradient(135deg, ${theme.red}, rgba(208,0,0,0.26))`, border: `1px solid ${theme.lineStrong}`, boxShadow: '0 22px 80px rgba(208,0,0,0.26)', animation: 'rqkDisplayPulse 2800ms ease-in-out infinite' });
+const sigilStyle = (target) => ({ width: isTable(target) ? 68 : 106, height: isTable(target) ? 68 : 106, display: 'grid', placeItems: 'center', color: theme.text, background: theme.card, border: `2px solid ${theme.red}`, boxShadow: 'none' });
 const blankTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(28px, 5vw, 64px)' : 'clamp(42px, 8vw, 96px)', letterSpacing: '0.03em', color: theme.text, fontWeight: 900 });
 const blankTextStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(13px, 1.4vw, 18px)' : 'clamp(16px, 2vw, 24px)', lineHeight: 1.35, maxWidth: 980 });
 const readyGridStyle = (target) => ({ display: 'flex', gap: isTable(target) ? 6 : 10, flexWrap: 'wrap', justifyContent: 'center', color: theme.text, fontSize: isTable(target) ? 10 : 12, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' });
@@ -425,9 +560,9 @@ const eyebrowStyle = (target) => ({ margin: 0, color: theme.red, fontSize: isTab
 const sceneTitleStyle = (target, hasPartySidebar) => ({ margin: 0, fontFamily: titleFont, color: theme.text, fontSize: isTable(target) ? 'clamp(34px, 6vw, 86px)' : hasPartySidebar ? 'clamp(44px, 6.6vw, 106px)' : 'clamp(56px, 9vw, 130px)', lineHeight: 0.95, letterSpacing: '0.03em', textWrap: 'balance' });
 const sceneSubtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(15px, 1.8vw, 24px)' : 'clamp(18px, 2.2vw, 32px)', maxWidth: 1100, lineHeight: 1.35 });
 const tableResultShellStyle = (target) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', gap: isTable(target) ? 10 : 18, textAlign: 'center', padding: isTable(target) ? '3vw' : '7vw', animation: 'rqkDisplayReveal 650ms ease both' });
-const diceSealStyle = (target) => ({ display: 'grid', placeItems: 'center', width: isTable(target) ? 68 : 104, height: isTable(target) ? 68 : 104, color: theme.text, background: theme.red, border: `1px solid ${theme.lineStrong}`, boxShadow: '0 22px 70px rgba(208,0,0,0.28)' });
+const diceSealStyle = (target) => ({ display: 'grid', placeItems: 'center', width: isTable(target) ? 68 : 104, height: isTable(target) ? 68 : 104, color: theme.text, background: theme.card, border: `2px solid ${theme.red}`, boxShadow: 'none' });
 const tableResultTitleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(34px, 5vw, 78px)' : 'clamp(54px, 8vw, 118px)', lineHeight: 0.95 });
-const tableRollNumberStyle = (target) => ({ display: 'inline-grid', placeItems: 'center', minWidth: isTable(target) ? 130 : 190, minHeight: isTable(target) ? 72 : 108, background: theme.red, color: theme.text, padding: isTable(target) ? '8px 18px' : '12px 28px', fontSize: isTable(target) ? 'clamp(26px, 4vw, 62px)' : 'clamp(42px, 6vw, 86px)', fontWeight: 950, boxShadow: '0 24px 90px rgba(208,0,0,0.24)' });
+const tableRollNumberStyle = (target) => ({ display: 'inline-grid', placeItems: 'center', minWidth: isTable(target) ? 130 : 190, minHeight: isTable(target) ? 72 : 108, background: theme.card, color: theme.text, padding: isTable(target) ? '8px 18px' : '12px 28px', fontSize: isTable(target) ? 'clamp(26px, 4vw, 62px)' : 'clamp(42px, 6vw, 86px)', fontWeight: 950, border: `2px solid ${theme.red}`, boxShadow: 'none' });
 const tableResultTextStyle = (target) => ({ margin: 0, color: theme.text, fontSize: isTable(target) ? 'clamp(17px, 2.6vw, 36px)' : 'clamp(28px, 4vw, 58px)', lineHeight: 1.2, maxWidth: 1120, fontWeight: 850, textWrap: 'balance' });
 const imageShellStyle = (target, hasPartySidebar) => ({ minHeight: 0, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: isTable(target) ? 6 : 12, padding: isTable(target) ? 0 : hasPartySidebar ? 0 : 10, animation: 'rqkDisplayReveal 600ms ease both' });
 const imageStageStyle = (target) => ({ minHeight: 0, display: 'grid', placeItems: 'center', background: '#000', border: `1px solid ${theme.line}`, boxShadow: isTable(target) ? 'none' : '0 30px 100px rgba(0,0,0,0.55)', overflow: 'hidden' });
@@ -444,7 +579,7 @@ const npcGridStyle = (target, count = 0) => {
   const rows = Math.max(1, Math.ceil(count / columns));
   return { display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`, gap: isTable(target) ? 5 : 9, minHeight: 0, height: '100%', overflow: 'hidden' };
 };
-const npcCardStyle = (target) => ({ background: 'rgba(58,58,58,0.92)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 5 : 8}px solid ${theme.red}`, minHeight: 0, minWidth: 0, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', overflow: 'hidden', boxShadow: '0 18px 58px rgba(0,0,0,0.28)' });
+const npcCardStyle = (target) => ({ background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 5 : 8}px solid ${theme.red}`, minHeight: 0, minWidth: 0, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', overflow: 'hidden', boxShadow: '0 18px 58px rgba(0,0,0,0.28)' });
 const npcImageStyle = (target) => ({ width: '100%', height: '100%', objectFit: 'contain', minHeight: 0, background: '#000' });
 const npcInitialStyle = (target) => ({ display: 'grid', placeItems: 'center', background: theme.panel, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 32 : 48, minHeight: 0 });
 const npcInfoStyle = (target) => ({ padding: isTable(target) ? 4 : 7, display: 'grid', gap: 2 });
@@ -455,7 +590,7 @@ const combatHudShellStyle = { minHeight: 0, height: '100%', display: 'grid', gri
 const combatRosterPanelStyle = { minHeight: 0, display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 10, padding: 10, background: 'rgba(0,0,0,0.62)', border: `1px solid ${theme.line}`, borderLeft: `7px solid ${theme.red}`, overflow: 'hidden', boxShadow: '0 28px 90px rgba(0,0,0,0.36)' };
 const combatRosterHeaderStyle = { display: 'grid', gap: 3, color: theme.text, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const combatRosterListStyle = { minHeight: 0, overflowY: 'auto', display: 'grid', alignContent: 'start', gap: 8, paddingRight: 2 };
-const combatRosterCardStyle = (type, active) => ({ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 8, padding: 8, background: active ? 'linear-gradient(135deg, rgba(208,0,0,0.44), rgba(58,58,58,0.94))' : 'linear-gradient(135deg, rgba(58,58,58,0.94), rgba(36,36,36,0.92))', border: `1px solid ${active ? theme.red : theme.line}`, borderLeft: `5px solid ${type === 'player' ? 'rgba(255,255,255,0.78)' : theme.red}`, boxShadow: active ? '0 0 32px rgba(208,0,0,0.25)' : '0 12px 34px rgba(0,0,0,0.22)' });
+const combatRosterCardStyle = (type, active) => ({ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 8, padding: 8, background: active ? 'var(--rq-accent-soft, rgba(201,169,107,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, borderLeft: `5px solid ${type === 'player' ? 'rgba(255,255,255,0.78)' : theme.red}`, boxShadow: 'none' });
 const combatPortraitStyle = (type) => ({ width: 48, height: 48, display: 'grid', placeItems: 'center', overflow: 'hidden', background: type === 'player' ? 'rgba(255,255,255,0.13)' : theme.panel, color: theme.text, fontFamily: titleFont, fontSize: 24, border: `1px solid ${theme.lineStrong}` });
 const combatNameRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, color: theme.text, fontSize: 12, fontWeight: 950 };
 const combatMiniGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4, marginTop: 4 };
@@ -471,7 +606,7 @@ const combatTokenShelfStyle = { position: 'absolute', left: 14, right: 14, botto
 const tableTokenShelfStyle = { position: 'absolute', left: 8, right: 8, bottom: 58, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', padding: 7, background: 'rgba(0,0,0,0.58)', border: `1px solid ${theme.line}` };
 const tableMapLabelStyle = { position: 'absolute', top: 8, left: 8, display: 'grid', gap: 2, maxWidth: 'min(520px, 70%)', background: 'rgba(0,0,0,0.62)', borderLeft: `5px solid ${theme.red}`, padding: '7px 10px', color: theme.text, fontSize: 13 };
 const tableCombatRailStyle = { position: 'absolute', left: 8, right: 8, bottom: 8, display: 'flex', gap: 6, overflowX: 'auto', padding: 7, background: 'rgba(0,0,0,0.68)', border: `1px solid ${theme.line}` };
-const combatRailPillStyle = (type, active) => ({ flex: '0 0 auto', minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 9px', background: active ? theme.red : 'rgba(58,58,58,0.94)', border: `1px solid ${active ? theme.red : theme.line}`, color: theme.text, fontSize: 11, fontWeight: 950, textTransform: 'uppercase' });
+const combatRailPillStyle = (type, active) => ({ flex: '0 0 auto', minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 9px', background: active ? 'var(--rq-accent-soft, rgba(201,169,107,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, color: theme.text, fontSize: 11, fontWeight: 950, textTransform: 'uppercase' });
 const visibleCreatureCardStyle = { display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 10, alignItems: 'center', padding: '9px 10px', background: theme.card, borderLeft: `6px solid ${theme.red}`, color: theme.text, fontWeight: 900 };
 const tokenShelfCardStyle = (target) => ({ display: 'grid', gridTemplateColumns: `${isTable(target) ? 28 : 34}px minmax(0, 1fr)`, gap: 7, alignItems: 'center', padding: isTable(target) ? '5px 7px' : '6px 8px', background: theme.card, borderLeft: `5px solid ${theme.red}`, color: theme.text, fontWeight: 900, maxWidth: isTable(target) ? 160 : 210, fontSize: isTable(target) ? 11 : 13 });
 const creatureImageStyle = (compact, target) => ({ width: compact ? (isTable(target) ? 28 : 34) : 48, height: compact ? (isTable(target) ? 28 : 34) : 48, objectFit: 'cover', background: '#000' });
