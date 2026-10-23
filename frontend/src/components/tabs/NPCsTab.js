@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader, Wand2, User, Search, X } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
@@ -58,7 +58,6 @@ function NPCsTab({ campaignId }) {
   // The empty-library onboarding screen can still summon a first NPC.
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState(null);
 
   useEffect(() => {
     // A campaign change must never display records from the previous party.
@@ -151,13 +150,11 @@ function NPCsTab({ campaignId }) {
       return;
     }
     setAiGenerating(true);
-    setLastGenerated(null);
     try {
       const response = await apiClient.post('/rook/generate', {
         prompt: aiPrompt, entity_type: 'npc', campaign_id: campaignId,
       });
       if (response.data?.success) {
-        setLastGenerated(response.data);
         setAiPrompt('');
         toast.success('NPC created');
         await fetchNPCs();
