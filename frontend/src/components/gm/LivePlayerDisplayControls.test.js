@@ -66,6 +66,46 @@ describe('LivePlayerDisplayControls reliability', () => {
     expect(toast.success).not.toHaveBeenCalledWith('Sent to player display', expect.any(Object));
   });
 
+  test('can search and reveal NPCs past the first 24 while retaining other selections', async () => {
+    const savedNpcs = Array.from({ length: 30 }, (_, index) => ({
+      id: `npc-${index + 1}`,
+      name: `NPC ${String(index + 1).padStart(2, '0')}`,
+      private_notes: 'Never send this to players',
+      public_description: 'A visible villager',
+    }));
+    apiClient.get.mockImplementation((url) => Promise.resolve({
+      data: url.endsWith('/npcs') ? savedNpcs : [],
+    }));
+
+    render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+    const search = screen.getByRole('searchbox', { name: 'Search NPCs to reveal' });
+    await waitFor(() => expect(screen.getByText('0 selected · Showing 30 of 30 NPCs')).toBeInTheDocument());
+
+    fireEvent.change(search, { target: { value: 'NPC 30' } });
+    expect(screen.getByText('0 selected · Showing 1 of 30 NPCs')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Reveal NPC 30' }));
+    fireEvent.change(search, { target: { value: 'NPC 01' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Reveal NPC 01' }));
+    expect(screen.getByText('2 selected · Showing 1 of 30 NPCs')).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Send NPC Grid/i })[0]);
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1',
+      expect.objectContaining({
+        mode: 'npc-grid',
+        payload: expect.objectContaining({
+          npcs: expect.arrayContaining([
+            expect.objectContaining({ id: 'npc-1' }),
+            expect.objectContaining({ id: 'npc-30' }),
+          ]),
+        }),
+      }),
+    ));
+    const reveal = publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state.mode === 'npc-grid');
+    expect(reveal[1].payload.npcs).toHaveLength(2);
+    expect(reveal[1].payload.npcs[0]).not.toHaveProperty('private_notes');
+  });
+
   test('keeps last-known maps when a manual refresh cannot reload maps', async () => {
     let failMaps = false;
     apiClient.get.mockImplementation((url) => {
