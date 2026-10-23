@@ -152,14 +152,25 @@ export default function CampaignDashboard() {
     };
 
     window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    window.addEventListener('popstate', onHashChange);
+    return () => {
+      window.removeEventListener('hashchange', onHashChange);
+      window.removeEventListener('popstate', onHashChange);
+    };
   }, []);
 
   // Deep links and the quick finder can select an off-screen tab. Bring its
   // button into the horizontal navigation viewport without stealing focus.
   useEffect(() => {
-    const selected = tabRowRef.current?.querySelector('.campaign-dashboard-tab.is-active');
-    selected?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+    const row = tabRowRef.current;
+    const selected = row?.querySelector('.campaign-dashboard-tab.is-active');
+    if (!row || !selected) return;
+    const strip = row.getBoundingClientRect();
+    const item = selected.getBoundingClientRect();
+    // Reveal the active tool inside the horizontal strip without making
+    // the entire page scroll or stealing keyboard focus.
+    if (item.left < strip.left) row.scrollLeft = row.scrollLeft + item.left - strip.left - 8;
+    else if (item.right > strip.right) row.scrollLeft = row.scrollLeft + item.right - strip.right + 8;
   }, [activeTab]);
 
   const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
@@ -172,7 +183,7 @@ export default function CampaignDashboard() {
     if (typeof window !== 'undefined') {
       const nextHash = `#tab-${tabId}`;
       if (window.location.hash !== nextHash) {
-        window.history.pushState(null, '', `${window.location.pathname}${nextHash}`);
+        window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
       }
       window.requestAnimationFrame?.(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
@@ -449,9 +460,11 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
   const [unavailableSections, setUnavailableSections] = useState([]);
+  const homeRequestRef = useRef(0);
 
   const loadHome = useCallback(async () => {
     if (!campaignId) return;
+    const requestId = ++homeRequestRef.current;
     setHomeLoading(true);
 
     // Modern path: one narrow GM-only payload instead of seven browser API
@@ -459,11 +472,13 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     // and backend deployments can arrive in either order safely.
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/home-bootstrap`);
+      if (requestId !== homeRequestRef.current) return;
       setData(normaliseHomeData(response.data || {}));
       setUnavailableSections([]);
       setHomeLoading(false);
       return;
     } catch (error) {
+      if (requestId !== homeRequestRef.current) return;
       const status = error?.response?.status;
       if (status !== 404 && status !== 405) {
         // A temporary bootstrap issue should not strand an existing campaign;
@@ -480,6 +495,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     ];
     const results = await Promise.allSettled(sections.map(([, path]) =>
       apiClient.get(`/campaigns/${campaignId}/${path}`)));
+    if (requestId !== homeRequestRef.current) return;
     const successful = {};
     const missing = [];
     results.forEach((result, index) => {
@@ -496,13 +512,16 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   }, [campaignId]);
 
   useEffect(() => {
+    // Keep manual refreshes from updating a remounted campaign or newer read.
+    homeRequestRef.current += 1;
     if (initialData) {
       setData(normaliseHomeData(initialData));
       setUnavailableSections([]);
       setHomeLoading(false);
-      return;
+    } else {
+      loadHome();
     }
-    loadHome();
+    return () => { homeRequestRef.current += 1; };
   }, [initialData, loadHome]);
 
   const currentQuest = useMemo(() => chooseCurrentQuest(data.quests), [data.quests]);
@@ -617,6 +636,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
         })}
       </section>
 
+      <div className="campaign-home-workbench">
       <section className="campaign-home-focus-grid" aria-label="Campaign focus">
         <button type="button" className="campaign-home-focus-card campaign-home-focus-card--wide" onClick={() => onOpenTab('story-arcs')}>
           <span className="campaign-home-focus-label">Current Quest</span>
@@ -694,6 +714,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           })}
         </div>
       </section>
+
+      </div>
 
       <details className="campaign-home-join-code">
         <summary>Player Join Code</summary>
