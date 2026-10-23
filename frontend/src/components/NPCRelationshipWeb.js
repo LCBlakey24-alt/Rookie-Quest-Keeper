@@ -149,6 +149,8 @@ export default function NPCRelationshipWeb({ campaignId }) {
   const npcsById = useMemo(() => Object.fromEntries(npcs.map(npc => [npc.id, npc])), [npcs]);
   const validLinks = useMemo(() => relationships.filter(link =>
     npcsById[link.source_id] && npcsById[link.target_id]), [relationships, npcsById]);
+  const linkedNpcIds = useMemo(() => new Set(validLinks.flatMap(link => [link.source_id, link.target_id])), [validLinks]);
+  const unlinkedNpcs = useMemo(() => npcs.filter(npc => !linkedNpcIds.has(npc.id)), [npcs, linkedNpcIds]);
   const filteredLinks = useMemo(() => {
     const term = search.trim().toLowerCase();
     return validLinks.filter(link => (typeFilter === 'all' || link.relationship_type === typeFilter) &&
@@ -268,6 +270,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
         <p>Every connection belongs to this campaign. Shared Tia-Karta people can have different stories in each party.</p>
       </div>
       <div className="rqk-rel-heading-actions">
+        <span className="rqk-rel-count">{npcs.length} saved NPCs</span>
         <span className="rqk-rel-count">{validLinks.length} saved links</span>
         <button type="button" className="rqk-rel-add-link" onClick={() =>
           formSectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })}>
@@ -275,6 +278,11 @@ export default function NPCRelationshipWeb({ campaignId }) {
         </button>
       </div>
     </header>
+    <div className="rqk-rel-coverage" aria-label="Relationship network coverage">
+      <div><strong>{linkedNpcIds.size}</strong><span>NPCs with connections</span></div>
+      <div><strong>{unlinkedNpcs.length}</strong><span>NPCs not yet linked</span></div>
+      <div><strong>{validLinks.filter(link => String(link.relationship_type).startsWith('secret_')).length}</strong><span>Secret connections · GM only</span></div>
+    </div>
 
     <section className="rqk-rel-panel rqk-rel-graph-panel" aria-label="Visual NPC relationship map">
       <h3><Users size={17}/> Relationship map</h3>
@@ -361,6 +369,17 @@ export default function NPCRelationshipWeb({ campaignId }) {
           })}
         </svg>
       </div> : <p>No NPCs have been added to this campaign yet.</p>}
+      {unlinkedNpcs.length > 0 && <details className="rqk-rel-unlinked">
+        <summary>{unlinkedNpcs.length} NPCs still need connections · choose one to focus</summary>
+        <div className="rqk-rel-unlinked-list" aria-label="NPCs with no saved relationships">
+          {unlinkedNpcs.map(npc =>
+            <button key={npc.id} type="button" onClick={() => {
+              setSelectedNpcId(npc.id);
+              setGraphMode('focus');
+            }}>{npc.name}</button>
+          )}
+        </div>
+      </details>}
       {selectedNpc && <div className="rqk-rel-selected" data-testid="selected-npc-relationships">
         <strong>{selectedNpc.name}</strong> · {relatedIds.length} connections
         {selectedLinks.length ? <ul className="rqk-rel-selected-links">
@@ -392,16 +411,18 @@ export default function NPCRelationshipWeb({ campaignId }) {
       </div>
       {filteredLinks.length === 0 ? (
         <p className="rqk-rel-empty">{validLinks.length ? 'No connections match your search.' :
-          'No relationships recorded yet. Use the form above to connect established NPCs.'}</p>
+          npcs.length > 0
+            ? `Your ${npcs.length} saved NPCs are still here. No relationship links have been created yet; use Add connection to start the network.`
+            : 'No NPCs or relationship links are available in this campaign.'}</p>
       ) : <div className="rqk-rel-list" data-testid="npc-relationship-list">
         {filteredLinks.map(link => {
           const type = relationStyle(link.relationship_type);
           return <article className="rqk-rel-entry" key={link.id}>
             <div className="rqk-rel-entry-copy">
               <div className="rqk-rel-entry-names">
-                <button type="button" onClick={() => setSelectedNpcId(link.source_id)}>{npcsById[link.source_id].name}</button>
+                <button type="button" onClick={() => { setSelectedNpcId(link.source_id); setGraphMode('focus'); }}>{npcsById[link.source_id].name}</button>
                 <span className="rqk-rel-type" style={{ borderColor: type.color, color: type.color }}>{type.label}</span>
-                <button type="button" onClick={() => setSelectedNpcId(link.target_id)}>{npcsById[link.target_id].name}</button>
+                <button type="button" onClick={() => { setSelectedNpcId(link.target_id); setGraphMode('focus'); }}>{npcsById[link.target_id].name}</button>
               </div>
               {link.description && <p>{link.description}</p>}
             </div>
