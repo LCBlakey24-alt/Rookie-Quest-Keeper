@@ -503,7 +503,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
       setData(normaliseHomeData(initialData));
       setUnavailableSections([]);
       setHomeLoading(false);
-      return;
+      return () => { homeRequestRef.current += 1; };
     }
     loadHome();
     return () => { homeRequestRef.current += 1; };
