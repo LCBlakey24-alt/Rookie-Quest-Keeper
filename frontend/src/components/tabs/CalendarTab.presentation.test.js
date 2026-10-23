@@ -101,3 +101,34 @@ describe('readable in-world event management', () => {
     expect(css).toContain('min-height: 44px');
   });
 });
+
+describe('session-first calendar clock usability', () => {
+  test('offers one-day, custom-week, and labelled arbitrary-day advances', () => {
+    const jsx = read('./CalendarTab.js');
+    const css = read('./CalendarTab.css');
+    expect(jsx).toContain('data-testid="calendar-advance-day"');
+    expect(jsx).toContain('onClick={() => advanceTime(1)}');
+    expect(jsx).toContain('data-testid="calendar-advance-week"');
+    expect(jsx).toContain('onClick={() => advanceTime(daysPerWeek)}');
+    expect(jsx).toContain('aria-label="Number of in-game days to advance"');
+    expect(css).toContain('.rqk-calendar-clock-actions');
+    expect(css).toContain('@media (max-width: 720px)');
+  });
+
+  test('one save uses the selected day count, does not double-submit and never mutates Friday from Wednesday', () => {
+    const jsx = read('./CalendarTab.js');
+    expect(jsx).toContain('if (advancingTime) return');
+    expect(jsx).toContain('setAdvancingTime(true)');
+    expect(jsx).toContain('advanceCustomCalendar(calendar, days)');
+    expect(jsx).toContain('calendar/advance?days=${days}');
+    expect(jsx).toContain('activeCampaignRef.current !== requestedCampaign');
+    expect(jsx).toContain('disabled={advancingTime}');
+    expect(jsx).toContain("other party's date will not change");
+  });
+
+  test('event name and description have persistent accessible labels', () => {
+    const jsx = read('./CalendarTab.js');
+    expect(jsx).toContain('aria-label="Event name"');
+    expect(jsx).toContain('aria-label="Event description"');
+  });
+});
