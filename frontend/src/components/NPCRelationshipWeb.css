@@ -316,3 +316,107 @@
   #root .rqk-rel-coverage strong { font-size: 22px; }
   #root .rqk-rel-coverage span { font-size: 10px; }
 }
+
+/* Relationship workspace navigation: consistent Guild Ledger hierarchy. */
+#root .rqk-rel-quick-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+  padding: 10px;
+  border: 1px solid rgba(201,169,107,.25);
+  border-radius: 9px;
+  background: #101f2d;
+}
+#root .rqk-rel-quick-nav button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  min-width: 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(201,169,107,.3);
+  border-radius: 7px;
+  background: #263748;
+  color: #eadfc8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+#root .rqk-rel-quick-nav button:hover,
+#root .rqk-rel-quick-nav button:focus-visible {
+  background: #334657;
+  border-color: #d9bc82;
+  outline: 2px solid #d9bc82;
+  outline-offset: 2px;
+}
+#root .rqk-rel-quick-nav button > span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: #0b1b2b;
+  color: #d9bc82;
+  font-variant-numeric: tabular-nums;
+}
+#root .rqk-rel-graph-panel,
+#root .rqk-rel-saved-panel,
+#root .rqk-rel-create-panel {
+  scroll-margin-top: 110px;
+  min-width: 0;
+}
+#root .rqk-rel-results-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 12px 0;
+  font-size: 12px;
+  color: #b9c7d2;
+  font-variant-numeric: tabular-nums;
+}
+#root .rqk-rel-results-line button {
+  min-height: 40px;
+  padding: 7px 12px;
+  border: 1px solid #c9a96b;
+  border-radius: 6px;
+  background: #172b3b;
+  color: #eadfc8;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+#root .rqk-rel-results-line button:focus-visible {
+  outline: 2px solid #d9bc82;
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  #root .rqk-rel-quick-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 7px;
+    padding: 8px;
+  }
+  #root .rqk-rel-quick-nav button {
+    padding: 10px 7px;
+    font-size: 12px;
+    white-space: normal;
+  }
+  #root .rqk-rel-quick-nav button:last-child { grid-column: 1 / -1; }
+  #root .rqk-rel-graph-panel,
+  #root .rqk-rel-saved-panel,
+  #root .rqk-rel-create-panel { scroll-margin-top: 72px; }
+}
+@media (max-width: 380px) {
+  #root .rqk-rel-quick-nav { grid-template-columns: minmax(0,1fr); }
+  #root .rqk-rel-quick-nav button:last-child { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-rel-quick-nav button { transition: none; }
+}
