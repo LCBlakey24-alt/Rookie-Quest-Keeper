@@ -151,3 +151,61 @@ test('a physical TV keeps its layout even when the last GM broadcast targeted a 
   await page.goto('/player-display/browser-smoke-target?target=virtual-table');
   await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'virtual-table');
 });
+
+
+test('desktop primary control sweeps wax-red left to right and returns to blue', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/');
+  const button = page.getByTestId('landing-signin-btn');
+  await expect(button).toBeVisible();
+  const readStyle = () => button.evaluate(node => {
+    const style = getComputedStyle(node);
+    return {
+      backgroundColor: style.backgroundColor,
+      backgroundImage: style.backgroundImage,
+      backgroundSize: style.backgroundSize,
+      transitionDuration: style.transitionDuration,
+    };
+  });
+  const resting = await readStyle();
+  expect(resting.backgroundColor).toBe('rgb(38, 63, 89)');
+  expect(resting.backgroundImage).toContain('126, 45, 45');
+  expect(resting.backgroundSize).toContain('0% 100%');
+  expect(resting.transitionDuration).toContain('0.34s');
+
+  await button.hover();
+  await expect.poll(async () => (await readStyle()).backgroundSize).toContain('100% 100%');
+  await page.mouse.move(4, 600);
+  await expect.poll(async () => (await readStyle()).backgroundSize).toContain('0% 100%');
+});
+
+test('auth selected tabs remain red, while inactive tabs stay blue', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/');
+  await page.getByTestId('landing-signin-btn').click();
+  const login = page.getByRole('tab', { name: 'Sign in' });
+  const register = page.getByRole('tab', { name: 'Create account' });
+  await expect(login).toHaveAttribute('aria-selected', 'true');
+  await expect(login).toHaveCSS('background-size', '100% 100%');
+  await register.click();
+  await expect(register).toHaveAttribute('aria-selected', 'true');
+  await expect(register).toHaveCSS('background-size', '100% 100%');
+  await expect(login).toHaveAttribute('aria-selected', 'false');
+  await page.mouse.move(4, 600);
+  await expect(login).toHaveCSS('background-size', '0% 100%');
+  await assertFitsViewport(page, 390);
+});
+
+test('reduced-motion preference keeps instant wax selection without animation', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/');
+  const button = page.getByTestId('landing-signin-btn');
+  await expect(button).toBeVisible();
+  await expect(button).toHaveCSS('transition-duration', '0s');
+  await button.hover();
+  await expect(button).toHaveCSS('background-size', '100% 100%');
+});

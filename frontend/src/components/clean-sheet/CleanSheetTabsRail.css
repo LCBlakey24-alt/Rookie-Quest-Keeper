@@ -97,8 +97,9 @@
 }
 
 .character-page-v2 .clean-sheet-tabs button.active {
-  background: var(--cs-blue-soft) !important;
-  border-color: var(--cs-accent) !important;
+  background: var(--rq-guild-wine, #7E2D2D) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
+  border-color: var(--rq-guild-wine, #7E2D2D) !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active svg {
@@ -107,7 +108,7 @@
   padding: 0 !important;
   background: transparent !important;
   background-image: none !important;
-  color: var(--cs-blue) !important;
+  color: #F8F0E5 !important;
   border-radius: 0 !important;
   box-sizing: border-box !important;
 }
@@ -209,7 +210,7 @@
   grid-column: 1 / -1 !important;
 }
 
-@media (min-width: 760px) {
+@media (min-width: 1181px) {
   .character-page-v2 {
     padding: 18px 18px 44px 236px !important;
   }

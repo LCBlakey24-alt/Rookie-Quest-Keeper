@@ -481,6 +481,8 @@
   --rqk-campaign-elevated: #263748;
   --rqk-campaign-brass: #c9a96b;
   --rqk-campaign-brass-light: #d9bc82;
+  --rqk-campaign-wax: var(--rq-guild-wine, #7E2D2D);
+  --rqk-campaign-wax-text: #F8F0E5;
   --rqk-campaign-cream: #eadfc8;
   --rqk-campaign-muted: rgba(234, 223, 200, .75);
   --rqk-campaign-hairline: rgba(201, 169, 107, .24);
@@ -513,18 +515,20 @@
   color: var(--rqk-campaign-muted) !important;
 }
 #root .campaign-dashboard-group.is-active {
-  background: rgba(201,169,107,.12) !important;
-  border-color: var(--rqk-campaign-hairline) !important;
-  color: var(--rqk-campaign-brass-light) !important;
+  background: var(--rqk-campaign-wax) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
+  border-color: var(--rqk-campaign-wax) !important;
+  color: var(--rqk-campaign-wax-text) !important;
 }
 #root .campaign-dashboard-tab {
   background: var(--rqk-campaign-surface) !important;
   border: 1px solid rgba(137,157,176,.22) !important;
 }
 #root .campaign-dashboard-tab.is-active {
-  background: var(--rqk-campaign-brass) !important;
-  border-color: var(--rqk-campaign-brass-light) !important;
-  color: var(--rqk-campaign-ink) !important;
+  background: var(--rqk-campaign-wax) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
+  border-color: var(--rqk-campaign-wax) !important;
+  color: var(--rqk-campaign-wax-text) !important;
 }
 #root .campaign-dashboard-group:is(:hover,:focus-visible),
 #root .campaign-dashboard-tab:is(:hover,:focus-visible) {
@@ -532,8 +536,9 @@
   color: var(--rqk-campaign-cream) !important;
 }
 #root .campaign-dashboard-tab.is-active:is(:hover,:focus-visible) {
-  color: var(--rqk-campaign-ink) !important;
-  background: var(--rqk-campaign-brass-light) !important;
+  color: var(--rqk-campaign-wax-text) !important;
+  background: var(--rqk-campaign-wax) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
 }
 #root .campaign-dashboard-simple :is(button, a, input, select, textarea):focus-visible {
   outline: 2px solid var(--rqk-campaign-brass-light) !important;
@@ -1137,9 +1142,10 @@
   -webkit-overflow-scrolling: touch;
 }
 #root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
-  color: var(--rqk-campaign-ink, #07131f) !important;
-  border-color: var(--rqk-campaign-brass-light, #d9bc82) !important;
-  background: var(--rqk-campaign-brass, #c9a96b) !important;
+  color: var(--rqk-campaign-wax-text, #F8F0E5) !important;
+  border-color: var(--rqk-campaign-wax, #7E2D2D) !important;
+  background: var(--rqk-campaign-wax, #7E2D2D) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
 }
 #root .campaign-dashboard-simple .campaign-dashboard-group:is(:focus-visible,:hover),
 #root .campaign-dashboard-simple .campaign-dashboard-tab:is(:focus-visible,:hover) {
@@ -1359,11 +1365,10 @@
   color: #c7c0b4 !important;
   font-size: 12px !important;
 }
-#root .campaign-dashboard-simple .campaign-button-primary,
-#root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
-  background: #c9a96b !important;
-  border-color: #c9a96b !important;
-  color: #07131f !important;
+#root .campaign-dashboard-simple .campaign-button-primary {
+  background: var(--rqk-campaign-brass) !important;
+  border-color: var(--rqk-campaign-brass) !important;
+  color: var(--rqk-campaign-ink) !important;
 }
 #root .campaign-dashboard-simple .campaign-button-primary:hover,
 #root .campaign-dashboard-simple .campaign-button-primary:focus-visible {
@@ -1458,9 +1463,12 @@
   color: #07131f !important;
   font-weight: 850 !important;
 }
-/* Selected navigation uses wax-seal burgundy, not gold: light ink retains contrast. */
-#root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
-  color: #f8f0e5 !important;
+/* Selected navigation is wax-seal red; primary action buttons remain brass. */
+#root .campaign-dashboard-simple :is(.campaign-dashboard-group.is-active, .campaign-dashboard-tab.is-active) {
+  color: var(--rqk-campaign-wax-text) !important;
+  background: var(--rqk-campaign-wax) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
+  border-color: var(--rqk-campaign-wax) !important;
   font-weight: 850 !important;
 }
 #root .campaign-dashboard-simple .campaign-button-primary:is(:hover,:focus-visible) {

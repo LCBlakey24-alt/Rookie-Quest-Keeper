@@ -29,7 +29,7 @@ describe('Guild Ledger visual finishing pass', () => {
     expect(css).toContain('.campaign-home-focus-card');
     expect(css).toContain('border: 0 !important');
     expect(css).toContain(':focus-visible');
-    expect(css).toContain('outline: 2px solid var(--rq-guild-heading)');
+    expect(css).toContain('outline: 2px solid var(--rq-info, #6E91B4)');
   });
 
   test('does not animate on devices requesting reduced motion', () => {

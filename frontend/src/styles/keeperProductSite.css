@@ -180,21 +180,18 @@
   transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
-#root .keeper-product-site .landing-button::before {
-  display: none !important;
-  content: none !important;
-}
+/* Interactive controls animate through the shared waxSealInteractive layer. */
 
 #root .keeper-product-site .landing-button-primary {
-  background: var(--landing-gold) !important;
+  background: var(--rq-control-blue, #263F59) !important;
   background-image: none !important;
-  border-color: var(--landing-gold) !important;
-  color: var(--landing-bg-deep) !important;
+  border-color: var(--rq-secondary, #6E91B4) !important;
+  color: var(--landing-text) !important;
 }
 
 #root .keeper-product-site .landing-button-primary:hover:not(:disabled) {
-  background: var(--landing-gold-bright) !important;
-  border-color: var(--landing-gold-bright) !important;
+  background: var(--rq-control-blue, #263F59) !important;
+  border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
 #root .keeper-product-site .landing-button-ghost {
@@ -255,7 +252,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 1px;
-  background: var(--landing-gold);
+  background: var(--rq-secondary, #6E91B4);
   opacity: 0.58;
 }
 
@@ -451,8 +448,8 @@
 }
 
 #root .keeper-product-site .landing-app-preview__rail span.is-active {
-  color: var(--landing-bg-deep);
-  background: var(--landing-gold);
+  color: var(--rq-control-ink, #F8F0E5);
+  background: var(--rq-control-wax, #7E2D2D);
 }
 
 #root .keeper-product-site .landing-app-preview__main {
@@ -589,10 +586,10 @@
   display: inline-flex;
   align-items: center;
   padding: 0 8px;
-  border: 1px solid var(--landing-gold);
+  border: 1px solid var(--rq-secondary, #6E91B4);
   border-radius: 4px;
-  background: var(--landing-gold);
-  color: var(--landing-bg-deep);
+  background: var(--rq-control-blue, #263F59);
+  color: var(--rq-control-ink, #F8F0E5);
   font-size: 8px;
   font-weight: 800;
 }
@@ -1013,7 +1010,7 @@
   height: 31px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--landing-gold);
+  border: 1px solid var(--rq-secondary, #6E91B4);
   border-radius: 50%;
   color: var(--landing-gold-bright);
   font-size: 10px;
@@ -1129,8 +1126,8 @@
 
 #root .keeper-product-site .landing-faq-item[open] summary::after {
   content: '–';
-  color: var(--landing-bg-deep);
-  background: var(--landing-gold);
+  color: var(--rq-control-ink, #F8F0E5);
+  background: var(--rq-control-wax, #7E2D2D);
 }
 
 #root .keeper-product-site .landing-faq-item p {

@@ -107,7 +107,7 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalAuthority).toContain("button[aria-selected='true']");
     expect(finalAuthority).toContain("button[aria-pressed='true']");
     expect(finalAuthority).toContain('font-family: var(--rq-body-font');
-    expect(finalAuthority).toContain('background: var(--cs-blue-soft) !important;');
+    expect(finalAuthority).toContain('background: var(--rq-guild-wine, #7E2D2D) !important;');
   });
 
   test('Stats, Skills and Saving Throws presentation layers use Guild Ledger tokens', () => {
@@ -228,8 +228,8 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(header).toContain("min-height: 46px !important;");
 
     expect(rail).toContain('background: var(--cs-bg) !important;');
-    expect(rail).toContain('background: var(--cs-blue-soft) !important;');
-    expect(rail).toContain('border-color: var(--cs-accent) !important;');
+    expect(rail).toContain('background: var(--rq-guild-wine, #7E2D2D) !important;');
+    expect(rail).toContain('border-color: var(--rq-guild-wine, #7E2D2D) !important;');
     expect(rail).toContain('width: 46px !important;');
     expect(rail).toContain('height: 46px !important;');
 

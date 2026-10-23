@@ -40,7 +40,7 @@ const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system,
 const theme = {
   bg: { primary: 'var(--rq-bg-main)', surface: 'var(--rq-bg-panel)', elevated: 'var(--rq-bg-elevated)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)', hover: 'var(--rq-card-hover)' },
   accent: { primary: 'var(--rq-accent-primary)', secondary: 'var(--rq-secondary)', gold: 'var(--rq-secondary)', orange: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-primary)', subtle: 'var(--rq-accent-soft)', glow: 'none', gm: 'var(--rq-accent-primary)', gmSubtle: 'var(--rq-accent-soft)' },
-  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-primary)', muted: 'var(--rq-text-primary)' },
+  text: { primary: 'var(--rq-text-primary)', secondary: 'var(--rq-text-secondary)', muted: 'var(--rq-text-muted)' },
   border: 'var(--rq-border-default)',
   gradient: 'var(--rq-card)',
 };

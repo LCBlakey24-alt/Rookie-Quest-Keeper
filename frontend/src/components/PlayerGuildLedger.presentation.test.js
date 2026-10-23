@@ -14,7 +14,7 @@ test('Guild Ledger player pages preserve readable phone actions and scrolling ca
   expect(css).toContain('overflow-x: auto !important');
   expect(css).toContain('font-size: 12px !important');
   expect(css).toContain('.player-campaign-action::after');
-  expect(css).toContain('outline: 2px solid var(--rq-guild-heading');
+  expect(css).toContain('outline: 2px solid var(--rq-info');
   expect(css).toContain('prefers-reduced-motion: reduce');
   expect(css).toContain('.character-page-v2 .clean-sheet-quick-stat span');
   expect(css).toContain('.character-page-v2 .clean-sheet-combat-hp-title span');
