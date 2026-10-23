@@ -102,6 +102,7 @@ export default function PlayerDisplayPage() {
   const urlTarget = normaliseTarget(searchParams.get('target'));
   const [state, setState] = useState(() => loadDisplayState(campaignId));
   const [party, setParty] = useState([]);
+  const [partyRefreshFailed, setPartyRefreshFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const toggleFullscreen = useCallback(async () => {
     try {
@@ -141,14 +142,22 @@ export default function PlayerDisplayPage() {
 
   useEffect(() => {
     let cancelled = false;
+    let latestRequest = 0;
+    setParty([]);
+    setPartyRefreshFailed(false);
     const fetchParty = async () => {
       if (!campaignId) return;
+      const request = ++latestRequest;
       try {
         const response = await apiClient.get(`/campaigns/${campaignId}/players`);
-        const rows = Array.isArray(response.data) ? response.data : [];
-        if (!cancelled) setParty(rows.map(normalisePartyMember).filter(member => member?.name));
+        if (!Array.isArray(response.data)) throw new Error('Invalid party response');
+        if (!cancelled && request === latestRequest) {
+          setParty(response.data.map(normalisePartyMember).filter(member => member?.name));
+          setPartyRefreshFailed(false);
+        }
       } catch {
-        if (!cancelled) setParty([]);
+        // Keep the last successfully loaded roster; a failed poll is not a removal.
+        if (!cancelled && request === latestRequest) setPartyRefreshFailed(true);
       }
     };
     fetchParty();
@@ -185,6 +194,7 @@ export default function PlayerDisplayPage() {
           <span style={statusPillStyle(target)}>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Virtual Table' : 'Standing TV'}</span>
           <span style={statusPillStyle(target)}><ShieldCheck size={13} /> Player-safe</span>
           <span style={modeChipStyle}>{modeLabel(mode)}</span>
+          {partyRefreshFailed && <span role="status" style={partyWarningStyle}>Party sync unavailable{partyMembers.length ? ' · last-known roster shown' : ''}</span>}
         </header>
         <div className="rqk-player-display__stage" style={displayGridStyle(target, showPartySidebar)}>
           {showPartySidebar && <PartySidebar members={partyMembers} />}
@@ -392,6 +402,7 @@ const displayGridStyle = (target, showParty) => ({ minHeight: 0, height: '100%',
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
 const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? '4px 6px' : '7px 10px', background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
 const brandMarkStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, marginRight: 'auto' };
+const partyWarningStyle = { color: 'var(--rq-warning, #D39A43)', fontSize: 11, fontWeight: 750 };
 const statusPillStyle = (target) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: isTable(target) ? 22 : 26, padding: isTable(target) ? '0 6px' : '0 8px', background: 'rgba(255,255,255,0.07)', border: `1px solid ${theme.line}`, color: theme.soft });
 const modeChipStyle = { display: 'inline-flex', alignItems: 'center', minHeight: 26, padding: '0 9px', background: theme.red, color: theme.text, border: `1px solid ${theme.red}` };
 const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: '#050505' });
