@@ -51,14 +51,16 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const [npcs, setNpcs] = useState(() => Array.isArray(initialExtras?.npcs) ? initialExtras.npcs : []);
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [npcQuery, setNpcQuery] = useState('');
-  const [target, setTarget] = useState('standing-tv');
+  const [target, setTarget] = useState(() => normaliseTarget(initialExtras?.displayState?.payload?.display_target || loadDisplayState(campaignId)?.payload?.display_target));
   const [busy, setBusy] = useState('');
   const [refreshingAssets, setRefreshingAssets] = useState(false);
   const [assetWarning, setAssetWarning] = useState('');
 
   useEffect(() => {
     const cachedState = getLiveBootstrapExtras(campaignId)?.displayState;
-    setState(cachedState || loadDisplayState(campaignId));
+    const nextState = cachedState || loadDisplayState(campaignId);
+    setState(nextState);
+    setTarget(normaliseTarget(nextState?.payload?.display_target));
     const local = subscribeDisplayState(campaignId, setState);
     // Keep the existing remote freshness read/WebSocket path for safety. The
     // bootstrap state paints immediately while this connection comes online.
@@ -132,7 +134,8 @@ export default function LiveSecondScreenDock({ campaignId }) {
     const search = npcQuery.trim().toLocaleLowerCase();
     return search ? visibleNpcs.filter(npc => String(npc.name || '').toLocaleLowerCase().includes(search)) : visibleNpcs;
   }, [visibleNpcs, npcQuery]);
-  const currentTarget = normaliseTarget(state?.payload?.display_target || target);
+  // The GM's target selector must take precedence over the previous broadcast.
+  const currentTarget = normaliseTarget(target);
 
   const publish = async (mode, payload, actionId) => {
     try {
