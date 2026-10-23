@@ -1,3 +1,4 @@
+#root .rqk-reference-browser-host { min-width: 0; width: 100%; container-type: inline-size; }
 /* Guild Ledger table-side roster. Only one full stat sheet is mounted at a time. */
 #root .rqk-reference-browser {
   display: grid;
@@ -141,4 +142,22 @@
 }
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-reference-browser__list { scroll-behavior: auto; }
+}
+
+/* Narrow Live Play sidebars use a swipeable name strip even on desktop TVs. */
+@container (max-width: 680px) {
+  #root .rqk-reference-browser { display: block; }
+  #root .rqk-reference-browser__sidebar { margin-bottom: 10px; }
+  #root .rqk-reference-browser__list {
+    display: flex; flex-direction: row; max-height: none;
+    overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity;
+  }
+  #root .rqk-reference-browser__item {
+    flex: 0 0 142px; width: 142px; min-height: 62px; padding: 9px 10px;
+    border-left: 0; border-bottom: 3px solid transparent;
+    border-right: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
+    scroll-snap-align: start;
+  }
+  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #c9a96b); }
+  #root .rqk-reference-browser__detail { padding: 9px; }
 }
