@@ -42,16 +42,16 @@ test('a slower prior refresh cannot overwrite the newest player character list',
     .mockResolvedValueOnce(snapshot('Newest Hero'));
 
   render(<MemoryRouter><PlayerDashboard /></MemoryRouter>);
-  expect(await screen.findByText('First Hero')).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'First Hero' })).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
   await waitFor(() => expect(fetchPlayerDashboardSections).toHaveBeenCalledTimes(2));
   fireEvent.click(screen.getByRole('button', { name: 'Simulate confirmed campaign join' }));
-  expect(await screen.findByText('Newest Hero')).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Newest Hero' })).toBeInTheDocument();
 
   slow.resolve(snapshot('Older Hero'));
   await waitFor(() => expect(fetchPlayerDashboardSections).toHaveBeenCalledTimes(3));
-  expect(screen.getByText('Newest Hero')).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Newest Hero' })).toBeInTheDocument();
   expect(screen.queryByText('Older Hero')).not.toBeInTheDocument();
 });
 
