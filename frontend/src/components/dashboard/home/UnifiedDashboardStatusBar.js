@@ -1,3 +1,5 @@
+import AnimatedLedgerNumber from '@/components/ui/AnimatedLedgerNumber';
+
 function statusColor(tone) {
   if (tone === 'Offline') return '#ff8a8a';
   if (tone === 'Slow' || tone === 'Checking') return '#ffd27a';
@@ -7,7 +9,7 @@ function statusColor(tone) {
 function StatChip({ label, value, tone }) {
   return (
     <div className="unified-dashboard-stat">
-      <span style={{ color: statusColor(tone) }}>{value}</span>
+      <span style={{ color: statusColor(tone) }}><AnimatedLedgerNumber value={value} /></span>
       <span>{label}</span>
     </div>
   );
