@@ -75,6 +75,15 @@ describe('player-facing NPC gallery pagination', () => {
     view.unmount();
   });
 
+  test('previous wraps to the last page without losing selected NPCs', () => {
+    const view = renderScene('standing-tv', 17);
+    fireEvent.click(screen.getByRole('button', { name: 'Previous NPC page' }));
+    expect(screen.getByText(/Page 3 of 3/)).toBeInTheDocument();
+    expect(screen.getByText('NPC 17')).toBeInTheDocument();
+    expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(1);
+    view.unmount();
+  });
+
   test('virtual tabletop keeps up to ten NPCs visible on one page', () => {
     const view = renderScene('virtual-table', 10);
     expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(10);
