@@ -171,7 +171,9 @@ function NPCsTab({ campaignId }) {
 
   // Find NPCs by story, role, skills and GM notes as well as the displayed name.
   // Search is always local to the active campaign; never mix the two parties.
-  const filteredNPCs = npcs.filter(npc => matchesNpcSearch(npc, searchTerm));
+  const filteredNPCs = npcs
+    .filter(npc => matchesNpcSearch(npc, searchTerm))
+    .sort((left, right) => String(left.name || '').localeCompare(String(right.name || '')));
 
   // Loading state
   if (loading) {
@@ -321,6 +323,11 @@ function NPCsTab({ campaignId }) {
   return (
     <div className="rqk-npc-master">
       {/* Full-width GM roster and details: the separate Create NPC tab owns the generator. */}
+      {loadError && <div className="rqk-npc-load-error" role="status">
+        <strong>Could not refresh the NPC list.</strong>
+        <span>Showing the last successfully loaded records; nothing was deleted.</span>
+        <Button type="button" onClick={fetchNPCs} className="btn-secondary">Retry loading NPCs</Button>
+      </div>}
       <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 className="medieval-heading" style={{ fontSize: '28px', color: '#ffffff' }}>
