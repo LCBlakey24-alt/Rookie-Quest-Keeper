@@ -100,3 +100,54 @@ for (const size of [
     expect(vertical.content, 'TV display must fit into one screen').toBeLessThanOrEqual(vertical.viewport + 2);
   });
 }
+
+
+test('large 720p NPC scenes paginate instead of squeezing 17 portraits into one screen', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await avoidThirdPartyRequests(page);
+  await page.addInitScript(() => {
+    sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
+    localStorage.setItem('rqk.liveDisplay.browser-smoke-large', JSON.stringify({
+      mode: 'npc-grid', sync_id: 'paging-test', sequence: 4102444799000,
+      updated_at: '2099-12-31T23:59:59.000Z',
+      payload: {
+        display_target: 'standing-tv', title: 'The Full Council',
+        npcs: Array.from({ length: 17 }, (_, index) => ({
+          id: String(index + 1), name: `NPC ${index + 1}`,
+        })),
+      },
+    }));
+  });
+  await page.goto('/player-display/browser-smoke-large?target=standing-tv');
+  await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-mode', 'npc-grid');
+  await expect(page.locator('.rqk-player-display__npc-card')).toHaveCount(8);
+  await expect(page.getByText('Page 1 of 3 · 17 NPCs')).toBeVisible();
+  await page.getByRole('button', { name: 'Next NPC page' }).click();
+  await expect(page.getByText('Page 2 of 3 · 17 NPCs')).toBeVisible();
+  await expect(page.locator('.rqk-player-display__npc-card')).toHaveCount(8);
+  await page.getByRole('button', { name: 'Next NPC page' }).click();
+  await expect(page.getByText('Page 3 of 3 · 17 NPCs')).toBeVisible();
+  await expect(page.locator('.rqk-player-display__npc-card')).toHaveCount(1);
+  await expect(page.getByText('NPC 17')).toBeVisible();
+  await assertFitsViewport(page, 1280);
+});
+
+test('a physical TV keeps its layout even when the last GM broadcast targeted a table', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await avoidThirdPartyRequests(page);
+  await page.addInitScript(() => {
+    sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
+    localStorage.setItem('rqk.liveDisplay.browser-smoke-target', JSON.stringify({
+      mode: 'title', sync_id: 'layout-test', sequence: 4102444799000,
+      updated_at: '2099-12-31T23:59:59.000Z',
+      payload: {
+        display_target: 'virtual-table', title: 'A New Scene',
+      },
+    }));
+  });
+  await page.goto('/player-display/browser-smoke-target?target=standing-tv');
+  await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'standing-tv');
+  await expect(page.getByRole('heading', { name: 'A New Scene' })).toBeVisible();
+  await page.goto('/player-display/browser-smoke-target?target=virtual-table');
+  await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'virtual-table');
+});
