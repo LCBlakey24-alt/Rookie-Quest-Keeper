@@ -91,6 +91,15 @@ function safeNumber(...values) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+// Unlike initiative, missing map coordinates are *not* zero. A creature
+// without a position belongs in the unplaced-token shelf, not the map corner.
+function safeMapCoordinate(...values) {
+  const value = values.find(item => item !== undefined && item !== null && item !== '');
+  if (value === undefined) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 function normalisePartyMember(value = {}) {
   const base = normalizeCampaignCharacter(value);
   return {
@@ -110,8 +119,8 @@ function normaliseCombatantPayload(item = {}, id = '') {
     name: combatantName(item),
     subtitle: item.subtitle || item.creature_type || item.role || (type === 'npc' ? 'NPC' : 'Enemy'),
     image_url: imageFrom(item),
-    x: safeNumber(item.x, item.position?.x, item.token_x),
-    y: safeNumber(item.y, item.position?.y, item.token_y),
+    x: safeMapCoordinate(item.x, item.position?.x, item.token_x),
+    y: safeMapCoordinate(item.y, item.position?.y, item.token_y),
     // Never send enemy/NPC HP or AC to the player-facing screen.
     initiative,
     initiativeLabel: signed(initiative),
