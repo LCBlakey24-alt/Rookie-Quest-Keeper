@@ -1,0 +1,265 @@
+/* Keeper NPC Workspace: one visual language across NPCs, creation and lore. */
+#root .rqk-npc-hub {
+  --npc-hub-gold: var(--rq-accent-primary, #c9a96b);
+  --npc-hub-cream: var(--rq-text-primary, #eadfc8);
+  --npc-hub-soft: var(--rq-text-secondary, rgba(234, 223, 200, .78));
+  --npc-hub-line: var(--rq-border-default, rgba(137, 157, 176, .24));
+  display: grid;
+  align-content: start;
+  gap: clamp(12px, 2vw, 20px);
+  min-width: 0;
+  width: 100%;
+  color: var(--npc-hub-cream);
+}
+
+#root .rqk-npc-hub *,
+#root .rqk-npc-hub *::before,
+#root .rqk-npc-hub *::after {
+  box-sizing: border-box;
+}
+
+#root .rqk-npc-hub__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 24px;
+  min-width: 0;
+  padding: 0 0 18px;
+  border-bottom: 1px solid rgba(201, 169, 107, .28);
+}
+
+#root .rqk-npc-hub__heading {
+  min-width: 0;
+  max-width: 740px;
+}
+
+#root .rqk-npc-hub__eyebrow {
+  margin: 0 0 7px;
+  color: var(--npc-hub-gold);
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-weight: 800;
+  font-size: 10px;
+}
+
+#root .rqk-npc-hub__heading h2 {
+  margin: 0;
+  color: var(--npc-hub-cream);
+  font-family: var(--rq-font-display, Georgia, serif);
+  font-size: clamp(1.4rem, 2.7vw, 2rem);
+  font-weight: 750;
+  line-height: 1.18;
+}
+
+#root .rqk-npc-hub__heading > p:last-child {
+  margin: 8px 0 0;
+  color: var(--npc-hub-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#root .rqk-npc-hub__privacy {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  color: var(--npc-hub-soft);
+  padding: 7px 10px;
+  border: 1px solid var(--npc-hub-line);
+  border-radius: 6px;
+  background: var(--rq-bg-deep, #07131f);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#root .rqk-npc-hub__privacy > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--npc-hub-gold);
+}
+
+#root .rqk-npc-hub__tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+}
+
+#root .rqk-npc-hub__tab {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+  min-height: 94px;
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.5vw, 15px);
+  padding: 15px 16px;
+  text-align: left;
+  font: inherit;
+  color: var(--npc-hub-cream);
+  cursor: pointer;
+  background: var(--rq-bg-panel, #1e2936);
+  border: 1px solid var(--npc-hub-line);
+  border-radius: 9px;
+  box-shadow: none;
+  transition: background-color .17s ease, border-color .17s ease, transform .17s ease;
+}
+
+#root .rqk-npc-hub__tab-icon {
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(201, 169, 107, .19);
+  border-radius: 7px;
+  background: var(--rq-bg-deep, #07131f);
+  color: var(--rq-secondary, #6e91b4);
+}
+
+#root .rqk-npc-hub__tab-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+#root .rqk-npc-hub__tab-copy strong {
+  color: var(--npc-hub-cream);
+  font-size: clamp(13px, 1.3vw, 16px);
+  line-height: 1.25;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+#root .rqk-npc-hub__tab-copy small {
+  color: var(--npc-hub-soft);
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 550;
+}
+
+#root .rqk-npc-hub__tab-indicator {
+  position: absolute;
+  height: 3px;
+  left: 16px;
+  right: 16px;
+  bottom: -1px;
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+}
+
+#root .rqk-npc-hub__tab.is-active {
+  border-color: rgba(201, 169, 107, .7);
+  background: var(--rq-card, #263748);
+}
+
+#root .rqk-npc-hub__tab.is-active .rqk-npc-hub__tab-icon {
+  color: var(--npc-hub-gold);
+  border-color: rgba(201, 169, 107, .5);
+}
+
+#root .rqk-npc-hub__tab.is-active .rqk-npc-hub__tab-indicator {
+  background: var(--npc-hub-gold);
+}
+
+#root .rqk-npc-hub__tab:hover {
+  border-color: rgba(201, 169, 107, .5);
+  background: var(--rq-card-hover, #334155);
+}
+
+#root .rqk-npc-hub__tab:focus-visible {
+  outline: 2px solid var(--npc-hub-gold);
+  outline-offset: 3px;
+}
+
+#root .rqk-npc-hub__panel {
+  min-width: 0;
+  width: 100%;
+  padding: clamp(10px, 2vw, 18px);
+  border: 1px solid rgba(201, 169, 107, .23);
+  border-radius: 9px;
+  background: var(--rq-bg-deep, #07131f);
+}
+
+#root .rqk-npc-hub__panel:focus-visible {
+  outline: 2px solid var(--npc-hub-gold);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #root .rqk-npc-hub__tab:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 900px) {
+  #root .rqk-npc-hub__tabs { gap: 7px; }
+  #root .rqk-npc-hub__tab {
+    padding: 11px;
+    gap: 9px;
+    min-height: 76px;
+  }
+  #root .rqk-npc-hub__tab-icon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+  #root .rqk-npc-hub__tab-copy small { font-size: 10px; }
+}
+
+@media (max-width: 640px) {
+  #root .rqk-npc-hub__header {
+    align-items: flex-start;
+    padding-bottom: 12px;
+  }
+  #root .rqk-npc-hub__heading > p:last-child {
+    font-size: 12px;
+  }
+  #root .rqk-npc-hub__tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+  #root .rqk-npc-hub__tab {
+    min-height: 68px;
+    padding: 9px;
+    border-radius: 7px;
+    gap: 8px;
+  }
+  #root .rqk-npc-hub__tab:last-child {
+    grid-column: 1 / -1;
+  }
+  #root .rqk-npc-hub__tab-icon {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+  }
+  #root .rqk-npc-hub__tab-copy strong {
+    font-size: 12px;
+  }
+  #root .rqk-npc-hub__tab-copy small {
+    font-size: 10px;
+  }
+  #root .rqk-npc-hub__panel {
+    padding: 9px;
+    border-radius: 7px;
+  }
+  #root .rqk-npc-hub__privacy {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+}
+
+@media (max-width: 370px) {
+  #root .rqk-npc-hub__tab-copy small { display: none; }
+  #root .rqk-npc-hub__tab { min-height: 54px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-npc-hub__tab { transition: none; }
+  #root .rqk-npc-hub__tab:hover { transform: none; }
+}
