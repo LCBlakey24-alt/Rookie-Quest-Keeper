@@ -274,3 +274,38 @@
     transition: none !important;
   }
 }
+
+
+/* Skeletons should feel like the same navy ledger while sections fetch, not
+   brown gradient cards. The subtle brass sheen indicates activity without
+   claiming progress toward completion. */
+#root .rq-loading-skeleton {
+  background: #1E2936 !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+}
+#root .rq-loading-skeleton__row {
+  border-color: transparent !important;
+}
+#root .rq-loading-skeleton__avatar,
+#root .rq-loading-skeleton__line {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: linear-gradient(90deg,
+    rgba(234, 223, 200, .07) 0%,
+    rgba(201, 169, 107, .17) 48%,
+    rgba(234, 223, 200, .07) 100%) !important;
+}
+#root .rq-loading-skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 107, .11), transparent) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .rq-loading-skeleton,
+  #root .rq-loading-skeleton::after,
+  #root .rq-loading-skeleton__row {
+    animation: none !important;
+  }
+}
