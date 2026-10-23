@@ -20,7 +20,7 @@ jest.mock('sonner', () => ({
 const snapshot = (name, failures = []) => ({
   ok: failures.length === 0,
   failures,
-  characters: name ? [{ id: name.toLowerCase().replace(/\\s+/g, '-'), name, level: 5, character_class: 'Fighter' }] : [],
+  characters: name ? [{ id: name.toLowerCase().replace(/\s+/g, '-'), name, level: 5, character_class: 'Fighter' }] : [],
   campaigns: [],
 });
 function deferred() {
