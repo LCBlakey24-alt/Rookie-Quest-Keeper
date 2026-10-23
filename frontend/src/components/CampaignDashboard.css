@@ -1505,7 +1505,9 @@
     gap: 6px !important;
   }
   #root .campaign-dashboard-simple .campaign-dashboard-actions > .campaign-button:not(.campaign-button-primary) {
-    display: none !important;
+    min-width: 44px !important;
+    padding-inline: 7px !important;
+    font-size: 10px !important;
   }
   #root .campaign-dashboard-simple .campaign-dashboard-title-copy > span {
     font-size: 12px !important;
