@@ -146,6 +146,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [bannerMessage, setBannerMessage] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
+  const [npcSearch, setNpcSearch] = useState('');
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
   const [visibleCombatantIds, setVisibleCombatantIds] = useState([]);
   const [combatRound, setCombatRound] = useState(1);
@@ -178,6 +179,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setParty([]);
     setScenarios([]);
     setSelectedNpcIds([]);
+    setNpcSearch('');
     setSelectedScenarioId('');
     setVisibleCombatantIds([]);
     setActiveCombatantId('');
@@ -207,6 +209,10 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
   const displayUrlFor = (targetId = displayTarget) => `/campaign/${campaignId}/player-display?target=${encodeURIComponent(normaliseTarget(targetId))}`;
   const selectedNpcs = useMemo(() => npcs.filter(npc => selectedNpcIds.includes(String(npc.id))), [npcs, selectedNpcIds]);
+  const matchingNpcs = useMemo(() => {
+    const term = npcSearch.trim().toLocaleLowerCase();
+    return term ? npcs.filter(npc => String(npc.name || '').toLocaleLowerCase().includes(term)) : npcs;
+  }, [npcs, npcSearch]);
   const allMaps = useMemo(() => [...maps, ...worldMaps], [maps, worldMaps]);
   const selectedScenario = useMemo(() => scenarios.find(scenario => String(scenario.id) === String(selectedScenarioId)), [scenarios, selectedScenarioId]);
   const combatants = useMemo(() => scenarioParticipants(selectedScenario), [selectedScenario]);
@@ -595,7 +601,12 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             <section style={controlGridStyle}>
               <section style={npcBoxStyle}>
                 <div style={npcHeaderStyle}><strong>NPC portraits visible to players</strong><button type="button" onClick={() => setSelectedNpcIds([])} style={miniButtonStyle}><RefreshCw size={12} /> Clear</button></div>
-                <div style={npcGridStyle}>{npcs.slice(0, 24).map(npc => <label key={npc.id} style={npcPillStyle(selectedNpcIds.includes(String(npc.id)))}><input type="checkbox" checked={selectedNpcIds.includes(String(npc.id))} onChange={() => toggleNpc(npc.id)} /><span>{npc.name || 'Unnamed NPC'}</span></label>)}{npcs.length === 0 && <p style={mutedStyle}>No NPCs found yet.</p>}</div>
+                <label style={{ ...fieldStyle, marginBottom: 8 }}>
+                  <span style={labelStyle}>Search NPCs to reveal</span>
+                  <input type="search" aria-label="Search NPCs to reveal" value={npcSearch} onChange={(event) => setNpcSearch(event.target.value)} placeholder="Find any NPC by name" style={{ ...inputStyle, minHeight: 44, width: '100%', boxSizing: 'border-box' }} />
+                </label>
+                <p style={{ ...hintStyle, marginBottom: 8 }} role="status">{selectedNpcs.length} selected · Showing {matchingNpcs.length} of {npcs.length} NPCs</p>
+                <div style={npcGridStyle}>{matchingNpcs.map(npc => <label key={npc.id} style={npcPillStyle(selectedNpcIds.includes(String(npc.id)))}><input type="checkbox" aria-label={`Reveal ${npc.name || 'Unnamed NPC'}`} checked={selectedNpcIds.includes(String(npc.id))} onChange={() => toggleNpc(npc.id)} /><span>{npc.name || 'Unnamed NPC'}</span></label>)}{npcs.length === 0 && <p style={mutedStyle}>No NPCs found yet.</p>}{npcs.length > 0 && matchingNpcs.length === 0 && <p style={mutedStyle}>No NPCs match that name. Clear the search to see everyone.</p>}</div>
               </section>
 
               <section style={npcBoxStyle}>
