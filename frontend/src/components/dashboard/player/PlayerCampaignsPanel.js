@@ -25,7 +25,13 @@ function membershipLabel(status) {
   return 'Joined Campaign';
 }
 
-export default function PlayerCampaignsPanel({ campaigns, onJoinCampaign, onOpenCampaign }) {
+export default function PlayerCampaignsPanel({ campaigns, unavailable = false, onJoinCampaign, onOpenCampaign }) {
+  if (unavailable && campaigns.length === 0) {
+    return <div className="player-dashboard-unavailable" role="status">
+      <strong>Campaigns could not be loaded</strong>
+      <p>Your linked campaigns have not been removed. Use Refresh above to reload their current status.</p>
+    </div>;
+  }
   return (
     <div className="player-dashboard-card-grid">
       {campaigns.length === 0 ? (
@@ -59,6 +65,7 @@ export default function PlayerCampaignsPanel({ campaigns, onJoinCampaign, onOpen
               <Button
                 onClick={() => canOpen && onOpenCampaign(campaign)}
                 disabled={!canOpen}
+                aria-label={`${canOpen ? 'Open' : 'Unavailable'} campaign ${campaign.name || 'Linked Campaign'}`}
                 className="btn-outline player-dashboard-action-button"
                 title={!canOpen && status === 'pending' ? 'Waiting for GM approval' : undefined}
               >
