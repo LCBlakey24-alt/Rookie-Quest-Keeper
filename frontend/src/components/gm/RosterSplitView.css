@@ -1,0 +1,144 @@
+/* Guild Ledger table-side roster. Only one full stat sheet is mounted at a time. */
+#root .rqk-reference-browser {
+  display: grid;
+  grid-template-columns: clamp(208px, 24vw, 284px) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  color: var(--rq-text-primary, #eadfc8);
+}
+#root .rqk-reference-browser__sidebar,
+#root .rqk-reference-browser__detail {
+  min-width: 0;
+  border: 1px solid var(--rq-border-default, rgba(137,157,176,.28));
+  background: var(--rq-bg-panel, #1e2936);
+  border-radius: 9px;
+}
+#root .rqk-reference-browser__sidebar { overflow: hidden; }
+#root .rqk-reference-browser__sidebar-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 12px;
+  color: var(--rq-text-primary, #eadfc8);
+  border-bottom: 1px solid var(--rq-border-default, rgba(137,157,176,.28));
+  background: var(--rq-bg-deep, #07131f);
+}
+#root .rqk-reference-browser__sidebar-heading strong { font-size: 12px; letter-spacing: .025em; }
+#root .rqk-reference-browser__sidebar-heading span {
+  flex: 0 0 auto;
+  color: var(--rq-text-secondary, #bfc6c9);
+  font-size: 11px;
+}
+#root .rqk-reference-browser__list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: min(72dvh, 760px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+#root .rqk-reference-browser__item {
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
+  border-radius: 0;
+  background: transparent;
+  color: var(--rq-text-primary, #eadfc8);
+  cursor: pointer;
+}
+#root .rqk-reference-browser__item:hover {
+  background: var(--rq-card, #263748);
+}
+#root .rqk-reference-browser__item.is-selected {
+  background: var(--rq-card, #263748);
+  border-left-color: var(--rq-accent-primary, #c9a96b);
+}
+#root .rqk-reference-browser__item:focus-visible {
+  outline: 2px solid var(--rq-accent-primary, #c9a96b);
+  outline-offset: -3px;
+  position: relative;
+  z-index: 1;
+}
+#root .rqk-reference-browser__item-name {
+  width: 100%;
+  color: var(--rq-text-primary, #eadfc8);
+  font-weight: 800;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#root .rqk-reference-browser__item-subtitle,
+#root .rqk-reference-browser__item-badge {
+  font-size: 11px;
+  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+#root .rqk-reference-browser__item-badge { color: var(--rq-accent-primary, #c9a96b); }
+#root .rqk-reference-browser__detail { padding: clamp(10px, 2vw, 20px); }
+#root .rqk-reference-browser__detail-content { min-width: 0; overflow-wrap: anywhere; }
+#root .rqk-reference-browser__detail-placeholder,
+#root .rqk-reference-browser__empty {
+  padding: 20px 12px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--rq-text-secondary, #c3cbd4);
+}
+#root .rqk-reference-browser__detail-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+#root .rqk-reference-browser__detail-actions button { min-height: 40px; }
+@media (max-width: 950px) {
+  #root .rqk-reference-browser { grid-template-columns: 185px minmax(0, 1fr); gap: 9px; }
+  #root .rqk-reference-browser__detail { padding: 10px; }
+}
+@media (max-width: 640px) {
+  /* A swipeable name strip keeps the full D&D stat sheet readable on phones. */
+  #root .rqk-reference-browser { display: block; }
+  #root .rqk-reference-browser__sidebar { margin-bottom: 10px; }
+  #root .rqk-reference-browser__sidebar-heading { padding: 9px 11px; }
+  #root .rqk-reference-browser__list {
+    display: flex;
+    flex-direction: row;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+  }
+  #root .rqk-reference-browser__item {
+    flex: 0 0 142px;
+    width: 142px;
+    min-height: 62px;
+    padding: 9px 10px;
+    border-left: 0;
+    border-bottom: 3px solid transparent;
+    border-right: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
+    scroll-snap-align: start;
+  }
+  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #c9a96b); }
+  #root .rqk-reference-browser__detail { padding: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-reference-browser__list { scroll-behavior: auto; }
+}
