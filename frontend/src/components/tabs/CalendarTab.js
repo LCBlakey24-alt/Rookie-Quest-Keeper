@@ -30,6 +30,7 @@ export default function CalendarTab({ campaignId }) {
   const [structureDraft, setStructureDraft] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [advanceDays, setAdvanceDays] = useState(1);
+  const [advancingTime, setAdvancingTime] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState(emptyEvent);
   const [applyingTiaKarta, setApplyingTiaKarta] = useState(false);
@@ -186,23 +187,30 @@ export default function CalendarTab({ campaignId }) {
     }
   };
 
-  const advanceTime = async () => {
-    const days = Number(advanceDays);
+  const advanceTime = async (requestedDays = advanceDays) => {
+    if (advancingTime) return;
+    const days = Number(requestedDays);
     if (!Number.isInteger(days) || days < 1 || days > 10000) {
       toast.error('Choose 1 to 10,000 whole days to advance.');
       return;
     }
+    const requestedCampaign = campaignId;
+    setAdvancingTime(true);
     try {
       if (isOfflineDesktop()) {
-        const next = advanceCustomCalendar(calendar, Number(advanceDays));
-        await apiClient.put(`/campaigns/${campaignId}/calendar`, next);
+        const next = advanceCustomCalendar(calendar, days);
+        await apiClient.put(`/campaigns/${requestedCampaign}/calendar`, next);
       } else {
-        await apiClient.post(`/campaigns/${campaignId}/calendar/advance?days=${advanceDays}`);
+        await apiClient.post(`/campaigns/${requestedCampaign}/calendar/advance?days=${days}`);
       }
-      toast.success(`Advanced ${advanceDays} day(s)`);
-      loadCalendar();
+      if (activeCampaignRef.current !== requestedCampaign) return;
+      toast.success(`Advanced ${days} day(s)`);
+      await loadCalendar();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to advance time');
+      if (activeCampaignRef.current === requestedCampaign)
+        toast.error(error?.response?.data?.detail || 'Failed to advance time');
+    } finally {
+      if (activeCampaignRef.current === requestedCampaign) setAdvancingTime(false);
     }
   };
 
@@ -290,10 +298,25 @@ export default function CalendarTab({ campaignId }) {
               {calendar.custom_months[calendar.current_month - 1].season} · {daysPerWeek}-day week · {calendar?.custom_months?.length || 12}-month year
             </p>}
           <p style={{ color: '#EADFC8', margin: '0 0 14px' }}>Current in-game date</p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input data-testid="advance-days-input" type="number" min="1" max="10000" value={advanceDays} onChange={e => setAdvanceDays(parseInt(e.target.value, 10) || 1)} className="input" style={{ width: 80, textAlign: 'center' }} />
-            <button data-testid="advance-time-btn" type="button" onClick={advanceTime} className="btn-primary"><ChevronRight size={16} /> Advance Time</button>
+          <div className="rqk-calendar-clock-actions" role="group" aria-label="Advance this campaign's in-game time">
+            <button type="button" className="btn-secondary" disabled={advancingTime}
+              onClick={() => advanceTime(1)} data-testid="calendar-advance-day">+1 day</button>
+            <button type="button" className="btn-secondary" disabled={advancingTime}
+              onClick={() => advanceTime(daysPerWeek)} data-testid="calendar-advance-week">
+              +1 week ({daysPerWeek} days)
+            </button>
+            <label className="rqk-calendar-clock-custom">Custom
+              <input aria-label="Number of in-game days to advance" data-testid="advance-days-input"
+                type="number" min="1" max="10000" value={advanceDays}
+                onChange={e => setAdvanceDays(parseInt(e.target.value, 10) || 1)}
+                className="input" />
+            </label>
+            <button data-testid="advance-time-btn" type="button" disabled={advancingTime}
+              onClick={() => advanceTime()} className="btn-primary">
+              <ChevronRight size={16} aria-hidden="true" /> {advancingTime ? 'Updating…' : 'Advance time'}
+            </button>
           </div>
+          <small className="rqk-calendar-clock-note">Advances only this campaign's clock. The other party's date will not change.</small>
         </section>
 
         <section className="rqk-calendar-panel rqk-calendar-settings-panel">
@@ -436,8 +459,8 @@ export default function CalendarTab({ campaignId }) {
         <section ref={eventEditorRef} className="rqk-calendar-panel rqk-calendar-event-editor">
           <h3>{editingEvent ? 'Edit event' : 'Create an event'}</h3>
           <form onSubmit={saveEvent} style={{ display: 'grid', gap: 10 }}>
-            <input data-testid="event-name-input" className="input" placeholder="Event name" value={eventForm.name} onChange={e => setEventForm({ ...eventForm, name: e.target.value })} required />
-            <textarea data-testid="event-description-input" className="textarea" placeholder="Description" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} />
+            <input aria-label="Event name" data-testid="event-name-input" className="input" placeholder="Event name" value={eventForm.name} onChange={e => setEventForm({ ...eventForm, name: e.target.value })} required />
+            <textarea aria-label="Event description" data-testid="event-description-input" className="textarea" placeholder="Description" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} />
             <label className="rqk-calendar-repeat-label">Repeat event
               <select data-testid="calendar-event-recurrence"
                 value={eventForm.is_recurring ? eventForm.recurrence_type : 'none'}
