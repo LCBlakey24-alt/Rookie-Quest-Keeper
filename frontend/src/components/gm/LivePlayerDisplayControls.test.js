@@ -106,6 +106,28 @@ describe('LivePlayerDisplayControls reliability', () => {
     expect(reveal[1].payload.npcs[0]).not.toHaveProperty('private_notes');
   });
 
+  test('keeps unpositioned combatants off the map while preserving real zero coordinates', async () => {
+    apiClient.get.mockImplementation(url => Promise.resolve({ data: url.endsWith('/combat-scenarios')
+      ? [{ id: 'encounter-1', name: 'Forest Guardians', participants: [
+        { id: 'c1', name: 'Waiting Owlbear', initiative: 9 },
+        { id: 'c2', name: 'Corner Scout', initiative: 12, x: 0, y: 0 },
+      ] }] : [],
+    }));
+    render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+    const scenario = await screen.findByRole('option', { name: 'Forest Guardians' });
+    fireEvent.change(scenario.closest('select'), { target: { value: 'encounter-1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send Combat HUD/i }));
+
+    await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'campaign-1', expect.objectContaining({ mode: 'combat' }),
+    ));
+    const sent = publishCampaignDisplayStateWithStatus.mock.calls.find(([, state]) => state.mode === 'combat')[1];
+    expect(sent.payload.tokens).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'c1', x: null, y: null }),
+      expect.objectContaining({ id: 'c2', x: 0, y: 0 }),
+    ]));
+  });
+
   test('keeps last-known maps when a manual refresh cannot reload maps', async () => {
     let failMaps = false;
     apiClient.get.mockImplementation((url) => {
