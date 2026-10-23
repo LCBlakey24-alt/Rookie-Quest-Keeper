@@ -1,26 +1,20 @@
-/*
- * Guild Ledger interactive-control contract (web).
+/* Guild Ledger web controls — blue at rest; solid wax-red fills from left to right.
+ * Antique gold is reserved for typography. No animation blocks an action.
  *
- * Antique gold is typography-only. Selectable controls sit on deep blue,
- * fill wax-seal red left -> right on hover/press, and stay wax red when active.
- * The sweep is a feedback transition, not a loading spinner or network wait.
- * Scope to actual controls: never colour disabled, destructive, healing,
- * input, alert or passive cards as if they were selected navigation.
+ * The fill is a CSS background-size transition, NOT a ::before overlay: the
+ * existing app rail, badge and card pseudo-elements can keep their own jobs.
+ * Keep this file last and in the existing rq-controls important cascade layer.
  */
 :root {
   --rq-control-blue: #263F59;
-  --rq-control-blue-hover: #31506B;
   --rq-control-wax: #7E2D2D;
-  --rq-control-wax-hover: #903941;
   --rq-control-ink: #F8F0E5;
   --rq-control-sweep-duration: 340ms;
   --rq-control-sweep-ease: cubic-bezier(.22,.78,.18,1);
 }
 
 @layer rq-controls {
-/* The specific controls below share one visual behaviour, even when older
- * route CSS and inline styles set backgrounds or gold borders. */
-#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -36,6 +30,7 @@
   .player-dashboard-tab,
   .player-dashboard-action-button,
   .player-campaign-action,
+  .player-campaign-tabs button,
   .landing-button,
   .rqk-auth-primary,
   .rqk-auth-secondary,
@@ -50,21 +45,20 @@
   .dashboard-action-card,
   .rqk-selectable-control
 ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
-  --rq-fill-color: var(--rq-control-wax);
-  position: relative !important;
-  isolation: isolate;
-  overflow: hidden;
-  background: var(--rq-control-blue) !important;
-  background-image: none !important;
-  border-color: rgba(110,145,180,.36) !important;
-  color: var(--rq-control-ink) !important;
-  -webkit-text-fill-color: currentColor !important;
-}
+    position: relative !important;
+    --rq-fill-color: var(--rq-control-wax);
+    background-color: var(--rq-control-blue) !important;
+    background-image: linear-gradient(to right, var(--rq-control-wax), var(--rq-control-wax)) !important;
+    background-repeat: no-repeat !important;
+    background-position: left center !important;
+    background-size: 0% 100% !important;
+    border-color: rgba(110,145,180,.36) !important;
+    color: var(--rq-control-ink) !important;
+    -webkit-text-fill-color: currentColor !important;
+    transition: background-size var(--rq-control-sweep-duration) var(--rq-control-sweep-ease), border-color 180ms ease !important;
+  }
 
-/* Put the filling ink above the blue *background* but underneath the content.
- * Reuses the global action fill's :before, which already handles mouse clicks,
- * touch taps and keyboard activation.  Additional link cards get the same fill. */
-#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -80,54 +74,7 @@
   .player-dashboard-tab,
   .player-dashboard-action-button,
   .player-campaign-action,
-  .landing-button,
-  .rqk-auth-primary,
-  .rqk-auth-secondary,
-  .rqk-auth-mode-toggle button,
-  .dashboard-command-card,
-  .dashboard-continue-card,
-  .btn-primary,
-  .rq-button-primary,
-  .btn-gm,
-  .btn-player,
-  .campaign-home-focus-card,
-  .dashboard-action-card,
-  .rqk-selectable-control
-):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive'])::before {
-  content: '' !important;
-  display: block !important;
-  position: absolute;
-  inset: 0;
-  width: auto !important;
-  height: 100%;
-  border: 0;
-  background: var(--rq-control-wax) !important;
-  background-image: none !important;
-  opacity: 1 !important;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform var(--rq-control-sweep-duration) var(--rq-control-sweep-ease) !important;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Keep label/icon/content readable as the overlay passes beneath it. */
-#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
-  .campaign-dashboard-tab,
-  .campaign-dashboard-group,
-  .campaign-home-quick-card,
-  .campaign-home-session-rail__action,
-  .campaign-button,
-  .rqk-app-rail-link,
-  .rqk-app-mobile-more-item,
-  .rqk-app-mobile-more-trigger,
-  .rqk-live-grid__nav-button,
-  .rqk-live-grid__core-card,
-  .rqk-live-grid__more-grid button,
-  .clean-sheet-tabs button,
-  .player-dashboard-tab,
-  .player-dashboard-action-button,
-  .player-campaign-action,
+  .player-campaign-tabs button,
   .landing-button,
   .rqk-auth-primary,
   .rqk-auth-secondary,
@@ -142,94 +89,33 @@
   .dashboard-action-card,
   .rqk-selectable-control
 ) > :is(span, strong, small, em, svg, i) {
-  position: relative;
-  z-index: 1;
-  color: var(--rq-control-ink) !important;
-  -webkit-text-fill-color: currentColor !important;
-}
-
-/* Active selection is persistent, not a temporary press animation. */
-#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
-  .campaign-dashboard-tab,
-  .campaign-dashboard-group,
-  .rqk-app-rail-link,
-  .rqk-app-mobile-more-item,
-  .rqk-live-grid__nav-button,
-  .clean-sheet-tabs button,
-  .player-dashboard-tab,
-  .player-campaign-tabs button,
-  .rqk-auth-mode-toggle button,
-  .btn-primary,
-  .rq-button-primary,
-  .btn-gm,
-  .btn-player,
-  .campaign-home-focus-card,
-  .dashboard-action-card,
-  .rqk-selectable-control
-):is(.active, .is-active, [aria-current='page'], [aria-selected='true'], [aria-pressed='true']):not(:disabled):not([aria-disabled='true']) {
-  background: var(--rq-control-blue) !important;
-  background-image: none !important;
-  border-color: var(--rq-control-wax) !important;
-  color: var(--rq-control-ink) !important;
-}
-#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
-  .campaign-dashboard-tab,
-  .campaign-dashboard-group,
-  .rqk-app-rail-link,
-  .rqk-app-mobile-more-item,
-  .rqk-live-grid__nav-button,
-  .clean-sheet-tabs button,
-  .player-dashboard-tab,
-  .player-campaign-tabs button,
-  .rqk-auth-mode-toggle button,
-  .btn-primary,
-  .rq-button-primary,
-  .btn-gm,
-  .btn-player,
-  .campaign-home-focus-card,
-  .dashboard-action-card,
-  .rqk-selectable-control
-):is(.active, .is-active, [aria-current='page'], [aria-selected='true'], [aria-pressed='true'])::before {
-  transform: scaleX(1);
-}
-
-/* On desktop, hovering fills across the button, not an instant red swap.
- * The same key action shows on keyboard focus, mouse press or touch press. */
-@media (hover: hover) and (pointer: fine) {
-  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
-    .campaign-dashboard-tab,
-    .campaign-dashboard-group,
-    .campaign-home-quick-card,
-    .campaign-home-session-rail__action,
-    .campaign-button,
-    .rqk-app-rail-link,
-    .rqk-app-mobile-more-item,
-    .rqk-app-mobile-more-trigger,
-    .rqk-live-grid__nav-button,
-    .rqk-live-grid__core-card,
-    .rqk-live-grid__more-grid button,
-    .clean-sheet-tabs button,
-    .player-dashboard-tab,
-    .player-dashboard-action-button,
-    .player-campaign-action,
-    .landing-button,
-    .rqk-auth-primary,
-    .rqk-auth-secondary,
-    .rqk-auth-mode-toggle button,
-    .dashboard-command-card,
-    .dashboard-continue-card,
-    .btn-primary,
-    .rq-button-primary,
-    .btn-gm,
-    .btn-player,
-    .campaign-home-focus-card,
-    .dashboard-action-card,
-    .rqk-selectable-control
-  ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):hover::before {
-    transform: scaleX(1);
+    color: var(--rq-control-ink) !important;
+    -webkit-text-fill-color: currentColor !important;
   }
-}
-#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+
+  /* An active tab stays fully red after pointer movement. We do not change
+   * the base background-color to red, or the sweep would disappear. */
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+  .campaign-dashboard-tab,
+  .campaign-dashboard-group,
+  .rqk-app-rail-link,
+  .rqk-app-mobile-more-item,
+  .rqk-app-mobile-more-trigger,
+  .rqk-live-grid__nav-button,
+  .clean-sheet-tabs button,
+  .player-dashboard-tab,
+  .player-campaign-tabs button,
+  .rqk-auth-mode-toggle button,
+  .rqk-selectable-control
+):is(.active, .is-active, .is-open, [data-state='active'], [aria-current='page'], [aria-selected='true'], [aria-pressed='true']):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
+    background-color: var(--rq-control-blue) !important;
+    background-size: 100% 100% !important;
+    border-color: var(--rq-control-wax) !important;
+    color: var(--rq-control-ink) !important;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
   .campaign-home-quick-card,
@@ -245,6 +131,7 @@
   .player-dashboard-tab,
   .player-dashboard-action-button,
   .player-campaign-action,
+  .player-campaign-tabs button,
   .landing-button,
   .rqk-auth-primary,
   .rqk-auth-secondary,
@@ -258,21 +145,70 @@
   .campaign-home-focus-card,
   .dashboard-action-card,
   .rqk-selectable-control
-):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):is(:active, :focus-visible, .rq-fill-clicked)::before {
-  transform: scaleX(1);
-}
+):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):hover {
+      background-size: 100% 100% !important;
+      border-color: var(--rq-control-wax) !important;
+    }
+  }
 
-/* Distinguish focus from selection with blue outlines, not antique gold. */
-#root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+  /* Desktop key presses, tap feedback and mouse activation. */
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
   .campaign-dashboard-group,
+  .campaign-home-quick-card,
+  .campaign-home-session-rail__action,
   .campaign-button,
   .rqk-app-rail-link,
+  .rqk-app-mobile-more-item,
+  .rqk-app-mobile-more-trigger,
   .rqk-live-grid__nav-button,
+  .rqk-live-grid__core-card,
+  .rqk-live-grid__more-grid button,
   .clean-sheet-tabs button,
+  .player-dashboard-tab,
+  .player-dashboard-action-button,
+  .player-campaign-action,
+  .player-campaign-tabs button,
   .landing-button,
   .rqk-auth-primary,
   .rqk-auth-secondary,
+  .rqk-auth-mode-toggle button,
+  .dashboard-command-card,
+  .dashboard-continue-card,
+  .btn-primary,
+  .rq-button-primary,
+  .btn-gm,
+  .btn-player,
+  .campaign-home-focus-card,
+  .dashboard-action-card,
+  .rqk-selectable-control
+):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):is(:active, :focus-visible, .rq-fill-clicked) {
+    background-size: 100% 100% !important;
+  }
+
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+  .campaign-dashboard-tab,
+  .campaign-dashboard-group,
+  .campaign-home-quick-card,
+  .campaign-home-session-rail__action,
+  .campaign-button,
+  .rqk-app-rail-link,
+  .rqk-app-mobile-more-item,
+  .rqk-app-mobile-more-trigger,
+  .rqk-live-grid__nav-button,
+  .rqk-live-grid__core-card,
+  .rqk-live-grid__more-grid button,
+  .clean-sheet-tabs button,
+  .player-dashboard-tab,
+  .player-dashboard-action-button,
+  .player-campaign-action,
+  .player-campaign-tabs button,
+  .landing-button,
+  .rqk-auth-primary,
+  .rqk-auth-secondary,
+  .rqk-auth-mode-toggle button,
+  .dashboard-command-card,
+  .dashboard-continue-card,
   .btn-primary,
   .rq-button-primary,
   .btn-gm,
@@ -281,40 +217,43 @@
   .dashboard-action-card,
   .rqk-selectable-control
 ):focus-visible {
-  outline: 3px solid var(--rq-info, #6E91B4) !important;
-  outline-offset: 2px !important;
-}
-@media (prefers-reduced-motion: reduce) {
-  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
-    .campaign-dashboard-tab,
-    .campaign-dashboard-group,
-    .campaign-home-quick-card,
-    .campaign-home-session-rail__action,
-    .campaign-button,
-    .rqk-app-rail-link,
-    .rqk-app-mobile-more-item,
-    .rqk-app-mobile-more-trigger,
-    .rqk-live-grid__nav-button,
-    .rqk-live-grid__core-card,
-    .rqk-live-grid__more-grid button,
-    .clean-sheet-tabs button,
-    .player-dashboard-tab,
-    .player-dashboard-action-button,
-    .player-campaign-action,
-    .landing-button,
-    .rqk-auth-primary,
-    .rqk-auth-secondary,
-    .rqk-auth-mode-toggle button,
-    .dashboard-command-card,
-    .dashboard-continue-card,
-    .btn-primary,
-    .rq-button-primary,
-    .btn-gm,
-    .btn-player,
-    .campaign-home-focus-card,
-    .dashboard-action-card,
-    .rqk-selectable-control
-  )::before { transition: none !important; }
-}
+    outline: 3px solid var(--rq-info, #6E91B4) !important;
+    outline-offset: 2px !important;
+  }
 
-} /* rq-controls: same important layer as older Guild Ledger overrides */
+  @media (prefers-reduced-motion: reduce) {
+    #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
+  .campaign-dashboard-tab,
+  .campaign-dashboard-group,
+  .campaign-home-quick-card,
+  .campaign-home-session-rail__action,
+  .campaign-button,
+  .rqk-app-rail-link,
+  .rqk-app-mobile-more-item,
+  .rqk-app-mobile-more-trigger,
+  .rqk-live-grid__nav-button,
+  .rqk-live-grid__core-card,
+  .rqk-live-grid__more-grid button,
+  .clean-sheet-tabs button,
+  .player-dashboard-tab,
+  .player-dashboard-action-button,
+  .player-campaign-action,
+  .player-campaign-tabs button,
+  .landing-button,
+  .rqk-auth-primary,
+  .rqk-auth-secondary,
+  .rqk-auth-mode-toggle button,
+  .dashboard-command-card,
+  .dashboard-continue-card,
+  .btn-primary,
+  .rq-button-primary,
+  .btn-gm,
+  .btn-player,
+  .campaign-home-focus-card,
+  .dashboard-action-card,
+  .rqk-selectable-control
+) {
+      transition: none !important;
+    }
+  }
+}
