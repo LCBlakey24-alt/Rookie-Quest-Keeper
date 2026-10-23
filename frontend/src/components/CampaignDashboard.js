@@ -17,7 +17,7 @@ import {
   Users,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-import { calendarDaysUntil } from '@/data/tiaKartaCalendar';
+import { eventCountdownLabel, nextCampaignEvent } from '@/components/gm/dashboard/campaignHomeCalendar';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 
 const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
@@ -409,11 +409,6 @@ function chooseStoryFocus(arcs) {
   return { arc, chapter, nextScene };
 }
 
-function daysUntilEvent(event, calendar) {
-  const difference = calendarDaysUntil(event, calendar);
-  return difference === null ? Number.POSITIVE_INFINITY : difference;
-}
-
 function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
@@ -494,10 +489,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     return [...data.notes].sort((a, b) => String(b.created_at || b.updated_at || '').localeCompare(String(a.created_at || a.updated_at || '')))[0];
   }, [data.notes]);
 
-  const nextEvent = useMemo(() => data.events
-    .map(event => ({ ...event, daysUntil: daysUntilEvent(event, data.calendar) }))
-    .filter(event => event.daysUntil >= 0)
-    .sort((a, b) => a.daysUntil - b.daysUntil)[0] || null, [data.events, data.calendar]);
+  const nextEvent = useMemo(() => nextCampaignEvent(data.events, data.calendar),
+    [data.events, data.calendar]);
 
   const calendarLabel = useMemo(() => {
     if (!data.calendar) return 'Calendar not set';
@@ -512,13 +505,22 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     { id: 'ingame-notes', label: 'Session notes', key: 'notes', count: data.notes.length, icon: FileText },
   ];
 
+  // No duplicate links or nested menus: put the five tools used at the table
+  // above the fold, and keep secondary prep work in a separate section.
+  const atTable = [
+    { id: 'npcs', label: 'NPCs & stats', icon: UserCircle },
+    { id: 'combat', label: 'Combat', icon: Swords },
+    { id: 'chronicle', label: 'Calendar', icon: CalendarDays },
+    { id: 'ingame-notes', label: 'Session notes', icon: FileText },
+    { id: 'maps', label: 'Maps', icon: Map },
+  ];
   const quick = [
-    { id: 'story-arcs', label: 'Quests & Story', icon: ScrollText },
-    { id: 'combat', label: 'Encounters', icon: Swords },
-    { id: 'npcs', label: 'NPCs', icon: UserCircle },
-    { id: 'maps', label: 'Maps & Locations', icon: Map },
+    { id: 'story-arcs', label: 'Quests & story', icon: ScrollText },
     { id: 'players', label: 'Players', icon: Users },
-    { id: 'ingame-notes', label: 'Notes', icon: FileText },
+    { id: 'handouts', label: 'Handouts', icon: FileText },
+    { id: 'inventory', label: 'Loot & rewards', icon: Swords },
+    { id: 'setting', label: 'World notes', icon: Map },
+    { id: 'campaign-rules', label: 'Rules & settings', icon: ScrollText },
   ];
 
   return (
@@ -545,6 +547,25 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           Saved data has not been deleted. Select Refresh to try again.
         </p>
       )}
+
+      <nav className="campaign-home-session-rail" aria-label="Quick tools for a live session">
+        <div className="campaign-home-session-rail__heading">
+          <span>At the table</span>
+          <small>Quick access · choose a tool</small>
+        </div>
+        <div className="campaign-home-session-rail__actions">
+          {atTable.map(item => {
+            const Icon = item.icon;
+            return (
+              <button key={item.id} type="button" className="campaign-home-session-rail__action"
+                onClick={() => onOpenTab(item.id)} aria-label={`Open ${item.label}`}>
+                <Icon size={19} strokeWidth={1.8} aria-hidden="true"/>
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
       <section className="campaign-home-overview" aria-label="Campaign library at a glance">
         {overview.map(item => {
@@ -586,7 +607,10 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           <CalendarDays size={17} aria-hidden="true" />
           <span className="campaign-home-focus-label">Campaign Date</span>
           <strong>{calendarLabel}</strong>
-          <p>{nextEvent ? `Next: ${nextEvent.name} · ${nextEvent.daysUntil === 0 ? 'Today' : `${nextEvent.daysUntil} day(s)`}` : 'No upcoming event scheduled.'}</p>
+          <p>{nextEvent ? `Next: ${nextEvent.name} · ${eventCountdownLabel(nextEvent.daysUntil)}` :
+            unavailableSections.includes('events') || unavailableSections.includes('calendar')
+              ? 'Calendar events unavailable. Refresh to try again.'
+              : 'No upcoming event scheduled.'}</p>
         </button>
       </section>
 
@@ -619,8 +643,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
 
       <section className="campaign-home-section" aria-labelledby="campaign-quick-start-title">
         <div className="campaign-home-section-heading">
-          <h2 id="campaign-quick-start-title">Open a Workspace</h2>
-          <span>Everything else stays out of the way until you need it.</span>
+          <h2 id="campaign-quick-start-title">More ways to prepare</h2>
+          <span>Campaign administration, world-building and supporting materials.</span>
         </div>
         <div className="campaign-home-quick-grid">
           {quick.map((item) => {

@@ -191,3 +191,47 @@
   #root .rqk-rel-graph-modes button { min-width: 0; min-height: 44px; }
   #root .rqk-rel-network-legend { gap: 8px 12px; }
 }
+
+
+/* Readable relationship facts, written from the selected NPC's viewpoint. */
+#root .rqk-rel-selected-links {
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  padding: 0;
+  margin: 5px 0;
+}
+#root .rqk-rel-selected-links > li {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  padding: 9px 10px;
+  background: var(--rq-bg-panel, #1e2936);
+  border: 1px solid var(--rq-line, rgba(137,157,176,.2));
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+}
+#root .rqk-rel-selected-links__type {
+  flex: 0 0 auto;
+  color: var(--rq-primary-hover, #d9bc82);
+  font-weight: 850;
+  font-size: 12px;
+}
+#root .rqk-rel-selected-links > li > strong {
+  color: var(--rq-text-primary, #eadfc8);
+  font-size: 13px;
+}
+#root .rqk-rel-selected-links__description {
+  display: block;
+  flex: 1 0 100%;
+  color: var(--rq-text-secondary, rgba(234,223,200,.76));
+  font-size: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 580px) {
+  #root .rqk-rel-selected-links > li {
+    padding: 10px;
+  }
+}

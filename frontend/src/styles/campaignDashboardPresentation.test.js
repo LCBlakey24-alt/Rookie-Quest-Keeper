@@ -58,3 +58,34 @@ describe('Campaign Dashboard presentation ownership', () => {
     expect(panelRule).toContain('box-shadow: none');
   });
 });
+
+
+describe('GM Home table-ready session UX', () => {
+  test('puts table tools before overview cards without duplicating prep shortcuts', () => {
+    const source = read('../components/CampaignDashboard.js');
+    const toolsStart = source.indexOf('className="campaign-home-session-rail"');
+    const overviewStart = source.indexOf('className="campaign-home-overview"');
+    expect(toolsStart).toBeGreaterThan(0);
+    expect(overviewStart).toBeGreaterThan(toolsStart);
+    expect(source).toContain('aria-label="Quick tools for a live session"');
+    for (const tab of ['npcs', 'combat', 'chronicle', 'ingame-notes', 'maps']) {
+      expect(source).toContain(`{ id: '${tab}', label:`);
+    }
+  });
+
+  test('allows swipe within session actions without overflowing the phone page', () => {
+    const css = read('../components/CampaignDashboard.css');
+    expect(css).toContain('.campaign-home-session-rail__actions');
+    expect(css).toContain('overflow-x: auto !important');
+    expect(css).toContain('overscroll-behavior-x: contain !important');
+    expect(css).toContain('@media (max-width: 600px)');
+    expect(css).toContain('grid-auto-columns: minmax(116px, 41%)');
+  });
+
+  test('GM home next-event card uses the recurrence-aware calendar summary', () => {
+    const source = read('../components/CampaignDashboard.js');
+    expect(source).toContain('nextCampaignEvent(data.events, data.calendar)');
+    expect(source).toContain('eventCountdownLabel(nextEvent.daysUntil)');
+    expect(source).not.toContain('function daysUntilEvent(');
+  });
+});

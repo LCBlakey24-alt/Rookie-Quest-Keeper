@@ -30,6 +30,25 @@ const relationStyle = type => RELATIONSHIP_TYPES.find(item => item.id === type) 
  * person serving the second NPC. Neutral and mutual links have no arrow. */
 export const isDirectionalNpcRelationship = type => ['parent', 'mentor', 'servant'].includes(type);
 
+/** Show a relationship from the selected NPC's point of view.
+ * The saved link's source/target direction matters for parents and mentors.
+ * Descriptions remain authoritative; this only improves the label in the UI.
+ */
+export function npcRelationshipPerspective(link, focusId) {
+  const source = link?.source_id === focusId;
+  switch (link?.relationship_type) {
+    case 'parent': return source ? 'Parent of' : 'Child of';
+    case 'mentor': return source ? 'Mentor of' : 'Student of';
+    case 'servant': return source ? 'Serves' : 'Served by';
+    case 'sibling': return 'Sibling of';
+    case 'spouse': return 'Spouse of';
+    case 'friend': return 'Friend of';
+    case 'secret_ally': return 'Secret ally of';
+    case 'secret_enemy': return 'Secret enemy of';
+    default: return RELATIONSHIP_TYPES.find(type => type.id === link?.relationship_type)?.label || 'Connected to';
+  }
+}
+
 export function relatedNpcIds(links, npcId) {
   return links.filter(link => link.source_id === npcId || link.target_id === npcId)
     .map(link => link.source_id === npcId ? link.target_id : link.source_id);
@@ -348,8 +367,9 @@ export default function NPCRelationshipWeb({ campaignId }) {
           {selectedLinks.map(link => {
             const otherId = link.source_id === focusNpcId ? link.target_id : link.source_id;
             return <li key={link.id}>
-              <strong>{npcsById[otherId]?.name}</strong> — {relationStyle(link.relationship_type).label}
-              {link.description ? <span> · {link.description}</span> : null}
+              <span className="rqk-rel-selected-links__type">{npcRelationshipPerspective(link, focusNpcId)}</span>
+              <strong>{npcsById[otherId]?.name}</strong>
+              {link.description ? <span className="rqk-rel-selected-links__description">{link.description}</span> : null}
             </li>;
           })}
         </ul> : <p>No links recorded for this NPC yet.</p>}
