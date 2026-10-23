@@ -24,6 +24,8 @@ import { isLocalPreview, isOfflineDesktop } from '@/preview/previewMode';
 // the three-mode design then owns palette and desktop/tablet/mobile geometry.
 import "@/styles/appStoreMobilePolish.css";
 import "@/styles/threeModeMinimalist.css";
+// Guild Ledger finishing pass: only visual presentation; data/layout ownership stays with routes.
+import "@/styles/guildLedgerFinish.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();

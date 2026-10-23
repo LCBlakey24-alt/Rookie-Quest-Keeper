@@ -1,0 +1,311 @@
+/* Guild Ledger refinement — final presentation authority (2026-10-23).
+   Premium, minimal navy surfaces, warm brass headings, off-white reading text,
+   and oxblood seal-red only where a user can interact.
+   Status/danger/success colours and visible keyboard focus are preserved. */
+:root {
+  --rq-font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --rq-guild-heading: #D9BC82;
+  --rq-guild-copy: #F1EEE7;
+  --rq-guild-muted: #C9C6BF;
+  --rq-guild-wine: #7E2D2D;
+  --rq-guild-wine-dark: #371B25;
+  --rq-guild-wine-hover: linear-gradient(115deg, #35212A 0%, #60262E 55%, #7E2D2D 100%);
+  --rq-guild-wine-selected: linear-gradient(115deg, #55232D 0%, #7E2D2D 64%, #903941 100%);
+}
+
+/* Specific rules in the existing important layer outrank old, dynamically
+   loaded feature CSS without requiring another global CSS reset. */
+@layer rq-controls {
+  /* The actual logo assets already have transparency. Never put a tile
+     or faint line behind a logo to make it look like a square icon. */
+  #root img[src^='/brand/'],
+  #root .rqk-app-rail-brand-mark,
+  #root .rqk-auth-brand,
+  #root .rqk-auth-brand__sigil {
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Display text follows the approved Fraunces / antique-brass identity.
+     Keep the logo artwork itself unchanged; use a system serif fallback
+     when the online Fraunces font is unavailable. */
+  #root .rqk-app-shell :is(h1, h2, h3),
+  #root .rqk-auth-page :is(h1, h2),
+  #root .keeper-product-site :is(h1, h2) {
+    color: var(--rq-guild-heading) !important;
+    -webkit-text-fill-color: currentColor !important;
+    font-family: var(--rq-font-display) !important;
+    font-weight: 600 !important;
+    letter-spacing: -.015em !important;
+    line-height: 1.22 !important;
+    text-shadow: none !important;
+  }
+
+  #root .rqk-app-shell :is(
+    .campaign-home-command-copy > span,
+    .campaign-home-focus-card > p,
+    .campaign-home-detail > p,
+    .rqk-npc-card-content > p
+  ) {
+    color: var(--rq-guild-copy) !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  /* Flat, tonal surfaces do the separating. Inputs, dropdowns and modal
+     actions intentionally retain edges for usability. */
+  #root .rqk-app-shell :is(
+    .campaign-dashboard-header,
+    .campaign-dashboard-nav,
+    .campaign-dashboard-panel,
+    .campaign-home-command,
+    .campaign-home-focus-card,
+    .campaign-home-detail,
+    .campaign-home-section,
+    .campaign-home-session-rail,
+    .campaign-home-session-rail__action,
+    .campaign-home-quick-card,
+    .rqk-npc-card,
+    .rqk-rel-panel,
+    .rqk-calendar-panel,
+    .rqk-calendar-settings-panel,
+    .rqk-stat-block,
+    .card,
+    .rq-card,
+    .panel,
+    .rq-panel
+  ) {
+    border: 0 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  #root .rqk-app-shell :is(
+    .campaign-dashboard-group,
+    .campaign-dashboard-tab,
+    .campaign-button,
+    .campaign-icon-button,
+    .rqk-app-rail-link,
+    .rqk-app-mobile-more-item,
+    .rqk-app-mobile-more-trigger,
+    .rqk-npc-expand-toggle
+  ) {
+    border: 0 !important;
+    box-shadow: none !important;
+    transition: background-color .18s ease, color .18s ease, transform .18s ease !important;
+  }
+
+  #root .rqk-auth-page :is(
+    .rqk-auth-brand,
+    .rqk-auth-card,
+    .rqk-auth-hero,
+    .rqk-auth-preview-card,
+    .rqk-auth-feature-card
+  ),
+  #root .keeper-product-site :is(
+    .landing-feature-card,
+    .landing-feature-card-grid > article,
+    .landing-product-stage,
+    .landing-ledger-stack,
+    .landing-app-preview
+  ) {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Make it feel like a real wax seal, not a bright red alarm colour.
+     Only apply the burgundy treatment to navigation and selectable cards;
+     don't make destructive, disabled or status controls look like selections. */
+  #root .rqk-app-shell :is(
+    .campaign-dashboard-group.is-active,
+    .campaign-dashboard-tab.is-active,
+    .rqk-app-rail-link.is-active,
+    .rqk-app-mobile-more-item.is-active,
+    .rqk-app-mobile-more-trigger.is-open,
+    .campaign-home-session-rail__action[aria-pressed='true'],
+    .campaign-home-quick-card[aria-pressed='true']
+  ),
+  #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
+    background: var(--rq-guild-wine-selected) !important;
+    background-color: var(--rq-guild-wine) !important;
+    border-color: transparent !important;
+    color: #F8F0E5 !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  #root .rqk-app-shell :is(
+    .campaign-dashboard-group.is-active,
+    .campaign-dashboard-tab.is-active,
+    .rqk-app-rail-link.is-active,
+    .rqk-app-mobile-more-item.is-active
+  ) :is(span, svg) {
+    color: #F8F0E5 !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  #root .rqk-app-shell :is(
+    .campaign-dashboard-tab,
+    .campaign-dashboard-group,
+    .campaign-home-focus-card,
+    .campaign-home-quick-card,
+    .campaign-home-session-rail__action,
+    .rqk-app-rail-link,
+    .rqk-app-mobile-more-item,
+    .rqk-app-mobile-more-trigger,
+    .rqk-npc-expand-toggle
+  ):focus-visible,
+  #root .rqk-auth-page :is(
+    .rqk-auth-mode-toggle button,
+    .rqk-auth-primary,
+    .rqk-auth-secondary
+  ):focus-visible {
+    outline: 2px solid var(--rq-guild-heading) !important;
+    outline-offset: 3px !important;
+  }
+
+  /* Remove hover-only artificial gold outlines. Keyboard rings above remain. */
+  #root .rqk-app-shell :is(
+    .campaign-dashboard-tab,
+    .campaign-dashboard-group,
+    .campaign-home-focus-card,
+    .campaign-home-quick-card,
+    .campaign-home-session-rail__action
+  ):hover:not(:focus-visible) {
+    outline: 0 !important;
+  }
+
+  #root .rqk-app-shell .rqk-app-rail-brand-mark img,
+  #root .rqk-auth-page img[src^='/brand/'] {
+    filter: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+@layer rq-controls {
+  @media (hover: hover) and (pointer: fine) {
+    #root .rqk-app-shell :is(
+      .campaign-dashboard-tab,
+      .campaign-dashboard-group,
+      .campaign-home-focus-card,
+      .campaign-home-quick-card,
+      .campaign-home-session-rail__action,
+      .rqk-app-rail-link,
+      .rqk-app-mobile-more-item,
+      .rqk-app-mobile-more-trigger,
+      .rqk-npc-expand-toggle
+    ):hover:not(:disabled):not([aria-disabled='true']) {
+      background: var(--rq-guild-wine-hover) !important;
+      background-color: var(--rq-guild-wine) !important;
+      color: #F8F0E5 !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+    }
+    #root .rqk-app-shell :is(
+      .campaign-dashboard-tab,
+      .campaign-dashboard-group,
+      .campaign-home-quick-card,
+      .rqk-app-rail-link
+    ):hover :is(span, svg) {
+      color: #F8F0E5 !important;
+      -webkit-text-fill-color: currentColor !important;
+    }
+    #root .rqk-auth-page :is(
+      .rqk-auth-primary,
+      .rqk-auth-secondary,
+      .rqk-auth-mode-toggle button
+    ):hover:not(:disabled) {
+      background: var(--rq-guild-wine-hover) !important;
+      background-color: var(--rq-guild-wine) !important;
+      border-color: transparent !important;
+      color: #F8F0E5 !important;
+    }
+  }
+}
+
+/* Warm white is for reading; gold identifies hierarchy. Don't recolour
+   status indicators or handout text that carries its own meaning. */
+#root .rqk-app-shell :is(
+  .campaign-home-command-copy > span,
+  .campaign-home-detail > p,
+  .campaign-home-focus-card > p
+) {
+  color: var(--rq-guild-copy) !important;
+}
+
+#root .rqk-app-shell :where(
+  .campaign-home-command,
+  .campaign-home-focus-card,
+  .campaign-home-detail,
+  .campaign-home-section,
+  .rqk-npc-card
+) {
+  background-color: var(--rq-bg-panel, #1E2936) !important;
+}
+
+#root .rqk-app-shell :where(
+  .campaign-home-quick-card,
+  .campaign-home-session-rail__action
+) {
+  background-color: var(--rq-card, #263748) !important;
+}
+
+/* Narrow screens keep the same restrained hover/selection contrast without
+   triggering transforms, glow or accidental sideways scrolling. */
+@media (max-width: 719px) {
+  #root .rqk-app-shell :is(h1, h2) { letter-spacing: -.025em !important; }
+  #root .rqk-app-shell .campaign-dashboard-title-copy h1 {
+    line-height: 1.15 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #root .rqk-app-shell :where(.campaign-home-focus-card,.campaign-home-detail) {
+    border-radius: 8px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-app-shell :is(
+    .campaign-dashboard-tab,.campaign-dashboard-group,.campaign-home-focus-card,
+    .campaign-home-quick-card,.rqk-app-rail-link,.rqk-app-mobile-more-item
+  ) {
+    transition: none !important;
+  }
+}
+
+
+/* Skeletons should feel like the same navy ledger while sections fetch, not
+   brown gradient cards. The subtle brass sheen indicates activity without
+   claiming progress toward completion. */
+#root .rq-loading-skeleton {
+  background: #1E2936 !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+}
+#root .rq-loading-skeleton__row {
+  border-color: transparent !important;
+}
+#root .rq-loading-skeleton__avatar,
+#root .rq-loading-skeleton__line {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: linear-gradient(90deg,
+    rgba(234, 223, 200, .07) 0%,
+    rgba(201, 169, 107, .17) 48%,
+    rgba(234, 223, 200, .07) 100%) !important;
+}
+#root .rq-loading-skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 107, .11), transparent) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .rq-loading-skeleton,
+  #root .rq-loading-skeleton::after,
+  #root .rq-loading-skeleton__row {
+    animation: none !important;
+  }
+}
