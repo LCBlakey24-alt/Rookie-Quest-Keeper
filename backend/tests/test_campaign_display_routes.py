@@ -178,7 +178,7 @@ def test_player_display_removes_private_nested_gm_data_and_hidden_tokens():
             ],
             'banner': {
                 'id': 'announcement-1', 'text': 'A creature approaches',
-                'gm_notes': 'It's the lich', 'tone': 'danger',
+                'gm_notes': 'Secret lich identity', 'tone': 'danger',
             },
         },
     }
