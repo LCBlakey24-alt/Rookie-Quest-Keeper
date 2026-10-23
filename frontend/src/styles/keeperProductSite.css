@@ -1930,12 +1930,15 @@
   }
 
   #root .keeper-product-site .landing-nav-actions .landing-button {
-    padding-inline: 7px !important;
-    font-size: 9px !important;
+    padding-inline: 8px !important;
+    min-height: 44px !important;
+    font-size: 11px !important;
   }
 
+  /* Sign in must remain available on narrow phones, not just Open Keeper. */
   #root .keeper-product-site .landing-nav-actions .landing-button-ghost {
-    display: none !important;
+    display: inline-flex !important;
+    min-height: 44px !important;
   }
 
   #root .keeper-product-site h1 {
