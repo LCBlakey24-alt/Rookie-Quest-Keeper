@@ -994,3 +994,137 @@
     padding: 0 !important;
   }
 }
+
+/* ==========================================================================
+   GM Session Workbench — cohesive responsive desktop/mobile composition.
+   One existing navigation and one set of data-backed cards, no extra rail.
+   ========================================================================= */
+#root .campaign-dashboard-simple .campaign-dashboard-group-row,
+#root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+  scroll-padding-inline: 12px !important;
+  overscroll-behavior-x: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-group,
+#root .campaign-dashboard-simple .campaign-dashboard-tab {
+  position: relative !important;
+  min-height: 42px !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-tab.is-active {
+  color: var(--rqk-campaign-ink) !important;
+  background: var(--rqk-campaign-brass) !important;
+  border-color: var(--rqk-campaign-brass-light) !important;
+  font-weight: 850 !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-group.is-active {
+  color: var(--rqk-campaign-brass-light) !important;
+  border-color: var(--rqk-campaign-brass) !important;
+  background: rgba(201,169,107,.12) !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-group:is(:hover,:focus-visible),
+#root .campaign-dashboard-simple .campaign-dashboard-tab:is(:hover,:focus-visible) {
+  outline: 2px solid var(--rqk-campaign-brass-light) !important;
+  outline-offset: -2px !important;
+}
+#root .campaign-dashboard-simple .campaign-dashboard-title-copy > span {
+  font-size: 12px !important;
+  letter-spacing: .025em !important;
+}
+#root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] {
+  min-width: 0 !important;
+  padding: clamp(13px,1.5vw,19px) !important;
+  border: 1px solid var(--rqk-campaign-hairline) !important;
+  border-radius: 8px !important;
+  background: var(--rqk-campaign-surface) !important;
+}
+#root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] .campaign-home-section-heading > span {
+  color: var(--rqk-campaign-muted) !important;
+}
+#root .campaign-home-quick-card:is(:hover,:focus-visible),
+#root .campaign-home-overview-item:is(:hover,:focus-visible) {
+  outline: 2px solid var(--rqk-campaign-brass-light) !important;
+  outline-offset: 2px !important;
+}
+#root .campaign-home-note-link {
+  justify-self: start !important;
+  min-height: 38px !important;
+  padding: 7px 12px !important;
+  background: var(--rqk-campaign-elevated) !important;
+  border: 1px solid var(--rqk-campaign-hairline) !important;
+  border-radius: 6px !important;
+  color: var(--rqk-campaign-brass-light) !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+#root .campaign-home-note-link:is(:hover,:focus-visible) {
+  border-color: var(--rqk-campaign-brass) !important;
+}
+@media (min-width: 1180px) {
+  #root .campaign-home-simple {
+    grid-template-columns: minmax(0,1fr) minmax(270px,.34fr) !important;
+    align-items: start !important;
+    column-gap: clamp(15px,1.7vw,24px) !important;
+  }
+  #root .campaign-home-command,
+  #root .campaign-home-overview,
+  #root .campaign-home-join-code {
+    grid-column: 1 / -1 !important;
+  }
+  #root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] {
+    grid-column: 2 !important;
+    grid-row: 3 / span 2 !important;
+    position: sticky !important;
+    top: 18px !important;
+  }
+  #root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] .campaign-home-quick-grid {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+  #root .campaign-home-focus-grid {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  #root .campaign-home-focus-card--wide {
+    grid-column: 1 / -1 !important;
+  }
+  #root .campaign-home-detail-grid {
+    grid-column: 1 !important;
+    grid-row: 4 !important;
+  }
+  #root .campaign-home-command-copy > h2 { max-width: 24ch !important; }
+}
+@media (min-width: 761px) and (max-width: 1179px) {
+  #root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] .campaign-home-quick-grid {
+    grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width: 760px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-group-row,
+  #root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+    gap: 7px !important;
+    padding-inline: max(10px, env(safe-area-inset-left, 0px)) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-tab {
+    min-height: 44px !important;
+    padding-inline: 12px !important;
+    font-size: 12px !important;
+  }
+  #root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] {
+    padding: 12px !important;
+  }
+  #root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] .campaign-home-quick-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  #root .campaign-home-quick-card {
+    min-height: 62px !important;
+  }
+  #root .campaign-home-overview-item strong { font-size: clamp(1.25rem,5.3vw,1.8rem) !important; }
+}
+@media (max-width: 370px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-title-copy > span {
+    font-size: 11px !important;
+  }
+  #root .campaign-home-section[aria-labelledby="campaign-quick-start-title"] .campaign-home-quick-grid {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+}
