@@ -47,7 +47,7 @@ describe('GM Home session-date teaser', () => {
     custom_months: Array.from({ length: 12 }, (_, index) => ({ name: 'Month ' + (index + 1), days: 30 })),
   };
 
-  test('shows today's six-day repeating event instead of hiding it as past', () => {
+  test("shows today's six-day repeating event instead of hiding it as past", () => {
     const weekly = { name: 'Six-day council', year: 592, month: 1, day: 1, is_recurring: true, recurrence_type: 'weekly' };
     const next = chooseNextCampaignEvent([weekly], tiaKartaCalendar);
     expect(next).toMatchObject({ name: 'Six-day council', daysUntil: 0 });
