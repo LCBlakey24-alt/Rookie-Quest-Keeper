@@ -38,7 +38,7 @@ function displaySubtitle(state) {
   const payload = state?.payload || {};
   if (payload.subtitle) return payload.subtitle;
   if (payload.caption) return payload.caption;
-  if (state?.mode === 'npc-grid') return `${payload.npcs?.length || 0} NPC picture${payload.npcs?.length === 1 ? '' : 's'} showing`;
+  if (state?.mode === 'npc-grid') return `${payload.npcs?.length || 0} NPC${payload.npcs?.length === 1 ? '' : 's'} showing`;
   if (state?.mode === 'image') return payload.image_url ? 'Map or image showing' : 'Image mode is open';
   return 'Ready for the next reveal.';
 }
@@ -50,6 +50,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const [worldMaps, setWorldMaps] = useState([]);
   const [npcs, setNpcs] = useState(() => Array.isArray(initialExtras?.npcs) ? initialExtras.npcs : []);
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
+  const [npcQuery, setNpcQuery] = useState('');
   const [target, setTarget] = useState('standing-tv');
   const [busy, setBusy] = useState('');
   const [refreshingAssets, setRefreshingAssets] = useState(false);
@@ -84,7 +85,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
       if (npcsResult.status === 'fulfilled') {
         setNpcs(Array.isArray(npcsResult.value?.data) ? npcsResult.value.data : []);
       } else {
-        failures.push('NPC pictures');
+        failures.push('NPCs');
       }
 
       if (worldMapsResult.status === 'fulfilled') {
@@ -112,6 +113,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
     const cached = getLiveBootstrapExtras(campaignId);
     setAssetWarning('');
     setSelectedNpcIds([]);
+    setNpcQuery('');
     setWorldMaps([]);
     if (Array.isArray(cached?.maps)) setMaps(cached.maps);
     else setMaps([]);
@@ -123,8 +125,13 @@ export default function LiveSecondScreenDock({ campaignId }) {
   }, [campaignId, refreshAssets]);
 
   const visibleMaps = useMemo(() => [...maps, ...worldMaps].filter(imageFrom), [maps, worldMaps]);
-  const visibleNpcs = useMemo(() => npcs.filter(imageFrom), [npcs]);
+  // Portraits are optional; a name-and-initials card still makes a valid reveal.
+  const visibleNpcs = npcs;
   const selectedNpcs = useMemo(() => visibleNpcs.filter(npc => selectedNpcIds.includes(String(npc.id))), [visibleNpcs, selectedNpcIds]);
+  const matchingNpcs = useMemo(() => {
+    const search = npcQuery.trim().toLocaleLowerCase();
+    return search ? visibleNpcs.filter(npc => String(npc.name || '').toLocaleLowerCase().includes(search)) : visibleNpcs;
+  }, [visibleNpcs, npcQuery]);
   const currentTarget = normaliseTarget(state?.payload?.display_target || target);
 
   const publish = async (mode, payload, actionId) => {
@@ -225,19 +232,26 @@ export default function LiveSecondScreenDock({ campaignId }) {
       </section>
 
       <section style={buttonGroupStyle}>
-        <p style={sectionLabelStyle}>NPC pictures · select multiple</p>
+        <p style={sectionLabelStyle}>NPCs · select multiple</p>
         <button type="button" onClick={showSelectedNpcs} disabled={!selectedNpcs.length || Boolean(busy)} style={revealButtonStyle}><Users size={13} /> Show selected NPCs ({selectedNpcs.length})</button>
+        <label style={{ display: 'grid', gap: 4, fontSize: 12, color: theme.soft }}>
+          Search NPCs
+          <input type="search" aria-label="Search second screen NPCs" value={npcQuery} onChange={event => setNpcQuery(event.target.value)} placeholder="Find an NPC by name" style={npcSearchStyle} />
+        </label>
+        <span role="status" style={mutedStyle}>{selectedNpcs.length} selected · {matchingNpcs.length} of {visibleNpcs.length} NPCs shown</span>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => setSelectedNpcIds(visibleNpcs.map(npc => String(npc.id)))} style={smallButtonStyle}>Select all</button>
           <button type="button" onClick={() => setSelectedNpcIds([])} style={smallButtonStyle}>Clear selection</button>
         </div>
         <div style={{ display: 'grid', gap: 5, maxHeight: 280, overflowY: 'auto' }}>
-          {visibleNpcs.length ? visibleNpcs.map(npc => (
-            <label key={npc.id} style={{ ...mediaButtonStyle, cursor: 'pointer' }}>
-              <input type="checkbox" checked={selectedNpcIds.includes(String(npc.id))} onChange={() => setSelectedNpcIds(previous => previous.includes(String(npc.id)) ? previous.filter(id => id !== String(npc.id)) : [...previous, String(npc.id)])} />
-              <Users size={13} /> {npc.name || 'NPC'}
+          {matchingNpcs.map(npc => (
+            <label key={npc.id} style={{ ...mediaButtonStyle, cursor: 'pointer', minHeight: 44 }}>
+              <input type="checkbox" aria-label={`Reveal ${npc.name || 'Unnamed NPC'}`} checked={selectedNpcIds.includes(String(npc.id))} onChange={() => setSelectedNpcIds(previous => previous.includes(String(npc.id)) ? previous.filter(id => id !== String(npc.id)) : [...previous, String(npc.id)])} />
+              <Users size={13} /> {npc.name || 'NPC'}{!imageFrom(npc) && <span style={noPortraitStyle}>Initials</span>}
             </label>
-          )) : <p style={mutedStyle}>Upload NPC portraits to show them here.</p>}
+          ))}
+          {!visibleNpcs.length && <p style={mutedStyle}>No NPCs saved in this campaign yet.</p>}
+          {visibleNpcs.length > 0 && !matchingNpcs.length && <p style={mutedStyle}>No NPCs match. Clear the search to see everyone.</p>}
         </div>
       </section>
 
@@ -272,3 +286,5 @@ const sectionLabelStyle = { margin: 0, color: theme.muted, fontSize: 10, fontWei
 const revealButtonStyle = { minHeight: 34, border: `1px solid ${theme.pink}`, background: theme.card, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 6, textAlign: 'left', justifyContent: 'flex-start', fontSize: 12, fontWeight: 900, cursor: 'pointer' };
 const mediaButtonStyle = { minHeight: 32, border: 0, background: theme.card, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 6, textAlign: 'left', justifyContent: 'flex-start', fontSize: 12, fontWeight: 850, cursor: 'pointer', overflow: 'hidden' };
 const mutedStyle = { margin: 0, color: theme.muted, fontSize: 12, lineHeight: 1.35 };
+const npcSearchStyle = { boxSizing: 'border-box', width: '100%', minHeight: 46, fontSize: 16, background: theme.bg, color: theme.text, border: `1px solid ${theme.line}`, borderRadius: 5, padding: '0 10px' };
+const noPortraitStyle = { marginLeft: 'auto', color: 'var(--rq-text-secondary, #EADFC8)', fontSize: 10 };
