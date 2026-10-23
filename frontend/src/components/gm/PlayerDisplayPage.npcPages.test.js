@@ -57,6 +57,16 @@ describe('player-facing NPC gallery pagination', () => {
     view.unmount();
   });
 
+  test('nine NPCs create a second, single-card page', () => {
+    const view = renderScene('standing-tv', 9);
+    expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(8);
+    fireEvent.click(screen.getByRole('button', { name: 'Next NPC page' }));
+    expect(screen.getByText(/Page 2 of 2/)).toBeInTheDocument();
+    expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(1);
+    expect(screen.getByText('NPC 09')).toBeInTheDocument();
+    view.unmount();
+  });
+
   test('large TV scenes stay legible and cycle all NPCs with manual controls', () => {
     const view = renderScene('standing-tv', 11);
     expect(view.container.querySelectorAll('.rqk-player-display__npc-card')).toHaveLength(8);
