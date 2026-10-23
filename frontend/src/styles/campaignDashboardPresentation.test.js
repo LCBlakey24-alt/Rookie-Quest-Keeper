@@ -38,7 +38,7 @@ describe('Campaign Dashboard presentation ownership', () => {
     expect(mobile).toContain('tabGroups.map');
     expect(mobile).toContain('onOpenTab(event.target.value)');
     expect(css).toContain('Guild Ledger mobile workspace picker');
-    expect(css).toMatch(/@media \\(max-width: 760px\\)/);
+    expect(css).toContain('@media (max-width: 760px)');
     expect(css).toContain('display: none !important;');
     expect(css).toContain('.campaign-dashboard-group-row');
     expect(css).toContain('.campaign-dashboard-tab-row');
