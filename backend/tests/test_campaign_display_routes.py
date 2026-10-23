@@ -134,3 +134,151 @@ def test_acknowledgement_records_only_the_current_display_state(monkeypatch):
     assert stale['stale'] is True
     assert stale['current_sync_id'] == 'sync-current'
     assert len(fake_db.campaign_display_states.updates) == 1
+
+
+def test_player_display_accepts_live_battle_and_table_roll_modes():
+    for mode in ('battle-start', 'table-result'):
+        state = sanitize_display_state('campaign-1', {
+            'mode': mode,
+            'payload': {
+                'title': 'Roll Initiative' if mode == 'battle-start' else 'Lucky Roll',
+                'die': 'd20', 'roll': 17, 'result': 'Success',
+                'party': [{'name': 'Rowan', 'hp': 20}],
+            },
+        }, 'gm')
+        assert state['mode'] == mode
+        assert state['payload']['title']
+        if mode == 'table-result':
+            assert state['payload']['roll'] == 17
+        else:
+            assert 'roll' not in state['payload']
+
+
+def test_player_display_removes_private_nested_gm_data_and_hidden_tokens():
+    original = {
+        'mode': 'combat',
+        'payload': {
+            'title': 'Council Ambush',
+            'display_target': 'virtual-table',
+            'gm_notes': 'Final boss is her father',
+            'party': [{
+                'id': 'p1', 'name': 'Rowan', 'hp': 19,
+                'maxHp': 25, 'ac': 17, 'notes': 'Secret PC backstory',
+                'character': {'private_story': 'Do not reveal'},
+            }],
+            'tokens': [
+                {'id': 'hidden', 'name': 'Secret Lich', 'hidden': True,
+                 'x': 0, 'y': 0, 'secret': True, 'gm_notes': 'Trap'},
+                {'id': 'visible', 'name': 'Skeleton', 'hidden': False,
+                 'x': 0, 'y': 0, 'initiative': 11, 'hp': 400,
+                 'ac': 27, 'gm_notes': 'Don't reveal resistances',
+                 'position': {'x': 0, 'y': 0, 'gm_note': 'north trap'}},
+                {'id': 'invisible', 'name': 'Secret Dragon', 'visible': False},
+                {'id': 'private', 'name': 'Shadow', 'visibility': 'gm-only'},
+            ],
+            'banner': {
+                'id': 'announcement-1', 'text': 'A creature approaches',
+                'gm_notes': 'It's the lich', 'tone': 'danger',
+            },
+        },
+    }
+    state = sanitize_display_state('campaign-1', original, 'gm')
+    payload = state['payload']
+    assert payload['display_target'] == 'virtual-table'
+    assert payload['party'] == [{'id': 'p1', 'name': 'Rowan', 'hp': 19, 'maxHp': 25, 'ac': 17}]
+    assert payload['tokens'] == [{
+        'id': 'visible', 'name': 'Skeleton', 'x': 0, 'y': 0,
+        'initiative': 11, 'position': {'x': 0, 'y': 0},
+    }]
+    assert payload['banner'] == {
+        'id': 'announcement-1', 'text': 'A creature approaches', 'tone': 'danger',
+    }
+    assert 'Secret Lich' not in str(payload)
+    assert 'Final boss' not in str(payload)
+    assert 'resistances' not in str(payload)
+    assert 'Secret PC' not in str(payload)
+
+
+def test_player_display_npc_group_check_and_recap_preserve_public_shapes():
+    npc = sanitize_display_state('c', {
+        'mode': 'npc-grid',
+        'payload': {'title': 'NPCs', 'npcs': [
+            {'id': 'n1', 'name': 'Mira', 'subtitle': 'Trader',
+             'description': 'Friendly merchant', 'image_url': '/mira.png',
+             'gm_notes': 'Secret villain'},
+        ]},
+    }, 'gm')['payload']
+    assert npc['npcs'] == [{
+        'id': 'n1', 'name': 'Mira', 'subtitle': 'Trader',
+        'description': 'Friendly merchant', 'image_url': '/mira.png',
+    }]
+
+    group = sanitize_display_state('c', {
+        'mode': 'group-check',
+        'payload': {
+            'check_name': 'Perception', 'dc': 14, 'notation': '1d20',
+            'party': [{'id': 'p1', 'name': 'Rowan', 'className': 'Druid'}],
+            'results': [{'id': 'p1', 'total': 18, 'natural': 16,
+                         'visibleRolls': [{'sides': 20, 'result': 16,
+                                           'dropped': False, 'secret': 'DM'}],
+                         'gm_notes': 'hidden DC modifier'}],
+        },
+    }, 'gm')['payload']
+    assert group['check_name'] == 'Perception'
+    assert group['results'][0]['visibleRolls'] == [
+        {'sides': 20, 'result': 16, 'dropped': False}]
+    assert 'gm_notes' not in str(group)
+
+    recap = sanitize_display_state('c', {
+        'mode': 'end-session-stats',
+        'payload': {
+            'campaignName': 'Tia-Karta', 'generated_at': 42,
+            'session': {
+                'nat20s': 5, 'playerRolls': 30,
+                'awards': [{'title': 'Best Crit', 'name': 'Rowan',
+                            'value': '20', 'dmOnly': 'Secret'}],
+                'actors': [{'name': 'Rowan', 'rolls': 10,
+                            'nat20s': 3, 'nat1s': 1, 'email': 'private'}],
+                'private': {'gm': 'notes'},
+            },
+            'allTime': {'nat20s': 50, 'totalRolls': 100, 'secrets': 'no'},
+        },
+    }, 'gm')['payload']
+    assert recap['session']['awards'] == [
+        {'title': 'Best Crit', 'name': 'Rowan', 'value': '20'}]
+    assert recap['session']['actors'] == [
+        {'name': 'Rowan', 'rolls': 10, 'nat20s': 3, 'nat1s': 1}]
+    assert recap['allTime'] == {'nat20s': 50, 'totalRolls': 100}
+
+
+def test_member_get_sanitizes_an_older_saved_snapshot(monkeypatch):
+    class FakeCollection:
+        async def find_one(self, query, projection=None):
+            return {
+                'campaign_id': 'campaign-1', 'mode': 'npc-grid',
+                'sync_id': 'older-sync', 'sequence': 23,
+                'updated_at': '2026-10-23T12:00:00+00:00',
+                'top_level_secret': 'Should not leave the server',
+                'payload': {
+                    'npcs': [{'name': 'Mira', 'gm_notes': 'Betrayal'}],
+                    'private_notes': 'The dungeon secret',
+                    'title': 'Welcome',
+                },
+            }
+
+    class FakeDb:
+        campaign_display_states = FakeCollection()
+
+    async def allow_membership(campaign_id, username):
+        return True
+
+    monkeypatch.setattr(campaign_display_module, 'db', FakeDb())
+    monkeypatch.setattr(campaign_display_module, 'verify_campaign_membership', allow_membership)
+    state = asyncio.run(campaign_display_module.get_campaign_display_state(
+        'campaign-1', username='member',
+    ))
+    assert state['sync_id'] == 'older-sync'
+    assert state['payload'] == {
+        'title': 'Welcome', 'npcs': [{'name': 'Mira'}],
+    }
+    assert 'top_level_secret' not in state
