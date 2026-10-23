@@ -152,14 +152,25 @@ export default function CampaignDashboard() {
     };
 
     window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    window.addEventListener('popstate', onHashChange);
+    return () => {
+      window.removeEventListener('hashchange', onHashChange);
+      window.removeEventListener('popstate', onHashChange);
+    };
   }, []);
 
   // Deep links and the quick finder can select an off-screen tab. Bring its
   // button into the horizontal navigation viewport without stealing focus.
   useEffect(() => {
-    const selected = tabRowRef.current?.querySelector('.campaign-dashboard-tab.is-active');
-    selected?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+    const row = tabRowRef.current;
+    const selected = row?.querySelector('.campaign-dashboard-tab.is-active');
+    if (!row || !selected) return;
+    const strip = row.getBoundingClientRect();
+    const item = selected.getBoundingClientRect();
+    // Reveal the active tool inside the horizontal strip without making
+    // the entire page scroll or stealing keyboard focus.
+    if (item.left < strip.left) row.scrollLeft = row.scrollLeft + item.left - strip.left - 8;
+    else if (item.right > strip.right) row.scrollLeft = row.scrollLeft + item.right - strip.right + 8;
   }, [activeTab]);
 
   const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
@@ -172,7 +183,7 @@ export default function CampaignDashboard() {
     if (typeof window !== 'undefined') {
       const nextHash = `#tab-${tabId}`;
       if (window.location.hash !== nextHash) {
-        window.history.pushState(null, '', `${window.location.pathname}${nextHash}`);
+        window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
       }
       window.requestAnimationFrame?.(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
