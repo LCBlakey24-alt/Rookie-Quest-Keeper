@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { eventCountdownLabel, nextCampaignEvent } from '@/components/gm/dashboard/campaignHomeCalendar';
+import AnimatedLedgerNumber from '@/components/ui/AnimatedLedgerNumber';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 
 const CampaignSettingTab = React.lazy(() => import('@/components/tabs/CampaignSettingTab'));
@@ -631,7 +632,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             <button type="button" key={item.id} className="campaign-home-overview-item"
               onClick={() => onOpenTab(item.id)} aria-label={`Open ${item.label}`}>
               <Icon size={19} aria-hidden="true" />
-              <strong>{homeLoading || unavailableSections.includes(item.key) ? '—' : item.count}</strong>
+              <strong><AnimatedLedgerNumber value={homeLoading || unavailableSections.includes(item.key) ? '—' : item.count} /></strong>
               <span>{item.label}</span>
             </button>
           );
