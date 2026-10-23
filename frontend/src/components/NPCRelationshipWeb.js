@@ -105,6 +105,8 @@ export default function NPCRelationshipWeb({ campaignId }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingLinkId, setEditingLinkId] = useState('');
   const formSectionRef = useRef(null);
+  const graphSectionRef = useRef(null);
+  const savedSectionRef = useRef(null);
   const activeCampaignRef = useRef(campaignId);
   const [busy, setBusy] = useState(false);
   const [removingId, setRemovingId] = useState('');
@@ -278,13 +280,24 @@ export default function NPCRelationshipWeb({ campaignId }) {
         </button>
       </div>
     </header>
+    <nav className="rqk-rel-quick-nav" aria-label="Relationship workspace sections">
+      <button type="button" onClick={() => graphSectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })}>
+        <Network size={16} aria-hidden="true" /> Network map
+      </button>
+      <button type="button" onClick={() => savedSectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })}>
+        <Heart size={16} aria-hidden="true" /> Saved connections <span>{validLinks.length}</span>
+      </button>
+      <button type="button" onClick={() => formSectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })}>
+        <Link2 size={16} aria-hidden="true" /> Add or edit
+      </button>
+    </nav>
     <div className="rqk-rel-coverage" aria-label="Relationship network coverage">
       <div><strong>{linkedNpcIds.size}</strong><span>NPCs with connections</span></div>
       <div><strong>{unlinkedNpcs.length}</strong><span>NPCs not yet linked</span></div>
       <div><strong>{validLinks.filter(link => String(link.relationship_type).startsWith('secret_')).length}</strong><span>Secret connections · GM only</span></div>
     </div>
 
-    <section className="rqk-rel-panel rqk-rel-graph-panel" aria-label="Visual NPC relationship map">
+    <section ref={graphSectionRef} className="rqk-rel-panel rqk-rel-graph-panel" aria-label="Visual NPC relationship map">
       <h3><Users size={17}/> Relationship map</h3>
       <p>Explore one NPC's connections on your phone, or switch to the full network. Select any node to focus on that person.</p>
       <div className="rqk-rel-graph-controls">
@@ -399,7 +412,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
         }}>Create a connection for {selectedNpc.name}</button>
       </div>}
     </section>
-    <section className="rqk-rel-panel rqk-rel-saved-panel" aria-label="Saved NPC connections">
+    <section ref={savedSectionRef} className="rqk-rel-panel rqk-rel-saved-panel" aria-label="Saved NPC connections">
       <div className="rqk-rel-list-heading">
         <h3><Heart size={17}/> Saved connections</h3>
         <input aria-label="Search NPC relationships" placeholder="Search people or relationship notes…"
@@ -408,6 +421,10 @@ export default function NPCRelationshipWeb({ campaignId }) {
           <option value="all">All connection types</option>
           {RELATIONSHIP_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
         </select>
+      </div>
+      <div className="rqk-rel-results-line" role="status">
+        Showing {filteredLinks.length} of {validLinks.length} saved connections
+        {(search || typeFilter !== 'all') && <button type="button" onClick={() => { setSearch(''); setTypeFilter('all'); }}>Clear filters</button>}
       </div>
       {filteredLinks.length === 0 ? (
         <p className="rqk-rel-empty">{validLinks.length ? 'No connections match your search.' :
