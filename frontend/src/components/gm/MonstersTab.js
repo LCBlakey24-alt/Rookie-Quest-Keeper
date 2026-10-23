@@ -349,7 +349,6 @@ const selectStyle = { minHeight: 36, background: rq.bg, border: `1px solid ${rq.
 const selectedPanelStyle = { display: 'grid', gap: 6, background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, color: rq.soft };
 const selectedChipRowStyle = { display: 'flex', gap: 6, flexWrap: 'wrap' };
 const selectedChipStyle = { background: 'rgba(124,203,255,0.10)', color: rq.text, border: `1px solid ${rq.line}`, padding: '4px 7px', fontSize: 12, fontWeight: 900 };
-const creatureGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 8, minWidth: 0 };
 const creatureCardStyle = (active) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, background: active ? 'rgba(124,203,255,0.10)' : rq.card, border: `1px solid ${active ? rq.red : rq.line}`, borderLeft: `1px solid ${active ? rq.pink : rq.line}`, padding: 10 });
 const creatureTopStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' };
 const crPillStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: '3px 6px', fontSize: 11, fontWeight: 950, whiteSpace: 'nowrap' };
