@@ -1,0 +1,18 @@
+/* Guild Ledger Bestiary: compact quantity controls beside one complete stat sheet. */
+#root .rqk-bestiary-selected-sheet { min-width: 0; }
+#root .rqk-bestiary-selected-sheet > .rqk-stat-block { margin: 0; }
+#root .rqk-bestiary-selected-sheet .rqk-reference-browser__detail-actions {
+  padding-bottom: 12px; border-bottom: 1px solid var(--rq-border-default, rgba(137,157,176,.24));
+}
+#root .rqk-bestiary-quantity-label { margin-right: auto; color: var(--rq-text-primary, #eadfc8); font-size: 13px; }
+#root .rqk-bestiary-selected-sheet .rqk-reference-browser__detail-actions button,
+#root .rqk-bestiary-beast-filter {
+  min-height: 40px; border: 1px solid var(--rq-accent-primary, #c9a96b);
+  background: var(--rq-bg-panel, #1e2936); color: var(--rq-text-primary, #eadfc8);
+  border-radius: 6px; padding: 7px 12px; font: inherit; font-size: 12px;
+  font-weight: 800; cursor: pointer;
+}
+#root .rqk-bestiary-selected-sheet .rqk-reference-browser__detail-actions button:disabled { opacity: .45; cursor: not-allowed; }
+#root .rqk-bestiary-beast-filter[aria-pressed="true"] { background: var(--rq-accent-soft, rgba(201,169,107,.12)); }
+#root .rqk-bestiary-selected-sheet button:focus-visible,
+#root .rqk-bestiary-beast-filter:focus-visible { outline: 2px solid var(--rq-accent-primary, #c9a96b); outline-offset: 2px; }
