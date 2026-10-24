@@ -1,0 +1,237 @@
+/*
+ * Guild Command – selected Option 1, campaign-scoped web workspace.
+ * Desktop: grouped campaign tool rail + roomy command centre. Tablet/phone:
+ * existing compact group tabs/tool picker. Preserves hash deep links and data.
+ *
+ * The global waxSealInteractive.css owns interactive background fills; do not
+ * reintroduce antique-gold button backgrounds, borders or selection markers.
+ */
+#root .campaign-dashboard-simple .campaign-guild-command-layout {
+  min-width: 0;
+  width: 100%;
+  display: block;
+}
+#root .campaign-dashboard-simple .campaign-guild-command-rail-heading,
+#root .campaign-dashboard-simple .campaign-guild-command-side-nav {
+  display: none;
+}
+
+/* Product breakpoints: a full tool rail only when a labelled rail fits. */
+@media (min-width: 1181px) {
+  #root .campaign-dashboard-simple .campaign-guild-command-layout {
+    display: grid !important;
+    grid-template-columns: clamp(195px, 18vw, 228px) minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    min-width: 0 !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-nav {
+    min-width: 0 !important;
+    align-self: stretch !important;
+    align-content: start !important;
+    padding: 12px 8px 26px !important;
+    background: #0A1929 !important;
+    border: 0 !important;
+    border-right: 1px solid rgba(110,145,180,.16) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-rail-heading {
+    display: grid !important;
+    gap: 5px !important;
+    padding: 8px 11px 16px !important;
+    border-bottom: 1px solid rgba(110,145,180,.15) !important;
+    margin-bottom: 8px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-rail-heading strong {
+    color: #C9A96B !important; /* text only */
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    letter-spacing: -.03em !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-rail-heading span {
+    color: #A9BACB !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: .13em !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-nav {
+    display: grid !important;
+    gap: 12px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-section {
+    min-width: 0 !important;
+    display: grid !important;
+    align-content: start !important;
+    gap: 3px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-section h2 {
+    margin: 8px 11px 3px !important;
+    font-family: var(--rq-font-sans, Manrope, sans-serif) !important;
+    color: #A7BACB !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    line-height: 1.4 !important;
+    letter-spacing: .13em !important;
+    text-transform: uppercase !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 9px 11px !important;
+    border-radius: 7px !important;
+    color: #F8F0E5 !important;
+    font: inherit !important;
+    font-size: 12px !important;
+    font-weight: 720 !important;
+    line-height: 1.25 !important;
+    text-align: left !important;
+    cursor: pointer !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-link > svg {
+    flex: 0 0 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-link > span {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-link:is(:hover,:focus-visible,.is-active) {
+    color: #F8F0E5 !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-link:focus-visible {
+    outline: 3px solid #6E91B4 !important;
+    outline-offset: 2px !important;
+  }
+  /* Existing two horizontal navigation rows are the compact alternative. */
+  #root .campaign-dashboard-simple .campaign-dashboard-group-row,
+  #root .campaign-dashboard-simple .campaign-dashboard-tab-row,
+  #root .campaign-dashboard-simple .rqk-campaign-mobile-navigator {
+    display: none !important;
+  }
+  #root .campaign-dashboard-simple .campaign-dashboard-workspace {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: clamp(14px, 1.9vw, 28px) !important;
+  }
+}
+@media (min-width: 1181px) and (max-width: 1370px) {
+  #root .campaign-dashboard-simple .campaign-guild-command-layout {
+    grid-template-columns: 192px minmax(0,1fr) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-guild-command-side-link {
+    font-size: 11px !important;
+    gap: 7px !important;
+    padding-inline: 9px !important;
+  }
+}
+
+@layer rq-controls {
+  /* Calm cards and legible numbers; actual counts come from GM Home API. */
+  #root .campaign-dashboard-simple .campaign-home-simple {
+    width: min(100%, 1200px) !important;
+    max-width: 1200px !important;
+    margin-inline: auto !important;
+    gap: clamp(12px, 1.5vw, 18px) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-command {
+    border: 1px solid rgba(110,145,180,.23) !important;
+    border-left: 3px solid #6E91B4 !important;
+    background: #1E2936 !important;
+    box-shadow: none !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-command-copy > p {
+    color: #C9A96B !important; /* heading text only */
+    letter-spacing: .11em !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-command-copy > h2 {
+    color: #EADFC8 !important;
+    font-size: clamp(1.45rem, 2.5vw, 2.1rem) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-overview {
+    grid-template-columns: repeat(4, minmax(0,1fr)) !important;
+    gap: 10px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-overview-item {
+    min-height: 100px !important;
+    border: 1px solid rgba(110,145,180,.28) !important;
+    border-radius: 8px !important;
+    padding: clamp(12px,1.4vw,18px) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-overview-item strong {
+    font-family: var(--rq-font-sans, Manrope, sans-serif) !important;
+    color: #F8F0E5 !important;
+    font-size: clamp(1.3rem, 2.2vw, 1.9rem) !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-overview-item :is(svg,span) {
+    color: #F8F0E5 !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-focus-card,
+  #root .campaign-dashboard-simple .campaign-home-detail,
+  #root .campaign-dashboard-simple .campaign-home-section {
+    border-radius: 8px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-focus-card {
+    border-color: rgba(110,145,180,.23) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-focus-card > svg,
+  #root .campaign-dashboard-simple .campaign-home-quick-card > svg {
+    color: #F8F0E5 !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-detail {
+    background: #1E2936 !important;
+    border: 1px solid rgba(110,145,180,.23) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-detail-heading > button {
+    border-color: rgba(110,145,180,.36) !important;
+    background: #263F59 !important;
+    color: #F8F0E5 !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-detail-heading > button:is(:hover,:focus-visible) {
+    border-color: #7E2D2D !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-session-rail {
+    border-color: rgba(110,145,180,.25) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-session-rail__action {
+    border-color: rgba(110,145,180,.3) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-section-heading > h2 {
+    color: #C9A96B !important; /* text only */
+  }
+  #root .campaign-dashboard-simple :is(.campaign-icon-button,.campaign-button,.campaign-home-overview-item,.campaign-home-quick-card,.campaign-home-focus-card,.campaign-home-session-rail__action):focus-visible {
+    outline: 3px solid #6E91B4 !important;
+    outline-offset: 2px !important;
+  }
+}
+@media (min-width: 761px) and (max-width: 1180px) {
+  #root .campaign-dashboard-simple .campaign-home-overview {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width: 760px) {
+  #root .campaign-dashboard-simple .campaign-guild-command-layout {
+    display: block !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-overview {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-command-actions .campaign-button {
+    min-height: 46px !important;
+  }
+  #root .campaign-dashboard-simple .campaign-home-overview-item {
+    min-height: 88px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .campaign-dashboard-simple .campaign-guild-command-side-link {
+    transition: none !important;
+  }
+}
