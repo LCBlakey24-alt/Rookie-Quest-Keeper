@@ -6,10 +6,11 @@ function read(relativePath) {
 }
 
 describe('Campaign Dashboard presentation ownership', () => {
-  test('uses one route stylesheet instead of a nested sidebar and inline mobile CSS', () => {
+  test('keeps route CSS owned by the campaign with a scoped Guild Command layout and no inline styles', () => {
     const source = read('../components/CampaignDashboard.js');
 
     expect(source).toContain("import './CampaignDashboard.css';");
+    expect(source).toContain("import './GuildCommandWorkspace.css';");
     expect(source).not.toContain('gm-sidebar');
     expect(source).not.toContain('mobileMenuOpen');
     expect(source).not.toContain('mobileCss');
@@ -47,17 +48,18 @@ describe('Campaign Dashboard presentation ownership', () => {
 
   test('avoids duplicating the campaign title in the GM home hero', () => {
     const source = read('../components/CampaignDashboard.js');
-    expect(source).toContain('id="campaign-home-title">Ready for the table');
+    expect(source).toContain('id="campaign-home-title">Your adventure at a glance');
     expect(source).not.toContain('id="campaign-home-title">{campaign?.name');
   });
 
-  test('keeps one two-row campaign navigation system', () => {
+  test('keeps grouped horizontal navigation for compact screens and adds a desktop Guild Command sidebar', () => {
     const source = read('../components/CampaignDashboard.js');
 
     expect(source).toContain('campaign-dashboard-group-row');
     expect(source).toContain('campaign-dashboard-tab-row');
     expect(source).toContain('tabGroups.map');
     expect(source).toContain('activeGroup?.tabs.map');
+    expect(source).toContain('campaign-guild-command-side-nav');
   });
 
   test('owns explicit mobile tablet and desktop geometry in the navy route stylesheet', () => {
@@ -96,12 +98,12 @@ describe('Campaign Dashboard presentation ownership', () => {
 
 
 describe('GM Home table-ready session UX', () => {
-  test('puts table tools before overview cards without duplicating prep shortcuts', () => {
+  test('puts real campaign overview counts before quick tools and retains GM prep shortcuts', () => {
     const source = read('../components/CampaignDashboard.js');
     const toolsStart = source.indexOf('className="campaign-home-session-rail"');
     const overviewStart = source.indexOf('className="campaign-home-overview"');
     expect(toolsStart).toBeGreaterThan(0);
-    expect(overviewStart).toBeGreaterThan(toolsStart);
+    expect(overviewStart).toBeLessThan(toolsStart);
     expect(source).toContain('aria-label="Quick tools for a live session"');
     for (const tab of ['npcs', 'combat', 'chronicle', 'ingame-notes', 'maps']) {
       expect(source).toContain(`{ id: '${tab}', label:`);
