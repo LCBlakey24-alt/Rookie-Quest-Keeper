@@ -628,7 +628,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           <button type="button" className="campaign-button" onClick={() => onOpenTab('story-arcs')}>
             <Flag size={15} aria-hidden="true" /> Prep Session
           </button>
-          <button type="button" className="campaign-button campaign-button-primary" onClick={onOpenLivePlay} aria-label="Open Live Play">
+          <button type="button" className="campaign-button campaign-button-primary" onClick={onOpenLivePlay}>
             <Monitor size={15} aria-hidden="true" /> Start Live Play
           </button>
         </div>
