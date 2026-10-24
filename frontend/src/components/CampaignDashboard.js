@@ -44,6 +44,7 @@ import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
 import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
 import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
+import './GuildCommandWorkspace.css';
 
 const uploadTheme = {
   bg: { black: '#07131F', panel: '#1E2936', card: '#263748', hover: '#334155' },
@@ -268,6 +269,7 @@ export default function CampaignDashboard() {
             onFetchInvite={fetchInviteCode}
             onRotateInvite={rotateInviteCode}
             onCopyInvite={copyInviteCode}
+            onOpenLivePlay={handleOpenGMScreen}
           />
         );
       case 'story-arcs': return withTiaKarta('storyArcs', <StoryArcTracker campaignId={campaignId} onOpenTab={handleTabClick} />);
@@ -299,6 +301,7 @@ export default function CampaignDashboard() {
             onFetchInvite={fetchInviteCode}
             onRotateInvite={rotateInviteCode}
             onCopyInvite={copyInviteCode}
+            onOpenLivePlay={handleOpenGMScreen}
           />
         );
     }
@@ -362,7 +365,36 @@ export default function CampaignDashboard() {
         </div>
       </header>
 
+      <div className="campaign-guild-command-layout">
       <nav className="campaign-dashboard-nav" aria-label="Campaign workspace">
+        <div className="campaign-guild-command-rail-heading" aria-hidden="true">
+          <strong>Guild Command</strong>
+          <span>CAMPAIGN TOOLS</span>
+        </div>
+        <div className="campaign-guild-command-side-nav" aria-label="Campaign tools">
+          {tabGroups.map(group => (
+            <div className="campaign-guild-command-side-section" key={group.id}>
+              <h2>{group.label}</h2>
+              {group.tabs.map(tab => {
+                const Icon = tab.icon;
+                const selected = tab.id === activeTab;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`campaign-guild-command-side-link rqk-selectable-control${selected ? ' is-active' : ''}`}
+                    onClick={() => handleTabClick(tab.id)}
+                    aria-current={selected ? 'page' : undefined}
+                    title={tab.label}
+                  >
+                    <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
         <CampaignMobileNavigator activeTab={activeTab} onOpenTab={handleTabClick} />
         <div className="campaign-dashboard-group-row" aria-label="Campaign tool groups">
           {tabGroups.map((group) => {
@@ -411,6 +443,7 @@ export default function CampaignDashboard() {
           </Suspense>
         </section>
       </main>
+      </div>
     </div>
   );
 }
@@ -458,7 +491,7 @@ function chooseStoryFocus(arcs) {
   return { arc, chapter, nextScene };
 }
 
-function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
+function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onOpenLivePlay, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
   const [unavailableSections, setUnavailableSections] = useState([]);
@@ -584,16 +617,16 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     <div className="campaign-home-simple">
       <section className="campaign-home-command" aria-labelledby="campaign-home-title">
         <div className="campaign-home-command-copy">
-          <p>GM session desk</p>
-          <h2 id="campaign-home-title">Ready for the table</h2>
-          <span>{homeLoading ? 'Loading your campaign notes and quests…' : 'The next scene, key characters and everything you need during play.'}</span>
+          <p>Campaign command centre</p>
+          <h2 id="campaign-home-title">Your adventure at a glance</h2>
+          <span>{homeLoading ? 'Loading your campaign notes and quests…' : 'Track the story, prepare the next scene and jump straight into play.'}</span>
         </div>
         <div className="campaign-home-command-actions">
           <button type="button" className="campaign-button" onClick={loadHome} disabled={homeLoading}>
             <RefreshCw size={15} aria-hidden="true" /> Refresh
           </button>
-          <button type="button" className="campaign-button campaign-button-primary" onClick={() => onOpenTab('story-arcs')}>
-            <Flag size={15} aria-hidden="true" /> Prep Next Session
+          <button type="button" className="campaign-button campaign-button-primary" onClick={onOpenLivePlay} aria-label="Open Live Play">
+            <Monitor size={15} aria-hidden="true" /> Start Live Play
           </button>
         </div>
       </section>
