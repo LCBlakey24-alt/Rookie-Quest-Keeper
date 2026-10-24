@@ -625,6 +625,9 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           <button type="button" className="campaign-button" onClick={loadHome} disabled={homeLoading}>
             <RefreshCw size={15} aria-hidden="true" /> Refresh
           </button>
+          <button type="button" className="campaign-button" onClick={() => onOpenTab('story-arcs')}>
+            <Flag size={15} aria-hidden="true" /> Prep Session
+          </button>
           <button type="button" className="campaign-button campaign-button-primary" onClick={onOpenLivePlay} aria-label="Open Live Play">
             <Monitor size={15} aria-hidden="true" /> Start Live Play
           </button>
@@ -637,6 +640,20 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           Saved data has not been deleted. Select Refresh to try again.
         </p>
       )}
+
+      <section className="campaign-home-overview" aria-label="Campaign library at a glance">
+        {overview.map(item => {
+          const Icon = item.icon;
+          return (
+            <button type="button" key={item.id} className="campaign-home-overview-item rqk-selectable-control"
+              onClick={() => onOpenTab(item.id)} aria-label={`Open ${item.label}`}>
+              <Icon size={19} aria-hidden="true" />
+              <strong>{homeLoading || unavailableSections.includes(item.key) ? '—' : item.count}</strong>
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </section>
 
       <nav className="campaign-home-session-rail" aria-label="Quick tools for a live session">
         <div className="campaign-home-session-rail__heading">
@@ -656,20 +673,6 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           })}
         </div>
       </nav>
-
-      <section className="campaign-home-overview" aria-label="Campaign library at a glance">
-        {overview.map(item => {
-          const Icon = item.icon;
-          return (
-            <button type="button" key={item.id} className="campaign-home-overview-item"
-              onClick={() => onOpenTab(item.id)} aria-label={`Open ${item.label}`}>
-              <Icon size={19} aria-hidden="true" />
-              <strong>{homeLoading || unavailableSections.includes(item.key) ? '—' : item.count}</strong>
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </section>
 
       <div className="campaign-home-workbench">
       <section className="campaign-home-focus-grid" aria-label="Campaign focus">
