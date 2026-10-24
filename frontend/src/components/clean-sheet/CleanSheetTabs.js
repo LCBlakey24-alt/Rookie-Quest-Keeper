@@ -60,6 +60,7 @@ export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack })
             onClick={() => onSelectTab(tab)}
             className={`${selected ? 'active' : ''} ${tab.needsAttention ? 'needs-attention' : ''}`.trim()}
             aria-label={tab.needsAttention ? `${tab.label} needs attention` : tab.label}
+            aria-current={selected ? 'page' : undefined}
             title={tab.needsAttention ? `${tab.label} needs attention` : tab.label}
             type="button"
           >

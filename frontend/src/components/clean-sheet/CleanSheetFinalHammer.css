@@ -271,14 +271,15 @@
 }
 
 .character-page-v2 .clean-sheet-tabs button.active {
-  background: rgba(110,145,180, 0.10) !important;
-  border-color: #C9A96B !important;
+  background: var(--rq-guild-wine, #7E2D2D) !important;
+  background-image: var(--rq-guild-wine-selected, none) !important;
+  border-color: var(--rq-guild-wine, #7E2D2D) !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active svg {
   background: transparent !important;
   background-image: none !important;
-  color: #6E91B4 !important;
+  color: #F8F0E5 !important;
 }
 
 .character-page-v2 .clean-sheet-quick-stat-strip {
@@ -356,7 +357,7 @@
 }
 
 .character-page-v2 .clean-sheet-tabs button.active span {
-  color: var(--cs-text) !important;
+  color: #F8F0E5 !important;
 }
 
 @media (min-width: 760px) {
@@ -433,7 +434,7 @@
     display: inline-block !important;
     max-width: none !important;
     overflow: visible !important;
-    font-size: 0.68rem !important;
+    font-size: 0.79rem !important;
     line-height: 1 !important;
     white-space: nowrap !important;
   }

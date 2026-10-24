@@ -1,55 +1,98 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Monitor, X } from 'lucide-react';
 import LiveSessionGridPage from '@/components/gm/LiveSessionGridPage';
 import LiveSecondScreenDock from '@/components/gm/LiveSecondScreenDock';
 import { useParams } from 'react-router-dom';
+import './LiveSessionWithSecondScreenPage.css';
 
 export default function LiveSessionWithSecondScreenPage() {
   const { campaignId } = useParams();
+  const [displayOpen, setDisplayOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const closeRef = useRef(null);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!displayOpen) return undefined;
+    closeRef.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setDisplayOpen(false);
+        triggerRef.current?.focus();
+        return;
+      }
+      if (event.key !== 'Tab' || !panelRef.current) return;
+      const focusable = Array.from(panelRef.current.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !panelRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !panelRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [displayOpen]);
+
+  useEffect(() => { setDisplayOpen(false); }, [campaignId]);
+
+  const closeDisplay = () => {
+    setDisplayOpen(false);
+    triggerRef.current?.focus();
+  };
 
   return (
     <div className="live-session-with-second-screen">
       <LiveSessionGridPage />
-      <div className="live-second-screen-fixed">
+      <button
+        type="button"
+        ref={triggerRef}
+        className="live-display-drawer-trigger"
+        onClick={() => setDisplayOpen(open => !open)}
+        aria-expanded={displayOpen}
+        aria-controls="live-second-screen-panel"
+      >
+        <Monitor size={18} aria-hidden="true" />
+        {displayOpen ? 'Hide display' : 'Display controls'}
+      </button>
+      {displayOpen && (
+        <button
+          type="button"
+          className="live-display-drawer-backdrop"
+          aria-label="Close display controls"
+          onClick={closeDisplay}
+          tabIndex={-1}
+        />
+      )}
+      <aside
+        ref={panelRef}
+        id="live-second-screen-panel"
+        className={`live-second-screen-fixed${displayOpen ? ' is-open' : ''}`}
+        role={displayOpen ? 'dialog' : undefined}
+        aria-modal={displayOpen ? 'true' : undefined}
+        aria-label="Live display controls"
+      >
+        <div className="live-display-drawer-header">
+          <strong>Player display</strong>
+          <button
+            type="button"
+            ref={closeRef}
+            className="live-display-drawer-close"
+            onClick={closeDisplay}
+            aria-label="Close display controls"
+          >
+            <X size={17} aria-hidden="true" /> Close
+          </button>
+        </div>
         <LiveSecondScreenDock campaignId={campaignId} />
-      </div>
-      <style>{dockCss}</style>
+      </aside>
     </div>
   );
 }
 
-const dockCss = `
-  .live-session-with-second-screen > main {
-    padding-right: 350px !important;
-  }
-  .live-second-screen-fixed {
-    position: fixed;
-    top: 88px;
-    right: 8px;
-    bottom: 10px;
-    width: 334px;
-    z-index: 55;
-    overflow: hidden;
-  }
-  .live-second-screen-fixed [data-testid="live-second-screen-dock"] {
-    width: auto !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    position: static !important;
-    top: auto !important;
-  }
-  @media (max-width: 1180px) {
-    .live-session-with-second-screen > main {
-      padding-right: clamp(8px, 1.1vw, 12px) !important;
-    }
-    .live-second-screen-fixed {
-      position: static;
-      width: auto;
-      padding: 8px;
-      background: #242424;
-    }
-    .live-second-screen-fixed [data-testid="live-second-screen-dock"] {
-      max-height: none !important;
-      height: auto !important;
-    }
-  }
-`;

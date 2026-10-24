@@ -134,7 +134,7 @@
   display: block !important;
   width: 38% !important;
   height: 100% !important;
-  background: #d9bc82 !important;
+  background: #6e91b4 !important;
   border: 0 !important;
   border-radius: inherit !important;
   animation: rqkLedgerProgress 1.85s ease-in-out infinite alternate !important;
@@ -171,20 +171,26 @@
   padding: 9px 18px !important;
   border: 0 !important;
   border-radius: 6px !important;
-  background: #c9a96b !important;
-  color: #07131f !important;
-  -webkit-text-fill-color: #07131f !important;
+  background: #263F59 !important;
+  background-image: linear-gradient(to right, #7E2D2D, #7E2D2D) !important;
+  background-repeat: no-repeat !important;
+  background-position: left center !important;
+  background-size: 0% 100% !important;
+  transition: background-size 340ms cubic-bezier(.22,.78,.18,1) !important;
+  color: #F8F0E5 !important;
+  -webkit-text-fill-color: #F8F0E5 !important;
   font: inherit !important;
   font-weight: 800 !important;
   cursor: pointer !important;
 }
 
-#root .route-loading-screen .rqk-route-recovery button:hover {
-  background: #d9bc82 !important;
+#root .route-loading-screen .rqk-route-recovery button:hover,
+#root .route-loading-screen .rqk-route-recovery button:focus-visible {
+  background-size: 100% 100% !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
-  outline: 3px solid #e6c489 !important;
+  outline: 3px solid #6E91B4 !important;
   outline-offset: 3px !important;
 }
 
@@ -217,4 +223,8 @@
   #root .route-loading-screen .rqk-route-activity > span {
     width: 100% !important;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .route-loading-screen .rqk-route-recovery button { transition: none !important; }
 }

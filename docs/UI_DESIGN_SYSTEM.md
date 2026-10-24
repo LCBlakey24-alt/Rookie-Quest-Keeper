@@ -2,7 +2,7 @@
 
 This document is the visual lock for Rookie Quest Keeper.
 
-## Chosen direction: Professional Navy / Gold / Cream
+## Chosen direction: Navy / Wax-Seal Red / Cream / Gold Text
 
 RQK uses one calm, premium interface across landing, auth, player, GM and utility routes:
 
@@ -13,8 +13,9 @@ RQK uses one calm, premium interface across landing, auth, player, GM and utilit
 - **Hover navy:** `#334155`
 - **Warm cream primary text:** `#EADFC8`
 - **Muted cream secondary text:** `rgba(234,223,200,0.78)`
-- **Antique gold primary accent:** `#C9A96B`
-- **Gold hover/highlight:** `#D9BC82`
+- **Antique gold TEXT only:** `#C9A96B` (headings/wording; never interactive fills or borders)
+- **Unselected control blue:** `#263F59`
+- **Selected and hovered control wax red:** `#7E2D2D`
 - **Supporting blue:** `#6E91B4`
 
 There are no decorative gradients, neon theme colours or glow-heavy surfaces in the normal product UI.
@@ -31,10 +32,12 @@ There are no decorative gradients, neon theme colours or glow-heavy surfaces in 
 | Primary text | `#EADFC8` | Headings, controls, key values |
 | Secondary text | `rgba(234,223,200,0.78)` | Body copy |
 | Muted text | `rgba(234,223,200,0.60)` | Metadata/helper copy |
-| Brand action | `#C9A96B` | Primary borders, active markers, CTA emphasis |
+| Decorative text | `#C9A96B` | Selected headings and written emphasis only |
+| Resting button or tab | `#263F59` | All normal selectable controls |
+| Selected/hovered control | `#7E2D2D` | Wax-red left-to-right fill; persistent once selected |
 | Supporting UI | `#6E91B4` | Icons, information, progress, keyboard focus |
 | Neutral hairline | `rgba(137,157,176,0.14)` | Default structural border |
-| Strong line | `rgba(201,169,107,0.30)` | Active/focus border |
+| Strong line | `rgba(110,145,180,0.36)` | Blue control border; never gold |
 | Success | `#5FA67A` | Success only |
 | Warning | `#D39A43` | Warning only |
 | Danger | `#B94A4F` | Destructive/error only |
@@ -43,8 +46,9 @@ There are no decorative gradients, neon theme colours or glow-heavy surfaces in 
 
 1. One palette across the product. Routes may rearrange layout, not invent new themes.
 2. No decorative gradients, purple/pink neon accents, fantasy glow haze or “Tron” styling.
-3. Gold is the primary brand/action accent. Do not use danger red as decoration.
-4. Blue supports information, icons and focus; it is not a second competing brand.
+3. Antique gold can only colour written text. No gold selectable boxes, borders, buttons, active tabs or card accents.
+4. Unselected controls are dark navy-blue; hovered/pressed controls sweep wax-seal red from left to right; selected controls remain wax-red. This red is distinct from destructive/error red.
+5. Blue supports resting control surfaces, information, icons and focus.
 5. Keep text hierarchy: primary cream, secondary cream, muted cream. Do not flatten every line to full white.
 6. Panels use flat navy steps and subtle borders rather than shadows for depth.
 7. Rounded corners stay restrained: generally 5–9px.
@@ -71,9 +75,10 @@ Desktop gets more space, not more features.
 
 ## Buttons
 
-- Default: flat navy card fill.
-- Primary: navy fill with antique-gold border; landing CTAs may use a gold fill where contrast is strong.
-- Hover: lighter navy.
+- Default: solid dark navy-blue (#263F59), cream text, neutral-blue border.
+- Primary: the same navy-blue; never gold filled or gold bordered (including landing CTAs).
+- Hover/press: wax-seal red (#7E2D2D) sweeps from left to right over ~340ms.
+- Selected: retains its wax-seal red fill after the pointer moves away.
 - Focus: supporting-blue outline.
 - Destructive: semantic danger red only.
 - Text: warm cream.
@@ -83,9 +88,9 @@ Desktop gets more space, not more features.
 - Panel background: `#1E2936`.
 - Card background: `#263748`.
 - Default border: neutral blue-grey hairline.
-- Active border: antique gold.
+- Active border: wax-seal red.
 - Shadow: normally none.
-- Gradient: never in normal product chrome.
+- Gradient: never in normal product chrome. A moving solid wax-red overlay for interaction feedback is allowed.
 
 ## Inputs
 
@@ -93,13 +98,15 @@ Desktop gets more space, not more features.
 - Text: warm cream.
 - Placeholder/helper copy: muted cream.
 - Default border: neutral hairline.
-- Focus: gold border with blue focus outline.
+- Focus: blue border and visible blue focus outline.
 
 ## Navigation and tabs
 
 - Unselected: transparent or flat navy.
 - Icons: cream or supporting blue.
-- Selected: subtle supporting-blue fill + gold marker/border.
+- Selected: wax-seal red fill and cream text, never gold.
+- Desktop hover: wax-seal red sweeps from left to right; no instantaneous red background jump.
+- Reduced motion: skip the sweep, change appearance immediately.
 - Mobile: bottom app dock.
 - Tablet: compact icon rail.
 - Desktop: permanent labelled rail.

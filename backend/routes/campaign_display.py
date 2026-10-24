@@ -7,18 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from config import db
 from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
 from utils.ws_manager import ws_manager
+from utils.player_display_payload import DISPLAY_MODES, sanitize_player_display_payload
 
 router = APIRouter()
 
-ALLOWED_DISPLAY_MODES = {
-    'blank',
-    'title',
-    'image',
-    'npc-grid',
-    'combat',
-    'group-check',
-    'end-session-stats',
-}
+ALLOWED_DISPLAY_MODES = DISPLAY_MODES
 
 
 def default_display_state(campaign_id: str) -> Dict[str, Any]:
@@ -41,7 +34,7 @@ def sanitize_display_state(campaign_id: str, data: Dict[str, Any], username: str
     if mode not in ALLOWED_DISPLAY_MODES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Unsupported player display mode')
 
-    payload = data.get('payload') if isinstance(data.get('payload'), dict) else {}
+    payload = sanitize_player_display_payload(mode, data.get('payload'))
     now = datetime.now(timezone.utc)
     server_sequence = int(now.timestamp() * 1000)
     sync_id = str(data.get('sync_id') or data.get('id') or f'{campaign_id}-{server_sequence}').strip()
@@ -73,7 +66,22 @@ async def get_campaign_display_state(campaign_id: str, username: str = Depends(g
     """Return the latest player-display state for campaign members."""
     await verify_campaign_membership(campaign_id, username)
     state = await db.campaign_display_states.find_one({'campaign_id': campaign_id}, {'_id': 0})
-    return state or default_display_state(campaign_id)
+    if not state:
+        return default_display_state(campaign_id)
+    # Older snapshots may predate this allowlist. Never send their private fields
+    # to campaign members just because they were saved by an earlier version.
+    mode = state.get('mode', 'blank')
+    unsupported_legacy_mode = mode not in ALLOWED_DISPLAY_MODES
+    if unsupported_legacy_mode:
+        mode = 'blank'
+    return {
+        **{key: state[key] for key in (
+            'campaign_id', 'sync_id', 'sequence', 'updated_at',
+            'updated_by', 'delivery_ack', 'source_tab',
+        ) if key in state},
+        'mode': mode,
+        'payload': {} if unsupported_legacy_mode else sanitize_player_display_payload(mode, state.get('payload')),
+    }
 
 
 @router.put('/campaigns/{campaign_id}/display-state')

@@ -115,6 +115,7 @@
     box-shadow: none !important;
   }
 
+  /* Blue base / animated hover are owned by later waxSealInteractive.css. */
   /* Make it feel like a real wax seal, not a bright red alarm colour.
      Only apply the burgundy treatment to navigation and selectable cards;
      don't make destructive, disabled or status controls look like selections. */
@@ -161,7 +162,7 @@
     .rqk-auth-primary,
     .rqk-auth-secondary
   ):focus-visible {
-    outline: 2px solid var(--rq-guild-heading) !important;
+    outline: 2px solid var(--rq-info, #6E91B4) !important;
     outline-offset: 3px !important;
   }
 
@@ -198,8 +199,8 @@
       .rqk-app-mobile-more-trigger,
       .rqk-npc-expand-toggle
     ):hover:not(:disabled):not([aria-disabled='true']) {
-      background: var(--rq-guild-wine-hover) !important;
-      background-color: var(--rq-guild-wine) !important;
+      background: var(--rq-control-blue, #263F59) !important;
+      background-color: var(--rq-control-blue, #263F59) !important;
       color: #F8F0E5 !important;
       border-color: transparent !important;
       box-shadow: none !important;
@@ -218,8 +219,8 @@
       .rqk-auth-secondary,
       .rqk-auth-mode-toggle button
     ):hover:not(:disabled) {
-      background: var(--rq-guild-wine-hover) !important;
-      background-color: var(--rq-guild-wine) !important;
+      background: var(--rq-control-blue, #263F59) !important;
+      background-color: var(--rq-control-blue, #263F59) !important;
       border-color: transparent !important;
       color: #F8F0E5 !important;
     }
@@ -277,7 +278,7 @@
 
 
 /* Skeletons should feel like the same navy ledger while sections fetch, not
-   brown gradient cards. The subtle brass sheen indicates activity without
+   brown gradient cards. A muted blue sheen indicates activity without
    claiming progress toward completion. */
 #root .rq-loading-skeleton {
   background: #1E2936 !important;
@@ -296,11 +297,11 @@
   box-shadow: none !important;
   background: linear-gradient(90deg,
     rgba(234, 223, 200, .07) 0%,
-    rgba(201, 169, 107, .17) 48%,
+    rgba(110, 145, 180, .17) 48%,
     rgba(234, 223, 200, .07) 100%) !important;
 }
 #root .rq-loading-skeleton::after {
-  background: linear-gradient(90deg, transparent, rgba(201, 169, 107, .11), transparent) !important;
+  background: linear-gradient(90deg, transparent, rgba(110, 145, 180, .11), transparent) !important;
 }
 @media (prefers-reduced-motion: reduce) {
   #root .rq-loading-skeleton,
@@ -394,7 +395,7 @@
     gap: 7px !important;
   }
   #root .rqk-app-shell :is(.player-dashboard-action-button,.player-campaign-action,.player-campaign-header button):focus-visible {
-    outline: 2px solid var(--rq-guild-heading, #D9BC82) !important;
+    outline: 2px solid var(--rq-info, #6E91B4) !important;
     outline-offset: 3px !important;
   }
   #root .rqk-app-shell .player-dashboard-summary-grid {
@@ -596,7 +597,7 @@
       overscroll-behavior-x: contain !important;
     }
     #root .character-page-v2 :is(button,select,input,textarea):focus-visible {
-      outline: 2px solid var(--rq-guild-heading, #D9BC82) !important;
+      outline: 2px solid var(--rq-info, #6E91B4) !important;
       outline-offset: 2px !important;
     }
   }

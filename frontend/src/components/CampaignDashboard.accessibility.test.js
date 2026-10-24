@@ -7,7 +7,9 @@ const jsx = fs.readFileSync(path.join(__dirname, 'CampaignDashboard.js'), 'utf8'
 describe('GM campaign workspace accessibility and responsive polish', () => {
   test('gold primary actions use dark ink, while burgundy active tabs use cream', () => {
     expect(css).toMatch(/\.campaign-button-primary\s*\{\s*color:\s*#07131f !important/);
-    expect(css).toMatch(/\.campaign-dashboard-tab\.is-active\s*\{\s*color:\s*#f8f0e5 !important/);
+    expect(css).toContain('--rqk-campaign-wax: var(--rq-guild-wine, #7E2D2D)');
+    expect(css).toContain('background: var(--rqk-campaign-wax) !important;');
+    expect(css).toContain('color: var(--rqk-campaign-wax-text) !important;');
   });
 
   test('navigation and quick actions expose visible keyboard focus', () => {
