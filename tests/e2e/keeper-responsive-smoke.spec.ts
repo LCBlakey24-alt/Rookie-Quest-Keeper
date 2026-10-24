@@ -215,3 +215,63 @@ test('reduced-motion preference keeps instant wax selection without animation', 
   await button.hover();
   await expect(button).toHaveCSS('background-size', '100% 100%');
 });
+
+
+/* Guild Command uses the browser-only, read-only demo seed here: no real account,
+ * live campaign or external API is touched by these route smoke tests. */
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'tablet', width: 768, height: 1024 },
+  { label: 'desktop', width: 1440, height: 900 },
+  { label: 'full-HD', width: 1920, height: 1080 },
+]) {
+  test(`Guild Command GM campaign remains usable on ${size.label}`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    await expect(page.getByRole('heading', { name: 'Preview campaign' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your adventure at a glance' })).toBeVisible();
+    await expect(page.locator('.campaign-home-overview-item')).toHaveCount(4);
+    await expect(page.getByRole('button', { name: 'Start Live Play' })).toBeVisible();
+    const rail = page.locator('.campaign-guild-command-side-nav');
+    if (size.width >= 1181) {
+      await expect(rail).toBeVisible();
+      await expect(rail.locator('button')).toHaveCount(17);
+      await expect(page.locator('.campaign-dashboard-tab-row')).toBeHidden();
+      const npcs = rail.getByRole('button', { name: 'NPCs', exact: true });
+      await npcs.click();
+      await expect(npcs).toHaveAttribute('aria-current', 'page');
+      await expect(page).toHaveURL(/#tab-npcs$/);
+      await rail.getByRole('button', { name: 'GM Home' }).click();
+      await expect(page.getByRole('heading', { name: 'Your adventure at a glance' })).toBeVisible();
+    } else {
+      await expect(rail).toBeHidden();
+      if (size.width < 720) {
+        await expect(page.getByTestId('campaign-mobile-navigator')).toBeVisible();
+      } else {
+        await expect(page.locator('.campaign-dashboard-tab-row')).toBeVisible();
+      }
+    }
+    await assertFitsViewport(page, size.width);
+  });
+}
+
+test('Guild Command desktop sidebar sweeps blue to wax red and keeps active tab selected', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/campaign/preview-campaign?demo=1');
+  const rail = page.locator('.campaign-guild-command-side-nav');
+  const npcs = rail.getByRole('button', { name: 'NPCs', exact: true });
+  await expect(npcs).toBeVisible();
+  await expect(npcs).toHaveCSS('background-color', 'rgb(38, 63, 89)');
+  await npcs.hover();
+  await expect(npcs).toHaveCSS('background-size', '100% 100%');
+  await npcs.click();
+  await expect(npcs).toHaveAttribute('aria-current', 'page');
+  await page.mouse.move(4, 600);
+  await expect(npcs).toHaveCSS('background-size', '100% 100%');
+  const home = rail.getByRole('button', { name: 'GM Home' });
+  await home.click();
+  await expect(npcs).not.toHaveAttribute('aria-current', 'page');
+  await expect(npcs).toHaveCSS('background-size', /^0(?:px|%) 100%$/);
+});
