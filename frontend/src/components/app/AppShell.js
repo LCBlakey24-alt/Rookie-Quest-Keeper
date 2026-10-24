@@ -278,7 +278,7 @@ export default function AppShell({ children }) {
   };
 
   return (
-    <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout}>
+    <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout} data-rq-workspace={location.pathname.startsWith('/campaign/') ? 'campaign' : 'general'}>
       <aside className="rqk-app-rail" aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
