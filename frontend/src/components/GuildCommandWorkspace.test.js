@@ -29,6 +29,10 @@ describe('Guild Command: selected campaign workspace design', () => {
     expect(css).toContain('@media (min-width: 761px) and (max-width: 1180px)');
     expect(css).toContain('@media (max-width: 760px)');
     expect(source).toContain('CampaignMobileNavigator');
+    const shell = read('app/AppShell.js');
+    expect(shell).toContain("data-rq-workspace={location.pathname.startsWith('/campaign/') ? 'campaign' : 'general'}");
+    expect(css).toContain("grid-template-columns: 68px minmax(0,1fr)");
+    expect(css).toContain(".rqk-app-rail-brand-copy");
   });
 
   test('overview is honest, data-backed, campaign-scoped and action-oriented', () => {
