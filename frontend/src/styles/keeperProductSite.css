@@ -201,8 +201,8 @@
 }
 
 #root .keeper-product-site .landing-button-ghost:hover:not(:disabled) {
-  background: var(--landing-card-hover) !important;
-  border-color: var(--landing-gold) !important;
+  background: var(--rq-control-blue, #263F59) !important;
+  border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
 #root .keeper-product-site .landing-button-large {
