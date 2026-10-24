@@ -1,5 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
 
+// This suite exercises a fresh built web app, not an existing PWA installation.
+// Prevent a previously installed service worker from replaying stale assets
+// while asserting route changes and final CSS.
+test.use({ serviceWorkers: 'block' });
+
 type Size = { label: string; width: number; height: number };
 
 const appSizes: Size[] = [
@@ -37,6 +42,7 @@ for (const size of appSizes) {
     const signIn = page.getByTestId('landing-signin-btn');
     await expect(signIn).toBeVisible();
     await signIn.click();
+    await expect(page).toHaveURL(/\/auth(?:\?|$)/);
     await expect(page.getByTestId('auth-page')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
     await expect(page.locator('#login-identifier')).toBeVisible();
@@ -175,7 +181,7 @@ test('desktop primary control sweeps wax-red left to right and returns to blue',
   expect(resting.transitionDuration).toContain('0.34s');
 
   await button.hover();
-  await expect.poll(async () => (await readStyle()).backgroundSize).toContain('100% 100%');
+  await expect(button).toHaveCSS('background-size', '100% 100%');
   await page.mouse.move(4, 600);
   await expect.poll(async () => (await readStyle()).backgroundSize).toMatch(/^0(?:px|%) 100%$/);
 });
