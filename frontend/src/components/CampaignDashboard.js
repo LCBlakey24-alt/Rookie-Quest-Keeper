@@ -332,7 +332,7 @@ export default function CampaignDashboard() {
   }
 
   return (
-    <div className="gm-dashboard-shell campaign-dashboard-simple" data-active-tab={activeTab}>
+    <div className="gm-dashboard-shell campaign-dashboard-simple guild-command-layout" data-active-tab={activeTab}>
       <header className="gm-dashboard-header campaign-dashboard-header">
         <div className="campaign-dashboard-title-row">
           <button type="button" onClick={() => navigate('/campaigns')} className="campaign-icon-button" aria-label="Back to campaigns">
@@ -362,7 +362,8 @@ export default function CampaignDashboard() {
         </div>
       </header>
 
-      <nav className="campaign-dashboard-nav" aria-label="Campaign workspace">
+      <div className="guild-command-frame">
+      <nav className="campaign-dashboard-nav guild-command-sidebar" aria-label="Campaign workspace">
         <CampaignMobileNavigator activeTab={activeTab} onOpenTab={handleTabClick} />
         <div className="campaign-dashboard-group-row" aria-label="Campaign tool groups">
           {tabGroups.map((group) => {
@@ -404,13 +405,14 @@ export default function CampaignDashboard() {
         </div>
       </nav>
 
-      <main className="campaign-dashboard-workspace">
+      <main className="campaign-dashboard-workspace guild-command-main">
         <section className="campaign-dashboard-panel" data-testid="gm-active-workspace">
           <Suspense fallback={<div className="campaign-dashboard-loading" role="status">Loading workspace…</div>}>
             {renderActiveTab()}
           </Suspense>
         </section>
       </main>
+      </div>
     </div>
   );
 }
@@ -581,11 +583,11 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   ];
 
   return (
-    <div className="campaign-home-simple">
+    <div className="campaign-home-simple guild-command-home">
       <section className="campaign-home-command" aria-labelledby="campaign-home-title">
         <div className="campaign-home-command-copy">
-          <p>GM session desk</p>
-          <h2 id="campaign-home-title">Ready for the table</h2>
+          <p>GUILD COMMAND · GM WORKSPACE</p>
+          <h2 id="campaign-home-title">Campaign Command Centre</h2>
           <span>{homeLoading ? 'Loading your campaign notes and quests…' : 'The next scene, key characters and everything you need during play.'}</span>
         </div>
         <div className="campaign-home-command-actions">

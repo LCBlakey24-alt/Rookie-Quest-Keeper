@@ -28,6 +28,7 @@ import "@/styles/threeModeMinimalist.css";
 import "@/styles/guildLedgerFinish.css";
 // Final web-only interactive contract: blue resting controls, wax-red sweep.
 import "@/styles/waxSealInteractive.css";
+import "@/styles/guildCommand.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
