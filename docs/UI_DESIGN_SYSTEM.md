@@ -115,6 +115,17 @@ Desktop gets more space, not more features.
 
 They use exactly the same palette and spacing system as the rest of Keeper. Errors may use semantic danger red, but loading/empty states must not fall back to retired themes.
 
+## Chosen campaign workspace: Guild Command (24 October 2026)
+
+The GM campaign workspace adopts **Option 1: Guild Command**.
+
+- **Desktop (1181px and up):** persistent grouped campaign sidebar for Campaign, World, Prep and More, next to a wide, data-backed GM overview. The global app-level navigation stays intact.
+- **Tablet (720–1180px):** existing compact grouped navigation and tool finder; preserve room for maps, encounters and character details.
+- **Phone (719px and below):** existing one-control tool picker, reachable Live Play action and touch targets; never require horizontal page scrolling.
+- **GM Home:** start with the campaign command heading, quick Live Play/Prep Session actions and honest counts fetched for that campaign. Below those are at-table quick tools, current quest, next scene, latest notes and NPCs. Missing data is shown as unavailable, not zero.
+- **Selection:** dark-blue resting controls with the shared 340ms left-to-right wax-red fill on hover, click or selected state. Antique gold is only for written headings, never a control background or border.
+- **Safety:** preserve URL hash deep links, campaign ownership/privacy checks, join codes, and the entire existing tool catalog. The style does not edit campaign data.
+
 ## Cleanup order
 
 1. Global tokens and shell.
