@@ -235,3 +235,64 @@
     transition: none !important;
   }
 }
+
+/* The general Keeper destinations remain available, but become an icon rail
+ * alongside Guild Command's more useful campaign-specific navigation. Each
+ * AppShell link keeps its real aria-label and title for accessibility. */
+@media (min-width: 1181px) {
+  @layer rq-controls {
+    #root .rqk-app-shell[data-rq-device='desktop'][data-rq-workspace='campaign'] {
+      grid-template-columns: 68px minmax(0,1fr) !important;
+    }
+    #root .rqk-app-shell[data-rq-device='desktop'][data-rq-workspace='campaign'] .rqk-app-rail {
+      width: 68px !important;
+      min-width: 68px !important;
+      padding: 12px 6px !important;
+      gap: 12px !important;
+    }
+    #root .rqk-app-shell[data-rq-workspace='campaign'] :is(
+      .rqk-app-rail-section-label,
+      .rqk-app-rail-brand-copy,
+      .rqk-app-rail-link > span
+    ) {
+      display: none !important;
+    }
+    #root .rqk-app-shell[data-rq-workspace='campaign'] :is(
+      .rqk-app-rail-nav,
+      .rqk-app-rail-bottom
+    ) {
+      align-items: stretch !important;
+      justify-items: center !important;
+    }
+    #root .rqk-app-shell[data-rq-workspace='campaign'] .rqk-app-rail-brand {
+      display: flex !important;
+      justify-content: center !important;
+      width: 54px !important;
+      min-width: 0 !important;
+      padding: 7px 5px !important;
+    }
+    #root .rqk-app-shell[data-rq-workspace='campaign'] :is(
+      .rqk-app-rail-link,
+      .rqk-app-rail-rook,
+      .rqk-app-rail-feedback
+    ) {
+      display: grid !important;
+      place-items: center !important;
+      grid-template-columns: minmax(0,1fr) !important;
+      width: 48px !important;
+      min-width: 0 !important;
+      min-height: 46px !important;
+      padding: 7px !important;
+      gap: 0 !important;
+    }
+    #root .rqk-app-shell[data-rq-workspace='campaign'] .rqk-app-rail-link > svg {
+      width: 21px !important;
+      height: 21px !important;
+      margin: 0 !important;
+    }
+    #root .rqk-app-shell[data-rq-workspace='campaign'] .rqk-app-rail-link:focus-visible {
+      outline: 3px solid #6E91B4 !important;
+      outline-offset: 2px !important;
+    }
+  }
+}
