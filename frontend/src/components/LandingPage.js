@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -18,7 +18,6 @@ import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
 
-const BUTTON_FILL_DELAY_MS = 320;
 const LANDING_META_DESCRIPTION = 'Rookie Quest Keeper keeps characters, campaigns, session prep, notes, and live table tools together in one refined tabletop workspace.';
 
 const pillars = [
@@ -128,19 +127,15 @@ const recentActivity = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [transitionTarget, setTransitionTarget] = useState(null);
-  const navigationTimeoutRef = useRef(null);
   const featuresRef = useRef(null);
   const playersRef = useRef(null);
   const gmsRef = useRef(null);
   const faqRef = useRef(null);
 
+  // Never delay routing for an animation. Hover/press feedback is CSS-only;
+  // navigating immediately keeps Sign in responsive even on slower devices.
   const navigateWithFill = useCallback((target, nextPage) => {
-    if (navigationTimeoutRef.current) return;
-    setTransitionTarget(target);
-    navigationTimeoutRef.current = window.setTimeout(() => {
-      navigate(target, nextPage ? { state: { from: { pathname: nextPage } } } : undefined);
-    }, BUTTON_FILL_DELAY_MS);
+    navigate(target, nextPage ? { state: { from: { pathname: nextPage } } } : undefined);
   }, [navigate]);
 
   useEffect(() => {
@@ -166,10 +161,6 @@ export default function LandingPage() {
     };
   }, []);
 
-  useEffect(() => () => {
-    if (navigationTimeoutRef.current) window.clearTimeout(navigationTimeoutRef.current);
-  }, []);
-
   const scrollTo = useCallback((ref) => {
     const target = ref.current;
     if (!target) return;
@@ -177,8 +168,7 @@ export default function LandingPage() {
     target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   }, []);
 
-  const isTransitioning = Boolean(transitionTarget);
-  const buttonClass = (base, target) => `${base}${transitionTarget === target ? ' is-transitioning' : ''}`;
+  const buttonClass = base => base;
   const goLogin = () => navigateWithFill('/auth');
   const goRegister = () => navigateWithFill('/auth?mode=register');
   const goBuild = () => navigateWithFill('/auth?mode=register', '/characters/new');
@@ -213,9 +203,7 @@ export default function LandingPage() {
             type="button"
             className={buttonClass('landing-button landing-button-ghost', '/auth')}
             onClick={goLogin}
-            disabled={isTransitioning}
-            aria-busy={transitionTarget === '/auth'}
-          >
+                                  >
             Sign in
           </button>
           <button
@@ -223,9 +211,7 @@ export default function LandingPage() {
             type="button"
             className={buttonClass('landing-button landing-button-primary', '/auth?mode=register')}
             onClick={goRegister}
-            disabled={isTransitioning}
-            aria-busy={transitionTarget === '/auth?mode=register'}
-          >
+                                  >
             Open Keeper <ArrowRight size={16} aria-hidden="true" />
           </button>
         </div>
@@ -247,9 +233,7 @@ export default function LandingPage() {
                 type="button"
                 className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')}
                 onClick={goBuild}
-                disabled={isTransitioning}
-                aria-busy={transitionTarget === '/auth?mode=register'}
-              >
+                                              >
                 Open Keeper <ArrowRight size={18} aria-hidden="true" />
               </button>
               <button
@@ -446,8 +430,7 @@ export default function LandingPage() {
             type="button"
             className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')}
             onClick={goRegister}
-            disabled={isTransitioning}
-          >
+                      >
             Open Keeper <ArrowRight size={17} aria-hidden="true" />
           </button>
         </section>
