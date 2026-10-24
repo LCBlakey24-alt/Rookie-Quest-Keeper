@@ -155,6 +155,16 @@
     }
   }
 
+  /* Public landing controls can be hovered before device emulation finishes
+   * establishing pointer capabilities. Keep the same precise left-to-right
+   * fill for genuine :hover, without relying on a (pointer: fine) gate.
+   * This fallback also covers hybrid laptops with touch + mouse. */
+  #root .keeper-product-site .landing-button:hover:not(:disabled):not([aria-disabled='true']) {
+    background-color: var(--rq-control-blue) !important;
+    background-size: 100% 100% !important;
+    border-color: var(--rq-control-wax) !important;
+  }
+
   /* Desktop key presses, tap feedback and mouse activation. */
   #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
