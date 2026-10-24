@@ -158,13 +158,19 @@ const shellStyle = (state) => ({
   minHeight: 44,
   padding: '7px 10px',
   background: 'var(--rq-bg-panel)',
-  border: `1px solid ${state === 'received' ? 'rgba(124,203,255,0.46)' : state === 'pending' || state === 'waiting' ? 'rgba(255,45,170,0.36)' : 'rgba(245,158,11,0.42)'}`,
+  border: `1px solid ${state === 'received'
+    ? 'var(--rq-success, #5FA67A)'
+    : state === 'pending' || state === 'waiting'
+      ? 'var(--rq-info, #6E91B4)'
+      : state === 'error'
+        ? 'var(--rq-danger, #B94A4F)'
+        : 'var(--rq-warning, #D39A43)'}`,
   color: 'var(--rq-text-primary)',
   fontSize: 11,
 });
 const copyStyle = { minWidth: 0, display: 'grid', gap: 1 };
 const buttonStyle = {
-  minHeight: 30,
+  minHeight: 44,
   border: '1px solid var(--rq-border-default)',
   background: 'var(--rq-card)',
   color: 'var(--rq-text-primary)',

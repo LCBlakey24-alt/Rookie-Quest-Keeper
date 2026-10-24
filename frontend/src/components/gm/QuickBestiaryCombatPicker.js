@@ -57,7 +57,7 @@ export default function QuickBestiaryCombatPicker({ onAdd }) {
       {results.length > 0 && <div style={resultsStyle}>
         {results.map(monster => <div key={monster.name} style={resultStyle}>
           <span style={nameStyle}><strong>{monster.name}</strong><small>{monster.type || 'Creature'} · CR {monster.cr} · HP {monster.hp} · AC {monster.ac}</small></span>
-          <button type="button" aria-label={`Add ${monster.name} to combat`} onClick={() => onAdd(toCombatant(monster))} style={buttonStyle}><Plus size={14} /> Add</button>
+          <button type="button" className="rqk-selectable-control" aria-label={`Add ${monster.name} to combat`} onClick={() => onAdd(toCombatant(monster))} style={buttonStyle}><Plus size={14} /> Add</button>
         </div>)}
       </div>}
       {query.trim().length >= 2 && results.length === 0 && <p style={hintStyle}>No matching creatures in the built-in Bestiary.</p>}
@@ -73,5 +73,5 @@ const inputStyle = { width: '100%', minWidth: 0, minHeight: 38, background: 'tra
 const resultsStyle = { display: 'grid', maxHeight: 220, overflowY: 'auto', gap: 4 };
 const resultStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: 6, background: 'var(--rq-card, #263748)' };
 const nameStyle = { minWidth: 0, display: 'grid', gap: 2, fontSize: 12 };
-const buttonStyle = { flexShrink: 0, minHeight: 34, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--rq-primary, #C9A96B)', border: 0, color: '#07131F', cursor: 'pointer', padding: '0 11px', fontWeight: 900 };
+const buttonStyle = { flexShrink: 0, minHeight: 46, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--rq-control-blue, #263F59)', border: '1px solid var(--rq-secondary, #6E91B4)', color: 'var(--rq-control-ink, #F8F0E5)', cursor: 'pointer', padding: '0 11px', fontWeight: 900 };
 const hintStyle = { fontSize: 11, color: 'var(--rq-text-secondary, #D0C5B2)', margin: 0 };

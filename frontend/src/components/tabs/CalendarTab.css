@@ -138,7 +138,7 @@
 #root .rqk-calendar-current {
   position: relative;
   text-align: center;
-  border-top: 3px solid var(--rq-primary, #c9a96b);
+  border-top: 3px solid var(--rq-secondary, #6e91b4);
   background: var(--rq-bg-panel, #1e2936);
 }
 #root .rqk-calendar-current > h3 {
@@ -158,7 +158,7 @@
   font: 700 clamp(17px, 2.2vw, 23px)/1.25 var(--rq-font-display, Georgia, serif);
 }
 #root .rqk-calendar-month-actions button {
-  border: 1px solid rgba(201,169,107,.28) !important;
+  border: 1px solid rgba(110,145,180,.36) !important;
   border-radius: 5px !important;
 }
 #root .rqk-calendar-day {
@@ -191,14 +191,14 @@
   color: #d4e5f2 !important;
 }
 #root .rqk-calendar-day.is-selected {
-  background: rgba(201,169,107,.14);
-  border: 2px solid var(--rq-primary, #c9a96b);
+  background: var(--rq-control-blue, #263F59);
+  border: 2px solid var(--rq-control-wax, #7E2D2D);
   padding: 7px 6px;
 }
 #root .rqk-calendar-day:is(:hover, :focus-visible) {
   background: var(--rq-bg-card, #263748);
-  border-color: var(--rq-primary, #c9a96b);
-  outline: 2px solid var(--rq-primary, #c9a96b);
+  border-color: var(--rq-control-wax, #7E2D2D);
+  outline: 2px solid var(--rq-info, #6e91b4);
   outline-offset: 1px;
 }
 #root .rqk-calendar-day-event,
@@ -214,7 +214,7 @@
 }
 #root .rqk-calendar-day-more { color: var(--rq-text-secondary, #c5c0b5); }
 #root .rqk-calendar-agenda {
-  border-left: 3px solid var(--rq-primary, #c9a96b);
+  border-left: 3px solid var(--rq-secondary, #6e91b4);
 }
 #root .rqk-calendar-agenda-heading {
   display: flex;
@@ -381,7 +381,7 @@
 }
 #root .rqk-calendar-event-record-actions > button:is(:hover,:focus-visible) {
   background: var(--rq-bg-elevated, #334155);
-  border-color: var(--rq-primary, #c9a96b);
+  border-color: var(--rq-control-wax, #7E2D2D);
 }
 @media (max-width: 580px) {
   #root .rqk-calendar-events-list .rqk-calendar-event-record {

@@ -27,8 +27,8 @@
   position: fixed;
   inset: 0 max(12px, calc((100vw - 1180px) / 2));
   pointer-events: none;
-  border-left: 1px solid rgba(201, 169, 107, 0.08);
-  border-right: 1px solid rgba(201, 169, 107, 0.08);
+  border-left: 1px solid rgba(110,145,180, 0.08);
+  border-right: 1px solid rgba(110,145,180, 0.08);
   z-index: -1;
 }
 
@@ -83,7 +83,7 @@
 
 #root .rqk-auth-page .rqk-auth-brand:hover {
   background: #1E2936 !important;
-  border-color: rgba(201, 169, 107, 0.30) !important;
+  border-color: rgba(110,145,180, 0.30) !important;
   transform: none !important;
   filter: none !important;
 }
@@ -152,7 +152,7 @@
 
 .rqk-auth-hero {
   padding: clamp(28px, 4vw, 42px);
-  border-left: 2px solid #C9A96B !important;
+  border-left: 2px solid #6E91B4 !important;
 }
 
 .rqk-auth-kicker,
@@ -217,8 +217,8 @@
   display: grid;
   place-items: center;
   color: #C9A96B !important;
-  background: rgba(201, 169, 107, 0.12) !important;
-  border: 1px solid rgba(201, 169, 107, 0.30);
+  background: rgba(110,145,180, 0.12) !important;
+  border: 1px solid rgba(110,145,180, 0.30);
   border-radius: 5px;
 }
 
@@ -282,7 +282,7 @@
   width: 100%;
   justify-self: end;
   padding: clamp(21px, 3vw, 28px);
-  border-top: 2px solid #C9A96B !important;
+  border-top: 2px solid #6E91B4 !important;
 }
 
 .rqk-auth-heading {
@@ -295,7 +295,7 @@
   width: 56px;
   height: 1px;
   margin-top: 14px;
-  background: #C9A96B !important;
+  background: #263F59 !important;
 }
 
 .rqk-auth-heading h1 {
@@ -344,13 +344,13 @@
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
   color: #EADFC8 !important;
-  background: rgba(201, 169, 107, 0.12) !important;
-  border-color: #C9A96B !important;
+  background: rgba(110,145,180, 0.12) !important;
+  border-color: #6E91B4 !important;
 }
 
 #root .rqk-auth-page :where(.rqk-auth-mode-toggle button, .rqk-auth-switch-button, .rqk-auth-link-button, .rqk-auth-icon-button, .rqk-auth-secondary):hover:not(:disabled) {
   background: #334155 !important;
-  border-color: rgba(201, 169, 107, 0.30) !important;
+  border-color: rgba(110,145,180, 0.30) !important;
   transform: none !important;
   filter: none !important;
 }
@@ -393,7 +393,7 @@
   position: absolute;
   inset: 8px auto 8px 0;
   width: 2px;
-  background: #C9A96B;
+  background: #263F59;
 }
 
 .rqk-auth-assurance strong {
@@ -526,11 +526,11 @@
   justify-content: center;
   gap: 9px;
   padding: 0 16px;
-  background: #C9A96B !important;
+  background: #263F59 !important;
   background-image: none !important;
-  border: 1px solid #C9A96B !important;
+  border: 1px solid #6E91B4 !important;
   border-radius: 5px !important;
-  color: #07131F !important;
+  color: #F8F0E5 !important;
   box-shadow: none !important;
   cursor: pointer;
   font-size: 0.94rem;
@@ -538,8 +538,8 @@
 }
 
 #root .rqk-auth-page .rqk-auth-primary:hover:not(:disabled) {
-  background: #D9BC82 !important;
-  border-color: #D9BC82 !important;
+  background: #263F59 !important;
+  border-color: #6E91B4 !important;
 }
 
 #root .rqk-auth-page .rqk-auth-primary:disabled,
@@ -632,7 +632,7 @@
 }
 
 .rqk-auth-strength-meter span.is-filled {
-  background: #C9A96B !important;
+  background: #263F59 !important;
 }
 
 .rqk-auth-password-readiness ul {
@@ -811,7 +811,7 @@
 #root .rqk-staging-access__button {
   min-height: 42px;
   background: #263748 !important;
-  border: 1px solid rgba(201, 169, 107, 0.30) !important;
+  border: 1px solid rgba(110,145,180, 0.30) !important;
   border-radius: 5px !important;
   color: #EADFC8 !important;
   cursor: pointer;
@@ -937,8 +937,8 @@
   min-height: 0 !important;
   padding: clamp(18px, 4vw, 26px) !important;
   background: #1E2936 !important;
-  border: 1px solid rgba(201,169,107,.28) !important;
-  border-top: 2px solid #C9A96B !important;
+  border: 1px solid rgba(110,145,180,.28) !important;
+  border-top: 2px solid #6E91B4 !important;
   border-radius: 8px !important;
   box-shadow: none !important;
 }
@@ -977,9 +977,9 @@
 }
 #root .rqk-auth-page--login .rqk-auth-primary {
   min-height: 48px !important;
-  background: #C9A96B !important;
+  background: #263F59 !important;
   color: #07131F !important;
-  border-color: #C9A96B !important;
+  border-color: #6E91B4 !important;
 }
 #root .rqk-auth-page--login .rqk-auth-submit-status:empty {
   display: none !important;
@@ -993,7 +993,7 @@
 #root .rqk-auth-page--login .rqk-auth-more-options {
   margin-top: 14px;
   min-width: 0;
-  border-top: 1px solid rgba(201,169,107,.20);
+  border-top: 1px solid rgba(110,145,180,.20);
 }
 #root .rqk-auth-page--login .rqk-auth-more-options > summary {
   width: 100%;
@@ -1011,7 +1011,7 @@
 #root .rqk-auth-page--login .rqk-google-access,
 #root .rqk-auth-page--login .rqk-demo-access {
   border-radius: 6px !important;
-  border-color: rgba(201,169,107,.21) !important;
+  border-color: rgba(110,145,180,.21) !important;
   background: #101F2D !important;
   padding: 12px !important;
   margin-bottom: 10px !important;
@@ -1024,11 +1024,11 @@
 #root .rqk-auth-page--login .rqk-google-access__nickname button {
   background: #263748 !important;
   color: #EADFC8 !important;
-  border-color: rgba(201,169,107,.30) !important;
+  border-color: rgba(110,145,180,.30) !important;
   border-radius: 5px !important;
 }
 #root .rqk-auth-page--login .rqk-auth-staging-details {
-  border: 1px solid rgba(201,169,107,.22);
+  border: 1px solid rgba(110,145,180,.22);
   padding: 8px;
   margin-bottom: 12px;
   border-radius: 6px;
