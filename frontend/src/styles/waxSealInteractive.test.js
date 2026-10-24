@@ -50,4 +50,14 @@ describe('web controls: blue -> wax seal, antique gold only for text', () => {
     expect(css).not.toContain('background: var(--landing-gold);');
     expect(css).not.toContain('background: var(--landing-gold) !important;');
   });
+  test('disabled and genuinely busy controls never masquerade as selected', () => {
+    const css = read('./waxSealInteractive.css');
+    expect(css).toContain("[aria-disabled='true']");
+    expect(css).toContain("[aria-busy='true']");
+    expect(css).toContain("[data-loading='true']");
+    expect(css).toContain('cursor: not-allowed !important');
+    expect(css).toContain('cursor: progress !important');
+    expect(css).toContain('pointer-events: none !important');
+    expect(css).toContain('@media (hover: none)');
+  });
 });
