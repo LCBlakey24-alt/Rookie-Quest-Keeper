@@ -371,7 +371,7 @@ export default function CampaignDashboard() {
           <strong>Guild Command</strong>
           <span>CAMPAIGN TOOLS</span>
         </div>
-        <div className="campaign-guild-command-side-nav" aria-label="Campaign tools">
+        <div className="campaign-guild-command-side-nav" role="group" aria-label="Campaign tools">
           {tabGroups.map(group => (
             <div className="campaign-guild-command-side-section" key={group.id}>
               <h2>{group.label}</h2>
