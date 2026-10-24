@@ -227,6 +227,35 @@
     outline-offset: 2px !important;
   }
 
+  /* Disabled controls must never appear selected or invite a click. */
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App)
+    :is(button, [role='button'], [role='tab'], a):is(:disabled, [aria-disabled='true']) {
+    cursor: not-allowed !important;
+    background-image: none !important;
+    background-size: 0 0 !important;
+    opacity: .48 !important;
+    transition: none !important;
+  }
+
+  /* Real loading actions communicate progress without pretending to be a tab.
+     Keep the control's width stable and prevent repeat submissions. */
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App)
+    :is(button, [role='button']):is([aria-busy='true'], [data-loading='true']) {
+    cursor: progress !important;
+    pointer-events: none !important;
+    background-image: none !important;
+    background-color: var(--rq-control-blue) !important;
+    opacity: .78 !important;
+  }
+
+  /* Touch users need visible focus/pressed states without a hover trap. */
+  @media (hover: none) {
+    #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App)
+      :is(button, [role='button'], [role='tab'], a):focus:not(:focus-visible) {
+      outline: none !important;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
   #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(
   .campaign-dashboard-tab,
