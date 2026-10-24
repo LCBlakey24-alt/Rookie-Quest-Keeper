@@ -236,6 +236,8 @@ for (const size of [
     const rail = page.locator('.campaign-guild-command-side-nav');
     if (size.width >= 1181) {
       await expect(rail).toBeVisible();
+      await expect(page.locator('.rqk-app-shell')).toHaveAttribute('data-rq-workspace', 'campaign');
+      await expect.poll(async () => (await page.locator('.rqk-app-rail').boundingBox())?.width).toBeLessThanOrEqual(70);
       await expect(rail.locator('button')).toHaveCount(17);
       await expect(page.locator('.campaign-dashboard-tab-row')).toBeHidden();
       const npcs = rail.getByRole('button', { name: 'NPCs', exact: true });
