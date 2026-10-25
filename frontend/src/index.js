@@ -29,6 +29,8 @@ import "@/styles/guildLedgerFinish.css";
 // Final web-only interactive contract: blue resting controls, wax-red sweep.
 import "@/styles/waxSealInteractive.css";
 import "@/styles/guildCommand.css";
+// Experimental Guild Command background: readable panels remain solid.
+import "@/styles/guildBlueTexture.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
