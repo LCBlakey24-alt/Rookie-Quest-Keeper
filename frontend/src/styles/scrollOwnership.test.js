@@ -30,4 +30,13 @@ describe('document scroll ownership', () => {
     const css = read('../components/gm/LiveSessionGridMode.css');
     expect(css).toMatch(/\.rqk-live-grid__tool-body\s*\{[^}]*overflow-x:\s*clip;[^}]*overflow-y:\s*visible/s);
   });
+  test('global scrollbars use quiet blue rather than the retired neon red', () => {
+    const css = read('scrollFixes.css');
+    expect(css).toContain('scrollbar-color: #61758A #0B1B2B;');
+    expect(css).toContain('background: #61758A;');
+    expect(css).toContain('background: #7E2D2D;');
+    expect(css).not.toContain('#d00000');
+    expect(css).not.toContain('#ff3b3b');
+  });
+
 });
