@@ -29,17 +29,6 @@ html body #root .rqk-app-shell .rqk-app-shell-content {
   background: transparent !important;
   background-image: none !important;
 }
-html body #root .rqk-app-shell :is(
-  .rqk-app-rail,
-  .campaign-dashboard-panel,
-  .rqk-reference-browser__detail,
-  .rqk-reference-browser__sidebar,
-  .rqk-stat-block
-) {
-  /* No change to panels: their existing solid surfaces stay in charge. */
-  background-blend-mode: normal;
-}
-
 /* If higher contrast is requested, remove decorative grain and retain navy. */
 @media (prefers-contrast: more) {
   html body #root .rqk-app-shell,
