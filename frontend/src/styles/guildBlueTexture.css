@@ -1,42 +1,98 @@
-/* Guild Command — original blue bookcloth texture (draft-only).
-   Restrict to authenticated app shell, not solid reading cards,
-   the player-facing TV presentation, the public landing or auth forms.
-   Transparent 192px SVG repeats locally, with no third-party requests. */
-:root {
-  --rq-guild-texture-base: #0B1B2B;
-  --rq-guild-texture-glow: rgba(56, 94, 125, .17);
-}
-
-/* Earlier shell rules deliberately flatten gradients. We override ONLY the
-   signed-in frame's backdrop. The nested contents must stay transparent so
-   the weave is actually visible behind the panels. */
-html body #root .rqk-app-shell,
-html body #root .rqk-app-shell .rqk-app-workspace {
-  background-color: var(--rq-guild-texture-base) !important;
-  background-image:
-    radial-gradient(ellipse at 76% 12%, var(--rq-guild-texture-glow), transparent 55%),
-    linear-gradient(168deg, rgba(3, 15, 29, .08), rgba(5, 19, 33, .14)),
-    url('/brand/guild-blue-bookcloth.svg') !important;
-  background-size: 100% 100%, 100% 100%, 192px 192px !important;
-  background-position: center, center, left top !important;
-  background-repeat: no-repeat, no-repeat, repeat !important;
-  background-attachment: scroll !important;
-}
-
-/* Preserve the solid side rail and readable GM tools, while revealing the
-   new texture in the breathing room around the workspace cards. */
-html body #root .rqk-app-shell .rqk-app-shell-content {
-  background: transparent !important;
-  background-image: none !important;
-}
-/* If higher contrast is requested, remove decorative grain and retain navy. */
-@media (prefers-contrast: more) {
-  html body #root .rqk-app-shell,
-  html body #root .rqk-app-shell .rqk-app-workspace {
-    background-image: none !important;
+/*
+ * Rookie Quest Keeper · shared original blue-paper backdrop (design preview).
+ *
+ * User-provided, self-hosted craft-paper photo compressed to WebP.
+ * The same wallpaper applies across public, authenticated, loading, Live Play,
+ * combat, standalone character sheets and fullscreen extended TV screens.
+ *
+ * Keep cards/stat blocks/forms/maps opaque: these selectors affect only the
+ * outer PAGE canvas, not content or the actual VTT image/map stage.
+ * @layer rq-controls is already the web theme's !important cascade authority.
+ */
+@layer rq-controls {
+  html,
+  body,
+  #root {
     background-color: #0B1B2B !important;
   }
-}
 
-/* Avoid any unnecessary animation or oversized images in the TV/mobile UI.
-   The tile is fixed-size and scrolls normally, never animates. */
+  html body #root,
+  html body #root :is(
+    .rqk-app-shell,
+    .keeper-product-site,
+    .rqk-auth-page,
+    .loading-screen,
+    .clean-sheet-page,
+    .combat-table-page,
+    .rqk-live-session-screen,
+    [data-testid="second-screen-remote-page"],
+    .rqk-player-display__frame
+  ) {
+    background-color: #0B1B2B !important;
+    background-image:
+      linear-gradient(rgba(5, 16, 28, .30), rgba(5, 16, 28, .39)),
+      url('../assets/guild-craft-paper.webp') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-position: center center, center top !important;
+    background-size: cover, cover !important;
+    background-attachment: scroll !important;
+  }
+
+  /* The shell is the ONE background canvas on signed-in pages. Avoid the
+     legacy opaque workspace masking it or the same photo layering twice. */
+  html body #root .rqk-app-shell .rqk-app-workspace,
+  html body #root .rqk-app-shell .rqk-app-shell-content {
+    background: transparent !important;
+    background-image: none !important;
+  }
+
+  /* The extended TV is viewport-constrained. Its outer frame displays the
+     photo; combat map, portraits, stats, text and action HUD retain their
+     existing dark readable surfaces. */
+  html body #root .rqk-player-display {
+    background-color: #0B1B2B !important;
+    background-image: none !important;
+  }
+  html body #root .rqk-player-display .rqk-player-display__frame {
+    background-color: #0B1B2B !important;
+    background-image:
+      linear-gradient(rgba(5, 16, 28, .30), rgba(5, 16, 28, .39)),
+      url('../assets/guild-craft-paper.webp') !important;
+    background-repeat: no-repeat !important;
+    background-position: center, center !important;
+    background-size: cover !important;
+  }
+
+  /* Never replace an actual map, picture, battle-stage image or the live
+     encounter board with wallpaper. */
+  html body #root :is(
+    .rqk-player-display__combat-map,
+    .rqk-player-display__image-stage,
+    .rqk-player-display__npc-card,
+    .rqk-stat-block,
+    .rqk-reference-browser__detail,
+    .rqk-reference-browser__sidebar
+  ) {
+    background-image: none !important;
+  }
+
+  /* High contrast favours solid navy over any photographic texture. */
+  @media (prefers-contrast: more) {
+    html body #root,
+    html body #root :is(
+      .rqk-app-shell,
+      .keeper-product-site,
+      .rqk-auth-page,
+      .loading-screen,
+      .clean-sheet-page,
+      .combat-table-page,
+      .rqk-live-session-screen,
+      [data-testid="second-screen-remote-page"],
+      .rqk-player-display__frame
+    ),
+    html body #root .rqk-player-display .rqk-player-display__frame {
+      background-image: none !important;
+      background-color: #0B1B2B !important;
+    }
+  }
+}
