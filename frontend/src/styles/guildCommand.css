@@ -1,0 +1,85 @@
+/* Guild Command — approved Option 1: campaign workspace, desktop first.
+   Visual layout only. Mobile retains the existing compact campaign navigator. */
+@media (min-width: 1181px) {
+  #root .guild-command-layout .guild-command-frame {
+    display: grid;
+    grid-template-columns: clamp(190px, 18vw, 248px) minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+  }
+  #root .guild-command-layout .guild-command-sidebar {
+    position: sticky;
+    top: 12px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 14px 10px;
+    background: #0A1928;
+    border: 1px solid #30465C;
+    border-radius: 10px;
+    scrollbar-width: thin;
+  }
+  #root .guild-command-layout .guild-command-sidebar .campaign-dashboard-group-row,
+  #root .guild-command-layout .guild-command-sidebar .campaign-dashboard-tab-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: none;
+    overflow: visible;
+    gap: 6px;
+    padding: 0;
+    margin: 0;
+  }
+  #root .guild-command-layout .guild-command-sidebar :is(.campaign-dashboard-group, .campaign-dashboard-tab) {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    justify-content: flex-start;
+    text-align: left;
+    white-space: normal;
+    border-radius: 6px;
+    min-height: 39px;
+  }
+  #root .guild-command-layout .guild-command-sidebar .campaign-dashboard-tab {
+    padding-left: 20px;
+  }
+  #root .guild-command-layout .guild-command-main {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  #root .guild-command-layout .guild-command-main .campaign-dashboard-panel {
+    width: 100%;
+    min-width: 0;
+  }
+}
+#root .guild-command-home .campaign-home-command {
+  background: #142638;
+  border: 1px solid #30465C;
+  border-radius: 10px;
+}
+#root .guild-command-home .campaign-home-command-copy > p {
+  color: #C9A96B;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+#root .guild-command-home .campaign-home-command-copy > h2 {
+  color: #D9BC82;
+  font-family: Georgia, serif;
+}
+#root .guild-command-home .campaign-home-overview-item,
+#root .guild-command-home .campaign-home-detail,
+#root .guild-command-home .campaign-home-focus-card {
+  border-radius: 8px;
+}
+@media (max-width: 1180px) {
+  #root .guild-command-layout .guild-command-frame { display: block; min-width: 0; }
+}

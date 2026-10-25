@@ -1,4 +1,4 @@
-import React, { useId, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './RosterSplitView.css';
 
@@ -21,10 +21,32 @@ export default function RosterSplitView({
   testId = 'roster-split-view',
 }) {
   const buttonRefs = useRef([]);
+  const listRef = useRef(null);
   const detailId = useId();
   const active = items.find(item => String(getId(item)) === String(selectedId)) || items[0] || null;
   const activeId = active ? String(getId(active)) : '';
   const activeIndex = active ? items.findIndex(item => String(getId(item)) === activeId) : -1;
+
+  // Next/Previous and search changes should reveal the selected row without
+  // scrolling the surrounding campaign page or stealing keyboard focus.
+  useEffect(() => {
+    const list = listRef.current;
+    const item = buttonRefs.current[activeIndex];
+    if (!list || !item) return;
+    const bounds = list.getBoundingClientRect();
+    const row = item.getBoundingClientRect();
+    const padding = 8;
+    if (row.top < bounds.top + padding) {
+      list.scrollTop += row.top - bounds.top - padding;
+    } else if (row.bottom > bounds.bottom - padding) {
+      list.scrollTop += row.bottom - bounds.bottom + padding;
+    }
+    if (row.left < bounds.left + padding) {
+      list.scrollLeft += row.left - bounds.left - padding;
+    } else if (row.right > bounds.right - padding) {
+      list.scrollLeft += row.right - bounds.right + padding;
+    }
+  }, [activeId, activeIndex, items.length]);
 
   // Keep navigation in the filtered campaign roster; never jump to an
   // NPC/beast outside the current visible list or fetch from another party.
@@ -55,7 +77,7 @@ export default function RosterSplitView({
           <span>{items.length} shown</span>
         </div>
         {items.length ? (
-          <div className="rqk-reference-browser__list" role="group" aria-label={'Choose ' + title.toLowerCase()}>
+          <div className="rqk-reference-browser__list" ref={listRef} role="group" aria-label={'Choose ' + title.toLowerCase()}>
             {items.map((item, index) => {
               const id = String(getId(item));
               const chosen = id === activeId;
