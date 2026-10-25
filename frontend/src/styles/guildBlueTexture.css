@@ -8,8 +8,15 @@
  * Keep cards/stat blocks/forms/maps opaque: these selectors affect only the
  * outer PAGE canvas, not content or the actual VTT image/map stage.
  * @layer rq-controls is already the web theme's !important cascade authority.
+ * Keep the full photo visible in each horizontal tile; 'cover' used to enlarge
+ * its grain, especially on portrait phones and the extended TV.
  */
 @layer rq-controls {
+  :root {
+    /* Never scale the paper up to a full 4K/TV width or a tall phone screen. */
+    --rq-guild-paper-width: min(100%, 1440px);
+  }
+
   html,
   body,
   #root {
@@ -30,11 +37,11 @@
   ) {
     background-color: #0B1B2B !important;
     background-image:
-      linear-gradient(rgba(5, 16, 28, .30), rgba(5, 16, 28, .39)),
+      linear-gradient(rgba(3, 11, 21, .72), rgba(3, 11, 21, .80)),
       url('../assets/guild-craft-paper.webp') !important;
-    background-repeat: no-repeat, no-repeat !important;
+    background-repeat: no-repeat, repeat !important;
     background-position: center center, center top !important;
-    background-size: cover, cover !important;
+    background-size: 100% 100%, var(--rq-guild-paper-width) auto !important;
     background-attachment: scroll !important;
   }
 
@@ -56,11 +63,11 @@
   html body #root .rqk-player-display .rqk-player-display__frame {
     background-color: #0B1B2B !important;
     background-image:
-      linear-gradient(rgba(5, 16, 28, .30), rgba(5, 16, 28, .39)),
+      linear-gradient(rgba(3, 11, 21, .72), rgba(3, 11, 21, .80)),
       url('../assets/guild-craft-paper.webp') !important;
-    background-repeat: no-repeat !important;
-    background-position: center, center !important;
-    background-size: cover !important;
+    background-repeat: no-repeat, repeat !important;
+    background-position: center center, center top !important;
+    background-size: 100% 100%, var(--rq-guild-paper-width) auto !important;
   }
 
   /* Never replace an actual map, picture, battle-stage image or the live
