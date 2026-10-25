@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="Subtle navy bookcloth grain">
+  <!-- Original seamless decorative texture; transparent overlay, not a page background colour. -->
+  <defs>
+    <pattern id="weave" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M0 .5H8M.5 0V8" fill="none" stroke="#AAC3DA" stroke-width=".5" opacity=".055"/>
+      <path d="M0 4.5H8M4.5 0V8" fill="none" stroke="#030E1B" stroke-width=".6" opacity=".13"/>
+    </pattern>
+    <filter id="grain" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".45" numOctaves="3" stitchTiles="stitch" seed="17"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .52  0 0 0 0 .66  0 0 0 0 .79  .045 .045 .045 0 -.028"/>
+    </filter>
+  </defs>
+  <rect width="192" height="192" fill="url(#weave)"/>
+  <rect width="192" height="192" filter="url(#grain)"/>
+</svg>
