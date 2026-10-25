@@ -1,0 +1,53 @@
+/* Guild Command — original blue bookcloth texture (draft-only).
+   Restrict to authenticated app shell, not solid reading cards,
+   the player-facing TV presentation, the public landing or auth forms.
+   Transparent 192px SVG repeats locally, with no third-party requests. */
+:root {
+  --rq-guild-texture-base: #0B1B2B;
+  --rq-guild-texture-glow: rgba(56, 94, 125, .17);
+}
+
+/* Earlier shell rules deliberately flatten gradients. We override ONLY the
+   signed-in frame's backdrop. The nested contents must stay transparent so
+   the weave is actually visible behind the panels. */
+html body #root .rqk-app-shell,
+html body #root .rqk-app-shell .rqk-app-workspace {
+  background-color: var(--rq-guild-texture-base) !important;
+  background-image:
+    radial-gradient(ellipse at 76% 12%, var(--rq-guild-texture-glow), transparent 55%),
+    linear-gradient(168deg, rgba(3, 15, 29, .08), rgba(5, 19, 33, .14)),
+    url('/brand/guild-blue-bookcloth.svg') !important;
+  background-size: 100% 100%, 100% 100%, 192px 192px !important;
+  background-position: center, center, left top !important;
+  background-repeat: no-repeat, no-repeat, repeat !important;
+  background-attachment: scroll !important;
+}
+
+/* Preserve the solid side rail and readable GM tools, while revealing the
+   new texture in the breathing room around the workspace cards. */
+html body #root .rqk-app-shell .rqk-app-shell-content {
+  background: transparent !important;
+  background-image: none !important;
+}
+html body #root .rqk-app-shell :is(
+  .rqk-app-rail,
+  .campaign-dashboard-panel,
+  .rqk-reference-browser__detail,
+  .rqk-reference-browser__sidebar,
+  .rqk-stat-block
+) {
+  /* No change to panels: their existing solid surfaces stay in charge. */
+  background-blend-mode: normal;
+}
+
+/* If higher contrast is requested, remove decorative grain and retain navy. */
+@media (prefers-contrast: more) {
+  html body #root .rqk-app-shell,
+  html body #root .rqk-app-shell .rqk-app-workspace {
+    background-image: none !important;
+    background-color: #0B1B2B !important;
+  }
+}
+
+/* Avoid any unnecessary animation or oversized images in the TV/mobile UI.
+   The tile is fixed-size and scrolls normally, never animates. */
