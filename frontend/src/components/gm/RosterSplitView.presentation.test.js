@@ -29,5 +29,8 @@ describe('Guild Command reference roster presentation', () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('transition: none !important;');
     expect(component).toContain('onKeyDown={event => navigateList(event, index)}');
+    expect(component).toContain('ref={listRef}');
+    expect(component).toContain('list.scrollTop +=');
+    expect(component).toContain('list.scrollLeft +=');
   });
 });
