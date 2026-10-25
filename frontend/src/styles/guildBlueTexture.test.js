@@ -18,7 +18,10 @@ describe('Guild Command user-supplied blue paper wallpaper', () => {
     expect(css).toContain("url('../assets/guild-craft-paper.webp')");
     expect(css).not.toMatch(/url\(['"]?https?:\/\//i);
     expect(css).not.toContain('/brand/guild-blue-bookcloth.svg');
-    expect(css).toContain('background-size: cover');
+    expect(css).toContain('--rq-guild-paper-width: min(100%, 1440px);');
+    expect(css).toContain('background-size: 100% 100%, var(--rq-guild-paper-width) auto !important;');
+    expect(css).toContain('background-repeat: no-repeat, repeat !important;');
+    expect(css).not.toContain('background-size: cover');
   });
 
   test('landing, login, loading, character, combat, GM and remote presentation have wallpaper', () => {
@@ -38,6 +41,16 @@ describe('Guild Command user-supplied blue paper wallpaper', () => {
     }
     const live = read('../components/gm/LiveSessionGridPage.js');
     expect(live).toContain('className="rqk-live-session-screen"');
+  });
+
+
+  test('paper is substantially darker and stays zoomed out on mobile and extended TV', () => {
+    const css = read('./guildBlueTexture.css');
+    const overlay = 'linear-gradient(rgba(3, 11, 21, .72), rgba(3, 11, 21, .80))';
+    expect(css.split(overlay).length - 1).toBe(2);
+    expect(css).toContain('html body #root .rqk-player-display .rqk-player-display__frame {');
+    expect(css).toContain('background-size: 100% 100%, var(--rq-guild-paper-width) auto !important;');
+    expect(css).not.toMatch(/background-size:\\s*cover/i);
   });
 
   test('keeps opaque reading cards and combat maps clean, and offers solid high contrast', () => {
