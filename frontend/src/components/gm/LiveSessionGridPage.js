@@ -273,7 +273,7 @@ export default function LiveSessionGridPage() {
 
   return (
     <>
-      <main style={pageStyle}>
+      <main className="rqk-live-session-screen" style={pageStyle}>
         <header style={headerStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-outline" style={smallButtonStyle}><ArrowLeft size={16} /> Campaign Prep</Button>
