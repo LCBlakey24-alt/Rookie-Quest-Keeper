@@ -82,7 +82,7 @@ body div[style*="display: flex"][style*="overflow: hidden"][style*="position: re
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #A63A24;
+  background: #D8432D;
 }
 
 textarea,
