@@ -227,8 +227,7 @@
   #root .rqk-app-shell :is(.player-dashboard-tab-active,
                            .player-dashboard-icon-button,
                            .player-campaign-header button,
-                           .rqk-npc-expand-toggle)
-      :is(.active, .is-active, [aria-selected='true'], [data-state='active'], [aria-expanded='true']) {
+                           .rqk-npc-expand-toggle):is(.active, .is-active, [aria-selected='true'], [data-state='active'], [aria-expanded='true']) {
     background-size: 100% 3px !important;
   }
   @media (hover: hover) and (pointer: fine) {
