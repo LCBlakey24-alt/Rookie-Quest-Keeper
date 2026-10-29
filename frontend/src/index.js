@@ -30,6 +30,7 @@ import "@/styles/guildLedgerFinish.css";
 // Retire wax-red full-control fills and the separate wallpaper draft.
 import "@/styles/guildCommand.css";
 import "@/styles/citrusCommand.css";
+import "@/styles/guildCommandDashboard.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
