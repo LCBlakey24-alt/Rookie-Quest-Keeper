@@ -47,7 +47,7 @@ describe('Campaign Dashboard presentation ownership', () => {
 
   test('avoids duplicating the campaign title in the GM home hero', () => {
     const source = read('../components/CampaignDashboard.js');
-    expect(source).toContain('id="campaign-home-title">Ready for the table');
+    expect(source).toContain('id="campaign-home-title">Campaign Command Centre');
     expect(source).not.toContain('id="campaign-home-title">{campaign?.name');
   });
 

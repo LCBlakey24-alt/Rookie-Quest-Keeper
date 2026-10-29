@@ -242,3 +242,106 @@
   #root .rqk-reference-browser__paging button { padding: 8px; }
   #root .rqk-reference-browser__paging button span { display: none; }
 }
+
+/* Guild Command citrus NPC / Bestiary roster legibility.
+   The live 29-NPC roster exposed clipped labels and old full-card red selection.
+   Isolate this to the shared reference browser; no NPC content is changed.
+   Important rules in rq-controls outrank older global button styling. */
+@layer rq-controls {
+  #root .rqk-reference-browser .rqk-reference-browser__list {
+    scrollbar-color: #61758A #142638;
+  }
+  #root .rqk-reference-browser .rqk-reference-browser__item {
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-auto-rows: min-content !important;
+    align-content: center !important;
+    justify-items: stretch !important;
+    gap: 4px !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 72px !important;
+    padding: 11px 13px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+    background-color: #263F59 !important;
+    background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C, #EF6343, #CE393A)) !important;
+    background-position: left center !important;
+    background-size: 0% 3px !important;
+    background-repeat: no-repeat !important;
+    border-left: 3px solid transparent !important;
+    border-bottom: 1px solid #43566B !important;
+    color: #F8F0E5 !important;
+    -webkit-text-fill-color: #F8F0E5 !important;
+    transition: background-size 340ms cubic-bezier(.22,.78,.18,1), border-color 180ms ease !important;
+  }
+  #root .rqk-reference-browser .rqk-reference-browser__item :is(.rqk-reference-browser__item-name, .rqk-reference-browser__item-subtitle, .rqk-reference-browser__item-badge) {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.35 !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+  #root .rqk-reference-browser .rqk-reference-browser__item .rqk-reference-browser__item-name {
+    color: #F8F0E5 !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+  }
+  #root .rqk-reference-browser .rqk-reference-browser__item .rqk-reference-browser__item-subtitle {
+    color: #CAD6E1 !important;
+    font-size: 11px !important;
+  }
+  #root .rqk-reference-browser .rqk-reference-browser__item.is-selected,
+  #root .rqk-reference-browser .rqk-reference-browser__item[aria-current="true"] {
+    background-size: 100% 3px !important;
+    border-left-color: transparent !important;
+    border-bottom-color: #CE393A !important;
+  }
+  #root .rqk-reference-browser .rqk-reference-browser__item:focus-visible {
+    outline: 3px solid #6E91B4 !important;
+    outline-offset: -3px !important;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    #root .rqk-reference-browser .rqk-reference-browser__item:hover {
+      background-size: 100% 100% !important;
+      border-left-color: transparent !important;
+    }
+  }
+  @media (max-width: 640px) {
+    #root .rqk-reference-browser .rqk-reference-browser__item {
+      flex: 0 0 176px !important;
+      width: 176px !important;
+      min-height: 76px !important;
+      border-left: 0 !important;
+      border-bottom: 3px solid transparent !important;
+    }
+    #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current="true"]) {
+      border-bottom-color: #CE393A !important;
+    }
+  }
+  @container (max-width: 680px) {
+    #root .rqk-reference-browser .rqk-reference-browser__item {
+      flex: 0 0 176px !important;
+      width: 176px !important;
+      min-height: 76px !important;
+      border-left: 0 !important;
+      border-bottom: 3px solid transparent !important;
+    }
+    #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current="true"]) {
+      border-bottom-color: #CE393A !important;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #root .rqk-reference-browser .rqk-reference-browser__item {
+      transition: none !important;
+    }
+  }
+}

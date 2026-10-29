@@ -85,6 +85,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
               onClick={() => selectTool(tool.id)}
               data-testid={`live-tool-${tool.id}`}
               className={selected ? 'rqk-live-grid__nav-button is-active' : 'rqk-live-grid__nav-button'}
+              aria-current={selected ? 'page' : undefined}
               style={navButtonStyle(selected)}
             >
               <Icon size={17} />
@@ -212,7 +213,7 @@ function EmptyTool({ title }) {
 
 const shellStyle = { display: 'grid', gap: 8, minWidth: 0, fontFamily: fontStack };
 const primaryNavStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 1, background: rq.line, border: `1px solid ${rq.line}` };
-const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: active ? `1px solid ${rq.pink}` : '1px solid transparent', background: active ? 'rgba(124,203,255,0.10)' : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
+const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: active ? '1px solid var(--rq-guild-wine, #7E2D2D)' : '1px solid transparent', background: active ? 'var(--rq-guild-wine, #7E2D2D)' : rq.panel, backgroundImage: active ? 'var(--rq-guild-wine-selected, none)' : 'none', color: active ? '#F8F0E5' : rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
 const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}` };
 const toolHeaderStyle = { minHeight: 48, padding: '0 11px', borderBottom: `1px solid ${rq.line}`, background: rq.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 };
 const toolTitleStyle = { display: 'flex', alignItems: 'center', gap: 7, color: rq.text, fontSize: 15 };

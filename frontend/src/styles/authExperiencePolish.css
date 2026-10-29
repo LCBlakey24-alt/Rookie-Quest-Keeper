@@ -154,7 +154,7 @@
   margin: -6px 0 18px;
   padding: 12px 13px 12px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(201, 169, 107, 0.16);
+  border: 1px solid rgba(110, 145, 180, 0.20);
   background: #0F1A26;
   overflow: hidden;
 }
@@ -164,7 +164,7 @@
   position: absolute;
   inset: 10px auto 10px 0;
   width: 3px;
-  background: #C9A96B;
+  background: #6E91B4;
 }
 
 .rqk-auth-assurance span {
@@ -227,7 +227,7 @@
 }
 
 .rqk-auth-strength-meter span.is-filled {
-  background: #C9A96B;
+  background: #6E91B4;
   box-shadow: none;
 }
 

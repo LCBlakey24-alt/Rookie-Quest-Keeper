@@ -1,122 +1,61 @@
 # Rookie Quest Keeper UI Design System
 
-This document is the visual lock for Rookie Quest Keeper.
+This is the current user-approved design direction, **29 October 2026**. It supersedes the older wax-red full-control fill and the unapproved craft-paper wallpaper. The Guild Command layout remains the chosen UI.
 
-## Chosen direction: Professional Navy / Gold / Cream
+## Direction: Guild Command / flat navy / citrus gradient lines
 
-RQK uses one calm, premium interface across landing, auth, player, GM and utility routes:
+- **Page background:** solid ink navy `#0B1B2B`. No wallpaper image, paper grain, textured page surfaces or darkened overlay.
+- **Deep rail:** `#07131F`; **panels:** `#142638` or `#1E2936`; **cards:** `#263748`; **normal controls:** `#263F59`.
+- **Primary text:** warm cream `#F5F1E8`; muted labels `rgba(234,223,200,0.78)`; support blue `#6E91B4`.
+- **Accent gradient:** solid yellow `#F2C94C` across the first **28%**, blend through ember red-orange `#EF6343` at **50%**, reach deep red-orange `#CE393A` at **72%**, then hold solid deep red-orange for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
+- The accent is ONLY a thin **2–3px rule, tab underline, selected-sidebar marker or section divider**. Never fill a page, button, card, modal, or tab with gradient.
+- Brand logo may retain its approved gold and red wax-seal artwork; do not recolour the supplied logo asset.
+- Antique gold may appear in existing brand typography, **not** as interactive fills/borders; main interface headings are cream.
+- Semantic danger, success, warning, healing and damage colours retain their meanings. Blood orange is a brand accent, **not** danger red.
 
-- **Deep navy canvas:** `#0B1B2B`
-- **Deep rail:** `#07131F`
-- **Panel navy:** `#1E2936`
-- **Card/control navy:** `#263748`
-- **Hover navy:** `#334155`
-- **Warm cream primary text:** `#EADFC8`
-- **Muted cream secondary text:** `rgba(234,223,200,0.78)`
-- **Antique gold primary accent:** `#C9A96B`
-- **Gold hover/highlight:** `#D9BC82`
-- **Supporting blue:** `#6E91B4`
+## Interaction
 
-There are no decorative gradients, neon theme colours or glow-heavy surfaces in the normal product UI.
+| State | Appearance |
+| --- | --- |
+| Resting tab/button | Flat navy-blue with cream text and subdued border |
+| Hover (fine pointer) | Yellow-to-blood-orange underline sweeps left to right in ~340ms |
+| Press / keyboard focus | Same underline; blue focus outline remains visible |
+| Selected tab or nav | Blue body, **persistent** full-width 3px citrus underline |
+| Disabled / busy | No selection underline; separate muted/loading affordance |
+| Reduced motion | Immediate visual state, no sweep |
 
-## Colour placement
+Do not paint full controls with red, gold, or gradients. Never use a pseudo-element that hides a real focus ring or competes with existing map/rail indicators. Current implementation: `frontend/src/styles/citrusCommand.css`, imported last after `guildCommand.css` in `frontend/src/index.js`. `waxSealInteractive.css` and `guildBlueTexture.css` are **not** part of the approved web entrypoint.
 
-| Role | Colour | Rule |
-| --- | --- | --- |
-| App canvas | `#0B1B2B` | Default page background |
-| Deep rail | `#07131F` | Navigation / deepest chrome |
-| Panel | `#1E2936` | Main grouped surfaces |
-| Card/control | `#263748` | Cards, buttons, inputs |
-| Hover | `#334155` | Hover/raised interactive state |
-| Primary text | `#EADFC8` | Headings, controls, key values |
-| Secondary text | `rgba(234,223,200,0.78)` | Body copy |
-| Muted text | `rgba(234,223,200,0.60)` | Metadata/helper copy |
-| Brand action | `#C9A96B` | Primary borders, active markers, CTA emphasis |
-| Supporting UI | `#6E91B4` | Icons, information, progress, keyboard focus |
-| Neutral hairline | `rgba(137,157,176,0.14)` | Default structural border |
-| Strong line | `rgba(201,169,107,0.30)` | Active/focus border |
-| Success | `#5FA67A` | Success only |
-| Warning | `#D39A43` | Warning only |
-| Danger | `#B94A4F` | Destructive/error only |
+## Where this applies
 
-## Global rules
+One palette across landing, registration/sign-in, player dashboard, GM Command Centre, campaign tools, character sheets, NPC/bestiary rosters, Live Play, loading/recovery states, and player-facing/TV displays. The wallpaper reset applies to outer page surfaces only: keep artwork, battle maps, stat-block reading backgrounds and status indicators readable and untouched.
 
-1. One palette across the product. Routes may rearrange layout, not invent new themes.
-2. No decorative gradients, purple/pink neon accents, fantasy glow haze or “Tron” styling.
-3. Gold is the primary brand/action accent. Do not use danger red as decoration.
-4. Blue supports information, icons and focus; it is not a second competing brand.
-5. Keep text hierarchy: primary cream, secondary cream, muted cream. Do not flatten every line to full white.
-6. Panels use flat navy steps and subtle borders rather than shadows for depth.
-7. Rounded corners stay restrained: generally 5–9px.
-8. Cards exist to organise information, not to wrap every sentence.
-9. Touch controls remain at least ~44–46px on mobile/tablet.
-10. Mobile, tablet and desktop expose the same major capabilities.
+### Layout
 
-## Responsive layout contract
+- **Phone, up to 719px:** one-column content, bottom/compact navigation, touch targets ~46px; avoid sideways scrolling.
+- **Tablet, 720–1180px:** compact touch-first navigation, one/two columns, 44px controls.
+- **Desktop, 1181px+:** Guild Command labelled left sidebar and flexible main panel. Keep long lists independently scrollable, not the entire display unnecessarily.
+- **TV, 1280×720 or 1920×1080:** keep presented NPCs, maps and scenes inside the actual screen viewport; no clipped primary content.
 
-The JavaScript and CSS device lanes must agree:
+## Accessibility and consistency
 
-- **Mobile:** `<= 719px` — single-task flow, bottom navigation, 46px controls, one-column content.
-- **Tablet:** `720–1180px` — compact icon rail, touch-first 1–2 column workspace, 44px controls.
-- **Desktop:** `>= 1181px` — labelled rail, wide workspace, 40px controls, deliberate multi-column layouts.
+Use Manrope for functional UI and the approved display font only for titles. Phone inputs should be at least 16px. Preserve semantic HTML, aria-current/aria-selected, keyboard operation, visible focus outlines and `prefers-reduced-motion`. Do not change data, routes or device capability as a visual side effect.
 
-Desktop gets more space, not more features.
+Use tests and live browser QA on 390×844, 768×1024, 1440×900, and 1920×1080. Confirm selected/hover states, reduced motion, no textured canvas, no gold/red filled normal controls, and contrast over actual campaign content.
 
-## Typography
+## Implementation sequence
 
-- UI/body: Manrope or the shared sans-serif token.
-- Display/fantasy fonts are reserved for deliberate branding moments, not dense UI.
-- Use weight, spacing and muted colour for hierarchy before increasing font size.
-- Inputs on phones stay at least 16px to avoid browser focus zoom.
+1. Site-wide flat navy, tokens and accent behaviour.
+2. Landing/auth and campaign navigation.
+3. Character sheet, rosters, GM/Live Play and second screen.
+4. Verify on mobile, tablet, desktop and TV.
+5. Remove obsolete wax/texture drafts from the release path; only then integrate safely into `main`.
 
-## Buttons
+Historical design boards are still authoritative for the **logo**, not for the replaced old wax-filled navigation or discarded wallpaper.
 
-- Default: flat navy card fill.
-- Primary: navy fill with antique-gold border; landing CTAs may use a gold fill where contrast is strong.
-- Hover: lighter navy.
-- Focus: supporting-blue outline.
-- Destructive: semantic danger red only.
-- Text: warm cream.
 
-## Cards and panels
+## Approved Guild Command dashboard (29 October)
 
-- Panel background: `#1E2936`.
-- Card background: `#263748`.
-- Default border: neutral blue-grey hairline.
-- Active border: antique gold.
-- Shadow: normally none.
-- Gradient: never in normal product chrome.
+The GM dashboard now draws its party list from the existing campaign-scoped player roster endpoint. Never populate the UI with example characters, fictitious HP, dates, counts or encounters. Show real loaded data, honest empty and unavailable states, and a link to the existing Players workspace. Five summary cards are responsive and remain readable from phone to desktop; desktop displays a two-column quest/party composition with notes and prep below. The approved final look is illustrated by the user's navy Guild Command mockup; actual record content remains independent of that mockup.
 
-## Inputs
-
-- Background: `#101F2D`.
-- Text: warm cream.
-- Placeholder/helper copy: muted cream.
-- Default border: neutral hairline.
-- Focus: gold border with blue focus outline.
-
-## Navigation and tabs
-
-- Unselected: transparent or flat navy.
-- Icons: cream or supporting blue.
-- Selected: subtle supporting-blue fill + gold marker/border.
-- Mobile: bottom app dock.
-- Tablet: compact icon rail.
-- Desktop: permanent labelled rail.
-
-## Loading, empty and error states
-
-They use exactly the same palette and spacing system as the rest of Keeper. Errors may use semantic danger red, but loading/empty states must not fall back to retired themes.
-
-## Cleanup order
-
-1. Global tokens and shell.
-2. Landing and auth.
-3. Home/dashboard and libraries.
-4. Character creator and character sheet.
-5. Campaign Prep and Live Play.
-6. Rook and floating utilities.
-7. Maps, NPCs, inventory, handouts and other GM tools.
-8. Homebrew/admin/low-frequency utilities.
-9. Retire superseded CSS instead of adding more override layers.
-10. Keep visual contract tests aligned with the source of truth.
+The shared palette is **solid yellow 0–28% → ember red-orange at 50% → deep red-orange 72–100%**. The gradient is always a slim accent, never a full selectable background.

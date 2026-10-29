@@ -352,7 +352,7 @@
 
 #root .rqk-auth-hero {
   padding: clamp(28px, 4vw, 42px) !important;
-  border-left: 2px solid #C9A96B !important;
+  border-left: 2px solid #6E91B4 !important;
 }
 
 #root .rqk-auth-hero h2,
@@ -376,21 +376,21 @@
 }
 
 #root .rqk-auth-feature-icon {
-  background: rgba(201, 169, 107, 0.12) !important;
+  background: rgba(110,145,180, 0.12) !important;
   color: #C9A96B !important;
-  border: 1px solid rgba(201, 169, 107, 0.30) !important;
+  border: 1px solid rgba(110,145,180, 0.30) !important;
   border-radius: 5px !important;
 }
 
 #root .rqk-auth-card {
   padding: clamp(21px, 3vw, 28px) !important;
-  border-top: 2px solid #C9A96B !important;
+  border-top: 2px solid #6E91B4 !important;
 }
 
 #root .rqk-auth-heading::after {
   width: 56px !important;
   margin-top: 14px !important;
-  background: #C9A96B !important;
+  background: #263F59 !important;
 }
 
 #root .rqk-auth-mode-toggle {
@@ -408,8 +408,8 @@
 }
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
-  background: rgba(201, 169, 107, 0.12) !important;
-  border-color: #C9A96B !important;
+  background: rgba(110,145,180, 0.12) !important;
+  border-color: #6E91B4 !important;
   color: #EADFC8 !important;
 }
 
@@ -440,16 +440,16 @@
 #root .rqk-auth-page .rqk-auth-primary {
   min-height: 48px !important;
   border-radius: 5px !important;
-  border-color: #C9A96B !important;
-  background: #C9A96B !important;
+  border-color: #6E91B4 !important;
+  background: #263F59 !important;
   background-image: none !important;
-  color: #07131F !important;
+  color: #F8F0E5 !important;
 }
 
 #root .rqk-auth-page .rqk-auth-primary:hover:not(:disabled),
 #root .rqk-auth-page .rqk-auth-primary:focus-visible:not(:disabled) {
-  background: #D9BC82 !important;
-  border-color: #D9BC82 !important;
+  background: #263F59 !important;
+  border-color: #6E91B4 !important;
 }
 
 #root .rqk-auth-page :where(button, input):focus-visible {

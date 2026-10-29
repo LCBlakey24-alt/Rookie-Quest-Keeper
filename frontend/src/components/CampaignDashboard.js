@@ -7,6 +7,8 @@ import {
   CalendarDays,
   FileText,
   Flag,
+  Heart,
+  Shield,
   Map,
   MapPin,
   Monitor,
@@ -41,6 +43,7 @@ const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/Priva
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 import CampaignMobileNavigator from '@/components/gm/dashboard/CampaignMobileNavigator';
 import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
+import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
 import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
@@ -332,7 +335,7 @@ export default function CampaignDashboard() {
   }
 
   return (
-    <div className="gm-dashboard-shell campaign-dashboard-simple" data-active-tab={activeTab}>
+    <div className="gm-dashboard-shell campaign-dashboard-simple guild-command-layout" data-active-tab={activeTab}>
       <header className="gm-dashboard-header campaign-dashboard-header">
         <div className="campaign-dashboard-title-row">
           <button type="button" onClick={() => navigate('/campaigns')} className="campaign-icon-button" aria-label="Back to campaigns">
@@ -362,7 +365,8 @@ export default function CampaignDashboard() {
         </div>
       </header>
 
-      <nav className="campaign-dashboard-nav" aria-label="Campaign workspace">
+      <div className="guild-command-frame">
+      <nav className="campaign-dashboard-nav guild-command-sidebar" aria-label="Campaign workspace">
         <CampaignMobileNavigator activeTab={activeTab} onOpenTab={handleTabClick} />
         <div className="campaign-dashboard-group-row" aria-label="Campaign tool groups">
           {tabGroups.map((group) => {
@@ -404,13 +408,14 @@ export default function CampaignDashboard() {
         </div>
       </nav>
 
-      <main className="campaign-dashboard-workspace">
+      <main className="campaign-dashboard-workspace guild-command-main">
         <section className="campaign-dashboard-panel" data-testid="gm-active-workspace">
           <Suspense fallback={<div className="campaign-dashboard-loading" role="status">Loading workspace…</div>}>
             {renderActiveTab()}
           </Suspense>
         </section>
       </main>
+      </div>
     </div>
   );
 }
@@ -462,7 +467,40 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
   const [unavailableSections, setUnavailableSections] = useState([]);
+  // Party is loaded from the existing GM-owned roster endpoint. Never invent
+  // characters, portraits, HP or counts to match the design mockup.
+  const [partySnapshot, setPartySnapshot] = useState({ status: 'loading', members: [] });
+  const [partyRefreshNonce, setPartyRefreshNonce] = useState(0);
   const homeRequestRef = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Keep previously loaded rows visible on a refresh failure for this
+    // campaign, rather than claiming the party is empty or deleting data.
+    setPartySnapshot(previous => ({
+      members: previous.members,
+      status: previous.members.length ? 'refreshing' : 'loading',
+    }));
+    if (!campaignId) return () => { cancelled = true; };
+
+    apiClient.get(`/campaigns/${campaignId}/players`).then(response => {
+      if (cancelled) return;
+      const rows = Array.isArray(response.data) ? response.data :
+        Array.isArray(response.data?.players) ? response.data.players : [];
+      setPartySnapshot({
+        status: 'ready',
+        members: rows.map(normalizeCampaignCharacter).filter(member => member?.name),
+      });
+    }).catch(() => {
+      if (!cancelled) {
+        setPartySnapshot(previous => ({
+          ...previous,
+          status: previous.members.length ? 'stale' : 'unavailable',
+        }));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [campaignId, partyRefreshNonce]);
 
   const loadHome = useCallback(async () => {
     if (!campaignId) return;
@@ -556,6 +594,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   }, [data.calendar]);
 
   const overview = [
+    { id: 'players', label: 'Adventurers', key: 'party', count: partySnapshot.members.length, icon: Users },
     { id: 'story-arcs', label: 'Quests', key: 'quests', count: data.quests.length, icon: ScrollText },
     { id: 'npcs', label: 'NPCs', key: 'npcs', count: data.npcs.length, icon: UserCircle },
     { id: 'maps', label: 'Places', key: 'locations', count: data.locations.length, icon: MapPin },
@@ -581,15 +620,17 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
   ];
 
   return (
-    <div className="campaign-home-simple">
+    <div className="campaign-home-simple guild-command-home">
       <section className="campaign-home-command" aria-labelledby="campaign-home-title">
         <div className="campaign-home-command-copy">
-          <p>GM session desk</p>
-          <h2 id="campaign-home-title">Ready for the table</h2>
+          <p>GUILD COMMAND · GM WORKSPACE</p>
+          <h2 id="campaign-home-title">Campaign Command Centre</h2>
           <span>{homeLoading ? 'Loading your campaign notes and quests…' : 'The next scene, key characters and everything you need during play.'}</span>
         </div>
         <div className="campaign-home-command-actions">
-          <button type="button" className="campaign-button" onClick={loadHome} disabled={homeLoading}>
+          <button type="button" className="campaign-button"
+            onClick={() => { loadHome(); setPartyRefreshNonce(value => value + 1); }}
+            disabled={homeLoading}>
             <RefreshCw size={15} aria-hidden="true" /> Refresh
           </button>
           <button type="button" className="campaign-button campaign-button-primary" onClick={() => onOpenTab('story-arcs')}>
@@ -631,7 +672,7 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
             <button type="button" key={item.id} className="campaign-home-overview-item"
               onClick={() => onOpenTab(item.id)} aria-label={`Open ${item.label}`}>
               <Icon size={19} aria-hidden="true" />
-              <strong>{homeLoading || unavailableSections.includes(item.key) ? '—' : item.count}</strong>
+              <strong>{(item.key === 'party' ? partySnapshot.status === 'loading' || partySnapshot.status === 'unavailable' : homeLoading || unavailableSections.includes(item.key)) ? '—' : item.count}</strong>
               <span>{item.label}</span>
             </button>
           );
@@ -670,6 +711,59 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
               ? 'Calendar events unavailable. Refresh to try again.'
               : 'No upcoming event scheduled.'}</p>
         </button>
+      </section>
+
+      <section className="guild-command-party" aria-labelledby="guild-command-party-title">
+        <div className="guild-command-party__heading">
+          <div>
+            <span className="guild-command-party__eyebrow">YOUR ADVENTURERS</span>
+            <h3 id="guild-command-party-title">Party at a Glance</h3>
+          </div>
+          <button type="button" onClick={() => onOpenTab('players')}>Manage party →</button>
+        </div>
+        {partySnapshot.members.length ? (
+          <ul className="guild-command-party__list">
+            {partySnapshot.members.slice(0, 5).map((member, index) => (
+              <li key={`${member.id || member.name || 'member'}-${index}`} className="guild-command-party__member">
+                <span className="guild-command-party__avatar" aria-hidden="true">
+                  {String(member.name || '?').trim().charAt(0).toUpperCase()}
+                  {member.portraitUrl && (
+                    <img src={member.portraitUrl} alt="" loading="lazy"
+                      onError={event => { event.currentTarget.style.display = 'none'; }} />
+                  )}
+                </span>
+                <div className="guild-command-party__identity">
+                  <strong>{member.name}</strong>
+                  <span>{[member.race, member.className !== 'Class' ? member.className : '', member.level ? `Lv ${member.level}` : ''].filter(Boolean).join(' · ')}</span>
+                </div>
+                {member.maxHp > 0 ? (
+                  <span className="guild-command-party__stat" title="Current and maximum hit points">
+                    <Heart size={15} aria-hidden="true" />
+                    {member.currentHp} / {member.maxHp}
+                  </span>
+                ) : (
+                  <span className="guild-command-party__stat guild-command-party__stat--muted">
+                    <Shield size={15} aria-hidden="true" /> AC {member.armorClass || '—'}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="guild-command-party__empty" role="status">
+            {partySnapshot.status === 'loading' ? 'Loading party…' :
+              partySnapshot.status === 'unavailable' ? 'Party records are unavailable. Refresh to try again.' :
+              'No adventurers linked yet. Open Players to build your party.'}
+          </p>
+        )}
+        {partySnapshot.status === 'stale' && (
+          <p className="guild-command-party__status" role="status">Showing the last loaded party; refresh was unsuccessful.</p>
+        )}
+        {partySnapshot.members.length > 5 && (
+          <button type="button" className="guild-command-party__more" onClick={() => onOpenTab('players')}>
+            View all {partySnapshot.members.length} adventurers
+          </button>
+        )}
       </section>
 
       <section className="campaign-home-detail-grid">

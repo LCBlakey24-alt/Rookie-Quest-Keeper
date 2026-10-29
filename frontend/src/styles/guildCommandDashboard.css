@@ -1,0 +1,375 @@
+/* Guild Command: approved full web dashboard composition (29 Oct 2026).
+ * Desktop: commanding campaign title, five real-data metrics, campaign focus
+ * and actual GM party roster. Phone/tablet: readable, compact and touch-safe.
+ * The mockup's sample quests, characters and dates are NEVER hard-coded here.
+ * Only locally scoped presentation overrides: no route or data mutations.
+ */
+@layer rq-controls {
+  #root .guild-command-layout[data-active-tab='command-centre'] .campaign-dashboard-header {
+    background-color: #071B2F !important;
+    border-color: transparent !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-size: 100% 3px !important;
+    background-position: left bottom !important;
+  }
+  #root .guild-command-layout .campaign-dashboard-title-copy h1 {
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+    color: var(--rq-citrus-cream) !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+  #root .guild-command-layout .campaign-dashboard-title-copy > span {
+    color: #B4C5D8 !important;
+  }
+
+  #root .guild-command-home.campaign-home-simple {
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: clamp(12px, 1.4vw, 19px) !important;
+  }
+  #root .guild-command-home .campaign-home-command {
+    border: 1px solid rgba(110,145,180,.28) !important;
+    border-left: 1px solid rgba(110,145,180,.28) !important;
+    border-radius: 10px !important;
+    background-color: #142638 !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-size: 100% 3px !important;
+    background-position: left bottom !important;
+    padding: clamp(17px, 2.2vw, 27px) !important;
+  }
+  #root .guild-command-home .campaign-home-command-copy > p {
+    color: #C9D7E8 !important;
+    font-size: .67rem !important;
+    letter-spacing: .16em !important;
+  }
+  #root .guild-command-home .campaign-home-command-copy > h2 {
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+    font-size: clamp(1.45rem, 2.5vw, 2.1rem) !important;
+    color: var(--rq-citrus-cream) !important;
+    line-height: 1.1 !important;
+  }
+
+  #root .guild-command-home .campaign-home-overview {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0,1fr)) !important;
+    gap: 10px !important;
+  }
+  #root .guild-command-home .campaign-home-overview-item {
+    --rq-fill-color: transparent;
+    min-width: 0 !important;
+    min-height: 118px !important;
+    padding: 15px 13px !important;
+    border: 1px solid rgba(110,145,180,.26) !important;
+    border-radius: 9px !important;
+    background-color: #142638 !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-size: 0% 3px !important;
+    background-position: left bottom !important;
+    color: var(--rq-citrus-cream) !important;
+    box-shadow: none !important;
+    transition: background-size var(--rq-citrus-sweep), border-color 160ms ease !important;
+  }
+  #root .guild-command-home .campaign-home-overview-item > svg {
+    color: #9BC4EC !important;
+    width: 23px !important;
+    height: 23px !important;
+  }
+  #root .guild-command-home .campaign-home-overview-item > strong {
+    color: var(--rq-citrus-cream) !important;
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+    font-size: clamp(1.3rem, 2.3vw, 1.85rem) !important;
+    line-height: 1.13 !important;
+  }
+  #root .guild-command-home .campaign-home-overview-item > span {
+    color: #C2D0DE !important;
+    font-size: .75rem !important;
+    letter-spacing: .02em !important;
+  }
+  #root .guild-command-home .campaign-home-session-rail {
+    background-color: #102238 !important;
+    border: 1px solid rgba(110,145,180,.24) !important;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+  }
+  #root .guild-command-home .campaign-home-session-rail__heading {
+    color: var(--rq-citrus-cream) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 100% 2px !important;
+  }
+
+  #root .guild-command-home .campaign-home-focus-card,
+  #root .guild-command-home .campaign-home-detail,
+  #root .guild-command-home .campaign-home-section,
+  #root .guild-command-home .guild-command-party {
+    min-width: 0 !important;
+    background-color: #142638 !important;
+    border: 1px solid rgba(110,145,180,.24) !important;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+  }
+  #root .guild-command-home .campaign-home-focus-card {
+    --rq-fill-color: transparent;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 0% 3px !important;
+    transition: background-size var(--rq-citrus-sweep) !important;
+  }
+  #root .guild-command-home .campaign-home-focus-card--wide {
+    border-left: 1px solid rgba(110,145,180,.24) !important;
+  }
+  #root .guild-command-home .campaign-home-focus-label {
+    color: #AFC2D5 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .1em !important;
+  }
+  #root .guild-command-home .campaign-home-focus-card strong {
+    color: var(--rq-citrus-cream) !important;
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+    line-height: 1.25 !important;
+  }
+  #root .guild-command-home .campaign-home-detail-heading,
+  #root .guild-command-home .campaign-home-section-heading {
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 100% 2px !important;
+    padding-bottom: 12px !important;
+  }
+  #root .guild-command-home .campaign-home-detail-heading > span,
+  #root .guild-command-home .campaign-home-section-heading h2 {
+    color: var(--rq-citrus-cream) !important;
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+  }
+
+  /* Party data is loaded from /campaigns/:campaignId/players: the names,
+   * levels and HP are real and omitted rather than fabricated when absent. */
+  #root .guild-command-home .guild-command-party {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: clamp(14px, 1.6vw, 20px) !important;
+  }
+  #root .guild-command-home .guild-command-party__heading {
+    display: flex !important;
+    align-items: end !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    padding-bottom: 12px !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 100% 3px !important;
+  }
+  #root .guild-command-home .guild-command-party__eyebrow {
+    color: #9CB1C8 !important;
+    font-size: .61rem !important;
+    letter-spacing: .14em !important;
+    font-weight: 800 !important;
+  }
+  #root .guild-command-home .guild-command-party__heading h3 {
+    margin: 4px 0 0 !important;
+    font-family: var(--rq-font-display, Georgia, serif) !important;
+    font-size: clamp(1rem, 1.3vw, 1.25rem) !important;
+    color: var(--rq-citrus-cream) !important;
+  }
+  #root .guild-command-home .guild-command-party__heading button,
+  #root .guild-command-home .guild-command-party__more {
+    --rq-fill-color: transparent;
+    background: #263F59 !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 0% 3px !important;
+    border: 1px solid rgba(110,145,180,.25) !important;
+    color: var(--rq-citrus-cream) !important;
+    border-radius: 5px !important;
+    padding: 8px 10px !important;
+    min-height: 36px !important;
+    font-size: .74rem !important;
+    white-space: nowrap !important;
+    transition: background-size var(--rq-citrus-sweep) !important;
+  }
+  #root .guild-command-home .guild-command-party__list {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+  }
+  #root .guild-command-home .guild-command-party__member {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0,1fr) auto !important;
+    align-items: center !important;
+    gap: 9px !important;
+    padding: 9px 2px !important;
+    border-bottom: 1px solid rgba(110,145,180,.16) !important;
+  }
+  #root .guild-command-home .guild-command-party__avatar {
+    display: grid !important;
+    place-items: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background-color: #263F59 !important;
+    border: 1px solid rgba(110,145,180,.45) !important;
+    color: #F2C94C !important;
+    font-weight: 850 !important;
+  }
+  #root .guild-command-home .guild-command-party__avatar {
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  #root .guild-command-home .guild-command-party__avatar img {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: inherit !important;
+  }
+  #root .guild-command-home .guild-command-party__identity {
+    display: grid !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+  }
+  #root .guild-command-home .guild-command-party__identity > strong {
+    color: #F5F1E8 !important;
+    font-size: .83rem !important;
+    overflow-wrap: anywhere !important;
+  }
+  #root .guild-command-home .guild-command-party__identity > span {
+    color: #B0C1D2 !important;
+    font-size: .7rem !important;
+    overflow-wrap: anywhere !important;
+  }
+  #root .guild-command-home .guild-command-party__stat {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+    color: #E9E8E4 !important;
+    font-size: .74rem !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+  #root .guild-command-home .guild-command-party__stat svg {
+    color: #D76A67 !important;
+    width: 15px !important;
+    height: 15px !important;
+  }
+  #root .guild-command-home .guild-command-party__stat--muted svg {
+    color: #9BC4EC !important;
+  }
+  #root .guild-command-home .guild-command-party__empty,
+  #root .guild-command-home .guild-command-party__status {
+    font-size: .82rem !important;
+    line-height: 1.5 !important;
+    color: #C0CFDC !important;
+    margin: 4px 0 !important;
+  }
+  #root .guild-command-home .guild-command-party__more {
+    align-self: flex-start !important;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    #root .guild-command-home .campaign-home-overview-item:hover:not(:disabled),
+    #root .guild-command-home .campaign-home-focus-card:hover:not(:disabled),
+    #root .guild-command-home .guild-command-party__heading button:hover:not(:disabled),
+    #root .guild-command-home .guild-command-party__more:hover:not(:disabled) {
+      background-size: 100% 3px !important;
+    }
+  }
+
+  @media (min-width: 1181px) {
+    #root .guild-command-layout[data-active-tab='command-centre'] .campaign-dashboard-header {
+      min-height: 108px !important;
+      padding: 16px clamp(12px,2.2vw,28px) !important;
+    }
+    #root .guild-command-layout[data-active-tab='command-centre'] .campaign-dashboard-title-copy h1 {
+      font-size: clamp(2rem, 3.2vw, 3rem) !important;
+      line-height: 1.04 !important;
+    }
+    #root .guild-command-home .campaign-home-workbench {
+      display: grid !important;
+      grid-template-columns: minmax(0,1.55fr) minmax(290px,1fr) !important;
+      align-items: start !important;
+      gap: 14px !important;
+    }
+    #root .guild-command-home .campaign-home-workbench > .campaign-home-focus-grid {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    }
+    #root .guild-command-home .campaign-home-workbench > .campaign-home-focus-grid .campaign-home-focus-card--wide {
+      grid-column: 1 / -1 !important;
+    }
+    #root .guild-command-home .campaign-home-workbench > .guild-command-party {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+    }
+    #root .guild-command-home .campaign-home-workbench > .campaign-home-detail-grid {
+      grid-column: 1 / -1 !important;
+      grid-row: 2 !important;
+      grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    }
+    #root .guild-command-home .campaign-home-workbench > .campaign-home-section {
+      grid-column: 1 / -1 !important;
+      grid-row: 3 !important;
+      position: static !important;
+      top: auto !important;
+    }
+    #root .guild-command-home .campaign-home-workbench .campaign-home-quick-grid {
+      grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+    }
+  }
+
+  @media (min-width: 761px) and (max-width: 1180px) {
+    #root .guild-command-home .campaign-home-overview {
+      grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+    }
+    #root .guild-command-home .campaign-home-workbench {
+      grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    }
+    #root .guild-command-home .campaign-home-workbench > .guild-command-party {
+      grid-column: 1 / -1 !important;
+    }
+  }
+  @media (max-width: 760px) {
+    #root .guild-command-home .campaign-home-overview {
+      grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+      gap: 8px !important;
+    }
+    #root .guild-command-home .campaign-home-overview-item {
+      min-height: 100px !important;
+      padding: 10px !important;
+    }
+    #root .guild-command-home .campaign-home-workbench {
+      grid-template-columns: minmax(0,1fr) !important;
+    }
+    #root .guild-command-home .campaign-home-workbench > .guild-command-party {
+      grid-column: 1 !important;
+      grid-row: auto !important;
+    }
+    #root .guild-command-home .guild-command-party__heading {
+      align-items: center !important;
+    }
+    #root .guild-command-home .guild-command-party__member {
+      grid-template-columns: 34px minmax(0,1fr) auto !important;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #root .guild-command-home .campaign-home-overview-item,
+    #root .guild-command-home .campaign-home-focus-card,
+    #root .guild-command-home .guild-command-party__heading button,
+    #root .guild-command-home .guild-command-party__more {
+      transition: none !important;
+    }
+  }
+}

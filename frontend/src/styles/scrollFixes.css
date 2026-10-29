@@ -14,7 +14,7 @@ html {
   overflow-y: auto !important;
   overscroll-behavior-y: auto !important;
   scroll-behavior: auto;
-  scrollbar-color: #d00000 #151515;
+  scrollbar-color: #61758A #0B1B2B;
   scrollbar-width: thin;
 }
 
@@ -27,7 +27,7 @@ body,
   overflow-y: visible !important;
   overscroll-behavior-y: auto !important;
   scroll-behavior: auto;
-  scrollbar-color: #d00000 #151515;
+  scrollbar-color: #61758A #0B1B2B;
   scrollbar-width: thin;
 }
 
@@ -62,7 +62,7 @@ body div[style*="display: flex"][style*="overflow: hidden"][style*="position: re
 .rq-scroll-x,
 [role="dialog"] {
   -webkit-overflow-scrolling: touch;
-  scrollbar-color: #d00000 #151515;
+  scrollbar-color: #61758A #0B1B2B;
   scrollbar-width: thin;
 }
 
@@ -72,17 +72,17 @@ body div[style*="display: flex"][style*="overflow: hidden"][style*="position: re
 }
 
 *::-webkit-scrollbar-track {
-  background: #151515;
+  background: #0B1B2B;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #d00000;
-  border: 2px solid #151515;
-  border-radius: 0;
+  background: #61758A;
+  border: 2px solid #0B1B2B;
+  border-radius: 8px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #ff3b3b;
+  background: #CE393A;
 }
 
 textarea,

@@ -1,0 +1,290 @@
+/* Rookie Quest Keeper — approved Guild Command citrus accent, 2026-10-29.
+ * Flat deep navy + cream reading text. Gradients are precision indicators,
+ * NEVER a card, button or page fill. No image texture or wallpaper.
+ * The legacy wax-red theme is deliberately not imported by index.js.
+ * Keep this last, in the existing important rq-controls layer.
+ */
+:root {
+  --rq-citrus-yellow: #F2C94C;
+  --rq-citrus-orange: #EF6343;
+  --rq-citrus-blood: #CE393A;
+  /* Hold each end colour for roughly the outer 28% of the line;
+     concentrate the colour transition in the middle 44%. On a 320px rule,
+     the solid ends are ~90px each (about an inch at normal desktop scale).
+     Percent stops scale down naturally for short tabs and mobile screens. */
+  --rq-citrus-gradient: linear-gradient(90deg,
+    var(--rq-citrus-yellow) 0%,
+    var(--rq-citrus-yellow) 28%,
+    var(--rq-citrus-orange) 50%,
+    var(--rq-citrus-blood) 72%,
+    var(--rq-citrus-blood) 100%);
+  --rq-citrus-navy: #0B1B2B;
+  --rq-citrus-panel: #142638;
+  --rq-citrus-control: #263F59;
+  --rq-citrus-cream: #F5F1E8;
+  --rq-citrus-sweep: 340ms cubic-bezier(.22,.78,.18,1);
+}
+
+@layer rq-controls {
+  /* A solid base, even on public/auth, long GM pages and full-screen TVs.
+   * Only outer page surfaces are reset: maps, stat blocks, artwork and
+   * content panels keep their own backgrounds and remain legible. */
+  html, body, #root,
+  #root :is(.App, .rqk-app-shell, .keeper-product-site, .rqk-auth-page,
+            .rqk-player-display, .rqk-player-display__frame,
+            .rqk-live-grid, .character-page-v2, .clean-sheet-page) {
+    background-color: var(--rq-citrus-navy) !important;
+    background-image: none !important;
+  }
+
+  #root :is(.guild-command-sidebar, .campaign-home-command, .campaign-home-detail,
+            .campaign-home-focus-card, .campaign-dashboard-panel, .rqk-app-rail) {
+    background-color: var(--rq-citrus-panel) !important;
+  }
+
+  /* Restore solid BLUE to all ordinary navigation/selectable controls. Unlike
+   * the old wax sweep, the accent is only a 3px underline.
+   * Deliberately exclude destructive/heal/damage and disabled buttons. */
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
+            .character-page-v2, .guild-command-layout, .App) :is(
+      .campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button,
+      .campaign-home-session-rail__action, .campaign-home-quick-card,
+      .rqk-app-rail-link, .rqk-app-mobile-more-item, .rqk-app-mobile-more-trigger,
+      .rqk-live-grid__nav-button, .rqk-live-grid__core-card,
+      .rqk-live-grid__more-grid button, .clean-sheet-tabs button,
+      .player-dashboard-tab, .player-dashboard-action-button,
+      .player-campaign-action, .player-campaign-tabs button,
+      .landing-button, .rqk-auth-primary, .rqk-auth-secondary,
+      .rqk-auth-mode-toggle button, .dashboard-command-card,
+      .dashboard-continue-card, .dashboard-action-card,
+      .campaign-home-focus-card, .rqk-calendar-day, .rqk-selectable-control,
+      .rqk-reference-browser__item, .btn-primary, .rq-button-primary
+  ):where(:not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):not(.rq-hp-action-button--plus):not(.rq-hp-action-button--minus)) {
+    background: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-size: 0% 3px !important;
+    background-position: left bottom !important;
+    background-repeat: no-repeat !important;
+    border-color: rgba(110,145,180,.32) !important;
+    color: var(--rq-citrus-cream) !important;
+    -webkit-text-fill-color: currentColor !important;
+    transition: background-size var(--rq-citrus-sweep), border-color 180ms ease !important;
+  }
+
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
+            .character-page-v2, .guild-command-layout, .App) :is(
+      .campaign-dashboard-tab, .campaign-dashboard-group,
+      .campaign-home-session-rail__action, .campaign-home-quick-card,
+      .rqk-app-rail-link, .rqk-app-mobile-more-item, .rqk-app-mobile-more-trigger,
+      .rqk-live-grid__nav-button, .clean-sheet-tabs button,
+      .player-dashboard-tab, .player-campaign-tabs button,
+      .rqk-auth-mode-toggle button, .rqk-calendar-day,
+      .rqk-selectable-control, .rqk-reference-browser__item
+  ):is(.active, .is-active, .is-selected, .is-open, [data-state='active'],
+       [aria-current='page'], [aria-current='true'], [aria-selected='true'], [aria-pressed='true']):not(:disabled):not([aria-disabled='true']) {
+    background-color: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-size: 100% 3px !important;
+    border-color: rgba(239,99,67,.5) !important;
+    color: var(--rq-citrus-cream) !important;
+  }
+
+  /* Shared tabs outside the named route components (e.g. dialog/tab widgets).
+   * Only semantic tab elements, not generic alert/status buttons. */
+  #root :is([role='tab'], .rq-side-tab, .dashboard-tabs button, .mobile-dashboard-tabs button):not(:disabled):not([aria-disabled='true']):not([data-variant='destructive']) {
+    background-color: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-size: 0% 3px !important;
+    background-position: left bottom !important;
+    background-repeat: no-repeat !important;
+    color: var(--rq-citrus-cream) !important;
+    transition: background-size var(--rq-citrus-sweep) !important;
+  }
+  #root :is([role='tab'], .rq-side-tab, .dashboard-tabs button, .mobile-dashboard-tabs button):is(.active, .is-active, [aria-selected='true'], [data-state='active']):not(:disabled):not([aria-disabled='true']) {
+    background-color: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-size: 100% 3px !important;
+    border-color: rgba(239,99,67,.48) !important;
+  }
+
+  /* Hover, pointer press and keyboard focus produce the same left-to-right
+   * accent; selected navigation remains accented after the pointer leaves. */
+  @media (hover: hover) and (pointer: fine) {
+    #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
+              .character-page-v2, .guild-command-layout, .App) :is(
+      .campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button,
+      .campaign-home-session-rail__action, .campaign-home-quick-card,
+      .rqk-app-rail-link, .rqk-app-mobile-more-item, .rqk-app-mobile-more-trigger,
+      .rqk-live-grid__nav-button, .clean-sheet-tabs button,
+      .player-dashboard-tab, .player-campaign-tabs button, .landing-button,
+      .rqk-auth-primary, .rqk-auth-secondary, .rqk-auth-mode-toggle button,
+      .rqk-calendar-day, .rqk-selectable-control, .rqk-reference-browser__item
+    ):hover:not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
+      background-size: 100% 3px !important;
+    }
+    #root [role='tab']:hover:not(:disabled):not([aria-disabled='true']) {
+      background-size: 100% 3px !important;
+    }
+  }
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App):is(.campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button,
+        .rqk-app-rail-link, .rqk-live-grid__nav-button, .clean-sheet-tabs button,
+        .landing-button, .rqk-auth-primary, .rqk-auth-mode-toggle button,
+        .rqk-calendar-day, .rqk-selectable-control, .rqk-reference-browser__item):is(:active, :focus-visible, .rq-fill-clicked):not(:disabled):not([aria-disabled='true']) {
+    background-size: 100% 3px !important;
+  }
+
+  /* Real browsers include hybrid pointers and emulated desktop devices:
+   * :hover must work even before pointer capabilities are reported as fine. */
+  #root .keeper-product-site .landing-button:hover:not(:disabled):not([aria-disabled='true']) {
+    background-size: 100% 3px !important;
+  }
+  #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active:not(:disabled) {
+    background-size: 100% 3px !important;
+  }
+
+  /* Legacy global button ::before used to paint the entire surface wax-red.
+   * Neutralise its fill on ordinary actions, without touching bespoke pseudo
+   * elements or the health/damage semantic controls. The new underline is
+   * painted by background-image on the actual element instead. */
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
+            .character-page-v2, .App) :is(button, [role='button'], a.button, a.btn):not(.rq-hp-action-button--plus):not(.rq-hp-action-button--minus):not(.rq-hp-action-button--temp):not(.rq-hp-action-button--temp-plus):not(.rq-hp-action-button--temp-minus):not([aria-label*='heal' i]):not([aria-label*='damage' i]) {
+    --rq-fill-color: transparent;
+  }
+
+  /* The old sidebar used its ::before for the active marker; preserve its
+   * geometry but convert the red flat marker to the citrus gradient. */
+  #root .rqk-app-shell .rqk-app-rail-link.is-active::before,
+  #root .rqk-app-shell .rqk-app-rail-link[aria-current='page']::before {
+    background: var(--rq-citrus-gradient) !important;
+  }
+
+  /* In the marketing preview, selected navigation must not be a red tile. */
+  #root .keeper-product-site .landing-app-preview__rail span.is-active {
+    background-color: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 100% 3px !important;
+    color: var(--rq-citrus-cream) !important;
+  }
+
+  /* Full-width section rules make the citrus yellow→blood-orange identity
+   * visible without making reading surfaces colourful or busy. */
+  #root :is(.campaign-dashboard-header, .campaign-home-command,
+            .campaign-home-detail-heading, .campaign-home-section-heading,
+            .campaign-home-session-rail__heading, .rqk-live-grid__header,
+            .rqk-player-display__status, .landing-section-heading) {
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-size: 100% 2px !important;
+    background-position: left bottom !important;
+  }
+
+  /* Localised NPC/bestiary rosters retain their existing accessible wrap and
+   * scroll behaviour; remove the full-card red gradient from the old theme. */
+  #root .rqk-reference-browser .rqk-reference-browser__item {
+    background-color: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 0% 3px !important;
+    border-left-color: transparent !important;
+  }
+  #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current='true']) {
+    background-size: 100% 3px !important;
+    border-left-color: transparent !important;
+    border-bottom-color: rgba(239,99,67,.6) !important;
+  }
+
+  /* Focus keeps its independent blue outline; dangerous, disabled and
+   * actual loading controls remain visibly distinct from navigation. */
+  #root :is(button, [role='button'], [role='tab'], a):focus-visible {
+    outline: 3px solid #6E91B4 !important;
+    outline-offset: 2px !important;
+  }
+  #root :is(button,[role='button'],[role='tab']):is(:disabled,[aria-disabled='true']) {
+    background-image: none !important;
+    cursor: not-allowed !important;
+  }
+  #root :is(button,[role='button'],[role='tab']):is([aria-busy='true'],[data-loading='true']) {
+    background-image: none !important;
+    cursor: progress !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Match the same specificity as the normal-control rules. Otherwise their
+       later background-size transition overrides generic reduced-motion CSS. */
+    /* :is() includes a class+element option elsewhere in the base rule,
+       so specificity must exceed (ID + 2 classes + element) here. */
+    #root .landing-page-final.keeper-product-site button.landing-button,
+    #root .rqk-auth-page .rqk-auth-mode-toggle button,
+    #root .keeper-product-site .landing-button,
+    #root .rqk-app-shell .campaign-dashboard-tab,
+    #root .rqk-app-shell .campaign-dashboard-group,
+    #root .rqk-app-shell .rqk-app-rail-link,
+    #root .rqk-app-shell .player-dashboard-tab,
+    #root .rqk-app-shell .rqk-live-grid__nav-button,
+    #root .character-page-v2 .clean-sheet-tabs button {
+      transition: none !important;
+    }
+    #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
+              .character-page-v2, .guild-command-layout, .App)
+      :is(button, [role='button'], [role='tab'], .rqk-reference-browser__item) {
+      transition: none !important;
+    }
+    #root :is(button, [role='button'], [role='tab'], .rqk-reference-browser__item) {
+      transition-duration: 0s !important;
+    }
+  }
+
+  /* Consistent cream display headings across the actual GM and player routes. */
+  #root .guild-command-layout .gm-campaign-title,
+  #root .rqk-app-shell :is(.player-dashboard-title-block h1,
+                            .player-campaign-header h1,
+                            .player-dashboard-card h2,
+                            .player-campaign-card h2),
+  #root .rqk-auth-page :is(h1, h2),
+  #root .keeper-product-site :is(h1, h2, h3) {
+    color: var(--rq-citrus-cream) !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  /* Older player routes have additional active classes and clickable headers. */
+  #root .rqk-app-shell :is(.player-dashboard-tab-active,
+                           .player-dashboard-icon-button,
+                           .player-campaign-header button,
+                           .rqk-npc-expand-toggle) {
+    background-color: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 0% 3px !important;
+    color: var(--rq-citrus-cream) !important;
+    transition: background-size var(--rq-citrus-sweep) !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-tab-active,
+                           .player-dashboard-icon-button,
+                           .player-campaign-header button,
+                           .rqk-npc-expand-toggle):is(.active, .is-active, [aria-selected='true'], [data-state='active'], [aria-expanded='true']) {
+    background-size: 100% 3px !important;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    #root .rqk-app-shell :is(.player-dashboard-icon-button,
+                             .player-campaign-header button,
+                             .rqk-npc-expand-toggle):hover:not(:disabled) {
+      background-size: 100% 3px !important;
+    }
+  }
+
+  /* A TV should never acquire gold card borders from its older fantasy skin. */
+  #root .rqk-player-display :is(.rqk-player-display__npc-card,
+                                .rqk-player-display__combat,
+                                .rqk-player-display__npc-shell) {
+    border-color: rgba(110,145,180,.26) !important;
+  }
+  #root .rqk-player-display .rqk-player-display__status {
+    border-left-color: #6E91B4 !important;
+  }
+
+
+}
