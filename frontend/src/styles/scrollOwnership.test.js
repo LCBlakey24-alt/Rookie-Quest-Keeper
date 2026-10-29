@@ -34,7 +34,7 @@ describe('document scroll ownership', () => {
     const css = read('scrollFixes.css');
     expect(css).toContain('scrollbar-color: #61758A #0B1B2B;');
     expect(css).toContain('background: #61758A;');
-    expect(css).toContain('background: #A63A24;');
+    expect(css).toContain('background: #D8432D;');
     expect(css).not.toContain('#d00000');
     expect(css).not.toContain('#ff3b3b');
   });
