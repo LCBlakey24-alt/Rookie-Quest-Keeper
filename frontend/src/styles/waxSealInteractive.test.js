@@ -3,51 +3,68 @@ import path from 'path';
 
 const read = rel => fs.readFileSync(path.resolve(__dirname, rel), 'utf8');
 
-describe('web controls: blue -> wax seal, antique gold only for text', () => {
-  test('final stylesheet loads after the Guild Ledger theme', () => {
+describe('Guild Command citrus site-wide design contract', () => {
+  test('final stylesheet replaces wax fill and wallpaper and loads after Guild Command', () => {
     const entry = read('../index.js');
-    expect(entry).toContain('waxSealInteractive.css');
-    expect(entry.indexOf('waxSealInteractive.css')).toBeGreaterThan(entry.indexOf('guildLedgerFinish.css'));
+    expect(entry).toContain('guildCommand.css');
+    expect(entry).toContain('citrusCommand.css');
+    expect(entry.indexOf('citrusCommand.css')).toBeGreaterThan(entry.indexOf('guildCommand.css'));
+    expect(entry).not.toContain('import "@/styles/waxSealInteractive.css"');
+    expect(entry).not.toContain('guildBlueTexture.css');
   });
 
-  test('unselected controls are blue and selection stays wax red', () => {
-    const css = read('./waxSealInteractive.css');
-    expect(css).toContain('--rq-control-blue: #263F59');
-    expect(css).toContain('--rq-control-wax: #7E2D2D');
-    expect(css).toContain('background-color: var(--rq-control-blue) !important;');
-    expect(css).toContain('border-color: var(--rq-control-wax) !important;');
-    expect(css).toContain("is(.active, .is-active, .is-selected, .is-open, [data-state='active'], [aria-current='page'], [aria-selected='true'], [aria-pressed='true'])");
-    expect(css).toContain('background-size: 100% 100% !important;');
-    expect(css).not.toMatch(/background:\s*#[cC]9[aA]9[6][bB]/);
+  test('flat navy backgrounds without noisy wallpaper', () => {
+    const css = read('./citrusCommand.css');
+    expect(css).toContain('--rq-citrus-navy: #0B1B2B;');
+    expect(css).toContain('--rq-citrus-panel: #142638;');
+    expect(css).toContain('background-image: none !important;');
+    expect(css).toContain('.rqk-player-display__frame');
+    expect(css).toContain('.keeper-product-site');
+    expect(css).toContain('.rqk-auth-page');
+    expect(css).toContain('.character-page-v2');
+    expect(css).not.toMatch(/guild-craft-paper|url\(/);
   });
 
-  test('desktop hover sweeps from left to right without conflicting with existing before elements', () => {
-    const css = read('./waxSealInteractive.css');
-    const oldHover = read('./guildLedgerFinish.css');
-    expect(css).toContain('background-position: left center !important;');
-    expect(css).toContain('background-image: linear-gradient(to right, var(--rq-control-wax), var(--rq-control-wax))');
-    expect(css).not.toContain('::before {');
-    expect(css).toContain('background-size: 0% 100% !important;');
-    expect(css).toContain('--rq-control-sweep-duration: 340ms');
-    expect(css).toContain('@media (hover: hover) and (pointer: fine)');
-    expect(css).toContain(':hover {');
-    expect(oldHover).not.toContain('background: var(--rq-guild-wine-hover) !important');
+  test('gradient is yellow to citrus orange to blood orange, never a full card fill', () => {
+    const css = read('./citrusCommand.css');
+    expect(css).toContain('--rq-citrus-yellow: #F2C94C;');
+    expect(css).toContain('--rq-citrus-orange: #E89A1C;');
+    expect(css).toContain('--rq-citrus-blood: #B94E1E;');
+    expect(css).toContain('--rq-citrus-gradient: linear-gradient(90deg,');
+    expect(css).toContain('background: var(--rq-citrus-control) !important;');
+    expect(css).toContain('background-size: 0% 3px !important;');
+    expect(css).toContain('background-size: 100% 3px !important;');
+    expect(css).toContain('background-position: left bottom !important;');
+    expect(css).not.toContain('background-size: 100% 100%');
   });
 
-  test('press and keyboard focus reveal red while reduced motion skips animation', () => {
-    const css = read('./waxSealInteractive.css');
+  test('navigation selected, hover, touch and keyboard states retain accessibility', () => {
+    const css = read('./citrusCommand.css');
+    expect(css).toContain("[aria-selected='true']");
+    expect(css).toContain("[aria-current='page']");
     expect(css).toContain('.rq-fill-clicked');
+    expect(css).toContain('@media (hover: hover) and (pointer: fine)');
     expect(css).toContain(':focus-visible');
-    expect(css).toContain('outline: 3px solid var(--rq-info, #6E91B4)');
+    expect(css).toContain('outline: 3px solid #6E91B4 !important;');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(css).toContain('transition: none !important;');
   });
 
-  test('landing primary button and selected preview are not gold', () => {
-    const css = read('./keeperProductSite.css');
-    expect(css).toContain('background: var(--rq-control-blue, #263F59) !important;');
-    expect(css).toContain('background: var(--rq-control-wax, #7E2D2D);');
-    expect(css).not.toContain('background: var(--landing-gold);');
-    expect(css).not.toContain('background: var(--landing-gold) !important;');
+  test('danger, healing, disabled, busy and map/stat surfaces are not replaced', () => {
+    const css = read('./citrusCommand.css');
+    expect(css).toContain(":not([data-variant='destructive'])");
+    expect(css).toContain(".rq-hp-action-button--plus");
+    expect(css).toContain(".rq-hp-action-button--minus");
+    expect(css).toContain("[aria-busy='true']");
+    expect(css).toContain("[aria-disabled='true']");
+    expect(css).toContain('maps, stat blocks, artwork');
+  });
+
+  test('section and sidebar accents remain thin gradient lines', () => {
+    const css = read('./citrusCommand.css');
+    expect(css).toContain('.campaign-dashboard-header');
+    expect(css).toContain('.campaign-home-section-heading');
+    expect(css).toContain('.rqk-live-grid__header');
+    expect(css).toContain('.rqk-player-display__status');
+    expect(css).toContain('background-size: 100% 2px !important;');
   });
 });
