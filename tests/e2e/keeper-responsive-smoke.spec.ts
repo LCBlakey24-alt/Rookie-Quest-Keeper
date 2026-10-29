@@ -230,3 +230,19 @@ test('page surfaces are flat navy and never use the retired craft-paper texture'
   await expect(login).toHaveCSS('background-image', 'none');
   await expect(login).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+test('1080p player display keeps a flat dark-navy frame without wallpaper', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await avoidThirdPartyRequests(page);
+  await page.addInitScript(() => {
+    sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
+  });
+  await page.goto('/player-display/browser-smoke-flat-navy?target=standing-tv');
+  const screen = page.getByTestId('player-display-page');
+  await expect(screen).toBeVisible();
+  await expect(screen).toHaveAttribute('data-display-target', 'standing-tv');
+  const frame = page.locator('.rqk-player-display__frame');
+  await expect(frame).toBeVisible();
+  await expect(frame).toHaveCSS('background-image', 'none');
+  await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
+});
