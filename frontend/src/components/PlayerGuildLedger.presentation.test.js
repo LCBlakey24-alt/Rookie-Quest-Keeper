@@ -41,3 +41,13 @@ test('player alerts and unread badges respect semantic status and neutral border
   expect(dashboardTabs).not.toMatch(/#FF2DAA/i);
   expect(campaignBadge).not.toMatch(/#D6A84F/i);
 });
+
+
+test('mobile More menu uses neutral blue controls and the citrus active underline', () => {
+  const mobileMore = fs.readFileSync(path.resolve(__dirname, '../styles/homeHubMobileNavPolish.css'), 'utf8');
+  expect(mobileMore).toContain('--rq-citrus-control');
+  expect(mobileMore).toContain('--rq-citrus-gradient');
+  expect(mobileMore).toContain('background-size: 100% 3px');
+  expect(mobileMore).toContain(':focus-visible');
+  expect(mobileMore).not.toMatch(/#D6A84F|#FF2DAA|214,168,79/i);
+});
