@@ -39,7 +39,9 @@ describe('Guild Ledger visual finishing pass', () => {
     expect(splash).toContain('@media (prefers-reduced-motion: reduce)');
     expect(splash).toContain('.rqk-route-logo');
     expect(splash).toContain('animation: none !important');
-    expect(splash).toContain('background: radial-gradient');
+    expect(splash).toContain('background: var(--rq-citrus-navy');
+    expect(splash).toContain('--rq-citrus-gradient');
+    expect(splash).not.toContain('radial-gradient');
     expect(splash).not.toContain('#FF2DAA');
   });
 

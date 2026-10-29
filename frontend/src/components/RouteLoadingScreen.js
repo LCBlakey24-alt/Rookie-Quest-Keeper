@@ -3,9 +3,8 @@ import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import './RouteLoadingScreen.css';
 
 /**
- * A calm Guild Ledger opening moment. The movement is decorative, never a
- * fabricated percentage or an assertion that campaign APIs have completed.
- * A stalled route still offers the original safe recovery action.
+ * The shared route-level loading fallback. Loading movement is indeterminate:
+ * no invented percentage, staged API claims, or delay before showing the route.
  */
 export default function RouteLoadingScreen() {
   const [takingLonger, setTakingLonger] = useState(false);
@@ -18,18 +17,15 @@ export default function RouteLoadingScreen() {
   return (
     <main className="loading-screen route-loading-screen" role="status" aria-live="polite" aria-busy="true">
       <section className="rqk-route-stage" aria-label="Rookie Quest Keeper is loading">
-        <div className="rqk-route-emblem" aria-hidden="true">
-          <span className="rqk-route-orbit rqk-route-orbit--outer" />
-          <span className="rqk-route-orbit rqk-route-orbit--inner" />
-          <BrandMiniLogo className="rqk-route-logo" alt="" size={118} />
-        </div>
+        <BrandMiniLogo className="rqk-route-logo" alt="" size={112} />
 
-        <p className="rqk-route-eyebrow">THE GUILD LEDGER</p>
-        <h1 className="rqk-route-heading">Opening Rookie Quest Keeper</h1>
-        <p className="rqk-route-description">Every great story begins at the table.</p>
+        <p className="rqk-route-eyebrow">ROOKIE QUEST</p>
+        <h1 className="rqk-route-heading">KEEPER</h1>
+        <div className="rqk-route-brand-rule" aria-hidden="true" />
 
-        <div className="rqk-route-activity" aria-hidden="true"><span /></div>
         <p className="rqk-route-status-copy">Preparing your workspace…</p>
+        <div className="rqk-route-activity" aria-hidden="true"><span /></div>
+        <p className="rqk-route-description">Every great story begins at the table.</p>
 
         {takingLonger && (
           <div className="rqk-route-recovery" role="group" aria-label="Loading recovery">

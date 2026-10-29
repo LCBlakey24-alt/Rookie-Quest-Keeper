@@ -1,20 +1,23 @@
-/* Guild Ledger opening screen — wax seal and brass, never a modal-shaped
-   loading card. Scoped to route transitions, not sheet or encounter loading. */
+/* Keeper route fallback: approved flat navy / citrus Guild Command direction.
+   Scoped to full-page lazy-route loading; sheet and encounter loaders are separate.
+   Decorative branding never stands in for a measured loading percentage. */
 #root .loading-screen.route-loading-screen {
   position: relative !important;
   isolation: isolate !important;
   display: grid !important;
   place-items: center !important;
-  align-content: center !important;
-  min-height: 100svh !important;
   width: 100% !important;
-  padding: max(24px, env(safe-area-inset-top))
-    max(18px, env(safe-area-inset-right))
+  min-height: 100svh !important;
+  box-sizing: border-box !important;
+  padding: max(28px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
     max(28px, env(safe-area-inset-bottom))
-    max(18px, env(safe-area-inset-left)) !important;
-  overflow: hidden !important;
-  background: radial-gradient(ellipse at 50% 46%, #132b3b 0%, #0b1b2b 52%, #07131f 100%) !important;
-  color: #eadfc8 !important;
+    max(20px, env(safe-area-inset-left)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background: var(--rq-citrus-navy, #0B1B2B) !important;
+  background-image: none !important;
+  color: var(--rq-citrus-cream, #F5F1E8) !important;
   text-align: center !important;
 }
 
@@ -34,9 +37,9 @@
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  width: min(560px, 100%) !important;
+  width: min(470px, 100%) !important;
   min-height: 0 !important;
-  padding: clamp(16px, 4vw, 36px) !important;
+  padding: 16px 4px !important;
   gap: 0 !important;
   background: transparent !important;
   background-image: none !important;
@@ -45,186 +48,162 @@
   box-shadow: none !important;
 }
 
-#root .route-loading-screen .rqk-route-emblem {
-  position: relative !important;
-  display: grid !important;
-  place-items: center !important;
-  width: clamp(158px, 28vw, 200px) !important;
-  height: clamp(158px, 28vw, 200px) !important;
-  margin: 0 auto clamp(17px, 4vw, 28px) !important;
-  background: transparent !important;
-  border: 0 !important;
-}
-
-#root .route-loading-screen .rqk-route-orbit {
-  position: absolute !important;
-  display: block !important;
-  inset: 5% !important;
-  border: 1px solid rgba(201, 169, 107, .19) !important;
-  border-radius: 50% !important;
-  background: transparent !important;
-  pointer-events: none !important;
-}
-
-#root .route-loading-screen .rqk-route-orbit--outer {
-  border-style: dashed !important;
-  border-color: rgba(201, 169, 107, .30) !important;
-  animation: rqkLedgerOrbit 28s linear infinite !important;
-}
-
-#root .route-loading-screen .rqk-route-orbit--inner {
-  inset: 13% !important;
-  border-style: solid !important;
-  border-color: rgba(201, 169, 107, .18) !important;
-  animation: rqkLedgerOrbit 38s linear infinite reverse !important;
-}
-
 #root .route-loading-screen .rqk-route-logo {
   display: block !important;
-  width: clamp(103px, 19vw, 132px) !important;
-  height: clamp(103px, 19vw, 132px) !important;
+  width: clamp(94px, 17vw, 112px) !important;
+  height: clamp(94px, 17vw, 112px) !important;
+  margin: 0 auto 24px !important;
   object-fit: contain !important;
   border: 0 !important;
   background: transparent !important;
-  filter: drop-shadow(0 13px 16px rgba(0, 0, 0, .22)) !important;
-  animation: rqkLedgerSealAppear .95s ease-out both, rqkLedgerSealFloat 5s ease-in-out .95s infinite !important;
+  filter: none !important;
+  animation: rqkKeeperEnter 340ms ease-out both !important;
 }
 
 #root .route-loading-screen .rqk-route-eyebrow {
-  margin: 0 0 11px !important;
-  color: #c9a96b !important;
+  margin: 0 0 5px !important;
+  color: var(--rq-citrus-cream, #F5F1E8) !important;
   font-family: var(--rq-font-sans, 'Manrope', system-ui, sans-serif) !important;
-  font-size: .69rem !important;
-  font-weight: 750 !important;
-  letter-spacing: .32em !important;
-  line-height: 1.45 !important;
+  font-size: .78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .26em !important;
+  line-height: 1.5 !important;
 }
 
 #root .route-loading-screen .rqk-route-heading {
   margin: 0 !important;
-  max-width: 540px !important;
-  color: #e6c489 !important;
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
-  font-size: clamp(1.9rem, 5.5vw, 3.1rem) !important;
-  font-weight: 600 !important;
-  letter-spacing: -.028em !important;
-  line-height: 1.14 !important;
+  max-width: 100% !important;
+  color: var(--rq-gold-text, #C9A96B) !important;
+  font-family: var(--rq-font-display, 'Cinzel', Georgia, serif) !important;
+  font-size: clamp(2.8rem, 9vw, 4.1rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: .075em !important;
+  line-height: 1.1 !important;
   text-wrap: balance;
 }
 
-#root .route-loading-screen .rqk-route-description {
-  margin: 14px 0 0 !important;
-  color: #ede9e1 !important;
-  font-size: clamp(.88rem, 2.5vw, 1rem) !important;
-  font-weight: 450 !important;
-  line-height: 1.6 !important;
+#root .route-loading-screen .rqk-route-brand-rule {
+  width: min(270px, 82%) !important;
+  height: 3px !important;
+  margin: 17px auto 0 !important;
+  border: 0 !important;
+  border-radius: 2px !important;
+  background-color: var(--rq-citrus-yellow, #F2C94C) !important;
+  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C 0% 28%, #EF6343 50%, #CE393A 72% 100%)) !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+}
+
+#root .route-loading-screen .rqk-route-status-copy {
+  margin: 29px 0 0 !important;
+  color: var(--rq-citrus-cream, #F5F1E8) !important;
+  font-family: var(--rq-font-sans, 'Manrope', system-ui, sans-serif) !important;
+  font-size: .94rem !important;
+  font-weight: 600 !important;
+  line-height: 1.55 !important;
 }
 
 #root .route-loading-screen .rqk-route-activity {
-  width: min(196px, 68%) !important;
-  height: 2px !important;
-  margin: 26px auto 13px !important;
+  width: min(210px, 72%) !important;
+  height: 3px !important;
+  margin: 15px auto 0 !important;
   overflow: hidden !important;
   border: 0 !important;
   border-radius: 2px !important;
-  background: rgba(201, 169, 107, .17) !important;
+  background: rgba(110, 145, 180, .22) !important;
 }
 
 #root .route-loading-screen .rqk-route-activity > span {
   display: block !important;
-  width: 38% !important;
+  width: 36% !important;
   height: 100% !important;
-  background: #6e91b4 !important;
   border: 0 !important;
   border-radius: inherit !important;
-  animation: rqkLedgerProgress 1.85s ease-in-out infinite alternate !important;
+  background: var(--rq-secondary, #6E91B4) !important;
+  animation: rqkKeeperLoad 1.65s ease-in-out infinite !important;
 }
 
-#root .route-loading-screen .rqk-route-status-copy {
-  margin: 0 !important;
-  color: rgba(234, 223, 200, .75) !important;
-  font-size: .77rem !important;
-  font-weight: 550 !important;
-  letter-spacing: .04em !important;
+#root .route-loading-screen .rqk-route-description {
+  margin: 17px 0 0 !important;
+  color: var(--rq-text-muted, rgba(234, 223, 200, .60)) !important;
+  font-family: var(--rq-font-sans, 'Manrope', system-ui, sans-serif) !important;
+  font-size: .82rem !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery {
   display: grid !important;
   justify-items: center !important;
-  gap: 12px !important;
-  margin-top: 27px !important;
-  padding-top: 18px !important;
+  gap: 13px !important;
   max-width: 400px !important;
-  background: transparent !important;
+  margin-top: 30px !important;
+  padding: 20px 0 0 !important;
   border: 0 !important;
+  border-top: 1px solid var(--rq-line, rgba(137, 157, 176, .14)) !important;
+  background: transparent !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery p {
   margin: 0 !important;
-  color: #ede9e1 !important;
+  color: var(--rq-text-secondary, rgba(234, 223, 200, .78)) !important;
   font-size: .84rem !important;
-  line-height: 1.5 !important;
+  line-height: 1.55 !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery button {
-  min-height: 44px !important;
-  padding: 9px 18px !important;
-  border: 0 !important;
-  border-radius: 6px !important;
-  background: #263F59 !important;
-  background-image: linear-gradient(to right, #7E2D2D, #7E2D2D) !important;
+  min-height: 46px !important;
+  padding: 10px 19px !important;
+  border: 1px solid rgba(110, 145, 180, .36) !important;
+  border-radius: 7px !important;
+  background-color: var(--rq-citrus-control, #263F59) !important;
+  background-image: var(--rq-citrus-gradient) !important;
+  background-position: left bottom !important;
   background-repeat: no-repeat !important;
-  background-position: left center !important;
-  background-size: 0% 100% !important;
-  transition: background-size 340ms cubic-bezier(.22,.78,.18,1) !important;
-  color: #F8F0E5 !important;
-  -webkit-text-fill-color: #F8F0E5 !important;
+  background-size: 0% 3px !important;
+  color: var(--rq-citrus-cream, #F5F1E8) !important;
+  -webkit-text-fill-color: currentColor !important;
   font: inherit !important;
-  font-weight: 800 !important;
+  font-size: .9rem !important;
+  font-weight: 700 !important;
   cursor: pointer !important;
+  transition: background-size var(--rq-citrus-sweep, 340ms ease) !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery button:hover,
+#root .route-loading-screen .rqk-route-recovery button:active,
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
-  background-size: 100% 100% !important;
+  background-size: 100% 3px !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
-  outline: 3px solid #6E91B4 !important;
+  outline: 3px solid var(--rq-secondary, #6E91B4) !important;
   outline-offset: 3px !important;
 }
 
-@keyframes rqkLedgerOrbit { to { transform: rotate(360deg); } }
-@keyframes rqkLedgerSealAppear {
-  from { opacity: 0; transform: translateY(10px) scale(.93); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes rqkKeeperEnter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-@keyframes rqkLedgerSealFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-@keyframes rqkLedgerProgress {
-  from { transform: translateX(-110%); }
-  to { transform: translateX(275%); }
+
+@keyframes rqkKeeperLoad {
+  from { transform: translateX(-105%); }
+  to { transform: translateX(310%); }
 }
 
 @media (max-width: 520px) {
-  #root .route-loading-screen .rqk-route-stage { padding: 14px 6px !important; }
-  #root .route-loading-screen .rqk-route-eyebrow { letter-spacing: .24em !important; }
+  #root .route-loading-screen .rqk-route-stage { padding: 12px 2px !important; }
+  #root .route-loading-screen .rqk-route-logo { margin-bottom: 21px !important; }
+  #root .route-loading-screen .rqk-route-eyebrow { letter-spacing: .2em !important; }
+  #root .route-loading-screen .rqk-route-heading { font-size: clamp(2.5rem, 12vw, 3.35rem) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #root .route-loading-screen .rqk-route-orbit,
   #root .route-loading-screen .rqk-route-logo,
   #root .route-loading-screen .rqk-route-activity > span {
     animation: none !important;
     transform: none !important;
   }
-  #root .route-loading-screen .rqk-route-activity > span {
-    width: 100% !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
+  #root .route-loading-screen .rqk-route-activity > span { width: 100% !important; }
   #root .route-loading-screen .rqk-route-recovery button { transition: none !important; }
 }
