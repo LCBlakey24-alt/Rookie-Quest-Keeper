@@ -13,10 +13,10 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  border: 1px solid #FF2DAA;
+  border: 1px solid rgba(110, 145, 180, .36);
   border-radius: 10px;
-  background: rgba(124,203,255,.10);
-  color: #FFFFFF;
+  background: rgba(110, 145, 180, .12);
+  color: var(--rq-text-primary, #EADFC8);
   font-size: 9px;
   font-weight: 900;
   line-height: 1;
