@@ -243,8 +243,8 @@
   #root .rqk-reference-browser__paging button span { display: none; }
 }
 
-/* Guild Command NPC / Bestiary roster legibility.
-   The live 29-NPC roster exposed clipped labels and an old gold selection.
+/* Guild Command citrus NPC / Bestiary roster legibility.
+   The live 29-NPC roster exposed clipped labels and old full-card red selection.
    Isolate this to the shared reference browser; no NPC content is changed.
    Important rules in rq-controls outrank older global button styling. */
 @layer rq-controls {
@@ -266,9 +266,9 @@
     white-space: normal !important;
     line-height: 1.4 !important;
     background-color: #263F59 !important;
-    background-image: linear-gradient(to right, #7E2D2D, #7E2D2D) !important;
+    background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C, #E89A1C, #B94E1E)) !important;
     background-position: left center !important;
-    background-size: 0% 100% !important;
+    background-size: 0% 3px !important;
     background-repeat: no-repeat !important;
     border-left: 3px solid transparent !important;
     border-bottom: 1px solid #43566B !important;
@@ -301,9 +301,9 @@
   }
   #root .rqk-reference-browser .rqk-reference-browser__item.is-selected,
   #root .rqk-reference-browser .rqk-reference-browser__item[aria-current="true"] {
-    background-size: 100% 100% !important;
-    border-left-color: #7E2D2D !important;
-    border-bottom-color: #7E2D2D !important;
+    background-size: 100% 3px !important;
+    border-left-color: transparent !important;
+    border-bottom-color: #B94E1E !important;
   }
   #root .rqk-reference-browser .rqk-reference-browser__item:focus-visible {
     outline: 3px solid #6E91B4 !important;
@@ -312,7 +312,7 @@
   @media (hover: hover) and (pointer: fine) {
     #root .rqk-reference-browser .rqk-reference-browser__item:hover {
       background-size: 100% 100% !important;
-      border-left-color: #7E2D2D !important;
+      border-left-color: transparent !important;
     }
   }
   @media (max-width: 640px) {
@@ -324,7 +324,7 @@
       border-bottom: 3px solid transparent !important;
     }
     #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current="true"]) {
-      border-bottom-color: #7E2D2D !important;
+      border-bottom-color: #B94E1E !important;
     }
   }
   @container (max-width: 680px) {
@@ -336,7 +336,7 @@
       border-bottom: 3px solid transparent !important;
     }
     #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current="true"]) {
-      border-bottom-color: #7E2D2D !important;
+      border-bottom-color: #B94E1E !important;
     }
   }
   @media (prefers-reduced-motion: reduce) {
