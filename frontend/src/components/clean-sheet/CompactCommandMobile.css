@@ -1,5 +1,11 @@
 /* Compact Command is the phone-only character-sheet layout. Other device lanes
-   keep the complete sheet rail and standard Stats presentation untouched. */
+   keep the complete sheet rail and standard Stats presentation untouched.
+   The owner's new visual direction allows thicker citrus frames ONLY on white
+   section/title typography, not on control fills or the borders of all cards. */
+#root .character-page-v2 .rqk-cc-core-title {
+  display: none !important; /* no extra heading on tablet or desktop */
+}
+
 @media (max-width: 719px) {
   #root .character-page-v2.clean-sheet-page {
     padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important;
@@ -84,6 +90,133 @@
     width: 100%;
     justify-content: space-between;
     margin-top: 8px;
+  }
+
+  /* Approved visual experiment: modern white text inside an angular 4px
+     yellow → orange → blood-orange heading frame, not a gradient-filled control. */
+  #root .character-page-v2 {
+    --rq-cc-title-gradient: linear-gradient(
+      90deg,
+      var(--rq-citrus-yellow, #F2C94C) 0%,
+      var(--rq-citrus-yellow, #F2C94C) 28%,
+      var(--rq-ember-red-orange, #EF6343) 50%,
+      var(--rq-citrus-blood, #CE393A) 72%,
+      var(--rq-citrus-blood, #CE393A) 100%
+    );
+  }
+
+  #root .character-page-v2 .rqk-cc-heading h2.rqk-cc-title,
+  #root .character-page-v2 h2.rqk-cc-core-title {
+    width: fit-content !important;
+    max-width: 100% !important;
+    display: inline-flex !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    background: var(--rq-cc-title-gradient) !important;
+    background-image: var(--rq-cc-title-gradient) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    clip-path: polygon(8px 0, calc(100% - 13px) 0, 100% 100%, 9px 100%, 0 calc(100% - 10px));
+    font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+    font-size: clamp(.93rem, 3.9vw, 1.08rem) !important;
+    font-weight: 900 !important;
+    line-height: 1.15 !important;
+    letter-spacing: .025em !important;
+    text-transform: uppercase !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+  }
+
+  #root .character-page-v2 h2.rqk-cc-title > span {
+    display: block !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 5px 13px !important;
+    background: var(--rq-bg-deep, #07131F) !important;
+    border: 0 !important;
+    clip-path: polygon(6px 0, calc(100% - 11px) 0, 100% 100%, 7px 100%, 0 calc(100% - 8px));
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    font: inherit !important;
+    overflow-wrap: anywhere;
+  }
+
+  #root .character-page-v2 .rqk-cc-core-title {
+    margin-bottom: 1px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-identity h1 {
+    display: inline-flex !important;
+    width: fit-content !important;
+    max-width: calc(100% - 72px) !important;
+    padding: 4px !important;
+    margin: 0 !important;
+    background: var(--rq-cc-title-gradient) !important;
+    background-image: var(--rq-cc-title-gradient) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    clip-path: polygon(8px 0, calc(100% - 13px) 0, 100% 100%, 9px 100%, 0 calc(100% - 10px));
+    font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+    font-weight: 900 !important;
+    font-size: clamp(1.02rem, 4.8vw, 1.45rem) !important;
+    line-height: 1.13 !important;
+    letter-spacing: .015em !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    text-transform: uppercase !important;
+  }
+  #root .character-page-v2 .clean-sheet-identity h1 > span.rqk-cc-hero-name {
+    display: block !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 6px 10px !important;
+    background: var(--rq-bg-deep, #07131F) !important;
+    clip-path: polygon(6px 0, calc(100% - 11px) 0, 100% 100%, 7px 100%, 0 calc(100% - 8px));
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    font: inherit !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* The existing live HP card is the Core Stats panel; no duplicate state. */
+  #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple {
+    margin-bottom: 8px !important;
+    border: 1px solid rgba(110,145,180,.28) !important;
+    border-radius: 7px !important;
+  }
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
+    margin-top: 0 !important;
+    border: 1px solid rgba(110,145,180,.28) !important;
+    border-radius: 7px !important;
+  }
+  #root .character-page-v2 .clean-sheet-header .clean-sheet-hero-level-badge {
+    border-color: rgba(110,145,180,.3) !important;
+  }
+  #root .character-page-v2 .clean-sheet-header .clean-sheet-hero-options-toggle {
+    display: grid !important;
+    place-items: center !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    border: 1px solid rgba(110,145,180,.35) !important;
+    background: var(--rq-control-blue, #263F59) !important;
+    color: var(--rq-text-primary, #EADFC8) !important;
+    cursor: pointer;
+  }
+  #root .character-page-v2 .clean-sheet-rest-menu-wrap {
+    display: block !important;
+  }
+  #root .character-page-v2 .clean-sheet-combat-dashboard-topline {
+    flex-wrap: wrap !important;
+  }
+  #root .character-page-v2 .clean-sheet-combat-top-actions {
+    flex-wrap: wrap !important;
+  }
+
+  /* Core resources use the same outlined heading as Abilities and Attacks.
+     Retain the real spend/restore card contents without repeating its title. */
+  #root .character-page-v2 .rqk-cc-resource-panel .clean-sheet-resource-rail-heading {
+    display: none !important;
   }
 
   #root .character-page-v2 .rqk-cc-ability-grid {
