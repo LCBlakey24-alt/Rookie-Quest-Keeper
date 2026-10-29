@@ -724,9 +724,13 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
         {partySnapshot.members.length ? (
           <ul className="guild-command-party__list">
             {partySnapshot.members.slice(0, 5).map((member, index) => (
-              <li key={String(member.id || member.name || index)} className="guild-command-party__member">
+              <li key={`${member.id || member.name || 'member'}-${index}`} className="guild-command-party__member">
                 <span className="guild-command-party__avatar" aria-hidden="true">
                   {String(member.name || '?').trim().charAt(0).toUpperCase()}
+                  {member.portraitUrl && (
+                    <img src={member.portraitUrl} alt="" loading="lazy"
+                      onError={event => { event.currentTarget.style.display = 'none'; }} />
+                  )}
                 </span>
                 <div className="guild-command-party__identity">
                   <strong>{member.name}</strong>
