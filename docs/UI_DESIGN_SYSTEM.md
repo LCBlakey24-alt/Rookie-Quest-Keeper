@@ -7,7 +7,7 @@ This is the current user-approved design direction, **29 October 2026**. It supe
 - **Page background:** solid ink navy `#0B1B2B`. No wallpaper image, paper grain, textured page surfaces or darkened overlay.
 - **Deep rail:** `#07131F`; **panels:** `#142638` or `#1E2936`; **cards:** `#263748`; **normal controls:** `#263F59`.
 - **Primary text:** warm cream `#F5F1E8`; muted labels `rgba(234,223,200,0.78)`; support blue `#6E91B4`.
-- **Accent gradient:** solid yellow `#F2C94C` across the first **28%**, blend through citrus orange `#E89A1C` at **50%**, reach blood orange `#B94E1E` at **72%**, then hold solid blood orange for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
+- **Accent gradient:** solid yellow `#F2C94C` across the first **28%**, blend through ember red-orange `#D85C2E` at **50%**, reach deep red-orange `#A63A24` at **72%**, then hold solid deep red-orange for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
 - The accent is ONLY a thin **2–3px rule, tab underline, selected-sidebar marker or section divider**. Never fill a page, button, card, modal, or tab with gradient.
 - Brand logo may retain its approved gold and red wax-seal artwork; do not recolour the supplied logo asset.
 - Antique gold may appear in existing brand typography, **not** as interactive fills/borders; main interface headings are cream.
@@ -52,3 +52,10 @@ Use tests and live browser QA on 390×844, 768×1024, 1440×900, and 1920×1080.
 5. Remove obsolete wax/texture drafts from the release path; only then integrate safely into `main`.
 
 Historical design boards are still authoritative for the **logo**, not for the replaced old wax-filled navigation or discarded wallpaper.
+
+
+## Approved Guild Command dashboard (29 October)
+
+The GM dashboard now draws its party list from the existing campaign-scoped player roster endpoint. Never populate the UI with example characters, fictitious HP, dates, counts or encounters. Show real loaded data, honest empty and unavailable states, and a link to the existing Players workspace. Five summary cards are responsive and remain readable from phone to desktop; desktop displays a two-column quest/party composition with notes and prep below. The approved final look is illustrated by the user's navy Guild Command mockup; actual record content remains independent of that mockup.
+
+The shared palette is **solid yellow 0–28% → ember red-orange at 50% → deep red-orange 72–100%**. The gradient is always a slim accent, never a full selectable background.
