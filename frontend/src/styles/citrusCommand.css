@@ -8,7 +8,16 @@
   --rq-citrus-yellow: #F2C94C;
   --rq-citrus-orange: #E89A1C;
   --rq-citrus-blood: #B94E1E;
-  --rq-citrus-gradient: linear-gradient(90deg, var(--rq-citrus-yellow) 0%, var(--rq-citrus-orange) 50%, var(--rq-citrus-blood) 100%);
+  /* Hold each end colour for roughly the outer 28% of the line;
+     concentrate the colour transition in the middle 44%. On a 320px rule,
+     the solid ends are ~90px each (about an inch at normal desktop scale).
+     Percent stops scale down naturally for short tabs and mobile screens. */
+  --rq-citrus-gradient: linear-gradient(90deg,
+    var(--rq-citrus-yellow) 0%,
+    var(--rq-citrus-yellow) 28%,
+    var(--rq-citrus-orange) 50%,
+    var(--rq-citrus-blood) 72%,
+    var(--rq-citrus-blood) 100%);
   --rq-citrus-navy: #0B1B2B;
   --rq-citrus-panel: #142638;
   --rq-citrus-control: #263F59;
@@ -203,6 +212,18 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    /* Match the same specificity as the normal-control rules. Otherwise their
+       later background-size transition overrides generic reduced-motion CSS. */
+    #root .keeper-product-site .landing-button,
+    #root .rqk-auth-page .rqk-auth-mode-toggle button,
+    #root .rqk-app-shell .campaign-dashboard-tab,
+    #root .rqk-app-shell .campaign-dashboard-group,
+    #root .rqk-app-shell .rqk-app-rail-link,
+    #root .rqk-app-shell .player-dashboard-tab,
+    #root .rqk-app-shell .rqk-live-grid__nav-button,
+    #root .character-page-v2 .clean-sheet-tabs button {
+      transition: none !important;
+    }
     #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
               .character-page-v2, .guild-command-layout, .App)
       :is(button, [role='button'], [role='tab'], .rqk-reference-browser__item) {
