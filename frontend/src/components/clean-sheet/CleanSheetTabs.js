@@ -10,6 +10,7 @@ import './CleanSheetTabAttention.css';
 import './CleanSheetFinalHammer.css';
 
 function backCopy(returnTo) {
+  if (returnTo === '/characters') return 'Back to characters';
   if (returnTo.startsWith('/player/campaign/')) return 'Back to campaign';
   if (returnTo.startsWith('/mobile/')) return 'Back to mobile campaign';
   if (returnTo === '/mobile') return 'Back to mobile player home';
