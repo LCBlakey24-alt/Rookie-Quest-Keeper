@@ -126,10 +126,22 @@
       background-size: 100% 3px !important;
     }
   }
-  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App):is(.campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button,
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App) :is(.campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button,
         .rqk-app-rail-link, .rqk-live-grid__nav-button, .clean-sheet-tabs button,
         .landing-button, .rqk-auth-primary, .rqk-auth-mode-toggle button,
         .rqk-calendar-day, .rqk-selectable-control, .rqk-reference-browser__item):is(:active, :focus-visible, .rq-fill-clicked):not(:disabled):not([aria-disabled='true']) {
+    background-size: 100% 3px !important;
+  }
+
+  /* Keyboard users should get the same visible citrus feedback as a mouse.
+   * Keep this scoped to controls, rather than altering status badges. */
+  #root .guild-command-layout :is(
+    .campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button
+  ):focus-visible:not(:disabled):not([aria-disabled='true']),
+  #root .guild-command-home :is(
+    .campaign-home-overview-item, .campaign-home-focus-card,
+    .campaign-home-quick-card, .campaign-home-session-rail__action
+  ):focus-visible:not(:disabled):not([aria-disabled='true']) {
     background-size: 100% 3px !important;
   }
 
