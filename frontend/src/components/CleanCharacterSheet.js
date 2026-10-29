@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
+import { useDeviceLayout } from '@/layouts/deviceLayout';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import CleanSheetCharacterTab from '@/components/clean-sheet/CleanSheetCharacterTab';
 import CleanSheetCompactStatus from '@/components/clean-sheet/CleanSheetCompactStatus';
+import CompactCommandOverview from '@/components/clean-sheet/CompactCommandOverview';
 import CleanSheetFeatsTab from '@/components/clean-sheet/CleanSheetFeatsTab';
 import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
 import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
@@ -57,6 +59,7 @@ const hasAnyText = (...values) => values.some(value => String(value || '').trim(
 export default function CleanCharacterSheet() {
   const { characterId } = useParams();
   const navigate = useNavigate();
+  const isPhone = useDeviceLayout() === 'mobile';
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savingHp, setSavingHp] = useState(false);
@@ -73,6 +76,10 @@ export default function CleanCharacterSheet() {
   const [rollMode, setRollMode] = useState('normal');
   const [rollBonus, setRollBonus] = useState(0);
   const [concentrationInput, setConcentrationInput] = useState('');
+
+  useEffect(() => {
+    if (!isPhone && activeTab === 'full-stats') setActiveTab('stats');
+  }, [isPhone, activeTab]);
   const [showConcentrationInput, setShowConcentrationInput] = useState(false);
 
   useEffect(() => {
@@ -620,7 +627,7 @@ export default function CleanCharacterSheet() {
         onRollInitiative={() => makeRoll('Initiative', initiative)}
       />
 
-      <CleanSheetResourceRail character={character} onCharacterUpdate={patchCharacter} />
+      {!isPhone && <CleanSheetResourceRail character={character} onCharacterUpdate={patchCharacter} />}
 
       <CleanSheetTabs tabs={sheetTabs} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
 
@@ -633,7 +640,16 @@ export default function CleanCharacterSheet() {
             proficiencyBonus={proficiencyBonus}
           />
         )}
-        {activeTab === 'stats' && (
+        {activeTab === 'stats' && isPhone && (
+          <CompactCommandOverview
+            character={character}
+            proficiencyBonus={proficiencyBonus}
+            onRoll={makeRoll}
+            onCharacterUpdate={patchCharacter}
+            onOpenTab={setActiveTab}
+          />
+        )}
+        {((activeTab === 'stats' && !isPhone) || activeTab === 'full-stats') && (
           <CleanSheetOverviewTab
             character={character}
             proficiencyBonus={proficiencyBonus}
