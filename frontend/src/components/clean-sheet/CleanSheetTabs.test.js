@@ -85,3 +85,74 @@ describe('selected character sheet navigation', () => {
     expect(screen.getByRole('button', { name: 'Stats' })).not.toHaveAttribute('aria-current');
   });
 });
+
+
+describe('Compact Command mobile character navigation', () => {
+  const originalWidth = window.innerWidth;
+
+  beforeEach(() => {
+    window.innerWidth = 390;
+  });
+
+  afterEach(() => {
+    window.innerWidth = originalWidth;
+  });
+
+  test('keeps four thumb-friendly sections and all remaining sheet sections in More', () => {
+    const onSelectTab = jest.fn();
+    render(
+      <MemoryRouter initialEntries={['/characters/hero-1']}>
+        <CleanSheetTabs
+          tabs={[
+            { id: 'stats', label: 'Stats', icon: () => null },
+            { id: 'combat', label: 'Actions', icon: () => null },
+            { id: 'spells', label: 'Spells', icon: () => null },
+            { id: 'inventory', label: 'Inventory', icon: () => null },
+            { id: 'notes', label: 'Notes', icon: () => null },
+          ]}
+          activeTab="stats"
+          onSelectTab={onSelectTab}
+        />
+      </MemoryRouter>,
+    );
+
+    const dock = screen.getByRole('navigation', { name: 'Mobile character sections' });
+    expect(within(dock).getAllByRole('button').map(button => button.textContent))
+      .toEqual(['Overview', 'Combat', 'Spells', 'More']);
+    expect(within(dock).getByRole('button', { name: 'Overview' })).toHaveAttribute('aria-current', 'page');
+    fireEvent.click(within(dock).getByRole('button', { name: 'More character sections' }));
+    const menu = screen.getByRole('menu', { name: 'More character sections' });
+    expect(within(menu).getByRole('menuitem', { name: 'Full Stats' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Inventory' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Notes' })).toBeInTheDocument();
+    fireEvent.click(within(menu).getByRole('menuitem', { name: 'Inventory' }));
+    expect(onSelectTab).toHaveBeenCalledWith(expect.objectContaining({ id: 'inventory' }));
+    expect(screen.queryByRole('menu', { name: 'More character sections' })).not.toBeInTheDocument();
+  });
+
+  test('More keeps player campaign return navigation and closes with Escape', () => {
+    const onBack = jest.fn();
+    render(
+      <MemoryRouter initialEntries={[{
+        pathname: '/characters/hero-1',
+        state: { playerReturnTo: '/player/campaign/campaign-a' },
+      }]}>
+        <Routes>
+          <Route path="/characters/:characterId" element={
+            <CleanSheetTabs tabs={[]} activeTab="stats" onSelectTab={() => {}} onBack={onBack} />
+          } />
+          <Route path="/player/campaign/:campaignId" element={<p>Returned to campaign</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const more = screen.getByRole('button', { name: 'More character sections' });
+    fireEvent.click(more);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(more).toHaveFocus();
+    fireEvent.click(more);
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Back to campaign' }));
+    expect(screen.getByText('Returned to campaign')).toBeInTheDocument();
+    expect(onBack).not.toHaveBeenCalled();
+  });
+});
