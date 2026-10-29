@@ -50,9 +50,7 @@
       .dashboard-continue-card, .dashboard-action-card,
       .campaign-home-focus-card, .rqk-calendar-day, .rqk-selectable-control,
       .rqk-reference-browser__item, .btn-primary, .rq-button-primary
-  ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive)
-    :not([data-variant='destructive']):not(.rq-hp-action-button--plus)
-    :not(.rq-hp-action-button--minus) {
+  ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):not(.rq-hp-action-button--plus):not(.rq-hp-action-button--minus) {
     background: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 0% 3px !important;
@@ -74,8 +72,7 @@
       .rqk-auth-mode-toggle button, .rqk-calendar-day,
       .rqk-selectable-control, .rqk-reference-browser__item
   ):is(.active, .is-active, .is-selected, .is-open, [data-state='active'],
-       [aria-current='page'], [aria-current='true'], [aria-selected='true'], [aria-pressed='true'])
-    :not(:disabled):not([aria-disabled='true']) {
+       [aria-current='page'], [aria-current='true'], [aria-selected='true'], [aria-pressed='true']):not(:disabled):not([aria-disabled='true']) {
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
@@ -85,8 +82,7 @@
 
   /* Shared tabs outside the named route components (e.g. dialog/tab widgets).
    * Only semantic tab elements, not generic alert/status buttons. */
-  #root :is([role='tab'], .rq-side-tab, .dashboard-tabs button, .mobile-dashboard-tabs button)
-    :not(:disabled):not([aria-disabled='true']):not([data-variant='destructive']) {
+  #root :is([role='tab'], .rq-side-tab, .dashboard-tabs button, .mobile-dashboard-tabs button):not(:disabled):not([aria-disabled='true']):not([data-variant='destructive']) {
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 0% 3px !important;
@@ -95,9 +91,7 @@
     color: var(--rq-citrus-cream) !important;
     transition: background-size var(--rq-citrus-sweep) !important;
   }
-  #root :is([role='tab'], .rq-side-tab, .dashboard-tabs button, .mobile-dashboard-tabs button)
-    :is(.active, .is-active, [aria-selected='true'], [data-state='active'])
-    :not(:disabled):not([aria-disabled='true']) {
+  #root :is([role='tab'], .rq-side-tab, .dashboard-tabs button, .mobile-dashboard-tabs button):is(.active, .is-active, [aria-selected='true'], [data-state='active']):not(:disabled):not([aria-disabled='true']) {
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
@@ -116,20 +110,17 @@
       .player-dashboard-tab, .player-campaign-tabs button, .landing-button,
       .rqk-auth-primary, .rqk-auth-secondary, .rqk-auth-mode-toggle button,
       .rqk-calendar-day, .rqk-selectable-control, .rqk-reference-browser__item
-    ):hover:not(:disabled):not([aria-disabled='true'])
-      :not(.is-danger):not(.destructive):not([data-variant='destructive']) {
+    ):hover:not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']) {
       background-size: 100% 3px !important;
     }
     #root [role='tab']:hover:not(:disabled):not([aria-disabled='true']) {
       background-size: 100% 3px !important;
     }
   }
-  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App)
-    :is(.campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button,
+  #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page, .character-page-v2, .App):is(.campaign-dashboard-tab, .campaign-dashboard-group, .campaign-button,
         .rqk-app-rail-link, .rqk-live-grid__nav-button, .clean-sheet-tabs button,
         .landing-button, .rqk-auth-primary, .rqk-auth-mode-toggle button,
-        .rqk-calendar-day, .rqk-selectable-control, .rqk-reference-browser__item)
-    :is(:active, :focus-visible, .rq-fill-clicked):not(:disabled):not([aria-disabled='true']) {
+        .rqk-calendar-day, .rqk-selectable-control, .rqk-reference-browser__item):is(:active, :focus-visible, .rq-fill-clicked):not(:disabled):not([aria-disabled='true']) {
     background-size: 100% 3px !important;
   }
 
@@ -138,11 +129,7 @@
    * elements or the health/damage semantic controls. The new underline is
    * painted by background-image on the actual element instead. */
   #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
-            .character-page-v2, .App) :is(button, [role='button'], a.button, a.btn)
-    :not(.rq-hp-action-button--plus):not(.rq-hp-action-button--minus)
-    :not(.rq-hp-action-button--temp):not(.rq-hp-action-button--temp-plus)
-    :not(.rq-hp-action-button--temp-minus)
-    :not([aria-label*='heal' i]):not([aria-label*='damage' i]) {
+            .character-page-v2, .App) :is(button, [role='button'], a.button, a.btn):not(.rq-hp-action-button--plus):not(.rq-hp-action-button--minus):not(.rq-hp-action-button--temp):not(.rq-hp-action-button--temp-plus):not(.rq-hp-action-button--temp-minus):not([aria-label*='heal' i]):not([aria-label*='damage' i]) {
     --rq-fill-color: transparent;
   }
 
