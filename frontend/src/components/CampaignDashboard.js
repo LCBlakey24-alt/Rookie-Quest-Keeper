@@ -475,7 +475,12 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
 
   useEffect(() => {
     let cancelled = false;
-    setPartySnapshot({ status: 'loading', members: [] });
+    // Keep previously loaded rows visible on a refresh failure for this
+    // campaign, rather than claiming the party is empty or deleting data.
+    setPartySnapshot(previous => ({
+      members: previous.members,
+      status: previous.members.length ? 'refreshing' : 'loading',
+    }));
     if (!campaignId) return () => { cancelled = true; };
 
     apiClient.get(`/campaigns/${campaignId}/players`).then(response => {
