@@ -118,6 +118,7 @@ export default function CleanSheetCompactStatus({
 
   return (
     <section className={`clean-sheet-compact-status clean-sheet-compact-status--battle-bar hp-state-${hpState}`} aria-label="Character combat snapshot">
+      <h2 className="rqk-cc-title rqk-cc-core-title"><span>Core Stats</span></h2>
       <div className="clean-sheet-combat-dashboard-topline">
         <div className="clean-sheet-combat-hp-title">
           <HeartPulse size={15} />
