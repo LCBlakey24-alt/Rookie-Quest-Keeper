@@ -301,3 +301,92 @@
     font-size: 0.64rem !important;
   }
 }
+
+
+/* Player play-bar usability at phone widths. Keep the regular tablet/desktop
+   five-action strip; give narrow screens enough width for legible touch controls.
+   Never turn damage/healing buttons into decorative theme accents. */
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button {
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select {
+    font-size: 1rem !important; /* avoid mobile browser input zoom */
+    line-height: 1.2 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat-strip .clean-sheet-quick-stat span {
+    font-size: 0.72rem !important;
+    line-height: 1.25 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls > :is(select, button) {
+    min-width: 0 !important;
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 6px !important;
+    font-size: 0.86rem !important;
+    white-space: nowrap !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls > select {
+    grid-column: 3 / span 2 !important;
+    font-size: 1rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls > .rq-hp-action-button--minus {
+    grid-column: 1 / span 2 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls > .rq-hp-action-button--plus {
+    grid-column: 5 / span 2 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls > .rq-temp-hp-action-button--minus {
+    grid-column: 1 / span 3 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls > .rq-temp-hp-action-button--plus {
+    grid-column: 4 / span 3 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip .clean-sheet-compact-ability {
+    min-height: 98px !important;
+    gap: 5px !important;
+    padding: 8px 4px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip .clean-sheet-compact-ability > span {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-ability-score-strip .clean-sheet-compact-ability .clean-sheet-roll-chip {
+    min-width: 46px !important;
+    max-width: none !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 0 8px !important;
+    font-size: 0.82rem !important;
+  }
+}
