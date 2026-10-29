@@ -267,3 +267,18 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(sheet).toContain('proficiencyBonus={proficiencyBonus}');
   });
 });
+
+
+test('narrow-phone combat controls and ability dice stay readable without five cramped columns', () => {
+  const mobileHeader = fs.readFileSync(path.join(__dirname, 'characterSheetUnifiedMobileHeader.css'), 'utf8');
+  const phoneOverrides = mobileHeader.slice(mobileHeader.lastIndexOf('@media (max-width: 480px)'));
+
+  expect(phoneOverrides).toContain('grid-template-columns: repeat(6, minmax(0, 1fr)) !important;');
+  expect(phoneOverrides).toContain('.rq-temp-hp-action-button--plus');
+  expect(phoneOverrides).toContain('grid-column: 4 / span 3 !important;');
+  expect(phoneOverrides).toContain('grid-template-columns: repeat(2, minmax(0, 1fr)) !important;');
+  expect(phoneOverrides).toContain('grid-template-columns: repeat(3, minmax(0, 1fr)) !important;');
+  expect(phoneOverrides).toContain('min-height: 48px !important;');
+  expect(phoneOverrides).toContain('min-height: 44px !important;');
+  expect(phoneOverrides).toContain('font-size: 1rem !important;');
+});

@@ -122,7 +122,7 @@ export default function CleanSheetCompactStatus({
         <div className="clean-sheet-combat-hp-title">
           <HeartPulse size={15} />
           <span>HP</span>
-          <strong>{safeCurrentHp}/{safeMaxHp}</strong>
+          <strong aria-live="polite" aria-atomic="true">{safeCurrentHp}/{safeMaxHp}</strong>
         </div>
         <div className="clean-sheet-combat-top-actions">
           <span className="clean-sheet-combat-temp-pill">Temp {currentTempHp}</span>
@@ -168,7 +168,7 @@ export default function CleanSheetCompactStatus({
       </div>
 
       <div className="clean-sheet-compact-hp-actions clean-sheet-combat-dashboard-hp-controls">
-        <button type="button" className="rq-hp-action-button--minus" onClick={onDamage} disabled={savingHp}>- HP</button>
+        <button type="button" className="rq-hp-action-button--minus" aria-label={`Take ${amount} hit point${amount === 1 ? '' : 's'} of damage`} onClick={onDamage} disabled={savingHp}>- HP</button>
         <select
           className="clean-sheet-hp-amount-select"
           value={amount}
@@ -182,9 +182,9 @@ export default function CleanSheetCompactStatus({
         >
           {HP_AMOUNT_OPTIONS.map(value => <option key={value} value={value}>{value}</option>)}
         </select>
-        <button type="button" className="rq-hp-action-button--plus" onClick={onHeal} disabled={savingHp}>+ HP</button>
-        <button type="button" className="rq-temp-hp-action-button--minus" onClick={onTempHpRemove} disabled={savingTempHp || currentTempHp <= 0 || tempAmount <= 0}>Temp -</button>
-        <button type="button" className="rq-temp-hp-action-button--plus" onClick={onTempHpAdd} disabled={savingTempHp}>Temp +</button>
+        <button type="button" className="rq-hp-action-button--plus" aria-label={`Heal ${amount} hit point${amount === 1 ? '' : 's'}`} onClick={onHeal} disabled={savingHp}>+ HP</button>
+        <button type="button" className="rq-temp-hp-action-button--minus" aria-label={`Remove ${tempAmount} temporary hit point${tempAmount === 1 ? '' : 's'}`} onClick={onTempHpRemove} disabled={savingTempHp || currentTempHp <= 0 || tempAmount <= 0}>Temp -</button>
+        <button type="button" className="rq-temp-hp-action-button--plus" aria-label={`Add ${tempAmount} temporary hit point${tempAmount === 1 ? '' : 's'}`} onClick={onTempHpAdd} disabled={savingTempHp}>Temp +</button>
       </div>
 
       <div className="clean-sheet-quick-stat-strip" aria-label="Always visible combat stats">
