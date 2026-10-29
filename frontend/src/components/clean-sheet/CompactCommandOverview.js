@@ -19,7 +19,7 @@ function itemPreview(character) {
   ];
   const seen = new Set();
   return combined.filter(item => {
-    const name = getItemName(item).trim();
+    const name = String(getItemName(item) || '').trim();
     if (!name) return false;
     const key = name.toLowerCase();
     if (seen.has(key)) return false;
