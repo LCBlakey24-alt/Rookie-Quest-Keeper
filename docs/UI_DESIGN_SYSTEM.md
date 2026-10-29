@@ -7,7 +7,7 @@ This is the current user-approved design direction, **29 October 2026**. It supe
 - **Page background:** solid ink navy `#0B1B2B`. No wallpaper image, paper grain, textured page surfaces or darkened overlay.
 - **Deep rail:** `#07131F`; **panels:** `#142638` or `#1E2936`; **cards:** `#263748`; **normal controls:** `#263F59`.
 - **Primary text:** warm cream `#F5F1E8`; muted labels `rgba(234,223,200,0.78)`; support blue `#6E91B4`.
-- **Accent gradient:** solid yellow `#F2C94C` across the first **28%**, blend through ember red-orange `#D85C2E` at **50%**, reach deep red-orange `#A63A24` at **72%**, then hold solid deep red-orange for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
+- **Accent gradient:** solid yellow `#F2C94C` across the first **28%**, blend through ember red-orange `#F15A32` at **50%**, reach deep red-orange `#D8432D` at **72%**, then hold solid deep red-orange for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
 - The accent is ONLY a thin **2–3px rule, tab underline, selected-sidebar marker or section divider**. Never fill a page, button, card, modal, or tab with gradient.
 - Brand logo may retain its approved gold and red wax-seal artwork; do not recolour the supplied logo asset.
 - Antique gold may appear in existing brand typography, **not** as interactive fills/borders; main interface headings are cream.
