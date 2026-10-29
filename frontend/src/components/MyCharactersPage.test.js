@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import MyCharactersPage from './MyCharactersPage';
 
@@ -39,6 +39,11 @@ const character = {
   updated_at: '2026-08-24T12:00:00Z',
 };
 
+function SheetLocationProbe() {
+  const location = useLocation();
+  return <p data-testid="sheet-return-path">{location.state?.playerReturnTo || 'missing'}</p>;
+}
+
 describe('MyCharactersPage simplified library', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,6 +62,20 @@ describe('MyCharactersPage simplified library', () => {
     expect(screen.getByRole('link', { name: /Edit/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Duplicate Javen Crow' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete Javen Crow' })).toBeInTheDocument();
+  });
+
+  test('opens a sheet with a return link back to My Characters', async () => {
+    render(
+      <MemoryRouter initialEntries={['/characters']}>
+        <Routes>
+          <Route path="/characters" element={<MyCharactersPage />} />
+          <Route path="/characters/:characterId" element={<SheetLocationProbe />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByRole('link', { name: /Open Sheet/i }));
+    expect(screen.getByTestId('sheet-return-path')).toHaveTextContent('/characters');
   });
 
   test('does not render the retired stats dashboard or status toolbar', async () => {

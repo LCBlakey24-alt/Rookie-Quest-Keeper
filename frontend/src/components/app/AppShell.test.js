@@ -48,21 +48,31 @@ describe('AppShell', () => {
 
     const navigation = screen.getByRole('navigation', { name: 'Main app sections' });
     expect(within(navigation).getAllByRole('link').map((link) => link.textContent)).toEqual([
-      'Dashboard', 'Characters', 'Campaigns', 'Homebrew',
+      'Dashboard', 'Characters', 'Player', 'Campaigns', 
     ]);
     expect(within(navigation).getByRole('link', { name: 'Campaigns' })).toHaveAttribute('aria-current', 'page');
     expect(screen.queryByRole('link', { name: 'Rookie Quest Keeper dashboard' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Player home' })).not.toBeInTheDocument();
+    expect(within(navigation).getByRole('link', { name: 'Player home' })).toHaveAttribute('href', '/player');
     expect(screen.queryByRole('button', { name: 'Ask Rook' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
     const more = screen.getByRole('menu', { name: 'More app tools' });
-    expect(within(more).getByRole('menuitem', { name: 'Player home' })).toHaveAttribute('href', '/player');
+    expect(within(more).getByRole('menuitem', { name: 'Homebrew' })).toHaveAttribute('href', '/homebrew');
     expect(within(more).getByRole('menuitem', { name: 'Uploads' })).toHaveAttribute('href', '/uploads');
     expect(within(more).getByRole('menuitem', { name: 'Settings' })).toHaveAttribute('href', '/account');
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open more tools' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('keeps the Player dock item selected throughout a player campaign', async () => {
+    mockPathname = '/player/campaign/c1';
+    window.innerWidth = 390;
+    await act(async () => { render(<AppShell><main>Player campaign content</main></AppShell>); });
+    const nav = screen.getByRole('navigation', { name: 'Main app sections' });
+    expect(within(nav).getByRole('link', { name: 'Player home' }))
+      .toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('link', { name: 'Player home' })).toHaveTextContent('Player');
   });
 
   test('marks the current secondary destination inside More', async () => {
@@ -110,7 +120,7 @@ describe('AppShell', () => {
 
     window.innerWidth = 390;
     fireEvent(window, new Event('resize'));
-    expect(screen.queryByRole('link', { name: 'Player home' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Player home' })).toHaveTextContent('Player');
     expect(screen.getByRole('button', { name: 'Open more tools' })).toHaveAttribute('aria-expanded', 'false');
   });
 });

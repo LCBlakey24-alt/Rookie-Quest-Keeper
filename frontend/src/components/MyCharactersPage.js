@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ChevronRight, Copy, FileUp, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { playerSheetReturnState } from '@/components/player/playerSheetNavigation';
 import '@/styles/libraryPages.css';
 import './MyCharactersPage.css';
 
@@ -292,7 +293,7 @@ export default function MyCharactersPage() {
                 </div>
 
                 <div className="character-card-actions character-card-actions--simple">
-                  <Link to={`/characters/${id}`} className="library-page-button library-page-button-primary character-card-open">
+                  <Link to={`/characters/${id}`} state={playerSheetReturnState('/characters')} className="library-page-button library-page-button-primary character-card-open">
                     Open Sheet <ChevronRight size={16} />
                   </Link>
                   <Link to={`/characters/${id}/edit`} className="library-page-button-secondary character-card-edit">

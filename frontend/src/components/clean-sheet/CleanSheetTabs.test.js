@@ -13,6 +13,7 @@ function renderTabs(initialEntry, onBack = jest.fn()) {
         />
         <Route path="/player/campaign/:campaignId" element={<div>Campaign return target</div>} />
         <Route path="/player" element={<div>Player home return target</div>} />
+        <Route path="/characters" element={<div>Characters library return target</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -41,6 +42,16 @@ describe('CleanSheetTabs player return context', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to player home' }));
 
     expect(screen.getByText('Player home return target')).toBeInTheDocument();
+  });
+
+  test('returns to the characters library when a sheet is opened from My Characters', () => {
+    const onBack = renderTabs({
+      pathname: '/characters/hero-1',
+      state: { playerReturnTo: '/characters' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Back to characters' }));
+    expect(screen.getByText('Characters library return target')).toBeInTheDocument();
+    expect(onBack).not.toHaveBeenCalled();
   });
 
   test('ignores unsafe return state and keeps the existing fallback callback', () => {

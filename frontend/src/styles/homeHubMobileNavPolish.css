@@ -1,5 +1,5 @@
-/* Mobile app navigation for RQK 1.0.
-   Four primary tabs stay visible; secondary tools live in one flat More sheet. */
+/* Mobile Keeper navigation: four primary destinations with secondary tools in More.
+   Blue controls, neutral borders, and a citrus active underline; never gold fills. */
 
 #root .rqk-app-mobile-more-trigger,
 #root .rqk-app-mobile-more-panel {
@@ -7,22 +7,22 @@
 }
 
 #root .rqk-app-rail-rook {
-  border-color: rgba(214,168,79,.18) !important;
-  background: #112A40 !important;
+  border-color: rgba(110,145,180,.28) !important;
+  background: var(--rq-citrus-control, #263F59) !important;
   background-image: none !important;
-  color: #F7F1E7 !important;
+  color: var(--rq-text-primary, #EADFC8) !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-rail-rook svg {
-  color: #79BCE8 !important;
+  color: var(--rq-info, #6E91B4) !important;
   filter: none !important;
 }
 
 #root .rqk-app-rail-rook:hover,
 #root .rqk-app-rail-rook:focus-visible {
-  border-color: #D6A84F !important;
-  background: #17364F !important;
+  border-color: var(--rq-secondary, #6E91B4) !important;
+  background: var(--rq-card-hover, #334155) !important;
 }
 
 @media (max-width: 719px) {
@@ -52,11 +52,11 @@
     overflow: auto !important;
     overscroll-behavior: contain !important;
     padding: 12px !important;
-    border: 1px solid rgba(214,168,79,.32) !important;
+    border: 1px solid rgba(110,145,180,.32) !important;
     border-radius: 9px !important;
-    background: #0C2234 !important;
+    background: var(--rq-bg-panel, #1E2936) !important;
     background-image: none !important;
-    color: #F7F1E7 !important;
+    color: var(--rq-text-primary, #EADFC8) !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
   }
@@ -82,7 +82,7 @@
   }
 
   #root .rqk-app-mobile-more-heading strong {
-    color: #F7F1E7 !important;
+    color: var(--rq-text-primary, #EADFC8) !important;
     font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
     font-size: 1rem !important;
     font-weight: 900 !important;
@@ -92,7 +92,7 @@
   }
 
   #root .rqk-app-mobile-more-heading span {
-    color: #F7F1E7 !important;
+    color: var(--rq-text-primary, #EADFC8) !important;
     font-size: .76rem !important;
     line-height: 1.4 !important;
   }
@@ -104,17 +104,17 @@
     display: grid !important;
     place-items: center !important;
     padding: 0 !important;
-    border: 1px solid rgba(214,168,79,.22) !important;
+    border: 1px solid rgba(110,145,180,.30) !important;
     border-radius: 5px !important;
-    background: #112A40 !important;
-    color: #F7F1E7 !important;
+    background: var(--rq-citrus-control, #263F59) !important;
+    color: var(--rq-text-primary, #EADFC8) !important;
     box-shadow: none !important;
   }
 
   #root .rqk-app-mobile-more-close:hover,
   #root .rqk-app-mobile-more-close:focus-visible {
-    border-color: #D6A84F !important;
-    background: #17364F !important;
+    border-color: var(--rq-secondary, #6E91B4) !important;
+    background: var(--rq-card-hover, #334155) !important;
     outline: none !important;
   }
 
@@ -132,11 +132,11 @@
     align-items: center !important;
     gap: 9px !important;
     padding: 9px 10px !important;
-    border: 1px solid rgba(214,168,79,.18) !important;
+    border: 1px solid rgba(110,145,180,.28) !important;
     border-radius: 7px !important;
-    background: #112A40 !important;
+    background: var(--rq-citrus-control, #263F59) !important;
     background-image: none !important;
-    color: #F7F1E7 !important;
+    color: var(--rq-text-primary, #EADFC8) !important;
     text-align: left !important;
     text-decoration: none !important;
     font: inherit !important;
@@ -154,7 +154,7 @@
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
-    color: #79BCE8 !important;
+    color: var(--rq-info, #6E91B4) !important;
     box-sizing: content-box !important;
     filter: none !important;
   }
@@ -162,33 +162,44 @@
   #root .rqk-app-mobile-more-item span {
     min-width: 0 !important;
     overflow: hidden !important;
-    color: #F7F1E7 !important;
+    color: var(--rq-text-primary, #EADFC8) !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
   #root .rqk-app-mobile-more-item:hover,
   #root .rqk-app-mobile-more-item:focus-visible {
-    background: #17364F !important;
-    border-color: rgba(214,168,79,.42) !important;
+    background: var(--rq-card-hover, #334155) !important;
+    border-color: rgba(110,145,180,.45) !important;
     outline: none !important;
     transform: none !important;
   }
 
   #root .rqk-app-mobile-more-item.is-active {
-    background: rgba(121,188,232,.10) !important;
-    border-color: #D6A84F !important;
+    background-color: var(--rq-citrus-control, #263F59) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 100% 3px !important;
+    border-color: rgba(110,145,180,.32) !important;
+  }
+
+  /* Mobile menu focus must be visible independently of the hover underline. */
+  #root .rqk-app-mobile-more-item:focus-visible,
+  #root .rqk-app-mobile-more-close:focus-visible {
+    outline: 3px solid var(--rq-info, #6E91B4) !important;
+    outline-offset: 2px !important;
   }
 
   #root .rqk-app-mobile-more-item--rook {
     grid-column: 1 / -1 !important;
     min-height: 56px !important;
-    background: #112A40 !important;
-    border-color: #D6A84F !important;
+    background: var(--rq-citrus-control, #263F59) !important;
+    border-color: var(--rq-secondary, #6E91B4) !important;
   }
 
   #root .rqk-app-mobile-more-item--rook svg {
-    color: #79BCE8 !important;
+    color: var(--rq-info, #6E91B4) !important;
   }
 
   #root .rqk-app-rail-link.is-active::before {

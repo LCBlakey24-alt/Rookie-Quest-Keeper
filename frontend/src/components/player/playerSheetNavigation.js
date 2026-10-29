@@ -1,4 +1,5 @@
 const PLAYER_RETURN_PATHS = [
+  /^\/characters\/?$/,
   /^\/player\/?$/,
   /^\/player\/campaign\/[^/?#]+\/?$/,
   /^\/mobile\/?$/,
