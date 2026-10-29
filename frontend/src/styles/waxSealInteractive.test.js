@@ -31,6 +31,13 @@ describe('Guild Command citrus site-wide design contract', () => {
     expect(css).toContain('--rq-citrus-orange: #E89A1C;');
     expect(css).toContain('--rq-citrus-blood: #B94E1E;');
     expect(css).toContain('--rq-citrus-gradient: linear-gradient(90deg,');
+    // The colour transition now lives in the centre, with deliberate solid
+    // colour holds at both ends instead of a full-width rainbow blend.
+    expect(css).toContain('var(--rq-citrus-yellow) 0%,');
+    expect(css).toContain('var(--rq-citrus-yellow) 28%,');
+    expect(css).toContain('var(--rq-citrus-orange) 50%,');
+    expect(css).toContain('var(--rq-citrus-blood) 72%,');
+    expect(css).toContain('var(--rq-citrus-blood) 100%);');
     expect(css).toContain('background: var(--rq-citrus-control) !important;');
     expect(css).toContain('background-size: 0% 3px !important;');
     expect(css).toContain('background-size: 100% 3px !important;');
@@ -47,6 +54,8 @@ describe('Guild Command citrus site-wide design contract', () => {
     expect(css).toContain(':focus-visible');
     expect(css).toContain('outline: 3px solid #6E91B4 !important;');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(css).toContain('#root .keeper-product-site .landing-button,');
+    expect(css).toContain('transition: none !important;');
   });
 
   test('danger, healing, disabled, busy and map/stat surfaces are not replaced', () => {
