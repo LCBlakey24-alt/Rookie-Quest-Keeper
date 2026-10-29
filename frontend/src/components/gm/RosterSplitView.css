@@ -266,7 +266,7 @@
     white-space: normal !important;
     line-height: 1.4 !important;
     background-color: #263F59 !important;
-    background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C, #D85C2E, #A63A24)) !important;
+    background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C, #F15A32, #D8432D)) !important;
     background-position: left center !important;
     background-size: 0% 3px !important;
     background-repeat: no-repeat !important;
@@ -303,7 +303,7 @@
   #root .rqk-reference-browser .rqk-reference-browser__item[aria-current="true"] {
     background-size: 100% 3px !important;
     border-left-color: transparent !important;
-    border-bottom-color: #A63A24 !important;
+    border-bottom-color: #D8432D !important;
   }
   #root .rqk-reference-browser .rqk-reference-browser__item:focus-visible {
     outline: 3px solid #6E91B4 !important;
@@ -324,7 +324,7 @@
       border-bottom: 3px solid transparent !important;
     }
     #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current="true"]) {
-      border-bottom-color: #A63A24 !important;
+      border-bottom-color: #D8432D !important;
     }
   }
   @container (max-width: 680px) {
@@ -336,7 +336,7 @@
       border-bottom: 3px solid transparent !important;
     }
     #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current="true"]) {
-      border-bottom-color: #A63A24 !important;
+      border-bottom-color: #D8432D !important;
     }
   }
   @media (prefers-reduced-motion: reduce) {
