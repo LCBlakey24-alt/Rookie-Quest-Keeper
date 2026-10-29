@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Backpack, ChevronRight, Dices, Swords } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { ABILITIES, fmt, mod } from './cleanSheetUtils';
@@ -53,7 +53,7 @@ export default function CompactCommandOverview({
     <div className="rqk-compact-command" data-testid="mobile-compact-command">
       <section className="rqk-cc-panel" aria-labelledby="rqk-cc-abilities-title">
         <div className="rqk-cc-heading">
-          <h2 id="rqk-cc-abilities-title">Abilities</h2>
+          <h2 id="rqk-cc-abilities-title" className="rqk-cc-title"><span>Abilities</span></h2>
           <span>Tap a modifier to roll</span>
         </div>
         <div className="rqk-cc-ability-grid">
@@ -82,7 +82,7 @@ export default function CompactCommandOverview({
 
       <section className="rqk-cc-panel" aria-labelledby="rqk-cc-attacks-title">
         <div className="rqk-cc-heading">
-          <h2 id="rqk-cc-attacks-title"><Swords size={17} aria-hidden="true" /> Attacks</h2>
+          <h2 id="rqk-cc-attacks-title" className="rqk-cc-title"><span>Attacks</span></h2>
           <button type="button" onClick={() => onOpenTab('combat')}>All actions <ChevronRight size={15} aria-hidden="true" /></button>
         </div>
         {attacks.length ? (
@@ -100,20 +100,18 @@ export default function CompactCommandOverview({
         )}
       </section>
 
-      <section className="rqk-cc-panel rqk-cc-resource-panel" aria-label="Available character resources">
+      <section className="rqk-cc-panel rqk-cc-resource-panel" aria-labelledby="rqk-cc-resources-title">
+        <div className="rqk-cc-heading"><h2 id="rqk-cc-resources-title" className="rqk-cc-title"><span>Resources</span></h2></div>
         {resources.length ? (
           <CleanSheetResourceRail character={character} onCharacterUpdate={onCharacterUpdate} />
         ) : (
-          <>
-            <div className="rqk-cc-heading"><h2><Dices size={17} aria-hidden="true" /> Resources</h2></div>
-            <p className="rqk-cc-empty">No limited-use resources are currently tracked on this character.</p>
-          </>
+          <p className="rqk-cc-empty">No limited-use resources are currently tracked on this character.</p>
         )}
       </section>
 
       <section className="rqk-cc-panel" aria-labelledby="rqk-cc-inventory-title">
         <div className="rqk-cc-heading">
-          <h2 id="rqk-cc-inventory-title"><Backpack size={17} aria-hidden="true" /> Inventory</h2>
+          <h2 id="rqk-cc-inventory-title" className="rqk-cc-title"><span>Inventory</span></h2>
           <button type="button" onClick={() => onOpenTab('inventory')}>Open bag <ChevronRight size={15} aria-hidden="true" /></button>
         </div>
         {items.length ? (
