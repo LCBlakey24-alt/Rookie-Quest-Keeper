@@ -28,8 +28,8 @@ describe('Guild Command citrus site-wide design contract', () => {
   test('gradient is yellow to citrus orange to blood orange, never a full card fill', () => {
     const css = read('./citrusCommand.css');
     expect(css).toContain('--rq-citrus-yellow: #F2C94C;');
-    expect(css).toContain('--rq-citrus-orange: #E89A1C;');
-    expect(css).toContain('--rq-citrus-blood: #B94E1E;');
+    expect(css).toContain('--rq-citrus-orange: #D85C2E;');
+    expect(css).toContain('--rq-citrus-blood: #A63A24;');
     expect(css).toContain('--rq-citrus-gradient: linear-gradient(90deg,');
     // The colour transition now lives in the centre, with deliberate solid
     // colour holds at both ends instead of a full-width rainbow blend.
@@ -54,7 +54,7 @@ describe('Guild Command citrus site-wide design contract', () => {
     expect(css).toContain(':focus-visible');
     expect(css).toContain('outline: 3px solid #6E91B4 !important;');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(css).toContain('#root .keeper-product-site .landing-button,');
+    expect(css).toContain('#root .landing-page-final.keeper-product-site button.landing-button,');
     expect(css).toContain('transition: none !important;');
   });
 
