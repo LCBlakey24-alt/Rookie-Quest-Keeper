@@ -57,18 +57,18 @@ Decoration never wins over legibility or table-speed.
 
 ## 3. Core visual language
 
-The visual system is **deep navy + warm cream + wax-seal red controls**, with antique gold reserved for text and restrained blue support.
+The currently approved visual system is **solid deep navy + warm cream + blue controls + thin yellow-to-blood-orange gradient accent lines** (29 October 2026). The Guild Command layout remains in force. This overrides the earlier full-card wax-red design and rejects the craft-paper wallpaper.
 
 - Navy supplies structure and depth.
 - Cream supplies readable hierarchy.
 - **Antique gold is text-only**: titles, special headings and deliberate written emphasis. Never use antique gold for control fills, borders, icons, selected boxes or backgrounds.
-- Resting clickable controls are dark blue. Hover and press fill them wax-seal red (`#7E2D2D`) from left to right; selected controls stay red.
+- Resting, hovered and selected clickable bodies stay dark blue (`#263F59`). Only a thin 3px yellow → orange → blood-orange **underline** sweeps left to right on hover/press, remaining in place for selected controls.
 - Blue supports information, icons, progress and keyboard focus.
 - Red is semantic danger/error only.
 - Green is semantic success only.
 - Amber is semantic warning only.
 
-Do not reintroduce neon pink, broad red decoration, purple theme drift, decorative gradients or glow-heavy chrome.
+Do not reintroduce neon pink, broad red decoration, purple theme drift, gradient-filled controls, wallpaper textures or glow-heavy chrome. The **one allowed decorative gradient** is the restrained citrus underline/section rule.
 
 ## 4. Colour tokens
 
@@ -87,11 +87,14 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
 
   --rq-gold-text: #C9A96B; /* headings/text only */
   --rq-control-blue: #263F59;
-  --rq-control-wax: #7E2D2D;
+  --rq-citrus-yellow: #F2C94C;
+  --rq-citrus-orange: #E89A1C;
+  --rq-citrus-blood: #B94E1E;
+  --rq-citrus-gradient: linear-gradient(90deg, #F2C94C, #E89A1C, #B94E1E);
   --rq-primary: #C9A96B; /* legacy text accent; NOT a control background */
   --rq-primary-hover: #D9BC82; /* text hover only */
   --rq-primary-soft: rgba(201, 169, 107, 0.12);
-  --rq-accent-primary: #C9A96B; /* legacy; surface controls use --rq-control-wax */
+  --rq-accent-primary: #C9A96B; /* legacy text accent only; interactive accents use --rq-citrus-gradient */
   --rq-accent-hover: #D9BC82; /* text only */
   --rq-accent-soft: rgba(201, 169, 107, 0.12);
   --rq-accent-border: rgba(110, 145, 180, 0.30); /* controls use neutral blue */
@@ -120,7 +123,7 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
 ### Colour rules
 
 - Default structural borders use `--rq-line`, not gold.
-- Wax-seal red marks active selections and the hover/press sweep; antique gold only marks text emphasis.
+- Thin citrus gradient lines mark active selections and the hover/press sweep; antique gold only marks existing branding/text emphasis.
 - Blue may mark information, progress, selected support and focus.
 - Body copy uses secondary text, not full-strength primary text.
 - Helper/meta copy uses muted text.
@@ -168,7 +171,7 @@ Do not force all text to full white/cream. A professional screen needs visible p
 - Hover: `--rq-card-hover`.
 - Input: `--rq-bg-input`.
 - Normal shadows: none or extremely restrained.
-- Normal gradients: none; a restrained wax-red fill transition using an overlay is allowed only for interactive controls.
+- Flat page and panel backgrounds only, with no wallpaper image. The restrained yellow→blood-orange gradient is limited to 2–3px lines/underlines.
 - Standard radius: 5–9px.
 - Avoid giant pills and bubbly SaaS panels.
 
@@ -185,12 +188,12 @@ Cards should organise information. Do not create a box around every sentence.
 ### Primary
 
 - Dark navy-blue fill with neutral blue border; antique gold is not a control border.
-- Gold-filled CTAs are not allowed, including the landing page. Primary buttons use blue fill with wax-red interaction feedback.
+- Gold-filled CTAs are not allowed, including the landing page. Primary buttons remain blue; only the 3px underline animates into the citrus gradient.
 
 ### Hover
 
 - Lighter navy.
-- Left-to-right wax-seal red fill on hover (desktop fine pointers) and press; no instant background swaps.
+- Left-to-right yellow→blood-orange **underline** on hover (desktop fine pointers), press and keyboard focus; never a full-control colour swap.
 
 ### Focus
 
@@ -245,13 +248,13 @@ CSS device lanes must agree with these values.
 Selected navigation uses:
 
 - dark blue unselected fill
-- wax-seal red selected fill, with warm cream label/icon
-- a left-to-right blue → wax-red sweep on hover/press
+- dark blue selected fill, with warm cream label/icon and persistent citrus underline
+- a left-to-right **underline-only** citrus sweep on hover/press
 - independent blue keyboard-focus outline
 
 Unselected navigation should remain calm and readable.
 
-Do not use gradients or filled neon states.
+Do not use gradient fills or neon states; gradient accent **lines** are the approved exception.
 
 ## 10. Forms
 
@@ -273,7 +276,7 @@ Use semantic colours consistently:
 - Warning: amber.
 - Error/danger/destructive: red.
 - Information/focus: blue.
-- Selected/hovered controls: wax-seal red (`#7E2D2D`); antique gold is text-only.
+- Selected/hovered controls: blue body with persistent citrus underline; antique gold is text-only.
 
 Never use danger red as the normal brand accent.
 
@@ -297,7 +300,7 @@ Route CSS should consume global tokens. If a legacy variable name such as `pink`
 
 ## 14. Motion
 
-The blue-to-wax-red fill is a **340ms** left-to-right overlay transition; it is interaction feedback, not a loading animation. Keep labels above the fill and do not delay navigation. Respect `prefers-reduced-motion` with an immediate state change.
+The yellow-to-blood-orange **3px underline** sweeps from left to right over **340ms**; no button-fill transition. It is interaction feedback, not loading. Never delay navigation and honour `prefers-reduced-motion` with an immediate state change.
 
 
 Motion should communicate:
@@ -345,8 +348,8 @@ A route is visually complete when:
 - controls have consistent heights and states
 - active/hover/focus/destructive states are unambiguous
 - mobile/tablet/desktop all remain usable
-- no gold-filled or gold-bordered controls, and no retired theme colours or decorative gradients appear
+- no gold/red-filled normal controls, craft-paper wallpaper, or gradients other than thin citrus accent lines
 - empty/loading/error states match the product
 - the page looks like part of Keeper without needing route-specific explanation
 
-The intended result is a cohesive TTRPG web app: **navy structure, cream readability, gold text only, blue resting controls, wax-red selected/hover controls, and semantic status colours.**
+The intended result is a cohesive TTRPG web app: **flat navy structure, cream readability, blue controls, yellow-to-blood-orange gradient underlines and semantic status colours.**
