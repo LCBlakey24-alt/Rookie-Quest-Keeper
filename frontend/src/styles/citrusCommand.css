@@ -198,4 +198,56 @@
       transition-duration: 0s !important;
     }
   }
+
+  /* Consistent cream display headings across the actual GM and player routes. */
+  #root .guild-command-layout .gm-campaign-title,
+  #root .rqk-app-shell :is(.player-dashboard-title-block h1,
+                            .player-campaign-header h1,
+                            .player-dashboard-card h2,
+                            .player-campaign-card h2),
+  #root .rqk-auth-page :is(h1, h2),
+  #root .keeper-product-site :is(h1, h2, h3) {
+    color: var(--rq-citrus-cream) !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  /* Older player routes have additional active classes and clickable headers. */
+  #root .rqk-app-shell :is(.player-dashboard-tab-active,
+                           .player-dashboard-icon-button,
+                           .player-campaign-header button,
+                           .rqk-npc-expand-toggle) {
+    background-color: var(--rq-citrus-control) !important;
+    background-image: var(--rq-citrus-gradient) !important;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+    background-size: 0% 3px !important;
+    color: var(--rq-citrus-cream) !important;
+    transition: background-size var(--rq-citrus-sweep) !important;
+  }
+  #root .rqk-app-shell :is(.player-dashboard-tab-active,
+                           .player-dashboard-icon-button,
+                           .player-campaign-header button,
+                           .rqk-npc-expand-toggle)
+      :is(.active, .is-active, [aria-selected='true'], [data-state='active'], [aria-expanded='true']) {
+    background-size: 100% 3px !important;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    #root .rqk-app-shell :is(.player-dashboard-icon-button,
+                             .player-campaign-header button,
+                             .rqk-npc-expand-toggle):hover:not(:disabled) {
+      background-size: 100% 3px !important;
+    }
+  }
+
+  /* A TV should never acquire gold card borders from its older fantasy skin. */
+  #root .rqk-player-display :is(.rqk-player-display__npc-card,
+                                .rqk-player-display__combat,
+                                .rqk-player-display__npc-shell) {
+    border-color: rgba(110,145,180,.26) !important;
+  }
+  #root .rqk-player-display .rqk-player-display__status {
+    border-left-color: #6E91B4 !important;
+  }
+
+
 }
