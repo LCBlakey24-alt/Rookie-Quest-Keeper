@@ -63,3 +63,12 @@ test('HP save states still disable the relevant controls', () => {
   expect(screen.getByRole('button', { name: /Remove 1 temporary hit point/ })).toBeDisabled();
   expect(screen.getByRole('button', { name: /Add 1 temporary hit point/ })).toBeDisabled();
 });
+
+test('the existing live HP snapshot supplies the Core Stats heading without changing combat controls', () => {
+  const { handlers } = renderStatus();
+  const coreHeading = screen.getByRole('heading', { name: 'Core Stats', level: 2 });
+  expect(coreHeading).toHaveClass('rqk-cc-core-title');
+  expect(screen.getByRole('meter', { name: 'Hit points remaining' })).toHaveAttribute('aria-valuenow', '12');
+  fireEvent.click(screen.getByRole('button', { name: 'Take 1 hit point of damage' }));
+  expect(handlers.onDamage).toHaveBeenCalledTimes(1);
+});
