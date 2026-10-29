@@ -7,10 +7,10 @@ const component = fs.readFileSync(path.join(__dirname, 'RosterSplitView.js'), 'u
 describe('Guild Command reference roster presentation', () => {
   test('selected NPC or beast uses a citrus underline, not a gold or red filled card', () => {
     expect(css).toContain('background-color: #263F59 !important;');
-    expect(css).toContain('background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C, #E89A1C, #B94E1E))');
+    expect(css).toContain('background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C, #D85C2E, #A63A24))');
     expect(css).toContain('background-size: 0% 3px !important;');
     expect(css).toContain('background-size: 100% 3px !important;');
-    expect(css).toContain('border-bottom-color: #B94E1E !important;');
+    expect(css).toContain('border-bottom-color: #A63A24 !important;');
     expect(css).toContain('scrollbar-color: #61758A #142638;');
     expect(component).toContain("aria-current={chosen ? 'true' : undefined}");
   });
