@@ -26,9 +26,10 @@ import "@/styles/appStoreMobilePolish.css";
 import "@/styles/threeModeMinimalist.css";
 // Guild Ledger finishing pass: only visual presentation; data/layout ownership stays with routes.
 import "@/styles/guildLedgerFinish.css";
-// Final web-only interactive contract: blue resting controls, wax-red sweep.
-import "@/styles/waxSealInteractive.css";
+// The approved Guild Command layout and the final flat-navy citrus accent layer.
+// Retire wax-red full-control fills and the separate wallpaper draft.
 import "@/styles/guildCommand.css";
+import "@/styles/citrusCommand.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
