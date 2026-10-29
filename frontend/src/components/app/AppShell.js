@@ -73,9 +73,9 @@ async function loadAdminStatus() {
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
   { label: 'Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
-  { label: 'Player home', to: '/player', icon: UsersRound, matches: ['/player'], mobilePrimary: false },
+  { label: 'Player home', mobileLabel: 'Player', to: '/player', icon: ShieldCheck, matches: ['/player'], mobilePrimary: true },
   { label: 'Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'], mobilePrimary: true },
-  { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
+  { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: false },
   { label: 'Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
   { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'], mobilePrimary: false },
 ];
@@ -91,7 +91,7 @@ function sectionLabel(pathname) {
   return item?.label || 'Workspace';
 }
 
-function RailLink({ item, pathname, className = '', onClick }) {
+function RailLink({ item, pathname, className = '', onClick, compact = false }) {
   const Icon = item.icon;
   const active = isActive(pathname, item);
   const classes = [
@@ -111,7 +111,7 @@ function RailLink({ item, pathname, className = '', onClick }) {
       onClick={onClick}
     >
       <Icon size={20} aria-hidden="true" />
-      <span>{item.label}</span>
+      <span>{compact && item.mobileLabel ? item.mobileLabel : item.label}</span>
     </Link>
   );
 }
@@ -134,7 +134,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
-          <span>Rook, dice, player home, uploads, settings, and feedback.</span>
+          <span>Extra pages and tools for your workspace.</span>
         </div>
         <button type="button" className="rqk-app-mobile-more-close" onClick={onClose} aria-label="Close more tools">
           <X size={18} aria-hidden="true" />
@@ -293,7 +293,7 @@ export default function AppShell({ children }) {
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
           {!isMobile && <p className="rqk-app-rail-section-label">Workspace</p>}
           {visibleNavItems.map((item) => (
-            <RailLink key={item.label} item={item} pathname={location.pathname} />
+            <RailLink key={item.label} item={item} pathname={location.pathname} compact={isMobile} />
           ))}
         </nav>
 
