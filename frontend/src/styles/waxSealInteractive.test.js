@@ -28,8 +28,8 @@ describe('Guild Command citrus site-wide design contract', () => {
   test('gradient is yellow to citrus orange to blood orange, never a full card fill', () => {
     const css = read('./citrusCommand.css');
     expect(css).toContain('--rq-citrus-yellow: #F2C94C;');
-    expect(css).toContain('--rq-citrus-orange: #D85C2E;');
-    expect(css).toContain('--rq-citrus-blood: #A63A24;');
+    expect(css).toContain('--rq-citrus-orange: #F15A32;');
+    expect(css).toContain('--rq-citrus-blood: #D8432D;');
     expect(css).toContain('--rq-citrus-gradient: linear-gradient(90deg,');
     // The colour transition now lives in the centre, with deliberate solid
     // colour holds at both ends instead of a full-width rainbow blend.
