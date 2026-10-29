@@ -6,8 +6,8 @@
  */
 :root {
   --rq-citrus-yellow: #F2C94C;
-  --rq-citrus-orange: #E89A1C;
-  --rq-citrus-blood: #B94E1E;
+  --rq-citrus-orange: #D85C2E;
+  --rq-citrus-blood: #A63A24;
   /* Hold each end colour for roughly the outer 28% of the line;
      concentrate the colour transition in the middle 44%. On a 320px rule,
      the solid ends are ~90px each (about an inch at normal desktop scale).
@@ -85,7 +85,7 @@
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
-    border-color: rgba(232,154,28,.5) !important;
+    border-color: rgba(216,92,46,.5) !important;
     color: var(--rq-citrus-cream) !important;
   }
 
@@ -104,7 +104,7 @@
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
-    border-color: rgba(232,154,28,.48) !important;
+    border-color: rgba(216,92,46,.48) !important;
   }
 
   /* Hover, pointer press and keyboard focus produce the same left-to-right
@@ -193,7 +193,7 @@
   #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current='true']) {
     background-size: 100% 3px !important;
     border-left-color: transparent !important;
-    border-bottom-color: rgba(232,154,28,.6) !important;
+    border-bottom-color: rgba(216,92,46,.6) !important;
   }
 
   /* Focus keeps its independent blue outline; dangerous, disabled and
@@ -214,8 +214,11 @@
   @media (prefers-reduced-motion: reduce) {
     /* Match the same specificity as the normal-control rules. Otherwise their
        later background-size transition overrides generic reduced-motion CSS. */
-    #root .keeper-product-site .landing-button,
+    /* :is() includes a class+element option elsewhere in the base rule,
+       so specificity must exceed (ID + 2 classes + element) here. */
+    #root .landing-page-final.keeper-product-site button.landing-button,
     #root .rqk-auth-page .rqk-auth-mode-toggle button,
+    #root .keeper-product-site .landing-button,
     #root .rqk-app-shell .campaign-dashboard-tab,
     #root .rqk-app-shell .campaign-dashboard-group,
     #root .rqk-app-shell .rqk-app-rail-link,
