@@ -50,7 +50,7 @@
       .dashboard-continue-card, .dashboard-action-card,
       .campaign-home-focus-card, .rqk-calendar-day, .rqk-selectable-control,
       .rqk-reference-browser__item, .btn-primary, .rq-button-primary
-  ):not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):not(.rq-hp-action-button--plus):not(.rq-hp-action-button--minus) {
+  ):where(:not(:disabled):not([aria-disabled='true']):not(.is-danger):not(.destructive):not([data-variant='destructive']):not(.rq-hp-action-button--plus):not(.rq-hp-action-button--minus)) {
     background: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 0% 3px !important;
@@ -124,6 +124,15 @@
     background-size: 100% 3px !important;
   }
 
+  /* Real browsers include hybrid pointers and emulated desktop devices:
+   * :hover must work even before pointer capabilities are reported as fine. */
+  #root .keeper-product-site .landing-button:hover:not(:disabled):not([aria-disabled='true']) {
+    background-size: 100% 3px !important;
+  }
+  #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active:not(:disabled) {
+    background-size: 100% 3px !important;
+  }
+
   /* Legacy global button ::before used to paint the entire surface wax-red.
    * Neutralise its fill on ordinary actions, without touching bespoke pseudo
    * elements or the health/damage semantic controls. The new underline is
@@ -194,6 +203,11 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    #root :is(.rqk-app-shell, .keeper-product-site, .rqk-auth-page,
+              .character-page-v2, .guild-command-layout, .App)
+      :is(button, [role='button'], [role='tab'], .rqk-reference-browser__item) {
+      transition: none !important;
+    }
     #root :is(button, [role='button'], [role='tab'], .rqk-reference-browser__item) {
       transition-duration: 0s !important;
     }
