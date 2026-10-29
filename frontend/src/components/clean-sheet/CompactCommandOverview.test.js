@@ -1,4 +1,6 @@
 import React from 'react';
+import fs from 'fs';
+import path from 'path';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import CompactCommandOverview from './CompactCommandOverview';
 
@@ -48,4 +50,26 @@ test('Incomplete characters display truthful empty states instead of made-up att
   expect(screen.getByText(/No equipped weapons yet/)).toBeInTheDocument();
   expect(screen.getByText(/No items saved yet/)).toBeInTheDocument();
   expect(screen.getByText(/No limited-use resources/)).toBeInTheDocument();
+});
+
+test('Compact Command renders white-gradient heading targets around real resource and inventory data', () => {
+  render(<CompactCommandOverview character={character} proficiencyBonus={3} onRoll={jest.fn()} onCharacterUpdate={jest.fn()} onOpenTab={jest.fn()} />);
+  ['Abilities', 'Attacks', 'Resources', 'Inventory'].forEach(label => {
+    const title = screen.getByRole('heading', { name: label, level: 2 });
+    expect(title).toHaveClass('rqk-cc-title');
+    expect(within(title).getByText(label)).toBeInTheDocument();
+  });
+
+  const css = fs.readFileSync(path.join(__dirname, 'CompactCommandMobile.css'), 'utf8');
+  expect(css).toContain('@media (max-width: 719px)');
+  expect(css).toContain('padding: 4px !important;');
+  expect(css).toContain('--rq-cc-title-gradient: linear-gradient(');
+  expect(css).toContain('clip-path: polygon(');
+  expect(css).toContain('color: #fff !important;');
+  expect(css).toContain('font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)');
+  expect(css).toContain('var(--rq-citrus-yellow, #F2C94C) 28%');
+  expect(css).toContain('var(--rq-citrus-blood, #CE393A) 72%');
+  expect(css).toContain('display: none !important; /* no extra heading on tablet or desktop */');
+  expect(css).toContain('.clean-sheet-header .clean-sheet-hero-options-toggle');
+  expect(css).toContain('.clean-sheet-rest-menu-wrap');
 });
