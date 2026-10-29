@@ -67,12 +67,12 @@
   border-radius: 10px;
 }
 #root .guild-command-home .campaign-home-command-copy > p {
-  color: #C9A96B;
+  color: #F5F1E8;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
 #root .guild-command-home .campaign-home-command-copy > h2 {
-  color: #D9BC82;
+  color: #F5F1E8;
   font-family: Georgia, serif;
 }
 #root .guild-command-home .campaign-home-overview-item,
