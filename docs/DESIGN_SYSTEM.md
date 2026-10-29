@@ -62,7 +62,7 @@ The currently approved visual system is **solid deep navy + warm cream + blue co
 - Navy supplies structure and depth.
 - Cream supplies readable hierarchy.
 - **Antique gold is text-only**: titles, special headings and deliberate written emphasis. Never use antique gold for control fills, borders, icons, selected boxes or backgrounds.
-- Resting, hovered and selected clickable bodies stay dark blue (`#263F59`). Only a thin 3px yellow → orange → blood-orange **underline** sweeps left to right on hover/press, remaining in place for selected controls. **The gradient itself holds solid yellow for 0–28%, blends through orange at 50%, and holds solid blood orange for 72–100%; the blend is concentrated in the middle.**
+- Resting, hovered and selected clickable bodies stay dark blue (`#263F59`). Only a thin 3px yellow → orange → blood-orange **underline** sweeps left to right on hover/press, remaining in place for selected controls. **The gradient itself holds solid yellow for 0–28%, blends through orange at 50%, and holds solid deep red-orange for 72–100%; the blend is concentrated in the middle.**
 - Blue supports information, icons, progress and keyboard focus.
 - Red is semantic danger/error only.
 - Green is semantic success only.
@@ -88,9 +88,9 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
   --rq-gold-text: #C9A96B; /* headings/text only */
   --rq-control-blue: #263F59;
   --rq-citrus-yellow: #F2C94C;
-  --rq-citrus-orange: #E89A1C;
-  --rq-citrus-blood: #B94E1E;
-  --rq-citrus-gradient: linear-gradient(90deg, #F2C94C, #E89A1C, #B94E1E);
+  --rq-ember-red-orange: #D85C2E;
+  --rq-citrus-blood: #A63A24;
+  --rq-citrus-gradient: linear-gradient(90deg, #F2C94C, #D85C2E, #A63A24);
   --rq-primary: #C9A96B; /* legacy text accent; NOT a control background */
   --rq-primary-hover: #D9BC82; /* text hover only */
   --rq-primary-soft: rgba(201, 169, 107, 0.12);
