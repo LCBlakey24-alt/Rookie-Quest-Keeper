@@ -311,18 +311,18 @@ const loadWarningStyle = {
   alignItems: 'flex-start',
   gap: 10,
   padding: '12px 14px',
-  border: '1px solid rgba(255, 45, 170, 0.28)',
-  borderLeft: '1px solid #FF2DAA',
-  borderRadius: 5,
-  background: '#102B40',
-  color: '#FFFFFF',
+  border: '1px solid rgba(211, 154, 67, 0.28)',
+  borderLeft: '3px solid var(--rq-warning, #D39A43)',
+  borderRadius: 7,
+  background: 'var(--rq-bg-panel, #1E2936)',
+  color: 'var(--rq-text-primary, #EADFC8)',
 };
 
 const handoutWarningStyle = {
   ...loadWarningStyle,
   marginTop: 8,
-  border: '1px solid rgba(124, 203, 255, 0.32)',
-  borderLeft: '1px solid #7CCBFF',
+  border: '1px solid rgba(110, 145, 180, 0.32)',
+  borderLeft: '3px solid var(--rq-info, #6E91B4)',
 };
 
 const tabLoadingStyle = {
@@ -330,10 +330,10 @@ const tabLoadingStyle = {
   display: 'grid',
   placeItems: 'center',
   padding: 12,
-  border: '1px solid rgba(255,45,170,.18)',
+  border: '1px solid var(--rq-line, rgba(137, 157, 176, .14))',
   borderRadius: 7,
-  background: '#0C2234',
-  color: '#FFFFFF',
-  fontSize: 12,
-  fontWeight: 800,
+  background: 'var(--rq-bg-panel, #1E2936)',
+  color: 'var(--rq-text-secondary, rgba(234, 223, 200, .78))',
+  fontSize: 13,
+  fontWeight: 600,
 };
