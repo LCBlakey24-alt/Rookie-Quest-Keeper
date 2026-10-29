@@ -88,9 +88,9 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
   --rq-gold-text: #C9A96B; /* headings/text only */
   --rq-control-blue: #263F59;
   --rq-citrus-yellow: #F2C94C;
-  --rq-ember-red-orange: #F15A32;
-  --rq-citrus-blood: #D8432D;
-  --rq-citrus-gradient: linear-gradient(90deg, #F2C94C, #F15A32, #D8432D);
+  --rq-ember-red-orange: #EF6343;
+  --rq-citrus-blood: #CE393A;
+  --rq-citrus-gradient: linear-gradient(90deg, #F2C94C, #EF6343, #CE393A);
   --rq-primary: #C9A96B; /* legacy text accent; NOT a control background */
   --rq-primary-hover: #D9BC82; /* text hover only */
   --rq-primary-soft: rgba(201, 169, 107, 0.12);
