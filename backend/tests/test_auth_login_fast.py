@@ -177,6 +177,7 @@ class GoogleLoginTests(unittest.TestCase):
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
+             patch.object(login_routes, 'require_signups_enabled', AsyncMock()), \
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
             result = run(login_routes.login_google(
                 login_routes.GoogleLoginRequest(credential='credential-1')
@@ -196,6 +197,7 @@ class GoogleLoginTests(unittest.TestCase):
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'username_is_available', available), \
+             patch.object(login_routes, 'require_signups_enabled', AsyncMock()), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
              patch.object(login_routes, 'create_token', return_value='token-new'), \
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
@@ -223,6 +225,7 @@ class GoogleLoginTests(unittest.TestCase):
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'username_is_available', AsyncMock(return_value=False)), \
+             patch.object(login_routes, 'require_signups_enabled', AsyncMock()), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
             with self.assertRaises(HTTPException) as taken:

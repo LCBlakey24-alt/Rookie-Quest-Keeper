@@ -18,6 +18,7 @@ from config import db
 from models import UserLogin, TokenResponse
 from utils.auth import create_token, hash_password, verify_password
 from utils.admin_identity import USERNAME_UNAVAILABLE, is_admin_username, username_is_available
+from utils.site_settings import require_signups_enabled
 
 router = APIRouter()
 AUTH_LOGIN_ROUTE_KEY = ('POST', '/auth/login')
@@ -206,6 +207,9 @@ async def login_google(request: GoogleLoginRequest):
         existing_email_user['google_sub'] = google_sub
         existing_email_user['google_email'] = google_email
         return await token_payload(existing_email_user)
+
+    # Everything below creates a new account, which the admin switch can pause.
+    await require_signups_enabled()
 
     if not request.username:
         return {

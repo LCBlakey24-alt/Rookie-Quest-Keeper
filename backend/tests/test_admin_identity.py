@@ -189,7 +189,8 @@ def test_register_rejects_admin_look_alike(configured):
         {'username': 'LCBlakey24', 'created_at': '2025-01-01T00:00:00+00:00'},
     ])
     users.insert_one = AsyncMock()
-    with patched, patch.object(auth_routes, 'db', SimpleNamespace(users=users)):
+    with patched, patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
+         patch.object(auth_routes, 'require_signups_enabled', AsyncMock()):
         with pytest.raises(HTTPException) as rejected:
             run(auth_routes.register(UserRegister(username='lcblakey24', password='long-enough-1')))
     assert rejected.value.status_code == 400
@@ -203,7 +204,8 @@ def test_register_rejects_case_variant_of_existing_player(configured):
 
     users, patched = with_users([{'username': 'TableRook', 'created_at': '2025-01-01T00:00:00+00:00'}])
     users.insert_one = AsyncMock()
-    with patched, patch.object(auth_routes, 'db', SimpleNamespace(users=users)):
+    with patched, patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
+         patch.object(auth_routes, 'require_signups_enabled', AsyncMock()):
         with pytest.raises(HTTPException) as rejected:
             run(auth_routes.register(UserRegister(username='tablerook', password='long-enough-1')))
     assert rejected.value.status_code == 400
@@ -217,6 +219,7 @@ def test_register_accepts_a_new_name(configured):
     users, patched = with_users([{'username': 'TableRook', 'created_at': '2025-01-01T00:00:00+00:00'}])
     users.insert_one = AsyncMock()
     with patched, patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
+         patch.object(auth_routes, 'require_signups_enabled', AsyncMock()), \
          patch.object(auth_routes, 'hash_password', return_value='hashed'), \
          patch.object(auth_routes, 'create_token', return_value='token-1'):
         result = run(auth_routes.register(UserRegister(username='NewRook', password='long-enough-1')))
