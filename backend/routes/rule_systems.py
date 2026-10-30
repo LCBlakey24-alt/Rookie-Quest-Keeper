@@ -1,5 +1,6 @@
 """Rule system routes: CRUD, content management, bulk upload, rulesets."""
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
+from utils.uploads import read_upload_capped
 from config import db, logger
 from utils.auth import get_current_user, is_admin, verify_campaign_ownership
 from models import (
@@ -246,7 +247,7 @@ async def upload_content_file(system_id: str, content_type: str, file: UploadFil
     if not (is_admin_user or is_owner):
         raise HTTPException(status_code=403, detail="You don't have permission to upload to this rule system")
     
-    content = await file.read()
+    content = await read_upload_capped(file)
     filename = file.filename.lower()
     
     try:

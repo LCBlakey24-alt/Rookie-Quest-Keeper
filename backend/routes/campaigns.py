@@ -15,6 +15,7 @@ import secrets
 import json
 from datetime import datetime, timezone
 from utils.ws_manager import ws_manager
+from utils.uploads import read_upload_capped
 
 try:
     import fitz  # PyMuPDF
@@ -452,12 +453,8 @@ async def upload_rules_file(campaign_id: str, file: UploadFile, username: str = 
     if file_ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail=f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}")
     
-    # Read file content
-    content = await file.read()
-    
-    # Check file size (max 10MB)
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large. Maximum 10MB.")
+    # Read file content (rejects anything over 10MB without loading all of it)
+    content = await read_upload_capped(file)
     
     # Extract text based on file type
     if file_ext == '.pdf':
@@ -803,7 +800,7 @@ async def upload_ruleset_file(file: UploadFile = File(...), username: str = Depe
     
     # Read and parse the file
     try:
-        content = await file.read()
+        content = await read_upload_capped(file)
         rules_data = json.loads(content.decode('utf-8'))
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON file")
