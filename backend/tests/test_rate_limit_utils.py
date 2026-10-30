@@ -60,10 +60,11 @@ def test_rook_ai_routes_are_rate_limited():
 
 import os
 
+import asyncio
+
 import jwt as _jwt
-from fastapi import FastAPI
 from starlette.requests import Request
-from starlette.testclient import TestClient
+from starlette.responses import JSONResponse
 
 from utils import rate_limit
 from utils.rate_limit import (
@@ -85,29 +86,26 @@ def _request(path="/api/auth/login", method="POST", client=("8.8.4.4", 5000), he
     return Request({"type": "http", "method": method, "path": path, "headers": raw, "client": client, "query_string": b""})
 
 
-def _limited_app():
-    app = FastAPI()
-    app.add_middleware(RateLimitMiddleware)
+async def _ok(_request):
+    return JSONResponse({"ok": True})
 
-    @app.post("/api/auth/login")
-    async def login():
-        return {"ok": True}
 
-    @app.get("/api/auth/me")
-    async def me():
-        return {"ok": True}
+def _send(middleware, method, path, authorization=None):
+    headers = {"Authorization": authorization} if authorization else {}
+    request = _request(path=path, method=method, headers=headers)
+    return asyncio.run(middleware.dispatch(request, _ok)).status_code
 
-    @app.delete("/api/auth/me")
-    async def delete_me():
-        return {"ok": True}
 
-    return app
+def _middleware():
+    async def app(scope, receive, send):  # never reached; dispatch is called directly
+        raise AssertionError("downstream app should not be called")
+    return RateLimitMiddleware(app)
 
 
 def test_rotating_authorization_header_does_not_reset_login_limit():
-    client = TestClient(_limited_app())
+    middleware = _middleware()
     codes = [
-        client.post("/api/auth/login", headers={"Authorization": f"Bearer random-{i:04d}"}).status_code
+        _send(middleware, "POST", "/api/auth/login", f"Bearer random-{i:04d}")
         for i in range(10)
     ]
     assert codes[:8] == [200] * 8
@@ -115,9 +113,9 @@ def test_rotating_authorization_header_does_not_reset_login_limit():
 
 
 def test_reading_own_account_is_not_limited_but_deleting_it_is():
-    client = TestClient(_limited_app())
-    assert all(client.get("/api/auth/me").status_code == 200 for _ in range(10))
-    codes = [client.delete("/api/auth/me").status_code for _ in range(4)]
+    middleware = _middleware()
+    assert all(_send(middleware, "GET", "/api/auth/me") == 200 for _ in range(10))
+    codes = [_send(middleware, "DELETE", "/api/auth/me") for _ in range(4)]
     assert codes == [200, 200, 200, 429]
     assert match_rule("GET", "/api/auth/me") is None
 
