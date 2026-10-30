@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
+import { setAuthToken } from '@/lib/auth';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
   AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
@@ -102,10 +103,13 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
     setSavingAction('password');
     try {
-      await apiClient.post('/account/change-password', {
+      const response = await apiClient.post('/account/change-password', {
         current_password: currentPassword,
         new_password: newPassword,
       });
+      // Changing the password signs out every other device; keep this one
+      // signed in with the fresh token the server returns.
+      if (response?.data?.token) setAuthToken(response.data.token);
 
       toast.success('Password changed successfully!');
       setCurrentPassword('');

@@ -1,17 +1,27 @@
 """Authentication and access utilities."""
+import re
 import jwt
 import bcrypt
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Any
+from typing import Any, Dict, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 from config import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security, AI_MONTHLY_LIMIT
 from utils.admin_identity import is_admin_username
 
 
-def create_token(username: str) -> str:
+def session_version(user: Optional[dict]) -> int:
+    """The user's current session version; bumping it signs out older tokens."""
+    try:
+        return int((user or {}).get('token_version') or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def create_token(username: str, token_version: int = 0) -> str:
     payload = {
         'sub': username,
+        'tv': int(token_version or 0),
         'exp': datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS),
         'iat': datetime.now(timezone.utc)
     }
@@ -35,9 +45,13 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         username = payload.get('sub')
         if username is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        user = await db.users.find_one({'username': username}, {'_id': 0})
+        user = await db.users.find_one({'username': username}, {'_id': 0, 'token_version': 1})
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        # Tokens issued before a password change or reset carry an older
+        # version and stop working. Tokens without 'tv' predate this check.
+        if int(payload.get('tv') or 0) != session_version(user):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired. Please sign in again.")
         return username
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
@@ -134,7 +148,10 @@ async def get_campaign_rule_system(campaign_id: str) -> Dict[str, Any]:
     if not campaign:
         return None
     system_name = campaign.get('system', 'Fantasy d20')
-    system = await db.rule_systems.find_one({'name': {'$regex': system_name, '$options': 'i'}}, {'_id': 0})
+    # The campaign's system name is user text: escape it so it is matched
+    # literally rather than run as a regular expression.
+    system = await db.rule_systems.find_one({'name': {'$regex': re.escape(str(system_name)), '$options': 'i'}}, {'_id': 0})
     if not system:
-        system = await db.rule_systems.find_one({'short_code': {'$regex': system_name.replace(' ', '_').lower(), '$options': 'i'}}, {'_id': 0})
+        short_code = re.escape(str(system_name).replace(' ', '_').lower())
+        system = await db.rule_systems.find_one({'short_code': {'$regex': short_code, '$options': 'i'}}, {'_id': 0})
     return system

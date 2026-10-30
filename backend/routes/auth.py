@@ -5,7 +5,7 @@ from utils.account_profile import public_account_profile
 from utils.admin_identity import USERNAME_UNAVAILABLE, username_is_available
 from utils.site_settings import require_signups_enabled
 from utils.auth import (
-    get_current_user, hash_password, verify_password, create_token,
+    get_current_user, hash_password, verify_password, create_token, session_version,
 )
 from models import (
     UserRegister, UserLogin, TokenResponse, ForgotPasswordRequest,
@@ -228,7 +228,7 @@ async def login(user_data: UserLogin):
     if not user or not verify_password(user_data.password, user['password_hash']):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
-    token = create_token(user['username'])
+    token = create_token(user['username'], session_version(user))
     return TokenResponse(token=token, username=user['username'], email=user.get('email'))
 
 
@@ -296,12 +296,16 @@ async def reset_password(request: ResetPasswordRequest):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset token has expired")
     
     password_hash = hash_password(request.new_password)
+    # Bumping token_version signs out every existing session for this account.
     await db.users.update_one(
         {'email': reset_record['email']},
-        {'$set': {
-            'password_hash': password_hash,
-            'password_login_enabled': True,
-        }}
+        {
+            '$set': {
+                'password_hash': password_hash,
+                'password_login_enabled': True,
+            },
+            '$inc': {'token_version': 1},
+        }
     )
     
     await db.password_resets.delete_one({'token': request.token})
@@ -316,12 +320,18 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect")
     
     new_hash = hash_password(request.new_password)
+    # Sign out every other session (stolen or forgotten devices) by bumping the
+    # session version, and hand this device a fresh token so it stays signed in.
+    new_version = session_version(user) + 1
     await db.users.update_one(
         {'username': current_username},
-        {'$set': {'password_hash': new_hash}}
+        {'$set': {'password_hash': new_hash, 'token_version': new_version}}
     )
-    
-    return {"message": "Password changed successfully"}
+
+    return {
+        "message": "Password changed successfully",
+        "token": create_token(current_username, new_version),
+    }
 
 
 @router.get("/auth/me")

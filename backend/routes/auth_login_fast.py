@@ -16,7 +16,7 @@ from starlette.concurrency import run_in_threadpool
 
 from config import db
 from models import UserLogin, TokenResponse
-from utils.auth import create_token, hash_password, verify_password
+from utils.auth import create_token, hash_password, session_version, verify_password
 from utils.admin_identity import USERNAME_UNAVAILABLE, is_admin_username, username_is_available
 from utils.site_settings import require_signups_enabled
 
@@ -122,7 +122,7 @@ async def admin_flag(username: str) -> bool:
 
 async def token_payload(user: dict) -> dict:
     return {
-        'token': create_token(user['username']),
+        'token': create_token(user['username'], session_version(user)),
         'username': user['username'],
         'email': user.get('email'),
         'is_admin': await admin_flag(user['username']),
@@ -141,7 +141,7 @@ async def login_fast(user_data: UserLogin):
     if not password_ok:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
 
-    token = create_token(user['username'])
+    token = create_token(user['username'], session_version(user))
     return TokenResponse(
         token=token,
         username=user['username'],

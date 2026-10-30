@@ -147,8 +147,11 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
         response_text = response.strip() if isinstance(response, str) else str(response)
         
         return {"result": response_text, "rule_system": system_name}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("AI request failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 # ROOK AI endpoint (renamed from Unseen Servant)
 @router.post("/rook/generate", response_model=UnseenServantResponse)
@@ -416,8 +419,8 @@ IMPORTANT RULES:
     except HTTPException:
         raise  # Re-raise HTTP exceptions as-is
     except Exception as e:
-        logger.error(f"Unseen Servant error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Generation failed: {str(e)}")
+        logger.exception("Unseen Servant error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Generation failed. Please try again.")
 
 @router.post("/ai/generate", response_model=AIGenerationResponse)
 async def generate_ai_content(request: AIGenerationRequest, username: str = Depends(get_current_user)):
@@ -521,8 +524,8 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"AI generation error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"AI generation failed: {str(e)}")
+        logger.exception("AI generation error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI generation failed. Please try again.")
 
 def _extract_json_object(raw: str) -> Dict[str, Any]:
     """Best-effort extraction of the first JSON object from an LLM response."""
@@ -747,9 +750,11 @@ Only include entities that are explicitly mentioned in the notes. Return ONLY va
             'suggestions': suggestions,
             'message': 'AI processing complete'
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"AI processing error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"AI processing failed: {str(e)}")
+        logger.exception("AI processing error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI processing failed. Please try again.")
 
 # ==================== PARTY INVENTORY ROUTES ====================
 
@@ -942,11 +947,13 @@ Extract and return JSON in this EXACT format:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="AI returned invalid format. Please try again."
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Smart note parsing failed: {e}")
+        logger.exception("Smart note parsing failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to parse notes: {str(e)}"
+            detail="Failed to parse notes. Please try again."
         )
 
 @router.get("/campaigns/{campaign_id}/tokens")
@@ -1115,9 +1122,11 @@ An ending hook to leave players eager for next session.
         del outline['_id']
         return outline
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Session outline generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("Session outline generation failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 
 @router.get("/ai/session-outlines/{campaign_id}")
@@ -1224,8 +1233,8 @@ Generate 8-15 practical checklist items. Return ONLY the JSON array, no other te
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Session checklist generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("Session checklist generation failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 
 @router.get("/ai/session-checklists/{campaign_id}")
@@ -1345,9 +1354,11 @@ Make it feel like reading a fantasy novel chapter. Use character names and make 
         del replay['_id']
         return replay
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Session replay generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("Session replay generation failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 
 @router.get("/ai/session-replays/{campaign_id}")
