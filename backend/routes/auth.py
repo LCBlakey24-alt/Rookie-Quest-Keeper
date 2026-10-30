@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
 from utils.account_profile import public_account_profile
+from utils.admin_identity import USERNAME_UNAVAILABLE, username_is_available
 from utils.auth import (
     get_current_user, hash_password, verify_password, create_token,
 )
@@ -178,9 +179,10 @@ async def register(user_data: UserRegister):
         if existing_email:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     
-    existing_user = await db.users.find_one({'username': normalized_username})
-    if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+    # Reserved names and existing names are blocked in any letter case, so
+    # nobody can register a look-alike such as "lcblakey24" beside "LCBlakey24".
+    if not await username_is_available(normalized_username):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=USERNAME_UNAVAILABLE)
     
     user_doc = {
         'id': str(uuid.uuid4()),
