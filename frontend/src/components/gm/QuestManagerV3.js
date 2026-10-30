@@ -302,7 +302,7 @@ function QuestLinks({ quest, resources, onPatch, onOpen }) {
                 {linked.map(item => (
                   <span key={item.id} style={chipStyle}>
                     <button type="button" onClick={() => onOpen(type, item.id)} style={chipOpenStyle}>{type.name(item) || 'Untitled'}</button>
-                    <button type="button" onClick={() => onPatch(quest, type, item.id, false)} style={chipRemoveStyle} title="Unlink">×</button>
+                    <button type="button" onClick={() => onPatch(quest, type, item.id, false)} style={chipRemoveStyle} title="Unlink" aria-label={`Unlink ${type.name(item) || 'item'}`}>×</button>
                   </span>
                 ))}
                 {!linked.length && <span style={emptyChipStyle}>None</span>}
