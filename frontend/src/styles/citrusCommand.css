@@ -288,3 +288,25 @@
 
 
 }
+
+/* Keyboard focus ring — deliberately OUTSIDE the
+ * `@media (hover: hover) and (pointer: fine)` block above.
+ *
+ * The design system requires that "keyboard focus ... blue focus outline
+ * remains visible" and that we "never use a pseudo-element that hides a real
+ * focus ring". The ring defined inside that media query only reaches
+ * fine-pointer devices, so keyboard users on touch and hybrid machines got no
+ * indicator at all.
+ *
+ * Several route stylesheets also bundle `:focus-visible` into their `:hover`
+ * rule with `outline: none !important`, which made focus visually identical to
+ * hover on the primary navigation rail (present on every page). This selector
+ * is scoped tightly enough to out-specify those rules, and citrusCommand.css is
+ * imported last, so focus stays visible without editing every route file. */
+html body #root :is(
+  button, [role='button'], [role='tab'], [role='link'], a, select, summary,
+  input, textarea, [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  outline: 3px solid #6E91B4 !important;
+  outline-offset: 2px !important;
+}
