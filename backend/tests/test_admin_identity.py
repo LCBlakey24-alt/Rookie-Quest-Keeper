@@ -5,9 +5,11 @@ existing name) by changing letter case, and an existing look-alike account
 must not inherit admin rights.
 """
 import asyncio
+import importlib.util
 import os
 import re
 import sys
+import types
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
@@ -27,6 +29,23 @@ for key, value in {
     os.environ.setdefault(key, value)
 
 from utils import admin_identity  # noqa: E402
+
+# CI installs only the core backend packages. routes/auth.py imports the email
+# client at module level, so give it a stand-in when it isn't installed, and
+# load the route file directly instead of importing every router.
+try:
+    import resend  # noqa: F401
+except ImportError:
+    sys.modules['resend'] = types.SimpleNamespace(
+        api_key=None, Emails=types.SimpleNamespace(send=lambda params: None)
+    )
+
+
+def _route_module(name):
+    spec = importlib.util.spec_from_file_location(f'admin_identity_{name}', ROOT / 'routes' / f'{name}.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 ADMINS = ['lcblakey24']
 RESERVED = ['admin', 'administrator', 'lcblakey24']
@@ -163,7 +182,7 @@ def test_require_admin_rejects_look_alike(configured):
 
 
 def test_register_rejects_admin_look_alike(configured):
-    from routes import auth as auth_routes
+    auth_routes = _route_module('auth')
     from models import UserRegister
 
     users, patched = with_users([
@@ -179,7 +198,7 @@ def test_register_rejects_admin_look_alike(configured):
 
 
 def test_register_rejects_case_variant_of_existing_player(configured):
-    from routes import auth as auth_routes
+    auth_routes = _route_module('auth')
     from models import UserRegister
 
     users, patched = with_users([{'username': 'TableRook', 'created_at': '2025-01-01T00:00:00+00:00'}])
@@ -192,7 +211,7 @@ def test_register_rejects_case_variant_of_existing_player(configured):
 
 
 def test_register_accepts_a_new_name(configured):
-    from routes import auth as auth_routes
+    auth_routes = _route_module('auth')
     from models import UserRegister
 
     users, patched = with_users([{'username': 'TableRook', 'created_at': '2025-01-01T00:00:00+00:00'}])
