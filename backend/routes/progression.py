@@ -1,7 +1,7 @@
 """Progression routes: modular level-up system with rule system awareness."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, HIT_DICE, logger, get_subclass_unlock_level
-from utils.auth import get_current_user
+from utils.auth import get_current_user, is_admin
 from models import (
     ProgressionRuleSystem, ProgressionClass, ProgressionRace,
     ProgressionFeature, FeatureChoice, ClassLevelProgression,
@@ -12,6 +12,26 @@ import uuid
 from datetime import datetime, timezone
 
 router = APIRouter()
+
+
+async def require_admin(username: str) -> None:
+    """Gate the global, cross-tenant progression writes.
+
+    The collections these endpoints write -- rule_systems, progression_classes,
+    progression_races, progression_features, feature_choices and
+    class_level_progressions -- are global reference data, not per-user rows.
+    They are served to every player by the level-up wizard and are read by
+    get_campaign_rule_system, so an ordinary account must not be able to
+    create or overwrite them.
+
+    Uses the shared utils.auth.is_admin (ADMIN_USERNAMES) rather than a local
+    list, so there is one definition of who is an admin.
+    """
+    if not await is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
 
 @router.get("/progression/systems")
 async def get_rule_systems():
@@ -33,6 +53,7 @@ async def get_rule_systems():
 @router.post("/progression/systems")
 async def create_rule_system(system: ProgressionRuleSystem, username: str = Depends(get_current_user)):
     """Create a new rule system (admin only)"""
+    await require_admin(username)
     system_dict = system.model_dump()
     system_dict['created_by'] = username
     await db.rule_systems.insert_one(system_dict)
@@ -65,6 +86,7 @@ async def get_progression_class(class_id: str):
 @router.post("/progression/classes")
 async def create_progression_class(cls: ProgressionClass, username: str = Depends(get_current_user)):
     """Create a new class definition"""
+    await require_admin(username)
     cls_dict = cls.model_dump()
     cls_dict['created_by'] = username
     await db.progression_classes.insert_one(cls_dict)
@@ -82,6 +104,7 @@ async def get_progression_races(system_id: Optional[str] = None):
 @router.post("/progression/races")
 async def create_progression_race(race: ProgressionRace, username: str = Depends(get_current_user)):
     """Create a new race definition"""
+    await require_admin(username)
     race_dict = race.model_dump()
     race_dict['created_by'] = username
     await db.progression_races.insert_one(race_dict)
@@ -108,6 +131,7 @@ async def get_progression_features(
 @router.post("/progression/features")
 async def create_progression_feature(feature: ProgressionFeature, username: str = Depends(get_current_user)):
     """Create a new feature"""
+    await require_admin(username)
     feature_dict = feature.model_dump()
     feature_dict['created_by'] = username
     await db.progression_features.insert_one(feature_dict)
@@ -122,6 +146,7 @@ async def get_feature_choices(feature_id: str):
 @router.post("/progression/feature-choices")
 async def create_feature_choice(choice: FeatureChoice, username: str = Depends(get_current_user)):
     """Create a new feature choice"""
+    await require_admin(username)
     choice_dict = choice.model_dump()
     choice_dict['created_by'] = username
     await db.feature_choices.insert_one(choice_dict)
@@ -166,6 +191,7 @@ async def create_class_level_progression(
     username: str = Depends(get_current_user)
 ):
     """Create or update class level progression"""
+    await require_admin(username)
     prog_dict = progression.model_dump()
     prog_dict['created_by'] = username
     
@@ -311,10 +337,11 @@ async def get_character_features(character_id: str, username: str = Depends(get_
 @router.post("/progression/seed-default-data")
 async def seed_default_progression_data(username: str = Depends(get_current_user)):
     """Seed the database with default 5e progression data"""
-    # Check if admin
-    admin_users = ['rookiequestadmin', 'criticalfusion', 'admin']
-    if not any(admin in username.lower() for admin in admin_users):
-        raise HTTPException(status_code=403, detail="Admin access required")
+    # Previously gated by a substring test against a hardcoded name list, so
+    # any username merely containing the word admin cleared it -- "admin1",
+    # "myadmin" and "badminton" all passed, and SAFE_USERNAME_RE accepts those.
+    # It also ignored ADMIN_USERNAMES, so the configured admin was not covered.
+    await require_admin(username)
     
     # Create default 5e system
     default_system = {
