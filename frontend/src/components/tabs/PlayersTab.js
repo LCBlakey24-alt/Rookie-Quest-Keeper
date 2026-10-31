@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -130,6 +130,8 @@ function PlayersTab({ campaignId }) {
   const [rolledStats, setRolledStats] = useState([]);
   const [rolledAssignments, setRolledAssignments] = useState({});
   const [isRolling, setIsRolling] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const rollIntervalRef = useRef(null);
   const [playerSearch, setPlayerSearch] = useState(() => { try { return localStorage.getItem('players.search') || ''; } catch { return ''; } });
   const [playerSort, setPlayerSort] = useState(() => { try { return localStorage.getItem('players.sort') || 'name_asc'; } catch { return 'name_asc'; } });
 
@@ -215,14 +217,18 @@ function PlayersTab({ campaignId }) {
   // Roll all 6 stats
   const rollAllStats = () => {
     setIsRolling(true);
-    
-    // Animate rolling
+
+    // Animate rolling. The interval id is kept in a ref so it can be cleared on
+    // unmount / dialog close — otherwise it keeps firing setState after the
+    // component is gone.
+    if (rollIntervalRef.current) clearInterval(rollIntervalRef.current);
     let count = 0;
     const interval = setInterval(() => {
       setRolledStats(rollAbilityScoreSet(6));
       count++;
       if (count >= 8) {
         clearInterval(interval);
+        rollIntervalRef.current = null;
         // Final roll
         const finalStats = Array.from({ length: 6 }, () => roll4d6DropLowest());
         setRolledStats(finalStats);
@@ -231,7 +237,13 @@ function PlayersTab({ campaignId }) {
         toast.success('Stats rolled! Assign them to abilities.');
       }
     }, 100);
+    rollIntervalRef.current = interval;
   };
+
+  // Stop the roll animation if the component unmounts mid-roll.
+  useEffect(() => () => {
+    if (rollIntervalRef.current) clearInterval(rollIntervalRef.current);
+  }, []);
 
   // Stat assignment is resolved at submit-time through getResolvedStats().
 
@@ -294,6 +306,11 @@ function PlayersTab({ campaignId }) {
   }, [players, playerSearch, playerSort]);
 
   const handleSubmit = async () => {
+    // Guard against double-submit: a second click before the request resolves
+    // would pass the duplicate-name check (which reads not-yet-refreshed state)
+    // and create a second identical player record.
+    if (isSubmitting) return;
+
     if (!characterData.name || !characterData.race || !characterData.class) {
       toast.error('Please complete all required steps');
       return;
@@ -335,6 +352,7 @@ function PlayersTab({ campaignId }) {
       notes: `Race: ${raceData.name}${characterData.subrace ? ` (${characterData.subrace})` : ''}\nBackground: ${backgroundData?.name || 'None'}\nTraits: ${raceData.traits}`
     };
 
+    setIsSubmitting(true);
     try {
       if (editingPlayer) {
         await apiClient.put(`/campaigns/${campaignId}/players/${editingPlayer.id}`, formData);
@@ -347,6 +365,8 @@ function PlayersTab({ campaignId }) {
       resetForm();
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save player');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -374,7 +394,10 @@ function PlayersTab({ campaignId }) {
       class: resolvedClass,
       subclass: subclassMatch ? subclassMatch[1] : null,
       background: resolvedBackground,
-      stats: player.stats,
+      // Normalise before the custom-stats step renders: it reads
+      // each ability score directly, so a player row without a stats
+      // object would throw and white-screen the edit dialog.
+      stats: normalizeStats(player.stats),
       notes: player.notes
     });
     setStatMethod('custom');
@@ -944,10 +967,10 @@ function PlayersTab({ campaignId }) {
                             {STAT_LABELS[stat]}
                           </label>
                           <div style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff' }}>
-                            {characterData.stats[stat]}
+                            {(characterData.stats?.[stat] ?? 10)}
                           </div>
                           <div style={{ marginTop: '4px', color: '#F59E0B', fontWeight: '600' }}>
-                            {calculateModifier(characterData.stats[stat]) >= 0 ? '+' : ''}{calculateModifier(characterData.stats[stat])}
+                            {calculateModifier((characterData.stats?.[stat] ?? 10)) >= 0 ? '+' : ''}{calculateModifier((characterData.stats?.[stat] ?? 10))}
                           </div>
                         </div>
                       ))}
@@ -1066,7 +1089,7 @@ function PlayersTab({ campaignId }) {
                             type="number"
                             min="1"
                             max="20"
-                            value={characterData.stats[stat]}
+                            value={(characterData.stats?.[stat] ?? 10)}
                             onChange={(e) => setCharacterData({
                               ...characterData,
                               stats: { ...characterData.stats, [stat]: parseInt(e.target.value) || 10 }
@@ -1075,7 +1098,7 @@ function PlayersTab({ campaignId }) {
                             style={{ textAlign: 'center', fontSize: '20px', fontWeight: '700' }}
                           />
                           <div style={{ marginTop: '4px', color: '#F59E0B', fontWeight: '600' }}>
-                            {calculateModifier(characterData.stats[stat]) >= 0 ? '+' : ''}{calculateModifier(characterData.stats[stat])}
+                            {calculateModifier((characterData.stats?.[stat] ?? 10)) >= 0 ? '+' : ''}{calculateModifier((characterData.stats?.[stat] ?? 10))}
                           </div>
                         </div>
                       ))}
@@ -1124,11 +1147,14 @@ function PlayersTab({ campaignId }) {
                 <Button
                   data-testid="create-character-btn"
                   onClick={handleSubmit}
+                  disabled={isSubmitting}
                   className="btn-primary"
-                  style={{ display: 'flex', gap: '8px' }}
+                  style={{ display: 'flex', gap: '8px', opacity: isSubmitting ? 0.6 : 1 }}
                 >
                   <Check size={16} />
-                  {editingPlayer ? 'Update' : 'Create'} Character
+                  {isSubmitting
+                    ? (editingPlayer ? 'Updating…' : 'Creating…')
+                    : `${editingPlayer ? 'Update' : 'Create'} Character`}
                 </Button>
               )}
             </div>
@@ -1181,9 +1207,13 @@ function PlayersTab({ campaignId }) {
             const meta = parsePlayerMetadata(player);
             const raceData = meta.raceData;
             const classData = meta.classData;
-            const passivePerception = 10 + Math.floor((player.stats?.wisdom - 10) / 2);
-            const initiative = Math.floor((player.stats?.dexterity - 10) / 2);
-            const profBonus = Math.floor((player.level - 1) / 4) + 2;
+            // Default each value before the arithmetic: optional chaining alone
+            // yields `undefined - 10` === NaN, which rendered "NaN" on cards for
+            // any player row missing a stats object or level.
+            const statMod = (key) => Math.floor(((Number(player.stats?.[key]) || 10) - 10) / 2);
+            const passivePerception = 10 + statMod('wisdom');
+            const initiative = statMod('dexterity');
+            const profBonus = Math.floor(((Number(player.level) || 1) - 1) / 4) + 2;
             
             return (
             <div key={player.id} data-testid={`player-card-${player.id}`} className="card-glow" style={{ padding: '20px' }}>
@@ -1315,11 +1345,11 @@ function PlayersTab({ campaignId }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '12px', color: '#4a7dff', fontWeight: '700' }}>⚡ Spellcaster</span>
                     <span style={{ fontSize: '11px', color: '#67e8f9' }}>
-                      Ability: {classData.spellAbility} ({Math.floor((player.stats?.[classData.spellAbility.toLowerCase()] - 10) / 2) + profBonus >= 0 ? '+' : ''}{Math.floor((player.stats?.[classData.spellAbility.toLowerCase()] - 10) / 2) + profBonus} to hit)
+                      Ability: {classData.spellAbility} ({statMod(classData.spellAbility.toLowerCase()) + profBonus >= 0 ? '+' : ''}{statMod(classData.spellAbility.toLowerCase()) + profBonus} to hit)
                     </span>
                   </div>
                   <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                    Spell Save DC: {8 + profBonus + Math.floor((player.stats?.[classData.spellAbility.toLowerCase()] - 10) / 2)}
+                    Spell Save DC: {8 + profBonus + statMod(classData.spellAbility.toLowerCase())}
                   </div>
                 </div>
               )}
