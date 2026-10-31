@@ -118,7 +118,12 @@ def calculate_spell_slots(character_class: str, level: int) -> Dict[str, int]:
     if key in _FULL_CASTERS:
         slots = _FULL_CASTER_SLOTS.get(level, {})
     elif key in _HALF_CASTERS:
-        slots = _FULL_CASTER_SLOTS.get(max(1, level // 2), {}) if level >= 2 else {}
+        # Own slot table is the full-caster table at ceil(level / 2); floor is
+        # the multiclass contribution rule and understated every odd level, so
+        # a Paladin 5 produced {"1": 3} instead of {"1": 4, "2": 2}.
+        # (level + 1) // 2 is integer ceiling. The level >= 2 guard is the 2014
+        # Spellcasting start level and is unchanged.
+        slots = _FULL_CASTER_SLOTS.get(max(1, (level + 1) // 2), {}) if level >= 2 else {}
     elif key in _WARLOCK:
         warlock_level = min(level, 20)
         pact_level = 1 if warlock_level <= 2 else 2 if warlock_level <= 4 else 3 if warlock_level <= 6 else 4 if warlock_level <= 8 else 5

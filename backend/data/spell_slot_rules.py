@@ -138,12 +138,20 @@ def class_spell_slots(character: Dict[str, Any], class_name: str, level: int) ->
         return {}
     if key == "warlock":
         return pact_magic_shape(level)
+    # A class's own slot table is the full-caster table at ceil(level / N).
+    # half_caster_contribution() is the *multiclass* rule (floor in 2014, ceil
+    # in 2024) and belongs in shared_caster_level(); using it here understated
+    # slots at every odd level under 2014, so a Paladin 5 returned {"1": 3}
+    # instead of {"1": 4, "2": 2}. (a + b - 1) // b is integer ceiling.
+    # class_has_spellcasting() supplies the edition-aware start level (2 in
+    # 2014, 1 in 2024 for half casters; 3 plus the right subclass for third
+    # casters), so ceiling cannot leak a slot before Spellcasting is gained.
     if key in FULL_CASTERS:
         effective = level
-    elif key in HALF_CASTERS:
-        effective = half_caster_contribution(level, edition_for(character))
+    elif key in HALF_CASTERS and class_has_spellcasting(character, class_name, level):
+        effective = (level + 1) // 2
     elif key in THIRD_CASTER_SUBCLASSES and class_has_spellcasting(character, class_name, level):
-        effective = level // 3
+        effective = (level + 2) // 3
     else:
         return {}
     return {str(slot_level): int(count) for slot_level, count in FULL_CASTER_SLOTS.get(effective, {}).items()}
