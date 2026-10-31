@@ -23,7 +23,13 @@ export function getClericChannelDivinityUses(level = 1, edition = '2014') {
   const ruleset = normaliseClericRulesEdition(edition);
 
   if (clericLevel < 2) return 0;
-  if (ruleset === '2024') return Math.max(2, Math.ceil(clericLevel / 2));
+  // 2024 Channel Divinity is 2 uses, 3 from level 6 and 4 from level 18 -- a
+  // stepped progression, not a per-level scale. The previous
+  // Math.max(2, ceil(level / 2)) grew without bound, reporting 5 uses at level
+  // 9, 7 at 14 and 9 at 18. These are the same steps as the already-correct
+  // clericChannelMax in characterClassResources.js and the Channel Divinity
+  // resource in classResourceRules.js.
+  if (ruleset === '2024') return clericLevel >= 18 ? 4 : clericLevel >= 6 ? 3 : 2;
   if (clericLevel >= 18) return 3;
   if (clericLevel >= 6) return 2;
   return 1;
