@@ -955,6 +955,7 @@ async def get_campaign_tokens(
     username: str = Depends(get_current_user)
 ):
     """Get all combat tokens for a campaign"""
+    await verify_campaign_membership(campaign_id, username)
     tokens = await db.combat_tokens.find(
         {'campaign_id': campaign_id},
         {'_id': 0, 'image_base64': 0}  # Don't return full base64 in list
@@ -980,6 +981,7 @@ async def get_entity_token(
     username: str = Depends(get_current_user)
 ):
     """Get a specific combat token"""
+    await verify_campaign_membership(campaign_id, username)
     token = await db.combat_tokens.find_one(
         {'entity_id': entity_id, 'campaign_id': campaign_id},
         {'_id': 0}

@@ -5,7 +5,8 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
-from config import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security, ADMIN_USERNAMES, AI_MONTHLY_LIMIT
+from config import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security, AI_MONTHLY_LIMIT
+from utils.admin_identity import is_admin_username
 
 
 def create_token(username: str) -> str:
@@ -97,11 +98,9 @@ async def verify_campaign_membership(campaign_id: str, username: str) -> dict:
 
 
 async def is_admin(username: str) -> bool:
-    if not username:
-        return False
-    # Case-insensitive match so capitalized usernames (e.g. "LCBlakey24") still grant admin
-    admins = {a.lower() for a in ADMIN_USERNAMES}
-    return username.lower() in admins
+    # Admin names match without case, but only the original account holding the
+    # name counts, so a later look-alike sign-up never inherits admin rights.
+    return await is_admin_username(username)
 
 
 async def check_ai_access(username: str, feature: str = 'ai') -> bool:

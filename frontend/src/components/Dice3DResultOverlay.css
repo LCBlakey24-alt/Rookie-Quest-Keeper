@@ -1,0 +1,275 @@
+/* 3D dice result overlay.
+ *
+ * Palette follows docs/UI_DESIGN_SYSTEM.md: ink-navy surfaces, cream text, and
+ * the yellow-to-red citrus gradient used ONLY as a thin rule / underline —
+ * never as a fill on a panel, button or die face. */
+
+.rq-d3d {
+  --rq-d3d-navy: var(--rq-citrus-navy, #0B1B2B);
+  --rq-d3d-panel: var(--rq-citrus-panel, #142638);
+  --rq-d3d-face: var(--rq-citrus-control, #263F59);
+  --rq-d3d-cream: var(--rq-citrus-cream, #F5F1E8);
+  --rq-d3d-muted: rgba(234, 223, 200, 0.78);
+  --rq-d3d-rule: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C 0%, #F2C94C 28%, #EF6343 50%, #CE393A 72%, #CE393A 100%));
+  --rq-d3d-size: 46px;
+
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 5000;
+  width: min(430px, calc(100vw - 24px));
+  transform: translateX(-50%);
+  display: grid;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid rgba(110, 145, 180, 0.28);
+  border-radius: 12px;
+  background: var(--rq-d3d-panel);
+  color: var(--rq-d3d-cream);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+  pointer-events: auto;
+}
+
+/* Thin citrus rule under the heading — the approved accent treatment. */
+.rq-d3d__heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.rq-d3d__heading::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background-image: var(--rq-d3d-rule);
+}
+
+.rq-d3d__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rq-d3d-cream);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.rq-d3d__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(110, 145, 180, 0.32);
+  border-radius: 7px;
+  background: var(--rq-d3d-face);
+  color: var(--rq-d3d-cream);
+  cursor: pointer;
+}
+
+.rq-d3d__main,
+.rq-d3d__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rq-d3d__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rq-d3d__copy strong {
+  font-size: 13px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rq-d3d__copy span {
+  font-size: 11px;
+  color: var(--rq-d3d-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rq-d3d__total {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.rq-d3d__total small {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rq-d3d-muted);
+}
+
+.rq-d3d__total strong {
+  font-size: 26px;
+  font-weight: 850;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dice tray ───────────────────────────────────────────────────────────── */
+
+.rq-d3d__tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  padding: 6px 0 2px;
+}
+
+.rq-d3d__slot {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+}
+
+.rq-d3d__slot.is-dropped {
+  opacity: 0.4;
+}
+
+.rq-d3d__sides {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rq-d3d-muted);
+}
+
+/* The perspective stage is what makes the cube read as 3D. */
+.rq-d3d__stage {
+  width: var(--rq-d3d-size);
+  height: var(--rq-d3d-size);
+  perspective: 620px;
+}
+
+.rq-d3d__die {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.rq-d3d__die.is-tumbling {
+  animation: rq-d3d-tumble calc(1.5s / var(--rq-d3d-spin, 1)) linear infinite;
+  animation-delay: var(--rq-d3d-delay, 0ms);
+}
+
+.rq-d3d__die.is-settled {
+  animation: rq-d3d-settle 420ms cubic-bezier(0.22, 0.78, 0.18, 1) both;
+}
+
+.rq-d3d__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(242, 201, 76, 0.34);
+  border-radius: 8px;
+  /* Navy face, never a gradient fill. */
+  background: var(--rq-d3d-face);
+  color: var(--rq-d3d-cream);
+  font-size: 17px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  backface-visibility: hidden;
+}
+
+/* Cube assembly: half of --rq-d3d-size is 23px. */
+.rq-d3d__face--front  { transform: translateZ(23px); }
+.rq-d3d__face--back   { transform: rotateY(180deg) translateZ(23px); }
+.rq-d3d__face--right  { transform: rotateY(90deg) translateZ(23px); }
+.rq-d3d__face--left   { transform: rotateY(-90deg) translateZ(23px); }
+.rq-d3d__face--top    { transform: rotateX(90deg) translateZ(23px); }
+.rq-d3d__face--bottom { transform: rotateX(-90deg) translateZ(23px); }
+
+/* The readable face gets the thin citrus underline, matching headings. */
+.rq-d3d.is-revealed .rq-d3d__face--front {
+  border-bottom: 2px solid transparent;
+  border-image: var(--rq-d3d-rule) 1;
+  border-image-slice: 1;
+}
+
+@keyframes rq-d3d-tumble {
+  0%   { transform: rotateX(0deg) rotateY(0deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+@keyframes rq-d3d-settle {
+  0%   { transform: rotateX(42deg) rotateY(-38deg) scale(0.94); }
+  100% { transform: rotateX(0deg) rotateY(0deg) scale(1); }
+}
+
+/* ── Outcome accents ─────────────────────────────────────────────────────── */
+
+.rq-d3d.is-critical { border-color: rgba(34, 197, 94, 0.5); }
+.rq-d3d.is-fumble   { border-color: rgba(239, 68, 68, 0.55); }
+
+.rq-d3d.is-critical.is-revealed .rq-d3d__face--front {
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.55), 0 0 16px rgba(34, 197, 94, 0.32);
+}
+
+.rq-d3d.is-fumble.is-revealed .rq-d3d__face--front {
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.55), 0 0 16px rgba(239, 68, 68, 0.3);
+}
+
+.rq-d3d__footer {
+  font-size: 10px;
+  color: var(--rq-d3d-muted);
+}
+
+.rq-d3d__footer button {
+  border: 1px solid rgba(110, 145, 180, 0.32);
+  border-radius: 7px;
+  background: var(--rq-d3d-face);
+  color: var(--rq-d3d-cream);
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 719px) {
+  .rq-d3d { --rq-d3d-size: 38px; }
+  .rq-d3d__face { font-size: 14px; }
+  .rq-d3d__face--front  { transform: translateZ(19px); }
+  .rq-d3d__face--back   { transform: rotateY(180deg) translateZ(19px); }
+  .rq-d3d__face--right  { transform: rotateY(90deg) translateZ(19px); }
+  .rq-d3d__face--left   { transform: rotateY(-90deg) translateZ(19px); }
+  .rq-d3d__face--top    { transform: rotateX(90deg) translateZ(19px); }
+  .rq-d3d__face--bottom { transform: rotateX(-90deg) translateZ(19px); }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────
+ * DiceRollFlicker already swaps to the flat overlay when the viewer prefers
+ * reduced motion; this is a belt-and-braces guard in case the 3D overlay is
+ * rendered directly. */
+@media (prefers-reduced-motion: reduce) {
+  .rq-d3d__die.is-tumbling,
+  .rq-d3d__die.is-settled {
+    animation: none !important;
+    transform: none !important;
+  }
+}

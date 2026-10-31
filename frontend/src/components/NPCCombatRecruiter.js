@@ -9,6 +9,16 @@ import {
 import { toast } from 'sonner';
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 
+// Normal controls are flat navy with cream text and a subdued border. The
+// yellow-to-red accent is only ever a thin rule or underline, never a control
+// fill (docs/UI_DESIGN_SYSTEM.md), so these buttons no longer carry the legacy
+// amber/red gradient fills.
+const FLAT_CONTROL = {
+  background: 'var(--rq-citrus-control, #263F59)',
+  color: 'var(--rq-citrus-cream, #F5F1E8)',
+  border: '1px solid rgba(110, 145, 180, 0.32)',
+};
+
 
 function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] }) {
   const [npcs, setNpcs] = useState([]);
@@ -91,7 +101,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
         style={{
           width: '100%',
           padding: '12px',
-          background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
+          ...FLAT_CONTROL,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -288,7 +298,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
                   data-testid={`add-npc-${npc.id}`}
                   style={{
                     padding: '8px 12px',
-                    background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
+                    ...FLAT_CONTROL,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -384,7 +394,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
                   data-testid={`add-creature-${creature.id}`}
                   style={{
                     padding: '8px 12px',
-                    background: 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)',
+                    ...FLAT_CONTROL,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',

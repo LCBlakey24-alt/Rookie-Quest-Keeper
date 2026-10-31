@@ -316,3 +316,18 @@
   #root .rqk-rel-coverage strong { font-size: 22px; }
   #root .rqk-rel-coverage span { font-size: 10px; }
 }
+
+/* iOS Safari force-zooms the viewport whenever a focused text field is under
+ * 16px, which disorients the user and breaks this layout on phones. The design
+ * system requires phone inputs to be at least 16px; desktop sizing is left
+ * alone. Matches the convention already used in campaignSetupModal.css and
+ * characterSheetUnifiedMobileHeader.css. */
+@media (max-width: 719px) {
+  .rqk-rel-form select,
+  .rqk-rel-form input,
+  .rqk-rel-list-heading input,
+  .rqk-rel-list-heading select,
+  .rqk-rel-graph-controls select {
+    font-size: 16px;
+  }
+}
