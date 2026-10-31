@@ -14,9 +14,11 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
-from config import ADMIN_USERNAMES, db
+from config import db
 from models import UserLogin, TokenResponse
 from utils.auth import create_token, hash_password, verify_password
+from utils.admin_identity import USERNAME_UNAVAILABLE, is_admin_username, username_is_available
+from utils.site_settings import require_signups_enabled
 
 router = APIRouter()
 AUTH_LOGIN_ROUTE_KEY = ('POST', '/auth/login')
@@ -114,17 +116,16 @@ def is_google_authoritative_email(claims: dict) -> bool:
     return email.endswith('@gmail.com') or bool(claims.get('hd'))
 
 
-def admin_flag(username: str) -> bool:
-    admins = {str(value).lower() for value in ADMIN_USERNAMES}
-    return str(username or '').lower() in admins
+async def admin_flag(username: str) -> bool:
+    return await is_admin_username(username)
 
 
-def token_payload(user: dict) -> dict:
+async def token_payload(user: dict) -> dict:
     return {
         'token': create_token(user['username']),
         'username': user['username'],
         'email': user.get('email'),
-        'is_admin': admin_flag(user['username']),
+        'is_admin': await admin_flag(user['username']),
         'requires_username': False,
     }
 
@@ -145,7 +146,7 @@ async def login_fast(user_data: UserLogin):
         token=token,
         username=user['username'],
         email=user.get('email'),
-        is_admin=admin_flag(user['username']),
+        is_admin=await admin_flag(user['username']),
     )
 
 
@@ -177,7 +178,7 @@ async def login_google(request: GoogleLoginRequest):
     # used to link an existing Rookie account when Google is authoritative for it.
     existing_google_user = await db.users.find_one({'google_sub': google_sub})
     if existing_google_user:
-        return token_payload(existing_google_user)
+        return await token_payload(existing_google_user)
 
     authoritative_email = is_google_authoritative_email(claims)
     existing_email_user = await db.users.find_one({'email': google_email})
@@ -205,7 +206,10 @@ async def login_google(request: GoogleLoginRequest):
         )
         existing_email_user['google_sub'] = google_sub
         existing_email_user['google_email'] = google_email
-        return token_payload(existing_email_user)
+        return await token_payload(existing_email_user)
+
+    # Everything below creates a new account, which the admin switch can pause.
+    await require_signups_enabled()
 
     if not request.username:
         return {
@@ -215,9 +219,10 @@ async def login_google(request: GoogleLoginRequest):
         }
 
     username = normalize_google_username(request.username)
-    existing_username = await db.users.find_one({'username': username})
-    if existing_username:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Username already taken')
+    # Same rule as password sign-up: reserved and existing names are blocked in
+    # any letter case.
+    if not await username_is_available(username):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=USERNAME_UNAVAILABLE)
 
     # Keep a random, unknown password hash so existing account-management code
     # remains safe for a Google-only account. A trusted recovery email can still
@@ -239,4 +244,4 @@ async def login_google(request: GoogleLoginRequest):
         user_doc['email'] = google_email
 
     await db.users.insert_one(user_doc)
-    return token_payload(user_doc)
+    return await token_payload(user_doc)

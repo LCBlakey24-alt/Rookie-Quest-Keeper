@@ -1,6 +1,6 @@
 """Rule system routes: CRUD, content management, bulk upload, rulesets."""
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
-from config import db, ADMIN_USERNAMES, logger
+from config import db, logger
 from utils.auth import get_current_user, is_admin, verify_campaign_ownership
 from models import (
     RuleSystem, RuleSystemCreate, GameClass, GameSubclass, GameRace,
@@ -174,11 +174,6 @@ async def get_system_monsters(system_id: str, cr: Optional[str] = None, username
 
 # ==================== BULK UPLOAD ROUTES ====================
 
-async def is_admin(username: str) -> bool:
-    """Check if user is an admin"""
-    user = await db.users.find_one({'username': username}, {'_id': 0})
-    return user.get('is_admin', False) if user else False
-
 @router.post("/rule-systems/{system_id}/upload")
 async def bulk_upload_content(system_id: str, upload: ContentUpload, username: str = Depends(get_current_user)):
     """Bulk upload content to a rule system"""
@@ -186,12 +181,13 @@ async def bulk_upload_content(system_id: str, upload: ContentUpload, username: s
     if not system:
         raise HTTPException(status_code=404, detail="Rule system not found")
     
-    # Allow upload if user is owner, admin, or system has no owner (shared)
+    # Only the owner or an admin may write into a rule system. Unowned systems
+    # (such as the seeded starter system) are shared with everyone, so they are
+    # admin-only: otherwise any account could overwrite rules all users see.
     is_admin_user = await is_admin(username)
-    is_owner = system.get('owner_id') == username
-    is_shared = system.get('owner_id') is None
-    
-    if not (is_admin_user or is_owner or is_shared):
+    is_owner = bool(system.get('owner_id')) and system.get('owner_id') == username
+
+    if not (is_admin_user or is_owner):
         raise HTTPException(status_code=403, detail="You don't have permission to upload to this rule system")
     
     collection_map = {
@@ -241,12 +237,13 @@ async def upload_content_file(system_id: str, content_type: str, file: UploadFil
     if not system:
         raise HTTPException(status_code=404, detail="Rule system not found")
     
-    # Allow upload if user is owner, admin, or system has no owner (shared)
+    # Only the owner or an admin may write into a rule system. Unowned systems
+    # (such as the seeded starter system) are shared with everyone, so they are
+    # admin-only: otherwise any account could overwrite rules all users see.
     is_admin_user = await is_admin(username)
-    is_owner = system.get('owner_id') == username
-    is_shared = system.get('owner_id') is None
-    
-    if not (is_admin_user or is_owner or is_shared):
+    is_owner = bool(system.get('owner_id')) and system.get('owner_id') == username
+
+    if not (is_admin_user or is_owner):
         raise HTTPException(status_code=403, detail="You don't have permission to upload to this rule system")
     
     content = await file.read()

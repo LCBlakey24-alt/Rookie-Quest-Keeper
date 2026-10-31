@@ -4,7 +4,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 
-from config import ADMIN_USERNAMES, db
+from config import db
+from utils.admin_identity import require_admin
 from utils.auth import get_current_user
 
 router = APIRouter()
@@ -28,9 +29,7 @@ user_feedback_query = {
 
 
 async def verify_admin(username: str):
-    admins = {name.lower() for name in ADMIN_USERNAMES}
-    if not username or username.lower() not in admins:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    await require_admin(username)
 
 
 def build_feedback_query(status_filter: Optional[str] = None, kind: str = "all") -> dict:
