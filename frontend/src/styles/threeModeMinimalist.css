@@ -328,7 +328,8 @@ body {
   color: var(--rq-text) !important;
   background: var(--rq-surface) !important;
   border-color: var(--rq-line) !important;
-  outline: none !important;
+  /* No `outline: none` here: shared with :focus-visible, so suppressing it
+   * made keyboard focus indistinguishable from hover on the nav rail. */
   transform: none !important;
 }
 
