@@ -603,17 +603,27 @@ function PlayersTab({ campaignId }) {
                     textAlign: 'center',
                     padding: '10px 8px',
                     cursor: idx + 1 <= wizardStep ? 'pointer' : 'default',
-                    background: wizardStep === idx + 1 ? 'linear-gradient(180deg, #8A2BE2 0%, #4B0082 100%)' : 
-                               idx + 1 < wizardStep ? 'rgba(34, 197, 94, 0.3)' : 'rgba(10, 10, 40, 0.6)',
-                    border: `2px solid ${wizardStep === idx + 1 ? '#F59E0B' : idx + 1 < wizardStep ? '#F59E0B' : '#1e40af'}`,
+                    // Selected step: navy body with a persistent full-width 3px
+                    // citrus underline, per the Interaction table in
+                    // docs/UI_DESIGN_SYSTEM.md. The accent is never a fill.
+                    backgroundColor: idx + 1 < wizardStep
+                      ? 'rgba(34, 197, 94, 0.18)'
+                      : 'var(--rq-citrus-control, #263F59)',
+                    backgroundImage: wizardStep === idx + 1
+                      ? 'var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C 0%, #F2C94C 28%, #EF6343 50%, #CE393A 72%, #CE393A 100%))'
+                      : 'none',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'left bottom',
+                    backgroundSize: '100% 3px',
+                    border: '1px solid rgba(110, 145, 180, 0.32)',
                     borderRadius: '10px',
                     opacity: idx + 1 > wizardStep ? 0.5 : 1,
                     transition: 'all 0.3s'
                   }}
                 >
-                  <div style={{ fontSize: '11px', marginBottom: '2px', color: '#94a3b8' }}>Step {idx + 1}</div>
-                  <div style={{ fontWeight: '600', fontSize: '12px', color: '#ffffff' }}>{step}</div>
-                  {idx + 1 < wizardStep && <Check size={14} style={{ marginTop: '4px', color: '#F59E0B' }} />}
+                  <div style={{ fontSize: '11px', marginBottom: '2px', color: 'rgba(234, 223, 200, 0.78)' }}>Step {idx + 1}</div>
+                  <div style={{ fontWeight: '600', fontSize: '12px', color: 'var(--rq-citrus-cream, #F5F1E8)' }}>{step}</div>
+                  {idx + 1 < wizardStep && <Check size={14} style={{ marginTop: '4px', color: '#22C55E' }} />}
                 </div>
               ))}
             </div>

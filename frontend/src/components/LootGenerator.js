@@ -385,8 +385,11 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
           alignItems: 'center',
           justifyContent: 'center',
           gap: '8px',
-          background: 'linear-gradient(180deg, #eab308 0%, #ca8a04 100%)',
-          boxShadow: '0 0 20px rgba(234, 179, 8, 0.4)'
+          // Flat navy control: the accent is never a button fill, and the
+          // design system rules out glow-heavy chrome.
+          background: 'var(--rq-citrus-control, #263F59)',
+          color: 'var(--rq-citrus-cream, #F5F1E8)',
+          border: '1px solid rgba(110, 145, 180, 0.32)'
         }}
       >
         <Sparkles size={18} className={isGenerating ? 'animate-spin' : ''} />
@@ -522,11 +525,17 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
           )}
 
           {/* Total Value */}
-          <div style={{ 
-            background: 'linear-gradient(180deg, rgba(234, 179, 8, 0.2) 0%, rgba(234, 179, 8, 0.1) 100%)',
-            borderRadius: '10px', 
+          {/* Summary panel: navy surface with a thin citrus rule along the top
+              edge instead of a gold gradient wash and gold border. */}
+          <div style={{
+            backgroundColor: 'var(--rq-citrus-panel, #142638)',
+            backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C 0%, #F2C94C 28%, #EF6343 50%, #CE393A 72%, #CE393A 100%))',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'left top',
+            backgroundSize: '100% 3px',
+            borderRadius: '10px',
             padding: '14px',
-            border: '2px solid #eab308',
+            border: '1px solid rgba(110, 145, 180, 0.32)',
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Total Value</div>
