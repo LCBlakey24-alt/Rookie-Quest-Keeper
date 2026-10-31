@@ -46,7 +46,23 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "used_spell_slots", "spells_known", "spells_prepared", "cantrips_known", "prepared_spell_names", "spellbook", "spell_preparation_loadout", "homebrew_spellcasting",
     "equipment", "inventory", "equipped", "item_effects", "currency", "gold", "fighting_style", "equipment_choice", "starting_equipment",
     "resources", "class_levels", "multiclass_levels", "level_progression", "asi_increases",
-    "campaign_id", "campaign_name", "campaign_join_status",
+    # Deliberately NOT patchable: "campaign_id", "campaign_name",
+    # "campaign_join_status".
+    #
+    # verify_campaign_membership treats "this user owns a character carrying
+    # this campaign_id" as proof of membership (its legacy fallback, for
+    # campaigns predating campaign_members rows). Allowing a self-PATCH of
+    # campaign_id therefore let any user mint their own membership of any
+    # campaign whose id they knew, bypassing the join-code + GM-approval flow
+    # and unlocking every membership-gated route for that campaign.
+    #
+    # Dedicated gated routes own these fields instead:
+    #   POST /characters/{id}/link-campaign  (characters.py) - verifies
+    #       character ownership, then campaign membership, before linking.
+    #   campaign_invites.py / campaigns.py   - own campaign_join_status via
+    #       the join-code and GM approval flows.
+    # _clean_create delegates to _clean_patch, so this also stops a character
+    # being created pre-attached to someone else's campaign.
 }
 
 # A campaign GM may persist only the state that can legitimately change while
