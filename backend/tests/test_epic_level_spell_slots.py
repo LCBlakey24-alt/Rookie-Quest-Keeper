@@ -10,7 +10,8 @@ os.environ.setdefault('CORS_ORIGINS', 'http://localhost:3000')
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from routes.characters import calculate_spell_slots, compute_multiclass_spell_slots
+from data.spell_slot_rules import spell_slots_for_class_mix
+from routes.characters import calculate_spell_slots
 
 
 def test_level_19_full_caster_has_one_9th_level_slot():
@@ -22,10 +23,13 @@ def test_level_19_full_caster_has_one_9th_level_slot():
 
 
 def test_epic_multiclass_spell_slots_stay_capped_at_level_20_table():
-    slots = compute_multiclass_spell_slots([
-        {"name": "Wizard", "level": 20},
-        {"name": "Cleric", "level": 5},
-    ])
+    # compute_multiclass_spell_slots was dead code -- nothing but this test
+    # referenced it, which is why the multiclass bug survived in the live
+    # level-up path. Now exercises the helper that path actually uses.
+    slots = spell_slots_for_class_mix(
+        {"edition": "2014"},
+        {"Wizard": 20, "Cleric": 5},
+    )
 
     assert slots == {
         "1": 4,
