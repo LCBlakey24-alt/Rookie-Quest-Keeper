@@ -121,6 +121,54 @@ def shared_spell_slots(character: Dict[str, Any], class_levels: Dict[str, int]) 
     return {str(level): int(count) for level, count in FULL_CASTER_SLOTS.get(caster_level, {}).items()}
 
 
+def spell_slots_for_class_mix(
+    character: Dict[str, Any],
+    class_levels: Dict[str, int],
+) -> Dict[str, int]:
+    """Normal spell slots for a class mix, picking the right table per RAW.
+
+    With exactly ONE spellcasting class you use that class's own table, which
+    for half and third casters is ceil(level / N) -- see class_spell_slots.
+    The Multiclass Spellcaster table applies only when you have levels in MORE
+    THAN ONE spellcasting class, and there each class contributes under
+    shared_caster_level's rounding (half casters floored in 2014, rounded up in
+    2024).
+
+    Getting this split wrong in either direction is a real bug: routing a
+    single-class Paladin 5 through the shared pool understates it to {"1": 3}
+    instead of {"1": 4, "2": 2}, while routing a Wizard 5 / Cleric 1 through a
+    single class's table ignores the other class entirely.
+
+    Warlock Pact Magic never merges into the shared pool (shared_caster_level
+    excludes it). It is returned only when no shared-slot caster is present,
+    matching progression_spell_slot_totals; a character with both pools cannot
+    be represented in the single spell_slots field today.
+    """
+    levels = {
+        name: max(0, _int(raw, 0))
+        for name, raw in (class_levels or {}).items()
+    }
+    casters = [
+        (name, level)
+        for name, level in levels.items()
+        if level > 0 and class_has_spellcasting(character, name, level)
+    ]
+    shared = [(name, level) for name, level in casters if class_key(name) != "warlock"]
+    warlock_level = next(
+        (level for name, level in casters if class_key(name) == "warlock"),
+        0,
+    )
+
+    if len(shared) == 1:
+        name, level = shared[0]
+        return class_spell_slots(character, name, level)
+    if len(shared) > 1:
+        return shared_spell_slots(character, dict(shared))
+    if warlock_level > 0:
+        return pact_magic_shape(warlock_level)
+    return {}
+
+
 def pact_magic_shape(warlock_level: int) -> Dict[str, int]:
     level = max(0, min(20, _int(warlock_level, 0)))
     if level <= 0:
@@ -138,12 +186,20 @@ def class_spell_slots(character: Dict[str, Any], class_name: str, level: int) ->
         return {}
     if key == "warlock":
         return pact_magic_shape(level)
+    # A class's own slot table is the full-caster table at ceil(level / N).
+    # half_caster_contribution() is the *multiclass* rule (floor in 2014, ceil
+    # in 2024) and belongs in shared_caster_level(); using it here understated
+    # slots at every odd level under 2014, so a Paladin 5 returned {"1": 3}
+    # instead of {"1": 4, "2": 2}. (a + b - 1) // b is integer ceiling.
+    # class_has_spellcasting() supplies the edition-aware start level (2 in
+    # 2014, 1 in 2024 for half casters; 3 plus the right subclass for third
+    # casters), so ceiling cannot leak a slot before Spellcasting is gained.
     if key in FULL_CASTERS:
         effective = level
-    elif key in HALF_CASTERS:
-        effective = half_caster_contribution(level, edition_for(character))
+    elif key in HALF_CASTERS and class_has_spellcasting(character, class_name, level):
+        effective = (level + 1) // 2
     elif key in THIRD_CASTER_SUBCLASSES and class_has_spellcasting(character, class_name, level):
-        effective = level // 3
+        effective = (level + 2) // 3
     else:
         return {}
     return {str(slot_level): int(count) for slot_level, count in FULL_CASTER_SLOTS.get(effective, {}).items()}

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from config import db, HIT_DICE, get_subclass_unlock_level
 from utils.auth import get_current_user, verify_campaign_membership
+from data.spell_slot_rules import spell_slots_for_class_mix
 from models import (
     PlayerCharacter,
     PlayerCharacterCreate,
@@ -118,7 +119,12 @@ def calculate_spell_slots(character_class: str, level: int) -> Dict[str, int]:
     if key in _FULL_CASTERS:
         slots = _FULL_CASTER_SLOTS.get(level, {})
     elif key in _HALF_CASTERS:
-        slots = _FULL_CASTER_SLOTS.get(max(1, level // 2), {}) if level >= 2 else {}
+        # Own slot table is the full-caster table at ceil(level / 2); floor is
+        # the multiclass contribution rule and understated every odd level, so
+        # a Paladin 5 produced {"1": 3} instead of {"1": 4, "2": 2}.
+        # (level + 1) // 2 is integer ceiling. The level >= 2 guard is the 2014
+        # Spellcasting start level and is unchanged.
+        slots = _FULL_CASTER_SLOTS.get(max(1, (level + 1) // 2), {}) if level >= 2 else {}
     elif key in _WARLOCK:
         warlock_level = min(level, 20)
         pact_level = 1 if warlock_level <= 2 else 2 if warlock_level <= 4 else 3 if warlock_level <= 6 else 4 if warlock_level <= 8 else 5
@@ -180,34 +186,31 @@ def hit_dice_string_for(class_levels: Dict[str, int]) -> str:
     return ' + '.join(f"{count}d{die}" for die, count in sorted(dice_counts.items(), reverse=True) if count > 0) or '1d8'
 
 
-def compute_multiclass_spell_slots(classes: list[dict]) -> Dict[str, int]:
-    """Compute multiclass spell slots from class entries and cap at level 20 table.
+def spell_slots_for_class_levels(
+    character: Dict[str, Any],
+    primary_class: str,
+    total_level: int,
+    class_levels: Dict[str, int],
+) -> Dict[str, int]:
+    """Spell slots for the character's full class mix after a level-up.
 
-    Warlock Pact Magic is intentionally separate from multiclass spellcasting
-    slots and is not included in this shared slot table.
+    Previously this returned only the PRIMARY class's single-class table and
+    returned on the first spellcaster it found, so:
+      - Wizard 5 multiclassing into Cleric 1 kept Wizard-5 slots
+        ({"1":4,"2":3,"3":2}) instead of the combined caster level 6
+        ({"1":4,"2":3,"3":3});
+      - a Warlock paired with any other caster had one of the two pools
+        silently dropped depending on iteration order.
+
+    It now delegates to data.spell_slot_rules.spell_slots_for_class_mix, which
+    is edition-aware and picks the own-class table for a single spellcasting
+    class and the Multiclass Spellcaster table for more than one. That is the
+    same helper family the newer progression routes use, so the two agree.
     """
-    caster_level = 0
-    for entry in classes or []:
-        class_name = display_class_name(entry.get('name') or entry.get('class_name') or entry.get('character_class') or entry.get('class') or '')
-        level = max(0, int(entry.get('level') or entry.get('class_level') or 0))
-        key = class_key(class_name)
-        if key in _FULL_CASTERS:
-            caster_level += level
-        elif key in _HALF_CASTERS:
-            caster_level += level // 2
-        elif key in {'fighter', 'rogue'} and entry.get('subclass') in {'Eldritch Knight', 'Arcane Trickster'}:
-            caster_level += level // 3
-    return {str(k): int(v) for k, v in _FULL_CASTER_SLOTS.get(min(max(caster_level, 0), 20), {}).items()}
-
-
-def spell_slots_for_class_levels(primary_class: str, total_level: int, class_levels: Dict[str, int]) -> Dict[str, int]:
-    primary_key = class_key(primary_class)
-    if primary_key in _SPELLCASTERS:
-        return calculate_spell_slots(primary_class, int(class_levels.get(display_class_name(primary_class), total_level) or total_level))
-    for class_name, level in class_levels.items():
-        if class_key(class_name) in _SPELLCASTERS:
-            return calculate_spell_slots(class_name, level)
-    return {}
+    levels = dict(class_levels or {})
+    if not levels:
+        levels = {display_class_name(primary_class): int(total_level or 0)}
+    return spell_slots_for_class_mix(character, levels)
 
 
 def meets_requirement_dict(character: Dict[str, Any], requirement: Dict[str, int]) -> bool:
@@ -531,7 +534,7 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
 
     level_progression[str(level_up.new_level)] = progression_entry
     primary_class = display_class_name(existing.get('character_class', leveled_class))
-    spell_slots = spell_slots_for_class_levels(primary_class, level_up.new_level, class_levels)
+    spell_slots = spell_slots_for_class_levels(existing, primary_class, level_up.new_level, class_levels)
 
     update_data = {
         'level': level_up.new_level,

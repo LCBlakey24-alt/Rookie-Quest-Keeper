@@ -52,8 +52,11 @@ describe('Cleric sheet summary helper', () => {
       subclassKey: 'life_domain',
       subclassLabel: 'Life Domain',
       subclassSupportedInRuleset: true,
-      channelDivinityUses: 4,
-      channelDivinityLabel: '4 Channel Divinity uses',
+      // 2024 Channel Divinity is 3 uses at level 7 (3 from level 6, 4 from
+      // 18). These previously asserted 4, matching the old ceil(level / 2)
+      // scale -- the wrong number reached the sheet label too.
+      channelDivinityUses: 3,
+      channelDivinityLabel: '3 Channel Divinity uses',
       destroyUndeadCR: 'scales with Cleric level',
       destroyUndeadLabel: 'Sear Undead online',
       divineOrderLabel: 'Protector',

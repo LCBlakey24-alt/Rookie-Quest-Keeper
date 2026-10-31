@@ -4,6 +4,27 @@
   padding: 14px !important;
 }
 
+/* Reserve room for the fixed tab rail between 760px and 1180px.
+ *
+ * The rail is `position: fixed; left: 8px; width: 54px; z-index: 70`
+ * (CleanSheetTabsRail.css), so it occupies x = 8-62px. Reservations existed
+ * either side of this band but not inside it: CleanSheetTabs.minimal.css
+ * reserves padding-left only up to 760px, and CleanSheetTabsRail.css only from
+ * 1181px. The `padding: 14px` shorthand above resets padding-left to 14px, so
+ * content started underneath the rail and roughly 48px of every header and
+ * panel row was unreachable -- including at 768x1024, iPad portrait, which is
+ * on the QA list in docs/UI_DESIGN_SYSTEM.md.
+ *
+ * Scoped to min-width 760px on purpose: below 760px
+ * CleanSheetFinalHammer.css turns the rail into a sticky horizontal strip and
+ * sets its own 8px padding, so the 720-759px slice of the tablet band needs no
+ * left reservation and must not gain one. 62px of rail plus a 14px gutter. */
+@media (min-width: 760px) {
+  [data-rq-device='tablet'] .character-page-v2.clean-sheet-page {
+    padding: 14px 14px 14px 76px !important;
+  }
+}
+
 [data-rq-device='tablet'] .character-page-v2 .clean-sheet-header-actions {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }

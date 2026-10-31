@@ -3,7 +3,14 @@ export const PALADIN_SUBCLASS_FEATURE_LEVELS = [3, 7, 15, 20];
 export const PALADIN_ASI_LEVELS = [4, 8, 12, 16, 19];
 export function normalisePaladinRulesEdition(edition = '2014') { return String(edition || '').includes('2024') ? '2024' : '2014'; }
 export function getPaladinLayOnHandsPool(level = 1) { return Math.max(1, Number(level || 1)) * 5; }
-export function getPaladinChannelDivinityUses(level = 1, edition = '2014', proficiencyBonus = 2) { const paladinLevel = Math.max(1, Number(level || 1)); if (paladinLevel < 3) return 0; return normalisePaladinRulesEdition(edition) === '2024' ? Math.max(2, Number(proficiencyBonus || 2)) : 1; }
+// 2024 Channel Divinity is 2 uses, rising to 3 at level 11. It does NOT scale
+// with proficiency bonus: Math.max(2, proficiencyBonus) reported 4 uses at
+// level 9 and 5 from level 13. That made the sheet contradict itself, since
+// PaladinSummarySection renders this value in the stat grid while the tracker
+// two rows below uses the correct paladinChannelMax from
+// characterClassResources.js -- "Channel Divinity 4" next to "2/2".
+// proficiencyBonus is kept in the signature for call-site compatibility.
+export function getPaladinChannelDivinityUses(level = 1, edition = '2014', proficiencyBonus = 2) { const paladinLevel = Math.max(1, Number(level || 1)); if (paladinLevel < 3) return 0; if (normalisePaladinRulesEdition(edition) !== '2024') return 1; return paladinLevel >= 11 ? 3 : 2; }
 export function getPaladinSpellSlots(level = 1) { return SPELL_SLOT_PROGRESSION.half[Math.max(1, Number(level || 1))] || SPELL_SLOT_PROGRESSION.half[1]; }
 export function getPaladinHighestSpellLevel(level = 1) { const slots = getPaladinSpellSlots(level); const index = slots.map(Boolean).lastIndexOf(true); return index >= 0 ? index + 1 : 0; }
 const asi = level => ({ level, key: `asi_${level}`, name: level === 19 ? 'Epic Boon / Ability Score Improvement' : 'Ability Score Improvement / Feat', type: 'choice', choiceType: level === 19 ? 'epic_boon_or_asi' : 'asi_or_feat' });

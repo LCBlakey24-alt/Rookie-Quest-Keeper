@@ -7,6 +7,11 @@
   --rqk-tv-panel: #1e2936;
   --rqk-tv-gold: #c9a96b;
   --rqk-tv-cream: #eadfc8;
+  /* Approved yellow-to-red accent. Used only as thin rules: title underlines
+     and section markers — never as a panel or card fill. */
+  --rqk-tv-citrus: var(--rq-citrus-gradient, linear-gradient(90deg,
+    #F2C94C 0%, #F2C94C 28%, #EF6343 50%, #CE393A 72%, #CE393A 100%));
+  --rqk-tv-line: rgba(110, 145, 180, 0.28);
   color: var(--rqk-tv-cream);
   isolation: isolate;
 }
@@ -175,4 +180,93 @@
   .rqk-player-display__npc-shell,
   .rqk-player-display__combat,
   .rqk-player-display__party { animation: none !important; }
+}
+
+/* ── Accent language: navy base + thin yellow-to-red rules ─────────────────
+   The player display previously used antique gold as its structural accent
+   (left borders on the status bar, party rail, combat roster and every NPC
+   card). On a wall of cards that reads as decoration rather than hierarchy.
+
+   The citrus gradient now carries the accent as a thin rule only — title
+   underlines and section markers, which docs/UI_DESIGN_SYSTEM.md lists as
+   approved uses ("tab underline, selected-sidebar marker or section
+   divider"). NPC card borders drop to a neutral navy-family line so the
+   gradient is the single accent and the grid reads calmly from across a
+   room. Nothing is filled with the gradient. */
+
+/* Section markers: a crisp gradient bar instead of a gold border. */
+.rqk-player-display__status,
+.rqk-player-display__party,
+.rqk-player-display__combat-roster {
+  position: relative !important;
+  border-left-color: transparent !important;
+}
+
+.rqk-player-display__status::before,
+.rqk-player-display__party::before,
+.rqk-player-display__combat-roster::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  background-image: var(--rqk-tv-citrus);
+  pointer-events: none;
+}
+
+/* Title underlines. A deliberate fixed-length rule reads as typography
+   rather than a full-width divider. */
+.rqk-player-display__npc-heading h1 {
+  position: relative !important;
+  padding-bottom: clamp(6px, 0.9vh, 11px) !important;
+  letter-spacing: 0.01em;
+}
+
+.rqk-player-display__npc-heading h1::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: clamp(120px, 16vw, 230px);
+  height: 3px;
+  border-radius: 2px;
+  background-image: var(--rqk-tv-citrus);
+}
+
+/* NPC cards: neutral line, no gold accent, so the grid stays quiet. */
+.rqk-player-display__npc-card {
+  border-color: var(--rqk-tv-line) !important;
+  border-left-color: var(--rqk-tv-line) !important;
+}
+
+/* Card titles get a short underline for hierarchy without competing with
+   the stage title. */
+.rqk-player-display__npc-info h2 {
+  position: relative;
+  padding-bottom: 5px;
+}
+
+.rqk-player-display__npc-info h2::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 34px;
+  height: 2px;
+  border-radius: 2px;
+  background-image: var(--rqk-tv-citrus);
+  opacity: 0.85;
+}
+
+/* Short TV viewports: keep the underlines but reclaim the vertical space. */
+@media (min-width: 800px) and (max-height: 800px) {
+  .rqk-player-display__npc-heading h1 { padding-bottom: 5px !important; }
+  .rqk-player-display__npc-heading h1::after { height: 2px; width: clamp(96px, 13vw, 180px); }
+  .rqk-player-display__npc-info h2 { padding-bottom: 3px; }
+  .rqk-player-display__npc-info h2::after { width: 26px; }
+}
+
+@media (min-width: 800px) and (max-height: 620px) {
+  .rqk-player-display__npc-info h2 { padding-bottom: 0; }
+  .rqk-player-display__npc-info h2::after { display: none; }
 }

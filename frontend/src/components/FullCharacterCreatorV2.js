@@ -321,7 +321,18 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const firstIncompleteStepIndex = Math.max(0, steps.findIndex((item) => item.id === firstIncompleteStepId));
 
   useEffect(() => {
-    if (!editMode) localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, equipmentMode, step, startingLevel: 1 }));
+    // Must not throw: an error raised inside an effect tears down the component
+    // tree, which would lose the whole in-progress character — exactly the data
+    // this draft exists to protect. setItem can throw on QuotaExceededError or
+    // when storage is disabled (e.g. Safari private browsing). loadDraft()
+    // already guards the matching read.
+    try {
+      if (!editMode) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, equipmentMode, step, startingLevel: 1 }));
+      }
+    } catch {
+      /* Draft autosave is best-effort; keep the builder usable without it. */
+    }
   }, [draft, equipmentMode, step, editMode]);
 
   useEffect(() => {
@@ -629,7 +640,15 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         navigate(`/characters/${characterId}`);
       } else {
         const response = await apiClient.post('/characters', payload);
-        localStorage.removeItem(DRAFT_KEY);
+        // Clearing the draft is best-effort and must not be mistaken for a save
+        // failure: the character already exists at this point, so letting a
+        // storage error reach the catch below would show "failed to save" and
+        // invite the user to submit again, creating a duplicate.
+        try {
+          localStorage.removeItem(DRAFT_KEY);
+        } catch {
+          /* ignore */
+        }
         const id = response.data?.character_id || response.data?.character?.id || response.data?.id;
         toast.success(report.later.length ? 'Character created with reminders' : 'Character created and ready');
         navigate(id ? `/characters/${id}` : '/characters');

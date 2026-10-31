@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
+import Dice3DResultOverlay from '@/components/Dice3DResultOverlay';
 
 const characterCache = new Map();
 const REVEAL_DELAY = 360;
@@ -201,8 +202,13 @@ export default function DiceRollFlicker({
 
   const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
 
+  // Tumbling 3D dice by default; the flat overlay stays the presentation for
+  // viewers who ask for reduced motion (docs/UI_DESIGN_SYSTEM.md requires
+  // honouring prefers-reduced-motion). Both take the same props.
+  const Overlay = prefersReducedMotion ? FlatDiceResultOverlay : Dice3DResultOverlay;
+
   return createPortal(
-    <FlatDiceResultOverlay
+    <Overlay
       total={finalTotal}
       label={label}
       rollDetail={rollDetail}
