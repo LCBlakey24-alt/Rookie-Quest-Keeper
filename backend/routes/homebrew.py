@@ -5,6 +5,7 @@ homebrew, let the user review the draft, then save it into the user's personal
 or campaign-scoped homebrew library.
 """
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Response
+from utils.uploads import read_upload_capped
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import io
@@ -641,7 +642,7 @@ async def parse_docx(
     normalised_edition = _normalise_edition(edition)
 
     filename = (file.filename or "").lower()
-    raw_bytes = await file.read()
+    raw_bytes = await read_upload_capped(file)
     if not raw_bytes:
         raise HTTPException(status_code=400, detail="Empty file")
 
