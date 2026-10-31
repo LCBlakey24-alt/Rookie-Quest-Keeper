@@ -10,23 +10,6 @@ const asArray = (value) => {
   return String(value).split(/[;,]/).map(item => item.trim()).filter(Boolean);
 };
 
-/**
- * Whether Rook has something situational worth flagging on the tab right now.
- *
- * Deliberately narrow. buildTips() always returns coaching tips (standout
- * ability, action economy, class role, skill spotlights), so keying the tab
- * marker off "are there any tips" would leave it permanently lit — noise, not a
- * signal. Only state-dependent tips count, so the marker clears once the player
- * heals up or sheds the condition.
- */
-export function hasUrgentRookTips(character) {
-  if (!character) return false;
-  const maxHp = Number(character.max_hit_points || character.max_hp || 0);
-  const currentHp = Number(character.current_hit_points ?? character.hp ?? maxHp);
-  if (maxHp > 0 && currentHp <= maxHp * 0.5) return true;
-  return asArray(character.conditions).length > 0;
-}
-
 const roundBasics = [
   { title: 'Action', text: 'Your main thing this turn: attack, cast many spells, Dash, Dodge, Disengage, Help, Hide, Ready, Search, Use an Object, or a feature that says it uses an action.' },
   { title: 'Bonus Action', text: 'A smaller extra option. You only get one if a spell, class feature, item, or rule specifically says it uses a bonus action.' },
