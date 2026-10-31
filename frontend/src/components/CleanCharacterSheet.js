@@ -21,7 +21,7 @@ import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
-import RookPlayerHelperTab from '@/components/clean-sheet/RookPlayerHelperTab';
+import RookPlayerHelperTab, { hasUrgentRookTips } from '@/components/clean-sheet/RookPlayerHelperTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
 import { getInitiativeModifier } from '@/data/initiativeRules';
 import {
@@ -173,12 +173,16 @@ export default function CleanCharacterSheet() {
     class: classMissing,
     species: speciesTraitsMissing || languagesMissing,
     feats: featsMissing,
+    // Rook flags itself when it has state-dependent advice to offer (low HP or
+    // an active condition), so the player notices there is something worth
+    // reading without having to go looking for it.
+    rook: hasUrgentRookTips(character),
   };
   const sheetTabs = useMemo(() => SHEET_TABS.map(tab => ({
     ...tab,
     label: tab.id === 'species' ? (rulesEdition === '2024' ? 'Species' : 'Race') : tab.label,
     needsAttention: Boolean(tabAttention[tab.id]),
-  })), [rulesEdition, tabAttention.character, tabAttention.inventory, tabAttention.spells, tabAttention.class, tabAttention.species, tabAttention.feats]);
+  })), [rulesEdition, tabAttention.character, tabAttention.inventory, tabAttention.spells, tabAttention.class, tabAttention.species, tabAttention.feats, tabAttention.rook]);
 
   const classFeatureSummary = useMemo(() => {
     const className = character?.character_class;
