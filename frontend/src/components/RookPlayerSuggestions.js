@@ -384,6 +384,7 @@ export default function RookPlayerSuggestions({ character }) {
             <button
               type="button"
               onClick={() => setOpen(false)}
+              aria-label="Close Rook suggestions"
               style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '16px' }}
             >✕</button>
           </div>

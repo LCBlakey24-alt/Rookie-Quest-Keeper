@@ -216,9 +216,19 @@ export default function CleanSheetPlayTools({
         </div>
 
         <div className="clean-sheet-roll-controls" data-testid="roll-controls">
-          <div className="clean-sheet-roll-mode-group" aria-label="Roll mode">
+          {/* role="radiogroup" so the aria-label is actually announced (a bare
+            * div has no role), and aria-checked so the selected mode is exposed
+            * to assistive tech — previously it was signalled by colour alone. */}
+          <div className="clean-sheet-roll-mode-group" role="radiogroup" aria-label="Roll mode">
             {['normal', 'advantage', 'disadvantage'].map(mode => (
-              <button key={mode} type="button" className={rollMode === mode ? 'active' : ''} onClick={() => onRollModeChange(mode)}>
+              <button
+                key={mode}
+                type="button"
+                role="radio"
+                aria-checked={rollMode === mode}
+                className={rollMode === mode ? 'active' : ''}
+                onClick={() => onRollModeChange(mode)}
+              >
                 {mode === 'normal' ? 'Normal' : mode === 'advantage' ? 'Adv' : 'Dis'}
               </button>
             ))}
@@ -331,6 +341,7 @@ export default function CleanSheetPlayTools({
                 <button
                   key={condition}
                   type="button"
+                  aria-pressed={activeConditions.includes(condition)}
                   className={activeConditions.includes(condition) ? 'active' : ''}
                   onClick={() => onToggleCondition(condition)}
                   disabled={savingQuickState}
