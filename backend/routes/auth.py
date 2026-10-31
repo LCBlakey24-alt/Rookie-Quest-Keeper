@@ -1,6 +1,6 @@
 """Authentication routes: register, login, password reset, account management."""
 from fastapi import APIRouter, HTTPException, Depends, status
-from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
+from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, RESERVED_USERNAMES, logger
 from utils.account_profile import public_account_profile
 from utils.auth import (
     get_current_user, hash_password, verify_password, create_token,
@@ -65,6 +65,23 @@ USER_OWNED_COLLECTIONS = [
 ]
 
 
+def username_alias_query(username: str) -> dict:
+    """Case-insensitive exact-match query for a username.
+
+    Privilege is resolved case-insensitively -- utils.auth.is_admin lowercases
+    before comparing against ADMIN_USERNAMES -- but username uniqueness was
+    enforced case-sensitively and the unique index carries no collation. That
+    allowed a second, distinct account to alias an admin: registering
+    "lcblakey24" while the admin holds "LCBlakey24" satisfied every admin
+    check, which in turn unlocked POST /admin/users/{username}/impersonate and
+    therefore a valid token for any account on the instance.
+
+    Used for collision detection only. Login still matches the stored username
+    exactly, so no existing account changes behaviour.
+    """
+    return {'username': {'$regex': f'^{re.escape(username)}$', '$options': 'i'}}
+
+
 def normalize_username_for_auth(username: str) -> str:
     """Trim and validate usernames for kid-friendly, email-free auth."""
     normalized = (username or "").strip()
@@ -74,6 +91,16 @@ def normalize_username_for_auth(username: str) -> str:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username must be 3-24 characters and use only letters, numbers, underscores, or hyphens",
+        )
+    # RESERVED_USERNAMES has existed in config.py but was never enforced
+    # anywhere. It covers the configured admins plus admin/administrator-style
+    # names, so honouring it here stops a fresh account claiming a privileged
+    # identity. Only registration normalises, so existing holders of these
+    # names keep signing in normally.
+    if normalized.lower() in RESERVED_USERNAMES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="That username is reserved. Please choose another.",
         )
     return normalized
 
@@ -178,7 +205,9 @@ async def register(user_data: UserRegister):
         if existing_email:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     
-    existing_user = await db.users.find_one({'username': normalized_username})
+    # Case-insensitive so a new account cannot alias an existing one by
+    # differing only in capitalisation (see username_alias_query).
+    existing_user = await db.users.find_one(username_alias_query(normalized_username))
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
     

@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
-from config import ADMIN_USERNAMES, db
+from config import ADMIN_USERNAMES, RESERVED_USERNAMES, db
 from models import UserLogin, TokenResponse
 from utils.auth import create_token, hash_password, verify_password
 
@@ -80,6 +80,14 @@ def normalize_google_username(username: str) -> str:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Username must be 3-24 characters and use only letters, numbers, underscores, or hyphens',
+        )
+    # Google sign-up is a second account-creation path, so it needs the same
+    # reserved-name guard as password registration; otherwise a privileged
+    # identity could simply be claimed through this route instead.
+    if normalized.lower() in RESERVED_USERNAMES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='That username is reserved. Please choose another.',
         )
     return normalized
 
@@ -215,7 +223,10 @@ async def login_google(request: GoogleLoginRequest):
         }
 
     username = normalize_google_username(request.username)
-    existing_username = await db.users.find_one({'username': username})
+    # Case-insensitive: a Google sign-up must not be able to create an account
+    # that differs from an existing one only in capitalisation.
+    from routes.auth import username_alias_query
+    existing_username = await db.users.find_one(username_alias_query(username))
     if existing_username:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Username already taken')
 
