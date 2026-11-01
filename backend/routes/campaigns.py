@@ -707,26 +707,36 @@ async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_
 
 @router.get("/campaigns/{campaign_id}/members")
 async def get_campaign_members(campaign_id: str, username: str = Depends(get_current_user)):
-    """Get all members of a campaign"""
-    user = await db.users.find_one({"email": username})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    campaign = await db.campaigns.find_one({"id": campaign_id})
-    if not campaign:
-        raise HTTPException(status_code=404, detail="Campaign not found")
-    
-    members = await db.campaign_members.find({"campaign_id": campaign_id}).to_list(100)
-    for m in members:
-        m.pop("_id", None)
-    
-    # Add GM info
-    gm_user = await db.users.find_one({"_id": campaign.get("dm_user_id")}) if campaign.get("dm_user_id") else None
-    
+    """Get all members of a campaign. GM or an active member only.
+
+    This previously read the campaign straight out of the database with no
+    membership check, so the roster, the GM's name and the live online-user
+    list were readable for any campaign id by any signed-in account.
+
+    It also matched the caller on the email field and the GM on the Mongo
+    _id, while get_current_user returns a username and dm_user_id stores one.
+    Registration keeps username and email as separate fields and email is
+    optional, so the caller lookup failed for anyone whose username is not
+    also their email address, and the GM lookup always missed, leaving the GM
+    reported as "Unknown".
+
+    Both fields hold usernames, which is what verify_campaign_membership
+    already compares against. The caller lookup is therefore gone entirely --
+    get_current_user has already established that the account exists -- and
+    the GM is matched on username, falling back to dm_user_id, which is
+    itself the username.
+    """
+    campaign = await verify_campaign_membership(campaign_id, username)
+
+    members = await db.campaign_members.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(100)
+
+    dm_user_id = campaign.get("dm_user_id")
+    gm_user = await db.users.find_one({"username": dm_user_id}, {"_id": 0, "username": 1}) if dm_user_id else None
+
     return {
         "gm": {
-            "user_id": campaign.get("dm_user_id"),
-            "username": gm_user.get("username") if gm_user else "Unknown"
+            "user_id": dm_user_id,
+            "username": (gm_user or {}).get("username") or dm_user_id or "Unknown"
         },
         "members": members,
         "online_users": list(ws_manager.get_campaign_users(campaign_id))
