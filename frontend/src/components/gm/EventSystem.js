@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '@/lib/apiClient';
+import './EventSystem.css';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -381,12 +382,14 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
         </div>
         <div style={{ maxHeight: '500px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {history.map((h, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '50px 1fr 100px 100px 80px', gap: '12px', alignItems: 'center', padding: '10px 14px', borderRadius: '8px', background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent', fontSize: '12px' }}>
-              <span style={{ fontWeight: 700, color: theme.accent?.primary, fontFamily: "'JetBrains Mono', monospace" }}>Day {h.day}</span>
-              <span style={{ color: theme.text.secondary }}>{h.event}</span>
-              <span style={{ color: '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>{h.gold?.toLocaleString()} GP</span>
-              <span style={{ color: '#3B82F6', fontFamily: "'JetBrains Mono', monospace" }}>Pop: {h.population?.toLocaleString()}</span>
-              <span style={{ color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>Rep: {h.reputation}</span>
+            <div key={i} className="rqk-event-history-row" style={{ background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
+              <span className="rqk-event-history-day" style={{ fontWeight: 700, color: theme.accent?.primary, fontFamily: "'JetBrains Mono', monospace" }}>Day {h.day}</span>
+              <span className="rqk-event-history-event" style={{ color: theme.text.secondary }}>{h.event}</span>
+              <span className="rqk-event-history-stats">
+                <span style={{ color: '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>{h.gold?.toLocaleString()} GP</span>
+                <span style={{ color: '#3B82F6', fontFamily: "'JetBrains Mono', monospace" }}>Pop: {h.population?.toLocaleString()}</span>
+                <span style={{ color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>Rep: {h.reputation}</span>
+              </span>
             </div>
           ))}
         </div>
