@@ -14,7 +14,7 @@ Each template document carries:
 """
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
-from utils.auth import get_current_user
+from utils.auth import check_ai_access, get_current_user, record_ai_usage
 from models import TemplateMatchRequest
 from typing import Optional, List, Dict, Any
 from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
@@ -359,7 +359,12 @@ async def ai_match_template(
 
     # If AI available, ask it to refine the match reason (non-blocking fallback)
     rationale = None
-    if LlmChat and UserMessage and get_llm_api_key("openai") and best_score > 0:
+    # The quota check sits inside this branch, not at the top of the handler,
+    # because the rationale is optional: there is a tag-scoring fallback below.
+    # Gating the whole endpoint would deny a perfectly good non-AI match once a
+    # cap were reached, which would be an over-broad fix. The limit defaults to
+    # 0 (unlimited), so nothing changes until one is configured.
+    if LlmChat and UserMessage and get_llm_api_key("openai") and best_score > 0 and await check_ai_access(username, 'ai'):
         try:
             chat = LlmChat(
                 api_key=get_llm_api_key("openai"),
@@ -369,6 +374,7 @@ async def ai_match_template(
             user_msg = UserMessage(text=f"Player wants: '{description}'. Best match is {best['name']} ({best['character_class']}). Why is this a good fit?")
             ai_reply = await chat.send_message(user_msg)
             rationale = (ai_reply or "").strip()
+            await record_ai_usage(username)
         except Exception as e:
             logger.warning(f"AI match rationale failed: {e}")
 

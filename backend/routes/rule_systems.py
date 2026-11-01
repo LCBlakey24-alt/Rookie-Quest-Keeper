@@ -20,6 +20,45 @@ except ImportError:
 
 router = APIRouter()
 
+# Fields a rule-system owner may edit through PUT /rule-systems/{id}.
+# Everything outside this set is server-owned. In particular `is_official`
+# must never be client-settable: the list route shows every system with
+# is_official=True to all users, so accepting it would let any user publish
+# their own system platform-wide, and the update guard above would then
+# permanently lock them out of editing it. `owner_id` and `id` are excluded
+# because setting them transfers or shadows another document.
+RULE_SYSTEM_EDITABLE_FIELDS = frozenset({
+    'name',
+    'short_code',
+    'description',
+    'base_system',
+    'ability_scores',
+    'skills',
+    'has_spells',
+    'has_classes',
+    'has_races',
+    'max_level',
+})
+
+# Fields a ruleset owner may edit through PUT /rulesets/{id}.
+# `shared_with` and `shared_campaigns` are excluded on purpose: sharing has
+# its own route (POST /rulesets/{id}/share), and routing it through there
+# keeps one validated path instead of two.
+CUSTOM_RULESET_EDITABLE_FIELDS = frozenset({
+    'name',
+    'description',
+    'rules_type',
+    'content',
+    'is_public',
+})
+
+
+def _editable_update(payload: Dict[str, Any], allowed: frozenset) -> Dict[str, Any]:
+    """Keep only client-settable fields from an untrusted update payload."""
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Update payload must be an object")
+    return {key: value for key, value in payload.items() if key in allowed}
+
 
 async def initialize_rule_systems():
     """Create default generic rule systems if none exist."""
@@ -114,8 +153,12 @@ async def update_rule_system(system_id: str, update_data: Dict[str, Any], userna
     if system.get('owner_id') != username:
         raise HTTPException(status_code=403, detail="Only the owner can modify this rule system")
     
-    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
-    await db.rule_systems.update_one({'id': system_id}, {'$set': update_data})
+    changes = _editable_update(update_data, RULE_SYSTEM_EDITABLE_FIELDS)
+    if not changes:
+        raise HTTPException(status_code=400, detail="No editable rule system fields were provided")
+
+    changes['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.rule_systems.update_one({'id': system_id}, {'$set': changes})
     updated = await db.rule_systems.find_one({'id': system_id}, {'_id': 0})
     return updated
 
@@ -376,8 +419,12 @@ async def update_ruleset(ruleset_id: str, updates: Dict[str, Any], username: str
     if ruleset.get("owner_id") != str(user.get("_id")):
         raise HTTPException(status_code=403, detail="Only owner can update ruleset")
     
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
-    await db.custom_rulesets.update_one({"id": ruleset_id}, {"$set": updates})
+    changes = _editable_update(updates, CUSTOM_RULESET_EDITABLE_FIELDS)
+    if not changes:
+        raise HTTPException(status_code=400, detail="No editable ruleset fields were provided")
+
+    changes["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.custom_rulesets.update_one({"id": ruleset_id}, {"$set": changes})
     
     return {"message": "Ruleset updated"}
 

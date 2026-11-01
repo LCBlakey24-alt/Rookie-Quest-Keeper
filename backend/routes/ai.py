@@ -92,11 +92,25 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
     
     if not campaign_id:
         raise HTTPException(status_code=400, detail="campaign_id is required")
-    
-    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0})
-    if not campaign:
-        raise HTTPException(status_code=404, detail="Campaign not found")
-    
+
+    # Was an unauthenticated lookup: any signed-in user could pass any
+    # campaign_id, and the response echoed {"result": ..., "rule_system": ...},
+    # confirming a campaign's existence and its rule system to a caller with no
+    # connection to it. verify_campaign_membership returns the campaign, so this
+    # replaces the raw find_one rather than adding a second read.
+    campaign = await verify_campaign_membership(campaign_id, username)
+
+    # This was the only LLM route in the module calling neither check_ai_access
+    # nor record_ai_usage, so it was an unmetered path around AI_MONTHLY_LIMIT
+    # while every sibling respected it. The limit defaults to 0 (unlimited), so
+    # this changes nothing until a cap is configured.
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Monthly AI limit reached. Please try again next month.",
+        )
+
     rule_system = await get_campaign_rule_system(campaign_id)
     system_name = campaign.get('system', 'Fantasy d20')
     
@@ -145,7 +159,8 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
         user_msg = UserMessage(text=prompt)
         response = await chat.send_message(user_msg)
         response_text = response.strip() if isinstance(response, str) else str(response)
-        
+
+        await record_ai_usage(username)
         return {"result": response_text, "rule_system": system_name}
     except HTTPException:
         raise

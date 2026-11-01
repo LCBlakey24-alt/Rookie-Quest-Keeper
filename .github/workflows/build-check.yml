@@ -71,7 +71,11 @@ jobs:
             backend/tests/test_multiclass_spell_slot_pool.py \
             backend/tests/test_subclass_unlock_edition.py \
             backend/tests/test_campaign_content_gm_writes.py \
-            backend/tests/test_feat_edition_categories.py
+            backend/tests/test_feat_edition_categories.py \
+            backend/tests/test_entity_stats_default_composition.py \
+            backend/tests/test_npc_portrait_models.py \
+            backend/tests/test_ruleset_mass_assignment.py \
+            backend/tests/test_ai_route_quota_metering.py
 
   frontend-build:
     name: Frontend tests and build
