@@ -14,7 +14,7 @@ import re
 import uuid
 from datetime import datetime, timezone
 
-from utils.auth import get_current_user
+from utils.auth import check_ai_access, get_current_user, record_ai_usage
 from config import db, logger
 from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
@@ -546,6 +546,15 @@ def _merge_draft(original: Dict[str, Any], completed: Dict[str, Any]) -> Dict[st
 async def _llm_json(content_type: str, system: str, prompt: str, username: str) -> Dict[str, Any]:
     if not LlmChat or not UserMessage or not get_llm_api_key("anthropic"):
         raise HTTPException(status_code=503, detail="Rook is not configured on this server.")
+    # Every homebrew Rook call (parse-docx, parse-text, complete-draft) funnels
+    # through here, so the monthly AI cap is applied once rather than in each
+    # route. AI_MONTHLY_LIMIT defaults to 0, which disables the cap, so this
+    # changes nothing until an operator configures a limit.
+    if not await check_ai_access(username, 'ai'):
+        raise HTTPException(
+            status_code=403,
+            detail="Monthly AI limit reached. Please try again next month.",
+        )
     chat = LlmChat(
         api_key=get_llm_api_key("anthropic"),
         session_id=f"homebrew-{content_type}-{username}-{uuid.uuid4().hex[:6]}",
@@ -556,6 +565,7 @@ async def _llm_json(content_type: str, system: str, prompt: str, username: str) 
     except Exception as e:
         logger.exception("Homebrew Rook request failed")
         raise HTTPException(status_code=502, detail=f"Rook request failed: {type(e).__name__}")
+    await record_ai_usage(username)
     parsed = _extract_json(reply or "")
     return parsed or {}
 

@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from openai import AsyncOpenAI
 
 from config import logger
-from utils.auth import get_current_user
+from utils.auth import check_ai_access, get_current_user, record_ai_usage
 from utils.llm_provider import get_llm_api_key
 
 
@@ -205,7 +205,17 @@ async def extract_character_sheet(
     username: str = Depends(get_current_user),
 ):
     """Extract reviewable character data from a player-supplied PDF or image."""
-    del username  # Authentication is required; no account data is sent to the model.
+    # username is kept rather than discarded so this LLM call is counted against
+    # AI_MONTHLY_LIMIT like every other one. Still no account data is sent to the
+    # model -- the username is only used for the quota check and the usage
+    # record. The limit defaults to 0 (unlimited), so this changes nothing until
+    # a cap is configured.
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Monthly AI limit reached. Please try again next month.",
+        )
 
     content_type = _resolved_content_type(file)
     if content_type not in ALLOWED_CHARACTER_SHEET_TYPES:
@@ -255,6 +265,7 @@ async def extract_character_sheet(
         )
         raw_text = response.output_text or ""
         parsed = json.loads(raw_text)
+        await record_ai_usage(username)
         return _normalise_extraction(parsed, filename)
     except json.JSONDecodeError as exc:
         logger.warning("Character import returned invalid JSON for %s: %s", filename, exc)
