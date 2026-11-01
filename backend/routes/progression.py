@@ -1,6 +1,7 @@
 """Progression routes: modular level-up system with rule system awareness."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, HIT_DICE, logger, get_subclass_unlock_level
+from data.spell_slot_rules import edition_for
 from utils.auth import get_current_user, is_admin
 from models import (
     ProgressionRuleSystem, ProgressionClass, ProgressionRace,
@@ -255,14 +256,24 @@ async def get_level_up_wizard(character_id: str, username: str = Depends(get_cur
         })
     
     # Check for subclass selection (usually level 3)
-    subclass_levels = {
-        'barbarian': 3, 'bard': 3, 'cleric': 1, 'druid': 2,
-        'fighter': 3, 'monk': 3, 'paladin': 3, 'ranger': 3,
-        'rogue': 3, 'sorcerer': 1, 'warlock': 1, 'wizard': 2
-    }
-    subclass_level = subclass_levels.get(char_class, 3)
-    
-    if target_level == subclass_level and not character.get('subclass'):
+    # These used to be hardcoded 2014 levels (cleric/sorcerer/warlock at 1,
+    # druid/wizard at 2) with no edition check at all. Under 2024 rules every
+    # class unlocks its subclass at 3, so a 2024 Cleric, Sorcerer or Warlock was
+    # NEVER offered one -- target_level is always at least 2, so it could never
+    # equal 1 -- while a 2024 Druid or Wizard was offered two levels early.
+    #
+    # get_subclass_unlock_level was already imported in this module but unused.
+    # It keys off capitalised class names, so pass the title-cased name rather
+    # than the lowercased char_class, otherwise every class silently falls
+    # through to HOMEBREW_SUBCLASS_UNLOCK_LEVEL.
+    edition = edition_for(character)
+    subclass_level = get_subclass_unlock_level(char_class.title(), edition)
+
+    # >= rather than ==: with an exact match, anyone who passed the unlock level
+    # without choosing (an import, a repaired record, a multiclass entry) would
+    # never be prompted again. The "not already chosen" guard keeps it from
+    # re-asking afterwards.
+    if target_level >= subclass_level and not character.get('subclass'):
         pending_choices.append({
             "choice_type": "subclass",
             "name": "Choose Subclass",
