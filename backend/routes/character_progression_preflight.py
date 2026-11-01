@@ -19,6 +19,7 @@ from data.class_progression import (
     class_progression_summary,
     feats_for_edition,
     prepared_spell_capacity,
+    known_spell_change_rule,
     prepared_spell_change_rule,
     spell_selection_mode,
     spells_to_learn as progression_spells_to_learn,
@@ -123,6 +124,9 @@ def build_level_up_preflight(
         prepared_after = int(custom_after.get("spells", 0)) if custom_mode == "prepared" else 0
         selection_mode = custom_mode
         prepared_change = {"cadence": "manual", "max_replacements": 0}
+        # A homebrew caster's swap allowance is whatever its contract says, so
+        # no automatic level-up swap is offered for it.
+        known_change = {"cadence": "manual", "max_replacements": 0}
         spells_to_learn = int(custom_gain.get("spells", 0))
         cantrips_to_learn = int(custom_gain.get("cantrips", 0))
         progression_reference = {
@@ -136,6 +140,7 @@ def build_level_up_preflight(
         prepared_after = prepared_spell_capacity(character_class, class_level_after, edition)
         selection_mode = spell_selection_mode(character_class, edition)
         prepared_change = prepared_spell_change_rule(character_class, edition)
+        known_change = known_spell_change_rule(character_class, edition)
         spells_to_learn = progression_spells_to_learn(
             character_class,
             class_level_before,
@@ -168,6 +173,7 @@ def build_level_up_preflight(
         "prepared_spell_capacity": prepared_after,
         "prepared_spell_capacity_gain": max(0, prepared_after - prepared_before),
         "prepared_spell_change": prepared_change,
+        "known_spell_change": known_change,
         "is_asi_level": class_level_after in asi_levels_for(character_class),
         "asi_levels": asi_levels_for(character_class),
         "can_choose_subclass": can_choose_subclass,

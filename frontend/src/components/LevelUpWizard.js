@@ -43,7 +43,9 @@ import {
 } from '@/data/spellPreparationRules';
 import {
   buildLevelUpSpellChanges,
+  getLevelUpKnownReplacementRule,
   getLevelUpPreparedReplacementRule,
+  knownSpellsForClass,
   legacyPreparedFallback,
   spellNameSet,
 } from '@/data/levelUpSpellChangeRules';
@@ -444,7 +446,27 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     && spellChoiceMode === 'prepared'
     && replacementRule.allowed
     && preparedFallback.spells.length > 0;
-  const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellChoiceGain > 0 || canReplacePrepared);
+
+  // 2014 Bard/Ranger/Sorcerer/Warlock keep a known-spell list and may swap one
+  // spell each time they gain a level. That is a separate rule from the 2024
+  // prepared-list swap above, and the two never both apply to one class and
+  // edition, so at most one of these is ever true.
+  const knownReplacementRule = getLevelUpKnownReplacementRule({
+    className: characterClass,
+    edition,
+    preflight: isMulticlass ? null : preflight,
+  });
+  const knownReplaceableSpells = knownSpellsForClass(character, characterClass);
+  const canReplaceKnown = !isMulticlass
+    && spellChoiceMode === 'known'
+    && knownReplacementRule.allowed
+    && knownReplaceableSpells.length > 0;
+
+  const canReplaceSpell = canReplacePrepared || canReplaceKnown;
+  const replacementScope = canReplacePrepared ? 'prepared' : 'known';
+  const activeReplacementRule = canReplacePrepared ? replacementRule : knownReplacementRule;
+  const replaceableSpells = canReplacePrepared ? preparedFallback.spells : knownReplaceableSpells;
+  const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellChoiceGain > 0 || canReplaceSpell);
 
   const localAsiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default || [];
   const localIsAsiLevel = localAsiLevels.includes(classLevelAfter);
@@ -645,8 +667,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 {resourceChanges.map((change) => (
                   <CheckLine key={`resource-${change.key}`} active text={`Resource: ${resourceChangeSummary(change)}.`} />
                 ))}
-                {canReplacePrepared && (
-                  <CheckLine active text={`You may replace up to ${replacementRule.maxReplacements} prepared spell during this level-up.`} />
+                {canReplaceSpell && (
+                  <CheckLine active text={`You may replace up to ${activeReplacementRule.maxReplacements} ${replacementScope} spell during this level-up.`} />
                 )}
                 {preparedFallback.migrated && (
                   <CheckLine active text="This older 2024 save still stores this class’s spells in the legacy known-spells field; the level-up will seed the canonical prepared list without deleting the old data." />
@@ -762,13 +784,13 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 <p style={styles.copy}>These spells are added to the Wizard spellbook. Prepared spells remain a separate loadout chosen from that book.</p>
               )}
 
-              {canReplacePrepared && (
-                <section style={styles.spellPicker} aria-label="Optional prepared spell replacement">
+              {canReplaceSpell && (
+                <section style={styles.spellPicker} aria-label={`Optional ${replacementScope} spell replacement`}>
                   <div style={styles.pickerHeader}>
-                    <strong>Optional prepared-spell replacement</strong>
-                    <span>0–{replacementRule.maxReplacements}</span>
+                    <strong>Optional {replacementScope}-spell replacement</strong>
+                    <span>0–{activeReplacementRule.maxReplacements}</span>
                   </div>
-                  <p style={styles.copy}>You can swap one existing {characterClass} prepared spell without using the new-capacity choices above.</p>
+                  <p style={styles.copy}>You can swap one existing {characterClass} {replacementScope} spell without using the new-capacity choices above.</p>
                   <label style={styles.field}>
                     <span>Spell to replace</span>
                     <select
@@ -779,8 +801,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       }}
                       style={styles.input}
                     >
-                      <option value="">Keep current prepared spells</option>
-                      {preparedFallback.spells.map((spell) => (
+                      <option value="">Keep current {replacementScope} spells</option>
+                      {replaceableSpells.map((spell) => (
                         <option key={`replace-${spell.name}`} value={spell.name}>{spell.name}</option>
                       ))}
                     </select>
@@ -862,7 +884,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 {choiceType === 'asi' && <Summary label="ASI" value={`${abilityLabel(asiChoices.ability1)} +1, ${abilityLabel(asiChoices.ability2)} +1`} />}
                 {!!selectedNewCantrips.length && <Summary label="Cantrips" value={selectedNewCantrips.map((spell) => spell.name).join(', ')} />}
                 {!!selectedNewSpells.length && <Summary label={spellChoiceMode === 'spellbook' ? 'Spellbook' : spellChoiceMode === 'prepared' ? 'Prepared' : 'Spells'} value={selectedNewSpells.map((spell) => spell.name).join(', ')} />}
-                {replacementFrom && replacementTo && <Summary label="Prepared swap" value={`${replacementFrom} → ${replacementTo.name}`} />}
+                {replacementFrom && replacementTo && <Summary label={`${replacementScope === "known" ? "Known" : "Prepared"} swap`} value={`${replacementFrom} → ${replacementTo.name}`} />}
                 {preparedCapacityNote && <Summary label="Prepared capacity" value={`${preparedCapacityBefore} → ${preparedCapacityAfter}`} />}
               </div>
             </section>
