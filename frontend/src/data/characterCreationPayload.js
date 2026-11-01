@@ -175,8 +175,8 @@ function classifySpellPlanRole(spell = {}) {
   return 'support';
 }
 
-function spellPoolForPreparedCaster(className = '', level = 1, template = {}) {
-  const slots = getSpellSlotsForCaster(SPELLCASTING_CLASSES[className], Number(level || 1));
+function spellPoolForPreparedCaster(className = '', level = 1, template = {}, edition = '2014') {
+  const slots = getSpellSlotsForCaster(SPELLCASTING_CLASSES[className], Number(level || 1), edition);
   const maxSpellLevel = Math.max(0, ...Object.keys(slots || {}).map(Number));
   const templatePool = uniqueSpells([...(template.spells_prepared || []), ...(template.spells_known || [])]);
   if (templatePool.length) return templatePool;
@@ -202,7 +202,7 @@ function fillSpellPlan(primary = [], fallback = [], target = 1) {
   return uniqueSpells([...primary, ...fallback]).slice(0, Math.max(1, target));
 }
 
-export function buildRookSpellLoadoutsForTemplate(template = {}) {
+export function buildRookSpellLoadoutsForTemplate(template = {}, edition = '') {
   const className = template.character_class || '';
   const classInfo = SPELLCASTING_CLASSES[className];
   if (!classInfo || classInfo.type !== 'prepared') return [];
@@ -212,7 +212,7 @@ export function buildRookSpellLoadoutsForTemplate(template = {}) {
   const target = preparedSpellLimit(className, level, abilities);
   if (!target) return [];
 
-  const pool = spellPoolForPreparedCaster(className, level, template);
+  const pool = spellPoolForPreparedCaster(className, level, template, edition || template.edition || '2014');
   if (!pool.length) return [];
 
   const byRole = pool.reduce((roles, spell) => {
@@ -262,12 +262,13 @@ function resolvePreparedSpells(className = '', level = 1, abilities = {}, templa
   if (options.spellLoadoutId === 'prepare-later') return [];
   const templatePrepared = uniqueSpells(template.spells_prepared || []);
   if (templatePrepared.length) return templatePrepared;
-  const loadouts = buildRookSpellLoadoutsForTemplate(template);
+  const loadouts = buildRookSpellLoadoutsForTemplate(template, options.edition || '');
   const selected = loadouts.find(loadout => loadout.id === options.spellLoadoutId) || loadouts[0];
   return selected?.spells || [];
 }
 
 function deriveSpellFields(className = '', level = 1, abilities = {}, template = {}, options = {}) {
+  const edition = options.edition || '2014';
   const classInfo = SPELLCASTING_CLASSES[className];
   const cantrips = (template.cantrips_known || []).map(toSpell);
   const templateKnown = (template.spells_known || []).map(toSpell);
@@ -277,7 +278,7 @@ function deriveSpellFields(className = '', level = 1, abilities = {}, template =
   const ability = classInfo?.ability || '';
   const abilityMod = ability ? mod(abilities[ability]) : 0;
   const proficiency = getProficiencyBonus(level || 1);
-  const slots = classInfo ? getSpellSlotsForCaster(classInfo, Number(level || 1)) : {};
+  const slots = classInfo ? getSpellSlotsForCaster(classInfo, Number(level || 1), edition) : {};
 
   return {
     spellcasting_ability: ability,
@@ -305,7 +306,7 @@ export function buildCharacterCreationPayloadFromTemplate(template = {}, { name 
   const equipment = deriveEquipment(template, classData, backgroundData);
   const maxHp = template.max_hit_points || template.hit_points || calculateLevelOneHp(className, abilities.constitution);
   const armorClass = template.armor_class || calculateArmorClass({ ...abilities, className, armorKey: equipment.armorKey, shield: equipment.shield, fightingStyle: template.fighting_style });
-  const spellFields = deriveSpellFields(className, level, abilities, template, { spellLoadoutId, customPreparedSpells });
+  const spellFields = deriveSpellFields(className, level, abilities, template, { spellLoadoutId, customPreparedSpells, edition });
   const backgroundFeature = normaliseBackgroundFeatureForSheet(backgroundData, backgroundName);
 
   return {

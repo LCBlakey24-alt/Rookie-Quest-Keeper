@@ -470,8 +470,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         spellcasting_ability: ability,
         spell_save_dc: 8 + proficiencyBonus + abilityMod,
         spell_attack_bonus: proficiencyBonus + abilityMod,
-        spell_slots: getSpellSlotsForCaster(coreClassInfo, 1),
-        spell_slots_remaining: getSpellSlotsForCaster(coreClassInfo, 1),
+        spell_slots: getSpellSlotsForCaster(coreClassInfo, 1, draft.edition),
+        spell_slots_remaining: getSpellSlotsForCaster(coreClassInfo, 1, draft.edition),
       }
       : buildHomebrewSpellcastingState(classData, {
         level: 1,

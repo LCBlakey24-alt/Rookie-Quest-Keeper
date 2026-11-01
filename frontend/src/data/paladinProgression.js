@@ -1,4 +1,4 @@
-import { SPELL_SLOT_PROGRESSION } from './editionRules';
+import { SPELL_SLOT_PROGRESSION, halfCasterProgressionFor } from './editionRules';
 export const PALADIN_SUBCLASS_FEATURE_LEVELS = [3, 7, 15, 20];
 export const PALADIN_ASI_LEVELS = [4, 8, 12, 16, 19];
 export function normalisePaladinRulesEdition(edition = '2014') { return String(edition || '').includes('2024') ? '2024' : '2014'; }
@@ -11,8 +11,11 @@ export function getPaladinLayOnHandsPool(level = 1) { return Math.max(1, Number(
 // characterClassResources.js -- "Channel Divinity 4" next to "2/2".
 // proficiencyBonus is kept in the signature for call-site compatibility.
 export function getPaladinChannelDivinityUses(level = 1, edition = '2014', proficiencyBonus = 2) { const paladinLevel = Math.max(1, Number(level || 1)); if (paladinLevel < 3) return 0; if (normalisePaladinRulesEdition(edition) !== '2024') return 1; return paladinLevel >= 11 ? 3 : 2; }
-export function getPaladinSpellSlots(level = 1) { return SPELL_SLOT_PROGRESSION.half[Math.max(1, Number(level || 1))] || SPELL_SLOT_PROGRESSION.half[1]; }
-export function getPaladinHighestSpellLevel(level = 1) { const slots = getPaladinSpellSlots(level); const index = slots.map(Boolean).lastIndexOf(true); return index >= 0 ? index + 1 : 0; }
+// A 2024 Paladin gains Spellcasting at level 1 (PALADIN_FEATURES_2024 lists it
+// there), so an edition-blind lookup told a 2024 Paladin 1 they had the feature
+// and no slots to use it with.
+export function getPaladinSpellSlots(level = 1, edition = '2014') { const table = halfCasterProgressionFor(edition); return table[Math.max(1, Number(level || 1))] || table[1]; }
+export function getPaladinHighestSpellLevel(level = 1, edition = '2014') { const slots = getPaladinSpellSlots(level, edition); const index = slots.map(Boolean).lastIndexOf(true); return index >= 0 ? index + 1 : 0; }
 const asi = level => ({ level, key: `asi_${level}`, name: level === 19 ? 'Epic Boon / Ability Score Improvement' : 'Ability Score Improvement / Feat', type: 'choice', choiceType: level === 19 ? 'epic_boon_or_asi' : 'asi_or_feat' });
 const PALADIN_FEATURES_2014 = [
   { level: 1, key: 'divine_sense', name: 'Divine Sense', type: 'action' }, { level: 1, key: 'lay_on_hands', name: 'Lay on Hands', type: 'resource' },
@@ -34,4 +37,4 @@ export function getPaladinFeaturesForLevel(level=1, edition='2014') { return get
 export function getActivePaladinFeatures(level=1, edition='2014') { return getPaladinProgression(edition).filter(f=>f.level<=Math.max(1,Number(level||1))); }
 export function getPaladinChoicesForLevel(level=1, edition='2014') { return getPaladinFeaturesForLevel(level, edition).filter(f=>f.type==='choice'); }
 export function getNextPaladinFeatures(level=1, edition='2014') { return getPaladinProgression(edition).filter(f=>f.level>Math.max(1,Number(level||1))).slice(0,3); }
-export function getPaladinProgressionSummary(level=1, edition='2014', proficiencyBonus=2) { const paladinLevel=Math.max(1,Number(level||1)); return { edition: normalisePaladinRulesEdition(edition), level: paladinLevel, layOnHandsPool: getPaladinLayOnHandsPool(paladinLevel), channelDivinityUses: getPaladinChannelDivinityUses(paladinLevel, edition, proficiencyBonus), spellSlots: getPaladinSpellSlots(paladinLevel), highestSpellLevel: getPaladinHighestSpellLevel(paladinLevel), currentLevelFeatures: getPaladinFeaturesForLevel(paladinLevel, edition), activeFeatures: getActivePaladinFeatures(paladinLevel, edition), choicesThisLevel: getPaladinChoicesForLevel(paladinLevel, edition), nextFeatures: getNextPaladinFeatures(paladinLevel, edition) }; }
+export function getPaladinProgressionSummary(level=1, edition='2014', proficiencyBonus=2) { const paladinLevel=Math.max(1,Number(level||1)); return { edition: normalisePaladinRulesEdition(edition), level: paladinLevel, layOnHandsPool: getPaladinLayOnHandsPool(paladinLevel), channelDivinityUses: getPaladinChannelDivinityUses(paladinLevel, edition, proficiencyBonus), spellSlots: getPaladinSpellSlots(paladinLevel, edition), highestSpellLevel: getPaladinHighestSpellLevel(paladinLevel, edition), currentLevelFeatures: getPaladinFeaturesForLevel(paladinLevel, edition), activeFeatures: getActivePaladinFeatures(paladinLevel, edition), choicesThisLevel: getPaladinChoicesForLevel(paladinLevel, edition), nextFeatures: getNextPaladinFeatures(paladinLevel, edition) }; }

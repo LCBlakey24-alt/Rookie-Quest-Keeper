@@ -106,7 +106,7 @@ export const SPELL_SLOT_PROGRESSION = {
     19: [4, 3, 3, 3, 3, 2, 1, 1, 1],
     20: [4, 3, 3, 3, 3, 2, 2, 1, 1],
   },
-  half: { // Paladin, Ranger
+  half: { // Paladin, Ranger -- 2014, where Spellcasting starts at level 2
     1: [0, 0, 0, 0, 0, 0, 0, 0, 0],
     2: [2, 0, 0, 0, 0, 0, 0, 0, 0],
     3: [3, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -173,6 +173,23 @@ export const SPELL_SLOT_PROGRESSION = {
     20: [0, 0, 0, 0, 4, 0, 0, 0, 0],
   }
 };
+
+/**
+ * The 2024 half-caster table. Paladins and Rangers gain Spellcasting at level
+ * 1 in the 2024 rules and start with two 1st-level slots; in 2014 they gain it
+ * at level 2 and have nothing at level 1. Every other row is identical, so this
+ * is the 2014 table with only row 1 replaced -- derived rather than copied, so
+ * the two cannot drift apart.
+ */
+export const HALF_CASTER_PROGRESSION_2024 = {
+  ...SPELL_SLOT_PROGRESSION.half,
+  1: [2, 0, 0, 0, 0, 0, 0, 0, 0],
+};
+
+/** The half-caster slot table for an edition. */
+export const halfCasterProgressionFor = (edition = '2014') => (
+  String(edition ?? '').includes('2024') ? HALF_CASTER_PROGRESSION_2024 : SPELL_SLOT_PROGRESSION.half
+);
 
 // Class spellcasting type
 export const CLASS_SPELLCASTING_TYPE = {
