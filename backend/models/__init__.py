@@ -998,6 +998,17 @@ class Player(BaseModel):
     max_hp: int = 10
     ac: int = 10
     stats: PlayerStats = Field(default_factory=PlayerStats)
+
+    @field_validator("stats", mode="before")
+    @classmethod
+    def default_stats(cls, value):
+        """Treat an absent stat block as the default one.
+
+        Mirrors NPC.stats: PlayerCreate.stats is Optional and defaults to
+        None, so Player(**create.model_dump()) passes stats=None explicitly
+        and the default_factory never applies.
+        """
+        return PlayerStats() if value is None else value
     notes: str = ""
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -1198,6 +1209,20 @@ class NPC(BaseModel):
     proficiency_bonus: int = 2
     stats: NPCStats = Field(default_factory=NPCStats)
     saving_throws: List[str] = []
+
+    @field_validator("stats", mode="before")
+    @classmethod
+    def default_stats(cls, value):
+        """Treat an absent stat block as the default one.
+
+        NPCCreate.stats is Optional and defaults to None, so the natural
+        NPC(**create.model_dump()) composition used by the save routes passes
+        stats=None explicitly. Without this the field's default_factory never
+        applies and construction fails, which every call site then has to
+        remember to work around. Coercing here keeps the guarantee that a
+        validated NPC always has a real stat block.
+        """
+        return NPCStats() if value is None else value
     skills: List[str] = []
     attacks: List[NPCAttack] = []
     abilities: List[NPCAbility] = []
