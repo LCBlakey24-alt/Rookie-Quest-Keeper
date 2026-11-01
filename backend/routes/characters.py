@@ -469,7 +469,24 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
 
     class_level_after = int(class_levels.get(leveled_class, 1))
     hit_die = hit_die_for(leveled_class)
+    con_mod_before = ability_modifier(existing.get('constitution', 10))
+
+    # Apply the ability score increase before working out hit points. A
+    # Constitution increase has to be visible to this level's hit point gain,
+    # and the 5e rule is that raising your Constitution modifier also raises
+    # your hit point maximum by 1 for every level you already have. Reading
+    # con_mod first and applying the ASI afterwards lost both: the character
+    # was short this level's extra point and every retroactive one.
+    if level_up.choice_type == 'asi' and level_up.asi_choices:
+        for asi_ability in [level_up.asi_choices.get('ability1'), level_up.asi_choices.get('ability2')]:
+            if asi_ability:
+                existing[asi_ability] = min(20, int(existing.get(asi_ability, 10)) + 1)
+
     con_mod = ability_modifier(existing.get('constitution', 10))
+    # ASIs only ever raise a score, and scores cap at 20, so this cannot go
+    # negative -- but clamp rather than rely on that.
+    retroactive_hp = max(0, con_mod - con_mod_before) * max(0, int(level_up.new_level) - 1)
+
     hp_method = (level_up.hp_method or ('roll' if level_up.hp_roll is not None else 'average')).lower()
     if hp_method in {'roll', 'manual'}:
         if level_up.hp_roll is None:
@@ -477,6 +494,8 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
         hp_increase = int(level_up.hp_roll) + con_mod
     else:
         hp_increase = (hit_die // 2 + 1) + con_mod
+    # A level always grants at least 1 hit point. The retroactive adjustment is
+    # added after the floor, so it is never swallowed by it.
     hp_increase = max(1, hp_increase)
 
     feats = existing.get('feats', []) or []
@@ -488,7 +507,7 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
         'class_levels': class_levels,
         'hp_method': hp_method,
         'hp_roll': level_up.hp_roll,
-        'hp_gained': hp_increase,
+        'hp_gained': hp_increase + retroactive_hp,
         'applied_at': datetime.now(timezone.utc).isoformat(),
     }
 
@@ -505,11 +524,10 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
         progression_entry['feat'] = feat_name
 
     if level_up.choice_type == 'asi' and level_up.asi_choices:
+        # The scores themselves were raised before hit points were computed.
         progression_entry['asi_choices'] = level_up.asi_choices
-        for ability in [level_up.asi_choices.get('ability1'), level_up.asi_choices.get('ability2')]:
-            if ability:
-                existing_score = int(existing.get(ability, 10))
-                existing[ability] = min(20, existing_score + 1)
+        if retroactive_hp:
+            progression_entry['retroactive_hp'] = retroactive_hp
 
     if level_up.subclass:
         unlock_level = get_subclass_unlock_level(leveled_class, edition)
@@ -539,8 +557,8 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
     update_data = {
         'level': level_up.new_level,
         'proficiency_bonus': proficiency_for(level_up.new_level),
-        'max_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase,
-        'current_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase,
+        'max_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase + retroactive_hp,
+        'current_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase + retroactive_hp,
         'hit_dice': hit_dice_string_for(class_levels),
         'hit_dice_remaining': level_up.new_level,
         'spell_slots': spell_slots,
