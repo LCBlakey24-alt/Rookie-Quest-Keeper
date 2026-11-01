@@ -17,7 +17,7 @@ router = APIRouter()
 @router.post("/campaigns/{campaign_id}/content/bulk-upload")
 async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload, username: str = Depends(get_current_user)):
     """Upload a complete ruleset with races, classes, subclasses, backgrounds, and feats"""
-    await verify_campaign_membership(campaign_id, username)
+    await verify_campaign_ownership(campaign_id, username)
     
     # Check for potential duplicates and warn the user
     warnings = []
@@ -267,7 +267,7 @@ async def get_campaign_feats(campaign_id: str, username: str = Depends(get_curre
 @router.post("/campaigns/{campaign_id}/content/races")
 async def add_campaign_race(campaign_id: str, data: CampaignRaceCreate, username: str = Depends(get_current_user)):
     """Add a custom race to a campaign"""
-    await verify_campaign_membership(campaign_id, username)
+    await verify_campaign_ownership(campaign_id, username)
     
     race = CampaignRace(
         campaign_id=campaign_id,
@@ -281,7 +281,7 @@ async def add_campaign_race(campaign_id: str, data: CampaignRaceCreate, username
 @router.post("/campaigns/{campaign_id}/content/classes")
 async def add_campaign_class(campaign_id: str, data: CampaignClassCreate, username: str = Depends(get_current_user)):
     """Add a custom class to a campaign"""
-    await verify_campaign_membership(campaign_id, username)
+    await verify_campaign_ownership(campaign_id, username)
     
     cls = CampaignClass(
         campaign_id=campaign_id,
@@ -295,7 +295,7 @@ async def add_campaign_class(campaign_id: str, data: CampaignClassCreate, userna
 @router.post("/campaigns/{campaign_id}/content/subclasses")
 async def add_campaign_subclass(campaign_id: str, data: CampaignSubclassCreate, username: str = Depends(get_current_user)):
     """Add a custom subclass to a campaign"""
-    await verify_campaign_membership(campaign_id, username)
+    await verify_campaign_ownership(campaign_id, username)
     
     subclass = CampaignSubclass(
         campaign_id=campaign_id,
@@ -309,7 +309,7 @@ async def add_campaign_subclass(campaign_id: str, data: CampaignSubclassCreate, 
 @router.post("/campaigns/{campaign_id}/content/backgrounds")
 async def add_campaign_background(campaign_id: str, data: CampaignBackgroundCreate, username: str = Depends(get_current_user)):
     """Add a custom background to a campaign"""
-    await verify_campaign_membership(campaign_id, username)
+    await verify_campaign_ownership(campaign_id, username)
     
     background = CampaignBackground(
         campaign_id=campaign_id,
@@ -323,7 +323,7 @@ async def add_campaign_background(campaign_id: str, data: CampaignBackgroundCrea
 @router.post("/campaigns/{campaign_id}/content/feats")
 async def add_campaign_feat(campaign_id: str, data: CampaignFeatCreate, username: str = Depends(get_current_user)):
     """Add a custom feat to a campaign"""
-    await verify_campaign_membership(campaign_id, username)
+    await verify_campaign_ownership(campaign_id, username)
     
     feat = CampaignFeat(
         campaign_id=campaign_id,
