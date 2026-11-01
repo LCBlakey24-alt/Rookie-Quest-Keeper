@@ -69,7 +69,8 @@ jobs:
             backend/tests/test_progression_admin_gate.py \
             backend/tests/test_half_third_caster_own_slots.py \
             backend/tests/test_multiclass_spell_slot_pool.py \
-            backend/tests/test_subclass_unlock_edition.py
+            backend/tests/test_subclass_unlock_edition.py \
+            backend/tests/test_campaign_content_gm_writes.py
 
   frontend-build:
     name: Frontend tests and build
