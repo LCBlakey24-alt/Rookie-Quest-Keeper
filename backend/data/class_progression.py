@@ -205,6 +205,29 @@ def prepared_spell_change_rule(class_name: str, edition: str = '2014') -> Dict[s
     return {'cadence': 'long-rest', 'max_replacements': None}
 
 
+# 2014 known casters may swap one spell each time they gain a level. The PHB
+# grants this to Bard, Ranger, Sorcerer and Warlock in their Spellcasting /
+# Pact Magic entries ("you can choose one of the spells you know and replace
+# it with another spell"). Wizard is excluded because it keeps a spellbook
+# rather than a known list, and the 2014 prepared casters re-prepare on a long
+# rest instead, so neither needs a level-up swap.
+_KNOWN_SPELL_SWAP_CLASSES_2014 = {'Bard', 'Ranger', 'Sorcerer', 'Warlock'}
+
+
+def known_spell_change_rule(class_name: str, edition: str = '2014') -> Dict[str, Any]:
+    """Describe how a known-spell list can be changed on level up.
+
+    The 2024 counterpart is prepared_spell_change_rule: those classes keep a
+    prepared list instead, so this returns no allowance for 2024 and the two
+    rules never both apply to the same class and edition.
+    """
+    if _edition(edition) == '2024':
+        return {'cadence': 'legacy', 'max_replacements': 0}
+    if class_name in _KNOWN_SPELL_SWAP_CLASSES_2014:
+        return {'cadence': 'level-up', 'max_replacements': 1}
+    return {'cadence': 'legacy', 'max_replacements': 0}
+
+
 def spells_to_learn(class_name: str, current_level: int, target_level: int, edition: str = '2014') -> int:
     """Net permanent spell-list additions for a level transition.
 
