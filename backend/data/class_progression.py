@@ -127,15 +127,44 @@ def _table_value(table: Dict[int, int], level: int) -> int:
     return result
 
 
+def _dedupe(names: List[str]) -> List[str]:
+    """Drop repeats while keeping first-seen order."""
+    seen = set()
+    result = []
+    for name in names:
+        if name not in seen:
+            seen.add(name)
+            result.append(name)
+    return result
+
+
 def feats_for_edition(edition: str, category: str = 'general') -> List[str]:
     """Return the feat list for the given edition + category.
+
     category: 'origin' (2024 only) or 'general' (any non-origin feat) or 'all'.
+
+    Six feats -- Alert, Lucky, Magic Initiate, Savage Attacker, Tavern Brawler
+    and Tough -- are General feats in 2014 but Origin feats in 2024, so they
+    appear in _GENERAL_FEATS_BOTH *and* _ORIGIN_FEATS_2024. For 2024 they must
+    be served as Origin feats only: at a 2024 ASI level just General feats are
+    legal, so including them there offers an illegal choice, and 'all'
+    previously returned them twice.
     """
+    is_2024 = _edition(edition) == '2024'
+
     if category == 'origin':
-        return _ORIGIN_FEATS_2024 if _edition(edition) == '2024' else []
+        return list(_ORIGIN_FEATS_2024) if is_2024 else []
+
     if category == 'general':
-        return list(_GENERAL_FEATS_BOTH) + (_GENERAL_FEATS_2024_ONLY if _edition(edition) == '2024' else [])
-    return list(_GENERAL_FEATS_BOTH) + (_ORIGIN_FEATS_2024 if _edition(edition) == '2024' else []) + (_GENERAL_FEATS_2024_ONLY if _edition(edition) == '2024' else [])
+        if not is_2024:
+            return list(_GENERAL_FEATS_BOTH)
+        origin = set(_ORIGIN_FEATS_2024)
+        return _dedupe(
+            [name for name in _GENERAL_FEATS_BOTH if name not in origin]
+            + list(_GENERAL_FEATS_2024_ONLY)
+        )
+
+    return _dedupe(feats_for_edition(edition, 'general') + feats_for_edition(edition, 'origin'))
 
 
 def subclasses_for(class_name: str) -> List[str]:
