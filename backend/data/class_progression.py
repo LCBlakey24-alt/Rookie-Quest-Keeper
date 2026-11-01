@@ -294,6 +294,7 @@ def class_progression_summary(class_name: str, edition: str) -> Dict[str, Any]:
         'subclasses': subclasses_for(class_name),
         'spell_selection_mode': spell_selection_mode(class_name, edition),
         'prepared_spell_change': prepared_spell_change_rule(class_name, edition),
+        'known_spell_change': known_spell_change_rule(class_name, edition),
         'spells_known_table': spells_known_table(class_name, edition),
         'spellbook_spells_table': spellbook_spells_table(class_name, edition),
         'cantrips_known_table': _CANTRIPS_KNOWN_PROGRESSION.get(class_name, {}),
