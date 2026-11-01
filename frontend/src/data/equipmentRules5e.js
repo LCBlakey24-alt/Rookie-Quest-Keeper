@@ -59,6 +59,36 @@ export function findWeaponRule(itemOrName) {
   return null;
 }
 
+/**
+ * The enhancement bonus a magic weapon or ammunition contributes.
+ *
+ * A +N weapon adds +N to BOTH attack and damage rolls. The attack path used to
+ * read only `item.attack_bonus`, but no catalogue row defines that field --
+ * itemsDatabase ships "Weapon +1/+2/+3" and "Ammunition +1/+2/+3" that state
+ * the bonus in the NAME. So equipping "Armor +1" correctly gave +1 AC (armorRules5e
+ * parses the suffix) while "Weapon +1" gave +0 attack and +0 damage.
+ *
+ * Precedence mirrors extraAcBonus in armorRules5e: an explicitly stored,
+ * non-zero bonus wins, otherwise fall back to the name suffix. Custom items
+ * that set attack_bonus therefore keep their exact value, and catalogue rows
+ * that only name the bonus finally contribute.
+ */
+export function weaponEnhancementBonus(item) {
+  if (!item || typeof item !== 'object') return 0;
+
+  const explicit = Number(
+    item.attack_bonus
+      ?? item.attackBonus
+      ?? item.magic_attack_bonus
+      ?? item.magicAttackBonus,
+  );
+  if (Number.isFinite(explicit) && explicit !== 0) return explicit;
+
+  const name = String(item.name || item.item_name || item.label || item.title || '');
+  const match = name.match(/(?:^|\s)\+(\d+)\b/);
+  return match ? Number(match[1]) : 0;
+}
+
 export function getWeaponAbilityMod(rule, strengthMod, dexterityMod) {
   if (!rule) return Math.max(strengthMod, dexterityMod);
   if (rule.ability === 'strength') return strengthMod;

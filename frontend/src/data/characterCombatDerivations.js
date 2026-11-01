@@ -1,7 +1,7 @@
 // Shared combat derivation helpers.
 // Converts character equipment into sheet-ready attacks and AC values.
 
-import { findWeaponRule, getWeaponAbilityMod } from './equipmentRules5e';
+import { findWeaponRule, getWeaponAbilityMod, weaponEnhancementBonus } from './equipmentRules5e';
 import { calculateArmorAc, findArmorRule } from './armorRules5e';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
@@ -79,7 +79,9 @@ export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
   const damageType = item?.damage_type || item?.damageType || rule?.damageType || 'weapon';
   const range = item?.range || rule?.range || 'Melee or ranged';
   const properties = item?.properties || item?.property || item?.notes || (rule?.properties || []).join(', ');
-  const itemBonus = Number(item?.attack_bonus || 0);
+  // Reads the stored attack_bonus when set, and otherwise the "+N" in the item
+  // name, which is how every catalogue magic weapon states it.
+  const itemBonus = weaponEnhancementBonus(item);
   const attackMod = Number(proficiencyBonus || 0) + abilityMod + itemBonus;
   const totalDamageMod = abilityMod + itemBonus;
 
