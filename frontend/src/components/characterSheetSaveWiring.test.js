@@ -19,6 +19,10 @@ describe('live character save wiring', () => {
     expect(sheet).toContain('const concentrationSession = saveControllerRef.current.getSession()');
     expect(sheet).toContain('onClick: () => saveControllerRef.current.patchForSession(');
     expect(sheet).toContain('          concentrationSession,');
+    expect(sheet).toContain('const isCurrentSheetSession = () => sheetSession === saveControllerRef.current.getSession()');
+    expect(sheet).toContain('if (!isCurrentSheetSession()) return false;');
+    expect(sheet).toContain('if (saved !== false && isCurrentSheetSession() && delta < 0');
+    expect(sheet).toContain('if (cleared === false || !isCurrentSheetSession()) return false;');
     expect(sheet).toContain('await saveControllerRef.current.whenIdle(characterId)');
     expect(sheet).toContain('saveControllerRef.current.invalidate()');
     expect(sheet).toContain('saveControllerRef.current.runServerAction');
