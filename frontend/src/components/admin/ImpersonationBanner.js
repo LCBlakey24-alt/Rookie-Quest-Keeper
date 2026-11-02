@@ -1,7 +1,7 @@
 import React from 'react';
 import { toast } from 'sonner';
 import { AlertTriangle, LogOut } from 'lucide-react';
-import { AUTH_USERNAME_KEY, setAuthToken } from '@/lib/auth';
+import { getStoredAuthUsername, setAuthToken, setStoredAuthUsername } from '@/lib/auth';
 
 /**
  * ImpersonationBanner
@@ -11,22 +11,21 @@ import { AUTH_USERNAME_KEY, setAuthToken } from '@/lib/auth';
  * and reloads the app back to /admin.
  */
 export default function ImpersonationBanner() {
-  const stashedToken = typeof window !== 'undefined'
-    ? sessionStorage.getItem('rq_admin_token_stash')
-    : null;
-  const stashedUsername = typeof window !== 'undefined'
-    ? sessionStorage.getItem('rq_admin_username_stash')
-    : null;
-  const current = typeof window !== 'undefined'
-    ? localStorage.getItem(AUTH_USERNAME_KEY)
-    : null;
+  // Access to sessionStorage can throw before getItem in private/locked browsers.
+  const readSession = (key) => {
+    try { return typeof window !== 'undefined' ? window.sessionStorage.getItem(key) : null; }
+    catch { return null; }
+  };
+  const stashedToken = readSession('rq_admin_token_stash');
+  const stashedUsername = readSession('rq_admin_username_stash');
+  const current = getStoredAuthUsername();
 
   if (!stashedToken) return null;
 
   const restore = () => {
     try {
       setAuthToken(stashedToken);
-      if (stashedUsername) localStorage.setItem(AUTH_USERNAME_KEY, stashedUsername);
+      if (stashedUsername) setStoredAuthUsername(stashedUsername);
       sessionStorage.removeItem('rq_admin_token_stash');
       sessionStorage.removeItem('rq_admin_username_stash');
       toast.success('Admin session restored');
