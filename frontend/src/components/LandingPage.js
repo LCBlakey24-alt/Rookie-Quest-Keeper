@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import useRevealOnScroll from '@/hooks/useRevealOnScroll';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
 
@@ -127,6 +128,10 @@ const recentActivity = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  // Scroll-entrance motion for the sections below the fold. The hero is
+  // deliberately left out: hiding above-the-fold content until an observer
+  // fires would delay the first thing a visitor sees.
+  const revealRef = useRevealOnScroll();
   const featuresRef = useRef(null);
   const playersRef = useRef(null);
   const gmsRef = useRef(null);
@@ -174,7 +179,7 @@ export default function LandingPage() {
   const goBuild = () => navigateWithFill('/auth?mode=register', '/characters/new');
 
   return (
-    <div data-testid="landing-page" className="landing-page landing-page-clean landing-page-final keeper-product-site">
+    <div ref={revealRef} data-testid="landing-page" className="landing-page landing-page-clean landing-page-final keeper-product-site">
       <a className="landing-skip-link" href="#landing-main">Skip to landing content</a>
 
       <nav className="landing-final-nav" aria-label="Rookie Quest Keeper navigation">
@@ -314,14 +319,14 @@ export default function LandingPage() {
 
         <section className="landing-pillar-strip" aria-label="Rookie Quest Keeper focus areas">
           {pillars.map(({ icon: Icon, label, text }) => (
-            <article key={label}>
+            <article key={label} className="rqk-reveal rqk-reveal--subtle">
               <Icon size={24} aria-hidden="true" />
               <div><strong>{label}</strong><span>{text}</span></div>
             </article>
           ))}
         </section>
 
-        <section ref={featuresRef} id="features" className="landing-showcase-section" aria-labelledby="landing-features-title">
+        <section ref={featuresRef} id="features" className="landing-showcase-section rqk-reveal" aria-labelledby="landing-features-title">
           <div className="landing-showcase-heading">
             <p className="landing-kicker">Features</p>
             <h2 id="landing-features-title">Everything you need to run and play.</h2>
@@ -330,7 +335,7 @@ export default function LandingPage() {
 
           <div className="landing-feature-card-grid">
             {featureCards.map(({ icon: Icon, title, text }) => (
-              <article key={title}>
+              <article key={title} className="rqk-reveal rqk-reveal--subtle">
                 <span className="landing-feature-card-icon"><Icon size={24} aria-hidden="true" /></span>
                 <h3>{title}</h3>
                 <p>{text}</p>
@@ -341,7 +346,7 @@ export default function LandingPage() {
         </section>
 
         <section className="landing-audience-showcase" aria-label="Rookie Quest Keeper for players and game masters">
-          <article ref={playersRef} id="for-players" className="landing-audience-panel landing-audience-panel--player">
+          <article ref={playersRef} id="for-players" className="landing-audience-panel landing-audience-panel--player rqk-reveal">
             <div className="landing-audience-copy">
               <p className="landing-kicker">For players</p>
               <h2>Keep your story close.</h2>
@@ -365,7 +370,7 @@ export default function LandingPage() {
             </div>
           </article>
 
-          <article ref={gmsRef} id="for-gms" className="landing-audience-panel landing-audience-panel--gm">
+          <article ref={gmsRef} id="for-gms" className="landing-audience-panel landing-audience-panel--gm rqk-reveal">
             <div className="landing-audience-copy">
               <p className="landing-kicker">For GMs</p>
               <h2>Plan deeper.<br />Run smoother.</h2>
@@ -384,7 +389,7 @@ export default function LandingPage() {
           </article>
         </section>
 
-        <section className="landing-workflow-section" aria-labelledby="landing-workflow-title">
+        <section className="landing-workflow-section rqk-reveal" aria-labelledby="landing-workflow-title">
           <div>
             <p className="landing-kicker">How it works</p>
             <h2 id="landing-workflow-title">From idea to adventure.</h2>
@@ -393,7 +398,7 @@ export default function LandingPage() {
 
           <ol>
             {workflow.map((step) => (
-              <li key={step.number}>
+              <li key={step.number} className="rqk-reveal rqk-reveal--subtle">
                 <span>{step.number}</span>
                 <div><strong>{step.title}</strong><p>{step.text}</p></div>
               </li>
@@ -401,7 +406,7 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        <section ref={faqRef} id="faq" className="landing-faq-panel landing-faq-layout" aria-labelledby="landing-faq-title">
+        <section ref={faqRef} id="faq" className="landing-faq-panel landing-faq-layout rqk-reveal" aria-labelledby="landing-faq-title">
           <div className="landing-faq-intro">
             <p className="landing-kicker">Frequently asked questions</p>
             <h2 id="landing-faq-title">Got questions?</h2>
@@ -419,7 +424,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="landing-final-cta landing-final-cta--reference" aria-label="Open Rookie Quest Keeper">
+        <section className="landing-final-cta landing-final-cta--reference rqk-reveal" aria-label="Open Rookie Quest Keeper">
           <div className="landing-final-cta__mark" aria-hidden="true"><Castle size={44} /></div>
           <div>
             <p className="landing-kicker">Your next adventure starts here</p>
