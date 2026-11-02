@@ -11,6 +11,7 @@ import '@/styles/homeDashboardExperience.css';
 import '@/styles/homeHubMobileNavPolish.css';
 import '@/styles/adminFeedbackExperience.css';
 import '@/styles/appShellExperiencePolish.css';
+import '@/styles/keeperSimplifiedNavigation.css';
 import '@/layouts/desktop/appShell.css';
 import '@/layouts/tablet/appShell.css';
 import '@/layouts/mobile/appShell.css';
