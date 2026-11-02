@@ -255,12 +255,18 @@ export default function CleanCharacterSheet() {
 
     const nextName = getConcentrationName(nextConcentration);
     const currentName = concentratingName || 'your current spell';
+    // Toast actions can outlive this route; bind the choice to this sheet.
+    const concentrationSession = saveControllerRef.current.getSession();
     toast.warning(`Already concentrating on ${currentName}`, {
       description: `Starting concentration on ${nextName} will end ${currentName}.`,
       duration: 10000,
       action: {
         label: `Switch to ${nextName}`,
-        onClick: () => patchCharacter(updates, { ...options, success: `Concentrating on ${nextName}` }),
+        onClick: () => saveControllerRef.current.patchForSession(
+          concentrationSession,
+          updates,
+          { ...options, success: `Concentrating on ${nextName}` }
+        ),
       },
       cancel: {
         label: `Keep ${currentName}`,
