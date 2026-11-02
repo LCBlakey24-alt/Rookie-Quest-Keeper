@@ -32,6 +32,12 @@ export function createCharacterSaveQueue({ publish, patchRequest, onSuccess = ()
     emit(activeSession);
   };
 
+  // Unmounting the sheet must also detach old notifications and publications.
+  // Already accepted server writes keep running in their original sessions.
+  const invalidate = () => {
+    activeSession = null;
+  };
+
   const enqueue = (session, task) => {
     // Keep writes to the same character in order, including A -> B -> A
     // navigation while A's earlier requests are still in flight.
@@ -106,6 +112,7 @@ export function createCharacterSaveQueue({ publish, patchRequest, onSuccess = ()
 
   return {
     reset,
+    invalidate,
     patch,
     patchForSession,
     runServerAction,
