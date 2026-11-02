@@ -113,7 +113,7 @@ describe('AuthPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
 
     await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/auth/forgot-password', { email: 'player@example.com' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/if an account uses that email address/i);
+    expect(screen.getByText(/if an account uses that email address/i)).toHaveAttribute('role', 'status');
     expect(screen.getByRole('button', { name: /send another link/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /reset your password/i })).toBeInTheDocument();
     expect(toast.success).not.toHaveBeenCalledWith('Password reset email sent!');
