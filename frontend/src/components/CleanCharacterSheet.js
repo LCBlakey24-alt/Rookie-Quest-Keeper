@@ -258,6 +258,7 @@ export default function CleanCharacterSheet() {
   const patchCharacter = (updates, options = {}) => (
     saveControllerRef.current.patchForSession(sheetSession, updates, options)
   );
+  const isCurrentSheetSession = () => sheetSession === saveControllerRef.current.getSession();
 
   const patchCharacterWithConcentrationGuard = async (updates, options = {}) => {
     const nextConcentration = updates?.concentrating_on ?? updates?.concentration;
@@ -289,6 +290,8 @@ export default function CleanCharacterSheet() {
   };
 
   const rollConcentrationSave = async (dc, spellName = concentratingName) => {
+    // A delayed toast action may fire after this character has been closed.
+    if (!isCurrentSheetSession()) return false;
     const result = rollD20(concentrationSaveModifier, {
       mode: rollMode,
       bonus: getRollBonus(),
@@ -313,10 +316,12 @@ export default function CleanCharacterSheet() {
       return true;
     }
 
-    await patchCharacter(
+    const cleared = await patchCharacter(
       { concentrating_on: null, concentration: null },
       { error: 'Could not clear failed concentration' },
     );
+    // Do not report a lost spell if the PATCH failed or the sheet was closed.
+    if (cleared === false || !isCurrentSheetSession()) return false;
     toast.error(`Concentration lost on ${spellName}`, { description: `${result.total} vs DC ${dc}` });
     return false;
   };
@@ -341,7 +346,7 @@ export default function CleanCharacterSheet() {
     const saved = await patchCharacter(updates, { error: 'Could not save HP' });
     setSavingHp(false);
 
-    if (saved !== false && delta < 0 && concentratingName && amount > 0) {
+    if (saved !== false && isCurrentSheetSession() && delta < 0 && concentratingName && amount > 0) {
       const concentrationDC = getConcentrationSaveDc(amount);
       toast.warning(`You took ${amount} damage — concentration check`, {
         description: `You are concentrating on ${concentratingName}. Make a Constitution save, DC ${concentrationDC}, to keep the spell.`,
