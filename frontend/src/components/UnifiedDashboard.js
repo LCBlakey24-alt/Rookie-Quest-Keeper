@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, BookOpen, Clock3, FileUp, Link2, Plus, UsersRound, Wand2 } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock3, UsersRound, Wand2 } from 'lucide-react';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import '@/styles/unifiedDashboardPolish.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
@@ -47,67 +47,6 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     dashboardWarning,
     loadDashboard,
   } = useDashboardData();
-
-  const dashboardActions = useMemo(() => [
-    {
-      title: 'Create Character',
-      text: 'Build a new playable hero.',
-      to: '/characters/new',
-      icon: Plus,
-      stat: 'Player',
-      primary: true,
-    },
-    {
-      title: 'Import Character',
-      text: 'Bring an existing sheet into Keeper.',
-      to: '/characters/import',
-      icon: FileUp,
-      stat: 'Player',
-    },
-    {
-      title: 'Create Campaign',
-      text: 'Start a new GM campaign workspace.',
-      to: '/campaigns?create=1',
-      icon: BookOpen,
-      stat: 'GM',
-      primary: true,
-    },
-    {
-      title: 'Join Campaign',
-      text: 'Use a GM join code with one of your characters.',
-      to: '/player',
-      icon: Link2,
-      stat: 'Player',
-    },
-  ], []);
-
-  const continueItems = useMemo(() => {
-    const latestCharacter = safeArray(recentCharacters)[0];
-    const latestCampaign = safeArray(recentCampaigns)[0];
-    const items = [];
-
-    if (latestCharacter && recordId(latestCharacter)) {
-      items.push({
-        kind: 'Character',
-        title: characterTitle(latestCharacter),
-        text: `${latestCharacter?.race || latestCharacter?.species || 'Hero'} • Level ${latestCharacter?.level || 1}`,
-        to: `/characters/${recordId(latestCharacter)}`,
-        icon: UsersRound,
-      });
-    }
-
-    if (latestCampaign && recordId(latestCampaign)) {
-      items.push({
-        kind: 'Campaign',
-        title: campaignTitle(latestCampaign),
-        text: latestCampaign?.world_name || 'Campaign workspace',
-        to: `/campaign/${recordId(latestCampaign)}`,
-        icon: BookOpen,
-      });
-    }
-
-    return items;
-  }, [recentCampaigns, recentCharacters]);
 
   const recentActivity = useMemo(() => {
     const characterActivity = safeArray(recentCharacters).map((character) => ({
@@ -194,33 +133,6 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         )}
       </section>
     </main>
-  );
-}
-
-function DashboardContinueCard({ kind, title, text, to, icon: Icon }) {
-  return (
-    <Link to={to} className="dashboard-continue-card">
-      <span className="dashboard-continue-icon" aria-hidden="true"><Icon size={19} /></span>
-      <span className="dashboard-continue-copy">
-        <em>{kind}</em>
-        <strong>{title}</strong>
-        <span>{text}</span>
-      </span>
-      <span className="dashboard-continue-cta">Open</span>
-    </Link>
-  );
-}
-
-function DashboardActionCard({ title, text, stat, icon: Icon, to, primary = false }) {
-  return (
-    <Link to={to} className={`dashboard-command-card dashboard-command-card--simple${primary ? ' is-primary' : ''}`}>
-      <span className="dashboard-command-icon" aria-hidden="true"><Icon size={20} /></span>
-      <span className="dashboard-command-copy">
-        <strong>{title}</strong>
-        <span>{text}</span>
-      </span>
-      <em>{stat}</em>
-    </Link>
   );
 }
 
