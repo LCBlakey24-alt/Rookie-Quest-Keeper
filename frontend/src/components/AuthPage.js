@@ -192,7 +192,7 @@ function createStagingCredentials() {
   return credentials;
 }
 
-export default function AuthPage({ onLogin = () => {} }) {
+export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {} }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -400,6 +400,9 @@ export default function AuthPage({ onLogin = () => {} }) {
     setLoading(true);
     try {
       await apiClient.post('/auth/reset-password', resetData);
+      // The backend invalidates existing sessions on reset. Clear this browser's
+      // previous login before returning to the sign-in page.
+      onPasswordReset();
       toast.success('Password reset successful!');
       goToMode('login', { replace: true });
     } catch (error) {

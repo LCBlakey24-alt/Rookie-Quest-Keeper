@@ -116,6 +116,32 @@ describe('AuthPage', () => {
     expect(screen.getByText(/^set new password$/i)).toBeInTheDocument();
   });
 
+  test('opens an emailed reset link, submits its token, and clears the old session on success', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { message: 'Password reset successful' } });
+    const onPasswordReset = jest.fn();
+    render(
+      <MemoryRouter initialEntries={['/reset-password?token=emailed-token-123']}>
+        <AuthPage onPasswordReset={onPasswordReset} />
+        <CurrentLocation />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('heading', { name: /choose a new password/i })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/new password/i, { selector: 'input' }), {
+      target: { value: 'NewRookPassword2026!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^reset password$/i }));
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/reset-password', {
+        token: 'emailed-token-123',
+        new_password: 'NewRookPassword2026!',
+      });
+      expect(onPasswordReset).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText('Current page')).toHaveTextContent('/auth');
+    });
+  });
+
   test('shows validation feedback before login submission', () => {
     renderAuthPage();
 
