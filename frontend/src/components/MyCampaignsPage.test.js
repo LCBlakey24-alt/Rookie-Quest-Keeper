@@ -75,6 +75,79 @@ describe('MyCampaignsPage simplified library', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Try again' })).toBeEnabled());
   });
 
+  test('shows joined campaigns instead of falsely saying no campaigns exist', async () => {
+    apiClient.get.mockImplementation((url) => {
+      if (url === '/library/campaigns') return Promise.resolve({ data: [] });
+      if (url === '/library/characters') return Promise.resolve({ data: [{ id: 'char-1', name: 'Javen Crow' }] });
+      if (url === '/campaign-invites/joined/list') return Promise.resolve({ data: [{ id: 'joined-1', name: 'The Wednesday Party', description: 'A campaign I joined' }] });
+      return Promise.reject(new Error('unexpected request'));
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'The Wednesday Party' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Joined as a Player' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /No campaigns you're managing/ })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'No campaigns yet' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Join by Code' })).toBeEnabled();
+  });
+
+  test('does not claim players have no characters or joined campaigns during failed requests', async () => {
+    apiClient.get.mockImplementation((url) => {
+      if (url === '/library/campaigns') return Promise.resolve({ data: [] });
+      return Promise.reject(new Error('network unavailable'));
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Checking your joined campaigns…' })).toBeInTheDocument();
+    expect(await screen.findByText("Couldn't refresh all player campaign information")).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Join by Code' })).toBeDisabled();
+    expect(screen.queryByRole('heading', { name: 'No campaigns yet' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry player tools' })).toBeEnabled();
+  });
+
+  test('allows retrying player tools after a failed character request', async () => {
+    let recovered = false;
+    apiClient.get.mockImplementation((url) => {
+      if (url === '/library/campaigns') return Promise.resolve({ data: [campaign] });
+      if (!recovered) return Promise.reject(new Error('network unavailable'));
+      if (url === '/library/characters') return Promise.resolve({ data: [{ id: 'char-1', name: 'Javen Crow' }] });
+      if (url === '/campaign-invites/joined/list') return Promise.resolve({ data: [] });
+      return Promise.reject(new Error('unexpected request'));
+    });
+
+    renderPage();
+    expect(await screen.findByText("Couldn't refresh all player campaign information")).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Join by Code' })).toBeDisabled();
+
+    recovered = true;
+    fireEvent.click(screen.getByRole('button', { name: 'Retry player tools' }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Join by Code' })).toBeEnabled());
+    await waitFor(() => expect(screen.queryByText("Couldn't refresh all player campaign information")).not.toBeInTheDocument());
+  });
+
+  test('retains last-good joined campaign when its refresh fails', async () => {
+    let failJoined = false;
+    apiClient.get.mockImplementation((url) => {
+      if (url === '/library/campaigns') return Promise.resolve({ data: [] });
+      if (url === '/library/characters') return Promise.resolve({ data: [{ id: 'char-1', name: 'Javen Crow' }] });
+      if (url === '/campaign-invites/joined/list') {
+        return failJoined ? Promise.reject(new Error('offline')) : Promise.resolve({ data: [{ id: 'joined-1', name: 'The Wednesday Party' }] });
+      }
+      return Promise.reject(new Error('unexpected request'));
+    });
+
+    renderPage();
+    expect(await screen.findByRole('heading', { name: 'The Wednesday Party' })).toBeInTheDocument();
+
+    failJoined = true;
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(await screen.findByText("Couldn't refresh all player campaign information")).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'The Wednesday Party' })).toBeInTheDocument();
+  });
+
   test('does not render the retired campaign stats dashboard or toolbar', async () => {
     renderPage();
 
