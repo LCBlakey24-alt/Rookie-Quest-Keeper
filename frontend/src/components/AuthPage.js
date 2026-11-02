@@ -52,24 +52,6 @@ const AUTH_COPY = {
   },
 };
 
-const FEATURE_CARDS = [
-  {
-    icon: ShieldCheck,
-    title: 'Kid-aware by design',
-    text: 'Email recovery protects your characters and campaigns if you forget your password.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Campaign-ready',
-    text: 'Jump from login into sheets, campaigns, uploads, and GM tools without clutter.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Built for the table',
-    text: 'A focused Guild Ledger gateway that matches the rest of Rookie Quest Keeper.',
-  },
-];
-
 const TRUST_BADGES = ['Secure session', 'Mobile friendly', 'Rookie-safe signup'];
 const URL_MODES = new Set(['login', 'register', 'forgot']);
 
@@ -80,41 +62,11 @@ const PAGE_TITLES = {
   reset: 'Choose new password',
 };
 
-const NEXT_STEPS = {
-  login: ['Open dashboard', 'Pick a character', 'Join the table'],
-  register: ['Create account', 'Build first character', 'Start a campaign'],
-  forgot: ['Request reset link', 'Check your inbox', 'Return to login'],
-  reset: ['Set new password', 'Sign back in', 'Continue the quest'],
-};
-
 const SUBMIT_STATUS = {
   login: 'Opening your Rookie Quest Keeper dashboard.',
   register: 'Creating your keeper account.',
   forgot: 'Sending password reset instructions.',
   reset: 'Saving your new password.',
-};
-
-const MODE_ASSURANCE = {
-  login: {
-    label: 'Keeper note',
-    title: 'Made for quick table access',
-    text: 'The auth screen stays lightweight so players can get from sign in to sheets, campaigns, and GM tools without extra noise.',
-  },
-  register: {
-    label: 'Signup tip',
-    title: 'A nickname is optional',
-    text: 'Your email lets you recover your account. Add a table name if you want one; your email is not shown to other players.',
-  },
-  forgot: {
-    label: 'Recovery note',
-    title: 'Use the linked recovery email',
-    text: 'Reset instructions are requested through the account recovery flow, then the page safely returns you to sign in.',
-  },
-  reset: {
-    label: 'Password note',
-    title: 'Create a fresh table key',
-    text: 'Once the new password is saved, you will come back through sign in before reopening your dashboard.',
-  },
 };
 
 const AUTH_PANEL_IDS = {
@@ -413,8 +365,6 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
   };
 
   const copy = AUTH_COPY[mode] || AUTH_COPY.login;
-  const assurance = MODE_ASSURANCE[mode] || MODE_ASSURANCE.login;
-  const nextSteps = NEXT_STEPS[mode] || NEXT_STEPS.login;
   const submitStatus = SUBMIT_STATUS[mode] || SUBMIT_STATUS.login;
   const showCredentialToggle = mode === 'login' || mode === 'register';
   const registerPasswordChecks = getPasswordChecks(registerData.password);
@@ -456,34 +406,6 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
         </button>
 
         <div className="rqk-auth-layout">
-          {mode !== 'login' && <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
-            <p className="rqk-auth-kicker">Plan • Organise • Track • Play</p>
-            <h2>Everything for the table, kept together.</h2>
-            <p>
-              A cleaner gateway for players, young adventurers, and GMs who want sheets,
-              campaign prep, uploads, and table tools to feel organised from the start.
-            </p>
-
-            <div className="rqk-auth-feature-grid">
-              {FEATURE_CARDS.map(({ icon: Icon, title, text }) => (
-                <div className="rqk-auth-feature-card" key={title}>
-                  <span className="rqk-auth-feature-icon" aria-hidden="true"><Icon size={18} /></span>
-                  <span>
-                    <strong>{title}</strong>
-                    <small>{text}</small>
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="rqk-auth-preview-card" aria-hidden="true">
-              <div>
-                <span className="rqk-auth-preview-dot" />
-                <strong>Next stop</strong>
-              </div>
-              <p>Dashboard → Characters → Campaign tools</p>
-            </div>
-          </aside>}
 
           <section className="rqk-auth-card" aria-labelledby="rqk-auth-title">
             <div className="rqk-auth-heading">
@@ -529,8 +451,6 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
               </div>
             )}
 
-            {mode !== 'login' && <AuthNotice>{copy.notice}</AuthNotice>}
-            {mode !== 'login' && <AuthAssurancePanel {...assurance} />}
 
             {mode === 'login' && stagingCredentials && (
               <details className="rqk-auth-staging-details">
@@ -802,7 +722,6 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
               </form>
             )}
 
-            {mode !== 'login' && <AuthNextSteps steps={nextSteps} />}
             {mode !== 'login' && <TrustBadges />}
           </section>
         </div>
@@ -810,25 +729,6 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
         <p className="rqk-auth-footer">© {new Date().getFullYear()} Rookie Quest Keeper</p>
       </div>
     </main>
-  );
-}
-
-function AuthNotice({ children }) {
-  return (
-    <div className="rqk-auth-note">
-      <ShieldCheck size={16} aria-hidden="true" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function AuthAssurancePanel({ label, title, text }) {
-  return (
-    <aside className="rqk-auth-assurance" aria-label={label}>
-      <span>{label}</span>
-      <strong>{title}</strong>
-      <p>{text}</p>
-    </aside>
   );
 }
 
@@ -966,17 +866,6 @@ function PasswordMatchNotice({ id, status }) {
       <span aria-hidden="true" />
       {status.message}
     </p>
-  );
-}
-
-function AuthNextSteps({ steps }) {
-  return (
-    <div className="rqk-auth-next-steps" aria-label="What happens next">
-      <span>What happens next</span>
-      <ol>
-        {steps.map(step => <li key={step}>{step}</li>)}
-      </ol>
-    </div>
   );
 }
 
