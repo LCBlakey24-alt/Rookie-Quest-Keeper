@@ -88,7 +88,7 @@ test('switching characters ignores obsolete response from previously open sheet'
   await Promise.resolve();
   t.queue.reset('hero-2', { id: 'hero-2', current_hit_points: 30 });
   request.resolve({ data: { id: 'hero-1', current_hit_points: 10 } });
-  expect(await old).toBe(false);
+  expect(await old).toBe(true); // Old accepted save finishes, without publishing to B.
   expect(t.current()).toMatchObject({ id: 'hero-2', current_hit_points: 30 });
 });
 
@@ -119,4 +119,91 @@ test('failed rest action retains prior confirmed character and pending later edi
   expect(t.current().notes).toBe('Remember this');
   expect(await notes).toBe(true);
   expect(t.onError).toHaveBeenCalledTimes(1);
+});
+
+test('accepted pending edits drain to the original character after navigation', async () => {
+  const t = setup();
+  const first = deferred();
+  t.patchRequest.mockReturnValueOnce(first.promise).mockResolvedValueOnce({
+    data: { id: 'hero-1', current_hit_points: 12, conditions: ['poisoned'] },
+  });
+  const hp = t.queue.patch({ current_hit_points: 12 }, { success: 'HP saved' });
+  const condition = t.queue.patch({ conditions: ['poisoned'] }, { success: 'Condition saved' });
+  await Promise.resolve();
+  expect(t.patchRequest).toHaveBeenCalledTimes(1);
+
+  t.queue.reset('hero-2', { id: 'hero-2', current_hit_points: 30 });
+  first.resolve({ data: { id: 'hero-1', current_hit_points: 12, conditions: [] } });
+  expect(await hp).toBe(true);
+  expect(await condition).toBe(true);
+  expect(t.patchRequest).toHaveBeenNthCalledWith(1, 'hero-1', { current_hit_points: 12 });
+  expect(t.patchRequest).toHaveBeenNthCalledWith(2, 'hero-1', { conditions: ['poisoned'] });
+  expect(t.current()).toMatchObject({ id: 'hero-2', current_hit_points: 30 });
+  expect(t.onSuccess).not.toHaveBeenCalled(); // Old notifications do not appear on B.
+});
+
+test('failed old write does not cancel the next accepted write after leaving a sheet', async () => {
+  const t = setup();
+  const first = deferred();
+  t.patchRequest.mockReturnValueOnce(first.promise).mockResolvedValueOnce({
+    data: { id: 'hero-1', current_hit_points: 20, notes: 'Keep this edit' },
+  });
+  const hp = t.queue.patch({ current_hit_points: 12 });
+  const notes = t.queue.patch({ notes: 'Keep this edit' });
+  await Promise.resolve();
+  t.queue.reset('hero-2', { id: 'hero-2', current_hit_points: 30 });
+  first.reject(new Error('Old connection failed'));
+  expect(await hp).toBe(false);
+  expect(await notes).toBe(true);
+  expect(t.patchRequest).toHaveBeenNthCalledWith(2, 'hero-1', { notes: 'Keep this edit' });
+  expect(t.current().id).toBe('hero-2');
+  expect(t.onError).not.toHaveBeenCalled();
+});
+
+test('deferred callbacks cannot write to a different character or a reopened old session', async () => {
+  const t = setup();
+  const originalSession = t.queue.getSession();
+  t.queue.reset('hero-2', { id: 'hero-2', current_hit_points: 30 });
+  expect(await t.queue.patchForSession(originalSession, { concentrating_on: 'Hex' })).toBe(false);
+  expect(t.current().concentrating_on).toBeUndefined();
+  t.queue.reset('hero-1', { id: 'hero-1', current_hit_points: 20 });
+  expect(await t.queue.patchForSession(originalSession, { concentrating_on: 'Hex' })).toBe(false);
+  expect(t.patchRequest).not.toHaveBeenCalled();
+});
+
+test('reopening the same character waits for its previously accepted writes', async () => {
+  const t = setup();
+  const first = deferred();
+  t.patchRequest.mockReturnValueOnce(first.promise).mockResolvedValueOnce({
+    data: { id: 'hero-1', current_hit_points: 12, notes: 'Reopened' },
+  });
+  const old = t.queue.patch({ current_hit_points: 12 });
+  await Promise.resolve();
+  t.queue.reset('hero-2', { id: 'hero-2', current_hit_points: 30 });
+  t.queue.reset('hero-1', { id: 'hero-1', current_hit_points: 20 });
+  const newer = t.queue.patch({ notes: 'Reopened' });
+  await Promise.resolve();
+  expect(t.patchRequest).toHaveBeenCalledTimes(1);
+  first.resolve({ data: { id: 'hero-1', current_hit_points: 12, notes: 'Start' } });
+  expect(await old).toBe(true);
+  expect(await newer).toBe(true);
+  expect(t.patchRequest).toHaveBeenNthCalledWith(2, 'hero-1', { notes: 'Reopened' });
+  expect(t.current()).toMatchObject({ id: 'hero-1', notes: 'Reopened' });
+});
+
+test('queued rest still executes on original character after navigating away', async () => {
+  const t = setup();
+  const first = deferred();
+  t.patchRequest.mockReturnValueOnce(first.promise);
+  const hp = t.queue.patch({ current_hit_points: 9 });
+  const restAction = jest.fn().mockResolvedValue({ data: { id: 'hero-1', current_hit_points: 20 } });
+  const rest = t.queue.runServerAction(restAction, { success: 'Rest completed' });
+  await Promise.resolve();
+  t.queue.reset('hero-2', { id: 'hero-2', current_hit_points: 30 });
+  first.resolve({ data: { id: 'hero-1', current_hit_points: 9 } });
+  expect(await hp).toBe(true);
+  expect(await rest).toBe(true);
+  expect(restAction).toHaveBeenCalledWith('hero-1', expect.objectContaining({ current_hit_points: 9 }));
+  expect(t.current()).toMatchObject({ id: 'hero-2', current_hit_points: 30 });
+  expect(t.onSuccess).not.toHaveBeenCalled();
 });
