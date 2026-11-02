@@ -111,3 +111,10 @@ test('a player display link resumes after signing in', async () => {
   expect(await screen.findByRole('heading', { name: 'Player display' })).toBeInTheDocument();
   expect(screen.queryByText(/Dashboard for/)).not.toBeInTheDocument();
 });
+
+test.each([true, false])('emailed reset link opens the public recovery route with an existing session: %s', async signedIn => {
+  if (!signedIn) localStorage.clear();
+  openApp('/reset-password?token=emailed-token');
+  expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: /Dashboard for/ })).not.toBeInTheDocument();
+});
