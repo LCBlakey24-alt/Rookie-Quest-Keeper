@@ -1,10 +1,11 @@
 export const BRAND_MAIN_LOGO_PNG_SRC = '/brand/keeper-primary-logo.png'; // Legacy/social fallback.
 export const BRAND_MAIN_LOGO_SVG_SRC = '/brand/rookie-quest-keeper-main-logo.svg';
-export const BRAND_MINI_LOGO_PNG_SRC = '/brand/keeper-symbol.png';
+export const BRAND_MINI_LOGO_PNG_SRC = '/brand/keeper-symbol.png'; // Legacy raster fallback.
+export const BRAND_MINI_LOGO_SVG_SRC = '/brand/rookie-quest-keeper-app-icon.svg';
 export const BRAND_COMPACT_LOGO_SRC = BRAND_MAIN_LOGO_SVG_SRC;
-export const BRAND_APP_ICON_SRC = '/brand/keeper-app-icon.png';
+export const BRAND_APP_ICON_SRC = BRAND_MINI_LOGO_SVG_SRC;
 export const BRAND_MAIN_LOGO_SRC = BRAND_MAIN_LOGO_SVG_SRC;
-export const BRAND_MINI_LOGO_SRC = BRAND_MINI_LOGO_PNG_SRC;
+export const BRAND_MINI_LOGO_SRC = BRAND_MINI_LOGO_SVG_SRC;
 
 export function BrandMiniLogo({ className = '', alt = 'Rookie Quest Keeper', size = 44, style = {} }) {
   return (

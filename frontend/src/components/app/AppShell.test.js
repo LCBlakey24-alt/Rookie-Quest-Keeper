@@ -33,7 +33,7 @@ describe('AppShell', () => {
   test('renders the current app navigation, brand mark, and page content', () => {
     const html = renderToStaticMarkup(<AppShell><main>GM prep content</main></AppShell>);
 
-    expect(html).toContain('/brand/keeper-symbol.png');
+    expect(html).toContain('/brand/rookie-quest-keeper-app-icon.svg');
     expect(html).toContain('Campaigns');
     expect(html).toContain('Characters');
     expect(html).toContain('Homebrew');

@@ -5,14 +5,17 @@
  * media uses a separate account-scoped Cache Storage name supplied by the app.
  */
 
-const SHELL_CACHE = 'rqk-shell-v4';
-const STATIC_CACHE = 'rqk-static-v4';
+const SHELL_CACHE = 'rqk-shell-v5';
+const STATIC_CACHE = 'rqk-static-v5';
 const APP_SHELL = [
   '/',
   '/asset-manifest.json',
   '/site.webmanifest',
-  '/brand/keeper-symbol.png',
-  '/brand/keeper-compact-wordmark.png',
+  '/brand/rookie-quest-keeper-main-logo.svg',
+  '/brand/rookie-quest-keeper-app-icon.svg',
+  '/icons/keeper-192.png',
+  '/icons/keeper-512.png',
+  '/icons/keeper-maskable-512.png',
   '/favicon.png',
   '/apple-touch-icon.png',
 ];
