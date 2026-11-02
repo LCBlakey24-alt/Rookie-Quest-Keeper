@@ -101,6 +101,10 @@ export default function CleanCharacterSheet() {
     async function loadCharacter() {
       try {
         setLoading(true);
+        // A previous sheet instance may still be saving this character.
+        // Never render a stale GET or calculate new changes from old HP.
+        await saveControllerRef.current.whenIdle(characterId);
+        if (cancelled) return;
         const response = await apiClient.get(`/characters/${characterId}`);
         if (!cancelled) saveControllerRef.current.reset(characterId, response.data);
       } catch (error) {
