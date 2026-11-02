@@ -51,6 +51,45 @@ for (const size of appSizes) {
   });
 }
 
+// Touch targets. docs/DESIGN_SYSTEM.md sets ~44px as the floor on phones.
+//
+// This is a browser check rather than a stylesheet scan because the
+// stylesheets set heights for the same control in several places across
+// several breakpoints, and public/rq-polish.css then overrides some of them
+// with !important. Reading the CSS found three undersized controls; measuring
+// the rendered page found nine, including footer links at 30px and the
+// landing card links at 24px.
+for (const size of [
+  { label: 'small phone', width: 320 },
+  { label: 'phone', width: 390 },
+]) {
+  for (const route of ['/', '/auth', '/auth?mode=register']) {
+    test(`every control on ${route} clears 44px at ${size.label} (${size.width}px)`, async ({ page }) => {
+      await page.setViewportSize({ width: size.width, height: 780 });
+      await avoidThirdPartyRequests(page);
+      await page.goto(route);
+      await expect(page.locator('#root')).toBeVisible();
+      // Let entrance motion and any responsive JS settle before measuring.
+      await page.waitForTimeout(1200);
+
+      const undersized = await page.evaluate(() => {
+        const visible = (el: Element) => {
+          const rect = el.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && getComputedStyle(el).visibility !== 'hidden';
+        };
+        return [...document.querySelectorAll('button, [role="button"], [role="tab"]')]
+          .filter(visible)
+          .map(el => ({ height: Math.round(el.getBoundingClientRect().height), label: (el.textContent || '').trim().slice(0, 24) }))
+          .filter(item => item.height < 44)
+          .map(item => `${item.label || '(unlabelled)'} -> ${item.height}px`);
+      });
+
+      expect(undersized, 'controls below the 44px touch-target floor').toEqual([]);
+      await assertFitsViewport(page, size.width);
+    });
+  }
+}
+
 // The landing hero puts a mock app screenshot beside the copy. It is the
 // first thing a visitor sees, and it has a lot of internal structure -- a
 // sidebar, a tab row, a four-up stat grid -- so it needs real width.

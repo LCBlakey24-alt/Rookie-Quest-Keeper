@@ -58,7 +58,7 @@
 
 #root .rq-brand-nav-signin,
 #root .rq-brand-nav-cta {
-  min-height: 40px !important;
+  min-height: 44px !important;
 }
 
 #root .rq-brand-hero {
@@ -403,7 +403,7 @@
 }
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button {
-  min-height: 40px !important;
+  min-height: 44px !important;
   border-radius: 5px !important;
 }
 
@@ -494,7 +494,7 @@
 #root .rqk-auth-page .rqk-demo-access__button {
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 42px !important;
+  min-height: 44px !important;
   border-radius: 5px !important;
 }
 
@@ -584,9 +584,11 @@
     gap: 5px !important;
   }
 
+  /* 44px is the touch-target floor from docs/DESIGN_SYSTEM.md. These were
+     38px, which is below it on exactly the screens where it matters most. */
   #root .landing-page-final .landing-nav-actions .landing-button {
     flex: 0 1 auto !important;
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 10px !important;
     font-size: 11px !important;
     white-space: nowrap !important;
@@ -662,13 +664,13 @@
 
   #root .rq-brand-nav-signin {
     display: inline-flex !important;
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding: 7px 8px !important;
     font-size: 10px !important;
   }
 
   #root .rq-brand-nav-cta {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding: 8px 10px !important;
     font-size: 10px !important;
   }
@@ -849,7 +851,7 @@
   }
 
   #root .landing-page-final .landing-nav-actions .landing-button {
-    min-height: 36px !important;
+    min-height: 44px !important;
     padding-inline: 8px !important;
     font-size: 10px !important;
   }
@@ -866,5 +868,26 @@
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-auth-ambient span {
     animation: none !important;
+  }
+}
+
+/* Touch-target floor for the public pages.
+ *
+ * docs/DESIGN_SYSTEM.md sets ~44px as the minimum on phones. Chasing that one
+ * rule at a time did not work: the landing stylesheet sets heights for the
+ * same control in four places across different breakpoints, and this file
+ * then overrides several of them with !important, so each fix needed four
+ * edits and still missed cases. This is a single floor instead.
+ *
+ * Scoped deliberately to the landing and auth surfaces, which are the ones
+ * verified in a browser. It is not applied app-wide because dense table
+ * screens have small deliberate controls (steppers, pips) that a blanket
+ * floor would stretch.
+ */
+@media (max-width: 719px) {
+  #root .keeper-product-site :is(button, [role="button"], a.landing-button),
+  #root .landing-page-final :is(button, [role="button"], a.landing-button),
+  #root .rqk-auth-page :is(button, [role="button"], [role="tab"]) {
+    min-height: 44px !important;
   }
 }
