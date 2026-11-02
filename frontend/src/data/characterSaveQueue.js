@@ -8,9 +8,13 @@
  * Writes to the same character remain ordered even if that sheet is reopened.
  * Cross-device edits still need server-side revision/concurrency checks.
  */
+// Shared by all controller instances in this browser tab. React unmounts
+// CleanCharacterSheet when returning to the character library, so a controller-
+// local queue cannot guarantee write order across reopenings.
+const characterWriteTails = new Map();
+
 export function createCharacterSaveQueue({ publish, patchRequest, onSuccess = () => {}, onError = () => {} }) {
   let activeSession = null;
-  const writeTails = new Map();
 
   const snapshot = (session = activeSession) => {
     if (!session?.confirmed) return null;
@@ -41,12 +45,12 @@ export function createCharacterSaveQueue({ publish, patchRequest, onSuccess = ()
   const enqueue = (session, task) => {
     // Keep writes to the same character in order, including A -> B -> A
     // navigation while A's earlier requests are still in flight.
-    const previous = writeTails.get(session.id) || Promise.resolve();
+    const previous = characterWriteTails.get(session.id) || Promise.resolve();
     const result = previous.then(task, task);
     const tail = result.then(() => undefined, () => undefined);
-    writeTails.set(session.id, tail);
+    characterWriteTails.set(session.id, tail);
     tail.then(() => {
-      if (writeTails.get(session.id) === tail) writeTails.delete(session.id);
+      if (characterWriteTails.get(session.id) === tail) characterWriteTails.delete(session.id);
     });
     return result;
   };
@@ -92,6 +96,11 @@ export function createCharacterSaveQueue({ publish, patchRequest, onSuccess = ()
 
   const patch = (updates, options = {}) => patchForSession(activeSession, updates, options);
 
+  // Before loading a reopened sheet, wait for older accepted writes to settle.
+  // Otherwise GET can return stale HP/inventory and the next edit is computed
+  // against the wrong values even if later PATCHes are correctly ordered.
+  const whenIdle = (id) => characterWriteTails.get(id) || Promise.resolve();
+
   /** Serialise authoritative server operations (e.g. short/long rest) too. */
   const runServerAction = (action, options = {}) => {
     const session = activeSession;
@@ -113,6 +122,7 @@ export function createCharacterSaveQueue({ publish, patchRequest, onSuccess = ()
   return {
     reset,
     invalidate,
+    whenIdle,
     patch,
     patchForSession,
     runServerAction,
