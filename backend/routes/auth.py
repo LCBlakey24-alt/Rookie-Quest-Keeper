@@ -333,19 +333,19 @@ async def forgot_password(request: ForgotPasswordRequest):
 @router.post("/auth/reset-password")
 async def reset_password(request: ResetPasswordRequest):
     """Reset password using token"""
-    reset_record = await db.password_resets.find_one({'token': request.token})
+    # Consume the token atomically: overlapping requests cannot both reset it.
+    reset_record = await db.password_resets.find_one_and_delete({'token': request.token})
     
     if not reset_record:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
     
     expires_at = datetime.fromisoformat(reset_record['expires_at'])
     if datetime.now(timezone.utc) > expires_at:
-        await db.password_resets.delete_one({'token': request.token})
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset token has expired")
     
     password_hash = hash_password(request.new_password)
     # Bumping token_version signs out every existing session for this account.
-    await db.users.update_one(
+    result = await db.users.update_one(
         {'email': reset_record['email']},
         {
             '$set': {
@@ -356,7 +356,8 @@ async def reset_password(request: ResetPasswordRequest):
         }
     )
     
-    await db.password_resets.delete_one({'token': request.token})
+    if result.matched_count != 1:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset link is no longer valid")
     return {"message": "Password reset successful"}
 
 
