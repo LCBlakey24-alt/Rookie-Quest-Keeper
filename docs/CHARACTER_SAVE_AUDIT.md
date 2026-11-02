@@ -85,7 +85,7 @@ Use one existing character and confirm each change persists after refresh:
 
 ## Limitations of this fix (November 2026)
 
-- The queue orders writes **within one browser controller per character**. Edits already accepted continue saving to their original character after navigation, including when that character is reopened before the old requests finish. Obsolete responses and toasts cannot overwrite another open sheet.
+- Writes use a **per-character queue shared across character-sheet mounts in one browser tab**. Previously accepted edits continue to their original character after navigation; reopening that character waits for old writes to finish *before* fetching the current HP, inventory, and notes, so the next action is calculated from the new values. Obsolete responses and toasts cannot overwrite another open sheet.
 - Delayed save handlers (including concentration replacement confirmations) are tied to their originating sheet session and refuse to save into a later session.
 - An old request that fails after the user leaves its sheet cannot notify that now-unrelated sheet; players should check important edits after reconnecting. Offline recovery/retry is a separate follow-up.
 - Concurrent edits from two different devices are still not protected. A server-side revision/ETag check is needed for cross-device conflicts.
