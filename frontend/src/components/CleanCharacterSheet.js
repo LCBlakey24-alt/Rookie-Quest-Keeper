@@ -255,10 +255,13 @@ export default function CleanCharacterSheet() {
   // Bind handlers from this render to its sheet. Async child callbacks from
   // an old character must never redirect updates into the newly opened sheet.
   const sheetSession = saveControllerRef.current.getSession();
-  const patchCharacter = (updates, options = {}) => (
-    saveControllerRef.current.patchForSession(sheetSession, updates, options)
-  );
   const isCurrentSheetSession = () => sheetSession === saveControllerRef.current.getSession();
+  const patchCharacter = async (updates, options = {}) => {
+    const saved = await saveControllerRef.current.patchForSession(sheetSession, updates, options);
+    // A write accepted before navigation may have persisted successfully, but
+    // its old child UI must not continue with new success toasts or follow-ups.
+    return saved && isCurrentSheetSession();
+  };
 
   const patchCharacterWithConcentrationGuard = async (updates, options = {}) => {
     const nextConcentration = updates?.concentrating_on ?? updates?.concentration;
