@@ -147,7 +147,7 @@ export default function MyCampaignsPage() {
     // Never treat a failed fetch as proof a player has no characters/campaigns.
     setPlayerToolsError(
       charactersResult.status === 'rejected' || joinedResult.status === 'rejected'
-        ? 'Some player campaign information could not load. Previously loaded information is still shown.'
+        ? 'Some player campaign information could not load. Previously loaded information remains visible where available.'
         : ''
     );
   };
