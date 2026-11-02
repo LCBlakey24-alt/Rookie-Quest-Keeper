@@ -114,6 +114,85 @@ def test_changing_password_signs_out_other_sessions_but_not_this_one():
     assert _claims(result['token'])['sub'] == 'Rook'
 
 
+def test_missing_email_provider_reports_outage_for_every_address():
+    auth_routes = _route_module('auth')
+    from models import ForgotPasswordRequest
+
+    users = SimpleNamespace(find_one=AsyncMock())
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', False), \
+         patch.object(auth_routes, 'db', SimpleNamespace(users=users)):
+        with pytest.raises(HTTPException) as missing:
+            run(auth_routes.forgot_password(ForgotPasswordRequest(email='player@example.com')))
+    assert missing.value.status_code == 503
+    users.find_one.assert_not_awaited()
+
+
+def test_failed_recovery_send_does_not_invalidate_previous_good_link():
+    auth_routes = _route_module('auth')
+    from models import ForgotPasswordRequest
+
+    users = SimpleNamespace(find_one=AsyncMock(return_value={'email': 'player@example.com'}))
+    resets = SimpleNamespace(
+        insert_one=AsyncMock(),
+        delete_one=AsyncMock(),
+        delete_many=AsyncMock(),
+    )
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \
+         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
+         patch.object(auth_routes.resend.Emails, 'send', side_effect=RuntimeError('provider down')):
+        response = run(auth_routes.forgot_password(ForgotPasswordRequest(email='player@example.com')))
+
+    assert response['message'].startswith('If an account exists')
+    resets.insert_one.assert_awaited_once()
+    resets.delete_one.assert_awaited_once()
+    assert resets.delete_one.await_args.args[0]['token'] == resets.insert_one.await_args.args[0]['token']
+    resets.delete_many.assert_not_awaited()
+
+
+def test_accepted_recovery_send_retires_only_older_links():
+    auth_routes = _route_module('auth')
+    from models import ForgotPasswordRequest
+
+    users = SimpleNamespace(find_one=AsyncMock(return_value={'email': 'player@example.com'}))
+    resets = SimpleNamespace(
+        insert_one=AsyncMock(),
+        delete_one=AsyncMock(),
+        delete_many=AsyncMock(),
+    )
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \
+         patch.object(auth_routes, 'APP_URL', 'https://rookiequestkeeper.com/'), \
+         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
+         patch.object(auth_routes.resend.Emails, 'send', return_value={'id': 'provider-message-id'}) as sender:
+        response = run(auth_routes.forgot_password(ForgotPasswordRequest(email='Player@Example.com')))
+
+    assert response['message'].startswith('If an account exists')
+    inserted = resets.insert_one.await_args.args[0]
+    assert inserted['email'] == 'player@example.com'
+    assert inserted['token']
+    assert inserted['token'] in sender.call_args.args[0]['html']
+    assert 'https://rookiequestkeeper.com/reset-password?token=' in sender.call_args.args[0]['html']
+    resets.delete_one.assert_not_awaited()
+    resets.delete_many.assert_awaited_once_with({
+        'email': 'player@example.com',
+        'token': {'$ne': inserted['token']},
+    })
+
+
+def test_unknown_recovery_email_never_sends_email():
+    auth_routes = _route_module('auth')
+    from models import ForgotPasswordRequest
+
+    users = SimpleNamespace(find_one=AsyncMock(return_value=None))
+    resets = SimpleNamespace(insert_one=AsyncMock())
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \
+         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
+         patch.object(auth_routes.resend.Emails, 'send') as sender:
+        response = run(auth_routes.forgot_password(ForgotPasswordRequest(email='unknown@example.com')))
+    assert response['message'].startswith('If an account exists')
+    resets.insert_one.assert_not_awaited()
+    sender.assert_not_called()
+
+
 def test_password_reset_signs_out_every_session():
     auth_routes = _route_module('auth')
     from models import ResetPasswordRequest

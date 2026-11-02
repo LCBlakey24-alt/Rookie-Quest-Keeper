@@ -17,6 +17,7 @@ import re
 from pymongo.errors import DuplicateKeyError
 from datetime import datetime, timezone, timedelta
 import resend
+from starlette.concurrency import run_in_threadpool
 
 EMAIL_DELIVERY_CONFIGURED = bool(RESEND_API_KEY) and RESEND_API_KEY != 'your_resend_api_key_here'
 
@@ -282,64 +283,80 @@ def _email_domain(address: str) -> str:
 
 @router.post("/auth/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
-    """Send password reset email"""
-    user = await db.users.find_one({'email': request.email.lower()})
-    
+    """Request a recovery link without exposing whether the address belongs to an account.
+
+    Store a fresh token before handing the message to Resend, but do not
+    invalidate earlier delivered links until the new send is accepted.
+    """
+    generic_response = {"message": "If an account exists with this email, a reset link will be sent"}
+
+    # This outage affects *all* addresses, so reporting it is not enumeration.
+    # Never imply delivery when the service has no usable sending credentials.
+    if not EMAIL_DELIVERY_CONFIGURED:
+        logger.error("Password recovery unavailable: RESEND_API_KEY is not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Password recovery is temporarily unavailable. Please try again later.",
+        )
+
+    email = str(request.email).strip().lower()
+    user = await db.users.find_one({'email': email})
     if not user:
-        return {"message": "If an account exists with this email, a reset link has been sent"}
-    
+        return generic_response
+
     reset_token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-    
-    await db.password_resets.delete_many({'email': request.email.lower()})
+
     await db.password_resets.insert_one({
-        'email': request.email.lower(),
+        'email': email,
         'token': reset_token,
         'expires_at': expires_at.isoformat(),
-        'created_at': datetime.now(timezone.utc).isoformat()
+        'created_at': datetime.now(timezone.utc).isoformat(),
     })
-    
-    reset_link = f"{APP_URL}/reset-password?token={reset_token}"
-    
-    # The response below is deliberately identical whether or not the account
-    # exists, so an attacker cannot enumerate addresses. That protection must
-    # not also hide delivery failures from the operator, so every path that
-    # fails to send logs loudly here instead.
-    if not EMAIL_DELIVERY_CONFIGURED:
+    reset_link = f"{APP_URL.rstrip('/')}/reset-password?token={reset_token}"
+
+    try:
+        # The pinned Resend Python SDK's send method is synchronous; run it
+        # off the FastAPI event loop so a slow provider does not block requests.
+        provider_result = await run_in_threadpool(resend.Emails.send, {
+            "from": SENDER_EMAIL,
+            "to": [email],
+            "subject": "Reset Your Rookie Quest Keeper Password",
+            "html": f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #0B1B2B;">Rookie Quest Keeper</h1>
+                <h2>Password Reset Request</h2>
+                <p>You requested to reset your password. Click below to choose a new password:</p>
+                <a href="{reset_link}" style="display: inline-block; background: #0B1B2B; color: #EADFC8; padding: 12px 24px; border-radius: 8px 8px 0 0; text-decoration: none; font-weight: bold; margin: 20px 0 0;">Reset Password</a>
+                <div aria-hidden="true" style="height: 3px; width: 155px; background: #FF8A1F; background: linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%); margin-bottom: 20px;"></div>
+                <p>Or paste this link into your browser:</p>
+                <p style="word-break: break-all; color: #666;">{reset_link}</p>
+                <p><strong>This link expires in 1 hour.</strong></p>
+                <p>If you didn't request this, you can ignore this email.</p>
+            </div>
+            """,
+        })
+        # The Python Resend SDK reports successful submission with an email ID.
+        # Treat an empty/invalid response as a failed handoff, not success.
+        if not isinstance(provider_result, dict) or not provider_result.get('id'):
+            raise RuntimeError("Resend did not confirm an email ID")
+    except Exception as exc:
+        # Avoid invalidating a previously delivered, still-valid reset link.
+        await db.password_resets.delete_one({'token': reset_token})
+        # Never log the full address, token or reset URL.
         logger.error(
-            "Password reset requested for a %s address but email delivery is not configured; "
-            "the reset token was stored and no email was sent",
-            _email_domain(request.email),
+            "Password recovery email handoff failed (%s address, error type: %s)",
+            _email_domain(email), type(exc).__name__,
         )
-    else:
-        try:
-            resend.Emails.send({
-                "from": SENDER_EMAIL,
-                "to": [request.email.lower()],
-                "subject": "Reset Your Rookie Quest Keeper Password",
-                "html": f"""
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h1 style="color: #0B1B2B;">Rookie Quest Keeper</h1>
-                    <h2>Password Reset Request</h2>
-                    <p>You requested to reset your password. Click the button below to set a new password:</p>
-                    <a href="{reset_link}" style="display: inline-block; background: #0B1B2B; color: #EADFC8; padding: 12px 24px; border-radius: 8px 8px 0 0; text-decoration: none; font-weight: bold; margin: 20px 0 0;">
-                        Reset Password
-                    </a>
-                    <div aria-hidden="true" style="height: 3px; width: 155px; background: #FF8A1F; background: linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%); margin-bottom: 20px;"></div>
-                    <p>Or copy and paste this link into your browser:</p>
-                    <p style="word-break: break-all; color: #666;">{reset_link}</p>
-                    <p><strong>This link will expire in 1 hour.</strong></p>
-                    <p>If you didn't request this, you can safely ignore this email.</p>
-                </div>
-                """
-            })
-        except Exception as e:
-            logger.error(
-                "Failed to send password reset email to a %s address (provider error type: %s)",
-                _email_domain(request.email), type(e).__name__,
-            )
-    
-    return {"message": "If an account exists with this email, a reset link has been sent"}
+        # Keep the same public response for unknown addresses and failed
+        # sends: provider errors must not become an account-enumeration oracle.
+        return generic_response
+
+    # Only once the provider accepts the new message is it safe to invalidate
+    # older requests. A new request must not break an existing usable link.
+    await db.password_resets.delete_many({'email': email, 'token': {'$ne': reset_token}})
+    logger.info("Password recovery email accepted by provider for a %s address", _email_domain(email))
+    return generic_response
 
 
 @router.post("/auth/reset-password")

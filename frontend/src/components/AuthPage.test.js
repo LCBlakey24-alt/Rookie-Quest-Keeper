@@ -106,6 +106,29 @@ describe('AuthPage', () => {
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
   });
 
+  test('shows neutral recovery instructions without revealing registered addresses', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { message: 'If an account exists with this email, a reset link will be sent' } });
+    renderAuthPage('/auth?mode=forgot');
+    fireEvent.change(screen.getByLabelText(/recovery email/i), { target: { value: ' player@example.com ' } });
+    fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
+
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/auth/forgot-password', { email: 'player@example.com' }));
+    expect(screen.getByText(/if an account uses that email address/i)).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('button', { name: /send another link/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /reset your password/i })).toBeInTheDocument();
+    expect(toast.success).not.toHaveBeenCalledWith('Password reset email sent!');
+  });
+
+  test('displays a recovery service outage instead of claiming an email was sent', async () => {
+    apiClient.post.mockRejectedValueOnce({ response: { status: 503, data: { detail: 'Password recovery is temporarily unavailable. Please try again later.' } } });
+    renderAuthPage('/auth?mode=forgot');
+    fireEvent.change(screen.getByLabelText(/recovery email/i), { target: { value: 'player@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(screen.queryByText(/if an account uses that email address/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
+  });
+
   test('opens the reset password flow when a token is present', () => {
     renderAuthPage('/auth?token=abc123');
 
