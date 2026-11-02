@@ -119,10 +119,9 @@ def test_password_reset_signs_out_every_session():
     from models import ResetPasswordRequest
 
     resets = SimpleNamespace(
-        find_one=AsyncMock(return_value={'email': 'rook@example.com', 'token': 't', 'expires_at': '2999-01-01T00:00:00+00:00'}),
-        delete_one=AsyncMock(),
+        find_one_and_delete=AsyncMock(return_value={'email': 'rook@example.com', 'token': 't', 'expires_at': '2999-01-01T00:00:00+00:00'}),
     )
-    users = SimpleNamespace(update_one=AsyncMock())
+    users = SimpleNamespace(update_one=AsyncMock(return_value=SimpleNamespace(matched_count=1)))
     with patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
          patch.object(auth_routes, 'hash_password', return_value='new-hash'):
         run(auth_routes.reset_password(ResetPasswordRequest(token='t', new_password='new-password-1')))
@@ -130,6 +129,56 @@ def test_password_reset_signs_out_every_session():
     _query, update = users.update_one.await_args.args
     assert update['$inc'] == {'token_version': 1}
     assert update['$set']['password_hash'] == 'new-hash'
+
+
+
+def test_password_reset_token_is_consumed_once_even_for_repeated_requests():
+    auth_routes = _route_module('auth')
+    from models import ResetPasswordRequest
+
+    record = {'email': 'rook@example.com', 'token': 'single-use', 'expires_at': '2999-01-01T00:00:00+00:00'}
+    resets = SimpleNamespace(find_one_and_delete=AsyncMock(side_effect=[record, None]))
+    users = SimpleNamespace(update_one=AsyncMock(return_value=SimpleNamespace(matched_count=1)))
+    request = ResetPasswordRequest(token='single-use', new_password='new-password-1')
+
+    with patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
+         patch.object(auth_routes, 'hash_password', return_value='new-hash'):
+        assert run(auth_routes.reset_password(request))['message'] == 'Password reset successful'
+        with pytest.raises(HTTPException) as consumed:
+            run(auth_routes.reset_password(request))
+    assert consumed.value.status_code == 400
+    assert resets.find_one_and_delete.await_count == 2
+    users.update_one.assert_awaited_once()
+
+
+def test_expired_password_reset_token_cannot_change_password():
+    auth_routes = _route_module('auth')
+    from models import ResetPasswordRequest
+
+    resets = SimpleNamespace(find_one_and_delete=AsyncMock(return_value={
+        'email': 'rook@example.com', 'expires_at': '2000-01-01T00:00:00+00:00',
+    }))
+    users = SimpleNamespace(update_one=AsyncMock())
+    with patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)):
+        with pytest.raises(HTTPException) as expired:
+            run(auth_routes.reset_password(ResetPasswordRequest(token='old', new_password='new-password-1')))
+    assert expired.value.status_code == 400
+    users.update_one.assert_not_awaited()
+
+
+def test_token_of_deleted_account_cannot_report_a_successful_reset():
+    auth_routes = _route_module('auth')
+    from models import ResetPasswordRequest
+
+    resets = SimpleNamespace(find_one_and_delete=AsyncMock(return_value={
+        'email': 'missing@example.com', 'expires_at': '2999-01-01T00:00:00+00:00',
+    }))
+    users = SimpleNamespace(update_one=AsyncMock(return_value=SimpleNamespace(matched_count=0)))
+    with patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
+         patch.object(auth_routes, 'hash_password', return_value='new-hash'):
+        with pytest.raises(HTTPException) as missing:
+            run(auth_routes.reset_password(ResetPasswordRequest(token='orphan', new_password='new-password-1')))
+    assert missing.value.status_code == 400
 
 
 def test_rule_system_lookup_treats_the_name_as_text():
