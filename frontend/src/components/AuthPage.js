@@ -158,6 +158,7 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ username: '', password: '', confirmPassword: '', email: '' });
   const [forgotEmail, setForgotEmail] = useState('');
+  const [recoveryRequested, setRecoveryRequested] = useState(false);
   const [resetData, setResetData] = useState({ token: initialToken || '', new_password: '' });
   const [loading, setLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -327,8 +328,7 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
     setLoading(true);
     try {
       await apiClient.post('/auth/forgot-password', { email: recoveryEmail });
-      toast.success('Password reset email sent!');
-      goToMode('login', { replace: true });
+      setRecoveryRequested(true);
     } catch (error) {
       toast.error(getErrorMessage(error, 'Failed to send reset email'));
     } finally {
@@ -659,7 +659,7 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
                   type="email"
                   placeholder="Enter your recovery email"
                   value={forgotEmail}
-                  onChange={setForgotEmail}
+                  onChange={(value) => { setForgotEmail(value); setRecoveryRequested(false); }}
                   autoComplete="email"
                   inputMode="email"
                   enterKeyHint="send"
@@ -668,8 +668,13 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
                 />
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
-                  {loading ? 'Sending link...' : 'Send reset link'}
+                  {loading ? 'Sending link...' : recoveryRequested ? 'Send another link' : 'Send reset link'}
                 </PrimaryButton>
+                {recoveryRequested && (
+                  <p role="status" className="rqk-auth-recovery-confirmation">
+                    If an account uses that email address, a reset link will arrive shortly. Check your inbox and junk folder. The link expires after 1 hour.
+                  </p>
+                )}
                 <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
 
                 <SecondaryButton type="button" onClick={() => goToMode('login')} disabled={loading}>
