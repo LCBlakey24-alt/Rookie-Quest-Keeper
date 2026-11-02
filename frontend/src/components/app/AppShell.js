@@ -73,14 +73,13 @@ async function loadAdminStatus() {
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
   { label: 'Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
-  { label: 'Player home', mobileLabel: 'Player', to: '/player', icon: ShieldCheck, matches: ['/player'], mobilePrimary: true },
-  { label: 'Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'], mobilePrimary: true },
-  { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: false },
+  { label: 'Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign', '/player/campaign'], mobilePrimary: true },
+  { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
   { label: 'Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
   { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'], mobilePrimary: false },
 ];
 
-const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches: ['/admin'], mobilePrimary: false };
+const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches: ['/admin'], mobilePrimary: true };
 
 function isActive(pathname, item) {
   return item.matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
@@ -196,13 +195,13 @@ export default function AppShell({ children }) {
   const deviceLayout = useDeviceLayout();
   const desktopOffline = isOfflineDesktop();
   const isMobile = deviceLayout === 'mobile';
+  const [isAdmin, setIsAdmin] = useState(() => readCachedAdminStatus() ?? false);
   const availableNavItems = desktopOffline
     ? mainNavItems.filter((item) => !['/homebrew', '/uploads', '/account'].includes(item.to))
-    : mainNavItems;
+    : (isAdmin ? [...mainNavItems, adminNavItem] : mainNavItems);
   const visibleNavItems = isMobile
     ? availableNavItems.filter((item) => item.mobilePrimary)
     : availableNavItems;
-  const [isAdmin, setIsAdmin] = useState(() => readCachedAdminStatus() ?? false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   useEffect(() => {
@@ -257,9 +256,8 @@ export default function AppShell({ children }) {
         { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
       ];
 
-    if (!desktopOffline && isAdmin) tools.push(adminNavItem);
     return tools;
-  }, [availableNavItems, desktopOffline, isAdmin]);
+  }, [availableNavItems, desktopOffline]);
   const mobileMoreCurrentSection = mobileMoreItems.find((item) => item.to && isActive(location.pathname, item));
 
   const handleRook = () => {
@@ -279,7 +277,7 @@ export default function AppShell({ children }) {
 
   return (
     <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout}>
-      <aside className="rqk-app-rail" aria-label="App navigation">
+      <aside className={isMobile && isAdmin && !desktopOffline ? "rqk-app-rail rqk-app-rail--admin-mobile" : "rqk-app-rail"} aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
             <BrandMiniLogo size={36} alt="" />
@@ -309,10 +307,9 @@ export default function AppShell({ children }) {
               <span>Feedback</span>
             </button>
 
-            {isAdmin && <RailLink item={adminNavItem} pathname={location.pathname} className="rqk-app-rail-support-link" />}
           </>}
 
-          {isMobile && <button
+          {isMobile && !(isAdmin && !desktopOffline) && <button
             type="button"
             className={[
               'rqk-app-rail-link',
@@ -350,6 +347,14 @@ export default function AppShell({ children }) {
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
           </div>}
+          {isMobile && isAdmin && !desktopOffline && (
+            <button type="button" className="rqk-app-topbar-tools-toggle"
+              aria-label="Open more tools" aria-expanded={isMoreOpen}
+              aria-controls="rqk-app-mobile-more-panel"
+              onClick={() => setIsMoreOpen((open) => !open)}>
+              <MoreHorizontal size={20} aria-hidden="true" />
+            </button>
+          )}
         </header>
 
         <div className="rqk-app-shell-content">
