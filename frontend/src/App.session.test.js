@@ -92,6 +92,25 @@ test('successful sign-in persists the username alongside the session', async () 
   expect(JSON.parse(sessionStorage.getItem('rqk.admin-check:New Keeper'))).toMatchObject({ isAdmin: true });
 });
 
+test('the landing and sign-in routes still render if browser storage is denied', async () => {
+  localStorage.clear();
+  const original = window.localStorage;
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+      setItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+      removeItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+    },
+  });
+  try {
+    openApp('/');
+    expect(await screen.findByRole('heading', { name: 'Rookie Quest Keeper landing' })).toBeInTheDocument();
+  } finally {
+    Object.defineProperty(window, 'localStorage', { configurable: true, value: original });
+  }
+});
+
 test('the public root is the Keeper product site', async () => {
   localStorage.clear();
   openApp('/');
