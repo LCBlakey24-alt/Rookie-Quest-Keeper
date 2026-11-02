@@ -22,10 +22,12 @@ The character sheet is one of the highest-risk areas of the app because live tab
 
 `CleanCharacterSheet.js` has a central `patchCharacter(updates, options)` helper that:
 
-- applies optimistic local updates;
-- sends `PATCH /characters/:characterId`;
-- replaces local state with the API response when available;
-- rolls back to the previous character on error;
+- applies optimistic local updates using `characterSaveQueue.js`;
+- **serialises** `PATCH /characters/:characterId` calls per open character sheet;
+- rebases later pending edits over each confirmed full API response, so a late HP response cannot erase pending spell-slot/notes changes;
+- rolls back only the failed edit, preserving subsequent pending changes;
+- ignores responses belonging to a character page that has since changed;
+- serialises short/long rests with other live edits, using REST fallback only for missing/unsupported routes (404/405), not timeouts or server failures;
 - returns `true` or `false` for child flows.
 
 This helper is currently used for the most important live table state:
@@ -80,3 +82,8 @@ Use one existing character and confirm each change persists after refresh:
 10. Save notes.
 11. Complete a short rest and long rest.
 12. Repeat the key HP/status checks on mobile width.
+
+## Limitations of this fix (November 2026)
+
+- This queue orders writes **within one open sheet on one device**. It does not yet prevent two different devices from overwriting one another. A server-side revision/ETag check will be needed for cross-device conflicts.
+- The browser still needs a real-device smoke test for HP, conditions, spell slots, inventory, notes, and rests with a real signed-in playtest character. Automated pure queue tests do not prove mobile network reliability.

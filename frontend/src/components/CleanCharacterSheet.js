@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -33,6 +33,7 @@ import {
 import { getClassFeatures } from '@/data/classFeatures';
 import { formatClassProgression } from '@/data/levelUpProgressionRules';
 import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
+import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import {
   PASSIVE_SKILLS,
   SHEET_TABS,
@@ -61,6 +62,17 @@ export default function CleanCharacterSheet() {
   const navigate = useNavigate();
   const isPhone = useDeviceLayout() === 'mobile';
   const [character, setCharacter] = useState(null);
+  const saveControllerRef = useRef(null);
+  if (!saveControllerRef.current) {
+    saveControllerRef.current = createCharacterSaveQueue({
+      publish: setCharacter,
+      patchRequest: (id, updates) => apiClient.patch(`/characters/${id}`, updates),
+      onSuccess: (message) => toast.success(message),
+      onError: (error, options) => toast.error(
+        error?.formattedDetail || error?.response?.data?.detail || options.error || 'Could not save character update'
+      ),
+    });
+  }
   const [loading, setLoading] = useState(true);
   const [savingHp, setSavingHp] = useState(false);
   const [savingTempHp, setSavingTempHp] = useState(false);
@@ -84,14 +96,18 @@ export default function CleanCharacterSheet() {
 
   useEffect(() => {
     let cancelled = false;
+    // New routes must not receive a late save response from the old sheet.
+    saveControllerRef.current.reset(characterId, null);
     async function loadCharacter() {
       try {
         setLoading(true);
         const response = await apiClient.get(`/characters/${characterId}`);
-        if (!cancelled) setCharacter(response.data);
+        if (!cancelled) saveControllerRef.current.reset(characterId, response.data);
       } catch (error) {
-        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load character');
-        if (!cancelled) setCharacter(null);
+        if (!cancelled) {
+          toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load character');
+          saveControllerRef.current.reset(characterId, null);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -228,20 +244,8 @@ export default function CleanCharacterSheet() {
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
   const getRollBonus = () => Number(rollBonus) || 0;
 
-  const patchCharacter = async (updates, options = {}) => {
-    const previous = character;
-    setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
-    try {
-      const response = await apiClient.patch(`/characters/${characterId}`, updates);
-      if (response?.data && typeof response.data === 'object') setCharacter(response.data.character || response.data);
-      if (options.success) toast.success(options.success);
-      return true;
-    } catch (error) {
-      setCharacter(previous);
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || options.error || 'Could not save character update');
-      return false;
-    }
-  };
+  // One ordered save queue is shared by mobile, tablet and desktop tabs.
+  const patchCharacter = (updates, options = {}) => saveControllerRef.current.patch(updates, options);
 
   const patchCharacterWithConcentrationGuard = async (updates, options = {}) => {
     const nextConcentration = updates?.concentrating_on ?? updates?.concentration;
@@ -439,23 +443,28 @@ export default function CleanCharacterSheet() {
     setSavingQuickState(false);
   };
 
-  const buildRestFallback = (restType) => (
-    restType === 'long'
-      ? buildLongRestUpdates(character)
-      : buildShortRestUpdates(character)
-  );
-
   const handleRest = async (restType) => {
     if (!character || savingQuickState) return;
     setSavingQuickState(true);
     const endpoint = restType === 'long' ? 'long-rest' : 'short-rest';
     try {
-      const response = await apiClient.post(`/characters/${characterId}/${endpoint}`);
-      const updated = response.data?.character || response.data;
-      if (updated && typeof updated === 'object') setCharacter(updated);
-      toast.success(restType === 'long' ? 'Long rest completed' : 'Short rest completed');
-    } catch (error) {
-      await patchCharacter(buildRestFallback(restType), { success: restType === 'long' ? 'Long rest applied' : 'Short rest applied', error: `Could not apply ${restType} rest` });
+      await saveControllerRef.current.runServerAction(async (id, confirmed) => {
+        try {
+          return await apiClient.post(`/characters/${id}/${endpoint}`);
+        } catch (error) {
+          // Fall back only when an older backend genuinely lacks the route.
+          // Retrying with PATCH after a timeout/500 could apply the rest twice.
+          const status = error?.response?.status;
+          if (status !== 404 && status !== 405) throw error;
+          const updates = restType === 'long'
+            ? buildLongRestUpdates(confirmed)
+            : buildShortRestUpdates(confirmed);
+          return apiClient.patch(`/characters/${id}`, updates);
+        }
+      }, {
+        success: restType === 'long' ? 'Long rest completed' : 'Short rest completed',
+        error: `Could not apply ${restType} rest`,
+      });
     } finally {
       setSavingQuickState(false);
     }
