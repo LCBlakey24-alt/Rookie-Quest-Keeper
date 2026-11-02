@@ -499,6 +499,37 @@
 }
 
 /* ---------- Responsive behaviour ---------- */
+/* Hero: one column for the whole tablet range.
+ *
+ * This file is linked straight from index.html, outside the build, and its
+ * rules carry !important -- so its breakpoints win over the bundled
+ * stylesheets regardless of their specificity. keeperProductSite.css intends
+ * to collapse the hero at 1040px, but the only collapse that actually takes
+ * effect is the one below at 760px, so the hero stayed two-column down to
+ * 761px.
+ *
+ * At 768px -- iPad portrait -- that left the app preview about 330px wide and
+ * its labels broke mid-word: "Overvie/w", "Sessio/ns", "SES/SIO/NS",
+ * "CHA/RAC/TER/S". That preview is the hero image of the landing page, so a
+ * visitor on a tablet met a broken-looking screenshot first.
+ *
+ * 1180px is the canonical tablet ceiling from docs/DESIGN_SYSTEM.md, where
+ * desktop starts at 1181px, so this also brings the landing page into line
+ * with the breakpoints the rest of the app uses. The narrower rules below
+ * still apply on top of this for phones.
+ */
+@media (max-width: 1180px) {
+  #root .landing-page-final .landing-final-hero {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  #root .landing-page-final .landing-product-stage {
+    width: min(760px, 100%) !important;
+    justify-self: center !important;
+  }
+}
+
 @media (max-width: 980px) {
   #root .rqk-auth-shell {
     width: min(570px, 100%) !important;
