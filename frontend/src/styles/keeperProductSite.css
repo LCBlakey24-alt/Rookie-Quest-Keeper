@@ -161,7 +161,7 @@
 /* -------------------------------------------------------------------------- */
 
 #root .keeper-product-site .landing-button {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -772,7 +772,8 @@
 
 #root .keeper-product-site .landing-feature-card-grid button {
   width: max-content;
-  min-height: 32px;
+  /* Text link, but still a tap target: the box grows, the text does not. */
+  min-height: 44px;
   margin-top: auto;
   display: inline-flex;
   align-items: center;
@@ -1226,7 +1227,7 @@
 }
 
 #root .keeper-product-site .landing-footer-actions button {
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 8px;
   border: 1px solid transparent !important;
   border-radius: 4px !important;
@@ -1553,7 +1554,7 @@
   }
 
   #root .keeper-product-site .landing-nav-brand {
-    min-height: 42px !important;
+    min-height: 44px !important;
     gap: 0 !important;
     padding: 0 !important;
   }
@@ -1837,7 +1838,7 @@
 
   #root .keeper-product-site .landing-feature-card-grid button {
     grid-area: action;
-    min-height: 26px !important;
+    min-height: 44px !important;
     font-size: 10px !important;
   }
 
@@ -1857,7 +1858,7 @@
   }
 
   #root .keeper-product-site .landing-audience-copy .landing-button {
-    min-height: 40px !important;
+    min-height: 44px !important;
     width: max-content !important;
   }
 
@@ -1991,7 +1992,7 @@
 #root .keeper-product-site .landing-feature-card-grid button {
   width: max-content !important;
   min-width: 0 !important;
-  min-height: 28px !important;
+  min-height: 44px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
@@ -2029,7 +2030,7 @@
   }
 
   #root .keeper-product-site .landing-feature-card-grid button {
-    min-height: 24px !important;
+    min-height: 44px !important;
     padding: 0 !important;
     background: transparent !important;
   }
@@ -2089,7 +2090,7 @@
   #root .keeper-product-site .landing-final-cta--reference > .landing-button {
     width: max-content !important;
     min-width: 150px !important;
-    min-height: 42px !important;
+    min-height: 44px !important;
     padding-inline: 14px !important;
   }
 
@@ -2119,7 +2120,7 @@
   #root .keeper-product-site .landing-footer-actions button {
     width: auto !important;
     min-width: 0 !important;
-    min-height: 30px !important;
+    min-height: 44px !important;
     padding: 0 !important;
     border: 0 !important;
     border-radius: 0 !important;
