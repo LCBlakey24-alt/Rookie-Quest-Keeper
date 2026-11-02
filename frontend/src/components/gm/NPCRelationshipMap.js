@@ -142,7 +142,7 @@ function StatBlockPanel({ npc, theme, onEdit, onClose }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
-          <button onClick={onEdit} data-testid="edit-npc-btn" style={{ background: theme.accent.subtle, border: `1px solid ${theme.border}`, borderRadius: '6px', padding: '6px', cursor: 'pointer', color: theme.accent.primary }}><Edit2 size={14} /></button>
+          <button onClick={onEdit} data-testid="edit-npc-btn" aria-label="Edit NPC" style={{ background: theme.accent.subtle, border: `1px solid ${theme.border}`, borderRadius: '6px', padding: '6px', cursor: 'pointer', color: theme.accent.primary }}><Edit2 size={14} /></button>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer' }}><X size={16} /></button>
         </div>
       </div>
