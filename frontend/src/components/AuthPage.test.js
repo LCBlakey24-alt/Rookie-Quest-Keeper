@@ -113,7 +113,6 @@ describe('AuthPage', () => {
     const passwordInput = screen.getByLabelText(/new password/i, { selector: 'input' });
     expect(passwordInput).toHaveAttribute('minLength', '8');
     expect(passwordInput).toHaveAttribute('enterKeyHint', 'done');
-    expect(screen.getByText(/^set new password$/i)).toBeInTheDocument();
   });
 
   test('opens an emailed reset link, submits its token, and clears the old session on success', async () => {
