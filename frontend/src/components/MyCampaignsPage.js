@@ -393,7 +393,7 @@ export default function MyCampaignsPage() {
       ) : sortedCampaigns.length === 0 ? (
         <section className="library-page-empty campaign-library-empty">
           <h2>No campaigns yet</h2>
-          <p>{desktopOffline ? 'Create a campaign, import a campaign pack, or apply a small campaign update from your laptop.' : 'You have no campaigns of your own yet. Create one or join your Game Master's campaign using a code.'}</p>
+          <p>{desktopOffline ? 'Create a campaign, import a campaign pack, or apply a small campaign update from your laptop.' : 'You have no campaigns of your own yet. Create one or join your GM’s campaign using a code.'}</p>
           <div className="library-page-actions">
             <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary">Create Campaign</button>
           </div>
