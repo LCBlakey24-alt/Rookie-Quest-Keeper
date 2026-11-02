@@ -4,6 +4,7 @@ import { AlertTriangle, BookOpen, Clock3, FileUp, Link2, Plus, UsersRound, Wand2
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import '@/styles/unifiedDashboardPolish.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
+import SiteUpdatesPanel from '@/components/dashboard/home/SiteUpdatesPanel';
 import { safeArray } from '@/components/dashboard/home/unifiedDashboardUtils';
 import { isOfflineDesktop } from '@/preview/previewMode';
 
@@ -172,29 +173,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         </div>
       )}
 
-      {continueItems.length > 0 && (
-        <section className="dashboard-simple-section" aria-labelledby="dashboard-continue-title">
-          <div className="dashboard-simple-heading">
-            <h2 id="dashboard-continue-title">Continue</h2>
-          </div>
-          <div className="dashboard-continue-grid">
-            {continueItems.map((item) => (
-              <DashboardContinueCard key={`${item.kind}-${item.title}`} {...item} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="dashboard-simple-section" aria-labelledby="dashboard-actions-title">
-        <div className="dashboard-simple-heading">
-          <h2 id="dashboard-actions-title">Start something</h2>
-        </div>
-        <div className="dashboard-command-grid dashboard-command-grid--simple">
-          {dashboardActions.map((action) => (
-            <DashboardActionCard key={action.title} {...action} />
-          ))}
-        </div>
-      </section>
+      <SiteUpdatesPanel />
 
       <section className="dashboard-simple-section dashboard-recent-section" aria-labelledby="dashboard-recent-title">
         <div className="dashboard-simple-heading">
