@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY } from '@/lib/auth';
-import { BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
@@ -285,7 +285,7 @@ export default function AppShell({ children }) {
             <BrandMiniLogo size={36} alt="" />
           </span>
           <span className="rqk-app-rail-brand-copy">
-            <strong>Rookie Quest</strong>
+            <BrandMainLogo width={112} alt="" />
             <small>Keeper Hub</small>
           </span>
         </Link>}
