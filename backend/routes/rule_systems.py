@@ -101,6 +101,15 @@ async def initialize_rule_systems():
     from config import logger
     logger.info("Initialized starter rule system (Fantasy d20)")
 
+async def _require_visible_rule_system(system_id: str, username: str) -> dict:
+    """Only official systems and the caller's own custom systems are readable."""
+    system = await db.rule_systems.find_one({'id': system_id}, {'_id': 0})
+    if not system or not (system.get('is_official') or system.get('owner_id') == username):
+        # Do not disclose whether a private system ID exists.
+        raise HTTPException(status_code=404, detail="Rule system not found")
+    return system
+
+
 @router.get("/rule-systems")
 async def get_rule_systems(username: str = Depends(get_current_user)):
     """Get all available rule systems (official + user's custom)"""
@@ -113,10 +122,8 @@ async def get_rule_systems(username: str = Depends(get_current_user)):
 @router.get("/rule-systems/{system_id}")
 async def get_rule_system(system_id: str, username: str = Depends(get_current_user)):
     """Get a specific rule system with all its content counts"""
-    system = await db.rule_systems.find_one({'id': system_id}, {'_id': 0})
-    if not system:
-        raise HTTPException(status_code=404, detail="Rule system not found")
-    
+    system = await _require_visible_rule_system(system_id, username)
+
     counts = {
         'classes': await db.game_classes.count_documents({'system_id': system_id}),
         'subclasses': await db.game_subclasses.count_documents({'system_id': system_id}),
@@ -167,11 +174,13 @@ async def update_rule_system(system_id: str, update_data: Dict[str, Any], userna
 
 @router.get("/rule-systems/{system_id}/classes")
 async def get_system_classes(system_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     classes = await db.game_classes.find({'system_id': system_id}, {'_id': 0}).to_list(100)
     return {"classes": classes}
 
 @router.get("/rule-systems/{system_id}/classes/{class_id}")
 async def get_class_details(system_id: str, class_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     game_class = await db.game_classes.find_one({'id': class_id, 'system_id': system_id}, {'_id': 0})
     if not game_class:
         raise HTTPException(status_code=404, detail="Class not found")
@@ -181,11 +190,13 @@ async def get_class_details(system_id: str, class_id: str, username: str = Depen
 
 @router.get("/rule-systems/{system_id}/races")
 async def get_system_races(system_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     races = await db.game_races.find({'system_id': system_id}, {'_id': 0}).to_list(100)
     return {"races": races}
 
 @router.get("/rule-systems/{system_id}/spells")
 async def get_system_spells(system_id: str, class_name: Optional[str] = None, level: Optional[int] = None, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     query = {'system_id': system_id}
     if class_name:
         query['classes'] = class_name
@@ -196,6 +207,7 @@ async def get_system_spells(system_id: str, class_name: Optional[str] = None, le
 
 @router.get("/rule-systems/{system_id}/items")
 async def get_system_items(system_id: str, item_type: Optional[str] = None, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     query = {'system_id': system_id}
     if item_type:
         query['type'] = item_type
@@ -204,11 +216,13 @@ async def get_system_items(system_id: str, item_type: Optional[str] = None, user
 
 @router.get("/rule-systems/{system_id}/feats")
 async def get_system_feats(system_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     feats = await db.game_feats.find({'system_id': system_id}, {'_id': 0}).to_list(200)
     return {"feats": feats}
 
 @router.get("/rule-systems/{system_id}/monsters")
 async def get_system_monsters(system_id: str, cr: Optional[str] = None, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     query = {'system_id': system_id}
     if cr:
         query['challenge_rating'] = cr
@@ -331,7 +345,7 @@ async def upload_content_file(system_id: str, content_type: str, file: UploadFil
 @router.post("/rulesets")
 async def upload_custom_ruleset(ruleset: RulesetUpload, username: str = Depends(get_current_user)):
     """Upload a custom ruleset (classes, races, spells, etc.)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -356,7 +370,7 @@ async def upload_custom_ruleset(ruleset: RulesetUpload, username: str = Depends(
 @router.get("/rulesets")
 async def get_user_rulesets(username: str = Depends(get_current_user)):
     """Get all rulesets available to the user (owned + shared + public)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -384,7 +398,7 @@ async def get_user_rulesets(username: str = Depends(get_current_user)):
 @router.get("/rulesets/{ruleset_id}")
 async def get_ruleset(ruleset_id: str, username: str = Depends(get_current_user)):
     """Get a specific ruleset"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -408,7 +422,7 @@ async def get_ruleset(ruleset_id: str, username: str = Depends(get_current_user)
 @router.put("/rulesets/{ruleset_id}")
 async def update_ruleset(ruleset_id: str, updates: Dict[str, Any], username: str = Depends(get_current_user)):
     """Update a ruleset (owner only)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -431,7 +445,7 @@ async def update_ruleset(ruleset_id: str, updates: Dict[str, Any], username: str
 @router.delete("/rulesets/{ruleset_id}")
 async def delete_ruleset(ruleset_id: str, username: str = Depends(get_current_user)):
     """Delete a ruleset (owner only)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -448,7 +462,7 @@ async def delete_ruleset(ruleset_id: str, username: str = Depends(get_current_us
 @router.post("/rulesets/{ruleset_id}/share")
 async def share_ruleset(ruleset_id: str, share_data: Dict[str, Any], username: str = Depends(get_current_user)):
     """Share a ruleset with users or campaigns"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
