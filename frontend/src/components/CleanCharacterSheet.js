@@ -244,8 +244,12 @@ export default function CleanCharacterSheet() {
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
   const getRollBonus = () => Number(rollBonus) || 0;
 
-  // One ordered save queue is shared by mobile, tablet and desktop tabs.
-  const patchCharacter = (updates, options = {}) => saveControllerRef.current.patch(updates, options);
+  // Bind handlers from this render to its sheet. Async child callbacks from
+  // an old character must never redirect updates into the newly opened sheet.
+  const sheetSession = saveControllerRef.current.getSession();
+  const patchCharacter = (updates, options = {}) => (
+    saveControllerRef.current.patchForSession(sheetSession, updates, options)
+  );
 
   const patchCharacterWithConcentrationGuard = async (updates, options = {}) => {
     const nextConcentration = updates?.concentrating_on ?? updates?.concentration;
