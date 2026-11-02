@@ -223,3 +223,71 @@ test('unmount suppresses stale updates and notifications without cancelling an a
   expect(t.onSuccess).not.toHaveBeenCalled();
   expect(t.onError).not.toHaveBeenCalled();
 });
+
+test('different mounted controllers share one write lane for the same character', async () => {
+  const old = setup();
+  const first = deferred();
+  old.patchRequest.mockReturnValueOnce(first.promise);
+  const previous = old.queue.patch({ notes: 'Earlier edit' });
+  await Promise.resolve();
+  old.queue.invalidate(); // React unmounted the old character sheet.
+
+  const newPatch = jest.fn().mockResolvedValue({
+    data: { id: 'hero-1', current_hit_points: 20, notes: 'Latest edit' },
+  });
+  const fresh = createCharacterSaveQueue({
+    publish: jest.fn(),
+    patchRequest: newPatch,
+  });
+  fresh.reset('hero-1', { id: 'hero-1', current_hit_points: 20, notes: 'Start' });
+  const latest = fresh.patch({ notes: 'Latest edit' });
+  await Promise.resolve();
+  expect(newPatch).not.toHaveBeenCalled();
+
+  first.resolve({ data: { id: 'hero-1', current_hit_points: 20, notes: 'Earlier edit' } });
+  expect(await previous).toBe(true);
+  expect(await latest).toBe(true);
+  expect(newPatch).toHaveBeenCalledWith('hero-1', { notes: 'Latest edit' });
+  expect(fresh.getSnapshot().notes).toBe('Latest edit');
+});
+
+test('reopened controller waits for old accepted HP save before loading fresh values', async () => {
+  let serverHp = 20;
+  const old = setup();
+  const held = deferred();
+  old.patchRequest.mockImplementationOnce(async () => {
+    await held.promise;
+    serverHp = 12;
+    return { data: { id: 'hero-1', current_hit_points: 12 } };
+  });
+  const previous = old.queue.patch({ current_hit_points: 12 });
+  await Promise.resolve();
+  old.queue.invalidate();
+
+  const fresh = createCharacterSaveQueue({ publish: jest.fn(), patchRequest: jest.fn() });
+  fresh.reset('hero-1', null);
+  let completedLoad = false;
+  const readAfterPendingWrites = (async () => {
+    await fresh.whenIdle('hero-1');
+    fresh.reset('hero-1', { id: 'hero-1', current_hit_points: serverHp });
+    completedLoad = true;
+  })();
+  await Promise.resolve();
+  expect(completedLoad).toBe(false);
+  held.resolve();
+  expect(await previous).toBe(true);
+  await readAfterPendingWrites;
+  expect(fresh.getSnapshot().current_hit_points).toBe(12);
+});
+
+test('waiting on pending writes is isolated by character ID', async () => {
+  const t = setup();
+  const held = deferred();
+  t.patchRequest.mockReturnValueOnce(held.promise);
+  const old = t.queue.patch({ current_hit_points: 9 });
+  await Promise.resolve();
+  const fresh = createCharacterSaveQueue({ publish: jest.fn(), patchRequest: jest.fn() });
+  await fresh.whenIdle('hero-2'); // Hero 2 must not hang behind hero 1.
+  held.resolve({ data: { id: 'hero-1', current_hit_points: 9 } });
+  expect(await old).toBe(true);
+});
