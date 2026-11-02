@@ -337,6 +337,13 @@ export default function MyCampaignsPage() {
 
       {!desktopOffline && (
         <section className="campaign-player-tools" aria-label="Campaign notes and handouts">
+          {joinCharacters.length > 1 && (
+            <label className="campaign-join-as">Join campaigns as
+              <select aria-label="Character for joining campaigns" value={selectedCharacterId} onChange={(event) => setSelectedCharacterId(event.target.value)}>
+                {joinCharacters.map((character) => <option key={recordId(character)} value={recordId(character)}>{character.name || 'Adventurer'}</option>)}
+              </select>
+            </label>
+          )}
           <div className="campaign-player-tools-actions">
             <button type="button" aria-expanded={activeTool === 'notes'}
               className={activeTool === 'notes' ? 'library-page-button-secondary is-active' : 'library-page-button-secondary'}
@@ -431,8 +438,7 @@ export default function MyCampaignsPage() {
         </section>
       )}
 
-      {showCreateCampaign && (
-        {!desktopOffline && joinedCampaigns.length > 0 && (
+      {!desktopOffline && joinedCampaigns.length > 0 && (
         <section className="campaigns-joined-section" aria-labelledby="campaigns-joined-title">
           <h2 id="campaigns-joined-title"><BookOpen size={20} aria-hidden="true" /> Joined as a Player</h2>
           <div className="library-page-grid campaigns-card-grid">
@@ -461,7 +467,8 @@ export default function MyCampaignsPage() {
           onSuccess={() => { loadCampaigns(); loadPlayerCampaignTools(); }}
         />
       )}
-      <CreateCampaignDialog
+      {showCreateCampaign && (
+        <CreateCampaignDialog
           form={campaignForm}
           creating={creatingCampaign}
           onChange={updateCampaignForm}
