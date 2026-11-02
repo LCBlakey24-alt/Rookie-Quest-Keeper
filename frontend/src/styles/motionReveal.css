@@ -1,0 +1,82 @@
+/* Scroll-entrance motion.
+ *
+ * Sections rise and fade in as they come into view. The repository had no
+ * scroll-reveal at all -- there is no IntersectionObserver anywhere in
+ * frontend/src and the landing stylesheet carried only a reduced-motion kill
+ * switch -- so pages appeared fully formed and static.
+ *
+ * The motion is deliberately restrained, per docs/DESIGN_SYSTEM.md: a short
+ * rise, no scale, no blur, no glow. It should read as the page settling, not
+ * as an effect.
+ *
+ * SAFETY: content must never be able to get stuck invisible. Three independent
+ * guards, any one of which is enough:
+ *
+ *   1. The hidden state only applies under [data-rqk-reveal="armed"], which
+ *      JavaScript sets on mount. With JS broken or disabled, nothing hides.
+ *   2. prefers-reduced-motion makes every target visible with no transition.
+ *   3. The hook reveals everything immediately when IntersectionObserver is
+ *      missing, and never un-reveals.
+ */
+
+:root {
+  /* Short and soft. Long enough to read as motion, short enough not to delay. */
+  --rqk-reveal-duration: 460ms;
+  --rqk-reveal-distance: 12px;
+  --rqk-reveal-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --rqk-reveal-stagger: 70ms;
+}
+
+/* Hidden state, armed by JS only. */
+[data-rqk-reveal='armed'] .rqk-reveal {
+  opacity: 0;
+  transform: translate3d(0, var(--rqk-reveal-distance), 0);
+}
+
+.rqk-reveal {
+  transition:
+    opacity var(--rqk-reveal-duration) var(--rqk-reveal-ease),
+    transform var(--rqk-reveal-duration) var(--rqk-reveal-ease);
+  transition-delay: var(--rqk-reveal-delay, 0ms);
+  /* Hint the compositor for the two properties that actually change. */
+  will-change: opacity, transform;
+}
+
+[data-rqk-reveal='armed'] .rqk-reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Once revealed, stop claiming compositor resources. */
+.rqk-reveal.is-revealed {
+  will-change: auto;
+}
+
+/* A quieter variant for dense rows and cards inside an already-revealed
+   section, so a list does not restage the whole block. */
+[data-rqk-reveal='armed'] .rqk-reveal--subtle {
+  --rqk-reveal-distance: 6px;
+  --rqk-reveal-duration: 320ms;
+}
+
+/* Guard 2: reduced motion. Visible immediately, no transition, and the hidden
+   state is overridden even while armed. */
+@media (prefers-reduced-motion: reduce) {
+  [data-rqk-reveal='armed'] .rqk-reveal,
+  [data-rqk-reveal='armed'] .rqk-reveal.is-revealed,
+  .rqk-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+}
+
+/* Printing should never depend on a scroll position having been reached. */
+@media print {
+  [data-rqk-reveal='armed'] .rqk-reveal,
+  .rqk-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
