@@ -207,3 +207,19 @@ test('queued rest still executes on original character after navigating away', a
   expect(t.current()).toMatchObject({ id: 'hero-2', current_hit_points: 30 });
   expect(t.onSuccess).not.toHaveBeenCalled();
 });
+
+test('unmount suppresses stale updates and notifications without cancelling an accepted save', async () => {
+  const t = setup();
+  const request = deferred();
+  t.patchRequest.mockReturnValueOnce(request.promise);
+  const save = t.queue.patch({ current_hit_points: 11 }, { success: 'Saved' });
+  await Promise.resolve();
+  const publishesBeforeUnmount = t.visible.length;
+  t.queue.invalidate();
+  request.resolve({ data: { id: 'hero-1', current_hit_points: 11 } });
+  expect(await save).toBe(true);
+  expect(t.patchRequest).toHaveBeenCalledWith('hero-1', { current_hit_points: 11 });
+  expect(t.visible.length).toBe(publishesBeforeUnmount);
+  expect(t.onSuccess).not.toHaveBeenCalled();
+  expect(t.onError).not.toHaveBeenCalled();
+});
