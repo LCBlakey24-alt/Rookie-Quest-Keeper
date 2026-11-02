@@ -93,6 +93,10 @@ export default function MyCampaignsPage() {
   }, [searchParams]);
 
 
+  const playerOnlyCampaigns = useMemo(() => joinedCampaigns.filter((joined) =>
+    !campaigns.some((owned) => recordId(owned) === recordId(joined))
+  ), [joinedCampaigns, campaigns]);
+
   const sortedCampaigns = useMemo(() => [...campaigns].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
   )), [campaigns]);
@@ -438,11 +442,11 @@ export default function MyCampaignsPage() {
         </section>
       )}
 
-      {!desktopOffline && joinedCampaigns.length > 0 && (
+      {!desktopOffline && playerOnlyCampaigns.length > 0 && (
         <section className="campaigns-joined-section" aria-labelledby="campaigns-joined-title">
           <h2 id="campaigns-joined-title"><BookOpen size={20} aria-hidden="true" /> Joined as a Player</h2>
           <div className="library-page-grid campaigns-card-grid">
-            {joinedCampaigns.map((campaign) => {
+            {playerOnlyCampaigns.map((campaign) => {
               const id = recordId(campaign);
               if (!id) return null;
               return (
