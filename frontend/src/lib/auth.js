@@ -5,6 +5,32 @@ export const AUTH_USERNAME_KEY = 'dm_username';
 
 const LEGACY_TOKEN_KEYS = ['token', 'auth_token'];
 
+// Some browsers deny access to site storage entirely. Keep the current tab
+// usable rather than crashing the public sign-in route. These in-memory values
+// deliberately do not persist after a reload.
+let inMemoryAuthToken = null;
+let inMemoryAuthUsername = null;
+
+function safeRead(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function safeWrite(key, value) {
+  try { localStorage.setItem(key, value); return true; } catch { return false; }
+}
+function safeRemove(key) {
+  try { localStorage.removeItem(key); } catch {}
+}
+
+export function getStoredAuthUsername() {
+  return safeRead(AUTH_USERNAME_KEY) || inMemoryAuthUsername || '';
+}
+
+export function setStoredAuthUsername(username) {
+  const value = String(username || '');
+  inMemoryAuthUsername = safeWrite(AUTH_USERNAME_KEY, value) ? null : value;
+}
+
+
 function notifyAuthScopeChanged() {
   try { window.dispatchEvent(new CustomEvent('rqk:auth-scope-changed')); } catch {}
 }
@@ -31,7 +57,7 @@ export function isAuthTokenExpired(token, nowMs = Date.now()) {
 
 export function getAuthToken() {
   if (isLocalPreview()) return PREVIEW_TOKEN;
-  const primary = localStorage.getItem(AUTH_TOKEN_KEY);
+  const primary = safeRead(AUTH_TOKEN_KEY);
   if (primary) {
     if (isAuthTokenExpired(primary)) {
       clearAuthToken();
@@ -41,26 +67,32 @@ export function getAuthToken() {
   }
 
   for (const key of LEGACY_TOKEN_KEYS) {
-    const legacy = localStorage.getItem(key);
+    const legacy = safeRead(key);
     if (legacy) {
       if (isAuthTokenExpired(legacy)) {
-        localStorage.removeItem(key);
+        safeRemove(key);
         continue;
       }
-      localStorage.setItem(AUTH_TOKEN_KEY, legacy);
+      inMemoryAuthToken = safeWrite(AUTH_TOKEN_KEY, legacy) ? null : legacy;
       notifyAuthScopeChanged();
       return legacy;
     }
   }
 
-  return null;
+  if (inMemoryAuthToken && isAuthTokenExpired(inMemoryAuthToken)) {
+    clearAuthToken();
+    return null;
+  }
+  return inMemoryAuthToken;
 }
 
 export function clearAuthToken() {
   if (isLocalPreview()) return;
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(AUTH_USERNAME_KEY);
-  for (const key of LEGACY_TOKEN_KEYS) localStorage.removeItem(key);
+  inMemoryAuthToken = null;
+  inMemoryAuthUsername = null;
+  safeRemove(AUTH_TOKEN_KEY);
+  safeRemove(AUTH_USERNAME_KEY);
+  for (const key of LEGACY_TOKEN_KEYS) safeRemove(key);
   notifyAuthScopeChanged();
 }
 
@@ -70,7 +102,7 @@ export function setAuthToken(token) {
     clearAuthToken();
     return;
   }
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
-  for (const key of LEGACY_TOKEN_KEYS) localStorage.removeItem(key);
+  inMemoryAuthToken = safeWrite(AUTH_TOKEN_KEY, token) ? null : token;
+  for (const key of LEGACY_TOKEN_KEYS) safeRemove(key);
   notifyAuthScopeChanged();
 }
