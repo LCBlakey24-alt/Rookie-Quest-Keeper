@@ -54,7 +54,6 @@ const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
 const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
 const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
 const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
-const PlayerDashboard = lazyWithChunkRetry(() => import('@/components/PlayerDashboard'));
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
@@ -62,6 +61,7 @@ const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/
 const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/PlayerCampaignPage'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
+const VerifiedAdminRoute = lazyWithChunkRetry(() => import('@/components/admin/VerifiedAdminRoute'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
@@ -199,7 +199,7 @@ export function AppRoutes() {
         <Route path="/reset-password" element={<AuthPage onLogin={handleAuthLogin} onPasswordReset={handleLogout} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <SignInRedirect />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <SignInRedirect />} />
-        <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <SignInRedirect />} />
+        <Route path="/player" element={<Navigate to="/campaigns" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <SignInRedirect />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboardRoute /> : <SignInRedirect />} />
         <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <SignInRedirect />} />
@@ -211,7 +211,7 @@ export function AppRoutes() {
         <Route path="/mobile/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <SignInRedirect />} />
         <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <SignInRedirect />} />
         <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <SignInRedirect />} />
-        <Route path="/admin" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><AdminPage /></AppShell> : <SignInRedirect />)} />
+        <Route path="/admin" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <VerifiedAdminRoute><AppShell><AdminPage /></AppShell></VerifiedAdminRoute> : <SignInRedirect />)} />
         <Route path="/account" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <SignInRedirect />)} />
         <Route path="/homebrew" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <SignInRedirect />)} />
         <Route path="/uploads" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <SignInRedirect />)} />

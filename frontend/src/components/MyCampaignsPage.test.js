@@ -42,7 +42,12 @@ function renderPage() {
 describe('MyCampaignsPage simplified library', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    apiClient.get.mockResolvedValue({ data: [campaign] });
+    apiClient.get.mockImplementation((url) => {
+      if (url === '/library/campaigns' || url === '/campaigns') return Promise.resolve({ data: [campaign] });
+      if (url === '/library/characters') return Promise.resolve({ data: [{ id: 'char-1', name: 'Javen Crow' }] });
+      if (url === '/campaign-invites/joined/list') return Promise.resolve({ data: [] });
+      return Promise.reject(new Error(`Unexpected API request: ${url}`));
+    });
   });
 
   test('keeps the page focused on campaign selection and core actions', async () => {

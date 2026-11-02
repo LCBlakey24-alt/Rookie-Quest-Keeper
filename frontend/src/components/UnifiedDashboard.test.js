@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router-dom';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import UnifiedDashboard from './UnifiedDashboard';
 
+jest.mock('@/components/dashboard/home/SiteUpdatesPanel', () => () => <section><h2>News &amp; Updates</h2><p>Site announcements</p></section>);
+
 jest.mock('@/components/dashboard/useDashboardData', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -39,29 +41,15 @@ describe('UnifiedDashboard simplified home', () => {
     useDashboardData.mockReturnValue(dashboardFixture());
   });
 
-  test('prioritises continue cards and the four first-action journeys', () => {
+  test('prioritises news, site updates and recent activity without a duplicate Player hub', () => {
     renderDashboard();
-
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Continue' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Character Javen Crow Human • Level 9 Open/i })).toHaveAttribute('href', '/characters/char-1');
-    expect(screen.getByRole('link', { name: /Campaign Balderin Tia-Karta Open/i })).toHaveAttribute('href', '/campaign/camp-1');
-
-    expect(screen.getByRole('link', { name: /Create Character Build a new playable hero/i })).toHaveAttribute('href', '/characters/new');
-    expect(screen.getByRole('link', { name: /Import Character Bring an existing sheet into Keeper/i })).toHaveAttribute('href', '/characters/import');
-    expect(screen.getByRole('link', { name: /Create Campaign Start a new GM campaign workspace/i })).toHaveAttribute('href', '/campaigns?create=1');
-    expect(screen.getByRole('link', { name: /Join Campaign Use a GM join code/i })).toHaveAttribute('href', '/player');
-
-    expect(screen.queryByRole('link', { name: /Homebrew Create and manage custom content/i })).not.toBeInTheDocument();
-  });
-
-  test('does not bring the retired noticeboard sections back', () => {
-    renderDashboard();
-
-    expect(screen.queryByText('Site Updates')).not.toBeInTheDocument();
-    expect(screen.queryByText('Hub checks')).not.toBeInTheDocument();
-    expect(screen.queryByText('System status')).not.toBeInTheDocument();
-    expect(screen.queryByText('Command centre')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'News & Updates' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Recent activity' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Javen Crow/ })).toHaveAttribute('href', '/characters/char-1');
+    expect(screen.getByRole('link', { name: /Balderin/ })).toHaveAttribute('href', '/campaign/camp-1');
+    expect(screen.queryByRole('heading', { name: 'Start something' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Continue' })).not.toBeInTheDocument();
   });
 
   test('keeps refresh and logout available without extra dashboard panels', () => {

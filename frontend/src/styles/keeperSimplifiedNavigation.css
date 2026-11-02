@@ -1,0 +1,136 @@
+/* Keeper's letterform-led display typography: visually related to the
+   outlined Keeper logo. The logo's actual font cannot be extracted from paths. */
+#root .rqk-app-shell :is(
+  .unified-dashboard-header h1,
+  .dashboard-simple-heading h2,
+  .library-page-hero h1,
+  .character-library-card h2,
+  .campaign-library-card h2,
+  .campaigns-joined-section h2,
+  .campaigns-joined-section h3,
+  .rqk-app-topbar-title strong,
+  .homebrew-workshop h1,
+  .admin-page h1
+) {
+  font-family: var(--rq-font-keeper, 'Almendra Display', Georgia, serif) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+  font-kerning: normal;
+  overflow-wrap: break-word;
+}
+#root .rqk-app-shell .rqk-app-topbar-title strong {
+  font-size: clamp(0.94rem, 2.8vw, 1.2rem) !important;
+}
+#root .rqk-app-shell :is(.unified-dashboard-header h1, .library-page-hero h1) {
+  font-size: clamp(2.15rem, 6.3vw, 3.85rem) !important;
+  line-height: 1.15 !important;
+}
+#root .rqk-app-shell .campaign-player-tools {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+#root .rqk-app-shell .campaign-player-tools-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#root .rqk-app-shell .campaign-player-tools-actions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid #284964;
+  border-radius: 9px;
+  color: #f7f1e7;
+  background: #10283d;
+}
+#root .rqk-app-shell .campaign-player-tools-actions button.is-active {
+  border-color: #ff8a1f;
+  background: #17344a;
+}
+#root .rqk-app-shell .campaign-player-tools-panel {
+  min-width: 0;
+  padding: clamp(8px, 2vw, 15px);
+  border: 1px solid #284964;
+  border-radius: 10px;
+  background: #0c2234;
+}
+#root .rqk-app-shell .campaigns-joined-section {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+#root .rqk-app-shell .campaigns-joined-section > h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #eadfc8;
+  font-size: clamp(1.55rem, 4.5vw, 2rem);
+}
+#root .rqk-app-shell .campaigns-joined-section h3 {
+  margin: 0;
+  color: #f7f1e7;
+  font-size: clamp(1.25rem, 3.2vw, 1.65rem);
+}
+#root .rqk-app-shell .dashboard-news-list {
+  display: grid;
+  gap: 10px;
+}
+#root .rqk-app-shell .dashboard-news-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(124,203,255,.2);
+  border-radius: 12px;
+  background: #0c2234;
+}
+#root .rqk-app-shell .dashboard-news-card h3 {
+  margin: 2px 0 8px;
+  color: #eadfc8;
+  font-family: var(--rq-font-keeper, 'Almendra Display', Georgia, serif) !important;
+  font-size: clamp(1.4rem, 3.4vw, 1.8rem);
+  font-weight: 400;
+}
+#root .rqk-app-shell .dashboard-news-card p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #d5dfeb;
+  line-height: 1.5;
+}
+#root .rqk-app-shell .dashboard-news-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #7ccbff;
+}
+@media (max-width:719px) {
+  /* Admins see five destinations directly; the More tools action moves to
+     the top bar instead of becoming a sixth squeezed dock item. */
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail--admin-mobile {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail--admin-mobile .rqk-app-rail-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+  #root .rqk-app-shell .rqk-app-topbar-tools-toggle {
+    display: grid;
+    place-items: center;
+    margin-left: auto;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid rgba(124,203,255,.3);
+    border-radius: 10px;
+    color: #7ccbff;
+    background: #102b40;
+  }
+  #root .rqk-app-shell .campaign-player-tools-actions > button {
+    flex: 1 1 130px;
+  }
+  #root .rqk-app-shell .campaigns-joined-section h3 {
+    overflow-wrap: anywhere;
+  }
+}
