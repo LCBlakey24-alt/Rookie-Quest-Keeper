@@ -114,9 +114,17 @@ class ResetEmailUsesTheCurrentPaletteTests(unittest.TestCase):
     def test_the_retired_red_is_gone(self):
         self.assertNotIn("#d00000", AUTH_SOURCE)
 
-    def test_it_uses_the_citrus_gradient_and_ink(self):
-        self.assertIn("#FF8A1F", AUTH_SOURCE)
-        self.assertIn("#0B1B2B", AUTH_SOURCE)
+    def test_reset_button_uses_solid_navy_cream_and_citrus_underline(self):
+        self.assertIn("background: #0B1B2B; color: #EADFC8", AUTH_SOURCE)
+        self.assertIn("height: 3px; width: 155px; background: #FF8A1F", AUTH_SOURCE)
+        self.assertIn("linear-gradient(90deg, #FF8A1F 0%", AUTH_SOURCE)
+        self.assertNotIn("display: inline-block; background: linear-gradient", AUTH_SOURCE)
+
+    def test_provider_errors_cannot_log_the_entire_exception(self):
+        body = function_source(AUTH_SOURCE, "forgot_password")
+        self.assertIn("type(e).__name__", body)
+        self.assertNotIn("type(e).__name__, e", body)
+        self.assertNotIn("logger.exception", body)
 
 
 if __name__ == "__main__":
