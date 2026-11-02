@@ -107,8 +107,11 @@ async def cleanup_user_account(username: str) -> dict:
     correct when new campaign collections are added. Other users' character
     sheets and personal notes are protected from the sweep and unlinked instead.
     """
-    user = await db.users.find_one({'username': username}, {'_id': 0})
+    # Keep Mongo's stable _id as well as the email. Older custom_rulesets
+    # reference str(_id), whereas the rest of Keeper usually uses username.
+    user = await db.users.find_one({'username': username}, {'email': 1})
     email = (user or {}).get('email', '').lower()
+    mongo_user_id = str(user['_id']) if user and user.get('_id') is not None else None
 
     owned_campaigns = await db.campaigns.find({
         '$or': [
@@ -139,6 +142,15 @@ async def cleanup_user_account(username: str) -> dict:
 
     if email:
         await delete_many('password_resets', {'email': email})
+
+    if mongo_user_id:
+        # Legacy custom rulesets store Mongo user IDs, not the JWT username.
+        # Delete the user's own uploads and unlink them from other users' shares.
+        await delete_many('custom_rulesets', {'owner_id': mongo_user_id})
+        await db.custom_rulesets.update_many(
+            {'shared_with': mongo_user_id},
+            {'$pull': {'shared_with': mongo_user_id}},
+        )
 
     # Remove this user's membership records even for campaigns they do not own.
     await delete_many('campaign_members', {
