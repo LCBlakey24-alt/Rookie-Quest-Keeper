@@ -162,7 +162,7 @@
     .rqk-auth-primary,
     .rqk-auth-secondary
   ):focus-visible {
-    outline: 2px solid var(--rq-info, #6E91B4) !important;
+    outline: 2px solid var(--rq-info, #3C92E0) !important;
     outline-offset: 3px !important;
   }
 
@@ -297,11 +297,11 @@
   box-shadow: none !important;
   background: linear-gradient(90deg,
     rgba(234, 223, 200, .07) 0%,
-    rgba(110, 145, 180, .17) 48%,
+    rgba(60, 146, 224, .17) 48%,
     rgba(234, 223, 200, .07) 100%) !important;
 }
 #root .rq-loading-skeleton::after {
-  background: linear-gradient(90deg, transparent, rgba(110, 145, 180, .11), transparent) !important;
+  background: linear-gradient(90deg, transparent, rgba(60, 146, 224, .11), transparent) !important;
 }
 @media (prefers-reduced-motion: reduce) {
   #root .rq-loading-skeleton,
@@ -395,7 +395,7 @@
     gap: 7px !important;
   }
   #root .rqk-app-shell :is(.player-dashboard-action-button,.player-campaign-action,.player-campaign-header button):focus-visible {
-    outline: 2px solid var(--rq-info, #6E91B4) !important;
+    outline: 2px solid var(--rq-info, #3C92E0) !important;
     outline-offset: 3px !important;
   }
   #root .rqk-app-shell .player-dashboard-summary-grid {
@@ -597,7 +597,7 @@
       overscroll-behavior-x: contain !important;
     }
     #root .character-page-v2 :is(button,select,input,textarea):focus-visible {
-      outline: 2px solid var(--rq-info, #6E91B4) !important;
+      outline: 2px solid var(--rq-info, #3C92E0) !important;
       outline-offset: 2px !important;
     }
   }

@@ -50,7 +50,7 @@ import './CampaignDashboard.css';
 
 const uploadTheme = {
   bg: { black: '#07131F', panel: '#1E2936', card: '#263748', hover: '#334155' },
-  accent: { primary: '#C9A96B', secondary: '#6E91B4', subtle: 'rgba(201,169,107,0.12)' },
+  accent: { primary: '#C9A96B', secondary: '#3C92E0', subtle: 'rgba(201,169,107,0.12)' },
   text: { white: '#EADFC8', primary: '#EADFC8', secondary: '#D5C9B6', muted: '#AEAB9F' },
   border: 'rgba(201,169,107,0.26)',
 };

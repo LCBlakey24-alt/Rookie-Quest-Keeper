@@ -73,5 +73,5 @@ const inputStyle = { width: '100%', minWidth: 0, minHeight: 38, background: 'tra
 const resultsStyle = { display: 'grid', maxHeight: 220, overflowY: 'auto', gap: 4 };
 const resultStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: 6, background: 'var(--rq-card, #263748)' };
 const nameStyle = { minWidth: 0, display: 'grid', gap: 2, fontSize: 12 };
-const buttonStyle = { flexShrink: 0, minHeight: 46, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--rq-control-blue, #263F59)', border: '1px solid var(--rq-secondary, #6E91B4)', color: 'var(--rq-control-ink, #F8F0E5)', cursor: 'pointer', padding: '0 11px', fontWeight: 900 };
+const buttonStyle = { flexShrink: 0, minHeight: 46, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--rq-control-blue, #263F59)', border: '1px solid var(--rq-secondary, #3C92E0)', color: 'var(--rq-control-ink, #F8F0E5)', cursor: 'pointer', padding: '0 11px', fontWeight: 900 };
 const hintStyle = { fontSize: 11, color: 'var(--rq-text-secondary, #D0C5B2)', margin: 0 };

@@ -53,7 +53,7 @@
     background-repeat: no-repeat !important;
     background-position: left center !important;
     background-size: 0% 100% !important;
-    border-color: rgba(110,145,180,.36) !important;
+    border-color: rgba(60,146,224,.36) !important;
     color: var(--rq-control-ink) !important;
     -webkit-text-fill-color: currentColor !important;
     transition: background-size var(--rq-control-sweep-duration) var(--rq-control-sweep-ease), border-color 180ms ease !important;
@@ -233,7 +233,7 @@
   .rqk-calendar-day,
   .rqk-selectable-control
 ):focus-visible {
-    outline: 3px solid var(--rq-info, #6E91B4) !important;
+    outline: 3px solid var(--rq-info, #3C92E0) !important;
     outline-offset: 2px !important;
   }
 

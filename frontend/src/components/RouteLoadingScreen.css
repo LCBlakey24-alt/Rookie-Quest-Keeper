@@ -88,8 +88,8 @@
   margin: 17px auto 0 !important;
   border: 0 !important;
   border-radius: 2px !important;
-  background-color: var(--rq-citrus-yellow, #F2C94C) !important;
-  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C 0% 28%, #EF6343 50%, #CE393A 72% 100%)) !important;
+  background-color: var(--rq-citrus-yellow, #FF8A1F) !important;
+  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
 }
@@ -110,7 +110,7 @@
   overflow: hidden !important;
   border: 0 !important;
   border-radius: 2px !important;
-  background: rgba(110, 145, 180, .22) !important;
+  background: rgba(60, 146, 224, .22) !important;
 }
 
 #root .route-loading-screen .rqk-route-activity > span {
@@ -119,7 +119,7 @@
   height: 100% !important;
   border: 0 !important;
   border-radius: inherit !important;
-  background: var(--rq-secondary, #6E91B4) !important;
+  background: var(--rq-secondary, #3C92E0) !important;
   animation: rqkKeeperLoad 1.65s ease-in-out infinite !important;
 }
 
@@ -154,7 +154,7 @@
 #root .route-loading-screen .rqk-route-recovery button {
   min-height: 46px !important;
   padding: 10px 19px !important;
-  border: 1px solid rgba(110, 145, 180, .36) !important;
+  border: 1px solid rgba(60, 146, 224, .36) !important;
   border-radius: 7px !important;
   background-color: var(--rq-citrus-control, #263F59) !important;
   background-image: var(--rq-citrus-gradient) !important;
@@ -177,7 +177,7 @@
 }
 
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
-  outline: 3px solid var(--rq-secondary, #6E91B4) !important;
+  outline: 3px solid var(--rq-secondary, #3C92E0) !important;
   outline-offset: 3px !important;
 }
 

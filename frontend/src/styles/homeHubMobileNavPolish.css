@@ -7,7 +7,7 @@
 }
 
 #root .rqk-app-rail-rook {
-  border-color: rgba(110,145,180,.28) !important;
+  border-color: rgba(60,146,224,.28) !important;
   background: var(--rq-citrus-control, #263F59) !important;
   background-image: none !important;
   color: var(--rq-text-primary, #EADFC8) !important;
@@ -15,13 +15,13 @@
 }
 
 #root .rqk-app-rail-rook svg {
-  color: var(--rq-info, #6E91B4) !important;
+  color: var(--rq-info, #3C92E0) !important;
   filter: none !important;
 }
 
 #root .rqk-app-rail-rook:hover,
 #root .rqk-app-rail-rook:focus-visible {
-  border-color: var(--rq-secondary, #6E91B4) !important;
+  border-color: var(--rq-secondary, #3C92E0) !important;
   background: var(--rq-card-hover, #334155) !important;
 }
 
@@ -52,7 +52,7 @@
     overflow: auto !important;
     overscroll-behavior: contain !important;
     padding: 12px !important;
-    border: 1px solid rgba(110,145,180,.32) !important;
+    border: 1px solid rgba(60,146,224,.32) !important;
     border-radius: 9px !important;
     background: var(--rq-bg-panel, #1E2936) !important;
     background-image: none !important;
@@ -104,7 +104,7 @@
     display: grid !important;
     place-items: center !important;
     padding: 0 !important;
-    border: 1px solid rgba(110,145,180,.30) !important;
+    border: 1px solid rgba(60,146,224,.30) !important;
     border-radius: 5px !important;
     background: var(--rq-citrus-control, #263F59) !important;
     color: var(--rq-text-primary, #EADFC8) !important;
@@ -113,7 +113,7 @@
 
   #root .rqk-app-mobile-more-close:hover,
   #root .rqk-app-mobile-more-close:focus-visible {
-    border-color: var(--rq-secondary, #6E91B4) !important;
+    border-color: var(--rq-secondary, #3C92E0) !important;
     background: var(--rq-card-hover, #334155) !important;
     outline: none !important;
   }
@@ -132,7 +132,7 @@
     align-items: center !important;
     gap: 9px !important;
     padding: 9px 10px !important;
-    border: 1px solid rgba(110,145,180,.28) !important;
+    border: 1px solid rgba(60,146,224,.28) !important;
     border-radius: 7px !important;
     background: var(--rq-citrus-control, #263F59) !important;
     background-image: none !important;
@@ -154,7 +154,7 @@
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
-    color: var(--rq-info, #6E91B4) !important;
+    color: var(--rq-info, #3C92E0) !important;
     box-sizing: content-box !important;
     filter: none !important;
   }
@@ -170,7 +170,7 @@
   #root .rqk-app-mobile-more-item:hover,
   #root .rqk-app-mobile-more-item:focus-visible {
     background: var(--rq-card-hover, #334155) !important;
-    border-color: rgba(110,145,180,.45) !important;
+    border-color: rgba(60,146,224,.45) !important;
     outline: none !important;
     transform: none !important;
   }
@@ -181,13 +181,13 @@
     background-repeat: no-repeat !important;
     background-position: left bottom !important;
     background-size: 100% 3px !important;
-    border-color: rgba(110,145,180,.32) !important;
+    border-color: rgba(60,146,224,.32) !important;
   }
 
   /* Mobile menu focus must be visible independently of the hover underline. */
   #root .rqk-app-mobile-more-item:focus-visible,
   #root .rqk-app-mobile-more-close:focus-visible {
-    outline: 3px solid var(--rq-info, #6E91B4) !important;
+    outline: 3px solid var(--rq-info, #3C92E0) !important;
     outline-offset: 2px !important;
   }
 
@@ -195,11 +195,11 @@
     grid-column: 1 / -1 !important;
     min-height: 56px !important;
     background: var(--rq-citrus-control, #263F59) !important;
-    border-color: var(--rq-secondary, #6E91B4) !important;
+    border-color: var(--rq-secondary, #3C92E0) !important;
   }
 
   #root .rqk-app-mobile-more-item--rook svg {
-    color: var(--rq-info, #6E91B4) !important;
+    color: var(--rq-info, #3C92E0) !important;
   }
 
   #root .rqk-app-rail-link.is-active::before {

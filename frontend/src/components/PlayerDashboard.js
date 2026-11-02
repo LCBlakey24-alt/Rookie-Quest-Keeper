@@ -321,8 +321,8 @@ const loadWarningStyle = {
 const handoutWarningStyle = {
   ...loadWarningStyle,
   marginTop: 8,
-  border: '1px solid rgba(110, 145, 180, 0.32)',
-  borderLeft: '3px solid var(--rq-info, #6E91B4)',
+  border: '1px solid rgba(60, 146, 224, 0.32)',
+  borderLeft: '3px solid var(--rq-info, #3C92E0)',
 };
 
 const tabLoadingStyle = {

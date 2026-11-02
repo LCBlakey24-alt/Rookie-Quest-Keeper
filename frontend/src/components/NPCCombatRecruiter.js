@@ -16,7 +16,7 @@ import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 const FLAT_CONTROL = {
   background: 'var(--rq-citrus-control, #263F59)',
   color: 'var(--rq-citrus-cream, #F5F1E8)',
-  border: '1px solid rgba(110, 145, 180, 0.32)',
+  border: '1px solid rgba(60, 146, 224, 0.32)',
 };
 
 

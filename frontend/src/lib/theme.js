@@ -24,8 +24,8 @@ export const theme = {
     hover: 'var(--rq-accent-hover, #D9BC82)',
     soft: 'var(--rq-accent-soft, rgba(201,169,107,0.12))',
     line: 'var(--rq-accent-border, rgba(201,169,107,0.30))',
-    secondary: 'var(--rq-secondary, #6E91B4)',
-    highlight: 'var(--rq-secondary, #6E91B4)',
+    secondary: 'var(--rq-secondary, #3C92E0)',
+    highlight: 'var(--rq-secondary, #3C92E0)',
     // Legacy property name retained for older components.
     pink: 'var(--rq-accent-primary, #C9A96B)',
   },
@@ -34,25 +34,25 @@ export const theme = {
   success: 'var(--rq-success, #5FA67A)',
   danger: 'var(--rq-danger, #B94A4F)',
   warning: 'var(--rq-warning, #D39A43)',
-  info: 'var(--rq-info, #6E91B4)',
+  info: 'var(--rq-info, #3C92E0)',
 
   // Compatibility aliases deliberately resolve to the current flat system.
   sunset: {
-    purple: 'var(--rq-secondary, #6E91B4)',
+    purple: 'var(--rq-secondary, #3C92E0)',
     pink: 'var(--rq-accent-primary, #C9A96B)',
     gold: 'var(--rq-accent-primary, #C9A96B)',
   },
   gradient: 'var(--rq-accent-primary, #C9A96B)',
   glow: 'none',
   player: {
-    primary: 'var(--rq-secondary, #6E91B4)',
+    primary: 'var(--rq-secondary, #3C92E0)',
     hover: 'var(--rq-accent-hover, #D9BC82)',
-    secondary: 'var(--rq-secondary, #6E91B4)',
+    secondary: 'var(--rq-secondary, #3C92E0)',
   },
   gm: {
     primary: 'var(--rq-accent-primary, #C9A96B)',
     hover: 'var(--rq-accent-hover, #D9BC82)',
-    secondary: 'var(--rq-secondary, #6E91B4)',
+    secondary: 'var(--rq-secondary, #3C92E0)',
   },
 };
 
@@ -75,7 +75,7 @@ export const buttonStyle = {
   boxShadow: 'none',
 };
 
-const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#6E91B4' };
+const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#3C92E0' };
 const GOLD = { tint: 'rgba(201,169,107,0.18)', icon: '#C9A96B' };
 
 export const CLASS_ACCENTS = {

@@ -257,7 +257,7 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(finalAuthority).toContain('--cs-panel: #1E2936');
     expect(finalAuthority).toContain('--cs-card: #263748');
     expect(finalAuthority).toContain('--cs-accent: #C9A96B');
-    expect(finalAuthority).toContain('--cs-blue: #6E91B4');
+    expect(finalAuthority).toContain('--cs-blue: #3C92E0');
     expect(finalAuthority).toContain('flex-direction: row !important;');
     expect(finalAuthority).toContain('overflow-x: auto !important;');
     expect(finalAuthority).toContain('inset: 50px auto auto !important;');

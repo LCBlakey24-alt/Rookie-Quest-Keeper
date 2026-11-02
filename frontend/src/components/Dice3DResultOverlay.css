@@ -10,7 +10,7 @@
   --rq-d3d-face: var(--rq-citrus-control, #263F59);
   --rq-d3d-cream: var(--rq-citrus-cream, #F5F1E8);
   --rq-d3d-muted: rgba(234, 223, 200, 0.78);
-  --rq-d3d-rule: var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C 0%, #F2C94C 28%, #EF6343 50%, #CE393A 72%, #CE393A 100%));
+  --rq-d3d-rule: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%));
   --rq-d3d-size: 46px;
 
   position: fixed;
@@ -22,7 +22,7 @@
   display: grid;
   gap: 11px;
   padding: 13px;
-  border: 1px solid rgba(110, 145, 180, 0.28);
+  border: 1px solid rgba(60, 146, 224, 0.28);
   border-radius: 12px;
   background: var(--rq-d3d-panel);
   color: var(--rq-d3d-cream);
@@ -68,7 +68,7 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border: 1px solid rgba(110, 145, 180, 0.32);
+  border: 1px solid rgba(60, 146, 224, 0.32);
   border-radius: 7px;
   background: var(--rq-d3d-face);
   color: var(--rq-d3d-cream);
@@ -183,7 +183,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(242, 201, 76, 0.34);
+  border: 1px solid rgba(255, 138, 31, 0.34);
   border-radius: 8px;
   /* Navy face, never a gradient fill. */
   background: var(--rq-d3d-face);
@@ -238,7 +238,7 @@
 }
 
 .rq-d3d__footer button {
-  border: 1px solid rgba(110, 145, 180, 0.32);
+  border: 1px solid rgba(60, 146, 224, 0.32);
   border-radius: 7px;
   background: var(--rq-d3d-face);
   color: var(--rq-d3d-cream);

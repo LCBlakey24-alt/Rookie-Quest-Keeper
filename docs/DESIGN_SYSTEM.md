@@ -57,12 +57,12 @@ Decoration never wins over legibility or table-speed.
 
 ## 3. Core visual language
 
-The currently approved visual system is **solid deep navy + warm cream + blue controls + thin yellow-to-blood-orange gradient accent lines** (29 October 2026). The Guild Command layout remains in force. This overrides the earlier full-card wax-red design and rejects the craft-paper wallpaper.
+The currently approved visual system is **solid deep navy + warm cream + blue controls + thin bright-orange-to-red gradient accent lines** (29 October 2026). The Guild Command layout remains in force. This overrides the earlier full-card wax-red design and rejects the craft-paper wallpaper.
 
 - Navy supplies structure and depth.
 - Cream supplies readable hierarchy.
 - **Antique gold is text-only**: titles, special headings and deliberate written emphasis. Never use antique gold for control fills, borders, icons, selected boxes or backgrounds.
-- Resting, hovered and selected clickable bodies stay dark blue (`#263F59`). Only a thin 3px yellow → orange → blood-orange **underline** sweeps left to right on hover/press, remaining in place for selected controls. **The gradient itself holds solid yellow for 0–28%, blends through orange at 50%, and holds solid deep red-orange for 72–100%; the blend is concentrated in the middle.**
+- Resting, hovered and selected clickable bodies stay dark blue (`#263F59`). Only a thin 3px bright orange → orange-red → red **underline** sweeps left to right on hover/press, remaining in place for selected controls. **The gradient itself holds solid bright orange for 0–28%, blends through orange-red at 50%, and holds solid red for 72–100%; the blend is concentrated in the middle.**
 - Blue supports information, icons, progress and keyboard focus.
 - Red is semantic danger/error only.
 - Green is semantic success only.
@@ -87,20 +87,20 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
 
   --rq-gold-text: #C9A96B; /* headings/text only */
   --rq-control-blue: #263F59;
-  --rq-citrus-yellow: #F2C94C;
-  --rq-ember-red-orange: #EF6343;
-  --rq-citrus-blood: #CE393A;
-  --rq-citrus-gradient: linear-gradient(90deg, #F2C94C, #EF6343, #CE393A);
+  --rq-citrus-yellow: #FF8A1F;
+  --rq-ember-red-orange: #F4551F;
+  --rq-citrus-blood: #E03A2F;
+  --rq-citrus-gradient: linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F);
   --rq-primary: #C9A96B; /* legacy text accent; NOT a control background */
   --rq-primary-hover: #D9BC82; /* text hover only */
   --rq-primary-soft: rgba(201, 169, 107, 0.12);
   --rq-accent-primary: #C9A96B; /* legacy text accent only; interactive accents use --rq-citrus-gradient */
   --rq-accent-hover: #D9BC82; /* text only */
   --rq-accent-soft: rgba(201, 169, 107, 0.12);
-  --rq-accent-border: rgba(110, 145, 180, 0.30); /* controls use neutral blue */
+  --rq-accent-border: rgba(60, 146, 224, 0.30); /* controls use neutral blue */
 
-  --rq-secondary: #6E91B4;
-  --rq-secondary-soft: rgba(110, 145, 180, 0.10);
+  --rq-secondary: #3C92E0;
+  --rq-secondary-soft: rgba(60, 146, 224, 0.10);
 
   --rq-text-primary: #EADFC8;
   --rq-text-secondary: rgba(234, 223, 200, 0.78);
@@ -113,7 +113,7 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
   --rq-success: #5FA67A;
   --rq-warning: #D39A43;
   --rq-danger: #B94A4F;
-  --rq-info: #6E91B4;
+  --rq-info: #3C92E0;
 
   --rq-radius: 7px;
   --rq-inner-radius: 5px;
@@ -171,7 +171,7 @@ Do not force all text to full white/cream. A professional screen needs visible p
 - Hover: `--rq-card-hover`.
 - Input: `--rq-bg-input`.
 - Normal shadows: none or extremely restrained.
-- Flat page and panel backgrounds only, with no wallpaper image. The restrained yellow→blood-orange gradient is limited to 2–3px lines/underlines.
+- Flat page and panel backgrounds only, with no wallpaper image. The restrained bright orange→red gradient is limited to 2–3px lines/underlines.
 - Standard radius: 5–9px.
 - Avoid giant pills and bubbly SaaS panels.
 
@@ -193,7 +193,7 @@ Cards should organise information. Do not create a box around every sentence.
 ### Hover
 
 - Lighter navy.
-- Left-to-right yellow→blood-orange **underline** on hover (desktop fine pointers), press and keyboard focus; never a full-control colour swap.
+- Left-to-right bright orange→red **underline** on hover (desktop fine pointers), press and keyboard focus; never a full-control colour swap.
 
 ### Focus
 
@@ -300,7 +300,7 @@ Route CSS should consume global tokens. If a legacy variable name such as `pink`
 
 ## 14. Motion
 
-The yellow-to-blood-orange **3px underline** sweeps from left to right over **340ms**; no button-fill transition. It is interaction feedback, not loading. Never delay navigation and honour `prefers-reduced-motion` with an immediate state change.
+The bright-orange-to-red **3px underline** sweeps from left to right over **340ms**; no button-fill transition. It is interaction feedback, not loading. Never delay navigation and honour `prefers-reduced-motion` with an immediate state change.
 
 
 Motion should communicate:
@@ -352,4 +352,4 @@ A route is visually complete when:
 - empty/loading/error states match the product
 - the page looks like part of Keeper without needing route-specific explanation
 
-The intended result is a cohesive TTRPG web app: **flat navy structure, cream readability, blue controls, yellow-to-blood-orange gradient underlines and semantic status colours.**
+The intended result is a cohesive TTRPG web app: **flat navy structure, cream readability, blue controls, bright-orange-to-red gradient underlines and semantic status colours.**

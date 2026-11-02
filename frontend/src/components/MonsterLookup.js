@@ -21,7 +21,7 @@ export default function MonsterLookup({ onAddToCombat }) {
   return (
     <section aria-label="Monster lookup" style={{ display: 'grid', gap: 10, minWidth: 0 }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, background: panel, border, padding: '0 10px' }}>
-        <Search size={16} aria-hidden="true" color="var(--rq-secondary, #6E91B4)" />
+        <Search size={16} aria-hidden="true" color="var(--rq-secondary, #3C92E0)" />
         <input
           data-testid="monster-search-input"
           value={searchTerm}

@@ -67,8 +67,8 @@ test('Compact Command renders white-gradient heading targets around real resourc
   expect(css).toContain('clip-path: polygon(');
   expect(css).toContain('color: #fff !important;');
   expect(css).toContain('font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)');
-  expect(css).toContain('var(--rq-citrus-yellow, #F2C94C) 28%');
-  expect(css).toContain('var(--rq-citrus-blood, #CE393A) 72%');
+  expect(css).toContain('var(--rq-citrus-yellow, #FF8A1F) 28%');
+  expect(css).toContain('var(--rq-citrus-blood, #E03A2F) 72%');
   expect(css).toContain('display: none !important; /* no extra heading on tablet or desktop */');
   expect(css).toContain('.clean-sheet-header .clean-sheet-hero-options-toggle');
   expect(css).toContain('.clean-sheet-rest-menu-wrap');
