@@ -17,8 +17,20 @@ import re
 from datetime import datetime, timezone, timedelta
 import resend
 
-if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
+EMAIL_DELIVERY_CONFIGURED = bool(RESEND_API_KEY) and RESEND_API_KEY != 'your_resend_api_key_here'
+
+if EMAIL_DELIVERY_CONFIGURED:
     resend.api_key = RESEND_API_KEY
+else:
+    # Without this warning a misconfigured deployment looks healthy: password
+    # recovery still answers "a reset link has been sent", the token is still
+    # stored, and nothing anywhere records that no email left the building.
+    # The first sign of trouble is a locked-out player, which is exactly the
+    # failure this is meant to surface early.
+    logger.warning(
+        "RESEND_API_KEY is not configured: password reset emails cannot be sent. "
+        "Password recovery will accept requests and silently deliver nothing."
+    )
 
 router = APIRouter()
 
@@ -234,6 +246,12 @@ async def login(user_data: UserLogin):
 
 # ==================== PASSWORD RESET ====================
 
+def _email_domain(address: str) -> str:
+    """The domain of an address, for logs. Never log the full address."""
+    _, _, domain = (address or "").partition("@")
+    return domain.lower() or "unknown"
+
+
 @router.post("/auth/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
     """Send password reset email"""
@@ -255,7 +273,17 @@ async def forgot_password(request: ForgotPasswordRequest):
     
     reset_link = f"{APP_URL}/reset-password?token={reset_token}"
     
-    if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
+    # The response below is deliberately identical whether or not the account
+    # exists, so an attacker cannot enumerate addresses. That protection must
+    # not also hide delivery failures from the operator, so every path that
+    # fails to send logs loudly here instead.
+    if not EMAIL_DELIVERY_CONFIGURED:
+        logger.error(
+            "Password reset requested for a %s address but email delivery is not configured; "
+            "the reset token was stored and no email was sent",
+            _email_domain(request.email),
+        )
+    else:
         try:
             resend.Emails.send({
                 "from": SENDER_EMAIL,
@@ -263,10 +291,10 @@ async def forgot_password(request: ForgotPasswordRequest):
                 "subject": "Reset Your Rookie Quest Keeper Password",
                 "html": f"""
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h1 style="color: #d00000;">Rookie Quest Keeper</h1>
+                    <h1 style="color: #0B1B2B;">Rookie Quest Keeper</h1>
                     <h2>Password Reset Request</h2>
                     <p>You requested to reset your password. Click the button below to set a new password:</p>
-                    <a href="{reset_link}" style="display: inline-block; background: #d00000; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
+                    <a href="{reset_link}" style="display: inline-block; background: linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F); color: #0B1B2B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
                         Reset Password
                     </a>
                     <p>Or copy and paste this link into your browser:</p>
@@ -277,7 +305,10 @@ async def forgot_password(request: ForgotPasswordRequest):
                 """
             })
         except Exception as e:
-            logger.error(f"Failed to send password reset email: {e}")
+            logger.error(
+                "Failed to send password reset email to a %s address: %s: %s",
+                _email_domain(request.email), type(e).__name__, e,
+            )
     
     return {"message": "If an account exists with this email, a reset link has been sent"}
 

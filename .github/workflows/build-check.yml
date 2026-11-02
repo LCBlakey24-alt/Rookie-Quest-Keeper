@@ -78,7 +78,8 @@ jobs:
             backend/tests/test_ai_route_quota_metering.py \
             backend/tests/test_con_asi_retroactive_hp.py \
             backend/tests/test_campaign_members_authorization.py \
-            backend/tests/test_known_spell_swap_2014.py
+            backend/tests/test_known_spell_swap_2014.py \
+            backend/tests/test_password_recovery_observability.py
 
   frontend-build:
     name: Frontend tests and build

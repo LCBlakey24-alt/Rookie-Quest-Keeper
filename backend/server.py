@@ -11,6 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from config import client, db, logger, CORS_ORIGIN_LIST
+from routes.auth import EMAIL_DELIVERY_CONFIGURED
 from utils.ws_manager import ws_manager
 from utils.ws_messages import GM_ONLY_MESSAGE_TYPES, is_allowed_client_message_type, parse_client_message
 from utils.auth import verify_token, verify_campaign_membership
@@ -81,7 +82,16 @@ async def readiness_check():
             content={"status": "unavailable", "service": "rook-backend", "database": "unavailable"},
             headers={"Retry-After": "15"},
         )
-    return {"status": "ready", "service": "rook-backend", "database": "available"}
+    # Email delivery is reported but deliberately does not change the status:
+    # the backend serves fine without it. It is here so an operator can see at
+    # a glance whether password recovery can actually deliver, rather than
+    # finding out from a locked-out player.
+    return {
+        "status": "ready",
+        "service": "rook-backend",
+        "database": "available",
+        "email_delivery": "configured" if EMAIL_DELIVERY_CONFIGURED else "not-configured",
+    }
 
 
 # WebSocket endpoint for real-time campaign sync
