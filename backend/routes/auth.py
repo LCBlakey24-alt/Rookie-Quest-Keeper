@@ -294,9 +294,10 @@ async def forgot_password(request: ForgotPasswordRequest):
                     <h1 style="color: #0B1B2B;">Rookie Quest Keeper</h1>
                     <h2>Password Reset Request</h2>
                     <p>You requested to reset your password. Click the button below to set a new password:</p>
-                    <a href="{reset_link}" style="display: inline-block; background: linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F); color: #0B1B2B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
+                    <a href="{reset_link}" style="display: inline-block; background: #0B1B2B; color: #EADFC8; padding: 12px 24px; border-radius: 8px 8px 0 0; text-decoration: none; font-weight: bold; margin: 20px 0 0;">
                         Reset Password
                     </a>
+                    <div aria-hidden="true" style="height: 3px; width: 155px; background: #FF8A1F; background: linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%); margin-bottom: 20px;"></div>
                     <p>Or copy and paste this link into your browser:</p>
                     <p style="word-break: break-all; color: #666;">{reset_link}</p>
                     <p><strong>This link will expire in 1 hour.</strong></p>
@@ -306,8 +307,8 @@ async def forgot_password(request: ForgotPasswordRequest):
             })
         except Exception as e:
             logger.error(
-                "Failed to send password reset email to a %s address: %s: %s",
-                _email_domain(request.email), type(e).__name__, e,
+                "Failed to send password reset email to a %s address (provider error type: %s)",
+                _email_domain(request.email), type(e).__name__,
             )
     
     return {"message": "If an account exists with this email, a reset link has been sent"}
