@@ -328,7 +328,7 @@ async def forgot_password(request: ForgotPasswordRequest):
                 <h2>Password Reset Request</h2>
                 <p>You requested to reset your password. Click below to choose a new password:</p>
                 <a href="{reset_link}" style="display: inline-block; background: #0B1B2B; color: #EADFC8; padding: 12px 24px; border-radius: 8px 8px 0 0; text-decoration: none; font-weight: bold; margin: 20px 0 0;">Reset Password</a>
-                <div aria-hidden="true" style="height: 3px; width: 155px; background: linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%); margin-bottom: 20px;"></div>
+                <div aria-hidden="true" style="height: 3px; width: 155px; background: #FF8A1F; background: linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%); margin-bottom: 20px;"></div>
                 <p>Or paste this link into your browser:</p>
                 <p style="word-break: break-all; color: #666;">{reset_link}</p>
                 <p><strong>This link expires in 1 hour.</strong></p>
