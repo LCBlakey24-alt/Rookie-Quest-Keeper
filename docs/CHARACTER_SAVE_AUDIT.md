@@ -85,5 +85,8 @@ Use one existing character and confirm each change persists after refresh:
 
 ## Limitations of this fix (November 2026)
 
-- This queue orders writes **within one open sheet on one device**. It does not yet prevent two different devices from overwriting one another. A server-side revision/ETag check will be needed for cross-device conflicts.
+- The queue orders writes **within one browser controller per character**. Edits already accepted continue saving to their original character after navigation, including when that character is reopened before the old requests finish. Obsolete responses and toasts cannot overwrite another open sheet.
+- Delayed save handlers (including concentration replacement confirmations) are tied to their originating sheet session and refuse to save into a later session.
+- An old request that fails after the user leaves its sheet cannot notify that now-unrelated sheet; players should check important edits after reconnecting. Offline recovery/retry is a separate follow-up.
+- Concurrent edits from two different devices are still not protected. A server-side revision/ETag check is needed for cross-device conflicts.
 - The browser still needs a real-device smoke test for HP, conditions, spell slots, inventory, notes, and rests with a real signed-in playtest character. Automated pure queue tests do not prove mobile network reliability.
