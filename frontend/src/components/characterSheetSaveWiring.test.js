@@ -13,6 +13,10 @@ describe('live character save wiring', () => {
 
     expect(sheet).toContain('onSaveCharacter={patchCharacter}');
     expect(sheet).not.toContain('updateCharacterLocal');
+    expect(sheet).toContain('createCharacterSaveQueue');
+    expect(sheet).toContain('saveControllerRef.current.patch(updates, options)');
+    expect(sheet).toContain('saveControllerRef.current.runServerAction');
+    expect(sheet).not.toContain('const previous = character;');
     expect(inventory).toContain('if (onSaveCharacter)');
     expect(notes).toContain('if (onSaveCharacter)');
   });
