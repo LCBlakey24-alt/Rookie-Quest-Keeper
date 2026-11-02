@@ -84,6 +84,8 @@ export default function MyCampaignsPage() {
   const [selectedCharacterId, setSelectedCharacterId] = useState(readActiveCharacterId);
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCharactersLoaded, setJoinCharactersLoaded] = useState(false);
+  const [joinedCampaignsLoaded, setJoinedCampaignsLoaded] = useState(false);
+  const [playerToolsError, setPlayerToolsError] = useState('');
   const desktopOffline = isOfflineDesktop();
   const activeTool = ['notes', 'received'].includes(searchParams.get('view')) ? searchParams.get('view') : '';
   const selectedCharacter = joinCharacters.find((character) => recordId(character) === selectedCharacterId) || joinCharacters[0] || null;
@@ -139,7 +141,15 @@ export default function MyCampaignsPage() {
     if (joinedResult.status === 'fulfilled') {
       const data = joinedResult.value.data;
       setJoinedCampaigns(Array.isArray(data) ? data : (data?.campaigns || []));
+      setJoinedCampaignsLoaded(true);
     }
+    // Keep the last successfully loaded lists on partial network failure.
+    // Never treat a failed fetch as proof a player has no characters/campaigns.
+    setPlayerToolsError(
+      charactersResult.status === 'rejected' || joinedResult.status === 'rejected'
+        ? 'Some player campaign information could not load. Previously loaded information remains visible where available.'
+        : ''
+    );
   };
 
   useEffect(() => { loadPlayerCampaignTools(); }, [desktopOffline]);
@@ -155,6 +165,10 @@ export default function MyCampaignsPage() {
   }, [desktopOffline, joinCharactersLoaded, joinCharacters.length, searchParams, setSearchParams]);
 
   const openJoinCampaign = () => {
+    if (!joinCharactersLoaded) {
+      toast.error('Your character list has not loaded. Try refreshing player tools before joining.');
+      return;
+    }
     if (!joinCharacters.length) {
       toast.info('Create a character before joining a campaign');
       navigate('/characters/new');
@@ -310,7 +324,7 @@ export default function MyCampaignsPage() {
             Create
           </button>
           {!desktopOffline && (
-            <button type="button" className="library-page-button-secondary" onClick={openJoinCampaign}>
+            <button type="button" className="library-page-button-secondary" onClick={openJoinCampaign} disabled={!joinCharactersLoaded}>
               <Link2 size={16} /> Join by Code
             </button>
           )}
@@ -339,6 +353,17 @@ export default function MyCampaignsPage() {
         </div>
       </section>
 
+      {!desktopOffline && playerToolsError && (
+        <section className="library-page-stale-warning" role="alert" aria-live="polite">
+          <div>
+            <strong>Couldn't refresh all player campaign information</strong>
+            <p>{playerToolsError}</p>
+          </div>
+          <button type="button" className="library-page-button-secondary" onClick={loadPlayerCampaignTools}>
+            <RefreshCw size={16} aria-hidden="true" /> Retry player tools
+          </button>
+        </section>
+      )}
       {!desktopOffline && (
         <section className="campaign-player-tools" aria-label="Campaign notes and handouts">
           {joinCharacters.length > 1 && (
@@ -396,8 +421,22 @@ export default function MyCampaignsPage() {
         </section>
       ) : sortedCampaigns.length === 0 ? (
         <section className="library-page-empty campaign-library-empty">
-          <h2>No campaigns yet</h2>
-          <p>{desktopOffline ? 'Create a campaign, import a campaign pack, or apply a small campaign update from your laptop.' : 'You have no campaigns of your own yet. Create one or join your GM’s campaign using a code.'}</p>
+          {playerOnlyCampaigns.length > 0 ? (
+            <>
+              <h2>No campaigns you're managing</h2>
+              <p>Your joined campaigns are listed below. You can also create a campaign to run as GM.</p>
+            </>
+          ) : !desktopOffline && !joinedCampaignsLoaded ? (
+            <>
+              <h2>Checking your joined campaigns…</h2>
+              <p>{playerToolsError ? 'Could not confirm your joined campaigns. Retry player tools above.' : 'Loading campaigns you play in…'}</p>
+            </>
+          ) : (
+            <>
+              <h2>No campaigns yet</h2>
+              <p>{desktopOffline ? 'Create a campaign, import a campaign pack, or apply a small campaign update from your laptop.' : 'Create your own campaign or join your GM’s campaign using a code.'}</p>
+            </>
+          )}
           <div className="library-page-actions">
             <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary">Create Campaign</button>
           </div>
