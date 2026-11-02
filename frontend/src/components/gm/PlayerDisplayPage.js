@@ -14,8 +14,8 @@ const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system,
 const titleFont = 'var(--rq-font-display, Fraunces, Georgia, serif)';
 const theme = {
   bg: 'var(--rq-bg-main, #0B1B2B)',
-  panel: 'var(--rq-bg-panel, #1E2936)',
-  card: 'var(--rq-card, #263748)',
+  panel: 'var(--rq-bg-panel, #0B1B2B)',
+  card: 'var(--rq-card, #0B1B2B)',
   // Compatibility alias: historical code calls the brand accent 'red'.
   red: 'var(--rq-primary, #C9A96B)',
   danger: 'var(--rq-danger, #B94A4F)',
@@ -521,7 +521,7 @@ function MapToken({ token, target }) {
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = (target) => ({ height: '100dvh', maxHeight: '100dvh', minHeight: 0, width: '100%', maxWidth: '100vw', boxSizing: 'border-box', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
-const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'var(--rq-bg-deep, #07131F)' : theme.bg, boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
+const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'var(--rq-bg-deep, #0B1B2B)' : theme.bg, boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
 const displayGridStyle = (target, showParty) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateColumns: !isTable(target) && showParty ? 'minmax(155px, 205px) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: !isTable(target) && showParty ? 12 : 0, paddingTop: !isTable(target) && showParty ? 12 : 0 });
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
 const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? '4px 6px' : '7px 10px', background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
@@ -634,13 +634,13 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     @keyframes rqkDisplayPulse { 0%, 100% { transform: translateY(0); box-shadow: 0 22px 80px rgba(208,0,0,0.2); } 50% { transform: translateY(-4px); box-shadow: 0 28px 100px rgba(208,0,0,0.38); } }
     @keyframes rqkBannerPop { from { opacity: 0; transform: translateY(28px) scale(0.98); filter: blur(7px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     @keyframes rqkBattleBorder { 0%, 100% { box-shadow: inset 0 0 36px rgba(185,74,79,0.8), inset 0 0 90px rgba(185,74,79,0.25); } 50% { box-shadow: inset 0 0 70px rgba(185,74,79,1), inset 0 0 150px rgba(185,74,79,0.48); } }
-    .rqk-battle-start { width: 100%; height: 100%; min-height: 0; background: radial-gradient(ellipse at center, rgba(95,17,21,0.22), #07131f 68%); color: #eadfc8; display: grid; place-items: center; border: clamp(9px, 1.5vw, 22px) solid #b94a4f; box-sizing: border-box; animation: rqkBattleBorder 1.5s ease-in-out infinite; }
+    .rqk-battle-start { width: 100%; height: 100%; min-height: 0; background: radial-gradient(ellipse at center, rgba(95,17,21,0.22), #0b1b2b 68%); color: #eadfc8; display: grid; place-items: center; border: clamp(9px, 1.5vw, 22px) solid #b94a4f; box-sizing: border-box; animation: rqkBattleBorder 1.5s ease-in-out infinite; }
     .rqk-battle-start__frame { text-align: center; display: grid; justify-items: center; align-content: center; gap: clamp(10px, 2vw, 25px); padding: 20px; }
     .rqk-battle-start__frame > svg { color: #c9a96b; }
     .rqk-battle-start__frame p { margin: 0; font-size: clamp(13px, 2vw, 24px); letter-spacing: 0.22em; text-transform: uppercase; color: #d39a43; font-weight: 800; }
     .rqk-battle-start__frame h1 { margin: 0; font-size: clamp(42px, 8vw, 128px); font-family: var(--rq-font-display, Georgia, serif); line-height: 0.9; text-shadow: 0 10px 36px rgba(0,0,0,0.8); }
     .rqk-battle-start__frame strong { display: inline-flex; align-items: center; gap: 14px; font-size: clamp(17px, 2.4vw, 33px); letter-spacing: 0.1em; color: #c9a96b; }
-    .rqk-battle-start__overlay { position: absolute; inset: 0; z-index: 11; background: #07131f; }
+    .rqk-battle-start__overlay { position: absolute; inset: 0; z-index: 11; background: #0b1b2b; }
     @media (prefers-reduced-motion: reduce) { .rqk-battle-start { animation: none; box-shadow: inset 0 0 70px rgba(185,74,79,0.55); } }
     @keyframes rqkPartyReveal { from { opacity: 0; transform: translateX(-20px); filter: blur(5px); } to { opacity: 1; transform: translateX(0); filter: blur(0); } }
     [data-testid="player-display-page"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 100% 4px; mix-blend-mode: screen; opacity: 0.28; z-index: 2; }

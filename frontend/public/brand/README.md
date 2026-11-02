@@ -18,8 +18,8 @@ Older `rqk-logo-*`, rook/book/shield and generic Rookie Quest logo files are leg
 
 Canonical palette:
 - Ink Navy `#0B1B2B`
-- Slate `#1E2936`
-- Ledger Grey `#334155`
+- Slate `#0B1B2B`
+- Ledger Grey `#0B1B2B`
 - Parchment `#EADFC8`
 - Brass `#C9A96B`
 - Wine Seal `#7F2D2D`

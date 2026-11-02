@@ -7,7 +7,7 @@
   border: 1px solid var(--rq-line-strong, rgba(201,169,107,.30));
   border-top: 3px solid var(--rq-primary, #C9A96B);
   border-radius: var(--rq-inner-radius, 5px);
-  background: var(--rq-bg-panel, #1E2936);
+  background: var(--rq-bg-panel, #0B1B2B);
   color: var(--rq-text-primary, #EADFC8);
   font-family: var(--rq-body-font, Manrope, system-ui, sans-serif);
   font-size: 13px;
@@ -53,7 +53,7 @@
   min-width: 0; padding: 9px 5px;
   border: 1px solid var(--rq-line, rgba(137,157,176,.14));
   border-radius: 4px; text-align: center;
-  background: var(--rq-bg-deep, #07131F);
+  background: var(--rq-bg-deep, #0B1B2B);
 }
 .rqk-stat-block__vital-label, .rqk-stat-block__ability-label {
   color: var(--rq-text-muted, rgba(234,223,200,.6));
@@ -178,7 +178,7 @@
   padding: 8px 12px;
   border: 1px solid var(--rq-line-strong, rgba(201,169,107,.3));
   border-radius: 5px;
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
   font: inherit;
   font-size: 12px;
@@ -189,7 +189,7 @@
 }
 .rqk-stat-block__jump-button:is(:hover,:focus-visible) {
   border-color: var(--rq-primary, #c9a96b);
-  background: var(--rq-card, #263748);
+  background: var(--rq-card, #0B1B2B);
 }
 .rqk-stat-block__jump-button:focus-visible {
   outline: 2px solid var(--rq-primary-hover, #d9bc82);
@@ -254,7 +254,7 @@
 .rqk-stat-block__action-stats span {
   padding: 5px 9px;
   border: 1px solid var(--rq-line-strong, rgba(201,169,107,.3));
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
@@ -268,13 +268,13 @@
   min-height: 41px;
   padding: 9px 13px;
   border-color: var(--rq-line-strong, rgba(201,169,107,.3));
-  background: var(--rq-card, #263748);
+  background: var(--rq-card, #0B1B2B);
   color: var(--rq-text-primary, #eadfc8);
   font-size: 12px;
 }
 .rqk-stat-block__roll-button:is(:hover,:focus-visible) {
   border-color: var(--rq-primary-hover, #d9bc82);
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
 }
 .rqk-stat-block__notes {
   scroll-margin-top: 24px;

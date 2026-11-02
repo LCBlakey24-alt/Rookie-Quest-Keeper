@@ -5,10 +5,10 @@
 
 .full-creator-page {
   --rqk-creator-bg: var(--rq-bg, #0B1B2B);
-  --rqk-creator-deep: var(--rq-bg-input, #101F2D);
-  --rqk-creator-panel: var(--rq-bg-panel, #1E2936);
-  --rqk-creator-card: var(--rq-card, #263748);
-  --rqk-creator-card-hover: var(--rq-card-hover, #334155);
+  --rqk-creator-deep: var(--rq-bg-input, #0B1B2B);
+  --rqk-creator-panel: var(--rq-bg-panel, #0B1B2B);
+  --rqk-creator-card: var(--rq-card, #0B1B2B);
+  --rqk-creator-card-hover: var(--rq-card-hover, #0B1B2B);
   --rqk-creator-text: var(--rq-text-primary, #EADFC8);
   --rqk-creator-muted: var(--rq-text-secondary, rgba(247,241,231,.78));
   --rqk-creator-faint: var(--rq-text-muted, rgba(247,241,231,.60));

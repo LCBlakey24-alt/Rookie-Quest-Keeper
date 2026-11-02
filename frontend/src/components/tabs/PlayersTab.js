@@ -608,7 +608,7 @@ function PlayersTab({ campaignId }) {
                     // docs/UI_DESIGN_SYSTEM.md. The accent is never a fill.
                     backgroundColor: idx + 1 < wizardStep
                       ? 'rgba(34, 197, 94, 0.18)'
-                      : 'var(--rq-citrus-control, #263F59)',
+                      : 'var(--rq-citrus-control, #0B1B2B)',
                     backgroundImage: wizardStep === idx + 1
                       ? 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))'
                       : 'none',

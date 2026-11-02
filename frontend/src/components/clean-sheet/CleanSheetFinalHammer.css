@@ -4,9 +4,9 @@
 .character-page-v2.clean-sheet-page,
 .clean-sheet-page.character-page-v2 {
   --cs-bg: #0B1B2B !important;
-  --cs-panel: #1E2936 !important;
-  --cs-card: #263748 !important;
-  --cs-input: #101F2D !important;
+  --cs-panel: #0B1B2B !important;
+  --cs-card: #0B1B2B !important;
+  --cs-input: #0B1B2B !important;
   --cs-text: #EADFC8 !important;
   --cs-text-soft: rgba(234,223,200, 0.78) !important;
   --cs-muted: rgba(234,223,200, 0.60) !important;
@@ -21,13 +21,13 @@
   --cs-danger: #B94A4F !important;
 
   --rq-bg-main: #0B1B2B !important;
-  --rq-bg-panel: #1E2936 !important;
-  --rq-bg-card: #263748 !important;
-  --rq-bg-input: #101F2D !important;
-  --rq-bg-button: #263748 !important;
-  --rq-card: #263748 !important;
-  --rq-panel: #1E2936 !important;
-  --rq-surface: #1E2936 !important;
+  --rq-bg-panel: #0B1B2B !important;
+  --rq-bg-card: #0B1B2B !important;
+  --rq-bg-input: #0B1B2B !important;
+  --rq-bg-button: #0B1B2B !important;
+  --rq-card: #0B1B2B !important;
+  --rq-panel: #0B1B2B !important;
+  --rq-surface: #0B1B2B !important;
   --rq-border-default: rgba(137,157,176, 0.14) !important;
   --rq-accent-primary: #C9A96B !important;
   --rq-secondary: #3C92E0 !important;
@@ -75,7 +75,7 @@
 .character-page-v2 .clean-sheet-skills-summary,
 .character-page-v2 .clean-sheet-readable-saves,
 .character-page-v2 .clean-sheet-readable-skills {
-  background: #1E2936 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 7px !important;
@@ -98,7 +98,7 @@
 .character-page-v2 .clean-sheet-note-field,
 .character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-compact-stat--hp {
-  background: #263748 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-left-width: 1px !important;
@@ -163,7 +163,7 @@
   min-height: 42px !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 5px !important;
-  background: #263748 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   color: #EADFC8 !important;
 }
@@ -193,7 +193,7 @@
 .character-page-v2 button:hover:not(:disabled),
 .character-page-v2 button:focus-visible,
 .character-page-v2 .clean-sheet-clickable:hover {
-  background: #334155 !important;
+  background: #0B1B2B !important;
   border-color: #C9A96B !important;
   filter: none !important;
   transform: none !important;
@@ -211,7 +211,7 @@
 .character-page-v2 input,
 .character-page-v2 select,
 .character-page-v2 textarea {
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 5px !important;
@@ -235,7 +235,7 @@
 .character-page-v2 .clean-sheet-hp-bar,
 .character-page-v2 .clean-sheet-slot-pips i,
 .character-page-v2 .clean-sheet-death-track button {
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   border-color: rgba(137,157,176, 0.14) !important;
 }
 
@@ -302,7 +302,7 @@
 .character-page-v2 .clean-sheet-snapshot-warning,
 .character-page-v2 .clean-sheet-detail-warning,
 .character-page-v2 .clean-sheet-spell-warning {
-  background: #263748 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   border: 1px solid #C9A96B !important;
   border-radius: 5px !important;
@@ -404,7 +404,7 @@
     overflow-y: hidden !important;
     overscroll-behavior-inline: contain !important;
     scrollbar-width: thin !important;
-    background: #07131F !important;
+    background: #0B1B2B !important;
     border: 1px solid rgba(137,157,176, 0.14) !important;
   }
 

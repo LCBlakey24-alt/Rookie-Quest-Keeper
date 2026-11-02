@@ -27,16 +27,16 @@
   --radius: 7px;
   --rq-bg-main: #0B1B2B;
   --rq-bg-page: #0B1B2B;
-  --rq-bg-rail: #07131F;
-  --rq-bg-panel: #1E2936;
-  --rq-bg-panel-alt: #263748;
-  --rq-bg-elevated: #334155;
-  --rq-bg-input: #101F2D;
-  --rq-card: #263748;
-  --rq-card-hover: #334155;
+  --rq-bg-rail: #0B1B2B;
+  --rq-bg-panel: #0B1B2B;
+  --rq-bg-panel-alt: #0B1B2B;
+  --rq-bg-elevated: #0B1B2B;
+  --rq-bg-input: #0B1B2B;
+  --rq-card: #0B1B2B;
+  --rq-card-hover: #0B1B2B;
   /* Antique gold is for text only. Clickable surfaces use these controls. */
   --rq-gold-text: #C9A96B;
-  --rq-control-blue: #263F59;
+  --rq-control-blue: #0B1B2B;
   --rq-control-wax: #7E2D2D;
   --rq-control-ink: #F8F0E5;
 

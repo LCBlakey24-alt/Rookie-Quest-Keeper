@@ -2,9 +2,9 @@
    Scope strictly to the separate presentation route; GM-only data and controls
    do not belong on this screen. Supports short 720p / 768p TV viewports. */
 .rqk-player-display {
-  --rqk-tv-ink: #07131f;
+  --rqk-tv-ink: #0b1b2b;
   --rqk-tv-navy: #0b1b2b;
-  --rqk-tv-panel: #1e2936;
+  --rqk-tv-panel: #0b1b2b;
   --rqk-tv-gold: #c9a96b;
   --rqk-tv-cream: #eadfc8;
   /* Approved yellow-to-red accent. Used only as thin rules: title underlines
@@ -27,7 +27,7 @@
   box-sizing: border-box;
 }
 .rqk-player-display__frame {
-  background: linear-gradient(145deg, #07131f 0%, #0b1b2b 52%, #07131f 100%) !important;
+  background: linear-gradient(145deg, #0b1b2b 0%, #0b1b2b 52%, #0b1b2b 100%) !important;
   box-shadow: none !important;
 }
 .rqk-player-display__status {
@@ -58,7 +58,7 @@
 }
 .rqk-player-display__fullscreen {
   border-radius: 6px !important;
-  background: rgba(7,19,31,.93) !important;
+  background: rgba(11,27,43,.93) !important;
   border-color: rgba(201,169,107,.5) !important;
   color: var(--rqk-tv-cream) !important;
   box-shadow: none !important;

@@ -254,8 +254,8 @@ describe('Clean Character Sheet presentation ownership', () => {
     const sheet = read('../components/CleanCharacterSheet.js');
 
     expect(finalAuthority).toContain('--cs-bg: #0B1B2B');
-    expect(finalAuthority).toContain('--cs-panel: #1E2936');
-    expect(finalAuthority).toContain('--cs-card: #263748');
+    expect(finalAuthority).toContain('--cs-panel: #0B1B2B');
+    expect(finalAuthority).toContain('--cs-card: #0B1B2B');
     expect(finalAuthority).toContain('--cs-accent: #C9A96B');
     expect(finalAuthority).toContain('--cs-blue: #3C92E0');
     expect(finalAuthority).toContain('flex-direction: row !important;');

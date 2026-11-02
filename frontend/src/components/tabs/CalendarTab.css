@@ -44,7 +44,7 @@
 }
 
 /* Full custom-calendar controls, shared across Friday and Wednesday without shared dates. */
-.rqk-calendar-load-error { display: grid; justify-items: start; gap: 10px; padding: 18px; border: 1px solid #9f7b67; background: #1e2936; color: #eadfc8; border-radius: 6px; }
+.rqk-calendar-load-error { display: grid; justify-items: start; gap: 10px; padding: 18px; border: 1px solid #9f7b67; background: #0b1b2b; color: #eadfc8; border-radius: 6px; }
 .rqk-calendar-load-error p { margin: 0; }
 #root .rqk-calendar-settings-panel { display: grid; gap: 13px; padding: clamp(12px, 2vw, 18px); margin-bottom: 16px; background: #0c2234; border: 1px solid rgba(201,169,107,.3); }
 #root .rqk-calendar-settings-panel h3 { margin: 0; color: #eadfc8; }
@@ -127,7 +127,7 @@
   min-width: 0;
   padding: clamp(14px, 2vw, 22px);
   margin-bottom: 14px;
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   border: 1px solid rgba(201,169,107,.25);
   border-radius: 8px;
   box-shadow: none;
@@ -139,7 +139,7 @@
   position: relative;
   text-align: center;
   border-top: 3px solid var(--rq-secondary, #3c92e0);
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
 }
 #root .rqk-calendar-current > h3 {
   margin: 0 0 8px !important;
@@ -172,7 +172,7 @@
   padding: 8px 7px;
   border: 1px solid rgba(137,157,176,.24);
   border-radius: 5px;
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
   text-align: left;
   font: inherit;
@@ -191,12 +191,12 @@
   color: #d4e5f2 !important;
 }
 #root .rqk-calendar-day.is-selected {
-  background: var(--rq-control-blue, #263F59);
+  background: var(--rq-control-blue, #0B1B2B);
   border: 2px solid var(--rq-control-wax, #7E2D2D);
   padding: 7px 6px;
 }
 #root .rqk-calendar-day:is(:hover, :focus-visible) {
-  background: var(--rq-bg-card, #263748);
+  background: var(--rq-bg-card, #0B1B2B);
   border-color: var(--rq-control-wax, #7E2D2D);
   outline: 2px solid var(--rq-info, #3c92e0);
   outline-offset: 1px;
@@ -241,7 +241,7 @@
   gap: 5px;
   justify-items: start;
   padding: 12px;
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   border: 1px solid rgba(201,169,107,.22);
   border-radius: 6px;
 }
@@ -257,19 +257,19 @@
   min-height: 38px;
   padding: 6px 13px;
   color: var(--rq-primary-hover, #d9bc82);
-  background: var(--rq-bg-card, #263748);
+  background: var(--rq-bg-card, #0B1B2B);
   border: 1px solid rgba(201,169,107,.32);
   border-radius: 5px;
   cursor: pointer;
 }
 #root .rqk-calendar-event-editor :is(input,select,textarea) {
   border: 1px solid rgba(201,169,107,.28);
-  background: var(--rq-bg-input, #101f2d);
+  background: var(--rq-bg-input, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
 }
 #root .rqk-calendar-upcoming { height: fit-content; }
 #root .rqk-calendar-events-list .initiative-entry {
-  background: var(--rq-bg-card, #263748);
+  background: var(--rq-bg-card, #0B1B2B);
   border: 1px solid rgba(201,169,107,.18);
   border-radius: 6px;
   padding: 11px;
@@ -296,7 +296,7 @@
   display: block;
   border: 1px dashed rgba(137,157,176,.12);
   border-radius: 5px;
-  background: rgba(7,19,31,.35);
+  background: rgba(11,27,43,.35);
   pointer-events: none;
 }
 #root .rqk-calendar-event-editor .rqk-calendar-event-date-fields {
@@ -309,7 +309,7 @@
   min-height: 46px;
   border: 1px solid rgba(201,169,107,.42);
   border-radius: 6px;
-  background: var(--rq-bg-input, #101f2d);
+  background: var(--rq-bg-input, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
   padding-inline: 10px;
   font: inherit;
@@ -321,7 +321,7 @@
   gap: 14px;
   padding: 14px 15px;
   margin-bottom: 9px;
-  background: var(--rq-bg-card, #263748);
+  background: var(--rq-bg-card, #0B1B2B);
   border: 1px solid rgba(201,169,107,.24);
   border-radius: 8px;
 }
@@ -376,11 +376,11 @@
   border: 1px solid rgba(201,169,107,.34);
   border-radius: 7px;
   color: var(--rq-text-primary, #eadfc8);
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   cursor: pointer;
 }
 #root .rqk-calendar-event-record-actions > button:is(:hover,:focus-visible) {
-  background: var(--rq-bg-elevated, #334155);
+  background: var(--rq-bg-elevated, #0B1B2B);
   border-color: var(--rq-control-wax, #7E2D2D);
 }
 @media (max-width: 580px) {
@@ -434,7 +434,7 @@
   padding-inline: 9px;
   border: 1px solid rgba(201,169,107,.35);
   border-radius: 6px;
-  background: var(--rq-bg-input, #101f2d);
+  background: var(--rq-bg-input, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
   text-align: center;
   font-size: 15px;

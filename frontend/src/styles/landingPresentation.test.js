@@ -12,8 +12,8 @@ describe('Guild Ledger public landing presentation', () => {
     const css = `${product}\n${trust}`;
 
     expect(product).toContain('--landing-bg: var(--rq-bg-main, #0B1B2B)');
-    expect(product).toContain('--landing-surface: var(--rq-bg-panel, #1E2936)');
-    expect(product).toContain('--landing-card: var(--rq-card, #263748)');
+    expect(product).toContain('--landing-surface: var(--rq-bg-panel, #0B1B2B)');
+    expect(product).toContain('--landing-card: var(--rq-card, #0B1B2B)');
     expect(product).toContain('--landing-gold: var(--rq-primary, #C9A96B)');
     expect(product).toContain('--landing-blue: var(--rq-secondary, #3C92E0)');
     expect(product).toContain('--landing-text: #EADFC8');

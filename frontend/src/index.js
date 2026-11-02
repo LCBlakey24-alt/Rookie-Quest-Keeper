@@ -30,6 +30,8 @@ import "@/styles/guildLedgerFinish.css";
 // Retire wax-red full-control fills and the separate wallpaper draft.
 import "@/styles/guildCommand.css";
 import "@/styles/citrusCommand.css";
+// Flat Ledger must load after citrusCommand so its surface language wins.
+import "@/styles/flatLedger.css";
 import "@/styles/guildCommandDashboard.css";
 
 installSafeToasts();

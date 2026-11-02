@@ -7,11 +7,11 @@
 export const theme = {
   bg: {
     primary: 'var(--rq-bg-main, #0B1B2B)',
-    surface: 'var(--rq-bg-panel, #1E2936)',
-    elevated: 'var(--rq-card-hover, #334155)',
-    deep: 'var(--rq-bg-rail, #07131F)',
-    panel: 'var(--rq-bg-panel, #1E2936)',
-    card: 'var(--rq-bg-panel-alt, #263748)',
+    surface: 'var(--rq-bg-panel, #0B1B2B)',
+    elevated: 'var(--rq-card-hover, #0B1B2B)',
+    deep: 'var(--rq-bg-rail, #0B1B2B)',
+    panel: 'var(--rq-bg-panel, #0B1B2B)',
+    card: 'var(--rq-bg-panel-alt, #0B1B2B)',
   },
   text: {
     primary: 'var(--rq-text-primary, #EADFC8)',

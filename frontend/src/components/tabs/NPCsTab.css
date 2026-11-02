@@ -7,7 +7,7 @@
   padding: 18px;
   border: 1px solid var(--rq-line, #34485a);
   border-radius: 8px;
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
 }
 .rqk-npc-load-error p { margin: 0; line-height: 1.45; }
@@ -134,7 +134,7 @@
   padding: 7px 12px;
   border: 1px solid var(--rq-line-strong, #576373);
   border-radius: 6px;
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   color: var(--rq-text-primary, #eadfc8);
   cursor: pointer;
   font: inherit;
@@ -248,7 +248,7 @@
   border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
   border-top: 3px solid var(--rq-accent-primary, #c9a96b);
   border-radius: 9px;
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   box-shadow: none;
 }
 #root .rqk-npc-onboarding__icon {
@@ -259,7 +259,7 @@
   border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
   border-radius: 9px;
   color: var(--rq-accent-primary, #c9a96b);
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
 }
 #root .rqk-npc-onboarding__eyebrow {
   margin: 0;
@@ -303,13 +303,13 @@
   border-radius: 6px;
 }
 #root .rqk-npc-onboarding__actions .btn-primary {
-  color: #07131f;
+  color: #0b1b2b;
   background: var(--rq-accent-primary, #c9a96b);
   border: 1px solid var(--rq-accent-primary, #c9a96b);
 }
 #root .rqk-npc-onboarding__actions .btn-secondary {
   color: var(--rq-text-primary, #eadfc8);
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
 }
 #root .rqk-npc-onboarding__actions button:is(:hover,:focus-visible) {

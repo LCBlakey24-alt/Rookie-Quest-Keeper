@@ -409,7 +409,7 @@
 
 .loading-screen::before,
 .clean-sheet-loading::before {
-  background: #1E2936 !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(201, 169, 107, 0.24) !important;
   border-left: 4px solid #C9A96B !important;
   border-radius: 7px !important;
@@ -417,7 +417,7 @@
 
 .loading-brand-mark,
 .loading-screen .loading-spinner {
-  background: #334155 !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(201, 169, 107, 0.30) !important;
   color: #EADFC8 !important;
   border-radius: 5px !important;

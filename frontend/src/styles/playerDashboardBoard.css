@@ -238,7 +238,7 @@
 
 .player-dashboard-tab-active,
 .player-dashboard-tab[data-state="active"] {
-  background-color: var(--rq-control-blue, #263F59) !important;
+  background-color: var(--rq-control-blue, #0B1B2B) !important;
   background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) !important;
   background-size: 100% 3px !important;
   background-position: left bottom !important;

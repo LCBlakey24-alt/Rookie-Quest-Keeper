@@ -6,8 +6,8 @@
 
 .rq-d3d {
   --rq-d3d-navy: var(--rq-citrus-navy, #0B1B2B);
-  --rq-d3d-panel: var(--rq-citrus-panel, #142638);
-  --rq-d3d-face: var(--rq-citrus-control, #263F59);
+  --rq-d3d-panel: var(--rq-citrus-panel, #0B1B2B);
+  --rq-d3d-face: var(--rq-citrus-control, #0B1B2B);
   --rq-d3d-cream: var(--rq-citrus-cream, #F5F1E8);
   --rq-d3d-muted: rgba(234, 223, 200, 0.78);
   --rq-d3d-rule: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%));
