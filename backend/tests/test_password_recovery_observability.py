@@ -7,7 +7,7 @@ request, stored the token, sent nothing, and reported success. There was no
 startup warning, no log at the point of failure, and nothing in the health
 endpoints. The first sign of trouble would be a locked-out player.
 
-The caller-facing behaviour is unchanged. Only the operator-facing signal is.
+The response stays generic to avoid account enumeration, but a globally unconfigured sending service reports 503 for all addresses. Failed sends retain older usable links.
 """
 
 import ast
@@ -65,11 +65,12 @@ class SilentFailureIsReportedTests(unittest.TestCase):
         body = function_source(AUTH_SOURCE, "forgot_password")
         self.assertIn("EMAIL_DELIVERY_CONFIGURED", body)
         self.assertIn("logger.error", body)
-        self.assertIn("the reset token was stored and no email was sent", body)
+        self.assertIn("status.HTTP_503_SERVICE_UNAVAILABLE", body)
+        self.assertLess(body.index("if not EMAIL_DELIVERY_CONFIGURED:"), body.index("db.users.find_one"))
 
     def test_a_failed_send_logs_the_exception_type(self):
         body = function_source(AUTH_SOURCE, "forgot_password")
-        self.assertIn("type(e).__name__", body)
+        self.assertIn("type(exc).__name__", body)
 
     def test_no_log_line_records_the_full_address(self):
         body = function_source(AUTH_SOURCE, "forgot_password")
@@ -78,23 +79,25 @@ class SilentFailureIsReportedTests(unittest.TestCase):
                 # request.email may be used for lookup and token storage, but
                 # never handed to the logger directly.
                 self.assertNotIn("logger.error(f", line)
-        self.assertIn("_email_domain(request.email)", body)
+        self.assertIn("_email_domain(email)", body)
 
 
 class CallerFacingBehaviourIsUnchangedTests(unittest.TestCase):
     def test_the_response_is_still_identical_either_way(self):
         body = function_source(AUTH_SOURCE, "forgot_password")
-        generic = body.count('"If an account exists with this email, a reset link has been sent"')
-        # One early return for the unknown account, one at the end.
-        self.assertEqual(generic, 2)
+        generic = body.count('"If an account exists with this email, a reset link will be sent"')
+        # Every outcome that could disclose account existence returns the same object.
+        self.assertEqual(generic, 1)
+        self.assertGreaterEqual(body.count('return generic_response'), 3)
 
     def test_an_unknown_account_still_returns_before_creating_a_token(self):
         body = function_source(AUTH_SOURCE, "forgot_password")
         self.assertLess(body.index("if not user:"), body.index("secrets.token_urlsafe"))
 
-    def test_it_does_not_raise_when_delivery_is_unavailable(self):
+    def test_global_email_outage_is_reported_for_every_address(self):
         body = function_source(AUTH_SOURCE, "forgot_password")
-        self.assertNotIn("raise HTTPException", body)
+        self.assertIn("raise HTTPException", body)
+        self.assertIn("status.HTTP_503_SERVICE_UNAVAILABLE", body)
 
 
 class OperatorCanSeeDeliveryStatusTests(unittest.TestCase):
@@ -122,8 +125,8 @@ class ResetEmailUsesTheCurrentPaletteTests(unittest.TestCase):
 
     def test_provider_errors_cannot_log_the_entire_exception(self):
         body = function_source(AUTH_SOURCE, "forgot_password")
-        self.assertIn("type(e).__name__", body)
-        self.assertNotIn("type(e).__name__, e", body)
+        self.assertIn("type(exc).__name__", body)
+        self.assertNotIn("type(exc).__name__, exc", body)
         self.assertNotIn("logger.exception", body)
 
 
