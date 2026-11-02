@@ -11,8 +11,7 @@ The same handler also had two lookups against the wrong field:
   db.users.find_one({"_id": dm_user_id})      # dm_user_id holds a username
 
 get_current_user returns a username (the JWT subject), and registration
-stores username and email as separate fields -- email is optional, because
-the auth helper is documented as email-free. So the first lookup 404'd for
+stores username and email as separate fields. So the first lookup 404'd for
 anyone whose username is not also their email address, and the second always
 missed, leaving the GM reported as "Unknown".
 """

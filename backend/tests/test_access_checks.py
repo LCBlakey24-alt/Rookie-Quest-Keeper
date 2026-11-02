@@ -70,7 +70,7 @@ def test_paused_signups_block_password_registration():
     with patch.object(site_settings, 'db', _settings({'signup_enabled': False})), \
          patch.object(auth_routes, 'db', SimpleNamespace(users=users)):
         with pytest.raises(HTTPException) as paused:
-            run(auth_routes.register(UserRegister(username='NewRook', password='long-enough-1')))
+            run(auth_routes.register(UserRegister(username='NewRook', email='new-rook@example.com', password='long-enough-1')))
     assert paused.value.status_code == 403
     assert paused.value.detail == site_settings.SIGNUPS_PAUSED
     users.insert_one.assert_not_awaited()

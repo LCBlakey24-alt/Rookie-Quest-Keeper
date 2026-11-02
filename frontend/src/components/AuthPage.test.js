@@ -15,6 +15,7 @@ jest.mock('sonner', () => ({
   toast: {
     success: jest.fn(),
     error: jest.fn(),
+    info: jest.fn(),
   },
 }));
 
@@ -73,7 +74,8 @@ describe('AuthPage', () => {
     fireEvent.click(screen.getByRole('tab', { name: /create account/i }));
 
     expect(screen.getByRole('heading', { name: /create your keeper account/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/username/i)).toBeRequired();
+    expect(screen.getByLabelText(/email/i)).toBeRequired();
+    expect(screen.getByLabelText(/table nickname/i)).not.toBeRequired();
     expect(screen.getByLabelText(/^password/i)).toHaveAttribute('minLength', '8');
     expect(screen.getByText(/password strength/i)).toBeInTheDocument();
     expect(screen.getByText(/confirm your password to catch typos/i)).toBeInTheDocument();
@@ -141,6 +143,21 @@ describe('AuthPage', () => {
 
     expect(toast.success).toHaveBeenCalledWith('Welcome back!');
     expect(onLogin).toHaveBeenCalledWith('keeper-token', 'Rook', false);
+    expect(toast.info).toHaveBeenCalledWith('Add a recovery email', expect.objectContaining({ action: expect.objectContaining({ label: 'Account settings' }) }));
+  });
+
+  test('creates an account with email and password without a nickname', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { token: 'new-token', username: 'hero', email: 'hero@example.com' } });
+    const { onLogin } = renderAuthPage();
+    fireEvent.click(screen.getByRole('tab', { name: /create account/i }));
+    fireEvent.change(screen.getByLabelText(/email/i, { selector: 'input' }), { target: { value: 'Hero@Example.com' } });
+    fireEvent.change(screen.getByLabelText(/^password/i, { selector: 'input' }), { target: { value: 'strong-password' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i, { selector: 'input' }), { target: { value: 'strong-password' } });
+    fireEvent.submit(document.getElementById('rqk-auth-panel-register'));
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/auth/register', {
+      email: 'Hero@Example.com', password: 'strong-password',
+    }));
+    expect(onLogin).toHaveBeenCalledWith('new-token', 'hero', undefined);
   });
 
   test('keeps a sheet destination when switching auth tabs and signing in', async () => {

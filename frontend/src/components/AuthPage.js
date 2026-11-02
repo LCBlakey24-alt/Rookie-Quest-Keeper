@@ -16,7 +16,7 @@ const AUTH_COPY = {
     subtitle: 'Sign in to open your campaigns and characters.',
     notice: (
       <>
-        Sign in with your username or recovery email. New player? Create an account and keep it nickname-first.
+        Sign in with your email or existing username. New player? Create an account with an email you can use for password recovery.
       </>
     ),
   },
@@ -26,7 +26,7 @@ const AUTH_COPY = {
     subtitle: 'Save characters, prepare campaigns, and keep your table organised from the very first session.',
     notice: (
       <>
-        Kid-friendly signup: use a nickname instead of a real name. Recovery email is optional, but handy if you forget your password.
+        Use your email to keep your account recoverable. A table nickname is optional.
       </>
     ),
   },
@@ -56,7 +56,7 @@ const FEATURE_CARDS = [
   {
     icon: ShieldCheck,
     title: 'Kid-aware by design',
-    text: 'Nickname-first accounts and optional recovery email keep signup lightweight.',
+    text: 'Email recovery protects your characters and campaigns if you forget your password.',
   },
   {
     icon: BookOpen,
@@ -102,8 +102,8 @@ const MODE_ASSURANCE = {
   },
   register: {
     label: 'Signup tip',
-    title: 'Nickname-first is the cleanest route',
-    text: 'Rookie Quest Keeper works best when younger players use a table name or nickname, with recovery email kept optional.',
+    title: 'A nickname is optional',
+    text: 'Your email lets you recover your account. Add a table name if you want one; your email is not shown to other players.',
   },
   forgot: {
     label: 'Recovery note',
@@ -279,6 +279,13 @@ export default function AuthPage({ onLogin = () => {} }) {
       toast.success('Welcome back!');
       onLogin(response.data.token, response.data.username || identifier, response.data.is_admin);
       navigate(destination.to, { replace: true, state: destination.state });
+      if (!response.data.email) {
+        toast.info('Add a recovery email', {
+          description: 'Your older account needs an email before password reset can work.',
+          action: { label: 'Account settings', onClick: () => navigate('/account') },
+          duration: 10000,
+        });
+      }
     } catch (error) {
       toast.error(getErrorMessage(error, 'Login failed'));
     } finally {
@@ -325,7 +332,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     const username = registerData.username.trim();
     const recoveryEmail = registerData.email.trim();
 
-    if (!username || !registerData.password || !registerData.confirmPassword) {
+    if (!recoveryEmail || !registerData.password || !registerData.confirmPassword) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -342,12 +349,12 @@ export default function AuthPage({ onLogin = () => {} }) {
 
     setLoading(true);
     try {
-      const payload = { username, password: registerData.password };
-      if (recoveryEmail) payload.email = recoveryEmail;
+      const payload = { email: recoveryEmail, password: registerData.password };
+      if (username) payload.username = username;
 
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
-      onLogin(response.data.token, response.data.username || payload.username, response.data.is_admin);
+      onLogin(response.data.token, response.data.username, response.data.is_admin);
       navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Registration failed'));
@@ -627,32 +634,32 @@ export default function AuthPage({ onLogin = () => {} }) {
                   id="register-username"
                   name="username"
                   icon={User}
-                  label="Username"
+                  label="Table nickname (optional)"
                   type="text"
                   placeholder="Choose a nickname"
                   value={registerData.username}
                   onChange={(value) => setRegisterData({ ...registerData, username: value })}
                   autoComplete="username"
                   enterKeyHint="next"
-                  hint="Use a table name or nickname rather than a real name."
+                  hint="Leave blank and Keeper will make a private account handle for you."
                   disabled={loading}
-                  required
                 />
 
                 <AuthInput
                   id="register-email"
                   name="email"
                   icon={Mail}
-                  label="Recovery email"
+                  label="Email"
                   type="email"
-                  placeholder="Optional recovery email"
+                  placeholder="you@example.com"
                   value={registerData.email}
                   onChange={(value) => setRegisterData({ ...registerData, email: value })}
                   autoComplete="email"
                   inputMode="email"
                   enterKeyHint="next"
-                  hint="Optional, but useful if you need a password reset later."
+                  hint="Required so you can reset your password if needed."
                   disabled={loading}
+                  required
                 />
 
                 <AuthInput
