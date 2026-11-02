@@ -113,7 +113,11 @@ export default function CleanCharacterSheet() {
       }
     }
     loadCharacter();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      // The route may unmount entirely, not just switch to another character.
+      saveControllerRef.current.invalidate();
+    };
   }, [characterId]);
 
   useEffect(() => {
