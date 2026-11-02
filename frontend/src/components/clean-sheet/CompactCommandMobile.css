@@ -77,7 +77,7 @@
     min-height: 46px;
     padding: 6px 8px;
     background: var(--rq-control-blue, #263F59) !important;
-    border: 1px solid rgba(110,145,180,.3) !important;
+    border: 1px solid rgba(60,146,224,.3) !important;
     border-radius: 5px;
     color: var(--rq-text-primary, #EADFC8) !important;
     font-size: .78rem;
@@ -97,11 +97,11 @@
   #root .character-page-v2 {
     --rq-cc-title-gradient: linear-gradient(
       90deg,
-      var(--rq-citrus-yellow, #F2C94C) 0%,
-      var(--rq-citrus-yellow, #F2C94C) 28%,
-      var(--rq-ember-red-orange, #EF6343) 50%,
-      var(--rq-citrus-blood, #CE393A) 72%,
-      var(--rq-citrus-blood, #CE393A) 100%
+      var(--rq-citrus-yellow, #FF8A1F) 0%,
+      var(--rq-citrus-yellow, #FF8A1F) 28%,
+      var(--rq-ember-red-orange, #F4551F) 50%,
+      var(--rq-citrus-blood, #E03A2F) 72%,
+      var(--rq-citrus-blood, #E03A2F) 100%
     );
   }
 
@@ -182,23 +182,23 @@
   /* The existing live HP card is the Core Stats panel; no duplicate state. */
   #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple {
     margin-bottom: 8px !important;
-    border: 1px solid rgba(110,145,180,.28) !important;
+    border: 1px solid rgba(60,146,224,.28) !important;
     border-radius: 7px !important;
   }
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
     margin-top: 0 !important;
-    border: 1px solid rgba(110,145,180,.28) !important;
+    border: 1px solid rgba(60,146,224,.28) !important;
     border-radius: 7px !important;
   }
   #root .character-page-v2 .clean-sheet-header .clean-sheet-hero-level-badge {
-    border-color: rgba(110,145,180,.3) !important;
+    border-color: rgba(60,146,224,.3) !important;
   }
   #root .character-page-v2 .clean-sheet-header .clean-sheet-hero-options-toggle {
     display: grid !important;
     place-items: center !important;
     min-width: 46px !important;
     min-height: 46px !important;
-    border: 1px solid rgba(110,145,180,.35) !important;
+    border: 1px solid rgba(60,146,224,.35) !important;
     background: var(--rq-control-blue, #263F59) !important;
     color: var(--rq-text-primary, #EADFC8) !important;
     cursor: pointer;
@@ -232,7 +232,7 @@
     gap: 3px;
     min-height: 78px !important;
     padding: 9px 4px !important;
-    border: 1px solid rgba(110,145,180,.30) !important;
+    border: 1px solid rgba(60,146,224,.30) !important;
     border-radius: 5px;
     background: var(--rq-control-blue, #263F59) !important;
     color: var(--rq-text-primary, #EADFC8) !important;
@@ -333,7 +333,7 @@
       calc(7px + env(safe-area-inset-bottom, 0px))
       max(7px, env(safe-area-inset-left, 0px));
     background: var(--rq-bg-deep, #07131F);
-    border-top: 1px solid rgba(110,145,180,.3);
+    border-top: 1px solid rgba(60,146,224,.3);
   }
   #root .character-page-v2 .rqk-cc-dock > button {
     display: grid;
@@ -359,7 +359,7 @@
     background-size: 100% 3px !important;
   }
   #root .character-page-v2 .rqk-cc-dock > button svg {
-    color: var(--rq-secondary, #6E91B4) !important;
+    color: var(--rq-secondary, #3C92E0) !important;
   }
 
   #root .character-page-v2 .rqk-cc-menu-scrim {
@@ -382,7 +382,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
     background: var(--rq-bg-panel, #1E2936) !important;
-    border: 1px solid rgba(110,145,180,.40);
+    border: 1px solid rgba(60,146,224,.40);
     border-radius: 7px;
   }
   #root .character-page-v2 .rqk-cc-more-heading {
@@ -405,7 +405,7 @@
     min-height: 48px !important;
     min-width: 0;
     padding: 8px;
-    border: 1px solid rgba(110,145,180,.3) !important;
+    border: 1px solid rgba(60,146,224,.3) !important;
     border-radius: 5px;
     background-color: var(--rq-control-blue, #263F59) !important;
     background-image: var(--rq-citrus-gradient) !important;
@@ -420,7 +420,7 @@
     background-size: 100% 3px !important;
   }
   #root .character-page-v2 :is(.rqk-cc-ability, .rqk-cc-list-action, .rqk-cc-heading > button, .rqk-cc-section-link, .rqk-cc-dock > button, .rqk-cc-more-panel > button):focus-visible {
-    outline: 3px solid var(--rq-secondary, #6E91B4) !important;
+    outline: 3px solid var(--rq-secondary, #3C92E0) !important;
     outline-offset: 2px !important;
   }
   @media (hover: hover) and (pointer: fine) {

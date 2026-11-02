@@ -176,7 +176,7 @@ test('desktop blue control reveals only the citrus gradient underline on hover',
   });
   const resting = await readStyle();
   expect(resting.backgroundColor).toBe('rgb(38, 63, 89)');
-  expect(resting.backgroundImage).toContain('242, 201, 76');
+  expect(resting.backgroundImage).toContain('255, 138, 31');
   expect(resting.backgroundSize).toMatch(/^0(?:px|%) 3px$/);
   expect(resting.transitionDuration).toContain('0.34s');
 

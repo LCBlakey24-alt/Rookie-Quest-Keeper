@@ -91,7 +91,7 @@
 }
 
 #root .rqk-auth-page :where(button, input):focus-visible {
-  outline: 3px solid #6E91B4 !important;
+  outline: 3px solid #3C92E0 !important;
   outline-offset: 3px;
   box-shadow: none !important;
 }
@@ -106,7 +106,7 @@
 }
 
 #root .rqk-auth-page ::selection {
-  background: rgba(110, 145, 180, 0.28);
+  background: rgba(60, 146, 224, 0.28);
   color: #EADFC8;
 }
 
@@ -154,7 +154,7 @@
   margin: -6px 0 18px;
   padding: 12px 13px 12px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(110, 145, 180, 0.20);
+  border: 1px solid rgba(60, 146, 224, 0.20);
   background: #0F1A26;
   overflow: hidden;
 }
@@ -164,7 +164,7 @@
   position: absolute;
   inset: 10px auto 10px 0;
   width: 3px;
-  background: #6E91B4;
+  background: #3C92E0;
 }
 
 .rqk-auth-assurance span {
@@ -227,7 +227,7 @@
 }
 
 .rqk-auth-strength-meter span.is-filled {
-  background: #6E91B4;
+  background: #3C92E0;
   box-shadow: none;
 }
 

@@ -10,7 +10,7 @@ describe('Keeper professional visual contract', () => {
     const css = read('threeModeMinimalist.css');
 
     expect(css).toContain('--rq-primary: #C9A96B');
-    expect(css).toContain('--rq-secondary: #6E91B4');
+    expect(css).toContain('--rq-secondary: #3C92E0');
     expect(css).toContain('--rq-text-primary: #EADFC8');
     expect(css).toContain('--rq-text-secondary: rgba(234, 223, 200, 0.78)');
     expect(css).toContain('--rq-text-muted: rgba(234, 223, 200, 0.60)');
@@ -22,10 +22,10 @@ describe('Keeper professional visual contract', () => {
     const creator = read('../components/FullCharacterCreatorV2.css');
 
     expect(landing).toContain('--landing-red: #C9A96B');
-    expect(landing).toContain('--landing-secondary: #6E91B4');
+    expect(landing).toContain('--landing-secondary: #3C92E0');
     expect(landing).toContain('--landing-text: #EADFC8');
     expect(creator).toContain('--rqk-creator-accent: var(--rq-primary, #C9A96B)');
-    expect(creator).toContain('--rqk-creator-blue: var(--rq-secondary, #6E91B4)');
+    expect(creator).toContain('--rqk-creator-blue: var(--rq-secondary, #3C92E0)');
   });
 
   test('legacy landing authority cannot restore the retired neon palette', () => {
@@ -81,6 +81,6 @@ describe('Keeper professional visual contract', () => {
     expect(css).toContain('--rq-success: #5FA67A');
     expect(css).toContain('--rq-warning: #D39A43');
     expect(css).toContain('--rq-danger: #B94A4F');
-    expect(css).toContain('--rq-info: #6E91B4');
+    expect(css).toContain('--rq-info: #3C92E0');
   });
 });

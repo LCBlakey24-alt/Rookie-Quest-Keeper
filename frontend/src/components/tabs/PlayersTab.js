@@ -610,12 +610,12 @@ function PlayersTab({ campaignId }) {
                       ? 'rgba(34, 197, 94, 0.18)'
                       : 'var(--rq-citrus-control, #263F59)',
                     backgroundImage: wizardStep === idx + 1
-                      ? 'var(--rq-citrus-gradient, linear-gradient(90deg, #F2C94C 0%, #F2C94C 28%, #EF6343 50%, #CE393A 72%, #CE393A 100%))'
+                      ? 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))'
                       : 'none',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'left bottom',
                     backgroundSize: '100% 3px',
-                    border: '1px solid rgba(110, 145, 180, 0.32)',
+                    border: '1px solid rgba(60, 146, 224, 0.32)',
                     borderRadius: '10px',
                     opacity: idx + 1 > wizardStep ? 0.5 : 1,
                     transition: 'all 0.3s'

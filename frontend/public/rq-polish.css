@@ -352,7 +352,7 @@
 
 #root .rqk-auth-hero {
   padding: clamp(28px, 4vw, 42px) !important;
-  border-left: 2px solid #6E91B4 !important;
+  border-left: 2px solid #3C92E0 !important;
 }
 
 #root .rqk-auth-hero h2,
@@ -376,15 +376,15 @@
 }
 
 #root .rqk-auth-feature-icon {
-  background: rgba(110,145,180, 0.12) !important;
+  background: rgba(60,146,224, 0.12) !important;
   color: #C9A96B !important;
-  border: 1px solid rgba(110,145,180, 0.30) !important;
+  border: 1px solid rgba(60,146,224, 0.30) !important;
   border-radius: 5px !important;
 }
 
 #root .rqk-auth-card {
   padding: clamp(21px, 3vw, 28px) !important;
-  border-top: 2px solid #6E91B4 !important;
+  border-top: 2px solid #3C92E0 !important;
 }
 
 #root .rqk-auth-heading::after {
@@ -408,8 +408,8 @@
 }
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
-  background: rgba(110,145,180, 0.12) !important;
-  border-color: #6E91B4 !important;
+  background: rgba(60,146,224, 0.12) !important;
+  border-color: #3C92E0 !important;
   color: #EADFC8 !important;
 }
 
@@ -432,15 +432,15 @@
 }
 
 #root .rqk-auth-input-shell:focus-within {
-  border-color: #6E91B4 !important;
+  border-color: #3C92E0 !important;
   background: #101F2D !important;
-  box-shadow: 0 0 0 3px rgba(110, 145, 180, 0.18) !important;
+  box-shadow: 0 0 0 3px rgba(60, 146, 224, 0.18) !important;
 }
 
 #root .rqk-auth-page .rqk-auth-primary {
   min-height: 48px !important;
   border-radius: 5px !important;
-  border-color: #6E91B4 !important;
+  border-color: #3C92E0 !important;
   background: #263F59 !important;
   background-image: none !important;
   color: #F8F0E5 !important;
@@ -449,11 +449,11 @@
 #root .rqk-auth-page .rqk-auth-primary:hover:not(:disabled),
 #root .rqk-auth-page .rqk-auth-primary:focus-visible:not(:disabled) {
   background: #263F59 !important;
-  border-color: #6E91B4 !important;
+  border-color: #3C92E0 !important;
 }
 
 #root .rqk-auth-page :where(button, input):focus-visible {
-  outline: 3px solid #6E91B4 !important;
+  outline: 3px solid #3C92E0 !important;
   outline-offset: 3px !important;
   box-shadow: none !important;
 }

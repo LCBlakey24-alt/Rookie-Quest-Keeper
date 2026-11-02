@@ -14,7 +14,7 @@ describe('Guild Ledger authentication presentation', () => {
     expect(auth).toContain('background: #1E2936 !important;');
     expect(auth).toContain('background: #263F59 !important;');
     expect(auth).not.toContain('background: #C9A96B !important;');
-    expect(auth).toContain('outline: 3px solid #6E91B4');
+    expect(auth).toContain('outline: 3px solid #3C92E0');
     expect(auth).toContain('background: #7F2D2D !important;');
     expect(`${auth}\n${polish}`).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(`${auth}\n${polish}`).not.toMatch(/#ff2daa|#ff4f81|#d84df1|#7357ff|#ff9542/i);
@@ -29,7 +29,7 @@ describe('Guild Ledger authentication presentation', () => {
     expect(authSection).toContain('background: #0B1B2B !important;');
     expect(authSection).toContain('background: #263F59 !important;');
     expect(authSection).not.toContain('background: #C9A96B !important;');
-    expect(authSection).toContain('outline: 3px solid #6E91B4');
+    expect(authSection).toContain('outline: 3px solid #3C92E0');
     expect(authSection).not.toMatch(/#ff2daa|#ff4f81|#d84df1|#7357ff|#ff9542/i);
     expect(authSection).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
   });

@@ -39,7 +39,7 @@
   }
   :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]) {
     background-color: var(--rq-control-blue, #263F59) !important;
-    border-color: rgba(110,145,180,.36) !important;
+    border-color: rgba(60,146,224,.36) !important;
   }
   :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]):hover {
     background-color: var(--rq-control-blue, #263F59) !important;
@@ -86,8 +86,8 @@ html[data-theme='player'] {
   --rq-bg-button: #0E263A;
   --rq-button-hover: #334155;
 
-  --rq-secondary: #6E91B4;
-  --rq-secondary-soft: rgba(110, 145, 180, 0.10);
+  --rq-secondary: #3C92E0;
+  --rq-secondary-soft: rgba(60, 146, 224, 0.10);
   --rq-secondary-border: rgba(121, 188, 232, 0.28);
 
   --rq-primary: #C9A96B;
@@ -96,7 +96,7 @@ html[data-theme='player'] {
   --rq-accent-primary: #C9A96B;
   --rq-accent-hover: #D9BC82;
   --rq-accent-soft: rgba(201, 169, 107, 0.12);
-  --rq-accent-border: rgba(110, 145, 180, 0.36);
+  --rq-accent-border: rgba(60, 146, 224, 0.36);
 
   --rq-text: #EADFC8;
   --rq-text-primary: #EADFC8;
@@ -106,16 +106,16 @@ html[data-theme='player'] {
   --rq-faint: rgba(234, 223, 200, 0.46);
 
   --rq-line: rgba(137, 157, 176, 0.14);
-  --rq-line-strong: rgba(110, 145, 180, 0.36);
+  --rq-line-strong: rgba(60, 146, 224, 0.36);
   --rq-border-default: rgba(137, 157, 176, 0.14);
-  --rq-border-strong: rgba(110, 145, 180, 0.36);
+  --rq-border-strong: rgba(60, 146, 224, 0.36);
 
   --rq-seal: #7F2D2D;
   --rq-seal-soft: rgba(127, 45, 45, 0.14);
   --rq-success: #5FA67A;
   --rq-warning: #D39A43;
   --rq-danger: #B94A4F;
-  --rq-info: #6E91B4;
+  --rq-info: #3C92E0;
 
   --rq-radius: 7px;
   --rq-inner-radius: 5px;

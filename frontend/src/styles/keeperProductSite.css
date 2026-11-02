@@ -18,9 +18,9 @@
   --landing-red: #C9A96B;
   --landing-red-bright: #D9BC82;
   --landing-red-soft: rgba(201, 169, 107, 0.12);
-  --landing-blue: var(--rq-secondary, #6E91B4);
-  --landing-secondary: #6E91B4;
-  --landing-blue-soft: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10));
+  --landing-blue: var(--rq-secondary, #3C92E0);
+  --landing-secondary: #3C92E0;
+  --landing-blue-soft: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10));
   --landing-text: #EADFC8;
   --landing-muted: var(--rq-text-secondary, rgba(234, 223, 200, 0.78));
   --landing-faint: var(--rq-text-muted, rgba(234, 223, 200, 0.58));
@@ -185,7 +185,7 @@
 #root .keeper-product-site .landing-button-primary {
   background: var(--rq-control-blue, #263F59) !important;
   background-image: none !important;
-  border-color: var(--rq-secondary, #6E91B4) !important;
+  border-color: var(--rq-secondary, #3C92E0) !important;
   color: var(--landing-text) !important;
 }
 
@@ -252,7 +252,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 1px;
-  background: var(--rq-secondary, #6E91B4);
+  background: var(--rq-secondary, #3C92E0);
   opacity: 0.58;
 }
 
@@ -586,7 +586,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0 8px;
-  border: 1px solid var(--rq-secondary, #6E91B4);
+  border: 1px solid var(--rq-secondary, #3C92E0);
   border-radius: 4px;
   background: var(--rq-control-blue, #263F59);
   color: var(--rq-control-ink, #F8F0E5);
@@ -1010,7 +1010,7 @@
   height: 31px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--rq-secondary, #6E91B4);
+  border: 1px solid var(--rq-secondary, #3C92E0);
   border-radius: 50%;
   color: var(--landing-gold-bright);
   font-size: 10px;

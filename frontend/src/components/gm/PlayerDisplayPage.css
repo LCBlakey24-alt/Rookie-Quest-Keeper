@@ -10,8 +10,8 @@
   /* Approved yellow-to-red accent. Used only as thin rules: title underlines
      and section markers — never as a panel or card fill. */
   --rqk-tv-citrus: var(--rq-citrus-gradient, linear-gradient(90deg,
-    #F2C94C 0%, #F2C94C 28%, #EF6343 50%, #CE393A 72%, #CE393A 100%));
-  --rqk-tv-line: rgba(110, 145, 180, 0.28);
+    #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%));
+  --rqk-tv-line: rgba(60, 146, 224, 0.28);
   color: var(--rqk-tv-cream);
   isolation: isolate;
 }

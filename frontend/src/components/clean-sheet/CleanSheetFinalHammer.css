@@ -14,8 +14,8 @@
   --cs-border-strong: rgba(201,169,107, 0.30) !important;
   --cs-accent: #C9A96B !important;
   --cs-accent-soft: rgba(201,169,107, 0.12) !important;
-  --cs-blue: #6E91B4 !important;
-  --cs-blue-soft: rgba(110,145,180, 0.10) !important;
+  --cs-blue: #3C92E0 !important;
+  --cs-blue-soft: rgba(60,146,224, 0.10) !important;
   --cs-success: #5FA67A !important;
   --cs-warning: #D39A43 !important;
   --cs-danger: #B94A4F !important;
@@ -30,7 +30,7 @@
   --rq-surface: #1E2936 !important;
   --rq-border-default: rgba(137,157,176, 0.14) !important;
   --rq-accent-primary: #C9A96B !important;
-  --rq-secondary: #6E91B4 !important;
+  --rq-secondary: #3C92E0 !important;
   --rq-sunset-gradient: #C9A96B !important;
 
   background: #0B1B2B !important;
@@ -203,7 +203,7 @@
 .character-page-v2 input:focus-visible,
 .character-page-v2 select:focus-visible,
 .character-page-v2 textarea:focus-visible {
-  outline: 3px solid #6E91B4 !important;
+  outline: 3px solid #3C92E0 !important;
   outline-offset: 2px !important;
 }
 
@@ -241,7 +241,7 @@
 
 .character-page-v2 .clean-sheet-hp-bar div,
 .character-page-v2 .clean-sheet-slot-pips i.filled {
-  background: #6E91B4 !important;
+  background: #3C92E0 !important;
   background-image: none !important;
 }
 
@@ -265,7 +265,7 @@
 .character-page-v2 .clean-sheet-tabs button svg,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
 .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
-  color: #6E91B4 !important;
+  color: #3C92E0 !important;
   background: transparent !important;
   background-image: none !important;
 }
