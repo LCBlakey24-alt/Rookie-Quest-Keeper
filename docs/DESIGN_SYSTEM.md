@@ -62,7 +62,7 @@ The currently approved visual system is **solid deep navy + warm cream + blue co
 - Navy supplies structure and depth.
 - Cream supplies readable hierarchy.
 - **Antique gold is text-only**: titles, special headings and deliberate written emphasis. Never use antique gold for control fills, borders, icons, selected boxes or backgrounds.
-- Resting, hovered and selected clickable bodies stay dark blue (`#263F59`). Only a thin 3px bright orange → orange-red → red **underline** sweeps left to right on hover/press, remaining in place for selected controls. **The gradient itself holds solid bright orange for 0–28%, blends through orange-red at 50%, and holds solid red for 72–100%; the blend is concentrated in the middle.**
+- Resting, hovered and selected clickable bodies stay dark blue (`#0B1B2B`). Only a thin 3px bright orange → orange-red → red **underline** sweeps left to right on hover/press, remaining in place for selected controls. **The gradient itself holds solid bright orange for 0–28%, blends through orange-red at 50%, and holds solid red for 72–100%; the blend is concentrated in the middle.**
 - Blue supports information, icons, progress and keyboard focus.
 - Red is semantic danger/error only.
 - Green is semantic success only.
@@ -78,15 +78,15 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
 :root {
   --rq-bg: #0B1B2B;
   --rq-bg-main: #0B1B2B;
-  --rq-bg-deep: #07131F;
-  --rq-bg-rail: #07131F;
-  --rq-bg-panel: #1E2936;
-  --rq-card: #263748;
-  --rq-card-hover: #334155;
-  --rq-bg-input: #101F2D;
+  --rq-bg-deep: #0B1B2B;
+  --rq-bg-rail: #0B1B2B;
+  --rq-bg-panel: #0B1B2B;
+  --rq-card: #0B1B2B;
+  --rq-card-hover: #0B1B2B;
+  --rq-bg-input: #0B1B2B;
 
   --rq-gold-text: #C9A96B; /* headings/text only */
-  --rq-control-blue: #263F59;
+  --rq-control-blue: #0B1B2B;
   --rq-citrus-yellow: #FF8A1F;
   --rq-ember-red-orange: #F4551F;
   --rq-citrus-blood: #E03A2F;

@@ -2,7 +2,7 @@
    This stays scoped to the public brand homepage. */
 
 .rq-visual-home {
-  --rq-world-ink: #07131f;
+  --rq-world-ink: #0b1b2b;
   --rq-world-paper: #ead9ad;
   --rq-world-gold: #d8b66d;
 }
@@ -142,7 +142,7 @@
   border-bottom: 1px solid rgba(247,242,232,0.08);
   background:
     radial-gradient(circle at 82% 16%, color-mix(in srgb, var(--scene-accent) 14%, transparent), transparent 34%),
-    linear-gradient(160deg, #0f2535 0%, #07131f 70%);
+    linear-gradient(160deg, #0f2535 0%, #0b1b2b 70%);
 }
 
 .rq-product-scene::after {

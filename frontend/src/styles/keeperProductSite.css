@@ -4,11 +4,11 @@
 
 #root .landing-page-final.keeper-product-site {
   --landing-bg: var(--rq-bg-main, #0B1B2B);
-  --landing-bg-deep: var(--rq-bg-deep, #07131F);
-  --landing-surface: var(--rq-bg-panel, #1E2936);
-  --landing-card: var(--rq-card, #263748);
-  --landing-card-hover: var(--rq-card-hover, #334155);
-  --landing-input: var(--rq-bg-input, #101F2D);
+  --landing-bg-deep: var(--rq-bg-deep, #0B1B2B);
+  --landing-surface: var(--rq-bg-panel, #0B1B2B);
+  --landing-card: var(--rq-card, #0B1B2B);
+  --landing-card-hover: var(--rq-card-hover, #0B1B2B);
+  --landing-input: var(--rq-bg-input, #0B1B2B);
   --landing-line: var(--rq-line, rgba(137, 157, 176, 0.14));
   --landing-line-strong: var(--rq-line-strong, rgba(201, 169, 107, 0.30));
   --landing-gold: var(--rq-primary, #C9A96B);
@@ -81,7 +81,7 @@
   align-items: center;
   gap: 18px;
   padding: 7px 8px;
-  background: rgba(7, 19, 31, 0.97) !important;
+  background: rgba(11, 27, 43, 0.97) !important;
   background-image: none !important;
   border: 1px solid var(--landing-line) !important;
   border-bottom-color: var(--landing-line-strong) !important;
@@ -183,14 +183,14 @@
 /* Interactive controls animate through the shared waxSealInteractive layer. */
 
 #root .keeper-product-site .landing-button-primary {
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   background-image: none !important;
   border-color: var(--rq-secondary, #3C92E0) !important;
   color: var(--landing-text) !important;
 }
 
 #root .keeper-product-site .landing-button-primary:hover:not(:disabled) {
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
@@ -201,7 +201,7 @@
 }
 
 #root .keeper-product-site .landing-button-ghost:hover:not(:disabled) {
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
@@ -588,7 +588,7 @@
   padding: 0 8px;
   border: 1px solid var(--rq-secondary, #3C92E0);
   border-radius: 4px;
-  background: var(--rq-control-blue, #263F59);
+  background: var(--rq-control-blue, #0B1B2B);
   color: var(--rq-control-ink, #F8F0E5);
   font-size: 8px;
   font-weight: 800;
@@ -2025,7 +2025,7 @@
 
   #root .keeper-product-site .landing-feature-card-grid article {
     padding: 13px !important;
-    background: rgba(30, 41, 54, 0.72) !important;
+    background: rgba(11, 27, 43, 0.72) !important;
   }
 
   #root .keeper-product-site .landing-feature-card-grid button {

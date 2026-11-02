@@ -5,7 +5,7 @@ This is the current user-approved design direction, **29 October 2026**. It supe
 ## Direction: Guild Command / flat navy / citrus gradient lines
 
 - **Page background:** solid ink navy `#0B1B2B`. No wallpaper image, paper grain, textured page surfaces or darkened overlay.
-- **Deep rail:** `#07131F`; **panels:** `#142638` or `#1E2936`; **cards:** `#263748`; **normal controls:** `#263F59`.
+- **Deep rail:** `#0B1B2B`; **panels:** `#0B1B2B` or `#0B1B2B`; **cards:** `#0B1B2B`; **normal controls:** `#0B1B2B`.
 - **Primary text:** warm cream `#F5F1E8`; muted labels `rgba(234,223,200,0.78)`; support blue `#3C92E0`.
 - **Accent gradient:** solid bright orange `#FF8A1F` across the first **28%**, blend through orange-red `#F4551F` at **50%**, reach red `#E03A2F` at **72%**, then hold solid red for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
 - The accent is ONLY a thin **2–3px rule, tab underline, selected-sidebar marker or section divider**. Never fill a page, button, card, modal, or tab with gradient.

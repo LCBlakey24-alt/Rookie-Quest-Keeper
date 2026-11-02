@@ -68,7 +68,7 @@
   padding: 7px 10px;
   border: 1px solid var(--npc-hub-line);
   border-radius: 6px;
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -103,7 +103,7 @@
   font: inherit;
   color: var(--npc-hub-cream);
   cursor: pointer;
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   border: 1px solid var(--npc-hub-line);
   border-radius: 9px;
   box-shadow: none;
@@ -118,7 +118,7 @@
   place-items: center;
   border: 1px solid rgba(201, 169, 107, .19);
   border-radius: 7px;
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   color: var(--rq-secondary, #3c92e0);
 }
 
@@ -155,7 +155,7 @@
 
 #root .rqk-npc-hub__tab.is-active {
   border-color: rgba(201, 169, 107, .7);
-  background: var(--rq-card, #263748);
+  background: var(--rq-card, #0B1B2B);
 }
 
 #root .rqk-npc-hub__tab.is-active .rqk-npc-hub__tab-icon {
@@ -169,7 +169,7 @@
 
 #root .rqk-npc-hub__tab:hover {
   border-color: rgba(201, 169, 107, .5);
-  background: var(--rq-card-hover, #334155);
+  background: var(--rq-card-hover, #0B1B2B);
 }
 
 #root .rqk-npc-hub__tab:focus-visible {
@@ -183,7 +183,7 @@
   padding: clamp(10px, 2vw, 18px);
   border: 1px solid rgba(201, 169, 107, .23);
   border-radius: 9px;
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
 }
 
 #root .rqk-npc-hub__panel:focus-visible {

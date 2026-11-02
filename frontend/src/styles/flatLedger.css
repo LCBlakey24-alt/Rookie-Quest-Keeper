@@ -1,0 +1,104 @@
+/* Flat Ledger surfaces — 2 Nov 2026.
+ *
+ * One background colour for the whole app. Structure comes from rules and
+ * spacing, not from stacking progressively lighter blues. Approved direction:
+ * "rules only, no boxes".
+ *
+ * The surface tokens were flattened to the page ink separately; this file
+ * supplies the language that replaces the fills:
+ *
+ *   - a selected control is marked by a citrus rule beneath it, not by a
+ *     coloured body;
+ *   - a card is closed by a citrus rule along its base instead of a border;
+ *   - a field is a line, not a well.
+ *
+ * It loads last and uses !important for the same reason the other override
+ * sheets in this repository do: many of these rules are being overridden from
+ * component stylesheets and inline styles that would otherwise win.
+ */
+
+:root {
+  --rq-ledger-rule: linear-gradient(90deg,
+    var(--rq-citrus-yellow, #FF8A1F) 0%,
+    var(--rq-citrus-yellow, #FF8A1F) 28%,
+    var(--rq-citrus-orange, #F4551F) 50%,
+    var(--rq-citrus-blood, #E03A2F) 72%,
+    var(--rq-citrus-blood, #E03A2F) 100%);
+  --rq-ledger-hair: rgba(234, 223, 200, 0.12);
+  --rq-ledger-hair-soft: rgba(234, 223, 200, 0.08);
+}
+
+/* ---- 1. Selected states: a rule underneath, never a coloured body ------- */
+
+#root [aria-selected='true'],
+#root [aria-current='page'],
+#root [aria-pressed='true'] {
+  background-color: transparent !important;
+  background-image: var(--rq-ledger-rule) !important;
+  background-repeat: no-repeat !important;
+  background-position: left bottom !important;
+  background-size: 100% 2px !important;
+  border-color: transparent !important;
+  color: var(--rq-text-primary, #F5F1E8) !important;
+}
+
+/* The selected-state language used to be a wax-red "seal": a ::before overlay
+   filling the control with #7E2D2D. Flattening the surfaces left that red as
+   the loudest thing on screen, and AGENTS.md retires the wax palette.
+   
+   Both wax fills are token-driven, so redefining the tokens removes the fill
+   everywhere at once without touching the overlay geometry -- the ::before
+   still sizes and animates, it just paints nothing. That matters because the
+   same overlay mechanism draws the app rail's active marker, which a blanket
+   `::before { background: none }` would have destroyed. Selection is now
+   carried by the citrus rule above. */
+:root {
+  --rq-control-wax: transparent;
+  --rq-guild-wine: transparent;
+}
+
+#root [style*='#7E2D2D'],
+#root [style*='rgb(126, 45, 45)'] {
+  background-color: transparent !important;
+}
+
+/* ---- 2. Fields are lines, not wells ------------------------------------ */
+
+#root input:not([type='checkbox']):not([type='radio']):not([type='range']),
+#root select,
+#root textarea {
+  background-color: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--rq-ledger-hair) !important;
+  border-radius: 0 !important;
+}
+
+/* A field has to stay findable once the well is gone, so the resting line is
+   a little stronger than a card edge and focus replaces it with the citrus
+   rule rather than only drawing a ring. */
+#root input:not([type='checkbox']):not([type='radio']):not([type='range']):focus,
+#root select:focus,
+#root textarea:focus {
+  border-bottom-color: transparent !important;
+  background-image: var(--rq-ledger-rule) !important;
+  background-repeat: no-repeat !important;
+  background-position: left bottom !important;
+  background-size: 100% 2px !important;
+}
+
+/* ---- 3. Keep the focus ring. Flattening must not cost keyboard users ---- */
+
+#root :is(button, [role='button'], [role='tab'], a, select, summary, input, textarea, [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: 3px solid var(--rq-secondary, #3C92E0) !important;
+  outline-offset: 2px !important;
+}
+
+/* ---- 4. Reduced motion: the rule appears, it does not sweep ------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  #root [aria-selected='true'],
+  #root [aria-current='page'],
+  #root [aria-pressed='true'] {
+    transition: none !important;
+  }
+}

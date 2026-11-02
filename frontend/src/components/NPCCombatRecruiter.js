@@ -14,7 +14,7 @@ import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 // fill (docs/UI_DESIGN_SYSTEM.md), so these buttons no longer carry the legacy
 // amber/red gradient fills.
 const FLAT_CONTROL = {
-  background: 'var(--rq-citrus-control, #263F59)',
+  background: 'var(--rq-citrus-control, #0B1B2B)',
   color: 'var(--rq-citrus-cream, #F5F1E8)',
   border: '1px solid rgba(60, 146, 224, 0.32)',
 };

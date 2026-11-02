@@ -13,7 +13,7 @@
 #root .rqk-reference-browser__detail {
   min-width: 0;
   border: 1px solid var(--rq-border-default, rgba(137,157,176,.28));
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   border-radius: 9px;
 }
 #root .rqk-reference-browser__sidebar { overflow: hidden; }
@@ -25,7 +25,7 @@
   padding: 13px 12px;
   color: var(--rq-text-primary, #eadfc8);
   border-bottom: 1px solid var(--rq-border-default, rgba(137,157,176,.28));
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
 }
 #root .rqk-reference-browser__sidebar-heading strong { font-size: 12px; letter-spacing: .025em; }
 #root .rqk-reference-browser__sidebar-heading span {
@@ -62,10 +62,10 @@
   cursor: pointer;
 }
 #root .rqk-reference-browser__item:hover {
-  background: var(--rq-card, #263748);
+  background: var(--rq-card, #0B1B2B);
 }
 #root .rqk-reference-browser__item.is-selected {
-  background: var(--rq-card, #263748);
+  background: var(--rq-card, #0B1B2B);
   border-left-color: var(--rq-accent-primary, #c9a96b);
 }
 #root .rqk-reference-browser__item:focus-visible {
@@ -213,14 +213,14 @@
   border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
   border-radius: 6px;
   color: var(--rq-text-primary, #eadfc8);
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   font: inherit;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
 }
 #root .rqk-reference-browser__paging button:not(:disabled):is(:hover,:focus-visible) {
-  background: var(--rq-card, #263748);
+  background: var(--rq-card, #0B1B2B);
   border-color: var(--rq-accent-primary, #c9a96b);
 }
 #root .rqk-reference-browser__paging button:focus-visible {
@@ -249,7 +249,7 @@
    Important rules in rq-controls outrank older global button styling. */
 @layer rq-controls {
   #root .rqk-reference-browser .rqk-reference-browser__list {
-    scrollbar-color: #61758A #142638;
+    scrollbar-color: #61758A #0B1B2B;
   }
   #root .rqk-reference-browser .rqk-reference-browser__item {
     box-sizing: border-box !important;
@@ -265,7 +265,7 @@
     overflow: visible !important;
     white-space: normal !important;
     line-height: 1.4 !important;
-    background-color: #263F59 !important;
+    background-color: #0B1B2B !important;
     background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F)) !important;
     background-position: left center !important;
     background-size: 0% 3px !important;

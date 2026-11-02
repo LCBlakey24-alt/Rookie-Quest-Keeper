@@ -387,7 +387,7 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
           gap: '8px',
           // Flat navy control: the accent is never a button fill, and the
           // design system rules out glow-heavy chrome.
-          background: 'var(--rq-citrus-control, #263F59)',
+          background: 'var(--rq-citrus-control, #0B1B2B)',
           color: 'var(--rq-citrus-cream, #F5F1E8)',
           border: '1px solid rgba(60, 146, 224, 0.32)'
         }}
@@ -528,7 +528,7 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
           {/* Summary panel: navy surface with a thin citrus rule along the top
               edge instead of a gold gradient wash and gold border. */}
           <div style={{
-            backgroundColor: 'var(--rq-citrus-panel, #142638)',
+            backgroundColor: 'var(--rq-citrus-panel, #0B1B2B)',
             backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'left top',

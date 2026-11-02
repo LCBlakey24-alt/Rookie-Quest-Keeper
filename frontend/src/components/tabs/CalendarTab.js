@@ -529,7 +529,7 @@ export default function CalendarTab({ campaignId }) {
       <aside className="rqk-calendar-panel rqk-calendar-upcoming">
         <h3 style={{ color: '#EADFC8', marginTop: 0 }}>Upcoming 30 Days</h3>
         {upcomingEvents.length === 0 ? <p style={{ color: '#EADFC8' }}>No upcoming events.</p> : upcomingEvents.map(event => (
-          <div key={event.id} style={{ border: '1px solid rgba(201,169,107,0.24)', background: '#263748', padding: 10, marginBottom: 8 }}>
+          <div key={event.id} style={{ border: '1px solid rgba(201,169,107,0.24)', background: '#0B1B2B', padding: 10, marginBottom: 8 }}>
             <strong style={{ color: '#EADFC8' }}>{event.name}</strong>
             <p style={{ color: '#EADFC8', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
           </div>

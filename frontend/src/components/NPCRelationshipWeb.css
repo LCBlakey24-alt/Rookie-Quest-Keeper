@@ -5,7 +5,7 @@
 .rqk-rel-heading p, .rqk-rel-graph-panel > p { color: var(--rq-text-secondary, #b8c5d0); margin: 0; line-height: 1.45; font-size: 13px; }
 .rqk-rel-eyebrow { display: flex; align-items: center; gap: 6px; color: #c9a96b !important; text-transform: uppercase; letter-spacing: .08em; font-size: 11px !important; font-weight: 800; }
 .rqk-rel-count { padding: 7px 10px; border: 1px solid #74634c; border-radius: 6px; color: #eadfc8; white-space: nowrap; font-size: 12px; font-weight: 800; }
-.rqk-rel-panel { display: grid; gap: 12px; min-width: 0; padding: clamp(12px, 2.5vw, 20px); border: 1px solid var(--rq-line-strong, #435261); border-radius: 8px; background: var(--rq-bg-panel, #1e2936); }
+.rqk-rel-panel { display: grid; gap: 12px; min-width: 0; padding: clamp(12px, 2.5vw, 20px); border: 1px solid var(--rq-line-strong, #435261); border-radius: 8px; background: var(--rq-bg-panel, #0b1b2b); }
 .rqk-rel-panel h3 { display: flex; align-items: center; gap: 7px; margin: 0; color: #e4c68d; font-size: 17px; }
 .rqk-rel-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
 .rqk-rel-form label { display: grid; gap: 6px; font-size: 12px; color: #e0d5c6; font-weight: 750; min-width: 0; }
@@ -57,7 +57,7 @@
 .rqk-rel-selected { display: grid; gap: 6px; padding: 12px; border-left: 3px solid #c9a96b; background: #0c2234; font-size: 13px; }
 .rqk-rel-selected p { margin: 0; line-height: 1.5; color: #c5d0d9; }
 .rqk-rel-selected button, .rqk-rel-status button { justify-self: start; padding: 8px 12px; color: #e4c68d; background: #10293a; border: 1px solid #c9a96b; border-radius: 6px; cursor: pointer; }
-.rqk-rel-status { display: grid; justify-items: start; gap: 8px; padding: 18px; border: 1px solid #8a7070; border-radius: 7px; background: #1e2936; color: #eadfc8; }
+.rqk-rel-status { display: grid; justify-items: start; gap: 8px; padding: 18px; border: 1px solid #8a7070; border-radius: 7px; background: #0b1b2b; color: #eadfc8; }
 .rqk-rel-status p { margin: 0; }
 .rqk-rel-workspace :is(button, select, input):focus-visible, .rqk-rel-status button:focus-visible { outline: 2px solid #e2bc80; outline-offset: 3px; }
 @media (max-width: 780px) {
@@ -103,7 +103,7 @@
   background: var(--rq-primary, #c9a96b);
   border: 1px solid var(--rq-primary, #c9a96b);
   border-radius: 6px;
-  color: #07131f;
+  color: #0b1b2b;
   font: inherit;
   font-size: 13px;
   font-weight: 850;
@@ -111,7 +111,7 @@
 }
 #root .rqk-rel-add-link:is(:hover,:focus-visible) {
   background: var(--rq-primary-hover, #d9bc82);
-  color: #07131f;
+  color: #0b1b2b;
 }
 #root .rqk-rel-create-panel {
   scroll-margin-top: 20px;
@@ -208,7 +208,7 @@
   flex-wrap: wrap;
   gap: 4px 7px;
   padding: 9px 10px;
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   border: 1px solid var(--rq-line, rgba(137,157,176,.2));
   border-radius: 5px;
   overflow-wrap: anywhere;
@@ -251,7 +251,7 @@
   padding: 11px 13px;
   border: 1px solid var(--rq-border-default, rgba(137,157,176,.25));
   border-radius: 7px;
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
 }
 #root .rqk-rel-coverage strong {
   color: var(--rq-primary-hover, #d9bc82);
@@ -268,7 +268,7 @@
 #root .rqk-rel-unlinked {
   border: 1px solid var(--rq-border-default, rgba(137,157,176,.25));
   border-radius: 6px;
-  background: var(--rq-bg-deep, #07131f);
+  background: var(--rq-bg-deep, #0b1b2b);
   min-width: 0;
 }
 #root .rqk-rel-unlinked > summary {
@@ -294,7 +294,7 @@
   border: 1px solid rgba(201,169,107,.3);
   border-radius: 6px;
   color: var(--rq-text-primary, #eadfc8);
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   font: inherit;
   font-size: 12px;
   cursor: pointer;

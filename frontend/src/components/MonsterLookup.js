@@ -41,7 +41,7 @@ export default function MonsterLookup({ onAddToCombat }) {
           <NpcCompactStatBlock npc={selectedMonster} />
           {onAddToCombat && (
             <button type="button" data-testid="add-monster-to-combat-btn" onClick={() => onAddToCombat(selectedMonster)}
-              style={{ minHeight: 42, border: '1px solid var(--rq-line-strong, rgba(201,169,107,.3))', background: 'var(--rq-card, #263748)', color: ink, cursor: 'pointer', fontWeight: 850, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              style={{ minHeight: 42, border: '1px solid var(--rq-line-strong, rgba(201,169,107,.3))', background: 'var(--rq-card, #0B1B2B)', color: ink, cursor: 'pointer', fontWeight: 850, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
               <Plus size={16} /> Add to Combat
             </button>
           )}
@@ -50,7 +50,7 @@ export default function MonsterLookup({ onAddToCombat }) {
         <div style={{ display: 'grid', gap: 3, maxHeight: 300, overflowY: 'auto', border, background: panel }}>
           {results.map(monster => (
             <button key={monster.id || monster.name} type="button" onClick={() => setSelectedMonster(monster)}
-              style={{ width: '100%', padding: '10px 11px', border: 0, borderBottom: border, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', gap: 8, textAlign: 'left', background: 'var(--rq-bg-panel, #1E2936)', color: ink }}>
+              style={{ width: '100%', padding: '10px 11px', border: 0, borderBottom: border, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', gap: 8, textAlign: 'left', background: 'var(--rq-bg-panel, #0B1B2B)', color: ink }}>
               <span style={{ display: 'grid', gap: 2 }}>
                 <strong style={{ fontSize: 13 }}>{monster.name}</strong>
                 <span style={{ fontSize: 11, color: muted }}>{[monster.size, monster.type].filter(Boolean).join(' ')}</span>
