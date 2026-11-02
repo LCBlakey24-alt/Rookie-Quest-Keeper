@@ -12,6 +12,7 @@ import {
 } from '@/components/dashboard/home/unifiedDashboardUtils';
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import { readActiveCharacterId } from '@/components/dashboard/player/playerActiveCharacterStorage';
 import { importDesktopCampaignPack } from '@/preview/desktopCampaignPack';
 import { isOfflineDesktop } from '@/preview/previewMode';
@@ -298,14 +299,11 @@ export default function MyCampaignsPage() {
 
   if (loading) {
     return (
-      <main className="library-page library-page-loading">
-        <section className="loading-screen library-page-branded-loading" role="status" aria-live="polite" aria-busy="true">
-          <div className="loading-card">
-            <div className="loading-spinner" aria-hidden="true" />
-            <h1 className="loading-title">Opening campaigns…</h1>
-          </div>
-        </section>
-      </main>
+      <RouteLoadingScreen
+        label="Campaigns are loading"
+        status="Opening campaigns…"
+        description="Your campaigns and player tools will appear here."
+      />
     );
   }
 

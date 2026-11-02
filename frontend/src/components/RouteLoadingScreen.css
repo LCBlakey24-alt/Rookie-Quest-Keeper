@@ -57,7 +57,6 @@
   border: 0 !important;
   background: transparent !important;
   filter: none !important;
-  animation: rqkKeeperEnter 340ms ease-out both !important;
 }
 
 #root .route-loading-screen .rqk-route-eyebrow {
@@ -73,7 +72,7 @@
 #root .route-loading-screen .rqk-route-heading {
   margin: 0 !important;
   max-width: 100% !important;
-  color: var(--rq-gold-text, #C9A96B) !important;
+  color: var(--rq-citrus-cream, #F5F1E8) !important;
   font-family: var(--rq-font-display, 'Cinzel', Georgia, serif) !important;
   font-size: clamp(2.8rem, 9vw, 4.1rem) !important;
   font-weight: 700 !important;
@@ -110,7 +109,7 @@
   overflow: hidden !important;
   border: 0 !important;
   border-radius: 2px !important;
-  background: rgba(60, 146, 224, .22) !important;
+  background: var(--rq-ledger-hair, rgba(234, 223, 200, .12)) !important;
 }
 
 #root .route-loading-screen .rqk-route-activity > span {
@@ -119,7 +118,7 @@
   height: 100% !important;
   border: 0 !important;
   border-radius: inherit !important;
-  background: var(--rq-secondary, #3C92E0) !important;
+  background: var(--rq-ledger-rule, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) !important;
   animation: rqkKeeperLoad 1.65s ease-in-out infinite !important;
 }
 
@@ -179,11 +178,6 @@
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
   outline: 3px solid var(--rq-secondary, #3C92E0) !important;
   outline-offset: 3px !important;
-}
-
-@keyframes rqkKeeperEnter {
-  from { opacity: 0; transform: translateY(7px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes rqkKeeperLoad {
