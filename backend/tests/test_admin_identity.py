@@ -192,7 +192,7 @@ def test_register_rejects_admin_look_alike(configured):
     with patched, patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
          patch.object(auth_routes, 'require_signups_enabled', AsyncMock()):
         with pytest.raises(HTTPException) as rejected:
-            run(auth_routes.register(UserRegister(username='lcblakey24', password='long-enough-1')))
+            run(auth_routes.register(UserRegister(username='lcblakey24', email='new-admin@example.com', password='long-enough-1')))
     assert rejected.value.status_code == 400
     assert rejected.value.detail == admin_identity.USERNAME_UNAVAILABLE
     users.insert_one.assert_not_awaited()
@@ -207,7 +207,7 @@ def test_register_rejects_case_variant_of_existing_player(configured):
     with patched, patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
          patch.object(auth_routes, 'require_signups_enabled', AsyncMock()):
         with pytest.raises(HTTPException) as rejected:
-            run(auth_routes.register(UserRegister(username='tablerook', password='long-enough-1')))
+            run(auth_routes.register(UserRegister(username='tablerook', email='new-player@example.com', password='long-enough-1')))
     assert rejected.value.status_code == 400
     users.insert_one.assert_not_awaited()
 
@@ -222,6 +222,6 @@ def test_register_accepts_a_new_name(configured):
          patch.object(auth_routes, 'require_signups_enabled', AsyncMock()), \
          patch.object(auth_routes, 'hash_password', return_value='hashed'), \
          patch.object(auth_routes, 'create_token', return_value='token-1'):
-        result = run(auth_routes.register(UserRegister(username='NewRook', password='long-enough-1')))
+        result = run(auth_routes.register(UserRegister(username='NewRook', email='new-rook@example.com', password='long-enough-1')))
     assert result.username == 'NewRook'
     users.insert_one.assert_awaited_once()

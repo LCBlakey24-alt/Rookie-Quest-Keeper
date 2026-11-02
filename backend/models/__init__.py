@@ -54,9 +54,9 @@ class CampaignMember(BaseModel):
 
 
 class UserRegister(BaseModel):
-    username: str  # Display name / login name
+    username: Optional[str] = None  # Optional stable account handle; generated from email when omitted
     password: str = Field(..., min_length=8)
-    email: Optional[EmailStr] = None  # Optional recovery email for adult/parent-managed accounts
+    email: EmailStr  # Required for password recovery
 
 class UserLogin(BaseModel):
     password: str

@@ -7,7 +7,7 @@ from models import ChangePasswordRequest, ResetPasswordRequest, UserLogin, UserR
 @pytest.mark.parametrize(
     "factory",
     [
-        lambda: UserRegister(username="Rook", password="short"),
+        lambda: UserRegister(email="rook@example.com", password="short"),
         lambda: ResetPasswordRequest(token="reset-token", new_password="short"),
         lambda: ChangePasswordRequest(current_password="old-password", new_password="short"),
     ],
@@ -18,7 +18,7 @@ def test_new_password_flows_require_at_least_eight_characters(factory):
 
 
 def test_eight_character_password_is_accepted_for_new_password_flows():
-    assert UserRegister(username="Rook", password="12345678").password == "12345678"
+    assert UserRegister(email="rook@example.com", password="12345678").password == "12345678"
     assert ResetPasswordRequest(token="reset-token", new_password="12345678").new_password == "12345678"
     assert ChangePasswordRequest(
         current_password="old-password",

@@ -14,6 +14,7 @@ from models import (
 import uuid
 import secrets
 import re
+from pymongo.errors import DuplicateKeyError
 from datetime import datetime, timezone, timedelta
 import resend
 
@@ -80,7 +81,7 @@ USER_OWNED_COLLECTIONS = [
 
 
 def normalize_username_for_auth(username: str) -> str:
-    """Trim and validate usernames for kid-friendly, email-free auth."""
+    """Trim and validate a stable internal username."""
     normalized = (username or "").strip()
     if not normalized:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username is required")
@@ -90,6 +91,12 @@ def normalize_username_for_auth(username: str) -> str:
             detail="Username must be 3-24 characters and use only letters, numbers, underscores, or hyphens",
         )
     return normalized
+
+
+def username_stem_from_email(email: str) -> str:
+    """Make a safe, non-secret handle from the email local part."""
+    stem = re.sub(r'[^A-Za-z0-9_-]+', '', email.split('@', 1)[0]).lower()[:24]
+    return (stem or 'player').ljust(3, '0')
 
 
 async def cleanup_user_account(username: str) -> dict:
@@ -185,30 +192,39 @@ async def cleanup_user_account(username: str) -> dict:
 @router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
     await require_signups_enabled()
-    normalized_username = normalize_username_for_auth(user_data.username)
-    normalized_email = user_data.email.lower() if user_data.email else None
+    normalized_email = str(user_data.email).lower()
+    requested_username = normalize_username_for_auth(user_data.username) if user_data.username else None
 
-    if normalized_email:
-        existing_email = await db.users.find_one({'email': normalized_email})
-        if existing_email:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    
-    # Reserved names and existing names are blocked in any letter case, so
-    # nobody can register a look-alike such as "lcblakey24" beside "LCBlakey24".
-    if not await username_is_available(normalized_username):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=USERNAME_UNAVAILABLE)
-    
+    if await db.users.find_one({'email': normalized_email}):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+    stem = requested_username or username_stem_from_email(normalized_email)
     user_doc = {
         'id': str(uuid.uuid4()),
-        'username': normalized_username,
+        'email': normalized_email,
         'password_hash': hash_password(user_data.password),
         'password_login_enabled': True,
-        'created_at': datetime.now(timezone.utc).isoformat()
+        'created_at': datetime.now(timezone.utc).isoformat(),
     }
-    if normalized_email:
-        user_doc['email'] = normalized_email
-    
-    await db.users.insert_one(user_doc)
+    # Username remains the JWT subject and ownership key. The unique indexes
+    # also protect against concurrent registrations choosing the same handle.
+    for suffix in range(0, 10000):
+        suffix_text = str(suffix + 1) if suffix else ''
+        normalized_username = stem[:24 - len(suffix_text)] + suffix_text
+        if not await username_is_available(normalized_username):
+            if requested_username:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=USERNAME_UNAVAILABLE)
+            continue
+        try:
+            await db.users.insert_one({**user_doc, 'username': normalized_username})
+            break
+        except DuplicateKeyError:
+            if await db.users.find_one({'email': normalized_email}):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+            if requested_username:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=USERNAME_UNAVAILABLE)
+    else:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Could not create an account handle")
 
     token = create_token(normalized_username)
     return TokenResponse(token=token, username=normalized_username, email=normalized_email)
