@@ -17,6 +17,11 @@ test('opens with sample characters and filters GM data from the player campaign'
   expect(campaign.party[0].spell_slots).toBeUndefined();
 });
 
+test('campaign join tools can find preview characters through the library endpoint', () => {
+  const api = createPreviewApi(memoryStorage());
+  expect(api.request('get', '/library/characters')).toEqual(api.request('get', '/characters'));
+});
+
 test('dashboard bootstrap returns the sample workspace in one request', () => {
   const api = createPreviewApi(memoryStorage());
   const dashboard = api.request('get', '/dashboard/bootstrap');
