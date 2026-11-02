@@ -119,7 +119,7 @@ def test_missing_email_provider_reports_outage_for_every_address():
     from models import ForgotPasswordRequest
 
     users = SimpleNamespace(find_one=AsyncMock())
-    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', False), \\
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', False), \
          patch.object(auth_routes, 'db', SimpleNamespace(users=users)):
         with pytest.raises(HTTPException) as missing:
             run(auth_routes.forgot_password(ForgotPasswordRequest(email='player@example.com')))
@@ -137,8 +137,8 @@ def test_failed_recovery_send_does_not_invalidate_previous_good_link():
         delete_one=AsyncMock(),
         delete_many=AsyncMock(),
     )
-    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \\
-         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \\
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \
+         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
          patch.object(auth_routes.resend.Emails, 'send', side_effect=RuntimeError('provider down')):
         response = run(auth_routes.forgot_password(ForgotPasswordRequest(email='player@example.com')))
 
@@ -159,9 +159,9 @@ def test_accepted_recovery_send_retires_only_older_links():
         delete_one=AsyncMock(),
         delete_many=AsyncMock(),
     )
-    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \\
-         patch.object(auth_routes, 'APP_URL', 'https://rookiequestkeeper.com/'), \\
-         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \\
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \
+         patch.object(auth_routes, 'APP_URL', 'https://rookiequestkeeper.com/'), \
+         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
          patch.object(auth_routes.resend.Emails, 'send', return_value={'id': 'provider-message-id'}) as sender:
         response = run(auth_routes.forgot_password(ForgotPasswordRequest(email='Player@Example.com')))
 
@@ -184,8 +184,8 @@ def test_unknown_recovery_email_never_sends_email():
 
     users = SimpleNamespace(find_one=AsyncMock(return_value=None))
     resets = SimpleNamespace(insert_one=AsyncMock())
-    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \\
-         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \\
+    with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \
+         patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
          patch.object(auth_routes.resend.Emails, 'send') as sender:
         response = run(auth_routes.forgot_password(ForgotPasswordRequest(email='unknown@example.com')))
     assert response['message'].startswith('If an account exists')
