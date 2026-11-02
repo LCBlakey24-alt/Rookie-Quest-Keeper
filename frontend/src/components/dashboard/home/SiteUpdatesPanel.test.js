@@ -24,5 +24,5 @@ test('handles an empty announcement list without fake news', async () => {
 test('does not mistake a failed fetch for an empty site', async () => {
   apiClient.get.mockRejectedValue(new Error('offline'));
   render(<SiteUpdatesPanel />);
-  expect(await screen.findByRole('status')).toHaveTextContent('temporarily unavailable');
+  expect(await screen.findByText('Latest announcements are temporarily unavailable.')).toHaveAttribute('role', 'status');
 });
