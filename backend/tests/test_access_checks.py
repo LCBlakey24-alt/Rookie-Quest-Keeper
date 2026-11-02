@@ -161,3 +161,45 @@ def test_combat_tokens_require_campaign_membership(call):
     assert blocked.value.status_code == 403
     denied.assert_awaited_once_with('campaign-1', 'Stranger')
     tokens.find_one.assert_not_awaited()
+
+
+# --- Account deletion must also clean legacy Mongo-ID-owned rulesets ------------------------
+
+def test_account_deletion_removes_mongo_id_owned_rulesets_and_share_links():
+    auth_routes = _route_module('auth')
+    from unittest.mock import Mock
+
+    class FakeDb:
+        def __init__(self):
+            self.users = SimpleNamespace(
+                find_one=AsyncMock(return_value={'_id': 'mongo-user-1', 'username': 'Rook', 'email': 'rook@example.com'}),
+                delete_many=AsyncMock(return_value=SimpleNamespace(deleted_count=1)),
+            )
+            self.campaigns = SimpleNamespace(
+                find=Mock(return_value=SimpleNamespace(to_list=AsyncMock(return_value=[]))),
+            )
+            self.custom_rulesets = SimpleNamespace(
+                delete_many=AsyncMock(return_value=SimpleNamespace(deleted_count=2)),
+                update_many=AsyncMock(),
+            )
+            self.other = SimpleNamespace(delete_many=AsyncMock(return_value=SimpleNamespace(deleted_count=0)))
+
+        def __getitem__(self, name):
+            if name == 'users':
+                return self.users
+            if name == 'custom_rulesets':
+                return self.custom_rulesets
+            return self.other
+
+    fake_db = FakeDb()
+    with patch.object(auth_routes, 'db', fake_db):
+        result = run(auth_routes.cleanup_user_account('Rook'))
+
+    fake_db.users.find_one.assert_awaited_once_with({'username': 'Rook'}, {'email': 1})
+    fake_db.custom_rulesets.delete_many.assert_awaited_once_with({'owner_id': 'mongo-user-1'})
+    fake_db.custom_rulesets.update_many.assert_awaited_once_with(
+        {'shared_with': 'mongo-user-1'},
+        {'$pull': {'shared_with': 'mongo-user-1'}},
+    )
+    assert result['deleted']['custom_rulesets'] == 2
+    fake_db.users.delete_many.assert_awaited_once_with({'username': 'Rook'})
