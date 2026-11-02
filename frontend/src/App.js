@@ -110,7 +110,7 @@ function ThemeRouter() {
 
   useEffect(() => {
     const path = location.pathname;
-    if (PUBLIC_BRAND_PATHS.has(path) || path.startsWith('/auth')) setTheme(THEMES.LANDING);
+    if (PUBLIC_BRAND_PATHS.has(path) || path.startsWith('/auth') || path === '/reset-password') setTheme(THEMES.LANDING);
     else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display')) setTheme(THEMES.GM);
     else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
@@ -125,7 +125,7 @@ export function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
   const [username, setUsername] = useState(() => preview ? localWorkspaceUser() : localStorage.getItem(AUTH_USERNAME_KEY) || '');
   const skipNextAuthProbeRef = useRef(false);
-  const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth');
+  const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
 
   const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
     if (!preview) {
@@ -195,6 +195,8 @@ export function AppRoutes() {
         <Route path="/worlds" element={<Navigate to="/" replace />} />
         <Route path="/game" element={<Navigate to="/" replace />} />
         <Route path="/auth" element={isAuthenticated ? <PostSignInRedirect /> : <AuthPage onLogin={handleAuthLogin} />} />
+        {/* Recovery links are public even when this browser still has an older session. */}
+        <Route path="/reset-password" element={<AuthPage onLogin={handleAuthLogin} onPasswordReset={handleLogout} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <SignInRedirect />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <SignInRedirect />} />
         <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <SignInRedirect />} />
