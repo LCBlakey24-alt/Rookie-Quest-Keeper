@@ -14,7 +14,10 @@ describe('live character save wiring', () => {
     expect(sheet).toContain('onSaveCharacter={patchCharacter}');
     expect(sheet).not.toContain('updateCharacterLocal');
     expect(sheet).toContain('createCharacterSaveQueue');
-    expect(sheet).toContain('saveControllerRef.current.patch(updates, options)');
+    expect(sheet).toContain('const sheetSession = saveControllerRef.current.getSession()');
+    expect(sheet).toContain('saveControllerRef.current.patchForSession(sheetSession, updates, options)');
+    expect(sheet).toContain('const concentrationSession = saveControllerRef.current.getSession()');
+    expect(sheet).toMatch(/onClick: \\(\\) => saveControllerRef\\.current\\.patchForSession\\(\\s*concentrationSession/);
     expect(sheet).toContain('saveControllerRef.current.runServerAction');
     expect(sheet).not.toContain('const previous = character;');
     expect(inventory).toContain('if (onSaveCharacter)');
