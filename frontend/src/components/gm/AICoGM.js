@@ -180,7 +180,7 @@ export default function AICoGM({ theme, campaignId, activeTab }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <button onClick={clearChat} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
+          <button onClick={clearChat} aria-label="Clear conversation" style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
           <button onClick={() => setIsMinimized(true)} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><Minimize2 size={14} /></button>
           <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><X size={16} /></button>
         </div>

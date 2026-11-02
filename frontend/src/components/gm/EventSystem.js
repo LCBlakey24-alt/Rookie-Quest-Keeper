@@ -640,7 +640,7 @@ function EventCard({ evt, theme, onPreview, onDelete, onRun, completed }) {
             style={{ flex: 1, padding: '6px', borderRadius: '6px', fontSize: '10px', fontWeight: 600, cursor: 'pointer', background: 'rgba(16,185,129,0.08)', color: '#10B981', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             <Play size={10} /> Run
           </button>
-          <button onClick={onDelete}
+          <button onClick={onDelete} aria-label={`Delete event: ${evt.name || 'untitled'}`}
             style={{ padding: '6px 8px', borderRadius: '6px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171', cursor: 'pointer' }}>
             <Trash2 size={10} />
           </button>

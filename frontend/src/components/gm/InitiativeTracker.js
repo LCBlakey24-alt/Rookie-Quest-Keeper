@@ -147,7 +147,7 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
           <input type="checkbox" checked={newIsNpc} onChange={e => setNewIsNpc(e.target.checked)} style={{ width: '12px', height: '12px' }} />
           NPC
         </label>
-        <button data-testid="add-combatant-btn" onClick={addEntry}
+        <button data-testid="add-combatant-btn" onClick={addEntry} aria-label="Add combatant"
           style={{ padding: '6px 10px', borderRadius: '6px', background: theme.accent?.gm || theme.accent?.primary, color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 700 }}>
           <Plus size={14} />
         </button>
