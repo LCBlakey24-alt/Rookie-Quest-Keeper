@@ -18,7 +18,7 @@ import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
-import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
+import { getAuthToken, getStoredAuthUsername, setAuthToken, setStoredAuthUsername } from '@/lib/auth';
 import { isLocalPreview, isOfflineDesktop, localWorkspaceUser } from '@/preview/previewMode';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
@@ -123,13 +123,13 @@ export function AppRoutes() {
   const desktopOffline = isOfflineDesktop();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
-  const [username, setUsername] = useState(() => preview ? localWorkspaceUser() : localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const [username, setUsername] = useState(() => preview ? localWorkspaceUser() : getStoredAuthUsername());
   const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
 
   const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
     if (!preview) {
-      localStorage.setItem(AUTH_USERNAME_KEY, nextUsername || '');
+      setStoredAuthUsername(nextUsername || '');
       if (typeof nextIsAdmin === 'boolean') {
         try {
           sessionStorage.setItem(
@@ -156,7 +156,7 @@ export function AppRoutes() {
     if (preview) return undefined;
     const syncSession = () => {
       setIsAuthenticated(Boolean(getAuthToken()));
-      setUsername(localStorage.getItem(AUTH_USERNAME_KEY) || '');
+      setUsername(getStoredAuthUsername());
     };
     window.addEventListener('rqk:auth-scope-changed', syncSession);
     window.addEventListener('storage', syncSession);
