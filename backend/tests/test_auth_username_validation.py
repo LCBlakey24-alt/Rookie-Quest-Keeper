@@ -1,6 +1,11 @@
+import asyncio
+import importlib.util
 import os
 import sys
+import types
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
 os.environ.setdefault('MONGO_URL', 'mongodb://localhost:27017')
 os.environ.setdefault('DB_NAME', 'rook_test')
@@ -10,16 +15,23 @@ os.environ.setdefault('CORS_ORIGINS', 'http://localhost:3000')
 
 import pytest
 from fastapi import HTTPException
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from routes.auth import normalize_username_for_auth
-from models import UserRegister
-from routes.auth import register
-from unittest.mock import AsyncMock, patch
-from types import SimpleNamespace
-import asyncio
 from pydantic import ValidationError
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+try:
+    import resend  # noqa: F401
+except ImportError:
+    sys.modules['resend'] = types.SimpleNamespace(
+        api_key=None, Emails=types.SimpleNamespace(send=lambda params: None)
+    )
+
+from models import UserRegister
+spec = importlib.util.spec_from_file_location('auth_username_validation', ROOT / 'routes' / 'auth.py')
+auth = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(auth)
+normalize_username_for_auth = auth.normalize_username_for_auth
+register = auth.register
 
 
 def test_normalize_username_accepts_safe_nicknames():
@@ -42,7 +54,6 @@ def test_registration_requires_email_but_not_a_username():
 
 
 def test_registration_generates_stable_internal_handle_without_changing_email():
-    from routes import auth
     users = SimpleNamespace(find_one=AsyncMock(return_value=None), insert_one=AsyncMock())
     with patch.object(auth, 'require_signups_enabled', new=AsyncMock()), \
          patch.object(auth, 'username_is_available', new=AsyncMock(return_value=True)), \
@@ -57,7 +68,6 @@ def test_registration_generates_stable_internal_handle_without_changing_email():
 
 
 def test_generated_handle_uses_a_suffix_when_taken():
-    from routes import auth
     users = SimpleNamespace(find_one=AsyncMock(return_value=None), insert_one=AsyncMock())
     available = AsyncMock(side_effect=[False, True])
     with patch.object(auth, 'require_signups_enabled', new=AsyncMock()), \
