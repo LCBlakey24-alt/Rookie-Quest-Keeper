@@ -10,6 +10,7 @@ describe('live character save wiring', () => {
     const sheet = read('./CleanCharacterSheet.js');
     const inventory = read('./clean-sheet/CleanInventoryTabV2.js');
     const notes = read('./clean-sheet/CleanNotesTab.js');
+    const playTools = read('./clean-sheet/CleanSheetPlayTools.js');
 
     expect(sheet).toContain('onSaveCharacter={patchCharacter}');
     expect(sheet).not.toContain('updateCharacterLocal');
@@ -31,5 +32,13 @@ describe('live character save wiring', () => {
     expect(sheet).not.toContain('const previous = character;');
     expect(inventory).toContain('if (onSaveCharacter)');
     expect(notes).toContain('if (onSaveCharacter)');
+    expect(sheet).toContain('onSpendHitDie={spendHitDie}');
+    expect(playTools).toContain('onClick={onSpendHitDie}');
+    expect(playTools).not.toContain('const spendHitDie = async () =>');
+    expect(playTools).not.toContain('window.location.reload()');
+    expect(sheet).toContain("rulesEdition === '2024' && currentHp <= 0");
+    expect(sheet).toContain("rollHitDie(hitDieInfo.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 })");
+    expect(sheet).toContain('await patchCharacter({ current_hit_points: nextHp, hit_dice_remaining:');
+    expect(sheet).toContain('{ concentrating_on: null, concentration: null }');
   });
 });
