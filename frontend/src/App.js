@@ -55,7 +55,7 @@ const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDa
 const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
 const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
-const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
+const LiveSessionWithSecondScreenPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionWithSecondScreenPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
 const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
 const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/PlayerCampaignPage'));
@@ -203,7 +203,7 @@ export function AppRoutes() {
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <SignInRedirect />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboardRoute /> : <SignInRedirect />} />
         <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <SignInRedirect />} />
-        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <SignInRedirect />} />
+        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionWithSecondScreenPage /> : <SignInRedirect />} />
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <SignInRedirect />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <SignInRedirect />} />
         <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <SignInRedirect />} />

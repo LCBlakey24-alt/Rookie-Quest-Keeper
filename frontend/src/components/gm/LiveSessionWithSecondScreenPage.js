@@ -49,23 +49,25 @@ export default function LiveSessionWithSecondScreenPage() {
 
   return (
     <div className="live-session-with-second-screen">
+      <div className="live-display-drawer-toolbar">
+        <button
+          type="button"
+          ref={triggerRef}
+          className="live-display-drawer-trigger"
+          onClick={() => setDisplayOpen(open => !open)}
+          aria-expanded={displayOpen}
+          aria-controls="live-second-screen-panel"
+        >
+          <Monitor size={18} aria-hidden="true" />
+          {displayOpen ? 'Hide display' : 'Display controls'}
+        </button>
+      </div>
       <LiveSessionGridPage />
-      <button
-        type="button"
-        ref={triggerRef}
-        className="live-display-drawer-trigger"
-        onClick={() => setDisplayOpen(open => !open)}
-        aria-expanded={displayOpen}
-        aria-controls="live-second-screen-panel"
-      >
-        <Monitor size={18} aria-hidden="true" />
-        {displayOpen ? 'Hide display' : 'Display controls'}
-      </button>
       {displayOpen && (
         <button
           type="button"
           className="live-display-drawer-backdrop"
-          aria-label="Close display controls"
+          aria-hidden="true"
           onClick={closeDisplay}
           tabIndex={-1}
         />

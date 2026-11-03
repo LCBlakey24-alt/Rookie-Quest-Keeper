@@ -3,7 +3,6 @@ import { Flag, RefreshCw, ScrollText } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
-import LiveSecondScreenDock from '@/components/gm/LiveSecondScreenDock';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
@@ -82,16 +81,15 @@ export default function LiveStoryFocusPanel({ campaignId }) {
           <p style={eyebrowStyle}>Story Focus</p>
           <strong style={titleStyle}>{loading ? 'Loading story focus…' : focus.arc?.title || 'No active story chapter'}</strong>
           <p style={textStyle}><ScrollText size={13} /> {focus.chapter?.title || 'Prep an arc in Story Arcs'} · {reachedCount}/{focus.points.length} reached</p>
-          <p style={nextStyle}>{focus.next ? `Next: ${focus.next.title}` : 'Second screen dock is ready on this page.'}</p>
+          <p style={nextStyle}>{focus.next ? `Next: ${focus.next.title}` : 'Player display controls are available alongside Live Play.'}</p>
         </div>
         <button type="button" onClick={loadArcs} style={secondaryButtonStyle}><RefreshCw size={14} /> Refresh</button>
       </section>
-      <LiveSecondScreenDock campaignId={campaignId} />
     </div>
   );
 }
 
-const stackStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 8, alignItems: 'start' };
+const stackStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 8, alignItems: 'start' };
 const shellStyle = { display: 'flex', alignItems: 'center', gap: 10, background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: '8px 10px', color: rq.text, fontFamily: fontStack, flexWrap: 'wrap', minHeight: 96 };
 const iconTileStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.card, color: rq.blue, flex: '0 0 auto' };
 const eyebrowStyle = { margin: '0 0 2px', color: rq.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.11em', textTransform: 'uppercase' };
