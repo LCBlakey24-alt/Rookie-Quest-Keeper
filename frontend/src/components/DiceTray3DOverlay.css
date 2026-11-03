@@ -1,0 +1,167 @@
+/* The 3D dice tray.
+ *
+ * Flat Guild Ledger surfaces: the panel is the page ink, the tray's edge is
+ * a hairline rather than a lighter box, and the citrus ramp appears only as
+ * a rule. The canvas is transparent and the scene's floor catches shadow
+ * only, so the dice tumble on the panel itself instead of inside a second
+ * coloured box.
+ */
+
+.rq-dice-tray {
+  position: fixed;
+  inset: 0;
+  z-index: 3200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.rq-dice-tray__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(4, 10, 17, 0.72);
+  cursor: pointer;
+}
+
+.rq-dice-tray__panel {
+  position: relative;
+  width: min(520px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 18px;
+  border: 1px solid rgba(234, 223, 200, 0.14);
+  border-radius: 10px;
+  background-color: #0B1B2B;
+  background-image: var(--rq-ledger-rule, #F4551F);
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: 100% 2px;
+  color: #F5F1E8;
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif);
+}
+
+.rq-dice-tray__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rq-dice-tray__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(234, 223, 200, 0.70);
+}
+
+.rq-dice-tray__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(234, 223, 200, 0.14);
+  border-radius: 6px;
+  background: transparent;
+  color: #3C92E0;
+  cursor: pointer;
+}
+
+.rq-dice-tray__close:hover,
+.rq-dice-tray__close:focus-visible {
+  background: rgba(234, 223, 200, 0.06);
+}
+
+/* The tray itself: a hairline box the dice bounce around inside. */
+.rq-dice-tray__stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 46dvh;
+  border: 1px solid rgba(234, 223, 200, 0.14);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rq-dice-tray__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.rq-dice-tray__skip {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 6px 12px;
+  min-height: 32px;
+  border: 1px solid rgba(234, 223, 200, 0.14);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(234, 223, 200, 0.70);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.rq-dice-tray__skip:hover,
+.rq-dice-tray__skip:focus-visible {
+  color: #F5F1E8;
+  background: rgba(234, 223, 200, 0.06);
+}
+
+/* The total, centred under the tray. */
+.rq-dice-tray__result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 74px;
+  text-align: center;
+}
+
+.rq-dice-tray__result strong {
+  font-size: 44px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #F5F1E8;
+}
+
+.rq-dice-tray__result .rq-dice-tray__rolling {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(234, 223, 200, 0.70);
+}
+
+.rq-dice-tray__result span {
+  font-size: 13px;
+  color: rgba(234, 223, 200, 0.70);
+}
+
+.rq-dice-tray__result small {
+  font-size: 11px;
+  color: rgba(234, 223, 200, 0.52);
+}
+
+/* A natural 20 or a 1 is a moment at the table, so it is marked -- but with
+   a rule and the numeral's colour, not a coloured fill. */
+.rq-dice-tray__panel.is-crit .rq-dice-tray__result strong { color: #FF8A1F; }
+.rq-dice-tray__panel.is-fumble .rq-dice-tray__result strong { color: #E03A2F; }
+
+@media (max-width: 719px) {
+  .rq-dice-tray__panel { width: 100%; padding: 12px 12px 16px; }
+  .rq-dice-tray__stage { max-height: 40dvh; }
+  .rq-dice-tray__result strong { font-size: 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* DiceRollFlicker already picks the flat overlay here; this is a second
+     line of defence if the tray is ever mounted directly. */
+  .rq-dice-tray__canvas { display: none; }
+}

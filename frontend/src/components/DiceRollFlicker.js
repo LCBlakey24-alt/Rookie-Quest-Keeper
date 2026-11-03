@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
-import Dice3DResultOverlay from '@/components/Dice3DResultOverlay';
 
 const characterCache = new Map();
 const REVEAL_DELAY = 360;
@@ -96,6 +95,22 @@ export default function DiceRollFlicker({
   const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
   const [showTotal, setShowTotal] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
+
+  // three.js and cannon-es are a large chunk, so they are only fetched once
+  // a roll is actually shown, and never for a viewer on reduced motion.
+  // A failed fetch is not an error worth surfacing mid-turn: the flat
+  // overlay already shows the same result, so the roll simply stays flat.
+  const [TrayOverlay, setTrayOverlay] = useState(null);
+  useEffect(() => {
+    if (prefersReducedMotion || !visible || TrayOverlay) return undefined;
+
+    let cancelled = false;
+    import('@/components/DiceTray3DOverlay')
+      .then((module) => { if (!cancelled) setTrayOverlay(() => module.default); })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [prefersReducedMotion, visible, TrayOverlay]);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
 
@@ -202,10 +217,12 @@ export default function DiceRollFlicker({
 
   const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
 
-  // Tumbling 3D dice by default; the flat overlay stays the presentation for
-  // viewers who ask for reduced motion (docs/UI_DESIGN_SYSTEM.md requires
-  // honouring prefers-reduced-motion). Both take the same props.
-  const Overlay = prefersReducedMotion ? FlatDiceResultOverlay : Dice3DResultOverlay;
+  // Physical tumbling dice by default; the flat overlay stays the
+  // presentation for viewers who ask for reduced motion
+  // (docs/UI_DESIGN_SYSTEM.md requires honouring prefers-reduced-motion),
+  // and remains the fallback until the 3D chunk has loaded, or for good if
+  // it cannot load. Both take the same props.
+  const Overlay = (!prefersReducedMotion && TrayOverlay) || FlatDiceResultOverlay;
 
   return createPortal(
     <Overlay
