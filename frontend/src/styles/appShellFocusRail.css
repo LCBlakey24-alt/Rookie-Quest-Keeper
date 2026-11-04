@@ -19,19 +19,31 @@
  * !important, so these have to as well.
  */
 
-#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'],
-#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='tablet'] {
+/* Desktop only.
+ *
+ * This first shipped for tablet as well, which broke the campaign page.
+ * The Guild Command sidebar that page relies on is defined inside
+ * @media (min-width: 1181px), and the device attribute calls anything from
+ * 720px to 1180px a tablet. So below 1181 the rail narrowed to 76px while
+ * the campaign navigation fell back to its full-width form -- a pairing
+ * nothing was designed for, and one that is easy to hit: a 1366px laptop
+ * at the Windows 125% scaling those machines ship with reports about
+ * 1093 CSS pixels, which is a tablet by this measure.
+ *
+ * Narrowing the rail is only safe where the pages behind it have a layout
+ * that expects the extra room, so it is held to the same 1181px boundary
+ * those pages use. */
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] {
   grid-template-columns: 76px minmax(0, 1fr) !important;
 }
 
-#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail,
-#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='tablet'] .rqk-app-rail {
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail {
   padding: 14px 8px !important;
 }
 
 /* The words go, the targets do not: 46px keeps every control above the
    touch floor the rest of the app holds to. */
-#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-link {
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail-link {
   grid-template-columns: 1fr !important;
   justify-items: center !important;
   min-height: 46px !important;
@@ -39,23 +51,26 @@
   gap: 0 !important;
 }
 
-#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-link span,
-#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-brand-copy,
-#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-section-label {
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail-link span,
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail-brand-copy,
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail-section-label {
   display: none !important;
 }
 
-#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-brand {
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail-brand {
   grid-template-columns: 1fr !important;
   justify-items: center !important;
   min-height: 52px !important;
   padding: 6px !important;
 }
 
-/* A phone already uses its own navigation, so it is left alone. */
-@media (max-width: 719px) {
-  #root .rqk-app-shell[data-rq-focus='detail'] {
-    grid-template-columns: 1fr !important;
+/* Phones and tablets keep their own navigation untouched; nothing above
+   matches them any more, and this says so rather than relying on it. */
+@media (max-width: 1180px) {
+  #root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-link span,
+  #root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-brand-copy,
+  #root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-section-label {
+    display: revert;
   }
 }
 
@@ -63,4 +78,12 @@
   #root .rqk-app-shell {
     transition: grid-template-columns 180ms ease;
   }
+}
+
+/* The character sheet pads itself 236px from the left to clear the
+   labelled rail, in CleanSheetTabsRail.css. With the compact rail that
+   leaves a 160px empty channel beside the sheet, so the padding follows
+   the rail instead of a number that no longer describes it. */
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .character-page-v2 {
+  padding-left: 18px !important;
 }
