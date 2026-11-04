@@ -21,6 +21,17 @@ from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
+def _source_boundary() -> str:
+    """The campaign source boundary, imported late.
+
+    routes.ai is imported inside the call rather than at module import
+    time, which is the pattern rook_chat.py already uses here to avoid a
+    circular import between the route modules.
+    """
+    from routes.ai import ai_source_boundary_fragment
+    return ai_source_boundary_fragment()
+
+
 # ============================================
 # SEED data — used to populate MongoDB on first startup.
 # In-app reads always go through `_get_templates(ruleset_id?)` below
@@ -369,7 +380,10 @@ async def ai_match_template(
             chat = LlmChat(
                 api_key=get_llm_api_key("openai"),
                 session_id=f"template-match-{username}",
-                system_message="You help TTRPG players pick a premade character. Respond in ONE sentence (<=40 words)."
+                system_message=(
+                    "You help TTRPG players pick a premade character. Respond in ONE sentence (<=40 words).\n\n"
+                    + _source_boundary()
+                )
             ).with_model("openai", "gpt-4o-mini")
             user_msg = UserMessage(text=f"Player wants: '{description}'. Best match is {best['name']} ({best['character_class']}). Why is this a good fit?")
             ai_reply = await chat.send_message(user_msg)

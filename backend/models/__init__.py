@@ -1,6 +1,6 @@
 """All Pydantic models for the ROOK backend."""
 from pydantic import BaseModel, Field, ConfigDict, EmailStr, AliasChoices, field_validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 from datetime import datetime, timezone
 import uuid
 import secrets
@@ -1249,6 +1249,8 @@ class NPC(BaseModel):
     statblock_source: str = ""
     statblock_notes: str = ""
     dm_only: bool = True
+    # Party discovery is independent of GM-only lore and from other campaigns.
+    player_discovery_status: Literal["unknown", "known"] = "unknown"
     color: str = "#D4A017"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -1298,6 +1300,8 @@ class NPCCreate(BaseModel):
     statblock_source: str = ""
     statblock_notes: str = ""
     dm_only: bool = True
+    # Party discovery is independent of GM-only lore and from other campaigns.
+    player_discovery_status: Literal["unknown", "known"] = "unknown"
     occupation: str = ""
 
 class NPCUpdate(BaseModel):
@@ -1348,6 +1352,8 @@ class NPCUpdate(BaseModel):
     statblock_source: Optional[str] = None
     statblock_notes: Optional[str] = None
     dm_only: Optional[bool] = None
+    # Party discovery is independent of GM-only lore and from other campaigns.
+    player_discovery_status: Optional[Literal["unknown", "known"]] = None
 
 class InitiativeEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -1386,6 +1392,10 @@ class Token(BaseModel):
     x: float
     y: float
     color: str = "#ff0000"
+    # The character standing on this token, when one does. This is what
+    # lets the server answer "may this player move this token?" without
+    # trusting the client to say whose token it is.
+    character_id: Optional[str] = None
 
 class GameMap(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -1394,6 +1404,10 @@ class GameMap(BaseModel):
     name: str
     width: int = 30
     height: int = 20
+    # How much ground one square covers. Five feet is the 5e default, and
+    # the existing grid_size values in the app are pixels for drawing, not
+    # a distance -- so without this a speed in feet cannot be enforced.
+    feet_per_square: int = 5
     terrain: List[List[str]] = []  # 2D array of terrain types
     walls: List[dict] = []  # Wall segments
     doors: List[dict] = []  # Door placements

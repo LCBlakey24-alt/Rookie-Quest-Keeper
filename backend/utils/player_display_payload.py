@@ -22,6 +22,10 @@ MODE_FIELDS = {
         'party', 'tokens', 'map_url', 'round', 'round_number',
         'active_id', 'activeCombatantId', 'turn_id', 'current_turn_id',
         'battle_started_at',
+        # The map's scale and grid. Token coordinates are percentages, so a
+        # distance in feet cannot be worked out without them, and a player
+        # client cannot show how far its character may still move.
+        'feet_per_square', 'grid_cols', 'grid_rows',
     },
     'battle-start': {'party'},
     'group-check': {'party', 'results', 'dc', 'check_name', 'notation', 'ability'},
@@ -44,6 +48,11 @@ TOKEN = frozenset({
     'id', 'type', 'name', 'subtitle', 'image_url', 'x', 'y',
     'initiative', 'initiativeLabel', 'position', 'token_x', 'token_y',
     'kind', 'role', 'creature_type',
+    # Which character stands on this token. Without it the server cannot
+    # tell whose token a player is asking to move, so every player would
+    # have to be trusted with every token or with none. A character id is
+    # not private: the party list already names the characters on screen.
+    'character_id', 'characterId',
 })
 BANNER = frozenset({'id', 'eyebrow', 'title', 'text', 'subtitle', 'tone'})
 RESULT = frozenset({

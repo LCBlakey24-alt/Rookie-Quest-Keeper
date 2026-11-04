@@ -74,6 +74,9 @@ class _Collection:
         self.rows = rows
         self.queries = []
 
+    async def find_one(self, query, projection=None):
+        return next((row for row in self.rows if all(row.get(k) == v for k, v in query.items())), None)
+
     def find(self, query, projection=None):
         self.queries.append((query, projection))
         if 'status' in query:
@@ -83,7 +86,7 @@ class _Collection:
             allowed = set(query['id']['$in'])
             rows = [row for row in self.rows if row.get('id') in allowed]
         elif 'campaign_id' in query:
-            rows = [row for row in self.rows if row.get('campaign_id') == query['campaign_id']]
+            rows = [row for row in self.rows if all(row.get(k) == v for k, v in query.items())]
         else:
             rows = list(self.rows)
         return _Cursor(rows)
@@ -109,6 +112,7 @@ def test_live_party_builder_uses_approved_linked_character_sheets_and_legacy_fal
         {'id': 'legacy-bryn', 'campaign_id': 'campaign-1', 'name': 'Bryn', 'hp': 12, 'max_hp': 12, 'ac': 13},
     ])
     monkeypatch.setattr(live_party, 'db', SimpleNamespace(
+        campaigns=_Collection([{'id': 'campaign-1', 'dm_user_id': 'gm'}]),
         campaign_members=members,
         player_characters=characters,
         players=legacy,
@@ -127,3 +131,25 @@ def test_live_party_builder_uses_approved_linked_character_sheets_and_legacy_fal
 def test_live_bootstrap_uses_the_same_canonical_party_builder():
     source = (Path(__file__).resolve().parents[1] / 'routes' / 'dashboard_bootstrap.py').read_text()
     assert 'players_request = build_live_party_rows(campaign_id)' in source
+
+def test_live_party_includes_only_this_campaigns_gm_sheets_once():
+    class Database(SimpleNamespace):
+        def __bool__(self):
+            raise NotImplementedError("Mongo databases do not support truth testing")
+
+    characters = [
+        {'id': 'gm-sheet', 'name': 'GM Sheet', 'campaign_id': 'one', 'user_id': 'gm'},
+        {'id': 'linked', 'name': 'Linked', 'campaign_id': 'one', 'user_id': 'gm'},
+        {'id': 'other', 'name': 'Other campaign', 'campaign_id': 'two', 'user_id': 'gm'},
+        {'id': 'unapproved', 'name': 'Unapproved', 'campaign_id': 'one', 'user_id': 'player'},
+    ]
+    database = Database(
+        campaigns=_Collection([{'id': 'one', 'dm_user_id': 'gm'}]),
+        campaign_members=_Collection([{'id': 'member', 'status': 'active', 'campaign_id': 'one', 'character_id': 'linked'}]),
+        player_characters=_Collection(characters),
+        players=_Collection([{'id': 'legacy', 'name': 'GM Sheet', 'campaign_id': 'one'}]),
+    )
+    rows = asyncio.run(live_party.build_live_party_rows('one', database))
+    assert [row['character_id'] for row in rows] == ['linked', 'gm-sheet']
+    assert rows[1]['member_id'] is None
+    assert rows[1]['source'] == 'character'

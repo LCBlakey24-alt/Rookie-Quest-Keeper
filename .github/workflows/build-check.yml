@@ -36,6 +36,7 @@ jobs:
           python -m pytest -q \
             backend/tests/test_campaign_display_routes.py \
             backend/tests/test_child_account_access.py \
+            backend/tests/test_ai_source_boundary_coverage.py \
             backend/tests/test_rook_brain.py \
             backend/tests/test_rook_chat_route.py \
             backend/tests/test_rook_form_fill_route.py \

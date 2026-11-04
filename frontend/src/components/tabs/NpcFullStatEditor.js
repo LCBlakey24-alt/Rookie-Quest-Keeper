@@ -125,6 +125,16 @@ export default function NpcFullStatEditor({ draft, onChange, editing = false }) 
           <ActionEditor key={field} field={field} title={title} descriptionKey={descriptionKey} entries={draft[field]} onChange={onChange} />
         ))}
         <div className="rqk-npc-editor__ability-heading">Character story & continuity</div>
+        <label className="rqk-npc-editor__field">
+          <span>Party discovery status</span>
+          <select aria-label="Party discovery status" data-testid="npc-discovery-select"
+            value={draft.player_discovery_status === 'known' ? 'known' : 'unknown'}
+            onChange={event => set('player_discovery_status', event.target.value)}>
+            <option value="unknown">Unknown — the party has not met or learned about this NPC</option>
+            <option value="known">Known — introduced to the party</option>
+          </select>
+        </label>
+        <p className="rqk-npc-editor__hint">GM-only stat blocks and secrets remain private, even for known NPCs.</p>
         <TextField label="Backstory" multiline value={draft.backstory} onChange={value => set('backstory', value)} />
         <TextField label="Appearance" multiline value={draft.appearance} onChange={value => set('appearance', value)} />
         <TextField label="Personality" multiline value={draft.personality} onChange={value => set('personality', value)} />

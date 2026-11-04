@@ -106,6 +106,21 @@ function NPCsTab({ campaignId, onOpenCreate }) {
     }
   };
 
+  const updatePartyKnowledge = async (npc) => {
+    const requestedCampaign = campaignId;
+    const currentStatus = npc.player_discovery_status === 'known' ? 'known' : 'unknown';
+    const nextStatus = currentStatus === 'known' ? 'unknown' : 'known';
+    try {
+      await apiClient.put(`/campaigns/${requestedCampaign}/npcs/${npc.id}`, { player_discovery_status: nextStatus });
+      if (activeCampaignRef.current !== requestedCampaign) return;
+      setNpcs(previous => previous.map(entry => entry.id === npc.id
+        ? { ...entry, player_discovery_status: nextStatus } : entry));
+      toast.success(`${npc.name} marked ${nextStatus} to players`);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not update party discovery status');
+    }
+  };
+
   const handleEdit = (npc) => {
     setEditingNPC(npc);
     setFormData(createNpcDraft(npc));
@@ -408,10 +423,19 @@ function NPCsTab({ campaignId, onOpenCreate }) {
           selectedId={selectedNpcId}
           onSelect={setSelectedNpcId}
           getSubtitle={npc => npc.role || npc.occupation || npc.location || 'NPC'}
-          getBadge={npc => npc.location && (npc.role || npc.occupation) ? npc.location : null}
+          getBadge={npc => npc.player_discovery_status === 'known' ? 'Known to party' : 'Unknown'}
           renderDetail={npc => (
             <div className="rqk-npc-selected-sheet" data-testid={`npc-card-${npc.id}`}>
               <div className="rqk-reference-browser__detail-actions">
+                <span data-testid="npc-discovery-status" role="status" style={{ fontWeight: 700 }}>
+                  {npc.player_discovery_status === 'known' ? 'Known to party' : 'Unknown to party'}
+                </span>
+                <Button type="button"
+                  data-testid={`toggle-npc-discovery-${npc.id}`}
+                  aria-label={`Mark ${npc.name} ${npc.player_discovery_status === 'known' ? 'unknown' : 'known'} to the party`}
+                  onClick={() => updatePartyKnowledge(npc)} className="btn-secondary">
+                  {npc.player_discovery_status === 'known' ? 'Mark Unknown' : 'Mark Known'}
+                </Button>
                 <Button type="button" aria-label={`Edit ${npc.name}`}
                   data-testid={`edit-npc-btn-${npc.id}`}
                   onClick={() => handleEdit(npc)} className="btn-secondary">

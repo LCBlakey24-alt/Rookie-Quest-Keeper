@@ -25,6 +25,17 @@ except ImportError:  # pragma: no cover - optional local/dev dependency guard
 
 router = APIRouter()
 
+def _source_boundary() -> str:
+    """The campaign source boundary, imported late.
+
+    routes.ai is imported inside the call rather than at module import
+    time, which is the pattern rook_chat.py already uses here to avoid a
+    circular import between the route modules.
+    """
+    from routes.ai import ai_source_boundary_fragment
+    return ai_source_boundary_fragment()
+
+
 CONTENT_TYPES = {
     "race",
     "class",
@@ -580,7 +591,8 @@ async def _llm_extract(content_type: str, raw_text: str, username: str, edition:
         "You are Rook, an SRD-compliant TTRPG homebrew extraction assistant. Read the user's homebrew text and "
         "return ONLY a single JSON object that matches the requested schema. Use null, empty arrays, or empty strings "
         "for fields you cannot find. Do not include any explanation. Preserve mechanics such as resources, actions, "
-        "passive effects, scaling, upgrades, and automation notes whenever present."
+        "passive effects, scaling, upgrades, and automation notes whenever present.\n\n"
+        + _source_boundary()
     )
     prompt = (
         f"Content type: {content_type}\n"
@@ -604,7 +616,8 @@ async def _llm_complete(content_type: str, draft: Dict[str, Any], context: str, 
         "You are Rook, a practical TTRPG homebrew co-designer. Complete missing or thin fields using the user's existing choices, "
         "theme, tone, and stats. Keep rules usable at the table. Do not overwrite the core identity unless it is clearly empty. "
         "Preserve sheet integration mechanics like resources, actions, passive effects, scaling, upgrades, and automation notes. "
-        "Return ONLY one JSON object matching the schema. No markdown."
+        "Return ONLY one JSON object matching the schema. No markdown.\n\n"
+        + _source_boundary()
     )
     prompt = (
         f"Content type: {content_type}\n"
