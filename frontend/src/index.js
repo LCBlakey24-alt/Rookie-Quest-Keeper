@@ -36,6 +36,8 @@ import "@/styles/guildCommandDashboard.css";
 // Loaded last: the compact rail has to win over the shell sheets above,
 // which set their widths with !important.
 import "@/styles/appShellFocusRail.css";
+// Detail-page nav is the final geometry authority after the older desktop-only rule.
+import "@/styles/appShellDetailNavigation.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
