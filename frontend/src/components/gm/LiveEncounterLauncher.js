@@ -157,6 +157,22 @@ export function preferredPreparedEncounterId(scenarios = [], requestedId = '', p
   return (ready || available.find(item => !item.legacy) || available[0])?.id || '';
 }
 
+// Saved encounters contain a GM-prepared roster snapshot. A temporary failure
+// to load *optional* NPCs or companion suggestions must not cancel combat.
+// Prefer the current live party. If that service fails, offer the saved roster
+// explicitly rather than silently rewriting a player's more recent HP.
+export function assessEncounterLaunch({ errors = [], livePlayers = [], prepared = [] } = {}) {
+  const missingLiveParty = safeArray(errors).some(error => error.key === 'players')
+    || safeArray(livePlayers).length === 0;
+  const backupPlayers = safeArray(prepared).filter(item => item.type === 'player');
+  return {
+    needsSavedPartyConfirmation: missingLiveParty && backupPlayers.length > 0,
+    blocked: missingLiveParty && backupPlayers.length === 0,
+    backupCount: backupPlayers.length,
+    optionalDataUnavailable: safeArray(errors).some(error => ['npcs', 'liveState'].includes(error.key)),
+  };
+}
+
 function sortEncounterOptions(scenarios = []) {
   const rank = item => item.live_ready && !item.played ? 0 : item.legacy ? 2 : 1;
   return [...safeArray(scenarios)].sort((a, b) =>
@@ -280,11 +296,14 @@ export default function LiveEncounterLauncher({ campaignId }) {
   };
 
   const launch = () => {
-    const participantLoadFailed = loadErrors.some(item => ['players', 'npcs', 'liveState'].includes(item.key));
-    if (participantLoadFailed) {
-      toast.error('Participant data is incomplete. Retry Encounter Review before starting combat so nobody is accidentally omitted.');
+    const readiness = assessEncounterLaunch({ errors: loadErrors, livePlayers: players, prepared: baseCombatants });
+    if (readiness.blocked) {
+      toast.error('Could not load any player characters or a saved roster. Retry loading the party before starting combat.');
       return;
     }
+    if (readiness.needsSavedPartyConfirmation && !window.confirm(
+      `Live character data is unavailable. This encounter has ${readiness.backupCount} saved character snapshot${readiness.backupCount === 1 ? '' : 's'} with last-known HP and conditions. Start with those saved values? Check each character's current HP before ending combat.`
+    )) return;
 
     let combatants = combinePreparedEncounterParty(baseCombatants, players, enabledBaseKeys, includedPlayerIds);
     companionNpcs.filter(npc => includedCompanionIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
@@ -331,8 +350,13 @@ export default function LiveEncounterLauncher({ campaignId }) {
       </header>
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
+      {loadErrors.some(error => ['npcs', 'liveState'].includes(error.key)) && (
+        <div role="status" style={{ ...descriptionStyle, borderColor: 'var(--rq-secondary, #79bce8)' }}>
+          NPC suggestions or travelling companions could not refresh. Prepared enemies and the party can still launch. Retry if your fight needs a recently added NPC.
+        </div>
+      )}
       <footer style={footerStyle} data-testid="live-encounter-run-bar">
-        <span style={footerTextStyle}>{selected ? `${preparedOpponents.length} prepared enemies/objects · ${includedPlayerIds.length} party selected` : 'Impromptu combat'} · Your saved encounter stays unchanged.</span>
+        <span style={footerTextStyle}>{selected ? `${preparedOpponents.length} prepared enemies/objects · ${players.length ? includedPlayerIds.length : baseCombatants.filter(item => item.type === 'player' && enabledBaseKeys.includes(keyFor(item, baseCombatants.indexOf(item)))).length} party selected` : 'Impromptu combat'} · Your saved encounter stays unchanged.</span>
         <button type="button" onClick={launch} style={launchButtonStyle}><Play size={17} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
       </footer>
       {!selected && <div style={descriptionStyle}>No preparation needed. Add the party, a saved NPC, or a quick creature and start combat. You can recruit more enemies from the combat tracker at any time.</div>}
@@ -357,8 +381,16 @@ export default function LiveEncounterLauncher({ campaignId }) {
         })}
       </ParticipantSection>
 
-      <ParticipantSection title="Party" count={players.length}>
-        {players.length === 0 && <span style={mutedStyle}>No linked player characters yet.</span>}
+      <ParticipantSection title={players.length ? 'Party — current character sheets' : 'Party — saved encounter backup'} count={players.length || baseCombatants.filter(item => item.type === 'player').length}>
+        {players.length === 0 && baseCombatants.some(item => item.type === 'player') && (
+          <span style={mutedStyle}>Live sheets unavailable. Saved starting values are available, but you will be asked to confirm them before starting.</span>
+        )}
+        {players.length === 0 && baseCombatants.filter(item => item.type === 'player').map((player, index) => {
+          const sourceIndex = baseCombatants.findIndex(item => item.id === player.id && item.type === 'player');
+          const key = keyFor(player, sourceIndex >= 0 ? sourceIndex : index);
+          return <ToggleRow key={key} checked={enabledBaseKeys.includes(key)} title={player.name || 'Saved player'} meta={`Saved HP ${player.hp ?? '?'}/${player.maxHp ?? '?'} · AC ${player.ac ?? '?'}`} onClick={() => toggle(key, enabledBaseKeys, setEnabledBaseKeys)} />;
+        })}
+        {players.length === 0 && !baseCombatants.some(item => item.type === 'player') && <span style={mutedStyle}>No player sheets or saved player snapshots are available. Retry loading party data.</span>}
         {players.map(player => {
           const temp = numberOr(player.temporary_hit_points ?? player.temp_hp, 0);
           const pending = player.rqk_pending_combat_sync ? ' · Offline queued' : '';
