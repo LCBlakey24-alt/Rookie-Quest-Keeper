@@ -1190,6 +1190,7 @@ class NPC(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
     name: str
+    discovery_status: str = "untracked"  # Party discovery, not GM knowledge
     image_url: str = ""
     portrait_url: str = ""
     combat_ready: bool = True
@@ -1254,6 +1255,7 @@ class NPC(BaseModel):
 
 class NPCCreate(BaseModel):
     name: str
+    discovery_status: str = "untracked"
     image_url: str = ""
     portrait_url: str = ""
     combat_ready: bool = True
@@ -1302,6 +1304,7 @@ class NPCCreate(BaseModel):
 
 class NPCUpdate(BaseModel):
     name: Optional[str] = None
+    discovery_status: Optional[str] = None
     image_url: Optional[str] = None
     portrait_url: Optional[str] = None
     combat_ready: Optional[bool] = None
