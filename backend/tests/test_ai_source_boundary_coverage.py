@@ -33,10 +33,35 @@ os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 
 ROUTES_DIR = BACKEND_DIR / 'routes'
 
-# A module sends something to a model if it builds a chat or passes a system
-# message. Matching the source keeps this honest when a new route is added.
-CALLS_MODEL = re.compile(r'LlmChat\(|system_message\s*=|_llm_json\(')
+# A module sends something to a model if it builds a chat, passes a system
+# message, or calls a provider SDK directly. The first version of this
+# pattern knew only about the LlmChat wrapper and so could not see
+# character_import.py, which calls AsyncOpenAI's responses.create itself --
+# the exact blind spot this file exists to prevent. Matching the source
+# rather than a hand-kept list is only honest if the pattern keeps up with
+# how the calls are actually written.
+CALLS_MODEL = re.compile(
+    r'LlmChat\(|system_message\s*=|_llm_json\(|'
+    r'responses\.create|chat\.completions\.create|AsyncOpenAI\(|AsyncAnthropic\('
+)
 HAS_BOUNDARY = re.compile(r'source_boundary|SOURCE_BOUNDARY', re.IGNORECASE)
+
+# Routes that reach a model but carry no campaign source boundary, each with
+# the reason. An exemption with a stated reason is honest; a scan that
+# quietly fails to see a file is not.
+#
+# Adding to this is a deliberate act that shows up in review, which is the
+# point: anything not listed here needs the boundary.
+BOUNDARY_EXEMPT = {
+    'character_import.py': (
+        'Extracts a character from a sheet the player uploaded themselves. '
+        'There is no campaign for it to be bounded to, and importing the '
+        "user's own document is not the same act as generating campaign "
+        'content. Its own prompt already forbids the failure that matters '
+        'here, inventing a value that is not on the sheet, and that '
+        'instruction is asserted below rather than taken on trust.'
+    ),
+}
 
 
 def model_calling_modules():
@@ -46,6 +71,31 @@ def model_calling_modules():
         if CALLS_MODEL.search(text):
             found.append((path.name, text))
     return found
+
+
+def test_the_scan_sees_routes_that_call_a_provider_sdk_directly():
+    """The blind spot that prompted this pattern.
+
+    character_import.py calls AsyncOpenAI's responses.create rather than the
+    LlmChat wrapper, so the first version of this scan could not see it, and
+    the coverage test passed while checking less than it claimed.
+    """
+    names = [name for name, _ in model_calling_modules()]
+    assert 'character_import.py' in names
+
+
+def test_every_exemption_states_a_reason():
+    """An exemption is a judgement, so it has to be written down."""
+    for name, reason in BOUNDARY_EXEMPT.items():
+        assert (ROUTES_DIR / name).exists(), f'{name} is exempt but no longer exists'
+        assert len(reason) > 80, f'{name} needs a real reason, not a shrug'
+
+
+def test_the_import_route_still_forbids_inventing_values():
+    """The exemption above leans on this, so it is checked, not assumed."""
+    text = (ROUTES_DIR / 'character_import.py').read_text(encoding='utf-8')
+    assert 'Never invent a value' in text
+    assert 'Do not calculate missing' in text
 
 
 def test_the_scan_finds_the_known_generative_routes():
@@ -62,7 +112,10 @@ def test_the_scan_finds_the_known_generative_routes():
 
 
 def test_every_model_calling_route_carries_the_source_boundary():
-    missing = [name for name, text in model_calling_modules() if not HAS_BOUNDARY.search(text)]
+    missing = [
+        name for name, text in model_calling_modules()
+        if name not in BOUNDARY_EXEMPT and not HAS_BOUNDARY.search(text)
+    ]
     assert missing == [], (
         'These routes send prompts to a model without the campaign source '
         'boundary, so they may answer from training data rather than from '
