@@ -1,4 +1,4 @@
-import { clearQueuedNpcIds, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, readQueuedNpcIds } from './LiveEncounterLauncher';
+import { clearQueuedNpcIds, combinePreparedEncounterParty, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, preferredPreparedEncounterId, readQueuedNpcIds } from './LiveEncounterLauncher';
 
 describe('LiveEncounterLauncher player combat handoff', () => {
   test('preserves temp HP, death saves and concentration', () => {
@@ -85,5 +85,48 @@ describe('Impromptu live battles', () => {
 
   test('safely handles an empty starting roster', () => {
     expect(createImpromptuEncounter(null, 7).combatants).toEqual([]);
+  });
+});
+
+
+describe('Prepared Hollowmere scenarios in Live Play', () => {
+  const rina = { id: 'char-rina', character_id: 'char-rina', name: 'Rina Ironside', type: 'player', hp: 54, maxHp: 54, ac: 19 };
+  const orren = { id: 'char-orren', character_id: 'char-orren', name: 'Orren Oakenshade', type: 'player', hp: 38, maxHp: 38, ac: 16 };
+  const josh = { id: 'char-josh', character_id: 'char-josh', name: 'Josh', type: 'player', hp: 41, maxHp: 41, ac: 15 };
+  const guard = { id: 'guard-1', name: 'Chitin Guard', type: 'monster', hp: 22, ac: 14, actions: [{ name: 'Bite' }] };
+  const prepared = [rina, orren, josh, guard];
+  const enabledKeys = prepared.map(item => item.id);
+
+  test('refreshes saved player snapshots with current HP/conditions without duplicates', () => {
+    const liveParty = [
+      { id: 'char-rina', character_id: 'char-rina', name: 'Rina Ironside', hp: 31, max_hp: 54, ac: 19, initiativeMod: 1, conditions: ['poisoned'] },
+      { id: 'char-orren', character_id: 'char-orren', name: 'Orren Oakenshade', hp: 0, max_hp: 38, ac: 16, initiativeMod: 3, death_saves_failures: 1 },
+      { id: 'char-josh', character_id: 'char-josh', name: 'Josh', hp: 15, max_hp: 41, ac: 15, initiativeMod: 2 },
+    ];
+    const launched = combinePreparedEncounterParty(prepared, liveParty, enabledKeys, liveParty.map(p => p.id));
+    expect(launched).toHaveLength(4);
+    expect(launched.filter(item => item.type === 'player')).toHaveLength(3);
+    expect(launched.find(item => item.name === 'Rina Ironside')).toMatchObject({ hp: 31, maxHp: 54, conditions: ['poisoned'] });
+    expect(launched.find(item => item.name === 'Orren Oakenshade')).toMatchObject({ hp: 0, maxHp: 38, deathSaves: { successes: 0, failures: 1 } });
+    expect(launched.find(item => item.name === 'Josh')).toMatchObject({ hp: 15, ac: 15 });
+    expect(launched.find(item => item.id === 'guard-1')).toEqual(guard);
+  });
+
+  test('unchecking a party member excludes their pre-saved player entry too', () => {
+    const party = [rina, orren, josh];
+    const launched = combinePreparedEncounterParty(prepared, party, enabledKeys, ['char-rina', 'char-orren']);
+    expect(launched.filter(item => item.type === 'player').map(item => item.name)).toEqual(['Rina Ironside', 'Orren Oakenshade']);
+    expect(launched.filter(item => item.type === 'monster')).toEqual([guard]);
+  });
+
+  test('prefers ready HM-01 over archived scenarios, but honours a deliberate handoff', () => {
+    const scenarios = [
+      { id: 'old', legacy: true },
+      { id: 'hm02', live_ready: true, planned_encounter_order: 2 },
+      { id: 'hm01', live_ready: true, live_default: true, planned_encounter_order: 1 },
+    ];
+    expect(preferredPreparedEncounterId(scenarios)).toBe('hm01');
+    expect(preferredPreparedEncounterId(scenarios, '', 'old')).toBe('hm01');
+    expect(preferredPreparedEncounterId(scenarios, 'hm02')).toBe('hm02');
   });
 });
