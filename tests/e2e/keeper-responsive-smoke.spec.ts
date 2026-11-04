@@ -373,3 +373,102 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   await expect(frame).toHaveCSS('background-image', 'none');
   await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+// The campaign workspace is the page a GM actually spends a session in, and
+// until now nothing in this suite opened it. That gap is why its navigation
+// shipped twice in a state where tools ran off the side of the page: the
+// checks above cover /gm-screen and /player-display, which have their own
+// layouts, and a campaign has a third.
+//
+// The preview workspace makes this reachable with no backend and no account.
+// ?demo=1 seeds a read-only sample campaign into sessionStorage, so these are
+// still real browser measurements of the built app.
+//
+// Measured against a build with the wrap rule removed, the tab row hid 16px
+// of itself at 761px and reported flex-wrap: nowrap at every width in the
+// band. Both assertions below fail on that build, so neither is decorative.
+const campaignWidths = [
+  // 761px is the floor of the band: below it the grouped mobile selector
+  // takes over. This is where the strips were actually clipping.
+  { label: 'tablet floor', width: 761, wrap: 'wrap' },
+  { label: 'tablet', width: 900, wrap: 'wrap' },
+  // A 1366px laptop at the 125% Windows scaling those machines ship with
+  // reports about 1093 CSS pixels. Ordinary hardware, not an edge case.
+  { label: 'scaled laptop', width: 1093, wrap: 'wrap' },
+  { label: 'tablet ceiling', width: 1180, wrap: 'wrap' },
+  // 1181px and up, the Guild Command sidebar stacks the tools vertically and
+  // wrapping would be wrong. Asserted so the fix cannot creep upward.
+  { label: 'desktop', width: 1366, wrap: 'nowrap' },
+];
+
+for (const size of campaignWidths) {
+  test(`campaign tools stay reachable at ${size.label} (${size.width}px)`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: 860 });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    await expect(page.locator('.campaign-dashboard-simple')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Preview campaign' })).toBeVisible();
+
+    const groupCount = await page.locator('.campaign-dashboard-group').count();
+    expect(groupCount, 'the campaign should offer tool groups').toBeGreaterThan(1);
+
+    for (let index = 0; index < groupCount; index += 1) {
+      // A direct click: at the narrow end of the band the app rail sits over
+      // the strip and intercepts pointer events, which is a separate question
+      // from whether the tools are laid out reachably.
+      await page.$$eval('.campaign-dashboard-group',
+        (nodes, i) => (nodes[i] as HTMLElement).click(), index);
+      await page.waitForTimeout(250);
+
+      const measured = await page.evaluate(() => {
+        const tabRow = document.querySelector('.campaign-dashboard-tab-row') as HTMLElement;
+        const groupRow = document.querySelector('.campaign-dashboard-group-row') as HTMLElement;
+        const viewport = document.documentElement.clientWidth;
+        const outside = [...document.querySelectorAll('.campaign-dashboard-tab')]
+          .map(node => ({ rect: node.getBoundingClientRect(), label: (node.textContent || '').trim() }))
+          .filter(item => item.rect.left < -1 || item.rect.right > viewport + 1)
+          .map(item => `${item.label} -> ${Math.round(item.rect.left)}..${Math.round(item.rect.right)}`);
+        return {
+          group: (document.querySelector('.campaign-dashboard-group.is-active')?.textContent || '').trim(),
+          tabCount: document.querySelectorAll('.campaign-dashboard-tab').length,
+          tabHidden: Math.max(0, tabRow.scrollWidth - tabRow.clientWidth),
+          groupHidden: Math.max(0, groupRow.scrollWidth - groupRow.clientWidth),
+          tabWrap: getComputedStyle(tabRow).flexWrap,
+          outside,
+        };
+      });
+
+      expect(measured.tabCount, `${measured.group} should offer tools`).toBeGreaterThan(0);
+      expect(measured.tabHidden,
+        `${measured.group}: tools hidden outside the scrollable tab row`).toBe(0);
+      expect(measured.groupHidden,
+        `${measured.group}: tool groups hidden outside their row`).toBe(0);
+      expect(measured.outside,
+        `${measured.group}: tools outside the viewport`).toEqual([]);
+      expect(measured.tabWrap,
+        `${measured.group}: wrong wrapping for this width`).toBe(size.wrap);
+    }
+
+    await assertFitsViewport(page, size.width);
+  });
+}
+
+test('a phone gets the grouped campaign selector rather than two scrolling strips', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/campaign/preview-campaign?demo=1');
+  await expect(page.locator('.campaign-dashboard-simple')).toBeVisible();
+
+  const navigation = await page.evaluate(() => {
+    const selector = document.querySelector('.rqk-campaign-mobile-navigator');
+    const tabRow = document.querySelector('.campaign-dashboard-tab-row');
+    return {
+      selectorShown: selector ? getComputedStyle(selector).display !== 'none' : false,
+      stripShown: tabRow ? getComputedStyle(tabRow).display !== 'none' : false,
+    };
+  });
+  expect(navigation.selectorShown, 'phones should get the grouped selector').toBe(true);
+  expect(navigation.stripShown, 'the scrolling strips should be replaced, not stacked beside it').toBe(false);
+
+  await assertFitsViewport(page, 390);
+});
