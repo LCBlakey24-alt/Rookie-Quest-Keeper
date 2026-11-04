@@ -32,9 +32,9 @@ function campaignTitle(campaign) {
 }
 
 function campaignMeta(campaign) {
-  const linkedCount = campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0;
+  const characterCount = campaign?.character_count ?? campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0;
   const system = campaign?.system || rulesSystemOptions[campaign?.rules_edition] || 'Campaign';
-  return `${system} • ${linkedCount} character${linkedCount === 1 ? '' : 's'}`;
+  return `${system} • ${linkedCount} character${characterCount === 1 ? '' : 's'}`;
 }
 
 function campaignTypeLabel(campaign) {
