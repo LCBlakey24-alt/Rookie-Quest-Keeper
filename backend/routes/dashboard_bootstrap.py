@@ -205,6 +205,7 @@ async def get_dashboard_bootstrap(username: str = Depends(get_current_user)):
     )
 
     is_admin = await is_admin_username(username)
+    campaigns = await _attach_campaign_library_counts(campaigns)
 
     return {
         'characters': characters,
