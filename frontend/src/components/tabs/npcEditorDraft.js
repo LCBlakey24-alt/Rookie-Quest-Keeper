@@ -4,7 +4,7 @@ const STRING_FIELDS = [
   'name', 'description', 'image_url', 'portrait_url', 'race', 'class_name',
   'alignment', 'appearance', 'personality', 'backstory', 'role',
   'location', 'notes', 'speed', 'armor', 'size', 'senses', 'languages',
-  'mechanics_status', 'canon_status', 'statblock_source', 'statblock_notes',
+  'mechanics_status', 'canon_status', 'discovery_status', 'statblock_source', 'statblock_notes',
 ];
 const LIST_FIELDS = [
   'skills', 'saving_throws', 'damage_resistances', 'damage_immunities',
@@ -24,6 +24,8 @@ export function createNpcDraft(npc = {}) {
   STRING_FIELDS.forEach(field => {
     draft[field] = npc[field] ?? '';
   });
+  // Previously-untracked NPCs become Unknown when a GM deliberately edits their discovery status.
+  draft.discovery_status = npc.discovery_status === 'met' ? 'met' : 'unknown';
   draft.hp = npc.hp ?? 10;
   draft.max_hp = npc.max_hp ?? npc.hp ?? 10;
   draft.ac = npc.ac ?? 10;
