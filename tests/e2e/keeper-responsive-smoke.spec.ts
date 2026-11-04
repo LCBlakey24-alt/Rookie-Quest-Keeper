@@ -386,7 +386,9 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
 //
 // Measured against a build with the wrap rule removed, the tab row hid 16px
 // of itself at 761px and reported flex-wrap: nowrap at every width in the
-// band. Both assertions below fail on that build, so neither is decorative.
+// band, and Playwright refused to click a group that the app rail covered
+// once the strip had been scrolled. The assertions below fail on that build
+// and pass on this one, so none of them is decorative.
 const campaignWidths = [
   // 761px is the floor of the band: below it the grouped mobile selector
   // takes over. This is where the strips were actually clipping.
@@ -413,11 +415,12 @@ for (const size of campaignWidths) {
     expect(groupCount, 'the campaign should offer tool groups').toBeGreaterThan(1);
 
     for (let index = 0; index < groupCount; index += 1) {
-      // A direct click: at the narrow end of the band the app rail sits over
-      // the strip and intercepts pointer events, which is a separate question
-      // from whether the tools are laid out reachably.
-      await page.$$eval('.campaign-dashboard-group',
-        (nodes, i) => (nodes[i] as HTMLElement).click(), index);
+      // A real pointer click, not a dispatched DOM event. Playwright refuses
+      // to click something covered by another element, so this is itself the
+      // assertion that the group is reachable by a finger or a mouse. On a
+      // build without the wrap rule the strip scrolls horizontally instead,
+      // and clicking a group off the right-hand end fails here.
+      await page.locator('.campaign-dashboard-group').nth(index).click();
       await page.waitForTimeout(250);
 
       const measured = await page.evaluate(() => {
@@ -447,6 +450,15 @@ for (const size of campaignWidths) {
         `${measured.group}: tools outside the viewport`).toEqual([]);
       expect(measured.tabWrap,
         `${measured.group}: wrong wrapping for this width`).toBe(size.wrap);
+
+      // Every tool in the group has to be clickable too, not merely within
+      // the viewport: a control can be in frame and still sit under the rail
+      // or a sticky header.
+      const tabCount = await page.locator('.campaign-dashboard-tab').count();
+      for (let tab = 0; tab < tabCount; tab += 1) {
+        await page.locator('.campaign-dashboard-tab').nth(tab).click();
+        await page.waitForTimeout(120);
+      }
     }
 
     await assertFitsViewport(page, size.width);
