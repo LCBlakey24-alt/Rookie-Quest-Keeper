@@ -104,6 +104,40 @@ async def build_live_party_rows(campaign_id: str, database=None) -> List[Dict[st
         rows.append(row)
         real_names.add(_name_key(row.get("name")))
 
+    # Characters that name this campaign but have no member record pointing
+    # at them.
+    #
+    # Three code paths attach a player to a campaign and only one of them
+    # produces what this function reads. The join-code flow in
+    # campaign_invites sets both the character's campaign_id and the
+    # member's character_id. POST /characters/{id}/join-campaign sets only
+    # the character's campaign_id. The invite join in campaigns.py creates
+    # a member with no character_id at all. A character linked by either of
+    # the last two is genuinely in the campaign and completely invisible
+    # here, which is how a GM ends up looking at an empty party while the
+    # characters show the campaign on their own sheets.
+    #
+    # Approval still decides: the owner must be an active member, so this
+    # cannot surface someone the GM has not accepted. It only repairs the
+    # link, it does not widen who is allowed in.
+    member_by_user = {
+        member.get("user_id"): member
+        for member in members
+        if member.get("user_id") and str(member.get("status") or "active").lower() == "active"
+    }
+    if member_by_user:
+        orphaned = await source_db.player_characters.find(
+            {"campaign_id": campaign_id, "user_id": {"$in": list(member_by_user)}},
+            {"_id": 0},
+        ).to_list(1000)
+        for character in orphaned:
+            if character.get("id") in character_by_id:
+                continue
+            character_by_id[character.get("id")] = character
+            row = _character_row(character, member_by_user[character.get("user_id")])
+            rows.append(row)
+            real_names.add(_name_key(row.get("name")))
+
     campaign = await source_db.campaigns.find_one({"id": campaign_id}, {"dm_user_id": 1})
     if campaign and campaign.get("dm_user_id"):
         gm_sheets = await source_db.player_characters.find(

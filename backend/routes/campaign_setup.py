@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db
 from utils.auth import get_current_user
+from utils.campaign_party_counts import count_campaign_characters
 from models import Campaign, CampaignInvite
 from typing import Dict, Any, List
 from datetime import datetime, timezone
@@ -83,8 +84,11 @@ async def attach_campaign_counts(campaigns: List[dict]) -> List[dict]:
         if member_status == 'pending':
             counts[campaign_id]['pending_approval_count'] += 1
 
+    character_counts = await count_campaign_characters(db, campaign_ids, members)
     for campaign in campaigns:
-        campaign.update(counts.get(campaign.get('id'), {}))
+        cid = campaign.get('id')
+        campaign.update(counts.get(cid, {}))
+        campaign['character_count'] = character_counts.get(cid, 0)
     return campaigns
 
 

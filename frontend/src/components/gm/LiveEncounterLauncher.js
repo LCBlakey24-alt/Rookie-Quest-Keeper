@@ -109,6 +109,61 @@ function appendUnique(list, combatant) {
   return list.some(existing => sameCombatant(existing, combatant)) ? list : [...list, combatant];
 }
 
+// A prepared encounter can include saved player tokens, but their live HP,
+// conditions and death saves must come from the canonical party at launch.
+// The party toggles also apply to pre-saved characters; unchecking a player
+// must not leave a second copy of that character in the prepared list.
+export function combinePreparedEncounterParty(prepared = [], players = [], enabledBaseKeys = [], includedPlayerIds = []) {
+  let combatants = [];
+  const liveById = new Map();
+  const liveByName = new Map();
+  safeArray(players).forEach(player => {
+    [player.id, player.character_id, player.legacy_player_id].filter(Boolean)
+      .forEach(id => liveById.set(String(id), player));
+    if (player.name) liveByName.set(String(player.name).trim().toLowerCase(), player);
+  });
+
+  safeArray(prepared).forEach((combatant, index) => {
+    if (!enabledBaseKeys.includes(keyFor(combatant, index))) return;
+    if (combatant?.type === 'player') {
+      const live = liveById.get(String(combatant.character_id || combatant.id || ''))
+        || liveById.get(String(combatant.id || ''))
+        || liveByName.get(String(combatant.name || '').trim().toLowerCase());
+      if (live) {
+        if (includedPlayerIds.includes(live.id)) {
+          combatants = appendUnique(combatants, playerToCombatant(live));
+        }
+        return;
+      }
+    }
+    combatants = appendUnique(combatants, combatant);
+  });
+
+  safeArray(players).filter(player => includedPlayerIds.includes(player.id))
+    .forEach(player => { combatants = appendUnique(combatants, playerToCombatant(player)); });
+
+  return combatants;
+}
+
+export function preferredPreparedEncounterId(scenarios = [], requestedId = '', previousId = '') {
+  const available = safeArray(scenarios);
+  const findById = id => available.find(item => item.id === id);
+  if (requestedId && findById(requestedId)) return requestedId;
+  if (previousId && findById(previousId) && !findById(previousId).legacy) return previousId;
+  const next = available.find(item => item.live_default && !item.played && !item.legacy);
+  if (next) return next.id;
+  const ready = available.filter(item => item.live_ready && !item.played && !item.legacy)
+    .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0];
+  return (ready || available.find(item => !item.legacy) || available[0])?.id || '';
+}
+
+function sortEncounterOptions(scenarios = []) {
+  const rank = item => item.live_ready && !item.played ? 0 : item.legacy ? 2 : 1;
+  return [...safeArray(scenarios)].sort((a, b) =>
+    rank(a) - rank(b)
+      || (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
+}
+
 export default function LiveEncounterLauncher({ campaignId }) {
   const navigate = useNavigate();
   const [campaignName, setCampaignName] = useState('Campaign');
@@ -140,7 +195,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
         const loadedNpcs = sections.npcs.ok ? safeArray(sections.npcs.data) : null;
 
         if (sections.campaign.ok) setCampaignName(sections.campaign.data?.name || 'Campaign');
-        if (loadedScenarios) setScenarios(loadedScenarios);
+        if (loadedScenarios) setScenarios(sortEncounterOptions(loadedScenarios));
         if (loadedPlayers) {
           setPlayers(loadedPlayers);
           setIncludedPlayerIds(loadedPlayers.map(player => player.id).filter(Boolean));
@@ -155,17 +210,13 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
         if (loadedScenarios) {
           let requested = '';
+          let remembered = '';
           try {
-            requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
+            requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
+            remembered = localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
             localStorage.removeItem(`gm.questEncounter.${campaignId}`);
           } catch { /* ignore */ }
-          setSelectedId(previous => (
-            loadedScenarios.some(item => item.id === requested)
-              ? requested
-              : loadedScenarios.some(item => item.id === previous)
-                ? previous
-                : (loadedScenarios[0]?.id || '')
-          ));
+          setSelectedId(previous => preferredPreparedEncounterId(loadedScenarios, requested, previous || remembered));
         }
 
         setLoadErrors(errors);
@@ -234,11 +285,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
       return;
     }
 
-    let combatants = [];
-    baseCombatants.forEach((combatant, index) => {
-      if (enabledBaseKeys.includes(keyFor(combatant, index))) combatants = appendUnique(combatants, combatant);
-    });
-    players.filter(player => includedPlayerIds.includes(player.id)).forEach(player => { combatants = appendUnique(combatants, playerToCombatant(player)); });
+    let combatants = combinePreparedEncounterParty(baseCombatants, players, enabledBaseKeys, includedPlayerIds);
     companionNpcs.filter(npc => includedCompanionIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
     queuedNpcs.forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
     npcs.filter(npc => extraNpcIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
