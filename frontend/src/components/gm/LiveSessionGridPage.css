@@ -1,0 +1,129 @@
+/* Live Play page shell: compact GM controls without extra vertical scroll areas. */
+.rqk-live-page {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.rqk-live-page__header {
+  min-width: 0;
+  border-radius: 10px;
+  gap: 8px 12px !important;
+}
+
+.rqk-live-page__header > div:first-child {
+  flex: 1 1 310px;
+}
+
+.rqk-live-page__actions {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+}
+
+.rqk-live-page__workspace {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.rqk-live-page__utility {
+  margin: 0;
+  border: 1px solid var(--rq-border-default);
+  border-radius: 9px;
+  background: var(--rq-bg-panel);
+  color: var(--rq-text-primary);
+  overflow: visible;
+}
+
+.rqk-live-page__utility > summary {
+  min-height: 43px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style-position: inside;
+  font-size: 12px;
+  font-weight: 850;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rqk-live-page__utility > summary::marker {
+  color: var(--rq-secondary, #79bce8);
+}
+
+.rqk-live-page__utility > summary span:last-child {
+  color: var(--rq-text-secondary, #bed0df);
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.rqk-live-page__utility[open] > summary {
+  border-bottom: 1px solid var(--rq-border-default);
+}
+
+.rqk-live-page__utility > :not(summary) {
+  margin: 9px;
+}
+
+.rqk-live-page__utility > summary:focus-visible {
+  outline: 3px solid var(--rq-secondary, #79bce8);
+  outline-offset: 2px;
+}
+
+@media (max-width: 719px) {
+  .rqk-live-page__header {
+    align-items: stretch !important;
+    padding: 9px !important;
+  }
+
+  .rqk-live-page__header > div:first-child {
+    flex: 1 1 100%;
+    gap: 8px !important;
+  }
+
+  .rqk-live-page__header h1 {
+    font-size: 17px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .rqk-live-page__subtitle {
+    display: none;
+  }
+
+  .rqk-live-page__actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px !important;
+  }
+
+  .rqk-live-page__actions > button,
+  .rqk-live-page__actions > label,
+  .rqk-live-page__header > div:first-child > button {
+    min-height: 44px !important;
+  }
+
+  .rqk-live-page__actions > button {
+    flex: 1 1 auto;
+  }
+
+  .rqk-live-page__utility > summary {
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 720px) and (max-width: 1050px) {
+  .rqk-live-page__header > div:first-child {
+    flex-basis: 100%;
+  }
+
+  .rqk-live-page__actions {
+    justify-content: flex-start;
+  }
+
+  .rqk-live-page__actions > button,
+  .rqk-live-page__header > div:first-child > button {
+    min-height: 40px !important;
+  }
+}
