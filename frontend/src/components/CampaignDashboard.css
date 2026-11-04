@@ -1620,3 +1620,16 @@ html body #root .campaign-dashboard-simple :is(
   outline: 3px solid var(--rq-secondary, #3C92E0) !important;
   outline-offset: 2px !important;
 }
+
+
+/* The compact header has two high-specificity legacy rules pinning Join Code,
+   Live Play and tool finder to 44px on phones. Match that specificity so all
+   GM Home actions share the required 46px finger target. */
+@media (max-width: 719px) {
+  html body #root .campaign-dashboard-simple .campaign-dashboard-actions > .campaign-button,
+  html body #root .campaign-dashboard-simple .campaign-dashboard-actions > .campaign-button.rqk-tool-finder-trigger,
+  html body #root .campaign-dashboard-simple .campaign-dashboard-actions > button {
+    min-height: 46px !important;
+    height: auto;
+  }
+}
