@@ -77,19 +77,31 @@ class _Collection:
     async def find_one(self, query, projection=None):
         return next((row for row in self.rows if all(row.get(k) == v for k, v in query.items())), None)
 
+    @staticmethod
+    def _matches(row, query):
+        """Match every clause, with $in wherever it appears.
+
+        The earlier version special-cased $in on `status` and `id` and did
+        plain equality for anything else, so a query combining campaign_id
+        with $in on another field silently matched nothing. A real Mongo
+        query would have returned the rows, which meant this fake could
+        fail a correct change.
+        """
+        for field, expected in query.items():
+            actual = row.get(field)
+            if isinstance(expected, dict) and '$in' in expected:
+                allowed = expected['$in']
+                # None in the allowed list also matches a missing field,
+                # as it does in Mongo.
+                if actual not in allowed:
+                    return False
+            elif actual != expected:
+                return False
+        return True
+
     def find(self, query, projection=None):
         self.queries.append((query, projection))
-        if 'status' in query:
-            allowed = set(query['status'].get('$in', []))
-            rows = [row for row in self.rows if row.get('status') in allowed]
-        elif 'id' in query and isinstance(query['id'], dict) and '$in' in query['id']:
-            allowed = set(query['id']['$in'])
-            rows = [row for row in self.rows if row.get('id') in allowed]
-        elif 'campaign_id' in query:
-            rows = [row for row in self.rows if all(row.get(k) == v for k, v in query.items())]
-        else:
-            rows = list(self.rows)
-        return _Cursor(rows)
+        return _Cursor([row for row in self.rows if self._matches(row, query)])
 
 
 def test_live_party_builder_uses_approved_linked_character_sheets_and_legacy_fallback(monkeypatch):
@@ -153,3 +165,105 @@ def test_live_party_includes_only_this_campaigns_gm_sheets_once():
     assert [row['character_id'] for row in rows] == ['linked', 'gm-sheet']
     assert rows[1]['member_id'] is None
     assert rows[1]['source'] == 'character'
+
+
+def test_characters_linked_without_a_member_pointer_still_reach_the_party():
+    """The reported bug: characters in the campaign, empty party.
+
+    Three code paths attach a player to a campaign and only the join-code
+    flow sets the member's character_id. A character linked by either of
+    the others names the campaign on its own sheet and was invisible here,
+    so a GM saw no party while the players saw themselves in the campaign.
+    """
+    class Database(SimpleNamespace):
+        def __bool__(self):
+            raise NotImplementedError("Mongo databases do not support truth testing")
+
+    database = Database(
+        campaigns=_Collection([{'id': 'spilsby', 'dm_user_id': 'gm'}]),
+        campaign_members=_Collection([
+            # Joined, approved, but no character_id was ever written.
+            {'id': 'm-rowan', 'status': 'active', 'campaign_id': 'spilsby', 'user_id': 'rowan'},
+            {'id': 'm-bryn', 'status': 'active', 'campaign_id': 'spilsby', 'user_id': 'bryn'},
+        ]),
+        player_characters=_Collection([
+            {'id': 'c-rowan', 'name': 'Rowan', 'campaign_id': 'spilsby', 'user_id': 'rowan',
+             'current_hit_points': 11, 'max_hit_points': 24, 'armor_class': 15},
+            {'id': 'c-bryn', 'name': 'Bryn', 'campaign_id': 'spilsby', 'user_id': 'bryn'},
+            {'id': 'c-elsewhere', 'name': 'Other Campaign', 'campaign_id': 'other', 'user_id': 'rowan'},
+        ]),
+        players=_Collection([]),
+    )
+
+    rows = asyncio.run(live_party.build_live_party_rows('spilsby', database))
+
+    assert sorted(row['name'] for row in rows) == ['Bryn', 'Rowan']
+    rowan = next(row for row in rows if row['name'] == 'Rowan')
+    assert rowan['hp'] == 11
+    assert rowan['ac'] == 15
+    assert rowan['source'] == 'character'
+    assert all(row['name'] != 'Other Campaign' for row in rows)
+
+
+def test_repairing_the_link_does_not_bypass_approval():
+    """A character whose owner is still pending stays out.
+
+    This repairs a broken pointer; it does not widen who is allowed in.
+    """
+    class Database(SimpleNamespace):
+        def __bool__(self):
+            raise NotImplementedError("Mongo databases do not support truth testing")
+
+    database = Database(
+        campaigns=_Collection([{'id': 'spilsby', 'dm_user_id': 'gm'}]),
+        campaign_members=_Collection([
+            {'id': 'm-waiting', 'status': 'pending', 'campaign_id': 'spilsby', 'user_id': 'waiting'},
+        ]),
+        player_characters=_Collection([
+            {'id': 'c-waiting', 'name': 'Not Approved Yet', 'campaign_id': 'spilsby', 'user_id': 'waiting'},
+        ]),
+        players=_Collection([]),
+    )
+
+    rows = asyncio.run(live_party.build_live_party_rows('spilsby', database))
+    assert rows == []
+
+
+def test_a_character_is_not_listed_twice_when_both_links_exist():
+    """Once the member pointer is repaired, both sources see it."""
+    class Database(SimpleNamespace):
+        def __bool__(self):
+            raise NotImplementedError("Mongo databases do not support truth testing")
+
+    database = Database(
+        campaigns=_Collection([{'id': 'spilsby', 'dm_user_id': 'gm'}]),
+        campaign_members=_Collection([
+            {'id': 'm1', 'status': 'active', 'campaign_id': 'spilsby', 'user_id': 'rowan', 'character_id': 'c-rowan'},
+        ]),
+        player_characters=_Collection([
+            {'id': 'c-rowan', 'name': 'Rowan', 'campaign_id': 'spilsby', 'user_id': 'rowan'},
+        ]),
+        players=_Collection([]),
+    )
+
+    rows = asyncio.run(live_party.build_live_party_rows('spilsby', database))
+    assert [row['character_id'] for row in rows] == ['c-rowan']
+
+
+def test_a_stranger_with_a_matching_campaign_id_is_not_admitted():
+    """campaign_id on a character is not by itself permission to appear."""
+    class Database(SimpleNamespace):
+        def __bool__(self):
+            raise NotImplementedError("Mongo databases do not support truth testing")
+
+    database = Database(
+        campaigns=_Collection([{'id': 'spilsby', 'dm_user_id': 'gm'}]),
+        campaign_members=_Collection([]),
+        player_characters=_Collection([
+            {'id': 'c-nobody', 'name': 'Uninvited', 'campaign_id': 'spilsby', 'user_id': 'nobody'},
+        ]),
+        players=_Collection([]),
+    )
+
+    rows = asyncio.run(live_party.build_live_party_rows('spilsby', database))
+    assert rows == []
