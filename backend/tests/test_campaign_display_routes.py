@@ -308,3 +308,91 @@ def test_member_get_blanks_an_unknown_legacy_mode_including_its_title(monkeypatc
     assert result['mode'] == 'blank'
     assert result['payload'] == {}
     assert result['sync_id'] == 'old-private'
+
+
+def test_combat_token_carries_the_character_standing_on_it():
+    """Without this the server cannot tell whose token a player may move.
+
+    A character id is not private -- the party list already names the
+    characters on screen -- so it survives sanitising, while everything
+    else about the token stays filtered.
+    """
+    state = sanitize_display_state('campaign-1', {
+        'mode': 'combat',
+        'payload': {
+            'tokens': [{
+                'id': 'tok-rowan', 'name': 'Rowan', 'x': 20, 'y': 40,
+                'character_id': 'char-rowan',
+                'gm_notes': 'Rowan is the traitor',
+                'secret_hp': 3,
+            }],
+        },
+    }, 'gm')
+
+    assert state['payload']['tokens'] == [{
+        'id': 'tok-rowan', 'name': 'Rowan', 'x': 20, 'y': 40,
+        'character_id': 'char-rowan',
+    }]
+    assert 'traitor' not in str(state['payload'])
+    assert 'secret_hp' not in str(state['payload'])
+
+
+def test_combat_token_accepts_the_camel_case_character_id_too():
+    """The frontend writes both spellings elsewhere in this payload."""
+    state = sanitize_display_state('campaign-1', {
+        'mode': 'combat',
+        'payload': {'tokens': [{'id': 't1', 'name': 'Rowan', 'characterId': 'char-rowan'}]},
+    }, 'gm')
+
+    assert state['payload']['tokens'][0]['characterId'] == 'char-rowan'
+
+
+def test_combat_payload_carries_the_map_scale_and_grid():
+    """Token coordinates are percentages.
+
+    A percentage cannot be turned into feet without knowing how many
+    squares the map is and how much ground a square covers, so a client
+    cannot show a movement range without these three values.
+    """
+    state = sanitize_display_state('campaign-1', {
+        'mode': 'combat',
+        'payload': {
+            'map_url': 'https://example.test/map.png',
+            'feet_per_square': 5,
+            'grid_cols': 30,
+            'grid_rows': 20,
+            'gm_only_scale_note': 'the east wing is not to scale',
+        },
+    }, 'gm')
+
+    payload = state['payload']
+    assert payload['feet_per_square'] == 5
+    assert payload['grid_cols'] == 30
+    assert payload['grid_rows'] == 20
+    assert 'east wing' not in str(payload)
+
+
+def test_map_scale_is_not_leaked_into_other_display_modes():
+    """These fields belong to the combat map, not to every broadcast."""
+    state = sanitize_display_state('campaign-1', {
+        'mode': 'title',
+        'payload': {'title': 'Chapter Two', 'feet_per_square': 5, 'grid_cols': 30},
+    }, 'gm')
+
+    assert 'feet_per_square' not in state['payload']
+    assert 'grid_cols' not in state['payload']
+
+
+def test_a_hidden_token_stays_hidden_even_with_a_character_id():
+    """Ownership must not become a way around the visibility filter."""
+    state = sanitize_display_state('campaign-1', {
+        'mode': 'combat',
+        'payload': {'tokens': [
+            {'id': 'ghost', 'name': 'Unseen Ally', 'character_id': 'char-x', 'hidden': True},
+            {'id': 'seen', 'name': 'Rowan', 'character_id': 'char-rowan'},
+        ]},
+    }, 'gm')
+
+    ids = [token['id'] for token in state['payload']['tokens']]
+    assert ids == ['seen']
+    assert 'Unseen Ally' not in str(state['payload'])

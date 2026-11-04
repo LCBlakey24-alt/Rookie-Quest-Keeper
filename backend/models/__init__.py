@@ -1386,6 +1386,10 @@ class Token(BaseModel):
     x: float
     y: float
     color: str = "#ff0000"
+    # The character standing on this token, when one does. This is what
+    # lets the server answer "may this player move this token?" without
+    # trusting the client to say whose token it is.
+    character_id: Optional[str] = None
 
 class GameMap(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -1394,6 +1398,10 @@ class GameMap(BaseModel):
     name: str
     width: int = 30
     height: int = 20
+    # How much ground one square covers. Five feet is the 5e default, and
+    # the existing grid_size values in the app are pixels for drawing, not
+    # a distance -- so without this a speed in feet cannot be enforced.
+    feet_per_square: int = 5
     terrain: List[List[str]] = []  # 2D array of terrain types
     walls: List[dict] = []  # Wall segments
     doors: List[dict] = []  # Door placements
