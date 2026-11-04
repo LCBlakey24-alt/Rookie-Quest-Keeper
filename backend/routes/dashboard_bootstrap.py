@@ -59,6 +59,7 @@ CAMPAIGN_PROJECTION = {
 
 CAMPAIGN_LIBRARY_PROJECTION = {
     **CAMPAIGN_PROJECTION,
+    'dm_user_id': 1,
     'system': 1,
     'rules_edition': 1,
     'campaign_type': 1,
@@ -141,6 +142,11 @@ async def _load_homebrew_summaries(username: str) -> list[dict]:
 
 
 async def _attach_campaign_library_counts(campaigns: list[dict]) -> list[dict]:
+    """Count actual GM-owned campaign sheets as well as linked player characters.
+
+    A GM importing PDFs can have three characters before anyone joins by code.
+    Count those saved characters without creating fake campaign_members rows.
+    """
     campaign_ids = [campaign.get('id') for campaign in campaigns if campaign.get('id')]
     if not campaign_ids:
         return campaigns
@@ -149,31 +155,43 @@ async def _attach_campaign_library_counts(campaigns: list[dict]) -> list[dict]:
         {'campaign_id': {'$in': campaign_ids}},
         {'_id': 0, 'campaign_id': 1, 'character_id': 1, 'status': 1},
     ).to_list(5000)
+    gm_sheets = await db.player_characters.find(
+        {'campaign_id': {'$in': campaign_ids}},
+        {'_id': 0, 'id': 1, 'campaign_id': 1, 'user_id': 1},
+    ).to_list(5000)
 
     counts = {
-        campaign_id: {
-            'player_count': 0,
-            'linked_character_count': 0,
-            'pending_approval_count': 0,
-        }
-        for campaign_id in campaign_ids
+        cid: {'player_count': 0, 'linked_character_count': 0, 'pending_approval_count': 0}
+        for cid in campaign_ids
     }
+    owner_by_id = {c.get('id'): c.get('dm_user_id') for c in campaigns}
+    character_ids_by_campaign = {cid: set() for cid in campaign_ids}
 
     for member in members:
-        campaign_id = member.get('campaign_id')
-        if campaign_id not in counts:
+        cid = member.get('campaign_id')
+        if cid not in counts:
             continue
         member_status = str(member.get('status') or 'active').lower()
         if member_status == 'removed':
             continue
-        counts[campaign_id]['player_count'] += 1
+        counts[cid]['player_count'] += 1
         if member.get('character_id'):
-            counts[campaign_id]['linked_character_count'] += 1
+            character_ids_by_campaign[cid].add(str(member['character_id']))
         if member_status == 'pending':
-            counts[campaign_id]['pending_approval_count'] += 1
+            counts[cid]['pending_approval_count'] += 1
+
+    for sheet in gm_sheets:
+        cid = sheet.get('campaign_id')
+        # Only count sheets the actual campaign owner created/imported;
+        # unapproved characters belonging to other users must not be shown.
+        if cid in counts and sheet.get('id') and owner_by_id.get(cid) and sheet.get('user_id') == owner_by_id[cid]:
+            character_ids_by_campaign[cid].add(str(sheet['id']))
 
     for campaign in campaigns:
-        campaign.update(counts.get(campaign.get('id'), {}))
+        cid = campaign.get('id')
+        if cid in counts:
+            counts[cid]['linked_character_count'] = len(character_ids_by_campaign[cid])
+        campaign.update(counts.get(cid, {}))
     return campaigns
 
 
