@@ -1574,3 +1574,49 @@
     flex: 0 0 auto !important;
   }
 }
+
+
+/* GM Home touch targets: keep the approved flat navy/cream appearance.
+   These sizes protect real GM controls in scaled-laptop and tablet layouts. */
+@media (max-width: 719px) {
+  html body #root .campaign-dashboard-simple :is(
+    .campaign-home-command-actions button,
+    .campaign-home-session-rail__action,
+    .campaign-dashboard-actions button,
+    .campaign-icon-button
+  ) {
+    min-height: 46px !important;
+  }
+}
+
+@media (min-width: 720px) and (max-width: 1180px) {
+  html body #root .campaign-dashboard-simple :is(
+    .campaign-home-command-actions button,
+    .campaign-home-session-rail__action,
+    .campaign-dashboard-actions button,
+    .campaign-icon-button
+  ) {
+    min-height: 44px !important;
+  }
+}
+
+@media (min-width: 1181px) {
+  html body #root .campaign-dashboard-simple :is(
+    .campaign-home-command-actions button,
+    .campaign-home-session-rail__action,
+    .campaign-dashboard-actions button,
+    .campaign-icon-button
+  ) {
+    min-height: 40px !important;
+  }
+}
+
+html body #root .campaign-dashboard-simple :is(
+  .campaign-home-command-actions button,
+  .campaign-home-session-rail__action,
+  .campaign-dashboard-actions button,
+  .campaign-icon-button
+):focus-visible {
+  outline: 3px solid var(--rq-secondary, #3C92E0) !important;
+  outline-offset: 2px !important;
+}
