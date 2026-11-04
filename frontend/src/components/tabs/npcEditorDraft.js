@@ -32,6 +32,7 @@ export function createNpcDraft(npc = {}) {
   draft.cr = npc.cr ?? '';
   draft.combat_ready = npc.combat_ready !== false;
   draft.dm_only = npc.dm_only !== false;
+  draft.player_discovery_status = npc.player_discovery_status === 'known' ? 'known' : 'unknown';
   // Do not fabricate a set of six ability scores for a narrative NPC.
   draft.stats = npc.stats && typeof npc.stats === 'object' ? { ...npc.stats } : null;
   LIST_FIELDS.forEach(field => {
@@ -81,5 +82,6 @@ export function prepareNpcSavePayload(draft) {
     }
   });
   payload.cr = String(draft.cr ?? '').trim();
+  payload.player_discovery_status = draft.player_discovery_status === 'known' ? 'known' : 'unknown';
   return payload;
 }
