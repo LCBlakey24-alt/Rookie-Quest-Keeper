@@ -25,7 +25,7 @@ export function createNpcDraft(npc = {}) {
     draft[field] = npc[field] ?? '';
   });
   // Previously-untracked NPCs become Unknown when a GM deliberately edits their discovery status.
-  draft.discovery_status = npc.discovery_status === 'met' ? 'met' : 'unknown';
+  draft.discovery_status = npc.discovery_status ?? (npc.id ? 'untracked' : 'unknown');
   draft.hp = npc.hp ?? 10;
   draft.max_hp = npc.max_hp ?? npc.hp ?? 10;
   draft.ac = npc.ac ?? 10;
