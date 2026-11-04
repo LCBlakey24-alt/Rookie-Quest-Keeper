@@ -16,6 +16,7 @@ from utils.ws_manager import ws_manager
 from utils.ws_messages import GM_ONLY_MESSAGE_TYPES, is_allowed_client_message_type, parse_client_message
 from utils.auth import verify_token, verify_campaign_membership
 from utils.rate_limit import RateLimitMiddleware
+from utils.child_access import ChildAccountMiddleware
 from routes import all_routers
 from routes.rule_systems import initialize_rule_systems
 
@@ -26,6 +27,11 @@ app = FastAPI()
 
 # Lightweight route-based protection for auth, AI, and parsing endpoints.
 app.add_middleware(RateLimitMiddleware)
+
+# Child accounts reach only what utils/child_access.py names. This sits in
+# middleware rather than in each route because a per-route check would leave
+# every route added later open to them by default.
+app.add_middleware(ChildAccountMiddleware)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
