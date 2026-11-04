@@ -24,7 +24,7 @@ jobs:
         run: python -m unittest discover -s scripts -p 'test_check_test_credentials.py' -v
 
       - name: Install route test dependencies
-        run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests google-auth
+        run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests google-auth httpx
       - name: Test player access and timeline persistence
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
