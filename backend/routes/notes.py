@@ -18,6 +18,17 @@ from utils.session_note_sync import apply_session_note_world_sync
 
 router = APIRouter()
 
+def _source_boundary() -> str:
+    """The campaign source boundary, imported late.
+
+    routes.ai is imported inside the call rather than at module import
+    time, which is the pattern rook_chat.py already uses here to avoid a
+    circular import between the route modules.
+    """
+    from routes.ai import ai_source_boundary_fragment
+    return ai_source_boundary_fragment()
+
+
 APPROVED_PLAYER_STATES = {'active', 'dead', 'retired'}
 
 
@@ -180,7 +191,10 @@ Write the recap now:"""
         llm_chat = LlmChat(
             api_key=get_llm_api_key("openai"),
             session_id=f"session-recap-{campaign_id}",
-            system_message="You are a creative fantasy storyteller who writes engaging session recaps for tabletop RPG groups."
+            system_message=(
+                "You are a creative fantasy storyteller who writes engaging session recaps for tabletop RPG groups.\n\n"
+                + _source_boundary()
+            )
         )
         llm_chat.with_model('openai', 'gpt-4o-mini')
         
