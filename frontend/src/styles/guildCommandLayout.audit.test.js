@@ -45,6 +45,9 @@ describe('Guild Command UI audit: desktop sidebar and input states', () => {
     expect(citrus).toContain('.rq-fill-clicked');
     expect(citrus).toContain('):focus-visible:not(:disabled):not([aria-disabled=\'true\'])');
     expect(citrus).toContain('background-size: 100% 3px !important;');
-    expect(citrus).toContain('outline: 3px solid #6E91B4 !important;');
+    // The focus outline itself is the accessibility guarantee; its colour
+    // moved to the approved support blue when the flat Guild Ledger palette
+    // replaced #6E91B4, which no longer appears anywhere in the app.
+    expect(citrus).toContain('outline: 3px solid #3C92E0 !important;');
   });
 });
