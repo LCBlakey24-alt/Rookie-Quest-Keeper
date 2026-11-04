@@ -6,6 +6,7 @@ player's behalf.
 """
 
 import asyncio
+import importlib.util
 import os
 import sys
 import types
@@ -38,7 +39,26 @@ except ImportError:
 
 from fastapi import HTTPException  # noqa: E402
 
-import routes.admin as admin  # noqa: E402
+
+def _load_admin_route():
+    """Load routes/admin.py on its own.
+
+    `import routes.admin` runs routes/__init__.py, which imports every
+    router in the app -- including character_import, which needs the
+    openai package. CI installs only the core backend packages, so that
+    pulls in a dependency this test has no use for. test_admin_identity.py
+    loads route files this way for the same reason.
+    """
+    spec = importlib.util.spec_from_file_location(
+        'admin_route_under_test', BACKEND_DIR / 'routes' / 'admin.py'
+    )
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
+admin = _load_admin_route()
 
 
 class _Collection:
@@ -80,14 +100,12 @@ def _admin_allowed(monkeypatch):
 
 
 def _run(db, target, body, caller='LCBlakey24'):
-    monkey = db
-    import routes.admin as module
-    original = module.db
-    module.db = monkey
+    original = admin.db
+    admin.db = db
     try:
-        return asyncio.run(module.admin_assign_character_to_user(target, body, caller))
+        return asyncio.run(admin.admin_assign_character_to_user(target, body, caller))
     finally:
-        module.db = original
+        admin.db = original
 
 
 SOURCE = {'id': 'src-1', 'name': 'Rina Ironside', 'user_id': 'LCBlakey24',
