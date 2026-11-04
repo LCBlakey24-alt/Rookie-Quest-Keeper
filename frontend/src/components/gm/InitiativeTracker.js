@@ -21,11 +21,11 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
         name: c.name || `Creature ${i + 1}`,
         initiative: parseInitiativeTotal(c.initiative) ?? 0,
         initiativeMod: Number(c.initiativeMod ?? c.initiative_bonus ?? c.initiative_mod ?? 0) || 0,
-        hp: c.hit_points || c.hp || c.maxHp || 10,
-        maxHp: c.hit_points || c.hp || c.maxHp || 10,
-        ac: c.armor_class || c.ac || 10,
+        hp: c.hp ?? c.current_hit_points ?? c.hit_points ?? c.maxHp ?? 10,
+        maxHp: c.maxHp ?? c.max_hit_points ?? c.max_hp ?? c.hit_points ?? c.hp ?? 10,
+        ac: c.ac ?? c.armor_class ?? 10,
         isNpc: c.is_npc ?? (c.type !== 'player'),
-        conditions: [],
+        conditions: Array.isArray(c.conditions) ? c.conditions : [],
       })));
     }
   }, [combatants]);
