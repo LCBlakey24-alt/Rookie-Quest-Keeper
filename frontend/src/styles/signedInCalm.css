@@ -156,22 +156,25 @@ html body #root .rqk-app-rail-feedback:focus-visible {
   }
 }
 
+/* The historic 196px rail is only for expanded tablet navigation.
+   Pending detail-rail PR #744 adds data-rq-rail="compact"; its 72px grid
+   must not be overridden by the higher-specificity legacy tablet rule. */
 @media (min-width: 720px) and (max-width: 959px) {
-  html body #root .rqk-app-shell[data-rq-device='tablet'] {
+  html body #root .rqk-app-shell[data-rq-device='tablet']:not([data-rq-rail='compact']) {
     grid-template-columns: 196px minmax(0, 1fr) !important;
   }
 
-  html body #root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail {
+  html body #root .rqk-app-shell[data-rq-device='tablet']:not([data-rq-rail='compact']) .rqk-app-rail {
     padding: 13px 10px !important;
   }
 
-  html body #root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-link {
+  html body #root .rqk-app-shell[data-rq-device='tablet']:not([data-rq-rail='compact']) .rqk-app-rail-link {
     grid-template-columns: 30px minmax(0, 1fr) !important;
     gap: 8px !important;
     padding: 7px 8px !important;
   }
 
-  html body #root .rqk-app-shell[data-rq-device='tablet'] .rqk-app-rail-link span {
+  html body #root .rqk-app-shell[data-rq-device='tablet']:not([data-rq-rail='compact']) .rqk-app-rail-link span {
     display: block !important;
     font-size: 12px !important;
   }
