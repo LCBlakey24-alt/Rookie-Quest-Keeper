@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
 import './LiveSessionGridMode.css';
 
@@ -39,7 +39,7 @@ function readStoredTool(storageKey) {
   return 'overview';
 }
 
-export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSingleTab, onRollDice, refreshKey = 0 }) {
+export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSingleTab, onRollDice, refreshKey = 0, scenarios = [], players = [] }) {
   const storageKey = `gm.liveMode.focus.${campaignId || 'default'}`;
   const recentKey = `gm.liveMode.recent.${campaignId || 'default'}`;
   const [activeTool, setActiveTool] = useState(() => {
@@ -49,7 +49,10 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
     return readStoredTool(storageKey);
   });
   const [recentTools, setRecentTools] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(recentKey) || '[]'); } catch { return []; }
+    try {
+      const saved = JSON.parse(localStorage.getItem(recentKey) || '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch { return []; }
   });
 
   useEffect(() => {
@@ -104,7 +107,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
         )}
         <section className="rqk-live-grid__tool-body" style={toolBodyStyle}>
           {activeTool === 'overview' ? (
-            <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} />
+            <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} scenarios={scenarios} players={players} />
           ) : activeTool === 'more' ? (
             <MorePanel onSelect={selectTool} />
           ) : activeTool === 'combat' ? (
@@ -120,7 +123,12 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   );
 }
 
-function RunScreen({ campaignId, recentTools, onSelect }) {
+function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players = [] }) {
+  const prepared = (Array.isArray(scenarios) ? scenarios : [])
+    .filter(scenario => scenario.live_ready && !scenario.played && !scenario.legacy)
+    .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
+  const nextEncounter = prepared[0] || null;
+  const partyCount = Array.isArray(players) ? players.length : 0;
   const core = [
     { id: 'story', label: 'Quests', icon: BookOpen, detail: 'Open, tick off, continue' },
     { id: 'combat', label: 'Encounters', icon: Swords, detail: 'Run prepared combat' },
@@ -142,8 +150,29 @@ function RunScreen({ campaignId, recentTools, onSelect }) {
     <div className="rqk-live-grid__run" style={runScreenStyle}>
       <header style={runHeaderStyle}>
         <p style={eyebrowStyle}>Live Play</p>
-        <h2 style={runTitleStyle}>What do you need?</h2>
+        <h2 style={runTitleStyle}>Your session, under control.</h2>
       </header>
+
+      <section className="rqk-live-grid__session-brief" aria-label="Session at a glance">
+        <div className="rqk-live-grid__brief-copy">
+          <p className="rqk-live-grid__brief-eyebrow">Next at the table</p>
+          <h3>{nextEncounter ? nextEncounter.name.replace(/\s*\(TONIGHT[^)]*\)/i, '').trim() : 'Ready when your players are'}</h3>
+          <p>{nextEncounter
+            ? 'Your saved combatants, enemy actions and encounter notes are in the encounter review.'
+            : 'Open encounters to choose a prepared battle, or build one as the story unfolds.'}</p>
+          <div className="rqk-live-grid__brief-stats">
+            <span><Users size={14} /> {partyCount} {partyCount === 1 ? 'character' : 'characters'}</span>
+            <span><Swords size={14} /> {prepared.length} {prepared.length === 1 ? 'prepared battle' : 'prepared battles'}</span>
+          </div>
+        </div>
+        <button
+          className="rqk-live-grid__brief-action"
+          type="button"
+          onClick={() => onSelect('combat')}
+        >
+          <Swords size={18} /> {nextEncounter ? 'Review & run encounter' : 'Open encounters'} <ArrowRight size={16} />
+        </button>
+      </section>
 
       {continueItems.length > 0 && (
         <section className="rqk-live-grid__continue" style={continueStyle}>

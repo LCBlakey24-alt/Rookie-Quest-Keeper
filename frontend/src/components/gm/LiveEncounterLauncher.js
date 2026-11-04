@@ -232,6 +232,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
   const selected = useMemo(() => scenarios.find(item => item.id === selectedId) || null, [scenarios, selectedId]);
   const baseCombatants = useMemo(() => safeArray(selected?.combatants), [selected]);
+  const preparedOpponents = useMemo(() => baseCombatants.map((combatant, index) => ({ combatant, index })).filter(item => item.combatant.type !== 'player'), [baseCombatants]);
   const companionNpcs = useMemo(() => travellingIds.map(id => npcs.find(npc => npc.id === id)).filter(Boolean), [npcs, travellingIds]);
   const queuedNpcs = useMemo(() => queuedNpcIds.map(id => npcs.find(npc => npc.id === id)).filter(Boolean), [npcs, queuedNpcIds]);
 
@@ -330,8 +331,17 @@ export default function LiveEncounterLauncher({ campaignId }) {
       </header>
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
+      <footer style={footerStyle} data-testid="live-encounter-run-bar">
+        <span style={footerTextStyle}>{selected ? `${preparedOpponents.length} prepared enemies/objects · ${includedPlayerIds.length} party selected` : 'Impromptu combat'} · Your saved encounter stays unchanged.</span>
+        <button type="button" onClick={launch} style={launchButtonStyle}><Play size={17} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
+      </footer>
       {!selected && <div style={descriptionStyle}>No preparation needed. Add the party, a saved NPC, or a quick creature and start combat. You can recruit more enemies from the combat tracker at any time.</div>}
-      {selected?.description && <div style={descriptionStyle}>{selected.description}</div>}
+      {selected?.description && (
+        <details style={detailsStyle}>
+          <summary style={summaryStyle}>GM encounter notes & triggers</summary>
+          <div style={descriptionStyle}>{selected.description}</div>
+        </details>
+      )}
 
       {queuedNpcs.length > 0 && (
         <ParticipantSection title="Added from NPCs" count={queuedNpcs.length} accent>
@@ -339,11 +349,11 @@ export default function LiveEncounterLauncher({ campaignId }) {
         </ParticipantSection>
       )}
 
-      <ParticipantSection title="Prepared" count={baseCombatants.length}>
-        {baseCombatants.length === 0 && <span style={mutedStyle}>No saved participants.</span>}
-        {baseCombatants.map((combatant, index) => {
+      <ParticipantSection title="Enemies & objects" count={preparedOpponents.length}>
+        {preparedOpponents.length === 0 && <span style={mutedStyle}>No enemies saved — add combatants below.</span>}
+        {preparedOpponents.map(({ combatant, index }) => {
           const key = keyFor(combatant, index);
-          return <ToggleRow key={key} checked={enabledBaseKeys.includes(key)} title={combatant.name || 'Combatant'} meta={combatant.type || 'Prepared'} onClick={() => toggle(key, enabledBaseKeys, setEnabledBaseKeys)} />;
+          return <ToggleRow key={key} checked={enabledBaseKeys.includes(key)} title={combatant.name || 'Combatant'} meta={combatant.is_environment ? 'Environmental object' : (combatant.type || 'Enemy')} onClick={() => toggle(key, enabledBaseKeys, setEnabledBaseKeys)} />;
         })}
       </ParticipantSection>
 
@@ -385,10 +395,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
         </div>
       </details>
 
-      <footer style={footerStyle}>
-        <span style={footerTextStyle}>This run does not rewrite the saved encounter.</span>
-        <button type="button" onClick={launch} style={launchButtonStyle}><Play size={15} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
-      </footer>
+
     </div>
   );
 }
@@ -406,20 +413,20 @@ function NumberField({ label, value, min, onChange }) {
 }
 
 const shellStyle = { display: 'grid', gap: 6, color: rq.text };
-const headerStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 7, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 8 };
-const headerTitleStyle = { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: rq.text };
-const headerMetaStyle = { display: 'block', color: rq.muted, fontSize: 9, marginTop: 2 };
-const selectStyle = { minHeight: 34, flex: '1 1 210px', maxWidth: 360, minWidth: 0, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 8px', fontSize: 10 };
-const descriptionStyle = { background: rq.bg, border: `1px solid ${rq.line}`, color: rq.soft, padding: 7, fontSize: 10, lineHeight: 1.35, maxHeight: 90, overflowY: 'auto' };
-const sectionStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 6, display: 'grid', gap: 5 };
-const sectionHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 6, color: rq.muted, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em' };
-const rowsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(155px,1fr))', gap: 4 };
-const rowStyle = checked => ({ minHeight: 40, background: checked ? rq.card : rq.bg, border: `1px solid ${checked ? rq.red : rq.line}`, color: rq.text, padding: '4px 6px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', alignItems: 'center', gap: 6, cursor: 'pointer' });
+const headerStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `3px solid ${rq.pink}`, borderRadius: 10, padding: 12 };
+const headerTitleStyle = { display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, color: rq.text };
+const headerMetaStyle = { display: 'block', color: rq.muted, fontSize: 12, marginTop: 3 };
+const selectStyle = { minHeight: 44, flex: '1 1 240px', maxWidth: 480, minWidth: 0, background: rq.bg, border: `1px solid ${rq.line}`, borderRadius: 8, color: rq.text, padding: '0 10px', fontSize: 12 };
+const descriptionStyle = { background: rq.bg, borderTop: `1px solid ${rq.line}`, color: rq.soft, padding: 12, fontSize: 12, lineHeight: 1.55, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' };
+const sectionStyle = { background: rq.panel, border: `1px solid ${rq.line}`, borderRadius: 9, padding: 10, display: 'grid', gap: 9 };
+const sectionHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const rowsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 210px),1fr))', gap: 7 };
+const rowStyle = checked => ({ minHeight: 46, background: checked ? rq.card : rq.bg, border: `1px solid ${checked ? rq.red : rq.line}`, borderRadius: 7, color: rq.text, padding: '7px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', alignItems: 'center', gap: 8, cursor: 'pointer' });
 const checkStyle = checked => ({ width: 21, height: 21, display: 'grid', placeItems: 'center', background: checked ? rq.red : rq.card, color: checked ? '#fff' : rq.muted, border: `1px solid ${checked ? rq.red : rq.line}` });
-const rowTitleStyle = { display: 'block', color: rq.text, fontSize: 10, fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
-const rowMetaStyle = { display: 'block', color: rq.muted, fontSize: 8, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
-const detailsStyle = { background: rq.panel, border: `1px solid ${rq.line}` };
-const summaryStyle = { minHeight: 36, padding: '0 8px', display: 'flex', alignItems: 'center', gap: 5, color: rq.soft, cursor: 'pointer', fontSize: 10, fontWeight: 900, listStyle: 'none' };
+const rowTitleStyle = { display: 'block', color: rq.text, fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+const rowMetaStyle = { display: 'block', color: rq.muted, fontSize: 10, marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+const detailsStyle = { background: rq.panel, border: `1px solid ${rq.line}`, borderRadius: 8 };
+const summaryStyle = { minHeight: 44, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, color: rq.soft, cursor: 'pointer', fontSize: 12, fontWeight: 800 };
 const countStyle = { marginLeft: 'auto', color: rq.muted, fontSize: 8 };
 const detailsBodyStyle = { borderTop: `1px solid ${rq.line}`, padding: 6, display: 'grid', gap: 5 };
 const quickFormStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(70px,1fr))', gap: 4, alignItems: 'end' };
@@ -431,8 +438,8 @@ const quickRowStyle = { minHeight: 39, background: rq.bg, border: `1px solid ${r
 const removeStyle = { width: 27, height: 27, border: 0, background: rq.card, color: rq.muted, display: 'grid', placeItems: 'center', cursor: 'pointer' };
 const searchStyle = { minHeight: 34, display: 'flex', alignItems: 'center', gap: 5, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.muted, padding: '0 7px' };
 const searchInputStyle = { minWidth: 0, flex: 1, minHeight: 32, border: 0, outline: 0, background: 'transparent', color: rq.text, fontSize: 10 };
-const footerStyle = { position: 'sticky', bottom: 0, zIndex: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 7, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, padding: 7 };
-const footerTextStyle = { color: rq.muted, fontSize: 8 };
-const launchButtonStyle = { minHeight: 36, border: `1px solid ${rq.pink}`, background: rq.card, color: '#F7F1E7', padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: 950, fontSize: 10 };
+const footerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderRadius: 9, padding: 10 };
+const footerTextStyle = { color: rq.muted, fontSize: 11, lineHeight: 1.45 };
+const launchButtonStyle = { minHeight: 46, border: '1px solid #b94648', background: 'var(--rq-guild-wine, #7e2d2d)', borderRadius: 8, color: '#fff', padding: '0 17px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, cursor: 'pointer', fontWeight: 850, fontSize: 12 };
 const mutedStyle = { color: rq.muted, fontSize: 9, padding: 3 };
 const emptyStyle = { minHeight: 130, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, textAlign: 'center', padding: 16, fontSize: 10 };

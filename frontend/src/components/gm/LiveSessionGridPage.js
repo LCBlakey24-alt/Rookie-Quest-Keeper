@@ -11,6 +11,7 @@ import { loadLiveSessionSections } from '@/data/livePlayLoaders';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { generateCombatReadyNpc } from '@/lib/npcStatBlockFactory';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
+import './LiveSessionGridPage.css';
 import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
 import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
 import LiveDataWarning from '@/components/gm/LiveDataWarning';
@@ -273,30 +274,38 @@ export default function LiveSessionGridPage() {
 
   return (
     <>
-      <main style={pageStyle}>
-        <header style={headerStyle}>
+      <main className="rqk-live-page" style={pageStyle}>
+        <header className="rqk-live-page__header" style={headerStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-outline" style={smallButtonStyle}><ArrowLeft size={16} /> Campaign Prep</Button>
             <div style={{ minWidth: 0 }}>
               <p style={eyebrowStyle}>Live Play Mode</p>
               <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
-              <p style={subtitleStyle}>Use saved campaign info, combat, tables, notes, and the player TV display without leaving the table.</p>
+              <p className="rqk-live-page__subtitle" style={subtitleStyle}>Campaign controls, encounters and player display in one place.</p>
               {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="rqk-live-page__actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <label style={explodingToggleStyle} title="When enabled, non-d20 dice that roll their maximum roll again and add the extra result."><input type="checkbox" checked={explodingDiceEnabled} onChange={(event) => setExplodingDiceEnabled(event.target.checked)} />Exploding dice</label>
             <Button onClick={() => rollQuickDice('1d20', 'D20')} className="btn-outline" style={smallButtonStyle}><Dices size={16} /> D20</Button>
             <Button onClick={() => setShowEndSessionReview(true)} className="btn-outline" style={smallButtonStyle}><Monitor size={16} /> End Session</Button>
-            <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-primary" style={smallButtonStyle}><LogOut size={16} /> Exit to Prep</Button>
+             
           </div>
         </header>
 
-        <details style={{ marginBottom: 8, border: '1px solid var(--rq-border-default)', padding: 9, borderRadius: 8 }}><summary style={{ cursor: 'pointer', fontWeight: 700 }}>🎲 Chaos & Fate — shared party tokens</summary><ChaosFateTracker campaignId={campaignId} compact /></details>
+        <details className="rqk-live-page__utility" aria-label="Chaos and Fate tracker">
+          <summary>🎲 Chaos & Fate <span>Shared party tokens</span></summary>
+          <ChaosFateTracker campaignId={campaignId} compact />
+        </details>
         <LiveDataWarning errors={loadErrors} onRetry={fetchAllData} />
         <PlayerDisplayDeliveryStatus campaignId={campaignId} />
-        <LiveStoryFocusPanel campaignId={campaignId} />
-        <section style={gridShellStyle}><LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} /></section>
+        <details className="rqk-live-page__utility rqk-live-page__story-utility" aria-label="Story focus and checkpoints">
+          <summary><span>Story focus & checkpoints</span><span>Expand when needed</span></summary>
+          <LiveStoryFocusPanel campaignId={campaignId} />
+        </details>
+        <section className="rqk-live-page__workspace" style={gridShellStyle}>
+          <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} scenarios={scenarios} players={players} />
+        </section>
         <GroupCheckRequestPanel campaignId={campaignId} players={players} />
 
         <DiceRollFlicker show={showDiceFlicker} rolls={diceRolls} label={diceLabel} modifier={diceModifier} total={diceTotal} animationValue={diceAnimationValue} isCrit={diceCrit} isFumble={diceFumble} theme="gm" onComplete={() => setShowDiceFlicker(false)} />
