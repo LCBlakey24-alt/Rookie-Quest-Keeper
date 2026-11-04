@@ -3,6 +3,7 @@ import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { describePendingMembers, loadPendingCampaignMembers } from '@/data/pendingCampaignMembers';
 import { loadEncounterReviewSections } from '@/data/livePlayLoaders';
 import LiveDataWarning from '@/components/gm/LiveDataWarning';
 
@@ -128,6 +129,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
   const [loadErrors, setLoadErrors] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [pendingMembers, setPendingMembers] = useState([]);
 
   useEffect(() => {
     if (!campaignId) return;
@@ -144,6 +146,14 @@ export default function LiveEncounterLauncher({ campaignId }) {
         if (loadedPlayers) {
           setPlayers(loadedPlayers);
           setIncludedPlayerIds(loadedPlayers.map(player => player.id).filter(Boolean));
+        }
+
+        // Only asked when the party came back empty, so a GM who already
+        // has their table set up pays nothing for this.
+        if (loadedPlayers && loadedPlayers.length === 0) {
+          setPendingMembers(await loadPendingCampaignMembers(apiClient, campaignId));
+        } else {
+          setPendingMembers([]);
         }
         if (loadedNpcs) setNpcs(loadedNpcs);
         if (sections.liveState.ok) setTravellingIds(safeArray(sections.liveState.data?.companion_npc_ids));
@@ -301,7 +311,20 @@ export default function LiveEncounterLauncher({ campaignId }) {
       </ParticipantSection>
 
       <ParticipantSection title="Party" count={players.length}>
-        {players.length === 0 && <span style={mutedStyle}>No linked player characters yet.</span>}
+        {players.length === 0 && (
+          pendingMembers.length > 0 ? (
+            /* The party is deliberately approved-only, so unapproved players
+               cannot be dropped into combat. Saying nothing left a GM whose
+               players had all joined with an empty list and no next step. */
+            <span style={mutedStyle} data-testid="party-awaiting-approval">
+              {pendingMembers.length === 1 ? '1 player is' : `${pendingMembers.length} players are`}
+              {' '}waiting for you to approve them: {describePendingMembers(pendingMembers)}.
+              {' '}Approve them under Campaign &rarr; Players to use them here.
+            </span>
+          ) : (
+            <span style={mutedStyle}>No linked player characters yet.</span>
+          )
+        )}
         {players.map(player => {
           const temp = numberOr(player.temporary_hit_points ?? player.temp_hp, 0);
           const pending = player.rqk_pending_combat_sync ? ' · Offline queued' : '';
