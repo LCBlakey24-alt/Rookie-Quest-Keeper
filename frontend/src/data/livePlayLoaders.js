@@ -52,7 +52,7 @@ export function getLiveBootstrapExtras(campaignId) {
   return liveBootstrapExtras.get(String(campaignId || '')) || null;
 }
 
-export async function loadLiveSessionSections(apiClient, campaignId) {
+export async function loadLiveSessionSections(apiClient, campaignId, { shouldCommit = () => true } = {}) {
   // Modern path: one ownership-checked request carries the exact sections the
   // Live Play shell and its always-on widgets need. The widget payload is held
   // in module memory until those children mount a moment later, avoiding prop
@@ -61,10 +61,12 @@ export async function loadLiveSessionSections(apiClient, campaignId) {
     const bootstrap = await apiClient.get(`/campaigns/${campaignId}/live-bootstrap`);
     const payload = bootstrap?.data || {};
     const sections = sectionsFromLiveBootstrap(payload);
-    storeLiveBootstrapExtras(campaignId, payload);
+    // Two refreshes may overlap. Do not replace the live widget cache with a
+    // response that the owning page has already superseded.
+    if (shouldCommit()) storeLiveBootstrapExtras(campaignId, payload);
     return { sections, errors: [] };
   } catch (error) {
-    liveBootstrapExtras.delete(String(campaignId || ''));
+    if (shouldCommit()) liveBootstrapExtras.delete(String(campaignId || ''));
     const status = error?.response?.status;
     if (status === 401 || status === 403) {
       const sections = Object.fromEntries(
