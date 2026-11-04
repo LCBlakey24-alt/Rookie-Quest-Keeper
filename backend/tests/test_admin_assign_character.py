@@ -25,6 +25,17 @@ os.environ.setdefault("JWT_SECRET_KEY", "admin-assign-secret")
 os.environ.setdefault("APP_URL", "http://localhost:3000")
 os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 
+# CI installs only the core backend packages, and routes/auth.py imports the
+# email client at module level, which routes/admin.py pulls in transitively.
+# Give it a stand-in when it is not installed, matching what
+# test_admin_identity.py and test_access_checks.py already do here.
+try:
+    import resend  # noqa: F401
+except ImportError:
+    sys.modules['resend'] = types.SimpleNamespace(
+        api_key=None, Emails=types.SimpleNamespace(send=lambda params: None)
+    )
+
 from fastapi import HTTPException  # noqa: E402
 
 import routes.admin as admin  # noqa: E402
