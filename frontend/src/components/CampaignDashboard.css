@@ -1633,3 +1633,16 @@ html body #root .campaign-dashboard-simple :is(
     height: auto;
   }
 }
+
+
+/* In the final shipped CSS, mobile shell rules carry an additional
+   [data-rq-device] specificity. Match that route scope explicitly; otherwise
+   they still win with min-height:44px regardless of later declarations. */
+@media (max-width: 719px) {
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-simple .campaign-dashboard-actions .campaign-button,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-simple .campaign-dashboard-actions .campaign-button.rqk-tool-finder-trigger,
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .campaign-dashboard-simple .campaign-dashboard-actions .campaign-button-primary {
+    min-height: 46px !important;
+    height: 46px !important;
+  }
+}
