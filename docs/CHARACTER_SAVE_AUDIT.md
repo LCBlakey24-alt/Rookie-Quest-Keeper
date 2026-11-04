@@ -48,6 +48,7 @@ This helper is currently used for the most important live table state:
 The routed sheet now passes its central `patchCharacter(updates, options)` helper into both Inventory and Notes.
 
 - Inventory uses the parent helper for carried items, equipment, armour-class updates, quantities, attunement, favourites, and currency.
+- Mobile/turn-panel Hit Die spending delegates to the same central sheet handler as the vitals controls: one queued PATCH updates both HP and remaining Hit Dice without a page reload. The handler enforces the 2024 minimum recovery and zero-HP restriction.
 - Notes uses the parent helper for autosave and manual save while preserving its local draft safety net.
 - Both child components retain a direct API fallback for isolated rendering/tests, but the live routed sheet has one persistence path.
 
@@ -85,5 +86,11 @@ Use one existing character and confirm each change persists after refresh:
 
 ## Limitations of this fix (November 2026)
 
-- This queue orders writes **within one open sheet on one device**. It does not yet prevent two different devices from overwriting one another. A server-side revision/ETag check will be needed for cross-device conflicts.
+- Writes use a **per-character queue shared across character-sheet mounts in one browser tab**. Previously accepted edits continue to their original character after navigation; reopening that character waits for old writes to finish *before* fetching the current HP, inventory, and notes, so the next action is calculated from the new values. Obsolete responses and toasts cannot overwrite another open sheet.
+- Explicit `null` PATCH values clear both `concentrating_on` and `concentration` in the stored character, including manual ending and failed concentration saves; other nullable fields keep their previous omit-on-null semantics.
+- Delayed save handlers (including concentration replacement confirmations) are tied to their originating sheet session and refuse to save into a later session.
+- Damage-triggered concentration prompts are also cancelled after leaving a sheet; delayed concentration-roll callbacks cannot claim a spell was lost when the underlying clear save was rejected.
+- Child components receive a non-success continuation result after their sheet is abandoned, even when an already accepted server write later succeeds. This prevents stale combat/spell toasts and follow-up actions from displaying on a newly opened character. Existing local note drafts are retained conservatively when completion cannot be confirmed by that screen.
+- An old request that fails after the user leaves its sheet cannot notify that now-unrelated sheet; players should check important edits after reconnecting. Offline recovery/retry is a separate follow-up.
+- Concurrent edits from two different devices are still not protected. A server-side revision/ETag check is needed for cross-device conflicts.
 - The browser still needs a real-device smoke test for HP, conditions, spell slots, inventory, notes, and rests with a real signed-in playtest character. Automated pure queue tests do not prove mobile network reliability.
