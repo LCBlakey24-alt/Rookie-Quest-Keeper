@@ -510,6 +510,14 @@ export function createDiceTray({ canvas, palette }) {
     clearDice();
     floor.geometry.dispose();
     floor.material.dispose();
+
+    // A browser allows only a handful of live WebGL contexts -- Chrome
+    // around sixteen -- and a table rolls far more often than that in a
+    // session. renderer.dispose() alone frees three.js's objects but can
+    // leave the context itself alive until the canvas is collected, so the
+    // limit creeps up and eventually a roll cannot get a context at all and
+    // silently drops to the flat card. Forcing the loss releases it now.
+    renderer.forceContextLoss?.();
     renderer.dispose();
   }
 

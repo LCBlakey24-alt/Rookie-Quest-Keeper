@@ -81,15 +81,32 @@ export default function DiceTray3DOverlay(props) {
     seedRef.current = seedFromKey(`${label}-${Date.now()}-${Math.random()}`);
   }
 
+  /*
+   * The throw is keyed on what the dice are, not on the identity of the
+   * array holding them.
+   *
+   * CleanCharacterSheet builds its `rolls` inline with .filter().map(), so
+   * every re-render of the sheet -- an HP change, a tab switch -- produces
+   * a new array of new objects. Depending on that identity restarted the
+   * throw in mid-air on the surface players roll from most. A signature of
+   * the dice themselves is stable across those re-renders and still
+   * changes for a genuinely new roll.
+   */
+  const diceSignature = useMemo(() => (Array.isArray(rolls) ? rolls : [])
+    .map((die) => `${die?.sides}:${die?.result}:${die?.dropped ? 1 : 0}`)
+    .join('|'), [rolls]);
+
   // Every die has to be renderable; one unsupported die means the whole
   // throw falls back, rather than showing a pool with a die missing from it.
-  const specs = useMemo(() => {
+  const specsRef = useRef(null);
+  const specsKeyRef = useRef(null);
+  if (specsKeyRef.current !== diceSignature) {
+    specsKeyRef.current = diceSignature;
     const list = Array.isArray(rolls) ? rolls : [];
-    if (!list.length) return null;
-
     const built = list.map(specForDie);
-    return built.every(Boolean) ? built : null;
-  }, [rolls]);
+    specsRef.current = list.length && built.every(Boolean) ? built : null;
+  }
+  const specs = specsRef.current;
 
   const canRender = Boolean(specs) && !failed && supportsWebGl();
 
@@ -117,7 +134,7 @@ export default function DiceTray3DOverlay(props) {
     };
     applySize();
 
-    const thrown = tray.roll(specs, { seed: seedRef.current, onSettled: handleSettled });
+    const thrown = tray.roll(specsRef.current, { seed: seedRef.current, onSettled: handleSettled });
     if (!thrown) {
       // No seed produced a throw where every die landed flat.
       tray.dispose();
@@ -134,7 +151,9 @@ export default function DiceTray3DOverlay(props) {
       tray.dispose();
       trayRef.current = null;
     };
-  }, [canRender, specs, handleSettled, palette]);
+    // specsRef is read rather than listed: the signature is what decides
+    // whether this is a new throw.
+  }, [canRender, diceSignature, handleSettled, palette]);
 
   if (!canRender) {
     return <FlatDiceResultOverlay {...props} />;
