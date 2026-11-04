@@ -303,6 +303,18 @@ function NPCsTab({ campaignId, onOpenCreate }) {
                   style={{ minHeight: '100px' }}
                 />
               </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label htmlFor="rqk-npc-discovery-status" className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Known to Wednesday players?</label>
+                <select id="rqk-npc-discovery-status" data-testid="npc-discovery-status-input"
+                  className="input" value={formData.discovery_status || 'unknown'}
+                  onChange={event => setFormData(previous => ({ ...previous, discovery_status: event.target.value }))}>
+                  <option value="unknown">Unknown — not discovered</option>
+                  <option value="met">Met — party encountered this NPC</option>
+                </select>
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: 6 }}>
+                  Tracks what this party knows. Full NPC lore and stats stay in your GM-only record.
+                </p>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
                   <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>HP</label>
@@ -408,7 +420,7 @@ function NPCsTab({ campaignId, onOpenCreate }) {
           selectedId={selectedNpcId}
           onSelect={setSelectedNpcId}
           getSubtitle={npc => npc.role || npc.occupation || npc.location || 'NPC'}
-          getBadge={npc => npc.location && (npc.role || npc.occupation) ? npc.location : null}
+          getBadge={npc => npc.discovery_status === 'unknown' ? 'Unknown' : npc.discovery_status === 'met' ? 'Met' : null}
           renderDetail={npc => (
             <div className="rqk-npc-selected-sheet" data-testid={`npc-card-${npc.id}`}>
               <div className="rqk-reference-browser__detail-actions">
@@ -431,6 +443,11 @@ function NPCsTab({ campaignId, onOpenCreate }) {
                     <Trash2 size={15} /> Delete
                   </Button>
                 )}
+              </div>
+              <div data-testid={`npc-discovery-status-${npc.id}`}
+                style={{ border: '1px solid var(--rq-border-default, #475569)', padding: '8px 12px', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+                <strong>Player discovery: </strong>
+                <span>{npc.discovery_status === 'met' ? 'Met' : npc.discovery_status === 'unknown' ? 'Unknown' : 'Not tracked'}</span>
               </div>
               <NpcCompactStatBlock npc={npc} />
             </div>
