@@ -83,8 +83,24 @@ async def attach_campaign_counts(campaigns: List[dict]) -> List[dict]:
         if member_status == 'pending':
             counts[campaign_id]['pending_approval_count'] += 1
 
+    # Imported GM character sheets are not campaign memberships. Count unique
+    # saved characters without changing player_count (actual joined accounts).
+    character_names = {campaign_id: set() for campaign_id in campaign_ids}
+    for collection in (db.player_characters, db.players):
+        rows = await collection.find(
+            {'campaign_id': {'$in': campaign_ids}},
+            {'_id': 0, 'campaign_id': 1, 'name': 1},
+        ).to_list(5000)
+        for row in rows:
+            campaign_id = row.get('campaign_id')
+            name = str(row.get('name') or '').strip().casefold()
+            if campaign_id in character_names and name:
+                character_names[campaign_id].add(name)
+
     for campaign in campaigns:
-        campaign.update(counts.get(campaign.get('id'), {}))
+        campaign_id = campaign.get('id')
+        campaign.update(counts.get(campaign_id, {}))
+        campaign['character_count'] = len(character_names.get(campaign_id, set()))
     return campaigns
 
 
