@@ -56,6 +56,16 @@ describe('lossless GM NPC editing', () => {
     expect(() => prepareNpcSavePayload(draft)).toThrow('Finish all six ability scores');
   });
 
+  test('keeps NPC discovery distinct from GM lore and preserves legacy untracked records', () => {
+    expect(createNpcDraft({ name: 'New NPC' }).discovery_status).toBe('unknown');
+    expect(createNpcDraft(detailed).discovery_status).toBe('untracked');
+    const unknown = prepareNpcSavePayload(createNpcDraft({ ...detailed, discovery_status: 'unknown' }));
+    expect(unknown.discovery_status).toBe('unknown');
+    expect(unknown.backstory).toBe(detailed.backstory);
+    const met = prepareNpcSavePayload(createNpcDraft({ ...detailed, discovery_status: 'met' }));
+    expect(met.discovery_status).toBe('met');
+  });
+
   test('preserves spellbook fields and trims list entries', () => {
     const draft = createNpcDraft({ ...detailed, spells: { slots_by_level: { '1': 4, '2': 2 }, note: 'source verified' } });
     draft.skills = ['Perception +8', '', 'Nature +5 '];
