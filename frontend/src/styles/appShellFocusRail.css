@@ -1,0 +1,66 @@
+/* Compact rail on working surfaces.
+ *
+ * The labelled rail is 236px on desktop and 214px on tablet. That is right
+ * on a list page, where it is the main way around the app, but on a
+ * campaign, a character sheet or the homebrew workshop the page brings its
+ * own navigation and the rail is competing with it for width. On a laptop
+ * the campaign page put four columns side by side -- rail, section nav,
+ * record list, record detail -- and squashed the one people came for.
+ *
+ * AppShell marks those routes with data-rq-focus="detail"; see
+ * components/app/detailRoutes.js for which, and its test for the list and
+ * detail pages that must keep the full rail.
+ *
+ * Nothing is removed. Every destination is still present, still reachable,
+ * still keyboard accessible, and each one keeps the title and aria-label it
+ * already had, so the icons are not unlabelled to a screen reader.
+ *
+ * Loaded after the other shell sheets, which set their widths with
+ * !important, so these have to as well.
+ */
+
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'],
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='tablet'] {
+  grid-template-columns: 76px minmax(0, 1fr) !important;
+}
+
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail,
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='tablet'] .rqk-app-rail {
+  padding: 14px 8px !important;
+}
+
+/* The words go, the targets do not: 46px keeps every control above the
+   touch floor the rest of the app holds to. */
+#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-link {
+  grid-template-columns: 1fr !important;
+  justify-items: center !important;
+  min-height: 46px !important;
+  padding: 6px !important;
+  gap: 0 !important;
+}
+
+#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-link span,
+#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-brand-copy,
+#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-section-label {
+  display: none !important;
+}
+
+#root .rqk-app-shell[data-rq-focus='detail'] .rqk-app-rail-brand {
+  grid-template-columns: 1fr !important;
+  justify-items: center !important;
+  min-height: 52px !important;
+  padding: 6px !important;
+}
+
+/* A phone already uses its own navigation, so it is left alone. */
+@media (max-width: 719px) {
+  #root .rqk-app-shell[data-rq-focus='detail'] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #root .rqk-app-shell {
+    transition: grid-template-columns 180ms ease;
+  }
+}

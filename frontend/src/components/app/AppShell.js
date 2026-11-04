@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { isDetailRoute } from '@/components/app/detailRoutes';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY } from '@/lib/auth';
@@ -277,7 +278,12 @@ export default function AppShell({ children }) {
   };
 
   return (
-    <div className="rqk-app-shell" data-rq-layout-shell="app" data-rq-device={deviceLayout}>
+    <div
+      className="rqk-app-shell"
+      data-rq-layout-shell="app"
+      data-rq-device={deviceLayout}
+      data-rq-focus={isDetailRoute(location.pathname) ? 'detail' : undefined}
+    >
       <aside className={isMobile && isAdmin && !desktopOffline ? "rqk-app-rail rqk-app-rail--admin-mobile" : "rqk-app-rail"} aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
