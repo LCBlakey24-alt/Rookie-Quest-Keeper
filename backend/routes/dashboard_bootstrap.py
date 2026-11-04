@@ -14,6 +14,7 @@ from routes.admin import merge_site_settings
 from routes.campaign_display import default_display_state
 from routes.homebrew import COLLECTION, CONTENT_TYPES
 from utils.live_party import build_live_party_rows
+from utils.campaign_party_counts import count_campaign_characters
 from utils.auth import get_current_user
 
 router = APIRouter()
@@ -172,8 +173,11 @@ async def _attach_campaign_library_counts(campaigns: list[dict]) -> list[dict]:
         if member_status == 'pending':
             counts[campaign_id]['pending_approval_count'] += 1
 
+    character_counts = await count_campaign_characters(db, campaign_ids, members)
     for campaign in campaigns:
-        campaign.update(counts.get(campaign.get('id'), {}))
+        cid = campaign.get('id')
+        campaign.update(counts.get(cid, {}))
+        campaign['character_count'] = character_counts.get(cid, 0)
     return campaigns
 
 
