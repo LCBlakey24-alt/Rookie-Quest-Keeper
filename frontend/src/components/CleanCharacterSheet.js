@@ -442,6 +442,10 @@ export default function CleanCharacterSheet() {
 
   const spendHitDie = async () => {
     if (!character || savingQuickState) return;
+    if (rulesEdition === '2024' && currentHp <= 0) {
+      toast.error('2024 rules require at least 1 HP before spending a Hit Point Die.');
+      return;
+    }
     if (hitDiceRemaining <= 0) {
       toast.error('No hit dice remaining');
       return;
@@ -450,7 +454,9 @@ export default function CleanCharacterSheet() {
       toast.info('Already at full HP');
       return;
     }
-    const result = rollHitDie(hitDieInfo.sides, conMod);
+    // Use the same 2024 minimum recovery as the old mobile implementation,
+    // but now all Hit Die saves travel through the session-aware save queue.
+    const result = rollHitDie(hitDieInfo.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 });
     const nextHp = Math.min(maxHp, currentHp + result.total);
     const entry = {
       id: `${Date.now()}-hit-die`,

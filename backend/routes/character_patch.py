@@ -275,7 +275,9 @@ def _clean_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
     for key, value in (payload or {}).items():
         if key not in ALLOWED_CHARACTER_PATCH_FIELDS:
             continue
-        if value is None:
+        # Null is an intentional clear for concentration. Other nullable
+        # fields continue to use the existing omit-on-null PATCH behaviour.
+        if value is None and key not in {"concentrating_on", "concentration"}:
             continue
         if key in NUMERIC_FIELDS:
             value = _int(value, 0)
