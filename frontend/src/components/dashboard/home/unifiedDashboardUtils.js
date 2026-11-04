@@ -110,7 +110,7 @@ export function campaignTitle(campaign) {
 }
 
 export function campaignMeta(campaign) {
-  const linkedCount = campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0;
+  const linkedCount = campaign?.character_count ?? campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0;
   const system = campaign?.system || campaign?.rules_edition || 'Campaign';
   return `${system} · ${linkedCount} linked character${linkedCount === 1 ? '' : 's'}`;
 }
