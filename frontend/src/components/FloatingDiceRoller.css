@@ -462,3 +462,79 @@
 .rq-floating-dice__history-title {
   color: var(--dice-muted);
 }
+
+/* ---- Dice colour ---------------------------------------------------------
+ *
+ * The swatches are the dice themselves: each shows a 20 in that dye's own
+ * numeral colour, so the player picks by reading the thing they will be
+ * reading at the table, not by guessing from a blob of colour. Every pair
+ * is held to WCAG AA by diceDyes.test.js.
+ */
+
+.rq-floating-dice__dyes {
+  margin: 0 0 4px;
+  padding: 0;
+  border: 0;
+}
+
+.rq-floating-dice__dyes legend {
+  padding: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dice-muted);
+}
+
+.rq-floating-dice__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.rq-floating-dice__swatch {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--dice-line);
+  border-radius: 6px;
+  background: var(--swatch-body);
+  color: var(--swatch-ink);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+/* The chosen dye is marked with the citrus rule, like every other selected
+   control, rather than by changing its colour -- which would misrepresent
+   the dye the player is choosing. */
+.rq-floating-dice__swatch[aria-pressed='true'] {
+  background-image: var(--dice-rule);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 3px;
+  border-color: var(--dice-line-strong);
+  transform: translateY(-1px);
+}
+
+.rq-floating-dice__swatch:hover,
+.rq-floating-dice__swatch:focus-visible {
+  border-color: var(--dice-line-strong);
+  outline: 1px solid var(--dice-line-strong);
+  outline-offset: 2px;
+}
+
+/* The tap target stays at the 44px floor on touch, while the painted
+   swatch stays compact. */
+@media (pointer: coarse) {
+  .rq-floating-dice__swatch {
+    width: 44px;
+    height: 44px;
+    font-size: 13px;
+  }
+}

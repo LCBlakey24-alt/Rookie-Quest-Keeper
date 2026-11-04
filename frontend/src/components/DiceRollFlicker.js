@@ -6,6 +6,12 @@ import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 
 const characterCache = new Map();
 const REVEAL_DELAY = 360;
+// With the 3D tray the dice decide when the roll is over: the tray calls
+// onRevealNow the moment they stop. The 360ms used for the flat card would
+// put the total on screen while they were still in the air, and the
+// auto-close that follows it could shut the panel as they landed. This is
+// only a backstop for a throw that somehow never reports settling.
+const TRAY_REVEAL_CEILING = 8000;
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 3100;
 
@@ -184,12 +190,14 @@ export default function DiceRollFlicker({
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
     setShowTotal(false);
-    const revealTimer = window.setTimeout(
-      () => setShowTotal(true),
-      prefersReducedMotion ? REDUCED_MOTION_REVEAL_DELAY : REVEAL_DELAY,
-    );
+    const usingTray = !prefersReducedMotion && Boolean(TrayOverlay);
+    const delay = prefersReducedMotion
+      ? REDUCED_MOTION_REVEAL_DELAY
+      : usingTray ? TRAY_REVEAL_CEILING : REVEAL_DELAY;
+
+    const revealTimer = window.setTimeout(() => setShowTotal(true), delay);
     return () => window.clearTimeout(revealTimer);
-  }, [visible, dice, finalTotal, prefersReducedMotion]);
+  }, [visible, dice, finalTotal, prefersReducedMotion, TrayOverlay]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
