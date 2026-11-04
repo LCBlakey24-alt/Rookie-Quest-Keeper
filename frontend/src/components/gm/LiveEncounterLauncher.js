@@ -210,11 +210,13 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
         if (loadedScenarios) {
           let requested = '';
+          let remembered = '';
           try {
-            requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
+            requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
+            remembered = localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
             localStorage.removeItem(`gm.questEncounter.${campaignId}`);
           } catch { /* ignore */ }
-          setSelectedId(previous => preferredPreparedEncounterId(loadedScenarios, requested, previous));
+          setSelectedId(previous => preferredPreparedEncounterId(loadedScenarios, requested, previous || remembered));
         }
 
         setLoadErrors(errors);
