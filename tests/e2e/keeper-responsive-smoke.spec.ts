@@ -30,6 +30,47 @@ async function avoidThirdPartyRequests(page: Page) {
     ? route.continue() : route.abort());
 }
 
+
+// Live Play should use one sticky vertical rail on large screens, but one
+// horizontally swipeable navigation row on phones. Never make the full page
+// wider than the viewport merely to show all six tool choices.
+for (const viewport of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'small phone', width: 320, height: 780 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test(`Live Play navigation geometry uses the correct ${viewport.label} layout`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+    const nav = page.getByRole('navigation', { name: 'Live Play' });
+    await expect(nav).toBeVisible();
+    const geometry = await nav.evaluate(element => {
+      const buttons = [...element.querySelectorAll('button')];
+      const first = buttons[0]?.getBoundingClientRect();
+      const last = buttons[buttons.length - 1]?.getBoundingClientRect();
+      return {
+        display: getComputedStyle(element).display,
+        direction: getComputedStyle(element).flexDirection,
+        navWidth: Math.round(element.getBoundingClientRect().width),
+        scrollWidth: element.scrollWidth,
+        firstY: first?.y,
+        lastY: last?.y,
+      };
+    });
+    if (viewport.width < 720) {
+      expect(geometry.display).toBe('flex');
+      expect(geometry.direction).toBe('row');
+      expect(Math.abs((geometry.firstY || 0) - (geometry.lastY || 0))).toBeLessThan(3);
+      expect(geometry.scrollWidth).toBeGreaterThan(geometry.navWidth);
+    } else {
+      expect(geometry.display).toBe('flex');
+      expect(geometry.direction).toBe('column');
+    }
+    await assertFitsViewport(page, viewport.width);
+  });
+}
+
 for (const size of appSizes) {
   test(`GM Live Play keeps display controls usable at ${size.label} (${size.width}x${size.height})`, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
