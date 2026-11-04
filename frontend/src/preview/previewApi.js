@@ -85,6 +85,7 @@ export function createPreviewApi(
     if (method === 'get' && path === '/admin/check') return { is_admin: false };
     if (method === 'get' && path === '/health') return { status: 'local-preview' };
     if (method === 'get' && path === '/site-settings') return { campaign_creation_enabled: true, character_creation_enabled: true, uploads_enabled: false, rook_text_enabled: false, feedback_enabled: false };
+    if (method === 'get' && path === '/library/characters') return state.characters;
     // The desktop Campaigns library uses the same compact route as the web app.
     // Derive local membership counts rather than requesting the cloud database.
     if (method === 'get' && path === '/library/campaigns') {
