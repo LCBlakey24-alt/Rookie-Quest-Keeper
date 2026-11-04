@@ -7,6 +7,7 @@ from models import Player, PlayerCreate, PlayerUpdate, PlayerStats
 from typing import List
 import uuid
 from datetime import datetime, timezone
+from utils.resilient_records import serialise_records
 
 router = APIRouter()
 
@@ -33,12 +34,15 @@ async def create_player(campaign_id: str, player_data: PlayerCreate, username: s
     await db.players.insert_one(doc)
     return player_obj
 
-@router.get("/campaigns/{campaign_id}/players", response_model=List[Player])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/players")
 async def get_players(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     players = await db.players.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return players
+    return serialise_records(Player, players, required={'campaign_id': campaign_id, 'name': 'Unnamed player'})
 
 @router.put("/campaigns/{campaign_id}/players/{player_id}", response_model=Player)
 async def update_player(campaign_id: str, player_id: str, player_data: PlayerUpdate, username: str = Depends(get_current_user)):

@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any, List
 import uuid
 from datetime import datetime, timezone
 from utils.custom_calendar_rules import check_calendar, validate_day, advance_calendar_date
+from utils.resilient_records import serialise_records
 
 router = APIRouter()
 
@@ -25,12 +26,15 @@ async def create_god(campaign_id: str, god_data: GodCreate, username: str = Depe
     await db.gods.insert_one(doc)
     return god_obj
 
-@router.get("/campaigns/{campaign_id}/gods", response_model=List[God])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/gods")
 async def get_gods(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     gods = await db.gods.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return gods
+    return serialise_records(God, gods, required={'campaign_id': campaign_id, 'name': 'Unnamed deity'})
 
 @router.put("/campaigns/{campaign_id}/gods/{god_id}", response_model=God)
 async def update_god(campaign_id: str, god_id: str, god_data: GodUpdate, username: str = Depends(get_current_user)):
@@ -138,12 +142,15 @@ async def create_calendar_event(campaign_id: str, event_data: CalendarEventCreat
     await db.calendar_events.insert_one(doc)
     return event_obj
 
-@router.get("/campaigns/{campaign_id}/calendar-events", response_model=List[CalendarEvent])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/calendar-events")
 async def get_calendar_events(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     events = await db.calendar_events.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return events
+    return serialise_records(CalendarEvent, events, required={'campaign_id': campaign_id, 'name': 'Untitled event', 'day': 1, 'month': 1, 'year': 1})
 
 @router.put("/campaigns/{campaign_id}/calendar-events/{event_id}", response_model=CalendarEvent)
 async def update_calendar_event(campaign_id: str, event_id: str, event_data: CalendarEventUpdate, username: str = Depends(get_current_user)):
@@ -189,12 +196,15 @@ async def create_location(campaign_id: str, location_data: LocationCreate, usern
     await db.locations.insert_one(doc)
     return location_obj
 
-@router.get("/campaigns/{campaign_id}/locations", response_model=List[Location])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/locations")
 async def get_locations(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     locations = await db.locations.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return locations
+    return serialise_records(Location, locations, required={'campaign_id': campaign_id, 'name': 'Unnamed place'})
 
 @router.put("/campaigns/{campaign_id}/locations/{location_id}", response_model=Location)
 async def update_location(campaign_id: str, location_id: str, location_data: LocationUpdate, username: str = Depends(get_current_user)):

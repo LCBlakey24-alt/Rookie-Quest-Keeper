@@ -15,6 +15,7 @@ import uuid
 from datetime import datetime, timezone
 from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 from utils.session_note_sync import apply_session_note_world_sync
+from utils.resilient_records import serialise_records
 
 router = APIRouter()
 
@@ -104,12 +105,15 @@ async def create_ingame_note(campaign_id: str, note_data: InGameNoteCreate, user
     await db.ingame_notes.insert_one(doc)
     return note_obj
 
-@router.get("/campaigns/{campaign_id}/ingame-notes", response_model=List[InGameNote])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/ingame-notes")
 async def get_ingame_notes(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     notes = await db.ingame_notes.find({'campaign_id': campaign_id}, {'_id': 0}).sort('created_at', -1).to_list(1000)
-    return notes
+    return serialise_records(InGameNote, notes, required={'campaign_id': campaign_id, 'content': ''})
 
 
 @router.post("/campaigns/{campaign_id}/ingame-notes/{note_id}/sync")

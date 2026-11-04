@@ -38,6 +38,7 @@ jobs:
             backend/tests/test_admin_assign_character.py \
             backend/tests/test_token_movement.py \
             backend/tests/test_npc_roster_resilience.py \
+            backend/tests/test_campaign_collections_resilience.py \
             backend/tests/test_child_account_access.py \
             backend/tests/test_ai_source_boundary_coverage.py \
             backend/tests/test_rook_brain.py \
