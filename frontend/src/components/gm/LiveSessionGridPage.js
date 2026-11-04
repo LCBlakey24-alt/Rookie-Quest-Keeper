@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
@@ -74,14 +74,30 @@ export default function LiveSessionGridPage() {
   const [diceFumble, setDiceFumble] = useState(false);
   const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
   const [showEndSessionReview, setShowEndSessionReview] = useState(false);
+  // The route reuses this component between campaigns. Track *rendered* route
+  // identity as well as request order so a late response cannot show GM-only
+  // information from the campaign we just left.
+  const currentCampaignId = useRef(campaignId);
+  currentCampaignId.current = campaignId;
+  const requestSequence = useRef(0);
+  const mounted = useRef(false);
+  const [dataCampaignId, setDataCampaignId] = useState(campaignId);
   const [explodingDiceEnabled, setExplodingDiceEnabled] = useState(() => {
     try { return localStorage.getItem(`gm.explodingDice.${campaignId}`) === 'true'; } catch { return false; }
   });
 
   const fetchAllData = useCallback(async () => {
+    if (!mounted.current || currentCampaignId.current !== campaignId) return;
+    const sequence = ++requestSequence.current;
+    const isCurrent = () => mounted.current
+      && currentCampaignId.current === campaignId
+      && requestSequence.current === sequence;
+    setLoading(true);
     try {
-      const { sections, errors } = await loadLiveSessionSections(apiClient, campaignId);
+      const { sections, errors } = await loadLiveSessionSections(apiClient, campaignId, { shouldCommit: isCurrent });
+      if (!isCurrent()) return;
 
+      // A failed section keeps the last GOOD data for this exact campaign.
       if (sections.campaign.ok) setCampaign(sections.campaign.data || null);
       if (sections.players.ok) setPlayers(Array.isArray(sections.players.data) ? sections.players.data : []);
       if (sections.scenarios.ok) setScenarios(Array.isArray(sections.scenarios.data) ? sections.scenarios.data : []);
@@ -95,13 +111,38 @@ export default function LiveSessionGridPage() {
         else toast.warning('Some Live Play data could not be refreshed. Existing data has been kept where available.');
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load Live Play Mode');
+      if (isCurrent()) toast.error(error?.response?.data?.detail || 'Failed to load Live Play Mode');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, [campaignId]);
 
-  useEffect(() => { fetchAllData(); }, [fetchAllData]);
+  useEffect(() => {
+    mounted.current = true;
+    requestSequence.current += 1;
+    // Never retain a previous campaign's private records while a new
+    // campaign is still loading. Refreshes of the same campaign do NOT reset.
+    setDataCampaignId(campaignId);
+    setCampaign(null);
+    setPlayers([]);
+    setScenarios([]);
+    setCalendar(null);
+    setSessionNotes([]);
+    setLoadErrors([]);
+    setSelectedScenario(null);
+    setQuickNote('');
+    setProcessingNote(false);
+    setGeneratedName(null);
+    setSavedNames([]);
+    setSessionRefreshKey(0);
+    setShowDiceFlicker(false);
+    setShowEndSessionReview(false);
+    fetchAllData();
+    return () => {
+      mounted.current = false;
+      requestSequence.current += 1;
+    };
+  }, [campaignId, fetchAllData]);
 
   useEffect(() => {
     try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(explodingDiceEnabled)); } catch { /* ignore */ }
@@ -270,7 +311,7 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  if (loading) return <div className="loading-screen"><div className="loading-spinner" /></div>;
+  if (loading || dataCampaignId !== campaignId) return <div className="loading-screen"><div className="loading-spinner" /></div>;
 
   return (
     <>
@@ -304,7 +345,7 @@ export default function LiveSessionGridPage() {
           <LiveStoryFocusPanel campaignId={campaignId} />
         </details>
         <section className="rqk-live-page__workspace" style={gridShellStyle}>
-          <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} scenarios={scenarios} players={players} />
+          <LiveSessionGridMode key={campaignId} campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} scenarios={scenarios} players={players} />
         </section>
         <GroupCheckRequestPanel campaignId={campaignId} players={players} />
 
