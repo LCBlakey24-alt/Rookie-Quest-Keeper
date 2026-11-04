@@ -414,3 +414,37 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   await expect(frame).toHaveCSS('background-image', 'none');
   await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+
+for (const size of [
+  { label: 'scaled laptop / tablet', width: 1024, height: 768 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test(`detail pages collapse the global Keeper rail at ${size.label}`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+
+    const shell = page.locator('.rqk-app-shell');
+    await expect(shell).toHaveAttribute('data-rq-focus', 'detail');
+    await expect(shell).toHaveAttribute('data-rq-rail', 'compact');
+    const rail = page.locator('.rqk-app-rail');
+    const workspace = page.locator('.rqk-app-workspace');
+    const compactRail = await rail.boundingBox();
+    const contentBox = await workspace.boundingBox();
+    expect(compactRail?.width, 'Detail page rail must leave the campaign workspace usable').toBeLessThanOrEqual(74);
+    expect(contentBox?.x || 0).toBeGreaterThanOrEqual((compactRail?.x || 0) + (compactRail?.width || 0) - 2);
+    await expect(page.getByRole('button', { name: 'Expand navigation' })).toBeVisible();
+    await expect(rail.getByRole('link', { name: 'Dashboard' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Expand navigation' }).click();
+    await expect(shell).toHaveAttribute('data-rq-rail', 'expanded');
+    const expanded = await rail.boundingBox();
+    expect(expanded?.width).toBeGreaterThan(200);
+    await expect(page.getByRole('button', { name: 'Collapse navigation' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Collapse navigation' }).click();
+    await expect(shell).toHaveAttribute('data-rq-rail', 'compact');
+    await assertFitsViewport(page, size.width);
+  });
+}
