@@ -16,7 +16,7 @@ import { BufferAttribute, BufferGeometry, CanvasTexture, LinearFilter, SRGBColor
 
 import { faceCentroids, faceNormals } from './diceShapes';
 
-const CELL_PADDING = 0.92;
+const CELL_PADDING = 0.9;
 
 function subtract(a, b) {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -48,7 +48,18 @@ function faceBasis(normal, vertices, face, centroid) {
  * 6 and 9 get an underline, as they do on a real die, because on a d6 and a
  * d10 they are otherwise the same glyph upside down.
  */
-export function drawFaceAtlas(faceValues, { columns, cellPixels, body, ink, size }) {
+/**
+ * How much of a cell a numeral may occupy, by the face's corner count.
+ *
+ * The UVs map a face so its corners reach the edge of its square cell, but
+ * a triangle inscribed in a square leaves far less usable room than a
+ * pentagon does, and much less than a square. Sizing the glyph off the cell
+ * rather than off the face is why an early version had numbers bleeding
+ * over the edges of the d20 and d8.
+ */
+const GLYPH_SCALE = { 3: 0.34, 4: 0.5, 5: 0.46 };
+
+export function drawFaceAtlas(faceValues, { columns, cellPixels, body, ink, size, corners = 4 }) {
   const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
   if (!canvas) return null;
 
@@ -71,14 +82,17 @@ export function drawFaceAtlas(faceValues, { columns, cellPixels, body, ink, size
     const centreX = (column + 0.5) * cellPixels;
     const centreY = (row + 0.5) * cellPixels;
 
-    // Longer numbers need to be smaller to stay inside a triangular face.
+    // Longer numbers need to be smaller again to stay inside the face.
     const digits = String(value).length;
-    const scale = digits > 2 ? 0.42 : digits > 1 ? 0.52 : 0.66;
+    const fit = digits > 2 ? 0.62 : digits > 1 ? 0.8 : 1;
+    const scale = (GLYPH_SCALE[corners] || 0.46) * fit;
     context.font = `600 ${Math.round(cellPixels * scale)}px Manrope, Inter, system-ui, sans-serif`;
 
     // A d20's faces are triangles, so the glyph sits a little low of centre
     // to stay off the apex.
-    const offsetY = size === 20 || size === 8 || size === 4 ? cellPixels * 0.06 : 0;
+    // A triangular face is widest towards its base, so the glyph sits a
+    // little below the cell's centre to stay clear of the apex.
+    const offsetY = corners === 3 ? cellPixels * 0.07 : 0;
     context.fillText(String(value), centreX, centreY + offsetY);
 
     if (value === 6 || value === 9) {

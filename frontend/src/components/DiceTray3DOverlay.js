@@ -23,7 +23,15 @@ import './DiceTray3DOverlay.css';
 const PALETTE = {
   body: '#13293D',
   ink: '#F5F1E8',
-  inkMuted: 'rgba(234, 223, 200, 0.45)',
+  // Still legible: a player usually wants to see what the advantage die
+  // they discarded actually rolled.
+  inkMuted: 'rgba(234, 223, 200, 0.58)',
+  // Multiplied against the die's texture, so it dims rather than replaces.
+  // Too dark a value turns a dropped die black instead of quiet.
+  bodyMuted: 0xd4d9de,
+  crit: '#FF8A1F',
+  fumble: '#E03A2F',
+  edge: 0xEADFC8,
   support: 0x3c92e0,
 };
 

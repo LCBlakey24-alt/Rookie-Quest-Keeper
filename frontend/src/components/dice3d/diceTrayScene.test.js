@@ -1,4 +1,4 @@
-import { planThrow, simulateThrow, specForDie } from './diceTrayScene';
+import { centreRadiusFor, planThrow, simulateThrow, specForDie, throwAttemptsFor } from './diceTrayScene';
 import { seedFromKey, settledFaceIndex } from './diceFaceReading';
 
 const spec = (sides, result, dropped = false) => specForDie({ sides, result, dropped });
@@ -36,13 +36,15 @@ describe('the throw is deterministic', () => {
 
     expect(first).not.toBeNull();
     expect(second).toEqual(first);
+    expect(first.faces).toHaveLength(2);
+    expect(first.positions).toHaveLength(2);
   });
 
   test('a different seed throws differently', () => {
     // Otherwise every roll would be the same animation.
     const specs = [spec(20, 11)];
     const outcomes = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => simulateThrow(specs, n * 7919));
-    expect(new Set(outcomes.filter(Boolean).map(String)).size).toBeGreaterThan(1);
+    expect(new Set(outcomes.filter(Boolean).map((o) => String(o.faces))).size).toBeGreaterThan(1);
   });
 
   test('the replay reproduces the rehearsal exactly', () => {
@@ -53,7 +55,7 @@ describe('the throw is deterministic', () => {
     const plan = planThrow(specs, seedFromKey('replay-check'));
 
     expect(plan).not.toBeNull();
-    expect(simulateThrow(specs, plan.seed)).toEqual(plan.settled);
+    expect(simulateThrow(specs, plan.seed).faces).toEqual(plan.settled);
   });
 });
 
@@ -99,7 +101,7 @@ describe('the engine decides the number, the physics only decides the look', () 
     // checked directly against the physics, independently of the planner.
     const die = spec(20, 9);
     const plan = planThrow([die], seedFromKey('independent'));
-    const settled = simulateThrow([die], plan.seed);
+    const settled = simulateThrow([die], plan.seed).faces;
 
     expect(settled[0]).toBe(plan.settled[0]);
     expect(plan.layouts[0][settled[0]]).toBe(9);
@@ -111,6 +113,58 @@ describe('the engine decides the number, the physics only decides the look', () 
 
     expect(plan).not.toBeNull();
     expect(plan.layouts[0][plan.settled[0]]).toBe(2);
+  });
+});
+
+describe('the dice finish where they can be read', () => {
+  test.each([
+    ['a single d20', [[20, 13]]],
+    ['an advantage pair', [[20, 18], [20, 5]]],
+    ['a pool of four', [[6, 1], [6, 4], [6, 6], [6, 2]]],
+  ])('%s lands near the middle of the tray', (name, dice) => {
+    // The throw is genuine physics, so this is not enforced by nudging a
+    // die afterwards: seeds are tried until one lands centrally, the same
+    // way a throw that leaves a die cocked is rejected.
+    const specs = dice.map(([sides, result]) => spec(sides, result));
+
+    for (const key of ['a', 'b', 'c', 'd', 'e']) {
+      const plan = planThrow(specs, seedFromKey(`${name}-${key}`));
+      expect(plan).not.toBeNull();
+
+      const { positions } = simulateThrow(specs, plan.seed);
+      const limit = centreRadiusFor(specs.length);
+      positions.forEach(([x, z]) => {
+        expect(Math.hypot(x, z)).toBeLessThanOrEqual(limit);
+      });
+    }
+  });
+
+  test('gives a bigger pool more room, because dice cannot share a point', () => {
+    // Measured over twelve throws each: a lone d20 settles a median 0.92
+    // from centre, four dice 2.97, eight 3.55. A fixed tight radius made
+    // every attempt fail for a pool and fall back uncentred anyway.
+    expect(centreRadiusFor(1)).toBeLessThan(centreRadiusFor(2));
+    expect(centreRadiusFor(2)).toBeLessThan(centreRadiusFor(4));
+    expect(centreRadiusFor(4)).toBeLessThan(centreRadiusFor(8));
+  });
+
+  test('spends fewer attempts on pools, which cost more to simulate', () => {
+    // Eight dice took 1.1s of blank panel when every attempt was spent.
+    expect(throwAttemptsFor(8)).toBeLessThan(throwAttemptsFor(1));
+    expect(throwAttemptsFor(8)).toBeGreaterThanOrEqual(3);
+  });
+
+  test('keeps a readable throw even if none lands centrally', () => {
+    // The centring is a preference, not a promise: a throw where no die is
+    // cocked is kept in reserve, so an awkward pool still gets real dice
+    // rather than dropping to the flat card.
+    const specs = [6, 6, 6, 6, 6, 6, 20, 20].map((sides, index) => spec(sides, (index % 6) + 1));
+    const plan = planThrow(specs, seedFromKey('crowded-tray'));
+
+    expect(plan).not.toBeNull();
+    specs.forEach((die, index) => {
+      expect(plan.layouts[index][plan.settled[index]]).toBe(die.result);
+    });
   });
 });
 
