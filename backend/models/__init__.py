@@ -1,6 +1,6 @@
 """All Pydantic models for the ROOK backend."""
 from pydantic import BaseModel, Field, ConfigDict, EmailStr, AliasChoices, field_validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 from datetime import datetime, timezone
 import uuid
 import secrets
@@ -1249,6 +1249,8 @@ class NPC(BaseModel):
     statblock_source: str = ""
     statblock_notes: str = ""
     dm_only: bool = True
+    # Party discovery is independent of GM-only lore and from other campaigns.
+    player_discovery_status: Literal["unknown", "known"] = "unknown"
     color: str = "#D4A017"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -1298,6 +1300,8 @@ class NPCCreate(BaseModel):
     statblock_source: str = ""
     statblock_notes: str = ""
     dm_only: bool = True
+    # Party discovery is independent of GM-only lore and from other campaigns.
+    player_discovery_status: Literal["unknown", "known"] = "unknown"
     occupation: str = ""
 
 class NPCUpdate(BaseModel):
@@ -1348,6 +1352,8 @@ class NPCUpdate(BaseModel):
     statblock_source: Optional[str] = None
     statblock_notes: Optional[str] = None
     dm_only: Optional[bool] = None
+    # Party discovery is independent of GM-only lore and from other campaigns.
+    player_discovery_status: Optional[Literal["unknown", "known"]] = None
 
 class InitiativeEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

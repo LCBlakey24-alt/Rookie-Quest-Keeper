@@ -31,6 +31,14 @@ describe('lossless GM NPC editing', () => {
     expect(payload.mechanics_status).toBe('DM DRAFT');
   });
 
+  test('starts as unknown to the party unless explicitly marked known', () => {
+    const unknown = prepareNpcSavePayload(createNpcDraft({ name: 'Lucian Grey', location: 'Balderin' }));
+    expect(unknown.player_discovery_status).toBe('unknown');
+    expect(unknown.location).toBe('Balderin'); // GM truth is preserved
+    const known = prepareNpcSavePayload(createNpcDraft({ name: 'Edwin Hollowmere', player_discovery_status: 'known' }));
+    expect(known.player_discovery_status).toBe('known');
+  });
+
   test('editing a draft does not mutate the saved database record', () => {
     const draft = createNpcDraft(detailed);
     draft.stats.strength = 21;
