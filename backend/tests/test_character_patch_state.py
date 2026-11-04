@@ -87,6 +87,33 @@ class TestCharacterPatchInventoryState(unittest.TestCase):
         self.assertNotIn("equipment", update)
         self.assertNotIn("inventory", update)
 
+    def test_explicit_null_clears_both_concentration_aliases(self):
+        # Ending concentration and failing a CON save both send null.
+        # Neither legacy alias may retain the previous spell.
+        for payload in (
+            {"concentrating_on": None, "concentration": None},
+            {"concentrating_on": None},
+            {"concentration": None},
+        ):
+            with self.subTest(payload=payload):
+                update = _clean_patch(payload)
+                self.assertIn("concentrating_on", update)
+                self.assertIn("concentration", update)
+                self.assertIsNone(update["concentrating_on"])
+                self.assertIsNone(update["concentration"])
+
+    def test_non_concentration_null_values_keep_existing_patch_semantics(self):
+        update = _clean_patch({"notes": None, "current_hit_points": None, "concentration": None})
+        self.assertNotIn("notes", update)
+        self.assertNotIn("current_hit_points", update)
+        self.assertIsNone(update["concentration"])
+        self.assertIsNone(update["concentrating_on"])
+
+    def test_setting_concentration_populates_both_aliases(self):
+        update = _clean_patch({"concentrating_on": "Bless"})
+        self.assertEqual(update["concentrating_on"], "Bless")
+        self.assertEqual(update["concentration"], "Bless")
+
     def test_equipped_patch_is_canonical_and_recomputes_effects(self):
         update = _clean_patch({
             "equipped": {

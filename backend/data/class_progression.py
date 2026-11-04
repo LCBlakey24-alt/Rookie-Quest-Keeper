@@ -90,24 +90,20 @@ _CANTRIPS_KNOWN_PROGRESSION: Dict[str, Dict[int, int]] = {
 }
 
 # Origin Feats (2024 only) — picked at character creation as part of background.
+# SRD 5.2 origin feats. The 2024 PHB has ten; only these four are in the SRD,
+# so only these four can ship. The rest live in a table's own homebrew --
+# see docs/licensing/SRD_FEATS.md.
 _ORIGIN_FEATS_2024: List[str] = [
-    'Crafter', 'Healer', 'Lucky', 'Magic Initiate', 'Musician',
-    'Savage Attacker', 'Skilled', 'Tavern Brawler', 'Tough', 'Alert',
+    'Alert', 'Magic Initiate', 'Savage Attacker', 'Skilled',
 ]
 
-# General feats — most are shared 2014/2024 SRD; a handful are 2024-only or 2014-only.
+# General feats that can be distributed. Verified against the official SRD 5.2
+# CC-BY-4.0 document rather than assumed.
 _GENERAL_FEATS_BOTH: List[str] = [
-    'Alert', 'Athlete', 'Charger', 'Chef', 'Crusher', 'Defensive Duelist',
-    'Dual Wielder', 'Durable', 'Elemental Adept', 'Fey Touched', 'Grappler',
-    'Great Weapon Master', 'Heavily Armored', 'Heavy Armor Master',
-    'Inspiring Leader', 'Keen Mind', 'Lightly Armored', 'Linguist',
-    'Lucky', 'Mage Slayer', 'Magic Initiate', 'Martial Adept',
-    'Medium Armor Master', 'Mobile', 'Mounted Combatant', 'Observant',
-    'Piercer', 'Polearm Master', 'Resilient', 'Ritual Caster',
-    'Savage Attacker', 'Sentinel', 'Shadow Touched', 'Sharpshooter',
-    'Shield Master', 'Skill Expert', 'Skulker', 'Slasher',
-    'Spell Sniper', 'Tavern Brawler', 'Telekinetic', 'Telepathic',
-    'Tough', 'War Caster', 'Weapon Master',
+    # SRD 5.1 licenses exactly one feat (Grappler); SRD 5.2 adds Ability Score
+    # Improvement. Every other PHB feat is unlicensed, so the shipped general
+    # list is these two and the rest is homebrew.
+    'Ability Score Improvement', 'Grappler',
 ]
 _GENERAL_FEATS_2024_ONLY: List[str] = []  # add any pure-2024 general feats here
 

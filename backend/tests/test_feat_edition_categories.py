@@ -1,16 +1,18 @@
 """Regression: feat categories must be resolved per edition.
 
-Six feats -- Alert, Lucky, Magic Initiate, Savage Attacker, Tavern Brawler
-and Tough -- are General feats in the 2014 rules but Origin feats in 2024, so
-they sit in both _GENERAL_FEATS_BOTH and _ORIGIN_FEATS_2024.
+A feat can sit in a different category in each edition, so feats_for_edition
+must not concatenate _GENERAL_FEATS_BOTH and _ORIGIN_FEATS_2024 blindly:
 
-feats_for_edition used to concatenate those lists blindly, which meant:
+  - feats_for_edition('2024', 'general') would offer Origin feats as General
+    feats. At a 2024 ASI level only General feats are legal, so the API would
+    be handing the builder illegal choices.
+  - feats_for_edition('2024', 'all') would return duplicates, so a combined
+    picker would show the same feat twice.
 
-  - feats_for_edition('2024', 'general') offered all six as General feats.
-    At a 2024 ASI level only General feats are legal, so the API was handing
-    the builder illegal choices.
-  - feats_for_edition('2024', 'all') returned 55 entries of which only 49
-    were distinct, so a combined picker showed six feats twice.
+The shipped lists carry only SRD-licensed feats: SRD 5.2 (CC-BY-4.0) licenses
+four Origin feats and two General feats, and SRD 5.1 licenses Grappler alone.
+Everything the PHB adds on top is the table's own homebrew -- see
+docs/licensing/SRD_FEATS.md.
 """
 
 import os
@@ -35,18 +37,32 @@ os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 from data.class_progression import feats_for_edition  # noqa: E402
 
 
-# The ten Origin feats in the 2024 rules.
+# The Origin feats SRD 5.2 licenses.
 ORIGIN_FEATS_2024 = {
     "Alert",
-    "Crafter",
-    "Healer",
-    "Lucky",
     "Magic Initiate",
-    "Musician",
     "Savage Attacker",
     "Skilled",
-    "Tavern Brawler",
+}
+
+# The General feats both editions offer. Grappler is the one feat SRD 5.1
+# licenses, so the 2014 list is deliberately short.
+GENERAL_FEATS_BOTH = {
+    "Ability Score Improvement",
+    "Grappler",
+}
+
+# Feats that used to ship but are not SRD-licensed. They now live in the
+# private homebrew pack, so re-adding one here is a licensing regression.
+UNLICENSED_FEATS = {
+    "Lucky",
     "Tough",
+    "Healer",
+    "Crafter",
+    "Musician",
+    "Tavern Brawler",
+    "War Caster",
+    "Athlete",
 }
 
 
@@ -59,18 +75,22 @@ class FeatEditionCategoryTests(unittest.TestCase):
             "an Origin feat offered at a 2024 ASI level is an illegal choice",
         )
 
-    def test_2024_origin_feats_are_the_ten_origin_feats(self):
+    def test_2024_origin_feats_are_the_srd_origin_feats(self):
         self.assertEqual(set(feats_for_edition("2024", "origin")), ORIGIN_FEATS_2024)
 
     def test_2014_has_no_origin_category(self):
         self.assertEqual(feats_for_edition("2014", "origin"), [])
 
-    def test_2014_general_feats_still_include_the_shared_feats(self):
+    def test_2014_general_feats_are_the_shared_srd_feats(self):
         """These are legal 2014 feats and must not be lost to the 2024 split."""
-        general = set(feats_for_edition("2014", "general"))
-        for feat in ("Alert", "Lucky", "Magic Initiate", "Savage Attacker", "Tavern Brawler", "Tough"):
-            with self.subTest(feat=feat):
-                self.assertIn(feat, general)
+        self.assertEqual(set(feats_for_edition("2014", "general")), GENERAL_FEATS_BOTH)
+
+    def test_no_unlicensed_feat_is_offered_in_either_edition(self):
+        """Re-adding a PHB-only feat to the shipped lists is a licensing bug."""
+        for edition in ("2014", "2024"):
+            with self.subTest(edition=edition):
+                offered = set(feats_for_edition(edition, "all"))
+                self.assertEqual(offered & UNLICENSED_FEATS, set())
 
     def test_no_category_returns_duplicates(self):
         for edition in ("2014", "2024"):

@@ -101,6 +101,10 @@ export default function CleanCharacterSheet() {
     async function loadCharacter() {
       try {
         setLoading(true);
+        // A previous sheet instance may still be saving this character.
+        // Never render a stale GET or calculate new changes from old HP.
+        await saveControllerRef.current.whenIdle(characterId);
+        if (cancelled) return;
         const response = await apiClient.get(`/characters/${characterId}`);
         if (!cancelled) saveControllerRef.current.reset(characterId, response.data);
       } catch (error) {
@@ -113,7 +117,11 @@ export default function CleanCharacterSheet() {
       }
     }
     loadCharacter();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      // The route may unmount entirely, not just switch to another character.
+      saveControllerRef.current.invalidate();
+    };
   }, [characterId]);
 
   useEffect(() => {
@@ -244,8 +252,16 @@ export default function CleanCharacterSheet() {
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
   const getRollBonus = () => Number(rollBonus) || 0;
 
-  // One ordered save queue is shared by mobile, tablet and desktop tabs.
-  const patchCharacter = (updates, options = {}) => saveControllerRef.current.patch(updates, options);
+  // Bind handlers from this render to its sheet. Async child callbacks from
+  // an old character must never redirect updates into the newly opened sheet.
+  const sheetSession = saveControllerRef.current.getSession();
+  const isCurrentSheetSession = () => sheetSession === saveControllerRef.current.getSession();
+  const patchCharacter = async (updates, options = {}) => {
+    const saved = await saveControllerRef.current.patchForSession(sheetSession, updates, options);
+    // A write accepted before navigation may have persisted successfully, but
+    // its old child UI must not continue with new success toasts or follow-ups.
+    return saved && isCurrentSheetSession();
+  };
 
   const patchCharacterWithConcentrationGuard = async (updates, options = {}) => {
     const nextConcentration = updates?.concentrating_on ?? updates?.concentration;
@@ -255,12 +271,18 @@ export default function CleanCharacterSheet() {
 
     const nextName = getConcentrationName(nextConcentration);
     const currentName = concentratingName || 'your current spell';
+    // Toast actions can outlive this route; bind the choice to this sheet.
+    const concentrationSession = saveControllerRef.current.getSession();
     toast.warning(`Already concentrating on ${currentName}`, {
       description: `Starting concentration on ${nextName} will end ${currentName}.`,
       duration: 10000,
       action: {
         label: `Switch to ${nextName}`,
-        onClick: () => patchCharacter(updates, { ...options, success: `Concentrating on ${nextName}` }),
+        onClick: () => saveControllerRef.current.patchForSession(
+          concentrationSession,
+          updates,
+          { ...options, success: `Concentrating on ${nextName}` }
+        ),
       },
       cancel: {
         label: `Keep ${currentName}`,
@@ -271,6 +293,8 @@ export default function CleanCharacterSheet() {
   };
 
   const rollConcentrationSave = async (dc, spellName = concentratingName) => {
+    // A delayed toast action may fire after this character has been closed.
+    if (!isCurrentSheetSession()) return false;
     const result = rollD20(concentrationSaveModifier, {
       mode: rollMode,
       bonus: getRollBonus(),
@@ -295,10 +319,12 @@ export default function CleanCharacterSheet() {
       return true;
     }
 
-    await patchCharacter(
+    const cleared = await patchCharacter(
       { concentrating_on: null, concentration: null },
       { error: 'Could not clear failed concentration' },
     );
+    // Do not report a lost spell if the PATCH failed or the sheet was closed.
+    if (cleared === false || !isCurrentSheetSession()) return false;
     toast.error(`Concentration lost on ${spellName}`, { description: `${result.total} vs DC ${dc}` });
     return false;
   };
@@ -323,7 +349,7 @@ export default function CleanCharacterSheet() {
     const saved = await patchCharacter(updates, { error: 'Could not save HP' });
     setSavingHp(false);
 
-    if (saved !== false && delta < 0 && concentratingName && amount > 0) {
+    if (saved !== false && isCurrentSheetSession() && delta < 0 && concentratingName && amount > 0) {
       const concentrationDC = getConcentrationSaveDc(amount);
       toast.warning(`You took ${amount} damage — concentration check`, {
         description: `You are concentrating on ${concentratingName}. Make a Constitution save, DC ${concentrationDC}, to keep the spell.`,
@@ -416,6 +442,10 @@ export default function CleanCharacterSheet() {
 
   const spendHitDie = async () => {
     if (!character || savingQuickState) return;
+    if (rulesEdition === '2024' && currentHp <= 0) {
+      toast.error('2024 rules require at least 1 HP before spending a Hit Point Die.');
+      return;
+    }
     if (hitDiceRemaining <= 0) {
       toast.error('No hit dice remaining');
       return;
@@ -424,7 +454,9 @@ export default function CleanCharacterSheet() {
       toast.info('Already at full HP');
       return;
     }
-    const result = rollHitDie(hitDieInfo.sides, conMod);
+    // Use the same 2024 minimum recovery as the old mobile implementation,
+    // but now all Hit Die saves travel through the session-aware save queue.
+    const result = rollHitDie(hitDieInfo.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 });
     const nextHp = Math.min(maxHp, currentHp + result.total);
     const entry = {
       id: `${Date.now()}-hit-die`,

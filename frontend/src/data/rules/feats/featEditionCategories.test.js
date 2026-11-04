@@ -1,45 +1,43 @@
 import { FEATS, featCategoryForEdition, featDescriptionForEdition, getFeatsByEdition } from '../../levelUpData';
 import { FEAT_REGISTRY, canonicalFeatId, getFeatById, getFeatsForRuleset } from './featRegistry';
 
-// The ten Origin feats in the 2024 rules. In 2014 these are ordinary feats
-// (or, for Crafter and Musician, do not exist at all).
-const ORIGIN_FEATS_2024 = [
-  'Alert',
-  'Crafter',
-  'Healer',
-  'Lucky',
-  'Magic Initiate',
-  'Musician',
-  'Savage Attacker',
-  'Skilled',
-  'Tavern Brawler',
-  'Tough',
+// The shipped catalogue carries only feats licensed under the SRD. SRD 5.2
+// (CC-BY-4.0) licenses four Origin feats, two General feats and seven Epic
+// Boons; SRD 5.1 licenses Grappler alone. Everything the PHB adds on top is
+// the table's own homebrew -- see docs/licensing/SRD_FEATS.md.
+const ORIGIN_FEATS_2024 = ['Alert', 'Magic Initiate', 'Savage Attacker', 'Skilled'];
+const GENERAL_FEATS_BOTH = ['Ability Score Improvement', 'Grappler'];
+const EPIC_BOONS_2024 = [
+  'Boon of Combat Prowess',
+  'Boon of Dimensional Travel',
+  'Boon of Fate',
+  'Boon of Irresistible Offense',
+  'Boon of Spell Recall',
+  'Boon of the Night Spirit',
+  'Boon of Truesight',
 ];
 
-// Origin feats that are General feats in 2014. 2014 has no Origin category,
-// so these are the entries a single `category` value could not describe.
-const GENERAL_IN_2014 = [
-  'Alert',
-  'Healer',
-  'Lucky',
-  'Magic Initiate',
-  'Savage Attacker',
-  'Skilled',
-  'Tavern Brawler',
-  'Tough',
-];
+// Feats that used to ship but are not SRD-licensed. They now live in the
+// private homebrew pack, so re-adding one here is a licensing regression.
+const UNLICENSED_FEATS = ['Lucky', 'Tough', 'Healer', 'Crafter', 'Musician', 'Tavern Brawler', 'War Caster', 'Athlete', 'Boon of Fortitude'];
 
 const names = (feats) => feats.map((feat) => feat.name);
 
-describe('feat categories are resolved per edition', () => {
-  test('2014 offers the cross-edition feats as General feats', () => {
-    // Magic Initiate, Skilled, Tavern Brawler and Tough were tagged
-    // category: 'origin' for both editions, so a 2014 character asking for
-    // General feats was never offered them at all.
-    const general2014 = names(getFeatsByEdition('2014', 'general'));
-    GENERAL_IN_2014.forEach((feat) => {
-      expect(general2014).toContain(feat);
+describe('the shipped catalogue is SRD-licensed only', () => {
+  test('every shipped feat declares an SRD source', () => {
+    FEATS.forEach((feat) => {
+      expect(feat.source).toMatch(/^srd-5\.[12]$/);
     });
+  });
+
+  test.each(UNLICENSED_FEATS)('%s is not shipped in the app catalogue', (featName) => {
+    expect(names(FEATS)).not.toContain(featName);
+  });
+});
+
+describe('feat categories are resolved per edition', () => {
+  test('2014 offers only the feats SRD 5.1 licenses, as General feats', () => {
+    expect(names(getFeatsByEdition('2014', 'general')).sort()).toEqual([...GENERAL_FEATS_BOTH].sort());
   });
 
   test('2014 has no Origin feats, because that category does not exist in 2014', () => {
@@ -55,10 +53,12 @@ describe('feat categories are resolved per edition', () => {
     });
   });
 
-  test('2024 offers exactly the ten Origin feats', () => {
-    expect(names(getFeatsByEdition('2024', 'origin')).sort()).toEqual(
-      [...ORIGIN_FEATS_2024].sort(),
-    );
+  test('2024 offers exactly the SRD Origin feats', () => {
+    expect(names(getFeatsByEdition('2024', 'origin')).sort()).toEqual([...ORIGIN_FEATS_2024].sort());
+  });
+
+  test('2024 offers exactly the SRD Epic Boons', () => {
+    expect(names(getFeatsByEdition('2024', 'epic')).sort()).toEqual([...EPIC_BOONS_2024].sort());
   });
 
   test('a feat appears in exactly one category per edition', () => {
@@ -77,41 +77,78 @@ describe('feat categories are resolved per edition', () => {
 });
 
 describe('edition-specific wording', () => {
-  test('the 2024 rewrite of a reworked feat is used for 2024', () => {
-    const lucky2024 = getFeatsForRuleset({ edition: '2024', category: 'origin' })
-      .find((feat) => feat.name === 'Lucky');
-    const lucky2014 = getFeatsForRuleset({ edition: '2014', category: 'general' })
-      .find((feat) => feat.name === 'Lucky');
+  test('the 2014 wording of a reworked feat is used for 2014', () => {
+    // Grappler is the one feat both SRDs license, and it was rewritten
+    // between editions, so each edition must read its own wording.
+    const grappler2024 = getFeatsForRuleset({ edition: '2024', category: 'general' })
+      .find((feat) => feat.name === 'Grappler');
+    const grappler2014 = getFeatsForRuleset({ edition: '2014', category: 'general' })
+      .find((feat) => feat.name === 'Grappler');
 
-    expect(lucky2024.description).toMatch(/PB-many luck points/);
-    expect(lucky2014.description).toMatch(/3 luck points/);
-    expect(lucky2024.description).not.toEqual(lucky2014.description);
+    expect(grappler2024.description).toMatch(/Unarmed Strike/);
+    expect(grappler2014.description).toMatch(/pin a grappled creature/);
+    expect(grappler2024.description).not.toEqual(grappler2014.description);
   });
 
   test('a feat with one wording returns it for both editions', () => {
-    const tough = FEATS.find((feat) => feat.name === 'Tough');
-    expect(featDescriptionForEdition(tough, '2014')).toEqual(tough.description);
-    expect(featDescriptionForEdition(tough, '2024')).toEqual(tough.description);
+    const asi = FEATS.find((feat) => feat.name === 'Ability Score Improvement');
+    expect(featDescriptionForEdition(asi, '2014')).toEqual(asi.description);
+    expect(featDescriptionForEdition(asi, '2024')).toEqual(asi.description);
   });
 
   test('getFeatsForRuleset reports the edition category, not the base one', () => {
-    const tough2024 = getFeatsForRuleset({ edition: '2024', category: 'origin' })
-      .find((feat) => feat.name === 'Tough');
-    const tough2014 = getFeatsForRuleset({ edition: '2014', category: 'general' })
-      .find((feat) => feat.name === 'Tough');
+    const grappler2014 = getFeatsForRuleset({ edition: '2014', category: 'general' })
+      .find((feat) => feat.name === 'Grappler');
+    const alert2024 = getFeatsForRuleset({ edition: '2024', category: 'origin' })
+      .find((feat) => feat.name === 'Alert');
 
-    expect(tough2024.category).toBe('origin');
-    expect(tough2014.category).toBe('general');
+    expect(grappler2014.category).toBe('general');
+    expect(alert2024.category).toBe('origin');
+  });
+});
+
+// No shipped feat needs a per-edition category override any more: the feats
+// that changed category between editions are all unlicensed and now live in
+// homebrew. The override still has to work, because an imported homebrew feat
+// carries `categoryByEdition` through, so it is covered with fixtures.
+describe('per-edition overrides (helper contract)', () => {
+  const homebrewTough = {
+    name: 'Tough',
+    description: '+2 HP per level',
+    category: 'general',
+    categoryByEdition: { '2024': 'origin' },
+    editions: ['2014', '2024'],
+  };
+
+  test('falls back to the base category when there is no override', () => {
+    const plain = { name: 'Plain', category: 'general' };
+    expect(featCategoryForEdition(plain, '2014')).toBe('general');
+    expect(featCategoryForEdition(plain, '2024')).toBe('general');
+  });
+
+  test('applies the override for the edition that has one', () => {
+    expect(featCategoryForEdition(homebrewTough, '2014')).toBe('general');
+    expect(featCategoryForEdition(homebrewTough, '2024')).toBe('origin');
+  });
+
+  test('falls back to the base wording when there is no override', () => {
+    expect(featDescriptionForEdition(homebrewTough, '2014')).toBe('+2 HP per level');
+  });
+
+  test('applies the wording override for the edition that has one', () => {
+    const reworded = { ...homebrewTough, descriptionByEdition: { '2014': 'Old wording' } };
+    expect(featDescriptionForEdition(reworded, '2014')).toBe('Old wording');
+    expect(featDescriptionForEdition(reworded, '2024')).toBe('+2 HP per level');
   });
 });
 
 describe('no duplicate or suffixed feat entries remain', () => {
-  test('no feat is presented to players with an "(Origin)" suffix', () => {
-    // These were duplicate entries whose names would be written into a saved
-    // character sheet verbatim.
+  test('no feat is presented to players with an "(Origin)" or "(Epic)" suffix', () => {
+    // These were duplicate/decorated entries whose names would be written
+    // into a saved character sheet verbatim.
     ['2014', '2024'].forEach((edition) => {
       names(getFeatsByEdition(edition)).forEach((name) => {
-        expect(name).not.toMatch(/\(Origin\)/);
+        expect(name).not.toMatch(/\((?:Origin|Epic)\)/);
       });
     });
   });
@@ -128,14 +165,28 @@ describe('no duplicate or suffixed feat entries remain', () => {
 });
 
 describe('characters saved under the old feat names still resolve', () => {
-  test.each(['Alert (Origin)', 'Healer (Origin)', 'Lucky (Origin)', 'Savage Attacker (Origin)'])(
-    'legacy name %s resolves to its merged feat',
-    (legacyName) => {
-      const resolved = getFeatById(legacyName);
-      expect(resolved).not.toBeNull();
-      expect(resolved.name).toBe(legacyName.replace(' (Origin)', ''));
-    },
-  );
+  // Saved sheets keep the name they were written with. Alert and Savage
+  // Attacker once had a duplicate "(Origin)" entry, and the Epic Boons once
+  // carried an "(Epic)" suffix, so those names must still resolve.
+  const LEGACY_NAMES = [
+    ['Alert (Origin)', 'Alert'],
+    ['Savage Attacker (Origin)', 'Savage Attacker'],
+    ['Boon of Combat Prowess (Epic)', 'Boon of Combat Prowess'],
+    ['Boon of Truesight (Epic)', 'Boon of Truesight'],
+    ['Boon of the Night Spirit (Epic)', 'Boon of the Night Spirit'],
+  ];
+
+  test.each(LEGACY_NAMES)('legacy name %s resolves to %s', (legacyName, currentName) => {
+    const resolved = getFeatById(legacyName);
+    expect(resolved).not.toBeNull();
+    expect(resolved.name).toBe(currentName);
+  });
+
+  test('every shipped feat that was renamed carries an alias for its old name', () => {
+    getFeatsByEdition('2024', 'epic').forEach((boon) => {
+      expect(boon.aliases).toContain(`${boon.name} (Epic)`);
+    });
+  });
 
   test('an alias never displaces a real feat of its own', () => {
     FEATS.forEach((feat) => {
@@ -144,21 +195,7 @@ describe('characters saved under the old feat names still resolve', () => {
   });
 
   test('current feat names still resolve', () => {
-    expect(getFeatById('Tough').name).toBe('Tough');
-    expect(getFeatById('tough').name).toBe('Tough');
-  });
-});
-
-describe('featCategoryForEdition', () => {
-  test('falls back to the base category when there is no override', () => {
-    const warCaster = FEATS.find((feat) => feat.name === 'War Caster');
-    expect(featCategoryForEdition(warCaster, '2014')).toBe('general');
-    expect(featCategoryForEdition(warCaster, '2024')).toBe('general');
-  });
-
-  test('applies the override for the edition that has one', () => {
-    const alert = FEATS.find((feat) => feat.name === 'Alert');
-    expect(featCategoryForEdition(alert, '2014')).toBe('general');
-    expect(featCategoryForEdition(alert, '2024')).toBe('origin');
+    expect(getFeatById('Grappler').name).toBe('Grappler');
+    expect(getFeatById('grappler').name).toBe('Grappler');
   });
 });

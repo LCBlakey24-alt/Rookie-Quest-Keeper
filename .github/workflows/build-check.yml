@@ -69,6 +69,7 @@ jobs:
             backend/tests/test_upload_limits.py \
             backend/tests/test_session_and_socket_hardening.py \
             backend/tests/test_character_patch_campaign_idor.py \
+            backend/tests/test_character_patch_state.py \
             backend/tests/test_progression_admin_gate.py \
             backend/tests/test_half_third_caster_own_slots.py \
             backend/tests/test_multiclass_spell_slot_pool.py \
