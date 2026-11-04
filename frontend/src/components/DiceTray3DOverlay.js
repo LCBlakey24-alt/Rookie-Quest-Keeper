@@ -4,6 +4,8 @@ import { Dices, X } from 'lucide-react';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 import { createDiceTray, specForDie } from '@/components/dice3d/diceTrayScene';
 import { seedFromKey } from '@/components/dice3d/diceFaceReading';
+import { getDye } from '@/components/dice3d/diceDyes';
+import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import './DiceTray3DOverlay.css';
 
 /**
@@ -20,20 +22,35 @@ import './DiceTray3DOverlay.css';
  * number at the table is far worse than a plain result card.
  */
 
-const PALETTE = {
-  body: '#13293D',
-  ink: '#F5F1E8',
-  // Still legible: a player usually wants to see what the advantage die
-  // they discarded actually rolled.
-  inkMuted: 'rgba(234, 223, 200, 0.58)',
-  // Multiplied against the die's texture, so it dims rather than replaces.
-  // Too dark a value turns a dropped die black instead of quiet.
-  bodyMuted: 0xd4d9de,
-  crit: '#FF8A1F',
-  fumble: '#E03A2F',
-  edge: 0xEADFC8,
-  support: 0x3c92e0,
-};
+function hexToInt(hex) {
+  return parseInt(String(hex).replace('#', ''), 16);
+}
+
+function withAlpha(hex, alpha) {
+  const value = hexToInt(hex);
+  return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
+}
+
+/**
+ * The scene's palette, built from the dye the player chose.
+ *
+ * Only `support` and `bodyMuted` are fixed: the first is the ledger blue
+ * fill light, which tints shadowed faces rather than painting them, and
+ * the second is the multiplier that dims a dropped die regardless of its
+ * colour.
+ */
+function paletteFor(dye) {
+  return {
+    body: dye.body,
+    ink: dye.ink,
+    inkMuted: withAlpha(dye.ink, 0.55),
+    bodyMuted: 0xd4d9de,
+    crit: dye.crit,
+    fumble: dye.fumble,
+    edge: hexToInt(dye.edge),
+    support: 0x3c92e0,
+  };
+}
 
 function supportsWebGl() {
   if (typeof document === 'undefined') return false;
@@ -48,6 +65,12 @@ function supportsWebGl() {
 export default function DiceTray3DOverlay(props) {
   const { total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose } = props;
 
+  // Read once, when the overlay mounts for this roll: a throw already in
+  // the air should not change colour underneath the player.
+  const dyeRef = useRef(null);
+  if (dyeRef.current === null) dyeRef.current = getDye(loadDiceDyeId());
+  const palette = useMemo(() => paletteFor(dyeRef.current), []);
+
   const canvasRef = useRef(null);
   const trayRef = useRef(null);
   const frameRef = useRef(null);
@@ -58,15 +81,32 @@ export default function DiceTray3DOverlay(props) {
     seedRef.current = seedFromKey(`${label}-${Date.now()}-${Math.random()}`);
   }
 
+  /*
+   * The throw is keyed on what the dice are, not on the identity of the
+   * array holding them.
+   *
+   * CleanCharacterSheet builds its `rolls` inline with .filter().map(), so
+   * every re-render of the sheet -- an HP change, a tab switch -- produces
+   * a new array of new objects. Depending on that identity restarted the
+   * throw in mid-air on the surface players roll from most. A signature of
+   * the dice themselves is stable across those re-renders and still
+   * changes for a genuinely new roll.
+   */
+  const diceSignature = useMemo(() => (Array.isArray(rolls) ? rolls : [])
+    .map((die) => `${die?.sides}:${die?.result}:${die?.dropped ? 1 : 0}`)
+    .join('|'), [rolls]);
+
   // Every die has to be renderable; one unsupported die means the whole
   // throw falls back, rather than showing a pool with a die missing from it.
-  const specs = useMemo(() => {
+  const specsRef = useRef(null);
+  const specsKeyRef = useRef(null);
+  if (specsKeyRef.current !== diceSignature) {
+    specsKeyRef.current = diceSignature;
     const list = Array.isArray(rolls) ? rolls : [];
-    if (!list.length) return null;
-
     const built = list.map(specForDie);
-    return built.every(Boolean) ? built : null;
-  }, [rolls]);
+    specsRef.current = list.length && built.every(Boolean) ? built : null;
+  }
+  const specs = specsRef.current;
 
   const canRender = Boolean(specs) && !failed && supportsWebGl();
 
@@ -79,7 +119,7 @@ export default function DiceTray3DOverlay(props) {
 
     let tray;
     try {
-      tray = createDiceTray({ canvas: canvasRef.current, palette: PALETTE });
+      tray = createDiceTray({ canvas: canvasRef.current, palette });
     } catch (error) {
       setFailed(true);
       return undefined;
@@ -94,7 +134,7 @@ export default function DiceTray3DOverlay(props) {
     };
     applySize();
 
-    const thrown = tray.roll(specs, { seed: seedRef.current, onSettled: handleSettled });
+    const thrown = tray.roll(specsRef.current, { seed: seedRef.current, onSettled: handleSettled });
     if (!thrown) {
       // No seed produced a throw where every die landed flat.
       tray.dispose();
@@ -111,7 +151,9 @@ export default function DiceTray3DOverlay(props) {
       tray.dispose();
       trayRef.current = null;
     };
-  }, [canRender, specs, handleSettled]);
+    // specsRef is read rather than listed: the signature is what decides
+    // whether this is a new throw.
+  }, [canRender, diceSignature, handleSettled, palette]);
 
   if (!canRender) {
     return <FlatDiceResultOverlay {...props} />;

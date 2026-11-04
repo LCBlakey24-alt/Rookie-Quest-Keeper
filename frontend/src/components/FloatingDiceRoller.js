@@ -4,6 +4,8 @@ import { Bell, CheckCircle2, Dices, Sparkles, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
+import { DICE_DYES } from '@/components/dice3d/diceDyes';
+import { loadDiceDyeId, saveDiceDyeId } from '@/lib/diceDyePreference';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import './FloatingDiceRoller.css';
@@ -105,6 +107,7 @@ export default function FloatingDiceRoller() {
   const [history, setHistory] = useState([]);
   const [rollFlicker, setRollFlicker] = useState(null);
   const [playerContext, setPlayerContext] = useState(null);
+  const [dyeId, setDyeId] = useState(loadDiceDyeId);
   const [displayState, setDisplayState] = useState(null);
   const isCharacterSheet = Boolean(characterIdFromPath(location.pathname || ''));
 
@@ -270,6 +273,27 @@ export default function FloatingDiceRoller() {
               />
               <button type="button" className="rq-floating-dice__custom-button" data-testid="custom-roll-btn" onClick={rollCustom}>Roll</button>
             </div>
+
+            <fieldset className="rq-floating-dice__dyes">
+              <legend>Dice colour</legend>
+              <div className="rq-floating-dice__swatches">
+                {DICE_DYES.map((dye) => (
+                  <button
+                    key={dye.id}
+                    type="button"
+                    className="rq-floating-dice__swatch"
+                    data-testid={`dice-dye-${dye.id}`}
+                    aria-pressed={dyeId === dye.id}
+                    aria-label={dye.name}
+                    title={dye.name}
+                    style={{ '--swatch-body': dye.body, '--swatch-ink': dye.ink }}
+                    onClick={() => setDyeId(saveDiceDyeId(dye.id))}
+                  >
+                    <span aria-hidden="true">20</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             <div className="rq-floating-dice__history" aria-label="Recent dice results">
               <span className="rq-floating-dice__history-title">Recent results</span>
