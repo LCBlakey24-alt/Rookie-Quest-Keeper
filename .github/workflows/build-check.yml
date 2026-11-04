@@ -35,6 +35,7 @@ jobs:
         run: |
           python -m pytest -q \
             backend/tests/test_campaign_display_routes.py \
+            backend/tests/test_admin_assign_character.py \
             backend/tests/test_token_movement.py \
             backend/tests/test_npc_roster_resilience.py \
             backend/tests/test_child_account_access.py \
