@@ -50,6 +50,16 @@ describe('MyCampaignsPage simplified library', () => {
     });
   });
 
+  test('shows the shared accessible loader while campaign data is pending', () => {
+    apiClient.get.mockImplementation((url) => url === '/library/campaigns'
+      ? new Promise(() => {})
+      : Promise.resolve({ data: [] }));
+    const { container } = renderPage();
+    expect(screen.getByText('Opening campaigns…')).toBeInTheDocument();
+    expect(container.querySelector('.route-loading-screen')).toBeInTheDocument();
+    expect(container.querySelector('.loading-spinner')).not.toBeInTheDocument();
+  });
+
   test('keeps the page focused on campaign selection and core actions', async () => {
     renderPage();
 
