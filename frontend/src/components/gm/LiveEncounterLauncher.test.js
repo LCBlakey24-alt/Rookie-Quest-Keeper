@@ -1,4 +1,4 @@
-import { clearQueuedNpcIds, combinePreparedEncounterParty, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, preferredPreparedEncounterId, readQueuedNpcIds } from './LiveEncounterLauncher';
+import { assessEncounterLaunch, clearQueuedNpcIds, combinePreparedEncounterParty, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, preferredPreparedEncounterId, readQueuedNpcIds } from './LiveEncounterLauncher';
 
 describe('LiveEncounterLauncher player combat handoff', () => {
   test('preserves temp HP, death saves and concentration', () => {
@@ -128,5 +128,47 @@ describe('Prepared Hollowmere scenarios in Live Play', () => {
     expect(preferredPreparedEncounterId(scenarios)).toBe('hm01');
     expect(preferredPreparedEncounterId(scenarios, '', 'old')).toBe('hm01');
     expect(preferredPreparedEncounterId(scenarios, 'hm02')).toBe('hm02');
+  });
+});
+
+describe('Prepared encounter launch remains usable during partial API outages', () => {
+  const prepared = [
+    { id: 'player-rina', name: 'Rina Ironside', type: 'player', hp: 54, maxHp: 54, ac: 19 },
+    { id: 'player-orren', name: 'Orren Oakenshade', type: 'player', hp: 38, maxHp: 38, ac: 16 },
+    { id: 'player-josh', name: 'Josh', type: 'player', hp: 41, maxHp: 41, ac: 15 },
+    { id: 'guard', name: 'Chitin Guard', type: 'monster', hp: 22, ac: 14 },
+  ];
+
+  test('optional NPC and live-state outages never block a saved fight with a confirmed party', () => {
+    expect(assessEncounterLaunch({
+      errors: [{ key: 'npcs' }, { key: 'liveState' }],
+      livePlayers: [{ id: 'player-rina' }, { id: 'player-orren' }, { id: 'player-josh' }],
+      prepared,
+    })).toEqual({
+      needsSavedPartyConfirmation: false,
+      blocked: false,
+      backupCount: 3,
+      optionalDataUnavailable: true,
+    });
+  });
+
+  test('a failed live party can use three saved snapshots after a confirmation', () => {
+    const result = assessEncounterLaunch({
+      errors: [{ key: 'players' }, { key: 'npcs' }],
+      livePlayers: [],
+      prepared,
+    });
+    expect(result.blocked).toBe(false);
+    expect(result.needsSavedPartyConfirmation).toBe(true);
+    const selectedKeys = prepared.map(item => item.id);
+    expect(combinePreparedEncounterParty(prepared, [], selectedKeys, [])).toHaveLength(4);
+  });
+
+  test('a missing roster AND absent saved characters blocks accidental monsters-only launch', () => {
+    expect(assessEncounterLaunch({
+      errors: [{ key: 'players' }],
+      livePlayers: [],
+      prepared: prepared.slice(-1),
+    })).toMatchObject({ blocked: true, needsSavedPartyConfirmation: false });
   });
 });
