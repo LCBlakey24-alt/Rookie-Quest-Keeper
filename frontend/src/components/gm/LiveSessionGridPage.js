@@ -74,9 +74,29 @@ export default function LiveSessionGridPage() {
   const [diceFumble, setDiceFumble] = useState(false);
   const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
   const [showEndSessionReview, setShowEndSessionReview] = useState(false);
-  const [explodingDiceEnabled, setExplodingDiceEnabled] = useState(() => {
-    try { return localStorage.getItem(`gm.explodingDice.${campaignId}`) === 'true'; } catch { return false; }
-  });
+  // An explicit per-campaign choice wins; otherwise the fetched campaign
+  // supplies its default. Never write a guessed false before that fetch.
+  const readDiceOverride = (id) => {
+    try {
+      const value = localStorage.getItem(`gm.explodingDice.${id}`);
+      return value === 'true' ? true : value === 'false' ? false : null;
+    } catch {
+      return null;
+    }
+  };
+  const [dicePreference, setDicePreference] = useState(() => ({
+    campaignId, override: readDiceOverride(campaignId),
+  }));
+  const activeOverride = dicePreference.campaignId === campaignId
+    ? dicePreference.override : readDiceOverride(campaignId);
+  const explodingDiceEnabled = activeOverride !== null
+    ? activeOverride
+    : (campaign?.id === campaignId && Boolean(campaign.allow_exploding_dice));
+  const setExplodingDiceEnabled = (enabled) => {
+    // Store only an actual user choice, not the initial/default state.
+    setDicePreference({ campaignId, override: Boolean(enabled) });
+    try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(Boolean(enabled))); } catch { /* storage optional */ }
+  };
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -104,17 +124,10 @@ export default function LiveSessionGridPage() {
   useEffect(() => { fetchAllData(); }, [fetchAllData]);
 
   useEffect(() => {
-    try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(explodingDiceEnabled)); } catch { /* ignore */ }
-  }, [campaignId, explodingDiceEnabled]);
-
-  useEffect(() => {
-    if (!campaign) return;
-    try {
-      if (localStorage.getItem(`gm.explodingDice.${campaignId}`) === null) setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
-    } catch {
-      setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
-    }
-  }, [campaign, campaignId]);
+    // On navigation, read this campaign's own override. A previous campaign's
+    // preference can never be persisted to the new campaign.
+    setDicePreference({ campaignId, override: readDiceOverride(campaignId) });
+  }, [campaignId]);
 
   const rollQuickDice = (notation, label = '', rollType = 'normal') => {
     const result = rollDiceNotation(notation, { rollType, exploding: explodingDiceEnabled });
