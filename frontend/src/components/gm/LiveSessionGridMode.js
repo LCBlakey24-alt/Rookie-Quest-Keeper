@@ -156,7 +156,7 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
       <section className="rqk-live-grid__session-brief" aria-label="Session at a glance">
         <div className="rqk-live-grid__brief-copy">
           <p className="rqk-live-grid__brief-eyebrow">Next at the table</p>
-          <h3>{nextEncounter ? nextEncounter.name.replace(/\\s*\\(TONIGHT[^)]*\\)/i, '').trim() : 'Ready when your players are'}</h3>
+          <h3>{nextEncounter ? nextEncounter.name.replace(/\s*\(TONIGHT[^)]*\)/i, '').trim() : 'Ready when your players are'}</h3>
           <p>{nextEncounter
             ? 'Your saved combatants, enemy actions and encounter notes are in the encounter review.'
             : 'Open encounters to choose a prepared battle, or build one as the story unfolds.'}</p>
