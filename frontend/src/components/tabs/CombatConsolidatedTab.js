@@ -27,7 +27,9 @@ function playerToCombatant(player) {
     legacy_player_id: player.legacy_player_id || null,
     name: player.name || player.character_name || 'Player Character',
     type: 'player',
-    hp: Number(player.hp ?? player.current_hp ?? player.current_hit_points) || maxHp,
+    hp: Number.isFinite(Number(player.hp ?? player.current_hp ?? player.current_hit_points))
+      ? Number(player.hp ?? player.current_hp ?? player.current_hit_points)
+      : maxHp,
     maxHp,
     ac: Number(player.ac ?? player.armor_class) || 10,
     initiativeMod: Number(player.initiativeMod ?? dexMod(player.stats || player)) || 0,
@@ -102,7 +104,11 @@ export default function CombatConsolidatedTab({ campaignId }) {
 
       if (scenariosResult.status === 'fulfilled') {
         const loadedScenarios = Array.isArray(scenariosResult.value?.data) ? scenariosResult.value.data : [];
-        setScenarios(loadedScenarios);
+        setScenarios([...loadedScenarios].sort((a, b) => {
+          const rank = item => item.live_ready && !item.played ? 0 : item.legacy ? 2 : 1;
+          return rank(a) - rank(b)
+            || (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity);
+        }));
         setScenarioReadFailed(false);
 
         let requestedScenarioId = '';
@@ -115,10 +121,14 @@ export default function CombatConsolidatedTab({ campaignId }) {
           if (requestedScenarioId) {
             next = loadedScenarios.find(item => item.id === requestedScenarioId) || null;
           }
-          if (!next && prev && loadedScenarios.some(item => item.id === prev.id)) {
+          if (!next && prev && loadedScenarios.some(item => item.id === prev.id && !item.legacy)) {
             next = loadedScenarios.find(item => item.id === prev.id) || null;
           }
-          if (!next) next = loadedScenarios[0] || null;
+          if (!next) next = loadedScenarios.find(item => item.live_default && !item.played && !item.legacy)
+            || loadedScenarios.filter(item => item.live_ready && !item.played && !item.legacy)
+              .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0]
+            || loadedScenarios.find(item => !item.legacy)
+            || loadedScenarios[0] || null;
           return next;
         });
 
