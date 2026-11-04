@@ -18,7 +18,7 @@ router = APIRouter()
 
 async def build_live_party_rows(campaign_id: str, database=None) -> List[Dict[str, Any]]:
     """Compatibility wrapper for the shared canonical party builder."""
-    return await _build_live_party_rows(campaign_id, database or db)
+    return await _build_live_party_rows(campaign_id, db if database is None else database)
 
 
 @router.get("/campaigns/{campaign_id}/live-party")
