@@ -81,6 +81,7 @@ export default function LiveSessionGridPage() {
   currentCampaignId.current = campaignId;
   const requestSequence = useRef(0);
   const mounted = useRef(false);
+  const loadedOnce = useRef(false);
   const [dataCampaignId, setDataCampaignId] = useState(campaignId);
   const [explodingDiceEnabled, setExplodingDiceEnabled] = useState(() => {
     try { return localStorage.getItem(`gm.explodingDice.${campaignId}`) === 'true'; } catch { return false; }
@@ -92,7 +93,8 @@ export default function LiveSessionGridPage() {
     const isCurrent = () => mounted.current
       && currentCampaignId.current === campaignId
       && requestSequence.current === sequence;
-    setLoading(true);
+    // Keep the GM controls usable while a same-campaign refresh is pending.
+    if (!loadedOnce.current) setLoading(true);
     try {
       const { sections, errors } = await loadLiveSessionSections(apiClient, campaignId, { shouldCommit: isCurrent });
       if (!isCurrent()) return;
@@ -113,16 +115,21 @@ export default function LiveSessionGridPage() {
     } catch (error) {
       if (isCurrent()) toast.error(error?.response?.data?.detail || 'Failed to load Live Play Mode');
     } finally {
-      if (isCurrent()) setLoading(false);
+      if (isCurrent()) {
+        loadedOnce.current = true;
+        setLoading(false);
+      }
     }
   }, [campaignId]);
 
   useEffect(() => {
     mounted.current = true;
+    loadedOnce.current = false;
     requestSequence.current += 1;
     // Never retain a previous campaign's private records while a new
     // campaign is still loading. Refreshes of the same campaign do NOT reset.
     setDataCampaignId(campaignId);
+    setLoading(true);
     setCampaign(null);
     setPlayers([]);
     setScenarios([]);
