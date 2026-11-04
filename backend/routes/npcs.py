@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
 from utils.auth import get_current_user, verify_campaign_ownership, check_ai_access
 from utils.helpers import get_campaign_context
+from utils.resilient_records import serialise_records
 from models import (
     NPC, NPCCreate, NPCUpdate, NPCStats, NPCAttack, NPCAbility, NPCSpells,
     GenerateNPCRequest, NPCRelationship, NPCRelationshipCreate
@@ -44,12 +45,18 @@ async def create_npc(campaign_id: str, npc_data: NPCCreate, username: str = Depe
     doc.pop('_id', None)
     return doc
 
-@router.get("/campaigns/{campaign_id}/npcs", response_model=List[NPC])
+# No response_model here on purpose. List[NPC] made FastAPI validate the whole
+# roster before sending any of it, so a single record whose stored shape had
+# drifted -- an ac of null, an hp of "41 (6d8+12)" -- turned the request into a
+# 500 and the GM was told their NPCs could not be loaded while every one of them
+# sat safely in the database. Each record is validated on its own instead, and
+# one that cannot be read costs itself rather than the roster.
+@router.get("/campaigns/{campaign_id}/npcs")
 async def get_npcs(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
-    
+
     npcs = await db.npcs.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return npcs
+    return serialise_records(NPC, npcs, required={'campaign_id': campaign_id, 'name': 'Unnamed NPC'})
 
 @router.put("/campaigns/{campaign_id}/npcs/{npc_id}")
 async def update_npc(campaign_id: str, npc_id: str, npc_data: NPCUpdate, username: str = Depends(get_current_user)):
