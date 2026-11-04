@@ -427,7 +427,7 @@ const gmHomeSizes = [
   { label: 'desktop', width: 1440, height: 900, minTarget: 40 },
 ];
 for (const size of gmHomeSizes) {
-  test(`GM Home controls are reachable and meet the ${size.minTarget}px floor at ${size.label`, async ({ page }) => {
+  test(`GM Home controls are reachable and meet the ${size.minTarget}px floor at ${size.label}`, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
     await page.goto('/campaign/preview-campaign?demo=1');
