@@ -414,3 +414,50 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   await expect(frame).toHaveCSS('background-image', 'none');
   await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+
+// Synthetic campaign GM Home: measure actual controls and real clicks.
+// Sidebar expansion belongs to pending PR #744; do not duplicate it here.
+const gmHomeSizes = [
+  { label: 'small phone', width: 360, height: 800, minTarget: 46 },
+  { label: 'phone', width: 390, height: 844, minTarget: 46 },
+  { label: 'tablet portrait', width: 768, height: 1024, minTarget: 44 },
+  { label: 'tablet landscape', width: 1024, height: 768, minTarget: 44 },
+  { label: 'scaled laptop', width: 1180, height: 820, minTarget: 44 },
+  { label: 'desktop', width: 1440, height: 900, minTarget: 40 },
+];
+for (const size of gmHomeSizes) {
+  test(`GM Home controls are reachable and meet the ${size.minTarget}px floor at ${size.label`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    await expect(page.locator('.campaign-dashboard-simple')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Campaign Command Centre' })).toBeVisible();
+
+    const targets = await page.evaluate(() => {
+      const controls = [...document.querySelectorAll(
+        '.campaign-home-command-actions button, .campaign-home-session-rail__action, ' +
+        '.campaign-dashboard-actions button, .campaign-icon-button'
+      )];
+      return controls.filter(el => {
+        const bounds = el.getBoundingClientRect();
+        return bounds.width > 0 && bounds.height > 0 && getComputedStyle(el).visibility !== 'hidden';
+      }).map(el => ({
+        name: (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 42),
+        height: Math.round(el.getBoundingClientRect().height),
+      }));
+    });
+    expect(targets.length).toBeGreaterThan(3);
+    expect(targets.filter(x => x.height < size.minTarget), 'Undersized GM buttons').toEqual([]);
+
+    const focusTarget = page.locator('.campaign-home-command-actions button').first();
+    await focusTarget.focus();
+    await expect(focusTarget).toBeFocused();
+    const color = await focusTarget.evaluate(el => getComputedStyle(el).outlineColor);
+    expect(color, 'Focus must use the shared ledger blue').toBe('rgb(60, 146, 224)');
+
+    // Real pointer click: Playwright will reject covered controls.
+    await page.locator('.campaign-home-command-actions button').last().click();
+    await assertFitsViewport(page, size.width);
+  });
+}
