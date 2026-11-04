@@ -1,6 +1,6 @@
 """Admin routes: user management, reviews, custom creatures, site controls, and feedback."""
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Dict, Optional
 import uuid
 
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -108,6 +108,87 @@ async def admin_get_users(username: str = Depends(get_current_user)):
         users.append(await _build_admin_user_summary(user))
     
     return users
+
+
+@router.post("/admin/users/{target_username}/assign-character")
+async def admin_assign_character_to_user(
+    target_username: str,
+    assignment: Dict[str, Any],
+    username: str = Depends(get_current_user),
+):
+    """Give a copy of a character to a player's account, optionally in a campaign.
+
+    For handing someone a ready-made character instead of asking them to
+    build one: a new player, a child account, a one-shot, or a sheet the
+    GM imported from a PDF on the player's behalf.
+
+    A copy, not a transfer. The original stays where it was, so the same
+    premade can be given to several people and the admin does not lose a
+    sheet by assigning it.
+
+    When a campaign is named, both links are written: the character's
+    campaign_id and the member's character_id. Writing only the first is
+    what made characters invisible to Live Play, so this does not repeat
+    it.
+    """
+    await verify_admin(username)
+
+    character_id = str(assignment.get('character_id') or '').strip()
+    campaign_id = str(assignment.get('campaign_id') or '').strip()
+    if not character_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='character_id is required')
+
+    target = await db.users.find_one({'username': target_username}, {'_id': 0, 'username': 1})
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No account with that username')
+
+    source = await db.player_characters.find_one({'id': character_id}, {'_id': 0})
+    if not source:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Character not found')
+
+    now = datetime.now(timezone.utc).isoformat()
+    copy = {
+        **source,
+        'id': str(uuid.uuid4()),
+        'user_id': target['username'],
+        'campaign_id': campaign_id or None,
+        'created_at': now,
+        'updated_at': now,
+        'assigned_by': username,
+        'assigned_from_character_id': character_id,
+    }
+    await db.player_characters.insert_one(copy)
+    copy.pop('_id', None)
+
+    if campaign_id:
+        campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'id': 1})
+        if not campaign:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign not found')
+
+        # Upsert so assigning into a campaign also admits the player, and
+        # so assigning a second time updates the pointer rather than
+        # leaving a duplicate membership behind.
+        await db.campaign_members.update_one(
+            {'campaign_id': campaign_id, 'user_id': target['username']},
+            {
+                '$set': {
+                    'campaign_id': campaign_id,
+                    'user_id': target['username'],
+                    'username': target['username'],
+                    'character_id': copy['id'],
+                    'status': 'active',
+                    'updated_at': now,
+                },
+                '$setOnInsert': {'id': str(uuid.uuid4()), 'role': 'player', 'joined_at': now},
+            },
+            upsert=True,
+        )
+
+    return {
+        'message': f"Character assigned to {target['username']}",
+        'character': copy,
+        'campaign_id': campaign_id or None,
+    }
 
 
 # ============== IMPROVEMENT FEEDBACK ==============
