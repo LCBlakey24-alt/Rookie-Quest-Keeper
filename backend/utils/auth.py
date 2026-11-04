@@ -8,6 +8,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 from config import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security, AI_MONTHLY_LIMIT
 from utils.admin_identity import is_admin_username
+from utils.child_access import ACCOUNT_TYPE_CLAIM, ADULT_ACCOUNT_TYPE
 
 
 def session_version(user: Optional[dict]) -> int:
@@ -18,13 +19,22 @@ def session_version(user: Optional[dict]) -> int:
         return 0
 
 
-def create_token(username: str, token_version: int = 0) -> str:
+def create_token(username: str, token_version: int = 0, account_type: Optional[str] = None) -> str:
+    """Mint a session token.
+
+    A child account carries its type as a claim so the access gate can read
+    it without a database round trip on every request. The claim is only
+    written for child accounts, so an adult's token is byte-for-byte what it
+    was before and nothing has to be reissued; an absent claim means adult.
+    """
     payload = {
         'sub': username,
         'tv': int(token_version or 0),
         'exp': datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS),
         'iat': datetime.now(timezone.utc)
     }
+    if account_type and account_type != ADULT_ACCOUNT_TYPE:
+        payload[ACCOUNT_TYPE_CLAIM] = account_type
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
