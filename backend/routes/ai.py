@@ -92,11 +92,25 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
     
     if not campaign_id:
         raise HTTPException(status_code=400, detail="campaign_id is required")
-    
-    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0})
-    if not campaign:
-        raise HTTPException(status_code=404, detail="Campaign not found")
-    
+
+    # Was an unauthenticated lookup: any signed-in user could pass any
+    # campaign_id, and the response echoed {"result": ..., "rule_system": ...},
+    # confirming a campaign's existence and its rule system to a caller with no
+    # connection to it. verify_campaign_membership returns the campaign, so this
+    # replaces the raw find_one rather than adding a second read.
+    campaign = await verify_campaign_membership(campaign_id, username)
+
+    # This was the only LLM route in the module calling neither check_ai_access
+    # nor record_ai_usage, so it was an unmetered path around AI_MONTHLY_LIMIT
+    # while every sibling respected it. The limit defaults to 0 (unlimited), so
+    # this changes nothing until a cap is configured.
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Monthly AI limit reached. Please try again next month.",
+        )
+
     rule_system = await get_campaign_rule_system(campaign_id)
     system_name = campaign.get('system', 'Fantasy d20')
     
@@ -145,10 +159,14 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
         user_msg = UserMessage(text=prompt)
         response = await chat.send_message(user_msg)
         response_text = response.strip() if isinstance(response, str) else str(response)
-        
+
+        await record_ai_usage(username)
         return {"result": response_text, "rule_system": system_name}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("AI request failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 # ROOK AI endpoint (renamed from Unseen Servant)
 @router.post("/rook/generate", response_model=UnseenServantResponse)
@@ -416,8 +434,8 @@ IMPORTANT RULES:
     except HTTPException:
         raise  # Re-raise HTTP exceptions as-is
     except Exception as e:
-        logger.error(f"Unseen Servant error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Generation failed: {str(e)}")
+        logger.exception("Unseen Servant error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Generation failed. Please try again.")
 
 @router.post("/ai/generate", response_model=AIGenerationResponse)
 async def generate_ai_content(request: AIGenerationRequest, username: str = Depends(get_current_user)):
@@ -521,8 +539,8 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"AI generation error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"AI generation failed: {str(e)}")
+        logger.exception("AI generation error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI generation failed. Please try again.")
 
 def _extract_json_object(raw: str) -> Dict[str, Any]:
     """Best-effort extraction of the first JSON object from an LLM response."""
@@ -747,9 +765,11 @@ Only include entities that are explicitly mentioned in the notes. Return ONLY va
             'suggestions': suggestions,
             'message': 'AI processing complete'
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"AI processing error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"AI processing failed: {str(e)}")
+        logger.exception("AI processing error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI processing failed. Please try again.")
 
 # ==================== PARTY INVENTORY ROUTES ====================
 
@@ -942,11 +962,13 @@ Extract and return JSON in this EXACT format:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="AI returned invalid format. Please try again."
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Smart note parsing failed: {e}")
+        logger.exception("Smart note parsing failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to parse notes: {str(e)}"
+            detail="Failed to parse notes. Please try again."
         )
 
 @router.get("/campaigns/{campaign_id}/tokens")
@@ -955,6 +977,7 @@ async def get_campaign_tokens(
     username: str = Depends(get_current_user)
 ):
     """Get all combat tokens for a campaign"""
+    await verify_campaign_membership(campaign_id, username)
     tokens = await db.combat_tokens.find(
         {'campaign_id': campaign_id},
         {'_id': 0, 'image_base64': 0}  # Don't return full base64 in list
@@ -980,6 +1003,7 @@ async def get_entity_token(
     username: str = Depends(get_current_user)
 ):
     """Get a specific combat token"""
+    await verify_campaign_membership(campaign_id, username)
     token = await db.combat_tokens.find_one(
         {'entity_id': entity_id, 'campaign_id': campaign_id},
         {'_id': 0}
@@ -1113,9 +1137,11 @@ An ending hook to leave players eager for next session.
         del outline['_id']
         return outline
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Session outline generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("Session outline generation failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 
 @router.get("/ai/session-outlines/{campaign_id}")
@@ -1222,8 +1248,8 @@ Generate 8-15 practical checklist items. Return ONLY the JSON array, no other te
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Session checklist generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("Session checklist generation failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 
 @router.get("/ai/session-checklists/{campaign_id}")
@@ -1343,9 +1369,11 @@ Make it feel like reading a fantasy novel chapter. Use character names and make 
         del replay['_id']
         return replay
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Session replay generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        logger.exception("Session replay generation failed")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
 
 
 @router.get("/ai/session-replays/{campaign_id}")

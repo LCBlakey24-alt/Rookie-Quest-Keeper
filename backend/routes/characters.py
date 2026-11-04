@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from config import db, HIT_DICE, get_subclass_unlock_level
 from utils.auth import get_current_user, verify_campaign_membership
+from data.spell_slot_rules import spell_slots_for_class_mix
 from models import (
     PlayerCharacter,
     PlayerCharacterCreate,
@@ -118,7 +119,12 @@ def calculate_spell_slots(character_class: str, level: int) -> Dict[str, int]:
     if key in _FULL_CASTERS:
         slots = _FULL_CASTER_SLOTS.get(level, {})
     elif key in _HALF_CASTERS:
-        slots = _FULL_CASTER_SLOTS.get(max(1, level // 2), {}) if level >= 2 else {}
+        # Own slot table is the full-caster table at ceil(level / 2); floor is
+        # the multiclass contribution rule and understated every odd level, so
+        # a Paladin 5 produced {"1": 3} instead of {"1": 4, "2": 2}.
+        # (level + 1) // 2 is integer ceiling. The level >= 2 guard is the 2014
+        # Spellcasting start level and is unchanged.
+        slots = _FULL_CASTER_SLOTS.get(max(1, (level + 1) // 2), {}) if level >= 2 else {}
     elif key in _WARLOCK:
         warlock_level = min(level, 20)
         pact_level = 1 if warlock_level <= 2 else 2 if warlock_level <= 4 else 3 if warlock_level <= 6 else 4 if warlock_level <= 8 else 5
@@ -180,34 +186,31 @@ def hit_dice_string_for(class_levels: Dict[str, int]) -> str:
     return ' + '.join(f"{count}d{die}" for die, count in sorted(dice_counts.items(), reverse=True) if count > 0) or '1d8'
 
 
-def compute_multiclass_spell_slots(classes: list[dict]) -> Dict[str, int]:
-    """Compute multiclass spell slots from class entries and cap at level 20 table.
+def spell_slots_for_class_levels(
+    character: Dict[str, Any],
+    primary_class: str,
+    total_level: int,
+    class_levels: Dict[str, int],
+) -> Dict[str, int]:
+    """Spell slots for the character's full class mix after a level-up.
 
-    Warlock Pact Magic is intentionally separate from multiclass spellcasting
-    slots and is not included in this shared slot table.
+    Previously this returned only the PRIMARY class's single-class table and
+    returned on the first spellcaster it found, so:
+      - Wizard 5 multiclassing into Cleric 1 kept Wizard-5 slots
+        ({"1":4,"2":3,"3":2}) instead of the combined caster level 6
+        ({"1":4,"2":3,"3":3});
+      - a Warlock paired with any other caster had one of the two pools
+        silently dropped depending on iteration order.
+
+    It now delegates to data.spell_slot_rules.spell_slots_for_class_mix, which
+    is edition-aware and picks the own-class table for a single spellcasting
+    class and the Multiclass Spellcaster table for more than one. That is the
+    same helper family the newer progression routes use, so the two agree.
     """
-    caster_level = 0
-    for entry in classes or []:
-        class_name = display_class_name(entry.get('name') or entry.get('class_name') or entry.get('character_class') or entry.get('class') or '')
-        level = max(0, int(entry.get('level') or entry.get('class_level') or 0))
-        key = class_key(class_name)
-        if key in _FULL_CASTERS:
-            caster_level += level
-        elif key in _HALF_CASTERS:
-            caster_level += level // 2
-        elif key in {'fighter', 'rogue'} and entry.get('subclass') in {'Eldritch Knight', 'Arcane Trickster'}:
-            caster_level += level // 3
-    return {str(k): int(v) for k, v in _FULL_CASTER_SLOTS.get(min(max(caster_level, 0), 20), {}).items()}
-
-
-def spell_slots_for_class_levels(primary_class: str, total_level: int, class_levels: Dict[str, int]) -> Dict[str, int]:
-    primary_key = class_key(primary_class)
-    if primary_key in _SPELLCASTERS:
-        return calculate_spell_slots(primary_class, int(class_levels.get(display_class_name(primary_class), total_level) or total_level))
-    for class_name, level in class_levels.items():
-        if class_key(class_name) in _SPELLCASTERS:
-            return calculate_spell_slots(class_name, level)
-    return {}
+    levels = dict(class_levels or {})
+    if not levels:
+        levels = {display_class_name(primary_class): int(total_level or 0)}
+    return spell_slots_for_class_mix(character, levels)
 
 
 def meets_requirement_dict(character: Dict[str, Any], requirement: Dict[str, int]) -> bool:
@@ -466,7 +469,24 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
 
     class_level_after = int(class_levels.get(leveled_class, 1))
     hit_die = hit_die_for(leveled_class)
+    con_mod_before = ability_modifier(existing.get('constitution', 10))
+
+    # Apply the ability score increase before working out hit points. A
+    # Constitution increase has to be visible to this level's hit point gain,
+    # and the 5e rule is that raising your Constitution modifier also raises
+    # your hit point maximum by 1 for every level you already have. Reading
+    # con_mod first and applying the ASI afterwards lost both: the character
+    # was short this level's extra point and every retroactive one.
+    if level_up.choice_type == 'asi' and level_up.asi_choices:
+        for asi_ability in [level_up.asi_choices.get('ability1'), level_up.asi_choices.get('ability2')]:
+            if asi_ability:
+                existing[asi_ability] = min(20, int(existing.get(asi_ability, 10)) + 1)
+
     con_mod = ability_modifier(existing.get('constitution', 10))
+    # ASIs only ever raise a score, and scores cap at 20, so this cannot go
+    # negative -- but clamp rather than rely on that.
+    retroactive_hp = max(0, con_mod - con_mod_before) * max(0, int(level_up.new_level) - 1)
+
     hp_method = (level_up.hp_method or ('roll' if level_up.hp_roll is not None else 'average')).lower()
     if hp_method in {'roll', 'manual'}:
         if level_up.hp_roll is None:
@@ -474,6 +494,8 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
         hp_increase = int(level_up.hp_roll) + con_mod
     else:
         hp_increase = (hit_die // 2 + 1) + con_mod
+    # A level always grants at least 1 hit point. The retroactive adjustment is
+    # added after the floor, so it is never swallowed by it.
     hp_increase = max(1, hp_increase)
 
     feats = existing.get('feats', []) or []
@@ -485,7 +507,7 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
         'class_levels': class_levels,
         'hp_method': hp_method,
         'hp_roll': level_up.hp_roll,
-        'hp_gained': hp_increase,
+        'hp_gained': hp_increase + retroactive_hp,
         'applied_at': datetime.now(timezone.utc).isoformat(),
     }
 
@@ -502,11 +524,10 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
         progression_entry['feat'] = feat_name
 
     if level_up.choice_type == 'asi' and level_up.asi_choices:
+        # The scores themselves were raised before hit points were computed.
         progression_entry['asi_choices'] = level_up.asi_choices
-        for ability in [level_up.asi_choices.get('ability1'), level_up.asi_choices.get('ability2')]:
-            if ability:
-                existing_score = int(existing.get(ability, 10))
-                existing[ability] = min(20, existing_score + 1)
+        if retroactive_hp:
+            progression_entry['retroactive_hp'] = retroactive_hp
 
     if level_up.subclass:
         unlock_level = get_subclass_unlock_level(leveled_class, edition)
@@ -531,13 +552,13 @@ def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, le
 
     level_progression[str(level_up.new_level)] = progression_entry
     primary_class = display_class_name(existing.get('character_class', leveled_class))
-    spell_slots = spell_slots_for_class_levels(primary_class, level_up.new_level, class_levels)
+    spell_slots = spell_slots_for_class_levels(existing, primary_class, level_up.new_level, class_levels)
 
     update_data = {
         'level': level_up.new_level,
         'proficiency_bonus': proficiency_for(level_up.new_level),
-        'max_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase,
-        'current_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase,
+        'max_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase + retroactive_hp,
+        'current_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase + retroactive_hp,
         'hit_dice': hit_dice_string_for(class_levels),
         'hit_dice_remaining': level_up.new_level,
         'spell_slots': spell_slots,

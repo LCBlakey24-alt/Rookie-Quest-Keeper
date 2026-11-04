@@ -15,6 +15,7 @@ jest.mock('sonner', () => ({
   toast: {
     success: jest.fn(),
     error: jest.fn(),
+    info: jest.fn(),
   },
 }));
 
@@ -73,7 +74,8 @@ describe('AuthPage', () => {
     fireEvent.click(screen.getByRole('tab', { name: /create account/i }));
 
     expect(screen.getByRole('heading', { name: /create your keeper account/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/username/i)).toBeRequired();
+    expect(screen.getByLabelText(/email/i)).toBeRequired();
+    expect(screen.getByLabelText(/table nickname/i)).not.toBeRequired();
     expect(screen.getByLabelText(/^password/i)).toHaveAttribute('minLength', '8');
     expect(screen.getByText(/password strength/i)).toBeInTheDocument();
     expect(screen.getByText(/confirm your password to catch typos/i)).toBeInTheDocument();
@@ -104,6 +106,29 @@ describe('AuthPage', () => {
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
   });
 
+  test('shows neutral recovery instructions without revealing registered addresses', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { message: 'If an account exists with this email, a reset link will be sent' } });
+    renderAuthPage('/auth?mode=forgot');
+    fireEvent.change(screen.getByLabelText(/recovery email/i), { target: { value: ' player@example.com ' } });
+    fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
+
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/auth/forgot-password', { email: 'player@example.com' }));
+    expect(screen.getByText(/if an account uses that email address/i)).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('button', { name: /send another link/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /reset your password/i })).toBeInTheDocument();
+    expect(toast.success).not.toHaveBeenCalledWith('Password reset email sent!');
+  });
+
+  test('displays a recovery service outage instead of claiming an email was sent', async () => {
+    apiClient.post.mockRejectedValueOnce({ response: { status: 503, data: { detail: 'Password recovery is temporarily unavailable. Please try again later.' } } });
+    renderAuthPage('/auth?mode=forgot');
+    fireEvent.change(screen.getByLabelText(/recovery email/i), { target: { value: 'player@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /send reset link/i }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(screen.queryByText(/if an account uses that email address/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
+  });
+
   test('opens the reset password flow when a token is present', () => {
     renderAuthPage('/auth?token=abc123');
 
@@ -111,7 +136,32 @@ describe('AuthPage', () => {
     const passwordInput = screen.getByLabelText(/new password/i, { selector: 'input' });
     expect(passwordInput).toHaveAttribute('minLength', '8');
     expect(passwordInput).toHaveAttribute('enterKeyHint', 'done');
-    expect(screen.getByText(/^set new password$/i)).toBeInTheDocument();
+  });
+
+  test('opens an emailed reset link, submits its token, and clears the old session on success', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { message: 'Password reset successful' } });
+    const onPasswordReset = jest.fn();
+    render(
+      <MemoryRouter initialEntries={['/reset-password?token=emailed-token-123']}>
+        <AuthPage onPasswordReset={onPasswordReset} />
+        <CurrentLocation />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('heading', { name: /choose a new password/i })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/new password/i, { selector: 'input' }), {
+      target: { value: 'NewRookPassword2026!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^reset password$/i }));
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/reset-password', {
+        token: 'emailed-token-123',
+        new_password: 'NewRookPassword2026!',
+      });
+      expect(onPasswordReset).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText('Current page')).toHaveTextContent('/auth');
+    });
   });
 
   test('shows validation feedback before login submission', () => {
@@ -141,6 +191,21 @@ describe('AuthPage', () => {
 
     expect(toast.success).toHaveBeenCalledWith('Welcome back!');
     expect(onLogin).toHaveBeenCalledWith('keeper-token', 'Rook', false);
+    expect(toast.info).toHaveBeenCalledWith('Add a recovery email', expect.objectContaining({ action: expect.objectContaining({ label: 'Account settings' }) }));
+  });
+
+  test('creates an account with email and password without a nickname', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { token: 'new-token', username: 'hero', email: 'hero@example.com' } });
+    const { onLogin } = renderAuthPage();
+    fireEvent.click(screen.getByRole('tab', { name: /create account/i }));
+    fireEvent.change(screen.getByLabelText(/email/i, { selector: 'input' }), { target: { value: 'Hero@Example.com' } });
+    fireEvent.change(screen.getByLabelText(/^password/i, { selector: 'input' }), { target: { value: 'strong-password' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i, { selector: 'input' }), { target: { value: 'strong-password' } });
+    fireEvent.submit(document.getElementById('rqk-auth-panel-register'));
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/auth/register', {
+      email: 'Hero@Example.com', password: 'strong-password',
+    }));
+    expect(onLogin).toHaveBeenCalledWith('new-token', 'hero', undefined);
   });
 
   test('keeps a sheet destination when switching auth tabs and signing in', async () => {

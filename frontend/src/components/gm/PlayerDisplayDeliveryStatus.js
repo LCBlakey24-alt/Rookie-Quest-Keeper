@@ -161,7 +161,7 @@ const shellStyle = (state) => ({
   border: `1px solid ${state === 'received'
     ? 'var(--rq-success, #5FA67A)'
     : state === 'pending' || state === 'waiting'
-      ? 'var(--rq-info, #6E91B4)'
+      ? 'var(--rq-info, #3C92E0)'
       : state === 'error'
         ? 'var(--rq-danger, #B94A4F)'
         : 'var(--rq-warning, #D39A43)'}`,

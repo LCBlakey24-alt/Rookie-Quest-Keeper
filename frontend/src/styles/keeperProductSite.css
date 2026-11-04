@@ -4,11 +4,11 @@
 
 #root .landing-page-final.keeper-product-site {
   --landing-bg: var(--rq-bg-main, #0B1B2B);
-  --landing-bg-deep: var(--rq-bg-deep, #07131F);
-  --landing-surface: var(--rq-bg-panel, #1E2936);
-  --landing-card: var(--rq-card, #263748);
-  --landing-card-hover: var(--rq-card-hover, #334155);
-  --landing-input: var(--rq-bg-input, #101F2D);
+  --landing-bg-deep: var(--rq-bg-deep, #0B1B2B);
+  --landing-surface: var(--rq-bg-panel, #0B1B2B);
+  --landing-card: var(--rq-card, #0B1B2B);
+  --landing-card-hover: var(--rq-card-hover, #0B1B2B);
+  --landing-input: var(--rq-bg-input, #0B1B2B);
   --landing-line: var(--rq-line, rgba(137, 157, 176, 0.14));
   --landing-line-strong: var(--rq-line-strong, rgba(201, 169, 107, 0.30));
   --landing-gold: var(--rq-primary, #C9A96B);
@@ -18,9 +18,9 @@
   --landing-red: #C9A96B;
   --landing-red-bright: #D9BC82;
   --landing-red-soft: rgba(201, 169, 107, 0.12);
-  --landing-blue: var(--rq-secondary, #6E91B4);
-  --landing-secondary: #6E91B4;
-  --landing-blue-soft: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10));
+  --landing-blue: var(--rq-secondary, #3C92E0);
+  --landing-secondary: #3C92E0;
+  --landing-blue-soft: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10));
   --landing-text: #EADFC8;
   --landing-muted: var(--rq-text-secondary, rgba(234, 223, 200, 0.78));
   --landing-faint: var(--rq-text-muted, rgba(234, 223, 200, 0.58));
@@ -81,7 +81,7 @@
   align-items: center;
   gap: 18px;
   padding: 7px 8px;
-  background: rgba(7, 19, 31, 0.97) !important;
+  background: rgba(11, 27, 43, 0.97) !important;
   background-image: none !important;
   border: 1px solid var(--landing-line) !important;
   border-bottom-color: var(--landing-line-strong) !important;
@@ -161,7 +161,7 @@
 /* -------------------------------------------------------------------------- */
 
 #root .keeper-product-site .landing-button {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -183,14 +183,14 @@
 /* Interactive controls animate through the shared waxSealInteractive layer. */
 
 #root .keeper-product-site .landing-button-primary {
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   background-image: none !important;
-  border-color: var(--rq-secondary, #6E91B4) !important;
+  border-color: var(--rq-secondary, #3C92E0) !important;
   color: var(--landing-text) !important;
 }
 
 #root .keeper-product-site .landing-button-primary:hover:not(:disabled) {
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
@@ -201,7 +201,7 @@
 }
 
 #root .keeper-product-site .landing-button-ghost:hover:not(:disabled) {
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
@@ -252,7 +252,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 1px;
-  background: var(--rq-secondary, #6E91B4);
+  background: var(--rq-secondary, #3C92E0);
   opacity: 0.58;
 }
 
@@ -586,9 +586,9 @@
   display: inline-flex;
   align-items: center;
   padding: 0 8px;
-  border: 1px solid var(--rq-secondary, #6E91B4);
+  border: 1px solid var(--rq-secondary, #3C92E0);
   border-radius: 4px;
-  background: var(--rq-control-blue, #263F59);
+  background: var(--rq-control-blue, #0B1B2B);
   color: var(--rq-control-ink, #F8F0E5);
   font-size: 8px;
   font-weight: 800;
@@ -772,7 +772,8 @@
 
 #root .keeper-product-site .landing-feature-card-grid button {
   width: max-content;
-  min-height: 32px;
+  /* Text link, but still a tap target: the box grows, the text does not. */
+  min-height: 44px;
   margin-top: auto;
   display: inline-flex;
   align-items: center;
@@ -1010,7 +1011,7 @@
   height: 31px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--rq-secondary, #6E91B4);
+  border: 1px solid var(--rq-secondary, #3C92E0);
   border-radius: 50%;
   color: var(--landing-gold-bright);
   font-size: 10px;
@@ -1226,7 +1227,7 @@
 }
 
 #root .keeper-product-site .landing-footer-actions button {
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 8px;
   border: 1px solid transparent !important;
   border-radius: 4px !important;
@@ -1553,7 +1554,7 @@
   }
 
   #root .keeper-product-site .landing-nav-brand {
-    min-height: 42px !important;
+    min-height: 44px !important;
     gap: 0 !important;
     padding: 0 !important;
   }
@@ -1837,7 +1838,7 @@
 
   #root .keeper-product-site .landing-feature-card-grid button {
     grid-area: action;
-    min-height: 26px !important;
+    min-height: 44px !important;
     font-size: 10px !important;
   }
 
@@ -1857,7 +1858,7 @@
   }
 
   #root .keeper-product-site .landing-audience-copy .landing-button {
-    min-height: 40px !important;
+    min-height: 44px !important;
     width: max-content !important;
   }
 
@@ -1991,7 +1992,7 @@
 #root .keeper-product-site .landing-feature-card-grid button {
   width: max-content !important;
   min-width: 0 !important;
-  min-height: 28px !important;
+  min-height: 44px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
@@ -2025,11 +2026,11 @@
 
   #root .keeper-product-site .landing-feature-card-grid article {
     padding: 13px !important;
-    background: rgba(30, 41, 54, 0.72) !important;
+    background: rgba(11, 27, 43, 0.72) !important;
   }
 
   #root .keeper-product-site .landing-feature-card-grid button {
-    min-height: 24px !important;
+    min-height: 44px !important;
     padding: 0 !important;
     background: transparent !important;
   }
@@ -2089,7 +2090,7 @@
   #root .keeper-product-site .landing-final-cta--reference > .landing-button {
     width: max-content !important;
     min-width: 150px !important;
-    min-height: 42px !important;
+    min-height: 44px !important;
     padding-inline: 14px !important;
   }
 
@@ -2119,7 +2120,7 @@
   #root .keeper-product-site .landing-footer-actions button {
     width: auto !important;
     min-width: 0 !important;
-    min-height: 30px !important;
+    min-height: 44px !important;
     padding: 0 !important;
     border: 0 !important;
     border-radius: 0 !important;

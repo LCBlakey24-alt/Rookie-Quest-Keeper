@@ -1,6 +1,7 @@
 """Rule system routes: CRUD, content management, bulk upload, rulesets."""
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
-from config import db, ADMIN_USERNAMES, logger
+from utils.uploads import read_upload_capped
+from config import db, logger
 from utils.auth import get_current_user, is_admin, verify_campaign_ownership
 from models import (
     RuleSystem, RuleSystemCreate, GameClass, GameSubclass, GameRace,
@@ -18,6 +19,45 @@ except ImportError:
     fitz = None
 
 router = APIRouter()
+
+# Fields a rule-system owner may edit through PUT /rule-systems/{id}.
+# Everything outside this set is server-owned. In particular `is_official`
+# must never be client-settable: the list route shows every system with
+# is_official=True to all users, so accepting it would let any user publish
+# their own system platform-wide, and the update guard above would then
+# permanently lock them out of editing it. `owner_id` and `id` are excluded
+# because setting them transfers or shadows another document.
+RULE_SYSTEM_EDITABLE_FIELDS = frozenset({
+    'name',
+    'short_code',
+    'description',
+    'base_system',
+    'ability_scores',
+    'skills',
+    'has_spells',
+    'has_classes',
+    'has_races',
+    'max_level',
+})
+
+# Fields a ruleset owner may edit through PUT /rulesets/{id}.
+# `shared_with` and `shared_campaigns` are excluded on purpose: sharing has
+# its own route (POST /rulesets/{id}/share), and routing it through there
+# keeps one validated path instead of two.
+CUSTOM_RULESET_EDITABLE_FIELDS = frozenset({
+    'name',
+    'description',
+    'rules_type',
+    'content',
+    'is_public',
+})
+
+
+def _editable_update(payload: Dict[str, Any], allowed: frozenset) -> Dict[str, Any]:
+    """Keep only client-settable fields from an untrusted update payload."""
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Update payload must be an object")
+    return {key: value for key, value in payload.items() if key in allowed}
 
 
 async def initialize_rule_systems():
@@ -61,6 +101,15 @@ async def initialize_rule_systems():
     from config import logger
     logger.info("Initialized starter rule system (Fantasy d20)")
 
+async def _require_visible_rule_system(system_id: str, username: str) -> dict:
+    """Only official systems and the caller's own custom systems are readable."""
+    system = await db.rule_systems.find_one({'id': system_id}, {'_id': 0})
+    if not system or not (system.get('is_official') or system.get('owner_id') == username):
+        # Do not disclose whether a private system ID exists.
+        raise HTTPException(status_code=404, detail="Rule system not found")
+    return system
+
+
 @router.get("/rule-systems")
 async def get_rule_systems(username: str = Depends(get_current_user)):
     """Get all available rule systems (official + user's custom)"""
@@ -73,10 +122,8 @@ async def get_rule_systems(username: str = Depends(get_current_user)):
 @router.get("/rule-systems/{system_id}")
 async def get_rule_system(system_id: str, username: str = Depends(get_current_user)):
     """Get a specific rule system with all its content counts"""
-    system = await db.rule_systems.find_one({'id': system_id}, {'_id': 0})
-    if not system:
-        raise HTTPException(status_code=404, detail="Rule system not found")
-    
+    system = await _require_visible_rule_system(system_id, username)
+
     counts = {
         'classes': await db.game_classes.count_documents({'system_id': system_id}),
         'subclasses': await db.game_subclasses.count_documents({'system_id': system_id}),
@@ -113,8 +160,12 @@ async def update_rule_system(system_id: str, update_data: Dict[str, Any], userna
     if system.get('owner_id') != username:
         raise HTTPException(status_code=403, detail="Only the owner can modify this rule system")
     
-    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
-    await db.rule_systems.update_one({'id': system_id}, {'$set': update_data})
+    changes = _editable_update(update_data, RULE_SYSTEM_EDITABLE_FIELDS)
+    if not changes:
+        raise HTTPException(status_code=400, detail="No editable rule system fields were provided")
+
+    changes['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.rule_systems.update_one({'id': system_id}, {'$set': changes})
     updated = await db.rule_systems.find_one({'id': system_id}, {'_id': 0})
     return updated
 
@@ -123,11 +174,13 @@ async def update_rule_system(system_id: str, update_data: Dict[str, Any], userna
 
 @router.get("/rule-systems/{system_id}/classes")
 async def get_system_classes(system_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     classes = await db.game_classes.find({'system_id': system_id}, {'_id': 0}).to_list(100)
     return {"classes": classes}
 
 @router.get("/rule-systems/{system_id}/classes/{class_id}")
 async def get_class_details(system_id: str, class_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     game_class = await db.game_classes.find_one({'id': class_id, 'system_id': system_id}, {'_id': 0})
     if not game_class:
         raise HTTPException(status_code=404, detail="Class not found")
@@ -137,11 +190,13 @@ async def get_class_details(system_id: str, class_id: str, username: str = Depen
 
 @router.get("/rule-systems/{system_id}/races")
 async def get_system_races(system_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     races = await db.game_races.find({'system_id': system_id}, {'_id': 0}).to_list(100)
     return {"races": races}
 
 @router.get("/rule-systems/{system_id}/spells")
 async def get_system_spells(system_id: str, class_name: Optional[str] = None, level: Optional[int] = None, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     query = {'system_id': system_id}
     if class_name:
         query['classes'] = class_name
@@ -152,6 +207,7 @@ async def get_system_spells(system_id: str, class_name: Optional[str] = None, le
 
 @router.get("/rule-systems/{system_id}/items")
 async def get_system_items(system_id: str, item_type: Optional[str] = None, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     query = {'system_id': system_id}
     if item_type:
         query['type'] = item_type
@@ -160,11 +216,13 @@ async def get_system_items(system_id: str, item_type: Optional[str] = None, user
 
 @router.get("/rule-systems/{system_id}/feats")
 async def get_system_feats(system_id: str, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     feats = await db.game_feats.find({'system_id': system_id}, {'_id': 0}).to_list(200)
     return {"feats": feats}
 
 @router.get("/rule-systems/{system_id}/monsters")
 async def get_system_monsters(system_id: str, cr: Optional[str] = None, username: str = Depends(get_current_user)):
+    await _require_visible_rule_system(system_id, username)
     query = {'system_id': system_id}
     if cr:
         query['challenge_rating'] = cr
@@ -174,11 +232,6 @@ async def get_system_monsters(system_id: str, cr: Optional[str] = None, username
 
 # ==================== BULK UPLOAD ROUTES ====================
 
-async def is_admin(username: str) -> bool:
-    """Check if user is an admin"""
-    user = await db.users.find_one({'username': username}, {'_id': 0})
-    return user.get('is_admin', False) if user else False
-
 @router.post("/rule-systems/{system_id}/upload")
 async def bulk_upload_content(system_id: str, upload: ContentUpload, username: str = Depends(get_current_user)):
     """Bulk upload content to a rule system"""
@@ -186,12 +239,13 @@ async def bulk_upload_content(system_id: str, upload: ContentUpload, username: s
     if not system:
         raise HTTPException(status_code=404, detail="Rule system not found")
     
-    # Allow upload if user is owner, admin, or system has no owner (shared)
+    # Only the owner or an admin may write into a rule system. Unowned systems
+    # (such as the seeded starter system) are shared with everyone, so they are
+    # admin-only: otherwise any account could overwrite rules all users see.
     is_admin_user = await is_admin(username)
-    is_owner = system.get('owner_id') == username
-    is_shared = system.get('owner_id') is None
-    
-    if not (is_admin_user or is_owner or is_shared):
+    is_owner = bool(system.get('owner_id')) and system.get('owner_id') == username
+
+    if not (is_admin_user or is_owner):
         raise HTTPException(status_code=403, detail="You don't have permission to upload to this rule system")
     
     collection_map = {
@@ -241,15 +295,16 @@ async def upload_content_file(system_id: str, content_type: str, file: UploadFil
     if not system:
         raise HTTPException(status_code=404, detail="Rule system not found")
     
-    # Allow upload if user is owner, admin, or system has no owner (shared)
+    # Only the owner or an admin may write into a rule system. Unowned systems
+    # (such as the seeded starter system) are shared with everyone, so they are
+    # admin-only: otherwise any account could overwrite rules all users see.
     is_admin_user = await is_admin(username)
-    is_owner = system.get('owner_id') == username
-    is_shared = system.get('owner_id') is None
-    
-    if not (is_admin_user or is_owner or is_shared):
+    is_owner = bool(system.get('owner_id')) and system.get('owner_id') == username
+
+    if not (is_admin_user or is_owner):
         raise HTTPException(status_code=403, detail="You don't have permission to upload to this rule system")
     
-    content = await file.read()
+    content = await read_upload_capped(file)
     filename = file.filename.lower()
     
     try:
@@ -290,7 +345,7 @@ async def upload_content_file(system_id: str, content_type: str, file: UploadFil
 @router.post("/rulesets")
 async def upload_custom_ruleset(ruleset: RulesetUpload, username: str = Depends(get_current_user)):
     """Upload a custom ruleset (classes, races, spells, etc.)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -315,7 +370,7 @@ async def upload_custom_ruleset(ruleset: RulesetUpload, username: str = Depends(
 @router.get("/rulesets")
 async def get_user_rulesets(username: str = Depends(get_current_user)):
     """Get all rulesets available to the user (owned + shared + public)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -343,7 +398,7 @@ async def get_user_rulesets(username: str = Depends(get_current_user)):
 @router.get("/rulesets/{ruleset_id}")
 async def get_ruleset(ruleset_id: str, username: str = Depends(get_current_user)):
     """Get a specific ruleset"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -367,7 +422,7 @@ async def get_ruleset(ruleset_id: str, username: str = Depends(get_current_user)
 @router.put("/rulesets/{ruleset_id}")
 async def update_ruleset(ruleset_id: str, updates: Dict[str, Any], username: str = Depends(get_current_user)):
     """Update a ruleset (owner only)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -378,15 +433,19 @@ async def update_ruleset(ruleset_id: str, updates: Dict[str, Any], username: str
     if ruleset.get("owner_id") != str(user.get("_id")):
         raise HTTPException(status_code=403, detail="Only owner can update ruleset")
     
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
-    await db.custom_rulesets.update_one({"id": ruleset_id}, {"$set": updates})
+    changes = _editable_update(updates, CUSTOM_RULESET_EDITABLE_FIELDS)
+    if not changes:
+        raise HTTPException(status_code=400, detail="No editable ruleset fields were provided")
+
+    changes["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.custom_rulesets.update_one({"id": ruleset_id}, {"$set": changes})
     
     return {"message": "Ruleset updated"}
 
 @router.delete("/rulesets/{ruleset_id}")
 async def delete_ruleset(ruleset_id: str, username: str = Depends(get_current_user)):
     """Delete a ruleset (owner only)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -403,7 +462,7 @@ async def delete_ruleset(ruleset_id: str, username: str = Depends(get_current_us
 @router.post("/rulesets/{ruleset_id}/share")
 async def share_ruleset(ruleset_id: str, share_data: Dict[str, Any], username: str = Depends(get_current_user)):
     """Share a ruleset with users or campaigns"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     

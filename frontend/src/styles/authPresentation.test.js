@@ -11,10 +11,10 @@ describe('Guild Ledger authentication presentation', () => {
     const polish = read('./authExperiencePolish.css');
 
     expect(auth).toContain('background: #0B1B2B !important;');
-    expect(auth).toContain('background: #1E2936 !important;');
-    expect(auth).toContain('background: #263F59 !important;');
+    expect(auth).toContain('background: #0B1B2B !important;');
+    expect(auth).toContain('background: #0B1B2B !important;');
     expect(auth).not.toContain('background: #C9A96B !important;');
-    expect(auth).toContain('outline: 3px solid #6E91B4');
+    expect(auth).toContain('outline: 3px solid #3C92E0');
     expect(auth).toContain('background: #7F2D2D !important;');
     expect(`${auth}\n${polish}`).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(`${auth}\n${polish}`).not.toMatch(/#ff2daa|#ff4f81|#d84df1|#7357ff|#ff9542/i);
@@ -27,18 +27,33 @@ describe('Guild Ledger authentication presentation', () => {
     const authSection = publicPolish.slice(start, end);
 
     expect(authSection).toContain('background: #0B1B2B !important;');
-    expect(authSection).toContain('background: #263F59 !important;');
+    expect(authSection).toContain('background: #0B1B2B !important;');
     expect(authSection).not.toContain('background: #C9A96B !important;');
-    expect(authSection).toContain('outline: 3px solid #6E91B4');
+    expect(authSection).toContain('outline: 3px solid #3C92E0');
     expect(authSection).not.toMatch(/#ff2daa|#ff4f81|#d84df1|#7357ff|#ff9542/i);
     expect(authSection).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
   });
 
-  test('auth copy carries the Guild Ledger campaign language', () => {
+  test('auth copy carries the Guild Ledger brand without a marketing column', () => {
     const page = read('../components/AuthPage.js');
 
     expect(page).toContain('Guild Ledger • Table tools');
-    expect(page).toContain('Plan • Organise • Track • Play');
-    expect(page).toContain('Everything for the table, kept together.');
+  });
+
+  test('the sign-in page is one centred card, not a two-column pitch', () => {
+    // The layout used to be a marketing panel beside the form, and the panel
+    // rendered only when signing up -- so the sign-in page reserved an empty
+    // column and pushed the card to one side. Sign-in and sign-up are now the
+    // same centred box.
+    const page = read('../components/AuthPage.js');
+    const css = read('../components/AuthPage.css');
+
+    expect(page).not.toContain('rqk-auth-hero');
+    expect(page).not.toContain('rqk-auth-feature-grid');
+    expect(page).not.toContain('AuthNextSteps');
+    expect(page).not.toContain('AuthAssurancePanel');
+
+    const layout = css.slice(css.indexOf('.rqk-auth-layout {'));
+    expect(layout.slice(0, layout.indexOf('}'))).toContain('grid-template-columns: minmax(0, 1fr)');
   });
 });

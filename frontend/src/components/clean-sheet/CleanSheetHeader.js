@@ -88,7 +88,7 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
       <header className="clean-sheet-header clean-sheet-header--simple">
         <div className="clean-sheet-identity">
           <span className="clean-sheet-hero-level-badge">{levelLabel}</span>
-          <h1>{character.name}</h1>
+          <h1><span className="rqk-cc-hero-name">{character.name}</span></h1>
           <p className="clean-sheet-hero-subtitle" aria-label={[...subtitleParts, levelLabel].join(' • ')}>
             {primaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--primary">{primaryLine}</span>}
             {secondaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--secondary">{secondaryLine}</span>}

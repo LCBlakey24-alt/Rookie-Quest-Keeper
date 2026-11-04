@@ -5,9 +5,14 @@
  * Keep this last, in the existing important rq-controls layer.
  */
 :root {
-  --rq-citrus-yellow: #F2C94C;
-  --rq-citrus-orange: #EF6343;
-  --rq-citrus-blood: #CE393A;
+  /* Citrus rule stops, brightened 2 Nov 2026: the gradient now runs bright
+     orange -> orange-red -> red. The three token NAMES are kept as they were
+     so the ~50 files that reference them do not all have to change; only the
+     values moved. --rq-citrus-yellow is the start stop, and is no longer
+     yellow. */
+  --rq-citrus-yellow: #FF8A1F;
+  --rq-citrus-orange: #F4551F;
+  --rq-citrus-blood: #E03A2F;
   /* Hold each end colour for roughly the outer 28% of the line;
      concentrate the colour transition in the middle 44%. On a 320px rule,
      the solid ends are ~90px each (about an inch at normal desktop scale).
@@ -19,8 +24,8 @@
     var(--rq-citrus-blood) 72%,
     var(--rq-citrus-blood) 100%);
   --rq-citrus-navy: #0B1B2B;
-  --rq-citrus-panel: #142638;
-  --rq-citrus-control: #263F59;
+  --rq-citrus-panel: #0B1B2B;
+  --rq-citrus-control: #0B1B2B;
   --rq-citrus-cream: #F5F1E8;
   --rq-citrus-sweep: 340ms cubic-bezier(.22,.78,.18,1);
 }
@@ -65,7 +70,7 @@
     background-size: 0% 3px !important;
     background-position: left bottom !important;
     background-repeat: no-repeat !important;
-    border-color: rgba(110,145,180,.32) !important;
+    border-color: rgba(60,146,224,.32) !important;
     color: var(--rq-citrus-cream) !important;
     -webkit-text-fill-color: currentColor !important;
     transition: background-size var(--rq-citrus-sweep), border-color 180ms ease !important;
@@ -85,7 +90,7 @@
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
-    border-color: rgba(239,99,67,.5) !important;
+    border-color: rgba(244,85,31,.5) !important;
     color: var(--rq-citrus-cream) !important;
   }
 
@@ -104,7 +109,7 @@
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
-    border-color: rgba(239,99,67,.48) !important;
+    border-color: rgba(244,85,31,.48) !important;
   }
 
   /* Hover, pointer press and keyboard focus produce the same left-to-right
@@ -205,13 +210,13 @@
   #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current='true']) {
     background-size: 100% 3px !important;
     border-left-color: transparent !important;
-    border-bottom-color: rgba(239,99,67,.6) !important;
+    border-bottom-color: rgba(244,85,31,.6) !important;
   }
 
   /* Focus keeps its independent blue outline; dangerous, disabled and
    * actual loading controls remain visibly distinct from navigation. */
   #root :is(button, [role='button'], [role='tab'], a):focus-visible {
-    outline: 3px solid #6E91B4 !important;
+    outline: 3px solid #3C92E0 !important;
     outline-offset: 2px !important;
   }
   #root :is(button,[role='button'],[role='tab']):is(:disabled,[aria-disabled='true']) {
@@ -292,11 +297,33 @@
   #root .rqk-player-display :is(.rqk-player-display__npc-card,
                                 .rqk-player-display__combat,
                                 .rqk-player-display__npc-shell) {
-    border-color: rgba(110,145,180,.26) !important;
+    border-color: rgba(60,146,224,.26) !important;
   }
   #root .rqk-player-display .rqk-player-display__status {
-    border-left-color: #6E91B4 !important;
+    border-left-color: #3C92E0 !important;
   }
 
 
+}
+
+/* Keyboard focus ring — deliberately OUTSIDE the
+ * `@media (hover: hover) and (pointer: fine)` block above.
+ *
+ * The design system requires that "keyboard focus ... blue focus outline
+ * remains visible" and that we "never use a pseudo-element that hides a real
+ * focus ring". The ring defined inside that media query only reaches
+ * fine-pointer devices, so keyboard users on touch and hybrid machines got no
+ * indicator at all.
+ *
+ * Several route stylesheets also bundle `:focus-visible` into their `:hover`
+ * rule with `outline: none !important`, which made focus visually identical to
+ * hover on the primary navigation rail (present on every page). This selector
+ * is scoped tightly enough to out-specify those rules, and citrusCommand.css is
+ * imported last, so focus stays visible without editing every route file. */
+html body #root :is(
+  button, [role='button'], [role='tab'], [role='link'], a, select, summary,
+  input, textarea, [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  outline: 3px solid #3C92E0 !important;
+  outline-offset: 2px !important;
 }

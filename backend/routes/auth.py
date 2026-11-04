@@ -2,8 +2,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
 from utils.account_profile import public_account_profile
+from utils.admin_identity import USERNAME_UNAVAILABLE, username_is_available
+from utils.site_settings import require_signups_enabled
 from utils.auth import (
-    get_current_user, hash_password, verify_password, create_token,
+    get_current_user, hash_password, verify_password, create_token, session_version,
 )
 from models import (
     UserRegister, UserLogin, TokenResponse, ForgotPasswordRequest,
@@ -12,11 +14,25 @@ from models import (
 import uuid
 import secrets
 import re
+from pymongo.errors import DuplicateKeyError
 from datetime import datetime, timezone, timedelta
 import resend
+from starlette.concurrency import run_in_threadpool
 
-if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
+EMAIL_DELIVERY_CONFIGURED = bool(RESEND_API_KEY) and RESEND_API_KEY != 'your_resend_api_key_here'
+
+if EMAIL_DELIVERY_CONFIGURED:
     resend.api_key = RESEND_API_KEY
+else:
+    # Without this warning a misconfigured deployment looks healthy: password
+    # recovery still answers "a reset link has been sent", the token is still
+    # stored, and nothing anywhere records that no email left the building.
+    # The first sign of trouble is a locked-out player, which is exactly the
+    # failure this is meant to surface early.
+    logger.warning(
+        "RESEND_API_KEY is not configured: password reset emails cannot be sent. "
+        "Password recovery will accept requests and silently deliver nothing."
+    )
 
 router = APIRouter()
 
@@ -66,7 +82,7 @@ USER_OWNED_COLLECTIONS = [
 
 
 def normalize_username_for_auth(username: str) -> str:
-    """Trim and validate usernames for kid-friendly, email-free auth."""
+    """Trim and validate a stable internal username."""
     normalized = (username or "").strip()
     if not normalized:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username is required")
@@ -78,6 +94,12 @@ def normalize_username_for_auth(username: str) -> str:
     return normalized
 
 
+def username_stem_from_email(email: str) -> str:
+    """Make a safe, non-secret handle from the email local part."""
+    stem = re.sub(r'[^A-Za-z0-9_-]+', '', email.split('@', 1)[0]).lower()[:24]
+    return (stem or 'player').ljust(3, '0')
+
+
 async def cleanup_user_account(username: str) -> dict:
     """Delete the account, its personal records, and all data owned by its campaigns.
 
@@ -86,8 +108,11 @@ async def cleanup_user_account(username: str) -> dict:
     correct when new campaign collections are added. Other users' character
     sheets and personal notes are protected from the sweep and unlinked instead.
     """
-    user = await db.users.find_one({'username': username}, {'_id': 0})
+    # Keep Mongo's stable _id as well as the email. Older custom_rulesets
+    # reference str(_id), whereas the rest of Keeper usually uses username.
+    user = await db.users.find_one({'username': username}, {'email': 1})
     email = (user or {}).get('email', '').lower()
+    mongo_user_id = str(user['_id']) if user and user.get('_id') is not None else None
 
     owned_campaigns = await db.campaigns.find({
         '$or': [
@@ -118,6 +143,15 @@ async def cleanup_user_account(username: str) -> dict:
 
     if email:
         await delete_many('password_resets', {'email': email})
+
+    if mongo_user_id:
+        # Legacy custom rulesets store Mongo user IDs, not the JWT username.
+        # Delete the user's own uploads and unlink them from other users' shares.
+        await delete_many('custom_rulesets', {'owner_id': mongo_user_id})
+        await db.custom_rulesets.update_many(
+            {'shared_with': mongo_user_id},
+            {'$pull': {'shared_with': mongo_user_id}},
+        )
 
     # Remove this user's membership records even for campaigns they do not own.
     await delete_many('campaign_members', {
@@ -170,29 +204,40 @@ async def cleanup_user_account(username: str) -> dict:
 
 @router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
-    normalized_username = normalize_username_for_auth(user_data.username)
-    normalized_email = user_data.email.lower() if user_data.email else None
+    await require_signups_enabled()
+    normalized_email = str(user_data.email).lower()
+    requested_username = normalize_username_for_auth(user_data.username) if user_data.username else None
 
-    if normalized_email:
-        existing_email = await db.users.find_one({'email': normalized_email})
-        if existing_email:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    
-    existing_user = await db.users.find_one({'username': normalized_username})
-    if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
-    
+    if await db.users.find_one({'email': normalized_email}):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+    stem = requested_username or username_stem_from_email(normalized_email)
     user_doc = {
         'id': str(uuid.uuid4()),
-        'username': normalized_username,
+        'email': normalized_email,
         'password_hash': hash_password(user_data.password),
         'password_login_enabled': True,
-        'created_at': datetime.now(timezone.utc).isoformat()
+        'created_at': datetime.now(timezone.utc).isoformat(),
     }
-    if normalized_email:
-        user_doc['email'] = normalized_email
-    
-    await db.users.insert_one(user_doc)
+    # Username remains the JWT subject and ownership key. The unique indexes
+    # also protect against concurrent registrations choosing the same handle.
+    for suffix in range(0, 10000):
+        suffix_text = str(suffix + 1) if suffix else ''
+        normalized_username = stem[:24 - len(suffix_text)] + suffix_text
+        if not await username_is_available(normalized_username):
+            if requested_username:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=USERNAME_UNAVAILABLE)
+            continue
+        try:
+            await db.users.insert_one({**user_doc, 'username': normalized_username})
+            break
+        except DuplicateKeyError:
+            if await db.users.find_one({'email': normalized_email}):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+            if requested_username:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=USERNAME_UNAVAILABLE)
+    else:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Could not create an account handle")
 
     token = create_token(normalized_username)
     return TokenResponse(token=token, username=normalized_username, email=normalized_email)
@@ -224,83 +269,124 @@ async def login(user_data: UserLogin):
     if not user or not verify_password(user_data.password, user['password_hash']):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
-    token = create_token(user['username'])
+    token = create_token(user['username'], session_version(user))
     return TokenResponse(token=token, username=user['username'], email=user.get('email'))
 
 
 # ==================== PASSWORD RESET ====================
 
+def _email_domain(address: str) -> str:
+    """The domain of an address, for logs. Never log the full address."""
+    _, _, domain = (address or "").partition("@")
+    return domain.lower() or "unknown"
+
+
 @router.post("/auth/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
-    """Send password reset email"""
-    user = await db.users.find_one({'email': request.email.lower()})
-    
+    """Request a recovery link without exposing whether the address belongs to an account.
+
+    Store a fresh token before handing the message to Resend, but do not
+    invalidate earlier delivered links until the new send is accepted.
+    """
+    generic_response = {"message": "If an account exists with this email, a reset link will be sent"}
+
+    # This outage affects *all* addresses, so reporting it is not enumeration.
+    # Never imply delivery when the service has no usable sending credentials.
+    if not EMAIL_DELIVERY_CONFIGURED:
+        logger.error("Password recovery unavailable: RESEND_API_KEY is not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Password recovery is temporarily unavailable. Please try again later.",
+        )
+
+    email = str(request.email).strip().lower()
+    user = await db.users.find_one({'email': email})
     if not user:
-        return {"message": "If an account exists with this email, a reset link has been sent"}
-    
+        return generic_response
+
     reset_token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-    
-    await db.password_resets.delete_many({'email': request.email.lower()})
+
     await db.password_resets.insert_one({
-        'email': request.email.lower(),
+        'email': email,
         'token': reset_token,
         'expires_at': expires_at.isoformat(),
-        'created_at': datetime.now(timezone.utc).isoformat()
+        'created_at': datetime.now(timezone.utc).isoformat(),
     })
-    
-    reset_link = f"{APP_URL}/reset-password?token={reset_token}"
-    
-    if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
-        try:
-            resend.Emails.send({
-                "from": SENDER_EMAIL,
-                "to": [request.email.lower()],
-                "subject": "Reset Your Rookie Quest Keeper Password",
-                "html": f"""
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h1 style="color: #d00000;">Rookie Quest Keeper</h1>
-                    <h2>Password Reset Request</h2>
-                    <p>You requested to reset your password. Click the button below to set a new password:</p>
-                    <a href="{reset_link}" style="display: inline-block; background: #d00000; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
-                        Reset Password
-                    </a>
-                    <p>Or copy and paste this link into your browser:</p>
-                    <p style="word-break: break-all; color: #666;">{reset_link}</p>
-                    <p><strong>This link will expire in 1 hour.</strong></p>
-                    <p>If you didn't request this, you can safely ignore this email.</p>
-                </div>
-                """
-            })
-        except Exception as e:
-            logger.error(f"Failed to send password reset email: {e}")
-    
-    return {"message": "If an account exists with this email, a reset link has been sent"}
+    reset_link = f"{APP_URL.rstrip('/')}/reset-password?token={reset_token}"
+
+    try:
+        # The pinned Resend Python SDK's send method is synchronous; run it
+        # off the FastAPI event loop so a slow provider does not block requests.
+        provider_result = await run_in_threadpool(resend.Emails.send, {
+            "from": SENDER_EMAIL,
+            "to": [email],
+            "subject": "Reset Your Rookie Quest Keeper Password",
+            "html": f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #0B1B2B;">Rookie Quest Keeper</h1>
+                <h2>Password Reset Request</h2>
+                <p>You requested to reset your password. Click below to choose a new password:</p>
+                <a href="{reset_link}" style="display: inline-block; background: #0B1B2B; color: #EADFC8; padding: 12px 24px; border-radius: 8px 8px 0 0; text-decoration: none; font-weight: bold; margin: 20px 0 0;">Reset Password</a>
+                <div aria-hidden="true" style="height: 3px; width: 155px; background: #FF8A1F; background: linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%); margin-bottom: 20px;"></div>
+                <p>Or paste this link into your browser:</p>
+                <p style="word-break: break-all; color: #666;">{reset_link}</p>
+                <p><strong>This link expires in 1 hour.</strong></p>
+                <p>If you didn't request this, you can ignore this email.</p>
+            </div>
+            """,
+        })
+        # The Python Resend SDK reports successful submission with an email ID.
+        # Treat an empty/invalid response as a failed handoff, not success.
+        if not isinstance(provider_result, dict) or not provider_result.get('id'):
+            raise RuntimeError("Resend did not confirm an email ID")
+    except Exception as exc:
+        # Avoid invalidating a previously delivered, still-valid reset link.
+        await db.password_resets.delete_one({'token': reset_token})
+        # Never log the full address, token or reset URL.
+        logger.error(
+            "Password recovery email handoff failed (%s address, error type: %s)",
+            _email_domain(email), type(exc).__name__,
+        )
+        # Keep the same public response for unknown addresses and failed
+        # sends: provider errors must not become an account-enumeration oracle.
+        return generic_response
+
+    # Only once the provider accepts the new message is it safe to invalidate
+    # older requests. A new request must not break an existing usable link.
+    await db.password_resets.delete_many({'email': email, 'token': {'$ne': reset_token}})
+    logger.info("Password recovery email accepted by provider for a %s address", _email_domain(email))
+    return generic_response
 
 
 @router.post("/auth/reset-password")
 async def reset_password(request: ResetPasswordRequest):
     """Reset password using token"""
-    reset_record = await db.password_resets.find_one({'token': request.token})
+    # Consume the token atomically: overlapping requests cannot both reset it.
+    reset_record = await db.password_resets.find_one_and_delete({'token': request.token})
     
     if not reset_record:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
     
     expires_at = datetime.fromisoformat(reset_record['expires_at'])
     if datetime.now(timezone.utc) > expires_at:
-        await db.password_resets.delete_one({'token': request.token})
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset token has expired")
     
     password_hash = hash_password(request.new_password)
-    await db.users.update_one(
+    # Bumping token_version signs out every existing session for this account.
+    result = await db.users.update_one(
         {'email': reset_record['email']},
-        {'$set': {
-            'password_hash': password_hash,
-            'password_login_enabled': True,
-        }}
+        {
+            '$set': {
+                'password_hash': password_hash,
+                'password_login_enabled': True,
+            },
+            '$inc': {'token_version': 1},
+        }
     )
     
-    await db.password_resets.delete_one({'token': request.token})
+    if result.matched_count != 1:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset link is no longer valid")
     return {"message": "Password reset successful"}
 
 
@@ -312,12 +398,18 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect")
     
     new_hash = hash_password(request.new_password)
+    # Sign out every other session (stolen or forgotten devices) by bumping the
+    # session version, and hand this device a fresh token so it stays signed in.
+    new_version = session_version(user) + 1
     await db.users.update_one(
         {'username': current_username},
-        {'$set': {'password_hash': new_hash}}
+        {'$set': {'password_hash': new_hash, 'token_version': new_version}}
     )
-    
-    return {"message": "Password changed successfully"}
+
+    return {
+        "message": "Password changed successfully",
+        "token": create_token(current_username, new_version),
+    }
 
 
 @router.get("/auth/me")

@@ -135,18 +135,27 @@ export default function AICoGM({ theme, campaignId, activeTab }) {
     );
   }
 
+  // A real <button>, not a clickable <div>: this pill is the only way back into
+  // the assistant once minimised, so as a div it was unreachable without a
+  // mouse. A button gets focus, Enter/Space and the right role for free.
   if (isMinimized) {
     return (
-      <div onClick={() => setIsMinimized(false)} style={{
-        position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px',
-        background: theme.bg.panel, border: `1px solid ${ctx.color}`, borderRadius: '12px',
-        cursor: 'pointer', zIndex: 2000, display: 'flex', alignItems: 'center', gap: '10px',
-        boxShadow: `0 4px 20px ${ctx.color}30`
-      }}>
+      <button
+        type="button"
+        onClick={() => setIsMinimized(false)}
+        aria-label={`Expand ${ctx.label} assistant`}
+        style={{
+          position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px',
+          background: theme.bg.panel, border: `1px solid ${ctx.color}`, borderRadius: '12px',
+          cursor: 'pointer', zIndex: 2000, display: 'flex', alignItems: 'center', gap: '10px',
+          boxShadow: `0 4px 20px ${ctx.color}30`,
+          font: 'inherit', textAlign: 'left'
+        }}
+      >
         <Sparkles size={18} color={ctx.color} />
         <span style={{ color: theme.text.primary, fontSize: '13px', fontWeight: '600' }}>{ctx.label}</span>
         {messages.length > 0 && <span style={{ background: ctx.color, color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '10px' }}>{messages.length}</span>}
-      </div>
+      </button>
     );
   }
 
@@ -171,7 +180,7 @@ export default function AICoGM({ theme, campaignId, activeTab }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <button onClick={clearChat} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
+          <button onClick={clearChat} aria-label="Clear conversation" style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
           <button onClick={() => setIsMinimized(true)} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><Minimize2 size={14} /></button>
           <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '4px' }}><X size={16} /></button>
         </div>

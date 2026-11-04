@@ -23,6 +23,7 @@ from config import db
 from data.character_resources import merge_character_resources
 from data.class_progression import (
     prepared_spell_capacity,
+    known_spell_change_rule,
     prepared_spell_change_rule,
     spell_selection_mode,
 )
@@ -393,6 +394,72 @@ def _apply_prepared_spell_changes(
     return result, metadata
 
 
+def _apply_known_spell_changes(
+    existing: Dict[str, Any],
+    additions: List[Any],
+    leveled_class: str,
+    edition: str,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """Apply growth and at most one swap to a 2014 known-spell list.
+
+    The 2014 PHB lets a Bard, Ranger, Sorcerer or Warlock replace one spell
+    they know each time they gain a level. This mirrors
+    _apply_prepared_spell_changes so both editions validate the same way: an
+    unsupported class is refused rather than silently appending, and replacing
+    a spell that is not on the list is an error rather than a no-op.
+    """
+    canonical_class = display_class_name(leveled_class)
+    current_known = [_tag_spell_source(spell, canonical_class) for spell in (existing.get("spells_known") or [])]
+    growth: List[Dict[str, Any]] = []
+    replacements: List[Tuple[str, Dict[str, Any]]] = []
+
+    for raw in additions:
+        replacement = _replacement_name(raw)
+        clean = _strip_replacement_metadata(raw, canonical_class)
+        if not _spell_key(clean):
+            continue
+        if replacement:
+            replacements.append((replacement, clean))
+        else:
+            growth.append(clean)
+
+    rule = known_spell_change_rule(canonical_class, edition)
+    if replacements:
+        max_replacements = rule.get("max_replacements")
+        if rule.get("cadence") != "level-up" or max_replacements in (None, 0):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{canonical_class} cannot replace known spells during level-up under {edition} rules.",
+            )
+        if len(replacements) > int(max_replacements):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{canonical_class} can replace at most {max_replacements} known spell during this level-up.",
+            )
+
+    result = list(current_known)
+    replacement_records: List[Dict[str, str]] = []
+    for old_name, new_spell in replacements:
+        old_key = _normalise_name(old_name)
+        index = next((i for i, spell in enumerate(result) if _spell_key(spell) == old_key), -1)
+        if index < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot replace {old_name}: it is not on the current known spell list.",
+            )
+        new_key = _spell_key(new_spell)
+        if any(_spell_key(spell) == new_key for i, spell in enumerate(result) if i != index):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot replace {old_name} with {new_spell.get('name')}: that spell is already known.",
+            )
+        result[index] = new_spell
+        replacement_records.append({"from": old_name, "to": new_spell.get("name", "")})
+
+    result = _merge_unique_spells(result, growth)
+    return result, {"known_replacements": replacement_records}
+
+
 def route_level_up_spell_choices(
     existing: Dict[str, Any],
     update_data: Dict[str, Any],
@@ -417,8 +484,6 @@ def route_level_up_spell_choices(
     destination = "spells_known"
     metadata: Dict[str, Any] = {}
 
-    tagged_additions = [_tag_spell_source(spell, canonical_class) for spell in additions]
-
     if mode == "spellbook":
         if any(_replacement_name(spell) for spell in additions):
             raise HTTPException(
@@ -435,12 +500,8 @@ def route_level_up_spell_choices(
         update["spells_prepared"] = prepared
         destination = "spells_prepared"
     else:
-        if any(_replacement_name(spell) for spell in additions):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{canonical_class} uses a known-spell list under {edition} rules; replacement markers are not accepted here.",
-            )
-        update["spells_known"] = _merge_unique_spells(existing.get("spells_known") or [], tagged_additions)
+        known, metadata = _apply_known_spell_changes(existing, additions, canonical_class, edition)
+        update["spells_known"] = known
 
     progression = dict(update.get("level_progression") or {})
     progression_key = str(level_up.new_level)

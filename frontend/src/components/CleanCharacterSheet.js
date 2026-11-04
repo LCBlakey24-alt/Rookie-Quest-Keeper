@@ -1,13 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
+import { useDeviceLayout } from '@/layouts/deviceLayout';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import CleanSheetCharacterTab from '@/components/clean-sheet/CleanSheetCharacterTab';
 import CleanSheetCompactStatus from '@/components/clean-sheet/CleanSheetCompactStatus';
+import CompactCommandOverview from '@/components/clean-sheet/CompactCommandOverview';
 import CleanSheetFeatsTab from '@/components/clean-sheet/CleanSheetFeatsTab';
 import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
 import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
@@ -19,7 +21,7 @@ import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
-import RookPlayerHelperTab from '@/components/clean-sheet/RookPlayerHelperTab';
+import RookPlayerHelperTab, { hasUrgentRookTips } from '@/components/clean-sheet/RookPlayerHelperTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
 import { getInitiativeModifier } from '@/data/initiativeRules';
 import {
@@ -31,6 +33,7 @@ import {
 import { getClassFeatures } from '@/data/classFeatures';
 import { formatClassProgression } from '@/data/levelUpProgressionRules';
 import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
+import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import {
   PASSIVE_SKILLS,
   SHEET_TABS,
@@ -57,7 +60,19 @@ const hasAnyText = (...values) => values.some(value => String(value || '').trim(
 export default function CleanCharacterSheet() {
   const { characterId } = useParams();
   const navigate = useNavigate();
+  const isPhone = useDeviceLayout() === 'mobile';
   const [character, setCharacter] = useState(null);
+  const saveControllerRef = useRef(null);
+  if (!saveControllerRef.current) {
+    saveControllerRef.current = createCharacterSaveQueue({
+      publish: setCharacter,
+      patchRequest: (id, updates) => apiClient.patch(`/characters/${id}`, updates),
+      onSuccess: (message) => toast.success(message),
+      onError: (error, options) => toast.error(
+        error?.formattedDetail || error?.response?.data?.detail || options.error || 'Could not save character update'
+      ),
+    });
+  }
   const [loading, setLoading] = useState(true);
   const [savingHp, setSavingHp] = useState(false);
   const [savingTempHp, setSavingTempHp] = useState(false);
@@ -73,24 +88,40 @@ export default function CleanCharacterSheet() {
   const [rollMode, setRollMode] = useState('normal');
   const [rollBonus, setRollBonus] = useState(0);
   const [concentrationInput, setConcentrationInput] = useState('');
+
+  useEffect(() => {
+    if (!isPhone && activeTab === 'full-stats') setActiveTab('stats');
+  }, [isPhone, activeTab]);
   const [showConcentrationInput, setShowConcentrationInput] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    // New routes must not receive a late save response from the old sheet.
+    saveControllerRef.current.reset(characterId, null);
     async function loadCharacter() {
       try {
         setLoading(true);
+        // A previous sheet instance may still be saving this character.
+        // Never render a stale GET or calculate new changes from old HP.
+        await saveControllerRef.current.whenIdle(characterId);
+        if (cancelled) return;
         const response = await apiClient.get(`/characters/${characterId}`);
-        if (!cancelled) setCharacter(response.data);
+        if (!cancelled) saveControllerRef.current.reset(characterId, response.data);
       } catch (error) {
-        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load character');
-        if (!cancelled) setCharacter(null);
+        if (!cancelled) {
+          toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load character');
+          saveControllerRef.current.reset(characterId, null);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
     loadCharacter();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      // The route may unmount entirely, not just switch to another character.
+      saveControllerRef.current.invalidate();
+    };
   }, [characterId]);
 
   useEffect(() => {
@@ -166,12 +197,16 @@ export default function CleanCharacterSheet() {
     class: classMissing,
     species: speciesTraitsMissing || languagesMissing,
     feats: featsMissing,
+    // Rook flags itself when it has state-dependent advice to offer (low HP or
+    // an active condition), so the player notices there is something worth
+    // reading without having to go looking for it.
+    rook: hasUrgentRookTips(character),
   };
   const sheetTabs = useMemo(() => SHEET_TABS.map(tab => ({
     ...tab,
     label: tab.id === 'species' ? (rulesEdition === '2024' ? 'Species' : 'Race') : tab.label,
     needsAttention: Boolean(tabAttention[tab.id]),
-  })), [rulesEdition, tabAttention.character, tabAttention.inventory, tabAttention.spells, tabAttention.class, tabAttention.species, tabAttention.feats]);
+  })), [rulesEdition, tabAttention.character, tabAttention.inventory, tabAttention.spells, tabAttention.class, tabAttention.species, tabAttention.feats, tabAttention.rook]);
 
   const classFeatureSummary = useMemo(() => {
     const className = character?.character_class;
@@ -217,19 +252,15 @@ export default function CleanCharacterSheet() {
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
   const getRollBonus = () => Number(rollBonus) || 0;
 
+  // Bind handlers from this render to its sheet. Async child callbacks from
+  // an old character must never redirect updates into the newly opened sheet.
+  const sheetSession = saveControllerRef.current.getSession();
+  const isCurrentSheetSession = () => sheetSession === saveControllerRef.current.getSession();
   const patchCharacter = async (updates, options = {}) => {
-    const previous = character;
-    setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
-    try {
-      const response = await apiClient.patch(`/characters/${characterId}`, updates);
-      if (response?.data && typeof response.data === 'object') setCharacter(response.data.character || response.data);
-      if (options.success) toast.success(options.success);
-      return true;
-    } catch (error) {
-      setCharacter(previous);
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || options.error || 'Could not save character update');
-      return false;
-    }
+    const saved = await saveControllerRef.current.patchForSession(sheetSession, updates, options);
+    // A write accepted before navigation may have persisted successfully, but
+    // its old child UI must not continue with new success toasts or follow-ups.
+    return saved && isCurrentSheetSession();
   };
 
   const patchCharacterWithConcentrationGuard = async (updates, options = {}) => {
@@ -240,12 +271,18 @@ export default function CleanCharacterSheet() {
 
     const nextName = getConcentrationName(nextConcentration);
     const currentName = concentratingName || 'your current spell';
+    // Toast actions can outlive this route; bind the choice to this sheet.
+    const concentrationSession = saveControllerRef.current.getSession();
     toast.warning(`Already concentrating on ${currentName}`, {
       description: `Starting concentration on ${nextName} will end ${currentName}.`,
       duration: 10000,
       action: {
         label: `Switch to ${nextName}`,
-        onClick: () => patchCharacter(updates, { ...options, success: `Concentrating on ${nextName}` }),
+        onClick: () => saveControllerRef.current.patchForSession(
+          concentrationSession,
+          updates,
+          { ...options, success: `Concentrating on ${nextName}` }
+        ),
       },
       cancel: {
         label: `Keep ${currentName}`,
@@ -256,6 +293,8 @@ export default function CleanCharacterSheet() {
   };
 
   const rollConcentrationSave = async (dc, spellName = concentratingName) => {
+    // A delayed toast action may fire after this character has been closed.
+    if (!isCurrentSheetSession()) return false;
     const result = rollD20(concentrationSaveModifier, {
       mode: rollMode,
       bonus: getRollBonus(),
@@ -280,10 +319,12 @@ export default function CleanCharacterSheet() {
       return true;
     }
 
-    await patchCharacter(
+    const cleared = await patchCharacter(
       { concentrating_on: null, concentration: null },
       { error: 'Could not clear failed concentration' },
     );
+    // Do not report a lost spell if the PATCH failed or the sheet was closed.
+    if (cleared === false || !isCurrentSheetSession()) return false;
     toast.error(`Concentration lost on ${spellName}`, { description: `${result.total} vs DC ${dc}` });
     return false;
   };
@@ -308,7 +349,7 @@ export default function CleanCharacterSheet() {
     const saved = await patchCharacter(updates, { error: 'Could not save HP' });
     setSavingHp(false);
 
-    if (saved !== false && delta < 0 && concentratingName && amount > 0) {
+    if (saved !== false && isCurrentSheetSession() && delta < 0 && concentratingName && amount > 0) {
       const concentrationDC = getConcentrationSaveDc(amount);
       toast.warning(`You took ${amount} damage — concentration check`, {
         description: `You are concentrating on ${concentratingName}. Make a Constitution save, DC ${concentrationDC}, to keep the spell.`,
@@ -401,6 +442,10 @@ export default function CleanCharacterSheet() {
 
   const spendHitDie = async () => {
     if (!character || savingQuickState) return;
+    if (rulesEdition === '2024' && currentHp <= 0) {
+      toast.error('2024 rules require at least 1 HP before spending a Hit Point Die.');
+      return;
+    }
     if (hitDiceRemaining <= 0) {
       toast.error('No hit dice remaining');
       return;
@@ -409,7 +454,9 @@ export default function CleanCharacterSheet() {
       toast.info('Already at full HP');
       return;
     }
-    const result = rollHitDie(hitDieInfo.sides, conMod);
+    // Use the same 2024 minimum recovery as the old mobile implementation,
+    // but now all Hit Die saves travel through the session-aware save queue.
+    const result = rollHitDie(hitDieInfo.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 });
     const nextHp = Math.min(maxHp, currentHp + result.total);
     const entry = {
       id: `${Date.now()}-hit-die`,
@@ -428,23 +475,28 @@ export default function CleanCharacterSheet() {
     setSavingQuickState(false);
   };
 
-  const buildRestFallback = (restType) => (
-    restType === 'long'
-      ? buildLongRestUpdates(character)
-      : buildShortRestUpdates(character)
-  );
-
   const handleRest = async (restType) => {
     if (!character || savingQuickState) return;
     setSavingQuickState(true);
     const endpoint = restType === 'long' ? 'long-rest' : 'short-rest';
     try {
-      const response = await apiClient.post(`/characters/${characterId}/${endpoint}`);
-      const updated = response.data?.character || response.data;
-      if (updated && typeof updated === 'object') setCharacter(updated);
-      toast.success(restType === 'long' ? 'Long rest completed' : 'Short rest completed');
-    } catch (error) {
-      await patchCharacter(buildRestFallback(restType), { success: restType === 'long' ? 'Long rest applied' : 'Short rest applied', error: `Could not apply ${restType} rest` });
+      await saveControllerRef.current.runServerAction(async (id, confirmed) => {
+        try {
+          return await apiClient.post(`/characters/${id}/${endpoint}`);
+        } catch (error) {
+          // Fall back only when an older backend genuinely lacks the route.
+          // Retrying with PATCH after a timeout/500 could apply the rest twice.
+          const status = error?.response?.status;
+          if (status !== 404 && status !== 405) throw error;
+          const updates = restType === 'long'
+            ? buildLongRestUpdates(confirmed)
+            : buildShortRestUpdates(confirmed);
+          return apiClient.patch(`/characters/${id}`, updates);
+        }
+      }, {
+        success: restType === 'long' ? 'Long rest completed' : 'Short rest completed',
+        error: `Could not apply ${restType} rest`,
+      });
     } finally {
       setSavingQuickState(false);
     }
@@ -531,7 +583,7 @@ export default function CleanCharacterSheet() {
   if (loading) {
     return (
       <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
-        <img src="/brand/keeper-symbol.png" alt="Rookie Quest Keeper" />
+        <img src="/brand/rookie-quest-keeper-app-icon.svg" alt="Rookie Quest Keeper" />
         <p>Loading character...</p>
       </div>
     );
@@ -620,7 +672,7 @@ export default function CleanCharacterSheet() {
         onRollInitiative={() => makeRoll('Initiative', initiative)}
       />
 
-      <CleanSheetResourceRail character={character} onCharacterUpdate={patchCharacter} />
+      {!isPhone && <CleanSheetResourceRail character={character} onCharacterUpdate={patchCharacter} />}
 
       <CleanSheetTabs tabs={sheetTabs} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
 
@@ -633,7 +685,16 @@ export default function CleanCharacterSheet() {
             proficiencyBonus={proficiencyBonus}
           />
         )}
-        {activeTab === 'stats' && (
+        {activeTab === 'stats' && isPhone && (
+          <CompactCommandOverview
+            character={character}
+            proficiencyBonus={proficiencyBonus}
+            onRoll={makeRoll}
+            onCharacterUpdate={patchCharacter}
+            onOpenTab={setActiveTab}
+          />
+        )}
+        {((activeTab === 'stats' && !isPhone) || activeTab === 'full-stats') && (
           <CleanSheetOverviewTab
             character={character}
             proficiencyBonus={proficiencyBonus}

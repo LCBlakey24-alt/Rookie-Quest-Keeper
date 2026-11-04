@@ -1,0 +1,62 @@
+/* Day-by-day location history rows.
+ *
+ * The row was laid out inline as a five-column grid:
+ *   50px 1fr 100px 100px 80px   with a 12px gap
+ * That is 330px of fixed columns plus 48px of gaps -- 378px committed before
+ * the 1fr event-text column gets anything. A 390px phone has roughly 358px of
+ * content width, so the event text collapsed to nothing and the Reputation
+ * column was pushed outside the row. The scroller above it scrolls vertically
+ * only, so the clipped columns could not be reached at all.
+ *
+ * The three trailing stats are now one child, so the row is three columns and
+ * the stats can wrap together. The design system asks for one-column content
+ * and no sideways scrolling on phones, so the row stacks rather than gaining a
+ * horizontal scrollbar.
+ */
+
+.rqk-event-history-row {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.rqk-event-history-row > * {
+  min-width: 0;
+}
+
+.rqk-event-history-event {
+  overflow-wrap: anywhere;
+}
+
+.rqk-event-history-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 12px;
+}
+
+/* Phone: day and event on the first line, the stats sharing the second. */
+@media (max-width: 719px) {
+  .rqk-event-history-row {
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-areas:
+      'day event'
+      'stats stats';
+    gap: 6px 10px;
+    padding: 10px 12px;
+    align-items: start;
+  }
+
+  .rqk-event-history-day { grid-area: day; }
+  .rqk-event-history-event { grid-area: event; }
+
+  .rqk-event-history-stats {
+    grid-area: stats;
+    justify-content: flex-start;
+  }
+}

@@ -92,6 +92,25 @@ test('successful sign-in persists the username alongside the session', async () 
   expect(JSON.parse(sessionStorage.getItem('rqk.admin-check:New Keeper'))).toMatchObject({ isAdmin: true });
 });
 
+test('the landing and sign-in routes still render if browser storage is denied', async () => {
+  localStorage.clear();
+  const original = window.localStorage;
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+      setItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+      removeItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+    },
+  });
+  try {
+    openApp('/');
+    expect(await screen.findByRole('heading', { name: 'Rookie Quest Keeper landing' })).toBeInTheDocument();
+  } finally {
+    Object.defineProperty(window, 'localStorage', { configurable: true, value: original });
+  }
+});
+
 test('the public root is the Keeper product site', async () => {
   localStorage.clear();
   openApp('/');
@@ -110,4 +129,11 @@ test('a player display link resumes after signing in', async () => {
   fireEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
   expect(await screen.findByRole('heading', { name: 'Player display' })).toBeInTheDocument();
   expect(screen.queryByText(/Dashboard for/)).not.toBeInTheDocument();
+});
+
+test.each([true, false])('emailed reset link opens the public recovery route with an existing session: %s', async signedIn => {
+  if (!signedIn) localStorage.clear();
+  openApp('/reset-password?token=emailed-token');
+  expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: /Dashboard for/ })).not.toBeInTheDocument();
 });

@@ -34,7 +34,7 @@
   align-items: center !important;
   gap: 18px !important;
   padding: 18px 20px !important;
-  background: var(--rq-bg-panel, #1E2936) !important;
+  background: var(--rq-bg-panel, #0B1B2B) !important;
   background-image: none !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
@@ -102,7 +102,7 @@
   align-items: center !important;
   justify-content: center !important;
   padding: 0 12px !important;
-  background: var(--rq-card, #263748) !important;
+  background: var(--rq-card, #0B1B2B) !important;
   background-image: none !important;
   color: var(--rq-text-primary, #EADFC8) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
@@ -116,15 +116,15 @@
 
 #root .unified-dashboard-button:hover:not(:disabled),
 #root .unified-dashboard-button:focus-visible {
-  background: var(--rq-card-hover, #334155) !important;
-  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
+  background: var(--rq-card-hover, #0B1B2B) !important;
+  border-color: var(--rq-line-strong, rgba(60,146,224, 0.30)) !important;
 }
 
 #root .unified-dashboard-button:focus-visible,
 #root .dashboard-continue-card:focus-visible,
 #root .dashboard-command-card--simple:focus-visible,
 #root .dashboard-activity-item:focus-visible {
-  outline: 3px solid var(--rq-secondary, #6E91B4) !important;
+  outline: 3px solid var(--rq-secondary, #3C92E0) !important;
   outline-offset: 2px !important;
 }
 
@@ -185,10 +185,10 @@
   align-items: center !important;
   gap: 12px !important;
   padding: 16px !important;
-  background: var(--rq-bg-panel, #1E2936) !important;
+  background: var(--rq-bg-panel, #0B1B2B) !important;
   color: var(--rq-text-primary, #EADFC8) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
-  border-left: 3px solid var(--rq-primary, #6E91B4) !important;
+  border-left: 3px solid var(--rq-primary, #3C92E0) !important;
   border-radius: var(--rq-radius, 7px) !important;
   box-shadow: none !important;
   text-decoration: none !important;
@@ -196,8 +196,8 @@
 
 #root .dashboard-continue-card:hover,
 #root .dashboard-continue-card:focus-visible {
-  background: var(--rq-card, #263748) !important;
-  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
+  background: var(--rq-card, #0B1B2B) !important;
+  border-color: var(--rq-line-strong, rgba(60,146,224, 0.30)) !important;
 }
 
 #root .dashboard-continue-icon {
@@ -206,8 +206,8 @@
   display: grid !important;
   place-items: center !important;
   color: var(--rq-primary, #C9A96B) !important;
-  background: var(--rq-secondary-soft, rgba(110,145,180,0.12)) !important;
-  border: 1px solid var(--rq-accent-border, rgba(110,145,180, 0.30)) !important;
+  background: var(--rq-secondary-soft, rgba(60,146,224,0.12)) !important;
+  border: 1px solid var(--rq-accent-border, rgba(60,146,224, 0.30)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
 }
 
@@ -267,7 +267,7 @@
   align-items: center !important;
   gap: 12px !important;
   padding: 15px !important;
-  background: var(--rq-card, #263748) !important;
+  background: var(--rq-card, #0B1B2B) !important;
   background-image: none !important;
   color: var(--rq-text-primary, #EADFC8) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
@@ -280,18 +280,18 @@
 
 #root .dashboard-command-card--simple:hover,
 #root .dashboard-command-card--simple:focus-visible {
-  background: var(--rq-card-hover, #334155) !important;
-  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
+  background: var(--rq-card-hover, #0B1B2B) !important;
+  border-color: var(--rq-line-strong, rgba(60,146,224, 0.30)) !important;
   transform: none !important;
 }
 
 #root .dashboard-command-card--simple.is-primary {
-  border-color: var(--rq-line-strong, rgba(110,145,180, 0.30)) !important;
+  border-color: var(--rq-line-strong, rgba(60,146,224, 0.30)) !important;
 }
 
 #root .dashboard-command-card--simple.is-primary .dashboard-command-icon {
-  background: var(--rq-secondary-soft, rgba(110,145,180,0.12)) !important;
-  border-color: var(--rq-accent-border, rgba(110,145,180, 0.30)) !important;
+  background: var(--rq-secondary-soft, rgba(60,146,224,0.12)) !important;
+  border-color: var(--rq-accent-border, rgba(60,146,224, 0.30)) !important;
   color: var(--rq-primary, #C9A96B) !important;
 }
 
@@ -301,8 +301,8 @@
   display: grid !important;
   place-items: center !important;
   align-self: center !important;
-  background: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10)) !important;
-  color: var(--rq-secondary, #6E91B4) !important;
+  background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
+  color: var(--rq-secondary, #3C92E0) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
   box-shadow: none !important;
@@ -347,7 +347,7 @@
   display: grid !important;
   gap: 0 !important;
   overflow: hidden !important;
-  background: var(--rq-bg-panel, #1E2936) !important;
+  background: var(--rq-bg-panel, #0B1B2B) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
 }
@@ -372,7 +372,7 @@
 
 #root .dashboard-activity-item:hover,
 #root .dashboard-activity-item:focus-visible {
-  background: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10)) !important;
+  background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
 }
 
 #root .dashboard-activity-item:last-child {
@@ -384,8 +384,8 @@
   height: 32px !important;
   display: grid !important;
   place-items: center !important;
-  background: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10)) !important;
-  color: var(--rq-secondary, #6E91B4) !important;
+  background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
+  color: var(--rq-secondary, #3C92E0) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
 }
 
@@ -427,7 +427,7 @@
   align-content: center !important;
   gap: 7px !important;
   padding: 16px !important;
-  background: var(--rq-bg-panel, #1E2936) !important;
+  background: var(--rq-bg-panel, #0B1B2B) !important;
   color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
   border: 1px dashed var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
@@ -451,7 +451,7 @@
   align-content: center !important;
   gap: 9px !important;
   color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
-  background: var(--rq-bg-panel, #1E2936) !important;
+  background: var(--rq-bg-panel, #0B1B2B) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
 }

@@ -113,6 +113,7 @@ export default function LiveSessionMode({
     return (
       <button
         onClick={onToggle}
+        aria-label="Open Live Session"
         style={{
           position: 'fixed',
           bottom: '20px',
@@ -167,6 +168,7 @@ export default function LiveSessionMode({
         </div>
         <button
           onClick={onToggle}
+          aria-label="Close Live Session"
           style={{
             background: 'none',
             border: 'none',

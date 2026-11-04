@@ -6,6 +6,12 @@ import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 
 const characterCache = new Map();
 const REVEAL_DELAY = 360;
+// With the 3D tray the dice decide when the roll is over: the tray calls
+// onRevealNow the moment they stop. The 360ms used for the flat card would
+// put the total on screen while they were still in the air, and the
+// auto-close that follows it could shut the panel as they landed. This is
+// only a backstop for a throw that somehow never reports settling.
+const TRAY_REVEAL_CEILING = 8000;
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 3100;
 
@@ -96,6 +102,22 @@ export default function DiceRollFlicker({
   const [showTotal, setShowTotal] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
 
+  // three.js and cannon-es are a large chunk, so they are only fetched once
+  // a roll is actually shown, and never for a viewer on reduced motion.
+  // A failed fetch is not an error worth surfacing mid-turn: the flat
+  // overlay already shows the same result, so the roll simply stays flat.
+  const [TrayOverlay, setTrayOverlay] = useState(null);
+  useEffect(() => {
+    if (prefersReducedMotion || !visible || TrayOverlay) return undefined;
+
+    let cancelled = false;
+    import('@/components/DiceTray3DOverlay')
+      .then((module) => { if (!cancelled) setTrayOverlay(() => module.default); })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [prefersReducedMotion, visible, TrayOverlay]);
+
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
 
   useEffect(() => {
@@ -168,12 +190,14 @@ export default function DiceRollFlicker({
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
     setShowTotal(false);
-    const revealTimer = window.setTimeout(
-      () => setShowTotal(true),
-      prefersReducedMotion ? REDUCED_MOTION_REVEAL_DELAY : REVEAL_DELAY,
-    );
+    const usingTray = !prefersReducedMotion && Boolean(TrayOverlay);
+    const delay = prefersReducedMotion
+      ? REDUCED_MOTION_REVEAL_DELAY
+      : usingTray ? TRAY_REVEAL_CEILING : REVEAL_DELAY;
+
+    const revealTimer = window.setTimeout(() => setShowTotal(true), delay);
     return () => window.clearTimeout(revealTimer);
-  }, [visible, dice, finalTotal, prefersReducedMotion]);
+  }, [visible, dice, finalTotal, prefersReducedMotion, TrayOverlay]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
@@ -201,8 +225,15 @@ export default function DiceRollFlicker({
 
   const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
 
+  // Physical tumbling dice by default; the flat overlay stays the
+  // presentation for viewers who ask for reduced motion
+  // (docs/UI_DESIGN_SYSTEM.md requires honouring prefers-reduced-motion),
+  // and remains the fallback until the 3D chunk has loaded, or for good if
+  // it cannot load. Both take the same props.
+  const Overlay = (!prefersReducedMotion && TrayOverlay) || FlatDiceResultOverlay;
+
   return createPortal(
-    <FlatDiceResultOverlay
+    <Overlay
       total={finalTotal}
       label={label}
       rollDetail={rollDetail}

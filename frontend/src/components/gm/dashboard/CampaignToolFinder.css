@@ -8,7 +8,7 @@
   gap: 9px !important;
   padding: 0 12px !important;
   border: 1px solid var(--rq-line-strong, rgba(201,169,107,.3)) !important;
-  background: var(--rq-bg-panel, #1e2936) !important;
+  background: var(--rq-bg-panel, #0b1b2b) !important;
   color: var(--rq-text-primary, #eadfc8) !important;
   white-space: nowrap;
 }
@@ -27,7 +27,7 @@
 #root .rqk-tool-finder-trigger:hover,
 #root .rqk-tool-finder-trigger:focus-visible {
   border-color: var(--rq-accent-primary, #c9a96b) !important;
-  background: var(--rq-card-hover, #334155) !important;
+  background: var(--rq-card-hover, #0B1B2B) !important;
 }
 
 .rqk-tool-finder-backdrop {
@@ -93,7 +93,7 @@
   place-items: center;
   border: 1px solid rgba(201,169,107,.25);
   border-radius: 7px;
-  background: #1e2936;
+  background: #0b1b2b;
   color: #eadfc8;
   cursor: pointer;
 }
@@ -161,7 +161,7 @@
 .rqk-tool-finder-result.is-highlighted,
 .rqk-tool-finder-result:focus-visible {
   border-color: rgba(201,169,107,.48);
-  background: #263748;
+  background: #0B1B2B;
 }
 .rqk-tool-finder-result:focus-visible,
 .rqk-tool-finder-close:focus-visible {

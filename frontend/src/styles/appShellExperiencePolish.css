@@ -24,7 +24,7 @@
 
 #root .rqk-app-rail {
   overflow: hidden !important;
-  background: var(--rq-bg-rail, #07131F) !important;
+  background: var(--rq-bg-rail, #0B1B2B) !important;
   background-image: none !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   box-shadow: none !important;
@@ -52,7 +52,7 @@
 #root .rqk-app-rail-link:focus-visible,
 #root .rqk-app-mobile-more-item:focus-visible,
 #root .rqk-app-mobile-more-close:focus-visible {
-  outline: 3px solid var(--rq-secondary, #6E91B4) !important;
+  outline: 3px solid var(--rq-secondary, #3C92E0) !important;
   outline-offset: 2px !important;
 }
 
@@ -92,13 +92,13 @@
 #root .rqk-app-rail-link:hover,
 #root .rqk-app-rail-rook:hover,
 #root .rqk-app-rail-feedback:hover {
-  background: var(--rq-card-hover, #334155) !important;
+  background: var(--rq-card-hover, #0B1B2B) !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   transform: none !important;
 }
 
 #root .rqk-app-rail-link.is-active {
-  background: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10)) !important;
+  background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
   border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
   color: var(--rq-text-primary, #EADFC8) !important;
 }
@@ -125,7 +125,7 @@
 
 #root .rqk-app-topbar {
   min-width: 0 !important;
-  background: var(--rq-bg-deep, #07131F) !important;
+  background: var(--rq-bg-deep, #0B1B2B) !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   box-shadow: none !important;
 }
@@ -271,12 +271,12 @@
 
 #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.is-open,
 #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.has-current-section {
-  background: var(--rq-secondary-soft, rgba(110, 145, 180, 0.10)) !important;
+  background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
   border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
 }
 
 #root .rqk-app-mobile-more-panel {
-  background: var(--rq-bg-panel, #1E2936) !important;
+  background: var(--rq-bg-panel, #0B1B2B) !important;
   background-image: none !important;
   border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
   border-radius: var(--rq-radius, 7px) !important;
@@ -285,7 +285,7 @@
 
 #root .rqk-app-mobile-more-item,
 #root .rqk-app-mobile-more-close {
-  background: var(--rq-card, #263748) !important;
+  background: var(--rq-card, #0B1B2B) !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
   color: var(--rq-text-primary, #EADFC8) !important;
@@ -293,13 +293,13 @@
 }
 
 #root .rqk-app-mobile-more-item svg {
-  color: var(--rq-secondary, #6E91B4) !important;
+  color: var(--rq-secondary, #3C92E0) !important;
 }
 
 #root .rqk-app-mobile-more-item:hover,
 #root .rqk-app-mobile-more-item.is-active,
 #root .rqk-app-mobile-more-close:hover {
-  background: var(--rq-card-hover, #334155) !important;
+  background: var(--rq-card-hover, #0B1B2B) !important;
 }
 
 #root .rqk-app-mobile-more-item.is-active {

@@ -38,11 +38,11 @@
     background-image: none !important;
   }
   :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]) {
-    background-color: var(--rq-control-blue, #263F59) !important;
-    border-color: rgba(110,145,180,.36) !important;
+    background-color: var(--rq-control-blue, #0B1B2B) !important;
+    border-color: rgba(60,146,224,.36) !important;
   }
   :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]):hover {
-    background-color: var(--rq-control-blue, #263F59) !important;
+    background-color: var(--rq-control-blue, #0B1B2B) !important;
   }
   :where([role='tab'][data-state='active'], [aria-selected='true'], [aria-pressed='true']) {
     background-color: var(--rq-control-wax, #7E2D2D) !important;
@@ -74,20 +74,20 @@ html[data-theme='gm'],
 html[data-theme='player'] {
   --rq-bg: #0B1B2B;
   --rq-bg-main: #0B1B2B;
-  --rq-bg-deep: #07131F;
-  --rq-bg-rail: #07131F;
-  --rq-surface: #1E2936;
-  --rq-bg-panel: #1E2936;
-  --rq-card: #263748;
-  --rq-bg-card: #263748;
-  --rq-card-hover: #334155;
-  --rq-bg-input: #101F2D;
+  --rq-bg-deep: #0B1B2B;
+  --rq-bg-rail: #0B1B2B;
+  --rq-surface: #0B1B2B;
+  --rq-bg-panel: #0B1B2B;
+  --rq-card: #0B1B2B;
+  --rq-bg-card: #0B1B2B;
+  --rq-card-hover: #0B1B2B;
+  --rq-bg-input: #0B1B2B;
   --rq-button: #0E263A;
   --rq-bg-button: #0E263A;
-  --rq-button-hover: #334155;
+  --rq-button-hover: #0B1B2B;
 
-  --rq-secondary: #6E91B4;
-  --rq-secondary-soft: rgba(110, 145, 180, 0.10);
+  --rq-secondary: #3C92E0;
+  --rq-secondary-soft: rgba(60, 146, 224, 0.10);
   --rq-secondary-border: rgba(121, 188, 232, 0.28);
 
   --rq-primary: #C9A96B;
@@ -96,7 +96,7 @@ html[data-theme='player'] {
   --rq-accent-primary: #C9A96B;
   --rq-accent-hover: #D9BC82;
   --rq-accent-soft: rgba(201, 169, 107, 0.12);
-  --rq-accent-border: rgba(110, 145, 180, 0.36);
+  --rq-accent-border: rgba(60, 146, 224, 0.36);
 
   --rq-text: #EADFC8;
   --rq-text-primary: #EADFC8;
@@ -106,16 +106,16 @@ html[data-theme='player'] {
   --rq-faint: rgba(234, 223, 200, 0.46);
 
   --rq-line: rgba(137, 157, 176, 0.14);
-  --rq-line-strong: rgba(110, 145, 180, 0.36);
+  --rq-line-strong: rgba(60, 146, 224, 0.36);
   --rq-border-default: rgba(137, 157, 176, 0.14);
-  --rq-border-strong: rgba(110, 145, 180, 0.36);
+  --rq-border-strong: rgba(60, 146, 224, 0.36);
 
   --rq-seal: #7F2D2D;
   --rq-seal-soft: rgba(127, 45, 45, 0.14);
   --rq-success: #5FA67A;
   --rq-warning: #D39A43;
   --rq-danger: #B94A4F;
-  --rq-info: #6E91B4;
+  --rq-info: #3C92E0;
 
   --rq-radius: 7px;
   --rq-inner-radius: 5px;
@@ -328,13 +328,14 @@ body {
   color: var(--rq-text) !important;
   background: var(--rq-surface) !important;
   border-color: var(--rq-line) !important;
-  outline: none !important;
+  /* No `outline: none` here: shared with :focus-visible, so suppressing it
+   * made keyboard focus indistinguishable from hover on the nav rail. */
   transform: none !important;
 }
 
 #root .rqk-app-rail-link.is-active {
   color: #fff !important;
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
@@ -397,7 +398,7 @@ body {
 
 #root .rqk-app-mobile-more-item.is-active,
 #root .rqk-app-mobile-more-item--rook {
-  background: var(--rq-control-blue, #263F59) !important;
+  background: var(--rq-control-blue, #0B1B2B) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 

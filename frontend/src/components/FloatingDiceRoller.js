@@ -3,7 +3,9 @@ import { useLocation } from 'react-router-dom';
 import { Bell, CheckCircle2, Dices, Sparkles, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
-import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
+import { getAnimationTarget, parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
+import { DICE_DYES } from '@/components/dice3d/diceDyes';
+import { loadDiceDyeId, saveDiceDyeId } from '@/lib/diceDyePreference';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import './FloatingDiceRoller.css';
@@ -14,6 +16,26 @@ const HISTORY_LIMIT = 5;
 
 function cleanFormula(value = '') {
   return String(value || '').replace(/\s+/g, '').trim();
+}
+
+// Advantage and disadvantage need a single d20 plus optional flat modifiers.
+// When the formula on screen is already such an expression, roll that, so a
+// player asking for advantage on a +5 check keeps the +5. Anything else --
+// 2d6+3, an empty box, a half-typed formula -- falls back to a bare d20,
+// because the engine rejects advantage on a multi-dice expression and an
+// error toast is no use mid-turn.
+function d20ExpressionOrFallback(formula) {
+  const parsed = parseDiceNotation(formula);
+  if (!parsed.valid) return '1d20';
+
+  const diceTerms = parsed.terms.filter(term => term.type === 'dice');
+  const isSingleD20 = diceTerms.length === 1
+    && diceTerms[0].sign === 1
+    && diceTerms[0].count === 1
+    && diceTerms[0].sides === 20
+    && !diceTerms[0].keepDrop;
+
+  return isSingleD20 ? parsed.normalizedNotation : '1d20';
 }
 
 function describe(result) {
@@ -85,6 +107,7 @@ export default function FloatingDiceRoller() {
   const [history, setHistory] = useState([]);
   const [rollFlicker, setRollFlicker] = useState(null);
   const [playerContext, setPlayerContext] = useState(null);
+  const [dyeId, setDyeId] = useState(loadDiceDyeId);
   const [displayState, setDisplayState] = useState(null);
   const isCharacterSheet = Boolean(characterIdFromPath(location.pathname || ''));
 
@@ -177,6 +200,7 @@ export default function FloatingDiceRoller() {
   };
 
   const rollCustom = () => performRoll(customFormula, 'Custom Roll');
+  const rollWithMode = (rollType, label) => performRoll(d20ExpressionOrFallback(customFormula), label, { rollType });
   const rollRequestedCheck = () => {
     if (!requestedCheck) return;
     const payload = requestedCheck.payload || {};
@@ -228,10 +252,10 @@ export default function FloatingDiceRoller() {
             </div>
 
             <div className="rq-floating-dice__modes">
-              <button type="button" className="rq-floating-dice__mode" data-testid="roll-advantage-btn" onClick={() => performRoll('1d20', 'Advantage', { rollType: 'advantage' })}>
+              <button type="button" className="rq-floating-dice__mode" data-testid="roll-advantage-btn" onClick={() => rollWithMode('advantage', 'Advantage')}>
                 <Swords size={15} /> Advantage
               </button>
-              <button type="button" className="rq-floating-dice__mode" data-testid="roll-disadvantage-btn" onClick={() => performRoll('1d20', 'Disadvantage', { rollType: 'disadvantage' })}>
+              <button type="button" className="rq-floating-dice__mode" data-testid="roll-disadvantage-btn" onClick={() => rollWithMode('disadvantage', 'Disadvantage')}>
                 <Sparkles size={15} /> Disadvantage
               </button>
             </div>
@@ -249,6 +273,27 @@ export default function FloatingDiceRoller() {
               />
               <button type="button" className="rq-floating-dice__custom-button" data-testid="custom-roll-btn" onClick={rollCustom}>Roll</button>
             </div>
+
+            <fieldset className="rq-floating-dice__dyes">
+              <legend>Dice colour</legend>
+              <div className="rq-floating-dice__swatches">
+                {DICE_DYES.map((dye) => (
+                  <button
+                    key={dye.id}
+                    type="button"
+                    className="rq-floating-dice__swatch"
+                    data-testid={`dice-dye-${dye.id}`}
+                    aria-pressed={dyeId === dye.id}
+                    aria-label={dye.name}
+                    title={dye.name}
+                    style={{ '--swatch-body': dye.body, '--swatch-ink': dye.ink }}
+                    onClick={() => setDyeId(saveDiceDyeId(dye.id))}
+                  >
+                    <span aria-hidden="true">20</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             <div className="rq-floating-dice__history" aria-label="Recent dice results">
               <span className="rq-floating-dice__history-title">Recent results</span>

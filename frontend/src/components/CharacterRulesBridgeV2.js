@@ -392,7 +392,7 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
 
   const spellcasting = SPELLCASTING_CLASSES[className];
   if (spellcasting) {
-    const slots = getSpellSlotsForCaster(spellcasting, level);
+    const slots = getSpellSlotsForCaster(spellcasting, level, enhanced.rules_edition || enhanced.edition || '2014');
     enhanced.spell_slots = slots;
     enhanced.spell_slots_remaining = slots;
   } else if (homebrewSpellcastingIsActive(classData, level)) {

@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Lightbulb, X, ChevronDown, ChevronUp } from 'lucide-react';
 
+// Safari private browsing and blocked site data throw on localStorage access
+// rather than returning null, so a dismissed-tip preference must never be
+// allowed to take the page down with it.
+const readTipState = (pageId) => {
+  try {
+    return window.localStorage.getItem(`quicktips_${pageId}`);
+  } catch {
+    return null;
+  }
+};
+
+const writeTipState = (pageId, state) => {
+  try {
+    window.localStorage.setItem(`quicktips_${pageId}`, state);
+  } catch {
+    /* the tip still hides for this session, it just will not be remembered */
+  }
+};
+
 // Dark Minimalist Theme Colors - #C54B2C
 const theme = {
   accent: 'var(--rq-accent-primary)',
@@ -16,7 +35,7 @@ function QuickTips({ tips, pageId, title = "Quick Tips" }) {
 
   // Remember collapsed state per page
   useEffect(() => {
-    const savedState = localStorage.getItem(`quicktips_${pageId}`);
+    const savedState = readTipState(pageId);
     if (savedState === 'hidden') {
       setIsVisible(false);
     } else if (savedState === 'collapsed') {
@@ -26,19 +45,19 @@ function QuickTips({ tips, pageId, title = "Quick Tips" }) {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem(`quicktips_${pageId}`, 'hidden');
+    writeTipState(pageId, 'hidden');
   };
 
   const handleToggle = () => {
     const newState = !isCollapsed;
     setIsCollapsed(newState);
-    localStorage.setItem(`quicktips_${pageId}`, newState ? 'collapsed' : 'visible');
+    writeTipState(pageId, newState ? 'collapsed' : 'visible');
   };
 
   const handleShowAgain = () => {
     setIsVisible(true);
     setIsCollapsed(false);
-    localStorage.setItem(`quicktips_${pageId}`, 'visible');
+    writeTipState(pageId, 'visible');
   };
 
   if (!isVisible) {

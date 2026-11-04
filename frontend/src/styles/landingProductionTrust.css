@@ -12,7 +12,7 @@
 #root .landing-page-final .landing-faq-heading,
 #root .landing-page-final .landing-principles-heading,
 #root .landing-page-final .landing-table-shift-heading {
-  background: var(--landing-bg-deep, #07131F) !important;
+  background: var(--landing-bg-deep, #0B1B2B) !important;
   background-image: none !important;
 }
 
@@ -51,7 +51,7 @@
   display: inline-flex;
   padding: 4px 8px;
   background: var(--landing-red) !important;
-  color: var(--landing-bg-deep, #07131F) !important;
+  color: var(--landing-bg-deep, #0B1B2B) !important;
   font-size: 12px;
   font-weight: 950;
   letter-spacing: 0.08em;
@@ -200,7 +200,7 @@
 }
 
 #root .landing-page-final .landing-faq-item summary:focus-visible {
-  outline: 3px solid var(--landing-secondary, #6E91B4);
+  outline: 3px solid var(--landing-secondary, #3C92E0);
   outline-offset: -3px;
 }
 

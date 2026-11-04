@@ -50,6 +50,26 @@ export const getCharacterSubclassForClass = (character = {}, className = '') => 
     : '';
 };
 
+const isEdition2024 = (edition) => String(edition ?? '').includes('2024');
+
+/**
+ * The class level at which a half caster gains Spellcasting.
+ *
+ * 2 in the 2014 rules, 1 in 2024 -- that single row is the only place the two
+ * half-caster slot tables differ, and it is why a 2024 Paladin or Ranger
+ * starts with two 1st-level slots. Third casters gain it at 3 in both.
+ * The backend models the same rule in data/spell_slot_rules.py.
+ */
+export const halfCasterStartLevel = (edition = '2014') => (isEdition2024(edition) ? 1 : 2);
+
+/**
+ * Read the edition off a character. Deliberately local rather than imported
+ * from editionSpellSlotRules.js, which imports from this module -- taking it
+ * from there would make the two files circular.
+ */
+const halfCasterStartLevelForCharacter = (character = {}) =>
+  halfCasterStartLevel(character?.rules_edition || character?.edition || character?.ruleset_id || '2014');
+
 export const classHasSpellcasting = (character = {}, className = '') => {
   const canonicalClass = getCanonicalSpellcastingClass(className);
   const classInfo = SPELLCASTING_CLASSES[canonicalClass];
@@ -57,7 +77,7 @@ export const classHasSpellcasting = (character = {}, className = '') => {
 
   const classLevel = getCharacterClassLevel(character, canonicalClass);
   if (classLevel <= 0) return false;
-  if (classInfo.halfCaster && classLevel < 2) return false;
+  if (classInfo.halfCaster && classLevel < halfCasterStartLevelForCharacter(character)) return false;
 
   if (classInfo.subclassOnly) {
     const subclass = getCharacterSubclassForClass(character, canonicalClass);
@@ -99,12 +119,43 @@ export const getCharacterSpellcastingInfo = (character = {}) => {
   };
 };
 
-export const getSpellSlotsForCaster = (classInfo, casterLevel) => {
+// Third casters gain Spellcasting at 3 in both editions. Half casters gain it
+// at 2 in 2014 but at 1 in 2024, which is the one row where the two half-caster
+// slot tables differ -- a 2024 Paladin or Ranger starts with two 1st-level
+// slots. The backend already models this in data/spell_slot_rules.py
+// (class_has_spellcasting returns level >= 1 for a 2024 half caster).
+const THIRD_CASTER_START_LEVEL = 3;
+
+/**
+ * Which row of the full-caster table a class's OWN slots come from.
+ *
+ * This is ceil(level / N), NOT floor. floor() is the *multiclass contribution*
+ * rule ("add half your levels in paladin and ranger classes, rounded down"),
+ * and conflating the two understated slots at every odd class level: a 2014
+ * Paladin 5 resolved to SPELL_SLOTS[2] = {1:3} instead of
+ * SPELL_SLOTS[3] = {1:4, 2:2}. Even levels coincide, which is why it hid.
+ *
+ * Cross-checked row by row against SPELL_SLOT_PROGRESSION.half / .third in
+ * editionRules.js, which already held the correct tables.
+ *
+ * The start-level guard matters: ceil() alone would wrongly grant a level-1
+ * half caster a 1st-level slot, where floor() happened to yield none.
+ */
+export const ownCasterTableLevel = (classInfo, casterLevel, edition = '2014') => {
+  if (!classInfo) return 0;
+  if (classInfo.halfCaster) {
+    return casterLevel < halfCasterStartLevel(edition) ? 0 : Math.ceil(casterLevel / 2);
+  }
+  if (classInfo.thirdCaster) {
+    return casterLevel < THIRD_CASTER_START_LEVEL ? 0 : Math.ceil(casterLevel / 3);
+  }
+  return casterLevel;
+};
+
+export const getSpellSlotsForCaster = (classInfo, casterLevel, edition = '2014') => {
   if (!classInfo || casterLevel <= 0) return {};
   if (classInfo.pactMagic) return PACT_MAGIC_SLOTS[casterLevel] || {};
-  if (classInfo.halfCaster) return SPELL_SLOTS[Math.floor(casterLevel / 2)] || {};
-  if (classInfo.thirdCaster) return SPELL_SLOTS[Math.floor(casterLevel / 3)] || {};
-  return SPELL_SLOTS[casterLevel] || {};
+  return SPELL_SLOTS[ownCasterTableLevel(classInfo, casterLevel, edition)] || {};
 };
 
 // Spell slots per level (full casters)
@@ -433,16 +484,9 @@ export const getMaxSpellLevel = (className, characterLevel) => {
     return PACT_MAGIC_SLOTS[characterLevel]?.level || 0;
   }
   
-  if (classInfo.halfCaster) {
-    const effectiveLevel = Math.floor(characterLevel / 2);
-    for (let i = 9; i >= 1; i--) {
-      if (SPELL_SLOTS[effectiveLevel]?.[i]) return i;
-    }
-    return 0;
-  }
-
-  if (classInfo.thirdCaster) {
-    const effectiveLevel = Math.floor(characterLevel / 3);
+  if (classInfo.halfCaster || classInfo.thirdCaster) {
+    // Same own-table rule as getSpellSlotsForCaster; see ownCasterTableLevel.
+    const effectiveLevel = ownCasterTableLevel(classInfo, characterLevel);
     for (let i = 9; i >= 1; i--) {
       if (SPELL_SLOTS[effectiveLevel]?.[i]) return i;
     }

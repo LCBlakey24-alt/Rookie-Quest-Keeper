@@ -6,8 +6,9 @@ import uuid
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field
 
-from config import db, ADMIN_USERNAMES, logger
+from config import db, logger
 from utils.auth import get_current_user
+from utils.admin_identity import is_admin_username, require_admin
 from models import (
     Review, ReviewCreate, CustomCreature, CustomCreatureCreate,
 )
@@ -68,10 +69,9 @@ def merge_site_settings(doc: Optional[dict]) -> dict:
 
 
 async def verify_admin(username: str):
-    # Case-insensitive match so capitalized usernames (e.g. "LCBlakey24") still pass
-    admins = {a.lower() for a in ADMIN_USERNAMES}
-    if not username or username.lower() not in admins:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    # Shared check: admin names ignore case, but a later look-alike account
+    # (e.g. "lcblakey24" beside "LCBlakey24") is never treated as the admin.
+    await require_admin(username)
 
 
 async def _build_admin_user_summary(user: dict) -> dict:
@@ -447,8 +447,7 @@ async def update_admin_site_settings(payload: SiteSettingsUpdate, username: str 
 @router.get("/admin/check")
 async def check_admin_status(username: str = Depends(get_current_user)):
     """Check if current user is admin"""
-    admins = {a.lower() for a in ADMIN_USERNAMES}
-    return {"is_admin": username.lower() in admins}
+    return {"is_admin": await is_admin_username(username)}
 
 # ==================== IMPERSONATION ====================
 
@@ -463,8 +462,8 @@ async def admin_impersonate_user(target_username: str, username: str = Depends(g
         target = await db.users.find_one({'email': target_username}, {'_id': 0})
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
-    from utils.auth import create_token
-    token = create_token(target['username'])
+    from utils.auth import create_token, session_version
+    token = create_token(target['username'], session_version(target))
     logger.info(f"Admin {username} impersonating {target['username']}")
     return {
         "token": token,

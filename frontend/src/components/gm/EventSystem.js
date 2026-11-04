@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '@/lib/apiClient';
+import './EventSystem.css';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -381,12 +382,14 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
         </div>
         <div style={{ maxHeight: '500px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {history.map((h, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '50px 1fr 100px 100px 80px', gap: '12px', alignItems: 'center', padding: '10px 14px', borderRadius: '8px', background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent', fontSize: '12px' }}>
-              <span style={{ fontWeight: 700, color: theme.accent?.primary, fontFamily: "'JetBrains Mono', monospace" }}>Day {h.day}</span>
-              <span style={{ color: theme.text.secondary }}>{h.event}</span>
-              <span style={{ color: '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>{h.gold?.toLocaleString()} GP</span>
-              <span style={{ color: '#3B82F6', fontFamily: "'JetBrains Mono', monospace" }}>Pop: {h.population?.toLocaleString()}</span>
-              <span style={{ color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>Rep: {h.reputation}</span>
+            <div key={i} className="rqk-event-history-row" style={{ background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
+              <span className="rqk-event-history-day" style={{ fontWeight: 700, color: theme.accent?.primary, fontFamily: "'JetBrains Mono', monospace" }}>Day {h.day}</span>
+              <span className="rqk-event-history-event" style={{ color: theme.text.secondary }}>{h.event}</span>
+              <span className="rqk-event-history-stats">
+                <span style={{ color: '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>{h.gold?.toLocaleString()} GP</span>
+                <span style={{ color: '#3B82F6', fontFamily: "'JetBrains Mono', monospace" }}>Pop: {h.population?.toLocaleString()}</span>
+                <span style={{ color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>Rep: {h.reputation}</span>
+              </span>
             </div>
           ))}
         </div>
@@ -637,7 +640,7 @@ function EventCard({ evt, theme, onPreview, onDelete, onRun, completed }) {
             style={{ flex: 1, padding: '6px', borderRadius: '6px', fontSize: '10px', fontWeight: 600, cursor: 'pointer', background: 'rgba(16,185,129,0.08)', color: '#10B981', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             <Play size={10} /> Run
           </button>
-          <button onClick={onDelete}
+          <button onClick={onDelete} aria-label={`Delete event: ${evt.name || 'untitled'}`}
             style={{ padding: '6px 8px', borderRadius: '6px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171', cursor: 'pointer' }}>
             <Trash2 size={10} />
           </button>

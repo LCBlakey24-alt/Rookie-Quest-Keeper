@@ -358,7 +358,7 @@ function GMEntryCard({ handout, recipients, selected, sharing, editing, editDraf
         <div style={entryActionsStyle}>
           <button onClick={onStartEdit} style={smallButtonStyle}><Edit3 size={13} /> Edit</button>
           <button onClick={onRevealAll} disabled={sharing || recipients.length === 0} style={goodButtonStyle}><Send size={13} /> {sharing ? 'Revealing…' : 'Reveal all'}</button>
-          <button onClick={onDelete} style={dangerButtonStyle}><Trash2 size={13} /></button>
+          <button onClick={onDelete} aria-label={`Delete handout: ${handout.title || 'untitled'}`} style={dangerButtonStyle}><Trash2 size={13} /></button>
         </div>
       </header>
 

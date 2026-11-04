@@ -21,8 +21,8 @@
 #root .rq-brand-emblem-core {
   color: transparent !important;
   font-size: 0 !important;
-  background-color: #1E2936 !important;
-  background-image: url('/brand/keeper-symbol.png') !important;
+  background-color: #0B1B2B !important;
+  background-image: url('/brand/rookie-quest-keeper-app-icon.svg') !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   background-size: 88% !important;
@@ -58,7 +58,7 @@
 
 #root .rq-brand-nav-signin,
 #root .rq-brand-nav-cta {
-  min-height: 40px !important;
+  min-height: 44px !important;
 }
 
 #root .rq-brand-hero {
@@ -324,7 +324,7 @@
   padding: 5px 11px 5px 6px !important;
   border-radius: 7px !important;
   border: 1px solid rgba(137, 157, 176, 0.14) !important;
-  background: #07131F !important;
+  background: #0B1B2B !important;
   background-image: none !important;
 }
 
@@ -336,7 +336,7 @@
 
 #root .rqk-auth-hero,
 #root .rqk-auth-card {
-  background: #1E2936 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   border: 1px solid rgba(137, 157, 176, 0.14) !important;
   border-radius: 7px !important;
@@ -352,7 +352,7 @@
 
 #root .rqk-auth-hero {
   padding: clamp(28px, 4vw, 42px) !important;
-  border-left: 2px solid #6E91B4 !important;
+  border-left: 2px solid #3C92E0 !important;
 }
 
 #root .rqk-auth-hero h2,
@@ -376,21 +376,21 @@
 }
 
 #root .rqk-auth-feature-icon {
-  background: rgba(110,145,180, 0.12) !important;
+  background: rgba(60,146,224, 0.12) !important;
   color: #C9A96B !important;
-  border: 1px solid rgba(110,145,180, 0.30) !important;
+  border: 1px solid rgba(60,146,224, 0.30) !important;
   border-radius: 5px !important;
 }
 
 #root .rqk-auth-card {
   padding: clamp(21px, 3vw, 28px) !important;
-  border-top: 2px solid #6E91B4 !important;
+  border-top: 2px solid #3C92E0 !important;
 }
 
 #root .rqk-auth-heading::after {
   width: 56px !important;
   margin-top: 14px !important;
-  background: #263F59 !important;
+  background: #0B1B2B !important;
 }
 
 #root .rqk-auth-mode-toggle {
@@ -398,18 +398,18 @@
   padding: 4px !important;
   margin-bottom: 12px !important;
   border-radius: 5px !important;
-  background: #07131F !important;
+  background: #0B1B2B !important;
   border-color: rgba(137, 157, 176, 0.14) !important;
 }
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button {
-  min-height: 40px !important;
+  min-height: 44px !important;
   border-radius: 5px !important;
 }
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
-  background: rgba(110,145,180, 0.12) !important;
-  border-color: #6E91B4 !important;
+  background: rgba(60,146,224, 0.12) !important;
+  border-color: #3C92E0 !important;
   color: #EADFC8 !important;
 }
 
@@ -420,40 +420,40 @@
 #root .rqk-auth-preview-card {
   border-radius: 5px !important;
   border-color: rgba(137, 157, 176, 0.14) !important;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   background-image: none !important;
 }
 
 #root .rqk-auth-input-shell {
   min-height: 48px !important;
   border-radius: 5px !important;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   border-color: rgba(137, 157, 176, 0.18) !important;
 }
 
 #root .rqk-auth-input-shell:focus-within {
-  border-color: #6E91B4 !important;
-  background: #101F2D !important;
-  box-shadow: 0 0 0 3px rgba(110, 145, 180, 0.18) !important;
+  border-color: #3C92E0 !important;
+  background: #0B1B2B !important;
+  box-shadow: 0 0 0 3px rgba(60, 146, 224, 0.18) !important;
 }
 
 #root .rqk-auth-page .rqk-auth-primary {
   min-height: 48px !important;
   border-radius: 5px !important;
-  border-color: #6E91B4 !important;
-  background: #263F59 !important;
+  border-color: #3C92E0 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   color: #F8F0E5 !important;
 }
 
 #root .rqk-auth-page .rqk-auth-primary:hover:not(:disabled),
 #root .rqk-auth-page .rqk-auth-primary:focus-visible:not(:disabled) {
-  background: #263F59 !important;
-  border-color: #6E91B4 !important;
+  background: #0B1B2B !important;
+  border-color: #3C92E0 !important;
 }
 
 #root .rqk-auth-page :where(button, input):focus-visible {
-  outline: 3px solid #6E91B4 !important;
+  outline: 3px solid #3C92E0 !important;
   outline-offset: 3px !important;
   box-shadow: none !important;
 }
@@ -474,7 +474,7 @@
 #root .rqk-google-access {
   border-radius: 5px !important;
   border-color: rgba(137, 157, 176, 0.14) !important;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   background-image: none !important;
 }
 
@@ -494,11 +494,42 @@
 #root .rqk-auth-page .rqk-demo-access__button {
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 42px !important;
+  min-height: 44px !important;
   border-radius: 5px !important;
 }
 
 /* ---------- Responsive behaviour ---------- */
+/* Hero: one column for the whole tablet range.
+ *
+ * This file is linked straight from index.html, outside the build, and its
+ * rules carry !important -- so its breakpoints win over the bundled
+ * stylesheets regardless of their specificity. keeperProductSite.css intends
+ * to collapse the hero at 1040px, but the only collapse that actually takes
+ * effect is the one below at 760px, so the hero stayed two-column down to
+ * 761px.
+ *
+ * At 768px -- iPad portrait -- that left the app preview about 330px wide and
+ * its labels broke mid-word: "Overvie/w", "Sessio/ns", "SES/SIO/NS",
+ * "CHA/RAC/TER/S". That preview is the hero image of the landing page, so a
+ * visitor on a tablet met a broken-looking screenshot first.
+ *
+ * 1180px is the canonical tablet ceiling from docs/DESIGN_SYSTEM.md, where
+ * desktop starts at 1181px, so this also brings the landing page into line
+ * with the breakpoints the rest of the app uses. The narrower rules below
+ * still apply on top of this for phones.
+ */
+@media (max-width: 1180px) {
+  #root .landing-page-final .landing-final-hero {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  #root .landing-page-final .landing-product-stage {
+    width: min(760px, 100%) !important;
+    justify-self: center !important;
+  }
+}
+
 @media (max-width: 980px) {
   #root .rqk-auth-shell {
     width: min(570px, 100%) !important;
@@ -553,9 +584,11 @@
     gap: 5px !important;
   }
 
+  /* 44px is the touch-target floor from docs/DESIGN_SYSTEM.md. These were
+     38px, which is below it on exactly the screens where it matters most. */
   #root .landing-page-final .landing-nav-actions .landing-button {
     flex: 0 1 auto !important;
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding-inline: 10px !important;
     font-size: 11px !important;
     white-space: nowrap !important;
@@ -597,7 +630,7 @@
     padding: 8px 10px !important;
     border: 1px solid rgba(124, 203, 255, 0.18) !important;
     border-radius: 8px !important;
-    background: #1E2936 !important;
+    background: #0B1B2B !important;
     font-size: 10px !important;
     line-height: 1.25 !important;
   }
@@ -631,13 +664,13 @@
 
   #root .rq-brand-nav-signin {
     display: inline-flex !important;
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding: 7px 8px !important;
     font-size: 10px !important;
   }
 
   #root .rq-brand-nav-cta {
-    min-height: 38px !important;
+    min-height: 44px !important;
     padding: 8px 10px !important;
     font-size: 10px !important;
   }
@@ -818,7 +851,7 @@
   }
 
   #root .landing-page-final .landing-nav-actions .landing-button {
-    min-height: 36px !important;
+    min-height: 44px !important;
     padding-inline: 8px !important;
     font-size: 10px !important;
   }
@@ -835,5 +868,26 @@
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-auth-ambient span {
     animation: none !important;
+  }
+}
+
+/* Touch-target floor for the public pages.
+ *
+ * docs/DESIGN_SYSTEM.md sets ~44px as the minimum on phones. Chasing that one
+ * rule at a time did not work: the landing stylesheet sets heights for the
+ * same control in four places across different breakpoints, and this file
+ * then overrides several of them with !important, so each fix needed four
+ * edits and still missed cases. This is a single floor instead.
+ *
+ * Scoped deliberately to the landing and auth surfaces, which are the ones
+ * verified in a browser. It is not applied app-wide because dense table
+ * screens have small deliberate controls (steppers, pips) that a blanket
+ * floor would stretch.
+ */
+@media (max-width: 719px) {
+  #root .keeper-product-site :is(button, [role="button"], a.landing-button),
+  #root .landing-page-final :is(button, [role="button"], a.landing-button),
+  #root .rqk-auth-page :is(button, [role="button"], [role="tab"]) {
+    min-height: 44px !important;
   }
 }

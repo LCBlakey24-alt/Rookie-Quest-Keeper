@@ -102,17 +102,27 @@ export default function Soundboard({ theme, campaignId }) {
   const audioRefs = useRef({});
   const fileInputRef = useRef(null);
 
-  // Load custom sounds from localStorage
+  // Load custom sounds from localStorage. Storage access can throw outright
+  // in private browsing, and stored JSON can be corrupt, so neither is allowed
+  // to break the soundboard -- it just starts with no custom sounds.
   useEffect(() => {
-    const saved = localStorage.getItem(`soundboard-custom-${campaignId}`);
-    if (saved) {
-      setCustomSounds(JSON.parse(saved));
+    try {
+      const saved = window.localStorage.getItem(`soundboard-custom-${campaignId}`);
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) setCustomSounds(parsed);
+    } catch {
+      /* keep the built-in sounds only */
     }
   }, [campaignId]);
 
   // Save custom sounds to localStorage
   useEffect(() => {
-    localStorage.setItem(`soundboard-custom-${campaignId}`, JSON.stringify(customSounds));
+    try {
+      window.localStorage.setItem(`soundboard-custom-${campaignId}`, JSON.stringify(customSounds));
+    } catch {
+      /* sounds stay available for this session, they just will not persist */
+    }
   }, [customSounds, campaignId]);
 
   const handleFileUpload = (e) => {

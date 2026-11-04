@@ -90,24 +90,20 @@ _CANTRIPS_KNOWN_PROGRESSION: Dict[str, Dict[int, int]] = {
 }
 
 # Origin Feats (2024 only) — picked at character creation as part of background.
+# SRD 5.2 origin feats. The 2024 PHB has ten; only these four are in the SRD,
+# so only these four can ship. The rest live in a table's own homebrew --
+# see docs/licensing/SRD_FEATS.md.
 _ORIGIN_FEATS_2024: List[str] = [
-    'Crafter', 'Healer', 'Lucky', 'Magic Initiate', 'Musician',
-    'Savage Attacker', 'Skilled', 'Tavern Brawler', 'Tough', 'Alert',
+    'Alert', 'Magic Initiate', 'Savage Attacker', 'Skilled',
 ]
 
-# General feats — most are shared 2014/2024 SRD; a handful are 2024-only or 2014-only.
+# General feats that can be distributed. Verified against the official SRD 5.2
+# CC-BY-4.0 document rather than assumed.
 _GENERAL_FEATS_BOTH: List[str] = [
-    'Alert', 'Athlete', 'Charger', 'Chef', 'Crusher', 'Defensive Duelist',
-    'Dual Wielder', 'Durable', 'Elemental Adept', 'Fey Touched', 'Grappler',
-    'Great Weapon Master', 'Heavily Armored', 'Heavy Armor Master',
-    'Inspiring Leader', 'Keen Mind', 'Lightly Armored', 'Linguist',
-    'Lucky', 'Mage Slayer', 'Magic Initiate', 'Martial Adept',
-    'Medium Armor Master', 'Mobile', 'Mounted Combatant', 'Observant',
-    'Piercer', 'Polearm Master', 'Resilient', 'Ritual Caster',
-    'Savage Attacker', 'Sentinel', 'Shadow Touched', 'Sharpshooter',
-    'Shield Master', 'Skill Expert', 'Skulker', 'Slasher',
-    'Spell Sniper', 'Tavern Brawler', 'Telekinetic', 'Telepathic',
-    'Tough', 'War Caster', 'Weapon Master',
+    # SRD 5.1 licenses exactly one feat (Grappler); SRD 5.2 adds Ability Score
+    # Improvement. Every other PHB feat is unlicensed, so the shipped general
+    # list is these two and the rest is homebrew.
+    'Ability Score Improvement', 'Grappler',
 ]
 _GENERAL_FEATS_2024_ONLY: List[str] = []  # add any pure-2024 general feats here
 
@@ -127,15 +123,44 @@ def _table_value(table: Dict[int, int], level: int) -> int:
     return result
 
 
+def _dedupe(names: List[str]) -> List[str]:
+    """Drop repeats while keeping first-seen order."""
+    seen = set()
+    result = []
+    for name in names:
+        if name not in seen:
+            seen.add(name)
+            result.append(name)
+    return result
+
+
 def feats_for_edition(edition: str, category: str = 'general') -> List[str]:
     """Return the feat list for the given edition + category.
+
     category: 'origin' (2024 only) or 'general' (any non-origin feat) or 'all'.
+
+    Six feats -- Alert, Lucky, Magic Initiate, Savage Attacker, Tavern Brawler
+    and Tough -- are General feats in 2014 but Origin feats in 2024, so they
+    appear in _GENERAL_FEATS_BOTH *and* _ORIGIN_FEATS_2024. For 2024 they must
+    be served as Origin feats only: at a 2024 ASI level just General feats are
+    legal, so including them there offers an illegal choice, and 'all'
+    previously returned them twice.
     """
+    is_2024 = _edition(edition) == '2024'
+
     if category == 'origin':
-        return _ORIGIN_FEATS_2024 if _edition(edition) == '2024' else []
+        return list(_ORIGIN_FEATS_2024) if is_2024 else []
+
     if category == 'general':
-        return list(_GENERAL_FEATS_BOTH) + (_GENERAL_FEATS_2024_ONLY if _edition(edition) == '2024' else [])
-    return list(_GENERAL_FEATS_BOTH) + (_ORIGIN_FEATS_2024 if _edition(edition) == '2024' else []) + (_GENERAL_FEATS_2024_ONLY if _edition(edition) == '2024' else [])
+        if not is_2024:
+            return list(_GENERAL_FEATS_BOTH)
+        origin = set(_ORIGIN_FEATS_2024)
+        return _dedupe(
+            [name for name in _GENERAL_FEATS_BOTH if name not in origin]
+            + list(_GENERAL_FEATS_2024_ONLY)
+        )
+
+    return _dedupe(feats_for_edition(edition, 'general') + feats_for_edition(edition, 'origin'))
 
 
 def subclasses_for(class_name: str) -> List[str]:
@@ -174,6 +199,29 @@ def prepared_spell_change_rule(class_name: str, edition: str = '2014') -> Dict[s
     if class_name in {'Paladin', 'Ranger'}:
         return {'cadence': 'long-rest', 'max_replacements': 1}
     return {'cadence': 'long-rest', 'max_replacements': None}
+
+
+# 2014 known casters may swap one spell each time they gain a level. The PHB
+# grants this to Bard, Ranger, Sorcerer and Warlock in their Spellcasting /
+# Pact Magic entries ("you can choose one of the spells you know and replace
+# it with another spell"). Wizard is excluded because it keeps a spellbook
+# rather than a known list, and the 2014 prepared casters re-prepare on a long
+# rest instead, so neither needs a level-up swap.
+_KNOWN_SPELL_SWAP_CLASSES_2014 = {'Bard', 'Ranger', 'Sorcerer', 'Warlock'}
+
+
+def known_spell_change_rule(class_name: str, edition: str = '2014') -> Dict[str, Any]:
+    """Describe how a known-spell list can be changed on level up.
+
+    The 2024 counterpart is prepared_spell_change_rule: those classes keep a
+    prepared list instead, so this returns no allowance for 2024 and the two
+    rules never both apply to the same class and edition.
+    """
+    if _edition(edition) == '2024':
+        return {'cadence': 'legacy', 'max_replacements': 0}
+    if class_name in _KNOWN_SPELL_SWAP_CLASSES_2014:
+        return {'cadence': 'level-up', 'max_replacements': 1}
+    return {'cadence': 'legacy', 'max_replacements': 0}
 
 
 def spells_to_learn(class_name: str, current_level: int, target_level: int, edition: str = '2014') -> int:
@@ -242,6 +290,7 @@ def class_progression_summary(class_name: str, edition: str) -> Dict[str, Any]:
         'subclasses': subclasses_for(class_name),
         'spell_selection_mode': spell_selection_mode(class_name, edition),
         'prepared_spell_change': prepared_spell_change_rule(class_name, edition),
+        'known_spell_change': known_spell_change_rule(class_name, edition),
         'spells_known_table': spells_known_table(class_name, edition),
         'spellbook_spells_table': spellbook_spells_table(class_name, edition),
         'cantrips_known_table': _CANTRIPS_KNOWN_PROGRESSION.get(class_name, {}),

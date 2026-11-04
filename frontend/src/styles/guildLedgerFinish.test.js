@@ -29,7 +29,7 @@ describe('Guild Ledger visual finishing pass', () => {
     expect(css).toContain('.campaign-home-focus-card');
     expect(css).toContain('border: 0 !important');
     expect(css).toContain(':focus-visible');
-    expect(css).toContain('outline: 2px solid var(--rq-info, #6E91B4)');
+    expect(css).toContain('outline: 2px solid var(--rq-info, #3C92E0)');
   });
 
   test('does not animate on devices requesting reduced motion', () => {
@@ -39,7 +39,9 @@ describe('Guild Ledger visual finishing pass', () => {
     expect(splash).toContain('@media (prefers-reduced-motion: reduce)');
     expect(splash).toContain('.rqk-route-logo');
     expect(splash).toContain('animation: none !important');
-    expect(splash).toContain('background: radial-gradient');
+    expect(splash).toContain('background: var(--rq-citrus-navy');
+    expect(splash).toContain('--rq-citrus-gradient');
+    expect(splash).not.toContain('radial-gradient');
     expect(splash).not.toContain('#FF2DAA');
   });
 

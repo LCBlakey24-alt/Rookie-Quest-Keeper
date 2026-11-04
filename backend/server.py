@@ -11,8 +11,9 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from config import client, db, logger, CORS_ORIGIN_LIST
+from routes.auth import EMAIL_DELIVERY_CONFIGURED
 from utils.ws_manager import ws_manager
-from utils.ws_messages import is_allowed_client_message_type
+from utils.ws_messages import GM_ONLY_MESSAGE_TYPES, is_allowed_client_message_type, parse_client_message
 from utils.auth import verify_token, verify_campaign_membership
 from utils.rate_limit import RateLimitMiddleware
 from routes import all_routers
@@ -81,7 +82,16 @@ async def readiness_check():
             content={"status": "unavailable", "service": "rook-backend", "database": "unavailable"},
             headers={"Retry-After": "15"},
         )
-    return {"status": "ready", "service": "rook-backend", "database": "available"}
+    # Email delivery is reported but deliberately does not change the status:
+    # the backend serves fine without it. It is here so an operator can see at
+    # a glance whether password recovery can actually deliver, rather than
+    # finding out from a locked-out player.
+    return {
+        "status": "ready",
+        "service": "rook-backend",
+        "database": "available",
+        "email_delivery": "configured" if EMAIL_DELIVERY_CONFIGURED else "not-configured",
+    }
 
 
 # WebSocket endpoint for real-time campaign sync
@@ -95,16 +105,24 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
 
     try:
         username = verify_token(token)
-        await verify_campaign_membership(campaign_id, username)
+        campaign = await verify_campaign_membership(campaign_id, username)
     except Exception:
         await websocket.close(code=4001, reason="Invalid token or campaign access denied")
         return
 
+    is_gm = (campaign or {}).get("dm_user_id") == username
     await ws_manager.connect(websocket, username, campaign_id)
 
     try:
         while True:
-            data = await websocket.receive_json()
+            data = parse_client_message(await websocket.receive_text())
+            if data is None:
+                await websocket.send_json({
+                    "type": "error",
+                    "code": "invalid_message",
+                    "message": "Live campaign messages must be JSON objects under 64 KB.",
+                })
+                continue
             msg_type = data.get("type", "")
 
             if not is_allowed_client_message_type(msg_type):
@@ -112,6 +130,14 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
                     "type": "error",
                     "code": "unsupported_message_type",
                     "message": "Unsupported live campaign message type.",
+                })
+                continue
+
+            if msg_type in GM_ONLY_MESSAGE_TYPES and not is_gm:
+                await websocket.send_json({
+                    "type": "error",
+                    "code": "gm_only",
+                    "message": "Only the GM can change the shared map or initiative.",
                 })
                 continue
 
@@ -160,15 +186,18 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
                 })
 
     except WebSocketDisconnect:
-        ws_manager.disconnect(websocket, username, campaign_id)
-        await ws_manager.broadcast_to_campaign(campaign_id, {
-            "type": "user_left",
-            "user_id": username,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        pass
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
-        ws_manager.disconnect(websocket, username, campaign_id)
+    finally:
+        # Only announce a departure when this was the person's last open
+        # screen in the campaign (the GM often has two windows open).
+        if ws_manager.disconnect(websocket, username, campaign_id):
+            await ws_manager.broadcast_to_campaign(campaign_id, {
+                "type": "user_left",
+                "user_id": username,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
 
 
 async def run_startup_maintenance():

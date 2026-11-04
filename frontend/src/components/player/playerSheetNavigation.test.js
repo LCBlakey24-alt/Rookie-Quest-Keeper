@@ -6,6 +6,7 @@ import {
 
 describe('player sheet return navigation', () => {
   test('allows only known internal player and mobile destinations', () => {
+    expect(safePlayerSheetReturnTo('/characters')).toBe('/characters');
     expect(safePlayerSheetReturnTo('/player')).toBe('/player');
     expect(safePlayerSheetReturnTo('/player/campaign/campaign-a')).toBe('/player/campaign/campaign-a');
     expect(safePlayerSheetReturnTo('/mobile')).toBe('/mobile');
@@ -16,11 +17,13 @@ describe('player sheet return navigation', () => {
     expect(safePlayerSheetReturnTo('https://example.com')).toBe('');
     expect(safePlayerSheetReturnTo('//example.com/player')).toBe('');
     expect(safePlayerSheetReturnTo('/home')).toBe('');
+    expect(safePlayerSheetReturnTo('/characters/hero-1')).toBe('');
     expect(safePlayerSheetReturnTo('/player/campaign/')).toBe('');
     expect(safePlayerSheetReturnTo(null)).toBe('');
   });
 
   test('builds and reads router state only for safe destinations', () => {
+    expect(playerSheetReturnState('/characters')).toEqual({ playerReturnTo: '/characters' });
     expect(playerSheetReturnState('/player/campaign/c1')).toEqual({ playerReturnTo: '/player/campaign/c1' });
     expect(playerSheetReturnState('https://example.com')).toBeUndefined();
     expect(playerSheetReturnFromLocation({ state: { playerReturnTo: '/player' } })).toBe('/player');

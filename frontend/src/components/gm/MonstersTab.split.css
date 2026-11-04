@@ -8,7 +8,7 @@
 #root .rqk-bestiary-selected-sheet .rqk-reference-browser__detail-actions button,
 #root .rqk-bestiary-beast-filter {
   min-height: 40px; border: 1px solid var(--rq-accent-primary, #c9a96b);
-  background: var(--rq-bg-panel, #1e2936); color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-panel, #0b1b2b); color: var(--rq-text-primary, #eadfc8);
   border-radius: 6px; padding: 7px 12px; font: inherit; font-size: 12px;
   font-weight: 800; cursor: pointer;
 }

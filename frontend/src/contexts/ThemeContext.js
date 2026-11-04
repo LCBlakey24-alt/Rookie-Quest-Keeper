@@ -16,6 +16,22 @@ const ThemeContext = createContext({
 });
 
 // Theme provider component
+//
+// The theme is derived from the route: App.js sets it on every navigation, so
+// the route is the single source of truth. This provider used to also write
+// the theme to localStorage and read it back on mount, which could not work
+// and was not wanted:
+//
+//   - the persist effect is declared first, so on mount it wrote the default
+//     over the stored value before the restore effect could read it;
+//   - even if it had restored, App.js overwrites the theme from the route
+//     immediately afterwards;
+//   - restoring would be wrong anyway -- a stored 'gm' theme would flash GM
+//     styling on the landing page before the route corrected it.
+//
+// Removing it also removes a crash: localStorage throws rather than returning
+// null in Safari private browsing and with site data blocked, and an uncaught
+// throw in a provider effect unmounts the whole app.
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(THEMES.LANDING);
 
@@ -31,17 +47,7 @@ export const ThemeProvider = ({ children }) => {
       root.setAttribute('data-theme', theme);
     }
     
-    // Store preference
-    localStorage.setItem('rook-theme', theme);
   }, [theme]);
-
-  // Load saved theme on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('rook-theme');
-    if (savedTheme && Object.values(THEMES).includes(savedTheme)) {
-      setTheme(savedTheme);
-    }
-  }, []);
 
   const value = {
     theme,

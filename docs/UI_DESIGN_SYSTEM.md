@@ -5,9 +5,9 @@ This is the current user-approved design direction, **29 October 2026**. It supe
 ## Direction: Guild Command / flat navy / citrus gradient lines
 
 - **Page background:** solid ink navy `#0B1B2B`. No wallpaper image, paper grain, textured page surfaces or darkened overlay.
-- **Deep rail:** `#07131F`; **panels:** `#142638` or `#1E2936`; **cards:** `#263748`; **normal controls:** `#263F59`.
-- **Primary text:** warm cream `#F5F1E8`; muted labels `rgba(234,223,200,0.78)`; support blue `#6E91B4`.
-- **Accent gradient:** solid yellow `#F2C94C` across the first **28%**, blend through ember red-orange `#EF6343` at **50%**, reach deep red-orange `#CE393A` at **72%**, then hold solid deep red-orange for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
+- **Deep rail:** `#0B1B2B`; **panels:** `#0B1B2B` or `#0B1B2B`; **cards:** `#0B1B2B`; **normal controls:** `#0B1B2B`.
+- **Primary text:** warm cream `#F5F1E8`; muted labels `rgba(234,223,200,0.78)`; support blue `#3C92E0`.
+- **Accent gradient:** solid bright orange `#FF8A1F` across the first **28%**, blend through orange-red `#F4551F` at **50%**, reach red `#E03A2F` at **72%**, then hold solid red for the final **28%**. Most colour change happens in the middle, not across the entire line. Percentages scale naturally from short tab underlines to long section rules.
 - The accent is ONLY a thin **2–3px rule, tab underline, selected-sidebar marker or section divider**. Never fill a page, button, card, modal, or tab with gradient.
 - Brand logo may retain its approved gold and red wax-seal artwork; do not recolour the supplied logo asset.
 - Antique gold may appear in existing brand typography, **not** as interactive fills/borders; main interface headings are cream.
@@ -18,7 +18,7 @@ This is the current user-approved design direction, **29 October 2026**. It supe
 | State | Appearance |
 | --- | --- |
 | Resting tab/button | Flat navy-blue with cream text and subdued border |
-| Hover (fine pointer) | Yellow-to-blood-orange underline sweeps left to right in ~340ms |
+| Hover (fine pointer) | Bright-orange-to-red underline sweeps left to right in ~340ms |
 | Press / keyboard focus | Same underline; blue focus outline remains visible |
 | Selected tab or nav | Blue body, **persistent** full-width 3px citrus underline |
 | Disabled / busy | No selection underline; separate muted/loading affordance |
@@ -58,4 +58,4 @@ Historical design boards are still authoritative for the **logo**, not for the r
 
 The GM dashboard now draws its party list from the existing campaign-scoped player roster endpoint. Never populate the UI with example characters, fictitious HP, dates, counts or encounters. Show real loaded data, honest empty and unavailable states, and a link to the existing Players workspace. Five summary cards are responsive and remain readable from phone to desktop; desktop displays a two-column quest/party composition with notes and prep below. The approved final look is illustrated by the user's navy Guild Command mockup; actual record content remains independent of that mockup.
 
-The shared palette is **solid yellow 0–28% → ember red-orange at 50% → deep red-orange 72–100%**. The gradient is always a slim accent, never a full selectable background.
+The shared palette is **solid bright orange 0–28% → orange-red at 50% → red 72–100%**. The gradient is always a slim accent, never a full selectable background.

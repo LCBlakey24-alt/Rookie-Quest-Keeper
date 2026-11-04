@@ -1,4 +1,6 @@
-import { compactSubtitleParts } from './CleanSheetHeader';
+import React from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import CleanSheetHeader, { compactSubtitleParts } from './CleanSheetHeader';
 
 describe('CleanSheetHeader subtitle formatting', () => {
   test('uses the supplied multiclass progression instead of collapsing to the primary class', () => {
@@ -38,4 +40,18 @@ describe('CleanSheetHeader subtitle formatting', () => {
       subclass: 'thief',
     }, '')).toEqual(['Human', 'Rogue', 'Thief']);
   });
+});
+
+test('mobile header keeps real character name, options and edit action available', () => {
+  const onEdit = jest.fn();
+  render(<CleanSheetHeader
+    character={{ name: 'Rina Ironstride', level: 5, character_class: 'Fighter', race: 'Goliath' }}
+    onEdit={onEdit}
+    onLevelUp={jest.fn()}
+  />);
+  const title = screen.getByRole('heading', { name: 'Rina Ironstride', level: 1 });
+  expect(title.querySelector('.rqk-cc-hero-name')).toHaveTextContent('Rina Ironstride');
+  fireEvent.click(screen.getByRole('button', { name: 'Character options' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /Edit Character/ }));
+  expect(onEdit).toHaveBeenCalledTimes(1);
 });

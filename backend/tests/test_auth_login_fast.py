@@ -91,7 +91,7 @@ class FastLoginTests(unittest.TestCase):
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
              patch.object(login_routes, 'create_token', return_value='token-1'), \
-             patch.object(login_routes, 'ADMIN_USERNAMES', ['Rook']):
+             patch.object(login_routes, 'is_admin_username', AsyncMock(return_value=True)):
             result = run(login_routes.login_fast(SimpleNamespace(
                 username='Rook', email=None, password='secret'
             )))
@@ -177,6 +177,7 @@ class GoogleLoginTests(unittest.TestCase):
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
+             patch.object(login_routes, 'require_signups_enabled', AsyncMock()), \
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
             result = run(login_routes.login_google(
                 login_routes.GoogleLoginRequest(credential='credential-1')
@@ -188,12 +189,15 @@ class GoogleLoginTests(unittest.TestCase):
 
     def test_first_google_login_creates_rookie_account_after_name_choice(self):
         users = SimpleNamespace(
-            find_one=AsyncMock(side_effect=[None, None, None]),
+            find_one=AsyncMock(side_effect=[None, None]),
             insert_one=AsyncMock(),
         )
         threaded = AsyncMock(side_effect=[self.claims, 'generated-password-hash'])
+        available = AsyncMock(return_value=True)
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
+             patch.object(login_routes, 'username_is_available', available), \
+             patch.object(login_routes, 'require_signups_enabled', AsyncMock()), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
              patch.object(login_routes, 'create_token', return_value='token-new'), \
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
@@ -210,6 +214,27 @@ class GoogleLoginTests(unittest.TestCase):
         self.assertEqual(inserted['google_sub'], 'google-sub-123')
         self.assertEqual(inserted['email'], 'rook@gmail.com')
         self.assertEqual(inserted['password_hash'], 'generated-password-hash')
+        available.assert_awaited_once_with('TableRook')
+
+    def test_google_sign_up_rejects_taken_or_reserved_name_in_any_case(self):
+        users = SimpleNamespace(
+            find_one=AsyncMock(side_effect=[None, None]),
+            insert_one=AsyncMock(),
+        )
+        threaded = AsyncMock(return_value=self.claims)
+
+        with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
+             patch.object(login_routes, 'username_is_available', AsyncMock(return_value=False)), \
+             patch.object(login_routes, 'require_signups_enabled', AsyncMock()), \
+             patch.object(login_routes, 'run_in_threadpool', threaded), \
+             patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
+            with self.assertRaises(HTTPException) as taken:
+                run(login_routes.login_google(
+                    login_routes.GoogleLoginRequest(credential='credential-1', username='lcblakey24')
+                ))
+
+        self.assertEqual(taken.exception.status_code, 409)
+        users.insert_one.assert_not_awaited()
 
     def test_google_sign_in_stays_disabled_without_client_id(self):
         with patch.object(login_routes, 'GOOGLE_CLIENT_ID', ''):

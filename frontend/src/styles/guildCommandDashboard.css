@@ -28,10 +28,10 @@
     gap: clamp(12px, 1.4vw, 19px) !important;
   }
   #root .guild-command-home .campaign-home-command {
-    border: 1px solid rgba(110,145,180,.28) !important;
-    border-left: 1px solid rgba(110,145,180,.28) !important;
+    border: 1px solid rgba(60,146,224,.28) !important;
+    border-left: 1px solid rgba(60,146,224,.28) !important;
     border-radius: 10px !important;
-    background-color: #142638 !important;
+    background-color: #0B1B2B !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-repeat: no-repeat !important;
     background-size: 100% 3px !important;
@@ -60,9 +60,9 @@
     min-width: 0 !important;
     min-height: 118px !important;
     padding: 15px 13px !important;
-    border: 1px solid rgba(110,145,180,.26) !important;
+    border: 1px solid rgba(60,146,224,.26) !important;
     border-radius: 9px !important;
-    background-color: #142638 !important;
+    background-color: #0B1B2B !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-repeat: no-repeat !important;
     background-size: 0% 3px !important;
@@ -89,7 +89,7 @@
   }
   #root .guild-command-home .campaign-home-session-rail {
     background-color: #102238 !important;
-    border: 1px solid rgba(110,145,180,.24) !important;
+    border: 1px solid rgba(60,146,224,.24) !important;
     border-radius: 9px !important;
     box-shadow: none !important;
   }
@@ -106,8 +106,8 @@
   #root .guild-command-home .campaign-home-section,
   #root .guild-command-home .guild-command-party {
     min-width: 0 !important;
-    background-color: #142638 !important;
-    border: 1px solid rgba(110,145,180,.24) !important;
+    background-color: #0B1B2B !important;
+    border: 1px solid rgba(60,146,224,.24) !important;
     border-radius: 9px !important;
     box-shadow: none !important;
   }
@@ -120,7 +120,7 @@
     transition: background-size var(--rq-citrus-sweep) !important;
   }
   #root .guild-command-home .campaign-home-focus-card--wide {
-    border-left: 1px solid rgba(110,145,180,.24) !important;
+    border-left: 1px solid rgba(60,146,224,.24) !important;
   }
   #root .guild-command-home .campaign-home-focus-label {
     color: #AFC2D5 !important;
@@ -180,12 +180,12 @@
   #root .guild-command-home .guild-command-party__heading button,
   #root .guild-command-home .guild-command-party__more {
     --rq-fill-color: transparent;
-    background: #263F59 !important;
+    background: #0B1B2B !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-repeat: no-repeat !important;
     background-position: left bottom !important;
     background-size: 0% 3px !important;
-    border: 1px solid rgba(110,145,180,.25) !important;
+    border: 1px solid rgba(60,146,224,.25) !important;
     color: var(--rq-citrus-cream) !important;
     border-radius: 5px !important;
     padding: 8px 10px !important;
@@ -208,7 +208,7 @@
     align-items: center !important;
     gap: 9px !important;
     padding: 9px 2px !important;
-    border-bottom: 1px solid rgba(110,145,180,.16) !important;
+    border-bottom: 1px solid rgba(60,146,224,.16) !important;
   }
   #root .guild-command-home .guild-command-party__avatar {
     display: grid !important;
@@ -216,9 +216,9 @@
     width: 36px !important;
     height: 36px !important;
     border-radius: 50% !important;
-    background-color: #263F59 !important;
-    border: 1px solid rgba(110,145,180,.45) !important;
-    color: #F2C94C !important;
+    background-color: #0B1B2B !important;
+    border: 1px solid rgba(60,146,224,.45) !important;
+    color: #FF8A1F !important;
     font-weight: 850 !important;
   }
   #root .guild-command-home .guild-command-party__avatar {

@@ -6,7 +6,7 @@ import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { getSignInDestination } from '@/components/auth/SignInRedirect';
 import ReadOnlyDemoAccess from '@/components/auth/ReadOnlyDemoAccess';
-import { BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
 import './AuthPage.css';
 
 const AUTH_COPY = {
@@ -16,7 +16,7 @@ const AUTH_COPY = {
     subtitle: 'Sign in to open your campaigns and characters.',
     notice: (
       <>
-        Sign in with your username or recovery email. New player? Create an account and keep it nickname-first.
+        Sign in with your email or existing username. New player? Create an account with an email you can use for password recovery.
       </>
     ),
   },
@@ -26,7 +26,7 @@ const AUTH_COPY = {
     subtitle: 'Save characters, prepare campaigns, and keep your table organised from the very first session.',
     notice: (
       <>
-        Kid-friendly signup: use a nickname instead of a real name. Recovery email is optional, but handy if you forget your password.
+        Use your email to keep your account recoverable. A table nickname is optional.
       </>
     ),
   },
@@ -52,24 +52,6 @@ const AUTH_COPY = {
   },
 };
 
-const FEATURE_CARDS = [
-  {
-    icon: ShieldCheck,
-    title: 'Kid-aware by design',
-    text: 'Nickname-first accounts and optional recovery email keep signup lightweight.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Campaign-ready',
-    text: 'Jump from login into sheets, campaigns, uploads, and GM tools without clutter.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Built for the table',
-    text: 'A focused Guild Ledger gateway that matches the rest of Rookie Quest Keeper.',
-  },
-];
-
 const TRUST_BADGES = ['Secure session', 'Mobile friendly', 'Rookie-safe signup'];
 const URL_MODES = new Set(['login', 'register', 'forgot']);
 
@@ -80,41 +62,11 @@ const PAGE_TITLES = {
   reset: 'Choose new password',
 };
 
-const NEXT_STEPS = {
-  login: ['Open dashboard', 'Pick a character', 'Join the table'],
-  register: ['Create account', 'Build first character', 'Start a campaign'],
-  forgot: ['Request reset link', 'Check your inbox', 'Return to login'],
-  reset: ['Set new password', 'Sign back in', 'Continue the quest'],
-};
-
 const SUBMIT_STATUS = {
   login: 'Opening your Rookie Quest Keeper dashboard.',
   register: 'Creating your keeper account.',
   forgot: 'Sending password reset instructions.',
   reset: 'Saving your new password.',
-};
-
-const MODE_ASSURANCE = {
-  login: {
-    label: 'Keeper note',
-    title: 'Made for quick table access',
-    text: 'The auth screen stays lightweight so players can get from sign in to sheets, campaigns, and GM tools without extra noise.',
-  },
-  register: {
-    label: 'Signup tip',
-    title: 'Nickname-first is the cleanest route',
-    text: 'Rookie Quest Keeper works best when younger players use a table name or nickname, with recovery email kept optional.',
-  },
-  forgot: {
-    label: 'Recovery note',
-    title: 'Use the linked recovery email',
-    text: 'Reset instructions are requested through the account recovery flow, then the page safely returns you to sign in.',
-  },
-  reset: {
-    label: 'Password note',
-    title: 'Create a fresh table key',
-    text: 'Once the new password is saved, you will come back through sign in before reopening your dashboard.',
-  },
 };
 
 const AUTH_PANEL_IDS = {
@@ -192,7 +144,7 @@ function createStagingCredentials() {
   return credentials;
 }
 
-export default function AuthPage({ onLogin = () => {} }) {
+export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {} }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -206,6 +158,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ username: '', password: '', confirmPassword: '', email: '' });
   const [forgotEmail, setForgotEmail] = useState('');
+  const [recoveryRequested, setRecoveryRequested] = useState(false);
   const [resetData, setResetData] = useState({ token: initialToken || '', new_password: '' });
   const [loading, setLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -279,6 +232,13 @@ export default function AuthPage({ onLogin = () => {} }) {
       toast.success('Welcome back!');
       onLogin(response.data.token, response.data.username || identifier, response.data.is_admin);
       navigate(destination.to, { replace: true, state: destination.state });
+      if (!response.data.email) {
+        toast.info('Add a recovery email', {
+          description: 'Your older account needs an email before password reset can work.',
+          action: { label: 'Account settings', onClick: () => navigate('/account') },
+          duration: 10000,
+        });
+      }
     } catch (error) {
       toast.error(getErrorMessage(error, 'Login failed'));
     } finally {
@@ -325,7 +285,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     const username = registerData.username.trim();
     const recoveryEmail = registerData.email.trim();
 
-    if (!username || !registerData.password || !registerData.confirmPassword) {
+    if (!recoveryEmail || !registerData.password || !registerData.confirmPassword) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -342,12 +302,12 @@ export default function AuthPage({ onLogin = () => {} }) {
 
     setLoading(true);
     try {
-      const payload = { username, password: registerData.password };
-      if (recoveryEmail) payload.email = recoveryEmail;
+      const payload = { email: recoveryEmail, password: registerData.password };
+      if (username) payload.username = username;
 
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
-      onLogin(response.data.token, response.data.username || payload.username, response.data.is_admin);
+      onLogin(response.data.token, response.data.username, response.data.is_admin);
       navigate(destination.to, { replace: true, state: destination.state });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Registration failed'));
@@ -368,8 +328,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     setLoading(true);
     try {
       await apiClient.post('/auth/forgot-password', { email: recoveryEmail });
-      toast.success('Password reset email sent!');
-      goToMode('login', { replace: true });
+      setRecoveryRequested(true);
     } catch (error) {
       toast.error(getErrorMessage(error, 'Failed to send reset email'));
     } finally {
@@ -393,6 +352,9 @@ export default function AuthPage({ onLogin = () => {} }) {
     setLoading(true);
     try {
       await apiClient.post('/auth/reset-password', resetData);
+      // The backend invalidates existing sessions on reset. Clear this browser's
+      // previous login before returning to the sign-in page.
+      onPasswordReset();
       toast.success('Password reset successful!');
       goToMode('login', { replace: true });
     } catch (error) {
@@ -403,8 +365,6 @@ export default function AuthPage({ onLogin = () => {} }) {
   };
 
   const copy = AUTH_COPY[mode] || AUTH_COPY.login;
-  const assurance = MODE_ASSURANCE[mode] || MODE_ASSURANCE.login;
-  const nextSteps = NEXT_STEPS[mode] || NEXT_STEPS.login;
   const submitStatus = SUBMIT_STATUS[mode] || SUBMIT_STATUS.login;
   const showCredentialToggle = mode === 'login' || mode === 'register';
   const registerPasswordChecks = getPasswordChecks(registerData.password);
@@ -440,40 +400,12 @@ export default function AuthPage({ onLogin = () => {} }) {
         >
           <BrandMiniLogo className="rqk-auth-brand__sigil" size={38} alt="" />
           <span className="rqk-auth-brand__text">
-            <strong>Rookie Quest Keeper</strong>
+            <BrandMainLogo width={168} alt="" />
             <small>Guild Ledger • Table tools</small>
           </span>
         </button>
 
         <div className="rqk-auth-layout">
-          {mode !== 'login' && <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
-            <p className="rqk-auth-kicker">Plan • Organise • Track • Play</p>
-            <h2>Everything for the table, kept together.</h2>
-            <p>
-              A cleaner gateway for players, young adventurers, and GMs who want sheets,
-              campaign prep, uploads, and table tools to feel organised from the start.
-            </p>
-
-            <div className="rqk-auth-feature-grid">
-              {FEATURE_CARDS.map(({ icon: Icon, title, text }) => (
-                <div className="rqk-auth-feature-card" key={title}>
-                  <span className="rqk-auth-feature-icon" aria-hidden="true"><Icon size={18} /></span>
-                  <span>
-                    <strong>{title}</strong>
-                    <small>{text}</small>
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="rqk-auth-preview-card" aria-hidden="true">
-              <div>
-                <span className="rqk-auth-preview-dot" />
-                <strong>Next stop</strong>
-              </div>
-              <p>Dashboard → Characters → Campaign tools</p>
-            </div>
-          </aside>}
 
           <section className="rqk-auth-card" aria-labelledby="rqk-auth-title">
             <div className="rqk-auth-heading">
@@ -519,8 +451,6 @@ export default function AuthPage({ onLogin = () => {} }) {
               </div>
             )}
 
-            {mode !== 'login' && <AuthNotice>{copy.notice}</AuthNotice>}
-            {mode !== 'login' && <AuthAssurancePanel {...assurance} />}
 
             {mode === 'login' && stagingCredentials && (
               <details className="rqk-auth-staging-details">
@@ -627,32 +557,32 @@ export default function AuthPage({ onLogin = () => {} }) {
                   id="register-username"
                   name="username"
                   icon={User}
-                  label="Username"
+                  label="Table nickname (optional)"
                   type="text"
                   placeholder="Choose a nickname"
                   value={registerData.username}
                   onChange={(value) => setRegisterData({ ...registerData, username: value })}
                   autoComplete="username"
                   enterKeyHint="next"
-                  hint="Use a table name or nickname rather than a real name."
+                  hint="Leave blank and Keeper will make a private account handle for you."
                   disabled={loading}
-                  required
                 />
 
                 <AuthInput
                   id="register-email"
                   name="email"
                   icon={Mail}
-                  label="Recovery email"
+                  label="Email"
                   type="email"
-                  placeholder="Optional recovery email"
+                  placeholder="you@example.com"
                   value={registerData.email}
                   onChange={(value) => setRegisterData({ ...registerData, email: value })}
                   autoComplete="email"
                   inputMode="email"
                   enterKeyHint="next"
-                  hint="Optional, but useful if you need a password reset later."
+                  hint="Required so you can reset your password if needed."
                   disabled={loading}
+                  required
                 />
 
                 <AuthInput
@@ -729,7 +659,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   type="email"
                   placeholder="Enter your recovery email"
                   value={forgotEmail}
-                  onChange={setForgotEmail}
+                  onChange={(value) => { setForgotEmail(value); setRecoveryRequested(false); }}
                   autoComplete="email"
                   inputMode="email"
                   enterKeyHint="send"
@@ -738,8 +668,13 @@ export default function AuthPage({ onLogin = () => {} }) {
                 />
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
-                  {loading ? 'Sending link...' : 'Send reset link'}
+                  {loading ? 'Sending link...' : recoveryRequested ? 'Send another link' : 'Send reset link'}
                 </PrimaryButton>
+                {recoveryRequested && (
+                  <p role="status" className="rqk-auth-recovery-confirmation">
+                    If an account uses that email address, a reset link will arrive shortly. Check your inbox and junk folder. The link expires after 1 hour.
+                  </p>
+                )}
                 <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
 
                 <SecondaryButton type="button" onClick={() => goToMode('login')} disabled={loading}>
@@ -792,7 +727,6 @@ export default function AuthPage({ onLogin = () => {} }) {
               </form>
             )}
 
-            {mode !== 'login' && <AuthNextSteps steps={nextSteps} />}
             {mode !== 'login' && <TrustBadges />}
           </section>
         </div>
@@ -800,25 +734,6 @@ export default function AuthPage({ onLogin = () => {} }) {
         <p className="rqk-auth-footer">© {new Date().getFullYear()} Rookie Quest Keeper</p>
       </div>
     </main>
-  );
-}
-
-function AuthNotice({ children }) {
-  return (
-    <div className="rqk-auth-note">
-      <ShieldCheck size={16} aria-hidden="true" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function AuthAssurancePanel({ label, title, text }) {
-  return (
-    <aside className="rqk-auth-assurance" aria-label={label}>
-      <span>{label}</span>
-      <strong>{title}</strong>
-      <p>{text}</p>
-    </aside>
   );
 }
 
@@ -956,17 +871,6 @@ function PasswordMatchNotice({ id, status }) {
       <span aria-hidden="true" />
       {status.message}
     </p>
-  );
-}
-
-function AuthNextSteps({ steps }) {
-  return (
-    <div className="rqk-auth-next-steps" aria-label="What happens next">
-      <span>What happens next</span>
-      <ol>
-        {steps.map(step => <li key={step}>{step}</li>)}
-      </ol>
-    </div>
   );
 }
 

@@ -1,4 +1,4 @@
-import { AUTH_TOKEN_KEY, clearAuthToken, getAuthToken, isAuthTokenExpired, setAuthToken } from './auth';
+import { AUTH_TOKEN_KEY, clearAuthToken, getAuthToken, getStoredAuthUsername, isAuthTokenExpired, setAuthToken, setStoredAuthUsername } from './auth';
 
 function fakeJwt(exp) {
   const encode = (value) => window.btoa(JSON.stringify(value))
@@ -10,6 +10,7 @@ function fakeJwt(exp) {
 
 describe('auth helpers', () => {
   beforeEach(() => {
+    clearAuthToken();
     localStorage.clear();
   });
 
@@ -54,6 +55,29 @@ describe('auth helpers', () => {
     localStorage.setItem(AUTH_TOKEN_KEY, 'current-token');
     expect(isAuthTokenExpired('current-token')).toBe(false);
     expect(getAuthToken()).toBe('current-token');
+  });
+
+  test('blocked browser storage does not crash auth and keeps a temporary tab session', () => {
+    const original = window.localStorage;
+    const blocked = {
+      getItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+      setItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+      removeItem: () => { throw new DOMException('blocked', 'SecurityError'); },
+    };
+    Object.defineProperty(window, 'localStorage', { configurable: true, value: blocked });
+    try {
+      expect(getAuthToken()).toBeNull();
+      expect(getStoredAuthUsername()).toBe('');
+      expect(() => setStoredAuthUsername('Keeper')).not.toThrow();
+      expect(() => setAuthToken('temporary-tab-token')).not.toThrow();
+      expect(getAuthToken()).toBe('temporary-tab-token');
+      expect(getStoredAuthUsername()).toBe('Keeper');
+      expect(() => clearAuthToken()).not.toThrow();
+      expect(getAuthToken()).toBeNull();
+      expect(getStoredAuthUsername()).toBe('');
+    } finally {
+      Object.defineProperty(window, 'localStorage', { configurable: true, value: original });
+    }
   });
 
   test('clearAuthToken clears primary and legacy keys', () => {

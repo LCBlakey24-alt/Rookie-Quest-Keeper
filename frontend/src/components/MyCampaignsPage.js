@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, Plus, RefreshCw, Trash2, Upload } from 'lucide-react';
+import { BookOpen, ChevronRight, FileText, Link2, Mail, Plus, RefreshCw, Trash2, Upload } from 'lucide-react';
 import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
 import {
   buildCampaignFeel,
@@ -11,11 +11,16 @@ import {
   rulesSystemOptions,
 } from '@/components/dashboard/home/unifiedDashboardUtils';
 import apiClient from '@/lib/apiClient';
+import JoinCampaignModal from '@/components/JoinCampaignModal';
+import { readActiveCharacterId } from '@/components/dashboard/player/playerActiveCharacterStorage';
 import { importDesktopCampaignPack } from '@/preview/desktopCampaignPack';
 import { isOfflineDesktop } from '@/preview/previewMode';
 import '@/styles/libraryPages.css';
 import '@/styles/campaignSetupModal.css';
 import './MyCampaignsPage.css';
+
+const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
+const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then((mod) => ({ default: mod.PlayerHandoutsPanel })));
 
 function recordId(record) {
   return record?.id || record?._id || record?.campaign_id || record?.campaignId || '';
@@ -74,12 +79,25 @@ export default function MyCampaignsPage() {
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [deletingId, setDeletingId] = useState('');
   const [importingPack, setImportingPack] = useState(false);
+  const [joinedCampaigns, setJoinedCampaigns] = useState([]);
+  const [joinCharacters, setJoinCharacters] = useState([]);
+  const [selectedCharacterId, setSelectedCharacterId] = useState(readActiveCharacterId);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCharactersLoaded, setJoinCharactersLoaded] = useState(false);
+  const [joinedCampaignsLoaded, setJoinedCampaignsLoaded] = useState(false);
+  const [playerToolsError, setPlayerToolsError] = useState('');
   const desktopOffline = isOfflineDesktop();
+  const activeTool = ['notes', 'received'].includes(searchParams.get('view')) ? searchParams.get('view') : '';
+  const selectedCharacter = joinCharacters.find((character) => recordId(character) === selectedCharacterId) || joinCharacters[0] || null;
 
   useEffect(() => {
     if (searchParams.get('create') === '1') setShowCreateCampaign(true);
   }, [searchParams]);
 
+
+  const playerOnlyCampaigns = useMemo(() => joinedCampaigns.filter((joined) =>
+    !campaigns.some((owned) => recordId(owned) === recordId(joined))
+  ), [joinedCampaigns, campaigns]);
 
   const sortedCampaigns = useMemo(() => [...campaigns].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
@@ -106,10 +124,70 @@ export default function MyCampaignsPage() {
     loadCampaigns();
   }, []);
 
+  // Preserve all player tools inside Campaigns rather than a second player hub.
+  const loadPlayerCampaignTools = async () => {
+    if (desktopOffline) return;
+    const [charactersResult, joinedResult] = await Promise.allSettled([
+      apiClient.get('/library/characters'),
+      apiClient.get('/campaign-invites/joined/list'),
+    ]);
+    if (charactersResult.status === 'fulfilled') {
+      const data = charactersResult.value.data;
+      const characters = Array.isArray(data) ? data : (data?.characters || []);
+      setJoinCharacters(characters);
+      setSelectedCharacterId((previous) => characters.some((character) => recordId(character) === previous) ? previous : recordId(characters[0]));
+      setJoinCharactersLoaded(true);
+    }
+    if (joinedResult.status === 'fulfilled') {
+      const data = joinedResult.value.data;
+      setJoinedCampaigns(Array.isArray(data) ? data : (data?.campaigns || []));
+      setJoinedCampaignsLoaded(true);
+    }
+    // Keep the last successfully loaded lists on partial network failure.
+    // Never treat a failed fetch as proof a player has no characters/campaigns.
+    setPlayerToolsError(
+      charactersResult.status === 'rejected' || joinedResult.status === 'rejected'
+        ? 'Some player campaign information could not load. Previously loaded information remains visible where available.'
+        : ''
+    );
+  };
+
+  useEffect(() => { loadPlayerCampaignTools(); }, [desktopOffline]);
+
+  useEffect(() => {
+    if (!desktopOffline && joinCharactersLoaded && searchParams.get('join') === '1') {
+      if (joinCharacters.length > 0) setJoinOpen(true);
+      else toast.info('Create a character before joining a campaign');
+      const next = new URLSearchParams(searchParams);
+      next.delete('join');
+      setSearchParams(next, { replace: true });
+    }
+  }, [desktopOffline, joinCharactersLoaded, joinCharacters.length, searchParams, setSearchParams]);
+
+  const openJoinCampaign = () => {
+    if (!joinCharactersLoaded) {
+      toast.error('Your character list has not loaded. Try refreshing player tools before joining.');
+      return;
+    }
+    if (!joinCharacters.length) {
+      toast.info('Create a character before joining a campaign');
+      navigate('/characters/new');
+      return;
+    }
+    setJoinOpen(true);
+  };
+
+  const showCampaignTool = (name) => {
+    const next = new URLSearchParams(searchParams);
+    if (activeTool === name) next.delete('view');
+    else next.set('view', name);
+    setSearchParams(next, { replace: true });
+  };
+
   const refresh = async () => {
     setRefreshing(true);
     try {
-      const result = await loadCampaigns();
+      const [result] = await Promise.all([loadCampaigns(), loadPlayerCampaignTools()]);
       if (result.ok) toast.success('Campaigns refreshed');
     } finally {
       setRefreshing(false);
@@ -245,6 +323,11 @@ export default function MyCampaignsPage() {
             <Plus size={16} />
             Create
           </button>
+          {!desktopOffline && (
+            <button type="button" className="library-page-button-secondary" onClick={openJoinCampaign} disabled={!joinCharactersLoaded}>
+              <Link2 size={16} /> Join by Code
+            </button>
+          )}
           {desktopOffline && (
             <button
               type="button"
@@ -269,6 +352,48 @@ export default function MyCampaignsPage() {
           </button>
         </div>
       </section>
+
+      {!desktopOffline && playerToolsError && (
+        <section className="library-page-stale-warning" role="alert" aria-live="polite">
+          <div>
+            <strong>Couldn't refresh all player campaign information</strong>
+            <p>{playerToolsError}</p>
+          </div>
+          <button type="button" className="library-page-button-secondary" onClick={loadPlayerCampaignTools}>
+            <RefreshCw size={16} aria-hidden="true" /> Retry player tools
+          </button>
+        </section>
+      )}
+      {!desktopOffline && (
+        <section className="campaign-player-tools" aria-label="Campaign notes and handouts">
+          {joinCharacters.length > 1 && (
+            <label className="campaign-join-as">Join campaigns as
+              <select aria-label="Character for joining campaigns" value={selectedCharacterId} onChange={(event) => setSelectedCharacterId(event.target.value)}>
+                {joinCharacters.map((character) => <option key={recordId(character)} value={recordId(character)}>{character.name || 'Adventurer'}</option>)}
+              </select>
+            </label>
+          )}
+          <div className="campaign-player-tools-actions">
+            <button type="button" aria-expanded={activeTool === 'notes'}
+              className={activeTool === 'notes' ? 'library-page-button-secondary is-active' : 'library-page-button-secondary'}
+              onClick={() => showCampaignTool('notes')}>
+              <FileText size={17} aria-hidden="true" /> My Notes
+            </button>
+            <button type="button" aria-expanded={activeTool === 'received'}
+              className={activeTool === 'received' ? 'library-page-button-secondary is-active' : 'library-page-button-secondary'}
+              onClick={() => showCampaignTool('received')}>
+              <Mail size={17} aria-hidden="true" /> Received Handouts
+            </button>
+          </div>
+          {activeTool && (
+            <div className="campaign-player-tools-panel" aria-label={activeTool === 'notes' ? 'My Notes' : 'Received Handouts'}>
+              <Suspense fallback={<p role="status">Loading {activeTool === 'notes' ? 'notes' : 'handouts'}…</p>}>
+                {activeTool === 'notes' ? <PlayerNotesTab campaigns={[...campaigns, ...joinedCampaigns]} /> : <PlayerHandoutsPanel />}
+              </Suspense>
+            </div>
+          )}
+        </section>
+      )}
 
       {loadError && sortedCampaigns.length > 0 && (
         <section className="library-page-stale-warning" role="alert" aria-live="polite">
@@ -296,8 +421,22 @@ export default function MyCampaignsPage() {
         </section>
       ) : sortedCampaigns.length === 0 ? (
         <section className="library-page-empty campaign-library-empty">
-          <h2>No campaigns yet</h2>
-          <p>{desktopOffline ? 'Create a campaign, import a campaign pack, or apply a small campaign update from your laptop.' : 'Create your first campaign to start building the world.'}</p>
+          {playerOnlyCampaigns.length > 0 ? (
+            <>
+              <h2>No campaigns you're managing</h2>
+              <p>Your joined campaigns are listed below. You can also create a campaign to run as GM.</p>
+            </>
+          ) : !desktopOffline && !joinedCampaignsLoaded ? (
+            <>
+              <h2>Checking your joined campaigns…</h2>
+              <p>{playerToolsError ? 'Could not confirm your joined campaigns. Retry player tools above.' : 'Loading campaigns you play in…'}</p>
+            </>
+          ) : (
+            <>
+              <h2>No campaigns yet</h2>
+              <p>{desktopOffline ? 'Create a campaign, import a campaign pack, or apply a small campaign update from your laptop.' : 'Create your own campaign or join your GM’s campaign using a code.'}</p>
+            </>
+          )}
           <div className="library-page-actions">
             <button type="button" onClick={() => setShowCreateCampaign(true)} className="library-page-button library-page-button-primary">Create Campaign</button>
           </div>
@@ -342,6 +481,35 @@ export default function MyCampaignsPage() {
         </section>
       )}
 
+      {!desktopOffline && playerOnlyCampaigns.length > 0 && (
+        <section className="campaigns-joined-section" aria-labelledby="campaigns-joined-title">
+          <h2 id="campaigns-joined-title"><BookOpen size={20} aria-hidden="true" /> Joined as a Player</h2>
+          <div className="library-page-grid campaigns-card-grid">
+            {playerOnlyCampaigns.map((campaign) => {
+              const id = recordId(campaign);
+              if (!id) return null;
+              return (
+                <article className="library-page-card campaign-library-card campaign-library-card--simple" key={id}>
+                  <div className="campaign-card-main">
+                    <h3>{campaignTitle(campaign)}</h3>
+                    <p className="campaign-card-description">{campaignDescription(campaign)}</p>
+                  </div>
+                  <button type="button" className="campaign-card-open" onClick={() => navigate(`/player/campaign/${id}`)}>
+                    Open Player Campaign <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      {!desktopOffline && (
+        <JoinCampaignModal
+          characterId={recordId(selectedCharacter)} characterName={selectedCharacter?.name || 'Selected character'}
+          open={joinOpen} onOpenChange={setJoinOpen}
+          onSuccess={() => { loadCampaigns(); loadPlayerCampaignTools(); }}
+        />
+      )}
       {showCreateCampaign && (
         <CreateCampaignDialog
           form={campaignForm}

@@ -5,7 +5,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from config import ADMIN_USERNAMES, db
+from config import db
+from utils.admin_identity import require_admin
 from utils.auth import get_current_user
 
 router = APIRouter()
@@ -20,9 +21,7 @@ class AuditLogCreate(BaseModel):
 
 
 async def verify_admin(username: str):
-    admins = {name.lower() for name in ADMIN_USERNAMES}
-    if not username or username.lower() not in admins:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    await require_admin(username)
 
 
 def safe_audit_entry(doc: dict) -> dict:

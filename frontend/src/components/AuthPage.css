@@ -27,8 +27,8 @@
   position: fixed;
   inset: 0 max(12px, calc((100vw - 1180px) / 2));
   pointer-events: none;
-  border-left: 1px solid rgba(110,145,180, 0.08);
-  border-right: 1px solid rgba(110,145,180, 0.08);
+  border-left: 1px solid rgba(60,146,224, 0.08);
+  border-right: 1px solid rgba(60,146,224, 0.08);
   z-index: -1;
 }
 
@@ -42,7 +42,7 @@
 }
 
 .rqk-auth-shell {
-  width: min(1080px, 100%);
+  width: min(430px, 100%);
   min-height: calc(100dvh - clamp(28px, 4vw, 56px));
   position: relative;
   z-index: 1;
@@ -56,7 +56,7 @@
 }
 
 #root .rqk-auth-page :where(button, input):focus-visible {
-  outline: 3px solid #6E91B4 !important;
+  outline: 3px solid #3C92E0 !important;
   outline-offset: 3px;
   box-shadow: none !important;
 }
@@ -74,7 +74,7 @@
   padding: 5px 11px 5px 6px;
   border: 1px solid rgba(137, 157, 176, 0.14) !important;
   border-radius: 7px !important;
-  background: #07131F !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   color: #EADFC8 !important;
   box-shadow: none !important;
@@ -82,8 +82,8 @@
 }
 
 #root .rqk-auth-page .rqk-auth-brand:hover {
-  background: #1E2936 !important;
-  border-color: rgba(110,145,180, 0.30) !important;
+  background: #0B1B2B !important;
+  border-color: rgba(60,146,224, 0.30) !important;
   transform: none !important;
   filter: none !important;
 }
@@ -121,18 +121,26 @@
 /* Layout                                                                      */
 /* -------------------------------------------------------------------------- */
 
+/* One centred card. The layout used to be two columns -- a marketing panel
+   beside the form -- and the panel only rendered when signing up, so the
+   sign-in page reserved an empty 1fr column and pushed the card to the right.
+   That was the large blank area on the left. */
 .rqk-auth-layout {
-  min-height: min(650px, calc(100dvh - 118px));
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
-  align-items: center;
-  gap: clamp(26px, 4vw, 48px);
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  align-content: center;
+  min-height: min(560px, calc(100dvh - 150px));
+}
+
+.rqk-auth-card {
+  width: 100%;
 }
 
 .rqk-auth-hero,
 .rqk-auth-card {
   position: relative;
-  background: #1E2936 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   border: 1px solid rgba(137, 157, 176, 0.14) !important;
   border-radius: 7px !important;
@@ -152,7 +160,7 @@
 
 .rqk-auth-hero {
   padding: clamp(28px, 4vw, 42px);
-  border-left: 2px solid #6E91B4 !important;
+  border-left: 2px solid #3C92E0 !important;
 }
 
 .rqk-auth-kicker,
@@ -217,8 +225,8 @@
   display: grid;
   place-items: center;
   color: #C9A96B !important;
-  background: rgba(110,145,180, 0.12) !important;
-  border: 1px solid rgba(110,145,180, 0.30);
+  background: rgba(60,146,224, 0.12) !important;
+  border: 1px solid rgba(60,146,224, 0.30);
   border-radius: 5px;
 }
 
@@ -245,7 +253,7 @@
   gap: 6px;
   margin-top: 18px;
   padding: 12px 13px;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(137, 157, 176, 0.14) !important;
   border-radius: 5px !important;
 }
@@ -282,7 +290,7 @@
   width: 100%;
   justify-self: end;
   padding: clamp(21px, 3vw, 28px);
-  border-top: 2px solid #6E91B4 !important;
+  border-top: 2px solid #3C92E0 !important;
 }
 
 .rqk-auth-heading {
@@ -295,7 +303,7 @@
   width: 56px;
   height: 1px;
   margin-top: 14px;
-  background: #263F59 !important;
+  background: #0B1B2B !important;
 }
 
 .rqk-auth-heading h1 {
@@ -318,7 +326,7 @@
   gap: 4px;
   padding: 4px;
   margin-bottom: 12px;
-  background: #07131F !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(137, 157, 176, 0.14);
   border-radius: 5px;
 }
@@ -329,7 +337,7 @@
 #root .rqk-auth-page .rqk-auth-icon-button,
 #root .rqk-auth-page .rqk-auth-secondary {
   color: #EADFC8 !important;
-  background: #263748 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
   border: 1px solid rgba(137, 157, 176, 0.14) !important;
   box-shadow: none !important;
@@ -344,13 +352,13 @@
 
 #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active {
   color: #EADFC8 !important;
-  background: rgba(110,145,180, 0.12) !important;
-  border-color: #6E91B4 !important;
+  background: rgba(60,146,224, 0.12) !important;
+  border-color: #3C92E0 !important;
 }
 
 #root .rqk-auth-page :where(.rqk-auth-mode-toggle button, .rqk-auth-switch-button, .rqk-auth-link-button, .rqk-auth-icon-button, .rqk-auth-secondary):hover:not(:disabled) {
-  background: #334155 !important;
-  border-color: rgba(110,145,180, 0.30) !important;
+  background: #0B1B2B !important;
+  border-color: rgba(60,146,224, 0.30) !important;
   transform: none !important;
   filter: none !important;
 }
@@ -367,7 +375,7 @@
   margin: 0 0 12px;
   padding: 10px 11px;
   color: rgba(234, 223, 200, 0.78) !important;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(137, 157, 176, 0.14) !important;
   border-radius: 5px !important;
 }
@@ -393,7 +401,7 @@
   position: absolute;
   inset: 8px auto 8px 0;
   width: 2px;
-  background: #263F59;
+  background: #0B1B2B;
 }
 
 .rqk-auth-assurance strong {
@@ -441,15 +449,15 @@
   align-items: center;
   gap: 9px;
   padding: 0 11px;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(137, 157, 176, 0.18);
   border-radius: 5px;
 }
 
 .rqk-auth-input-shell:focus-within {
-  background: #101F2D !important;
-  border-color: #6E91B4 !important;
-  outline: 3px solid rgba(110, 145, 180, 0.18);
+  background: #0B1B2B !important;
+  border-color: #3C92E0 !important;
+  outline: 3px solid rgba(60, 146, 224, 0.18);
   outline-offset: 1px;
 }
 
@@ -480,7 +488,7 @@
 #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:focus {
   -webkit-text-fill-color: #EADFC8 !important;
   caret-color: #EADFC8 !important;
-  -webkit-box-shadow: 0 0 0 1000px #101F2D inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #0B1B2B inset !important;
   border-radius: 5px !important;
 }
 
@@ -526,9 +534,9 @@
   justify-content: center;
   gap: 9px;
   padding: 0 16px;
-  background: #263F59 !important;
+  background: #0B1B2B !important;
   background-image: none !important;
-  border: 1px solid #6E91B4 !important;
+  border: 1px solid #3C92E0 !important;
   border-radius: 5px !important;
   color: #F8F0E5 !important;
   box-shadow: none !important;
@@ -538,8 +546,8 @@
 }
 
 #root .rqk-auth-page .rqk-auth-primary:hover:not(:disabled) {
-  background: #263F59 !important;
-  border-color: #6E91B4 !important;
+  background: #0B1B2B !important;
+  border-color: #3C92E0 !important;
 }
 
 #root .rqk-auth-page .rqk-auth-primary:disabled,
@@ -553,8 +561,8 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 2px solid rgba(7, 19, 31, 0.24);
-  border-top-color: #07131F;
+  border: 2px solid rgba(11, 27, 43, 0.24);
+  border-top-color: #0B1B2B;
   animation: rqkAuthSpin 800ms linear infinite;
 }
 
@@ -601,7 +609,7 @@
   display: grid;
   gap: 9px;
   padding: 11px;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(137, 157, 176, 0.14);
   border-radius: 5px;
 }
@@ -632,7 +640,7 @@
 }
 
 .rqk-auth-strength-meter span.is-filled {
-  background: #263F59 !important;
+  background: #0B1B2B !important;
 }
 
 .rqk-auth-password-readiness ul {
@@ -656,7 +664,7 @@
 .rqk-auth-password-readiness li {
   min-height: 27px;
   padding: 4px 7px;
-  background: #1E2936;
+  background: #0B1B2B;
   border: 1px solid rgba(137, 157, 176, 0.14);
   border-radius: 5px;
 }
@@ -710,7 +718,7 @@
   gap: 3px;
   padding: 8px;
   color: #EADFC8;
-  background: #1E2936;
+  background: #0B1B2B;
   border: 1px solid rgba(137, 157, 176, 0.14);
   border-radius: 5px;
   font-size: 0.72rem;
@@ -740,7 +748,7 @@
   align-items: center;
   padding: 4px 8px;
   color: rgba(234, 223, 200, 0.60);
-  background: #101F2D;
+  background: #0B1B2B;
   border: 1px solid rgba(137, 157, 176, 0.14);
   border-radius: 5px;
   font-size: 0.7rem;
@@ -760,7 +768,7 @@
   gap: 10px;
   margin-bottom: 12px;
   padding: 11px;
-  background: #101F2D !important;
+  background: #0B1B2B !important;
   border: 1px solid rgba(137, 157, 176, 0.14);
   border-radius: 5px;
 }
@@ -810,8 +818,8 @@
 
 #root .rqk-staging-access__button {
   min-height: 42px;
-  background: #263748 !important;
-  border: 1px solid rgba(110,145,180, 0.30) !important;
+  background: #0B1B2B !important;
+  border: 1px solid rgba(60,146,224, 0.30) !important;
   border-radius: 5px !important;
   color: #EADFC8 !important;
   cursor: pointer;
@@ -823,21 +831,11 @@
 }
 
 @media (max-width: 920px) {
-  .rqk-auth-shell {
-    width: min(570px, 100%);
-  }
-
+  /* The card is already the only column, so it just needs to stop reserving
+     viewport height on a short screen. It must not get WIDER than it is on
+     desktop, which is what the old 570px shell did once the hero was gone. */
   .rqk-auth-layout {
-    display: block;
     min-height: 0;
-  }
-
-  .rqk-auth-hero {
-    display: none;
-  }
-
-  .rqk-auth-card {
-    width: 100%;
   }
 }
 
@@ -892,7 +890,10 @@
 
 /* Guild Ledger sign-in: one actual form, centred across phone/tablet/desktop.
    Scoping this to login avoids changing registration and password recovery. */
-#root .rqk-auth-page--login {
+/* These rules used to be scoped to .rqk-auth-page--login, so only the sign-in
+   page got the centred single-column card. Sign-up kept the old two-column
+   grid and sat off to one side. Sign in and sign up are the same box now. */
+#root .rqk-auth-page {
   min-height: 100dvh !important;
   display: grid !important;
   place-items: center !important;
@@ -903,12 +904,12 @@
   overflow-y: auto !important;
   background: #0B1B2B !important;
 }
-#root .rqk-auth-page--login::before,
-#root .rqk-auth-page--login::after {
+#root .rqk-auth-page::before,
+#root .rqk-auth-page::after {
   content: none !important;
   display: none !important;
 }
-#root .rqk-auth-page--login .rqk-auth-shell {
+#root .rqk-auth-page .rqk-auth-shell {
   width: min(420px, 100%) !important;
   min-width: 0 !important;
   min-height: 0 !important;
@@ -919,83 +920,83 @@
   gap: 12px !important;
   margin: 0 auto !important;
 }
-#root .rqk-auth-page--login .rqk-auth-brand {
+#root .rqk-auth-page .rqk-auth-brand {
   justify-self: center !important;
-  min-height: 42px !important;
+  min-height: 44px !important;
   padding: 2px 10px 2px 4px !important;
   background: transparent !important;
   border-color: transparent !important;
 }
-#root .rqk-auth-page--login .rqk-auth-layout {
+#root .rqk-auth-page .rqk-auth-layout {
   display: block !important;
   min-height: 0 !important;
   width: 100% !important;
 }
-#root .rqk-auth-page--login .rqk-auth-card {
+#root .rqk-auth-page .rqk-auth-card {
   width: 100% !important;
   max-width: none !important;
   min-height: 0 !important;
   padding: clamp(18px, 4vw, 26px) !important;
-  background: #1E2936 !important;
-  border: 1px solid rgba(110,145,180,.28) !important;
-  border-top: 2px solid #6E91B4 !important;
+  background: #0B1B2B !important;
+  border: 1px solid rgba(60,146,224,.28) !important;
+  border-top: 2px solid #3C92E0 !important;
   border-radius: 8px !important;
   box-shadow: none !important;
 }
-#root .rqk-auth-page--login .rqk-auth-heading {
+#root .rqk-auth-page .rqk-auth-heading {
   margin-bottom: 15px !important;
 }
-#root .rqk-auth-page--login .rqk-auth-heading p {
+#root .rqk-auth-page .rqk-auth-heading p {
   margin: 0 0 7px !important;
   color: #C9A96B !important;
   letter-spacing: .13em !important;
   font-size: .66rem !important;
 }
-#root .rqk-auth-page--login .rqk-auth-heading h1 {
+#root .rqk-auth-page .rqk-auth-heading h1 {
   font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
   font-size: clamp(1.7rem, 5vw, 2.05rem) !important;
   line-height: 1.15 !important;
   color: #EADFC8 !important;
 }
-#root .rqk-auth-page--login .rqk-auth-heading > span {
+#root .rqk-auth-page .rqk-auth-heading > span {
   font-size: .85rem !important;
   line-height: 1.42 !important;
   margin-top: 6px !important;
 }
-#root .rqk-auth-page--login .rqk-auth-heading::after {
+#root .rqk-auth-page .rqk-auth-heading::after {
   width: 40px !important;
   margin-top: 10px !important;
 }
-#root .rqk-auth-page--login .rqk-auth-mode-toggle {
+#root .rqk-auth-page .rqk-auth-mode-toggle {
   margin-bottom: 14px !important;
 }
-#root .rqk-auth-page--login .rqk-auth-input-shell {
+#root .rqk-auth-page .rqk-auth-input-shell {
   min-height: 46px !important;
 }
-#root .rqk-auth-page--login .rqk-auth-form {
+#root .rqk-auth-page .rqk-auth-form {
   gap: 10px !important;
 }
-#root .rqk-auth-page--login .rqk-auth-primary {
+#root .rqk-auth-page .rqk-auth-primary {
   min-height: 48px !important;
-  background: #263F59 !important;
-  color: #07131F !important;
-  border-color: #6E91B4 !important;
+  background: #0B1B2B !important;
+  color: #0B1B2B !important;
+  border-color: #3C92E0 !important;
 }
-#root .rqk-auth-page--login .rqk-auth-submit-status:empty {
+#root .rqk-auth-page .rqk-auth-submit-status:empty {
   display: none !important;
 }
-#root .rqk-auth-page--login .rqk-auth-footer {
+#root .rqk-auth-page .rqk-auth-footer {
   margin: 0 !important;
   text-align: center !important;
   font-size: .69rem !important;
   color: rgba(234,223,200,.53) !important;
 }
-#root .rqk-auth-page--login .rqk-auth-more-options {
+#root .rqk-auth-page .rqk-auth-more-options {
   margin-top: 14px;
   min-width: 0;
-  border-top: 1px solid rgba(110,145,180,.20);
+  border-top: 1px solid rgba(60,146,224,.20);
 }
-#root .rqk-auth-page--login .rqk-auth-more-options > summary {
+#root .rqk-auth-page .rqk-auth-more-options > summary {
   width: 100%;
   display: list-item;
   padding: 13px 4px 5px;
@@ -1004,47 +1005,47 @@
   text-align: center;
   cursor: pointer;
 }
-#root .rqk-auth-page--login .rqk-auth-more-options[open] > summary {
+#root .rqk-auth-page .rqk-auth-more-options[open] > summary {
   margin-bottom: 12px;
   color: #D9BC82 !important;
 }
-#root .rqk-auth-page--login .rqk-google-access,
-#root .rqk-auth-page--login .rqk-demo-access {
+#root .rqk-auth-page .rqk-google-access,
+#root .rqk-auth-page .rqk-demo-access {
   border-radius: 6px !important;
-  border-color: rgba(110,145,180,.21) !important;
-  background: #101F2D !important;
+  border-color: rgba(60,146,224,.21) !important;
+  background: #0B1B2B !important;
   padding: 12px !important;
   margin-bottom: 10px !important;
 }
-#root .rqk-auth-page--login .rqk-google-access :where(p,strong,span),
-#root .rqk-auth-page--login .rqk-demo-access :where(p,strong,span) {
+#root .rqk-auth-page .rqk-google-access :where(p,strong,span),
+#root .rqk-auth-page .rqk-demo-access :where(p,strong,span) {
   color: #EADFC8 !important;
 }
-#root .rqk-auth-page--login .rqk-demo-access__button,
-#root .rqk-auth-page--login .rqk-google-access__nickname button {
-  background: #263748 !important;
+#root .rqk-auth-page .rqk-demo-access__button,
+#root .rqk-auth-page .rqk-google-access__nickname button {
+  background: #0B1B2B !important;
   color: #EADFC8 !important;
-  border-color: rgba(110,145,180,.30) !important;
+  border-color: rgba(60,146,224,.30) !important;
   border-radius: 5px !important;
 }
-#root .rqk-auth-page--login .rqk-auth-staging-details {
-  border: 1px solid rgba(110,145,180,.22);
+#root .rqk-auth-page .rqk-auth-staging-details {
+  border: 1px solid rgba(60,146,224,.22);
   padding: 8px;
   margin-bottom: 12px;
   border-radius: 6px;
-  background: #101F2D;
+  background: #0B1B2B;
 }
-#root .rqk-auth-page--login .rqk-auth-staging-details > summary {
+#root .rqk-auth-page .rqk-auth-staging-details > summary {
   padding: 4px;
   cursor: pointer;
   color: #D9BC82;
   font-size: .79rem;
 }
 @media (max-height: 670px) {
-  #root .rqk-auth-page--login { align-content: start !important; }
-  #root .rqk-auth-page--login .rqk-auth-shell { align-content: start !important; }
+  #root .rqk-auth-page { align-content: start !important; }
+  #root .rqk-auth-page .rqk-auth-shell { align-content: start !important; }
 }
 @media (max-width: 420px) {
-  #root .rqk-auth-page--login .rqk-auth-card { padding: 16px !important; }
-  #root .rqk-auth-page--login .rqk-auth-brand__text small { display: none !important; }
+  #root .rqk-auth-page .rqk-auth-card { padding: 16px !important; }
+  #root .rqk-auth-page .rqk-auth-brand__text small { display: none !important; }
 }

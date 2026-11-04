@@ -1,7 +1,7 @@
 """Iteration 90 - Admin CSV export + Impersonate + regression tests.
 
 Covers:
-- Auth: login for admin user (lcblakey24@outlook.com -> username 'LCBlakey24')
+- Auth: login for the configured admin test account (credentials supplied through environment)
 - Admin: GET /api/admin/check returns is_admin True
 - Admin CSV: /api/admin/export/users.csv and /admin/export/campaigns.csv (headers + auth)
 - Admin Impersonate: POST /api/admin/users/{username}/impersonate (case-insensitive,
@@ -59,7 +59,7 @@ def nonadmin_session():
 # ============ AUTH & ADMIN CHECK ============
 class TestAuthAndAdminCheck:
     def test_login_returns_token_and_username(self, admin_session):
-        assert admin_session.admin_username == "LCBlakey24"
+        assert isinstance(admin_session.admin_username, str) and admin_session.admin_username.strip()
         assert isinstance(admin_session.admin_token, str) and len(admin_session.admin_token) > 10
 
     def test_admin_check_is_true(self, admin_session):
@@ -135,7 +135,7 @@ class TestImpersonate:
     def test_impersonate_case_insensitive_admin_check(self, admin_session):
         # target_username lowercase — backend should find user via case-insensitive
         # OR match via email fallback. Just verify the admin check itself is
-        # case-insensitive (admin was accepted with 'LCBlakey24' vs ADMIN_USERNAMES=['lcblakey24']).
+        # case-insensitive (a stored display-name casing can differ from input).
         # A lowercase username may 404 if the DB username is stored with caps and
         # no email fallback matches.
         r = admin_session.post(f"{BASE_URL}/api/admin/users/lcblakey24/impersonate", timeout=15)

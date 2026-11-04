@@ -3,7 +3,7 @@
 #root .rqk-npc-editor {
   margin: 14px 0;
   border: 1px solid var(--rq-line-strong, rgba(201,169,107,.35));
-  background: var(--rq-bg-panel, #1e2936);
+  background: var(--rq-bg-panel, #0b1b2b);
   border-radius: 7px;
   color: var(--rq-text-primary, #eadfc8);
   min-width: 0;

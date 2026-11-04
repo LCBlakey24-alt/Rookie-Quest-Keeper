@@ -38,7 +38,11 @@ describe('Cleric progression helpers', () => {
     expect(getClericChannelDivinityUses(6, '2014')).toBe(2);
     expect(getClericChannelDivinityUses(18, '2014')).toBe(3);
     expect(getClericChannelDivinityUses(2, '2024')).toBe(2);
-    expect(getClericChannelDivinityUses(9, '2024')).toBe(5);
+    // 2024 Channel Divinity steps 2 -> 3 at level 6 -> 4 at level 18. This
+    // previously asserted 5 at level 9, which encoded the unbounded
+    // Math.max(2, ceil(level / 2)) scale it was meant to describe.
+    expect(getClericChannelDivinityUses(9, '2024')).toBe(3);
+    expect(getClericChannelDivinityUses(18, '2024')).toBe(4);
   });
 
   test('calculates Destroy Undead/Sear Undead scaling', () => {
@@ -93,7 +97,9 @@ describe('Cleric progression helpers', () => {
     expect(summary.edition).toBe('2024');
     expect(summary.level).toBe(7);
     expect(summary.spellcastingLevel).toBe(7);
-    expect(summary.channelDivinityUses).toBe(4);
+    // 2024 Channel Divinity is 3 uses at level 7 (3 from level 6, 4 from 18).
+    // This previously asserted 4, matching the old ceil(level / 2) scale.
+    expect(summary.channelDivinityUses).toBe(3);
     expect(summary.destroyUndeadCR).toBe('scales with Cleric level');
     expect(summary.subclassChoiceLevel).toBe(3);
     expect(summary.currentLevelFeatures.map(feature => feature.key)).toContain('blessed_strikes');

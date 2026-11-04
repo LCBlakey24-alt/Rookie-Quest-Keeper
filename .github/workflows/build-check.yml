@@ -20,6 +20,8 @@ jobs:
           python-version: '3.11'
       - name: Check for committed reusable test credentials
         run: python scripts/check_test_credentials.py
+      - name: Test credential guard rules
+        run: python -m unittest discover -s scripts -p 'test_check_test_credentials.py' -v
 
       - name: Install route test dependencies
         run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests google-auth
@@ -60,7 +62,29 @@ jobs:
             backend/tests/test_map_media_models.py \
             backend/tests/test_custom_calendar_rules.py \
             backend/tests/test_auth_password_policy.py \
-            backend/tests/test_auth_account_profile.py
+            backend/tests/test_auth_username_validation.py \
+            backend/tests/test_auth_account_profile.py \
+            backend/tests/test_admin_identity.py \
+            backend/tests/test_access_checks.py \
+            backend/tests/test_upload_limits.py \
+            backend/tests/test_session_and_socket_hardening.py \
+            backend/tests/test_character_patch_campaign_idor.py \
+            backend/tests/test_character_patch_state.py \
+            backend/tests/test_progression_admin_gate.py \
+            backend/tests/test_half_third_caster_own_slots.py \
+            backend/tests/test_multiclass_spell_slot_pool.py \
+            backend/tests/test_subclass_unlock_edition.py \
+            backend/tests/test_campaign_content_gm_writes.py \
+            backend/tests/test_feat_edition_categories.py \
+            backend/tests/test_entity_stats_default_composition.py \
+            backend/tests/test_npc_portrait_models.py \
+            backend/tests/test_ruleset_mass_assignment.py \
+            backend/tests/test_ruleset_route_permissions.py \
+            backend/tests/test_ai_route_quota_metering.py \
+            backend/tests/test_con_asi_retroactive_hp.py \
+            backend/tests/test_campaign_members_authorization.py \
+            backend/tests/test_known_spell_swap_2014.py \
+            backend/tests/test_password_recovery_observability.py
 
   frontend-build:
     name: Frontend tests and build

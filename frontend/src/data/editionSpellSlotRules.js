@@ -58,9 +58,17 @@ export function getEditionSpellSlotsForClass(character = {}, className = '', lev
 
   if (info.pactMagic) return PACT_MAGIC_SLOTS[safeLevel] || {};
 
+  // A class's OWN slot table is the full-caster table at ceil(level / N), in
+  // both editions. halfCasterContribution() is the *multiclass* rule (floor in
+  // 2014, ceil in 2024) and belongs only in getEditionMulticlassSpellSlots
+  // below -- using it here understated slots at every odd level under 2014, so
+  // a Paladin 5 reported {1:3} instead of {1:4, 2:2}.
+  // The start level is already enforced by classHasEditionSpellcasting above
+  // (2 in 2014, 1 in 2024 for half casters; 3 for third casters), so ceil()
+  // cannot leak a slot to a character who has no Spellcasting yet.
   let effectiveLevel = safeLevel;
-  if (info.halfCaster) effectiveLevel = halfCasterContribution(safeLevel, editionFor(character));
-  if (info.thirdCaster) effectiveLevel = Math.floor(safeLevel / 3);
+  if (info.halfCaster) effectiveLevel = Math.ceil(safeLevel / 2);
+  if (info.thirdCaster) effectiveLevel = Math.ceil(safeLevel / 3);
   return SPELL_SLOTS[Math.min(Math.max(effectiveLevel, 0), 20)] || {};
 }
 

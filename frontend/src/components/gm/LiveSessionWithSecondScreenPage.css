@@ -47,7 +47,7 @@
     }
     .live-display-drawer-trigger:focus-visible,
     .live-display-drawer-close:focus-visible {
-      outline: 3px solid var(--rq-info, #6E91B4);
+      outline: 3px solid var(--rq-info, #3C92E0);
       outline-offset: 3px;
     }
     .live-display-drawer-backdrop {
@@ -55,7 +55,7 @@
       position: fixed;
       inset: 0;
       border: 0;
-      background: rgba(7, 19, 31, 0.60);
+      background: rgba(11, 27, 43, 0.60);
       z-index: 58;
     }
     .live-second-screen-fixed {
@@ -66,7 +66,7 @@
       right: 8px;
       width: min(380px, calc(100vw - 16px));
       padding: 8px;
-      background: var(--rq-bg-panel, #1E2936);
+      background: var(--rq-bg-panel, #0B1B2B);
       border: 1px solid var(--rq-line-strong, rgba(201,169,107,0.30));
       border-radius: 7px;
       z-index: 59;
@@ -89,7 +89,7 @@
       align-items: center;
       gap: 6px;
       padding: 0 10px;
-      background: var(--rq-card, #263748);
+      background: var(--rq-card, #0B1B2B);
       color: var(--rq-text-primary, #EADFC8);
       border: 1px solid var(--rq-line, rgba(137,157,176,0.14));
       cursor: pointer;

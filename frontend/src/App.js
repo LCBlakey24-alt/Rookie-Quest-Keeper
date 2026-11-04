@@ -18,7 +18,7 @@ import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
-import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
+import { getAuthToken, getStoredAuthUsername, setAuthToken, setStoredAuthUsername } from '@/lib/auth';
 import { isLocalPreview, isOfflineDesktop, localWorkspaceUser } from '@/preview/previewMode';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
@@ -54,7 +54,6 @@ const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
 const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
 const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
 const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
-const PlayerDashboard = lazyWithChunkRetry(() => import('@/components/PlayerDashboard'));
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
@@ -62,6 +61,7 @@ const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/
 const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/PlayerCampaignPage'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
+const VerifiedAdminRoute = lazyWithChunkRetry(() => import('@/components/admin/VerifiedAdminRoute'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
@@ -110,7 +110,7 @@ function ThemeRouter() {
 
   useEffect(() => {
     const path = location.pathname;
-    if (PUBLIC_BRAND_PATHS.has(path) || path.startsWith('/auth')) setTheme(THEMES.LANDING);
+    if (PUBLIC_BRAND_PATHS.has(path) || path.startsWith('/auth') || path === '/reset-password') setTheme(THEMES.LANDING);
     else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display')) setTheme(THEMES.GM);
     else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
@@ -123,13 +123,13 @@ export function AppRoutes() {
   const desktopOffline = isOfflineDesktop();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
-  const [username, setUsername] = useState(() => preview ? localWorkspaceUser() : localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const [username, setUsername] = useState(() => preview ? localWorkspaceUser() : getStoredAuthUsername());
   const skipNextAuthProbeRef = useRef(false);
-  const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth');
+  const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
 
   const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
     if (!preview) {
-      localStorage.setItem(AUTH_USERNAME_KEY, nextUsername || '');
+      setStoredAuthUsername(nextUsername || '');
       if (typeof nextIsAdmin === 'boolean') {
         try {
           sessionStorage.setItem(
@@ -156,7 +156,7 @@ export function AppRoutes() {
     if (preview) return undefined;
     const syncSession = () => {
       setIsAuthenticated(Boolean(getAuthToken()));
-      setUsername(localStorage.getItem(AUTH_USERNAME_KEY) || '');
+      setUsername(getStoredAuthUsername());
     };
     window.addEventListener('rqk:auth-scope-changed', syncSession);
     window.addEventListener('storage', syncSession);
@@ -195,9 +195,11 @@ export function AppRoutes() {
         <Route path="/worlds" element={<Navigate to="/" replace />} />
         <Route path="/game" element={<Navigate to="/" replace />} />
         <Route path="/auth" element={isAuthenticated ? <PostSignInRedirect /> : <AuthPage onLogin={handleAuthLogin} />} />
+        {/* Recovery links are public even when this browser still has an older session. */}
+        <Route path="/reset-password" element={<AuthPage onLogin={handleAuthLogin} onPasswordReset={handleLogout} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <SignInRedirect />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <SignInRedirect />} />
-        <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <SignInRedirect />} />
+        <Route path="/player" element={<Navigate to="/campaigns" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <SignInRedirect />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboardRoute /> : <SignInRedirect />} />
         <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <SignInRedirect />} />
@@ -209,7 +211,7 @@ export function AppRoutes() {
         <Route path="/mobile/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <SignInRedirect />} />
         <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <SignInRedirect />} />
         <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <SignInRedirect />} />
-        <Route path="/admin" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><AdminPage /></AppShell> : <SignInRedirect />)} />
+        <Route path="/admin" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <VerifiedAdminRoute><AppShell><AdminPage /></AppShell></VerifiedAdminRoute> : <SignInRedirect />)} />
         <Route path="/account" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <SignInRedirect />)} />
         <Route path="/homebrew" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <SignInRedirect />)} />
         <Route path="/uploads" element={desktopOffline ? <Navigate to="/home" replace /> : (isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <SignInRedirect />)} />

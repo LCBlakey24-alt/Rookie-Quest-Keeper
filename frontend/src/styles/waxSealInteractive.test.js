@@ -16,7 +16,7 @@ describe('Guild Command citrus site-wide design contract', () => {
   test('flat navy backgrounds without noisy wallpaper', () => {
     const css = read('./citrusCommand.css');
     expect(css).toContain('--rq-citrus-navy: #0B1B2B;');
-    expect(css).toContain('--rq-citrus-panel: #142638;');
+    expect(css).toContain('--rq-citrus-panel: #0B1B2B;');
     expect(css).toContain('background-image: none !important;');
     expect(css).toContain('.rqk-player-display__frame');
     expect(css).toContain('.keeper-product-site');
@@ -27,9 +27,9 @@ describe('Guild Command citrus site-wide design contract', () => {
 
   test('gradient is yellow to citrus orange to blood orange, never a full card fill', () => {
     const css = read('./citrusCommand.css');
-    expect(css).toContain('--rq-citrus-yellow: #F2C94C;');
-    expect(css).toContain('--rq-citrus-orange: #EF6343;');
-    expect(css).toContain('--rq-citrus-blood: #CE393A;');
+    expect(css).toContain('--rq-citrus-yellow: #FF8A1F;');
+    expect(css).toContain('--rq-citrus-orange: #F4551F;');
+    expect(css).toContain('--rq-citrus-blood: #E03A2F;');
     expect(css).toContain('--rq-citrus-gradient: linear-gradient(90deg,');
     // The colour transition now lives in the centre, with deliberate solid
     // colour holds at both ends instead of a full-width rainbow blend.
@@ -52,7 +52,7 @@ describe('Guild Command citrus site-wide design contract', () => {
     expect(css).toContain('.rq-fill-clicked');
     expect(css).toContain('@media (hover: hover) and (pointer: fine)');
     expect(css).toContain(':focus-visible');
-    expect(css).toContain('outline: 3px solid #6E91B4 !important;');
+    expect(css).toContain('outline: 3px solid #3C92E0 !important;');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('#root .landing-page-final.keeper-product-site button.landing-button,');
     expect(css).toContain('transition: none !important;');

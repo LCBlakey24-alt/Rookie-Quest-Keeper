@@ -55,9 +55,18 @@ const NPCNode = ({ npc, position, isSelected, isConnecting, onSelect, onDrag, th
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => { window.removeEventListener('mousemove', handleMouseMove); window.removeEventListener('mouseup', handleMouseUp); };
+      // Pointer rather than mouse events: these cover mouse, touch and pen, so
+      // a node can be repositioned by touch. pointercancel matters on touch,
+      // where the browser can take the gesture away mid-drag and no pointerup
+      // ever arrives, which would otherwise leave the node stuck to the finger.
+      window.addEventListener('pointermove', handleMouseMove);
+      window.addEventListener('pointerup', handleMouseUp);
+      window.addEventListener('pointercancel', handleMouseUp);
+      return () => {
+        window.removeEventListener('pointermove', handleMouseMove);
+        window.removeEventListener('pointerup', handleMouseUp);
+        window.removeEventListener('pointercancel', handleMouseUp);
+      };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
@@ -67,7 +76,9 @@ const NPCNode = ({ npc, position, isSelected, isConnecting, onSelect, onDrag, th
     <div
       data-testid={`npc-node-${npc.id}`}
       onClick={(e) => { e.stopPropagation(); onSelect(npc.id); }}
-      onMouseDown={handleMouseDown}
+      // stopPropagation in handleMouseDown keeps this gesture off the canvas,
+      // so dragging a node moves the node and dragging the background pans.
+      onPointerDown={handleMouseDown}
       style={{
         position: 'absolute', left: position.x, top: position.y, width: '150px', padding: '10px',
         background: isSelected ? theme.accent.subtle : theme.bg.card,
@@ -131,7 +142,7 @@ function StatBlockPanel({ npc, theme, onEdit, onClose }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
-          <button onClick={onEdit} data-testid="edit-npc-btn" style={{ background: theme.accent.subtle, border: `1px solid ${theme.border}`, borderRadius: '6px', padding: '6px', cursor: 'pointer', color: theme.accent.primary }}><Edit2 size={14} /></button>
+          <button onClick={onEdit} data-testid="edit-npc-btn" aria-label="Edit NPC" style={{ background: theme.accent.subtle, border: `1px solid ${theme.border}`, borderRadius: '6px', padding: '6px', cursor: 'pointer', color: theme.accent.primary }}><Edit2 size={14} /></button>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer' }}><X size={16} /></button>
         </div>
       </div>
@@ -295,7 +306,14 @@ function EditNPCModal({ npc, theme, onSave, onClose, isNew }) {
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}
       onClick={onClose}>
-      <div data-testid="edit-npc-modal" onClick={e => e.stopPropagation()} style={{ width: '640px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+      {/* role/aria-modal are not decoration here: mobileUsabilityFix.css sizes
+          `.modal, [role="dialog"]` responsively, and without the role this
+          modal never matched it. The explicit width keeps it correct even if
+          that stylesheet changes. At 640px fixed it overhung a 390px phone by
+          125px each side, putting the close button off-screen, and
+          overflow:hidden meant there was no way to scroll to it either. */}
+      <div data-testid="edit-npc-modal" role="dialog" aria-modal="true" aria-label={isNew ? 'Create NPC' : 'Edit NPC'}
+        onClick={e => e.stopPropagation()} style={{ width: 'min(640px, calc(100vw - 24px))', maxHeight: 'min(85dvh, calc(100dvh - 24px))', overflow: 'auto', display: 'flex', flexDirection: 'column',
         background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '16px' }}>
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -508,7 +526,10 @@ function GenerateNPCModal({ theme, onGenerate, onClose }) {
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}
       onClick={onClose}>
-      <div data-testid="generate-npc-modal" onClick={e => e.stopPropagation()} style={{ width: '480px', padding: '24px', background: theme.bg.card, border: `1px solid ${theme.accent.primary}`, borderRadius: '16px' }}>
+      {/* Same fix as the edit modal: 480px fixed overhung a 390px phone by 45px
+          each side, and the 24px padding pushed form content past the edge. */}
+      <div data-testid="generate-npc-modal" role="dialog" aria-modal="true" aria-label="AI Generate NPC"
+        onClick={e => e.stopPropagation()} style={{ width: 'min(480px, calc(100vw - 24px))', maxHeight: 'min(85dvh, calc(100dvh - 24px))', overflow: 'auto', padding: 'clamp(14px, 4vw, 24px)', background: theme.bg.card, border: `1px solid ${theme.accent.primary}`, borderRadius: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
           <Sparkles size={22} style={{ color: theme.accent.primary }} />
           <h3 style={{ color: theme.text.primary, margin: 0 }}>AI Generate NPC</h3>
@@ -677,8 +698,25 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
     setSelectedConnection(null);
   };
 
-  // Pan handling
-  const handleCanvasMouseDown = (e) => { if (e.button === 1 || (e.button === 0 && e.altKey)) { isPanning.current = true; panStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }; } };
+  // Pan handling.
+  //
+  // Pointer events rather than mouse events, so touch works. The canvas is
+  // overflow:hidden over a 4000x3000 coordinate space, and panning used to
+  // require a middle-click or Alt+left-click with no touch handlers at all, so
+  // on a phone any NPC positioned beyond the visible area was permanently
+  // unreachable -- zoom-out only goes to 0.4x.
+  //
+  // Touch and pen pan on a plain drag, since there is no modifier key to hold.
+  // Mouse keeps the original middle-click / Alt+click gesture so a plain
+  // left-drag still belongs to node dragging and selection on desktop.
+  const canvasPanGesture = (e) => (
+    e.pointerType !== 'mouse' || e.button === 1 || (e.button === 0 && e.altKey)
+  );
+  const handleCanvasMouseDown = (e) => {
+    if (!canvasPanGesture(e)) return;
+    isPanning.current = true;
+    panStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  };
   const handleCanvasMouseMove = (e) => { if (isPanning.current) setPan({ x: e.clientX - panStart.current.x, y: e.clientY - panStart.current.y }); };
   const handleCanvasMouseUp = () => { if (isPanning.current) { isPanning.current = false; onDragEnd(); } };
 
@@ -733,9 +771,11 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
       </div>
 
       {/* Canvas */}
-      <div onMouseDown={handleCanvasMouseDown} onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp}
+      {/* Pointer events so touch can pan; touchAction none stops the browser
+          claiming the drag as a page scroll before we see it. */}
+      <div onPointerDown={handleCanvasMouseDown} onPointerMove={handleCanvasMouseMove} onPointerUp={handleCanvasMouseUp} onPointerCancel={handleCanvasMouseUp} onPointerLeave={handleCanvasMouseUp}
         onClick={() => { setSelectedNode(null); setSelectedConnection(null); }}
-        style={{ flex: 1, background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', position: 'relative', overflow: 'hidden' }}>
+        style={{ flex: 1, background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', position: 'relative', overflow: 'hidden', touchAction: 'none' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0' }}>
           {showConnections && (
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '4000px', height: '3000px', pointerEvents: 'none' }}>

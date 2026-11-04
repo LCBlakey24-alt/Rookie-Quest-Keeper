@@ -64,7 +64,15 @@ describe('Clean Character Sheet presentation ownership', () => {
 
     // Compatibility aliases may keep historical names while they are retired,
     // but they must resolve to flat colours: no gradient syntax or sunset hexes.
-    expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
+    //
+    // One exception: the approved Guild Ledger direction marks emphasis with
+    // a 2-3px citrus rule, which is a linear-gradient defined once as
+    // --rq-ledger-rule in styles/flatLedger.css. Referencing that shared
+    // token is allowed, because it is a rule rather than a fill. Declaring a
+    // gradient inline here is still banned -- that is how the retired sunset
+    // chrome would come back.
+    const withoutLedgerRule = css.replace(/var\(\s*--rq-ledger-rule[^)]*\)/gi, 'LEDGER_RULE');
+    expect(withoutLedgerRule).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#190728|#150721|#12051c/i);
     expect(css).toContain('var(--cs-');
   });
@@ -254,10 +262,10 @@ describe('Clean Character Sheet presentation ownership', () => {
     const sheet = read('../components/CleanCharacterSheet.js');
 
     expect(finalAuthority).toContain('--cs-bg: #0B1B2B');
-    expect(finalAuthority).toContain('--cs-panel: #1E2936');
-    expect(finalAuthority).toContain('--cs-card: #263748');
+    expect(finalAuthority).toContain('--cs-panel: #0B1B2B');
+    expect(finalAuthority).toContain('--cs-card: #0B1B2B');
     expect(finalAuthority).toContain('--cs-accent: #C9A96B');
-    expect(finalAuthority).toContain('--cs-blue: #6E91B4');
+    expect(finalAuthority).toContain('--cs-blue: #3C92E0');
     expect(finalAuthority).toContain('flex-direction: row !important;');
     expect(finalAuthority).toContain('overflow-x: auto !important;');
     expect(finalAuthority).toContain('inset: 50px auto auto !important;');
@@ -266,4 +274,19 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(compactStatus).toContain('<span>Proficiency</span>');
     expect(sheet).toContain('proficiencyBonus={proficiencyBonus}');
   });
+});
+
+
+test('narrow-phone combat controls and ability dice stay readable without five cramped columns', () => {
+  const mobileHeader = fs.readFileSync(path.join(__dirname, 'characterSheetUnifiedMobileHeader.css'), 'utf8');
+  const phoneOverrides = mobileHeader.slice(mobileHeader.lastIndexOf('@media (max-width: 480px)'));
+
+  expect(phoneOverrides).toContain('grid-template-columns: repeat(6, minmax(0, 1fr)) !important;');
+  expect(phoneOverrides).toContain('.rq-temp-hp-action-button--plus');
+  expect(phoneOverrides).toContain('grid-column: 4 / span 3 !important;');
+  expect(phoneOverrides).toContain('grid-template-columns: repeat(2, minmax(0, 1fr)) !important;');
+  expect(phoneOverrides).toContain('grid-template-columns: repeat(3, minmax(0, 1fr)) !important;');
+  expect(phoneOverrides).toContain('min-height: 48px !important;');
+  expect(phoneOverrides).toContain('min-height: 44px !important;');
+  expect(phoneOverrides).toContain('font-size: 1rem !important;');
 });

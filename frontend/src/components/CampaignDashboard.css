@@ -475,10 +475,10 @@
    campaigns. No old neon/pink override layer below this point.
    ========================================================================= */
 #root .campaign-dashboard-simple {
-  --rqk-campaign-ink: #07131f;
+  --rqk-campaign-ink: #0b1b2b;
   --rqk-campaign-navy: #0b1b2b;
-  --rqk-campaign-surface: #1e2936;
-  --rqk-campaign-elevated: #263748;
+  --rqk-campaign-surface: #0b1b2b;
+  --rqk-campaign-elevated: #0B1B2B;
   --rqk-campaign-brass: #c9a96b;
   --rqk-campaign-brass-light: #d9bc82;
   --rqk-campaign-wax: var(--rq-guild-wine, #7E2D2D);
@@ -562,7 +562,7 @@
 #root .campaign-button:is(:hover,:focus-visible),
 #root .campaign-icon-button:is(:hover,:focus-visible),
 #root .campaign-home-quick-card:is(:hover,:focus-visible) {
-  background: #334155 !important;
+  background: #0B1B2B !important;
   border-color: var(--rqk-campaign-brass) !important;
 }
 #root .campaign-button-primary:is(:hover,:focus-visible) {
@@ -1017,7 +1017,7 @@
   gap: 14px !important;
   min-width: 0 !important;
   padding: clamp(12px, 1.5vw, 18px) !important;
-  background: var(--rqk-campaign-ink, #07131f) !important;
+  background: var(--rqk-campaign-ink, #0b1b2b) !important;
   border: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
   border-radius: 8px !important;
 }
@@ -1060,7 +1060,7 @@
   padding: 10px 7px !important;
   border: 1px solid rgba(201,169,107,.22) !important;
   border-radius: 7px !important;
-  background: var(--rqk-campaign-surface, #1e2936) !important;
+  background: var(--rqk-campaign-surface, #0b1b2b) !important;
   color: var(--rqk-campaign-cream, #eadfc8) !important;
   text-align: center !important;
   cursor: pointer !important;
@@ -1080,7 +1080,7 @@
 }
 #root .campaign-home-session-rail__action:hover,
 #root .campaign-home-session-rail__action:focus-visible {
-  background: var(--rqk-campaign-elevated, #263748) !important;
+  background: var(--rqk-campaign-elevated, #0B1B2B) !important;
   border-color: var(--rqk-campaign-brass, #c9a96b) !important;
 }
 @media (max-width: 850px) {
@@ -1157,7 +1157,7 @@
   padding: clamp(12px, 1.5vw, 19px) !important;
   border: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
   border-radius: 8px !important;
-  background: var(--rqk-campaign-surface, #1e2936) !important;
+  background: var(--rqk-campaign-surface, #0b1b2b) !important;
 }
 #root .campaign-home-workbench .campaign-home-section-heading > h2 {
   color: var(--rqk-campaign-brass-light, #d9bc82) !important;
@@ -1231,7 +1231,7 @@
 @media (max-width: 760px) {
   #root .campaign-dashboard-simple .campaign-dashboard-nav {
     padding: 0 !important;
-    background: var(--rqk-campaign-ink, #07131f) !important;
+    background: var(--rqk-campaign-ink, #0b1b2b) !important;
     border-bottom: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
   }
   #root .campaign-dashboard-simple .campaign-dashboard-group-row,
@@ -1296,7 +1296,7 @@
     min-height: 46px !important;
     min-width: 0 !important;
     padding: 0 36px 0 12px !important;
-    background: var(--rqk-campaign-surface, #1e2936) !important;
+    background: var(--rqk-campaign-surface, #0b1b2b) !important;
     border: 1px solid var(--rqk-campaign-brass, #c9a96b) !important;
     border-radius: 7px !important;
     color: var(--rqk-campaign-cream, #eadfc8) !important;
@@ -1374,7 +1374,7 @@
 #root .campaign-dashboard-simple .campaign-button-primary:focus-visible {
   background: #d9bc82 !important;
   border-color: #d9bc82 !important;
-  color: #07131f !important;
+  color: #0b1b2b !important;
 }
 #root .campaign-dashboard-simple :is(button, a, input, select, textarea):focus-visible {
   outline: 3px solid #d9bc82 !important;
@@ -1460,7 +1460,7 @@
 /* Guild Ledger UI polish: readable gold actions, clear keyboard focus and
    deliberate desktop/mobile density. No data or navigation changes. */
 #root .campaign-dashboard-simple .campaign-button-primary {
-  color: #07131f !important;
+  color: #0b1b2b !important;
   font-weight: 850 !important;
 }
 /* Selected navigation is wax-seal red; primary action buttons remain brass. */
@@ -1472,7 +1472,7 @@
   font-weight: 850 !important;
 }
 #root .campaign-dashboard-simple .campaign-button-primary:is(:hover,:focus-visible) {
-  color: #07131f !important;
+  color: #0b1b2b !important;
 }
 #root .campaign-dashboard-simple :is(
   .campaign-icon-button, .campaign-button, .campaign-dashboard-group,

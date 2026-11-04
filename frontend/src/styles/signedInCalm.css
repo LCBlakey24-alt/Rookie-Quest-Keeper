@@ -32,7 +32,9 @@ html body #root .rqk-app-rail-brand:hover,
 html body #root .rqk-app-rail-brand:focus-visible {
   background: #0c2234 !important;
   border-color: rgba(124, 203, 255, 0.16) !important;
-  outline: none !important;
+  /* No `outline: none` here: this rule is shared with :focus-visible, so
+   * suppressing the outline left keyboard focus identical to hover. The blue
+   * focus ring in citrusCommand.css supplies the indicator. */
 }
 
 html body #root .rqk-app-rail-brand-mark {

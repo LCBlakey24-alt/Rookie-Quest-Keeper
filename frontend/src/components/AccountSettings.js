@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
+import { setAuthToken } from '@/lib/auth';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
   AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
@@ -102,10 +103,13 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
     setSavingAction('password');
     try {
-      await apiClient.post('/account/change-password', {
+      const response = await apiClient.post('/account/change-password', {
         current_password: currentPassword,
         new_password: newPassword,
       });
+      // Changing the password signs out every other device; keep this one
+      // signed in with the fresh token the server returns.
+      if (response?.data?.token) setAuthToken(response.data.token);
 
       toast.success('Password changed successfully!');
       setCurrentPassword('');
@@ -180,7 +184,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
               <FieldLabel icon={Mail} text="Recovery Email (optional)" />
               <Input type="email" value={newEmail} disabled={saving} onChange={(e) => setNewEmail(e.target.value)} placeholder="parent-or-guardian@email.com" data-testid="profile-email" />
-              <p style={helpTextStyle}>Existing accounts can keep using their original email to sign in. New accounts can leave this blank unless they want password recovery.</p>
+              <p style={helpTextStyle}>Your email lets you recover your account. If your older account has no email, add one here to enable password resets.</p>
 
               <Button type="submit" disabled={saving || !profileChanged} className="btn-primary account-settings-primary" style={busyButtonStyle(profileSaving, !profileChanged)} data-testid="save-profile-btn">
                 {profileSaving ? <RefreshCw size={16} style={spinStyle} /> : <Save size={16} />}

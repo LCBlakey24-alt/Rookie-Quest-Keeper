@@ -8,7 +8,8 @@ import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from config import ADMIN_USERNAMES, db
+from config import db
+from utils.admin_identity import is_admin_username
 from routes.admin import merge_site_settings
 from routes.campaign_display import default_display_state
 from routes.homebrew import COLLECTION, CONTENT_TYPES
@@ -199,14 +200,14 @@ async def get_dashboard_bootstrap(username: str = Depends(get_current_user)):
         homebrew_request,
     )
 
-    admins = {str(admin).lower() for admin in ADMIN_USERNAMES}
+    is_admin = await is_admin_username(username)
 
     return {
         'characters': characters,
         'campaigns': campaigns,
         'homebrew_items': homebrew_items,
         'site_settings': merge_site_settings(site_settings_doc),
-        'is_admin': username.lower() in admins,
+        'is_admin': is_admin,
         'admin_overview': {},
     }
 
