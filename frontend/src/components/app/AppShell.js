@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { isDetailRoute } from '@/components/app/detailRoutes';
-import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
+import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, PanelLeftClose, PanelLeftOpen, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY } from '@/lib/auth';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
@@ -205,6 +205,13 @@ export default function AppShell({ children }) {
     ? availableNavItems.filter((item) => item.mobilePrimary)
     : availableNavItems;
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [railExpanded, setRailExpanded] = useState(() => !isDetailRoute(location.pathname));
+
+  useEffect(() => {
+    // A detail page always opens with the icon rail so its content retains
+    // space. The user can expand it temporarily using the rail toggle.
+    setRailExpanded(!isDetailRoute(location.pathname));
+  }, [location.pathname]);
 
   useEffect(() => {
     if (desktopOffline) {
@@ -283,8 +290,23 @@ export default function AppShell({ children }) {
       data-rq-layout-shell="app"
       data-rq-device={deviceLayout}
       data-rq-focus={isDetailRoute(location.pathname) ? 'detail' : undefined}
+      data-rq-rail={!isMobile ? (railExpanded ? 'expanded' : 'compact') : undefined}
     >
       <aside className={isMobile && isAdmin && !desktopOffline ? "rqk-app-rail rqk-app-rail--admin-mobile" : "rqk-app-rail"} aria-label="App navigation">
+        {!isMobile && (
+          <button
+            type="button"
+            className="rqk-app-rail-collapse-toggle"
+            aria-label={railExpanded ? 'Collapse navigation' : 'Expand navigation'}
+            aria-expanded={railExpanded}
+            aria-controls="rqk-app-main-rail-nav"
+            title={railExpanded ? 'Collapse navigation to icons' : 'Expand navigation'}
+            onClick={() => setRailExpanded((expanded) => !expanded)}
+          >
+            {railExpanded ? <PanelLeftClose size={19} aria-hidden="true" /> : <PanelLeftOpen size={19} aria-hidden="true" />}
+            {railExpanded && <span>Collapse menu</span>}
+          </button>
+        )}
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
             <BrandMiniLogo size={36} alt="" />
@@ -295,7 +317,7 @@ export default function AppShell({ children }) {
           </span>
         </Link>}
 
-        <nav className="rqk-app-rail-nav" aria-label="Main app sections">
+        <nav id="rqk-app-main-rail-nav" className="rqk-app-rail-nav" aria-label="Main app sections">
           {!isMobile && <p className="rqk-app-rail-section-label">Workspace</p>}
           {visibleNavItems.map((item) => (
             <RailLink key={item.label} item={item} pathname={location.pathname} compact={isMobile} />
