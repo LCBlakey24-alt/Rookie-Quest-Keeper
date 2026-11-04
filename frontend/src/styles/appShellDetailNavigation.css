@@ -1,0 +1,164 @@
+/* The global Keeper rail must stop competing with the active campaign or sheet.
+   Detail routes default to icon-only (including 720-1180px laptops/tablets);
+   a real toggle can expand it temporarily. The rail always owns its own grid
+   track and never overlays the page or the controls underneath. */
+@media (min-width: 720px) {
+  #root .rqk-app-shell[data-rq-rail='compact'] {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='compact'] .rqk-app-rail {
+    box-sizing: border-box;
+    min-width: 0 !important;
+    width: 72px !important;
+    max-width: 72px !important;
+    padding: 10px 6px !important;
+    gap: 7px;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='compact'] .rqk-app-rail-link {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) !important;
+    justify-items: center !important;
+    gap: 0 !important;
+    padding: 5px !important;
+    min-height: 46px !important;
+    box-sizing: border-box;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='compact'] .rqk-app-rail :is(
+    .rqk-app-rail-brand-copy,
+    .rqk-app-rail-section-label,
+    .rqk-app-rail-link > span
+  ) {
+    display: none !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='compact'] .rqk-app-rail-brand {
+    grid-template-columns: minmax(0, 1fr) !important;
+    justify-items: center !important;
+    place-items: center !important;
+    min-height: 52px !important;
+    padding: 5px !important;
+    box-sizing: border-box;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='compact'] .rqk-app-rail-brand-mark {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='compact'] .rqk-app-rail-nav,
+  #root .rqk-app-shell[data-rq-rail='compact'] .rqk-app-rail-bottom {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='expanded'][data-rq-device='desktop'] {
+    grid-template-columns: 236px minmax(0, 1fr) !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='expanded'][data-rq-device='tablet'] {
+    grid-template-columns: 214px minmax(0, 1fr) !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='expanded'] .rqk-app-rail {
+    box-sizing: border-box;
+    width: auto !important;
+    max-width: none !important;
+    padding: 14px 12px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='expanded'] .rqk-app-rail-link {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    justify-items: start !important;
+    gap: 10px !important;
+    padding: 6px 8px !important;
+    min-height: 54px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='expanded'] .rqk-app-rail-brand {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    justify-items: start !important;
+    min-height: 64px !important;
+    padding: 9px !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='expanded'] .rqk-app-rail :is(
+    .rqk-app-rail-brand-copy,
+    .rqk-app-rail-section-label
+  ) {
+    display: block !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='expanded'] .rqk-app-rail-link > span {
+    display: inline-block !important;
+  }
+
+  #root .rqk-app-shell[data-rq-rail] .rqk-app-rail {
+    overflow-x: clip;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+  }
+
+  #root .rqk-app-shell[data-rq-rail] .rqk-app-workspace,
+  #root .rqk-app-shell[data-rq-rail] .rqk-app-shell-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #root .rqk-app-shell[data-rq-rail='compact'] .character-page-v2 {
+    padding-left: 18px !important;
+  }
+}
+
+/* Visible, keyboard-accessible toggle in the top-left of the rail. */
+#root .rqk-app-shell .rqk-app-rail-collapse-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  min-width: 44px;
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  background: var(--rq-card, #13293e);
+  color: var(--rq-text-primary, #fff);
+  border: 1px solid var(--rq-border-default, #284964);
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+#root .rqk-app-shell[data-rq-rail='expanded'] .rqk-app-rail-collapse-toggle {
+  justify-content: flex-start;
+  padding-left: 13px;
+}
+
+#root .rqk-app-shell .rqk-app-rail-collapse-toggle:hover {
+  border-color: var(--rq-secondary, #79bce8);
+  background: var(--rq-card-hover, #19354e);
+}
+
+#root .rqk-app-shell .rqk-app-rail-collapse-toggle:focus-visible {
+  outline: 3px solid var(--rq-secondary, #79bce8);
+  outline-offset: 2px;
+}
+
+@media (max-width: 719px) {
+  #root .rqk-app-shell .rqk-app-rail-collapse-toggle {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #root .rqk-app-shell[data-rq-rail] {
+    transition: grid-template-columns 180ms ease;
+  }
+}
