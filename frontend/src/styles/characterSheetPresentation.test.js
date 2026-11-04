@@ -64,7 +64,15 @@ describe('Clean Character Sheet presentation ownership', () => {
 
     // Compatibility aliases may keep historical names while they are retired,
     // but they must resolve to flat colours: no gradient syntax or sunset hexes.
-    expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
+    //
+    // One exception: the approved Guild Ledger direction marks emphasis with
+    // a 2-3px citrus rule, which is a linear-gradient defined once as
+    // --rq-ledger-rule in styles/flatLedger.css. Referencing that shared
+    // token is allowed, because it is a rule rather than a fill. Declaring a
+    // gradient inline here is still banned -- that is how the retired sunset
+    // chrome would come back.
+    const withoutLedgerRule = css.replace(/var\(\s*--rq-ledger-rule[^)]*\)/gi, 'LEDGER_RULE');
+    expect(withoutLedgerRule).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#190728|#150721|#12051c/i);
     expect(css).toContain('var(--cs-');
   });

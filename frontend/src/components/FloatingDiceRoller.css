@@ -1,15 +1,37 @@
-/* Floating dice roller — RQK 1.0 flat navy/blue/pink presentation. */
+/* Floating dice roller — Guild Ledger flat surfaces.
+ *
+ * This panel was missed by the flat-single-surface pass and still stacked
+ * five different blues (page #0B1B2B behind a #071522 panel, #112A40 cards,
+ * a #071A29 input and a #0C2234 toggle) with antique-gold borders. The
+ * approved direction is one background colour everywhere, with structure
+ * carried by hairlines and the citrus rule -- "rules only, no boxes".
+ *
+ * So every surface token below is now the page ink. The panel and toggle
+ * keep a hairline border because they float above page content and would
+ * otherwise have no edge at all; that is a boundary, not a fill.
+ *
+ * The old `--dice-accent` token had already been repainted gold and was
+ * misleading on both counts, so it is now `--dice-accent`.
+ */
 
 .rq-floating-dice {
-  --dice-bg: #071522;
-  --dice-panel: #0C2234;
-  --dice-card: #112A40;
-  --dice-input: #071A29;
-  --dice-text: #F7F1E7;
-  --dice-blue: #79BCE8;
-  --dice-pink: #D6A84F;
-  --dice-line: rgba(214,168,79, 0.18);
-  --dice-line-strong: rgba(214,168,79, 0.34);
+  --dice-bg: #0B1B2B;
+  --dice-panel: #0B1B2B;
+  --dice-card: #0B1B2B;
+  --dice-input: #0B1B2B;
+  --dice-text: #F5F1E8;
+  --dice-muted: rgba(234, 223, 200, 0.70);
+  --dice-blue: #3C92E0;
+  --dice-accent: rgba(234, 223, 200, 0.28);
+  --dice-line: rgba(234, 223, 200, 0.14);
+  --dice-line-strong: rgba(234, 223, 200, 0.22);
+  --dice-hover: rgba(234, 223, 200, 0.06);
+  /* The citrus ramp is defined once in styles/flatLedger.css, which
+     index.js loads app-wide. Referencing the shared token keeps this panel
+     on the same accent as the rest of the app instead of pinning a second
+     copy of the ramp here. The fallback is a flat citrus so the rule still
+     reads if the token is ever missing. */
+  --dice-rule: var(--rq-ledger-rule, #F4551F);
 
   position: fixed;
   left: max(18px, env(safe-area-inset-left));
@@ -38,7 +60,7 @@
   min-height: 50px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--dice-pink);
+  border: 1px solid var(--dice-accent);
   border-radius: 7px;
   background: var(--dice-panel);
   background-image: none;
@@ -56,10 +78,10 @@
 
 .rq-floating-dice__toggle:hover,
 .rq-floating-dice__toggle:focus-visible {
-  background: #17364F;
-  border-color: var(--dice-pink);
+  background: var(--dice-hover);
+  border-color: var(--dice-accent);
   color: var(--dice-blue);
-  outline: 1px solid var(--dice-pink);
+  outline: 1px solid var(--dice-accent);
   outline-offset: 2px;
   transform: translateY(-1px);
 }
@@ -133,9 +155,9 @@
 
 .rq-floating-dice__close:hover,
 .rq-floating-dice__close:focus-visible {
-  background: #17364F;
-  border-color: var(--dice-pink);
-  outline: 1px solid var(--dice-pink);
+  background: var(--dice-hover);
+  border-color: var(--dice-accent);
+  outline: 1px solid var(--dice-accent);
   outline-offset: 2px;
 }
 
@@ -161,7 +183,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  border-left-color: var(--dice-pink);
+  border-left-color: var(--dice-accent);
 }
 
 .rq-floating-dice__group-check > div {
@@ -216,9 +238,9 @@
 .rq-floating-dice__custom-button:focus-visible,
 .rq-floating-dice__group-check button:hover,
 .rq-floating-dice__group-check button:focus-visible {
-  background: #17364F;
-  border-color: var(--dice-pink);
-  outline: 1px solid var(--dice-pink);
+  background: var(--dice-hover);
+  border-color: var(--dice-accent);
+  outline: 1px solid var(--dice-accent);
   outline-offset: 2px;
 }
 
@@ -264,14 +286,14 @@
 }
 
 .rq-floating-dice__custom input:focus {
-  border-color: var(--dice-pink);
-  outline: 1px solid var(--dice-pink);
+  border-color: var(--dice-accent);
+  outline: 1px solid var(--dice-accent);
   outline-offset: 2px;
 }
 
 .rq-floating-dice__custom-button,
 .rq-floating-dice__group-check button {
-  border-color: var(--dice-pink);
+  border-color: var(--dice-accent);
 }
 
 .rq-floating-dice__custom-button {
@@ -330,8 +352,8 @@
 }
 
 .rq-floating-dice.has-group-check-request .rq-floating-dice__toggle {
-  border-color: var(--dice-pink);
-  background: rgba(121,188,232, .10);
+  border-color: var(--dice-accent);
+  background: rgba(60, 146, 224, 0.12);
 }
 
 @media (max-width: 719px) {
@@ -369,4 +391,74 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---- Guild Ledger accents -----------------------------------------------
+ *
+ * With every surface flattened to the page ink, emphasis has to come from
+ * the citrus rule rather than from a coloured body. These are the four
+ * places that earn one: the panel's top edge, the primary Roll action, the
+ * floating toggle, and whichever control the player is touching.
+ *
+ * Each rule is painted as a background layer on an element that already has
+ * a background, so it needs no extra markup and cannot shift the layout.
+ */
+
+.rq-floating-dice__panel {
+  background-image: var(--dice-rule);
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: 100% 2px;
+}
+
+.rq-floating-dice__custom-button {
+  background-image: var(--dice-rule);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 2px;
+  border-color: var(--dice-line-strong);
+  color: var(--dice-text);
+}
+
+.rq-floating-dice__toggle {
+  background-image: var(--dice-rule);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 3px;
+  color: var(--dice-text);
+}
+
+.rq-floating-dice__button:hover,
+.rq-floating-dice__button:focus-visible,
+.rq-floating-dice__mode:hover,
+.rq-floating-dice__mode:focus-visible {
+  background-image: var(--dice-rule);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 2px;
+  border-color: var(--dice-line-strong);
+}
+
+/* A result row is separated by a hairline rather than sitting in its own
+   card, and the total stays the brightest thing in the list. */
+.rq-floating-dice__result {
+  border: 0;
+  border-bottom: 1px solid var(--dice-line);
+  border-radius: 0;
+}
+
+.rq-floating-dice__result:last-child {
+  border-bottom: 0;
+}
+
+.rq-floating-dice__result span {
+  color: var(--dice-muted);
+}
+
+.rq-floating-dice__result strong {
+  color: var(--dice-text);
+}
+
+.rq-floating-dice__history-title {
+  color: var(--dice-muted);
 }
