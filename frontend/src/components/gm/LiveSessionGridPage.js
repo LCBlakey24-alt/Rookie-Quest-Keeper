@@ -178,21 +178,43 @@ export default function LiveSessionGridPage() {
       toast.error('Party data is unavailable. Retry Live Play data before starting Quick Combat so no characters are accidentally omitted.');
       return;
     }
+    const numeric = (value) => {
+      if (value === null || value === undefined || value === '' || typeof value === 'boolean') return null;
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    // Live bootstrap uses the canonical live-party fields: hp, max_hp, ac,
+    // initiativeMod and conditions. Legacy roster rows may lack several.
+    const combatants = players.map(p => {
+      const maxHp = Math.max(1, numeric(p.max_hp ?? p.maxHp ?? p.max_hit_points) ?? numeric(p.hp ?? p.current_hit_points) ?? 10);
+      const hp = Math.max(0, Math.min(maxHp, numeric(p.hp ?? p.current_hit_points ?? p.current_hp) ?? maxHp));
+      const dexterity = numeric(p.stats?.dexterity ?? p.dexterity) ?? 10;
+      return {
+        id: p.id,
+        character_id: p.character_id || (p.source === 'character' ? p.id : null),
+        legacy_player_id: p.legacy_player_id || null,
+        name: p.name,
+        type: 'player',
+        hp,
+        maxHp,
+        ac: numeric(p.ac ?? p.armor_class) ?? 10,
+        initiativeMod: numeric(p.initiativeMod ?? p.initiative_bonus) ?? Math.floor((dexterity - 10) / 2),
+        conditions: Array.isArray(p.conditions) ? p.conditions : [],
+        tempHp: Math.max(0, numeric(p.temporary_hit_points ?? p.temp_hp) ?? 0),
+        deathSaves: {
+          successes: numeric(p.death_saves_successes) ?? 0,
+          failures: numeric(p.death_saves_failures) ?? 0,
+        },
+        concentrating_on: p.concentrating_on || '',
+        tokenColor: '#3C92E0',
+        tokenSize: 40,
+      };
+    });
     const quickScenario = {
       id: 'quick-combat',
       name: 'Quick Combat',
-      participants: players.map(p => ({
-        id: p.id,
-        name: p.name,
-        type: 'player',
-        hp: p.hp || p.max_hp || 10,
-        maxHp: p.max_hp || p.hp || 10,
-        ac: p.ac || 10,
-        initiativeMod: Math.floor(((p.stats?.dexterity || 10) - 10) / 2),
-        conditions: [],
-        tokenColor: '#d00000',
-        tokenSize: 40,
-      })),
+      // CombatPageTable reads combatants, not participants.
+      combatants,
       show_grid: true,
       grid_size: 40,
     };
