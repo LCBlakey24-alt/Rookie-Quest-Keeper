@@ -872,17 +872,33 @@ class CombatScenario(BaseModel):
     name: str
     description: str = ""
     combatants: List[Dict[str, Any]] = []  # Pre-configured combatant list
+    # Encounter readiness metadata is used by Live Play to prioritise the
+    # GM's next prepared fight. Keep it in API responses: the old model
+    # ignored these persisted fields and surfaced archived scenarios first.
+    live_ready: bool = False
+    live_default: bool = False
+    planned_encounter_order: Optional[int] = None
+    legacy: bool = False
+    played: bool = False
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class CombatScenarioCreate(BaseModel):
     name: str
     description: str = ""
     combatants: List[Dict[str, Any]] = []
+    live_ready: bool = False
+    live_default: bool = False
+    planned_encounter_order: Optional[int] = None
 
 class CombatScenarioUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     combatants: Optional[List[Dict[str, Any]]] = None
+    live_ready: Optional[bool] = None
+    live_default: Optional[bool] = None
+    planned_encounter_order: Optional[int] = None
+    legacy: Optional[bool] = None
+    played: Optional[bool] = None
 
 class InGameNote(BaseModel):
     model_config = ConfigDict(extra="ignore")
