@@ -304,10 +304,11 @@ function NPCsTab({ campaignId, onOpenCreate }) {
                 />
               </div>
               <div style={{ marginBottom: '16px' }}>
-                <label htmlFor="rqk-npc-discovery-status" className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Known to Wednesday players?</label>
+                <label htmlFor="rqk-npc-discovery-status" className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Known to campaign players?</label>
                 <select id="rqk-npc-discovery-status" data-testid="npc-discovery-status-input"
                   className="input" value={formData.discovery_status || 'unknown'}
                   onChange={event => setFormData(previous => ({ ...previous, discovery_status: event.target.value }))}>
+                  <option value="untracked">Not tracked (GM only)</option>
                   <option value="unknown">Unknown — not discovered</option>
                   <option value="met">Met — party encountered this NPC</option>
                 </select>
