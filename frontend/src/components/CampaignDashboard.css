@@ -1541,3 +1541,36 @@
     scroll-snap-type: none !important;
   }
 }
+
+/* Campaign navigation between a phone and a desktop.
+ *
+ * Phones (<=760px) swap both tool strips for one grouped selector, and
+ * desktops (>=1181px) turn them into the Guild Command sidebar. Between
+ * those two the strips are left as they are: flex rows with
+ * overflow-x: auto and nowrap labels. With enough tools they scroll, and a
+ * thin scrollbar on a trackpad is a poor way to find out that a tab exists.
+ * Measured at 900px with nine tabs, 120px of the row was hidden and the
+ * last tab could not be seen at all.
+ *
+ * This band is wider than a phone, so there is room to wrap rather than
+ * scroll. Every tool is then on screen and reachable without knowing to
+ * drag sideways.
+ *
+ * A laptop lands here more often than the breakpoint names suggest: 1366px
+ * at the 125% display scaling those machines ship with reports about 1093
+ * CSS pixels.
+ */
+@media (min-width: 761px) and (max-width: 1180px) {
+  #root .campaign-dashboard-simple .campaign-dashboard-group-row,
+  #root .campaign-dashboard-simple .campaign-dashboard-tab-row {
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+    row-gap: 6px !important;
+  }
+
+  /* The labels still do not break mid-word; the row breaks between them. */
+  #root .campaign-dashboard-simple .campaign-dashboard-tab,
+  #root .campaign-dashboard-simple .campaign-dashboard-group {
+    flex: 0 0 auto !important;
+  }
+}
