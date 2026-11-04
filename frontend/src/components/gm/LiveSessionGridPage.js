@@ -296,8 +296,8 @@ export default function LiveSessionGridPage() {
         <LiveDataWarning errors={loadErrors} onRetry={fetchAllData} />
         <PlayerDisplayDeliveryStatus campaignId={campaignId} />
         <LiveStoryFocusPanel campaignId={campaignId} />
-        <GroupCheckRequestPanel campaignId={campaignId} players={players} />
         <section style={gridShellStyle}><LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} /></section>
+        <GroupCheckRequestPanel campaignId={campaignId} players={players} />
 
         <DiceRollFlicker show={showDiceFlicker} rolls={diceRolls} label={diceLabel} modifier={diceModifier} total={diceTotal} animationValue={diceAnimationValue} isCrit={diceCrit} isFumble={diceFumble} theme="gm" onComplete={() => setShowDiceFlicker(false)} />
       </main>

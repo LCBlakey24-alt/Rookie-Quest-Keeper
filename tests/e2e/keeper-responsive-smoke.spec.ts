@@ -31,6 +31,42 @@ async function avoidThirdPartyRequests(page: Page) {
 }
 
 for (const size of appSizes) {
+  test(`GM Live Play keeps display controls usable at ${size.label} (${size.width}x${size.height})`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+    await expect(page.getByTestId('live-session-grid')).toBeVisible();
+    const nav = page.getByRole('navigation', { name: 'Live Play' });
+    const navBounds = await nav.boundingBox();
+    expect(navBounds?.y, 'GM tools should be reachable within the first screen').toBeLessThan(size.height);
+    const dock = page.getByTestId('live-second-screen-dock');
+    await expect(dock).toHaveCount(1);
+
+    const toggle = page.getByRole('button', { name: 'Display controls' });
+    if (size.width <= 1180) {
+      await expect(toggle).toBeVisible();
+      const toggleBounds = await toggle.boundingBox();
+      expect(toggleBounds, 'Display controls need a visible, reachable place before GM tools').not.toBeNull();
+      expect((toggleBounds?.y || 0) + (toggleBounds?.height || 0)).toBeLessThanOrEqual(navBounds?.y || 0);
+      await expect(dock).toBeHidden();
+      await toggle.click();
+      await expect(page.getByRole('dialog', { name: 'Live display controls' })).toBeVisible();
+      await expect(dock).toBeVisible();
+      const buttonHeights = await dock.locator('button').evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().height));
+      expect(Math.min(...buttonHeights), 'Tablet and phone display controls need 44px targets').toBeGreaterThanOrEqual(44);
+      await page.getByRole('button', { name: 'Close display controls' }).click();
+      await expect(dock).toBeHidden();
+    } else {
+      await expect(toggle).toBeHidden();
+      await expect(dock).toBeVisible();
+      const buttonHeights = await dock.locator('button').evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().height));
+      expect(Math.min(...buttonHeights), 'Desktop display controls need 40px targets').toBeGreaterThanOrEqual(40);
+    }
+    await assertFitsViewport(page, size.width);
+  });
+}
+
+for (const size of appSizes) {
   test(`public landing and sign-in fit ${size.label} (${size.width}x${size.height})`, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);

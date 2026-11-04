@@ -18,6 +18,13 @@
     position: static !important;
     top: auto !important;
   }
+  #root .live-second-screen-fixed [data-testid="live-second-screen-dock"] button {
+    min-height: 40px !important;
+  }
+  #root .live-second-screen-fixed [data-testid="live-second-screen-dock"] button[title="Clear display"] {
+    min-width: 40px !important;
+  }
+  .live-display-drawer-toolbar,
   .live-display-drawer-trigger,
   .live-display-drawer-header,
   .live-display-drawer-backdrop {
@@ -27,20 +34,25 @@
     .live-session-with-second-screen > main {
       padding-right: clamp(8px, 1.1vw, 12px) !important;
     }
-    .live-display-drawer-trigger {
-      position: fixed;
-      right: 16px;
-      bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-      z-index: 58;
+    .live-display-drawer-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 8px 12px 0;
+    }
+    #root .live-display-drawer-trigger {
       display: inline-flex;
       gap: 8px;
       align-items: center;
       justify-content: center;
-      min-height: 46px;
+      min-height: 46px !important;
       padding: 0 16px;
       color: var(--rq-guild-copy, #F8F0E5);
-      background: var(--rq-guild-wine, #7E2D2D);
-      border: 1px solid var(--rq-guild-wine, #7E2D2D);
+      background: var(--rq-bg, #0B1B2B);
+      background-image: var(--rq-ledger-rule, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F));
+      background-position: left bottom;
+      background-size: 100% 2px;
+      background-repeat: no-repeat;
+      border: 1px solid var(--rq-ledger-hair, rgba(234, 223, 200, .12));
       border-radius: 7px;
       font-weight: 800;
       cursor: pointer;
@@ -50,13 +62,13 @@
       outline: 3px solid var(--rq-info, #3C92E0);
       outline-offset: 3px;
     }
-    .live-display-drawer-backdrop {
+    #root .live-display-drawer-backdrop {
       display: block;
-      position: fixed;
-      inset: 0;
+      position: fixed !important;
+      inset: 0 !important;
       border: 0;
       background: rgba(11, 27, 43, 0.60);
-      z-index: 58;
+      z-index: 58 !important;
     }
     .live-second-screen-fixed {
       display: none;
@@ -99,6 +111,12 @@
       min-height: 0;
       max-height: none !important;
       height: auto !important;
+    }
+    #root .live-second-screen-fixed [data-testid="live-second-screen-dock"] button {
+      min-height: 44px !important;
+    }
+    #root .live-second-screen-fixed [data-testid="live-second-screen-dock"] button[title="Clear display"] {
+      min-width: 44px !important;
     }
   }
 
