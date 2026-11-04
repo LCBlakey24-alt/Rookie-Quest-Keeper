@@ -631,9 +631,21 @@ async def link_character_to_campaign(character_id: str, join_data: Dict[str, Any
     if not campaign_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="campaign_id is required")
     await verify_campaign_membership(campaign_id, username)
+    now = datetime.now(timezone.utc).isoformat()
     await db.player_characters.update_one(
         {'id': character_id, 'user_id': username},
-        {'$set': {'campaign_id': campaign_id, 'updated_at': datetime.now(timezone.utc).isoformat()}},
+        {'$set': {'campaign_id': campaign_id, 'updated_at': now}},
+    )
+
+    # The live party is built from member records, so setting campaign_id
+    # alone linked the character everywhere except the one place the GM
+    # looks during a session. verify_campaign_membership above has already
+    # established that this user belongs here, so this points their
+    # existing membership at the character rather than creating one, and
+    # cannot add anybody to a campaign they were not already in.
+    await db.campaign_members.update_one(
+        {'campaign_id': campaign_id, 'user_id': username},
+        {'$set': {'character_id': character_id, 'updated_at': now}},
     )
     return {"message": "Character linked to campaign", "campaign_id": campaign_id}
 
