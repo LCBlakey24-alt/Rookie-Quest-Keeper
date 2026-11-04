@@ -33,6 +33,9 @@ import "@/styles/citrusCommand.css";
 // Flat Ledger must load after citrusCommand so its surface language wins.
 import "@/styles/flatLedger.css";
 import "@/styles/guildCommandDashboard.css";
+// Loaded last: the compact rail has to win over the shell sheets above,
+// which set their widths with !important.
+import "@/styles/appShellFocusRail.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();
