@@ -9,6 +9,7 @@ from models import (
 from typing import Optional, List
 import uuid
 from datetime import datetime, timezone
+from utils.resilient_records import serialise_records
 
 router = APIRouter()
 
@@ -22,12 +23,15 @@ async def create_combat_scenario(campaign_id: str, scenario_data: CombatScenario
     await db.combat_scenarios.insert_one(doc)
     return scenario_obj
 
-@router.get("/campaigns/{campaign_id}/combat-scenarios", response_model=List[CombatScenario])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/combat-scenarios")
 async def get_combat_scenarios(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     scenarios = await db.combat_scenarios.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return scenarios
+    return serialise_records(CombatScenario, scenarios, required={'campaign_id': campaign_id, 'name': 'Untitled encounter'})
 
 @router.get("/campaigns/{campaign_id}/combat-scenarios/{scenario_id}", response_model=CombatScenario)
 async def get_combat_scenario(campaign_id: str, scenario_id: str, username: str = Depends(get_current_user)):

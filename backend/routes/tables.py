@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from config import db
 from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
+from utils.resilient_records import serialise_records
 
 router = APIRouter()
 
@@ -314,12 +315,15 @@ class CampaignTableRollResult(BaseModel):
     rolled_at: str = Field(default_factory=now_iso)
 
 
-@router.get("/campaigns/{campaign_id}/tables", response_model=List[CampaignTable])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/tables")
 async def list_campaign_tables(campaign_id: str, username: str = Depends(get_current_user)):
     """List GM-owned tables attached to a campaign for prep and live-session use."""
     await verify_campaign_ownership(campaign_id, username)
     tables = await db.campaign_tables.find({"campaign_id": campaign_id}, {"_id": 0}).sort("name", 1).to_list(1000)
-    return [normalise_table_document(table) for table in tables]
+    return serialise_records(CampaignTable, [normalise_table_document(table) for table in tables], required={'campaign_id': campaign_id, 'name': 'Untitled table'})
 
 
 @router.get("/campaigns/{campaign_id}/tables/{table_id}", response_model=CampaignTable)
@@ -345,7 +349,10 @@ async def roll_campaign_table_result(campaign_id: str, table_id: str, username: 
     )
 
 
-@router.get("/campaigns/{campaign_id}/player-safe-tables", response_model=List[CampaignTable])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/player-safe-tables")
 async def list_player_safe_campaign_tables(campaign_id: str, username: str = Depends(get_current_user)):
     """List only GM-approved player-safe tables for future player-facing views."""
     await verify_campaign_membership(campaign_id, username)
@@ -353,7 +360,7 @@ async def list_player_safe_campaign_tables(campaign_id: str, username: str = Dep
         {"campaign_id": campaign_id, "is_player_safe": True},
         {"_id": 0},
     ).sort("name", 1).to_list(500)
-    return [normalise_table_document(table) for table in tables]
+    return serialise_records(CampaignTable, [normalise_table_document(table) for table in tables], required={'campaign_id': campaign_id, 'name': 'Untitled table'})
 
 
 @router.get("/campaigns/{campaign_id}/player-safe-tables/{table_id}", response_model=CampaignTable)

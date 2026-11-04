@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any, List
 import uuid
 import math
 from datetime import datetime, timezone
+from utils.resilient_records import serialise_records
 
 router = APIRouter()
 
@@ -25,12 +26,15 @@ async def create_map(campaign_id: str, map_data: GameMapCreate, username: str = 
     await db.maps.insert_one(doc)
     return map_obj
 
-@router.get("/campaigns/{campaign_id}/maps", response_model=List[GameMap])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns/{campaign_id}/maps")
 async def get_maps(campaign_id: str, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     maps = await db.maps.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return maps
+    return serialise_records(GameMap, maps, required={'campaign_id': campaign_id, 'name': 'Untitled map'})
 
 @router.put("/campaigns/{campaign_id}/maps/{map_id}", response_model=GameMap)
 async def update_map(campaign_id: str, map_id: str, map_data: GameMapUpdate, username: str = Depends(get_current_user)):

@@ -16,6 +16,7 @@ import json
 from datetime import datetime, timezone
 from utils.ws_manager import ws_manager
 from utils.uploads import read_upload_capped
+from utils.resilient_records import serialise_records
 
 try:
     import fitz  # PyMuPDF
@@ -211,10 +212,13 @@ async def create_campaign(campaign_data: CampaignCreate, username: str = Depends
     await db.campaigns.insert_one(doc)
     return campaign_obj
 
-@router.get("/campaigns", response_model=List[Campaign])
+# Validated per record rather than as a list; see utils/resilient_records.
+# response_model=List[...] made one drifted record a 500 for the whole
+# collection, which is how a campaign's NPCs went missing (#740).
+@router.get("/campaigns")
 async def get_campaigns(username: str = Depends(get_current_user)):
     campaigns = await db.campaigns.find({'dm_user_id': username}, {'_id': 0}).to_list(1000)
-    return campaigns
+    return serialise_records(Campaign, campaigns, required={'dm_user_id': username, 'name': 'Untitled campaign'})
 
 @router.get("/campaigns/{campaign_id}", response_model=Campaign)
 async def get_campaign(campaign_id: str, username: str = Depends(get_current_user)):
