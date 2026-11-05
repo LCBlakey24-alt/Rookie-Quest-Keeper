@@ -165,6 +165,7 @@ export default function CombatPageTable() {
   const battleStartTimeRef = useRef(0);
   const initiativeSubmissionRef = useRef({});
   const initialPlayerStatesRef = useRef({});
+  const endingCombatRef = useRef(false);
 
   useEffect(() => () => {
     if (bannerTimerRef.current) window.clearTimeout(bannerTimerRef.current);
@@ -191,10 +192,10 @@ export default function CombatPageTable() {
 
     if (restored?.combatants?.length) {
       battleStartTimeRef.current = 0;
-      initialPlayerStatesRef.current = {
-        ...scenarioBaseStates,
-        ...(restored.initialPlayerStates || {}),
-      };
+      // A restored checkpoint must carry its own original state. Never use
+      // current/final combatants (or route snapshots) as a substitute for
+      // an absent original; offline sync cannot then detect conflicts safely.
+      initialPlayerStatesRef.current = restored.initialPlayerStates || {};
       setCombatants(restored.combatants);
       setCollectedLoot(safeArray(restored.collectedLoot).map(ensureLootOperation));
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
@@ -557,21 +558,24 @@ export default function CombatPageTable() {
 
     const safeLoot = collectedLoot.map(ensureLootOperation);
     const displayState = blankCombatDisplay();
-    const queued = await queueOfflineCombatEnd({
-      campaignId,
-      displayState,
-      characters: realCharacters.map(item => ({
-        characterId: item.character_id,
-        characterName: item.name,
-        baseState: initialPlayerStatesRef.current[String(item.character_id)],
-        state: combatStateSnapshot(item),
-      })),
-      loot: safeLoot.map(item => ({
-        operationId: item.offlineOperationId,
-        itemName: item.name,
-        item: inventoryPayload(item, round),
-      })),
-    });
+    let queued = null;
+    try {
+      queued = await queueOfflineCombatEnd({
+        campaignId,
+        displayState,
+        characters: realCharacters.map(item => ({
+          characterId: item.character_id,
+          characterName: item.name,
+          baseState: initialPlayerStatesRef.current[String(item.character_id)],
+          state: combatStateSnapshot(item),
+        })),
+        loot: safeLoot.map(item => ({
+          operationId: item.offlineOperationId,
+          itemName: item.name,
+          item: inventoryPayload(item, round),
+        })),
+      });
+    } catch { /* offline storage unavailable; keep checkpoint and fight */ }
     if (!queued) {
       toast.error('Rookie could not store the offline combat ending safely. The fight has been kept open.');
       return false;
@@ -590,14 +594,14 @@ export default function CombatPageTable() {
   };
 
   const endCombat = async () => {
+    if (endingCombatRef.current) return;
     if (!window.confirm('End this combat? Player combat state will be saved.')) return;
-
-    if (navigator.onLine === false) {
-      await endCombatOffline();
-      return;
-    }
-
+    endingCombatRef.current = true;
     try {
+      if (navigator.onLine === false) {
+        await endCombatOffline();
+        return;
+      }
       await syncPlayerState();
       if (collectedLoot.length) await saveLoot({ throwOnError: true });
 
@@ -622,6 +626,8 @@ export default function CombatPageTable() {
       navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
     } catch (error) {
       toast.error(error?.response?.data?.detail || error?.message || 'Could not safely end combat. The fight is still open so you can retry.');
+    } finally {
+      endingCombatRef.current = false;
     }
   };
 
