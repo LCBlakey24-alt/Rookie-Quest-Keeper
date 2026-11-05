@@ -8,6 +8,7 @@ note clearly names an existing character/NPC.
 from __future__ import annotations
 
 import re
+import hashlib
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional
@@ -118,22 +119,32 @@ def _find_location(locations: Iterable[Dict[str, Any]], destination: str) -> Opt
     return None
 
 
-async def apply_session_note_world_sync(db: Any, campaign_id: str, note: Dict[str, Any]) -> Dict[str, Any]:
-    """Apply clear session-note changes to campaign collections.
+def _proposal_id(note_id: str, kind: str, entity_id: str, detail: str = "") -> str:
+    """A stable id for one proposed change.
 
-    Returns a payload suitable for API responses. It never deletes data and only
-    mutates named, existing NPC/player records or creates a location when an NPC
-    clearly moves to a destination that does not already exist.
+    Derived from the note and the thing it would touch, so the same note
+    proposes the same ids every time it is previewed. That is what lets an
+    approval be checked against what the GM actually saw, and what makes a
+    retried apply a no-op instead of a second mutation.
+    """
+    raw = "|".join([str(note_id), kind, str(entity_id), detail])
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+
+
+async def propose_session_note_world_sync(db: Any, campaign_id: str, note: Dict[str, Any]) -> Dict[str, Any]:
+    """Work out what a note SUGGESTS, without changing anything.
+
+    Nothing in here writes. Rook and deterministic detection suggest; the GM
+    decides. Saving a note used to run the applier directly, so writing
+    "Rina died" into the live log set a real character's hit points to zero,
+    marked them dead and rewrote their notes, with no review anywhere.
     """
     note_text = (note.get("content") or "").strip()
-    sync_id = str(uuid.uuid4())
-    applied: List[Dict[str, Any]] = []
-    touched_collections = set()
-
+    note_id = str(note.get("id") or "")
+    proposals: List[Dict[str, Any]] = []
     if not note_text:
-        return {"sync_id": sync_id, "applied_updates": [], "touched_collections": []}
+        return {"note_id": note_id, "proposals": []}
 
-    now = _now()
     characters = await db.player_characters.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(100)
     npcs = await db.npcs.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(1000)
     locations = await db.locations.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(1000)
@@ -142,41 +153,127 @@ async def apply_session_note_world_sync(db: Any, campaign_id: str, note: Dict[st
         name = character.get("name", "")
         if not _has_clear_death_for_name(note_text, name):
             continue
-        conditions = list(character.get("conditions") or [])
-        if "dead" not in [str(c).lower() for c in conditions]:
-            conditions.append("dead")
-        await db.player_characters.update_one(
-            {"id": character.get("id"), "campaign_id": campaign_id},
-            {"$set": {
-                "current_hit_points": 0,
-                "temporary_hit_points": 0,
-                "conditions": conditions,
-                "notes": _append_note(character.get("notes", ""), note_text, "Session sync"),
-                "updated_at": now,
-            }},
-        )
-        touched_collections.add("player_characters")
-        applied.append({
+        proposals.append({
+            "id": _proposal_id(note_id, "player_character_status", character.get("id")),
             "type": "player_character_status",
             "entity_id": character.get("id"),
             "entity_name": name,
-            "summary": f"Marked {name} as dead, set HP to 0, and appended the session note.",
+            "summary": f"Mark {name} as dead and set hit points to 0.",
         })
 
     for npc in npcs:
         name = npc.get("name", "")
-        npc_updates: Dict[str, Any] = {}
-        summaries: List[str] = []
-
         if _has_clear_death_for_name(note_text, name):
-            npc_updates.update({
-                "hp": 0,
-                "notes": _append_note(npc.get("notes", ""), note_text, "Session sync"),
+            proposals.append({
+                "id": _proposal_id(note_id, "npc_status", npc.get("id")),
+                "type": "npc_status",
+                "entity_id": npc.get("id"),
+                "entity_name": name,
+                "summary": f"Mark {name} as dead and set hit points to 0.",
             })
-            summaries.append(f"marked {name} as dead / HP 0")
-
         destination = _extract_destination_for_name(note_text, name)
         if destination:
+            existing = _find_location(locations, destination)
+            proposals.append({
+                "id": _proposal_id(note_id, "npc_location", npc.get("id"), destination),
+                "type": "npc_location",
+                "entity_id": npc.get("id"),
+                "entity_name": name,
+                "destination": destination,
+                "creates_location": existing is None,
+                "summary": (
+                    f"Move {name} to {destination}"
+                    + ("" if existing else f", creating the location {destination}")
+                    + "."
+                ),
+            })
+
+    return {"note_id": note_id, "proposals": proposals}
+
+
+async def apply_session_note_world_sync(
+    db: Any,
+    campaign_id: str,
+    note: Dict[str, Any],
+    approved_ids: Optional[Iterable[str]] = None,
+) -> Dict[str, Any]:
+    """Apply only the proposals the GM has explicitly approved.
+
+    approved_ids is required. Calling without it applies nothing: there is no
+    "apply everything" path, because that is exactly how a saved note came to
+    rewrite campaign records on its own.
+
+    Proposals already recorded against this note are skipped, so a retried or
+    duplicated request cannot apply the same change twice.
+    """
+    approved = {str(value) for value in (approved_ids or []) if value}
+    preview = await propose_session_note_world_sync(db, campaign_id, note)
+    proposals = preview["proposals"]
+    note_id = preview["note_id"]
+
+    already = {str(value) for value in (note.get("world_sync_applied_ids") or [])}
+    to_apply = [item for item in proposals if item["id"] in approved and item["id"] not in already]
+
+    sync_id = str(uuid.uuid4())
+    now = _now()
+    applied: List[Dict[str, Any]] = []
+    touched_collections = set()
+
+    if not to_apply:
+        return {
+            "sync_id": sync_id,
+            "note_id": note_id,
+            "proposals": proposals,
+            "applied_updates": [],
+            "skipped_already_applied": sorted(already & approved),
+            "touched_collections": [],
+        }
+
+    characters = await db.player_characters.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(100)
+    npcs = await db.npcs.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(1000)
+    locations = await db.locations.find({"campaign_id": campaign_id}, {"_id": 0}).to_list(1000)
+    by_id = lambda rows, wanted: next((row for row in rows if row.get("id") == wanted), None)  # noqa: E731
+
+    for item in to_apply:
+        kind = item["type"]
+
+        if kind == "player_character_status":
+            character = by_id(characters, item["entity_id"])
+            if not character:
+                continue
+            conditions = list(character.get("conditions") or [])
+            if "dead" not in [str(value).lower() for value in conditions]:
+                conditions.append("dead")
+            await db.player_characters.update_one(
+                {"id": character.get("id"), "campaign_id": campaign_id},
+                {"$set": {
+                    "current_hit_points": 0,
+                    "temporary_hit_points": 0,
+                    "conditions": conditions,
+                    "notes": _append_note(character.get("notes", ""), note.get("content", ""), "Session sync"),
+                    "updated_at": now,
+                }},
+            )
+            touched_collections.add("player_characters")
+
+        elif kind == "npc_status":
+            npc = by_id(npcs, item["entity_id"])
+            if not npc:
+                continue
+            await db.npcs.update_one(
+                {"id": npc.get("id"), "campaign_id": campaign_id},
+                {"$set": {
+                    "hp": 0,
+                    "notes": _append_note(npc.get("notes", ""), note.get("content", ""), "Session sync"),
+                }},
+            )
+            touched_collections.add("npcs")
+
+        elif kind == "npc_location":
+            npc = by_id(npcs, item["entity_id"])
+            if not npc:
+                continue
+            destination = item["destination"]
             location = _find_location(locations, destination)
             if not location:
                 location = {
@@ -185,51 +282,37 @@ async def apply_session_note_world_sync(db: Any, campaign_id: str, note: Dict[st
                     "name": destination,
                     "location_type": "city",
                     "description": "Created from a live session note.",
-                    "notable_npcs": name,
-                    "notes": _append_note("", note_text, "Session sync"),
+                    "notable_npcs": item["entity_name"],
+                    "notes": _append_note("", note.get("content", ""), "Session sync"),
                     "places_of_interest": [],
                     "created_at": now,
                 }
                 await db.locations.insert_one(location)
                 locations.append(location)
-                touched_collections.add("locations")
-                applied.append({
-                    "type": "location_created",
-                    "entity_id": location["id"],
-                    "entity_name": destination,
-                    "summary": f"Created location {destination} from the note.",
-                })
             else:
                 notable = location.get("notable_npcs", "")
-                if name and name.lower() not in notable.lower():
-                    notable = f"{notable}, {name}".strip(" ,")
+                if item["entity_name"] and item["entity_name"].lower() not in notable.lower():
+                    notable = f"{notable}, {item['entity_name']}".strip(" ,")
                 await db.locations.update_one(
                     {"id": location.get("id"), "campaign_id": campaign_id},
                     {"$set": {
                         "notable_npcs": notable,
-                        "notes": _append_note(location.get("notes", ""), note_text, "Session sync"),
+                        "notes": _append_note(location.get("notes", ""), note.get("content", ""), "Session sync"),
                     }},
                 )
-                touched_collections.add("locations")
-
-            npc_updates.update({
-                "location": destination,
-                "notes": _append_note(npc_updates.get("notes", npc.get("notes", "")), note_text, "Session sync"),
-            })
-            summaries.append(f"moved {name} to {destination}")
-
-        if npc_updates:
+            touched_collections.add("locations")
             await db.npcs.update_one(
                 {"id": npc.get("id"), "campaign_id": campaign_id},
-                {"$set": npc_updates},
+                {"$set": {
+                    "location": destination,
+                    "notes": _append_note(npc.get("notes", ""), note.get("content", ""), "Session sync"),
+                }},
             )
             touched_collections.add("npcs")
-            applied.append({
-                "type": "npc_update",
-                "entity_id": npc.get("id"),
-                "entity_name": name,
-                "summary": "; ".join(summaries) + ".",
-            })
+        else:
+            continue
+
+        applied.append(item)
 
     await db.ingame_notes.update_one(
         {"id": note.get("id"), "campaign_id": campaign_id},
@@ -238,11 +321,16 @@ async def apply_session_note_world_sync(db: Any, campaign_id: str, note: Dict[st
             "world_sync_id": sync_id,
             "world_sync_applied_at": now,
             "world_sync_summary": applied,
-        }},
+        },
+            "$addToSet": {"world_sync_applied_ids": {"$each": [item["id"] for item in applied]}},
+        },
     )
 
     return {
         "sync_id": sync_id,
+        "note_id": note_id,
+        "proposals": proposals,
         "applied_updates": applied,
+        "skipped_already_applied": sorted(already & approved),
         "touched_collections": sorted(touched_collections),
     }
