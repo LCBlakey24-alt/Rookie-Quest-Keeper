@@ -20,10 +20,16 @@ import {
 } from './combatCheckpoint';
 
 const CAMPAIGN = 'camp-1';
+const ACCOUNT = 'keeper-gm';
+
+function readForTest(campaignId, storage, options = {}) {
+  return readCombatCheckpoint(campaignId, storage, { accountId: ACCOUNT, ...options });
+}
 
 function goodCheckpoint(overrides = {}) {
   return {
     version: CHECKPOINT_VERSION,
+    ownerId: ACCOUNT,
     campaignId: CAMPAIGN,
     scenarioId: 'enc-7',
     scenarioName: 'Dock ambush',
@@ -51,13 +57,13 @@ function storageWith(value, key = combatCheckpointKey(CAMPAIGN)) {
 
 describe('finding a fight again without router state', () => {
   test('a complete checkpoint is recoverable', () => {
-    const result = readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint()));
+    const result = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(result.status).toBe('ok');
     expect(result.checkpoint.round).toBe(3);
   });
 
   test('the recovered encounter keeps its name, so the GM knows which fight this is', () => {
-    const { checkpoint } = readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint()));
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     const scenario = scenarioFromCheckpoint(checkpoint);
     expect(scenario.id).toBe('enc-7');
     expect(scenario.name).toBe('Dock ambush');
@@ -66,60 +72,60 @@ describe('finding a fight again without router state', () => {
   });
 
   test('nothing saved is reported as nothing, not as a broken fight', () => {
-    expect(readCombatCheckpoint(CAMPAIGN, storageWith(undefined)).status).toBe('none');
+    expect(readForTest(CAMPAIGN, storageWith(undefined)).status).toBe('none');
   });
 });
 
 describe('a checkpoint that cannot be trusted is refused', () => {
   test('unparseable JSON', () => {
-    expect(readCombatCheckpoint(CAMPAIGN, storageWith('{not json')).status).toBe('corrupt');
+    expect(readForTest(CAMPAIGN, storageWith('{not json')).status).toBe('corrupt');
   });
 
   test('no combatants at all', () => {
-    expect(readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint({ combatants: [] }))).status).toBe('corrupt');
+    expect(readForTest(CAMPAIGN, storageWith(goodCheckpoint({ combatants: [] }))).status).toBe('corrupt');
   });
 
   test('combatants that are not records', () => {
-    expect(readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint({ combatants: ['Goblin', 3] }))).status).toBe('corrupt');
+    expect(readForTest(CAMPAIGN, storageWith(goodCheckpoint({ combatants: ['Goblin', 3] }))).status).toBe('corrupt');
   });
 
   test('a combatant with no id, which nothing downstream can address', () => {
     const broken = goodCheckpoint({ combatants: [{ name: 'Goblin', hp: 7 }] });
-    expect(readCombatCheckpoint(CAMPAIGN, storageWith(broken)).status).toBe('corrupt');
+    expect(readForTest(CAMPAIGN, storageWith(broken)).status).toBe('corrupt');
   });
 
   test('a checkpoint belonging to another campaign', () => {
     const foreign = goodCheckpoint({ campaignId: 'camp-OTHER' });
-    expect(readCombatCheckpoint(CAMPAIGN, storageWith(foreign)).status).toBe('foreign');
+    expect(readForTest(CAMPAIGN, storageWith(foreign)).status).toBe('foreign');
   });
 
   test('a checkpoint written by a newer version is left alone rather than misread', () => {
     const future = goodCheckpoint({ version: CHECKPOINT_VERSION + 5 });
-    expect(readCombatCheckpoint(CAMPAIGN, storageWith(future)).status).toBe('unsupported');
+    expect(readForTest(CAMPAIGN, storageWith(future)).status).toBe('unsupported');
   });
 
   test('storage that throws is survivable', () => {
     const hostile = { getItem: () => { throw new Error('denied'); } };
-    expect(readCombatCheckpoint(CAMPAIGN, hostile).status).toBe('unreadable');
+    expect(readForTest(CAMPAIGN, hostile).status).toBe('unreadable');
   });
 
   test('a round or turn that is not a number does not become NaN downstream', () => {
     const odd = goodCheckpoint({ round: 'three', currentTurn: null });
-    const result = readCombatCheckpoint(CAMPAIGN, storageWith(odd));
+    const result = readForTest(CAMPAIGN, storageWith(odd));
     expect(result.status).toBe('ok');
     expect(result.checkpoint.round).toBe(1);
     expect(result.checkpoint.currentTurn).toBe(0);
   });
 
   test('a turn past the end of the roster is clamped', () => {
-    const result = readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint({ currentTurn: 99 })));
+    const result = readForTest(CAMPAIGN, storageWith(goodCheckpoint({ currentTurn: 99 })));
     expect(result.checkpoint.currentTurn).toBe(1);
   });
 });
 
 describe('a recovered fight never invents its own pre-combat baseline', () => {
   test('stored baselines are returned as they were', () => {
-    const { checkpoint } = readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint()));
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(recoveredBaselines(checkpoint)).toEqual({ 'char-1': { hp: 54, max_hp: 54 } });
   });
 
@@ -129,20 +135,20 @@ describe('a recovered fight never invents its own pre-combat baseline', () => {
     // already refuses an offline end when a baseline is absent; it must be
     // allowed to see that it is absent.
     const noBaselines = goodCheckpoint({ initialPlayerStates: undefined });
-    const { checkpoint } = readCombatCheckpoint(CAMPAIGN, storageWith(noBaselines));
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(noBaselines));
     expect(recoveredBaselines(checkpoint)).toEqual({});
   });
 
   test('a baseline for someone not in the fight is dropped', () => {
     const stale = goodCheckpoint({ initialPlayerStates: { 'char-1': { hp: 54 }, 'char-GONE': { hp: 30 } } });
-    const { checkpoint } = readCombatCheckpoint(CAMPAIGN, storageWith(stale));
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(stale));
     expect(Object.keys(recoveredBaselines(checkpoint))).toEqual(['char-1']);
   });
 });
 
 describe('everything the fight needs survives the round trip', () => {
   test('state the GM would lose if recovery dropped it', () => {
-    const { checkpoint } = readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint()));
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(checkpoint.combatants[0]).toMatchObject({ hp: 22, max_hp: 54, initiative: 18, character_id: 'char-1' });
     expect(checkpoint.selectedMapId).toBe('map-2');
     expect(checkpoint.mapTokens).toEqual([{ id: 't1', x: 10, y: 20 }]);
@@ -152,7 +158,7 @@ describe('everything the fight needs survives the round trip', () => {
   });
 
   test('where the GM came from is remembered, so End Combat goes back there', () => {
-    const { checkpoint } = readCombatCheckpoint(CAMPAIGN, storageWith(goodCheckpoint()));
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(checkpoint.source).toBe('live-play');
   });
 
@@ -161,10 +167,62 @@ describe('everything the fight needs survives the round trip', () => {
     // previous format. Refusing those would lose the very thing this protects.
     const legacy = goodCheckpoint();
     delete legacy.version;
+    delete legacy.ownerId;
     delete legacy.campaignId;
     delete legacy.source;
-    const result = readCombatCheckpoint(CAMPAIGN, storageWith(legacy));
+    const result = readForTest(CAMPAIGN, storageWith(legacy));
+    expect(result.status).toBe('legacy-unverified');
+    const verified = readForTest(CAMPAIGN, storageWith(legacy), { legacyOwnerVerified: true });
+    expect(verified.status).toBe('ok');
+    expect(verified.checkpoint.source).toBe('campaign-prep');
+  });
+});
+
+describe('account boundaries, legacy saves and distinct combatants', () => {
+  test('another signed-in account cannot receive checkpoint contents', () => {
+    const original = JSON.stringify(goodCheckpoint());
+    const storage = storageWith(original);
+    const result = readForTest(CAMPAIGN, storage, { accountId: 'another-gm' });
+    expect(result.status).toBe('foreign-account');
+    expect(result.checkpoint).toBeUndefined();
+    expect(storage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
+  });
+
+  test('a username without a token-derived session cannot unlock combat', () => {
+    const result = readForTest(CAMPAIGN, storageWith(goodCheckpoint()), { accountId: '' });
+    expect(result.status).toBe('auth-required');
+    expect(result.checkpoint).toBeUndefined();
+  });
+
+  test('offline legacy verification failure keeps the original bytes', () => {
+    const older = goodCheckpoint({ ownerId: undefined, version: undefined });
+    const original = JSON.stringify(older);
+    const storage = storageWith(original);
+    const blocked = readForTest(CAMPAIGN, storage);
+    expect(blocked.status).toBe('legacy-unverified');
+    expect(blocked.checkpoint).toBeUndefined();
+    expect(storage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
+  });
+
+  test('same-name enemies retain different IDs, wounds, death saves and loot', () => {
+    const creatures = [
+      { id: 'goblin-a', name: 'Goblin', hp: 4, maxHp: 7, tempHp: 2, initiative: 18, conditions: ['prone'] },
+      { id: 'goblin-b', name: 'Goblin', hp: 1, maxHp: 7, tempHp: 0, initiative: 10,
+        deathSaves: { successes: 1, failures: 2 } },
+    ];
+    const result = readForTest(CAMPAIGN, storageWith(goodCheckpoint({
+      combatants: creatures, currentTurn: 1, round: 4,
+      collectedLoot: [{ name: 'Copper key', offlineOperationId: 'loot-1' }],
+    })));
     expect(result.status).toBe('ok');
-    expect(result.checkpoint.source).toBe('campaign-prep');
+    expect(result.checkpoint.combatants).toEqual(creatures);
+    expect(result.checkpoint.currentTurn).toBe(1);
+    expect(result.checkpoint.round).toBe(4);
+    expect(result.checkpoint.collectedLoot).toEqual([{ name: 'Copper key', offlineOperationId: 'loot-1' }]);
+  });
+
+  test('duplicate combatant IDs are rejected (name duplicates are not)', () => {
+    const combatants = goodCheckpoint().combatants.map(item => ({ ...item, id: 'same-id' }));
+    expect(readForTest(CAMPAIGN, storageWith(goodCheckpoint({ combatants }))).status).toBe('corrupt');
   });
 });
