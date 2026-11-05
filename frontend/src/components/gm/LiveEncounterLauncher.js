@@ -145,16 +145,22 @@ export function combinePreparedEncounterParty(prepared = [], players = [], enabl
   return combatants;
 }
 
+export function nextReadyEncounter(scenarios = []) {
+  const ready = safeArray(scenarios).filter(item => item.live_ready && !item.played && !item.legacy);
+  return ready.find(item => item.live_default)
+    || [...ready].sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0]
+    || null;
+}
+
 export function preferredPreparedEncounterId(scenarios = [], requestedId = '', previousId = '') {
   const available = safeArray(scenarios);
   const findById = id => available.find(item => item.id === id);
+  // Explicit Run handoff and current GM selection win, even when played.
   if (requestedId && findById(requestedId)) return requestedId;
-  if (previousId && findById(previousId) && !findById(previousId).legacy) return previousId;
-  const next = available.find(item => item.live_default && !item.played && !item.legacy);
-  if (next) return next.id;
-  const ready = available.filter(item => item.live_ready && !item.played && !item.legacy)
-    .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0];
-  return (ready || available.find(item => !item.legacy) || available[0])?.id || '';
+  if (previousId && findById(previousId)) return previousId;
+  // A remembered, previously played encounter is never automatically chosen.
+  return (nextReadyEncounter(available) || available.find(item => !item.legacy && !item.played)
+    || available.find(item => !item.legacy) || available[0])?.id || '';
 }
 
 function sortEncounterOptions(scenarios = []) {
@@ -164,14 +170,15 @@ function sortEncounterOptions(scenarios = []) {
       || (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
 }
 
-export default function LiveEncounterLauncher({ campaignId }) {
+export default function LiveEncounterLauncher({ campaignId, requestedEncounterId = '' }) {
   const navigate = useNavigate();
   const [campaignName, setCampaignName] = useState('Campaign');
   const [scenarios, setScenarios] = useState([]);
   const [players, setPlayers] = useState([]);
   const [npcs, setNpcs] = useState([]);
   const [travellingIds, setTravellingIds] = useState([]);
-  const [selectedId, setSelectedId] = useState('');
+  const [selectedId, setSelectedId] = useState(requestedEncounterId);
+  const [missingRequestedId, setMissingRequestedId] = useState('');
   const [enabledBaseKeys, setEnabledBaseKeys] = useState([]);
   const [includedPlayerIds, setIncludedPlayerIds] = useState([]);
   const [includedCompanionIds, setIncludedCompanionIds] = useState([]);
@@ -183,6 +190,10 @@ export default function LiveEncounterLauncher({ campaignId }) {
   const [loadErrors, setLoadErrors] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (requestedEncounterId) setSelectedId(requestedEncounterId);
+  }, [requestedEncounterId]);
 
   useEffect(() => {
     if (!campaignId) return;
@@ -210,13 +221,14 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
         if (loadedScenarios) {
           let requested = '';
-          let remembered = '';
           try {
             requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
-            remembered = localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
             localStorage.removeItem(`gm.questEncounter.${campaignId}`);
           } catch { /* ignore */ }
-          setSelectedId(previous => preferredPreparedEncounterId(loadedScenarios, requested, previous || remembered));
+          // gm.lastEncounter is for the separate Reopen action, not the default.
+          const explicit = requested || requestedEncounterId;
+          setMissingRequestedId(explicit && !loadedScenarios.some(item => item.id === explicit) ? explicit : '');
+          setSelectedId(previous => preferredPreparedEncounterId(loadedScenarios, explicit, previous));
         }
 
         setLoadErrors(errors);
@@ -228,7 +240,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
       }
     };
     load();
-  }, [campaignId, reloadKey]);
+  }, [campaignId, reloadKey, requestedEncounterId]);
 
   const selected = useMemo(() => scenarios.find(item => item.id === selectedId) || null, [scenarios, selectedId]);
   const baseCombatants = useMemo(() => safeArray(selected?.combatants), [selected]);
@@ -280,6 +292,10 @@ export default function LiveEncounterLauncher({ campaignId }) {
   };
 
   const launch = () => {
+    if (missingRequestedId) {
+      toast.error('That encounter no longer exists. Select another encounter before starting combat.');
+      return;
+    }
     const participantLoadFailed = loadErrors.some(item => ['players', 'npcs', 'liveState'].includes(item.key));
     if (participantLoadFailed) {
       toast.error('Participant data is incomplete. Retry Encounter Review before starting combat so nobody is accidentally omitted.');
@@ -324,16 +340,17 @@ export default function LiveEncounterLauncher({ campaignId }) {
     <div data-testid="live-encounter-launcher" style={shellStyle}>
       <header style={headerStyle}>
         <span style={{ minWidth: 0 }}><strong style={headerTitleStyle}><Swords size={17} /> Encounter Review</strong><span style={headerMetaStyle}>Choose who is in this fight, then start.</span></span>
-        <select aria-label="Choose battle type" value={selectedId} onChange={event => setSelectedId(event.target.value)} style={selectStyle}>
+        <select aria-label="Choose battle type" value={selectedId} onChange={event => { setMissingRequestedId(''); setSelectedId(event.target.value); }} style={selectStyle}>
           <option value="">Impromptu Battle — build as you go</option>
           {scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Untitled Encounter'}</option>)}
         </select>
       </header>
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
+      {missingRequestedId && <p role="alert" style={descriptionStyle}>The requested encounter was deleted or is unavailable. Choose another encounter from the selector before starting.</p>}
       <footer style={footerStyle} data-testid="live-encounter-run-bar">
         <span style={footerTextStyle}>{selected ? `${preparedOpponents.length} prepared enemies/objects · ${includedPlayerIds.length} party selected` : 'Impromptu combat'} · Your saved encounter stays unchanged.</span>
-        <button type="button" onClick={launch} style={launchButtonStyle}><Play size={17} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
+        <button type="button" onClick={launch} disabled={Boolean(missingRequestedId)} style={launchButtonStyle}><Play size={17} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
       </footer>
       {!selected && <div style={descriptionStyle}>No preparation needed. Add the party, a saved NPC, or a quick creature and start combat. You can recruit more enemies from the combat tracker at any time.</div>}
       {selected?.description && (
