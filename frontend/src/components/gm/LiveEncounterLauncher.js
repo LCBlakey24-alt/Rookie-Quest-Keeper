@@ -100,9 +100,43 @@ function keyFor(item, index = 0) {
   return String(item?.id || `${item?.type || 'combatant'}:${item?.name || 'unknown'}:${index}`);
 }
 
+/** Every stable reference a combatant carries to the thing it represents. */
+function combatantReferences(value) {
+  const references = new Set();
+  ['character_id', 'legacy_player_id', 'npc_id', 'id'].forEach(field => {
+    const reference = value?.[field];
+    if (reference) references.add(String(reference));
+  });
+  return references;
+}
+
+/**
+ * Whether two entries are the same thing twice, rather than two things.
+ *
+ * Matching on name and type merged creatures that merely share a name, and
+ * did so even when both carried distinct ids: the id branch only returned
+ * true on a match and then fell through to the name comparison. A GM who put
+ * six town guards in an encounter launched with one, silently -- and two
+ * player characters who happen to share a name lost one of them.
+ *
+ * What has to keep merging is several references to ONE thing: a player
+ * reached through the prepared list and again through the party roster, or
+ * the same saved NPC added twice. Those always share at least one reference,
+ * so comparing the reference sets covers it without guessing from names.
+ *
+ * With no reference on either side there is nothing to match on, and two
+ * creatures quick-added from the bestiary are two creatures. Their enabled
+ * state stays addressable because keyFor falls back to type:name:index.
+ */
 function sameCombatant(a, b) {
-  if (a?.id && b?.id && a.id === b.id) return true;
-  return Boolean(a?.name && b?.name && String(a.name).toLowerCase() === String(b.name).toLowerCase() && (a.type || '') === (b.type || ''));
+  const left = combatantReferences(a);
+  if (left.size === 0) return false;
+  const right = combatantReferences(b);
+  if (right.size === 0) return false;
+  for (const reference of left) {
+    if (right.has(reference)) return true;
+  }
+  return false;
 }
 
 function appendUnique(list, combatant) {

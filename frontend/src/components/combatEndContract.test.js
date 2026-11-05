@@ -17,7 +17,10 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CHECKPOINT_VERSION, combatCheckpointKey } from './combat/combatCheckpoint';
+import { getAuthToken } from '@/lib/auth';
 import CombatPage from './CombatPage';
+
+jest.mock('@/lib/auth', () => ({ ...jest.requireActual('@/lib/auth'), getAuthToken: jest.fn() }));
 
 jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn(), delete: jest.fn() }));
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn(), info: jest.fn(), warning: jest.fn() } }));
@@ -44,6 +47,11 @@ jest.mock('@/offline/offlineCombatSyncQueue', () => ({
 const apiClient = require('@/lib/apiClient');
 const { toast } = require('sonner');
 const CAMPAIGN = 'camp-1';
+// Checkpoint version 3 is account-scoped. These fixtures carry a real ownerId
+// matching the signed-in token subject, so ownership is satisfied properly
+// rather than bypassed.
+const ACCOUNT = 'keeper-gm';
+const TEST_TOKEN = `header.${btoa(JSON.stringify({ sub: ACCOUNT, exp: 9999999999 }))}.signature`;
 // Comments stripped first: the replacement file explains the selectors it
 // removed, and a naive grep matches its own explanation.
 const SRC = fs.readFileSync(path.join(__dirname, 'CombatPage.js'), 'utf8')
@@ -52,14 +60,26 @@ const SRC = fs.readFileSync(path.join(__dirname, 'CombatPage.js'), 'utf8')
 
 function saveFight(overrides = {}) {
   localStorage.setItem(combatCheckpointKey(CAMPAIGN), JSON.stringify({
-    version: CHECKPOINT_VERSION, campaignId: CAMPAIGN,
+    version: CHECKPOINT_VERSION, ownerId: ACCOUNT, campaignId: CAMPAIGN,
     scenarioId: 'enc-7', scenarioName: 'Dock ambush',
     combatants: [
       { id: 'c1', name: 'Rina', type: 'player', character_id: 'char-1', hp: 22, maxHp: 54, ac: 19, initiative: 18 },
       { id: 'c2', name: 'Goblin', type: 'enemy', hp: 3, maxHp: 7, ac: 15, initiative: 12 },
     ],
     currentTurn: 0, round: 2, selectedMapId: '', mapTokens: [], collectedLoot: [],
-    initialPlayerStates: { 'char-1': { hp: 54, max_hp: 54 } },
+    // The full combatStateSnapshot shape. hasSafeCombatBaseline checks the
+    // fields, not merely that a baseline object exists, so a loose
+    // { hp, max_hp } is correctly refused -- see the negative test below.
+    initialPlayerStates: {
+      'char-1': {
+        current_hit_points: 54,
+        temporary_hit_points: 0,
+        conditions: [],
+        death_saves_successes: 0,
+        death_saves_failures: 0,
+        concentrating_on: '',
+      },
+    },
     source: 'live-play', savedAt: Date.now(), ...overrides,
   }));
 }
@@ -78,6 +98,7 @@ function open() {
 
 beforeEach(() => {
   localStorage.clear();
+  getAuthToken.mockReturnValue(TEST_TOKEN);
   apiClient.get.mockResolvedValue({ data: [] });
   mockQueueOfflineCombatEnd.mockResolvedValue(true);
   Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
@@ -124,7 +145,7 @@ describe('the offline ending still happens, through the component', () => {
     expect(payload.campaignId).toBe(CAMPAIGN);
     expect(payload.characters).toHaveLength(1);
     // The pre-combat baseline, not the wounded total, is what syncs against.
-    expect(payload.characters[0].baseState).toEqual({ hp: 54, max_hp: 54 });
+    expect(payload.characters[0].baseState.current_hit_points).toBe(54);
     expect(payload.characters[0].state.current_hit_points).toBe(22);
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Live Play' })).toBeInTheDocument());
   });
@@ -167,5 +188,63 @@ describe('the offline ending still happens, through the component', () => {
     fireEvent.click(screen.getByRole('button', { name: 'End combat' }));
     await waitFor(() => expect(window.confirm).toHaveBeenCalled());
     expect(mockQueueOfflineCombatEnd).not.toHaveBeenCalled();
+  });
+});
+
+describe('offline ending is queued once, with its loot', () => {
+  test('two quick clicks on End Combat queue one ending, not two', async () => {
+    saveFight();
+    open();
+    await screen.findByTestId('combat-table-page');
+
+    const button = screen.getByRole('button', { name: 'End combat' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    await waitFor(() => expect(mockQueueOfflineCombatEnd).toHaveBeenCalled());
+    // A duplicate would queue the same character's HP change twice and could
+    // apply it twice on reconnect.
+    expect(mockQueueOfflineCombatEnd).toHaveBeenCalledTimes(1);
+  });
+
+  test('collected loot travels with the ending and each item carries one operation id', async () => {
+    saveFight({
+      collectedLoot: [
+        { id: 'l1', name: 'Rusty dagger', offlineOperationId: 'op-1' },
+        { id: 'l2', name: 'Silver ring', offlineOperationId: 'op-2' },
+      ],
+    });
+    open();
+    await screen.findByTestId('combat-table-page');
+    fireEvent.click(screen.getByRole('button', { name: 'End combat' }));
+
+    await waitFor(() => expect(mockQueueOfflineCombatEnd).toHaveBeenCalled());
+    const { loot } = mockQueueOfflineCombatEnd.mock.calls[0][0];
+    expect(loot).toHaveLength(2);
+    expect(loot.map(item => item.itemName).sort()).toEqual(['Rusty dagger', 'Silver ring']);
+    const ids = loot.map(item => item.operationId);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids.every(Boolean)).toBe(true);
+  });
+
+  test('a queue failure leaves the fight and its loot recoverable', async () => {
+    mockQueueOfflineCombatEnd.mockResolvedValue(null);
+    saveFight({ collectedLoot: [{ id: 'l1', name: 'Rusty dagger', offlineOperationId: 'op-1' }] });
+    open();
+    await screen.findByTestId('combat-table-page');
+    fireEvent.click(screen.getByRole('button', { name: 'End combat' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(
+      expect.stringContaining('could not store the offline combat ending safely'),
+    ));
+    // Still on the fight, and the checkpoint still describes it so the GM can
+    // resume. The component re-persists its own normalised copy as it runs, so
+    // this is about the fight surviving, not about identical bytes.
+    expect(screen.getByTestId('combat-table-page')).toBeInTheDocument();
+    const kept = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+    expect(kept.scenarioId).toBe('enc-7');
+    expect(kept.ownerId).toBe(ACCOUNT);
+    expect(kept.collectedLoot.map(item => item.name)).toEqual(['Rusty dagger']);
+    expect(kept.initialPlayerStates['char-1'].current_hit_points).toBe(54);
   });
 });
