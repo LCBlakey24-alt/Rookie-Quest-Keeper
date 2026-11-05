@@ -38,6 +38,7 @@ const mount = () => render(<MemoryRouter initialEntries={[{ pathname: '/combat/s
 </MemoryRouter>);
 async function collectThenEnd() {
   await screen.findByTitle('End combat');
+  expect(JSON.parse(localStorage.getItem('gm.activeCombat.synthetic') || '{}').initialPlayerStates).toHaveProperty('pc1');
   fireEvent.click(screen.getByRole('button', { name: /Collect Loot/ }));
   await act(async () => { fireEvent.click(screen.getByTitle('End combat')); });
 }
