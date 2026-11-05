@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import {
+  CHECKPOINT_VERSION,
+  combatCheckpointKey,
+  readCombatCheckpoint,
+  recoveredBaselines,
+  scenarioFromCheckpoint,
+} from './combat/combatCheckpoint';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Check, ChevronDown, ChevronUp, Dices, Eye, EyeOff, Heart, Map, Package,
@@ -141,10 +148,24 @@ export default function CombatPageTable() {
   const { campaignId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const scenario = location.state?.scenario;
-  const campaignName = location.state?.campaignName || 'Campaign';
-  const source = location.state?.source || 'campaign-prep';
-  const combatKey = `gm.activeCombat.${campaignId}`;
+  const routerScenario = location.state?.scenario;
+
+  // A refresh, a restored tab or a second window loses location.state. The
+  // fight itself is still on this device, so look for it before giving up.
+  const recovery = useMemo(
+    () => (routerScenario ? { status: 'skipped' } : readCombatCheckpoint(campaignId)),
+    [routerScenario, campaignId],
+  );
+  const recoveredScenario = useMemo(
+    () => (recovery.status === 'ok' ? scenarioFromCheckpoint(recovery.checkpoint) : null),
+    [recovery],
+  );
+  const scenario = routerScenario || recoveredScenario;
+  const fromRecovery = !routerScenario && Boolean(recoveredScenario);
+
+  const campaignName = location.state?.campaignName || recovery.checkpoint?.campaignName || 'Campaign';
+  const source = location.state?.source || recovery.checkpoint?.source || 'campaign-prep';
+  const combatKey = combatCheckpointKey(campaignId);
 
   const [combatants, setCombatants] = useState([]);
   const [currentTurn, setCurrentTurn] = useState(0);
@@ -172,29 +193,49 @@ export default function CombatPageTable() {
 
   useEffect(() => {
     if (!scenario) {
-      toast.error('No combat encounter found');
+      // Say which of these happened. "No combat encounter found" on top of a
+      // checkpoint that exists but is unreadable sends a GM looking in the
+      // wrong place.
+      toast.error(recovery.reason || 'No combat encounter found');
       navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
       return;
     }
 
     let restored = null;
-    try {
-      const raw = localStorage.getItem(combatKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.scenarioId === (scenario.id || scenario.name)) restored = parsed;
-      }
-    } catch { /* ignore broken checkpoint */ }
+    if (fromRecovery) {
+      // A checkpoint written by an older build can carry max_hp without the
+      // normalised maxHp the table renders, which shows as "22/undefined" and
+      // an NaN health bar. Re-running the normaliser backfills those without
+      // disturbing anything the checkpoint already holds: it spreads the
+      // source first, and keeps an existing initiative, conditions and death
+      // saves rather than rolling or clearing them.
+      restored = {
+        ...recovery.checkpoint,
+        combatants: recovery.checkpoint.combatants.map(initialiseCombatant),
+      };
+    } else {
+      try {
+        const raw = localStorage.getItem(combatKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.scenarioId === (scenario.id || scenario.name)) restored = parsed;
+        }
+      } catch { /* ignore broken checkpoint */ }
+    }
 
     const scenarioStart = safeArray(scenario.combatants).map(initialiseCombatant);
     const scenarioBaseStates = playerBaseStates(scenarioStart);
 
     if (restored?.combatants?.length) {
       battleStartTimeRef.current = 0;
-      initialPlayerStatesRef.current = {
-        ...scenarioBaseStates,
-        ...(restored.initialPlayerStates || {}),
-      };
+      // On a launch, scenarioBaseStates are the prepared pre-combat values and
+      // a sound fallback. On a recovery the "scenario" IS the current, damaged
+      // roster, so falling back to it would record a wound as the baseline.
+      // Leave it absent instead; endCombatOffline already refuses to sync a
+      // fight whose baseline it does not have.
+      initialPlayerStatesRef.current = fromRecovery
+        ? recoveredBaselines(recovery.checkpoint)
+        : { ...scenarioBaseStates, ...(restored.initialPlayerStates || {}) };
       setCombatants(restored.combatants);
       setCollectedLoot(safeArray(restored.collectedLoot).map(ensureLootOperation));
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
@@ -213,7 +254,7 @@ export default function CombatPageTable() {
       if (loaded.length) toast.success(`${loaded.length} combatants rolled initiative`);
     }
     setInitialised(true);
-  }, [campaignId, combatKey, navigate, scenario, source]);
+  }, [campaignId, combatKey, navigate, scenario, source, fromRecovery, recovery]);
 
   useEffect(() => {
     if (!campaignId) return;
@@ -226,6 +267,10 @@ export default function CombatPageTable() {
     if (!initialised || !scenario) return;
     try {
       localStorage.setItem(combatKey, JSON.stringify({
+        version: CHECKPOINT_VERSION,
+        campaignId,
+        source,
+        campaignName,
         scenarioId: scenario.id || scenario.name,
         scenarioName: scenario.name,
         combatants,
@@ -238,7 +283,7 @@ export default function CombatPageTable() {
         savedAt: Date.now(),
       }));
     } catch { /* local checkpoint is best effort */ }
-  }, [collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId]);
+  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, source]);
 
   useEffect(() => {
     if (!scenario || !maps.length || selectedMapId) return;
