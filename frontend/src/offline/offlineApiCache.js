@@ -112,12 +112,18 @@ function tokenScope(token) {
 
 export function getOfflineRequestScope(config = {}) {
   const headers = config?.headers || {};
-  const authorization = typeof headers.get === 'function'
-    ? headers.get('Authorization')
-    : headers.Authorization || headers.authorization;
+  // apiClient captures this *before* its asynchronous request interceptor
+  // work. An explicit empty marker means a genuinely anonymous request, not
+  // "whatever account happens to be active when this response completes".
+  const hasIssuedMarker = Object.prototype.hasOwnProperty.call(config, 'rqkOfflineRequestAuthorization');
+  const authorization = hasIssuedMarker
+    ? config.rqkOfflineRequestAuthorization
+    : (typeof headers.get === 'function'
+      ? headers.get('Authorization')
+      : headers.Authorization || headers.authorization);
   const match = String(authorization || '').match(/^Bearer\s+(.+)$/i);
   if (match) return tokenScope(match[1].trim());
-  return getOfflineCacheScope();
+  return hasIssuedMarker ? 'anonymous' : getOfflineCacheScope();
 }
 
 // Query keys are built from Axios' actual request URL semantics: it adds
