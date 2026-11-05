@@ -149,23 +149,37 @@ describe('the last fight is only reopened when the GM asks for it', () => {
     expect(result.reason).toBe('remembered');
   });
 
-  test('Reopen Last falls back cleanly when that encounter is gone', () => {
+  test('a missing Reopen Last target is reported rather than substituted', () => {
     const result = resolveEncounterSelection({
       scenarios, rememberedId: 'deleted-long-ago', allowRemembered: true,
     });
-    expect(result.id).toBe('up-next');
+    expect(result.id).toBe('');
     expect(result.missingRequest).toBe('deleted-long-ago');
+    expect(result.reason).toBe('missing-remembered');
   });
 });
 
 describe('an encounter that is not there any more', () => {
   const scenarios = [enc('still-here', { live_ready: true, planned_encounter_order: 1 })];
 
-  test('a deleted request falls back and says which one was missing', () => {
+  test('a deleted request selects nothing and says which one was missing', () => {
     const result = resolveEncounterSelection({ scenarios, requestedId: 'deleted' });
-    expect(result.id).toBe('still-here');
+    expect(result.id).toBe('');
     expect(result.missingRequest).toBe('deleted');
-    expect(result.reason).toBe('next');
+    expect(result.reason).toBe('missing-request');
+  });
+
+  test('a deleted request is not hidden by the previous valid selection', () => {
+    const result = resolveEncounterSelection({
+      scenarios,
+      requestedId: 'deleted',
+      gmSelectedId: 'still-here',
+    });
+    expect(result).toEqual({
+      id: '',
+      reason: 'missing-request',
+      missingRequest: 'deleted',
+    });
   });
 
   test('a stale in-session choice from another campaign is dropped quietly', () => {
@@ -186,8 +200,9 @@ describe('an encounter that is not there any more', () => {
     const result = resolveEncounterSelection({
       scenarios, gmSelectedId: 'vanished', requestedId: '', reportMissingSelection: true,
     });
-    expect(result.id).toBe('still-here');
+    expect(result.id).toBe('');
     expect(result.missingRequest).toBe('vanished');
+    expect(result.reason).toBe('missing-selection');
   });
 });
 
@@ -202,6 +217,7 @@ describe('an archived encounter never returns on its own', () => {
       scenarios, rememberedId: 'archived', allowRemembered: true,
     });
     expect(result.id).toBe('current');
+    expect(result.missingRequest).toBe('');
   });
 
   test('but a GM who picks the archived one in this session keeps it', () => {

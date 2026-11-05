@@ -71,7 +71,9 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   // What the GM asked to open, handed over explicitly rather than left for
   // Encounter Review to guess at again. Held here, not in the tool, because
   // the tool body is keyed on activeTool and remounts on every switch.
-  const [encounterRequest, setEncounterRequest] = useState({ id: '', reopenLast: false, nonce: 0 });
+  const [encounterRequest, setEncounterRequest] = useState({
+    campaignId: '', id: '', reopenLast: false, nonce: 0,
+  });
 
   const selectTool = (toolId, options = {}) => {
     setActiveTool(toolId);
@@ -82,6 +84,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
       // The nonce lets Review tell "asked again for the same encounter" from
       // "nothing new was asked", without the request becoming sticky.
       setEncounterRequest(previous => ({
+        campaignId,
         id: String(options.encounterId || ''),
         reopenLast: Boolean(options.reopenLast),
         nonce: previous.nonce + 1,
@@ -128,8 +131,9 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
           ) : activeTool === 'combat' ? (
             <LiveEncounterLauncher
               campaignId={campaignId}
-              requestedEncounterId={encounterRequest.id}
-              reopenLastEncounter={encounterRequest.reopenLast}
+              requestedEncounterId={encounterRequest.campaignId === campaignId ? encounterRequest.id : ''}
+              requestedEncounterCampaignId={encounterRequest.campaignId}
+              reopenLastEncounter={encounterRequest.campaignId === campaignId && encounterRequest.reopenLast}
               encounterRequestNonce={encounterRequest.nonce}
             />
           ) : activeTool === 'quick-dice' ? (
@@ -147,9 +151,9 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
   const prepared = (Array.isArray(scenarios) ? scenarios : [])
     .filter(scenario => scenario.live_ready && !scenario.played && !scenario.legacy)
     .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
-  // The same ranking Encounter Review uses. This was prepared[0], which took
-  // no account of live_default, played, legacy or planned order, so Run could
-  // name one encounter while Review opened another.
+  // Run already excluded played/legacy entries and sorted planned order, but
+  // it ignored live_default. Use Review's ranking so the displayed encounter
+  // and the explicit handoff always agree.
   const nextEncounterId = nextPreparedEncounterId(prepared);
   const nextEncounter = prepared.find(item => item.id === nextEncounterId) || null;
   const partyCount = Array.isArray(players) ? players.length : 0;
