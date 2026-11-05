@@ -890,8 +890,9 @@ function CombatantCard({
 
 const combatCss = `
   .combat-table-page { min-height: 100vh; background: ${rq.bg}; color: ${rq.text}; padding-bottom: 78px; }
-  .combat-table-header { position: sticky; top: 0; z-index: 30; min-height: 58px; padding: 7px 10px; display: grid; grid-template-columns: 38px minmax(0,1fr) auto 38px 38px auto; gap: 6px; align-items: center; background: rgba(36,36,36,.97); border-bottom: 1px solid ${rq.line}; backdrop-filter: blur(12px); }
-  .combat-icon-button { width: 38px; height: 38px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.text}; display: grid; place-items: center; cursor: pointer; }
+  .combat-table-header { position: sticky; top: 0; z-index: 30; min-height: 58px; padding: 7px 10px; display: grid; grid-template-columns: 40px minmax(0,1fr) auto 40px 40px auto; gap: 6px; align-items: center; background: rgba(36,36,36,.97); border-bottom: 1px solid ${rq.line}; backdrop-filter: blur(12px); }
+  .combat-icon-button { width: 40px; height: 40px; min-height: 40px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.text}; display: grid; place-items: center; cursor: pointer; }
+  .combat-table-page .combat-icon-button:focus-visible { outline: 3px solid var(--rq-secondary, #3C92E0) !important; outline-offset: 2px; }
   .combat-title-wrap { min-width: 0; display: grid; gap: 1px; }
   .combat-title-wrap strong { display: flex; align-items: center; gap: 6px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .combat-title-wrap span { color: ${rq.muted}; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -971,8 +972,18 @@ const combatCss = `
   .combat-bottom-bar strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
   .combat-bottom-bar small { color: ${rq.muted}; font-size: 9px; }
   .combat-bottom-bar button { min-height: 42px; border: 1px solid ${rq.pink}; background: ${rq.card}; color: #fff; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; font-weight: 950; cursor: pointer; }
+  /* Actual End combat button: 46px phone, 44px tablet, 40px desktop.
+     Keep the header tracks in sync so larger targets cannot overlap tabs. */
+  @media (min-width: 720px) and (max-width: 1180px) {
+    .combat-table-page .combat-icon-button { min-width: 44px; width: 44px; min-height: 44px !important; height: 44px !important; }
+    .combat-table-header { grid-template-columns: 44px minmax(0,1fr) auto 44px 44px auto; }
+  }
+  @media (max-width: 719px) {
+    .combat-table-page .combat-icon-button { min-width: 46px; width: 46px; min-height: 46px !important; height: 46px !important; }
+    .combat-table-header { min-height: 62px; }
+  }
   @media (max-width: 680px) {
-    .combat-table-header { grid-template-columns: 36px minmax(0,1fr) 48px 36px; }
+    .combat-table-header { grid-template-columns: 46px minmax(0,1fr) 48px 46px; }
     .combat-table-header .combat-round { grid-column: 3; grid-row: 1; min-width: 48px; }
     .combat-table-header > .combat-icon-button:nth-of-type(2) { grid-column: 4; }
     .combat-table-header > .combat-icon-button:nth-of-type(3), .combat-next-top { display: none; }
