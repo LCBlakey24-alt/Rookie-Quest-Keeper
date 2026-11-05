@@ -42,7 +42,7 @@ beforeEach(() => {
 
 test('Add to Notes persists server record and survives unmount/reload', async () => {
   const view = mount();
-  await screen.findByText('Synthetic');
+  await screen.findByRole('button', { name: 'Add to Notes' });
   await act(async () => { fireEvent.click(screen.getByText('Add to Notes')); });
   expect(apiClient.post).toHaveBeenCalledWith('/campaigns/synthetic/ingame-notes', { content: 'Travel d20: rolled 12 — safe route' });
   expect(screen.getAllByText(/Travel d20: rolled 12/)).toHaveLength(1);
@@ -55,7 +55,7 @@ test('Add to Notes persists server record and survives unmount/reload', async ()
 test('failed save does not claim success and retry saves once', async () => {
   apiClient.post.mockRejectedValueOnce(new Error('offline'));
   mount();
-  await screen.findByText('Synthetic');
+  await screen.findByRole('button', { name: 'Add to Notes' });
   await act(async () => { fireEvent.click(screen.getByText('Add to Notes')); });
   expect(toast.success).not.toHaveBeenCalled();
   expect(screen.queryByText('Travel d20: rolled 12 — safe route')).not.toBeInTheDocument();
@@ -68,7 +68,7 @@ test('rapid repeated clicks on the same roll cannot duplicate a pending save', a
   let finish;
   apiClient.post.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
   mount();
-  await screen.findByText('Synthetic');
+  await screen.findByRole('button', { name: 'Add to Notes' });
   fireEvent.click(screen.getByText('Add to Notes'));
   fireEvent.click(screen.getByText('Add to Notes'));
   expect(apiClient.post).toHaveBeenCalledTimes(1);
