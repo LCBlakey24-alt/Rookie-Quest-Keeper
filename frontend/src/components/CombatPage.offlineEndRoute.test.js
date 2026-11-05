@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import CombatPage from './CombatPage';
 import apiClient from '@/lib/apiClient';
-import { queueOfflineCombatEnd, queueOfflineCombatState } from '@/offline/offlineCombatSyncQueue';
+import { combatStateSnapshot, queueOfflineCombatEnd, queueOfflineCombatState } from '@/offline/offlineCombatSyncQueue';
 import { toast } from 'sonner';
 
 jest.mock('@/lib/apiClient', () => ({ __esModule: true, default: {
@@ -45,6 +45,13 @@ async function collectThenEnd() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Keep this mock explicit: Jest's resetMocks can erase the factory's
+  // original implementation, producing undefined baseline snapshots.
+  combatStateSnapshot.mockImplementation(source => ({
+    current_hit_points: source.current_hit_points ?? source.hp ?? 0,
+    max_hit_points: source.max_hit_points ?? source.maxHp ?? 10,
+    conditions: source.conditions || [],
+  }));
   localStorage.clear();
   Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
   jest.spyOn(window, 'confirm').mockReturnValue(true);
