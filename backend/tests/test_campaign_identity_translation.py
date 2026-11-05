@@ -170,3 +170,16 @@ def test_rule_systems_is_left_alone_because_it_is_already_consistent():
         source = handle.read()
     assert 'find_one({"email": username})' not in source
     assert source.count('db.users.find_one({"username": username})') >= 6
+
+
+def test_legacy_invite_join_stores_username_in_campaign_membership():
+    """A valid login must not create an inaccessible Mongo-id membership."""
+    body = body_of('@router.post("/campaigns/join/{invite_code}")')
+    assert '{"campaign_id": campaign_id, "user_id": username}' in body
+    assert 'campaign.get("dm_user_id") == username' in body
+    assert 'user_id=username,' in body
+    assert '"user_id": username' in body
+    # Rule-set sharing, unlike campaign membership, uses the Mongo account id.
+    assert 'account_id = str(user.get("_id"))' in body
+    assert '{"$addToSet": {"shared_with": account_id}}' in body
+    assert 'user_id=user_id,' not in body
