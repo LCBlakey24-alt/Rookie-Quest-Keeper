@@ -689,6 +689,15 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
 
   return (
     <section style={shellStyle} data-testid="live-roll-tables-panel">
+      <style>{`
+        html body #root [data-testid="live-roll-tables-panel"] .rqk-live-roll-note-button {
+          min-height: 46px !important;
+        }
+        html body #root [data-testid="live-roll-tables-panel"] .rqk-live-roll-note-button:focus-visible {
+          outline: 3px solid var(--rq-secondary, #3C92E0) !important;
+          outline-offset: 2px;
+        }
+      `}</style>
       <header style={headerStyle}>
         <div style={{ minWidth: 0 }}><p style={eyebrowStyle}>Campaign reference</p><h3 style={titleStyle}>{heading}</h3><p style={subtitleStyle}>{subheading}</p></div>
         <div style={buttonRowStyle}>
@@ -745,7 +754,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
 
           {activeIsRollable ? <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button> : <div style={referenceOnlyStyle}>Reference only — use this table for quick lookup during prep or live play. Use Copy or TV on a row to share one lookup cleanly.</div>}
 
-          {lastRoll && lastRoll.tableId === activeTable.id ? <section style={resultStyle}><p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p><strong style={rollNumberStyle}>{lastRoll.roll}</strong><p style={resultTextStyle}>{lastRoll.text}</p><div style={buttonRowStyle}><button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>{allowAddNote && onSaveAsNote && <button type="button" onClick={saveRollResultToNotes} disabled={savingRollNoteId === lastRoll.id || savedRollNoteId === lastRoll.id} style={secondaryButtonStyle}>{savedRollNoteId === lastRoll.id ? 'Saved to Notes' : savingRollNoteId === lastRoll.id ? 'Saving…' : 'Add to Notes'}</button>}{allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}</div></section> : activeIsRollable ? <section style={emptyResultStyle}><p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p></section> : null}
+          {lastRoll && lastRoll.tableId === activeTable.id ? <section style={resultStyle}><p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p><strong style={rollNumberStyle}>{lastRoll.roll}</strong><p style={resultTextStyle}>{lastRoll.text}</p><div style={buttonRowStyle}><button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>{allowAddNote && onSaveAsNote && <button type="button" className="rqk-live-roll-note-button" onClick={saveRollResultToNotes} disabled={savingRollNoteId === lastRoll.id || savedRollNoteId === lastRoll.id} style={secondaryButtonStyle}>{savedRollNoteId === lastRoll.id ? 'Saved to Notes' : savingRollNoteId === lastRoll.id ? 'Saving…' : 'Add to Notes'}</button>}{allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}</div></section> : activeIsRollable ? <section style={emptyResultStyle}><p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p></section> : null}
 
           <section style={entriesStyle}>
             <div style={entriesHeaderStyle}>
