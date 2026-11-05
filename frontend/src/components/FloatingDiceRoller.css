@@ -510,6 +510,23 @@
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
 
+/* Dice swatches are an explicit exception to the flat-navy button theme.
+ * The global :where(button):not([data-rq-colour-swatch]) rule otherwise
+ * repaints every sample navy, and [aria-pressed=true] can paint it wax red.
+ * Keep each true body/ink colour visible in the picker. */
+#root .rq-floating-dice__swatch[data-rq-colour-swatch] {
+  background-color: var(--swatch-body) !important;
+  color: var(--swatch-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+#root .rq-floating-dice__swatch[data-rq-colour-swatch][aria-pressed='true'] {
+  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F)) !important;
+  background-repeat: no-repeat !important;
+  background-position: left bottom !important;
+  background-size: 100% 3px !important;
+}
+
 /* The chosen dye is marked with the citrus rule, like every other selected
    control, rather than by changing its colour -- which would misrepresent
    the dye the player is choosing. */
