@@ -49,6 +49,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
     return readStoredTool(storageKey);
   });
   const [requestedEncounterId, setRequestedEncounterId] = useState('');
+  const [hasOpenedCombat, setHasOpenedCombat] = useState(activeTool === 'combat');
   const [recentTools, setRecentTools] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(recentKey) || '[]');
@@ -69,6 +70,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   const ActiveIcon = active.icon;
 
   const selectTool = (toolId, encounterId = '') => {
+    if (toolId === 'combat') setHasOpenedCombat(true);
     if (toolId === 'combat' && encounterId) setRequestedEncounterId(encounterId);
     setActiveTool(toolId);
     if (!['overview', 'more'].includes(toolId)) {
@@ -100,7 +102,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
         })}
       </nav>
 
-      <main className="rqk-live-grid__main" style={mainStyle} key={`${refreshKey}-${activeTool}`}>
+      <main className="rqk-live-grid__main" style={mainStyle}>
         {activeTool !== 'overview' && activeTool !== 'more' && (
           <header className="rqk-live-grid__tool-header" style={toolHeaderStyle}>
             <div style={toolTitleStyle}><ActiveIcon size={18} /><strong>{active.label}</strong></div>
@@ -108,16 +110,23 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
           </header>
         )}
         <section className="rqk-live-grid__tool-body" style={toolBodyStyle}>
-          {activeTool === 'overview' ? (
-            <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} scenarios={scenarios} players={players} />
-          ) : activeTool === 'more' ? (
-            <MorePanel onSelect={selectTool} />
-          ) : activeTool === 'combat' ? (
-            <LiveEncounterLauncher campaignId={campaignId} requestedEncounterId={requestedEncounterId} />
-          ) : activeTool === 'quick-dice' ? (
-            <QuickDicePanel onRollDice={onRollDice} />
-          ) : (
-            renderTool?.(activeTool, { compact: false }) || <EmptyTool title={active.label} />
+          {hasOpenedCombat && (
+            <div hidden={activeTool !== 'combat'} aria-hidden={activeTool !== 'combat'}>
+              <LiveEncounterLauncher key={campaignId} campaignId={campaignId} requestedEncounterId={requestedEncounterId} />
+            </div>
+          )}
+          {activeTool !== 'combat' && (
+            <div key={`${refreshKey}-${activeTool}`}>
+              {activeTool === 'overview' ? (
+                <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} scenarios={scenarios} players={players} />
+              ) : activeTool === 'more' ? (
+                <MorePanel onSelect={selectTool} />
+              ) : activeTool === 'quick-dice' ? (
+                <QuickDicePanel onRollDice={onRollDice} />
+              ) : (
+                renderTool?.(activeTool, { compact: false }) || <EmptyTool title={active.label} />
+              )}
+            </div>
           )}
         </section>
       </main>
