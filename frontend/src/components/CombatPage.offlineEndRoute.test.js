@@ -93,3 +93,32 @@ test('offline queue failure retains fight and loot for retry without double-crea
   expect(secondId).toBe(firstId);
   expect(screen.getByTestId('back-at-live-play')).toBeInTheDocument();
 });
+
+test('new encounter records the initial linked-player baseline before offline ending', async () => {
+  mount();
+  await screen.findByTitle('End combat');
+  const stored = JSON.parse(localStorage.getItem('gm.activeCombat.synthetic') || '{}');
+  expect(stored.scenarioId).toBe('combat-demo');
+  expect(stored.initialPlayerStates).toHaveProperty('pc1');
+  await act(async () => { fireEvent.click(screen.getByTitle('End combat')); });
+  expect(queueOfflineCombatEnd).toHaveBeenCalledWith(expect.objectContaining({
+    characters: [expect.objectContaining({ characterId: 'pc1' })],
+  }));
+});
+
+test('IndexedDB rejection leaves the original fight checkpoint and loot for retry', async () => {
+  localStorage.setItem('gm.activeCombat.synthetic', JSON.stringify(checkpoint(true)));
+  queueOfflineCombatEnd.mockRejectedValueOnce(new Error('IndexedDB write failed'))
+    .mockResolvedValueOnce({ closeRecord: { key: 'retry' } });
+  mount();
+  await collectThenEnd();
+  expect(queueOfflineCombatEnd).toHaveBeenCalledTimes(1);
+  expect(screen.getByTitle('End combat')).toBeInTheDocument();
+  expect(localStorage.getItem('gm.activeCombat.synthetic')).not.toBeNull();
+  expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/could not store/i));
+  await act(async () => { fireEvent.click(screen.getByTitle('End combat')); });
+  expect(queueOfflineCombatEnd).toHaveBeenCalledTimes(2);
+  expect(queueOfflineCombatEnd.mock.calls[0][0].loot[0].operationId)
+    .toBe(queueOfflineCombatEnd.mock.calls[1][0].loot[0].operationId);
+  expect(screen.getByTestId('back-at-live-play')).toBeInTheDocument();
+});
