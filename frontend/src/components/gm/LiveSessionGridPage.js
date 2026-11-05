@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
@@ -74,6 +74,10 @@ export default function LiveSessionGridPage() {
   const [diceFumble, setDiceFumble] = useState(false);
   const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
   const [showEndSessionReview, setShowEndSessionReview] = useState(false);
+  const rollNotesPendingRef = useRef(new Set());
+  const rollNotesSavedRef = useRef(new Set());
+  const currentCampaignRef = useRef(campaignId);
+  currentCampaignRef.current = campaignId;
   const [explodingDiceEnabled, setExplodingDiceEnabled] = useState(() => {
     try { return localStorage.getItem(`gm.explodingDice.${campaignId}`) === 'true'; } catch { return false; }
   });
@@ -166,9 +170,32 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  const addLiveResultToNotes = (text) => {
-    setSessionNotes(prev => [{ id: Date.now().toString(), content: text, created_at: new Date().toISOString() }, ...prev]);
-    toast.success('Added to live notes', { description: 'Open Notes to edit or save it into the campaign log.' });
+  const addLiveResultToNotes = async (text, resultId) => {
+    const content = String(text || '').trim();
+    if (!content || !resultId) return false;
+    const savedCampaignId = campaignId;
+    const rollKey = `${savedCampaignId}:${resultId}`;
+    if (rollNotesSavedRef.current.has(rollKey)) return true;
+    if (rollNotesPendingRef.current.has(rollKey)) return false;
+    rollNotesPendingRef.current.add(rollKey);
+    try {
+      const response = await apiClient.post(`/campaigns/${savedCampaignId}/ingame-notes`, { content });
+      if (!response?.data?.id) throw new Error('The server did not confirm the new note.');
+      rollNotesSavedRef.current.add(rollKey);
+      if (currentCampaignRef.current === savedCampaignId) {
+        const note = { ...response.data, content };
+        setSessionNotes(prev => prev.some(item => item.id === note.id) ? prev : [note, ...prev]);
+        toast.success('Roll result saved to campaign notes');
+      }
+      return true;
+    } catch (error) {
+      if (currentCampaignRef.current === savedCampaignId) {
+        toast.error(error?.response?.data?.detail || 'Could not save the roll result. Try Add to Notes again.');
+      }
+      return false;
+    } finally {
+      rollNotesPendingRef.current.delete(rollKey);
+    }
   };
 
   const launchCombat = (scenario) => navigate(`/combat/${campaignId}`, { state: { scenario, campaignName: campaign?.name } });
