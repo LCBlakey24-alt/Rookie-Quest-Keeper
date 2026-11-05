@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
-import LiveEncounterLauncher from './LiveEncounterLauncher';
+import LiveEncounterLauncher, { nextReadyEncounter } from './LiveEncounterLauncher';
 import './LiveSessionGridMode.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -48,6 +48,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
     } catch { /* ignore */ }
     return readStoredTool(storageKey);
   });
+  const [requestedEncounterId, setRequestedEncounterId] = useState('');
   const [recentTools, setRecentTools] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(recentKey) || '[]');
@@ -67,7 +68,8 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   const primaryActiveId = SECONDARY_IDS.has(activeTool) ? 'more' : activeTool;
   const ActiveIcon = active.icon;
 
-  const selectTool = (toolId) => {
+  const selectTool = (toolId, encounterId = '') => {
+    if (toolId === 'combat' && encounterId) setRequestedEncounterId(encounterId);
     setActiveTool(toolId);
     if (!['overview', 'more'].includes(toolId)) {
       setRecentTools(prev => [toolId, ...prev.filter(id => id !== toolId)].slice(0, 4));
@@ -111,7 +113,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
           ) : activeTool === 'more' ? (
             <MorePanel onSelect={selectTool} />
           ) : activeTool === 'combat' ? (
-            <LiveEncounterLauncher campaignId={campaignId} />
+            <LiveEncounterLauncher campaignId={campaignId} requestedEncounterId={requestedEncounterId} />
           ) : activeTool === 'quick-dice' ? (
             <QuickDicePanel onRollDice={onRollDice} />
           ) : (
@@ -124,10 +126,10 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
 }
 
 function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players = [] }) {
-  const prepared = (Array.isArray(scenarios) ? scenarios : [])
-    .filter(scenario => scenario.live_ready && !scenario.played && !scenario.legacy)
-    .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
-  const nextEncounter = prepared[0] || null;
+  const prepared = (Array.isArray(scenarios) ? scenarios : []).filter(
+    scenario => scenario.live_ready && !scenario.played && !scenario.legacy
+  );
+  const nextEncounter = nextReadyEncounter(scenarios);
   const partyCount = Array.isArray(players) ? players.length : 0;
   const core = [
     { id: 'story', label: 'Quests', icon: BookOpen, detail: 'Open, tick off, continue' },
@@ -142,7 +144,10 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
       continueItems.push({ id: 'story', label: 'Continue focused quest', icon: BookOpen });
     }
     if (localStorage.getItem(`gm.lastEncounter.${campaignId}`)) {
-      continueItems.push({ id: 'combat', label: 'Reopen last encounter', icon: Swords });
+      const rememberedId = localStorage.getItem(`gm.lastEncounter.${campaignId}`);
+      if (scenarios.some(item => item.id === rememberedId)) {
+        continueItems.push({ id: 'combat', encounterId: rememberedId, label: 'Reopen last encounter', icon: Swords });
+      }
     }
   } catch { /* ignore */ }
 
@@ -168,7 +173,7 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
         <button
           className="rqk-live-grid__brief-action"
           type="button"
-          onClick={() => onSelect('combat')}
+          onClick={() => onSelect('combat', nextEncounter?.id || '')}
         >
           <Swords size={18} /> {nextEncounter ? 'Review & run encounter' : 'Open encounters'} <ArrowRight size={16} />
         </button>
@@ -180,7 +185,7 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
           <div style={continueRowStyle}>
             {continueItems.map(item => {
               const Icon = item.icon;
-              return <button key={item.label} type="button" onClick={() => onSelect(item.id)} style={continueButtonStyle}><Icon size={15} /> {item.label}</button>;
+              return <button key={item.label} type="button" onClick={() => onSelect(item.id, item.encounterId)} style={continueButtonStyle}><Icon size={15} /> {item.label}</button>;
             })}
           </div>
         </section>
