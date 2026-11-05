@@ -423,6 +423,8 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
   const [apiReady, setApiReady] = useState(true);
   const [activeTableId, setActiveTableId] = useState('travel-d20');
   const [lastRoll, setLastRoll] = useState(null);
+  const [savingRollNoteId, setSavingRollNoteId] = useState(null);
+  const [savedRollNoteId, setSavedRollNoteId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [savingTable, setSavingTable] = useState(false);
@@ -667,6 +669,18 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
   };
 
   const resultText = lastRoll ? `${lastRoll.tableName}: ${lastRoll.die} rolled ${lastRoll.roll} — ${lastRoll.text}` : '';
+  const saveRollResultToNotes = async () => {
+    if (!lastRoll || !onSaveAsNote || savingRollNoteId === lastRoll.id || savedRollNoteId === lastRoll.id) return;
+    const rollId = lastRoll.id;
+    setSavingRollNoteId(rollId);
+    try {
+      const saved = await onSaveAsNote(resultText, rollId);
+      if (saved) setSavedRollNoteId(rollId);
+    } finally {
+      setSavingRollNoteId(current => current === rollId ? null : current);
+    }
+  };
+
   const sendResultToDisplay = () => {
     if (!lastRoll) return;
     publishCampaignDisplayState(campaignId, createDisplayState('table-result', { eyebrow: 'Table Roll', title: lastRoll.tableName, roll: lastRoll.roll, die: lastRoll.die, result: lastRoll.text, display_target: 'standing-tv' }));
@@ -731,7 +745,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
 
           {activeIsRollable ? <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button> : <div style={referenceOnlyStyle}>Reference only — use this table for quick lookup during prep or live play. Use Copy or TV on a row to share one lookup cleanly.</div>}
 
-          {lastRoll && lastRoll.tableId === activeTable.id ? <section style={resultStyle}><p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p><strong style={rollNumberStyle}>{lastRoll.roll}</strong><p style={resultTextStyle}>{lastRoll.text}</p><div style={buttonRowStyle}><button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>{allowAddNote && onSaveAsNote && <button type="button" onClick={() => onSaveAsNote(resultText)} style={secondaryButtonStyle}>Add to Notes</button>}{allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}</div></section> : activeIsRollable ? <section style={emptyResultStyle}><p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p></section> : null}
+          {lastRoll && lastRoll.tableId === activeTable.id ? <section style={resultStyle}><p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p><strong style={rollNumberStyle}>{lastRoll.roll}</strong><p style={resultTextStyle}>{lastRoll.text}</p><div style={buttonRowStyle}><button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>{allowAddNote && onSaveAsNote && <button type="button" onClick={saveRollResultToNotes} disabled={savingRollNoteId === lastRoll.id || savedRollNoteId === lastRoll.id} style={secondaryButtonStyle}>{savedRollNoteId === lastRoll.id ? 'Saved to Notes' : savingRollNoteId === lastRoll.id ? 'Saving…' : 'Add to Notes'}</button>}{allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}</div></section> : activeIsRollable ? <section style={emptyResultStyle}><p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p></section> : null}
 
           <section style={entriesStyle}>
             <div style={entriesHeaderStyle}>
