@@ -136,31 +136,36 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  const syncNoteIntoCampaignState = async (noteId) => {
-    const syncRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes/${noteId}/sync`);
-    const applied = syncRes.data?.applied_updates || [];
-    setSessionRefreshKey(prev => prev + 1);
-    await fetchAllData();
-    if (applied.length > 0) {
-      toast.success(`Note saved and ${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
-        description: applied.slice(0, 2).map(update => update.summary).join(' '),
-      });
-    } else {
-      toast.success('Note saved', { description: 'No clear character, NPC, or location changes were detected automatically.' });
-    }
-  };
-
+  /**
+   * Saving a note saves the note. That is all it does.
+   *
+   * This used to call the world-sync endpoint straight afterwards, which
+   * applied whatever the deterministic parser inferred: writing "Rina died"
+   * into the live log set a real player character's hit points to zero,
+   * marked them dead and rewrote their notes, and a note about an NPC
+   * travelling created a campaign location. None of it was reviewed. Rook and
+   * detection suggest; the GM decides.
+   *
+   * The endpoint still exists and now previews instead of applying, so a
+   * reviewed suggest-and-approve flow can be built on it. Until that UI
+   * exists nothing here calls it, because an unreviewed write is worse than
+   * no suggestion.
+   */
   const handleSubmitNote = async () => {
     if (!quickNote.trim()) return;
     setProcessingNote(true);
+    const noteContent = quickNote.trim();
     try {
-      const noteContent = quickNote.trim();
       const noteRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: noteContent });
       setSessionNotes(prev => [{ ...noteRes.data, content: noteContent }, ...prev]);
       setQuickNote('');
-      await syncNoteIntoCampaignState(noteRes.data.id);
+      toast.success('Note saved', {
+        description: 'Campaign records are unchanged. Update characters, NPCs or locations yourself when you are ready.',
+      });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to save and sync note');
+      // The note itself failed, so say that rather than blaming a sync step
+      // that no longer runs.
+      toast.error(error?.response?.data?.detail || 'Could not save that note. Your text has been kept.');
     } finally {
       setProcessingNote(false);
     }

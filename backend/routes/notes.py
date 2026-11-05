@@ -10,11 +10,11 @@ from models import (
     InGameNote, InGameNoteCreate, SessionRecap, PlayerNote,
     PlayerNoteCreate, PlayerNoteUpdate, TimelineEvent, TimelineEventCreate, GMNoteSync
 )
-from typing import Optional, List
+from typing import Any, Dict, Optional, List
 import uuid
 from datetime import datetime, timezone
 from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
-from utils.session_note_sync import apply_session_note_world_sync
+from utils.session_note_sync import apply_session_note_world_sync, propose_session_note_world_sync
 from utils.resilient_records import serialise_records
 
 router = APIRouter()
@@ -117,12 +117,24 @@ async def get_ingame_notes(campaign_id: str, username: str = Depends(get_current
 
 
 @router.post("/campaigns/{campaign_id}/ingame-notes/{note_id}/sync")
-async def sync_ingame_note_world_state(campaign_id: str, note_id: str, username: str = Depends(get_current_user)):
-    """Apply high-confidence live-session note changes to campaign state.
+async def sync_ingame_note_world_state(
+    campaign_id: str,
+    note_id: str,
+    request: Optional[Dict[str, Any]] = None,
+    username: str = Depends(get_current_user),
+):
+    """Say what a note suggests. Change nothing unless the GM approved it.
 
-    The sync is deterministic and safe: it updates explicitly named existing
-    player characters/NPCs and creates only clearly referenced NPC destination
-    locations. It does not require AI access, so it works during live play.
+    This used to apply straight away, and the Live Play note box called it the
+    moment a note was saved. Typing "Rina died" into the session log therefore
+    set a real player character's hit points to zero, marked them dead and
+    rewrote their notes -- and a note about an NPC travelling created a
+    campaign location -- with no review step anywhere. Rook and deterministic
+    detection suggest; the GM decides.
+
+    A plain POST now previews. Applying needs apply=true AND an explicit list
+    of proposal ids taken from a preview, so an approval always names exactly
+    what it approves. There is deliberately no "apply everything" option.
     """
     await verify_campaign_ownership(campaign_id, username)
 
@@ -130,7 +142,25 @@ async def sync_ingame_note_world_state(campaign_id: str, note_id: str, username:
     if not note:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
 
-    return await apply_session_note_world_sync(db, campaign_id, note)
+    payload = request or {}
+    if not payload.get('apply'):
+        preview = await propose_session_note_world_sync(db, campaign_id, note)
+        return {
+            'note_id': preview['note_id'],
+            'proposals': preview['proposals'],
+            'applied_updates': [],
+            'touched_collections': [],
+            'preview': True,
+        }
+
+    approved_ids = payload.get('approved_ids')
+    if not isinstance(approved_ids, list) or not approved_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='approved_ids must list the proposal ids being approved.',
+        )
+
+    return await apply_session_note_world_sync(db, campaign_id, note, approved_ids)
 
 @router.delete("/campaigns/{campaign_id}/ingame-notes/{note_id}")
 async def delete_ingame_note(campaign_id: str, note_id: str, username: str = Depends(get_current_user)):
