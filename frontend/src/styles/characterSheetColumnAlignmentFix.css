@@ -2,8 +2,7 @@
    Keeps the hero, HP card, buttons, and tab panels on the same visual width. */
 
 #root .character-page-v2 {
-  --rq-sheet-mobile-left-rail: 58px;
-  --rq-sheet-mobile-edge-gap: 14px;
+  --rq-sheet-mobile-edge-gap: 10px;
   --rq-sheet-section-pad: 20px;
 }
 
@@ -140,8 +139,9 @@
 @media (max-width: 759px) {
   #root .character-page-v2.clean-sheet-page,
   #root .clean-sheet-page.character-page-v2 {
-    padding-left: calc(var(--rq-sheet-mobile-left-rail) + var(--rq-sheet-mobile-edge-gap)) !important;
-    padding-right: var(--rq-sheet-mobile-edge-gap) !important;
+    /* Phone navigation is a bottom dock; no left-hand rail exists on this route. */
+    padding-left: max(var(--rq-sheet-mobile-edge-gap), env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(var(--rq-sheet-mobile-edge-gap), env(safe-area-inset-right, 0px)) !important;
   }
 
   #root .character-page-v2 .clean-sheet-header,
@@ -203,8 +203,8 @@
 @media (max-width: 390px) {
   #root .character-page-v2.clean-sheet-page,
   #root .clean-sheet-page.character-page-v2 {
-    padding-left: 68px !important;
-    padding-right: 10px !important;
+    padding-left: max(8px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(8px, env(safe-area-inset-right, 0px)) !important;
   }
 
   #root .character-page-v2 .clean-sheet-header,
