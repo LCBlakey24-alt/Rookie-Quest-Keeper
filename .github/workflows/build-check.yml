@@ -35,6 +35,8 @@ jobs:
         run: |
           python -m pytest -q \
             backend/tests/test_campaign_display_routes.py \
+            backend/tests/test_note_sync_requires_approval.py \
+            backend/tests/test_session_note_sync.py \
             backend/tests/test_campaign_identity_translation.py \
             backend/tests/test_admin_assign_character.py \
             backend/tests/test_token_movement.py \
