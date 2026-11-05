@@ -169,6 +169,13 @@ export default function CombatPageTable() {
   const [legacyProof, setLegacyProof] = useState(null);
   const [legacyCheck, setLegacyCheck] = useState(null);
   const [checkpointConflict, setCheckpointConflict] = useState(false);
+  // The exact stored bytes this screen is showing a decision about, so a
+  // discard can refuse if another tab has changed them in the meantime.
+  const discardGuardRef = useRef(null);
+  // One ending at a time. Two quick taps on End Combat queued the offline
+  // ending twice, which means two sets of character HP operations and two
+  // loot writes to reconcile on the way back online.
+  const endingRef = useRef(false);
   const accountId = currentCombatAccount();
   const legacyOwnerVerified = Boolean(legacyProof
     && legacyProof.campaignId === campaignId
@@ -739,11 +746,23 @@ export default function CombatPageTable() {
   };
 
   const endCombat = async () => {
+    if (endingRef.current) return;
     if (!isCurrentCheckpointSafe()) {
       toast.error('Combat checkpoint changed or its owner is unverified. No HP updates were sent.');
       return;
     }
     if (!window.confirm('End this combat? Player combat state will be saved.')) return;
+    endingRef.current = true;
+    try {
+      await runEndCombat();
+    } finally {
+      // Released on every path that leaves the fight open, so a refused or
+      // failed attempt can be retried. A successful end navigates away.
+      endingRef.current = false;
+    }
+  };
+
+  const runEndCombat = async () => {
 
     if (navigator.onLine === false) {
       await endCombatOffline();
@@ -803,11 +822,25 @@ export default function CombatPageTable() {
 
   if (!scenario) {
     if (!routerScenario && recovery.status === 'none') return null;
+    // Remember exactly what is stored right now, so a later discard can tell
+    // whether another tab changed it while this screen was up.
+    try {
+      discardGuardRef.current = localStorage.getItem(combatKey);
+    } catch {
+      discardGuardRef.current = null;
+    }
     const message = !accountId
       ? 'Sign in to continue. An unauthenticated browser cannot access or replace saved combat.'
       : recovery.status === 'ok'
-        ? 'An unfinished encounter already exists for this campaign. Resume it before starting another; its checkpoint has not been changed.'
-        : (legacyCheck?.status === 'checking' ? 'Verifying the older saved fight with the server…' : recovery.reason || 'Recovery is currently unavailable. The checkpoint has been preserved.');
+        ? 'An unfinished encounter already exists for this campaign. Resume it, or discard it deliberately to start another; its checkpoint has not been changed.'
+        : legacyCheck?.status === 'checking'
+          ? 'Verifying the older saved fight with the server…'
+          : recovery.status === 'legacy-unverified'
+            // Say plainly why there is no way forward here, rather than
+            // leaving the GM to work out that the missing button is deliberate.
+            ? `${recovery.reason} Rookie cannot confirm this saved fight belongs to you,`
+              + ' so it will not delete it and this encounter cannot start in this browser yet.'
+            : recovery.reason || 'Recovery is currently unavailable. The checkpoint has been preserved.';
     return (
       <main className="combat-table-page" data-testid="combat-recovery-blocked" style={{ padding: 24 }}>
         <h1>Saved combat protected</h1>
@@ -815,27 +848,72 @@ export default function CombatPageTable() {
         {routerScenario && recovery.status === 'ok' && (
           <button type="button" onClick={() => navigate(`/combat/${campaignId}`, { replace: true, state: null })}>Resume saved encounter</button>
         )}
-        {routerScenario && accountId && (
-          // Without this the GM has no way forward. Every checkpoint written
-          // before the owner stamp existed reads as legacy-unverified, and at
-          // a table with no signal the verification can never succeed, so the
-          // only control on this screen was "Return to campaign" -- combat
-          // unusable until they get online. Requirement 7 is that an
-          // unfinished fight is not erased SILENTLY; a deliberate, named,
-          // confirmed discard satisfies that while leaving a way through.
+        {routerScenario && recovery.status === 'ok' && (
+          // Only a checkpoint this account is proven to own may be discarded.
+          // readCombatCheckpoint returns 'ok' only when the stored ownerId
+          // matches the token subject, or when a legacy save with no stamp has
+          // been verified online against /auth/me and the campaign's
+          // dm_user_id. Every other status -- foreign-account, foreign,
+          // auth-required, unsupported, corrupt, unreadable, legacy-unverified
+          // -- means ownership is unproven, and an unproven save is never
+          // offered a delete button. A confirmation dialog does not make an
+          // unauthorised deletion authorised.
           <button
             type="button"
             data-testid="combat-discard-saved"
             onClick={() => {
-              const saved = recovery.status === 'ok'
-                ? `"${recovery.checkpoint.scenarioName || 'the saved fight'}"`
-                : 'the saved fight stored in this browser';
+              const owned = recovery.checkpoint;
               if (!window.confirm(
-                `Discard ${saved} and start "${routerScenario.name || 'this encounter'}"?\n\n`
+                `Discard "${owned.scenarioName || 'the saved fight'}" and start `
+                + `"${routerScenario.name || 'this encounter'}"?\n\n`
                 + 'The saved fight is deleted from this device and cannot be recovered. '
                 + 'No character sheet is changed.',
               )) return;
-              try { localStorage.removeItem(combatKey); } catch { /* nothing to remove */ }
+
+              // Re-check at the moment of deletion. The confirmation dialog is
+              // modal to this tab only: another tab may have replaced the
+              // checkpoint, and the account may have changed, while it was up.
+              let raw = null;
+              try {
+                raw = localStorage.getItem(combatKey);
+              } catch {
+                toast.error('This browser would not let Rookie read the saved fight. Nothing was deleted.');
+                return;
+              }
+              if (raw !== discardGuardRef.current) {
+                setCheckpointConflict(true);
+                toast.error('The saved fight changed in another tab. Nothing was deleted.');
+                return;
+              }
+              const stillOwned = readCombatCheckpoint(campaignId, localStorage, {
+                accountId: currentCombatAccount(),
+                legacyOwnerVerified,
+              });
+              if (stillOwned.status !== 'ok') {
+                toast.error('The saved fight could not be confirmed as yours. Nothing was deleted.');
+                return;
+              }
+
+              try {
+                localStorage.removeItem(combatKey);
+              } catch {
+                toast.error('Rookie could not delete the saved fight. It is still here and nothing was started.');
+                return;
+              }
+              // Never report a discard, or start a replacement that would write
+              // over it, unless the bytes are actually gone.
+              let remaining = null;
+              try {
+                remaining = localStorage.getItem(combatKey);
+              } catch {
+                remaining = raw;
+              }
+              if (remaining !== null) {
+                toast.error('Rookie could not delete the saved fight. It is still here and nothing was started.');
+                return;
+              }
+
+              discardGuardRef.current = null;
               setLegacyCheck(null);
               setLegacyProof(null);
               setCheckpointConflict(false);
@@ -857,7 +935,14 @@ export default function CombatPageTable() {
   return (
     <div className="combat-table-page" data-testid="combat-table-page">
       <header className="combat-table-header">
-        <button type="button" onClick={endCombat} className="combat-icon-button" title="End combat"><ArrowLeft size={18} /></button>
+        <button
+          type="button"
+          onClick={endCombat}
+          className="combat-icon-button"
+          data-testid="combat-end"
+          aria-label="End combat"
+          title="End combat"
+        ><ArrowLeft size={18} aria-hidden="true" /></button>
         <div className="combat-title-wrap">
           <strong><Swords size={17} /> {scenario.name || 'Combat'}</strong>
           <span>{campaignName}</span>
@@ -1156,7 +1241,7 @@ const combatCss = `
   .combat-death-saves > span { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 900; }
   .combat-death-saves strong { font-size: 10px; }
   .combat-death-saves .successes { color: ${rq.green}; } .combat-death-saves .failures { color: ${rq.danger}; }
-  .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 32px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
+  .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 40px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
   .combat-attack-button { border-color: ${rq.red}; background: rgba(124,203,255,.10); }
   .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(124,203,255,.10); color: ${rq.text}; }
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }

@@ -310,14 +310,15 @@ test('offline End Combat refuses incomplete baseline without updating HP', async
   }
 });
 
-describe('the upgrade path: checkpoints written before the owner stamp existed', () => {
-  // Every checkpoint in production today is one of these. Nothing has ever
-  // shipped that writes ownerId, so on the first deploy every unfinished
-  // fight reads as legacy-unverified.
-  function legacySave(scenarioId = 'OLD-FIGHT', scenarioName = "Last week's ambush") {
+describe('discarding a saved fight requires owning it', () => {
+  const OTHER = 'intruder-gm';
+  const OTHER_TOKEN = `header.${btoa(JSON.stringify({ sub: OTHER, exp: 9999999999 }))}.signature`;
+
+  /** A checkpoint written before the owner stamp existed. */
+  function legacySave() {
     localStorage.setItem(combatCheckpointKey(CAMPAIGN), JSON.stringify({
-      scenarioId,
-      scenarioName,
+      scenarioId: 'OLD-FIGHT',
+      scenarioName: "Last week's ambush",
       combatants: [{ id: 'g1', name: 'Goblin', type: 'enemy', hp: 3, maxHp: 7, initiative: 9 }],
       currentTurn: 0,
       round: 5,
@@ -350,36 +351,39 @@ describe('the upgrade path: checkpoints written before the owner stamp existed',
     );
   }
 
-  test('an offline GM is not stranded with no way to start tonight\'s fight', async () => {
-    // At a table with no signal the ownership check can never succeed. Before
-    // the discard control, the only button here was "Return to campaign", so
-    // combat could not be used at all until the GM got online.
-    legacySave();
-    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+  function verifyOwnershipOnline(username = ACCOUNT) {
+    apiClient.get.mockImplementation(url => {
+      if (url === '/auth/me') return Promise.resolve({ data: { username } });
+      if (url === `/campaigns/${CAMPAIGN}`) {
+        return Promise.resolve({ data: { id: CAMPAIGN, dm_user_id: username } });
+      }
+      return Promise.resolve({ data: [] });
+    });
+  }
+
+  test("another account cannot discard the owner's saved fight", async () => {
+    saveFight();                                   // owned by ACCOUNT
+    const original = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+    getAuthToken.mockReturnValue(OTHER_TOKEN);     // a different person signs in
+
     startDifferentEncounter();
 
     const blocked = await screen.findByTestId('combat-recovery-blocked');
-    expect(within(blocked).getByTestId('combat-discard-saved')).toBeInTheDocument();
+    expect(within(blocked).queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
   });
 
-  test('discarding is refused unless the GM confirms, and the save survives a refusal', async () => {
-    legacySave();
-    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+  test("the other account cannot read the owner's roster either", async () => {
+    saveFight();
+    getAuthToken.mockReturnValue(OTHER_TOKEN);
     startDifferentEncounter();
-
     const blocked = await screen.findByTestId('combat-recovery-blocked');
-    fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
-
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).not.toBeNull();
-    expect(screen.getByTestId('combat-recovery-blocked')).toBeInTheDocument();
-    confirmSpy.mockRestore();
+    expect(blocked.textContent).not.toContain('Dock ambush');
+    expect(blocked.textContent).not.toContain('Rina Ironside');
   });
 
-  test('a confirmed discard removes the old fight and starts the new one', async () => {
-    legacySave();
-    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+  test('the owner can discard their own fight after confirming', async () => {
+    saveFight();
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
     startDifferentEncounter();
 
@@ -388,43 +392,144 @@ describe('the upgrade path: checkpoints written before the owner stamp existed',
 
     const table = await screen.findByTestId('combat-table-page');
     expect(table.textContent).toContain("Tonight's battle");
-    expect(table.textContent).not.toContain("Last week's ambush");
+    // The old fight is gone; the new one then saves its own checkpoint, which
+    // is the point of starting it.
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+      expect(stored.scenarioId).toBe('NEW-FIGHT');
+    });
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).not.toContain('Dock ambush');
     confirmSpy.mockRestore();
   });
 
-  test('the confirmation names both fights, so nothing is discarded blind', async () => {
-    legacySave();
-    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+  test('cancelling the confirmation leaves the save byte for byte', async () => {
+    saveFight();
+    const original = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
     startDifferentEncounter();
 
     const blocked = await screen.findByTestId('combat-recovery-blocked');
     fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
 
-    const prompt = confirmSpy.mock.calls[0][0];
-    expect(prompt).toContain("Tonight's battle");
-    expect(prompt).toContain('cannot be recovered');
-    expect(prompt).toContain('No character sheet is changed');
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
+    expect(screen.getByTestId('combat-recovery-blocked')).toBeInTheDocument();
     confirmSpy.mockRestore();
   });
 
-  test('a signed-out browser is offered no discard, only sign in', async () => {
-    // Without a verified account this browser has no business deleting
-    // whatever combat data is sitting in it.
+  test('an unverified offline legacy save is never offered a delete', async () => {
     legacySave();
-    getAuthToken.mockReturnValue(null);
+    const original = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+
     startDifferentEncounter();
 
     const blocked = await screen.findByTestId('combat-recovery-blocked');
+    await waitFor(() => expect(blocked.textContent).toContain('cannot confirm'));
     expect(within(blocked).queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
-    expect(blocked.textContent).toContain('Sign in to continue');
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
   });
 
-  test('a plain refresh with a legacy save still never discards anything by itself', async () => {
-    // No router scenario means the GM did not ask to start anything, so the
-    // discard control must not appear and the save must be left alone.
+  test('a legacy save verified online as this GM may then be discarded', async () => {
     legacySave();
-    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+    verifyOwnershipOnline();
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+    startDifferentEncounter();
+
+    const discard = await screen.findByTestId('combat-discard-saved');
+    fireEvent.click(discard);
+    await screen.findByTestId('combat-table-page');
+    await waitFor(() => {
+      expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).not.toContain('OLD-FIGHT');
+    });
+    confirmSpy.mockRestore();
+  });
+
+  test('a legacy save fails verification for a different account and stays', async () => {
+    legacySave();
+    const original = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+    verifyOwnershipOnline('someone-else');          // campaign belongs to another GM
+
+    startDifferentEncounter();
+
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    await waitFor(() => expect(within(blocked).queryByTestId('combat-discard-saved')).not.toBeInTheDocument());
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
+  });
+
+  test.each([
+    ['corrupt', '{ not json'],
+    ['a newer format', JSON.stringify({ version: CHECKPOINT_VERSION + 5, ownerId: ACCOUNT, campaignId: CAMPAIGN, combatants: [{ id: 'x' }] })],
+    ['another campaign', JSON.stringify({ version: CHECKPOINT_VERSION, ownerId: ACCOUNT, campaignId: 'camp-OTHER', combatants: [{ id: 'x' }] })],
+  ])('%s is preserved and offered no delete', async (_label, stored) => {
+    localStorage.setItem(combatCheckpointKey(CAMPAIGN), stored);
+    startDifferentEncounter();
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    expect(within(blocked).queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(stored);
+  });
+
+  test('a checkpoint replaced by another tab between confirm and delete is not erased', async () => {
+    saveFight();
+    const replacement = JSON.stringify({
+      version: CHECKPOINT_VERSION, ownerId: ACCOUNT, campaignId: CAMPAIGN,
+      scenarioId: 'enc-9', scenarioName: 'A newer fight',
+      combatants: [{ id: 'z1', name: 'Wolf', type: 'enemy', hp: 9, maxHp: 11 }],
+      currentTurn: 0, round: 1, collectedLoot: [], mapTokens: [], initialPlayerStates: {},
+    });
+    // The other tab writes while this tab's confirmation dialog is open.
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => {
+      localStorage.setItem(combatCheckpointKey(CAMPAIGN), replacement);
+      return true;
+    });
+
+    startDifferentEncounter();
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
+
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(replacement);
+    confirmSpy.mockRestore();
+  });
+
+  test('a failed deletion does not report success or start a replacement', async () => {
+    saveFight();
+    const original = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const removeSpy = jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('storage is full or blocked');
+    });
+
+    startDifferentEncounter();
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
+
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
+    expect(screen.getByTestId('combat-recovery-blocked')).toBeInTheDocument();
+    expect(screen.queryByTestId('combat-table-page')).not.toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('could not delete'));
+    removeSpy.mockRestore();
+    confirmSpy.mockRestore();
+  });
+
+  test('a silent no-op deletion is caught rather than trusted', async () => {
+    // Some privacy modes accept removeItem and keep the value.
+    saveFight();
+    const original = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const removeSpy = jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {});
+
+    startDifferentEncounter();
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
+
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(original);
+    expect(screen.queryByTestId('combat-table-page')).not.toBeInTheDocument();
+    removeSpy.mockRestore();
+    confirmSpy.mockRestore();
+  });
+
+  test('a plain refresh never offers to delete anything', async () => {
+    saveFight();
     render(
       <MemoryRouter initialEntries={[`/combat/${CAMPAIGN}`]}>
         <Routes>
@@ -433,9 +538,7 @@ describe('the upgrade path: checkpoints written before the owner stamp existed',
         </Routes>
       </MemoryRouter>,
     );
-
-    const blocked = await screen.findByTestId('combat-recovery-blocked');
-    expect(within(blocked).queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
-    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).not.toBeNull();
+    await screen.findByTestId('combat-table-page');
+    expect(screen.queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
   });
 });
