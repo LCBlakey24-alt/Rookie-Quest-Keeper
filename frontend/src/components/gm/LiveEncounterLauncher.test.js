@@ -1,4 +1,4 @@
-import { clearQueuedNpcIds, combinePreparedEncounterParty, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, preferredPreparedEncounterId, readQueuedNpcIds } from './LiveEncounterLauncher';
+import { clearQueuedNpcIds, combinePreparedEncounterParty, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, nextReadyEncounter, preferredPreparedEncounterId, readQueuedNpcIds } from './LiveEncounterLauncher';
 
 describe('LiveEncounterLauncher player combat handoff', () => {
   test('preserves temp HP, death saves and concentration', () => {
@@ -128,5 +128,26 @@ describe('Prepared Hollowmere scenarios in Live Play', () => {
     expect(preferredPreparedEncounterId(scenarios)).toBe('hm01');
     expect(preferredPreparedEncounterId(scenarios, '', 'old')).toBe('hm01');
     expect(preferredPreparedEncounterId(scenarios, 'hm02')).toBe('hm02');
+  });
+});
+
+describe('Run and Encounter Review agree on encounter priority', () => {
+  const prepared = [
+    { id: 'old', played: true, live_ready: true, live_default: true },
+    { id: 'next-2', live_ready: true, planned_encounter_order: 2 },
+    { id: 'next-1', live_ready: true, planned_encounter_order: 1 },
+  ];
+  test('never automatically chooses a remembered played encounter', () => {
+    expect(nextReadyEncounter(prepared).id).toBe('next-1');
+    expect(preferredPreparedEncounterId(prepared)).toBe('next-1');
+    expect(preferredPreparedEncounterId(prepared, 'old')).toBe('old');
+  });
+  test('live_default wins among unplayed ready scenarios; explicit handoff wins over default', () => {
+    const defaulted = prepared.map(x => ({ ...x, live_default: x.id === 'next-2' }));
+    expect(nextReadyEncounter(defaulted).id).toBe('next-2');
+    expect(preferredPreparedEncounterId(defaulted, 'next-1')).toBe('next-1');
+  });
+  test('deleted requested encounter never overrides a surviving ready candidate', () => {
+    expect(preferredPreparedEncounterId(prepared, 'deleted')).toBe('next-1');
   });
 });
