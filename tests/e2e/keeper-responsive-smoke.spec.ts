@@ -108,6 +108,43 @@ for (const size of appSizes) {
 }
 
 for (const size of appSizes) {
+  test(`Encounter Review is keyboard-usable and fits ${size.label} (${size.width}x${size.height})`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+
+    const encounters = page.getByTestId('live-tool-combat');
+    await encounters.focus();
+    await expect(encounters).toBeFocused();
+    await page.keyboard.press('Enter');
+
+    const launcher = page.getByTestId('live-encounter-launcher');
+    await expect(launcher).toBeVisible();
+    const choice = launcher.getByRole('combobox', { name: 'Choose battle type' });
+    await expect(choice).toHaveValue('');
+    await expect(choice.getByRole('option', { name: /Impromptu Battle/i })).toBeAttached();
+    const launch = launcher.getByRole('button', { name: 'Start Impromptu Battle' });
+    await expect(launch).toBeVisible();
+    await expect(page.getByText(/No preparation needed/i)).toBeVisible();
+    await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
+
+    const [choiceBounds, launchBounds] = await Promise.all([choice.boundingBox(), launch.boundingBox()]);
+    expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
+    expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
+    await choice.focus();
+    await expect(choice).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(launch).toBeFocused();
+    await assertFitsViewport(page, size.width);
+
+    await testInfo.attach(`encounter-review-${size.label}`, {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    });
+  });
+}
+
+for (const size of appSizes) {
   test(`public landing and sign-in fit ${size.label} (${size.width}x${size.height})`, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);

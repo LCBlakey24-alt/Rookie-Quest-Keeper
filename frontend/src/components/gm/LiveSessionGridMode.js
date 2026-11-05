@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
+import { nextPreparedEncounterId } from './encounterSelection';
 import './LiveSessionGridMode.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -67,10 +68,27 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   const primaryActiveId = SECONDARY_IDS.has(activeTool) ? 'more' : activeTool;
   const ActiveIcon = active.icon;
 
-  const selectTool = (toolId) => {
+  // What the GM asked to open, handed over explicitly rather than left for
+  // Encounter Review to guess at again. Held here, not in the tool, because
+  // the tool body is keyed on activeTool and remounts on every switch.
+  const [encounterRequest, setEncounterRequest] = useState({
+    campaignId: '', id: '', reopenLast: false, nonce: 0,
+  });
+
+  const selectTool = (toolId, options = {}) => {
     setActiveTool(toolId);
     if (!['overview', 'more'].includes(toolId)) {
       setRecentTools(prev => [toolId, ...prev.filter(id => id !== toolId)].slice(0, 4));
+    }
+    if (toolId === 'combat') {
+      // The nonce lets Review tell "asked again for the same encounter" from
+      // "nothing new was asked", without the request becoming sticky.
+      setEncounterRequest(previous => ({
+        campaignId,
+        id: String(options.encounterId || ''),
+        reopenLast: Boolean(options.reopenLast),
+        nonce: previous.nonce + 1,
+      }));
     }
     onOpenSingleTab?.(toolId);
   };
@@ -111,7 +129,13 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
           ) : activeTool === 'more' ? (
             <MorePanel onSelect={selectTool} />
           ) : activeTool === 'combat' ? (
-            <LiveEncounterLauncher campaignId={campaignId} />
+            <LiveEncounterLauncher
+              campaignId={campaignId}
+              requestedEncounterId={encounterRequest.campaignId === campaignId ? encounterRequest.id : ''}
+              requestedEncounterCampaignId={encounterRequest.campaignId}
+              reopenLastEncounter={encounterRequest.campaignId === campaignId && encounterRequest.reopenLast}
+              encounterRequestNonce={encounterRequest.nonce}
+            />
           ) : activeTool === 'quick-dice' ? (
             <QuickDicePanel onRollDice={onRollDice} />
           ) : (
@@ -127,7 +151,11 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
   const prepared = (Array.isArray(scenarios) ? scenarios : [])
     .filter(scenario => scenario.live_ready && !scenario.played && !scenario.legacy)
     .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
-  const nextEncounter = prepared[0] || null;
+  // Run already excluded played/legacy entries and sorted planned order, but
+  // it ignored live_default. Use Review's ranking so the displayed encounter
+  // and the explicit handoff always agree.
+  const nextEncounterId = nextPreparedEncounterId(prepared);
+  const nextEncounter = prepared.find(item => item.id === nextEncounterId) || null;
   const partyCount = Array.isArray(players) ? players.length : 0;
   const core = [
     { id: 'story', label: 'Quests', icon: BookOpen, detail: 'Open, tick off, continue' },
@@ -142,7 +170,15 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
       continueItems.push({ id: 'story', label: 'Continue focused quest', icon: BookOpen });
     }
     if (localStorage.getItem(`gm.lastEncounter.${campaignId}`)) {
-      continueItems.push({ id: 'combat', label: 'Reopen last encounter', icon: Swords });
+      // Deliberately separate from "Review & run". Reopening the fight just
+      // played is a real thing a GM wants; having it happen by itself is not.
+      continueItems.push({
+        id: 'combat',
+        label: 'Reopen last encounter',
+        icon: Swords,
+        testId: 'run-reopen-last-encounter',
+        options: { reopenLast: true },
+      });
     }
   } catch { /* ignore */ }
 
@@ -168,7 +204,8 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
         <button
           className="rqk-live-grid__brief-action"
           type="button"
-          onClick={() => onSelect('combat')}
+          onClick={() => onSelect('combat', { encounterId: nextEncounterId })}
+          data-testid="run-review-encounter"
         >
           <Swords size={18} /> {nextEncounter ? 'Review & run encounter' : 'Open encounters'} <ArrowRight size={16} />
         </button>
@@ -180,7 +217,17 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
           <div style={continueRowStyle}>
             {continueItems.map(item => {
               const Icon = item.icon;
-              return <button key={item.label} type="button" onClick={() => onSelect(item.id)} style={continueButtonStyle}><Icon size={15} /> {item.label}</button>;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => onSelect(item.id, item.options || {})}
+                  data-testid={item.testId}
+                  style={continueButtonStyle}
+                >
+                  <Icon size={15} /> {item.label}
+                </button>
+              );
             })}
           </div>
         </section>

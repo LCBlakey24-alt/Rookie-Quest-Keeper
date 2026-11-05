@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { resolveEncounterSelection } from './encounterSelection';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { loadEncounterReviewSections } from '@/data/livePlayLoaders';
@@ -179,16 +180,23 @@ export function combinePreparedEncounterParty(prepared = [], players = [], enabl
   return combatants;
 }
 
+/**
+ * Kept as a named export because callers and tests import it. The policy now
+ * lives in encounterSelection.js so Run ranks encounters the same way, and a
+ * remembered encounter no longer outranks the next prepared one: it is
+ * reached only through Reopen Last Encounter.
+ */
 export function preferredPreparedEncounterId(scenarios = [], requestedId = '', previousId = '') {
-  const available = safeArray(scenarios);
-  const findById = id => available.find(item => item.id === id);
-  if (requestedId && findById(requestedId)) return requestedId;
-  if (previousId && findById(previousId) && !findById(previousId).legacy) return previousId;
-  const next = available.find(item => item.live_default && !item.played && !item.legacy);
-  if (next) return next.id;
-  const ready = available.filter(item => item.live_ready && !item.played && !item.legacy)
-    .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0];
-  return (ready || available.find(item => !item.legacy) || available[0])?.id || '';
+  // The third argument was always "what we had before", meaning either the
+  // GM's live selection or the remembered id. It is treated as remembered,
+  // which is the stricter of the two: an archived encounter never returns by
+  // itself.
+  return resolveEncounterSelection({
+    scenarios,
+    requestedId,
+    rememberedId: previousId,
+    allowRemembered: true,
+  }).id;
 }
 
 function sortEncounterOptions(scenarios = []) {
@@ -198,7 +206,13 @@ function sortEncounterOptions(scenarios = []) {
       || (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
 }
 
-export default function LiveEncounterLauncher({ campaignId }) {
+export default function LiveEncounterLauncher({
+  campaignId,
+  requestedEncounterId = '',
+  requestedEncounterCampaignId = campaignId,
+  reopenLastEncounter = false,
+  encounterRequestNonce = 0,
+}) {
   const navigate = useNavigate();
   const [campaignName, setCampaignName] = useState('Campaign');
   const [scenarios, setScenarios] = useState([]);
@@ -217,13 +231,43 @@ export default function LiveEncounterLauncher({ campaignId }) {
   const [loadErrors, setLoadErrors] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
+  const selectedIdRef = useRef('');
+  const selectionCampaignRef = useRef(campaignId);
+  const handledRequestRef = useRef('');
+
+  const selectEncounter = id => {
+    const nextId = String(id || '');
+    selectedIdRef.current = nextId;
+    setSelectedId(nextId);
+  };
 
   useEffect(() => {
     if (!campaignId) return;
+    let cancelled = false;
+    if (selectionCampaignRef.current !== campaignId) {
+      selectionCampaignRef.current = campaignId;
+      selectedIdRef.current = '';
+      setSelectedId('');
+      // Partial-load retention is useful during a retry in one campaign, but
+      // it must never expose the previous campaign's encounter or roster.
+      setCampaignName('Campaign');
+      setScenarios([]);
+      setPlayers([]);
+      setNpcs([]);
+      setTravellingIds([]);
+      setEnabledBaseKeys([]);
+      setIncludedPlayerIds([]);
+      setIncludedCompanionIds([]);
+      setExtraNpcIds([]);
+      setQueuedNpcIds([]);
+      setQuickCombatants([]);
+      setLoadErrors([]);
+    }
     const load = async () => {
       setLoading(true);
       try {
         const { sections, errors } = await loadEncounterReviewSections(apiClient, campaignId);
+        if (cancelled) return;
         const loadedScenarios = sections.scenarios.ok ? safeArray(sections.scenarios.data) : null;
         const loadedPlayers = sections.players.ok ? safeArray(sections.players.data) : null;
         const loadedNpcs = sections.npcs.ok ? safeArray(sections.npcs.data) : null;
@@ -243,26 +287,50 @@ export default function LiveEncounterLauncher({ campaignId }) {
         }
 
         if (loadedScenarios) {
-          let requested = '';
+          // A quest or note hands an encounter over through this key; it is
+          // read once and cleared. The prop is the same handoff from Run,
+          // made explicit rather than routed through storage.
+          let queuedRequest = '';
           let remembered = '';
           try {
-            requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
+            queuedRequest = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
             remembered = localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
             localStorage.removeItem(`gm.questEncounter.${campaignId}`);
           } catch { /* ignore */ }
-          setSelectedId(previous => preferredPreparedEncounterId(loadedScenarios, requested, previous || remembered));
+
+          const requestKey = `${campaignId}:${encounterRequestNonce}`;
+          const propRequestIsForCampaign = requestedEncounterCampaignId === campaignId;
+          const hasNewPropRequest = propRequestIsForCampaign
+            && handledRequestRef.current !== requestKey
+            && Boolean(requestedEncounterId || reopenLastEncounter);
+          const explicitRequest = hasNewPropRequest
+            ? (reopenLastEncounter ? remembered : requestedEncounterId)
+            : queuedRequest;
+          const outcome = resolveEncounterSelection({
+            scenarios: loadedScenarios,
+            requestedId: explicitRequest,
+            gmSelectedId: selectedIdRef.current,
+            rememberedId: remembered,
+            allowRemembered: false,
+          });
+          if (hasNewPropRequest) handledRequestRef.current = requestKey;
+          selectEncounter(outcome.id);
+          if (outcome.missingRequest) {
+            toast.warning('That encounter is no longer in this campaign. Choose another below.');
+          }
         }
 
         setLoadErrors(errors);
         if (errors.length) toast.warning('Some Encounter Review data could not be refreshed. Existing data has been kept where available.');
       } catch (error) {
-        toast.error(error?.response?.data?.detail || 'Could not load saved encounters');
+        if (!cancelled) toast.error(error?.response?.data?.detail || 'Could not load saved encounters');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     load();
-  }, [campaignId, reloadKey]);
+    return () => { cancelled = true; };
+  }, [campaignId, reloadKey, requestedEncounterId, requestedEncounterCampaignId, reopenLastEncounter, encounterRequestNonce]);
 
   const selected = useMemo(() => scenarios.find(item => item.id === selectedId) || null, [scenarios, selectedId]);
   const baseCombatants = useMemo(() => safeArray(selected?.combatants), [selected]);
@@ -358,7 +426,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
     <div data-testid="live-encounter-launcher" style={shellStyle}>
       <header style={headerStyle}>
         <span style={{ minWidth: 0 }}><strong style={headerTitleStyle}><Swords size={17} /> Encounter Review</strong><span style={headerMetaStyle}>Choose who is in this fight, then start.</span></span>
-        <select aria-label="Choose battle type" value={selectedId} onChange={event => setSelectedId(event.target.value)} style={selectStyle}>
+        <select aria-label="Choose battle type" value={selectedId} onChange={event => selectEncounter(event.target.value)} style={selectStyle}>
           <option value="">Impromptu Battle — build as you go</option>
           {scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Untitled Encounter'}</option>)}
         </select>
@@ -474,6 +542,24 @@ const searchStyle = { minHeight: 34, display: 'flex', alignItems: 'center', gap:
 const searchInputStyle = { minWidth: 0, flex: 1, minHeight: 32, border: 0, outline: 0, background: 'transparent', color: rq.text, fontSize: 10 };
 const footerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderRadius: 9, padding: 10 };
 const footerTextStyle = { color: rq.muted, fontSize: 11, lineHeight: 1.45 };
-const launchButtonStyle = { minHeight: 46, border: '1px solid #b94648', background: 'var(--rq-guild-wine, #7e2d2d)', borderRadius: 8, color: '#fff', padding: '0 17px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, cursor: 'pointer', fontWeight: 850, fontSize: 12 };
+const launchButtonStyle = {
+  minHeight: 46,
+  border: '1px solid var(--rq-secondary, #3C92E0)',
+  backgroundColor: 'var(--rq-control-blue, #0B1B2B)',
+  backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))',
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'left bottom',
+  backgroundSize: '100% 3px',
+  borderRadius: 8,
+  color: 'var(--rq-text-primary, #EADFC8)',
+  padding: '0 17px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 9,
+  cursor: 'pointer',
+  fontWeight: 850,
+  fontSize: 12,
+};
 const mutedStyle = { color: rq.muted, fontSize: 9, padding: 3 };
 const emptyStyle = { minHeight: 130, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, textAlign: 'center', padding: 16, fontSize: 10 };
