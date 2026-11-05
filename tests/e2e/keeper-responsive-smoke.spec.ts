@@ -428,7 +428,7 @@ for (const size of [
   { width: 1180, height: 820, target: 44 },
   { width: 1440, height: 900, target: 40 },
 ]) {
-  test(`Combat route End button, dialog, focus and viewport work at ${size.width}x${size.height`, async ({ page }) => {
+  test(`Combat route End button, dialog, focus and viewport work at ${size.width}x${size.height}`, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
     await page.goto('/gm-screen/preview-campaign?demo=1');
