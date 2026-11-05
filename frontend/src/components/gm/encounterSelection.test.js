@@ -75,6 +75,15 @@ describe('which encounter is next', () => {
     expect(nextPreparedEncounterId(scenarios)).toBe('ordered');
   });
 
+  test('unplanned null or empty orders follow actual planned encounters', () => {
+    const scenarios = [
+      enc('null-order', { live_ready: true, planned_encounter_order: null }),
+      enc('empty-order', { live_ready: true, planned_encounter_order: '' }),
+      enc('planned', { live_ready: true, planned_encounter_order: 3 }),
+    ];
+    expect(nextPreparedEncounterId(scenarios)).toBe('planned');
+  });
+
   test('the ranking Run shows is the ranking Review uses', () => {
     const scenarios = [
       enc('legacy', { legacy: true }),
