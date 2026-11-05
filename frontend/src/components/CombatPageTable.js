@@ -815,6 +815,36 @@ export default function CombatPageTable() {
         {routerScenario && recovery.status === 'ok' && (
           <button type="button" onClick={() => navigate(`/combat/${campaignId}`, { replace: true, state: null })}>Resume saved encounter</button>
         )}
+        {routerScenario && accountId && (
+          // Without this the GM has no way forward. Every checkpoint written
+          // before the owner stamp existed reads as legacy-unverified, and at
+          // a table with no signal the verification can never succeed, so the
+          // only control on this screen was "Return to campaign" -- combat
+          // unusable until they get online. Requirement 7 is that an
+          // unfinished fight is not erased SILENTLY; a deliberate, named,
+          // confirmed discard satisfies that while leaving a way through.
+          <button
+            type="button"
+            data-testid="combat-discard-saved"
+            onClick={() => {
+              const saved = recovery.status === 'ok'
+                ? `"${recovery.checkpoint.scenarioName || 'the saved fight'}"`
+                : 'the saved fight stored in this browser';
+              if (!window.confirm(
+                `Discard ${saved} and start "${routerScenario.name || 'this encounter'}"?\n\n`
+                + 'The saved fight is deleted from this device and cannot be recovered. '
+                + 'No character sheet is changed.',
+              )) return;
+              try { localStorage.removeItem(combatKey); } catch { /* nothing to remove */ }
+              setLegacyCheck(null);
+              setLegacyProof(null);
+              setCheckpointConflict(false);
+              setAuthRevision(value => value + 1);
+            }}
+          >
+            Discard saved fight and start this encounter
+          </button>
+        )}
         <button type="button" onClick={() => navigate(`/campaign/${campaignId}`, { replace: true })}>Return to campaign</button>
       </main>
     );

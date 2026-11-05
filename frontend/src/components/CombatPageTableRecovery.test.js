@@ -7,7 +7,7 @@
  * combat encounter found" while the whole fight stayed in localStorage.
  */
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CHECKPOINT_VERSION, combatCheckpointKey } from './combat/combatCheckpoint';
 import { getAuthToken } from '@/lib/auth';
@@ -308,4 +308,134 @@ test('offline End Combat refuses incomplete baseline without updating HP', async
     if (descriptor) Object.defineProperty(window.navigator, 'onLine', descriptor);
     else delete window.navigator.onLine;
   }
+});
+
+describe('the upgrade path: checkpoints written before the owner stamp existed', () => {
+  // Every checkpoint in production today is one of these. Nothing has ever
+  // shipped that writes ownerId, so on the first deploy every unfinished
+  // fight reads as legacy-unverified.
+  function legacySave(scenarioId = 'OLD-FIGHT', scenarioName = "Last week's ambush") {
+    localStorage.setItem(combatCheckpointKey(CAMPAIGN), JSON.stringify({
+      scenarioId,
+      scenarioName,
+      combatants: [{ id: 'g1', name: 'Goblin', type: 'enemy', hp: 3, maxHp: 7, initiative: 9 }],
+      currentTurn: 0,
+      round: 5,
+      collectedLoot: [],
+      mapTokens: [],
+      initialPlayerStates: {},
+    }));
+  }
+
+  function startDifferentEncounter() {
+    return render(
+      <MemoryRouter initialEntries={[{
+        pathname: `/combat/${CAMPAIGN}`,
+        state: {
+          source: 'live-play',
+          campaignName: 'Spilsby',
+          scenario: {
+            id: 'NEW-FIGHT',
+            name: "Tonight's battle",
+            combatants: [{ id: 'n1', name: 'Bandit', type: 'enemy', hp: 11, maxHp: 11, ac: 13, initiative: 7 }],
+          },
+        },
+      }]}>
+        <Routes>
+          <Route path="/combat/:campaignId" element={<CombatPageTable />} />
+          <Route path="/campaign/:campaignId" element={<h1>Campaign prep</h1>} />
+          <Route path="/gm-screen/:campaignId" element={<h1>Live Play</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  test('an offline GM is not stranded with no way to start tonight\'s fight', async () => {
+    // At a table with no signal the ownership check can never succeed. Before
+    // the discard control, the only button here was "Return to campaign", so
+    // combat could not be used at all until the GM got online.
+    legacySave();
+    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+    startDifferentEncounter();
+
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    expect(within(blocked).getByTestId('combat-discard-saved')).toBeInTheDocument();
+  });
+
+  test('discarding is refused unless the GM confirms, and the save survives a refusal', async () => {
+    legacySave();
+    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    startDifferentEncounter();
+
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).not.toBeNull();
+    expect(screen.getByTestId('combat-recovery-blocked')).toBeInTheDocument();
+    confirmSpy.mockRestore();
+  });
+
+  test('a confirmed discard removes the old fight and starts the new one', async () => {
+    legacySave();
+    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    startDifferentEncounter();
+
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
+
+    const table = await screen.findByTestId('combat-table-page');
+    expect(table.textContent).toContain("Tonight's battle");
+    expect(table.textContent).not.toContain("Last week's ambush");
+    confirmSpy.mockRestore();
+  });
+
+  test('the confirmation names both fights, so nothing is discarded blind', async () => {
+    legacySave();
+    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    startDifferentEncounter();
+
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    fireEvent.click(within(blocked).getByTestId('combat-discard-saved'));
+
+    const prompt = confirmSpy.mock.calls[0][0];
+    expect(prompt).toContain("Tonight's battle");
+    expect(prompt).toContain('cannot be recovered');
+    expect(prompt).toContain('No character sheet is changed');
+    confirmSpy.mockRestore();
+  });
+
+  test('a signed-out browser is offered no discard, only sign in', async () => {
+    // Without a verified account this browser has no business deleting
+    // whatever combat data is sitting in it.
+    legacySave();
+    getAuthToken.mockReturnValue(null);
+    startDifferentEncounter();
+
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    expect(within(blocked).queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
+    expect(blocked.textContent).toContain('Sign in to continue');
+  });
+
+  test('a plain refresh with a legacy save still never discards anything by itself', async () => {
+    // No router scenario means the GM did not ask to start anything, so the
+    // discard control must not appear and the save must be left alone.
+    legacySave();
+    apiClient.get.mockImplementation(() => Promise.reject(new Error('offline')));
+    render(
+      <MemoryRouter initialEntries={[`/combat/${CAMPAIGN}`]}>
+        <Routes>
+          <Route path="/combat/:campaignId" element={<CombatPageTable />} />
+          <Route path="/campaign/:campaignId" element={<h1>Campaign prep</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const blocked = await screen.findByTestId('combat-recovery-blocked');
+    expect(within(blocked).queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
+    expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).not.toBeNull();
+  });
 });
