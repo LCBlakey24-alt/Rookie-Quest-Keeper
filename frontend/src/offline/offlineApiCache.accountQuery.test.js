@@ -4,7 +4,7 @@ import {
 import { AUTH_TOKEN_KEY, AUTH_USERNAME_KEY } from '@/lib/auth';
 
 const token = (subject, version = 1) => {
-  const encode = value => window.btoa(JSON.stringify(value)).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');
+  const encode = value => window.btoa(JSON.stringify(value)).replace(/=/g, '').replaceAll('+', '-').replaceAll('/', '_');
   return `${encode({ alg: 'HS256' })}.${encode({ sub: subject, v: version })}.signature`;
 };
 const config = (auth, url = '/characters') => ({ method: 'get', url, headers: { Authorization: `Bearer ${auth}` } });
