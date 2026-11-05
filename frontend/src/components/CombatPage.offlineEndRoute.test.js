@@ -55,12 +55,13 @@ beforeEach(() => {
 afterEach(() => { jest.restoreAllMocks(); Object.defineProperty(navigator, 'onLine', { configurable: true, value: true }); });
 
 test('actual End combat click queues both player baseline and loot atomically then exits', async () => {
+  localStorage.setItem('gm.activeCombat.synthetic', JSON.stringify(checkpoint(true)));
   mount();
   await collectThenEnd();
   expect({ queue: queueOfflineCombatEnd.mock.calls.length, errors: toast.error.mock.calls, online: navigator.onLine, confirms: window.confirm.mock.calls.length }).toEqual({ queue: 1, errors: [], online: false, confirms: 1 });
   expect(queueOfflineCombatEnd).toHaveBeenCalledWith(expect.objectContaining({
     campaignId: 'synthetic',
-    characters: [expect.objectContaining({ characterId: 'pc1', baseState: expect.objectContaining({ current_hit_points: 12 }) })],
+    characters: [expect.objectContaining({ characterId: 'pc1', baseState: expect.objectContaining({ current_hit_points: 20 }) })],
     loot: [expect.objectContaining({ itemName: 'Venom', operationId: expect.any(String) })],
   }));
   expect(queueOfflineCombatState).not.toHaveBeenCalled();
@@ -78,6 +79,7 @@ test('restored fight without original baseline refuses offline ending even if fi
 });
 
 test('offline queue failure retains fight and loot for retry without double-creating loot', async () => {
+  localStorage.setItem('gm.activeCombat.synthetic', JSON.stringify(checkpoint(true)));
   queueOfflineCombatEnd.mockResolvedValueOnce(null)
     .mockResolvedValueOnce({ closeRecord: {}, lootRecords: [{}] });
   mount();
