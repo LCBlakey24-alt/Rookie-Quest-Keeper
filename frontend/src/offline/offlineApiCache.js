@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { AUTH_USERNAME_KEY, getAuthToken } from '@/lib/auth';
 
 const DB_NAME = 'rookie-quest-keeper-offline';
@@ -91,7 +92,53 @@ function stableParams(params) {
 }
 
 export function getOfflineCacheKey(config = {}) {
-  return `${getOfflineCacheScope()}::${normaliseUrl(config)}::${stableParams(config.params)}`;
+  const { path, query } = canonicalRequestUrl(config);
+  return `${getOfflineRequestScope(config)}::${path}::${query}`;
+}
+
+
+function tokenScope(token) {
+  const identity = getOfflineIdentityFromToken(token);
+  if (identity) return `user:${identity}`;
+  // Malformed/legacy tokens must not be attributed to the currently logged-in
+  // account. Isolate them by token rather than mixing two accounts.
+  let hash = 2166136261;
+  for (const character of String(token || '')) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `token:${(hash >>> 0).toString(36)}`;
+}
+
+export function getOfflineRequestScope(config = {}) {
+  const headers = config?.headers || {};
+  const authorization = typeof headers.get === 'function'
+    ? headers.get('Authorization')
+    : headers.Authorization || headers.authorization;
+  const match = String(authorization || '').match(/^Bearer\s+(.+)$/i);
+  if (match) return tokenScope(match[1].trim());
+  return getOfflineCacheScope();
+}
+
+// Query keys are built from Axios' actual request URL semantics: it adds
+// config.params to a URL which may already include inline ?filters. Sorting
+// [key,value] pairs makes equivalent ordering stable without collapsing
+// repeated parameter values.
+function canonicalRequestUrl(config = {}) {
+  try {
+    const requestUrl = axios.getUri({
+      ...config,
+      baseURL: config.baseURL || 'https://offline.local',
+    });
+    const parsed = new URL(requestUrl, 'https://offline.local');
+    const pairs = [...parsed.searchParams.entries()].sort((a, b) =>
+      a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+    const canonical = new URLSearchParams();
+    pairs.forEach(([name, value]) => canonical.append(name, value));
+    return { path: parsed.pathname, query: canonical.toString() };
+  } catch {
+    return { path: String(config.url || '').split('?')[0], query: '' };
+  }
 }
 
 function normaliseAudience(audience) {
@@ -135,56 +182,69 @@ function openDb() {
 
 export async function storeOfflineApiResponse(config, response) {
   if (!isCacheableOfflineGet(config) || !response || response.status < 200 || response.status >= 300) return '';
+  // Capture identity BEFORE any asynchronous IndexedDB work. A request that
+  // started as account A may finish only after account B signs in.
+  const scope = getOfflineRequestScope(config);
+  if (scope !== getOfflineCacheScope()) return '';
+  const key = getOfflineCacheKey(config);
+  const { path, query } = canonicalRequestUrl(config);
   const db = await openDb().catch(() => null);
   if (!db) return '';
+  // Re-check after the asynchronous open; never write stale account data.
+  if (scope !== getOfflineCacheScope()) { db.close(); return ''; }
 
-  const key = getOfflineCacheKey(config);
-  const record = {
-    key,
-    path: normaliseUrl(config),
-    params: stableParams(config.params),
-    scope: getOfflineCacheScope(),
-    data: response.data,
-    status: response.status,
-    savedAt: Date.now(),
-  };
-
-  await new Promise(resolve => {
-    const transaction = db.transaction(RESPONSE_STORE, 'readwrite');
-    transaction.objectStore(RESPONSE_STORE).put(record);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
+  const record = { key, path, params: query, scope, data: response.data, status: response.status, savedAt: Date.now() };
+  const written = await new Promise(resolve => {
+    try {
+      if (scope !== getOfflineCacheScope()) return resolve(false);
+      const transaction = db.transaction(RESPONSE_STORE, 'readwrite');
+      transaction.objectStore(RESPONSE_STORE).put(record);
+      transaction.oncomplete = () => resolve(true);
+      transaction.onerror = () => resolve(false);
+      transaction.onabort = () => resolve(false);
+    } catch { resolve(false); }
   });
   db.close();
-  return key;
+  return written ? key : '';
 }
 
 export async function readOfflineApiResponse(config) {
   if (!isCacheableOfflineGet(config)) return null;
+  const scope = getOfflineRequestScope(config);
+  if (scope !== getOfflineCacheScope()) return null;
+  const key = getOfflineCacheKey(config);
   const db = await openDb().catch(() => null);
   if (!db) return null;
+  if (scope !== getOfflineCacheScope()) { db.close(); return null; }
 
   const record = await new Promise(resolve => {
-    const transaction = db.transaction(RESPONSE_STORE, 'readonly');
-    const request = transaction.objectStore(RESPONSE_STORE).get(getOfflineCacheKey(config));
-    request.onsuccess = () => resolve(request.result || null);
-    request.onerror = () => resolve(null);
+    try {
+      if (scope !== getOfflineCacheScope()) return resolve(null);
+      const store = db.transaction(RESPONSE_STORE, 'readonly').objectStore(RESPONSE_STORE);
+      const request = store.get(key);
+      request.onsuccess = () => {
+        if (request.result) return resolve(request.result);
+        // Preserve previously downloaded packs for queryless requests. Never
+        // fall back to a legacy path-only record if inline filters exist.
+        if (String(config.url || '').includes('?')) return resolve(null);
+        const legacyKey = `${scope}::${normaliseUrl(config)}::${stableParams(config.params)}`;
+        if (legacyKey === key) return resolve(null);
+        const legacy = store.get(legacyKey);
+        legacy.onsuccess = () => resolve(legacy.result || null);
+        legacy.onerror = () => resolve(null);
+      };
+      request.onerror = () => resolve(null);
+    } catch { resolve(null); }
   });
   db.close();
-
-  if (!record) return null;
+  if (!record || scope !== getOfflineCacheScope() || record.scope !== scope) return null;
   return {
-    data: record.data,
-    status: 200,
-    statusText: 'Offline Cache',
+    data: record.data, status: 200, statusText: 'Offline Cache',
     headers: {
       'x-rqk-offline-cache': '1',
       'x-rqk-offline-saved-at': String(record.savedAt || ''),
     },
-    config,
-    rqkOffline: true,
-    rqkOfflineSavedAt: record.savedAt || 0,
+    config, rqkOffline: true, rqkOfflineSavedAt: record.savedAt || 0,
   };
 }
 
