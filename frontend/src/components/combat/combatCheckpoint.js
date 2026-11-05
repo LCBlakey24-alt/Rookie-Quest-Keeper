@@ -1,3 +1,6 @@
+import { getAuthToken } from '@/lib/auth';
+import { getOfflineIdentityFromToken } from '@/offline/offlineApiCache';
+
 /**
  * Reading back a fight that is already in progress.
  *
@@ -15,7 +18,15 @@
  * manual restart; accepting quietly costs them their players' records.
  */
 
-export const CHECKPOINT_VERSION = 2;
+export const CHECKPOINT_VERSION = 3;
+
+// Match the established #759 offline account key convention. Never use the
+// unverified dm_username localStorage value as a checkpoint owner.
+export function currentCombatAccount() {
+  const token = getAuthToken();
+  return token ? getOfflineIdentityFromToken(token) : '';
+}
+
 
 export function combatCheckpointKey(campaignId) {
   return `gm.activeCombat.${campaignId}`;
@@ -54,7 +65,7 @@ function finiteOr(value, fallback) {
  * saved fight" apart from "there is one and it cannot be trusted" and say
  * something useful about each.
  */
-export function readCombatCheckpoint(campaignId, storage) {
+export function readCombatCheckpoint(campaignId, storage, options = {}) {
   if (!campaignId) return { status: 'none' };
 
   const attempt = readRaw(campaignId, storage);
@@ -84,9 +95,29 @@ export function readCombatCheckpoint(campaignId, storage) {
     return { status: 'foreign', reason: 'The saved fight belongs to a different campaign.' };
   }
 
+  // The campaign storage key is not an account boundary: several people may
+  // share a browser. Never return private combat data without identity proof.
+  const accountId = String(options.accountId || '').trim().toLowerCase();
+  if (!accountId) {
+    return { status: 'auth-required', reason: 'Sign in to recover this saved fight. Its data has been preserved.' };
+  }
+  const checkpointOwner = String(parsed.ownerId || '').trim().toLowerCase();
+  if (checkpointOwner && checkpointOwner !== accountId) {
+    return { status: 'foreign-account', reason: 'A saved fight for another account is stored here. Nothing was changed.' };
+  }
+  if (!checkpointOwner && options.legacyOwnerVerified !== true) {
+    return { status: 'legacy-unverified', reason: 'This older fight has no account owner stamp. Connect to verify campaign ownership before recovery; the save is preserved.' };
+  }
+
   const combatants = Array.isArray(parsed.combatants) ? parsed.combatants : [];
   if (combatants.length === 0 || !combatants.every(isUsableCombatant)) {
     return { status: 'corrupt', reason: 'The saved fight has no usable combatants.' };
+  }
+
+  // Equal display names are fine; equal combatant IDs are not. IDs drive HP,
+  // initiative, map tokens and reactions and must remain unique.
+  if (new Set(combatants.map(item => String(item.id))).size !== combatants.length) {
+    return { status: 'corrupt', reason: 'The saved fight contains duplicate combatant IDs.' };
   }
 
   const round = Math.max(1, Math.floor(finiteOr(parsed.round, 1)));
@@ -99,6 +130,7 @@ export function readCombatCheckpoint(campaignId, storage) {
     status: 'ok',
     checkpoint: {
       version,
+      ownerId: accountId,
       campaignId: String(campaignId),
       scenarioId: String(parsed.scenarioId || ''),
       scenarioName: String(parsed.scenarioName || ''),
