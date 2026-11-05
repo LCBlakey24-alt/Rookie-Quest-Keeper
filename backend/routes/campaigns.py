@@ -748,56 +748,90 @@ async def get_campaign_members(campaign_id: str, username: str = Depends(get_cur
 
 @router.post("/campaigns/{campaign_id}/share-rulesets")
 async def share_rulesets_with_campaign(campaign_id: str, data: Dict[str, Any], username: str = Depends(get_current_user)):
-    """Share rulesets with all members of a campaign (GM only)"""
-    user = await db.users.find_one({"email": username})
+    """Share owned custom rulesets with active campaign members.
+
+    The JWT/campaign identity is a username. The legacy custom_rulesets
+    owner_id and shared_with fields contain Mongo user IDs. Translate only at
+    this boundary; never put a campaign username into shared_with.
+    """
+    from bson import ObjectId
+
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     campaign = await db.campaigns.find_one({"id": campaign_id})
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    
-    if campaign.get("dm_user_id") != str(user.get("_id")):
+    if campaign.get("dm_user_id") != username:
         raise HTTPException(status_code=403, detail="Only GM can share rulesets")
-    
+
     ruleset_ids = data.get("ruleset_ids", [])
-    
-    # Verify ownership of rulesets
+    if not isinstance(ruleset_ids, list) or any(not isinstance(value, str) or not value.strip() for value in ruleset_ids):
+        raise HTTPException(status_code=400, detail="ruleset_ids must be a list of ruleset IDs")
+    ruleset_ids = list(dict.fromkeys(ruleset_ids))
+    if len(ruleset_ids) > 100:
+        raise HTTPException(status_code=400, detail="Too many rulesets to share at once")
+
+    # Verify every owner before making ANY sharing updates.
     for ruleset_id in ruleset_ids:
         ruleset = await db.custom_rulesets.find_one({"id": ruleset_id})
-        if not ruleset or ruleset.get("owner_id") != str(user.get("_id")):
+        if not ruleset or ruleset.get("owner_id") != str(user["_id"]):
             raise HTTPException(status_code=403, detail=f"Cannot share rule set {ruleset_id}")
-    
-    # Get all campaign members
+
     members = await db.campaign_members.find({"campaign_id": campaign_id}).to_list(100)
-    member_ids = [m["user_id"] for m in members]
-    
-    # Share rulesets with campaign and all members
+    active_member_keys = []
+    shared_mongo_ids = []
+    for member in members:
+        # Identical to verify_campaign_membership: absent status means active.
+        if str(member.get("status") or "active").strip().lower() != "active":
+            continue
+
+        legacy_key = str(member.get("user_id") or "").strip()
+        handle = str(member.get("username") or "").strip()
+        if not legacy_key and not handle:
+            continue
+
+        # Current memberships store usernames. Some older joins stored Mongo
+        # IDs; resolve those explicitly rather than copying them blindly.
+        account = await db.users.find_one({"username": legacy_key}) if legacy_key else None
+        if not account and handle and handle != legacy_key:
+            account = await db.users.find_one({"username": handle})
+        if not account and ObjectId.is_valid(legacy_key):
+            account = await db.users.find_one({"_id": ObjectId(legacy_key)})
+        if not account:
+            continue
+        account_id = str(account["_id"])
+        if account_id not in shared_mongo_ids:
+            shared_mongo_ids.append(account_id)
+        if legacy_key:
+            active_member_keys.append(legacy_key)
+
     for ruleset_id in ruleset_ids:
+        update = {"shared_campaigns": campaign_id}
+        if shared_mongo_ids:
+            update["shared_with"] = {"$each": shared_mongo_ids}
         await db.custom_rulesets.update_one(
-            {"id": ruleset_id},
-            {
-                "$addToSet": {
-                    "shared_campaigns": campaign_id,
-                    "shared_with": {"$each": member_ids}
-                }
-            }
+            {"id": ruleset_id, "owner_id": str(user["_id"])},
+            {"$addToSet": update},
         )
-        
-        # Update each member's shared_rulesets
-        await db.campaign_members.update_many(
-            {"campaign_id": campaign_id},
-            {"$addToSet": {"shared_rulesets": ruleset_id}}
-        )
-    
-    # Notify all members via WebSocket
+        if active_member_keys:
+            await db.campaign_members.update_many(
+                {
+                    "campaign_id": campaign_id,
+                    "user_id": {"$in": active_member_keys},
+                    "$or": [{"status": "active"}, {"status": {"$exists": False}}],
+                },
+                {"$addToSet": {"shared_rulesets": ruleset_id}},
+            )
+
     await ws_manager.broadcast_to_campaign(campaign_id, {
         "type": "rulesets_shared",
         "ruleset_ids": ruleset_ids,
-        "from_gm": True
+        "from_gm": True,
     })
-    
     return {"message": f"Shared {len(ruleset_ids)} rule sets with campaign members"}
+
 
 @router.post("/rulesets/upload-file")
 async def upload_ruleset_file(file: UploadFile = File(...), username: str = Depends(get_current_user)):
