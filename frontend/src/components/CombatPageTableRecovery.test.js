@@ -7,7 +7,7 @@
  * combat encounter found" while the whole fight stayed in localStorage.
  */
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CHECKPOINT_VERSION, combatCheckpointKey } from './combat/combatCheckpoint';
 import { getAuthToken } from '@/lib/auth';
@@ -74,6 +74,7 @@ beforeEach(() => {
   localStorage.clear();
   getAuthToken.mockReturnValue(TEST_TOKEN);
   apiClient.get.mockReset();
+  apiClient.patch.mockClear();
   apiClient.get.mockResolvedValue({ data: [] });
 });
 
@@ -116,18 +117,22 @@ test('with no saved fight the GM is still returned to the campaign', async () =>
   await waitFor(() => expect(screen.getByRole('heading', { name: 'Campaign prep' })).toBeInTheDocument());
 });
 
-test('a corrupt checkpoint is refused and explained, not turned into a fight', async () => {
-  localStorage.setItem(combatCheckpointKey(CAMPAIGN), '{ this is not json');
+test('corrupt checkpoint remains stored and its data is blocked', async () => {
+  const raw = '{ this is not json';
+  localStorage.setItem(combatCheckpointKey(CAMPAIGN), raw);
   openColdTab();
-  await waitFor(() => expect(screen.getByRole('heading', { name: 'Campaign prep' })).toBeInTheDocument());
-  expect(toast.error).toHaveBeenCalledWith('The saved fight could not be read.');
+  expect(await screen.findByTestId('combat-recovery-blocked')).toBeInTheDocument();
+  expect(screen.getByText('The saved fight could not be read.')).toBeInTheDocument();
+  expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(raw);
 });
 
-test("another campaign's fight is never adopted", async () => {
+test("another campaign's checkpoint is blocked and preserved", async () => {
   saveFight({ campaignId: 'camp-SOMEONE-ELSE' });
+  const raw = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
   openColdTab();
-  await waitFor(() => expect(screen.getByRole('heading', { name: 'Campaign prep' })).toBeInTheDocument());
-  expect(toast.error).toHaveBeenCalledWith('The saved fight belongs to a different campaign.');
+  expect(await screen.findByTestId('combat-recovery-blocked')).toBeInTheDocument();
+  expect(screen.getByText('The saved fight belongs to a different campaign.')).toBeInTheDocument();
+  expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(raw);
 });
 
 test('a recovered fight remembers it came from Live Play', async () => {
@@ -223,8 +228,10 @@ test('legacy checkpoint is recovered only after online account and GM ownership 
   });
   openColdTab();
   expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
+  await waitFor(() => expect(JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).ownerId).toBe(ACCOUNT));
   const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
-  expect(saved.ownerId).toBe(ACCOUNT);
+  expect(saved.round).toBe(4);
+  // The authenticated GM proof must be stamped into the upgraded checkpoint.
   expect(saved.round).toBe(4);
 });
 
@@ -262,4 +269,43 @@ test('two enemies with the same name recover separately with loot and positions'
   expect(data.combatants.map(item => item.hp)).toEqual([5, 1]);
   expect(data.mapTokens).toEqual([{ id: 'g1', x: 1, y: 2 }, { id: 'g2', x: 6, y: 7 }]);
   expect(data.collectedLoot).toHaveLength(1);
+});
+
+test('a different account cannot pass legacy GM verification', async () => {
+  saveFight({ ownerId: undefined, version: undefined });
+  const raw = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+  apiClient.get.mockImplementation(url => {
+    if (url === '/auth/me') return Promise.resolve({ data: { username: ACCOUNT } });
+    if (url === `/campaigns/${CAMPAIGN}`) {
+      return Promise.resolve({ data: { id: CAMPAIGN, dm_user_id: 'different-gm' } });
+    }
+    return Promise.resolve({ data: [] });
+  });
+  openColdTab();
+  expect(await screen.findByTestId('combat-recovery-blocked')).toBeInTheDocument();
+  await waitFor(() => expect(apiClient.get).toHaveBeenCalledWith(`/campaigns/${CAMPAIGN}`));
+  expect(screen.queryByText('Dock ambush')).not.toBeInTheDocument();
+  expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(raw);
+});
+
+test('offline End Combat refuses incomplete baseline without updating HP', async () => {
+  saveFight({ initialPlayerStates: { 'char-1': {} } });
+  const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
+  const descriptor = Object.getOwnPropertyDescriptor(window.navigator, 'onLine');
+  Object.defineProperty(window.navigator, 'onLine', { configurable: true, value: false });
+  try {
+    openColdTab();
+    expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('.combat-round')).toHaveTextContent('4'));
+    fireEvent.click(screen.getByTitle('End combat'));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(
+      'This restored fight is missing its safe pre-combat baseline. Reconnect once before ending it offline.',
+    ));
+    expect(apiClient.patch).not.toHaveBeenCalled();
+    expect(JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).combatants[0].hp).toBe(22);
+  } finally {
+    confirm.mockRestore();
+    if (descriptor) Object.defineProperty(window.navigator, 'onLine', descriptor);
+    else delete window.navigator.onLine;
+  }
 });
