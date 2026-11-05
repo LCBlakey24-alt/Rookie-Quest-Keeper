@@ -2,7 +2,12 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import LiveSessionGridMode from './LiveSessionGridMode';
 
-jest.mock('./LiveEncounterLauncher', () => () => <div>Encounter launcher</div>);
+jest.mock('./LiveEncounterLauncher', () => ({
+  __esModule: true,
+  default: ({ requestedEncounterId }) => <div>Encounter launcher <span data-testid="reviewed-encounter-id">{requestedEncounterId}</span></div>,
+  nextReadyEncounter: scenarios => scenarios.filter(s => s.live_ready && !s.played && !s.legacy)
+    .sort((a, b) => Number(Boolean(b.live_default)) - Number(Boolean(a.live_default)) || (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0] || null,
+}));
 
 describe('Live Play wax-seal navigation', () => {
   beforeEach(() => localStorage.clear());
@@ -26,7 +31,8 @@ describe('Live Play wax-seal navigation', () => {
     expect(screen.getByText('2 prepared battles')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Review & run encounter/i }));
     expect(screen.getByTestId('live-tool-combat')).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByText('Encounter launcher')).toBeInTheDocument();
+    expect(screen.getByText(/Encounter launcher/)).toBeInTheDocument();
+    expect(screen.getByTestId('reviewed-encounter-id')).toHaveTextContent('hm01');
   });
 
   test('ignores malformed stored recent tools without crashing the session', () => {
@@ -52,4 +58,23 @@ describe('Live Play wax-seal navigation', () => {
     expect(run).not.toHaveAttribute('aria-current');
     expect(screen.getByText('Tool: story')).toBeInTheDocument();
   });
+
+  test('a played remembered encounter stays separate from next ready, and reopens deliberately', () => {
+    localStorage.setItem('gm.lastEncounter.hollowmere', 'played-old');
+    render(
+      <LiveSessionGridMode campaignId="hollowmere"
+        scenarios={[
+          { id: 'played-old', name: 'Old', played: true, live_ready: true },
+          { id: 'next', name: 'Next', live_ready: true },
+        ]}
+        renderTool={name => <div>Tool: {name}</div>}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Review & run encounter/i }));
+    expect(screen.getByTestId('reviewed-encounter-id')).toHaveTextContent('next');
+    fireEvent.click(screen.getByTestId('live-tool-overview'));
+    fireEvent.click(screen.getByRole('button', { name: /Reopen last encounter/i }));
+    expect(screen.getByTestId('reviewed-encounter-id')).toHaveTextContent('played-old');
+  });
+
 });
