@@ -151,7 +151,16 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (incomingConfig) => {
+  // Capture the account when the request begins, BEFORE the asynchronous
+  // readiness policy/adapter runs. A late response must never inherit a
+  // different account's credentials or cache scope.
+  const issuedToken = getAuthToken();
+  const incomingAuth = incomingConfig?.headers?.get?.('Authorization')
+    || incomingConfig?.headers?.Authorization
+    || incomingConfig?.headers?.authorization;
+  const issuedAuthorization = issuedToken ? `Bearer ${issuedToken}` : (incomingAuth || '');
   let config = applyLegacyApiCompatibility(incomingConfig);
+  config.rqkOfflineRequestAuthorization = issuedAuthorization;
   config = applyLoginTimeoutPolicy(config);
   config = await applyCharacterCreationReadinessPolicy(config);
 
@@ -162,8 +171,7 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
     return { ...config, adapter: previewAdapter };
   }
 
-  const token = getAuthToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (issuedToken) config.headers.Authorization = issuedAuthorization;
 
   return config;
 });
