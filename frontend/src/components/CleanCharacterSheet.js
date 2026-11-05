@@ -81,6 +81,16 @@ export default function CleanCharacterSheet() {
   const [tempHpAmount, setTempHpAmount] = useState(1);
   const [activeTab, setActiveTab] = useState('stats');
   const [rollBurst, setRollBurst] = useState(null);
+  const rollPresentationCounterRef = useRef(0);
+  const presentRollBurst = (entry) => {
+    // A second 12 on a d20 is a new throw, even if all numerical fields match.
+    // The per-sheet counter also avoids collisions from Date.now() in fast taps.
+    rollPresentationCounterRef.current += 1;
+    setRollBurst({
+      ...entry,
+      rollId: `${characterId || 'character'}-roll-${rollPresentationCounterRef.current}`,
+    });
+  };
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
   const [rollHistory, setRollHistory] = useState([]);
   const [showRollHistory, setShowRollHistory] = useState(false);
@@ -123,12 +133,6 @@ export default function CleanCharacterSheet() {
       saveControllerRef.current.invalidate();
     };
   }, [characterId]);
-
-  useEffect(() => {
-    if (!rollBurst) return undefined;
-    const timeout = setTimeout(() => setRollBurst(null), 9000);
-    return () => clearTimeout(timeout);
-  }, [rollBurst]);
 
   const maxHp = getMaxHp(character);
   const currentHp = Math.min(getCurrentHp(character), maxHp);
@@ -311,7 +315,7 @@ export default function CleanCharacterSheet() {
       mode: result.mode,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
-    setRollBurst(entry);
+    presentRollBurst(entry);
     setRollHistory(prev => [entry, ...prev].slice(0, 12));
 
     if (result.total >= dc) {
@@ -417,7 +421,7 @@ export default function CleanCharacterSheet() {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       ...metadata,
     };
-    setRollBurst(entry);
+    presentRollBurst(entry);
     setRollHistory(prev => [entry, ...prev].slice(0, 12));
     return entry;
   };
@@ -468,7 +472,7 @@ export default function CleanCharacterSheet() {
       allRolls: [result.die],
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
-    setRollBurst(entry);
+    presentRollBurst(entry);
     setRollHistory(prev => [entry, ...prev].slice(0, 12));
     setSavingQuickState(true);
     await patchCharacter({ current_hit_points: nextHp, hit_dice_remaining: Math.max(0, hitDiceRemaining - 1) }, { success: `Recovered ${nextHp - currentHp} HP`, error: 'Could not spend hit die' });
@@ -574,7 +578,7 @@ export default function CleanCharacterSheet() {
       onRoll={makeRoll}
       onCharacterUpdate={patchCharacter}
       onDiceResult={(entry) => {
-        setRollBurst(entry);
+        presentRollBurst(entry);
         setRollHistory(prev => [entry, ...prev].slice(0, 12));
       }}
     />
@@ -622,6 +626,8 @@ export default function CleanCharacterSheet() {
 
       {rollBurst && (
         <DiceRollFlicker
+          key={rollBurst.rollId}
+          rollId={rollBurst.rollId}
           isOpen={Boolean(rollBurst)}
           onClose={() => setRollBurst(null)}
           label={rollBurst.label}
