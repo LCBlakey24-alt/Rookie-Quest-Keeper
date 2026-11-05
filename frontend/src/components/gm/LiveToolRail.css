@@ -1,0 +1,247 @@
+/* Live Play tool rail — flat navy, cream text, blue controls, and the citrus
+ * gradient only ever as a 3px rule on the selected item. See
+ * docs/UI_DESIGN_SYSTEM.md: never a filled tab, never gold or red as a fill.
+ */
+
+.rqk-tool-rail {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--rq-bg-panel, #0B1B2B);
+  border: 1px solid var(--rq-border-default, rgba(137, 157, 176, 0.14));
+  border-radius: 10px;
+  padding: 10px 8px;
+  font-family: var(--rq-body-font, Manrope, system-ui, sans-serif);
+}
+
+.rqk-tool-rail__pinned,
+.rqk-tool-rail__group-items {
+  display: grid;
+  gap: 4px;
+}
+
+/* Every row: a flat navy control with cream text. */
+.rqk-tool-rail__item {
+  position: relative;
+  min-height: 44px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--rq-card, #0B1B2B);
+  background-image: var(--rq-citrus-gradient);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 0% 3px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78));
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: background-size var(--rq-citrus-sweep, 340ms cubic-bezier(.22,.78,.18,1)),
+    border-color 160ms ease, color 160ms ease;
+}
+
+.rqk-tool-rail__item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rqk-tool-rail__item svg { color: var(--rq-secondary, #3C92E0); }
+
+.rqk-tool-rail__item:hover {
+  background-size: 100% 3px;
+  border-color: var(--rq-border-default, rgba(137, 157, 176, 0.14));
+  color: var(--rq-text-primary, #F5F1E8);
+}
+
+/* Selected keeps the rule permanently; the body stays navy, never filled. */
+.rqk-tool-rail__item.is-active {
+  background-color: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10));
+  background-size: 100% 3px;
+  border-color: var(--rq-border-default, rgba(137, 157, 176, 0.22));
+  color: var(--rq-text-primary, #F5F1E8);
+}
+
+.rqk-tool-rail__item:focus-visible,
+.rqk-tool-rail__group-button:focus-visible,
+.rqk-tool-rail__close:focus-visible,
+.rqk-tool-rail__menu-button:focus-visible,
+.rqk-tool-rail__filter input:focus-visible {
+  outline: 3px solid var(--rq-secondary, #3C92E0);
+  outline-offset: 2px;
+}
+
+.rqk-tool-rail__item--nested { padding-left: 18px; }
+
+.rqk-tool-rail__item--resume {
+  border-color: rgba(60, 146, 224, 0.38);
+  color: var(--rq-text-primary, #F5F1E8);
+}
+
+.rqk-tool-rail__group { display: grid; gap: 4px; }
+.rqk-tool-rail__group-heading { margin: 0; font-size: inherit; font-weight: inherit; }
+
+.rqk-tool-rail__group-button {
+  min-height: 40px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--rq-text-muted, rgba(234, 223, 200, 0.70));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rqk-tool-rail__group-button:hover { color: var(--rq-text-primary, #F5F1E8); }
+.rqk-tool-rail__group-button svg:first-child { color: var(--rq-secondary, #3C92E0); }
+.rqk-tool-rail__chevron { transition: transform 160ms ease; }
+.rqk-tool-rail__chevron.is-open { transform: rotate(180deg); }
+
+.rqk-tool-rail__filter {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px;
+}
+
+.rqk-tool-rail__filter svg { color: var(--rq-text-muted, rgba(234, 223, 200, 0.60)); }
+
+.rqk-tool-rail__filter input {
+  min-height: 40px;
+  min-width: 0;
+  width: 100%;
+  padding: 7px 9px;
+  background: var(--rq-bg-input, #0B1B2B);
+  border: 1px solid var(--rq-border-default, rgba(137, 157, 176, 0.14));
+  border-radius: 6px;
+  color: var(--rq-text-primary, #F5F1E8);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.rqk-tool-rail__groups { overflow-y: auto; overscroll-behavior: contain; }
+.rqk-tool-rail__empty { margin: 8px 6px; color: var(--rq-text-muted, rgba(234,223,200,.70)); font-size: 12px; }
+
+/* --- Desktop: a labelled column beside the workspace ------------------- */
+@media (min-width: 1181px) {
+  .rqk-tool-rail--desktop {
+    position: sticky;
+    top: 12px;
+    width: 236px;
+    max-height: calc(100dvh - 24px);
+  }
+}
+
+/* --- Tablet: the same structure, narrowed to icons --------------------- */
+@media (min-width: 720px) and (max-width: 1180px) {
+  .rqk-tool-rail--tablet { width: 68px; align-self: start; position: sticky; top: 12px; }
+  .rqk-tool-rail--tablet .rqk-tool-rail__item { grid-template-columns: 1fr; justify-items: center; padding: 8px 4px; }
+  .rqk-tool-rail--tablet .rqk-tool-rail__item--nested { padding-left: 4px; }
+  /* The names go; the accessible names do not -- every control keeps its
+     title and its text is only visually hidden. */
+  .rqk-tool-rail--tablet .rqk-tool-rail__item > span,
+  .rqk-tool-rail--tablet .rqk-tool-rail__group-button > span,
+  .rqk-tool-rail--tablet .rqk-tool-rail__chevron,
+  .rqk-tool-rail--tablet .rqk-tool-rail__filter { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .rqk-tool-rail--tablet .rqk-tool-rail__group-button { grid-template-columns: 1fr; justify-items: center; }
+  .rqk-tool-rail--tablet .rqk-tool-rail__group-items[hidden] { display: none; }
+}
+
+/* --- Phone: a drawer over the workspace -------------------------------- */
+.rqk-tool-rail__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(4, 10, 18, 0.62);
+  border: 0;
+  padding: 0;
+}
+
+.rqk-tool-rail--phone {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 91;
+  width: min(312px, 88vw);
+  max-height: 100dvh;
+  overflow-y: auto;
+  border-radius: 0 12px 12px 0;
+  padding: 12px 10px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+.rqk-tool-rail__drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rq-border-default, rgba(137, 157, 176, 0.14));
+}
+
+.rqk-tool-rail__drawer-head strong { display: block; color: var(--rq-text-primary, #F5F1E8); font-size: 14px; }
+.rqk-tool-rail__drawer-head small { display: block; margin-top: 2px; color: var(--rq-text-muted, rgba(234,223,200,.70)); font-size: 12px; }
+
+.rqk-tool-rail__close {
+  min-width: 46px;
+  min-height: 46px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px solid var(--rq-border-default, rgba(137, 157, 176, 0.14));
+  border-radius: 7px;
+  color: var(--rq-text-primary, #F5F1E8);
+  cursor: pointer;
+}
+
+.rqk-tool-rail__menu-button {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  background: var(--rq-card, #0B1B2B);
+  background-image: var(--rq-citrus-gradient);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 3px;
+  border: 1px solid var(--rq-border-default, rgba(137, 157, 176, 0.18));
+  border-radius: 7px;
+  color: var(--rq-text-primary, #F5F1E8);
+  font-family: var(--rq-body-font, Manrope, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rqk-tool-rail__menu-button strong { color: var(--rq-text-muted, rgba(234,223,200,.70)); font-weight: 700; }
+.rqk-tool-rail__menu-button svg { color: var(--rq-secondary, #3C92E0); }
+
+/* Phone controls sit at the 46px floor the design system sets. */
+@media (max-width: 719px) {
+  .rqk-tool-rail__item { min-height: 46px; }
+  .rqk-tool-rail__group-button { min-height: 44px; }
+  .rqk-tool-rail__filter input { min-height: 46px; font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rqk-tool-rail__item,
+  .rqk-tool-rail__chevron { transition: none !important; }
+}

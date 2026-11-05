@@ -2,6 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
 import { nextPreparedEncounterId } from './encounterSelection';
+import LiveToolRail, { LiveToolMenuButton } from './LiveToolRail';
+import {
+  allLiveToolIds,
+  categoryForTool,
+  initialExpandedCategories,
+  liveToolLabel,
+} from './liveToolRegistry';
+import { useDeviceLayout } from '@/layouts/deviceLayout';
 import './LiveSessionGridMode.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -30,7 +38,6 @@ export const LIVE_GRID_TOOLS = [
   { id: 'player-display', label: 'Player Display', icon: Monitor },
 ];
 
-const SECONDARY_IDS = new Set(LIVE_GRID_TOOLS.filter(tool => !tool.primary).map(tool => tool.id));
 
 function readStoredTool(storageKey) {
   try {
@@ -40,7 +47,7 @@ function readStoredTool(storageKey) {
   return 'overview';
 }
 
-export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSingleTab, onRollDice, refreshKey = 0, scenarios = [], players = [] }) {
+export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSingleTab, onRollDice, onResumeCombat, refreshKey = 0, scenarios = [], players = [] }) {
   const storageKey = `gm.liveMode.focus.${campaignId || 'default'}`;
   const recentKey = `gm.liveMode.recent.${campaignId || 'default'}`;
   const [activeTool, setActiveTool] = useState(() => {
@@ -64,19 +71,62 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
     try { localStorage.setItem(recentKey, JSON.stringify(recentTools)); } catch { /* ignore */ }
   }, [recentKey, recentTools]);
 
-  const active = useMemo(() => LIVE_GRID_TOOLS.find(tool => tool.id === activeTool) || LIVE_GRID_TOOLS[0], [activeTool]);
-  const primaryActiveId = SECONDARY_IDS.has(activeTool) ? 'more' : activeTool;
-  const ActiveIcon = active.icon;
 
   // What the GM asked to open, handed over explicitly rather than left for
   // Encounter Review to guess at again. Held here, not in the tool, because
   // the tool body is keyed on activeTool and remounts on every switch.
   const [encounterRequest, setEncounterRequest] = useState({ id: '', reopenLast: false, nonce: 0 });
 
+  const categoryKey = `gm.liveMode.categories.${campaignId || 'default'}`;
+  const [expandedCategories, setExpandedCategories] = useState(() => {
+    let remembered = [];
+    try { remembered = JSON.parse(localStorage.getItem(categoryKey) || '[]'); } catch { /* ignore */ }
+    return initialExpandedCategories(activeTool, remembered);
+  });
+  const [toolFilter, setToolFilter] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem(categoryKey, JSON.stringify(expandedCategories)); } catch { /* ignore */ }
+  }, [categoryKey, expandedCategories]);
+
+  // Offer Resume Combat only when there really is an unfinished fight.
+  //
+  // Deliberately a minimal local check rather than a dependency on #760's
+  // validated reader, so this navigation work does not have to stack on the
+  // combat-recovery branch. Once #760 lands, swap this for
+  // readCombatCheckpoint(campaignId).status === 'ok', which applies the full
+  // campaign, version and structure checks. Until then it asks only the
+  // question the rail needs: is there a saved fight with combatants in it.
+  const unfinishedCombat = useMemo(() => {
+    try {
+      const raw = localStorage.getItem(`gm.activeCombat.${campaignId}`);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed?.combatants) && parsed.combatants.length > 0;
+    } catch {
+      return false;
+    }
+  }, [campaignId, refreshKey]);
+
+  const toggleCategory = categoryId => setExpandedCategories(previous => (
+    previous.includes(categoryId)
+      ? previous.filter(id => id !== categoryId)
+      : [...previous, categoryId]
+  ));
+
   const selectTool = (toolId, options = {}) => {
     setActiveTool(toolId);
-    if (!['overview', 'more'].includes(toolId)) {
+    if (toolId !== 'overview') {
       setRecentTools(prev => [toolId, ...prev.filter(id => id !== toolId)].slice(0, 4));
+    }
+    // Keep the group holding the chosen tool open, so the active item is
+    // visible in the rail rather than hidden inside a collapsed heading.
+    const category = categoryForTool(toolId);
+    if (category) {
+      setExpandedCategories(previous => (
+        previous.includes(category.id) ? previous : [...previous, category.id]
+      ));
     }
     if (toolId === 'combat') {
       // The nonce lets Review tell "asked again for the same encounter" from
@@ -90,41 +140,61 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
     onOpenSingleTab?.(toolId);
   };
 
+  const device = useDeviceLayout();
+  const variant = device === 'mobile' ? 'phone' : device === 'tablet' ? 'tablet' : 'desktop';
+  const isPhone = variant === 'phone';
+
+  const rail = (
+    <LiveToolRail
+      activeTool={activeTool}
+      onSelect={selectTool}
+      expanded={expandedCategories}
+      onToggleCategory={toggleCategory}
+      filter={toolFilter}
+      onFilterChange={setToolFilter}
+      canResumeCombat={unfinishedCombat}
+      onResumeCombat={() => onResumeCombat?.()}
+      variant={variant}
+      onRequestClose={() => setDrawerOpen(false)}
+    />
+  );
+
   return (
-    <div data-testid="live-session-grid" className="rqk-live-grid" style={shellStyle}>
-      <nav className="rqk-live-grid__primary-nav" style={primaryNavStyle} aria-label="Live Play">
-        {LIVE_GRID_TOOLS.filter(tool => tool.primary).map(tool => {
-          const Icon = tool.icon;
-          const selected = primaryActiveId === tool.id;
-          return (
-            <button
-              key={tool.id}
-              type="button"
-              onClick={() => selectTool(tool.id)}
-              data-testid={`live-tool-${tool.id}`}
-              className={selected ? 'rqk-live-grid__nav-button is-active' : 'rqk-live-grid__nav-button'}
-              aria-current={selected ? 'page' : undefined}
-              style={navButtonStyle(selected)}
-            >
-              <Icon size={17} />
-              <span>{tool.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+    <div
+      data-testid="live-session-grid"
+      className={`rqk-live-grid rqk-live-grid--${variant}`}
+      data-rq-live-variant={variant}
+      style={shellStyle}
+    >
+      {isPhone ? (
+        <div className="rqk-live-grid__phone-bar">
+          <LiveToolMenuButton onOpen={() => setDrawerOpen(true)} activeTool={activeTool} />
+        </div>
+      ) : rail}
+
+      {isPhone && drawerOpen && (
+        <>
+          <button
+            type="button"
+            className="rqk-tool-rail__scrim"
+            aria-label="Close tools menu"
+            data-testid="live-tool-rail-scrim"
+            onClick={() => setDrawerOpen(false)}
+          />
+          {rail}
+        </>
+      )}
 
       <main className="rqk-live-grid__main" style={mainStyle} key={`${refreshKey}-${activeTool}`}>
-        {activeTool !== 'overview' && activeTool !== 'more' && (
+        {activeTool !== 'overview' && (
           <header className="rqk-live-grid__tool-header" style={toolHeaderStyle}>
-            <div style={toolTitleStyle}><ActiveIcon size={18} /><strong>{active.label}</strong></div>
+            <div style={toolTitleStyle}><strong>{liveToolLabel(activeTool)}</strong></div>
             <span className="rqk-live-grid__live-pill" style={livePillStyle}>Live Play</span>
           </header>
         )}
         <section className="rqk-live-grid__tool-body" style={toolBodyStyle}>
           {activeTool === 'overview' ? (
             <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} scenarios={scenarios} players={players} />
-          ) : activeTool === 'more' ? (
-            <MorePanel onSelect={selectTool} />
           ) : activeTool === 'combat' ? (
             <LiveEncounterLauncher
               campaignId={campaignId}
@@ -135,7 +205,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
           ) : activeTool === 'quick-dice' ? (
             <QuickDicePanel onRollDice={onRollDice} />
           ) : (
-            renderTool?.(activeTool, { compact: false }) || <EmptyTool title={active.label} />
+            renderTool?.(activeTool, { compact: false }) || <EmptyTool title={liveToolLabel(activeTool)} />
           )}
         </section>
       </main>
@@ -253,20 +323,6 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
   );
 }
 
-function MorePanel({ onSelect }) {
-  const tools = LIVE_GRID_TOOLS.filter(tool => !tool.primary);
-  return (
-    <div style={moreStyle}>
-      <header style={runHeaderStyle}><p style={eyebrowStyle}>More Tools</p><h2 style={runTitleStyle}>Everything else</h2></header>
-      <div className="rqk-live-grid__more-grid" style={moreGridStyle}>
-        {tools.map(tool => {
-          const Icon = tool.icon;
-          return <button key={tool.id} type="button" onClick={() => onSelect(tool.id)} data-testid={`live-tool-${tool.id}`} style={moreButtonStyle}><Icon size={18} /><strong>{tool.label}</strong></button>;
-        })}
-      </div>
-    </div>
-  );
-}
 
 function QuickDicePanel({ onRollDice }) {
   return (
