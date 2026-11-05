@@ -32,7 +32,10 @@ function readiness(encounter) {
 }
 
 function plannedOrder(encounter) {
-  const order = Number(encounter?.planned_encounter_order);
+  const raw = encounter?.planned_encounter_order;
+  // Null and empty are unplanned, not order zero (Number(null) === 0).
+  if (raw == null || raw === '') return Infinity;
+  const order = Number(raw);
   return Number.isFinite(order) ? order : Infinity;
 }
 
