@@ -101,8 +101,21 @@ function keyFor(item, index = 0) {
 }
 
 function sameCombatant(a, b) {
-  if (a?.id && b?.id && a.id === b.id) return true;
-  return Boolean(a?.name && b?.name && String(a.name).toLowerCase() === String(b.name).toLowerCase() && (a.type || '') === (b.type || ''));
+  // A combatant's name is a label, not its instance identity. Two goblins
+  // with different IDs must remain two initiative entries.
+  if (a === b) return true;
+  if (!a || !b) return false;
+  // A linked character may appear as both a prepared token and a live sheet
+  // with different encounter-specific IDs. It is still one character.
+  if (a.type === 'player' && b.type === 'player' && a.character_id && b.character_id) {
+    return String(a.character_id) === String(b.character_id);
+  }
+  if (a.id != null && a.id !== '' && b.id != null && b.id !== '') {
+    return String(a.id) === String(b.id) && a.type === b.type;
+  }
+  // Legacy anonymous creatures are separate instances, even with the same
+  // name. Only repeated references to the exact same object are collapsed.
+  return false;
 }
 
 function appendUnique(list, combatant) {
