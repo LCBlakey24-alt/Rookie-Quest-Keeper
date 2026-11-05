@@ -260,7 +260,7 @@ export default function CombatPageTable() {
       }
     })();
     return () => { cancelled = true; };
-  }, [recovery.status, campaignId, accountId, legacyCheck]);
+  }, [recovery.status, campaignId, accountId]);
 
   useEffect(() => {
     if (!scenario) {
@@ -688,6 +688,7 @@ export default function CombatPageTable() {
       return false;
     }
 
+    if (!isCurrentCheckpointSafe()) return false;
     const safeLoot = collectedLoot.map(ensureLootOperation);
     const displayState = blankCombatDisplay();
     const queued = await queueOfflineCombatEnd({
@@ -710,8 +711,12 @@ export default function CombatPageTable() {
       return false;
     }
 
+    if (!isCurrentCheckpointSafe()) {
+      toast.error('Another session changed the checkpoint while combat was ending. This tab has not deleted it.');
+      return false;
+    }
     publishDisplayState(campaignId, displayState);
-    try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+    try { localStorage.removeItem(combatKey); checkpointRawRef.current = null; } catch { /* ignore */ }
     const details = [];
     if (realCharacters.length) details.push(`${realCharacters.length} player state${realCharacters.length === 1 ? '' : 's'}`);
     if (safeLoot.length) details.push(`${safeLoot.length} loot item${safeLoot.length === 1 ? '' : 's'}`);
@@ -736,6 +741,7 @@ export default function CombatPageTable() {
 
     try {
       await syncPlayerState();
+      if (!isCurrentCheckpointSafe()) throw new Error('Checkpoint changed while HP was syncing. Combat has been preserved for review.');
       if (collectedLoot.length) await saveLoot({ throwOnError: true });
 
       const displayState = blankCombatDisplay();
@@ -752,7 +758,8 @@ export default function CombatPageTable() {
         cleanupQueued = true;
       }
 
-      try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+      if (!isCurrentCheckpointSafe()) throw new Error('Combat checkpoint changed during ending; it has not been deleted.');
+      try { localStorage.removeItem(combatKey); checkpointRawRef.current = null; } catch { /* ignore */ }
       toast.success(cleanupQueued
         ? 'Combat ended and player state saved · display cleanup will retry automatically'
         : 'Combat ended and player state saved');
