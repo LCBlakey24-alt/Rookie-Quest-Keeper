@@ -245,3 +245,24 @@
   .rqk-tool-rail__item,
   .rqk-tool-rail__chevron { transition: none !important; }
 }
+
+/* ------------------------------------------------------------------ *
+ * The shell must give the rail a column of its own.
+ *
+ * LiveSessionGridMode's shell is a single-column grid, which suited the old
+ * horizontal strip sitting above the content. With a side rail the workspace
+ * painted over it: measured at 1024 and 1180, ten and eleven rail buttons
+ * respectively returned .rqk-live-grid__main or .rqk-live-grid__tool-body
+ * from elementFromPoint, so most of the menu could not be clicked.
+ * ------------------------------------------------------------------ */
+@media (min-width: 720px) {
+  .rqk-live-grid--desktop,
+  .rqk-live-grid--tablet {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* The phone keeps one column: the drawer is fixed and the bar sits inline. */
+.rqk-live-grid--phone { grid-template-columns: minmax(0, 1fr); }
+.rqk-live-grid__phone-bar { display: flex; gap: 8px; align-items: center; }
