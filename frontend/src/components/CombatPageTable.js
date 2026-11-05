@@ -137,6 +137,17 @@ function combatantForDisplay(combatant) {
   };
 }
 
+// Do not turn an incomplete original HP baseline into zero via normalisation.
+// New encounters persist all of these values via combatStateSnapshot.
+function hasSafeCombatBaseline(state) {
+  return Boolean(state && typeof state === 'object'
+    && Number.isFinite(Number(state.current_hit_points))
+    && Number.isFinite(Number(state.temporary_hit_points))
+    && Array.isArray(state.conditions)
+    && Number.isFinite(Number(state.death_saves_successes))
+    && Number.isFinite(Number(state.death_saves_failures)));
+}
+
 function playerBaseStates(combatants = []) {
   return combatants.reduce((result, combatant) => {
     if (combatant?.type === 'player' && combatant.character_id) {
@@ -331,7 +342,7 @@ export default function CombatPageTable() {
     try {
       const previousRaw = localStorage.getItem(combatKey);
       const current = readCombatCheckpoint(campaignId, localStorage, { accountId, legacyOwnerVerified });
-      if ((previousRaw && previousRaw !== checkpointRawRef.current)
+      if (previousRaw !== checkpointRawRef.current
         || (current.status !== 'none' && current.status !== 'ok')
         || (current.status === 'ok' && current.checkpoint.scenarioId !== String(scenario.id || scenario.name))) {
         setCheckpointConflict(true);
@@ -682,7 +693,7 @@ export default function CombatPageTable() {
       return false;
     }
 
-    const missingBase = realCharacters.filter(item => !initialPlayerStatesRef.current[String(item.character_id)]);
+    const missingBase = realCharacters.filter(item => !hasSafeCombatBaseline(initialPlayerStatesRef.current[String(item.character_id)]));
     if (missingBase.length) {
       toast.error('This restored fight is missing its safe pre-combat baseline. Reconnect once before ending it offline.');
       return false;
