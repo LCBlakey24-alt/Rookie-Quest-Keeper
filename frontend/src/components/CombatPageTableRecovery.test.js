@@ -10,8 +10,10 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CHECKPOINT_VERSION, combatCheckpointKey } from './combat/combatCheckpoint';
+import { getAuthToken } from '@/lib/auth';
 import CombatPageTable from './CombatPageTable';
 
+jest.mock('@/lib/auth', () => ({ ...jest.requireActual('@/lib/auth'), getAuthToken: jest.fn() }));
 jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn() }));
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn(), info: jest.fn(), warning: jest.fn() } }));
 jest.mock('@/lib/liveDisplayBus', () => ({
@@ -28,10 +30,13 @@ const apiClient = require('@/lib/apiClient');
 const { toast } = require('sonner');
 
 const CAMPAIGN = 'camp-1';
+const ACCOUNT = 'keeper-gm';
+const TEST_TOKEN = `header.${btoa(JSON.stringify({ sub: ACCOUNT, exp: 9999999999 }))}.signature`;
 
 function saveFight(overrides = {}) {
   localStorage.setItem(combatCheckpointKey(CAMPAIGN), JSON.stringify({
     version: CHECKPOINT_VERSION,
+    ownerId: ACCOUNT,
     campaignId: CAMPAIGN,
     scenarioId: 'enc-7',
     scenarioName: 'Dock ambush',
@@ -67,6 +72,8 @@ function openColdTab() {
 
 beforeEach(() => {
   localStorage.clear();
+  getAuthToken.mockReturnValue(TEST_TOKEN);
+  apiClient.get.mockReset();
   apiClient.get.mockResolvedValue({ data: [] });
 });
 
@@ -172,4 +179,87 @@ test('a checkpoint from an older build still shows a real maximum, not 22/undefi
   expect(page.textContent).toContain('22/54');
   expect(page.textContent).not.toContain('undefined');
   expect(page.textContent).not.toContain('NaN');
+});
+
+test('another account sees no combat data and cannot erase the checkpoint', async () => {
+  saveFight();
+  const saved = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+  getAuthToken.mockReturnValue(`header.${btoa(JSON.stringify({ sub: 'other-gm', exp: 9999999999 }))}.signature`);
+  openColdTab();
+  expect(await screen.findByTestId('combat-recovery-blocked')).toBeInTheDocument();
+  expect(screen.queryByText('Dock ambush')).not.toBeInTheDocument();
+  expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(saved);
+});
+
+test('launching another encounter leaves the unfinished fight untouched', async () => {
+  saveFight();
+  const saved = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: { scenario: { id: 'enc-OTHER', name: 'Other encounter',
+        combatants: [{ id: 'new', name: 'New foe', type: 'enemy', hp: 9, maxHp: 9 }] } },
+    }]}>
+      <Routes>
+        <Route path="/combat/:campaignId" element={<CombatPageTable />} />
+        <Route path="/campaign/:campaignId" element={<h1>Campaign prep</h1>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  expect(await screen.findByTestId('combat-recovery-blocked')).toBeInTheDocument();
+  expect(screen.queryByText('Other encounter')).not.toBeInTheDocument();
+  expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(saved);
+  expect(screen.getByRole('button', { name: 'Resume saved encounter' })).toBeInTheDocument();
+});
+
+test('legacy checkpoint is recovered only after online account and GM ownership proof', async () => {
+  saveFight({ ownerId: undefined, version: undefined });
+  apiClient.get.mockImplementation(url => {
+    if (url === '/auth/me') return Promise.resolve({ data: { username: ACCOUNT } });
+    if (url === `/campaigns/${CAMPAIGN}`) {
+      return Promise.resolve({ data: { id: CAMPAIGN, dm_user_id: ACCOUNT } });
+    }
+    return Promise.resolve({ data: [] });
+  });
+  openColdTab();
+  expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
+  const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+  expect(saved.ownerId).toBe(ACCOUNT);
+  expect(saved.round).toBe(4);
+});
+
+test('offline legacy failure preserves checkpoint without exposing its roster', async () => {
+  saveFight({ ownerId: undefined, version: undefined });
+  const raw = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+  apiClient.get.mockResolvedValue({ data: { offline: true }, rqkOffline: true });
+  openColdTab();
+  expect(await screen.findByTestId('combat-recovery-blocked')).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByText(/older fight has no account owner stamp/i)).toBeInTheDocument());
+  expect(screen.queryByText('Dock ambush')).not.toBeInTheDocument();
+  expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(raw);
+});
+
+test('future checkpoint version is preserved and never auto-replaced', async () => {
+  saveFight({ version: CHECKPOINT_VERSION + 1 });
+  const raw = localStorage.getItem(combatCheckpointKey(CAMPAIGN));
+  openColdTab();
+  expect(await screen.findByTestId('combat-recovery-blocked')).toBeInTheDocument();
+  expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(raw);
+});
+
+test('two enemies with the same name recover separately with loot and positions', async () => {
+  saveFight({ combatants: [
+    { id: 'g1', name: 'Guard', type: 'enemy', hp: 5, maxHp: 12, tempHp: 3, initiative: 18 },
+    { id: 'g2', name: 'Guard', type: 'enemy', hp: 1, maxHp: 12, initiative: 9 },
+  ], mapTokens: [{ id: 'g1', x: 1, y: 2 }, { id: 'g2', x: 6, y: 7 }],
+  collectedLoot: [{ name: 'Gold ring', offlineOperationId: 'loot-1' }],
+  currentTurn: 1 });
+  openColdTab();
+  expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
+  expect(screen.getAllByText('Guard').length).toBeGreaterThanOrEqual(2);
+  const data = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+  expect(data.combatants.map(item => item.id)).toEqual(['g1', 'g2']);
+  expect(data.combatants.map(item => item.hp)).toEqual([5, 1]);
+  expect(data.mapTokens).toEqual([{ id: 'g1', x: 1, y: 2 }, { id: 'g2', x: 6, y: 7 }]);
+  expect(data.collectedLoot).toHaveLength(1);
 });
