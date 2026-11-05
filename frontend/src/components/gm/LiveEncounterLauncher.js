@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -190,6 +190,10 @@ export default function LiveEncounterLauncher({ campaignId, requestedEncounterId
   const [loadErrors, setLoadErrors] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
+  const initializedPartyCampaignRef = useRef(null);
+  const initializedEncounterRef = useRef(null);
+  const knownBaseKeysRef = useRef(new Set());
+  const quickSequenceRef = useRef(0);
 
   useEffect(() => {
     if (requestedEncounterId) setSelectedId(requestedEncounterId);
@@ -209,7 +213,13 @@ export default function LiveEncounterLauncher({ campaignId, requestedEncounterId
         if (loadedScenarios) setScenarios(sortEncounterOptions(loadedScenarios));
         if (loadedPlayers) {
           setPlayers(loadedPlayers);
-          setIncludedPlayerIds(loadedPlayers.map(player => player.id).filter(Boolean));
+          if (initializedPartyCampaignRef.current !== campaignId) {
+            initializedPartyCampaignRef.current = campaignId;
+            setIncludedPlayerIds(loadedPlayers.map(player => player.id).filter(Boolean));
+          } else {
+            // Retry must never silently re-select someone the GM excluded.
+            setIncludedPlayerIds(previous => previous.filter(id => loadedPlayers.some(player => player.id === id)));
+          }
         }
         if (loadedNpcs) setNpcs(loadedNpcs);
         if (sections.liveState.ok) setTravellingIds(safeArray(sections.liveState.data?.companion_npc_ids));
@@ -249,13 +259,29 @@ export default function LiveEncounterLauncher({ campaignId, requestedEncounterId
   const queuedNpcs = useMemo(() => queuedNpcIds.map(id => npcs.find(npc => npc.id === id)).filter(Boolean), [npcs, queuedNpcIds]);
 
   useEffect(() => {
-    setEnabledBaseKeys(baseCombatants.map((item, index) => keyFor(item, index)));
-    setIncludedCompanionIds([]);
-    setExtraNpcIds([]);
-    setNpcSearch('');
-    setQuickCombatants([]);
-    setQuickDraft(EMPTY_QUICK);
-  }, [selectedId, baseCombatants]);
+    if (!selected) return;
+    const draftKey = `${campaignId}:${selectedId}`;
+    const availableKeys = baseCombatants.map((item, index) => keyFor(item, index));
+    if (initializedEncounterRef.current !== draftKey) {
+      initializedEncounterRef.current = draftKey;
+      knownBaseKeysRef.current = new Set(availableKeys);
+      setEnabledBaseKeys(availableKeys);
+      setIncludedCompanionIds([]);
+      setExtraNpcIds([]);
+      setNpcSearch('');
+      setQuickCombatants([]);
+      setQuickDraft(EMPTY_QUICK);
+      return;
+    }
+    // A same-encounter data refresh may replace every object. Reconcile by
+    // stable key, preserve exclusions, and add only genuinely new entries.
+    const priorKeys = knownBaseKeysRef.current;
+    setEnabledBaseKeys(previous => [
+      ...previous.filter(key => availableKeys.includes(key)),
+      ...availableKeys.filter(key => !priorKeys.has(key)),
+    ]);
+    knownBaseKeysRef.current = new Set(availableKeys);
+  }, [campaignId, selectedId, selected, baseCombatants]);
 
   const otherNpcs = useMemo(() => {
     const term = npcSearch.trim().toLowerCase();
@@ -282,7 +308,7 @@ export default function LiveEncounterLauncher({ campaignId, requestedEncounterId
     const initiativeMod = Math.floor(numberOr(quickDraft.initiative, 0));
     const stamp = Date.now();
     const created = Array.from({ length: quantity }, (_, index) => ({
-      id: `quick-${stamp}-${index}`,
+      id: `quick-${stamp}-${++quickSequenceRef.current}-${index}`,
       name: quantity === 1 ? name : `${name} ${index + 1}`,
       type: 'enemy', hp, maxHp: hp, ac, initiativeMod, conditions: [], tokenColor: '#D6A84F', tokenSize: 40, temporary: true,
     }));
@@ -329,6 +355,17 @@ export default function LiveEncounterLauncher({ campaignId, requestedEncounterId
     });
   };
 
+  const resetReview = () => {
+    if (!window.confirm('Discard this encounter review draft and restore the default selections?')) return;
+    setEnabledBaseKeys(baseCombatants.map((item, index) => keyFor(item, index)));
+    setIncludedPlayerIds(players.map(player => player.id).filter(Boolean));
+    setIncludedCompanionIds([]);
+    setExtraNpcIds([]);
+    setQuickCombatants([]);
+    setQuickDraft(EMPTY_QUICK);
+    setNpcSearch('');
+  };
+
   const retryLoad = () => setReloadKey(value => value + 1);
   const scenarioLoadFailed = loadErrors.some(item => item.key === 'scenarios');
 
@@ -340,7 +377,16 @@ export default function LiveEncounterLauncher({ campaignId, requestedEncounterId
     <div data-testid="live-encounter-launcher" style={shellStyle}>
       <header style={headerStyle}>
         <span style={{ minWidth: 0 }}><strong style={headerTitleStyle}><Swords size={17} /> Encounter Review</strong><span style={headerMetaStyle}>Choose who is in this fight, then start.</span></span>
-        <select aria-label="Choose battle type" value={selectedId} onChange={event => { setMissingRequestedId(''); setSelectedId(event.target.value); }} style={selectStyle}>
+        <select aria-label="Choose battle type" value={selectedId} onChange={event => {
+          const next = event.target.value;
+          const hasChanges = quickCombatants.length > 0 || extraNpcIds.length > 0
+            || includedCompanionIds.length > 0
+            || players.some(player => !includedPlayerIds.includes(player.id))
+            || baseCombatants.some((item, index) => !enabledBaseKeys.includes(keyFor(item, index)));
+          if (next !== selectedId && hasChanges && !window.confirm('Discard this review draft and switch encounters?')) return;
+          setMissingRequestedId('');
+          setSelectedId(next);
+        }} style={selectStyle}>
           <option value="">Impromptu Battle — build as you go</option>
           {scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Untitled Encounter'}</option>)}
         </select>
@@ -348,8 +394,9 @@ export default function LiveEncounterLauncher({ campaignId, requestedEncounterId
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
       {missingRequestedId && <p role="alert" style={descriptionStyle}>The requested encounter was deleted or is unavailable. Choose another encounter from the selector before starting.</p>}
-      <footer style={footerStyle} data-testid="live-encounter-run-bar">
-        <span style={footerTextStyle}>{selected ? `${preparedOpponents.length} prepared enemies/objects · ${includedPlayerIds.length} party selected` : 'Impromptu combat'} · Your saved encounter stays unchanged.</span>
+      <footer style={{ ...footerStyle, flexWrap: 'wrap' }} data-testid="live-encounter-run-bar">
+        <span style={footerTextStyle}>{`${enabledBaseKeys.filter(key => baseCombatants.some((item, index) => keyFor(item, index) === key && item.type !== 'player')).length + quickCombatants.length} enemies · ${includedPlayerIds.length} party · ${includedCompanionIds.length + extraNpcIds.length + queuedNpcs.length} NPCs`} · Your saved encounter stays unchanged.</span>
+        <button type="button" onClick={resetReview} style={addButtonStyle}>Reset review</button>
         <button type="button" onClick={launch} disabled={Boolean(missingRequestedId)} style={launchButtonStyle}><Play size={17} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
       </footer>
       {!selected && <div style={descriptionStyle}>No preparation needed. Add the party, a saved NPC, or a quick creature and start combat. You can recruit more enemies from the combat tracker at any time.</div>}
