@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { resolveEncounterSelection } from './encounterSelection';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { loadEncounterReviewSections } from '@/data/livePlayLoaders';
@@ -179,16 +180,23 @@ export function combinePreparedEncounterParty(prepared = [], players = [], enabl
   return combatants;
 }
 
+/**
+ * Kept as a named export because callers and tests import it. The policy now
+ * lives in encounterSelection.js so Run ranks encounters the same way, and a
+ * remembered encounter no longer outranks the next prepared one: it is
+ * reached only through Reopen Last Encounter.
+ */
 export function preferredPreparedEncounterId(scenarios = [], requestedId = '', previousId = '') {
-  const available = safeArray(scenarios);
-  const findById = id => available.find(item => item.id === id);
-  if (requestedId && findById(requestedId)) return requestedId;
-  if (previousId && findById(previousId) && !findById(previousId).legacy) return previousId;
-  const next = available.find(item => item.live_default && !item.played && !item.legacy);
-  if (next) return next.id;
-  const ready = available.filter(item => item.live_ready && !item.played && !item.legacy)
-    .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0];
-  return (ready || available.find(item => !item.legacy) || available[0])?.id || '';
+  // The third argument was always "what we had before", meaning either the
+  // GM's live selection or the remembered id. It is treated as remembered,
+  // which is the stricter of the two: an archived encounter never returns by
+  // itself.
+  return resolveEncounterSelection({
+    scenarios,
+    requestedId,
+    rememberedId: previousId,
+    allowRemembered: true,
+  }).id;
 }
 
 function sortEncounterOptions(scenarios = []) {
@@ -198,7 +206,12 @@ function sortEncounterOptions(scenarios = []) {
       || (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
 }
 
-export default function LiveEncounterLauncher({ campaignId }) {
+export default function LiveEncounterLauncher({
+  campaignId,
+  requestedEncounterId = '',
+  reopenLastEncounter = false,
+  encounterRequestNonce = 0,
+}) {
   const navigate = useNavigate();
   const [campaignName, setCampaignName] = useState('Campaign');
   const [scenarios, setScenarios] = useState([]);
@@ -243,14 +256,30 @@ export default function LiveEncounterLauncher({ campaignId }) {
         }
 
         if (loadedScenarios) {
-          let requested = '';
+          // A quest or note hands an encounter over through this key; it is
+          // read once and cleared. The prop is the same handoff from Run,
+          // made explicit rather than routed through storage.
+          let queuedRequest = '';
           let remembered = '';
           try {
-            requested = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
+            queuedRequest = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
             remembered = localStorage.getItem(`gm.lastEncounter.${campaignId}`) || '';
             localStorage.removeItem(`gm.questEncounter.${campaignId}`);
           } catch { /* ignore */ }
-          setSelectedId(previous => preferredPreparedEncounterId(loadedScenarios, requested, previous || remembered));
+
+          setSelectedId(previous => {
+            const outcome = resolveEncounterSelection({
+              scenarios: loadedScenarios,
+              requestedId: requestedEncounterId || queuedRequest,
+              gmSelectedId: previous,
+              rememberedId: remembered,
+              allowRemembered: reopenLastEncounter,
+            });
+            if (outcome.missingRequest) {
+              toast.warning('That encounter is no longer in this campaign. Choose another below.');
+            }
+            return outcome.id;
+          });
         }
 
         setLoadErrors(errors);
@@ -262,7 +291,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
       }
     };
     load();
-  }, [campaignId, reloadKey]);
+  }, [campaignId, reloadKey, requestedEncounterId, reopenLastEncounter, encounterRequestNonce]);
 
   const selected = useMemo(() => scenarios.find(item => item.id === selectedId) || null, [scenarios, selectedId]);
   const baseCombatants = useMemo(() => safeArray(selected?.combatants), [selected]);
