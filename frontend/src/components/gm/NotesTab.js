@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Check, FileText, Send, Swords, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
@@ -8,6 +8,14 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
   const [saving, setSaving] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [applyingId, setApplyingId] = useState('');
+  const mountedRef = useRef(false);
+  const campaignRef = useRef(campaignId);
+  campaignRef.current = campaignId;
+  useEffect(() => {
+    mountedRef.current = true;
+    setSaving(false);
+    return () => { mountedRef.current = false; };
+  }, [campaignId]);
 
   const accent = theme?.accent?.gm || theme?.accent?.primary || '#d00000';
   const border = theme?.border || 'rgba(255,255,255,0.16)';
@@ -29,30 +37,36 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
     } catch { /* ignore */ }
   }, [campaignId, setQuickNote]);
 
-  const checkSuggestions = async (content) => {
+  const checkSuggestions = async (content, savedCampaignId) => {
+    const current = () => mountedRef.current && campaignRef.current === savedCampaignId;
     try {
-      const response = await apiClient.post(`/campaigns/${campaignId}/live-state/suggestions`, { content });
-      setSuggestions(Array.isArray(response.data?.suggestions) ? response.data.suggestions : []);
+      const response = await apiClient.post(`/campaigns/${savedCampaignId}/live-state/suggestions`, { content });
+      if (current()) setSuggestions(Array.isArray(response.data?.suggestions) ? response.data.suggestions : []);
     } catch {
-      setSuggestions([]);
+      if (current()) setSuggestions([]);
     }
   };
 
   const saveNote = async () => {
-    const content = quickNote.trim();
+    const draftAtSubmit = String(quickNote || '');
+    const content = draftAtSubmit.trim();
     if (!content || saving) return;
+    const savedCampaignId = campaignId;
+    const current = () => mountedRef.current && campaignRef.current === savedCampaignId;
     setSaving(true);
     try {
-      const response = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content });
+      const response = await apiClient.post(`/campaigns/${savedCampaignId}/ingame-notes`, { content });
+      if (!current()) return;
       const note = { ...response.data, content };
       setSessionNotes?.(prev => [note, ...(Array.isArray(prev) ? prev : [])]);
-      setQuickNote('');
-      await checkSuggestions(content);
-      toast.success('Note saved');
+      // Never erase characters typed after this request was started.
+      setQuickNote?.(prev => prev === draftAtSubmit ? '' : prev);
+      await checkSuggestions(content, savedCampaignId);
+      if (current()) toast.success('Note saved');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not save note');
+      if (current()) toast.error(error?.response?.data?.detail || 'Could not save note');
     } finally {
-      setSaving(false);
+      if (current()) setSaving(false);
     }
   };
 
