@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { resolveEncounterSelection } from './encounterSelection';
+import { describeLaunchReadiness } from './encounterLaunchReadiness';
 import {
   clearDraft,
   createEmptyDraft,
@@ -236,6 +237,7 @@ export default function LiveEncounterLauncher({
   const [npcSearch, setNpcSearch] = useState('');
   const [loadErrors, setLoadErrors] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
+  const [partyLoaded, setPartyLoaded] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -253,6 +255,9 @@ export default function LiveEncounterLauncher({
         // Inclusion is derived from the draft now. Setting it here reset the
         // GM's exclusions on every refresh and on every Retry.
         if (loadedPlayers) setPlayers(loadedPlayers);
+        // An empty party that loaded is not the same as a party that could
+        // not be read, and only one of them should stop a fight.
+        setPartyLoaded(sections.players.ok);
         if (loadedNpcs) setNpcs(loadedNpcs);
         if (sections.liveState.ok) setTravellingIds(safeArray(sections.liveState.data?.companion_npc_ids));
 
@@ -444,19 +449,33 @@ export default function LiveEncounterLauncher({
     return { party, npcs: npcCount, temporary, enemies, total: launchRoster.length };
   }, [launchRoster, includedCompanionIds, extraNpcIds, queuedNpcs]);
 
+  const readiness = useMemo(
+    () => describeLaunchReadiness({ loadErrors, roster: launchRoster, partyLoaded }),
+    [loadErrors, launchRoster, partyLoaded],
+  );
+
   const launch = () => {
-    const participantLoadFailed = loadErrors.some(item => ['players', 'npcs', 'liveState'].includes(item.key));
-    if (participantLoadFailed) {
-      toast.error('Participant data is incomplete. Retry Encounter Review before starting combat so nobody is accidentally omitted.');
+    // A failed saved-NPC or companion lookup used to stop a fight the GM had
+    // fully understood. Those are suggestions; only the party being unknown
+    // is a reason to pause, and then it is the GM's call.
+    let verdict = readiness;
+    if (verdict.needsPartyConfirmation) {
+      const goAhead = window.confirm(
+        'The party could not be loaded, so Rookie cannot tell who would be missing.\n\n'
+        + 'Start this fight without the player characters?',
+      );
+      if (!goAhead) return;
+      verdict = describeLaunchReadiness({
+        loadErrors, roster: launchRoster, partyLoaded, withoutPartyConfirmed: true,
+      });
+    }
+    if (!verdict.canLaunch) {
+      toast.error(verdict.blockReason);
       return;
     }
+    verdict.warnings.forEach(message => toast.warning(message));
 
     const combatants = launchRoster;
-
-    if (!combatants.length) {
-      toast.error('Choose a player, NPC or creature before starting combat.');
-      return;
-    }
 
     if (selected) {
       try { localStorage.setItem(`gm.lastEncounter.${campaignId}`, selected.id || ''); } catch { /* ignore */ }
