@@ -414,3 +414,42 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   await expect(frame).toHaveCSS('background-image', 'none');
   await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+
+// User-table flow: actual GM clicks to a live roll table and the notes editor,
+// at all six requested viewports. Synthetic demo data only; do not save notes.
+for (const size of [
+  { width: 360, height: 800, target: 46 },
+  { width: 390, height: 844, target: 46 },
+  { width: 768, height: 1024, target: 44 },
+  { width: 1024, height: 768, target: 44 },
+  { width: 1180, height: 820, target: 44 },
+  { width: 1440, height: 900, target: 40 },
+]) {
+  test(`GM roll result and notes stay interactive at ${size.width}x${size.height}`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+    await expect(page.getByTestId('live-session-grid')).toBeVisible();
+
+    await page.getByTestId('live-tool-more').click();
+    await page.getByTestId('live-tool-tables').click();
+    await expect(page.getByTestId('live-roll-tables-panel')).toBeVisible();
+    await page.getByRole('button', { name: /^Roll d\d+/i }).first().click();
+    const saveResult = page.getByRole('button', { name: 'Add to Notes' });
+    await expect(saveResult).toBeVisible();
+    const geometry = await saveResult.boundingBox();
+    expect(geometry?.height, 'Roll-table Add to Notes must be reachable by touch').toBeGreaterThanOrEqual(size.target);
+    await saveResult.focus();
+    await expect(saveResult).toBeFocused();
+
+    await page.getByTestId('live-tool-notes').click();
+    const editor = page.getByTestId('live-quick-note');
+    await expect(editor).toBeVisible();
+    await editor.fill('Synthetic unsaved campaign note');
+    await expect(editor).toHaveValue('Synthetic unsaved campaign note');
+    await editor.focus();
+    await expect(editor).toBeFocused();
+    await assertFitsViewport(page, size.width);
+  });
+}
