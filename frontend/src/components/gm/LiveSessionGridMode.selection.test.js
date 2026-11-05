@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import LiveSessionGridMode from './LiveSessionGridMode';
 
 jest.mock('./LiveEncounterLauncher', () => ({
   __esModule: true,
-  default: ({ requestedEncounterId }) => <div>Encounter launcher <span data-testid="reviewed-encounter-id">{requestedEncounterId}</span></div>,
+  default: ({ requestedEncounterId }) => {
+    const [temporaryCount, setTemporaryCount] = useState(0);
+    return <div>Encounter launcher <span data-testid="reviewed-encounter-id">{requestedEncounterId}</span>
+      <button type="button" onClick={() => setTemporaryCount(n => n + 1)}>Add temporary enemy</button>
+      <span data-testid="temporary-enemy-count">{temporaryCount}</span>
+    </div>;
+  },
   nextReadyEncounter: scenarios => scenarios.filter(s => s.live_ready && !s.played && !s.legacy)
     .sort((a, b) => Number(Boolean(b.live_default)) - Number(Boolean(a.live_default)) || (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity))[0] || null,
 }));
@@ -33,6 +39,17 @@ describe('Live Play wax-seal navigation', () => {
     expect(screen.getByTestId('live-tool-combat')).toHaveAttribute('aria-current', 'page');
     expect(screen.getByText(/Encounter launcher/)).toBeInTheDocument();
     expect(screen.getByTestId('reviewed-encounter-id')).toHaveTextContent('hm01');
+  });
+
+  test('keeps the mounted encounter draft when visiting Notes and returning', () => {
+    render(<LiveSessionGridMode campaignId="draft-test" renderTool={id => <div>Tool: {id}</div>} />);
+    fireEvent.click(screen.getByTestId('live-tool-combat'));
+    fireEvent.click(screen.getByRole('button', { name: 'Add temporary enemy' }));
+    expect(screen.getByTestId('temporary-enemy-count')).toHaveTextContent('1');
+    fireEvent.click(screen.getByTestId('live-tool-notes'));
+    expect(screen.getByText('Tool: notes')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('live-tool-combat'));
+    expect(screen.getByTestId('temporary-enemy-count')).toHaveTextContent('1');
   });
 
   test('ignores malformed stored recent tools without crashing the session', () => {
