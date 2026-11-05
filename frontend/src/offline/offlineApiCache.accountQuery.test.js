@@ -2,6 +2,7 @@ import {
   getOfflineCacheKey, storeOfflineApiResponse, readOfflineApiResponse,
 } from './offlineApiCache';
 import { AUTH_TOKEN_KEY, AUTH_USERNAME_KEY } from '@/lib/auth';
+import apiClient from '@/lib/apiClient';
 
 const token = (subject, version = 1) => {
   const encode = value => window.btoa(JSON.stringify(value)).replace(/=/g, '').replaceAll('+', '-').replaceAll('/', '_');
@@ -94,4 +95,40 @@ describe('request-bound offline cache account and query', () => {
       expect(transactions).toBe(0);
     } finally { if (previous) Object.defineProperty(window, 'indexedDB', previous); else delete window.indexedDB; }
   });
+});
+
+test('real intercepted GET keeps account A authorization and cache scope after delayed response during switch to B', async () => {
+  const a = token('account-a');
+  const b = token('account-b');
+  localStorage.setItem(AUTH_TOKEN_KEY, a);
+  let respond;
+  let entered;
+  const adapterEntered = new Promise(resolve => { entered = resolve; });
+  const request = apiClient.get('/characters', {
+    adapter: issuedConfig => new Promise(resolve => {
+      respond = () => resolve({
+        config: issuedConfig, status: 200, statusText: 'OK', headers: {}, data: [{ id: 'character-a' }],
+      });
+      entered(issuedConfig);
+    }),
+  });
+  const captured = await adapterEntered;
+  expect(captured.headers.Authorization).toBe(`Bearer ${a}`);
+  expect(captured.rqkOfflineRequestAuthorization).toBe(`Bearer ${a}`);
+  localStorage.setItem(AUTH_TOKEN_KEY, b);
+  respond();
+  const response = await request;
+  expect(getOfflineCacheKey(response.config)).toMatch(/^user:account-a::/);
+  expect(getOfflineCacheKey(config(b))).toMatch(/^user:account-b::/);
+  // The completed request must not be written under B as the deferred cache
+  // interceptor starts, even if it resolves asynchronously after logout/switch.
+  expect(response.config.rqkOfflineRequestAuthorization).toBe(`Bearer ${a}`);
+});
+
+test('anonymous request marker never inherits a user who logs in during its response', () => {
+  const issued = { method: 'get', url: '/srd/spells', rqkOfflineRequestAuthorization: '' };
+  const before = getOfflineCacheKey(issued);
+  localStorage.setItem(AUTH_TOKEN_KEY, token('account-b'));
+  expect(getOfflineCacheKey(issued)).toBe(before);
+  expect(before).toMatch(/^anonymous::/);
 });
