@@ -56,7 +56,7 @@ afterEach(() => { jest.restoreAllMocks(); Object.defineProperty(navigator, 'onLi
 test('actual End combat click queues both player baseline and loot atomically then exits', async () => {
   mount();
   await collectThenEnd();
-  expect(queueOfflineCombatEnd).toHaveBeenCalledTimes(1);
+  expect({ queue: queueOfflineCombatEnd.mock.calls.length, errors: toast.error.mock.calls, online: navigator.onLine, confirms: window.confirm.mock.calls.length }).toEqual({ queue: 1, errors: [], online: false, confirms: 1 });
   expect(queueOfflineCombatEnd).toHaveBeenCalledWith(expect.objectContaining({
     campaignId: 'synthetic',
     characters: [expect.objectContaining({ characterId: 'pc1', baseState: expect.objectContaining({ current_hit_points: 12 }) })],
