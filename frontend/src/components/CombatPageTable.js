@@ -692,7 +692,14 @@ export default function CombatPageTable() {
   return (
     <div className="combat-table-page" data-testid="combat-table-page">
       <header className="combat-table-header">
-        <button type="button" onClick={endCombat} className="combat-icon-button" title="End combat"><ArrowLeft size={18} /></button>
+        <button
+          type="button"
+          onClick={endCombat}
+          className="combat-icon-button"
+          data-testid="combat-end"
+          aria-label="End combat"
+          title="End combat"
+        ><ArrowLeft size={18} aria-hidden="true" /></button>
         <div className="combat-title-wrap">
           <strong><Swords size={17} /> {scenario.name || 'Combat'}</strong>
           <span>{campaignName}</span>
@@ -991,7 +998,7 @@ const combatCss = `
   .combat-death-saves > span { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 900; }
   .combat-death-saves strong { font-size: 10px; }
   .combat-death-saves .successes { color: ${rq.green}; } .combat-death-saves .failures { color: ${rq.danger}; }
-  .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 32px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
+  .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 40px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
   .combat-attack-button { border-color: ${rq.red}; background: rgba(124,203,255,.10); }
   .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(124,203,255,.10); color: ${rq.text}; }
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }
