@@ -16,6 +16,7 @@ import json
 from datetime import datetime, timezone
 from utils.ws_manager import ws_manager
 from utils.uploads import read_upload_capped
+from utils.ruleset_sharing import ACTIVE_MEMBER_QUERY, account_ids_for_usernames, active_member_usernames
 from utils.resilient_records import serialise_records
 
 try:
@@ -602,7 +603,7 @@ async def update_campaign_environment(
 @router.post("/campaigns/{campaign_id}/invite")
 async def create_campaign_invite(campaign_id: str, invite_data: Dict[str, Any] = None, username: str = Depends(get_current_user)):
     """Create an invite link for a campaign (GM only)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -610,7 +611,7 @@ async def create_campaign_invite(campaign_id: str, invite_data: Dict[str, Any] =
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     
-    if campaign.get("dm_user_id") != str(user.get("_id")):
+    if campaign.get("dm_user_id") != username:
         raise HTTPException(status_code=403, detail="Only GM can create invites")
     
     invite_data = invite_data or {}
@@ -633,7 +634,7 @@ async def create_campaign_invite(campaign_id: str, invite_data: Dict[str, Any] =
 @router.post("/campaigns/join/{invite_code}")
 async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_current_user)):
     """Join a campaign using an invite code"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -749,7 +750,7 @@ async def get_campaign_members(campaign_id: str, username: str = Depends(get_cur
 @router.post("/campaigns/{campaign_id}/share-rulesets")
 async def share_rulesets_with_campaign(campaign_id: str, data: Dict[str, Any], username: str = Depends(get_current_user)):
     """Share rulesets with all members of a campaign (GM only)"""
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -757,7 +758,7 @@ async def share_rulesets_with_campaign(campaign_id: str, data: Dict[str, Any], u
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     
-    if campaign.get("dm_user_id") != str(user.get("_id")):
+    if campaign.get("dm_user_id") != username:
         raise HTTPException(status_code=403, detail="Only GM can share rulesets")
     
     ruleset_ids = data.get("ruleset_ids", [])
@@ -768,25 +769,29 @@ async def share_rulesets_with_campaign(campaign_id: str, data: Dict[str, Any], u
         if not ruleset or ruleset.get("owner_id") != str(user.get("_id")):
             raise HTTPException(status_code=403, detail=f"Cannot share rule set {ruleset_id}")
     
-    # Get all campaign members
-    members = await db.campaign_members.find({"campaign_id": campaign_id}).to_list(100)
-    member_ids = [m["user_id"] for m in members]
-    
+    # Only members who have actually been approved. A pending applicant has
+    # not been let in and a removed player has been shown the door; neither
+    # should receive the GM's private rule set. Same rule the live party uses.
+    members = await db.campaign_members.find(
+        {"campaign_id": campaign_id, "status": ACTIVE_MEMBER_QUERY}
+    ).to_list(1000)
+    member_usernames = active_member_usernames(members)
+
+    # campaign_members.user_id is a username, but custom_rulesets.shared_with
+    # is read in rule_systems.py as the account id. Storing usernames there
+    # would write something no reader looks for and share with nobody.
+    member_ids = await account_ids_for_usernames(db, member_usernames)
+
     # Share rulesets with campaign and all members
     for ruleset_id in ruleset_ids:
-        await db.custom_rulesets.update_one(
-            {"id": ruleset_id},
-            {
-                "$addToSet": {
-                    "shared_campaigns": campaign_id,
-                    "shared_with": {"$each": member_ids}
-                }
-            }
-        )
-        
+        update = {"$addToSet": {"shared_campaigns": campaign_id}}
+        if member_ids:
+            update["$addToSet"]["shared_with"] = {"$each": member_ids}
+        await db.custom_rulesets.update_one({"id": ruleset_id}, update)
+
         # Update each member's shared_rulesets
         await db.campaign_members.update_many(
-            {"campaign_id": campaign_id},
+            {"campaign_id": campaign_id, "status": ACTIVE_MEMBER_QUERY},
             {"$addToSet": {"shared_rulesets": ruleset_id}}
         )
     
@@ -805,7 +810,7 @@ async def upload_ruleset_file(file: UploadFile = File(...), username: str = Depe
     if not await site_flag_enabled('uploads_enabled', True):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Uploads are currently disabled")
 
-    user = await db.users.find_one({"email": username})
+    user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
