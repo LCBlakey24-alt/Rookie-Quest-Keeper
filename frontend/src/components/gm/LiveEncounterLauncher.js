@@ -2,6 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { resolveEncounterSelection } from './encounterSelection';
+import {
+  clearDraft,
+  createEmptyDraft,
+  draftHasUnsavedWork,
+  enabledBaseKeysFrom,
+  includedPlayerIdsFrom,
+  readDraft,
+  reconcileDraft,
+  writeDraft,
+} from './encounterReviewDraft';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { loadEncounterReviewSections } from '@/data/livePlayLoaders';
@@ -219,14 +229,11 @@ export default function LiveEncounterLauncher({
   const [npcs, setNpcs] = useState([]);
   const [travellingIds, setTravellingIds] = useState([]);
   const [selectedId, setSelectedId] = useState('');
-  const [enabledBaseKeys, setEnabledBaseKeys] = useState([]);
-  const [includedPlayerIds, setIncludedPlayerIds] = useState([]);
-  const [includedCompanionIds, setIncludedCompanionIds] = useState([]);
-  const [extraNpcIds, setExtraNpcIds] = useState([]);
+  // One draft per campaign and encounter, instead of six pieces of component
+  // state that the tool switch and every data refresh threw away.
+  const [draft, setDraft] = useState(() => createEmptyDraft(campaignId, ''));
   const [queuedNpcIds, setQueuedNpcIds] = useState([]);
   const [npcSearch, setNpcSearch] = useState('');
-  const [quickCombatants, setQuickCombatants] = useState([]);
-  const [quickDraft, setQuickDraft] = useState(EMPTY_QUICK);
   const [loadErrors, setLoadErrors] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -243,10 +250,9 @@ export default function LiveEncounterLauncher({
 
         if (sections.campaign.ok) setCampaignName(sections.campaign.data?.name || 'Campaign');
         if (loadedScenarios) setScenarios(sortEncounterOptions(loadedScenarios));
-        if (loadedPlayers) {
-          setPlayers(loadedPlayers);
-          setIncludedPlayerIds(loadedPlayers.map(player => player.id).filter(Boolean));
-        }
+        // Inclusion is derived from the draft now. Setting it here reset the
+        // GM's exclusions on every refresh and on every Retry.
+        if (loadedPlayers) setPlayers(loadedPlayers);
         if (loadedNpcs) setNpcs(loadedNpcs);
         if (sections.liveState.ok) setTravellingIds(safeArray(sections.liveState.data?.companion_npc_ids));
 
@@ -299,14 +305,77 @@ export default function LiveEncounterLauncher({
   const companionNpcs = useMemo(() => travellingIds.map(id => npcs.find(npc => npc.id === id)).filter(Boolean), [npcs, travellingIds]);
   const queuedNpcs = useMemo(() => queuedNpcIds.map(id => npcs.find(npc => npc.id === id)).filter(Boolean), [npcs, queuedNpcIds]);
 
+  const baseKeys = useMemo(
+    () => baseCombatants.map((item, index) => keyFor(item, index)),
+    [baseCombatants],
+  );
+  const playerIds = useMemo(() => players.map(player => player.id).filter(Boolean), [players]);
+  const companionIdList = useMemo(() => companionNpcs.map(npc => npc.id).filter(Boolean), [companionNpcs]);
+  const npcIdList = useMemo(() => npcs.map(npc => npc.id).filter(Boolean), [npcs]);
+
+  // Changing encounter is the only thing that swaps the draft. Each one keeps
+  // its own, so flicking between two encounters does not lose either.
   useEffect(() => {
-    setEnabledBaseKeys(baseCombatants.map((item, index) => keyFor(item, index)));
-    setIncludedCompanionIds([]);
-    setExtraNpcIds([]);
+    setDraft(readDraft(campaignId, selectedId) || createEmptyDraft(campaignId, selectedId));
     setNpcSearch('');
-    setQuickCombatants([]);
-    setQuickDraft(EMPTY_QUICK);
-  }, [selectedId, baseCombatants]);
+  }, [campaignId, selectedId]);
+
+  // Refreshed data is folded in rather than replacing the draft. This is what
+  // the old effect got wrong: it depended on baseCombatants, so a new object
+  // reference for identical content wiped every selection.
+  const availability = useMemo(
+    () => ({ baseKeys, playerIds, companionIds: companionIdList, npcIds: npcIdList }),
+    [baseKeys, playerIds, companionIdList, npcIdList],
+  );
+  useEffect(() => {
+    setDraft(previous => {
+      const reconciled = reconcileDraft(previous, availability);
+      return JSON.stringify(reconciled) === JSON.stringify(previous) ? previous : reconciled;
+    });
+  }, [availability]);
+
+  useEffect(() => {
+    if (draft?.campaignId) writeDraft(draft);
+  }, [draft]);
+
+  const enabledBaseKeys = useMemo(() => enabledBaseKeysFrom(draft, baseKeys), [draft, baseKeys]);
+  const includedPlayerIds = useMemo(() => includedPlayerIdsFrom(draft, playerIds), [draft, playerIds]);
+  const includedCompanionIds = draft.includedCompanionIds;
+  const extraNpcIds = draft.extraNpcIds;
+  const quickCombatants = draft.quickCombatants;
+  const quickDraft = draft.quickDraft;
+
+  // Setters keeping the shape the rest of the component already uses, so the
+  // toggles and the quick-creature form are unchanged.
+  const setEnabledBaseKeys = next => setDraft(previous => {
+    const chosen = new Set((Array.isArray(next) ? next : []).map(String));
+    return { ...previous, disabledBaseKeys: baseKeys.filter(key => !chosen.has(key)) };
+  });
+  const setIncludedPlayerIds = next => setDraft(previous => {
+    const chosen = new Set((Array.isArray(next) ? next : []).map(String));
+    return { ...previous, excludedPlayerIds: playerIds.filter(id => !chosen.has(id)) };
+  });
+  const setIncludedCompanionIds = next => setDraft(previous => ({ ...previous, includedCompanionIds: next }));
+  const setExtraNpcIds = next => setDraft(previous => ({ ...previous, extraNpcIds: next }));
+  const setQuickCombatants = next => setDraft(previous => ({
+    ...previous,
+    quickCombatants: typeof next === 'function' ? next(previous.quickCombatants) : next,
+  }));
+  const setQuickDraft = next => setDraft(previous => ({
+    ...previous,
+    quickDraft: typeof next === 'function' ? next(previous.quickDraft) : next,
+  }));
+
+  const resetReview = () => {
+    if (draftHasUnsavedWork(draft)
+      && !window.confirm('Discard your changes to this encounter review? The saved encounter itself is not changed.')) {
+      return;
+    }
+    clearDraft(campaignId, selectedId);
+    setDraft(createEmptyDraft(campaignId, selectedId));
+    setNpcSearch('');
+    toast.info('Encounter review reset to the saved encounter.');
+  };
 
   const otherNpcs = useMemo(() => {
     const term = npcSearch.trim().toLowerCase();
@@ -342,6 +411,39 @@ export default function LiveEncounterLauncher({
     toast.success(`${quantity} temporary combatant${quantity === 1 ? '' : 's'} added`);
   };
 
+  // The exact list that will be handed to combat. Built once so the counts
+  // the GM reads are the roster that launches, rather than a tally of what
+  // happens to be available -- the run bar used to report every prepared
+  // enemy as though all of them were selected.
+  const launchRoster = useMemo(() => {
+    let combatants = combinePreparedEncounterParty(baseCombatants, players, enabledBaseKeys, includedPlayerIds);
+    companionNpcs.filter(npc => includedCompanionIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
+    queuedNpcs.forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
+    npcs.filter(npc => extraNpcIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
+    quickCombatants.forEach(combatant => { combatants = appendUnique(combatants, combatant); });
+    return combatants;
+  }, [baseCombatants, players, enabledBaseKeys, includedPlayerIds, companionNpcs,
+    includedCompanionIds, queuedNpcs, npcs, extraNpcIds, quickCombatants]);
+
+  const rosterCounts = useMemo(() => {
+    const npcIdSet = new Set([
+      ...includedCompanionIds,
+      ...extraNpcIds,
+      ...queuedNpcs.map(npc => npc.id),
+    ].map(String));
+    let party = 0;
+    let npcCount = 0;
+    let temporary = 0;
+    let enemies = 0;
+    launchRoster.forEach(combatant => {
+      if (combatant.type === 'player') party += 1;
+      else if (combatant.temporary) temporary += 1;
+      else if (npcIdSet.has(String(combatant.id)) || npcIdSet.has(String(combatant.npc_id))) npcCount += 1;
+      else enemies += 1;
+    });
+    return { party, npcs: npcCount, temporary, enemies, total: launchRoster.length };
+  }, [launchRoster, includedCompanionIds, extraNpcIds, queuedNpcs]);
+
   const launch = () => {
     const participantLoadFailed = loadErrors.some(item => ['players', 'npcs', 'liveState'].includes(item.key));
     if (participantLoadFailed) {
@@ -349,11 +451,7 @@ export default function LiveEncounterLauncher({
       return;
     }
 
-    let combatants = combinePreparedEncounterParty(baseCombatants, players, enabledBaseKeys, includedPlayerIds);
-    companionNpcs.filter(npc => includedCompanionIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
-    queuedNpcs.forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
-    npcs.filter(npc => extraNpcIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
-    quickCombatants.forEach(combatant => { combatants = appendUnique(combatants, combatant); });
+    const combatants = launchRoster;
 
     if (!combatants.length) {
       toast.error('Choose a player, NPC or creature before starting combat.');
@@ -395,8 +493,25 @@ export default function LiveEncounterLauncher({
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
       <footer style={footerStyle} data-testid="live-encounter-run-bar">
-        <span style={footerTextStyle}>{selected ? `${preparedOpponents.length} prepared enemies/objects · ${includedPlayerIds.length} party selected` : 'Impromptu combat'} · Your saved encounter stays unchanged.</span>
-        <button type="button" onClick={launch} style={launchButtonStyle}><Play size={17} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}</button>
+        <span style={footerTextStyle} data-testid="live-encounter-roster-counts">
+          {`Party: ${rosterCounts.party} · Enemies: ${rosterCounts.enemies} · NPCs: ${rosterCounts.npcs}`
+            + ` · Temporary: ${rosterCounts.temporary} · Total: ${rosterCounts.total} `
+            + `${rosterCounts.total === 1 ? 'combatant' : 'combatants'}`}
+          {' · Your saved encounter stays unchanged.'}
+        </span>
+        <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={resetReview}
+            data-testid="live-encounter-reset-review"
+            style={resetButtonStyle}
+          >
+            Reset review
+          </button>
+          <button type="button" onClick={launch} style={launchButtonStyle} data-testid="live-encounter-start">
+            <Play size={17} /> {selected ? 'Start Prepared Encounter' : 'Start Impromptu Battle'}
+          </button>
+        </span>
       </footer>
       {!selected && <div style={descriptionStyle}>No preparation needed. Add the party, a saved NPC, or a quick creature and start combat. You can recruit more enemies from the combat tracker at any time.</div>}
       {selected?.description && (
@@ -504,5 +619,6 @@ const searchInputStyle = { minWidth: 0, flex: 1, minHeight: 32, border: 0, outli
 const footerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderRadius: 9, padding: 10 };
 const footerTextStyle = { color: rq.muted, fontSize: 11, lineHeight: 1.45 };
 const launchButtonStyle = { minHeight: 46, border: '1px solid #b94648', background: 'var(--rq-guild-wine, #7e2d2d)', borderRadius: 8, color: '#fff', padding: '0 17px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, cursor: 'pointer', fontWeight: 850, fontSize: 12 };
+const resetButtonStyle = { minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 6, border: '1px solid rgba(234,223,200,.22)', background: 'transparent', color: 'var(--rq-text-secondary, rgba(234,223,200,.78))', fontSize: 12, fontWeight: 800, cursor: 'pointer' };
 const mutedStyle = { color: rq.muted, fontSize: 9, padding: 3 };
 const emptyStyle = { minHeight: 130, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, textAlign: 'center', padding: 16, fontSize: 10 };
