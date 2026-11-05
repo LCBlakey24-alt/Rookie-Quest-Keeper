@@ -13,7 +13,7 @@ const REVEAL_DELAY = 360;
 // only a backstop for a throw that somehow never reports settling.
 const TRAY_REVEAL_CEILING = 8000;
 const REDUCED_MOTION_REVEAL_DELAY = 90;
-const HOLD_AFTER_REVEAL = 3100;
+const HOLD_AFTER_REVEAL = 6000;
 
 const formatModifier = (modifier) => {
   const value = Number(modifier) || 0;
@@ -84,6 +84,8 @@ export default function DiceRollFlicker({
   modifier = 0,
   total = 0,
   animationValue,
+  rollId,
+  dyeId,
   isCrit = false,
   isFumble = false,
   theme = 'player',
@@ -99,6 +101,11 @@ export default function DiceRollFlicker({
       ? numericAnimationValue
       : 0;
   const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
+  // Sheet rerenders rebuild the rolls array. Only a real roll or a changed result
+  // should reset the reveal timer, not an unrelated HP / tab state update.
+  const diceFingerprint = dice.map((die) => [
+    die.sides, die.result, die.sign, die.dropped ? 1 : 0, die.exploded ? 1 : 0,
+  ].join(':')).join('|');
   const [showTotal, setShowTotal] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
 
@@ -158,7 +165,7 @@ export default function DiceRollFlicker({
     if (!visible || theme !== 'player') return undefined;
     const characterId = getCharacterIdFromPath();
     if (!characterId) return undefined;
-    const rollKey = `${characterId}-${label}-${finalTotal}-${modifier}-${JSON.stringify(rolls)}`;
+    const rollKey = rollId ? `${characterId}-${rollId}` : `${characterId}-${label}-${finalTotal}-${modifier}-${JSON.stringify(rolls)}`;
     if (recordedKeyRef.current === rollKey) return undefined;
     recordedKeyRef.current = rollKey;
 
@@ -185,7 +192,7 @@ export default function DiceRollFlicker({
       });
     });
     return () => { cancelled = true; };
-  }, [visible, theme, label, finalTotal, modifier, rolls, finalCrit, finalFumble]);
+  }, [visible, theme, label, finalTotal, modifier, rolls, finalCrit, finalFumble, rollId]);
 
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
@@ -197,13 +204,13 @@ export default function DiceRollFlicker({
 
     const revealTimer = window.setTimeout(() => setShowTotal(true), delay);
     return () => window.clearTimeout(revealTimer);
-  }, [visible, dice, finalTotal, prefersReducedMotion, TrayOverlay]);
+  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, rollId]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
     const closeTimer = window.setTimeout(() => { onCloseRef.current?.(); }, HOLD_AFTER_REVEAL);
     return () => window.clearTimeout(closeTimer);
-  }, [visible, showTotal, finalTotal]);
+  }, [visible, showTotal, finalTotal, rollId]);
 
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
@@ -234,6 +241,8 @@ export default function DiceRollFlicker({
 
   return createPortal(
     <Overlay
+      rollId={rollId}
+      dyeId={dyeId}
       total={finalTotal}
       label={label}
       rollDetail={rollDetail}
