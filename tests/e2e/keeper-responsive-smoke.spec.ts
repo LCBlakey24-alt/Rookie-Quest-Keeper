@@ -414,3 +414,44 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   await expect(frame).toHaveCSS('background-image', 'none');
   await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+
+// The real /combat/:campaignId route must be reachable from a synthetic
+// Live Play encounter, and its End combat button must accept a physical click
+// and confirmation without covering the adjacent header controls. This test
+// intentionally dismisses the dialog: no combat is finished or persisted.
+for (const size of [
+  { width: 360, height: 800, target: 46 },
+  { width: 390, height: 844, target: 46 },
+  { width: 768, height: 1024, target: 44 },
+  { width: 1024, height: 768, target: 44 },
+  { width: 1180, height: 820, target: 44 },
+  { width: 1440, height: 900, target: 40 },
+]) {
+  test(`Combat route End button, dialog, focus and viewport work at ${size.width}x${size.height`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+    await page.getByTestId('live-tool-combat').click();
+    const begin = page.getByRole('button', { name: /Start Impromptu Battle/ });
+    await expect(begin).toBeVisible();
+    await begin.click();
+    await expect(page.getByTestId('combat-table-page')).toBeVisible();
+    const end = page.getByTitle('End combat');
+    await expect(end).toBeVisible();
+    const target = await end.boundingBox();
+    expect(target?.height, 'End combat needs an actual touch-safe hit area')
+      .toBeGreaterThanOrEqual(size.target);
+    await end.focus();
+    await expect(end).toBeFocused();
+    const handledDialog = page.waitForEvent('dialog').then(async dialog => {
+      const message = dialog.message();
+      await dialog.dismiss();
+      return message;
+    });
+    await end.click();
+    expect(await handledDialog).toMatch(/End this combat/i);
+    await expect(end).toBeVisible();
+    await assertFitsViewport(page, size.width);
+  });
+}
