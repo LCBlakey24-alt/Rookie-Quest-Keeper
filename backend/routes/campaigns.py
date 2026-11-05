@@ -638,7 +638,7 @@ async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    user_id = str(user.get("_id"))
+    account_id = str(user.get("_id"))
     
     invite = await db.campaign_invites.find_one({"code": invite_code})
     if not invite:
@@ -656,7 +656,7 @@ async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_
     campaign_id = invite["campaign_id"]
     
     # Check if already a member
-    existing = await db.campaign_members.find_one({"campaign_id": campaign_id, "user_id": user_id})
+    existing = await db.campaign_members.find_one({"campaign_id": campaign_id, "user_id": username})
     if existing:
         raise HTTPException(status_code=400, detail="Already a member of this campaign")
     
@@ -666,7 +666,7 @@ async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_
         raise HTTPException(status_code=404, detail="Campaign not found")
     
     # Can't join your own campaign as a player
-    if campaign.get("dm_user_id") == user_id:
+    if campaign.get("dm_user_id") == username:
         raise HTTPException(status_code=400, detail="You are the GM of this campaign")
     
     # Get rulesets shared with this campaign
@@ -676,7 +676,7 @@ async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_
     # Create membership
     member = CampaignMember(
         campaign_id=campaign_id,
-        user_id=user_id,
+        user_id=username,
         username=user.get("username", user.get("email")),
         shared_rulesets=shared_ruleset_ids
     )
@@ -690,7 +690,7 @@ async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_
     for ruleset_id in shared_ruleset_ids:
         await db.custom_rulesets.update_one(
             {"id": ruleset_id},
-            {"$addToSet": {"shared_with": user_id}}
+            {"$addToSet": {"shared_with": account_id}}
         )
     
     # Notify GM via WebSocket if connected
@@ -698,7 +698,7 @@ async def join_campaign_by_invite(invite_code: str, username: str = Depends(get_
         "type": "player_joined",
         "campaign_id": campaign_id,
         "player": {
-            "user_id": user_id,
+            "user_id": username,
             "username": user.get("username")
         }
     })
