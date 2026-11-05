@@ -521,7 +521,7 @@
 }
 
 #root .rq-floating-dice__swatch[data-rq-colour-swatch][aria-pressed='true'] {
-  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F)) !important;
+  background-image: var(--rq-ledger-rule, none) !important;
   background-repeat: no-repeat !important;
   background-position: left bottom !important;
   background-size: 100% 3px !important;
