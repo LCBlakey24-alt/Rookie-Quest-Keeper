@@ -130,3 +130,44 @@ describe('Prepared Hollowmere scenarios in Live Play', () => {
     expect(preferredPreparedEncounterId(scenarios, 'hm02')).toBe('hm02');
   });
 });
+
+describe('Encounter roster uses creature instance identity', () => {
+  test('keeps two enabled enemies that share a name but not an ID', () => {
+    const goblins = [
+      { id: 'g1', name: 'Goblin', type: 'enemy' },
+      { id: 'g2', name: 'Goblin', type: 'enemy' },
+    ];
+    expect(combinePreparedEncounterParty(goblins, [], ['g1', 'g2'], []))
+      .toEqual(goblins);
+  });
+
+  test('deduplicates repeated references to the same linked character', () => {
+    const player = { id: 'sheet-1', character_id: 'char-1', name: 'Hero', hp: 5, max_hp: 20 };
+    const snapshots = [
+      { id: 'token-1', character_id: 'char-1', type: 'player', name: 'Hero' },
+      { id: 'token-2', character_id: 'char-1', type: 'player', name: 'Hero' },
+    ];
+    const roster = combinePreparedEncounterParty(snapshots, [player], ['token-1', 'token-2'], ['sheet-1']);
+    expect(roster).toHaveLength(1);
+    expect(roster[0]).toMatchObject({ id: 'sheet-1', hp: 5 });
+  });
+
+  test('keeps independent legacy unnamed-ID creatures, including identical names', () => {
+    const legacy = [
+      { type: 'enemy', name: 'Goblin' },
+      { type: 'enemy', name: 'Goblin' },
+    ];
+    expect(combinePreparedEncounterParty(legacy, [], ['enemy:Goblin:0', 'enemy:Goblin:1'], []))
+      .toHaveLength(2);
+  });
+
+  test('keeps multiple quick-added creature instances with distinct IDs', () => {
+    const quick = [
+      { id: 'quick-1', type: 'enemy', name: 'Wolf' },
+      { id: 'quick-2', type: 'enemy', name: 'Wolf' },
+      { id: 'quick-3', type: 'enemy', name: 'Wolf' },
+    ];
+    expect(combinePreparedEncounterParty(quick, [], quick.map(item => item.id), []))
+      .toHaveLength(3);
+  });
+});
