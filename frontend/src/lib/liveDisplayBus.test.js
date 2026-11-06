@@ -98,4 +98,42 @@ describe('liveDisplayBus', () => {
     expect(states.some(state => state?.payload?.title === 'FORBIDDEN OFFLINE FALLBACK')).toBe(false);
     expect(Object.values({ ...localStorage }).some(value => String(value).includes('FORBIDDEN OFFLINE FALLBACK'))).toBe(false);
   });
+
+  test('a refused display retries HTTP authorization after its socket opens', async () => {
+    const originalWebSocket = window.WebSocket;
+    let socket;
+    let unsubscribe;
+    class TestWebSocket {
+      constructor() { socket = this; }
+      send() {}
+      close() {}
+    }
+    window.WebSocket = TestWebSocket;
+    const denied = Object.assign(new Error('HTTP 403'), { response: { status: 403 } });
+    const granted = createDisplayState('title', { title: 'ACCESS NOW GRANTED' });
+    apiClient.get.mockRejectedValueOnce(denied).mockResolvedValue({ data: granted, headers: {} });
+    const states = [];
+    const statuses = [];
+
+    try {
+      unsubscribe = subscribeRemoteDisplayState('campaign-1', state => states.push(state), {
+        account: 'synthetic-gm',
+        intervalMs: 2500,
+        onStatus: status => statuses.push(status),
+      });
+      for (let index = 0; index < 12 && statuses.at(-1) !== 'denied'; index += 1) await Promise.resolve();
+      expect(statuses.at(-1)).toBe('denied');
+
+      socket.onopen();
+      for (let index = 0; index < 12 && apiClient.get.mock.calls.length < 2; index += 1) await Promise.resolve();
+      expect(apiClient.get).toHaveBeenCalledTimes(2);
+      for (let index = 0; index < 12 && statuses.at(-1) !== 'synced'; index += 1) await Promise.resolve();
+
+      expect(statuses.at(-1)).toBe('synced');
+      expect(states.at(-1)).toMatchObject({ mode: 'title', payload: { title: 'ACCESS NOW GRANTED' } });
+    } finally {
+      unsubscribe?.();
+      window.WebSocket = originalWebSocket;
+    }
+  });
 });

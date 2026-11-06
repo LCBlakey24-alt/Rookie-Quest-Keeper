@@ -453,6 +453,9 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
       accessRefusedStatus = '';
       applyRemoteState(state);
       onStatus('synced');
+      // Once a real read restores access, the healthy socket can resume as
+      // the live transport and the temporary authorisation polling may stop.
+      if (socketReady) stopPolling();
     } catch (error) {
       if (error instanceof StaleAccountError || !stillOurs()) return;
       const status = failureStatus(error);
@@ -472,10 +475,12 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
   };
 
   const startPolling = () => {
-    if (cancelled || pollingTimer || socketReady) return;
+    if (cancelled || pollingTimer || (socketReady && !accessRefusedStatus)) return;
     readRemoteState();
     pollingTimer = runtimeWindow.setInterval(() => {
-      if (!socketReady) readRemoteState();
+      // Socket messages carry state, not a fresh access decision. Continue
+      // HTTP checks while refused even when the socket itself is healthy.
+      if (!socketReady || accessRefusedStatus) readRemoteState();
     }, Math.max(2500, intervalMs));
   };
 
@@ -513,7 +518,8 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
       socket.onopen = () => {
         socketReady = true;
         reconnectAttempts = 0;
-        stopPolling();
+        if (accessRefusedStatus) startPolling();
+        else stopPolling();
         clearSocketTimers();
         pingTimer = runtimeWindow.setInterval(() => {
           try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
