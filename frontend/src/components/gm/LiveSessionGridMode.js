@@ -223,7 +223,12 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
           ) : activeTool === 'quick-dice' ? (
             <QuickDicePanel onRollDice={onRollDice} />
           ) : (
-            renderTool?.(activeTool, { compact: false }) || <EmptyTool title={liveToolLabel(activeTool)} />
+            renderTool?.(activeTool, {
+               compact: false,
+               // Explicit handoff: a hidden/closed phone drawer has no DOM button
+               // that an unrelated tool can safely click to open an encounter.
+               openEncounterReview: (encounterId = '') => selectTool('combat', { encounterId }),
+             }) || <EmptyTool title={liveToolLabel(activeTool)} />
           )}
         </section>
       </main>

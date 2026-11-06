@@ -33,10 +33,10 @@ function setWidth(width) {
   window.dispatchEvent(new Event('resize'));
 }
 
-function mockApi() {
+function mockApi(scenarios = SCENARIOS) {
   apiClient.get.mockImplementation(url => {
     if (url === `/campaigns/${CAMPAIGN}`) return Promise.resolve({ data: { id: CAMPAIGN, name: 'Spilsby' } });
-    if (url === `/campaigns/${CAMPAIGN}/combat-scenarios`) return Promise.resolve({ data: JSON.parse(JSON.stringify(SCENARIOS)) });
+    if (url === `/campaigns/${CAMPAIGN}/combat-scenarios`) return Promise.resolve({ data: JSON.parse(JSON.stringify(scenarios)) });
     if (url === `/campaigns/${CAMPAIGN}/npcs`) return Promise.resolve({ data: [] });
     if (url === `/campaigns/${CAMPAIGN}/live-state`) return Promise.resolve({ data: { companion_npc_ids: [] } });
     if (url.includes('/live-party') || url.includes('/players')) return Promise.resolve({ data: JSON.parse(JSON.stringify(PLAYERS)) });
@@ -257,6 +257,36 @@ describe('the acceptance run', () => {
 
     launcher = await screen.findByTestId('live-encounter-launcher');
     await waitFor(() => expect(within(launcher).getByPlaceholderText('Name')).toHaveValue('Bandit Capt'));
+  });
+});
+
+describe('Bestiary encounter navigation', () => {
+  test.each([390, 1024, 1440])('opens the exact requested encounter at %ipx without clicking a hidden DOM button', async width => {
+    const target = {
+      ...SCENARIOS[0],
+      id: 'hm02', name: 'Cavern Ambush', live_default: false, planned_encounter_order: 2,
+    };
+    mockApi([...SCENARIOS, target]);
+    const renderTool = (toolId, { openEncounterReview } = {}) => (
+      toolId === 'monsters'
+        ? <button type="button" data-testid="bestiary-open-saved" onClick={() => openEncounterReview('hm02')}>Open saved encounter</button>
+        : <div data-testid={`tool-${toolId}`}>{toolId}</div>
+    );
+    openLivePlay(width, { renderTool });
+    let rail;
+    if (width < 720) {
+      fireEvent.click(await screen.findByTestId('live-tool-menu'));
+      rail = await screen.findByTestId('live-tool-rail');
+    } else {
+      rail = await screen.findByTestId('live-tool-rail');
+    }
+    fireEvent.click(within(rail).getByTestId('live-category-beasts'));
+    fireEvent.click(within(rail).getByTestId('live-tool-monsters'));
+    fireEvent.click(await screen.findByTestId('bestiary-open-saved'));
+
+    const launcher = await screen.findByTestId('live-encounter-launcher');
+    await waitFor(() => expect(within(launcher).getByLabelText('Choose battle type')).toHaveValue('hm02'));
+    expect(within(launcher).getByLabelText('Choose battle type')).toHaveTextContent('Cavern Ambush');
   });
 });
 
