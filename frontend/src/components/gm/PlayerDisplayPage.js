@@ -116,6 +116,20 @@ export default function PlayerDisplayPage() {
   const [party, setParty] = useState([]);
   const [partyRefreshFailed, setPartyRefreshFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  // The fixed fullscreen control sits over the status bar; its real width
+  // (global button styles enlarge it on desktop) decides how much room the
+  // bar keeps clear so status text such as "Party sync unavailable" shows.
+  const fullscreenButtonRef = useRef(null);
+  const [fullscreenClearance, setFullscreenClearance] = useState(FULLSCREEN_CLEARANCE);
+  useEffect(() => {
+    const measure = () => {
+      const width = fullscreenButtonRef.current?.getBoundingClientRect().width || 0;
+      if (width) setFullscreenClearance(Math.ceil(width) + 28);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [fullscreen]);
   const toggleFullscreen = useCallback(async () => {
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
@@ -216,14 +230,14 @@ export default function PlayerDisplayPage() {
 
   return (
     <main className="rqk-player-display" style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
-      <button type="button" className="rqk-player-display__fullscreen" onClick={toggleFullscreen} style={fullscreenButtonStyle}
+      <button type="button" ref={fullscreenButtonRef} className="rqk-player-display__fullscreen" onClick={toggleFullscreen} style={fullscreenButtonStyle}
         aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         title={fullscreen ? 'Exit fullscreen (F or Esc)' : 'Enter fullscreen (F)'}>
         {fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
         {fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
       </button>
       <div className="rqk-player-display__frame" style={chromeFrameStyle(target)}>
-        <header className="rqk-player-display__status" style={displayStatusBarStyle(target)}>
+        <header className="rqk-player-display__status" style={{ ...displayStatusBarStyle(target), '--rqk-fullscreen-clearance': `${fullscreenClearance}px` }}>
           <span style={brandMarkStyle}><Sparkles size={14} /> Rookie Quest Keeper</span>
           <span style={statusPillStyle(target)}>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Virtual Table' : 'Standing TV'}</span>
           <span style={statusPillStyle(target)}><ShieldCheck size={13} /> Player-safe</span>
@@ -585,15 +599,19 @@ const accessNoticeStyle = { gridColumn: '1 / -1', alignSelf: 'center', justifySe
 const accessTitleStyle = { fontSize: 20, fontWeight: 900 };
 const accessBodyStyle = { fontSize: 14, lineHeight: 1.5, color: 'var(--rq-text-secondary, rgba(234,223,200,.78))' };
 // The fullscreen control is fixed top-right over the status bar. The bar
-// reserves room for it so status text (party sync warnings) is never hidden.
+// reserves room for it (PlayerDisplayPage.css reads this as
+// --rqk-fullscreen-clearance) so status text such as party-sync warnings is
+// never hidden. This is the value used before the real width is measured.
 const FULLSCREEN_CLEARANCE = 168;
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 44, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
-const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? `4px ${FULLSCREEN_CLEARANCE}px 4px 6px` : `7px ${FULLSCREEN_CLEARANCE}px 7px 10px`, background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
+const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? '4px 6px' : '7px 10px', background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
 const brandMarkStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, marginRight: 'auto' };
 const partyWarningStyle = { color: 'var(--rq-warning, #D39A43)', fontSize: 11, fontWeight: 750 };
 const statusPillStyle = (target) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: isTable(target) ? 22 : 26, padding: isTable(target) ? '0 6px' : '0 8px', background: 'rgba(255,255,255,0.07)', border: `1px solid ${theme.line}`, color: theme.soft });
 const modeChipStyle = { display: 'inline-flex', alignItems: 'center', minHeight: 26, padding: '0 9px', background: theme.card, color: theme.text, border: `1px solid ${theme.red}` };
-const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: theme.bg });
+// The right padding keeps the sync status clear of the app's floating
+// Feedback button, which sits over the bottom-right corner.
+const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 156px 5px 9px' : '8px 156px 8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: theme.bg });
 const partySidebarStyle = { minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 10, padding: 6, background: 'rgba(0,0,0,0.58)', border: `1px solid ${theme.line}`, borderLeft: `7px solid ${theme.red}`, boxShadow: '0 28px 90px rgba(0,0,0,0.38)', overflow: 'hidden', animation: 'rqkPartyReveal 620ms ease both' };
 const partyHeaderStyle = { display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 8, color: theme.text, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const partyEyebrowStyle = { margin: 0, color: theme.red, fontSize: 10, fontWeight: 950, letterSpacing: '0.14em', textTransform: 'uppercase' };
