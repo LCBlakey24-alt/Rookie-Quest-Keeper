@@ -2,7 +2,8 @@ import React from 'react';
 import { Dices, X } from 'lucide-react';
 import './FlatDiceResultOverlay.css';
 
-function outcomeLabel(isCrit, isFumble, isRevealed) {
+function outcomeLabel(isCrit, isFumble, isRevealed, isFixedDamage = false) {
+  if (isFixedDamage) return 'Fixed damage';
   if (!isRevealed) return 'Rolling…';
   if (isCrit) return 'Critical success';
   if (isFumble) return 'Critical fail';
@@ -18,6 +19,7 @@ export default function FlatDiceResultOverlay({
   isRevealed = false,
   isCrit = false,
   isFumble = false,
+  isFixedDamage = false,
   onRevealNow,
   onClose,
 }) {
@@ -29,7 +31,7 @@ export default function FlatDiceResultOverlay({
       aria-label="Dice roll result"
     >
       <div className="rq-flat-roll__heading">
-        <span className="rq-flat-roll__status"><Dices size={15} /> {outcomeLabel(isCrit, isFumble, isRevealed)}</span>
+        <span className="rq-flat-roll__status"><Dices size={15} /> {outcomeLabel(isCrit, isFumble, isRevealed, isFixedDamage)}</span>
         <button type="button" className="rq-flat-roll__close" onClick={onClose} aria-label="Close dice result">
           <X size={15} />
         </button>
@@ -46,14 +48,16 @@ export default function FlatDiceResultOverlay({
         </div>
       </div>
 
-      <div className="rq-flat-roll__dice" aria-label="Individual dice results">
-        {rolls.slice(0, 12).map((die, index) => (
-          <span key={die.id || `${die.sides}-${index}`} className={die.dropped ? 'is-dropped' : die.exploded ? 'is-exploded' : ''}>
-            <small>d{die.sides}</small>
-            <strong>{isRevealed ? die.result : '•'}</strong>
-          </span>
-        ))}
-      </div>
+      {rolls.length > 0 && (
+        <div className="rq-flat-roll__dice" aria-label="Individual dice results">
+          {rolls.slice(0, 12).map((die, index) => (
+            <span key={die.id || `${die.sides}-${index}`} className={die.dropped ? 'is-dropped' : die.exploded ? 'is-exploded' : ''}>
+              <small>d{die.sides}</small>
+              <strong>{isRevealed ? die.result : '•'}</strong>
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="rq-flat-roll__footer">
         <span>{isRevealed ? formulaText : 'No 3D scene — just the roll.'}</span>
