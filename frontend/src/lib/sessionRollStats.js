@@ -1,5 +1,11 @@
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState } from '@/lib/liveDisplayBus';
+import { getOfflineCacheScope } from '@/offline/offlineApiCache';
+import {
+  listPendingRolls,
+  queuePendingRoll,
+  removePendingRoll,
+} from '@/offline/offlineRollSyncQueue';
 
 const sessionKey = (campaignId) => `rqk.rollStats.session.${campaignId}`;
 const allTimeKey = (campaignId) => `rqk.rollStats.allTime.${campaignId}`;
@@ -100,20 +106,136 @@ function worthRetrying(error) {
   return !status || status >= 500;
 }
 
+function shouldDiscardPendingRoll(error) {
+  const status = Number(error?.response?.status);
+  const temporarilyBlocked = [401, 408, 425, 429].includes(status);
+  return status >= 400 && status < 500 && !temporarilyBlocked;
+}
+
+let activeRollFlush = null;
+
+function rollActorKey(event = {}) {
+  const characterId = String(event.character_id || '');
+  if (characterId) return `character:${characterId}`;
+  return `${event.actor_type || 'gm'}:${event.character_name || event.actor || 'table'}`;
+}
+
+function isSameRollStream(record, campaignId, event) {
+  return String(record?.campaignId || '') === String(campaignId || '')
+    && rollActorKey(record?.event) === rollActorKey(event);
+}
+
+/** Replay only the current account's exact queued events, oldest first. */
+export function flushPendingRemoteRolls() {
+  const scope = getOfflineCacheScope();
+  if (activeRollFlush?.scope === scope) return activeRollFlush.promise;
+
+  const records = listPendingRolls(scope).filter(record => record?.scope === scope);
+  const promise = (async () => {
+    let delivered = 0;
+    let discarded = 0;
+
+    for (const record of records) {
+      // A sign-out/account switch during the flush must never deliver the old
+      // account's character event with the new account's bearer token.
+      if (getOfflineCacheScope() !== scope) break;
+      try {
+        await apiClient.post(
+          `/campaigns/${record.campaignId}/roll-events`,
+          record.event,
+          { rqkExpectedAuthScope: scope },
+        );
+        removePendingRoll(record.key);
+        delivered += 1;
+      } catch (error) {
+        if (shouldDiscardPendingRoll(error)) {
+          removePendingRoll(record.key);
+          discarded += 1;
+          continue;
+        }
+        // Offline, server failures, rate limits and expired sessions stay
+        // durable for the next reconnect or authenticated app wake.
+        break;
+      }
+    }
+
+    return { delivered, remaining: records.length - delivered - discarded };
+  })();
+
+  activeRollFlush = { scope, promise };
+  promise.then(() => {
+    if (activeRollFlush?.promise === promise) activeRollFlush = null;
+  }, () => {
+    if (activeRollFlush?.promise === promise) activeRollFlush = null;
+  });
+  return promise;
+}
+
+async function drainPendingRemoteRolls(scope = getOfflineCacheScope()) {
+  // Usually one pass drains the snapshot. A second pass matters when a rapid
+  // roll is queued while another flush is already in flight: wait for that
+  // snapshot, then send the newly queued roll behind it.
+  for (let pass = 0; pass < 10 && getOfflineCacheScope() === scope; pass += 1) {
+    const before = listPendingRolls(scope).filter(record => record?.scope === scope).length;
+    if (!before) return;
+    await flushPendingRemoteRolls();
+    const after = listPendingRolls(scope).filter(record => record?.scope === scope).length;
+    if (!after || after >= before) return;
+  }
+}
+
 export async function recordRemoteRoll(campaignId, rollEvent = {}) {
   if (!campaignId) return null;
   const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
+  const scope = getOfflineCacheScope();
+  const olderPending = listPendingRolls(scope).filter(record => record?.scope === scope);
+  // Queue synchronously before the first request. Closing the tab while a
+  // request is in flight can no longer erase the only copy of the roll.
+  const pending = queuePendingRoll({ scope, campaignId, event });
   recordSessionRoll(campaignId, event);
+
+  // Do not let a fresh roll overtake an older offline roll from the same
+  // character/table stream. The ordered drain sends the old event first, so
+  // a delayed group-check answer cannot replace the player's newer answer.
+  if (pending && olderPending.some(record => isSameRollStream(record, campaignId, event))) {
+    drainPendingRemoteRolls(scope).catch(() => {});
+    return { ...event, queued: true };
+  }
+
   for (let attempt = 0; ; attempt += 1) {
+    if (getOfflineCacheScope() !== scope) return { ...event, queued: Boolean(pending) };
     try {
       // The identical event every time, so a retry is recognised, not re-counted.
-      const response = await apiClient.post(`/campaigns/${campaignId}/roll-events`, event);
+      const response = await apiClient.post(
+        `/campaigns/${campaignId}/roll-events`,
+        event,
+        { rqkExpectedAuthScope: scope },
+      );
+      removePendingRoll(pending?.key);
       return response.data;
     } catch (error) {
-      if (attempt >= RETRY_DELAYS_MS.length || !worthRetrying(error)) return event;
+      if (shouldDiscardPendingRoll(error)) {
+        removePendingRoll(pending?.key);
+        return event;
+      }
+      if (attempt >= RETRY_DELAYS_MS.length || !worthRetrying(error)) {
+        return { ...event, queued: Boolean(pending) };
+      }
       await wait(RETRY_DELAYS_MS[attempt]);
     }
   }
+}
+
+let queuedRollSyncInstalled = false;
+
+export function installQueuedRollSync() {
+  if (queuedRollSyncInstalled || typeof window === 'undefined') return;
+  queuedRollSyncInstalled = true;
+  const flush = () => { drainPendingRemoteRolls().catch(() => {}); };
+  window.addEventListener('online', flush);
+  window.addEventListener('focus', flush);
+  window.addEventListener('rqk:auth-scope-changed', flush);
+  window.setTimeout(flush, 0);
 }
 
 function d20sFor(event) {

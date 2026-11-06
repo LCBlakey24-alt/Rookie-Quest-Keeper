@@ -6,15 +6,38 @@
  * one id, send that same id on every retry, retry only when retrying can
  * help, and never append the same roll to local history twice.
  */
-import { normaliseRollEvent, recordRemoteRoll, recordSessionRoll, buildEndSessionStats } from './sessionRollStats';
+import {
+  buildEndSessionStats,
+  flushPendingRemoteRolls,
+  normaliseRollEvent,
+  recordRemoteRoll,
+  recordSessionRoll,
+} from './sessionRollStats';
 
 jest.mock('./apiClient', () => ({
   __esModule: true,
   default: { post: jest.fn(), get: jest.fn() },
 }));
 jest.mock('./liveDisplayBus', () => ({ loadDisplayState: jest.fn(() => null) }));
+jest.mock('@/offline/offlineApiCache', () => ({ getOfflineCacheScope: jest.fn(() => 'user:player-a') }));
+jest.mock('@/offline/offlineRollSyncQueue', () => ({
+  listPendingRolls: jest.fn(() => []),
+  queuePendingRoll: jest.fn(({ scope, campaignId, event }) => ({
+    key: `${scope}:${campaignId}:${event.client_event_id}`,
+    scope,
+    campaignId,
+    event,
+  })),
+  removePendingRoll: jest.fn(),
+}));
 const { loadDisplayState } = require('./liveDisplayBus');
 const apiClient = require('./apiClient').default;
+const { getOfflineCacheScope } = require('@/offline/offlineApiCache');
+const {
+  listPendingRolls,
+  queuePendingRoll,
+  removePendingRoll,
+} = require('@/offline/offlineRollSyncQueue');
 
 const CAMPAIGN = 'synthetic-campaign';
 const roll = (extra = {}) => ({
@@ -36,11 +59,27 @@ async function settle(rounds = 10) {
   }
 }
 
+async function settleMicrotasks(rounds = 12) {
+  for (let index = 0; index < rounds; index += 1) await Promise.resolve();
+}
+
 beforeEach(() => {
   localStorage.clear();
   apiClient.post.mockReset();
   loadDisplayState.mockReset();
   loadDisplayState.mockReturnValue(null);
+  getOfflineCacheScope.mockReset();
+  getOfflineCacheScope.mockReturnValue('user:player-a');
+  listPendingRolls.mockReset();
+  listPendingRolls.mockReturnValue([]);
+  queuePendingRoll.mockReset();
+  queuePendingRoll.mockImplementation(({ scope, campaignId, event }) => ({
+    key: `${scope}:${campaignId}:${event.client_event_id}`,
+    scope,
+    campaignId,
+    event,
+  }));
+  removePendingRoll.mockReset();
   jest.useRealTimers();
 });
 
@@ -68,21 +107,106 @@ test('a dropped connection is retried with the identical event', async () => {
   expect(apiClient.post).toHaveBeenCalledTimes(3);
   const sent = apiClient.post.mock.calls.map(([, body]) => body.client_event_id);
   expect(new Set(sent).size).toBe(1);
+  expect(queuePendingRoll).toHaveBeenCalledTimes(1);
+  expect(removePendingRoll).toHaveBeenCalledWith(expect.stringContaining(sent[0]));
 });
 
 test.each([403, 413, 422])('a %s answer is final and not retried', async (status) => {
   apiClient.post.mockRejectedValue({ response: { status } });
   await recordRemoteRoll(CAMPAIGN, roll());
   expect(apiClient.post).toHaveBeenCalledTimes(1);
+  expect(removePendingRoll).toHaveBeenCalledTimes(1);
 });
 
-test('retries stop after a bounded number of attempts', async () => {
+test.each([401, 408, 429])('a temporary %s answer leaves the durable roll queued', async (status) => {
+  apiClient.post.mockRejectedValue({ response: { status } });
+  await expect(recordRemoteRoll(CAMPAIGN, roll())).resolves.toMatchObject({ queued: true });
+  expect(apiClient.post).toHaveBeenCalledTimes(1);
+  expect(removePendingRoll).not.toHaveBeenCalled();
+});
+
+test('a roll is queued before its first request and remains queued after bounded retries', async () => {
   jest.useFakeTimers();
   apiClient.post.mockRejectedValue(new Error('Network Error'));
   const pending = recordRemoteRoll(CAMPAIGN, roll());
+  expect(queuePendingRoll).toHaveBeenCalledTimes(1);
+  expect(queuePendingRoll.mock.invocationCallOrder[0]).toBeLessThan(apiClient.post.mock.invocationCallOrder[0]);
   await settle();
-  await pending;
+  await expect(pending).resolves.toMatchObject({ queued: true });
   expect(apiClient.post).toHaveBeenCalledTimes(3);
+  expect(removePendingRoll).not.toHaveBeenCalled();
+});
+
+test('a queued roll is replayed after reconnect and removed after idempotent acceptance', async () => {
+  const event = normaliseRollEvent(roll({ id: 'roll-interrupted-1' }));
+  listPendingRolls.mockReturnValue([{
+    key: 'user:player-a:synthetic-campaign:roll-interrupted-1',
+    scope: 'user:player-a',
+    campaignId: CAMPAIGN,
+    event,
+  }]);
+  apiClient.post.mockResolvedValue({ data: { id: 'server-roll', duplicate: true } });
+
+  await expect(flushPendingRemoteRolls()).resolves.toEqual({ delivered: 1, remaining: 0 });
+
+  expect(apiClient.post).toHaveBeenCalledWith(
+    `/campaigns/${CAMPAIGN}/roll-events`,
+    event,
+    { rqkExpectedAuthScope: 'user:player-a' },
+  );
+  expect(removePendingRoll).toHaveBeenCalledWith('user:player-a:synthetic-campaign:roll-interrupted-1');
+});
+
+test('an older queued character roll is delivered before a newer roll from that character', async () => {
+  const olderEvent = normaliseRollEvent(roll({ id: 'roll-older-1', total: 9 }));
+  const records = [{
+    key: 'user:player-a:synthetic-campaign:roll-older-1',
+    scope: 'user:player-a',
+    campaignId: CAMPAIGN,
+    event: olderEvent,
+    queuedAt: 1,
+  }];
+  listPendingRolls.mockImplementation(() => [...records]);
+  queuePendingRoll.mockImplementation(({ scope, campaignId, event }) => {
+    const record = {
+      key: `${scope}:${campaignId}:${event.client_event_id}`,
+      scope,
+      campaignId,
+      event,
+      queuedAt: records.length + 1,
+    };
+    records.push(record);
+    return record;
+  });
+  removePendingRoll.mockImplementation(key => {
+    const index = records.findIndex(record => record.key === key);
+    if (index >= 0) records.splice(index, 1);
+  });
+  apiClient.post.mockResolvedValue({ data: { accepted: true } });
+
+  await expect(recordRemoteRoll(CAMPAIGN, roll({ id: 'roll-newer-1', total: 18 })))
+    .resolves.toMatchObject({ queued: true });
+  await settleMicrotasks();
+
+  expect(apiClient.post.mock.calls.map(([, body]) => body.client_event_id))
+    .toEqual(['roll-older-1', 'roll-newer-1']);
+  expect(records).toEqual([]);
+});
+
+test('a queued roll is never replayed through a different signed-in account', async () => {
+  const event = normaliseRollEvent(roll({ id: 'roll-player-a-1' }));
+  listPendingRolls.mockReturnValue([{
+    key: 'user:player-a:synthetic-campaign:roll-player-a-1',
+    scope: 'user:player-a',
+    campaignId: CAMPAIGN,
+    event,
+  }]);
+  getOfflineCacheScope.mockReturnValue('user:player-b');
+
+  await expect(flushPendingRemoteRolls()).resolves.toEqual({ delivered: 0, remaining: 0 });
+
+  expect(apiClient.post).not.toHaveBeenCalled();
+  expect(removePendingRoll).not.toHaveBeenCalled();
 });
 
 test('only a kept d20 joins an active GM group check; damage does not', async () => {
