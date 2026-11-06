@@ -3,6 +3,8 @@
 
 import { findWeaponRule, getWeaponAbilityMod, weaponEnhancementBonus } from './equipmentRules5e';
 import { calculateArmorAc, findArmorRule } from './armorRules5e';
+import { getMonkClassLevel } from './monkCharacterShape';
+import { getMonkUnarmoredMovementBonus } from './monkProgression';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -123,6 +125,24 @@ export function deriveEquippedWeaponAttacks(character, proficiencyBonus = 2) {
     });
 }
 
+/**
+ * Character creation stores the species' base speed, not the final speed after
+ * class features. The Monk bonus is conditional on wearing no armour/shield.
+ * Never persist this view-only derived value as a new base speed.
+ */
+export function deriveWalkingSpeed(character = {}) {
+  const raw = Number(character?.speed ?? 30);
+  const base = Number.isFinite(raw) ? raw : 30;
+  const monkLevel = getMonkClassLevel(character);
+  if (!monkLevel || character?.speed_includes_class_bonus === true) return base;
+  const equipped = character?.equipped || {};
+  const armor = equipped.armor || equipped.armour;
+  const offHand = equipped.offHand || equipped.off_hand;
+  const shield = equipped.shield || (isShieldLike(offHand) ? offHand : null);
+  if (armor || shield) return base;
+  return base + getMonkUnarmoredMovementBonus(monkLevel);
+}
+
 export function deriveArmorClass(character, options = {}) {
   const dexMod = mod(character?.dexterity);
   const equipped = character?.equipped || {};
@@ -133,16 +153,29 @@ export function deriveArmorClass(character, options = {}) {
   // derive the same AC.
   const shield = equipped.shield || (isShieldLike(offHand) ? offHand : null);
   const explicitAc = options.ignoreStoredAc ? 0 : Number(character?.armor_class ?? character?.ac ?? 0);
+  const normalUnarmoredAc = 10 + dexMod;
+  const monkLevel = getMonkClassLevel(character);
+  const canUseMonkDefense = monkLevel > 0 && !armor && !shield;
+  // A Monk may choose their normal 10 + DEX calculation if Wisdom lowers AC.
+  const unarmoredAc = canUseMonkDefense
+    ? Math.max(normalUnarmoredAc, 10 + dexMod + mod(character?.wisdom))
+    : normalUnarmoredAc;
 
-  // Equipping/unequipping gear explicitly calls this helper with
-  // `ignoreStoredAc: true`, then persists the newly derived AC. On ordinary
-  // sheet renders that persisted value is therefore already the final result.
-  // Re-running shield/custom-item bonuses on top of it double-counts equipment
-  // (for example an unarmoured DEX 16 character can save 15 AC with a shield,
-  // then incorrectly display 17 on the next render).
-  if (explicitAc > 0) return explicitAc;
-
-  const unarmoredAc = 10 + dexMod;
+  // Persisted armour/shield AC is authoritative on an ordinary sheet render:
+  // applying equipment again double-counts bonuses. For an *unarmoured* Monk
+  // only, an AC at or below ordinary 10 + DEX is typically a stale base AC
+  // from character creation/older ability scores. Repair that display from
+  // Unarmored Defense, while retaining higher stored AC (magic/homebrew) and
+  // explicitly marked manual AC. Inventory equip/unequip intentionally sets
+  // ignoreStoredAc and persists the newly calculated equipment AC.
+  const manualAc = character?.armor_class_manual === true
+    || character?.armor_class_source === 'manual';
+  if (explicitAc > 0) {
+    if (canUseMonkDefense && !manualAc && explicitAc <= normalUnarmoredAc) {
+      return Math.max(explicitAc, unarmoredAc);
+    }
+    return explicitAc;
+  }
   const hasArmorRule = Boolean(findArmorRule(armor) || findArmorRule(shield));
   if (!hasArmorRule) {
     // No named armour rule, but equipped items may still carry ac_bonus.
