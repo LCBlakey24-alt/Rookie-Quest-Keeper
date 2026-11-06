@@ -48,25 +48,42 @@ def verify_token(token: str) -> str:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+async def authenticate_session_token(token: Optional[str]) -> Dict[str, Any]:
+    """The one session check for every authenticated entry point.
+
+    HTTP requests (via `get_current_user`) and the live campaign WebSocket
+    both come through here, so a token revoked by a password change or reset,
+    or belonging to a deleted account, is refused the same way everywhere.
+    `verify_token` alone only proves the signature and expiry, which is why
+    the WebSocket used to accept tokens the HTTP API had already retired.
+
+    Returns the decoded claims. Raises 401 with the same messages as before;
+    the token itself never appears in an error.
+    """
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     try:
-        token = credentials.credentials
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        username = payload.get('sub')
-        if username is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        user = await db.users.find_one({'username': username}, {'_id': 0, 'token_version': 1})
-        if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-        # Tokens issued before a password change or reset carry an older
-        # version and stop working. Tokens without 'tv' predate this check.
-        if int(payload.get('tv') or 0) != session_version(user):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired. Please sign in again.")
-        return username
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    username = payload.get('sub')
+    if not username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    user = await db.users.find_one({'username': username}, {'_id': 0, 'token_version': 1})
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    # Tokens issued before a password change or reset carry an older
+    # version and stop working. Tokens without 'tv' predate this check.
+    if int(payload.get('tv') or 0) != session_version(user):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired. Please sign in again.")
+    return payload
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    payload = await authenticate_session_token(getattr(credentials, 'credentials', None))
+    return payload['sub']
 
 
 def hash_password(password: str) -> str:
