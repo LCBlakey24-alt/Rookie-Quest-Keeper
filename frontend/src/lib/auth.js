@@ -1,4 +1,5 @@
 import { isLocalPreview, PREVIEW_TOKEN } from '@/preview/previewMode';
+import { accountFromToken, purgeDisplayCache } from '@/lib/liveDisplayScope';
 
 export const AUTH_TOKEN_KEY = 'dm_token';
 export const AUTH_USERNAME_KEY = 'dm_username';
@@ -86,8 +87,16 @@ export function getAuthToken() {
   return inMemoryAuthToken;
 }
 
+// The account whose session is ending, read before its token is forgotten.
+function currentTokenAccount() {
+  return accountFromToken(safeRead(AUTH_TOKEN_KEY) || inMemoryAuthToken || '');
+}
+
 export function clearAuthToken() {
   if (isLocalPreview()) return;
+  // Player Display content cached for this account must not outlive the
+  // session on a shared browser. Other accounts' records are untouched.
+  purgeDisplayCache(currentTokenAccount());
   inMemoryAuthToken = null;
   inMemoryAuthUsername = null;
   safeRemove(AUTH_TOKEN_KEY);
@@ -101,6 +110,11 @@ export function setAuthToken(token) {
   if (!token) {
     clearAuthToken();
     return;
+  }
+  const previousAccount = currentTokenAccount();
+  if (previousAccount && previousAccount !== accountFromToken(token)) {
+    // Signing in as someone else without signing out first.
+    purgeDisplayCache(previousAccount);
   }
   inMemoryAuthToken = safeWrite(AUTH_TOKEN_KEY, token) ? null : token;
   for (const key of LEGACY_TOKEN_KEYS) safeRemove(key);

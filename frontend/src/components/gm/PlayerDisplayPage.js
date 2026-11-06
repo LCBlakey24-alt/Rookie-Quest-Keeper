@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Dice6, HeartPulse, Maximize2, Minimize2, Monitor, Shield, ShieldCheck, Skull, Sparkles, Swords, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
-import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
+import { currentDisplayAccount, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
+import { AUTH_TOKEN_KEY } from '@/lib/auth';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
@@ -106,7 +107,12 @@ export default function PlayerDisplayPage() {
   const { campaignId } = useParams();
   const [searchParams] = useSearchParams();
   const urlTarget = searchParams.get('target');
-  const [state, setState] = useState(() => loadDisplayState(campaignId));
+  // Display content belongs to the signed-in account. It is re-read on every
+  // auth change, in this tab or another, and everything below is keyed on it.
+  const [accountId, setAccountId] = useState(() => currentDisplayAccount());
+  const [state, setState] = useState(() => loadDisplayState(campaignId, accountId));
+  // 'checking' | 'synced' | 'offline' | 'denied' | 'signed-out'
+  const [syncStatus, setSyncStatus] = useState(() => (accountId ? 'checking' : 'signed-out'));
   const [party, setParty] = useState([]);
   const [partyRefreshFailed, setPartyRefreshFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -127,11 +133,31 @@ export default function PlayerDisplayPage() {
   }, []);
 
   useEffect(() => {
-    setState(loadDisplayState(campaignId));
-    const unsubscribeLocal = subscribeDisplayState(campaignId, setState);
-    const unsubscribeRemote = subscribeRemoteDisplayState(campaignId, setState);
+    const refresh = () => setAccountId(currentDisplayAccount());
+    const onStorage = event => { if (event.key === null || event.key === AUTH_TOKEN_KEY) refresh(); };
+    window.addEventListener('rqk:auth-scope-changed', refresh);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('rqk:auth-scope-changed', refresh);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Switching campaign or account starts from that pair's own last-known
+    // state (or blank) -- never from what was on screen a moment ago.
+    setState(loadDisplayState(campaignId, accountId));
+    if (!accountId) {
+      setSyncStatus('signed-out');
+      return undefined;
+    }
+    setSyncStatus('checking');
+    const unsubscribeLocal = subscribeDisplayState(campaignId, setState, accountId);
+    const unsubscribeRemote = subscribeRemoteDisplayState(campaignId, setState, { account: accountId, onStatus: setSyncStatus });
     return () => { unsubscribeLocal(); unsubscribeRemote(); };
-  }, [campaignId]);
+  }, [campaignId, accountId]);
+
+  const restricted = syncStatus === 'denied' || syncStatus === 'signed-out';
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -166,10 +192,11 @@ export default function PlayerDisplayPage() {
         if (!cancelled && request === latestRequest) setPartyRefreshFailed(true);
       }
     };
+    if (!accountId) return () => { cancelled = true; };
     fetchParty();
     const timer = window.setInterval(fetchParty, 15000);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [campaignId]);
+  }, [campaignId, accountId]);
 
   const updatedLabel = useMemo(() => {
     if (!state?.updated_at) return '';
@@ -184,7 +211,8 @@ export default function PlayerDisplayPage() {
     const fromPayload = Array.isArray(payload.party) ? payload.party.map(normalisePartyMember) : [];
     return (fromPayload.length ? fromPayload : party).filter(member => member?.name).slice(0, 10);
   }, [payload.party, party]);
-  const showPartySidebar = !isTable(target) && !['combat', 'battle-start', 'group-check'].includes(mode) && partyMembers.length > 0;
+  const showPartySidebar = !restricted && !isTable(target) && !['combat', 'battle-start', 'group-check'].includes(mode) && partyMembers.length > 0;
+  const syncLabel = syncLabelFor(syncStatus, updatedLabel, mode);
 
   return (
     <main className="rqk-player-display" style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
@@ -204,13 +232,15 @@ export default function PlayerDisplayPage() {
         </header>
         <div className="rqk-player-display__stage" style={displayGridStyle(target, showPartySidebar)}>
           {showPartySidebar && <PartySidebar members={partyMembers} />}
-          <DisplayContent state={state} target={target} hasPartySidebar={showPartySidebar} partyMembers={partyMembers} />
+          {restricted
+            ? <AccessNotice status={syncStatus} />
+            : <DisplayContent state={state} target={target} hasPartySidebar={showPartySidebar} partyMembers={partyMembers} />}
         </div>
-        <PlayerBanner banner={payload.banner} target={target} />
+        {!restricted && <PlayerBanner banner={payload.banner} target={target} />}
       </div>
       <footer className="rqk-player-display__footer" style={footerStyle(target)}>
         <span>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Map-first table display' : 'Cinematic player display'}</span>
-        <span>{updatedLabel ? `Synced ${updatedLabel}` : 'Waiting for GM sync'} · {fullscreen ? 'F or Esc to exit fullscreen' : 'Press F for fullscreen'}</span>
+        <span data-testid="player-display-sync-status" data-sync-status={syncStatus}>{syncLabel} · {fullscreen ? 'F or Esc to exit fullscreen' : 'Press F for fullscreen'}</span>
       </footer>
     </main>
   );
@@ -523,8 +553,42 @@ function VisibleCreatureCard({ token, compact = false, target }) { return <artic
 const pageStyle = (target) => ({ height: '100dvh', maxHeight: '100dvh', minHeight: 0, width: '100%', maxWidth: '100vw', boxSizing: 'border-box', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
 const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'var(--rq-bg-deep, #0B1B2B)' : theme.bg, boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
 const displayGridStyle = (target, showParty) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateColumns: !isTable(target) && showParty ? 'minmax(155px, 205px) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: !isTable(target) && showParty ? 12 : 0, paddingTop: !isTable(target) && showParty ? 12 : 0 });
-const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
-const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? '4px 6px' : '7px 10px', background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
+/**
+ * What the footer may honestly claim. "Synced" only after a successful
+ * response for this account; an outage shows the last-known time as such.
+ */
+function syncLabelFor(status, updatedLabel, mode) {
+  if (status === 'synced') return updatedLabel ? `Synced ${updatedLabel}` : 'Synced';
+  if (status === 'offline') {
+    return mode !== 'blank' && updatedLabel ? `Not synced · last known ${updatedLabel}` : 'Not synced · reconnecting';
+  }
+  if (status === 'denied') return 'No access';
+  if (status === 'signed-out') return 'Signed out';
+  return 'Connecting…';
+}
+
+function AccessNotice({ status }) {
+  const signedOut = status === 'signed-out';
+  return (
+    <section role="alert" data-testid="player-display-access" style={accessNoticeStyle}>
+      <strong style={accessTitleStyle}>{signedOut ? 'Sign in to view this display' : 'This display is not available to your account'}</strong>
+      <span style={accessBodyStyle}>
+        {signedOut
+          ? 'Your session has ended, so nothing from this campaign is shown here.'
+          : 'Only the campaign\'s GM and its active players can see this campaign\'s player display.'}
+      </span>
+    </section>
+  );
+}
+
+const accessNoticeStyle = { gridColumn: '1 / -1', alignSelf: 'center', justifySelf: 'center', maxWidth: 560, display: 'grid', gap: 10, padding: '24px 22px', background: 'var(--rq-bg-panel, #0B1B2B)', border: '1px solid var(--rq-secondary, #3C92E0)', color: 'var(--rq-text-primary, #EADFC8)', textAlign: 'center' };
+const accessTitleStyle = { fontSize: 20, fontWeight: 900 };
+const accessBodyStyle = { fontSize: 14, lineHeight: 1.5, color: 'var(--rq-text-secondary, rgba(234,223,200,.78))' };
+// The fullscreen control is fixed top-right over the status bar. The bar
+// reserves room for it so status text (party sync warnings) is never hidden.
+const FULLSCREEN_CLEARANCE = 168;
+const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 44, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
+const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? `4px ${FULLSCREEN_CLEARANCE}px 4px 6px` : `7px ${FULLSCREEN_CLEARANCE}px 7px 10px`, background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
 const brandMarkStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, marginRight: 'auto' };
 const partyWarningStyle = { color: 'var(--rq-warning, #D39A43)', fontSize: 11, fontWeight: 750 };
 const statusPillStyle = (target) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: isTable(target) ? 22 : 26, padding: isTable(target) ? '0 6px' : '0 8px', background: 'rgba(255,255,255,0.07)', border: `1px solid ${theme.line}`, color: theme.soft });
