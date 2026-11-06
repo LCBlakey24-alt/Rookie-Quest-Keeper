@@ -68,7 +68,13 @@ beforeEach(() => {
   getOfflineCacheScope.mockReturnValue('user:player-a');
   listPendingRolls.mockReset();
   listPendingRolls.mockReturnValue([]);
-  queuePendingRoll.mockClear();
+  queuePendingRoll.mockReset();
+  queuePendingRoll.mockImplementation(({ scope, campaignId, event }) => ({
+    key: `${scope}:${campaignId}:${event.client_event_id}`,
+    scope,
+    campaignId,
+    event,
+  }));
   removePendingRoll.mockReset();
   jest.useRealTimers();
 });
