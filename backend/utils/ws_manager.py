@@ -1,6 +1,6 @@
 """WebSocket connection manager for real-time campaign sync."""
 from datetime import datetime, timezone
-from typing import Dict, Set
+from typing import Any, Dict, Optional, Set
 
 from fastapi import WebSocket
 
@@ -21,6 +21,12 @@ class ConnectionManager:
         self.campaign_sockets: Dict[str, Dict[WebSocket, str]] = {}
         # user_id -> every open socket for that user, across campaigns
         self.user_sockets: Dict[str, Set[WebSocket]] = {}
+        # socket -> its authorised session (utils.ws_session.SocketSession),
+        # so revocation can find and end exactly the affected sockets.
+        self.sessions: Dict[WebSocket, Any] = {}
+
+    def track_session(self, websocket: WebSocket, session: Any) -> None:
+        self.sessions[websocket] = session
 
     # Older code and tests read these names; keep them as live views.
     @property
@@ -31,8 +37,12 @@ class ConnectionManager:
     def campaign_users(self) -> Dict[str, Set[str]]:
         return {campaign_id: set(sockets.values()) for campaign_id, sockets in self.campaign_sockets.items()}
 
-    async def connect(self, websocket: WebSocket, user_id: str, campaign_id: str = None):
-        await websocket.accept()
+    async def connect(self, websocket: WebSocket, user_id: str, campaign_id: str = None,
+                      accept: bool = True):
+        # The live endpoint accepts the socket itself so it can read the
+        # first-message authentication; it only registers here afterwards.
+        if accept:
+            await websocket.accept()
         self.user_sockets.setdefault(user_id, set()).add(websocket)
 
         if campaign_id:
@@ -47,6 +57,7 @@ class ConnectionManager:
 
     def disconnect(self, websocket: WebSocket, user_id: str, campaign_id: str = None) -> bool:
         """Forget one socket. Returns True when the user has left the campaign entirely."""
+        self.sessions.pop(websocket, None)
         sockets = self.user_sockets.get(user_id)
         if sockets is not None:
             sockets.discard(websocket)
@@ -94,6 +105,30 @@ class ConnectionManager:
                 dead.append(connection)
         for connection in dead:
             self._drop_dead(connection)
+
+    async def revoke_user(self, user_id: str, code: int, reason: str,
+                          campaign_id: Optional[str] = None) -> int:
+        """Close every socket this process holds for a user (optionally one campaign).
+
+        Used when a password change/reset retires the user's tokens or the GM
+        removes them from a campaign. The socket is forgotten before it is
+        closed, so nothing more is delivered to it. Sockets held by other
+        processes are ended by their own periodic recheck. Returns how many
+        sockets were closed.
+        """
+        targets = [
+            (socket, session) for socket, session in list(self.sessions.items())
+            if getattr(session, 'username', None) == user_id
+            and (campaign_id is None or getattr(session, 'campaign_id', None) == campaign_id)
+        ]
+        for socket, session in targets:
+            session.revoked = True
+            self.disconnect(socket, user_id, getattr(session, 'campaign_id', None))
+            try:
+                await socket.close(code=code, reason=reason)
+            except Exception:
+                pass
+        return len(targets)
 
     def get_campaign_users(self, campaign_id: str) -> Set[str]:
         """Get list of connected users in a campaign"""

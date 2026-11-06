@@ -188,6 +188,8 @@ export default function FloatingDiceRoller() {
     setHistory(current => [rollRecord, ...current].slice(0, HISTORY_LIMIT));
     setRollFlicker({
       ...result,
+      rollId: rollRecord.id,
+      dyeId: loadDiceDyeId(),
       label: `${label}: ${formula}`,
       animationValue: getAnimationTarget(result),
     });
@@ -282,6 +284,7 @@ export default function FloatingDiceRoller() {
                     key={dye.id}
                     type="button"
                     className="rq-floating-dice__swatch"
+                    data-rq-colour-swatch="true"
                     data-testid={`dice-dye-${dye.id}`}
                     aria-pressed={dyeId === dye.id}
                     aria-label={dye.name}
@@ -323,6 +326,9 @@ export default function FloatingDiceRoller() {
 
       {rollFlicker && (
         <DiceRollFlicker
+          key={rollFlicker.rollId}
+          rollId={rollFlicker.rollId}
+          dyeId={rollFlicker.dyeId}
           isOpen={Boolean(rollFlicker)}
           onClose={() => setRollFlicker(null)}
           label={rollFlicker.label}

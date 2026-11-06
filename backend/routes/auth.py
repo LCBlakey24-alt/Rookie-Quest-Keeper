@@ -17,6 +17,7 @@ import re
 from pymongo.errors import DuplicateKeyError
 from datetime import datetime, timezone, timedelta
 import resend
+from utils.ws_session import end_live_sessions
 from starlette.concurrency import run_in_threadpool
 
 EMAIL_DELIVERY_CONFIGURED = bool(RESEND_API_KEY) and RESEND_API_KEY != 'your_resend_api_key_here'
@@ -387,6 +388,14 @@ async def reset_password(request: ResetPasswordRequest):
     
     if result.matched_count != 1:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset link is no longer valid")
+    # Every token was just retired; end the live sockets that used them.
+    # Best effort: the reset has already succeeded, and the periodic socket
+    # recheck ends these sessions anyway if this lookup cannot run.
+    try:
+        reset_user = await db.users.find_one({'email': reset_record['email']}, {'_id': 0, 'username': 1})
+        await end_live_sessions((reset_user or {}).get('username'))
+    except Exception:
+        pass
     return {"message": "Password reset successful"}
 
 
@@ -405,6 +414,9 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
         {'username': current_username},
         {'$set': {'password_hash': new_hash, 'token_version': new_version}}
     )
+    # Older tokens are retired, including the one this device's socket was
+    # opened with; it reconnects with the fresh token returned below.
+    await end_live_sessions(current_username)
 
     return {
         "message": "Password changed successfully",

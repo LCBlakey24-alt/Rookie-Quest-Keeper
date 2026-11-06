@@ -15,8 +15,18 @@
  * the half-typed creature form, for the same encounter with identical
  * content.
  *
- * So the draft lives here instead, per campaign and per encounter, and is
- * reconciled against refreshed data by stable id rather than rebuilt.
+ * So the draft lives here instead, per ACCOUNT, per campaign and per
+ * encounter, and is reconciled against refreshed data by stable id rather
+ * than rebuilt.
+ *
+ * Account scope follows the #759 offline-cache and combat-checkpoint
+ * convention: the identity is the `sub` of the current auth token (the same
+ * credential the backend authorises every request with), never the editable
+ * dm_username value. With no token there is no persistence at all. Session
+ * storage survives sign-out within a tab, so the account is part of the key
+ * AND stamped inside the record, and a record whose stamp disagrees with the
+ * reader is refused. This partitions drafts on a shared browser; it is not
+ * authorisation, which remains the backend's job.
  *
  * Inclusion is stored as EXCLUSIONS for things that default to in (prepared
  * combatants, party members) and as selections for things that default to out
@@ -28,25 +38,38 @@
  * roster is still built from canonical data at launch.
  */
 
-export const DRAFT_VERSION = 1;
+// v1 drafts (from the unreleased first cut of this feature) carried no
+// account. They cannot be attributed to anybody, so they are never read.
+export const DRAFT_VERSION = 2;
+const KEY_ROOT = 'rqk.encounterReviewDraft';
+const KEY_PREFIX = `${KEY_ROOT}.v${DRAFT_VERSION}.`;
 
 export const EMPTY_QUICK_DRAFT = { name: '', quantity: '1', hp: '', ac: '', initiative: '' };
 
-function keyPrefix(campaignId) {
-  return `rqk.encounterReviewDraft.${campaignId}`;
+/**
+ * In-page copy of every draft written this page lifetime, keyed exactly as
+ * storage is. When storage is full, blocked or silently drops the write, the
+ * GM still keeps the draft across a tool switch -- just not across a reload.
+ */
+const memoryDrafts = new Map();
+
+function normaliseAccount(accountId) {
+  return String(accountId || '').trim().toLowerCase();
 }
 
-export function draftStorageKey(campaignId, encounterId) {
-  return `${keyPrefix(campaignId)}.${encounterId || '__impromptu__'}`;
+export function draftStorageKey(accountId, campaignId, encounterId) {
+  const part = value => encodeURIComponent(String(value || ''));
+  return `${KEY_PREFIX}${part(normaliseAccount(accountId))}.${part(campaignId)}.${part(encounterId || '__impromptu__')}`;
 }
 
 function uniqueStrings(values) {
   return [...new Set((Array.isArray(values) ? values : []).map(String).filter(Boolean))];
 }
 
-export function createEmptyDraft(campaignId, encounterId) {
+export function createEmptyDraft(campaignId, encounterId, ownerId = '') {
   return {
     version: DRAFT_VERSION,
+    ownerId: normaliseAccount(ownerId),
     campaignId: String(campaignId || ''),
     encounterId: String(encounterId || ''),
     disabledBaseKeys: [],
@@ -59,32 +82,45 @@ export function createEmptyDraft(campaignId, encounterId) {
   };
 }
 
+/** Whether `draft` belongs to exactly this account, campaign and encounter. */
+export function draftMatches(draft, { accountId, campaignId, encounterId }) {
+  return Boolean(draft)
+    && normaliseAccount(draft.ownerId) === normaliseAccount(accountId)
+    && String(draft.campaignId || '') === String(campaignId || '')
+    && String(draft.encounterId || '') === String(encounterId || '');
+}
+
 /**
  * Fold refreshed data into a draft without undoing the GM's decisions.
  *
- * Anything that has gone is forgotten. Anything new is left at its default --
- * in for prepared combatants and party members, out for optional NPCs -- so a
- * player who joins mid-session appears, and one who was deliberately taken
- * out does not come back.
+ * Each list in `available` is either an array from a SUCCESSFUL response, or
+ * null/undefined when that data has not loaded or failed to load. Only an
+ * authoritative array may prune a selection. An empty party while the
+ * request is still in flight, or after it failed, is not evidence that the
+ * excluded player has left -- treating it as such used to drop the exclusion
+ * and bring them back into the fight on the next successful load.
+ *
+ * Against authoritative data, anything that has gone is forgotten and
+ * anything new is left at its default -- in for prepared combatants and party
+ * members, out for optional NPCs.
  */
 export function reconcileDraft(draft, available = {}) {
   const base = draft && typeof draft === 'object' ? draft : createEmptyDraft('', '');
-  const baseKeys = new Set(uniqueStrings(available.baseKeys));
-  const playerIds = new Set(uniqueStrings(available.playerIds));
-  const companionIds = new Set(uniqueStrings(available.companionIds));
-  const npcIds = new Set(uniqueStrings(available.npcIds));
+  const prune = (values, authoritative) => {
+    const list = uniqueStrings(values);
+    if (!Array.isArray(authoritative)) return list;
+    const present = new Set(uniqueStrings(authoritative));
+    return list.filter(value => present.has(value));
+  };
 
   return {
-    ...createEmptyDraft(base.campaignId, base.encounterId),
+    ...createEmptyDraft(base.campaignId, base.encounterId, base.ownerId),
     ...base,
     version: DRAFT_VERSION,
-    // Exclusions survive a refresh; exclusions of things that no longer
-    // exist do not linger and silently hide a later record reusing the key.
-    disabledBaseKeys: uniqueStrings(base.disabledBaseKeys).filter(key => baseKeys.has(key)),
-    excludedPlayerIds: uniqueStrings(base.excludedPlayerIds).filter(id => playerIds.has(id)),
-    // Opt-ins only survive while the thing is still on offer.
-    includedCompanionIds: uniqueStrings(base.includedCompanionIds).filter(id => companionIds.has(id)),
-    extraNpcIds: uniqueStrings(base.extraNpcIds).filter(id => npcIds.has(id)),
+    disabledBaseKeys: prune(base.disabledBaseKeys, available.baseKeys),
+    excludedPlayerIds: prune(base.excludedPlayerIds, available.playerIds),
+    includedCompanionIds: prune(base.includedCompanionIds, available.companionIds),
+    extraNpcIds: prune(base.extraNpcIds, available.npcIds),
     // Quick-added creatures belong to the GM, not to the backend. Nothing
     // the server says can remove them.
     quickCombatants: Array.isArray(base.quickCombatants) ? base.quickCombatants : [],
@@ -131,49 +167,101 @@ function storage(provided) {
   }
 }
 
-/**
- * Read this campaign and encounter's draft.
- *
- * A stored draft naming a different campaign or encounter is ignored rather
- * than adapted: a selection made for one table must never appear at another.
- */
-export function readDraft(campaignId, encounterId, provided) {
-  const store = storage(provided);
-  if (!store || !campaignId) return null;
+function parseOwned(raw, scope) {
+  if (!raw) return null;
   try {
-    const raw = store.getItem(draftStorageKey(campaignId, encounterId));
-    if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
     if (Number(parsed.version) !== DRAFT_VERSION) return null;
-    if (String(parsed.campaignId) !== String(campaignId)) return null;
-    if (String(parsed.encounterId || '') !== String(encounterId || '')) return null;
-    return { ...createEmptyDraft(campaignId, encounterId), ...parsed };
+    if (!draftMatches(parsed, scope)) return null;
+    return { ...createEmptyDraft(scope.campaignId, scope.encounterId, scope.accountId), ...parsed };
   } catch {
     return null;
   }
 }
 
-export function writeDraft(draft, provided) {
+/**
+ * Read this account, campaign and encounter's draft.
+ *
+ * A record naming a different account, campaign or encounter is refused
+ * rather than adapted: a selection made at one table, or by one person, must
+ * never appear for another. Without an account nothing is read.
+ */
+export function readDraft(campaignId, encounterId, { accountId, storage: provided } = {}) {
+  const account = normaliseAccount(accountId);
+  if (!account || !campaignId) return null;
+  const scope = { accountId: account, campaignId, encounterId };
+  const key = draftStorageKey(account, campaignId, encounterId);
+  // Memory first: it is never older than storage within this page, and it is
+  // the only copy when storage refused the last write.
+  const remembered = parseOwned(memoryDrafts.get(key), scope);
+  if (remembered) return remembered;
   const store = storage(provided);
-  if (!store || !draft?.campaignId) return false;
+  if (!store) return null;
   try {
-    store.setItem(
-      draftStorageKey(draft.campaignId, draft.encounterId),
-      JSON.stringify({ ...draft, version: DRAFT_VERSION, savedAt: Date.now() }),
-    );
-    return true;
+    return parseOwned(store.getItem(key), scope);
   } catch {
-    // A full or blocked store costs the GM the draft on a tool switch, which
-    // is the behaviour they had before. It must not break the review.
-    return false;
+    return null;
   }
 }
 
-export function clearDraft(campaignId, encounterId, provided) {
+/**
+ * Persist a draft for `accountId`.
+ *
+ * Returns 'saved' only when the write was read back intact. 'memory' means
+ * the draft is held for this page only (storage full, denied, unavailable or
+ * silently dropped the write). 'refused' means the draft is not this
+ * account's -- for example a write left over from before an account switch --
+ * and nothing was stored anywhere.
+ */
+export function writeDraft(draft, { accountId, storage: provided } = {}) {
+  const account = normaliseAccount(accountId);
+  if (!account || !draft?.campaignId) return 'refused';
+  if (normaliseAccount(draft.ownerId) !== account) return 'refused';
+  const key = draftStorageKey(account, draft.campaignId, draft.encounterId);
+  const serialised = JSON.stringify({ ...draft, ownerId: account, version: DRAFT_VERSION, savedAt: Date.now() });
+  memoryDrafts.set(key, serialised);
+  const store = storage(provided);
+  if (!store) return 'memory';
+  try {
+    store.setItem(key, serialised);
+    return store.getItem(key) === serialised ? 'saved' : 'memory';
+  } catch {
+    return 'memory';
+  }
+}
+
+export function clearDraft(campaignId, encounterId, { accountId, storage: provided } = {}) {
+  const account = normaliseAccount(accountId);
+  if (!account || !campaignId) return;
+  const key = draftStorageKey(account, campaignId, encounterId);
+  memoryDrafts.delete(key);
   const store = storage(provided);
   if (!store) return;
   try {
-    store.removeItem(draftStorageKey(campaignId, encounterId));
+    store.removeItem(key);
   } catch { /* nothing to do */ }
+}
+
+/**
+ * Remove v1 drafts. They carry no account, so they cannot be shown to anyone
+ * safely, and holding them only risks a later reader mistaking them for its
+ * own. They are choices, never character or campaign data.
+ */
+export function purgeUnownedDrafts(provided) {
+  const store = storage(provided);
+  if (!store) return;
+  try {
+    const stale = [];
+    for (let index = 0; index < store.length; index += 1) {
+      const key = store.key(index);
+      if (key && key.startsWith(`${KEY_ROOT}.`) && !key.startsWith(KEY_PREFIX)) stale.push(key);
+    }
+    stale.forEach(key => store.removeItem(key));
+  } catch { /* best effort */ }
+}
+
+/** Drop in-page copies, e.g. when nobody is signed in any more. */
+export function forgetDraftsInMemory() {
+  memoryDrafts.clear();
 }

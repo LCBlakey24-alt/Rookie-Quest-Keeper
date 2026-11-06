@@ -6,7 +6,7 @@
  * tool from each, come back to Encounters and find the draft intact.
  */
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import LiveSessionGridMode from './LiveSessionGridMode';
 
@@ -44,17 +44,41 @@ function mockApi() {
   });
 }
 
-function openLivePlay(width = 1440) {
-  setWidth(width);
-  return render(
+function livePlayElement(campaignId = CAMPAIGN, overrides = {}) {
+  return (
     <MemoryRouter>
       <LiveSessionGridMode
-        campaignId={CAMPAIGN} scenarios={SCENARIOS} players={PLAYERS}
+        campaignId={campaignId} scenarios={SCENARIOS} players={PLAYERS}
         renderTool={toolId => <div data-testid={`tool-${toolId}`}>{toolId}</div>}
         onOpenSingleTab={() => {}} onRollDice={() => {}} onResumeCombat={() => {}}
+        {...overrides}
       />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
+}
+
+function openLivePlay(width = 1440, overrides = {}) {
+  setWidth(width);
+  return render(livePlayElement(CAMPAIGN, overrides));
+}
+
+function signInAs(accountId) {
+  const payload = window.btoa(JSON.stringify({ sub: accountId }));
+  localStorage.setItem('dm_token', `header.${payload}.signature`);
+}
+
+function validCheckpoint(accountId = 'keeper-gm', campaignId = CAMPAIGN) {
+  return {
+    version: 3,
+    ownerId: accountId,
+    campaignId,
+    scenarioId: 'hm01',
+    scenarioName: 'Hollowmere Ambush',
+    combatants: [{ id: 'g1', name: 'Goblin' }],
+    currentTurn: 0,
+    round: 3,
+    source: 'live-play',
+  };
 }
 
 const counts = async () => (await screen.findByTestId('live-encounter-roster-counts')).textContent;
@@ -62,6 +86,7 @@ const counts = async () => (await screen.findByTestId('live-encounter-roster-cou
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
+  signInAs('keeper-gm');
   mockApi();
   localStorage.setItem(`gm.liveMode.focus.${CAMPAIGN}`, 'overview');
 });
@@ -122,11 +147,60 @@ describe('the rail itself', () => {
   });
 
   test('and does appear when one is', async () => {
-    localStorage.setItem(`gm.activeCombat.${CAMPAIGN}`, JSON.stringify({
-      scenarioId: 'hm01', combatants: [{ id: 'g1', name: 'Goblin' }], round: 3,
-    }));
+    signInAs('keeper-gm');
+    localStorage.setItem(`gm.activeCombat.${CAMPAIGN}`, JSON.stringify(validCheckpoint()));
+    const onResumeCombat = jest.fn();
+    openLivePlay(1440, { onResumeCombat });
+    expect(await screen.findByTestId('live-tool-resume-combat')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('live-tool-resume-combat'));
+    expect(onResumeCombat).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('live-encounter-launcher')).not.toBeInTheDocument();
+  });
+
+  test('a saved fight belonging to another account is never offered', async () => {
+    signInAs('keeper-gm');
+    localStorage.setItem(`gm.activeCombat.${CAMPAIGN}`, JSON.stringify(validCheckpoint('different-gm')));
+    openLivePlay();
+    await screen.findByTestId('live-tool-rail');
+    expect(screen.queryByTestId('live-tool-resume-combat')).not.toBeInTheDocument();
+  });
+
+  test('an account switch removes the previous account resume action immediately', async () => {
+    signInAs('keeper-gm');
+    localStorage.setItem(`gm.activeCombat.${CAMPAIGN}`, JSON.stringify(validCheckpoint()));
     openLivePlay();
     expect(await screen.findByTestId('live-tool-resume-combat')).toBeInTheDocument();
+
+    signInAs('different-gm');
+    act(() => window.dispatchEvent(new CustomEvent('rqk:auth-scope-changed')));
+    await waitFor(() => expect(screen.queryByTestId('live-tool-resume-combat')).not.toBeInTheDocument());
+  });
+
+  test('an unstamped legacy fight is preserved but not advertised as safe to resume', async () => {
+    signInAs('keeper-gm');
+    const legacy = validCheckpoint();
+    delete legacy.ownerId;
+    localStorage.setItem(`gm.activeCombat.${CAMPAIGN}`, JSON.stringify(legacy));
+    openLivePlay();
+    await screen.findByTestId('live-tool-rail');
+    expect(screen.queryByTestId('live-tool-resume-combat')).not.toBeInTheDocument();
+  });
+});
+
+describe('campaign boundaries', () => {
+  test('switching campaigns loads that campaign preference without overwriting it', async () => {
+    const otherCampaign = 'camp-2';
+    localStorage.setItem(`gm.liveMode.focus.${CAMPAIGN}`, JSON.stringify({ activeTool: 'maps' }));
+    localStorage.setItem(`gm.liveMode.focus.${otherCampaign}`, JSON.stringify({ activeTool: 'monsters' }));
+    const view = openLivePlay();
+    expect(await screen.findByTestId('tool-maps')).toBeInTheDocument();
+
+    view.rerender(livePlayElement(otherCampaign));
+    expect(await screen.findByTestId('tool-monsters')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem(`gm.liveMode.focus.${otherCampaign}`)))
+      .toEqual({ activeTool: 'monsters' });
+    expect(JSON.parse(localStorage.getItem(`gm.liveMode.focus.${CAMPAIGN}`)))
+      .toEqual({ activeTool: 'maps' });
   });
 });
 
@@ -201,10 +275,17 @@ describe('the phone drawer', () => {
 
   test('it opens, shows the current tool, and closes on its own control', async () => {
     openLivePlay(390);
+    const menu = await screen.findByTestId('live-tool-menu');
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
+    expect(menu).toHaveAttribute('aria-controls', 'rqk-live-tool-drawer');
     const drawer = await openDrawer();
+    expect(menu).toHaveAttribute('aria-expanded', 'true');
+    expect(drawer).toHaveAttribute('role', 'dialog');
+    expect(drawer).toHaveAttribute('aria-modal', 'true');
     expect(within(drawer).getByTestId('live-tool-rail-current')).toHaveTextContent('Run Overview');
     fireEvent.click(within(drawer).getByTestId('live-tool-rail-close'));
     await waitFor(() => expect(screen.queryByTestId('live-tool-rail')).not.toBeInTheDocument());
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
   });
 
   test('Escape closes it', async () => {

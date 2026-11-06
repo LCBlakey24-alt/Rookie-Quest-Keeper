@@ -9,6 +9,7 @@ jest.mock('@/lib/apiClient', () => ({
   default: { get: jest.fn() },
 }));
 jest.mock('@/lib/liveDisplayBus', () => ({
+  currentDisplayAccount: () => 'synthetic-account',
   loadDisplayState: () => ({ mode: 'blank', payload: {} }),
   subscribeDisplayState: () => () => {},
   subscribeRemoteDisplayState: () => () => {},

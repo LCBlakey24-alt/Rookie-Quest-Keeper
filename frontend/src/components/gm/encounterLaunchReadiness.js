@@ -25,6 +25,9 @@
  *   the GM some convenience and nothing else.
  */
 
+/** Shown on the review and in the confirmation whenever the party failed. */
+export const PARTY_UNAVAILABLE_MESSAGE = 'The party could not be loaded, so some player characters may be missing.';
+
 const OPTIONAL_SECTIONS = {
   npcs: 'saved NPCs',
   liveState: 'travelling companions',
@@ -67,7 +70,7 @@ export function describeLaunchReadiness({
       canLaunch: false,
       needsPartyConfirmation: false,
       blockReason: partyUnavailable
-        ? 'The party could not be loaded, so Rookie cannot tell who is missing. Retry before starting combat.'
+        ? `${PARTY_UNAVAILABLE_MESSAGE} Retry before starting combat.`
         : 'Choose a player, NPC or creature before starting combat.',
       warnings,
       partyUnavailable,
@@ -81,7 +84,7 @@ export function describeLaunchReadiness({
     return {
       canLaunch: false,
       needsPartyConfirmation: true,
-      blockReason: 'The party could not be loaded. Retry, or start this fight without the player characters.',
+      blockReason: `${PARTY_UNAVAILABLE_MESSAGE} Retry, or start this fight without the player characters.`,
       warnings,
       partyUnavailable,
     };

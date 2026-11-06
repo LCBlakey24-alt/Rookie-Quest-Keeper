@@ -1,13 +1,12 @@
 /**
  * One answer to "which encounter is next", shared by Run and by Review.
  *
- * They used to disagree. The Run overview showed `prepared[0]` -- the first
- * element of whatever array it had been handed, taking no account of
- * live_default, live_ready, played, legacy or planned_encounter_order. Its
+ * They used to disagree. Run correctly filtered ready, unplayed, current
+ * encounters and sorted them by planned order, but ignored live_default. Its
  * button then called onSelect('combat') and passed no encounter identity at
- * all. Encounter Review chose for itself, and preferred the id remembered in
- * gm.lastEncounter, which is written when a fight LAUNCHES and therefore
- * usually names the encounter the GM has already played.
+ * all. Encounter Review chose for itself and preferred live_default or the id
+ * remembered in gm.lastEncounter, which is written when a fight LAUNCHES and
+ * therefore usually names the encounter the GM has already played.
  *
  * So the GM read one name on Run, clicked it, and opened another. Both
  * surfaces now rank encounters the same way, and the one shown on Run is
@@ -32,7 +31,10 @@ function readiness(encounter) {
 }
 
 function plannedOrder(encounter) {
-  const order = Number(encounter?.planned_encounter_order);
+  const raw = encounter?.planned_encounter_order;
+  // Null and empty are unplanned, not order zero (Number(null) === 0).
+  if (raw == null || raw === '') return Infinity;
+  const order = Number(raw);
   return Number.isFinite(order) ? order : Infinity;
 }
 
@@ -83,21 +85,32 @@ export function resolveEncounterSelection({
 
   const isLegacy = id => available.find(item => item.id === id)?.legacy === true;
 
-  if (has(requestedId)) return { id: requestedId, reason: 'requested', missingRequest: '' };
+  if (requestedId) {
+    if (has(requestedId)) return { id: requestedId, reason: 'requested', missingRequest: '' };
+    // A request is a deliberate event. If its target was deleted between the
+    // source screen and Review, choosing either the previous selection or the
+    // ranked default would disguise the failure as a successful handoff.
+    return { id: '', reason: 'missing-request', missingRequest: requestedId };
+  }
   // A choice the GM made in this session stands, archived or not: they can
   // see what they picked.
   if (has(gmSelectedId)) return { id: gmSelectedId, reason: 'gm-selected', missingRequest: '' };
+  if (reportMissingSelection && gmSelectedId) {
+    return { id: '', reason: 'missing-selection', missingRequest: gmSelectedId };
+  }
   // A remembered one is different. Nobody chose it just now, so an archived
   // encounter must not come back on its own.
-  if (allowRemembered && has(rememberedId) && !isLegacy(rememberedId)) {
-    return { id: rememberedId, reason: 'remembered', missingRequest: '' };
+  if (allowRemembered && rememberedId) {
+    if (has(rememberedId) && !isLegacy(rememberedId)) {
+      return { id: rememberedId, reason: 'remembered', missingRequest: '' };
+    }
+    if (!has(rememberedId)) {
+      return { id: '', reason: 'missing-remembered', missingRequest: rememberedId };
+    }
+    // A legacy target still exists, but is intentionally ineligible for
+    // automatic restoration. Continue to the current prepared ranking.
   }
 
   // Which absent id, if any, is worth naming to the GM.
-  let missingRequest = '';
-  if (requestedId) missingRequest = requestedId;
-  else if (allowRemembered && rememberedId) missingRequest = rememberedId;
-  else if (reportMissingSelection && gmSelectedId) missingRequest = gmSelectedId;
-
-  return { id: fallback, reason: fallback ? 'next' : 'none', missingRequest };
+  return { id: fallback, reason: fallback ? 'next' : 'none', missingRequest: '' };
 }

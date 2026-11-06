@@ -30,6 +30,62 @@ async function avoidThirdPartyRequests(page: Page) {
     ? route.continue() : route.abort());
 }
 
+const syntheticDisplayToken = (() => {
+  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  return `${encode({ alg: 'HS256' })}.${encode({ sub: 'responsive-display-user', exp: 4102444800 })}.sig`;
+})();
+
+function rectanglesOverlap(left: { x: number; y: number; width: number; height: number } | null, right: { x: number; y: number; width: number; height: number } | null) {
+  if (!left || !right) return false;
+  return left.x < right.x + right.width
+    && left.x + left.width > right.x
+    && left.y < right.y + right.height
+    && left.y + left.height > right.y;
+}
+
+test('Player Display fixed controls never cover its security and sync status', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.addInitScript(token => {
+    localStorage.setItem('dm_token', token);
+    localStorage.setItem('dm_username', 'responsive-display-user');
+    class QuietWebSocket {
+      readyState = 0;
+      send() {}
+      close() { this.readyState = 3; }
+    }
+    window.WebSocket = QuietWebSocket as unknown as typeof WebSocket;
+  }, syntheticDisplayToken);
+  await page.route('**/api/**', route => {
+    const url = route.request().url();
+    if (url.endsWith('/auth/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: '{"username":"responsive-display-user"}' });
+    if (url.endsWith('/display-state')) return route.fulfill({ status: 403, contentType: 'application/json', body: '{"detail":"Forbidden"}' });
+    if (url.endsWith('/players')) return route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"Synthetic party outage"}' });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/player-display/responsive-campaign');
+  const display = page.getByTestId('player-display-page');
+  const fullscreen = display.locator('.rqk-player-display__fullscreen');
+  const warning = display.getByText(/Party sync unavailable/i);
+  const footerContext = display.locator('.rqk-player-display__footer > span').first();
+  const syncStatus = page.getByTestId('player-display-sync-status');
+  const feedback = page.getByTestId('global-feedback-btn');
+  const dice = page.locator('.rq-floating-dice');
+  await expect(syncStatus).toContainText('No access');
+  await expect(warning).toBeVisible();
+  await expect(feedback).toBeVisible();
+  await expect(dice).toBeVisible();
+
+  const [fullscreenBox, warningBox, feedbackBox, syncBox, diceBox, contextBox] = await Promise.all([
+    fullscreen.boundingBox(), warning.boundingBox(), feedback.boundingBox(), syncStatus.boundingBox(), dice.boundingBox(), footerContext.boundingBox(),
+  ]);
+  expect(await fullscreen.evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+  expect(rectanglesOverlap(fullscreenBox, warningBox), 'Fullscreen covered the party-sync warning').toBe(false);
+  expect(rectanglesOverlap(feedbackBox, syncBox), 'Feedback covered the access/sync status').toBe(false);
+  expect(rectanglesOverlap(diceBox, contextBox), 'Dice covered the display context footer').toBe(false);
+  await assertFitsViewport(page, 1024);
+});
+
 
 // Live Play should use one sticky vertical rail on large screens, but one
 // horizontally swipeable navigation row on phones. Never make the full page
@@ -104,6 +160,49 @@ for (const size of appSizes) {
       expect(Math.min(...buttonHeights), 'Desktop display controls need 40px targets').toBeGreaterThanOrEqual(40);
     }
     await assertFitsViewport(page, size.width);
+  });
+}
+
+for (const size of appSizes) {
+  test(`Encounter Review is keyboard-usable and fits ${size.label} (${size.width}x${size.height})`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+
+    const encounters = page.getByTestId('live-tool-combat');
+    await encounters.focus();
+    await expect(encounters).toBeFocused();
+    await page.keyboard.press('Enter');
+
+    const launcher = page.getByTestId('live-encounter-launcher');
+    await expect(launcher).toBeVisible();
+    const choice = launcher.getByRole('combobox', { name: 'Choose battle type' });
+    await expect(choice).toHaveValue('');
+    await expect(choice.getByRole('option', { name: /Impromptu Battle/i })).toBeAttached();
+    const launch = launcher.getByRole('button', { name: 'Start Impromptu Battle' });
+    await expect(launch).toBeVisible();
+    await expect(page.getByText(/No preparation needed/i)).toBeVisible();
+    await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
+
+    // Reset review (#764) sits before Start in reading order; both must be
+    // reachable by keyboard and large enough to tap.
+    const reset = launcher.getByRole('button', { name: 'Reset review' });
+    const [choiceBounds, resetBounds, launchBounds] = await Promise.all([choice.boundingBox(), reset.boundingBox(), launch.boundingBox()]);
+    expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
+    expect(resetBounds?.height).toBeGreaterThanOrEqual(44);
+    expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
+    await choice.focus();
+    await expect(choice).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(reset).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(launch).toBeFocused();
+    await assertFitsViewport(page, size.width);
+
+    await testInfo.attach(`encounter-review-${size.label}`, {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    });
   });
 }
 
@@ -227,10 +326,14 @@ for (const size of [
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
 
-    const campaignId = 'browser-smoke-fixture';
+    // The demo workspace's own campaign: a campaign that does not exist is
+    // refused (404) and its display is blanked, by design (#773).
+    const campaignId = 'preview-campaign';
+    // Display records are owned (#773): the read-only demo's scope is
+    // 'local-preview', and an unowned v1 record is refused by design.
     await page.addInitScript(id => {
       sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
-      localStorage.setItem(`rqk.liveDisplay.${id}`, JSON.stringify({
+      localStorage.setItem(`rqk.liveDisplay.v2.local-preview.${encodeURIComponent(id)}`, JSON.stringify({ owner: 'local-preview', campaign_id: id, state: {
         sync_id: 'browser-smoke-npcs',
         mode: 'npc-grid',
         updated_at: '2099-12-31T23:59:59.000Z',
@@ -246,7 +349,7 @@ for (const size of [
             { id: 'four', name: 'Captain Thorn' },
           ],
         },
-      }));
+      } }));
     }, campaignId);
     await page.goto(`/player-display/${campaignId}?target=standing-tv`);
     const display = page.getByTestId('player-display-page');
@@ -281,7 +384,7 @@ test('large 720p NPC scenes paginate instead of squeezing 17 portraits into one 
   await avoidThirdPartyRequests(page);
   await page.addInitScript(() => {
     sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
-    localStorage.setItem('rqk.liveDisplay.browser-smoke-large', JSON.stringify({
+    localStorage.setItem('rqk.liveDisplay.v2.local-preview.preview-campaign', JSON.stringify({ owner: 'local-preview', campaign_id: 'preview-campaign', state: {
       mode: 'npc-grid', sync_id: 'paging-test', sequence: 4102444799000,
       updated_at: '2099-12-31T23:59:59.000Z',
       payload: {
@@ -290,9 +393,9 @@ test('large 720p NPC scenes paginate instead of squeezing 17 portraits into one 
           id: String(index + 1), name: `NPC ${index + 1}`,
         })),
       },
-    }));
+    } }));
   });
-  await page.goto('/player-display/browser-smoke-large?target=standing-tv');
+  await page.goto('/player-display/preview-campaign?target=standing-tv');
   await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-mode', 'npc-grid');
   await expect(page.locator('.rqk-player-display__npc-card')).toHaveCount(8);
   await expect(page.getByText('Page 1 of 3 · 17 NPCs')).toBeVisible();
@@ -311,18 +414,18 @@ test('a physical TV keeps its layout even when the last GM broadcast targeted a 
   await avoidThirdPartyRequests(page);
   await page.addInitScript(() => {
     sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
-    localStorage.setItem('rqk.liveDisplay.browser-smoke-target', JSON.stringify({
+    localStorage.setItem('rqk.liveDisplay.v2.local-preview.preview-campaign', JSON.stringify({ owner: 'local-preview', campaign_id: 'preview-campaign', state: {
       mode: 'title', sync_id: 'layout-test', sequence: 4102444799000,
       updated_at: '2099-12-31T23:59:59.000Z',
       payload: {
         display_target: 'virtual-table', title: 'A New Scene',
       },
-    }));
+    } }));
   });
-  await page.goto('/player-display/browser-smoke-target?target=standing-tv');
+  await page.goto('/player-display/preview-campaign?target=standing-tv');
   await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'standing-tv');
   await expect(page.getByRole('heading', { name: 'A New Scene' })).toBeVisible();
-  await page.goto('/player-display/browser-smoke-target?target=virtual-table');
+  await page.goto('/player-display/preview-campaign?target=virtual-table');
   await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'virtual-table');
 });
 

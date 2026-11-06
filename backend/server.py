@@ -4,23 +4,21 @@ Thin entry point that assembles all modular routers.
 """
 import asyncio
 import logging
+import os
 
-from fastapi import FastAPI, APIRouter, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, APIRouter, Request
 from pymongo.errors import PyMongoError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from config import client, db, logger, CORS_ORIGIN_LIST
 from routes.auth import EMAIL_DELIVERY_CONFIGURED
-from utils.ws_manager import ws_manager
-from utils.ws_messages import GM_ONLY_MESSAGE_TYPES, is_allowed_client_message_type, parse_client_message
-from utils.auth import verify_token, verify_campaign_membership
+from utils.live_socket import websocket_campaign_sync
 from utils.rate_limit import RateLimitMiddleware
 from utils.child_access import ChildAccountMiddleware
 from routes import all_routers
 from routes.rule_systems import initialize_rule_systems
 
-from datetime import datetime, timezone
 
 # Create the main app
 app = FastAPI()
@@ -72,7 +70,11 @@ async def database_unavailable_handler(request: Request, exc: PyMongoError):
 @app.get("/api/health")
 async def health_check():
     """Return whether the FastAPI process itself is running."""
-    return {"status": "healthy", "service": "rook-backend"}
+    # Render sets RENDER_GIT_COMMIT on every deploy. Exposing the short SHA
+    # lets a release be verified against the backend itself rather than
+    # inferred from the frontend deployment.
+    revision = (os.environ.get("RENDER_GIT_COMMIT") or "")[:12]
+    return {"status": "healthy", "service": "rook-backend", "revision": revision}
 
 
 @app.get("/ready")
@@ -100,110 +102,8 @@ async def readiness_check():
     }
 
 
-# WebSocket endpoint for real-time campaign sync
-@app.websocket("/ws/campaign/{campaign_id}")
-async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
-    """WebSocket endpoint for real-time campaign synchronization"""
-    token = websocket.query_params.get("token")
-    if not token:
-        await websocket.close(code=4001, reason="Missing authentication token")
-        return
-
-    try:
-        username = verify_token(token)
-        campaign = await verify_campaign_membership(campaign_id, username)
-    except Exception:
-        await websocket.close(code=4001, reason="Invalid token or campaign access denied")
-        return
-
-    is_gm = (campaign or {}).get("dm_user_id") == username
-    await ws_manager.connect(websocket, username, campaign_id)
-
-    try:
-        while True:
-            data = parse_client_message(await websocket.receive_text())
-            if data is None:
-                await websocket.send_json({
-                    "type": "error",
-                    "code": "invalid_message",
-                    "message": "Live campaign messages must be JSON objects under 64 KB.",
-                })
-                continue
-            msg_type = data.get("type", "")
-
-            if not is_allowed_client_message_type(msg_type):
-                await websocket.send_json({
-                    "type": "error",
-                    "code": "unsupported_message_type",
-                    "message": "Unsupported live campaign message type.",
-                })
-                continue
-
-            if msg_type in GM_ONLY_MESSAGE_TYPES and not is_gm:
-                await websocket.send_json({
-                    "type": "error",
-                    "code": "gm_only",
-                    "message": "Only the GM can change the shared map or initiative.",
-                })
-                continue
-
-            if msg_type == "ping":
-                await websocket.send_json({"type": "pong"})
-            elif msg_type == "cursor_move":
-                await ws_manager.broadcast_to_campaign(campaign_id, {
-                    "type": "cursor_update",
-                    "user_id": username,
-                    "position": data.get("position", {}),
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }, exclude=websocket)
-            elif msg_type == "map_update":
-                await ws_manager.broadcast_to_campaign(campaign_id, {
-                    "type": "map_update",
-                    "user_id": username,
-                    "data": data.get("data", {}),
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }, exclude=websocket)
-            elif msg_type == "initiative_update":
-                await ws_manager.broadcast_to_campaign(campaign_id, {
-                    "type": "initiative_update",
-                    "user_id": username,
-                    "data": data.get("data", {}),
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }, exclude=websocket)
-            elif msg_type == "chat_message":
-                await ws_manager.broadcast_to_campaign(campaign_id, {
-                    "type": "chat_message",
-                    "user_id": username,
-                    "message": data.get("message", ""),
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }, exclude=websocket)
-            elif msg_type == "dice_roll":
-                await ws_manager.broadcast_to_campaign(campaign_id, {
-                    "type": "dice_roll",
-                    "user_id": username,
-                    "roll": data.get("roll", {}),
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }, exclude=websocket)
-            elif msg_type == "get_users":
-                users = ws_manager.get_campaign_users(campaign_id)
-                await websocket.send_json({
-                    "type": "user_list",
-                    "users": list(users)
-                })
-
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        logger.error(f"WebSocket error: {e}")
-    finally:
-        # Only announce a departure when this was the person's last open
-        # screen in the campaign (the GM often has two windows open).
-        if ws_manager.disconnect(websocket, username, campaign_id):
-            await ws_manager.broadcast_to_campaign(campaign_id, {
-                "type": "user_left",
-                "user_id": username,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            })
+# WebSocket endpoint for real-time campaign sync (utils/live_socket.py)
+app.add_api_websocket_route("/ws/campaign/{campaign_id}", websocket_campaign_sync)
 
 
 async def run_startup_maintenance():

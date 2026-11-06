@@ -78,7 +78,8 @@ describe('a party that could not be read is different from an empty one', () => 
     });
     expect(result.canLaunch).toBe(false);
     expect(result.needsPartyConfirmation).toBe(false);
-    expect(result.blockReason).toContain('cannot tell who is missing');
+    expect(result.blockReason).toContain('The party could not be loaded, so some player characters may be missing.');
+    expect(result.blockReason).toContain('Retry');
   });
 
   test('a party failure plus an optional failure still only asks about the party', () => {

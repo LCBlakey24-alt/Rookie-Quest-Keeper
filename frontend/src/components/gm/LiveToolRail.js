@@ -80,6 +80,9 @@ export default function LiveToolRail({
   return (
     <nav
       ref={containerRef}
+      id={isDrawer ? 'rqk-live-tool-drawer' : undefined}
+      role={isDrawer ? 'dialog' : undefined}
+      aria-modal={isDrawer ? 'true' : undefined}
       className={`rqk-tool-rail rqk-tool-rail--${variant}`}
       data-testid="live-tool-rail"
       aria-label="Live Play tools"
@@ -208,7 +211,7 @@ export default function LiveToolRail({
 }
 
 /** The control that opens the drawer on a phone. */
-export function LiveToolMenuButton({ onOpen, activeTool }) {
+export function LiveToolMenuButton({ onOpen, activeTool, open = false }) {
   return (
     <button
       type="button"
@@ -216,6 +219,8 @@ export function LiveToolMenuButton({ onOpen, activeTool }) {
       className="rqk-tool-rail__menu-button"
       data-testid="live-tool-menu"
       aria-haspopup="dialog"
+      aria-expanded={open}
+      aria-controls="rqk-live-tool-drawer"
     >
       <Menu size={18} aria-hidden="true" />
       <span>Tools</span>
