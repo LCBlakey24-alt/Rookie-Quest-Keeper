@@ -9,21 +9,61 @@ from datetime import datetime, timezone
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-from config import logger
+from config import CORS_ORIGIN_LIST, logger
 from utils.ws_manager import ws_manager
 from utils.ws_messages import GM_ONLY_MESSAGE_TYPES, is_allowed_client_message_type, parse_client_message
-from utils.ws_session import SocketRejected, authorise_campaign_socket, watch_session
+from utils.ws_session import (
+    AUTH_DEADLINE_SECONDS,
+    CLOSE_FORBIDDEN,
+    CLOSE_UNAUTHENTICATED,
+    REASON_AUTH_REQUIRED,
+    REASON_ORIGIN,
+    SocketRejected,
+    authorise_campaign_socket,
+    first_message_token,
+    origin_allowed,
+    watch_session,
+)
 
 
 # WebSocket endpoint for real-time campaign sync
 async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
     """WebSocket endpoint for real-time campaign synchronization.
 
-    Authorised with the same session policy as the HTTP API, and kept
-    authorised by `watch_session` for as long as it is open -- see
-    utils/ws_session.py for the policy and the revocation window.
+    Handshake (PR "live socket transport"):
+      1. Origin must be one the API already trusts (CORS_ORIGINS), checked
+         before the upgrade is accepted -- cross-site WebSocket hijacking.
+      2. The socket is accepted, but joins no campaign and is sent nothing.
+      3. The first message must be {"type": "auth", "token": ...} within
+         AUTH_DEADLINE_SECONDS. A token in the URL is refused outright:
+         URLs are written to access logs.
+      4. Only then the #772 session policy runs (revocation, deleted
+         account, child accounts, campaign membership), the socket is
+         registered, and it is kept authorised by `watch_session`.
     """
-    token = websocket.query_params.get("token")
+    if not origin_allowed(websocket.headers.get("origin"), CORS_ORIGIN_LIST):
+        await websocket.close(code=CLOSE_FORBIDDEN, reason=REASON_ORIGIN)
+        return
+    if "token" in websocket.query_params:
+        # Old clients put the session token in the URL. It is already in the
+        # access log by now; do not also honour it.
+        await websocket.close(code=CLOSE_UNAUTHENTICATED, reason=REASON_AUTH_REQUIRED)
+        return
+
+    await websocket.accept()
+    try:
+        raw = await asyncio.wait_for(websocket.receive_text(), timeout=AUTH_DEADLINE_SECONDS)
+    except (asyncio.TimeoutError, WebSocketDisconnect, RuntimeError):
+        try:
+            await websocket.close(code=CLOSE_UNAUTHENTICATED, reason=REASON_AUTH_REQUIRED)
+        except Exception:
+            pass
+        return
+    token = first_message_token(raw)
+    if not token:
+        await websocket.close(code=CLOSE_UNAUTHENTICATED, reason=REASON_AUTH_REQUIRED)
+        return
+
     try:
         session = await authorise_campaign_socket(token, campaign_id)
     except SocketRejected as rejection:
@@ -35,7 +75,10 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
         return
 
     username = session.username
-    await ws_manager.connect(websocket, username, campaign_id)
+    # auth_ok goes first, before the socket can receive any campaign
+    # broadcast, so a client never mistakes campaign traffic for the reply.
+    await websocket.send_json({"type": "auth_ok"})
+    await ws_manager.connect(websocket, username, campaign_id, accept=False)
     ws_manager.track_session(websocket, session)
     watcher = asyncio.create_task(watch_session(websocket, token, session, ws_manager))
 

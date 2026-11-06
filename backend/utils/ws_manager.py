@@ -37,8 +37,12 @@ class ConnectionManager:
     def campaign_users(self) -> Dict[str, Set[str]]:
         return {campaign_id: set(sockets.values()) for campaign_id, sockets in self.campaign_sockets.items()}
 
-    async def connect(self, websocket: WebSocket, user_id: str, campaign_id: str = None):
-        await websocket.accept()
+    async def connect(self, websocket: WebSocket, user_id: str, campaign_id: str = None,
+                      accept: bool = True):
+        # The live endpoint accepts the socket itself so it can read the
+        # first-message authentication; it only registers here afterwards.
+        if accept:
+            await websocket.accept()
         self.user_sockets.setdefault(user_id, set()).add(websocket)
 
         if campaign_id:

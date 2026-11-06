@@ -64,6 +64,51 @@ def _revalidate_seconds() -> float:
 REVALIDATE_SECONDS = _revalidate_seconds()
 
 
+# How long an accepted socket may stay unauthenticated. The token arrives as
+# the first message (never in the URL, which access logs record), so the
+# socket must be accepted before it can be read; this bounds that window.
+def _auth_deadline_seconds() -> float:
+    try:
+        value = float(os.environ.get('WS_AUTH_DEADLINE_SECONDS', '5'))
+    except ValueError:
+        value = 5.0
+    return max(1.0, min(15.0, value))
+
+
+AUTH_DEADLINE_SECONDS = _auth_deadline_seconds()
+REASON_AUTH_REQUIRED = "Send credentials in the first message."
+REASON_ORIGIN = "This site may not open live play connections."
+
+
+def origin_allowed(origin, allowed_origins) -> bool:
+    """Cross-site WebSocket hijacking guard.
+
+    Browsers always send Origin on a WebSocket handshake and page scripts
+    cannot forge it, so only pages served from an origin the API already
+    trusts for CORS may open a live socket. A missing Origin is refused too:
+    the live channel exists for the web app, not for arbitrary clients.
+    """
+    if not origin:
+        return False
+    return str(origin).rstrip('/') in {str(item).rstrip('/') for item in allowed_origins or ()}
+
+
+def first_message_token(raw):
+    """The token from a first message shaped {"type": "auth", "token": "..."}.
+
+    Anything else -- wrong type, extra nesting, oversized, not JSON -- yields
+    None. The token is never echoed back or logged.
+    """
+    from utils.ws_messages import parse_client_message
+    data = parse_client_message(raw)
+    if not data or data.get('type') != 'auth':
+        return None
+    token = data.get('token')
+    if not isinstance(token, str) or not token or len(token) > 4096:
+        return None
+    return token
+
+
 class SocketRejected(Exception):
     def __init__(self, code: int, reason: str):
         super().__init__(reason)

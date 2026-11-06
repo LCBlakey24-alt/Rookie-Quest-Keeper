@@ -12,6 +12,7 @@ socket, so revocation, expiry or removal from the campaign never ended it.
 import os
 import sys
 import time
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -128,13 +129,32 @@ def client():
         yield test_client
 
 
+ALLOWED_ORIGIN = os.environ['CORS_ORIGINS'].split(',')[0].strip()
+
+
+@contextmanager
+def live(client, tok, campaign=CAMPAIGN, origin=ALLOWED_ORIGIN):
+    """Open a live socket the way the web app does.
+
+    Origin header from a trusted site, no token in the URL, and the token as
+    the first message. Yields once the server has answered auth_ok; a refusal
+    surfaces as WebSocketDisconnect with the close code.
+    """
+    with client.websocket_connect(f'/ws/campaign/{campaign}', headers={'origin': origin}) as ws:
+        ws.send_json({'type': 'auth', 'token': tok})
+        reply = ws.receive_json()
+        assert reply == {'type': 'auth_ok'}, reply
+        yield ws
+
+
+# The pre-fix URL form, kept to prove it is now refused.
 def url(tok, campaign=CAMPAIGN):
     return f'/ws/campaign/{campaign}?token={tok}'
 
 
 def expect_refused(client, tok, campaign=CAMPAIGN):
     with pytest.raises(WebSocketDisconnect) as refused:
-        with client.websocket_connect(url(tok, campaign)) as ws:
+        with live(client, tok, campaign) as ws:
             ws.send_json({'type': 'ping'})
             ws.receive_json()
     return refused.value
@@ -167,7 +187,7 @@ def wait_for(predicate, timeout=3.0):
 
 # 1 ---------------------------------------------------------------------------
 def test_valid_token_connects(db, client):
-    with client.websocket_connect(url(token(PLAYER))) as ws:
+    with live(client, token(PLAYER)) as ws:
         assert ping(ws) == {'type': 'pong'}
 
 
@@ -196,7 +216,7 @@ def test_revoked_token_is_refused_before_connecting(db, client):
     old = token(PLAYER, tv=0)
     db.bump_session(PLAYER)  # password change or reset
     assert expect_refused(client, old).code == 4001
-    with client.websocket_connect(url(token(PLAYER, tv=1))) as ws:
+    with live(client, token(PLAYER, tv=1)) as ws:
         assert ping(ws) == {'type': 'pong'}
 
 
@@ -229,7 +249,7 @@ def test_child_account_is_refused_as_on_http(db, client):
 
 # 7 ---------------------------------------------------------------------------
 def test_removing_membership_ends_an_open_socket(db, client):
-    with client.websocket_connect(url(token(PLAYER))) as ws:
+    with live(client, token(PLAYER)) as ws:
         assert ping(ws) == {'type': 'pong'}
         db.set_member_status(PLAYER, 'removed')
         _, code = receive_until_closed(ws)
@@ -238,7 +258,7 @@ def test_removing_membership_ends_an_open_socket(db, client):
 
 # 8 ---------------------------------------------------------------------------
 def test_password_change_ends_an_open_socket(db, client):
-    with client.websocket_connect(url(token(PLAYER, tv=0))) as ws:
+    with live(client, token(PLAYER, tv=0)) as ws:
         assert ping(ws) == {'type': 'pong'}
         db.bump_session(PLAYER)
         _, code = receive_until_closed(ws)
@@ -246,7 +266,7 @@ def test_password_change_ends_an_open_socket(db, client):
 
 
 def test_deleting_the_account_ends_an_open_socket(db, client):
-    with client.websocket_connect(url(token(PLAYER))) as ws:
+    with live(client, token(PLAYER)) as ws:
         assert ping(ws) == {'type': 'pong'}
         db.delete_user(PLAYER)
         _, code = receive_until_closed(ws)
@@ -256,7 +276,7 @@ def test_deleting_the_account_ends_an_open_socket(db, client):
 def test_token_expiry_ends_an_open_socket_without_any_database_change(db, client):
     short = jwt.encode({'sub': PLAYER, 'tv': 0, 'exp': int(time.time()) + 1},
                        auth_utils.JWT_SECRET, algorithm=auth_utils.JWT_ALGORITHM)
-    with client.websocket_connect(url(short)) as ws:
+    with live(client, short) as ws:
         assert ping(ws) == {'type': 'pong'}
         _, code = receive_until_closed(ws)
         assert code == 4001
@@ -264,13 +284,13 @@ def test_token_expiry_ends_an_open_socket_without_any_database_change(db, client
 
 # 9 ---------------------------------------------------------------------------
 def test_revoked_passive_socket_receives_no_further_broadcasts(db, client):
-    with client.websocket_connect(url(token(PLAYER))) as listener:
+    with live(client, token(PLAYER)) as listener:
         # The listener never sends a thing after this point.
         assert ping(listener) == {'type': 'pong'}
         db.bump_session(PLAYER)
         # Well past the revocation window before anything is broadcast.
         assert wait_for(lambda: PLAYER not in ws_manager.get_campaign_users(CAMPAIGN))
-        with client.websocket_connect(url(token(GM))) as gm:
+        with live(client, token(GM)) as gm:
             gm.send_json({'type': 'chat_message', 'message': 'secret plan'})
             assert ping(gm) == {'type': 'pong'}
         seen, code = receive_until_closed(listener)
@@ -280,8 +300,8 @@ def test_revoked_passive_socket_receives_no_further_broadcasts(db, client):
 
 # 10, 11 ------------------------------------------------------------------------
 def test_gm_can_send_gm_only_events(db, client):
-    with client.websocket_connect(url(token(PLAYER))) as player, \
-            client.websocket_connect(url(token(GM))) as gm:
+    with live(client, token(PLAYER)) as player, \
+            live(client, token(GM)) as gm:
         assert player.receive_json()['type'] == 'user_joined'
         gm.send_json({'type': 'map_update', 'data': {'fog': 1}})
         update = player.receive_json()
@@ -289,7 +309,7 @@ def test_gm_can_send_gm_only_events(db, client):
 
 
 def test_non_gm_cannot_send_gm_only_events(db, client):
-    with client.websocket_connect(url(token(PLAYER))) as player:
+    with live(client, token(PLAYER)) as player:
         player.send_json({'type': 'map_update', 'data': {'fog': 0}})
         reply = player.receive_json()
         assert reply['type'] == 'error' and reply['code'] == 'gm_only'
@@ -297,9 +317,9 @@ def test_non_gm_cannot_send_gm_only_events(db, client):
 
 # 12, 13 ------------------------------------------------------------------------
 def test_one_user_on_two_screens_gets_broadcasts_on_both(db, client):
-    with client.websocket_connect(url(token(GM))) as screen_a, \
-            client.websocket_connect(url(token(GM))) as screen_b, \
-            client.websocket_connect(url(token(PLAYER))) as player:
+    with live(client, token(GM)) as screen_a, \
+            live(client, token(GM)) as screen_b, \
+            live(client, token(PLAYER)) as player:
         assert screen_a.receive_json()['type'] == 'user_joined'
         assert screen_b.receive_json()['type'] == 'user_joined'
         player.send_json({'type': 'dice_roll', 'roll': {'total': 17}})
@@ -308,8 +328,8 @@ def test_one_user_on_two_screens_gets_broadcasts_on_both(db, client):
 
 
 def test_closing_one_screen_keeps_the_other_connected(db, client):
-    with client.websocket_connect(url(token(GM))) as kept:
-        with client.websocket_connect(url(token(GM))) as closed_one:
+    with live(client, token(GM)) as kept:
+        with live(client, token(GM)) as closed_one:
             assert ping(closed_one) == {'type': 'pong'}
         assert ping(kept) == {'type': 'pong'}
         assert wait_for(lambda: len(ws_manager.user_sockets.get(GM, ())) == 1)
@@ -329,9 +349,9 @@ def test_disconnect_and_revocation_leave_no_manager_entries_or_tasks(db, client)
         return await real_watch(*args, **kwargs)
 
     with patch.object(server, 'watch_session', recording_watch):
-        with client.websocket_connect(url(token(GM))):
+        with live(client, token(GM)):
             pass  # ordinary close
-        with client.websocket_connect(url(token(PLAYER))) as revoked:
+        with live(client, token(PLAYER)) as revoked:
             assert ping(revoked) == {'type': 'pong'}
             db.bump_session(PLAYER)
             receive_until_closed(revoked)
@@ -346,7 +366,7 @@ def test_disconnect_and_revocation_leave_no_manager_entries_or_tasks(db, client)
 def test_revoke_user_ends_sockets_at_once_without_waiting_for_the_interval(db, client):
     assert ws_session is not None
     with patch.object(ws_session, 'REVALIDATE_SECONDS', 300):
-        with client.websocket_connect(url(token(PLAYER))) as ws:
+        with live(client, token(PLAYER)) as ws:
             assert ping(ws) == {'type': 'pong'}
             closed = client.portal.call(ws_manager.revoke_user, PLAYER, 4001, 'x') \
                 if hasattr(client, 'portal') else None

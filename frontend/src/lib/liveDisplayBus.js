@@ -1,5 +1,5 @@
 import { isLocalPreview } from '@/preview/previewMode';
-import { BACKEND_URL } from '@/lib/api';
+import { liveSocketBase } from '@/lib/api';
 import { AUTH_TOKEN_KEY, getAuthToken } from '@/lib/auth';
 import {
   accountFromToken,
@@ -104,14 +104,19 @@ export async function acknowledgePlayerDisplayState(campaignId, state, runtimeWi
   }
 }
 
+// The URL never carries credentials: it is written to server access logs.
+// The token is sent as the first message once the socket opens.
 function websocketUrl(campaignId) {
   const runtimeWindow = getWindow();
-  if (!campaignId || !runtimeWindow) return '';
-  const token = getAuthToken();
-  if (!token) return '';
-  const base = String(BACKEND_URL || runtimeWindow.location.origin).replace(/\/+$/, '').replace(/^http/i, 'ws');
-  return `${base}/ws/campaign/${encodeURIComponent(campaignId)}?token=${encodeURIComponent(token)}`;
+  if (!campaignId || !runtimeWindow || !getAuthToken()) return '';
+  const base = liveSocketBase(runtimeWindow);
+  if (!base) return '';
+  return `${base}/ws/campaign/${encodeURIComponent(campaignId)}`;
 }
+
+// Close codes after which retrying cannot help: credentials or the page's
+// origin were refused. HTTP polling carries on and reports the real status.
+const SOCKET_REFUSED_CODES = new Set([4001, 4003]);
 
 function stateTime(state = {}) {
   const parsed = Date.parse(state.updated_at || '');
@@ -401,6 +406,9 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
   let reconnectAttempts = 0;
   let remoteReadInFlight = false;
   let socketReady = false;
+  // Set when the server refused the socket itself (4001/4003); no further
+  // reconnects for this subscription, polling only.
+  let socketRefused = false;
   // A refusal remains authoritative through an outage. Only a later real
   // server response may restore content; IndexedDB fallback and socket/local
   // messages cannot turn a denied display back on.
@@ -490,9 +498,11 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
   };
 
   const scheduleReconnect = () => {
-    if (cancelled || reconnectTimer) return;
+    if (cancelled || reconnectTimer || socketRefused) return;
     startPolling();
-    const delay = Math.min(15000, 1500 * (2 ** Math.min(reconnectAttempts, 3)));
+    // 1.5s doubling to a 60s ceiling: a sleeping or restarting API host is
+    // retried patiently rather than hammered, and polling covers the gap.
+    const delay = Math.min(60000, 1500 * (2 ** Math.min(reconnectAttempts, 6)));
     reconnectAttempts += 1;
     reconnectTimer = runtimeWindow.setTimeout(() => {
       reconnectTimer = null;
@@ -515,18 +525,35 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
 
     try {
       socket = new runtimeWindow.WebSocket(url);
+      let authenticated = false;
       socket.onopen = () => {
-        socketReady = true;
-        reconnectAttempts = 0;
-        if (accessRefusedStatus) startPolling();
-        else stopPolling();
-        clearSocketTimers();
-        pingTimer = runtimeWindow.setInterval(() => {
-          try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
-        }, 25000);
+        // Credentials go in the first message. Only this subscription's own
+        // account may authenticate it; after a switch the socket is closed.
+        const token = getAuthToken();
+        if (!stillOurs() || !token || accountFromToken(token) !== account) {
+          try { socket?.close(); } catch { /* ignore */ }
+          return;
+        }
+        try { socket.send(JSON.stringify({ type: 'auth', token })); } catch { /* onclose follows */ }
       };
       socket.onmessage = (event) => {
         if (!stillOurs()) return;
+        if (!authenticated) {
+          // Nothing counts until the server has verified the session.
+          let reply = null;
+          try { reply = JSON.parse(event.data); } catch { /* ignore */ }
+          if (reply?.type !== 'auth_ok') return;
+          authenticated = true;
+          socketReady = true;
+          reconnectAttempts = 0;
+          if (accessRefusedStatus) startPolling();
+          else stopPolling();
+          clearSocketTimers();
+          pingTimer = runtimeWindow.setInterval(() => {
+            try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
+          }, 25000);
+          return;
+        }
         try {
           const message = JSON.parse(event.data);
           if (!accessRefusedStatus && message?.type === 'player_display_update' && message.data) {
@@ -540,9 +567,14 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
       socket.onerror = () => {
         try { socket?.close(); } catch { /* ignore */ }
       };
-      socket.onclose = () => {
+      socket.onclose = (event) => {
         socketReady = false;
         clearSocketTimers();
+        if (SOCKET_REFUSED_CODES.has(Number(event?.code))) {
+          socketRefused = true;
+          startPolling();
+          return;
+        }
         scheduleReconnect();
       };
     } catch {
