@@ -114,6 +114,17 @@ function shouldDiscardPendingRoll(error) {
 
 let activeRollFlush = null;
 
+function rollActorKey(event = {}) {
+  const characterId = String(event.character_id || '');
+  if (characterId) return `character:${characterId}`;
+  return `${event.actor_type || 'gm'}:${event.character_name || event.actor || 'table'}`;
+}
+
+function isSameRollStream(record, campaignId, event) {
+  return String(record?.campaignId || '') === String(campaignId || '')
+    && rollActorKey(record?.event) === rollActorKey(event);
+}
+
 /** Replay only the current account's exact queued events, oldest first. */
 export function flushPendingRemoteRolls() {
   const scope = getOfflineCacheScope();
@@ -129,7 +140,11 @@ export function flushPendingRemoteRolls() {
       // account's character event with the new account's bearer token.
       if (getOfflineCacheScope() !== scope) break;
       try {
-        await apiClient.post(`/campaigns/${record.campaignId}/roll-events`, record.event);
+        await apiClient.post(
+          `/campaigns/${record.campaignId}/roll-events`,
+          record.event,
+          { rqkExpectedAuthScope: scope },
+        );
         removePendingRoll(record.key);
         delivered += 1;
       } catch (error) {
@@ -156,19 +171,46 @@ export function flushPendingRemoteRolls() {
   return promise;
 }
 
+async function drainPendingRemoteRolls(scope = getOfflineCacheScope()) {
+  // Usually one pass drains the snapshot. A second pass matters when a rapid
+  // roll is queued while another flush is already in flight: wait for that
+  // snapshot, then send the newly queued roll behind it.
+  for (let pass = 0; pass < 10 && getOfflineCacheScope() === scope; pass += 1) {
+    const before = listPendingRolls(scope).filter(record => record?.scope === scope).length;
+    if (!before) return;
+    await flushPendingRemoteRolls();
+    const after = listPendingRolls(scope).filter(record => record?.scope === scope).length;
+    if (!after || after >= before) return;
+  }
+}
+
 export async function recordRemoteRoll(campaignId, rollEvent = {}) {
   if (!campaignId) return null;
   const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
   const scope = getOfflineCacheScope();
+  const olderPending = listPendingRolls(scope).filter(record => record?.scope === scope);
   // Queue synchronously before the first request. Closing the tab while a
   // request is in flight can no longer erase the only copy of the roll.
   const pending = queuePendingRoll({ scope, campaignId, event });
   recordSessionRoll(campaignId, event);
+
+  // Do not let a fresh roll overtake an older offline roll from the same
+  // character/table stream. The ordered drain sends the old event first, so
+  // a delayed group-check answer cannot replace the player's newer answer.
+  if (pending && olderPending.some(record => isSameRollStream(record, campaignId, event))) {
+    drainPendingRemoteRolls(scope).catch(() => {});
+    return { ...event, queued: true };
+  }
+
   for (let attempt = 0; ; attempt += 1) {
     if (getOfflineCacheScope() !== scope) return { ...event, queued: Boolean(pending) };
     try {
       // The identical event every time, so a retry is recognised, not re-counted.
-      const response = await apiClient.post(`/campaigns/${campaignId}/roll-events`, event);
+      const response = await apiClient.post(
+        `/campaigns/${campaignId}/roll-events`,
+        event,
+        { rqkExpectedAuthScope: scope },
+      );
       removePendingRoll(pending?.key);
       return response.data;
     } catch (error) {
@@ -189,7 +231,7 @@ let queuedRollSyncInstalled = false;
 export function installQueuedRollSync() {
   if (queuedRollSyncInstalled || typeof window === 'undefined') return;
   queuedRollSyncInstalled = true;
-  const flush = () => { flushPendingRemoteRolls().catch(() => {}); };
+  const flush = () => { drainPendingRemoteRolls().catch(() => {}); };
   window.addEventListener('online', flush);
   window.addEventListener('focus', flush);
   window.addEventListener('rqk:auth-scope-changed', flush);
