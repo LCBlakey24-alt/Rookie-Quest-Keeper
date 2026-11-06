@@ -448,3 +448,37 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Keep the floating control clear of Live Play's tool rail.
+ *
+ * .rqk-offline-control is fixed at the bottom-left, which is exactly where
+ * the rail now is. Measured at 1180 with the rail expanded, elementFromPoint
+ * at the centre of the Session planner button returned .rqk-offline-launcher
+ * -- that menu item took a tap and opened the offline panel instead.
+ *
+ * It is moved aside rather than made transparent or click-through: it is a
+ * real control and has to stay operable. The offset matches the rail width
+ * at each size, so the pill sits beside the rail rather than on top of it.
+ * ------------------------------------------------------------------ */
+@media (min-width: 1181px) {
+  body:has(.rqk-live-grid--desktop) .rqk-offline-control {
+    left: max(256px, calc(env(safe-area-inset-left) + 256px));
+  }
+}
+
+@media (min-width: 720px) and (max-width: 1180px) {
+  body:has(.rqk-live-grid--tablet) .rqk-offline-control {
+    left: max(88px, calc(env(safe-area-inset-left) + 88px));
+  }
+}
+
+/* An open phone tool drawer is modal navigation. The global Offline launcher
+ * must not sit above and intercept its controls (the launcher has z-index
+ * 9996 while the drawer intentionally uses the app navigation layer). */
+@media (max-width: 719px) {
+  body:has(.rqk-tool-rail--phone) .rqk-offline-control {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}

@@ -226,6 +226,105 @@ for (const size of appSizes) {
   });
 }
 
+// Regression for #767: the global Offline launcher must remain usable but
+// must not steal clicks from the Live Play rail, mobile drawer or Start combat.
+// Use actual Chromium hit-testing, not assertions about CSS source text.
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'small phone', width: 320, height: 780 },
+  { label: 'tablet', width: 768, height: 1024 },
+  { label: 'landscape tablet', width: 1024, height: 768 },
+  { label: 'rail breakpoint', width: 1180, height: 820 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test(`Offline launcher does not cover GM Live Play controls at ${size.label} (${size.width}px)`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+    await expect(page.getByTestId('live-session-grid')).toBeVisible();
+
+    const offline = page.locator('.rqk-offline-launcher');
+    const control = page.locator('.rqk-offline-control');
+    await expect(offline).toBeVisible();
+    // The existing phone layout deliberately docks the pill at the *right*
+    // edge. Only tablet and desktop use left offsets to clear the tool rail.
+    const position = await control.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left, right: rect.right,
+        computedLeft: Number.parseFloat(getComputedStyle(element).left),
+      };
+    });
+    if (size.width < 720) {
+      expect(position.left).toBeGreaterThanOrEqual(0);
+      expect(position.right).toBeLessThanOrEqual(size.width + 2);
+    } else if (size.width <= 1180) {
+      expect(position.computedLeft).toBeGreaterThanOrEqual(88);
+    } else {
+      expect(position.computedLeft).toBeGreaterThanOrEqual(256);
+    }
+
+    // The floating control must still work, not just move offscreen.
+    await offline.click();
+    const closeOffline = page.getByRole('button', { name: 'Close offline campaign panel' });
+    await expect(closeOffline).toBeVisible();
+    await closeOffline.click();
+    await expect(offline).toBeVisible();
+
+    if (size.width < 720) {
+      // A modal drawer takes priority over the floating button.
+      const menu = page.getByTestId('live-tool-menu');
+      await menu.click();
+      const drawer = page.getByTestId('live-tool-rail');
+      await expect(drawer).toBeVisible();
+      await expect(offline).toBeHidden();
+      await drawer.getByTestId('live-tool-combat').click();
+      await expect(drawer).toHaveCount(0);
+      await expect(offline).toBeVisible();
+
+      const start = page.getByTestId('live-encounter-start');
+      await expect(start).toBeVisible();
+      await start.scrollIntoViewIfNeeded();
+      const intercepted = await start.evaluate(button => {
+        const r = button.getBoundingClientRect();
+        const launcher = document.querySelector('.rqk-offline-launcher');
+        return [0.15, 0.5, 0.85].some(fraction => {
+          const hit = document.elementFromPoint(r.left + r.width * fraction, r.top + r.height / 2);
+          return Boolean(launcher && hit && launcher.contains(hit));
+        });
+      });
+      expect(intercepted, 'Offline launcher intercepted the Start Combat button').toBe(false);
+    } else {
+      const rail = page.getByTestId('live-tool-rail');
+      await expect(rail).toBeVisible();
+      for (const category of ['players','npcs','beasts','world','rules','items','session','tools']) {
+        const toggle = rail.getByTestId(`live-category-${category}`);
+        if (await toggle.getAttribute('aria-expanded') === 'false') await toggle.click();
+      }
+      // Move each rail action into view. This covers the previously blocked
+      // Session planner at 1180px and exercises actual overlay hit targets.
+      const buttons = rail.locator('.rqk-tool-rail__item, .rqk-tool-rail__group-button');
+      const total = await buttons.count();
+      expect(total).toBeGreaterThan(16);
+      for (let i = 0; i < total; i += 1) {
+        const button = buttons.nth(i);
+        await button.scrollIntoViewIfNeeded();
+        const obscured = await button.evaluate(element => {
+          const r = element.getBoundingClientRect();
+          const launcher = document.querySelector('.rqk-offline-launcher');
+          const x = r.left + r.width / 2;
+          const y = r.top + r.height / 2;
+          if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return false;
+          const hit = document.elementFromPoint(x, y);
+          return Boolean(launcher && hit && launcher.contains(hit));
+        });
+        expect(obscured, `Offline launcher intercepted rail button ${i}`).toBe(false);
+      }
+    }
+    await assertFitsViewport(page, size.width);
+  });
+}
+
 for (const size of appSizes) {
   test(`public landing and sign-in fit ${size.label} (${size.width}x${size.height})`, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
