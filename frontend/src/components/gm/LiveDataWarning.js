@@ -28,7 +28,7 @@ export default function LiveDataWarning({ errors = [], onRetry, compact = false 
       </span>
       {onRetry && (
         <button type="button" onClick={onRetry} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5, flex: '0 0 auto',
+          display: 'inline-flex', alignItems: 'center', gap: 5, flex: '0 0 auto', minHeight: 44,
           border: '1px solid rgba(124,203,255,0.45)', background: '#0A2A43', color: '#fff',
           padding: '6px 9px', fontWeight: 800, cursor: 'pointer',
         }}>

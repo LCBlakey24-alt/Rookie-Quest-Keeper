@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { resolveEncounterSelection } from './encounterSelection';
+import { PARTY_UNAVAILABLE_MESSAGE, describeLaunchReadiness } from './encounterLaunchReadiness';
 import {
   clearDraft,
   createEmptyDraft,
@@ -261,6 +262,11 @@ export default function LiveEncounterLauncher({
   // Which sections have produced a successful response for this account and
   // campaign. Only those may prune the GM's selections.
   const [loadedSections, setLoadedSections] = useState({});
+  // The LATEST party read, not "ever loaded": after a failed Retry the
+  // previous list is stale and must not be launched as if it were current.
+  // 'loading' | 'ok' | 'failed'
+  const [partyStatus, setPartyStatus] = useState('loading');
+  const launchingRef = useRef(false);
   const [queuedNpcIds, setQueuedNpcIds] = useState([]);
   const [npcSearch, setNpcSearch] = useState('');
   const [loadErrors, setLoadErrors] = useState([]);
@@ -314,6 +320,7 @@ export default function LiveEncounterLauncher({
       setTravellingIds([]);
       setQueuedNpcIds([]);
       setLoadedSections({});
+      setPartyStatus('loading');
       setDraftCache({});
       setLoadErrors([]);
     }
@@ -331,6 +338,11 @@ export default function LiveEncounterLauncher({
         // Inclusion is derived from the draft now. Setting it here reset the
         // GM's exclusions on every refresh and on every Retry.
         if (loadedPlayers) setPlayers(loadedPlayers);
+        // An empty party that loaded is not a party that could not be read.
+        // The loader only reports failure when the live-party read AND the
+        // legacy fallback both failed, so an empty array is never mistaken
+        // for an outage.
+        setPartyStatus(sections.players.ok ? 'ok' : 'failed');
         if (loadedNpcs) setNpcs(loadedNpcs);
         if (sections.liveState.ok) setTravellingIds(safeArray(sections.liveState.data?.companion_npc_ids));
         // A failure leaves the flag as it was: data kept from an earlier
@@ -550,15 +562,21 @@ export default function LiveEncounterLauncher({
   // the GM reads are the roster that launches, rather than a tally of what
   // happens to be available -- the run bar used to report every prepared
   // enemy as though all of them were selected.
+  const partyAvailable = partyStatus === 'ok';
   const launchRoster = useMemo(() => {
     let combatants = combinePreparedEncounterParty(baseCombatants, players, enabledBaseKeys, includedPlayerIds);
+    // With the party unknown, no player combatant is verified: a party list
+    // kept from an earlier load is stale, and a prepared player token is a
+    // snapshot whose HP and conditions may be wrong. Neither launches; the
+    // GM is asked instead, and the counts below say so.
+    if (!partyAvailable) combatants = combatants.filter(combatant => combatant?.type !== 'player');
     companionNpcs.filter(npc => includedCompanionIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
     queuedNpcs.forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
     npcs.filter(npc => extraNpcIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
     quickCombatants.forEach(combatant => { combatants = appendUnique(combatants, combatant); });
     return combatants;
   }, [baseCombatants, players, enabledBaseKeys, includedPlayerIds, companionNpcs,
-    includedCompanionIds, queuedNpcs, npcs, extraNpcIds, quickCombatants]);
+    includedCompanionIds, queuedNpcs, npcs, extraNpcIds, quickCombatants, partyAvailable]);
 
   const rosterCounts = useMemo(() => {
     const npcIdSet = new Set([
@@ -579,10 +597,44 @@ export default function LiveEncounterLauncher({
     return { party, npcs: npcCount, temporary, enemies, total: launchRoster.length };
   }, [launchRoster, includedCompanionIds, extraNpcIds, queuedNpcs]);
 
+  // Prepared player tokens that no loaded party member answers for launch as
+  // their saved snapshot (so a prepared player is never silently dropped).
+  // They are listed in the Party section, labelled, so the GM sees and can
+  // untick exactly what will launch. Decided by the same builder the launch
+  // uses: a snapshot is a token the builder returns as itself.
+  const preparedSnapshots = useMemo(() => {
+    if (!partyAvailable) return [];
+    const everyone = players.map(player => player.id);
+    return baseCombatants
+      .map((combatant, index) => ({ combatant, index, key: keyFor(combatant, index) }))
+      .filter(({ combatant }) => combatant?.type === 'player')
+      .filter(({ combatant, key }) => {
+        const resolved = combinePreparedEncounterParty([combatant], players, [keyFor(combatant, 0)], everyone);
+        return resolved.length === 1 && resolved[0] === combatant && Boolean(key);
+      });
+  }, [baseCombatants, players, partyAvailable]);
+
+  const readiness = useMemo(
+    () => describeLaunchReadiness({ loadErrors, roster: launchRoster, partyLoaded: partyAvailable }),
+    [loadErrors, launchRoster, partyAvailable],
+  );
+
   const launch = () => {
-    const participantLoadFailed = loadErrors.some(item => ['players', 'npcs', 'liveState'].includes(item.key));
-    if (participantLoadFailed) {
-      toast.error('Participant data is incomplete. Retry Encounter Review before starting combat so nobody is accidentally omitted.');
+    // One launch per press: a double tap must not start two fights.
+    if (launchingRef.current) return;
+    // Only the party being unknown pauses a fight, and then it is the GM's
+    // call. A failed saved-NPC or companion lookup is a warning: those are
+    // suggestions, and the verified roster is still the roster.
+    let verdict = readiness;
+    if (verdict.needsPartyConfirmation) {
+      const goAhead = window.confirm(`${PARTY_UNAVAILABLE_MESSAGE}\n\nStart this fight without the player characters?`);
+      if (!goAhead) return;
+      verdict = describeLaunchReadiness({
+        loadErrors, roster: launchRoster, partyLoaded: partyAvailable, withoutPartyConfirmed: true,
+      });
+    }
+    if (!verdict.canLaunch) {
+      toast.error(verdict.blockReason);
       return;
     }
 
@@ -599,11 +651,8 @@ export default function LiveEncounterLauncher({
     }
 
     const combatants = launchRoster;
-
-    if (!combatants.length) {
-      toast.error('Choose a player, NPC or creature before starting combat.');
-      return;
-    }
+    verdict.warnings.forEach(message => toast.warning(message));
+    launchingRef.current = true;
 
     if (selected) {
       try { localStorage.setItem(`gm.lastEncounter.${campaignId}`, selected.id || ''); } catch { /* ignore */ }
@@ -643,6 +692,13 @@ export default function LiveEncounterLauncher({
       </header>
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
+      {partyStatus === 'failed' && (
+        // Retry lives on the data warning just above, which always lists the
+        // party when it failed; a second button here read as a second problem.
+        <div role="alert" data-testid="live-encounter-party-unavailable" style={partyWarningStyle}>
+          <span>{PARTY_UNAVAILABLE_MESSAGE} They are not in this roster. Use Retry above to load them.</span>
+        </div>
+      )}
       {draftPersistence !== 'saved' && (
         <div role="status" data-testid="live-encounter-draft-warning" style={draftWarningStyle}>
           This browser would not save your review choices. They are kept while Rookie stays open, but will be lost if the page reloads.
@@ -691,9 +747,19 @@ export default function LiveEncounterLauncher({
         })}
       </ParticipantSection>
 
-      <ParticipantSection title="Party" count={players.length}>
-        {players.length === 0 && <span style={mutedStyle}>No linked player characters yet.</span>}
-        {players.map(player => {
+      <ParticipantSection title="Party" count={partyAvailable ? players.length + preparedSnapshots.length : 0}>
+        {!partyAvailable && <span style={mutedStyle}>{partyStatus === 'failed' ? 'Party unavailable — retry to include player characters.' : 'Loading the party…'}</span>}
+        {partyAvailable && players.length === 0 && preparedSnapshots.length === 0 && <span style={mutedStyle}>No linked player characters yet.</span>}
+        {preparedSnapshots.map(({ combatant, key }) => (
+          <ToggleRow
+            key={`snapshot-${key}`}
+            checked={enabledBaseKeys.includes(key)}
+            title={combatant.name || 'Player'}
+            meta={`Prepared snapshot · not in the current party · HP ${combatant.hp ?? '?'}${combatant.maxHp ? ` / ${combatant.maxHp}` : ''}`}
+            onClick={() => toggle(key, enabledBaseKeys, setEnabledBaseKeys)}
+          />
+        ))}
+        {partyAvailable && players.map(player => {
           const temp = numberOr(player.temporary_hit_points ?? player.temp_hp, 0);
           const pending = player.rqk_pending_combat_sync ? ' · Offline queued' : '';
           return <ToggleRow key={player.id} checked={includedPlayerIds.includes(player.id)} title={player.name || player.character_name || 'Player'} meta={`${player.character_class || 'Player'}${player.level ? ` · L${player.level}` : ''} · HP ${player.hp ?? '?'} / ${player.max_hp ?? '?'}${temp ? ` +${temp} temp` : ''} · AC ${player.ac ?? '?'}${pending}`} onClick={() => toggle(player.id, includedPlayerIds, setIncludedPlayerIds)} />;
@@ -794,6 +860,7 @@ const launchButtonStyle = {
   fontSize: 12,
 };
 const resetButtonStyle = { minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 6, border: '1px solid rgba(234,223,200,.22)', background: 'transparent', color: 'var(--rq-text-secondary, rgba(234,223,200,.78))', fontSize: 12, fontWeight: 800, cursor: 'pointer' };
+const partyWarningStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0B1B2B)', color: 'var(--rq-text-primary, #EADFC8)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
 const draftWarningStyle = { border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0B1B2B)', color: 'var(--rq-text-primary, #EADFC8)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
 const mutedStyle = { color: rq.muted, fontSize: 9, padding: 3 };
 const emptyStyle = { minHeight: 130, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, textAlign: 'center', padding: 16, fontSize: 10 };
