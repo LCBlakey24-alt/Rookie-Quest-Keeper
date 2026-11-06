@@ -128,11 +128,17 @@ for (const size of appSizes) {
     await expect(page.getByText(/No preparation needed/i)).toBeVisible();
     await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
 
-    const [choiceBounds, launchBounds] = await Promise.all([choice.boundingBox(), launch.boundingBox()]);
+    // Reset review (#764) sits before Start in reading order; both must be
+    // reachable by keyboard and large enough to tap.
+    const reset = launcher.getByRole('button', { name: 'Reset review' });
+    const [choiceBounds, resetBounds, launchBounds] = await Promise.all([choice.boundingBox(), reset.boundingBox(), launch.boundingBox()]);
     expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
+    expect(resetBounds?.height).toBeGreaterThanOrEqual(44);
     expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
     await choice.focus();
     await expect(choice).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(reset).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(launch).toBeFocused();
     await assertFitsViewport(page, size.width);
