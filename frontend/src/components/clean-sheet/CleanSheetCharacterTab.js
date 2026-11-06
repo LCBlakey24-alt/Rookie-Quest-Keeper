@@ -112,7 +112,7 @@ export default function CleanSheetCharacterTab({ character, ac, speed, proficien
         <h2>Sheet Snapshot</h2>
         <div className="clean-sheet-core-stat-grid">
           <div className="clean-sheet-core-stat-card"><Shield size={15} /><span>AC</span><strong>{display(ac ?? character?.armor_class ?? 10)}</strong></div>
-          <div className="clean-sheet-core-stat-card"><Gauge size={15} /><span>Speed</span><strong>{display(snapshot.race?.speed || speed || character?.speed || 30)}ft</strong></div>
+          <div className="clean-sheet-core-stat-card"><Gauge size={15} /><span>Speed</span><strong>{display(speed ?? character?.speed ?? snapshot.race?.speed ?? 30)}ft</strong></div>
           <div className="clean-sheet-core-stat-card"><BadgeInfo size={15} /><span>Prof</span><strong>{fmt(snapshot.proficiencyBonus || proficiencyBonus || 2)}</strong></div>
           <div className="clean-sheet-core-stat-card"><UserCircle size={15} /><span>Warnings</span><strong>{warnings.length + detailWarnings.length}</strong></div>
         </div>
