@@ -77,6 +77,7 @@ jobs:
             backend/tests/test_access_checks.py \
             backend/tests/test_upload_limits.py \
             backend/tests/test_session_and_socket_hardening.py \
+            backend/tests/test_websocket_session_security.py \
             backend/tests/test_character_patch_campaign_idor.py \
             backend/tests/test_character_patch_state.py \
             backend/tests/test_progression_admin_gate.py \
