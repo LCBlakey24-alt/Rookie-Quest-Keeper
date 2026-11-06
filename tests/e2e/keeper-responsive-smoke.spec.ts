@@ -270,10 +270,14 @@ for (const size of [
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
 
-    const campaignId = 'browser-smoke-fixture';
+    // The demo workspace's own campaign: a campaign that does not exist is
+    // refused (404) and its display is blanked, by design (#773).
+    const campaignId = 'preview-campaign';
+    // Display records are owned (#773): the read-only demo's scope is
+    // 'local-preview', and an unowned v1 record is refused by design.
     await page.addInitScript(id => {
       sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
-      localStorage.setItem(`rqk.liveDisplay.${id}`, JSON.stringify({
+      localStorage.setItem(`rqk.liveDisplay.v2.local-preview.${encodeURIComponent(id)}`, JSON.stringify({ owner: 'local-preview', campaign_id: id, state: {
         sync_id: 'browser-smoke-npcs',
         mode: 'npc-grid',
         updated_at: '2099-12-31T23:59:59.000Z',
@@ -289,7 +293,7 @@ for (const size of [
             { id: 'four', name: 'Captain Thorn' },
           ],
         },
-      }));
+      } }));
     }, campaignId);
     await page.goto(`/player-display/${campaignId}?target=standing-tv`);
     const display = page.getByTestId('player-display-page');
@@ -324,7 +328,7 @@ test('large 720p NPC scenes paginate instead of squeezing 17 portraits into one 
   await avoidThirdPartyRequests(page);
   await page.addInitScript(() => {
     sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
-    localStorage.setItem('rqk.liveDisplay.browser-smoke-large', JSON.stringify({
+    localStorage.setItem('rqk.liveDisplay.v2.local-preview.preview-campaign', JSON.stringify({ owner: 'local-preview', campaign_id: 'preview-campaign', state: {
       mode: 'npc-grid', sync_id: 'paging-test', sequence: 4102444799000,
       updated_at: '2099-12-31T23:59:59.000Z',
       payload: {
@@ -333,9 +337,9 @@ test('large 720p NPC scenes paginate instead of squeezing 17 portraits into one 
           id: String(index + 1), name: `NPC ${index + 1}`,
         })),
       },
-    }));
+    } }));
   });
-  await page.goto('/player-display/browser-smoke-large?target=standing-tv');
+  await page.goto('/player-display/preview-campaign?target=standing-tv');
   await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-mode', 'npc-grid');
   await expect(page.locator('.rqk-player-display__npc-card')).toHaveCount(8);
   await expect(page.getByText('Page 1 of 3 · 17 NPCs')).toBeVisible();
@@ -354,18 +358,18 @@ test('a physical TV keeps its layout even when the last GM broadcast targeted a 
   await avoidThirdPartyRequests(page);
   await page.addInitScript(() => {
     sessionStorage.setItem('rqk.readOnlyDemo.v1', '1');
-    localStorage.setItem('rqk.liveDisplay.browser-smoke-target', JSON.stringify({
+    localStorage.setItem('rqk.liveDisplay.v2.local-preview.preview-campaign', JSON.stringify({ owner: 'local-preview', campaign_id: 'preview-campaign', state: {
       mode: 'title', sync_id: 'layout-test', sequence: 4102444799000,
       updated_at: '2099-12-31T23:59:59.000Z',
       payload: {
         display_target: 'virtual-table', title: 'A New Scene',
       },
-    }));
+    } }));
   });
-  await page.goto('/player-display/browser-smoke-target?target=standing-tv');
+  await page.goto('/player-display/preview-campaign?target=standing-tv');
   await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'standing-tv');
   await expect(page.getByRole('heading', { name: 'A New Scene' })).toBeVisible();
-  await page.goto('/player-display/browser-smoke-target?target=virtual-table');
+  await page.goto('/player-display/preview-campaign?target=virtual-table');
   await expect(page.getByTestId('player-display-page')).toHaveAttribute('data-display-target', 'virtual-table');
 });
 
