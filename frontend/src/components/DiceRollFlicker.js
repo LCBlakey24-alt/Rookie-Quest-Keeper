@@ -111,17 +111,25 @@ export default function DiceRollFlicker({
     () => isFixedDamage ? [] : normalizeDice(rolls, finalTotal),
     [rolls, finalTotal, isFixedDamage],
   );
-  // The wire event uses the same settled faces as the on-screen tray. Strip
-  // display-only keys and preserve dropped/negative dice for server validation.
-  // Empty/flat results truthfully report no random dice, not invented dice.
-  const reportableDice = Array.isArray(rolls) && rolls.length && !isFixedDamage
-    ? dice.map(({ sides, result, sign, dropped, exploded }) => ({ sides, result, sign, dropped, exploded }))
-    : [];
-  // Sheet rerenders rebuild the rolls array. Only a real roll or a changed result
-  // should reset the reveal timer, not an unrelated HP / tab state update.
+  // Sheet rerenders rebuild the rolls array. A stable fingerprint stops
+  // unrelated state changes from cancelling an in-flight character roll.
   const diceFingerprint = dice.map((die) => [
     die.sides, die.result, die.sign, die.dropped ? 1 : 0, die.exploded ? 1 : 0,
   ].join(':')).join('|');
+  const hasRawDice = Array.isArray(rolls) && rolls.length > 0;
+  // Build the remote event from exactly the same displayed die faces, not
+  // from the original numeric arrays. Only primitive fingerprint changes
+  // invalidate it; the event cannot be cancelled by a fresh array reference.
+  const reportableDice = useMemo(() => {
+    if (isFixedDamage || !hasRawDice) return [];
+    return diceFingerprint.split('|').map(fingerprint => {
+      const [sides, result, sign, dropped, exploded] = fingerprint.split(':');
+      return {
+        sides: Number(sides), result: Number(result), sign: Number(sign),
+        dropped: dropped === '1', exploded: exploded === '1',
+      };
+    });
+  }, [diceFingerprint, isFixedDamage, hasRawDice]);
   const [showTotal, setShowTotal] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
 
@@ -182,7 +190,7 @@ export default function DiceRollFlicker({
     if (!visible || theme !== 'player') return undefined;
     const characterId = getCharacterIdFromPath();
     if (!characterId) return undefined;
-    const rollKey = rollId ? `${characterId}-${rollId}` : `${characterId}-${label}-${finalTotal}-${modifier}-${JSON.stringify(rolls)}`;
+    const rollKey = rollId ? `${characterId}-${rollId}` : `${characterId}-${label}-${finalTotal}-${modifier}-${diceFingerprint}`;
     if (recordedKeyRef.current === rollKey) return undefined;
     recordedKeyRef.current = rollKey;
 
@@ -209,7 +217,7 @@ export default function DiceRollFlicker({
       });
     });
     return () => { cancelled = true; };
-  }, [visible, theme, label, finalTotal, modifier, rolls, reportableDice, isFixedDamage, finalCrit, finalFumble, rollId]);
+  }, [visible, theme, label, finalTotal, modifier, reportableDice, isFixedDamage, finalCrit, finalFumble, rollId, diceFingerprint]);
 
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
