@@ -246,10 +246,23 @@ for (const size of [
     const offline = page.locator('.rqk-offline-launcher');
     const control = page.locator('.rqk-offline-control');
     await expect(offline).toBeVisible();
-    const left = await control.evaluate(element => Number.parseFloat(getComputedStyle(element).left));
-    if (size.width < 720) expect(left).toBeLessThan(88);
-    else if (size.width <= 1180) expect(left).toBeGreaterThanOrEqual(88);
-    else expect(left).toBeGreaterThanOrEqual(256);
+    // The existing phone layout deliberately docks the pill at the *right*
+    // edge. Only tablet and desktop use left offsets to clear the tool rail.
+    const position = await control.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left, right: rect.right,
+        computedLeft: Number.parseFloat(getComputedStyle(element).left),
+      };
+    });
+    if (size.width < 720) {
+      expect(position.left).toBeGreaterThanOrEqual(0);
+      expect(position.right).toBeLessThanOrEqual(size.width + 2);
+    } else if (size.width <= 1180) {
+      expect(position.computedLeft).toBeGreaterThanOrEqual(88);
+    } else {
+      expect(position.computedLeft).toBeGreaterThanOrEqual(256);
+    }
 
     // The floating control must still work, not just move offscreen.
     await offline.click();
