@@ -2,21 +2,8 @@ import { DEMO_CHARACTER_FIXTURES } from '@/data/demoCharacterFixtures';
 
 export const PREVIEW_CAMPAIGN_ID = 'preview-campaign';
 
-export function createPreviewSeed({ user = 'Preview player', empty = false } = {}) {
+export function createPreviewSeed({ user = 'Preview player' } = {}) {
   const now = new Date().toISOString();
-  if (empty) {
-    return {
-      version: 1,
-      campaigns: [],
-      characters: [],
-      collections: {},
-      notes: [],
-      recaps: [],
-      receipts: {},
-      objects: {},
-      homebrew: [],
-    };
-  }
   return {
     version: 1,
     campaigns: [{

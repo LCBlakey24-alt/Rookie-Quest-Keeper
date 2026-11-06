@@ -119,7 +119,6 @@ describe('session-first calendar clock usability', () => {
     const jsx = read('./CalendarTab.js');
     expect(jsx).toContain('if (advancingTime) return');
     expect(jsx).toContain('setAdvancingTime(true)');
-    expect(jsx).toContain('advanceCustomCalendar(calendar, days)');
     expect(jsx).toContain('calendar/advance?days=${days}');
     expect(jsx).toContain('activeCampaignRef.current !== requestedCampaign');
     expect(jsx).toContain('disabled={advancingTime}');

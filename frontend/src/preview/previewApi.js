@@ -1,7 +1,7 @@
 import { buildLongRestUpdates, buildShortRestUpdates } from '../data/characterRestRules';
 import { canonicalisePreviewCreatedCharacter } from './previewCharacterCreation';
 import { createPreviewSeed } from './previewSeed';
-import { isOfflineDesktop, isReadOnlyDemo, localWorkspaceStorageKey, localWorkspaceUser } from './previewMode';
+import { isReadOnlyDemo, PREVIEW_STORAGE_KEY, PREVIEW_USER } from './previewMode';
 import { advanceCustomCalendar } from '@/data/tiaKartaCalendar';
 
 const copy = value => JSON.parse(JSON.stringify(value));
@@ -24,8 +24,8 @@ export function createPreviewApi(
   options = {},
 ) {
   const readOnly = options.readOnly ?? isReadOnlyDemo();
-  const workspaceUser = options.user ?? localWorkspaceUser();
-  const storageKey = options.storageKey ?? localWorkspaceStorageKey();
+  const workspaceUser = options.user ?? PREVIEW_USER;
+  const storageKey = options.storageKey ?? PREVIEW_STORAGE_KEY;
   let state;
   if (!readOnly) {
     try {
@@ -34,7 +34,7 @@ export function createPreviewApi(
         && saved.collections && saved.objects && saved.receipts && Array.isArray(saved.notes) && Array.isArray(saved.recaps) && Array.isArray(saved.homebrew)) state = saved;
     } catch { /* Start with sample data when browser storage is unavailable. */ }
   }
-  if (!state) state = createPreviewSeed({ user: workspaceUser, empty: isOfflineDesktop() });
+  if (!state) state = createPreviewSeed({ user: workspaceUser });
 
   const findCampaign = id => state.campaigns.find(item => item.id === id) || fail('Preview campaign not found.', 404);
   const findCharacter = id => state.characters.find(item => item.id === id) || fail('Preview character not found.', 404);

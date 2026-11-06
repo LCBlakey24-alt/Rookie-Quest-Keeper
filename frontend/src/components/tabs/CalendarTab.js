@@ -3,9 +3,7 @@ import { toast } from 'sonner';
 import { Calendar as CalendarIcon, ChevronRight, Edit, Plus, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import './CalendarTab.css';
-import { isOfflineDesktop } from '@/preview/previewMode';
 import {
-  advanceCustomCalendar,
   calendarOrdinal,
   TIA_KARTA_REFERENCE_EVENTS,
   tiaKartaCalendar,
@@ -197,12 +195,7 @@ export default function CalendarTab({ campaignId }) {
     const requestedCampaign = campaignId;
     setAdvancingTime(true);
     try {
-      if (isOfflineDesktop()) {
-        const next = advanceCustomCalendar(calendar, days);
-        await apiClient.put(`/campaigns/${requestedCampaign}/calendar`, next);
-      } else {
-        await apiClient.post(`/campaigns/${requestedCampaign}/calendar/advance?days=${days}`);
-      }
+      await apiClient.post(`/campaigns/${requestedCampaign}/calendar/advance?days=${days}`);
       if (activeCampaignRef.current !== requestedCampaign) return;
       toast.success(`Advanced ${days} day(s)`);
       await loadCalendar();

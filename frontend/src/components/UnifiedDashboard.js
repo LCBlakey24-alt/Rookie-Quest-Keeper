@@ -6,7 +6,6 @@ import '@/styles/unifiedDashboardPolish.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
 import SiteUpdatesPanel from '@/components/dashboard/home/SiteUpdatesPanel';
 import { safeArray } from '@/components/dashboard/home/unifiedDashboardUtils';
-import { isOfflineDesktop } from '@/preview/previewMode';
 
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.campaign_id || record?.characterId || record?.campaignId || '';
@@ -36,7 +35,6 @@ function formatDate(value) {
 }
 
 export default function UnifiedDashboard({ username = 'User', onLogout }) {
-  const desktopOffline = isOfflineDesktop();
   const {
     loading,
     slowLoad,
@@ -67,7 +65,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       icon: BookOpen,
     }));
 
-    const homebrewActivity = desktopOffline ? [] : safeArray(recentHomebrew).map((item) => ({
+    const homebrewActivity = safeArray(recentHomebrew).map((item) => ({
       kind: formatHomebrewType(item.content_type),
       title: homebrewTitle(item),
       text: item?.summary || item?.category || 'Homebrew',
@@ -79,7 +77,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     return [...characterActivity, ...campaignActivity, ...homebrewActivity]
       .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
       .slice(0, 5);
-  }, [desktopOffline, recentCampaigns, recentCharacters, recentHomebrew]);
+  }, [recentCampaigns, recentCharacters, recentHomebrew]);
 
   if (loading) {
     return (
@@ -122,7 +120,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         {recentActivity.length === 0 ? (
           <div className="dashboard-empty-compact">
             <Clock3 size={18} aria-hidden="true" />
-            <p>{desktopOffline ? 'Your latest characters and campaigns will appear here.' : 'Your latest characters, campaigns, and homebrew will appear here.'}</p>
+            <p>Your latest characters, campaigns, and homebrew will appear here.</p>
           </div>
         ) : (
           <div className="dashboard-activity-list">
