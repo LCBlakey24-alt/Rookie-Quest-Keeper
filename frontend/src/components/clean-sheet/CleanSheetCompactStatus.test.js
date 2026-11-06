@@ -56,12 +56,26 @@ test('HP actions have amount-aware names and keep the same callbacks', () => {
   expect(handlers.onTempHpAdd).toHaveBeenCalledTimes(1);
 });
 
-test('HP save states still disable the relevant controls', () => {
-  renderStatus({ savingHp: true, savingTempHp: true, tempHp: 0 });
-  expect(screen.getByRole('button', { name: /Take 1 hit point of damage/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /Heal 1 hit point/ })).toBeDisabled();
+test('a save in flight never locks the HP buttons; it only says it is saving', () => {
+  // Locking them while a slow save ran silently ate the player's next taps.
+  const { handlers } = renderStatus({ savingHp: true, savingTempHp: true, tempHp: 3 });
+  for (const name of [/Take 1 hit point of damage/, /Heal 1 hit point/, /Remove 1 temporary hit point/, /Add 1 temporary hit point/]) {
+    expect(screen.getByRole('button', { name })).toBeEnabled();
+  }
+  fireEvent.click(screen.getByRole('button', { name: /Take 1 hit point of damage/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Take 1 hit point of damage/ }));
+  expect(handlers.onDamage).toHaveBeenCalledTimes(2);
+  expect(screen.getByRole('status')).toHaveTextContent('Saving…');
+});
+
+test('the saving hint is empty when nothing is saving', () => {
+  renderStatus();
+  expect(screen.getByTestId('hp-save-status')).toHaveTextContent('');
+});
+
+test('temp HP cannot be removed below zero', () => {
+  renderStatus({ tempHp: 0 });
   expect(screen.getByRole('button', { name: /Remove 1 temporary hit point/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /Add 1 temporary hit point/ })).toBeDisabled();
 });
 
 test('the existing live HP snapshot supplies the Core Stats heading without changing combat controls', () => {
