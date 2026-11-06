@@ -154,8 +154,12 @@ describe('reconnecting', () => {
     await flush();
     latest().open();
     latest().receive({ type: 'auth_ok' });
-    latest().receive({ type: 'player_display_update', data: reveal('LIVE', 70) });
-    latest().receive({ type: 'player_display_update', data: reveal('LIVE', 70) }); // duplicate delivery
+    // One message delivered twice. Building it twice would stamp two
+    // different update times when a millisecond ticks between the calls,
+    // which is a newer state, not a duplicate.
+    const update = { type: 'player_display_update', data: reveal('LIVE', 70) };
+    latest().receive(update);
+    latest().receive(update); // duplicate delivery
     expect(seen.filter(title => title === 'LIVE')).toHaveLength(1);
     stop();
   });

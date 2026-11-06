@@ -74,8 +74,11 @@ export default function CleanCharacterSheet() {
     });
   }
   const [loading, setLoading] = useState(true);
-  const [savingHp, setSavingHp] = useState(false);
-  const [savingTempHp, setSavingTempHp] = useState(false);
+  // How many HP / temp HP saves are still on their way to the server. These
+  // only drive a "Saving…" hint: the buttons stay live, because the save
+  // queue already shows each change at once and sends them in order.
+  const [savingHp, setSavingHp] = useState(0);
+  const [savingTempHp, setSavingTempHp] = useState(0);
   const [savingQuickState, setSavingQuickState] = useState(false);
   const [hpAmount, setHpAmount] = useState(1);
   const [tempHpAmount, setTempHpAmount] = useState(1);
@@ -333,25 +336,33 @@ export default function CleanCharacterSheet() {
     return false;
   };
 
+  // The character as the player sees it right now, including changes still
+  // being saved. HP taps are computed from this, never from the last server
+  // reply, so a second tap while the first save is in flight adds to it
+  // instead of being ignored or overwriting it.
+  const liveCharacter = () => saveControllerRef.current.getSnapshot() || character;
+
   const updateHp = async (delta) => {
-    if (!character || savingHp) return;
+    const live = liveCharacter();
+    if (!live) return;
+    const liveMaxHp = getMaxHp(live);
     const amount = Math.abs(Number(delta) || 0);
     const result = delta < 0
-      ? calculateHpDamage({ currentHp, tempHp, maxHp, amount })
-      : calculateHpHealing({ currentHp, maxHp, amount });
+      ? calculateHpDamage({ currentHp: Math.min(getCurrentHp(live), liveMaxHp), tempHp: getTempHp(live), maxHp: liveMaxHp, amount })
+      : calculateHpHealing({ currentHp: Math.min(getCurrentHp(live), liveMaxHp), maxHp: liveMaxHp, amount });
     const nextHp = result.current_hit_points;
     const updates = { current_hit_points: nextHp };
     if (delta < 0) {
       updates.temporary_hit_points = result.temporary_hit_points;
       updates.temp_hp = result.temp_hp;
     }
-    if (nextHp > 0 && (deathSaveSuccesses || deathSaveFailures)) {
+    if (nextHp > 0 && (clampDeathCount(live.death_saves_successes) || clampDeathCount(live.death_saves_failures))) {
       updates.death_saves_successes = 0;
       updates.death_saves_failures = 0;
     }
-    setSavingHp(true);
+    setSavingHp(count => count + 1);
     const saved = await patchCharacter(updates, { error: 'Could not save HP' });
-    setSavingHp(false);
+    setSavingHp(count => Math.max(0, count - 1));
 
     if (saved !== false && isCurrentSheetSession() && delta < 0 && concentratingName && amount > 0) {
       const concentrationDC = getConcentrationSaveDc(amount);
@@ -371,14 +382,15 @@ export default function CleanCharacterSheet() {
   };
 
   const updateTempHp = async (delta) => {
-    if (!character || savingTempHp) return;
-    const nextTempHp = Math.max(0, tempHp + Number(delta || 0));
-    setSavingTempHp(true);
+    const live = liveCharacter();
+    if (!live) return;
+    const nextTempHp = Math.max(0, getTempHp(live) + Number(delta || 0));
+    setSavingTempHp(count => count + 1);
     await patchCharacter(
       { temporary_hit_points: nextTempHp, temp_hp: nextTempHp },
       { error: 'Could not save temporary HP' }
     );
-    setSavingTempHp(false);
+    setSavingTempHp(count => Math.max(0, count - 1));
   };
 
   const toggleInspiration = async () => {
@@ -663,8 +675,8 @@ export default function CleanCharacterSheet() {
         tempHp={tempHp}
         hpAmount={hpAmount}
         tempHpAmount={tempHpAmount}
-        savingHp={savingHp}
-        savingTempHp={savingTempHp}
+        savingHp={savingHp > 0}
+        savingTempHp={savingTempHp > 0}
         savingQuickState={savingQuickState}
         hasInspiration={hasInspiration}
         inspirationLabel={rulesEdition === '2024' ? 'Heroic Inspiration' : 'Inspiration'}
