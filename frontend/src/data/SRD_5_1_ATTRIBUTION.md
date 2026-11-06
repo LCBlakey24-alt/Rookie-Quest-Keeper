@@ -2,9 +2,8 @@
 
 The bundled `frontend/src/data/srd5eMonsters.generated.json` contains
 **334 SRD 5.1 creatures (87 beasts)**, with open rules information
-from the 2014-style Fifth Edition rules. It is packaged locally with the
-Windows desktop and USB editions, so browsing and building encounters do not
-require an internet connection.
+from the 2014-style Fifth Edition rules. It is bundled with the web app, so
+browsing the bestiary and building encounters do not need a server request.
 
 The SRD data was normalized from the 5e-bits/5e-database English 2014 source,
 release `v5.12.0`, file `src/2014/en/5e-SRD-Monsters.json`.

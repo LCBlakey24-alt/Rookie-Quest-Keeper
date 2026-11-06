@@ -56,6 +56,5 @@
 6. **P2: Calendar and NPC relationship UX.** Confirm irregular months, editing records and directional relationship details through browser tests. Do not propagate Friday-only consequences into Wednesday.
 
 ## Release safety
-- Keep offline Windows release branches, signed update packages and OneDrive records separate.
 - Do not mutate, duplicate or migrate Eldritch Heralds/Spilsby Wednesday data as part of UI fixes.
 - Require passing frontend tests/build and route/character checks before merging; verify the production deployment reaches Ready before saying changes are live.
