@@ -63,22 +63,26 @@ function supportsWebGl() {
 }
 
 export default function DiceTray3DOverlay(props) {
-  const { total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose } = props;
+  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose } = props;
 
-  // Read once, when the overlay mounts for this roll: a throw already in
-  // the air should not change colour underneath the player.
-  const dyeRef = useRef(null);
-  if (dyeRef.current === null) dyeRef.current = getDye(loadDiceDyeId());
-  const palette = useMemo(() => paletteFor(dyeRef.current), []);
+  // Snapshot the chosen colour for this roll. Changing the picker during a
+  // throw does not recolour moving dice; a new roll gets the new material.
+  const dyeSnapshotRef = useRef({ rollId: null, dye: null });
+  if (!dyeSnapshotRef.current.dye || (rollId && dyeSnapshotRef.current.rollId !== rollId)) {
+    dyeSnapshotRef.current = { rollId: rollId || null, dye: getDye(dyeId || loadDiceDyeId()) };
+  }
+  const palette = useMemo(() => paletteFor(dyeSnapshotRef.current.dye), [rollId]);
 
   const canvasRef = useRef(null);
   const trayRef = useRef(null);
   const frameRef = useRef(null);
   const seedRef = useRef(null);
+  const seedRollIdRef = useRef(null);
   const [failed, setFailed] = useState(false);
 
-  if (seedRef.current === null) {
-    seedRef.current = seedFromKey(`${label}-${Date.now()}-${Math.random()}`);
+  if (seedRef.current === null || (rollId && seedRollIdRef.current !== rollId)) {
+    seedRollIdRef.current = rollId || null;
+    seedRef.current = seedFromKey(`${rollId || label}-${Date.now()}-${Math.random()}`);
   }
 
   /*
@@ -92,9 +96,13 @@ export default function DiceTray3DOverlay(props) {
    * the dice themselves is stable across those re-renders and still
    * changes for a genuinely new roll.
    */
-  const diceSignature = useMemo(() => (Array.isArray(rolls) ? rolls : [])
-    .map((die) => `${die?.sides}:${die?.result}:${die?.dropped ? 1 : 0}`)
-    .join('|'), [rolls]);
+  const diceSignature = useMemo(() => {
+    const values = (Array.isArray(rolls) ? rolls : [])
+      .map((die) => `${die?.sides}:${die?.result}:${die?.dropped ? 1 : 0}`)
+      .join('|');
+    // Same numerical dice on a new roll must create a new physical throw.
+    return `${rollId || 'legacy'}:${values}`;
+  }, [rolls, rollId]);
 
   // Every die has to be renderable; one unsupported die means the whole
   // throw falls back, rather than showing a pool with a die missing from it.
@@ -110,9 +118,13 @@ export default function DiceTray3DOverlay(props) {
 
   const canRender = Boolean(specs) && !failed && supportsWebGl();
 
+  // The parent's inline reveal callback changes during harmless rerenders.
+  // Keep the physics callback stable so that alone cannot restart a throw.
+  const onRevealNowRef = useRef(onRevealNow);
+  useEffect(() => { onRevealNowRef.current = onRevealNow; }, [onRevealNow]);
   const handleSettled = useCallback(() => {
-    onRevealNow?.();
-  }, [onRevealNow]);
+    onRevealNowRef.current?.();
+  }, []);
 
   useEffect(() => {
     if (!canRender || !canvasRef.current) return undefined;

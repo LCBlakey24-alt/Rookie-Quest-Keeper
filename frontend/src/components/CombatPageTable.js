@@ -1,11 +1,20 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import {
+  CHECKPOINT_VERSION,
+  combatCheckpointKey,
+  currentCombatAccount,
+  readCombatCheckpoint,
+  recoveredBaselines,
+  scenarioFromCheckpoint,
+} from './combat/combatCheckpoint';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Check, ChevronDown, ChevronUp, Dices, Eye, EyeOff, Heart, Map, Package,
   Play, Plus, RotateCcw, Shield, SkipForward, Skull, Swords, Trash2,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { getAuthToken } from '@/lib/auth';
 import NPCCombatRecruiter from '@/components/NPCCombatRecruiter';
 import QuickBestiaryCombatPicker from '@/components/gm/QuickBestiaryCombatPicker';
 import MapCanvas from '@/components/MapBuilder/MapCanvas';
@@ -128,6 +137,17 @@ function combatantForDisplay(combatant) {
   };
 }
 
+// Do not turn an incomplete original HP baseline into zero via normalisation.
+// New encounters persist all of these values via combatStateSnapshot.
+function hasSafeCombatBaseline(state) {
+  return Boolean(state && typeof state === 'object'
+    && Number.isFinite(Number(state.current_hit_points))
+    && Number.isFinite(Number(state.temporary_hit_points))
+    && Array.isArray(state.conditions)
+    && Number.isFinite(Number(state.death_saves_successes))
+    && Number.isFinite(Number(state.death_saves_failures)));
+}
+
 function playerBaseStates(combatants = []) {
   return combatants.reduce((result, combatant) => {
     if (combatant?.type === 'player' && combatant.character_id) {
@@ -141,10 +161,43 @@ export default function CombatPageTable() {
   const { campaignId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const scenario = location.state?.scenario;
-  const campaignName = location.state?.campaignName || 'Campaign';
-  const source = location.state?.source || 'campaign-prep';
-  const combatKey = `gm.activeCombat.${campaignId}`;
+  const routerScenario = location.state?.scenario;
+
+  // No checkpoint contents are returned until a JWT-derived account matches.
+  // Legacy saves are blocked until the server proves this account is the GM.
+  const [authRevision, setAuthRevision] = useState(0);
+  const [legacyProof, setLegacyProof] = useState(null);
+  const [legacyCheck, setLegacyCheck] = useState(null);
+  const [checkpointConflict, setCheckpointConflict] = useState(false);
+  // The exact stored bytes this screen is showing a decision about, so a
+  // discard can refuse if another tab has changed them in the meantime.
+  const discardGuardRef = useRef(null);
+  // One ending at a time. Two quick taps on End Combat queued the offline
+  // ending twice, which means two sets of character HP operations and two
+  // loot writes to reconcile on the way back online.
+  const endingRef = useRef(false);
+  const accountId = currentCombatAccount();
+  const legacyOwnerVerified = Boolean(legacyProof
+    && legacyProof.campaignId === campaignId
+    && legacyProof.accountId === accountId
+    && legacyProof.token === getAuthToken());
+  const recovery = useMemo(
+    () => readCombatCheckpoint(campaignId, undefined, { accountId, legacyOwnerVerified }),
+    [campaignId, accountId, legacyOwnerVerified, authRevision],
+  );
+  const savedScenarioId = recovery.status === 'ok' ? recovery.checkpoint.scenarioId : '';
+  const sameSavedEncounter = Boolean(routerScenario && savedScenarioId
+    && savedScenarioId === String(routerScenario.id || routerScenario.name));
+  const fromRecovery = recovery.status === 'ok' && (!routerScenario || sameSavedEncounter);
+  const recoveredScenario = useMemo(
+    () => (fromRecovery ? scenarioFromCheckpoint(recovery.checkpoint) : null),
+    [fromRecovery, recovery],
+  );
+  const scenario = fromRecovery ? recoveredScenario
+    : (routerScenario && recovery.status === 'none' && accountId ? routerScenario : null);
+  const campaignName = location.state?.campaignName || recovery.checkpoint?.campaignName || 'Campaign';
+  const source = location.state?.source || recovery.checkpoint?.source || 'campaign-prep';
+  const combatKey = combatCheckpointKey(campaignId);
 
   const [combatants, setCombatants] = useState([]);
   const [currentTurn, setCurrentTurn] = useState(0);
@@ -165,36 +218,104 @@ export default function CombatPageTable() {
   const battleStartTimeRef = useRef(0);
   const initiativeSubmissionRef = useRef({});
   const initialPlayerStatesRef = useRef({});
+  const checkpointRawRef = useRef(null);
 
   useEffect(() => () => {
     if (bannerTimerRef.current) window.clearTimeout(bannerTimerRef.current);
   }, []);
 
   useEffect(() => {
+    const onScopeChanged = () => {
+      setInitialised(false);
+      setLegacyProof(null);
+      setLegacyCheck(null);
+      setCheckpointConflict(false);
+      checkpointRawRef.current = null;
+      setAuthRevision(revision => revision + 1);
+    };
+    const onStorage = event => {
+      if (event.key === combatKey) {
+        // Another tab has written the same campaign key. Never overwrite it.
+        setCheckpointConflict(true);
+      } else if (event.key === 'dm_token' || event.key === 'token' || event.key === 'auth_token') {
+        onScopeChanged();
+      }
+    };
+    window.addEventListener('rqk:auth-scope-changed', onScopeChanged);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('rqk:auth-scope-changed', onScopeChanged);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [combatKey]);
+
+  useEffect(() => {
+    if (recovery.status !== 'legacy-unverified' || !accountId) return undefined;
+    const token = getAuthToken();
+    if (!token) return undefined;
+    const key = `${campaignId}:${accountId}:${token}`;
+    if (legacyCheck?.key === key) return undefined;
+    setLegacyCheck({ key, status: 'checking' });
+    let cancelled = false;
+    (async () => {
+      try {
+        // Both checks MUST come from the authenticated backend, not the
+        // offline API cache or the untrusted username storage entry.
+        const me = await apiClient.get('/auth/me');
+        if (me.rqkOffline || me.data?.offline || String(me.data?.username || '').toLowerCase() !== accountId) {
+          throw new Error('Account could not be verified online');
+        }
+        const campaign = await apiClient.get(`/campaigns/${campaignId}`);
+        if (campaign.rqkOffline || String(campaign.data?.id || '') !== String(campaignId)
+          || String(campaign.data?.dm_user_id || '').toLowerCase() !== accountId) {
+          throw new Error('Campaign ownership could not be verified online');
+        }
+        if (!cancelled && token === getAuthToken() && accountId === currentCombatAccount()) {
+          setLegacyProof({ campaignId, accountId, token });
+        }
+      } catch {
+        if (!cancelled) setLegacyCheck({ key, status: 'blocked' });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [recovery.status, campaignId, accountId]);
+
+  useEffect(() => {
     if (!scenario) {
-      toast.error('No combat encounter found');
-      navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
+      if (!routerScenario && recovery.status === 'none') {
+        toast.error('No combat encounter found');
+        navigate(`/campaign/${campaignId}`, { replace: true });
+      }
       return;
     }
+    if (currentCombatAccount() !== accountId || checkpointConflict) return;
 
     let restored = null;
-    try {
-      const raw = localStorage.getItem(combatKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.scenarioId === (scenario.id || scenario.name)) restored = parsed;
-      }
-    } catch { /* ignore broken checkpoint */ }
+    if (fromRecovery) {
+      // Preserve the original current HP and independent pre-combat baseline.
+      restored = {
+        ...recovery.checkpoint,
+        combatants: recovery.checkpoint.combatants.map(initialiseCombatant),
+      };
+      try { checkpointRawRef.current = localStorage.getItem(combatKey); }
+      catch { checkpointRawRef.current = null; }
+    } else {
+      checkpointRawRef.current = null;
+    }
 
     const scenarioStart = safeArray(scenario.combatants).map(initialiseCombatant);
     const scenarioBaseStates = playerBaseStates(scenarioStart);
 
     if (restored?.combatants?.length) {
       battleStartTimeRef.current = 0;
-      initialPlayerStatesRef.current = {
-        ...scenarioBaseStates,
-        ...(restored.initialPlayerStates || {}),
-      };
+      // On a launch, scenarioBaseStates are the prepared pre-combat values and
+      // a sound fallback. On a recovery the "scenario" IS the current, damaged
+      // roster, so falling back to it would record a wound as the baseline.
+      // Leave it absent instead; endCombatOffline already refuses to sync a
+      // fight whose baseline it does not have.
+      initialPlayerStatesRef.current = fromRecovery
+        ? recoveredBaselines(recovery.checkpoint)
+        : scenarioBaseStates;
       setCombatants(restored.combatants);
       setCollectedLoot(safeArray(restored.collectedLoot).map(ensureLootOperation));
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
@@ -213,19 +334,34 @@ export default function CombatPageTable() {
       if (loaded.length) toast.success(`${loaded.length} combatants rolled initiative`);
     }
     setInitialised(true);
-  }, [campaignId, combatKey, navigate, scenario, source]);
+  }, [campaignId, combatKey, navigate, scenario, source, fromRecovery, recovery, accountId, checkpointConflict, routerScenario]);
 
   useEffect(() => {
-    if (!campaignId) return;
+    if (!campaignId || !scenario || !accountId) return;
     apiClient.get(`/campaigns/${campaignId}/maps`)
       .then(response => setMaps(safeArray(response.data)))
       .catch(() => setMaps([]));
-  }, [campaignId]);
+  }, [campaignId, scenario, accountId]);
 
   useEffect(() => {
-    if (!initialised || !scenario) return;
+    if (!initialised || !scenario || !accountId || checkpointConflict) return;
+    if (currentCombatAccount() !== accountId) return;
     try {
-      localStorage.setItem(combatKey, JSON.stringify({
+      const previousRaw = localStorage.getItem(combatKey);
+      const current = readCombatCheckpoint(campaignId, localStorage, { accountId, legacyOwnerVerified });
+      if (previousRaw !== checkpointRawRef.current
+        || (current.status !== 'none' && current.status !== 'ok')
+        || (current.status === 'ok' && current.checkpoint.scenarioId !== String(scenario.id || scenario.name))) {
+        setCheckpointConflict(true);
+        toast.error('Combat changed in another tab or account. This copy will not overwrite it.');
+        return;
+      }
+      const nextRaw = JSON.stringify({
+        version: CHECKPOINT_VERSION,
+        ownerId: accountId,
+        campaignId,
+        source,
+        campaignName,
         scenarioId: scenario.id || scenario.name,
         scenarioName: scenario.name,
         combatants,
@@ -236,9 +372,11 @@ export default function CombatPageTable() {
         collectedLoot,
         initialPlayerStates: initialPlayerStatesRef.current,
         savedAt: Date.now(),
-      }));
+      });
+      localStorage.setItem(combatKey, nextRaw);
+      checkpointRawRef.current = nextRaw;
     } catch { /* local checkpoint is best effort */ }
-  }, [collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId]);
+  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, source, accountId, legacyOwnerVerified, checkpointConflict]);
 
   useEffect(() => {
     if (!scenario || !maps.length || selectedMapId) return;
@@ -540,7 +678,20 @@ export default function CombatPageTable() {
     subtitle: 'Waiting for the GM',
   });
 
+  const isCurrentCheckpointSafe = () => {
+    if (!initialised || checkpointConflict || currentCombatAccount() !== accountId) return false;
+    try {
+      const raw = localStorage.getItem(combatKey);
+      return Boolean(raw && raw === checkpointRawRef.current
+        && readCombatCheckpoint(campaignId, localStorage, { accountId }).status === 'ok');
+    } catch { return false; }
+  };
+
   const endCombatOffline = async () => {
+    if (!isCurrentCheckpointSafe()) {
+      toast.error('Combat changed or its owner cannot be verified. No HP or loot has been synchronised.');
+      return false;
+    }
     const realCharacters = combatants.filter(item => item.type === 'player' && item.character_id);
     const legacyPlayers = combatants.filter(item => item.type === 'player' && !item.character_id && item.legacy_player_id);
 
@@ -549,12 +700,13 @@ export default function CombatPageTable() {
       return false;
     }
 
-    const missingBase = realCharacters.filter(item => !initialPlayerStatesRef.current[String(item.character_id)]);
+    const missingBase = realCharacters.filter(item => !hasSafeCombatBaseline(initialPlayerStatesRef.current[String(item.character_id)]));
     if (missingBase.length) {
       toast.error('This restored fight is missing its safe pre-combat baseline. Reconnect once before ending it offline.');
       return false;
     }
 
+    if (!isCurrentCheckpointSafe()) return false;
     const safeLoot = collectedLoot.map(ensureLootOperation);
     const displayState = blankCombatDisplay();
     const queued = await queueOfflineCombatEnd({
@@ -577,8 +729,12 @@ export default function CombatPageTable() {
       return false;
     }
 
+    if (!isCurrentCheckpointSafe()) {
+      toast.error('Another session changed the checkpoint while combat was ending. This tab has not deleted it.');
+      return false;
+    }
     publishDisplayState(campaignId, displayState);
-    try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+    try { localStorage.removeItem(combatKey); checkpointRawRef.current = null; } catch { /* ignore */ }
     const details = [];
     if (realCharacters.length) details.push(`${realCharacters.length} player state${realCharacters.length === 1 ? '' : 's'}`);
     if (safeLoot.length) details.push(`${safeLoot.length} loot item${safeLoot.length === 1 ? '' : 's'}`);
@@ -590,7 +746,23 @@ export default function CombatPageTable() {
   };
 
   const endCombat = async () => {
+    if (endingRef.current) return;
+    if (!isCurrentCheckpointSafe()) {
+      toast.error('Combat checkpoint changed or its owner is unverified. No HP updates were sent.');
+      return;
+    }
     if (!window.confirm('End this combat? Player combat state will be saved.')) return;
+    endingRef.current = true;
+    try {
+      await runEndCombat();
+    } finally {
+      // Released on every path that leaves the fight open, so a refused or
+      // failed attempt can be retried. A successful end navigates away.
+      endingRef.current = false;
+    }
+  };
+
+  const runEndCombat = async () => {
 
     if (navigator.onLine === false) {
       await endCombatOffline();
@@ -599,6 +771,7 @@ export default function CombatPageTable() {
 
     try {
       await syncPlayerState();
+      if (!isCurrentCheckpointSafe()) throw new Error('Checkpoint changed while HP was syncing. Combat has been preserved for review.');
       if (collectedLoot.length) await saveLoot({ throwOnError: true });
 
       const displayState = blankCombatDisplay();
@@ -615,7 +788,8 @@ export default function CombatPageTable() {
         cleanupQueued = true;
       }
 
-      try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+      if (!isCurrentCheckpointSafe()) throw new Error('Combat checkpoint changed during ending; it has not been deleted.');
+      try { localStorage.removeItem(combatKey); checkpointRawRef.current = null; } catch { /* ignore */ }
       toast.success(cleanupQueued
         ? 'Combat ended and player state saved · display cleanup will retry automatically'
         : 'Combat ended and player state saved');
@@ -626,8 +800,12 @@ export default function CombatPageTable() {
   };
 
   const resetCheckpoint = () => {
+    if (!isCurrentCheckpointSafe()) {
+      toast.error('Cannot reset a checkpoint owned or modified by another session.');
+      return;
+    }
     if (!window.confirm('Reset this fight to the encounter start and reroll initiative?')) return;
-    try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+    try { localStorage.removeItem(combatKey); checkpointRawRef.current = null; } catch { /* ignore */ }
     apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`).catch(() => null);
     initiativeSubmissionRef.current = {};
     const loaded = safeArray(scenario?.combatants).map(initialiseCombatant).sort((a, b) => b.initiative - a.initiative);
@@ -642,12 +820,129 @@ export default function CombatPageTable() {
     toast.success('Encounter reset');
   };
 
-  if (!scenario) return null;
+  if (!scenario) {
+    if (!routerScenario && recovery.status === 'none') return null;
+    // Remember exactly what is stored right now, so a later discard can tell
+    // whether another tab changed it while this screen was up.
+    try {
+      discardGuardRef.current = localStorage.getItem(combatKey);
+    } catch {
+      discardGuardRef.current = null;
+    }
+    const message = !accountId
+      ? 'Sign in to continue. An unauthenticated browser cannot access or replace saved combat.'
+      : recovery.status === 'ok'
+        ? 'An unfinished encounter already exists for this campaign. Resume it, or discard it deliberately to start another; its checkpoint has not been changed.'
+        : legacyCheck?.status === 'checking'
+          ? 'Verifying the older saved fight with the server…'
+          : recovery.status === 'legacy-unverified'
+            // Say plainly why there is no way forward here, rather than
+            // leaving the GM to work out that the missing button is deliberate.
+            ? `${recovery.reason} Rookie cannot confirm this saved fight belongs to you,`
+              + ' so it will not delete it and this encounter cannot start in this browser yet.'
+            : recovery.reason || 'Recovery is currently unavailable. The checkpoint has been preserved.';
+    return (
+      <main className="combat-table-page" data-testid="combat-recovery-blocked" style={{ padding: 24 }}>
+        <h1>Saved combat protected</h1>
+        <p>{message}</p>
+        {routerScenario && recovery.status === 'ok' && (
+          <button type="button" onClick={() => navigate(`/combat/${campaignId}`, { replace: true, state: null })}>Resume saved encounter</button>
+        )}
+        {routerScenario && recovery.status === 'ok' && (
+          // Only a checkpoint this account is proven to own may be discarded.
+          // readCombatCheckpoint returns 'ok' only when the stored ownerId
+          // matches the token subject, or when a legacy save with no stamp has
+          // been verified online against /auth/me and the campaign's
+          // dm_user_id. Every other status -- foreign-account, foreign,
+          // auth-required, unsupported, corrupt, unreadable, legacy-unverified
+          // -- means ownership is unproven, and an unproven save is never
+          // offered a delete button. A confirmation dialog does not make an
+          // unauthorised deletion authorised.
+          <button
+            type="button"
+            data-testid="combat-discard-saved"
+            onClick={() => {
+              const owned = recovery.checkpoint;
+              if (!window.confirm(
+                `Discard "${owned.scenarioName || 'the saved fight'}" and start `
+                + `"${routerScenario.name || 'this encounter'}"?\n\n`
+                + 'The saved fight is deleted from this device and cannot be recovered. '
+                + 'No character sheet is changed.',
+              )) return;
+
+              // Re-check at the moment of deletion. The confirmation dialog is
+              // modal to this tab only: another tab may have replaced the
+              // checkpoint, and the account may have changed, while it was up.
+              let raw = null;
+              try {
+                raw = localStorage.getItem(combatKey);
+              } catch {
+                toast.error('This browser would not let Rookie read the saved fight. Nothing was deleted.');
+                return;
+              }
+              if (raw !== discardGuardRef.current) {
+                setCheckpointConflict(true);
+                toast.error('The saved fight changed in another tab. Nothing was deleted.');
+                return;
+              }
+              const stillOwned = readCombatCheckpoint(campaignId, localStorage, {
+                accountId: currentCombatAccount(),
+                legacyOwnerVerified,
+              });
+              if (stillOwned.status !== 'ok') {
+                toast.error('The saved fight could not be confirmed as yours. Nothing was deleted.');
+                return;
+              }
+
+              try {
+                localStorage.removeItem(combatKey);
+              } catch {
+                toast.error('Rookie could not delete the saved fight. It is still here and nothing was started.');
+                return;
+              }
+              // Never report a discard, or start a replacement that would write
+              // over it, unless the bytes are actually gone.
+              let remaining = null;
+              try {
+                remaining = localStorage.getItem(combatKey);
+              } catch {
+                remaining = raw;
+              }
+              if (remaining !== null) {
+                toast.error('Rookie could not delete the saved fight. It is still here and nothing was started.');
+                return;
+              }
+
+              discardGuardRef.current = null;
+              setLegacyCheck(null);
+              setLegacyProof(null);
+              setCheckpointConflict(false);
+              setAuthRevision(value => value + 1);
+            }}
+          >
+            Discard saved fight and start this encounter
+          </button>
+        )}
+        <button type="button" onClick={() => navigate(`/campaign/${campaignId}`, { replace: true })}>Return to campaign</button>
+      </main>
+    );
+  }
+
+  if (checkpointConflict) {
+    return <main data-testid="combat-recovery-conflict" style={{ padding: 24 }}><h1>Saved combat changed</h1><p>Another tab changed this checkpoint. This tab will not write over it or sync HP. Return to your campaign and reopen combat when safe.</p><button type="button" onClick={() => navigate(`/campaign/${campaignId}`, { replace: true })}>Return to campaign</button></main>;
+  }
 
   return (
     <div className="combat-table-page" data-testid="combat-table-page">
       <header className="combat-table-header">
-        <button type="button" onClick={endCombat} className="combat-icon-button" title="End combat"><ArrowLeft size={18} /></button>
+        <button
+          type="button"
+          onClick={endCombat}
+          className="combat-icon-button"
+          data-testid="combat-end"
+          aria-label="End combat"
+          title="End combat"
+        ><ArrowLeft size={18} aria-hidden="true" /></button>
         <div className="combat-title-wrap">
           <strong><Swords size={17} /> {scenario.name || 'Combat'}</strong>
           <span>{campaignName}</span>
@@ -946,7 +1241,7 @@ const combatCss = `
   .combat-death-saves > span { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 900; }
   .combat-death-saves strong { font-size: 10px; }
   .combat-death-saves .successes { color: ${rq.green}; } .combat-death-saves .failures { color: ${rq.danger}; }
-  .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 32px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
+  .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 40px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
   .combat-attack-button { border-color: ${rq.red}; background: rgba(124,203,255,.10); }
   .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(124,203,255,.10); color: ${rq.text}; }
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }

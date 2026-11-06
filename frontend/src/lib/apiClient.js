@@ -165,6 +165,17 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
+  // Record which account this request belongs to while it is going out. The
+  // response interceptor runs when the reply lands, by which time the person
+  // at the keyboard may have signed out and someone else signed in; without
+  // this, the first account's campaign data is filed under -- and later
+  // served to -- the second. The import is static-light: one small pure
+  // function, no IndexedDB work on the request path.
+  if (shouldUseOfflineCache(config)) {
+    const { stampOfflineCacheScope } = await import('@/offline/offlineApiCache');
+    config = stampOfflineCacheScope(config);
+  }
+
   return config;
 });
 

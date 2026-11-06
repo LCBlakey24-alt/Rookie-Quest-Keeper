@@ -69,6 +69,18 @@ function normaliseUrl(config = {}) {
   }
 }
 
+/** The query a URL carries inline, as pairs, in the order written. */
+function inlineQueryPairs(config = {}) {
+  const url = String(config.url || '');
+  const marker = url.indexOf('?');
+  if (marker === -1) return [];
+  try {
+    return [...new URLSearchParams(url.slice(marker + 1)).entries()];
+  } catch {
+    return [];
+  }
+}
+
 function isCampaignMembersRead(path) {
   return /^\/campaign-invites\/[^/]+\/members$/.test(path);
 }
@@ -82,16 +94,59 @@ export function isCacheableOfflineGet(config = {}) {
     || CACHEABLE_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
 }
 
-function stableParams(params) {
-  if (!params || typeof params !== 'object') return '';
-  return JSON.stringify(Object.keys(params).sort().reduce((result, key) => {
-    result[key] = params[key];
-    return result;
-  }, {}));
+/** Every parameter of a request, inline or passed, as sorted pairs.
+ *
+ * Object.keys on a URLSearchParams returns nothing, so reading params that
+ * way collapsed every such request onto one key and let one answer stand in
+ * for another. A repeated parameter is kept as several pairs rather than one
+ * value, so a filter that names two schools is not confused with one naming
+ * a single school.
+ */
+function queryPairs(params) {
+  if (!params) return [];
+  if (typeof URLSearchParams !== 'undefined' && params instanceof URLSearchParams) {
+    return [...params.entries()];
+  }
+  if (typeof params !== 'object') return [];
+  return Object.keys(params).flatMap(key => (Array.isArray(params[key])
+    ? params[key].map(value => [key, String(value)])
+    : [[key, String(params[key])]]));
+}
+
+function stableParams(params, extraPairs = []) {
+  const pairs = [...extraPairs, ...queryPairs(params)];
+  if (pairs.length === 0) return '';
+  const sorted = [...pairs].sort((left, right) => (
+    left[0] === right[0] ? String(left[1]).localeCompare(String(right[1])) : left[0].localeCompare(right[0])
+  ));
+  return JSON.stringify(sorted);
+}
+
+/** The account a request was sent on behalf of.
+ *
+ * Read when the request goes out, not when the reply lands. The response
+ * interceptor runs on arrival, and a GM who signs out mid-read and hands the
+ * laptop to a player would otherwise have their campaign list filed under --
+ * and later served to -- the second account.
+ */
+export function stampOfflineCacheScope(config = {}) {
+  if (!config || config.rqkCacheScope) return config;
+  return { ...config, rqkCacheScope: getOfflineCacheScope() };
+}
+
+/** Whether the account that asked for this is still the account signed in. */
+export function offlineCacheScopeStillMatches(config = {}) {
+  const stamped = config?.rqkCacheScope;
+  if (!stamped) return true;
+  return stamped === getOfflineCacheScope();
+}
+
+function scopeForConfig(config = {}) {
+  return config?.rqkCacheScope || getOfflineCacheScope();
 }
 
 export function getOfflineCacheKey(config = {}) {
-  return `${getOfflineCacheScope()}::${normaliseUrl(config)}::${stableParams(config.params)}`;
+  return `${scopeForConfig(config)}::${normaliseUrl(config)}::${stableParams(config.params, inlineQueryPairs(config))}`;
 }
 
 function normaliseAudience(audience) {
@@ -135,6 +190,10 @@ function openDb() {
 
 export async function storeOfflineApiResponse(config, response) {
   if (!isCacheableOfflineGet(config) || !response || response.status < 200 || response.status >= 300) return '';
+  // A reply belonging to an account that is no longer signed in is dropped
+  // rather than filed. Losing one cache entry costs a slower read later;
+  // filing it wrongly shows one person another person's campaign.
+  if (!offlineCacheScopeStillMatches(config)) return '';
   const db = await openDb().catch(() => null);
   if (!db) return '';
 
@@ -142,8 +201,8 @@ export async function storeOfflineApiResponse(config, response) {
   const record = {
     key,
     path: normaliseUrl(config),
-    params: stableParams(config.params),
-    scope: getOfflineCacheScope(),
+    params: stableParams(config.params, inlineQueryPairs(config)),
+    scope: scopeForConfig(config),
     data: response.data,
     status: response.status,
     savedAt: Date.now(),
@@ -162,6 +221,7 @@ export async function storeOfflineApiResponse(config, response) {
 
 export async function readOfflineApiResponse(config) {
   if (!isCacheableOfflineGet(config)) return null;
+  if (!offlineCacheScopeStillMatches(config)) return null;
   const db = await openDb().catch(() => null);
   if (!db) return null;
 
