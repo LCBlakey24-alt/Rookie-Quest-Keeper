@@ -30,6 +30,62 @@ async function avoidThirdPartyRequests(page: Page) {
     ? route.continue() : route.abort());
 }
 
+const syntheticDisplayToken = (() => {
+  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  return `${encode({ alg: 'HS256' })}.${encode({ sub: 'responsive-display-user', exp: 4102444800 })}.sig`;
+})();
+
+function rectanglesOverlap(left: { x: number; y: number; width: number; height: number } | null, right: { x: number; y: number; width: number; height: number } | null) {
+  if (!left || !right) return false;
+  return left.x < right.x + right.width
+    && left.x + left.width > right.x
+    && left.y < right.y + right.height
+    && left.y + left.height > right.y;
+}
+
+test('Player Display fixed controls never cover its security and sync status', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.addInitScript(token => {
+    localStorage.setItem('dm_token', token);
+    localStorage.setItem('dm_username', 'responsive-display-user');
+    class QuietWebSocket {
+      readyState = 0;
+      send() {}
+      close() { this.readyState = 3; }
+    }
+    window.WebSocket = QuietWebSocket as unknown as typeof WebSocket;
+  }, syntheticDisplayToken);
+  await page.route('**/api/**', route => {
+    const url = route.request().url();
+    if (url.endsWith('/auth/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: '{"username":"responsive-display-user"}' });
+    if (url.endsWith('/display-state')) return route.fulfill({ status: 403, contentType: 'application/json', body: '{"detail":"Forbidden"}' });
+    if (url.endsWith('/players')) return route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"Synthetic party outage"}' });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/player-display/responsive-campaign');
+  const display = page.getByTestId('player-display-page');
+  const fullscreen = display.locator('.rqk-player-display__fullscreen');
+  const warning = display.getByText(/Party sync unavailable/i);
+  const footerContext = display.locator('.rqk-player-display__footer > span').first();
+  const syncStatus = page.getByTestId('player-display-sync-status');
+  const feedback = page.getByTestId('global-feedback-btn');
+  const dice = page.locator('.rq-floating-dice');
+  await expect(syncStatus).toContainText('No access');
+  await expect(warning).toBeVisible();
+  await expect(feedback).toBeVisible();
+  await expect(dice).toBeVisible();
+
+  const [fullscreenBox, warningBox, feedbackBox, syncBox, diceBox, contextBox] = await Promise.all([
+    fullscreen.boundingBox(), warning.boundingBox(), feedback.boundingBox(), syncStatus.boundingBox(), dice.boundingBox(), footerContext.boundingBox(),
+  ]);
+  expect(await fullscreen.evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+  expect(rectanglesOverlap(fullscreenBox, warningBox), 'Fullscreen covered the party-sync warning').toBe(false);
+  expect(rectanglesOverlap(feedbackBox, syncBox), 'Feedback covered the access/sync status').toBe(false);
+  expect(rectanglesOverlap(diceBox, contextBox), 'Dice covered the display context footer').toBe(false);
+  await assertFitsViewport(page, 1024);
+});
+
 
 // Live Play should use one sticky vertical rail on large screens, but one
 // horizontally swipeable navigation row on phones. Never make the full page
