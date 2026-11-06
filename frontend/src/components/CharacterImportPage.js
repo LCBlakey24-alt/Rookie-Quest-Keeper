@@ -252,7 +252,7 @@ function buildPayload(character) {
   const inventory = listFrom(character.equipment_text).map((name) => ({ name, equipped: false, source: 'import' }));
   const sourceNote = character.source_file_name
     ? `Imported from player upload: ${character.source_file_name}.${character.source_warning ? ` ${character.source_warning}` : ''}`
-    : '';
+    : 'Imported through Keeper character import.';
 
   return {
     name: character.name.trim(),
