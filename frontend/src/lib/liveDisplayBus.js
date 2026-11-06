@@ -46,9 +46,20 @@ function openEnvelope(value, account, campaignId) {
 /** Thrown when a response arrives for an account that is no longer signed in. */
 class StaleAccountError extends Error {}
 
+/** An IndexedDB fallback is useful last-known data, not server authorisation. */
+class OfflineDisplayResponseError extends Error {}
+
 /** HTTP status of a failed request, or 0 for no response (offline/timeout). */
 function failureStatus(error) {
   return Number(error?.response?.status) || 0;
+}
+
+function isOfflineResponse(response) {
+  const headers = response?.headers;
+  const marker = typeof headers?.get === 'function'
+    ? headers.get('x-rqk-offline-cache')
+    : headers?.['x-rqk-offline-cache'];
+  return response?.rqkOffline === true || String(marker || '') === '1';
 }
 
 const sourceTabId = (() => {
@@ -215,6 +226,11 @@ export async function loadRemoteDisplayState(campaignId, account = currentDispla
   const response = await apiClient.get(`/campaigns/${campaignId}/display-state`);
   // Answered for an account that has since signed out or been replaced.
   if (!account || currentDisplayAccount() !== account) throw new StaleAccountError();
+  // apiClient may resolve a failed GET from its account-scoped IndexedDB
+  // cache. That state is useful only as last-known content already held by an
+  // authorised account; it is not a fresh access decision and must never
+  // refill a display that a 401/403 has just cleared.
+  if (isOfflineResponse(response)) throw new OfflineDisplayResponseError();
   const rawState = response.data || createDisplayState('blank', {});
   const localState = readStoredDisplayState(campaignId, account);
   const state = reconcileRemoteState(rawState, normaliseDisplayState(rawState), localState);
@@ -235,11 +251,10 @@ export function saveDisplayState(campaignId, state, account = currentDisplayAcco
   }
 }
 
-export function publishDisplayState(campaignId, state) {
+export function publishDisplayState(campaignId, state, account = currentDisplayAccount()) {
   const runtimeWindow = getWindow();
-  const account = currentDisplayAccount();
   const safeState = normaliseDisplayState(state);
-  if (!account) return; // nobody to publish for in this browser
+  if (!account || currentDisplayAccount() !== account) return; // nobody/current account changed
   saveDisplayState(campaignId, safeState, account);
   if (!runtimeWindow) return;
   const message = envelope(account, campaignId, safeState);
@@ -261,16 +276,20 @@ export function publishDisplayState(campaignId, state) {
 
 export async function publishCampaignDisplayState(campaignId, state) {
   const localState = normaliseDisplayState(state);
-  publishDisplayState(campaignId, localState);
+  const publishingAccount = currentDisplayAccount();
+  publishDisplayState(campaignId, localState, publishingAccount);
   try {
     const apiClient = await getApiClient();
     const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, localState);
     const rawRemoteState = response.data || localState;
-    if (!currentDisplayAccount()) return localState;
-    const latestLocalState = readStoredDisplayState(campaignId) || localState;
+    // The request was authorised for publishingAccount. If the browser has
+    // switched accounts while it was pending, its response cannot be stamped
+    // for or broadcast to the new account.
+    if (!publishingAccount || currentDisplayAccount() !== publishingAccount) return localState;
+    const latestLocalState = readStoredDisplayState(campaignId, publishingAccount) || localState;
     const remoteState = reconcileRemoteState(rawRemoteState, normaliseDisplayState(rawRemoteState), latestLocalState);
     if (isNewerState(remoteState, latestLocalState)) {
-      publishDisplayState(campaignId, remoteState);
+      publishDisplayState(campaignId, remoteState, publishingAccount);
       return remoteState;
     }
     return latestLocalState;
@@ -382,6 +401,10 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
   let reconnectAttempts = 0;
   let remoteReadInFlight = false;
   let socketReady = false;
+  // A refusal remains authoritative through an outage. Only a later real
+  // server response may restore content; IndexedDB fallback and socket/local
+  // messages cannot turn a denied display back on.
+  let accessRefusedStatus = '';
 
   const acknowledgeCurrentState = async (state = lastAcknowledgementState) => {
     if (cancelled || acknowledgementInFlight || !state?.sync_id || !isPlayerDisplayPath(runtimeWindow.location?.pathname)) return;
@@ -394,7 +417,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
   };
 
   const applyRemoteState = (state) => {
-    if (!stillOurs() || !state?.updated_at) return;
+    if (!stillOurs() || accessRefusedStatus || !state?.updated_at) return;
     const localState = readStoredDisplayState(campaignId, account);
     const safeState = reconcileRemoteState(state, normaliseDisplayState(state), localState);
     const identity = displayStateRevisionIdentity(safeState);
@@ -416,6 +439,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
     clearStoredDisplayState(campaignId, account);
     lastRemoteIdentity = '';
     lastAcknowledgementState = null;
+    accessRefusedStatus = status;
     onState(createDisplayState('blank', {}));
     onStatus(status);
   };
@@ -426,8 +450,12 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
     try {
       const state = await loadRemoteDisplayState(campaignId, account);
       if (!stillOurs()) return;
+      accessRefusedStatus = '';
       applyRemoteState(state);
       onStatus('synced');
+      // Once a real read restores access, the healthy socket can resume as
+      // the live transport and the temporary authorisation polling may stop.
+      if (socketReady) stopPolling();
     } catch (error) {
       if (error instanceof StaleAccountError || !stillOurs()) return;
       const status = failureStatus(error);
@@ -435,7 +463,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
       else if (status === 403 || status === 404) refuse('denied');
       // Anything else is an outage: this account's own last-known state may
       // stay, but it is reported as not synced.
-      else onStatus('offline');
+      else onStatus(accessRefusedStatus || 'offline');
     } finally {
       remoteReadInFlight = false;
     }
@@ -447,10 +475,12 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
   };
 
   const startPolling = () => {
-    if (cancelled || pollingTimer || socketReady) return;
+    if (cancelled || pollingTimer || (socketReady && !accessRefusedStatus)) return;
     readRemoteState();
     pollingTimer = runtimeWindow.setInterval(() => {
-      if (!socketReady) readRemoteState();
+      // Socket messages carry state, not a fresh access decision. Continue
+      // HTTP checks while refused even when the socket itself is healthy.
+      if (!socketReady || accessRefusedStatus) readRemoteState();
     }, Math.max(2500, intervalMs));
   };
 
@@ -488,7 +518,8 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
       socket.onopen = () => {
         socketReady = true;
         reconnectAttempts = 0;
-        stopPolling();
+        if (accessRefusedStatus) startPolling();
+        else stopPolling();
         clearSocketTimers();
         pingTimer = runtimeWindow.setInterval(() => {
           try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
@@ -498,7 +529,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, {
         if (!stillOurs()) return;
         try {
           const message = JSON.parse(event.data);
-          if (message?.type === 'player_display_update' && message.data) {
+          if (!accessRefusedStatus && message?.type === 'player_display_update' && message.data) {
             applyRemoteState(message.data);
             onStatus('synced');
           }
