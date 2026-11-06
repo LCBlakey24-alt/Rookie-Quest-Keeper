@@ -10,8 +10,9 @@
  * These drive the real components through a real click.
  */
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import LiveEncounterLauncher from './LiveEncounterLauncher';
 import LiveSessionGridMode from './LiveSessionGridMode';
 
 jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn() }));
@@ -144,15 +145,10 @@ test('a quest handoff through storage still works', async () => {
   expect(selection.id).toBe('hm02');
 });
 
-test('a handoff to a deleted encounter warns and offers the next one instead', async () => {
+test('a handoff to a deleted encounter warns and never substitutes another fight', async () => {
   localStorage.setItem(`gm.questEncounter.${CAMPAIGN}`, 'deleted-last-week');
   openLivePlay();
-  const selection = await waitFor(async () => {
-    const current = await reviewSelection();
-    expect(current.id).not.toBe('');
-    return current;
-  });
-  expect(selection.id).toBe('hm01');
+  await waitFor(async () => expect((await reviewSelection()).id).toBe(''));
   expect(toast.warning).toHaveBeenCalledWith(
     'That encounter is no longer in this campaign. Choose another below.',
   );
@@ -179,4 +175,129 @@ test('switching campaigns does not carry a selection across', async () => {
     </MemoryRouter>,
   );
   await waitFor(async () => expect((await reviewSelection()).id).toBe('other-1'));
+});
+
+test('a handoff is consumed once, so refresh keeps a later manual choice until a new request arrives', async () => {
+  apiClient.get.mockImplementation(url => {
+    if (url === `/campaigns/${CAMPAIGN}`) return Promise.resolve({ data: { id: CAMPAIGN, name: 'Spilsby Wednesday' } });
+    if (url === `/campaigns/${CAMPAIGN}/combat-scenarios`) return Promise.resolve({ data: SCENARIOS });
+    if (url === `/campaigns/${CAMPAIGN}/live-party`) return Promise.resolve({ data: [] });
+    if (url === `/campaigns/${CAMPAIGN}/npcs`) return Promise.resolve({ data: [] });
+    if (url === `/campaigns/${CAMPAIGN}/live-state`) return Promise.reject(new Error('temporary live-state failure'));
+    return Promise.resolve({ data: [] });
+  });
+
+  const renderLauncher = nonce => (
+    <MemoryRouter>
+      <LiveEncounterLauncher
+        campaignId={CAMPAIGN}
+        requestedEncounterId="hm01"
+        requestedEncounterCampaignId={CAMPAIGN}
+        encounterRequestNonce={nonce}
+      />
+    </MemoryRouter>
+  );
+  const view = render(renderLauncher(1));
+  const select = await screen.findByLabelText('Choose battle type');
+  await waitFor(() => expect(select).toHaveValue('hm01'));
+
+  fireEvent.change(select, { target: { value: 'hm02' } });
+  expect(select).toHaveValue('hm02');
+  fireEvent.click(screen.getByRole('button', { name: /Retry/i }));
+  await waitFor(() => expect(select).toHaveValue('hm02'));
+
+  view.rerender(renderLauncher(2));
+  await waitFor(async () => expect(await screen.findByLabelText('Choose battle type')).toHaveValue('hm01'));
+});
+
+test('StrictMode and repeated loading warn once for one missing request', async () => {
+  mockApi();
+  render(
+    <React.StrictMode>
+      <MemoryRouter>
+        <LiveEncounterLauncher
+          campaignId={CAMPAIGN}
+          requestedEncounterId="deleted-last-week"
+          requestedEncounterCampaignId={CAMPAIGN}
+          encounterRequestNonce={41}
+        />
+      </MemoryRouter>
+    </React.StrictMode>,
+  );
+
+  const select = await screen.findByLabelText('Choose battle type');
+  await waitFor(() => expect(select).toHaveValue(''));
+  expect(toast.warning).toHaveBeenCalledTimes(1);
+  expect(toast.warning).toHaveBeenCalledWith(
+    'That encounter is no longer in this campaign. Choose another below.',
+  );
+});
+
+test('a delayed response from the old campaign cannot replace the new campaign selection or roster', async () => {
+  const deferred = () => {
+    let resolve;
+    const promise = new Promise(done => { resolve = done; });
+    return { promise, resolve };
+  };
+  const oldResponses = {
+    campaign: deferred(), scenarios: deferred(), players: deferred(), npcs: deferred(), liveState: deferred(),
+  };
+  const campaignB = 'camp-2';
+  const scenariosB = [{ id: 'b-encounter', name: 'Harbour Brawl', live_ready: true, combatants: [] }];
+
+  apiClient.get.mockImplementation(url => {
+    if (url === '/campaigns/camp-a') return oldResponses.campaign.promise;
+    if (url === '/campaigns/camp-a/combat-scenarios') return oldResponses.scenarios.promise;
+    if (url === '/campaigns/camp-a/live-party') return oldResponses.players.promise;
+    if (url === '/campaigns/camp-a/npcs') return oldResponses.npcs.promise;
+    if (url === '/campaigns/camp-a/live-state') return oldResponses.liveState.promise;
+    if (url === `/campaigns/${campaignB}`) return Promise.resolve({ data: { id: campaignB, name: 'Second table' } });
+    if (url === `/campaigns/${campaignB}/combat-scenarios`) return Promise.resolve({ data: scenariosB });
+    if (url === `/campaigns/${campaignB}/live-party`) {
+      return Promise.resolve({ data: [{ id: 'b-player', name: 'B Player', hp: 12, max_hp: 12 }] });
+    }
+    if (url === `/campaigns/${campaignB}/npcs`) return Promise.resolve({ data: [] });
+    if (url === `/campaigns/${campaignB}/live-state`) return Promise.resolve({ data: { companion_npc_ids: [] } });
+    return Promise.resolve({ data: [] });
+  });
+
+  const view = render(
+    <MemoryRouter>
+      <LiveEncounterLauncher
+        campaignId="camp-a"
+        requestedEncounterId="a-encounter"
+        requestedEncounterCampaignId="camp-a"
+        encounterRequestNonce={1}
+      />
+    </MemoryRouter>,
+  );
+  await waitFor(() => expect(apiClient.get).toHaveBeenCalledWith('/campaigns/camp-a/combat-scenarios'));
+
+  view.rerender(
+    <MemoryRouter>
+      <LiveEncounterLauncher
+        campaignId={campaignB}
+        requestedEncounterId="a-encounter"
+        requestedEncounterCampaignId="camp-a"
+        encounterRequestNonce={1}
+      />
+    </MemoryRouter>,
+  );
+  const select = await screen.findByLabelText('Choose battle type');
+  await waitFor(() => expect(select).toHaveValue('b-encounter'));
+  expect(screen.getByText('B Player')).toBeInTheDocument();
+
+  await act(async () => {
+    oldResponses.campaign.resolve({ data: { id: 'camp-a', name: 'Old table' } });
+    oldResponses.scenarios.resolve({ data: [{ id: 'a-encounter', name: 'Old Ambush', live_ready: true }] });
+    oldResponses.players.resolve({ data: [{ id: 'a-player', name: 'A Player', hp: 7, max_hp: 7 }] });
+    oldResponses.npcs.resolve({ data: [] });
+    oldResponses.liveState.resolve({ data: { companion_npc_ids: [] } });
+    await Promise.resolve();
+  });
+
+  expect(select).toHaveValue('b-encounter');
+  expect(screen.getByText('B Player')).toBeInTheDocument();
+  expect(screen.queryByText('Old Ambush')).not.toBeInTheDocument();
+  expect(screen.queryByText('A Player')).not.toBeInTheDocument();
 });

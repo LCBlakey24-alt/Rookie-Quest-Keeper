@@ -32,7 +32,14 @@
 }
 .rqk-player-display__status {
   border-left-color: var(--rqk-tv-gold) !important;
-  padding-right: 116px !important;
+  /* Room for the fixed fullscreen control; the page measures it. */
+  padding-right: var(--rqk-fullscreen-clearance, 116px) !important;
+}
+.rqk-player-display__footer {
+  /* Floating dice and Feedback occupy the bottom corners on tablet/desktop.
+     Keep both footer labels readable between them. */
+  padding-left: var(--rqk-dice-clearance, 76px) !important;
+  padding-right: var(--rqk-feedback-clearance, 156px) !important;
 }
 .rqk-player-display__npc-card {
   background: var(--rqk-tv-panel) !important;
@@ -114,11 +121,11 @@
   .rqk-player-display__status {
     min-height: 32px !important;
     gap: 6px !important;
-    padding: 3px 116px 3px 8px !important;
+    padding: 3px var(--rqk-fullscreen-clearance, 116px) 3px 8px !important;
     font-size: 10px !important;
   }
   .rqk-player-display__footer {
-    padding: 3px 9px !important;
+    padding: 3px var(--rqk-feedback-clearance, 156px) 3px var(--rqk-dice-clearance, 76px) !important;
     font-size: 10px !important;
   }
   .rqk-player-display__stage {
@@ -161,6 +168,18 @@
   .rqk-player-display__combat-roster {
     gap: 5px !important;
     padding: 5px !important;
+  }
+}
+@media (max-width: 719px) {
+  /* Mobile intentionally hides the global Feedback launcher, so retaining its
+     desktop clearance would needlessly squeeze the sync footer. */
+  .rqk-player-display__footer {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .rqk-player-display[data-display-target='virtual-table'] .rqk-player-display__footer {
+    padding-left: 9px !important;
+    padding-right: 9px !important;
   }
 }
 @media (min-width: 800px) and (max-height: 620px) {

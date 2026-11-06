@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db
 from utils.auth import get_current_user, verify_campaign_ownership
+from utils.ws_session import CLOSE_FORBIDDEN, REASON_FORBIDDEN, end_live_sessions
 from models import CampaignInvite, CampaignMember
 from typing import Dict, Any
 from datetime import datetime, timezone
@@ -240,6 +241,9 @@ async def update_campaign_member_status(campaign_id: str, member_id: str, status
             {'id': member.get('character_id')},
             {'$set': {'campaign_join_status': next_state, 'updated_at': datetime.now(timezone.utc).isoformat()}}
         )
+    # Only an active member may hold the campaign's live channel.
+    if next_state != 'active' and member:
+        await end_live_sessions(member.get('user_id'), campaign_id, code=CLOSE_FORBIDDEN, reason=REASON_FORBIDDEN)
     return {'message': 'Linked character status updated', 'status': next_state}
 
 
