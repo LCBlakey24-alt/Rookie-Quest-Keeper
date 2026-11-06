@@ -124,6 +124,7 @@ describe('character combat derivations', () => {
       expect(deriveArmorClass({ ...monk, equipped: { armor: { name: 'Leather Armor' } } }, { ignoreStoredAc: true })).toBe(15);
       expect(deriveArmorClass({ ...monk, equipped: { offHand: { name: 'Shield' } } }, { ignoreStoredAc: true })).toBe(16);
       expect(deriveArmorClass({ ...monk, armor_class: 20 })).toBe(20); // custom/high AC is retained
+      expect(deriveArmorClass({ ...monk, armor_class: 13, notes: 'Imported from player upload: character.pdf' })).toBe(13);
       expect(deriveArmorClass({ ...monk, armor_class_manual: true })).toBe(13);
     });
   }
@@ -147,6 +148,10 @@ describe('character combat derivations', () => {
       expect(deriveWalkingSpeed({ ...monk, equipped: { armor: { name: 'Leather Armor' } } })).toBe(35);
       expect(deriveWalkingSpeed({ ...monk, equipped: { offHand: { name: 'Shield' } } })).toBe(35);
       expect(deriveWalkingSpeed({ ...monk, speed_includes_class_bonus: true })).toBe(35);
+      expect(deriveWalkingSpeed({ ...monk, creation_mode: 'imported', speed: 40 })).toBe(40);
+      expect(deriveWalkingSpeed({ ...monk, notes: 'Imported from player upload: character.pdf', speed: 40 })).toBe(40);
+      expect(deriveWalkingSpeed({ ...monk, notes: 'Imported through Keeper character import.', speed: 40 })).toBe(40);
+      expect(deriveWalkingSpeed({ ...monk, creation_mode: 'imported', speed: 35, speed_includes_class_bonus: false })).toBe(45);
       expect(deriveWalkingSpeed({ ...monk, level: 1 })).toBe(35);
       expect(deriveWalkingSpeed({ ...monk, level: 6 })).toBe(50);
       expect(deriveWalkingSpeed({ ...monk, level: 10 })).toBe(55);
