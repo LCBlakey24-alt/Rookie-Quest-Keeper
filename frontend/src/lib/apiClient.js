@@ -54,6 +54,15 @@ export function shouldUseOfflineCache(config = {}) {
   return true;
 }
 
+export function assertExpectedAuthScope(config = {}, currentScope = '') {
+  const expectedScope = String(config?.rqkExpectedAuthScope || '');
+  if (!expectedScope || expectedScope === currentScope) return config;
+  const error = new Error('The signed-in account changed before this request could be sent.');
+  error.rqkAuthScopeChanged = true;
+  error.config = config;
+  throw error;
+}
+
 export async function applyCharacterCreationReadinessPolicy(config = {}, storage) {
   const method = String(config.method || 'get').toLowerCase();
   const url = String(config.url || '');
@@ -162,6 +171,15 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
     return { ...config, adapter: previewAdapter };
   }
 
+  // Queued mutations name the account that created them. Resolve this after
+  // every asynchronous request policy has finished and immediately before
+  // selecting the bearer token, so an account switch cannot send account A's
+  // pending roll with account B's credentials.
+  let readCurrentScope = null;
+  if (config.rqkExpectedAuthScope) {
+    ({ getOfflineCacheScope: readCurrentScope } = await import('@/offline/offlineApiCache'));
+  }
+  if (readCurrentScope) assertExpectedAuthScope(config, readCurrentScope());
   const token = getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
