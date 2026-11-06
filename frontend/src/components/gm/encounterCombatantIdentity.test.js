@@ -131,3 +131,43 @@ describe('the GM\'s choices still decide who is in', () => {
     expect(result[0]).toEqual(playerToCombatant(live));
   });
 });
+
+describe('a name alone never substitutes one character for another', () => {
+  const ALL_KEYS = list => list.map((item, index) => String(item.id || `${item.type || 'combatant'}:${item.name || 'unknown'}:${index}`));
+
+  test('a prepared token for a character not in the party is not replaced by a namesake', () => {
+    const prepared = [{ id: 'tok-1', character_id: 'char-gone', name: 'Aria', type: 'player', hp: 20, maxHp: 20 }];
+    const party = [{ id: 'p9', character_id: 'char-other', name: 'Aria', hp: 3, max_hp: 30 }];
+    const result = combinePreparedEncounterParty(prepared, party, ALL_KEYS(prepared), []);
+    // The other Aria was deliberately left out; the token stays itself.
+    expect(result.map(item => item.id)).toEqual(['tok-1']);
+    expect(result[0].character_id).toBe('char-gone');
+  });
+
+  test('a name shared by two party members identifies neither', () => {
+    const prepared = [{ id: 'tok-1', name: 'Kit', type: 'player', hp: 20, maxHp: 20 }];
+    const party = [
+      { id: 'p1', character_id: 'c1', name: 'Kit', hp: 11, max_hp: 30 },
+      { id: 'p2', character_id: 'c2', name: 'Kit', hp: 25, max_hp: 30 },
+    ];
+    const result = combinePreparedEncounterParty(prepared, party, ALL_KEYS(prepared), ['p1', 'p2']);
+    expect(result.map(item => item.id)).toEqual(['tok-1', 'p1', 'p2']);
+    expect(result.find(item => item.id === 'p1').hp).toBe(11);
+    expect(result.find(item => item.id === 'p2').hp).toBe(25);
+  });
+
+  test('an id-less legacy token still resolves to the one party member of that name', () => {
+    const prepared = [{ id: 'tok-1', name: 'Rina Ironside', type: 'player', hp: 54, maxHp: 54 }];
+    const party = [{ id: 'p1', character_id: 'c1', name: 'Rina Ironside', hp: 22, max_hp: 54, temporary_hit_points: 4, conditions: ['prone'], death_saves_successes: 2 }];
+    const result = combinePreparedEncounterParty(prepared, party, ALL_KEYS(prepared), ['p1']);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ id: 'p1', hp: 22, tempHp: 4, conditions: ['prone'] });
+    expect(result[0].deathSaves.successes).toBe(2);
+  });
+
+  test('an excluded player matched by character_id is not launched through the prepared token', () => {
+    const prepared = [{ id: 'tok-1', character_id: 'c1', name: 'Rina Ironside', type: 'player' }];
+    const party = [{ id: 'p1', character_id: 'c1', name: 'Rina Ironside', hp: 22, max_hp: 54 }];
+    expect(combinePreparedEncounterParty(prepared, party, ALL_KEYS(prepared), [])).toEqual([]);
+  });
+});

@@ -472,3 +472,13 @@
     left: max(88px, calc(env(safe-area-inset-left) + 88px));
   }
 }
+
+/* An open phone tool drawer is modal navigation. The global Offline launcher
+ * must not sit above and intercept its controls (the launcher has z-index
+ * 9996 while the drawer intentionally uses the app navigation layer). */
+@media (max-width: 719px) {
+  body:has(.rqk-tool-rail--phone) .rqk-offline-control {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}

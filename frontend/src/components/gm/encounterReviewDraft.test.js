@@ -7,7 +7,9 @@ import {
   draftHasUnsavedWork,
   draftStorageKey,
   enabledBaseKeysFrom,
+  forgetDraftsInMemory,
   includedPlayerIdsFrom,
+  purgeUnownedDrafts,
   readDraft,
   reconcileDraft,
   writeDraft,
@@ -114,59 +116,133 @@ describe('a refresh does not undo what the GM decided', () => {
   });
 });
 
-describe('a draft belongs to one campaign and one encounter', () => {
-  test('the key names both', () => {
-    expect(draftStorageKey('camp-1', 'enc-1')).toBe('rqk.encounterReviewDraft.camp-1.enc-1');
+describe('a draft belongs to one account, one campaign and one encounter', () => {
+  const A = { accountId: 'account-a' };
+  const draftFor = (campaign, encounter, owner = 'account-a', patch = {}) => (
+    { ...createEmptyDraft(campaign, encounter, owner), ...patch }
+  );
+
+  beforeEach(() => forgetDraftsInMemory());
+
+  test('the key names the account, campaign and encounter', () => {
+    expect(draftStorageKey('account-a', 'camp-1', 'enc-1')).toBe('rqk.encounterReviewDraft.v2.account-a.camp-1.enc-1');
+    expect(draftStorageKey('Account-A', 'camp-1', '')).toBe('rqk.encounterReviewDraft.v2.account-a.camp-1.__impromptu__');
   });
 
-  test('round trips', () => {
+  test('round trips, and only reports saved when the write reads back', () => {
     const store = memoryStore();
-    const draft = { ...createEmptyDraft('camp-1', 'enc-1'), excludedPlayerIds: ['p2'] };
-    expect(writeDraft(draft, store)).toBe(true);
-    expect(readDraft('camp-1', 'enc-1', store).excludedPlayerIds).toEqual(['p2']);
+    expect(writeDraft(draftFor('camp-1', 'enc-1', 'account-a', { excludedPlayerIds: ['p2'] }), { ...A, storage: store })).toBe('saved');
+    forgetDraftsInMemory();
+    expect(readDraft('camp-1', 'enc-1', { ...A, storage: store }).excludedPlayerIds).toEqual(['p2']);
+  });
+
+  test('another account cannot read it, even with the record copied under its key', () => {
+    const store = memoryStore();
+    writeDraft(draftFor('camp-1', 'enc-1', 'account-a', { excludedPlayerIds: ['p2'] }), { ...A, storage: store });
+    forgetDraftsInMemory();
+    expect(readDraft('camp-1', 'enc-1', { accountId: 'account-b', storage: store })).toBeNull();
+    const raw = store.getItem(draftStorageKey('account-a', 'camp-1', 'enc-1'));
+    store.setItem(draftStorageKey('account-b', 'camp-1', 'enc-1'), raw);
+    expect(readDraft('camp-1', 'enc-1', { accountId: 'account-b', storage: store })).toBeNull();
+  });
+
+  test('a draft owned by another account is refused on write, so nothing lands in either scope', () => {
+    const store = memoryStore();
+    expect(writeDraft(draftFor('camp-1', 'enc-1', 'account-a'), { accountId: 'account-b', storage: store })).toBe('refused');
+    expect(store._map.size).toBe(0);
+  });
+
+  test('without an account nothing is read or written', () => {
+    const store = memoryStore();
+    expect(writeDraft(draftFor('camp-1', 'enc-1', ''), { accountId: '', storage: store })).toBe('refused');
+    expect(readDraft('camp-1', 'enc-1', { accountId: '', storage: store })).toBeNull();
+    expect(store._map.size).toBe(0);
   });
 
   test('another campaign cannot see it', () => {
     const store = memoryStore();
-    writeDraft({ ...createEmptyDraft('camp-1', 'enc-1'), excludedPlayerIds: ['p2'] }, store);
-    expect(readDraft('camp-2', 'enc-1', store)).toBeNull();
+    writeDraft(draftFor('camp-1', 'enc-1', 'account-a', { excludedPlayerIds: ['p2'] }), { ...A, storage: store });
+    expect(readDraft('camp-2', 'enc-1', { ...A, storage: store })).toBeNull();
   });
 
   test('another encounter cannot see it', () => {
     const store = memoryStore();
-    writeDraft({ ...createEmptyDraft('camp-1', 'enc-1'), excludedPlayerIds: ['p2'] }, store);
-    expect(readDraft('camp-1', 'enc-2', store)).toBeNull();
+    writeDraft(draftFor('camp-1', 'enc-1', 'account-a', { excludedPlayerIds: ['p2'] }), { ...A, storage: store });
+    expect(readDraft('camp-1', 'enc-2', { ...A, storage: store })).toBeNull();
   });
 
-  test('a draft whose stored campaign disagrees with its key is refused', () => {
+  test('a record whose stored campaign disagrees with its key is refused', () => {
     const store = memoryStore({
-      'rqk.encounterReviewDraft.camp-1.enc-1': JSON.stringify(
-        { ...createEmptyDraft('camp-SOMEWHERE-ELSE', 'enc-1'), version: 1 },
-      ),
+      [draftStorageKey('account-a', 'camp-1', 'enc-1')]: JSON.stringify(draftFor('camp-SOMEWHERE-ELSE', 'enc-1')),
     });
-    expect(readDraft('camp-1', 'enc-1', store)).toBeNull();
+    expect(readDraft('camp-1', 'enc-1', { ...A, storage: store })).toBeNull();
   });
 
-  test('an older format is ignored rather than misread', () => {
+  test('a v1 draft, which has no owner, is never read and is purged', () => {
+    const legacyKey = 'rqk.encounterReviewDraft.camp-1.enc-1';
     const store = memoryStore({
-      'rqk.encounterReviewDraft.camp-1.enc-1': JSON.stringify({ version: 0, campaignId: 'camp-1', encounterId: 'enc-1' }),
+      [legacyKey]: JSON.stringify({ version: 1, campaignId: 'camp-1', encounterId: 'enc-1', excludedPlayerIds: ['p2'] }),
+      unrelated: 'kept',
     });
-    expect(readDraft('camp-1', 'enc-1', store)).toBeNull();
+    store.key = index => [...store._map.keys()][index] ?? null;
+    Object.defineProperty(store, 'length', { get: () => store._map.size });
+    expect(readDraft('camp-1', 'enc-1', { ...A, storage: store })).toBeNull();
+    purgeUnownedDrafts(store);
+    expect(store.getItem(legacyKey)).toBeNull();
+    expect(store.getItem('unrelated')).toBe('kept');
+  });
+
+  test('full, denied or silently-dropping storage keeps the draft in memory and says so', () => {
+    const hostile = { getItem: () => { throw new Error('denied'); }, setItem: () => { throw new Error('full'); }, removeItem: () => {} };
+    expect(writeDraft(draftFor('camp-1', 'enc-1', 'account-a', { extraNpcIds: ['n1'] }), { ...A, storage: hostile })).toBe('memory');
+    expect(readDraft('camp-1', 'enc-1', { ...A, storage: hostile }).extraNpcIds).toEqual(['n1']);
+
+    const dropping = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+    expect(writeDraft(draftFor('camp-1', 'enc-2', 'account-a'), { ...A, storage: dropping })).toBe('memory');
   });
 
   test('unreadable storage is survivable', () => {
     const hostile = { getItem: () => { throw new Error('denied'); }, setItem: () => { throw new Error('full'); }, removeItem: () => {} };
-    expect(readDraft('camp-1', 'enc-1', hostile)).toBeNull();
-    expect(writeDraft(createEmptyDraft('camp-1', 'enc-1'), hostile)).toBe(false);
+    expect(readDraft('camp-1', 'enc-1', { ...A, storage: hostile })).toBeNull();
   });
 
   test('discarding removes only that encounter', () => {
     const store = memoryStore();
-    writeDraft({ ...createEmptyDraft('camp-1', 'enc-1'), extraNpcIds: ['a'] }, store);
-    writeDraft({ ...createEmptyDraft('camp-1', 'enc-2'), extraNpcIds: ['b'] }, store);
-    clearDraft('camp-1', 'enc-1', store);
-    expect(readDraft('camp-1', 'enc-1', store)).toBeNull();
-    expect(readDraft('camp-1', 'enc-2', store).extraNpcIds).toEqual(['b']);
+    writeDraft(draftFor('camp-1', 'enc-1', 'account-a', { extraNpcIds: ['a'] }), { ...A, storage: store });
+    writeDraft(draftFor('camp-1', 'enc-2', 'account-a', { extraNpcIds: ['b'] }), { ...A, storage: store });
+    clearDraft('camp-1', 'enc-1', { ...A, storage: store });
+    expect(readDraft('camp-1', 'enc-1', { ...A, storage: store })).toBeNull();
+    expect(readDraft('camp-1', 'enc-2', { ...A, storage: store }).extraNpcIds).toEqual(['b']);
+  });
+
+  test('discarding for one account leaves another account alone', () => {
+    const store = memoryStore();
+    writeDraft(draftFor('camp-1', 'enc-1', 'account-a', { extraNpcIds: ['a'] }), { ...A, storage: store });
+    writeDraft(draftFor('camp-1', 'enc-1', 'account-b', { extraNpcIds: ['b'] }), { accountId: 'account-b', storage: store });
+    clearDraft('camp-1', 'enc-1', { accountId: 'account-b', storage: store });
+    expect(readDraft('camp-1', 'enc-1', { ...A, storage: store }).extraNpcIds).toEqual(['a']);
+  });
+});
+
+describe('only a successful response may prune a choice', () => {
+  const chosen = {
+    ...createEmptyDraft('camp-1', 'enc-1', 'account-a'),
+    disabledBaseKeys: ['g2'],
+    excludedPlayerIds: ['p2'],
+    includedCompanionIds: ['npc-travel'],
+    extraNpcIds: ['npc-extra'],
+  };
+
+  test('lists that have not loaded, or failed, keep every selection', () => {
+    const kept = reconcileDraft(chosen, { baseKeys: null, playerIds: null, companionIds: undefined, npcIds: null });
+    expect(kept.disabledBaseKeys).toEqual(['g2']);
+    expect(kept.excludedPlayerIds).toEqual(['p2']);
+    expect(kept.includedCompanionIds).toEqual(['npc-travel']);
+    expect(kept.extraNpcIds).toEqual(['npc-extra']);
+  });
+
+  test('a successful empty party is authoritative', () => {
+    expect(reconcileDraft(chosen, { playerIds: [] }).excludedPlayerIds).toEqual([]);
   });
 });
 

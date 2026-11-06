@@ -160,8 +160,9 @@
      title and its text is only visually hidden. */
   .rqk-tool-rail--tablet .rqk-tool-rail__item > span,
   .rqk-tool-rail--tablet .rqk-tool-rail__group-button > span,
-  .rqk-tool-rail--tablet .rqk-tool-rail__chevron,
-  .rqk-tool-rail--tablet .rqk-tool-rail__filter { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .rqk-tool-rail--tablet .rqk-tool-rail__chevron { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* Don't leave an invisible but focusable search input in the tablet tab order. */
+  .rqk-tool-rail--tablet .rqk-tool-rail__filter { display: none; }
   .rqk-tool-rail--tablet .rqk-tool-rail__group-button { grid-template-columns: 1fr; justify-items: center; }
   .rqk-tool-rail--tablet .rqk-tool-rail__group-items[hidden] { display: none; }
 }

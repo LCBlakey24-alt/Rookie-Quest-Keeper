@@ -15,3 +15,10 @@ def test_readiness_checks_mongo_with_a_short_timeout():
     assert 'await asyncio.wait_for(db.command("ping"), timeout=3.0)' in SERVER_SOURCE
     assert '"database": "unavailable"' in SERVER_SOURCE
     assert '"database": "available"' in SERVER_SOURCE
+
+
+def test_health_reports_the_deployed_backend_revision():
+    # Lets a release be verified against the backend itself (Render sets
+    # RENDER_GIT_COMMIT), not inferred from the frontend deployment.
+    assert 'os.environ.get("RENDER_GIT_COMMIT")' in SERVER_SOURCE
+    assert '"revision": revision' in SERVER_SOURCE

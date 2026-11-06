@@ -264,7 +264,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
       <section style={lowerGridStyle}>
         <div style={panelStyle}>
           <h3 style={sectionTitleStyle}><PlaySquare size={18} /> Recent encounter seeds</h3>
-          {recentScenarios.length === 0 ? <p style={emptyStyle}>No saved encounters yet. Build one from the creature library above.</p> : <div style={scenarioListStyle}>{recentScenarios.map(scenario => <article key={scenario.id} style={scenarioRowStyle}><div><strong>{scenario.name}</strong><span>{scenario.combatants?.length || 0} combatants</span></div><button type="button" onClick={() => { setLastSavedEncounter(scenario); openCombatFallback(); }} style={tinyButtonStyle}>Combat</button></article>)}</div>}
+          {recentScenarios.length === 0 ? <p style={emptyStyle}>No saved encounters yet. Build one from the creature library above.</p> : <div style={scenarioListStyle}>{recentScenarios.map(scenario => <article key={scenario.id} style={scenarioRowStyle}><div><strong>{scenario.name}</strong><span>{scenario.combatants?.length || 0} combatants</span></div><button type="button" onClick={() => { setLastSavedEncounter(scenario); if (onOpenCombat) onOpenCombat(scenario); else openCombatFallback(); }} style={tinyButtonStyle}>Combat</button></article>)}</div>}
         </div>
         <div style={panelStyle}>
           <h3 style={sectionTitleStyle}><BookOpen size={18} /> Monster lookup</h3>

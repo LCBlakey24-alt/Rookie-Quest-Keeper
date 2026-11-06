@@ -136,31 +136,36 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  const syncNoteIntoCampaignState = async (noteId) => {
-    const syncRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes/${noteId}/sync`);
-    const applied = syncRes.data?.applied_updates || [];
-    setSessionRefreshKey(prev => prev + 1);
-    await fetchAllData();
-    if (applied.length > 0) {
-      toast.success(`Note saved and ${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
-        description: applied.slice(0, 2).map(update => update.summary).join(' '),
-      });
-    } else {
-      toast.success('Note saved', { description: 'No clear character, NPC, or location changes were detected automatically.' });
-    }
-  };
-
+  /**
+   * Saving a note saves the note. That is all it does.
+   *
+   * This used to call the world-sync endpoint straight afterwards, which
+   * applied whatever the deterministic parser inferred: writing "Rina died"
+   * into the live log set a real player character's hit points to zero,
+   * marked them dead and rewrote their notes, and a note about an NPC
+   * travelling created a campaign location. None of it was reviewed. Rook and
+   * detection suggest; the GM decides.
+   *
+   * The endpoint still exists and now previews instead of applying, so a
+   * reviewed suggest-and-approve flow can be built on it. Until that UI
+   * exists nothing here calls it, because an unreviewed write is worse than
+   * no suggestion.
+   */
   const handleSubmitNote = async () => {
     if (!quickNote.trim()) return;
     setProcessingNote(true);
+    const noteContent = quickNote.trim();
     try {
-      const noteContent = quickNote.trim();
       const noteRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: noteContent });
       setSessionNotes(prev => [{ ...noteRes.data, content: noteContent }, ...prev]);
       setQuickNote('');
-      await syncNoteIntoCampaignState(noteRes.data.id);
+      toast.success('Note saved', {
+        description: 'Campaign records are unchanged. Update characters, NPCs or locations yourself when you are ready.',
+      });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to save and sync note');
+      // The note itself failed, so say that rather than blaming a sync step
+      // that no longer runs.
+      toast.error(error?.response?.data?.detail || 'Could not save that note. Your text has been kept.');
     } finally {
       setProcessingNote(false);
     }
@@ -172,6 +177,7 @@ export default function LiveSessionGridPage() {
   };
 
   const launchCombat = (scenario) => navigate(`/combat/${campaignId}`, { state: { scenario, campaignName: campaign?.name } });
+  const resumeCombat = () => navigate(`/combat/${campaignId}`);
 
   const quickStartCombat = () => {
     if (loadErrors.some(item => item.key === 'players')) {
@@ -225,22 +231,19 @@ export default function LiveSessionGridPage() {
     if (toolId === 'combat') fetchAllData();
   };
 
-  const openMonsterEncounterInCombat = (encounter) => {
+  const openMonsterEncounterInCombat = (encounter, openEncounterReview) => {
     if (encounter?.id) {
       setScenarios(prev => prev.some(item => item.id === encounter.id) ? prev.map(item => item.id === encounter.id ? encounter : item) : [encounter, ...prev]);
       setSelectedScenario(encounter);
     }
     setSessionRefreshKey(prev => prev + 1);
-    if (typeof document !== 'undefined') {
-      window.requestAnimationFrame(() => {
-        const combatButton = document.querySelector('[data-testid="live-tool-combat"]');
-        combatButton?.click?.();
-      });
-    }
+    // A phone's closed drawer has no combat button in the DOM. Navigate
+    // through the Live Play state contract, passing the saved encounter ID.
+    openEncounterReview?.(encounter?.id || '');
     fetchAllData();
   };
 
-  const renderTool = (toolId) => {
+  const renderTool = (toolId, { openEncounterReview } = {}) => {
     const lazyTool = (content) => (
       <Suspense fallback={<div style={toolLoadingStyle}>Loading tool…</div>}>
         {content}
@@ -255,7 +258,7 @@ export default function LiveSessionGridPage() {
       case 'player-display': return lazyTool(<LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />);
       case 'maps': return lazyTool(<MapsTab campaignId={campaignId} />);
       case 'npcs': return lazyTool(<NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />);
-      case 'monsters': return lazyTool(<MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={openMonsterEncounterInCombat} />);
+      case 'monsters': return lazyTool(<MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={encounter => openMonsterEncounterInCombat(encounter, openEncounterReview)} />);
       case 'location': return lazyTool(<PartyLocationTracker campaignId={campaignId} />);
       case 'environment': return lazyTool(<EnvironmentControl campaignId={campaignId} campaign={campaign} onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)} />);
       case 'reference-hub': return lazyTool(<UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />);
@@ -304,7 +307,7 @@ export default function LiveSessionGridPage() {
           <LiveStoryFocusPanel campaignId={campaignId} />
         </details>
         <section className="rqk-live-page__workspace" style={gridShellStyle}>
-          <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} scenarios={scenarios} players={players} />
+          <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} onResumeCombat={resumeCombat} refreshKey={sessionRefreshKey} scenarios={scenarios} players={players} />
         </section>
         <GroupCheckRequestPanel campaignId={campaignId} players={players} />
 

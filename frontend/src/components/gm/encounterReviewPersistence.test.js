@@ -11,6 +11,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import LiveSessionGridMode from './LiveSessionGridMode';
+import { forgetDraftsInMemory } from './encounterReviewDraft';
+import { setAuthToken, clearAuthToken } from '@/lib/auth';
 
 jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn() }));
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn(), info: jest.fn(), warning: jest.fn() } }));
@@ -35,9 +37,15 @@ const SCENARIOS = [{
   ],
 }];
 
+function tokenFor(sub) {
+  const encode = value => window.btoa(JSON.stringify(value)).replace(/=+$/, '');
+  return `${encode({ alg: 'HS256' })}.${encode({ sub, exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`;
+}
+
 /** Fresh object references every call, as a real refresh produces. */
-function mockApi(players = PLAYERS) {
+function mockApi(players = PLAYERS, { campaignFails = false } = {}) {
   apiClient.get.mockImplementation(url => {
+    if (url === `/campaigns/${CAMPAIGN}` && campaignFails) return Promise.reject(Object.assign(new Error('down'), { response: { status: 503 } }));
     if (url === `/campaigns/${CAMPAIGN}`) return Promise.resolve({ data: { id: CAMPAIGN, name: 'Spilsby Wednesday' } });
     if (url === `/campaigns/${CAMPAIGN}/combat-scenarios`) {
       return Promise.resolve({ data: JSON.parse(JSON.stringify(SCENARIOS)) });
@@ -95,9 +103,15 @@ async function returnToReview() {
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
+  forgetDraftsInMemory();
+  // Drafts are scoped to the signed-in account; with nobody signed in they
+  // are not persisted at all.
+  setAuthToken(tokenFor('gm-account'));
   mockApi();
   localStorage.setItem(`gm.liveMode.focus.${CAMPAIGN}`, 'overview');
 });
+
+afterEach(() => clearAuthToken());
 
 test('an excluded player is still excluded after visiting Notes', async () => {
   openLivePlay();
@@ -170,25 +184,38 @@ test('a half-typed creature is still there when the GM comes back', async () => 
   await waitFor(() => expect(within(launcher).getByPlaceholderText('Name')).toHaveValue('Bandit Capt'));
 });
 
-test('Retry refreshes the data without undoing the GM', async () => {
-  // The old reset effect keyed on baseCombatants, so identical content with a
-  // new object reference cleared everything.
+test('Retry on the data warning refreshes the data without undoing the GM', async () => {
+  // The earlier version of this test clicked live-tool-combat, which is the
+  // Live Play navigation, not Retry. This one presses the Retry control on
+  // the Encounter Review data warning and checks a request really went out.
+  mockApi(PLAYERS, { campaignFails: true });
   openLivePlay();
   await screen.findByText('Hollowmere Ambush');
   await openReview();
+  const warning = await screen.findByTestId('live-data-warning');
+
   await toggleRow('Orren Oakenshade');
+  let launcher = await review();
+  fireEvent.change(within(launcher).getByPlaceholderText('Name'), { target: { value: 'Dire Wolf' } });
+  fireEvent.change(within(launcher).getByLabelText('Qty'), { target: { value: '2' } });
+  fireEvent.keyDown(within(launcher).getByPlaceholderText('Name'), { key: 'Enter' });
   await waitFor(async () => expect(await counts()).toContain('Party: 1'));
+  await waitFor(async () => expect(await counts()).toContain('Temporary: 2'));
 
-  // A newcomer joins the party on the refresh.
+  // The refresh succeeds, with fresh object references and a newcomer.
   mockApi([...PLAYERS, { id: 'p3', character_id: 'c3', name: 'Josh', hp: 30, max_hp: 41, ac: 15 }]);
-  fireEvent.click(screen.getByTestId('live-tool-combat'));
+  const before = apiClient.get.mock.calls.length;
+  fireEvent.click(within(warning).getByRole('button', { name: /retry/i }));
 
+  await waitFor(() => expect(screen.queryByTestId('live-data-warning')).not.toBeInTheDocument());
+  expect(apiClient.get.mock.calls.length).toBeGreaterThan(before);
   await waitFor(async () => {
     const text = await counts();
-    // Orren stays out; Josh comes in without being asked for.
+    // Orren stays out; Josh comes in without being asked for; the wolves stay.
     expect(text).toContain('Party: 2');
+    expect(text).toContain('Temporary: 2');
   });
-  const launcher = await review();
+  launcher = await review();
   expect(within(launcher).getByText('Josh')).toBeInTheDocument();
 });
 
