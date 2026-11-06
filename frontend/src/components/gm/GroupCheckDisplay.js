@@ -31,32 +31,23 @@ function playerName(player = {}) {
   return player.name || player.character_name || player.display_name || player.playerName || player.player_name || 'Hero';
 }
 
-function identityKeys(value = {}, index = 0) {
-  return [
-    value.id,
-    value.character_id,
-    value.characterId,
-    value.player_id,
-    value.playerId,
-    value.user_id,
-    value.userId,
-    value.name,
-    value.character_name,
-    value.characterName,
-    value.display_name,
-    value.displayName,
-    value.playerName,
-    value.player_name,
-    value.actor,
-    value.actor_name,
-    index !== null ? `index-${index}` : '',
-  ].map(cleanKey).filter(Boolean);
+// A result belongs to a party member by character id and nothing else. Names
+// are not identities (two characters may both be called Aria), and the old
+// positional "index-N" key paired the first result with the first card
+// whoever had rolled it. The server only records results with a character id.
+function partyCharacterId(player = {}) {
+  return cleanKey(player.character_id || player.characterId || player.id);
+}
+
+function resultCharacterId(result = {}) {
+  return cleanKey(result.character_id || result.characterId);
 }
 
 function indexResults(results = []) {
   const resultMap = new Map();
-  results.forEach((result, index) => {
-    identityKeys(result, index).forEach(key => resultMap.set(key, result));
+  results.forEach((result) => {
+    const key = resultCharacterId(result);
+    if (key) resultMap.set(key, result);
   });
   return resultMap;
 }
@@ -73,10 +64,11 @@ function latestResultTime(result = {}) {
   catch { return ''; }
 }
 
-function mergeResults(party = [], results = [], dc = null) {
+export function mergeResults(party = [], results = [], dc = null) {
   const resultMap = indexResults(results);
   return party.map((player, index) => {
-    const result = identityKeys(player, index).map(key => resultMap.get(key)).find(Boolean);
+    const key = partyCharacterId(player);
+    const result = key ? resultMap.get(key) : undefined;
     const total = Number(result?.total ?? result?.roll_total ?? result?.value);
     const hasResult = Number.isFinite(total);
     return {

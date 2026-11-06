@@ -186,6 +186,15 @@ async def run_startup_maintenance():
     except Exception as e:
         logger.warning(f"Could not create indexes: {e}")
 
+    # Separate, so a failure above cannot leave roll de-duplication without
+    # its unique index (the route still checks before inserting).
+    try:
+        from routes.roll_events import ensure_roll_event_indexes
+        await ensure_roll_event_indexes(db)
+        logger.info("Roll event indexes ensured")
+    except Exception as e:
+        logger.warning(f"Could not create roll event indexes: {e}")
+
 
 @app.on_event("startup")
 async def startup_event():
