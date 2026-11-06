@@ -49,6 +49,14 @@ describe('initiative rules helpers', () => {
     expect(getInitiativeModifier({ stats: { dex: 8 } })).toBe(-1);
   });
 
+  test('legacy default initiative zero does not hide a DEX modifier', () => {
+    expect(getInitiativeModifier({ dexterity: 18, initiative_bonus: 0 })).toBe(4);
+    expect(getInitiativeModifier({ dexterity: 8, initiative_bonus: 0 })).toBe(-1);
+    expect(getInitiativeModifier({ dexterity: 18, initiative_bonus: 0, initiative_bonus_override: true })).toBe(0);
+    expect(getInitiativeModifier({ dexterity: 18, initiative_mod: 0 })).toBe(0);
+    expect(getInitiativeModifier({ dexterity: 18, initiativeMod: 0 })).toBe(0);
+  });
+
   test('explicit initiative modifiers take precedence over dexterity', () => {
     expect(getInitiativeModifier({ initiative_bonus: -2, dexterity: 18 })).toBe(-2);
     expect(getInitiativeModifier({ initiativeMod: 5, dexterity: 8 })).toBe(5);
