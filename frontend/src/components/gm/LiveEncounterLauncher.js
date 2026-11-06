@@ -693,9 +693,10 @@ export default function LiveEncounterLauncher({
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
       {partyStatus === 'failed' && (
+        // Retry lives on the data warning just above, which always lists the
+        // party when it failed; a second button here read as a second problem.
         <div role="alert" data-testid="live-encounter-party-unavailable" style={partyWarningStyle}>
-          <span>{PARTY_UNAVAILABLE_MESSAGE} They are not in this roster.</span>
-          <button type="button" onClick={retryLoad} style={retryButtonStyle}>Retry</button>
+          <span>{PARTY_UNAVAILABLE_MESSAGE} They are not in this roster. Use Retry above to load them.</span>
         </div>
       )}
       {draftPersistence !== 'saved' && (
@@ -860,7 +861,6 @@ const launchButtonStyle = {
 };
 const resetButtonStyle = { minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 6, border: '1px solid rgba(234,223,200,.22)', background: 'transparent', color: 'var(--rq-text-secondary, rgba(234,223,200,.78))', fontSize: 12, fontWeight: 800, cursor: 'pointer' };
 const partyWarningStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0B1B2B)', color: 'var(--rq-text-primary, #EADFC8)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
-const retryButtonStyle = { minHeight: 44, minWidth: 88, border: '1px solid var(--rq-secondary, #3C92E0)', borderRadius: 6, background: 'transparent', color: 'var(--rq-text-primary, #EADFC8)', fontWeight: 800, cursor: 'pointer' };
 const draftWarningStyle = { border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0B1B2B)', color: 'var(--rq-text-primary, #EADFC8)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
 const mutedStyle = { color: rq.muted, fontSize: 9, padding: 3 };
 const emptyStyle = { minHeight: 130, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, textAlign: 'center', padding: 16, fontSize: 10 };

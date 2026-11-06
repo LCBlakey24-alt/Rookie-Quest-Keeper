@@ -87,7 +87,11 @@ describe('B. the party could not be loaded', () => {
     open();
     const warning = await screen.findByTestId('live-encounter-party-unavailable');
     expect(warning).toHaveTextContent(MESSAGE);
-    expect(within(warning).getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    // One Retry, on the shared data warning that names the party.
+    const shared = screen.getByTestId('live-data-warning');
+    expect(shared).toHaveTextContent(/party/i);
+    expect(within(shared).getAllByRole('button', { name: /retry/i })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: /^\s*retry\s*$/i })).toHaveLength(1);
     await expectCounts('Party: 0', 'Enemies: 2');
   });
 
@@ -139,7 +143,7 @@ describe('B. the party could not be loaded', () => {
     await expectCounts('Party: 0', 'Enemies: 1');
 
     mockApi();                                       // ...then success
-    fireEvent.click(within(await screen.findByTestId('live-encounter-party-unavailable')).getByRole('button', { name: 'Retry' }));
+    await retryFromSharedWarning();
     await waitFor(() => expect(screen.queryByTestId('live-encounter-party-unavailable')).not.toBeInTheDocument());
     await expectCounts('Party: 1', 'Enemies: 1');    // Orren still out, goblin still off
     await start();
