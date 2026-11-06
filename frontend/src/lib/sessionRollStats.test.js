@@ -1,0 +1,92 @@
+/**
+ * One player action, one roll: the client side of roll de-duplication.
+ *
+ * The server records a roll once per (campaign, account, client_event_id).
+ * These tests pin what the client must do for that to hold: give each roll
+ * one id, send that same id on every retry, retry only when retrying can
+ * help, and never append the same roll to local history twice.
+ */
+import { normaliseRollEvent, recordRemoteRoll, recordSessionRoll, buildEndSessionStats } from './sessionRollStats';
+
+jest.mock('./apiClient', () => ({
+  __esModule: true,
+  default: { post: jest.fn(), get: jest.fn() },
+}));
+jest.mock('./liveDisplayBus', () => ({ loadDisplayState: jest.fn(() => null) }));
+const apiClient = require('./apiClient').default;
+
+const CAMPAIGN = 'synthetic-campaign';
+const roll = (extra = {}) => ({
+  actor_type: 'player',
+  character_id: 'char-a',
+  label: 'Stealth',
+  total: 17,
+  modifier: 3,
+  rolls: [{ sides: 20, result: 14 }],
+  ...extra,
+});
+
+// Let each retry's wait elapse and its promise chain settle.
+async function settle(rounds = 10) {
+  for (let i = 0; i < rounds; i += 1) {
+    await Promise.resolve();
+    await Promise.resolve();
+    jest.advanceTimersByTime(2000);
+  }
+}
+
+beforeEach(() => {
+  localStorage.clear();
+  apiClient.post.mockReset();
+  jest.useRealTimers();
+});
+
+test('every roll gets its own client event id, sent as both id and client_event_id', () => {
+  const first = normaliseRollEvent(roll());
+  const second = normaliseRollEvent(roll());
+  expect(first.client_event_id).toBe(first.id);
+  expect(first.id).toMatch(/^roll-[A-Za-z0-9._:-]{6,}$/);
+  expect(second.id).not.toBe(first.id);
+});
+
+test('an event that already has an id keeps it', () => {
+  expect(normaliseRollEvent(roll({ id: 'roll-existing-1' })).client_event_id).toBe('roll-existing-1');
+});
+
+test('a dropped connection is retried with the identical event', async () => {
+  jest.useFakeTimers();
+  apiClient.post
+    .mockRejectedValueOnce(new Error('Network Error'))
+    .mockRejectedValueOnce({ response: { status: 503 } })
+    .mockResolvedValueOnce({ data: { id: 'roll-server', duplicate: false } });
+  const pending = recordRemoteRoll(CAMPAIGN, roll());
+  await settle();
+  await expect(pending).resolves.toEqual({ id: 'roll-server', duplicate: false });
+  expect(apiClient.post).toHaveBeenCalledTimes(3);
+  const sent = apiClient.post.mock.calls.map(([, body]) => body.client_event_id);
+  expect(new Set(sent).size).toBe(1);
+});
+
+test.each([403, 413, 422])('a %s answer is final and not retried', async (status) => {
+  apiClient.post.mockRejectedValue({ response: { status } });
+  await recordRemoteRoll(CAMPAIGN, roll());
+  expect(apiClient.post).toHaveBeenCalledTimes(1);
+});
+
+test('retries stop after a bounded number of attempts', async () => {
+  jest.useFakeTimers();
+  apiClient.post.mockRejectedValue(new Error('Network Error'));
+  const pending = recordRemoteRoll(CAMPAIGN, roll());
+  await settle();
+  await pending;
+  expect(apiClient.post).toHaveBeenCalledTimes(3);
+});
+
+test('recording the same roll twice adds it to local history once', () => {
+  const event = normaliseRollEvent(roll());
+  recordSessionRoll(CAMPAIGN, event);
+  recordSessionRoll(CAMPAIGN, event);
+  expect(buildEndSessionStats(CAMPAIGN).session.totalRolls).toBe(1);
+  recordSessionRoll(CAMPAIGN, roll());
+  expect(buildEndSessionStats(CAMPAIGN).session.totalRolls).toBe(2);
+});

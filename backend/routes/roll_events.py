@@ -1,139 +1,297 @@
-"""Campaign roll event routes for player-focused session stats."""
+"""Campaign roll event routes for player-focused session stats.
+
+Who rolled is decided here, never by the browser.
+
+A roll used to carry its own actor, actor type, character id and character
+name, and the server stored whatever it was given. Any campaign member could
+therefore record a roll as another player's character, or as the GM, and have
+it land in someone else's group-check result. Now:
+
+* a GM roll is accepted only from the campaign's GM;
+* a player roll must name a character that this account owns AND that is
+  linked to this campaign right now; the character's name comes from its
+  saved record, so two characters called "Aria" stay two characters;
+* the dice themselves are bounded and checked for shape. Their randomness is
+  still the client's: nothing here can prove a die was rolled fairly, only
+  that the reported numbers are possible and add up;
+* a client-generated event id makes a retried request return the roll it
+  already recorded instead of recording another.
+"""
+import json
+import logging
+import re
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pymongo.errors import DuplicateKeyError
 
 from config import db
 from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
+from utils.player_display_payload import public_display_state
 from utils.ws_manager import ws_manager
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
-
-class RollEventPayload(BaseModel):
-    actor: str = "Player"
-    actor_type: str = "player"
-    character_id: str = ""
-    character_name: str = ""
-    group_check_id: str = ""
-    requested_roll_id: str = ""
-    check_name: str = ""
-    label: str = "Roll"
-    notation: str = ""
-    total: int = 0
-    modifier: int = 0
-    rolls: List[Dict[str, Any]] = Field(default_factory=list)
-    visibleRolls: List[Dict[str, Any]] = Field(default_factory=list)
-    isCrit: bool = False
-    isFumble: bool = False
-    explosionCount: int = 0
+# The dice engine's own limits (frontend/src/data/diceRoller.js): 200 dice a
+# roll, d2 to d100, flat modifiers up to a million. Exploding dice can add
+# more rolls than were asked for, hence the headroom on the list.
+MAX_DIE_SIDES = 100
+MAX_ROLLS = 500
+MAX_ABS_MODIFIER = 1_000_000
+MAX_ABS_TOTAL = MAX_ABS_MODIFIER + MAX_ROLLS * MAX_DIE_SIDES
+MAX_EXPLOSIONS = MAX_ROLLS
+MAX_BODY_BYTES = 96 * 1024
+MAX_LABEL = 200
+MAX_NAME = 80
+MAX_ID = 128
+EVENT_ID_PATTERN = re.compile(r'^[A-Za-z0-9._:-]{8,128}$')
+CONTROL_CHARACTERS = re.compile(r'[\x00-\x1f\x7f]')
+GROUP_CHECK_ATTEMPTS = 6
 
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def clean_identity(value: Any) -> str:
-    return str(value or "").strip().lower()
+def clean_text(value: Any, limit: int) -> str:
+    text = CONTROL_CHARACTERS.sub(' ', str(value or '')).strip()
+    if len(text) > limit:
+        raise ValueError(f'must be at most {limit} characters')
+    return text
 
 
-def identity_keys(value: Dict[str, Any], fallback: str = "") -> Set[str]:
-    keys = {
-        clean_identity(value.get("id")),
-        clean_identity(value.get("character_id")),
-        clean_identity(value.get("characterId")),
-        clean_identity(value.get("player_id")),
-        clean_identity(value.get("playerId")),
-        clean_identity(value.get("user_id")),
-        clean_identity(value.get("userId")),
-        clean_identity(value.get("name")),
-        clean_identity(value.get("character_name")),
-        clean_identity(value.get("characterName")),
-        clean_identity(value.get("display_name")),
-        clean_identity(value.get("displayName")),
-        clean_identity(value.get("playerName")),
-        clean_identity(value.get("player_name")),
-        clean_identity(value.get("actor")),
-        clean_identity(value.get("actor_name")),
-        clean_identity(fallback),
+class DieResult(BaseModel):
+    """One die as the dice engine reports it. Unknown keys are dropped."""
+    model_config = ConfigDict(extra='ignore')
+
+    sides: int = Field(ge=2, le=MAX_DIE_SIDES)
+    result: int = Field(ge=1, le=MAX_DIE_SIDES)
+    sign: int = 1
+    dropped: bool = False
+    exploded: bool = False
+
+    @model_validator(mode='after')
+    def possible(self):
+        if self.result > self.sides:
+            raise ValueError(f'a d{self.sides} cannot show {self.result}')
+        if self.sign not in (1, -1):
+            raise ValueError('sign must be 1 or -1')
+        return self
+
+
+class RollEventPayload(BaseModel):
+    """What a client may say about a roll. Identity is resolved server-side."""
+    model_config = ConfigDict(extra='ignore')
+
+    client_event_id: str = ''
+    # Older clients send their generated event id as `id`.
+    id: str = ''
+    actor: str = ''
+    actor_type: Literal['player', 'gm'] = 'player'
+    character_id: str = ''
+    group_check_id: str = ''
+    requested_roll_id: str = ''
+    check_name: str = ''
+    label: str = 'Roll'
+    notation: str = ''
+    total: int = Field(default=0, ge=-MAX_ABS_TOTAL, le=MAX_ABS_TOTAL)
+    modifier: int = Field(default=0, ge=-MAX_ABS_MODIFIER, le=MAX_ABS_MODIFIER)
+    rolls: List[DieResult] = Field(default_factory=list, max_length=MAX_ROLLS)
+    visibleRolls: List[DieResult] = Field(default_factory=list, max_length=MAX_ROLLS)
+    isCrit: bool = False
+    isFumble: bool = False
+    explosionCount: int = Field(default=0, ge=0, le=MAX_EXPLOSIONS)
+
+    @field_validator('actor', mode='before')
+    @classmethod
+    def bounded_name(cls, value):
+        return clean_text(value, MAX_NAME)
+
+    @field_validator('label', 'notation', 'check_name', mode='before')
+    @classmethod
+    def bounded_label(cls, value):
+        return clean_text(value, MAX_LABEL)
+
+    @field_validator('client_event_id', 'id', 'character_id', 'group_check_id', 'requested_roll_id', mode='before')
+    @classmethod
+    def bounded_id(cls, value):
+        return clean_text(value, MAX_ID)
+
+    def event_key(self) -> str:
+        """The idempotency key, or '' when the client sent none usable."""
+        for candidate in (self.client_event_id, self.id):
+            if candidate and EVENT_ID_PATTERN.match(candidate):
+                return candidate
+        if self.client_event_id:
+            raise ValueError('client_event_id must be 8-128 letters, digits, ".", "_", ":" or "-"')
+        return ''
+
+
+def kept_dice(rolls: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [roll for roll in rolls if not roll.get('dropped')]
+
+
+def total_check(rolls: List[Dict[str, Any]], modifier: int, total: int) -> str:
+    """Whether the reported total is what the reported dice add up to.
+
+    'unverified' is recorded, not refused: some legitimate rolls are adjusted
+    after the dice (the 2024 Hit Point Die minimum, for one), so a mismatch
+    is not proof of tampering. It does mark the total as the client's claim.
+    """
+    if not rolls:
+        return 'no-dice'
+    dice_total = sum(int(roll.get('sign') or 1) * int(roll.get('result') or 0) for roll in kept_dice(rolls))
+    return 'consistent' if dice_total + modifier == total else 'unverified'
+
+
+async def resolve_roll_identity(campaign: Dict[str, Any], campaign_id: str, username: str, payload: RollEventPayload) -> Dict[str, str]:
+    """Who this roll belongs to, from the account and saved records only."""
+    if payload.actor_type == 'gm':
+        if campaign.get('dm_user_id') != username:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Only the GM can record GM rolls')
+        return {'actor_type': 'gm', 'actor': payload.actor or 'GM / Table', 'character_id': '', 'character_name': ''}
+
+    if not payload.character_id:
+        raise HTTPException(status_code=422, detail='A player roll must name its character')
+    # Owned by this account and linked to this campaign now. A character in
+    # another campaign, or one that has since left this one, does not match;
+    # neither does anyone else's. One refusal for all of them, so the
+    # response does not reveal which characters exist.
+    character = await db.player_characters.find_one(
+        {'id': payload.character_id, 'user_id': username, 'campaign_id': campaign_id},
+        {'_id': 0, 'id': 1, 'name': 1, 'character_name': 1},
+    )
+    if not character:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You can only roll for your own character in this campaign')
+    name = str(character.get('name') or character.get('character_name') or 'Player Character')[:MAX_NAME]
+    return {'actor_type': 'player', 'actor': name, 'character_id': character['id'], 'character_name': name}
+
+
+def _character_key(value: Dict[str, Any], *fields: str) -> str:
+    for field in fields:
+        if value.get(field):
+            return str(value[field]).strip()
+    return ''
+
+
+def party_character_id(member: Dict[str, Any]) -> str:
+    # Party rows from the live party carry the character id as `id`.
+    return _character_key(member, 'character_id', 'characterId', 'id')
+
+
+def result_character_id(result: Dict[str, Any]) -> str:
+    return _character_key(result, 'character_id', 'characterId')
+
+
+def group_check_result(event: Dict[str, Any]) -> Dict[str, Any]:
+    visible = event.get('visibleRolls') or []
+    natural = next((roll.get('result') for roll in visible if int(roll.get('sides') or 0) == 20), None)
+    return {
+        'id': event.get('id'),
+        'character_id': event.get('character_id'),
+        'character_name': event.get('character_name'),
+        'name': event.get('character_name'),
+        'actor': event.get('actor'),
+        'actor_type': event.get('actor_type'),
+        'group_check_id': event.get('group_check_id'),
+        'requested_roll_id': event.get('requested_roll_id'),
+        'check_name': event.get('check_name'),
+        'label': event.get('label'),
+        'notation': event.get('notation'),
+        'total': event.get('total'),
+        'natural': natural,
+        'modifier': event.get('modifier'),
+        'rolls': event.get('rolls') or [],
+        'visibleRolls': visible,
+        'isCrit': event.get('isCrit'),
+        'isFumble': event.get('isFumble'),
+        'created_at': event.get('created_at'),
     }
-    return {key for key in keys if key}
 
 
-def identities_overlap(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
-    return bool(identity_keys(left) & identity_keys(right))
+async def update_group_check_display(campaign_id: str, event: Dict[str, Any]) -> bool:
+    """Put a player's roll on the group check it answers, if it may.
+
+    Results are keyed by character id alone. A result only joins the check it
+    names, only for a character the GM asked to roll, and a character's
+    newer roll is never replaced by an older one that arrives late.
+
+    The write is a compare-and-swap on the state's sync id, update time and
+    revision: if another roll, or the GM putting something else on screen,
+    changed the state since it was read, this write matches nothing and the
+    merge is redone from the fresh state. It can never overwrite a newer
+    display with a stale copy of the group check.
+    """
+    group_check_id = str(event.get('group_check_id') or '')
+    character_id = str(event.get('character_id') or '')
+    if not group_check_id or not character_id or event.get('actor_type') != 'player':
+        return False
+
+    for _ in range(GROUP_CHECK_ATTEMPTS):
+        state = await db.campaign_display_states.find_one({'campaign_id': campaign_id}, {'_id': 0})
+        if not state or state.get('mode') != 'group-check':
+            return False
+        payload = state.get('payload') if isinstance(state.get('payload'), dict) else {}
+        active_id = str(payload.get('group_check_id') or payload.get('id') or '')
+        if not active_id or active_id != group_check_id or payload.get('status') == 'closed':
+            return False
+
+        party = [member for member in payload.get('party') or [] if isinstance(member, dict)]
+        party_ids = {party_character_id(member) for member in party} - {''}
+        if character_id not in party_ids:
+            return False
+
+        results = [result for result in payload.get('results') or [] if isinstance(result, dict)]
+        current = next((result for result in results if result_character_id(result) == character_id), None)
+        if current is not None:
+            if current.get('id') == event.get('id'):
+                return False  # already applied; a retry changes nothing
+            if str(current.get('created_at') or '') > str(event.get('created_at') or ''):
+                return False  # a newer roll by this character is already showing
+
+        updated_results = [result for result in results if result_character_id(result) != character_id]
+        updated_results.append(group_check_result(event))
+        rolled = {result_character_id(result) for result in updated_results}
+        updated_at = now_iso()
+        revision = int(state.get('revision') or 0)
+        updated_payload = {
+            **payload,
+            'results': updated_results,
+            'status': 'complete' if party_ids <= rolled else 'collecting',
+            'last_result_at': updated_at,
+        }
+        written = await db.campaign_display_states.update_one(
+            {
+                'campaign_id': campaign_id,
+                'sync_id': state.get('sync_id'),
+                'updated_at': state.get('updated_at'),
+                'revision': state.get('revision'),
+            },
+            {'$set': {'payload': updated_payload, 'updated_at': updated_at, 'revision': revision + 1}},
+        )
+        if not written.matched_count:
+            continue
+        public = public_display_state({**state, 'payload': updated_payload, 'updated_at': updated_at})
+        await ws_manager.broadcast_to_campaign(campaign_id, {
+            'type': 'player_display_update',
+            'user_id': '',
+            'data': public,
+            'timestamp': updated_at,
+        })
+        return True
+
+    logger.warning('Group check result for campaign %s not applied after %s attempts', campaign_id, GROUP_CHECK_ATTEMPTS)
+    return False
 
 
 def d20s_for(event: Dict[str, Any]) -> List[Dict[str, Any]]:
     rolls = event.get("visibleRolls") or event.get("rolls") or []
     return [roll for roll in rolls if int(roll.get("sides") or 0) == 20 and not roll.get("dropped")]
-
-
-async def update_group_check_display(campaign_id: str, event: Dict[str, Any]) -> None:
-    """Attach a player roll to the active group-check display state and broadcast it."""
-    group_check_id = event.get("group_check_id")
-    if not group_check_id or event.get("actor_type") != "player":
-        return
-
-    state = await db.campaign_display_states.find_one({"campaign_id": campaign_id}, {"_id": 0})
-    if not state or state.get("mode") != "group-check":
-        return
-
-    payload = state.get("payload") if isinstance(state.get("payload"), dict) else {}
-    active_id = payload.get("group_check_id") or payload.get("id")
-    if str(active_id) != str(group_check_id):
-        return
-
-    results = payload.get("results") if isinstance(payload.get("results"), list) else []
-    event_result = {
-        "id": event.get("id"),
-        "actor": event.get("actor"),
-        "actor_type": event.get("actor_type"),
-        "character_id": event.get("character_id"),
-        "character_name": event.get("character_name"),
-        "group_check_id": event.get("group_check_id"),
-        "requested_roll_id": event.get("requested_roll_id"),
-        "check_name": event.get("check_name"),
-        "label": event.get("label"),
-        "notation": event.get("notation"),
-        "total": event.get("total"),
-        "modifier": event.get("modifier"),
-        "rolls": event.get("rolls") or [],
-        "visibleRolls": event.get("visibleRolls") or event.get("rolls") or [],
-        "isCrit": event.get("isCrit"),
-        "isFumble": event.get("isFumble"),
-        "created_at": event.get("created_at"),
-    }
-    filtered_results = [item for item in results if not identities_overlap(item, event_result)]
-    updated_results = [*filtered_results, event_result]
-    party = payload.get("party") if isinstance(payload.get("party"), list) else []
-    matched_count = sum(1 for player in party if any(identities_overlap(player, result) for result in updated_results))
-    updated_payload = {
-        **payload,
-        "results": updated_results,
-        "status": "complete" if party and matched_count >= len(party) else "collecting",
-        "last_result_at": now_iso(),
-    }
-    updated_state = {
-        **state,
-        "payload": updated_payload,
-        "updated_at": now_iso(),
-    }
-
-    await db.campaign_display_states.update_one(
-        {"campaign_id": campaign_id},
-        {"$set": updated_state},
-        upsert=True,
-    )
-    await ws_manager.broadcast_to_campaign(campaign_id, {
-        "type": "player_display_update",
-        "user_id": event.get("user_id") or event.get("actor") or "player",
-        "data": updated_state,
-        "timestamp": updated_state["updated_at"],
-    })
 
 
 def summarise(events: List[Dict[str, Any]], player_focus: bool = True) -> Dict[str, Any]:
@@ -224,24 +382,112 @@ async def build_summary(campaign_id: str) -> Dict[str, Any]:
     }
 
 
+async def read_roll_payload(request: Request) -> RollEventPayload:
+    declared = request.headers.get('content-length')
+    if declared and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
+        raise HTTPException(status_code=413, detail='Roll is too large')
+    body = await request.body()
+    if len(body) > MAX_BODY_BYTES:
+        raise HTTPException(status_code=413, detail='Roll is too large')
+    try:
+        data = json.loads(body or b'{}')
+    except (ValueError, UnicodeDecodeError):
+        raise HTTPException(status_code=422, detail='Roll must be JSON')
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=422, detail='Roll must be a JSON object')
+    try:
+        return RollEventPayload.model_validate(data)
+    except ValidationError as exc:
+        raise RequestValidationError(exc.errors(include_url=False, include_context=False))
+
+
+async def existing_roll(campaign_id: str, username: str, key: str) -> Optional[Dict[str, Any]]:
+    return await db.roll_events.find_one(
+        {'campaign_id': campaign_id, 'user_id': username, 'client_event_id': key},
+        {'_id': 0},
+    )
+
+
 @router.post("/campaigns/{campaign_id}/roll-events")
-async def record_roll_event(campaign_id: str, payload: RollEventPayload, username: str = Depends(get_current_user)):
-    """Record a virtual dice roll from a campaign member."""
-    await verify_campaign_membership(campaign_id, username)
-    event = payload.model_dump()
-    event.update({
-        "id": f"roll-{uuid4().hex}",
-        "campaign_id": campaign_id,
-        "user_id": username,
-        "actor": event.get("actor") or event.get("character_name") or username,
-        "actor_type": event.get("actor_type") or "player",
-        "archived": False,
-        "created_at": now_iso(),
-    })
-    await db.roll_events.insert_one(event)
-    event.pop("_id", None)
+async def record_roll_event(campaign_id: str, request: Request, username: str = Depends(get_current_user)):
+    """Record one virtual dice roll from a campaign member, exactly once."""
+    campaign = await verify_campaign_membership(campaign_id, username)
+    payload = await read_roll_payload(request)
+    try:
+        key = payload.event_key()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    identity = await resolve_roll_identity(campaign, campaign_id, username, payload)
+
+    if key:
+        # The same request again (a retry, a double submit): hand back the
+        # roll already recorded. Finishing its group-check update is safe to
+        # repeat, and covers a first attempt that stopped before it.
+        already = await existing_roll(campaign_id, username, key)
+        if already:
+            await update_group_check_display(campaign_id, already)
+            return {**already, 'duplicate': True}
+
+    rolls = [roll.model_dump() for roll in (payload.rolls or payload.visibleRolls)]
+    event: Dict[str, Any] = {
+        'id': f'roll-{uuid4().hex}',
+        'campaign_id': campaign_id,
+        'user_id': username,
+        **identity,
+        'group_check_id': payload.group_check_id if identity['actor_type'] == 'player' else '',
+        'requested_roll_id': payload.requested_roll_id if identity['actor_type'] == 'player' else '',
+        'check_name': payload.check_name,
+        'label': payload.label or payload.notation or 'Roll',
+        'notation': payload.notation,
+        'total': payload.total,
+        'modifier': payload.modifier,
+        # One list of dice, and the shown dice derived from it, so the two
+        # can never disagree about which dice counted.
+        'rolls': rolls,
+        'visibleRolls': kept_dice(rolls),
+        'total_check': total_check(rolls, payload.modifier, payload.total),
+        'isCrit': payload.isCrit,
+        'isFumble': payload.isFumble,
+        'explosionCount': payload.explosionCount,
+        'archived': False,
+        'created_at': now_iso(),
+    }
+    if key:
+        event['client_event_id'] = key
+    try:
+        await db.roll_events.insert_one(event)
+    except DuplicateKeyError:
+        # The same key won a race with this request. Its roll stands.
+        already = await existing_roll(campaign_id, username, key)
+        if already:
+            await update_group_check_display(campaign_id, already)
+            return {**already, 'duplicate': True}
+        raise
+    event.pop('_id', None)
     await update_group_check_display(campaign_id, event)
     return event
+
+
+async def ensure_roll_event_indexes(database=None) -> None:
+    """One recorded roll per (campaign, account, client event id).
+
+    Partial, so the historic rolls that have no client event id are neither
+    touched nor constrained, and no migration is needed.
+    """
+    from pymongo import ASCENDING
+    target = database if database is not None else db
+    await target.roll_events.create_index(
+        [('campaign_id', ASCENDING), ('user_id', ASCENDING), ('client_event_id', ASCENDING)],
+        unique=True,
+        background=True,
+        name='roll_event_client_id_unique',
+        partialFilterExpression={'client_event_id': {'$type': 'string'}},
+    )
+    await target.roll_events.create_index(
+        [('campaign_id', ASCENDING), ('created_at', ASCENDING)],
+        background=True,
+        name='roll_event_campaign_time',
+    )
 
 
 @router.get("/campaigns/{campaign_id}/roll-events/summary")

@@ -28,7 +28,13 @@ MODE_FIELDS = {
         'feet_per_square', 'grid_cols', 'grid_rows',
     },
     'battle-start': {'party'},
-    'group-check': {'party', 'results', 'dc', 'check_name', 'notation', 'ability'},
+    # The request id is what a player's roll names to join this check, and
+    # the status says whether it is still collecting. Neither is private:
+    # the id is a random token minted by the GM's screen for this request.
+    'group-check': {
+        'party', 'results', 'dc', 'check_name', 'notation', 'ability',
+        'id', 'group_check_id', 'status', 'requested_at', 'last_result_at',
+    },
     'table-result': {'die', 'roll', 'result', 'party'},
     'end-session-stats': {'campaignName', 'generated_at', 'session', 'allTime'},
 }
@@ -140,6 +146,24 @@ def sanitize_player_display_payload(mode: str, payload: Any) -> Dict[str, Any]:
         if isinstance(payload.get('allTime'), dict):
             out['allTime'] = _scalar_fields(payload['allTime'], ALL_TIME)
     return out
+
+
+def public_display_state(state: Dict[str, Any]) -> Dict[str, Any]:
+    """The member-safe view of a stored display state, for reads and broadcasts."""
+    # Older snapshots may predate this allowlist. Never send their private fields
+    # to campaign members just because they were saved by an earlier version.
+    mode = state.get('mode', 'blank')
+    unsupported_legacy_mode = mode not in DISPLAY_MODES
+    if unsupported_legacy_mode:
+        mode = 'blank'
+    return {
+        **{key: state[key] for key in (
+            'campaign_id', 'sync_id', 'sequence', 'updated_at',
+            'updated_by', 'delivery_ack', 'source_tab',
+        ) if key in state},
+        'mode': mode,
+        'payload': {} if unsupported_legacy_mode else sanitize_player_display_payload(mode, state.get('payload')),
+    }
 
 
 def _token_payload(value: dict) -> dict:

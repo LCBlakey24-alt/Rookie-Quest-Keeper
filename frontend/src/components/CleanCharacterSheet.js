@@ -634,6 +634,10 @@ export default function CleanCharacterSheet() {
           rolls={(rollBurst.rolls || rollBurst.allRolls || [rollBurst.d20]).filter(value => value !== undefined).map(value => ({
             sides: rollBurst.sides || (rollBurst.mode === 'hit-die' ? hitDieInfo.sides : 20),
             result: typeof value === 'object' ? value.result : value,
+            // Advantage/disadvantage: the lower/higher d20 does not count.
+            // Without this the tray, the formula and the recorded roll all
+            // treated both dice as kept.
+            dropped: typeof value === 'object' && Boolean(value.dropped),
           }))}
           modifier={rollBurst.modifier}
           total={rollBurst.total}

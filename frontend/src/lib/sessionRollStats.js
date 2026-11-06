@@ -40,9 +40,20 @@ function activeGroupCheckForRoll(campaignId, event = {}) {
   }
 }
 
+function newRollEventId() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return `roll-${crypto.randomUUID()}`;
+  } catch { /* fall through */ }
+  return `roll-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
 export function normaliseRollEvent(rollEvent = {}) {
+  const id = rollEvent.client_event_id || rollEvent.id || newRollEventId();
   return {
-    id: rollEvent.id || `roll-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id,
+    // One player action, one id. The server records a roll once per id, so
+    // re-sending this exact event (a retry) can never count it twice.
+    client_event_id: id,
     actor: normaliseActor(rollEvent.actor || rollEvent.character_name, rollEvent.label),
     actor_type: rollEvent.actor_type || 'gm',
     character_id: rollEvent.character_id || '',
@@ -66,20 +77,35 @@ export function normaliseRollEvent(rollEvent = {}) {
 export function recordSessionRoll(campaignId, rollEvent = {}) {
   if (!campaignId || typeof localStorage === 'undefined') return null;
   const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
-  writeList(sessionKey(campaignId), [...readList(sessionKey(campaignId)), event], 500);
-  writeList(allTimeKey(campaignId), [...readList(allTimeKey(campaignId)), event], 5000);
+  const append = (list) => (list.some(item => item?.id === event.id) ? list : [...list, event]);
+  writeList(sessionKey(campaignId), append(readList(sessionKey(campaignId))), 500);
+  writeList(allTimeKey(campaignId), append(readList(allTimeKey(campaignId))), 5000);
   return event;
+}
+
+const RETRY_DELAYS_MS = [400, 1500];
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Only a lost connection or a server fault is worth sending again. A 4xx is
+// the server's answer about this roll and will not change.
+function worthRetrying(error) {
+  const status = Number(error?.response?.status);
+  return !status || status >= 500;
 }
 
 export async function recordRemoteRoll(campaignId, rollEvent = {}) {
   if (!campaignId) return null;
   const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
   recordSessionRoll(campaignId, event);
-  try {
-    const response = await apiClient.post(`/campaigns/${campaignId}/roll-events`, event);
-    return response.data;
-  } catch {
-    return event;
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      // The identical event every time, so a retry is recognised, not re-counted.
+      const response = await apiClient.post(`/campaigns/${campaignId}/roll-events`, event);
+      return response.data;
+    } catch (error) {
+      if (attempt >= RETRY_DELAYS_MS.length || !worthRetrying(error)) return event;
+      await wait(RETRY_DELAYS_MS[attempt]);
+    }
   }
 }
 
