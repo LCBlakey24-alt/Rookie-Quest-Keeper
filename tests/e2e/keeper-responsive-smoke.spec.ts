@@ -713,7 +713,9 @@ for (const size of [
     await expect.poll(() => completed, { timeout: 25_000 }).toBe(6);
     await expect(saveStatus).toHaveText('');
     expect(patches.filter(p => 'current_hit_points' in p).map(p => p.current_hit_points)).toEqual([19, 18, 17, 17]);
-    expect(patches.filter(p => 'temporary_hit_points' in p).map(p => p.temporary_hit_points)).toEqual([1, 2, 1]);
+    // Damage PATCHes also carry the current temp HP (zero for the first
+    // three damage taps); temp changes then produce 1, 2, and finally 1.
+    expect(patches.filter(p => 'temporary_hit_points' in p).map(p => p.temporary_hit_points)).toEqual([0, 0, 0, 1, 2, 1]);
     expect(stored.current_hit_points).toBe(17);
     expect(stored.temporary_hit_points).toBe(1);
 
