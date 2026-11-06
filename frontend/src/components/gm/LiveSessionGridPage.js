@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
-import ChaosFateTracker from '@/components/gm/ChaosFateTracker';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import { loadLiveSessionSections } from '@/data/livePlayLoaders';
@@ -261,7 +260,7 @@ export default function LiveSessionGridPage() {
       case 'monsters': return lazyTool(<MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={encounter => openMonsterEncounterInCombat(encounter, openEncounterReview)} />);
       case 'location': return lazyTool(<PartyLocationTracker campaignId={campaignId} />);
       case 'environment': return lazyTool(<EnvironmentControl campaignId={campaignId} campaign={campaign} onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)} />);
-      case 'reference-hub': return lazyTool(<UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />);
+      case 'reference-hub': return lazyTool(<UnifiedReferenceCenter campaignId={campaignId} onRollDamage={rollQuickDice} isCompact={false} />);
       case 'tables': return lazyTool(<LiveRollTablesPanel campaignId={campaignId} onSaveAsNote={addLiveResultToNotes} />);
       case 'loot': return lazyTool(<LootGenerator />);
       case 'story': return lazyTool(<StoryArcTracker theme={theme} campaignId={campaignId} />);
@@ -296,10 +295,6 @@ export default function LiveSessionGridPage() {
           </div>
         </header>
 
-        <details className="rqk-live-page__utility" aria-label="Chaos and Fate tracker">
-          <summary>🎲 Chaos & Fate <span>Shared party tokens</span></summary>
-          <ChaosFateTracker campaignId={campaignId} compact />
-        </details>
         <LiveDataWarning errors={loadErrors} onRetry={fetchAllData} />
         <PlayerDisplayDeliveryStatus campaignId={campaignId} />
         <details className="rqk-live-page__utility rqk-live-page__story-utility" aria-label="Story focus and checkpoints">

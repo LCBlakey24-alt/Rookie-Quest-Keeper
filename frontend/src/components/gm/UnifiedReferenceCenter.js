@@ -1,9 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { Suspense, useState, useMemo } from 'react';
 import { Search, Sword, Shield, FlaskConical, Sparkles, AlertCircle, ChevronDown, ChevronUp, Dices, BookOpen } from 'lucide-react';
 import { ARMOR, ALL_WEAPONS } from '@/data/equipmentDatabase';
 import { POTION_ITEMS, MAGIC_ITEMS } from '@/data/itemsDatabase';
 import { CONDITION_EFFECTS } from '@/data/conditionEffects';
 import { SPELL_DATABASE } from '@/data/spellDatabase';
+
+// Only load the optional campaign ledger when a GM opens Optional Rules.
+const ChaosFateTracker = React.lazy(() => import('./ChaosFateTracker'));
 
 const theme = {
   bg: {
@@ -37,7 +40,7 @@ const getRollNotation = (item) => {
   return match ? match[0].replace(/\s+/g, '') : null;
 };
 
-export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false }) {
+export default function UnifiedReferenceCenter({ campaignId, onRollDamage, isCompact = false }) {
   const [activeTab, setActiveTab] = useState('weapons');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedItems, setExpandedItems] = useState({});
@@ -259,7 +262,8 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
     { id: 'potions', label: 'Potions', icon: FlaskConical },
     { id: 'items', label: 'Items', icon: Sparkles },
     { id: 'spells', label: 'Spells', icon: BookOpen },
-    { id: 'conditions', label: 'Conditions', icon: AlertCircle }
+    { id: 'conditions', label: 'Conditions', icon: AlertCircle },
+    ...(campaignId ? [{ id: 'optional-rules', label: 'Optional Rules', icon: Dices }] : [])
   ];
 
   return (
@@ -271,8 +275,8 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
       maxHeight: isCompact ? '340px' : '100%',
       overflowY: 'auto'
     }}>
-      {/* Search Bar */}
-      <div style={{ marginBottom: '16px' }}>
+      {/* Catalogue search does not apply to optional campaign rules. */}
+      {activeTab !== 'optional-rules' && <div style={{ marginBottom: '16px' }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -298,7 +302,7 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
             }}
           />
         </div>
-      </div>
+      </div>}
 
       {/* Tab Buttons */}
       <div style={{
@@ -312,13 +316,16 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
           const isActive = activeTab === tab.id;
           return (
             <button
+              type="button"
               key={tab.id}
+              aria-pressed={isActive}
               onClick={() => { setActiveTab(tab.id); setSearchQuery(''); }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 padding: '8px 12px',
+                minHeight: 44,
                 background: isActive ? theme.accent.primary : theme.bg.surface,
                 border: `1px solid ${isActive ? theme.accent.primary : theme.border}`,
                 color: isActive ? theme.bg.primary : theme.text.primary,
@@ -337,7 +344,20 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
       </div>
 
       {/* Content Area */}
-      {activeTab === 'conditions' ? (
+      {activeTab === 'optional-rules' && campaignId ? (
+        <section aria-label="Optional campaign rules" data-testid="reference-optional-rules" style={{ display: 'grid', gap: 12 }}>
+          <header>
+            <h3 style={{ margin: 0, color: theme.text.primary }}>Optional rules</h3>
+            <p style={{ margin: '6px 0 0', color: theme.text.secondary, lineHeight: 1.5 }}>
+              Chaos &amp; Fate is an optional campaign house rule, not a standard D&amp;D rule.
+              Use it only if your group has agreed to it.
+            </p>
+          </header>
+          <Suspense fallback={<p role="status">Loading optional rules…</p>}>
+            <ChaosFateTracker key={campaignId} campaignId={campaignId} compact />
+          </Suspense>
+        </section>
+      ) : activeTab === 'conditions' ? (
         <ConditionsTab />
       ) : (
         <div>
