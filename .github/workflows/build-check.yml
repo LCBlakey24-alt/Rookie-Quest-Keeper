@@ -24,7 +24,7 @@ jobs:
         run: python -m unittest discover -s scripts -p 'test_check_test_credentials.py' -v
 
       - name: Install route test dependencies
-        run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests google-auth httpx
+        run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests google-auth httpx uvicorn websockets
       - name: Test player access and timeline persistence
         run: |
           python -m unittest discover -s backend/tests -p test_player_workspace.py -v
@@ -78,6 +78,7 @@ jobs:
             backend/tests/test_upload_limits.py \
             backend/tests/test_session_and_socket_hardening.py \
             backend/tests/test_websocket_session_security.py \
+            backend/tests/test_live_socket_handshake.py \
             backend/tests/test_character_patch_campaign_idor.py \
             backend/tests/test_character_patch_state.py \
             backend/tests/test_progression_admin_gate.py \

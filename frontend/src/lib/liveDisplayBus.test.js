@@ -125,6 +125,9 @@ describe('liveDisplayBus', () => {
       expect(statuses.at(-1)).toBe('denied');
 
       socket.onopen();
+      // The socket is healthy once the server has verified the first-message
+      // credentials, not merely when the TCP connection opens.
+      socket.onmessage({ data: JSON.stringify({ type: 'auth_ok' }) });
       for (let index = 0; index < 12 && apiClient.get.mock.calls.length < 2; index += 1) await Promise.resolve();
       expect(apiClient.get).toHaveBeenCalledTimes(2);
       for (let index = 0; index < 12 && statuses.at(-1) !== 'synced'; index += 1) await Promise.resolve();
