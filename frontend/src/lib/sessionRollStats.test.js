@@ -59,6 +59,10 @@ async function settle(rounds = 10) {
   }
 }
 
+async function settleMicrotasks(rounds = 12) {
+  for (let index = 0; index < rounds; index += 1) await Promise.resolve();
+}
+
 beforeEach(() => {
   localStorage.clear();
   apiClient.post.mockReset();
@@ -145,8 +149,48 @@ test('a queued roll is replayed after reconnect and removed after idempotent acc
 
   await expect(flushPendingRemoteRolls()).resolves.toEqual({ delivered: 1, remaining: 0 });
 
-  expect(apiClient.post).toHaveBeenCalledWith(`/campaigns/${CAMPAIGN}/roll-events`, event);
+  expect(apiClient.post).toHaveBeenCalledWith(
+    `/campaigns/${CAMPAIGN}/roll-events`,
+    event,
+    { rqkExpectedAuthScope: 'user:player-a' },
+  );
   expect(removePendingRoll).toHaveBeenCalledWith('user:player-a:synthetic-campaign:roll-interrupted-1');
+});
+
+test('an older queued character roll is delivered before a newer roll from that character', async () => {
+  const olderEvent = normaliseRollEvent(roll({ id: 'roll-older-1', total: 9 }));
+  const records = [{
+    key: 'user:player-a:synthetic-campaign:roll-older-1',
+    scope: 'user:player-a',
+    campaignId: CAMPAIGN,
+    event: olderEvent,
+    queuedAt: 1,
+  }];
+  listPendingRolls.mockImplementation(() => [...records]);
+  queuePendingRoll.mockImplementation(({ scope, campaignId, event }) => {
+    const record = {
+      key: `${scope}:${campaignId}:${event.client_event_id}`,
+      scope,
+      campaignId,
+      event,
+      queuedAt: records.length + 1,
+    };
+    records.push(record);
+    return record;
+  });
+  removePendingRoll.mockImplementation(key => {
+    const index = records.findIndex(record => record.key === key);
+    if (index >= 0) records.splice(index, 1);
+  });
+  apiClient.post.mockResolvedValue({ data: { accepted: true } });
+
+  await expect(recordRemoteRoll(CAMPAIGN, roll({ id: 'roll-newer-1', total: 18 })))
+    .resolves.toMatchObject({ queued: true });
+  await settleMicrotasks();
+
+  expect(apiClient.post.mock.calls.map(([, body]) => body.client_event_id))
+    .toEqual(['roll-older-1', 'roll-newer-1']);
+  expect(records).toEqual([]);
 });
 
 test('a queued roll is never replayed through a different signed-in account', async () => {
