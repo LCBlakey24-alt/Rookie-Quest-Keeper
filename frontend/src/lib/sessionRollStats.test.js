@@ -13,6 +13,7 @@ jest.mock('./apiClient', () => ({
   default: { post: jest.fn(), get: jest.fn() },
 }));
 jest.mock('./liveDisplayBus', () => ({ loadDisplayState: jest.fn(() => null) }));
+const { loadDisplayState } = require('./liveDisplayBus');
 const apiClient = require('./apiClient').default;
 
 const CAMPAIGN = 'synthetic-campaign';
@@ -38,6 +39,8 @@ async function settle(rounds = 10) {
 beforeEach(() => {
   localStorage.clear();
   apiClient.post.mockReset();
+  loadDisplayState.mockReset();
+  loadDisplayState.mockReturnValue(null);
   jest.useRealTimers();
 });
 
@@ -80,6 +83,19 @@ test('retries stop after a bounded number of attempts', async () => {
   await settle();
   await pending;
   expect(apiClient.post).toHaveBeenCalledTimes(3);
+});
+
+test('only a kept d20 joins an active GM group check; damage does not', async () => {
+  loadDisplayState.mockReturnValue({
+    mode: 'group-check', payload: { group_check_id: 'check-12345678', title: 'Dexterity save' },
+  });
+  apiClient.post.mockResolvedValue({ data: { accepted: true } });
+  await recordRemoteRoll(CAMPAIGN, roll({ rolls: [{ sides: 8, result: 5 }], total: 8 }));
+  await recordRemoteRoll(CAMPAIGN, roll());
+  const damage = apiClient.post.mock.calls[0][1];
+  const d20 = apiClient.post.mock.calls[1][1];
+  expect(damage.group_check_id).toBe('');
+  expect(d20.group_check_id).toBe('check-12345678');
 });
 
 test('recording the same roll twice adds it to local history once', () => {

@@ -100,12 +100,36 @@ export default function DiceRollFlicker({
     : Number.isFinite(numericAnimationValue)
       ? numericAnimationValue
       : 0;
-  const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
-  // Sheet rerenders rebuild the rolls array. Only a real roll or a changed result
-  // should reset the reveal timer, not an unrelated HP / tab state update.
+  // Flat damage is a deterministic amount (for example 1 + STR), not a
+  // one-sided die. Never turn its d1 storage representation into a fake d2.
+  const isFixedDamage = Array.isArray(rolls) && rolls.length > 0
+    && rolls.every(roll => roll && typeof roll === 'object' && Number(roll.sides) === 1);
+  const fixedBase = isFixedDamage
+    ? rolls.reduce((sum, roll) => sum + (Number(roll?.result) || 0), 0)
+    : 0;
+  const dice = useMemo(
+    () => isFixedDamage ? [] : normalizeDice(rolls, finalTotal),
+    [rolls, finalTotal, isFixedDamage],
+  );
+  // Sheet rerenders rebuild the rolls array. A stable fingerprint stops
+  // unrelated state changes from cancelling an in-flight character roll.
   const diceFingerprint = dice.map((die) => [
     die.sides, die.result, die.sign, die.dropped ? 1 : 0, die.exploded ? 1 : 0,
   ].join(':')).join('|');
+  const hasRawDice = Array.isArray(rolls) && rolls.length > 0;
+  // Build the remote event from exactly the same displayed die faces, not
+  // from the original numeric arrays. Only primitive fingerprint changes
+  // invalidate it; the event cannot be cancelled by a fresh array reference.
+  const reportableDice = useMemo(() => {
+    if (isFixedDamage || !hasRawDice) return [];
+    return diceFingerprint.split('|').map(fingerprint => {
+      const [sides, result, sign, dropped, exploded] = fingerprint.split(':');
+      return {
+        sides: Number(sides), result: Number(result), sign: Number(sign),
+        dropped: dropped === '1', exploded: exploded === '1',
+      };
+    });
+  }, [diceFingerprint, isFixedDamage, hasRawDice]);
   const [showTotal, setShowTotal] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
 
@@ -115,7 +139,7 @@ export default function DiceRollFlicker({
   // overlay already shows the same result, so the roll simply stays flat.
   const [TrayOverlay, setTrayOverlay] = useState(null);
   useEffect(() => {
-    if (prefersReducedMotion || !visible || TrayOverlay) return undefined;
+    if (prefersReducedMotion || !visible || TrayOverlay || isFixedDamage) return undefined;
 
     let cancelled = false;
     import('@/components/DiceTray3DOverlay')
@@ -123,7 +147,7 @@ export default function DiceRollFlicker({
       .catch(() => {});
 
     return () => { cancelled = true; };
-  }, [prefersReducedMotion, visible, TrayOverlay]);
+  }, [prefersReducedMotion, visible, TrayOverlay, isFixedDamage]);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
 
@@ -142,6 +166,7 @@ export default function DiceRollFlicker({
   }, [dice]);
 
   const rollDetail = useMemo(() => {
+    if (isFixedDamage) return `Fixed damage: ${fixedBase}${formatModifier(modifier)}`;
     const base = dice.map((die) => {
       const chainPrefix = die.exploded ? '↳ ' : '';
       const signPrefix = die.sign < 0 ? '−' : '';
@@ -149,7 +174,7 @@ export default function DiceRollFlicker({
       return `${chainPrefix}${signPrefix}d${die.sides}: ${die.result}${suffix}`;
     }).join(' • ');
     return `${base}${formatModifier(modifier)}`;
-  }, [modifier, dice]);
+  }, [modifier, dice, isFixedDamage, fixedBase]);
 
   const diceSubtotal = useMemo(
     () => keptDice.reduce((sum, die) => sum + Number(die.contribution ?? ((die.sign || 1) * Number(die.result || 0))), 0),
@@ -165,7 +190,7 @@ export default function DiceRollFlicker({
     if (!visible || theme !== 'player') return undefined;
     const characterId = getCharacterIdFromPath();
     if (!characterId) return undefined;
-    const rollKey = rollId ? `${characterId}-${rollId}` : `${characterId}-${label}-${finalTotal}-${modifier}-${JSON.stringify(rolls)}`;
+    const rollKey = rollId ? `${characterId}-${rollId}` : `${characterId}-${label}-${finalTotal}-${modifier}-${diceFingerprint}`;
     if (recordedKeyRef.current === rollKey) return undefined;
     recordedKeyRef.current = rollKey;
 
@@ -181,22 +206,24 @@ export default function DiceRollFlicker({
         character_id: character.id || characterId,
         character_name: characterName,
         label: label || 'Player Roll',
-        notation: label || '',
+        notation: isFixedDamage ? 'Fixed damage' : label || '',
         total: finalTotal,
         modifier,
-        rolls,
-        visibleRolls: rolls.filter?.((roll) => !roll?.dropped) || rolls,
+        rolls: reportableDice,
+        visibleRolls: reportableDice.filter(die => !die.dropped),
         isCrit: finalCrit,
         isFumble: finalFumble,
-        explosionCount: rolls.filter?.((roll) => roll?.exploded).length || 0,
+        explosionCount: reportableDice.filter(die => die.exploded).length,
       });
     });
     return () => { cancelled = true; };
-  }, [visible, theme, label, finalTotal, modifier, rolls, finalCrit, finalFumble, rollId]);
+  }, [visible, theme, label, finalTotal, modifier, reportableDice, isFixedDamage, finalCrit, finalFumble, rollId, diceFingerprint]);
 
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
-    setShowTotal(false);
+    // Fixed damage has no dice to animate: reveal the result immediately.
+    setShowTotal(isFixedDamage);
+    if (isFixedDamage) return undefined;
     const usingTray = !prefersReducedMotion && Boolean(TrayOverlay);
     const delay = prefersReducedMotion
       ? REDUCED_MOTION_REVEAL_DELAY
@@ -204,7 +231,7 @@ export default function DiceRollFlicker({
 
     const revealTimer = window.setTimeout(() => setShowTotal(true), delay);
     return () => window.clearTimeout(revealTimer);
-  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, rollId]);
+  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, rollId, isFixedDamage]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
@@ -230,14 +257,16 @@ export default function DiceRollFlicker({
 
   if (!visible || typeof document === 'undefined') return null;
 
-  const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
+  const formulaText = isFixedDamage
+    ? `Fixed damage: ${fixedBase}${formatModifier(modifier)} = ${finalTotal}`
+    : `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
 
   // Physical tumbling dice by default; the flat overlay stays the
   // presentation for viewers who ask for reduced motion
   // (docs/UI_DESIGN_SYSTEM.md requires honouring prefers-reduced-motion),
   // and remains the fallback until the 3D chunk has loaded, or for good if
   // it cannot load. Both take the same props.
-  const Overlay = (!prefersReducedMotion && TrayOverlay) || FlatDiceResultOverlay;
+  const Overlay = (!isFixedDamage && !prefersReducedMotion && TrayOverlay) || FlatDiceResultOverlay;
 
   return createPortal(
     <Overlay
@@ -251,6 +280,7 @@ export default function DiceRollFlicker({
       isRevealed={showTotal}
       isCrit={finalCrit}
       isFumble={finalFumble}
+      isFixedDamage={isFixedDamage}
       onRevealNow={() => setShowTotal(true)}
       onClose={() => onCloseRef.current?.()}
     />,

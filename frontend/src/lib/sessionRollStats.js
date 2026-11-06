@@ -24,6 +24,13 @@ function normaliseActor(actor, label) {
 
 function activeGroupCheckForRoll(campaignId, event = {}) {
   if (!campaignId || event.group_check_id || event.actor_type !== 'player') return {};
+  // Damage/healing rolls must not fill a GM's pending d20 group check.
+  // Only a reported kept d20 can answer that prompt.
+  const dice = Array.isArray(event.visibleRolls) && event.visibleRolls.length
+    ? event.visibleRolls : event.rolls;
+  if (!Array.isArray(dice) || !dice.some(die =>
+    die && typeof die === 'object' && Number(die.sides) === 20 && !die.dropped
+  )) return {};
   try {
     const state = loadDisplayState(campaignId);
     if (state?.mode !== 'group-check') return {};
