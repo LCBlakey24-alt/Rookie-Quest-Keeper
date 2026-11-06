@@ -49,6 +49,17 @@ function isShieldLike(item) {
   return name.includes('shield') || type.includes('shield') || ruleText.includes('shield');
 }
 
+/**
+ * Imported sheets contain reviewed FINAL AC/speed values, unlike creation's
+ * species base values. Older imports don't retain creation_mode through the
+ * backend character model, but their import provenance survives in notes.
+ */
+function importedSheetStatsAreFinal(character = {}) {
+  if (character?.creation_mode === 'imported') return true;
+  const note = `${character?.notes || ''}\n${character?.backstory || ''}`;
+  return /Imported from player upload:|Imported through Keeper character import\./i.test(note);
+}
+
 function getEquippedCandidates(character) {
   const candidates = [];
   const equipped = character?.equipped || {};
@@ -135,6 +146,9 @@ export function deriveWalkingSpeed(character = {}) {
   const base = Number.isFinite(raw) ? raw : 30;
   const monkLevel = getMonkClassLevel(character);
   if (!monkLevel || character?.speed_includes_class_bonus === true) return base;
+  // A reviewed imported sheet's Speed is normally its already-final value.
+  // Re-adding the class bonus would turn an imported 40-ft Monk into 50 ft.
+  if (character?.speed_includes_class_bonus !== false && importedSheetStatsAreFinal(character)) return base;
   const equipped = character?.equipped || {};
   const armor = equipped.armor || equipped.armour;
   const offHand = equipped.offHand || equipped.off_hand;
@@ -171,7 +185,7 @@ export function deriveArmorClass(character, options = {}) {
   const manualAc = character?.armor_class_manual === true
     || character?.armor_class_source === 'manual';
   if (explicitAc > 0) {
-    if (canUseMonkDefense && !manualAc && explicitAc <= normalUnarmoredAc) {
+    if (canUseMonkDefense && !manualAc && !importedSheetStatsAreFinal(character) && explicitAc <= normalUnarmoredAc) {
       return Math.max(explicitAc, unarmoredAc);
     }
     return explicitAc;
