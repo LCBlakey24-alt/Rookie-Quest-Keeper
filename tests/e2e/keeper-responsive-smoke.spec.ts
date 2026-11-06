@@ -231,6 +231,7 @@ for (const size of appSizes) {
 // Use actual Chromium hit-testing, not assertions about CSS source text.
 for (const size of [
   { label: 'phone', width: 390, height: 844 },
+  { label: 'small phone', width: 320, height: 780 },
   { label: 'tablet', width: 768, height: 1024 },
   { label: 'landscape tablet', width: 1024, height: 768 },
   { label: 'rail breakpoint', width: 1180, height: 820 },
