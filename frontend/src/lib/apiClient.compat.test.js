@@ -1,11 +1,21 @@
 import apiClient, {
   applyCharacterCreationReadinessPolicy,
+  assertExpectedAuthScope,
   applyLegacyApiCompatibility,
   applyLoginTimeoutPolicy,
   LOGIN_TIMEOUT_MS,
   shouldUseOfflineCache,
   wakeBackend,
 } from './apiClient';
+import { clearAuthToken, setAuthToken } from './auth';
+
+function fakeJwt(subject) {
+  const encode = value => window.btoa(JSON.stringify(value))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+  return `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: subject })}.signature`;
+}
 
 function mockStorage(values = {}) {
   return {
@@ -21,6 +31,31 @@ test('spell-slot updates stay partial PATCH requests', async () => {
     url: '/characters/character-1',
     data: JSON.stringify({ spell_slots_remaining: { '1': 0 } }),
   }));
+});
+
+describe('account-bound queued mutations', () => {
+  afterEach(() => clearAuthToken());
+
+  test('rejects a request when its expected account no longer matches', () => {
+    expect(() => assertExpectedAuthScope(
+      { rqkExpectedAuthScope: 'user:player-a' },
+      'user:player-b',
+    )).toThrow(/account changed/i);
+  });
+
+  test('an account switch before Axios dispatch cannot send the old roll with the new token', async () => {
+    setAuthToken(fakeJwt('player-a'));
+    const adapter = jest.fn(async config => ({ data: {}, status: 200, headers: {}, config }));
+    const pending = apiClient.post('/campaigns/camp-a/roll-events', {}, {
+      adapter,
+      rqkExpectedAuthScope: 'user:player-a',
+    });
+
+    setAuthToken(fakeJwt('player-b'));
+
+    await expect(pending).rejects.toMatchObject({ rqkAuthScopeChanged: true });
+    expect(adapter).not.toHaveBeenCalled();
+  });
 });
 
 describe('legacy account API compatibility', () => {
