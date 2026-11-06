@@ -636,3 +636,92 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   await expect(frame).toHaveCSS('background-image', 'none');
   await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+
+// Browser regression for #779. These are real interactions against the built
+// frontend, but every /api request is answered by an in-memory fixture. The
+// test never sends writes to the hosted API or uses a real account.
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test('rapid HP and temporary HP taps persist through a slow server on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await page.addInitScript(token => {
+      localStorage.setItem('dm_token', token);
+      localStorage.setItem('dm_username', 'responsive-display-user');
+    }, syntheticDisplayToken);
+    await avoidThirdPartyRequests(page);
+
+    const characterId = 'browser-fixture-hp';
+    let stored = {
+      id: characterId, user_id: 'responsive-display-user',
+      name: 'Synthetic Hero', level: 3, character_class: 'Rogue',
+      race: 'Human', edition: '2014',
+      strength: 10, dexterity: 16, constitution: 12,
+      intelligence: 10, wisdom: 12, charisma: 10,
+      max_hit_points: 20, current_hit_points: 20,
+      temporary_hit_points: 0, armor_class: 14, hit_dice: '3d8',
+    };
+    const patches: Record<string, unknown>[] = [];
+    let completed = 0;
+    await page.route('**/api/**', async route => {
+      const request = route.request();
+      const url = new URL(request.url());
+      const path = url.pathname;
+      if (path === '/api/auth/me') {
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ username: 'responsive-display-user' }) });
+      }
+      if (path === '/api/characters/' + characterId && request.method() === 'GET') {
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(stored) });
+      }
+      if (path === '/api/characters/' + characterId && request.method() === 'PATCH') {
+        const changes = request.postDataJSON() as Record<string, unknown>;
+        // A deliberately slow API demonstrates that clicks remain usable
+        // while the character save queue serialises its server requests.
+        await new Promise(resolve => setTimeout(resolve, 750));
+        patches.push(changes);
+        stored = { ...stored, ...changes };
+        completed += 1;
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(stored) });
+      }
+      return route.fulfill({ status: 200, contentType: 'application/json', body: request.method() === 'GET' ? '[]' : '{}' });
+    });
+
+    await page.goto('/characters/' + characterId);
+    const hp = page.getByRole('meter', { name: 'Hit points remaining' });
+    const damage = page.getByRole('button', { name: 'Take 1 hit point of damage' });
+    const addTemp = page.getByRole('button', { name: 'Add 1 temporary hit point' });
+    const saveStatus = page.getByTestId('hp-save-status');
+    await expect(hp).toHaveAttribute('aria-valuenow', '20');
+    await expect(damage).toBeEnabled();
+
+    await damage.click();
+    await damage.click();
+    await damage.click();
+    // Every click counts now, before the 750ms server responses arrive.
+    await expect(hp).toHaveAttribute('aria-valuenow', '17');
+    await expect(saveStatus).toContainText('Saving');
+    await expect(damage).toBeEnabled();
+
+    await addTemp.click();
+    await addTemp.click();
+    await damage.click(); // consumes one pending temporary HP, not real HP
+    await expect(hp).toHaveAttribute('aria-valuenow', '17');
+    await expect(page.locator('.clean-sheet-combat-temp-pill')).toHaveText('Temp 1');
+
+    await expect.poll(() => completed, { timeout: 25_000 }).toBe(6);
+    await expect(saveStatus).toHaveText('');
+    expect(patches.filter(p => 'current_hit_points' in p).map(p => p.current_hit_points)).toEqual([19, 18, 17, 17]);
+    // Damage PATCHes also carry the current temp HP (zero for the first
+    // three damage taps); temp changes then produce 1, 2, and finally 1.
+    expect(patches.filter(p => 'temporary_hit_points' in p).map(p => p.temporary_hit_points)).toEqual([0, 0, 0, 1, 2, 1]);
+    expect(stored.current_hit_points).toBe(17);
+    expect(stored.temporary_hit_points).toBe(1);
+
+    await page.reload();
+    await expect(hp).toHaveAttribute('aria-valuenow', '17');
+    await expect(page.locator('.clean-sheet-combat-temp-pill')).toHaveText('Temp 1');
+    await assertFitsViewport(page, size.width);
+  });
+}
