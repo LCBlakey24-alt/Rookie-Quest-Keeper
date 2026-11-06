@@ -177,6 +177,7 @@ export default function LiveSessionGridPage() {
   };
 
   const launchCombat = (scenario) => navigate(`/combat/${campaignId}`, { state: { scenario, campaignName: campaign?.name } });
+  const resumeCombat = () => navigate(`/combat/${campaignId}`);
 
   const quickStartCombat = () => {
     if (loadErrors.some(item => item.key === 'players')) {
@@ -230,22 +231,19 @@ export default function LiveSessionGridPage() {
     if (toolId === 'combat') fetchAllData();
   };
 
-  const openMonsterEncounterInCombat = (encounter) => {
+  const openMonsterEncounterInCombat = (encounter, openEncounterReview) => {
     if (encounter?.id) {
       setScenarios(prev => prev.some(item => item.id === encounter.id) ? prev.map(item => item.id === encounter.id ? encounter : item) : [encounter, ...prev]);
       setSelectedScenario(encounter);
     }
     setSessionRefreshKey(prev => prev + 1);
-    if (typeof document !== 'undefined') {
-      window.requestAnimationFrame(() => {
-        const combatButton = document.querySelector('[data-testid="live-tool-combat"]');
-        combatButton?.click?.();
-      });
-    }
+    // A phone's closed drawer has no combat button in the DOM. Navigate
+    // through the Live Play state contract, passing the saved encounter ID.
+    openEncounterReview?.(encounter?.id || '');
     fetchAllData();
   };
 
-  const renderTool = (toolId) => {
+  const renderTool = (toolId, { openEncounterReview } = {}) => {
     const lazyTool = (content) => (
       <Suspense fallback={<div style={toolLoadingStyle}>Loading tool…</div>}>
         {content}
@@ -260,7 +258,7 @@ export default function LiveSessionGridPage() {
       case 'player-display': return lazyTool(<LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />);
       case 'maps': return lazyTool(<MapsTab campaignId={campaignId} />);
       case 'npcs': return lazyTool(<NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />);
-      case 'monsters': return lazyTool(<MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={openMonsterEncounterInCombat} />);
+      case 'monsters': return lazyTool(<MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={encounter => openMonsterEncounterInCombat(encounter, openEncounterReview)} />);
       case 'location': return lazyTool(<PartyLocationTracker campaignId={campaignId} />);
       case 'environment': return lazyTool(<EnvironmentControl campaignId={campaignId} campaign={campaign} onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)} />);
       case 'reference-hub': return lazyTool(<UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />);
@@ -309,7 +307,7 @@ export default function LiveSessionGridPage() {
           <LiveStoryFocusPanel campaignId={campaignId} />
         </details>
         <section className="rqk-live-page__workspace" style={gridShellStyle}>
-          <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} scenarios={scenarios} players={players} />
+          <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} onResumeCombat={resumeCombat} refreshKey={sessionRefreshKey} scenarios={scenarios} players={players} />
         </section>
         <GroupCheckRequestPanel campaignId={campaignId} players={players} />
 

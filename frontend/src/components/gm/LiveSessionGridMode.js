@@ -1,7 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowRight, BookOpen, Dices, FileText, Mail, Map, Swords, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
 import { nextPreparedEncounterId } from './encounterSelection';
+import LiveToolRail, { LiveToolMenuButton } from './LiveToolRail';
+import {
+  allLiveToolIds,
+  categoryForTool,
+  findLiveTool,
+  initialExpandedCategories,
+  liveToolLabel,
+} from './liveToolRegistry';
+import { currentCombatAccount, readCombatCheckpoint } from '@/components/combat/combatCheckpoint';
+import { useDeviceLayout } from '@/layouts/deviceLayout';
 import './LiveSessionGridMode.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -12,73 +22,125 @@ const rq = {
 };
 
 export const LIVE_GRID_DEFAULTS = ['overview', 'story', 'combat', 'notes'];
+const LIVE_TOOL_IDS = new Set(allLiveToolIds());
 
-export const LIVE_GRID_TOOLS = [
-  { id: 'overview', label: 'Run', icon: Target, primary: true },
-  { id: 'story', label: 'Quests', icon: BookOpen, primary: true },
-  { id: 'combat', label: 'Encounters', icon: Swords, primary: true },
-  { id: 'npcs', label: 'NPCs', icon: UserCircle, primary: true },
-  { id: 'notes', label: 'Notes', icon: FileText, primary: true },
-  { id: 'more', label: 'More', icon: MoreHorizontal, primary: true },
-  { id: 'party', label: 'Party', icon: Users },
-  { id: 'maps', label: 'Maps', icon: Map },
-  { id: 'handouts', label: 'Handouts', icon: Mail },
-  { id: 'tables', label: 'Roll Tables', icon: Compass },
-  { id: 'reference-hub', label: 'Rules', icon: BookOpen },
-  { id: 'quick-dice', label: 'Dice', icon: Dices },
-  { id: 'loot', label: 'Loot', icon: Coins },
-  { id: 'player-display', label: 'Player Display', icon: Monitor },
-];
-
-const SECONDARY_IDS = new Set(LIVE_GRID_TOOLS.filter(tool => !tool.primary).map(tool => tool.id));
-
-function readStoredTool(storageKey) {
+function readStoredTool(storageKey, fallback = 'overview') {
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || '{}');
-    if (parsed.activeTool && LIVE_GRID_TOOLS.some(tool => tool.id === parsed.activeTool)) return parsed.activeTool;
+    if (LIVE_TOOL_IDS.has(parsed.activeTool)) return parsed.activeTool;
   } catch { /* ignore */ }
-  return 'overview';
+  return fallback;
 }
 
-export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSingleTab, onRollDice, refreshKey = 0, scenarios = [], players = [] }) {
+function readRecentTools(recentKey) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(recentKey) || '[]');
+    return Array.isArray(saved) ? saved.filter(id => LIVE_TOOL_IDS.has(id)).slice(0, 4) : [];
+  } catch { return []; }
+}
+
+function readExpandedCategories(categoryKey, activeTool) {
+  let remembered = [];
+  try { remembered = JSON.parse(localStorage.getItem(categoryKey) || '[]'); } catch { /* ignore */ }
+  return initialExpandedCategories(activeTool, remembered);
+}
+
+function initialToolForCampaign(campaignId, storageKey, fallback = 'overview') {
+  try {
+    if (localStorage.getItem(`gm.questEncounter.${campaignId}`)) return 'combat';
+  } catch { /* ignore */ }
+  return readStoredTool(storageKey, fallback);
+}
+
+export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSingleTab, onRollDice, onResumeCombat, refreshKey = 0, scenarios = [], players = [] }) {
   const storageKey = `gm.liveMode.focus.${campaignId || 'default'}`;
   const recentKey = `gm.liveMode.recent.${campaignId || 'default'}`;
-  const [activeTool, setActiveTool] = useState(() => {
-    try {
-      if (localStorage.getItem(`gm.questEncounter.${campaignId}`)) return 'combat';
-    } catch { /* ignore */ }
-    return readStoredTool(storageKey);
-  });
-  const [recentTools, setRecentTools] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(recentKey) || '[]');
-      return Array.isArray(saved) ? saved : [];
-    } catch { return []; }
-  });
-
-  useEffect(() => {
-    try { localStorage.setItem(storageKey, JSON.stringify({ activeTool })); } catch { /* ignore */ }
-  }, [activeTool, storageKey]);
-
-  useEffect(() => {
-    try { localStorage.setItem(recentKey, JSON.stringify(recentTools)); } catch { /* ignore */ }
-  }, [recentKey, recentTools]);
-
-  const active = useMemo(() => LIVE_GRID_TOOLS.find(tool => tool.id === activeTool) || LIVE_GRID_TOOLS[0], [activeTool]);
-  const primaryActiveId = SECONDARY_IDS.has(activeTool) ? 'more' : activeTool;
-  const ActiveIcon = active.icon;
-
-  // What the GM asked to open, handed over explicitly rather than left for
-  // Encounter Review to guess at again. Held here, not in the tool, because
-  // the tool body is keyed on activeTool and remounts on every switch.
+  const categoryKey = `gm.liveMode.categories.${campaignId || 'default'}`;
+  const initialTool = initialToolForCampaign(campaignId, storageKey);
+  const [stateCampaignId, setStateCampaignId] = useState(campaignId);
+  const [activeTool, setActiveTool] = useState(initialTool);
+  const [recentTools, setRecentTools] = useState(() => readRecentTools(recentKey));
+  const [expandedCategories, setExpandedCategories] = useState(() => (
+    readExpandedCategories(categoryKey, initialTool)
+  ));
+  const [toolFilter, setToolFilter] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [authScopeVersion, setAuthScopeVersion] = useState(0);
   const [encounterRequest, setEncounterRequest] = useState({
     campaignId: '', id: '', reopenLast: false, nonce: 0,
   });
 
+  // React can retain this component while the route changes campaigns. Load
+  // the new campaign's own navigation state before any persistence effect is
+  // allowed to write, so campaign A never seeds campaign B's preferences.
+  useEffect(() => {
+    if (stateCampaignId === campaignId) return;
+    const nextTool = initialToolForCampaign(campaignId, storageKey, activeTool);
+    setActiveTool(nextTool);
+    setRecentTools(readRecentTools(recentKey));
+    setExpandedCategories(readExpandedCategories(categoryKey, nextTool));
+    setToolFilter('');
+    setDrawerOpen(false);
+    setEncounterRequest(previous => ({
+      campaignId: '', id: '', reopenLast: false, nonce: previous.nonce + 1,
+    }));
+    setStateCampaignId(campaignId);
+  }, [activeTool, campaignId, categoryKey, recentKey, stateCampaignId, storageKey]);
+
+  useEffect(() => {
+    if (stateCampaignId !== campaignId) return;
+    try { localStorage.setItem(storageKey, JSON.stringify({ activeTool })); } catch { /* ignore */ }
+  }, [activeTool, campaignId, stateCampaignId, storageKey]);
+
+  useEffect(() => {
+    if (stateCampaignId !== campaignId) return;
+    try { localStorage.setItem(recentKey, JSON.stringify(recentTools)); } catch { /* ignore */ }
+  }, [campaignId, recentKey, recentTools, stateCampaignId]);
+
+  useEffect(() => {
+    const refreshAccountScope = () => setAuthScopeVersion(version => version + 1);
+    window.addEventListener('rqk:auth-scope-changed', refreshAccountScope);
+    window.addEventListener('storage', refreshAccountScope);
+    return () => {
+      window.removeEventListener('rqk:auth-scope-changed', refreshAccountScope);
+      window.removeEventListener('storage', refreshAccountScope);
+    };
+  }, []);
+
+  // What the GM asked to open, handed over explicitly rather than left for
+  // Encounter Review to guess at again. Held here, not in the tool, because
+  // the tool body is keyed on activeTool and remounts on every switch.
+  useEffect(() => {
+    if (stateCampaignId !== campaignId) return;
+    try { localStorage.setItem(categoryKey, JSON.stringify(expandedCategories)); } catch { /* ignore */ }
+  }, [campaignId, categoryKey, expandedCategories, stateCampaignId]);
+
+  // The account-owned checkpoint reader is the single authority. A corrupt,
+  // cross-campaign, legacy-unverified, or other account's fight must never be
+  // advertised as resumable from this menu.
+  const unfinishedCombat = useMemo(() => {
+    const accountId = currentCombatAccount();
+    return readCombatCheckpoint(campaignId, undefined, { accountId }).status === 'ok';
+  }, [authScopeVersion, campaignId, refreshKey]);
+
+  const toggleCategory = categoryId => setExpandedCategories(previous => (
+    previous.includes(categoryId)
+      ? previous.filter(id => id !== categoryId)
+      : [...previous, categoryId]
+  ));
+
   const selectTool = (toolId, options = {}) => {
     setActiveTool(toolId);
-    if (!['overview', 'more'].includes(toolId)) {
+    if (toolId !== 'overview') {
       setRecentTools(prev => [toolId, ...prev.filter(id => id !== toolId)].slice(0, 4));
+    }
+    // Keep the group holding the chosen tool open, so the active item is
+    // visible in the rail rather than hidden inside a collapsed heading.
+    const category = categoryForTool(toolId);
+    if (category) {
+      setExpandedCategories(previous => (
+        previous.includes(category.id) ? previous : [...previous, category.id]
+      ));
     }
     if (toolId === 'combat') {
       // The nonce lets Review tell "asked again for the same encounter" from
@@ -93,41 +155,63 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
     onOpenSingleTab?.(toolId);
   };
 
+  const device = useDeviceLayout();
+  const variant = device === 'mobile' ? 'phone' : device === 'tablet' ? 'tablet' : 'desktop';
+  const isPhone = variant === 'phone';
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const openDrawer = useCallback(() => setDrawerOpen(true), []);
+
+  const rail = (
+    <LiveToolRail
+      activeTool={activeTool}
+      onSelect={selectTool}
+      expanded={expandedCategories}
+      onToggleCategory={toggleCategory}
+      filter={toolFilter}
+      onFilterChange={setToolFilter}
+      canResumeCombat={unfinishedCombat}
+      onResumeCombat={() => onResumeCombat?.()}
+      variant={variant}
+      onRequestClose={closeDrawer}
+    />
+  );
+
   return (
-    <div data-testid="live-session-grid" className="rqk-live-grid" style={shellStyle}>
-      <nav className="rqk-live-grid__primary-nav" style={primaryNavStyle} aria-label="Live Play">
-        {LIVE_GRID_TOOLS.filter(tool => tool.primary).map(tool => {
-          const Icon = tool.icon;
-          const selected = primaryActiveId === tool.id;
-          return (
-            <button
-              key={tool.id}
-              type="button"
-              onClick={() => selectTool(tool.id)}
-              data-testid={`live-tool-${tool.id}`}
-              className={selected ? 'rqk-live-grid__nav-button is-active' : 'rqk-live-grid__nav-button'}
-              aria-current={selected ? 'page' : undefined}
-              style={navButtonStyle(selected)}
-            >
-              <Icon size={17} />
-              <span>{tool.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+    <div
+      data-testid="live-session-grid"
+      className={`rqk-live-grid rqk-live-grid--${variant}`}
+      data-rq-live-variant={variant}
+      style={shellStyle}
+    >
+      {isPhone ? (
+        <div className="rqk-live-grid__phone-bar">
+          <LiveToolMenuButton onOpen={openDrawer} activeTool={activeTool} open={drawerOpen} />
+        </div>
+      ) : rail}
+
+      {isPhone && drawerOpen && (
+        <>
+          <button
+            type="button"
+            className="rqk-tool-rail__scrim"
+            aria-label="Close tools menu"
+            data-testid="live-tool-rail-scrim"
+            onClick={closeDrawer}
+          />
+          {rail}
+        </>
+      )}
 
       <main className="rqk-live-grid__main" style={mainStyle} key={`${refreshKey}-${activeTool}`}>
-        {activeTool !== 'overview' && activeTool !== 'more' && (
+        {activeTool !== 'overview' && (
           <header className="rqk-live-grid__tool-header" style={toolHeaderStyle}>
-            <div style={toolTitleStyle}><ActiveIcon size={18} /><strong>{active.label}</strong></div>
+            <div style={toolTitleStyle}><strong>{liveToolLabel(activeTool)}</strong></div>
             <span className="rqk-live-grid__live-pill" style={livePillStyle}>Live Play</span>
           </header>
         )}
         <section className="rqk-live-grid__tool-body" style={toolBodyStyle}>
           {activeTool === 'overview' ? (
             <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} scenarios={scenarios} players={players} />
-          ) : activeTool === 'more' ? (
-            <MorePanel onSelect={selectTool} />
           ) : activeTool === 'combat' ? (
             <LiveEncounterLauncher
               campaignId={campaignId}
@@ -139,7 +223,12 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
           ) : activeTool === 'quick-dice' ? (
             <QuickDicePanel onRollDice={onRollDice} />
           ) : (
-            renderTool?.(activeTool, { compact: false }) || <EmptyTool title={active.label} />
+            renderTool?.(activeTool, {
+               compact: false,
+               // Explicit handoff: a hidden/closed phone drawer has no DOM button
+               // that an unrelated tool can safely click to open an encounter.
+               openEncounterReview: (encounterId = '') => selectTool('combat', { encounterId }),
+             }) || <EmptyTool title={liveToolLabel(activeTool)} />
           )}
         </section>
       </main>
@@ -151,9 +240,9 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
   const prepared = (Array.isArray(scenarios) ? scenarios : [])
     .filter(scenario => scenario.live_ready && !scenario.played && !scenario.legacy)
     .sort((a, b) => (a.planned_encounter_order ?? Infinity) - (b.planned_encounter_order ?? Infinity));
-  // Run already excluded played/legacy entries and sorted planned order, but
-  // it ignored live_default. Use Review's ranking so the displayed encounter
-  // and the explicit handoff always agree.
+  // The same ranking Encounter Review uses. This was prepared[0], which took
+  // no account of live_default, played, legacy or planned order, so Run could
+  // name one encounter while Review opened another.
   const nextEncounterId = nextPreparedEncounterId(prepared);
   const nextEncounter = prepared.find(item => item.id === nextEncounterId) || null;
   const partyCount = Array.isArray(players) ? players.length : 0;
@@ -163,7 +252,7 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
     { id: 'npcs', label: 'NPCs', icon: UserCircle, detail: 'Find people fast' },
     { id: 'notes', label: 'Quick Notes', icon: FileText, detail: 'Record what changed' },
   ];
-  const recent = recentTools.map(id => LIVE_GRID_TOOLS.find(tool => tool.id === id)).filter(Boolean);
+  const recent = recentTools.map(findLiveTool).filter(Boolean);
   const continueItems = [];
   try {
     if (localStorage.getItem(`gm.liveQuestFocus.${campaignId}`)) {
@@ -257,20 +346,6 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
   );
 }
 
-function MorePanel({ onSelect }) {
-  const tools = LIVE_GRID_TOOLS.filter(tool => !tool.primary);
-  return (
-    <div style={moreStyle}>
-      <header style={runHeaderStyle}><p style={eyebrowStyle}>More Tools</p><h2 style={runTitleStyle}>Everything else</h2></header>
-      <div className="rqk-live-grid__more-grid" style={moreGridStyle}>
-        {tools.map(tool => {
-          const Icon = tool.icon;
-          return <button key={tool.id} type="button" onClick={() => onSelect(tool.id)} data-testid={`live-tool-${tool.id}`} style={moreButtonStyle}><Icon size={18} /><strong>{tool.label}</strong></button>;
-        })}
-      </div>
-    </div>
-  );
-}
 
 function QuickDicePanel({ onRollDice }) {
   return (
@@ -288,8 +363,6 @@ function EmptyTool({ title }) {
 }
 
 const shellStyle = { display: 'grid', gap: 8, minWidth: 0, fontFamily: fontStack };
-const primaryNavStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 1, background: rq.line, border: `1px solid ${rq.line}` };
-const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: active ? '1px solid var(--rq-guild-wine, #7E2D2D)' : '1px solid transparent', background: active ? 'var(--rq-guild-wine, #7E2D2D)' : rq.panel, backgroundImage: active ? 'var(--rq-guild-wine-selected, none)' : 'none', color: active ? '#F8F0E5' : rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
 const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}` };
 const toolHeaderStyle = { minHeight: 48, padding: '0 11px', borderBottom: `1px solid ${rq.line}`, background: rq.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 };
 const toolTitleStyle = { display: 'flex', alignItems: 'center', gap: 7, color: rq.text, fontSize: 15 };
@@ -310,9 +383,6 @@ const recentRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
 const recentButtonStyle = { minHeight: 31, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 850 };
 const quickStripStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 5 };
 const quickButtonStyle = { minWidth: 0, minHeight: 36, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontWeight: 900, fontFamily: fontStack, fontSize: 11 };
-const moreStyle = { display: 'grid', gap: 10 };
-const moreGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7 };
-const moreButtonStyle = { minHeight: 62, border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, padding: 10, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
 const dicePanelStyle = { display: 'grid', gap: 10, padding: 6 };
 const diceGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(72px, 1fr))', gap: 7 };
 const diceButtonStyle = { minHeight: 52, border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, cursor: 'pointer', fontSize: 14, fontWeight: 950 };

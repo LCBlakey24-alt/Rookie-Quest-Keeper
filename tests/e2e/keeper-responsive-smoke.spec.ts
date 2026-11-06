@@ -87,9 +87,9 @@ test('Player Display fixed controls never cover its security and sync status', a
 });
 
 
-// Live Play should use one sticky vertical rail on large screens, but one
-// horizontally swipeable navigation row on phones. Never make the full page
-// wider than the viewport merely to show all six tool choices.
+// Live Play now has a grouped vertical rail on desktop and tablet, and a
+// Tools button + accessible drawer on phones. Assert the actual navigation
+// contract, rather than the retired horizontal six-tool strip.
 for (const viewport of [
   { label: 'phone', width: 390, height: 844 },
   { label: 'small phone', width: 320, height: 780 },
@@ -99,29 +99,35 @@ for (const viewport of [
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await avoidThirdPartyRequests(page);
     await page.goto('/gm-screen/preview-campaign?demo=1');
-    const nav = page.getByRole('navigation', { name: 'Live Play' });
-    await expect(nav).toBeVisible();
-    const geometry = await nav.evaluate(element => {
-      const buttons = [...element.querySelectorAll('button')];
-      const first = buttons[0]?.getBoundingClientRect();
-      const last = buttons[buttons.length - 1]?.getBoundingClientRect();
-      return {
-        display: getComputedStyle(element).display,
-        direction: getComputedStyle(element).flexDirection,
-        navWidth: Math.round(element.getBoundingClientRect().width),
-        scrollWidth: element.scrollWidth,
-        firstY: first?.y,
-        lastY: last?.y,
-      };
-    });
+
+    const grid = page.getByTestId('live-session-grid');
+    await expect(grid).toBeVisible();
     if (viewport.width < 720) {
-      expect(geometry.display).toBe('flex');
-      expect(geometry.direction).toBe('row');
-      expect(Math.abs((geometry.firstY || 0) - (geometry.lastY || 0))).toBeLessThan(3);
-      expect(geometry.scrollWidth).toBeGreaterThan(geometry.navWidth);
+      await expect(grid).toHaveAttribute('data-rq-live-variant', 'phone');
+      const menu = page.getByTestId('live-tool-menu');
+      await expect(menu).toBeVisible();
+      await expect(page.getByTestId('live-tool-rail')).toHaveCount(0);
+      await menu.focus();
+      await page.keyboard.press('Enter');
+
+      const drawer = page.getByTestId('live-tool-rail');
+      await expect(drawer).toBeVisible();
+      await expect(drawer).toHaveAttribute('role', 'dialog');
+      await expect(drawer.getByTestId('live-tool-combat')).toBeVisible();
+      const bounds = await drawer.boundingBox();
+      expect(bounds?.width).toBeLessThanOrEqual(viewport.width);
+      expect(bounds?.x).toBeGreaterThanOrEqual(0);
+      await page.keyboard.press('Escape');
+      await expect(drawer).toHaveCount(0);
+      await expect(menu).toBeFocused();
     } else {
-      expect(geometry.display).toBe('flex');
-      expect(geometry.direction).toBe('column');
+      await expect(grid).toHaveAttribute('data-rq-live-variant', 'desktop');
+      const rail = page.getByTestId('live-tool-rail');
+      await expect(rail).toBeVisible();
+      const bounds = await rail.boundingBox();
+      expect(bounds?.width).toBeGreaterThanOrEqual(220);
+      expect(bounds?.width).toBeLessThanOrEqual(260);
+      await expect(rail.getByTestId('live-tool-combat')).toBeVisible();
     }
     await assertFitsViewport(page, viewport.width);
   });
@@ -133,8 +139,9 @@ for (const size of appSizes) {
     await avoidThirdPartyRequests(page);
     await page.goto('/gm-screen/preview-campaign?demo=1');
     await expect(page.getByTestId('live-session-grid')).toBeVisible();
-    const nav = page.getByRole('navigation', { name: 'Live Play' });
-    const navBounds = await nav.boundingBox();
+    const navAnchor = size.width < 720 ? page.getByTestId('live-tool-menu') : page.getByTestId('live-tool-rail');
+    await expect(navAnchor).toBeVisible();
+    const navBounds = await navAnchor.boundingBox();
     expect(navBounds?.y, 'GM tools should be reachable within the first screen').toBeLessThan(size.height);
     const dock = page.getByTestId('live-second-screen-dock');
     await expect(dock).toHaveCount(1);
@@ -169,10 +176,23 @@ for (const size of appSizes) {
     await avoidThirdPartyRequests(page);
     await page.goto('/gm-screen/preview-campaign?demo=1');
 
-    const encounters = page.getByTestId('live-tool-combat');
+    // On phones the encounter control lives in the closed Tools drawer.
+    // Keyboard users open the drawer first, then activate Encounters.
+    let encounters;
+    if (size.width < 720) {
+      const menu = page.getByTestId('live-tool-menu');
+      await menu.focus();
+      await page.keyboard.press('Enter');
+      const drawer = page.getByTestId('live-tool-rail');
+      await expect(drawer).toBeVisible();
+      encounters = drawer.getByTestId('live-tool-combat');
+    } else {
+      encounters = page.getByTestId('live-tool-combat');
+    }
     await encounters.focus();
     await expect(encounters).toBeFocused();
     await page.keyboard.press('Enter');
+    if (size.width < 720) await expect(page.getByTestId('live-tool-rail')).toHaveCount(0);
 
     const launcher = page.getByTestId('live-encounter-launcher');
     await expect(launcher).toBeVisible();
