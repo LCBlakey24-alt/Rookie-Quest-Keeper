@@ -287,3 +287,32 @@ def test_delete_continent_cascade_is_campaign_scoped(monkeypatch):
         ('regions', {'campaign_id': 'campaign-a', 'parent_id': 'continent-1'}),
         ('continents', {'id': 'continent-1', 'campaign_id': 'campaign-a'}),
     ]
+
+
+def test_world_place_catalog_accepts_explicit_price_and_images_only():
+    catalog = world_module._place_catalog_patch({
+        'shop_inventory': [{'name': ' Sword ', 'price': '15 gp', 'quantity': 0, 'gm_notes': 'cursed'}],
+        'image_url': '/images/smithy.png',
+        'images': ['/images/interior.png'],
+        'owner': 'Mara the Smith',
+        'secret': 'Not shared',
+    })
+    assert catalog == {
+        'shop_inventory': [{'name': 'Sword', 'price': '15 gp', 'quantity': 0}],
+        'image_url': '/images/smithy.png',
+        'images': ['/images/interior.png'],
+        'owner': 'Mara the Smith',
+    }
+    assert 'secret' not in str(catalog)
+
+
+@pytest.mark.parametrize('bad', [
+    {'shop_inventory': [{'name': 'No Price'}]},
+    {'shop_inventory': [{'name': 'Potion', 'price': '50 gp', 'quantity': -1}]},
+    {'shop_inventory': 'not a list'},
+    {'images': ['a'] * 13},
+])
+def test_world_place_catalog_rejects_malformed_stock_and_gallery(bad):
+    with pytest.raises(HTTPException) as exc:
+        world_module._place_catalog_patch(bad)
+    assert exc.value.status_code == 422
