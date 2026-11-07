@@ -524,7 +524,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <button type="button" onClick={refreshResources} disabled={refreshingResources} style={secondaryButtonStyle}><RefreshCw size={14} /> {refreshingResources ? 'Refreshing…' : 'Refresh Data'}</button>
           <button type="button" onClick={() => sendFlowPreset(FLOW_PRESETS[0])} style={dangerButtonStyle}><X size={14} /> Blackout</button>
           <button type="button" onClick={() => publishBannerOverlay(null)} style={secondaryButtonStyle}><X size={14} /> Clear Banner</button>
-          <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Advanced' : 'Show Advanced'}</button>
+          {activeSection === 'screen' && <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Advanced' : 'Show Advanced'}</button>}
         </div>
       </header>
 
@@ -534,6 +534,21 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         <span><strong>Combat:</strong> Round {combatRound || 1} · {combatRosterOptions.length} visible actor{combatRosterOptions.length === 1 ? '' : 's'}</span>
       </div>
 
+      <nav aria-label="Extended display sections" style={sectionTabsStyle}>
+        {[
+          { id: 'locations', label: 'Locations' },
+          { id: 'combat', label: 'Combat' },
+          { id: 'quick', label: 'Quick Actions' },
+          { id: 'screen', label: 'Screen Setup' },
+        ].map(section => (
+          <button type="button" key={section.id} onClick={() => setActiveSection(section.id)}
+            aria-current={activeSection === section.id ? 'page' : undefined}
+            style={sectionTabStyle(activeSection === section.id)}>
+            {section.label}
+          </button>
+        ))}
+      </nav>
+
       {resourceWarning && (
         <div role="status" data-testid="player-display-resource-warning" style={warningStyle}>
           <AlertTriangle size={14} /> <span>{resourceWarning}</span>
@@ -541,7 +556,16 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       )}
 
       <div style={bodyStyle}>
-        <section style={commandDeckStyle}>
+        {activeSection === 'locations' && <LiveDisplayLocationExplorer
+          campaignId={campaignId}
+          maps={allMaps}
+          npcs={npcs}
+          onRevealScene={revealLocation}
+          onRevealImage={revealLocationImage}
+          onRevealNpcs={revealLocationNpcs}
+        />}
+        <div hidden={activeSection !== 'screen'}>
+          <section style={commandDeckStyle}>
           <div style={targetGridStyle} data-testid="player-display-target-selector">
             {DISPLAY_TARGETS.map(target => {
               const Icon = target.icon;
@@ -565,9 +589,11 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
               <span><Skull size={12} /> {visibleCombatantEntries.length} visible enemies/NPCs</span>
             </div>
           </aside>
-        </section>
+          </section>
+        </div>
 
-        <section style={combatCommanderStyle} data-testid="combat-display-commander">
+        <div hidden={activeSection !== 'combat'}>
+          <section style={combatCommanderStyle} data-testid="combat-display-commander">
           <div style={quickSendHeaderStyle}>
             <div>
               <strong>Combat display commander</strong>
@@ -590,9 +616,11 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             <button type="button" onClick={clearCombatants} style={dangerPresetButtonStyle}>Hide Enemies/NPCs</button>
           </div>
           <div style={combatActiveGridStyle}>{combatRosterOptions.slice(0, 12).map(actor => <button key={actor.id} type="button" onClick={() => { setActiveCombatantId(actor.id); sendCombat(actor.id, combatRound); }} style={npcPillStyle(activeCombatantId === actor.id)}>{actor.name}</button>)}</div>
-        </section>
+          </section>
+        </div>
 
-        <section style={flowPanelStyle}>
+        <div hidden={activeSection !== 'quick'}>
+          <section style={flowPanelStyle}>
           <div style={quickSendHeaderStyle}><div><strong>Table flow shortcuts</strong><p>Fast buttons for moments where the screen needs to react before you type.</p></div><span style={safeBadgeStyle}><Sparkles size={13} /> Live pacing</span></div>
           <div style={presetGridStyle}>{FLOW_PRESETS.map(preset => { const Icon = preset.icon; return <button key={preset.id} type="button" onClick={() => sendFlowPreset(preset)} style={preset.id === 'blackout' ? dangerPresetButtonStyle : presetButtonStyle}><Icon size={15} /> {preset.label}</button>; })}</div>
         </section>
@@ -612,8 +640,10 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         <section style={quickSendPanelStyle}>
           <div style={quickSendHeaderStyle}><div><strong>One-click display sends</strong><p>These update the player screen immediately.</p></div><span style={safeBadgeStyle}><ShieldCheck size={13} /> Player-safe output</span></div>
           <div style={presetGridStyle}>{SCENE_PRESETS.map(preset => { const Icon = preset.icon; return <button key={preset.id} type="button" onClick={() => sendPreset(preset)} style={presetButtonStyle}><Icon size={15} /> {preset.label}</button>; })}<button type="button" onClick={sendNpcGrid} style={presetButtonStyle}><Users size={15} /> NPC Grid ({selectedNpcs.length})</button></div>
-        </section>
+          </section>
+        </div>
 
+        <div hidden={activeSection !== 'screen'}>
         {open && (
           <div style={advancedStyle}>
             <div style={formGridStyle}>
@@ -652,6 +682,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
             </section>
           </div>
         )}
+        </div>
       </div>
     </section>
   );
@@ -670,6 +701,8 @@ const dangerButtonStyle = { minHeight: 34, border: `1px solid ${theme.red}`, bac
 const statusStripStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 12px', borderTop: `1px solid ${theme.line}`, borderBottom: `1px solid ${theme.line}`, background: theme.panel, color: theme.soft, fontSize: 11, lineHeight: 1.35 };
 const warningStyle = { display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 12px', borderBottom: '1px solid rgba(245,158,11,0.42)', background: 'rgba(245,158,11,0.08)', color: theme.soft, fontSize: 11, lineHeight: 1.4 };
 const bodyStyle = { display: 'grid', gap: 10, padding: 12 };
+const sectionTabsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 4, padding: 8, background: theme.panel, borderBottom: '1px solid ' + theme.line };
+const sectionTabStyle = active => ({ minHeight: 42, padding: 8, border: 0, borderBottom: active ? '3px solid var(--rq-accent-primary,#e3733e)' : '3px solid transparent', background: active ? theme.card : theme.bg, color: theme.text, cursor: 'pointer', fontWeight: active ? 950 : 700, fontSize: 13, fontFamily: fontStack });
 const commandDeckStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10, alignItems: 'stretch' };
 const targetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 };
 const targetButtonStyle = (active) => ({ minHeight: 116, display: 'grid', gridTemplateColumns: '26px minmax(0, 1fr)', gap: '4px 9px', alignItems: 'start', textAlign: 'left', background: active ? theme.red : theme.bg, color: theme.text, border: active ? `1px solid ${theme.red}` : `1px solid ${theme.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack, fontWeight: 900, boxShadow: 'none' });
