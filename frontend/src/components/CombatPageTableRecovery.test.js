@@ -75,6 +75,8 @@ beforeEach(() => {
   getAuthToken.mockReturnValue(TEST_TOKEN);
   apiClient.get.mockReset();
   apiClient.patch.mockClear();
+  // resetMocks clears factory implementations, so every reset test needs a promise.
+  apiClient.delete.mockResolvedValue({ data: {} });
   apiClient.get.mockResolvedValue({ data: [] });
 });
 
