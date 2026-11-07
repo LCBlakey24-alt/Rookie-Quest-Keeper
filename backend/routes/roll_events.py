@@ -297,7 +297,9 @@ def d20s_for(event: Dict[str, Any]) -> List[Dict[str, Any]]:
 def summarise(events: List[Dict[str, Any]], player_focus: bool = True) -> Dict[str, Any]:
     player_events = [event for event in events if event.get("actor_type") == "player"]
     gm_events = [event for event in events if event.get("actor_type") != "player"]
-    focus_events = player_events if player_focus and player_events else events
+    # A zero-player session must remain empty in the player-facing recap.
+    # Falling back to GM-only rolls exposes private labels, totals and awards.
+    focus_events = player_events if player_focus else events
     by_actor: Dict[str, Dict[str, Any]] = {}
     total_dice = 0
     nat20s = 0

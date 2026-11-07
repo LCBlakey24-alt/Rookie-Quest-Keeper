@@ -230,3 +230,45 @@ test('recording the same roll twice adds it to local history once', () => {
   recordSessionRoll(CAMPAIGN, roll());
   expect(buildEndSessionStats(CAMPAIGN).session.totalRolls).toBe(2);
 });
+
+
+test('local player recap is empty when the GM is the only person rolling', () => {
+  recordSessionRoll(CAMPAIGN, {
+    actor_type: 'gm',
+    actor: 'GM / Table',
+    label: 'GM-ONLY secret trap result',
+    total: 20,
+    rolls: [{ sides: 20, result: 20 }],
+  });
+  const summary = buildEndSessionStats(CAMPAIGN);
+  for (const section of [summary.session, summary.allTime]) {
+    expect(section.playerRolls).toBe(0);
+    expect(section.gmRolls).toBe(1);
+    expect(section.totalRolls).toBe(0);
+    expect(section.totalDice).toBe(0);
+    expect(section.nat20s).toBe(0);
+    expect(section.actors).toEqual([]);
+    expect(section.awards).toEqual([]);
+    expect(section.highestTotal ?? null).toBeNull();
+    expect(JSON.stringify(section)).not.toContain('secret trap');
+  }
+});
+
+test('local mixed recap counts player dice without exposing higher GM dice', () => {
+  recordSessionRoll(CAMPAIGN, {
+    actor_type: 'gm', actor: 'GM / Table', label: 'GM-ONLY secret trap',
+    total: 20, rolls: [{ sides: 20, result: 20 }],
+  });
+  recordSessionRoll(CAMPAIGN, roll({ character_name: 'Aria', total: 17 }));
+  const summary = buildEndSessionStats(CAMPAIGN);
+  for (const section of [summary.session, summary.allTime]) {
+    expect(section.playerRolls).toBe(1);
+    expect(section.gmRolls).toBe(1);
+    expect(section.totalRolls).toBe(1);
+    expect(section.nat20s).toBe(0);
+    expect(section.totalDice).toBe(1);
+    expect(section.highestTotal.total).toBe(17);
+    expect(section.actors.map(actor => actor.name)).toEqual(['Aria']);
+    expect(JSON.stringify(section)).not.toContain('GM-ONLY');
+  }
+});

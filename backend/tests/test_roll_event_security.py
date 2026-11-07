@@ -615,3 +615,52 @@ def test_the_unique_index_is_partial_so_historic_rolls_are_untouched():
         'unique': True, 'background': True, 'name': 'roll_event_client_id_unique',
         'partialFilterExpression': {'client_event_id': {'$type': 'string'}},
     }]
+
+
+# --------------------------------------------------------------------------
+# Player-facing end-session privacy: GM-only rolls must never leak via awards,
+# top rolls, totals or leaderboards when no character submitted any dice.
+# --------------------------------------------------------------------------
+
+def test_end_session_summary_excludes_gm_only_rolls(env):
+    secret_label = 'GM-ONLY hidden ambush plan'
+    response = run(post(env, 'gm', {
+        'actor_type': 'gm', 'label': secret_label, 'notation': '1d20',
+        'total': 20, 'rolls': [{'sides': 20, 'result': 20}],
+    }))
+    assert response.status_code == 200
+
+    summary = run(roll_events.build_summary(CAMPAIGN))
+    for section in (summary['session'], summary['allTime']):
+        assert section['playerRolls'] == 0
+        assert section['gmRolls'] == 1
+        assert section['totalRolls'] == 0
+        assert section['totalDice'] == 0
+        assert section['nat20s'] == 0
+        assert section['nat1s'] == 0
+        assert section['actors'] == []
+        assert section['awards'] == []
+        assert section['highestTotal'] is None
+        assert section['biggestD20'] is None
+        assert secret_label not in str(section)
+
+
+def test_end_session_summary_counts_players_but_not_gm_dice(env):
+    assert run(post(env, 'gm', {
+        'actor_type': 'gm', 'label': 'GM-ONLY dungeon secret',
+        'notation': '1d20', 'total': 20, 'rolls': [{'sides': 20, 'result': 20}],
+    })).status_code == 200
+    assert run(post(env, 'player-a', player_roll(d20=1, modifier=3))).status_code == 200
+
+    summary = run(roll_events.build_summary(CAMPAIGN))
+    for section in (summary['session'], summary['allTime']):
+        assert section['playerRolls'] == 1
+        assert section['gmRolls'] == 1
+        assert section['totalRolls'] == 1
+        assert section['nat20s'] == 0
+        assert section['nat1s'] == 1
+        assert section['totalDice'] == 1
+        assert len(section['actors']) == 1
+        assert section['actors'][0]['name'] == 'Aria'
+        assert section['highestTotal']['total'] == 4
+        assert 'GM-ONLY dungeon secret' not in str(section)

@@ -254,7 +254,8 @@ function emptySummary(campaignName = 'Campaign') {
 function summarise(events = [], playerFocus = true) {
   const playerEvents = events.filter(event => event.actor_type === 'player');
   const gmEvents = events.filter(event => event.actor_type !== 'player');
-  const focusEvents = playerFocus && playerEvents.length ? playerEvents : events;
+  // Never turn a GM-only session into a player recap when no player rolled.
+  const focusEvents = playerFocus ? playerEvents : events;
   const byActor = new Map();
   let highestTotal = null;
   let biggestD20 = null;
