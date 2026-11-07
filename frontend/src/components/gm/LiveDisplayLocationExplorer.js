@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight, Globe, Image as ImageIcon, MapPin, RefreshCw, Send, Store, Users } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { isGmOnlyStockItem } from '@/lib/shopCatalog';
 
 const arr = value => Array.isArray(value) ? value : [];
 const nameOf = (item, fallback = 'Unnamed location') => String(item?.name || item?.title || fallback);
@@ -64,13 +65,7 @@ const shopTypes = new Set(['shop', 'blacksmith', 'tavern', 'inn', 'market', 'sto
 // current stock editor only stores name/price/quantity. Filter *before*
 // projecting public fields; otherwise the backend cannot identify hidden stock.
 export function isPlayerVisibleShopItem(item) {
-  if (!item || typeof item !== 'object') return false;
-  const trueFlag = value => value === true || String(value).toLowerCase() === 'true';
-  const falseFlag = value => value === false || String(value).toLowerCase() === 'false';
-  if (['hidden', 'is_hidden', 'gm_only', 'secret', 'private'].some(key => trueFlag(item[key]))) return false;
-  if (['visible', 'is_visible', 'player_visible', 'show_to_players'].some(key => falseFlag(item[key]))) return false;
-  return !['hidden', 'secret', 'private', 'gm', 'gm-only', 'gm_only']
-    .includes(String(item.visibility || '').trim().toLowerCase());
+  return Boolean(item && typeof item === 'object' && !isGmOnlyStockItem(item));
 }
 function relatedNpcs(node, npcs) {
   if (!node || node.kind === 'folder') return [];
