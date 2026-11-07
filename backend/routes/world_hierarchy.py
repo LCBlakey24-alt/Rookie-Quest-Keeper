@@ -74,7 +74,20 @@ def _place_catalog_patch(data: dict) -> dict:
                 raise HTTPException(status_code=422, detail='Each shop item needs a name and explicit price')
             if qty is not None and (isinstance(qty, bool) or not isinstance(qty, int) or qty < 0 or qty > 999999):
                 raise HTTPException(status_code=422, detail='Shop stock quantity must be a non-negative whole number')
-            clean.append({'name': name.strip(), 'price': price.strip(), **({'quantity': qty} if qty is not None else {})})
+            is_true = lambda value: value is True or str(value).lower() == 'true'
+            is_false = lambda value: value is False or str(value).lower() == 'false'
+            hidden = (
+                any(is_true(item.get(flag)) for flag in ('hidden', 'is_hidden', 'gm_only', 'secret', 'private'))
+                or any(is_false(item.get(flag)) for flag in ('visible', 'is_visible', 'player_visible', 'show_to_players'))
+                or str(item.get('visibility') or '').strip().lower()
+                in ('hidden', 'secret', 'private', 'gm', 'gm-only', 'gm_only')
+            )
+            clean.append({
+                'name': name.strip(),
+                'price': price.strip(),
+                **({'quantity': qty} if qty is not None else {}),
+                **({'hidden': True} if hidden else {}),
+            })
         out['shop_inventory'] = clean
     if 'image_url' in data:
         url = data['image_url']
