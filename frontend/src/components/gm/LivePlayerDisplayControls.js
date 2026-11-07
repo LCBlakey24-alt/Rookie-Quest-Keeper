@@ -6,6 +6,7 @@ import { createDisplayState, loadDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/livePlayerDisplayResources';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
+import LiveDisplayLocationExplorer from './LiveDisplayLocationExplorer';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -141,7 +142,8 @@ function loadTarget(campaignId) {
 }
 
 export default function LivePlayerDisplayControls({ campaignId, campaignName = 'Campaign' }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('locations');
   const [maps, setMaps] = useState([]);
   const [worldMaps, setWorldMaps] = useState([]);
   const [npcs, setNpcs] = useState([]);
@@ -185,6 +187,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setMaps([]);
     setWorldMaps([]);
     setNpcs([]);
+    setActiveSection('locations');
+    setOpen(false);
     setParty([]);
     setScenarios([]);
     setSelectedNpcIds([]);
@@ -316,6 +320,30 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       toast.info(url);
     }
   };
+
+  const revealLocation = ({ name, type, description }) => publish('title', {
+    eyebrow: type === 'place' ? 'Place of Interest' : 'Location',
+    title: String(name || 'Location'),
+    subtitle: String(description || ''),
+    party: partyPayload,
+  });
+  const revealLocationImage = (src, title) => publish('image', {
+    title: String(title || 'Location'),
+    image_url: String(src || ''),
+    party: partyPayload,
+  });
+  const revealLocationNpcs = entries => publish('npc-grid', {
+    title: 'People you can see',
+    eyebrow: 'NPCs',
+    party: partyPayload,
+    // Only an explicit GM reveal can publish an NPC, and only public fields.
+    npcs: entries.map(npc => ({
+      id: npc.id, name: npc.name,
+      subtitle: npc.role || npc.race || npc.location || '',
+      description: npc.public_description || '',
+      image_url: imageFrom(npc),
+    })),
+  });
 
   const clearDisplay = () => publish('blank', { title: 'Waiting for the GM', subtitle: 'The next reveal will appear here.' });
 
