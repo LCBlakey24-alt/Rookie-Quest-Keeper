@@ -57,6 +57,43 @@ def _patch(data: dict, type_key: str) -> dict:
     return {key: value for key, value in values.items() if value is not None}
 
 
+def _place_catalog_patch(data: dict) -> dict:
+    """Only explicit public place assets and priced stock are accepted."""
+    out = {}
+    if 'shop_inventory' in data:
+        stock = data['shop_inventory']
+        if not isinstance(stock, list) or len(stock) > 100:
+            raise HTTPException(status_code=422, detail='Shop stock must be a list of at most 100 items')
+        clean = []
+        for item in stock:
+            if not isinstance(item, dict):
+                raise HTTPException(status_code=422, detail='Invalid shop stock entry')
+            name, price = item.get('name'), item.get('price')
+            qty = item.get('quantity')
+            if not isinstance(name, str) or not 0 < len(name.strip()) <= 120 or not isinstance(price, str) or not 0 < len(price.strip()) <= 60:
+                raise HTTPException(status_code=422, detail='Each shop item needs a name and explicit price')
+            if qty is not None and (isinstance(qty, bool) or not isinstance(qty, int) or qty < 0 or qty > 999999):
+                raise HTTPException(status_code=422, detail='Shop stock quantity must be a non-negative whole number')
+            clean.append({'name': name.strip(), 'price': price.strip(), **({'quantity': qty} if qty is not None else {})})
+        out['shop_inventory'] = clean
+    if 'image_url' in data:
+        url = data['image_url']
+        if not isinstance(url, str) or len(url) > 2000:
+            raise HTTPException(status_code=422, detail='Invalid place image URL')
+        out['image_url'] = url.strip()
+    if 'images' in data:
+        images = data['images']
+        if not isinstance(images, list) or len(images) > 12 or any(not isinstance(item, str) or len(item) > 2000 for item in images):
+            raise HTTPException(status_code=422, detail='A place can have at most 12 image links')
+        out['images'] = [item.strip() for item in images if item.strip()]
+    if 'owner' in data:
+        owner = data['owner']
+        if not isinstance(owner, str) or len(owner) > 150:
+            raise HTTPException(status_code=422, detail='Invalid place owner')
+        out['owner'] = owner.strip()
+    return out
+
+
 async def _require_parent(collection, *, campaign_id: str, parent_id: str | None, label: str):
     """Validate a supplied parent belongs to the same campaign.
 
@@ -287,6 +324,7 @@ async def create_world_place(campaign_id: str, data: dict, username: str = Depen
         'place_type': data.get('type', 'shop'),
         'description': data.get('description', ''),
         'notes': data.get('notes', ''),
+        **_place_catalog_patch(data),
         'created_at': datetime.now(timezone.utc).isoformat(),
     }
     await db.world_places.insert_one(place)
@@ -299,7 +337,7 @@ async def update_world_place(campaign_id: str, place_id: str, data: dict, userna
     await verify_campaign_ownership(campaign_id, username)
     result = await db.world_places.update_one(
         {'id': place_id, 'campaign_id': campaign_id},
-        {'$set': _patch(data, 'place_type')},
+        {'$set': {**_patch(data, 'place_type'), **_place_catalog_patch(data)}},
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Place not found')
