@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import apiClient from '@/lib/apiClient';
-import LiveDisplayLocationExplorer, { buildDisplayLocationTree } from './LiveDisplayLocationExplorer';
+import LiveDisplayLocationExplorer, { buildDisplayLocationTree, isPlayerVisibleShopItem } from './LiveDisplayLocationExplorer';
 
 jest.mock('@/lib/apiClient', () => ({ __esModule: true, default: { get: jest.fn() } }));
 
@@ -19,6 +19,10 @@ const world = { continents: [{
         shop_inventory: [
           { name: 'Longsword', price: '15 gp', quantity: 2 },
           { name: 'Shield', price: '10 gp' },
+          { name: 'Secret Blade', price: '999 gp', hidden: true },
+          { name: 'Trap Key', price: '20 gp', gm_only: true },
+          { name: 'Secret Potion', price: '500 gp', visibility: 'private' },
+          { name: 'GM-Only Scroll', price: '1 gp', show_to_players: false },
         ],
       }],
     }],
@@ -70,9 +74,12 @@ test('navigates from world to settlement and shop, revealing only explicitly sel
   fireEvent.click(screen.getByRole('button', { name: /Reveal Shop Stock/i }));
   expect(onRevealShop).toHaveBeenCalledWith(expect.objectContaining({
     name: 'The Iron Anvil',
-    items: expect.arrayContaining([expect.objectContaining({ name: 'Longsword', price: '15 gp', quantity: 2 })]),
+    items: [
+      { name: 'Longsword', price: '15 gp', quantity: 2 },
+      { name: 'Shield', price: '10 gp' },
+    ],
   }));
-  expect(JSON.stringify(onRevealShop.mock.calls)).not.toMatch(/GM SECRET|cursed sword/i);
+  expect(JSON.stringify(onRevealShop.mock.calls)).not.toMatch(/GM SECRET|cursed sword|Secret Blade|Trap Key|Secret Potion|GM-Only Scroll/i);
   expect(screen.getByTestId('location-linked-npcs')).toHaveTextContent('Mara the Smith');
 
   fireEvent.click(screen.getByRole('button', { name: 'Reveal Location' }));
@@ -97,4 +104,18 @@ test('shows preserved data and an honest warning after refresh errors', async ()
   fireEvent.click(screen.getByRole('button', { name: /Refresh Locations/i }));
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Previously loaded locations have been kept'));
   expect(screen.getByRole('button', { name: /World Builder/i })).toBeInTheDocument();
+});
+
+
+test('legacy visibility flags are checked before projecting shop stock', () => {
+  expect(isPlayerVisibleShopItem({ name: 'Potion', price: '10 gp' })).toBe(true);
+  for (const flag of [
+    { hidden: true }, { is_hidden: 'true' }, { gm_only: true },
+    { secret: true }, { private: true }, { visible: false },
+    { is_visible: 'false' }, { player_visible: false },
+    { show_to_players: false }, { visibility: 'GM-ONLY' },
+    { visibility: 'private' },
+  ]) {
+    expect(isPlayerVisibleShopItem({ name: 'Hidden item', price: '99 gp', ...flag })).toBe(false);
+  }
 });
