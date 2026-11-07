@@ -272,3 +272,32 @@ test('local mixed recap counts player dice without exposing higher GM dice', () 
     expect(JSON.stringify(section)).not.toContain('GM-ONLY');
   }
 });
+
+
+test('local statistics keep same-named characters and their awards separate by ID', () => {
+  recordSessionRoll(CAMPAIGN, roll({
+    character_id: 'char-a', character_name: 'Aria',
+    total: 23, rolls: [{ sides: 20, result: 20 }],
+  }));
+  recordSessionRoll(CAMPAIGN, roll({
+    character_id: 'char-a', character_name: 'Aria',
+    total: 7, rolls: [{ sides: 20, result: 4 }],
+  }));
+  recordSessionRoll(CAMPAIGN, roll({
+    character_id: 'char-b', character_name: 'Aria',
+    total: 4, rolls: [{ sides: 20, result: 1 }],
+  }));
+  for (const board of Object.values(buildEndSessionStats(CAMPAIGN)).filter(
+    value => value && typeof value === 'object' && Array.isArray(value.actors)
+  )) {
+    expect(board.totalRolls).toBe(3);
+    expect(board.actors).toHaveLength(2);
+    expect(board.actors.map(actor => actor.name)).toEqual(['Aria', 'Aria']);
+    expect(Object.fromEntries(board.actors.map(actor => [actor.character_id, actor.rolls])))
+      .toEqual({ 'char-a': 2, 'char-b': 1 });
+    expect(board.nat20s).toBe(1);
+    expect(board.nat1s).toBe(1);
+    expect(board.awards.find(award => award.title === 'Crit Goblin').character_id).toBe('char-a');
+    expect(board.awards.find(award => award.title === 'Dice Betrayal').character_id).toBe('char-b');
+  }
+});
