@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, Monitor, RefreshCw, ScrollText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, currentDisplayAccount } from '@/lib/liveDisplayBus';
+import { getSessionCloseAttempt, markSessionCloseArchived, clearSessionCloseAttempt } from '@/lib/endSessionAttempt';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -99,6 +100,7 @@ function buildRecapNote(summary, storyFocus, options) {
 
 export default function EndSessionReviewModal({ campaignId, campaignName = 'Campaign', onClose }) {
   const [summary, setSummary] = useState(null);
+  const closeAttemptRef = useRef(null);
   const [previewError, setPreviewError] = useState('');
   const [completedSummary, setCompletedSummary] = useState(null);
   const [recapNoteWarning, setRecapNoteWarning] = useState('');
@@ -136,6 +138,7 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
   useEffect(() => {
     // Campaign switches must never reuse the previous campaign's finalized summary.
     setCompletedSummary(null);
+    closeAttemptRef.current = null;
     setRecapNoteWarning('');
     loadPreview();
   }, [campaignId]);
@@ -175,8 +178,17 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
       if (!archivedSummary) {
         const closedChapterStory = storyFocus;
         await applyStoryWrapUp();
-        const response = await apiClient.post(`/campaigns/${campaignId}/roll-events/end-session`);
+        // Reuse the identical close id if a network response was lost after
+        // server-side archiving; the backend returns the original recap.
+        const account = currentDisplayAccount();
+        const closeId = getSessionCloseAttempt(campaignId, account, playerRollCount + gmRollCount);
+        closeAttemptRef.current = { account, id: closeId };
+        const response = await apiClient.post(
+          `/campaigns/${campaignId}/roll-events/end-session`,
+          { session_close_id: closeId },
+        );
         archivedSummary = response.data;
+        markSessionCloseArchived(campaignId, account, closeId);
         // A successful archive must be retained across a failed player-screen publish.
         // Retrying the display must NEVER call end-session a second time.
         setCompletedSummary(archivedSummary);
@@ -201,6 +213,9 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
           description: 'The player display server did not confirm the update. Retry Player Display; your rolls will NOT be archived again.',
         });
         return;
+      }
+      if (closeAttemptRef.current) {
+        clearSessionCloseAttempt(campaignId, closeAttemptRef.current.account, closeAttemptRef.current.id);
       }
       toast.success('Session recap accepted by the display server', {
         description: 'Player-screen delivery is not yet acknowledged. Check the player display to confirm it appeared.',
