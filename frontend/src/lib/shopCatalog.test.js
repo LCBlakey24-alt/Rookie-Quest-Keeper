@@ -45,3 +45,30 @@ test('a legacy GM-only item remains private after a stock editor round-trip', ()
 test('stock editor rejects an accidental visibility marker', () => {
   expect(parseShopStockText('Hidden Key | 99 gp |  | private').error).toMatch(/visibility marker/i);
 });
+
+
+test('legacy unpriced stock remains visible in the editor and cannot be silently erased on a location edit', () => {
+  const legacy = [
+    { name: 'Public Mystery', quantity: 2 },
+    { name: 'Secret Mystery', gm_only: true },
+    { name: 'Available Potion', price: '50 gp' },
+  ];
+  const formText = formatShopStockText(legacy);
+  expect(formText).toContain('Public Mystery |');
+  expect(formText).toContain('Secret Mystery |  |  | GM-only');
+  expect(formText).toContain('Available Potion | 50 gp');
+  const result = parseShopStockText(formText);
+  expect(result.items).toEqual([]);
+  expect(result.error).toMatch(/Stock line 1.*price/i);
+
+  const corrected = formText
+    .replace('Public Mystery |', 'Public Mystery | 3 gp')
+    .replace('Secret Mystery |  |', 'Secret Mystery | 6 gp |');
+  const saved = parseShopStockText(corrected);
+  expect(saved.error).toBe('');
+  expect(saved.items).toEqual([
+    { name: 'Public Mystery', price: '3 gp', quantity: 2 },
+    { name: 'Secret Mystery', price: '6 gp', hidden: true },
+    { name: 'Available Potion', price: '50 gp' },
+  ]);
+});
