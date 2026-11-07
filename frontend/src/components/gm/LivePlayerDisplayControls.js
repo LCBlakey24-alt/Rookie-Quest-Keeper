@@ -345,6 +345,17 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     })),
   });
 
+  const revealShop = ({ name, description, image_url, items }) => publish('shop', {
+    title: String(name || 'Shop'),
+    subtitle: String(description || ''),
+    image_url: String(image_url || ''),
+    party: partyPayload,
+    items: items.map(item => ({
+      name: String(item.name), price: String(item.price),
+      ...(item.quantity !== undefined && item.quantity !== null ? { quantity: Number(item.quantity) } : {}),
+    })),
+  });
+
   const clearDisplay = () => publish('blank', { title: 'Waiting for the GM', subtitle: 'The next reveal will appear here.' });
 
   const sendTitle = () => publish('title', {
@@ -565,6 +576,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           onRevealScene={revealLocation}
           onRevealImage={revealLocationImage}
           onRevealNpcs={revealLocationNpcs}
+          onRevealShop={revealShop}
         />
         </div>
         <div hidden={activeSection !== 'screen'}>
