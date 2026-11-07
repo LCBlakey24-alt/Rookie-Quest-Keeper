@@ -179,6 +179,7 @@ class ShopInventoryItem(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     price: str = Field(min_length=1, max_length=60)
     quantity: Optional[int] = Field(default=None, ge=0, le=999999)
+    hidden: bool = False  # GM-only stock must survive place edits and serialization
 
 
 class PlaceOfInterest(BaseModel):
