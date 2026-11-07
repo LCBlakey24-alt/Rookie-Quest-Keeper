@@ -14,7 +14,7 @@ import { getAuthToken } from '@/lib/auth';
 import CombatPageTable from './CombatPageTable';
 
 jest.mock('@/lib/auth', () => ({ ...jest.requireActual('@/lib/auth'), getAuthToken: jest.fn() }));
-jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn() }));
+jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn(), delete: jest.fn(() => Promise.resolve({ data: {} })) }));
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn(), info: jest.fn(), warning: jest.fn() } }));
 jest.mock('@/lib/liveDisplayBus', () => ({
   createDisplayState: jest.fn(() => ({})),
