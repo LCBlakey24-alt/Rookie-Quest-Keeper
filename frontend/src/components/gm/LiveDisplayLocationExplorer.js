@@ -67,15 +67,53 @@ const shopTypes = new Set(['shop', 'blacksmith', 'tavern', 'inn', 'market', 'sto
 export function isPlayerVisibleShopItem(item) {
   return Boolean(item && typeof item === 'object' && !isGmOnlyStockItem(item));
 }
-function relatedNpcs(node, npcs) {
+function countLocationNames(nodes, counts = new Map()) {
+  for (const node of arr(nodes)) {
+    if (node.kind !== 'folder') {
+      const name = String(node.name || '').trim().toLowerCase();
+      if (name) counts.set(name, (counts.get(name) || 0) + 1);
+    }
+    countLocationNames(node.children, counts);
+  }
+  return counts;
+}
+
+/** Explicit location IDs are authoritative. Text-only NPC associations may
+ * match a location only when its name is unique across both world sources.
+ * A shop's named owner may be linked to its parent settlement, but never to
+ * a different settlement simply because that other town shares a name. */
+export function relatedNpcs(node, npcs, { tree = [], crumbs = [] } = {}) {
   if (!node || node.kind === 'folder') return [];
   const id = String(node.data?.id || '');
-  const name = node.name.toLowerCase();
-  const owner = String(node.data?.owner || '').toLowerCase();
-  return arr(npcs).filter(npc =>
-    (id && [npc?.location_id, npc?.settlement_id, npc?.place_id].some(value => String(value || '') === id))
-    || (npc?.location && String(npc.location).toLowerCase() === name)
-    || (owner && String(npc?.name || '').toLowerCase() === owner));
+  const name = String(node.name || '').trim().toLowerCase();
+  const owner = String(node.data?.owner || '').trim().toLowerCase();
+  const parentIds = new Set(arr(crumbs).slice(0, -1).map(item => String(item.data?.id || '')).filter(Boolean));
+  const uniqueName = name && countLocationNames(tree).get(name) === 1;
+  const ownerMatches = arr(npcs).filter(npc => String(npc?.name || '').trim().toLowerCase() === owner);
+  const uniqueOwner = Boolean(owner && ownerMatches.length === 1);
+
+  return arr(npcs).filter(npc => {
+    if (!npc || typeof npc !== 'object') return false;
+    const npcName = String(npc.name || '').trim().toLowerCase();
+    const ownerMatch = uniqueOwner && npcName === owner;
+    const placeId = String(npc.place_id || '').trim();
+    const locationIds = [npc.location_id, npc.settlement_id]
+      .map(value => String(value || '').trim()).filter(Boolean);
+
+    // A saved place_id cannot be overridden by a same-named settlement or
+    // shop owner: this NPC explicitly belongs to that exact place.
+    if (placeId) return Boolean(id && placeId === id);
+    if (locationIds.length) {
+      if (id && locationIds.includes(id)) return true;
+      // An explicitly named shop owner can also be linked to the containing
+      // settlement. This never allows unrelated town IDs to match.
+      return Boolean(node.kind === 'place' && ownerMatch
+        && locationIds.some(linkId => parentIds.has(linkId)));
+    }
+    if (ownerMatch) return true;
+    const linkedName = String(npc.location || npc.location_name || '').trim().toLowerCase();
+    return Boolean(uniqueName && linkedName && linkedName === name);
+  });
 }
 
 const box = { display: 'grid', gap: 12, padding: 12, background: 'var(--rq-bg-panel,#102237)', border: '1px solid var(--rq-border-default,#294156)' };
@@ -124,7 +162,7 @@ export default function LiveDisplayLocationExplorer({ campaignId, maps = [], npc
 
   const tree = useMemo(() => buildDisplayLocationTree(world, locations), [world, locations]);
   const { current, children, crumbs } = useMemo(() => atPath(tree, path), [tree, path]);
-  const people = useMemo(() => relatedNpcs(current, npcs), [current, npcs]);
+  const people = useMemo(() => relatedNpcs(current, npcs, { tree, crumbs }), [current, npcs, tree, crumbs]);
   const images = useMemo(() => [...new Set([
     imageOf(current?.data),
     ...arr(current?.data?.gallery || current?.data?.images).map(value => typeof value === 'string' ? value : imageOf(value)),
