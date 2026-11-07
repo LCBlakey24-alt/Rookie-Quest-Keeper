@@ -1011,3 +1011,35 @@ def test_archived_rolls_are_all_time_only_and_close_cutoff_is_preserved(env):
     assert {a['character_id'] for a in recap['allTime']['actors']} == {'char-a', 'char-b'}
     assert recap['allTime']['nat20s'] == 1
     assert recap['session']['nat1s'] == 0
+
+
+def test_player_recaps_keep_safe_character_ids_but_strip_private_account_fields():
+    result = sanitize_player_display_payload('end-session-stats', {
+        'campaignName': 'Synthetic campaign',
+        'session': {
+            'playerRolls': 2,
+            'totalRolls': 2,
+            'gmRolls': 1,
+            'private_gm_notes': 'Secret monster',
+            'actors': [
+                {'name': 'Aria', 'character_id': 'char-a', 'rolls': 1, 'nat20s': 1, 'nat1s': 0,
+                 'user_id': 'private-user-a', 'account_email': 'private@example.com'},
+                {'name': 'Aria', 'character_id': 'char-b', 'rolls': 1, 'nat20s': 0, 'nat1s': 1,
+                 'user_id': 'private-user-b'},
+            ],
+            'awards': [
+                {'title': 'Crit Goblin', 'name': 'Aria', 'character_id': 'char-a',
+                 'value': '1 Nat 20', 'gm_notes': 'Secret villain'},
+            ],
+        },
+        'allTime': {'totalRolls': 2, 'hidden_roll_label': 'GM Secret'},
+        'account_secret': 'do-not-display',
+    })
+    actors = result['session']['actors']
+    assert [a['character_id'] for a in actors] == ['char-a', 'char-b']
+    assert [a['name'] for a in actors] == ['Aria', 'Aria']
+    assert result['session']['awards'][0]['character_id'] == 'char-a'
+    assert 'private-user' not in str(result)
+    assert 'private@example.com' not in str(result)
+    assert 'Secret' not in str(result)
+    assert 'do-not-display' not in str(result)
