@@ -137,6 +137,14 @@
   background: rgba(192, 138, 61, 0.08);
 }
 
+/* Rules references are informative cards, not buttons or selectable actions. */
+.clean-sheet-action-card--reference,
+.clean-sheet-action-card--reference:hover {
+  cursor: default;
+  border-color: rgba(255, 255, 255, 0.10);
+  background: #070B18;
+}
+
 .clean-sheet-action-card strong {
   color: var(--rq-text-primary, #F5E6C8);
   font-weight: 950;
