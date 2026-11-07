@@ -520,6 +520,13 @@ async def ensure_roll_session_indexes(database=None) -> None:
         name='roll_session_one_pending',
         partialFilterExpression={'status': 'pending'},
     )
+    await target.roll_session_summaries.create_index(
+        [('campaign_id', ASCENDING), ('recovery_close_ids', ASCENDING)],
+        unique=True,
+        background=True,
+        name='roll_session_recovery_id_unique',
+        partialFilterExpression={'recovery_close_ids': {'$exists': True}},
+    )
 
 
 class EndSessionRequest(BaseModel):
@@ -537,12 +544,25 @@ def public_roll_summary(record: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def finish_pending_roll_session(campaign_id: str, record: Dict[str, Any]) -> Dict[str, Any]:
+async def finish_pending_roll_session(
+    campaign_id: str, record: Dict[str, Any], *, retry_close_id: Optional[str] = None,
+) -> Dict[str, Any]:
     """Idempotently complete a summary that was committed BEFORE rolling archival.
 
     If the archive write or completion mark fails, the durable 'pending' record
     remains available for the next request to finish without rebuilding stats.
     """
+    # A replacement close id must be stored durably BEFORE we mark this
+    # recovered session complete. If the response is lost again, the new ID
+    # must resolve to this same saved recap, rather than creating an empty one.
+    if retry_close_id and retry_close_id != record.get('session_close_id'):
+        updated = await db.roll_session_summaries.update_one(
+            {'campaign_id': campaign_id, 'id': record['id']},
+            {'$addToSet': {'recovery_close_ids': retry_close_id}},
+        )
+        if not updated.matched_count:
+            raise HTTPException(status_code=409, detail='Session recovery record is no longer available')
+
     if record.get('status') != 'complete':
         await db.roll_events.update_many(
             {
@@ -587,6 +607,8 @@ async def end_session_roll_summary(
 
     existing = await db.roll_session_summaries.find_one(
         {'campaign_id': campaign_id, 'session_close_id': close_id}, {'_id': 0},
+    ) or await db.roll_session_summaries.find_one(
+        {'campaign_id': campaign_id, 'recovery_close_ids': close_id}, {'_id': 0},
     )
     if existing:
         return await finish_pending_roll_session(campaign_id, existing)
@@ -597,7 +619,7 @@ async def end_session_roll_summary(
         {'campaign_id': campaign_id, 'status': 'pending'}, {'_id': 0},
     )
     if pending:
-        return await finish_pending_roll_session(campaign_id, pending)
+        return await finish_pending_roll_session(campaign_id, pending, retry_close_id=close_id)
 
     cutoff = now_iso()
     summary = await build_summary(campaign_id, cutoff=cutoff)
@@ -617,9 +639,14 @@ async def end_session_roll_summary(
         recovered = await db.roll_session_summaries.find_one(
             {'campaign_id': campaign_id, 'session_close_id': close_id}, {'_id': 0},
         ) or await db.roll_session_summaries.find_one(
+            {'campaign_id': campaign_id, 'recovery_close_ids': close_id}, {'_id': 0},
+        )
+        if recovered:
+            return await finish_pending_roll_session(campaign_id, recovered)
+        recovered = await db.roll_session_summaries.find_one(
             {'campaign_id': campaign_id, 'status': 'pending'}, {'_id': 0},
         )
         if not recovered:
             raise
-        return await finish_pending_roll_session(campaign_id, recovered)
+        return await finish_pending_roll_session(campaign_id, recovered, retry_close_id=close_id)
     return await finish_pending_roll_session(campaign_id, record)
