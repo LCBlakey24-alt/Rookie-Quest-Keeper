@@ -604,7 +604,7 @@ function PlaceDialog({ campaignId, editingPlace, placeFormData, setPlaceFormData
         {['shop', 'blacksmith', 'tavern'].includes(placeFormData.place_type) && (
           <div>
             <TextAreaField label="Shop items & prices" testId="place-shop-stock-input" value={placeFormData.shop_stock_text} onChange={(value) => setPlaceFormData({ ...placeFormData, shop_stock_text: value })} minHeight={110} placeholder={'Longsword | 15 gp | 2\nPotion of Healing | 50 gp'} />
-            <small>One per line: Item | Price | Optional quantity. No prices are invented.</small>
+            <small>One per line: Item | Price | Optional quantity | Optional GM-only. Example: Secret Key | 20 gp | | GM-only. No prices are invented.</small>
           </div>
         )}
         <TextAreaField label="GM notes" testId="place-notes-input" value={placeFormData.notes} onChange={(value) => setPlaceFormData({ ...placeFormData, notes: value })} placeholder="Hooks, secrets, clues, changes, or hidden uses." />
