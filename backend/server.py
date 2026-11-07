@@ -195,6 +195,15 @@ async def run_startup_maintenance():
     except Exception as e:
         logger.warning(f"Could not create roll event indexes: {e}")
 
+    # Separate from dice de-duplication so interrupted End Session recovery
+    # can also enforce one pending recap per campaign at the database level.
+    try:
+        from routes.roll_events import ensure_roll_session_indexes
+        await ensure_roll_session_indexes(db)
+        logger.info("Roll session recovery indexes ensured")
+    except Exception as e:
+        logger.warning(f"Could not create roll session recovery indexes: {e}")
+
 
 @app.on_event("startup")
 async def startup_event():
