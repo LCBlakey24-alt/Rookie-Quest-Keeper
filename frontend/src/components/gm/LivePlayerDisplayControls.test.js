@@ -43,6 +43,7 @@ describe('LivePlayerDisplayControls reliability', () => {
 
   test('Battle Starting sends a player-safe warning before the GM chooses the HUD', async () => {
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
     fireEvent.click(screen.getAllByRole('button', { name: /Battle Starting!/i })[0]);
     await waitFor(() => expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
       'campaign-1',
@@ -56,6 +57,8 @@ describe('LivePlayerDisplayControls reliability', () => {
     publishCampaignDisplayStateWithStatus.mockImplementation(async (_campaignId, state) => ({ state, remoteSynced: false }));
 
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Screen Setup' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show Advanced' }));
 
     fireEvent.click(screen.getByRole('button', { name: /Send Scene Title/i }));
 
@@ -78,6 +81,8 @@ describe('LivePlayerDisplayControls reliability', () => {
     }));
 
     render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Screen Setup' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show Advanced' }));
     const search = screen.getByRole('searchbox', { name: 'Search NPCs to reveal' });
     await waitFor(() => expect(screen.getByText('0 selected · Showing 30 of 30 NPCs')).toBeInTheDocument());
 
@@ -114,6 +119,8 @@ describe('LivePlayerDisplayControls reliability', () => {
       ] }] : [],
     }));
     render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Screen Setup' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show Advanced' }));
     const scenario = await screen.findByRole('option', { name: 'Forest Guardians' });
     fireEvent.change(scenario.closest('select'), { target: { value: 'encounter-1' } });
     fireEvent.click(screen.getByRole('button', { name: /Send Combat HUD/i }));
@@ -138,6 +145,8 @@ describe('LivePlayerDisplayControls reliability', () => {
     });
 
     render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Screen Setup' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show Advanced' }));
 
     expect(await screen.findByRole('option', { name: 'Vault Map' })).toBeInTheDocument();
 
@@ -152,4 +161,40 @@ describe('LivePlayerDisplayControls reliability', () => {
     ));
     expect(toast.success).not.toHaveBeenCalledWith('Player display data refreshed');
   });
+});
+
+
+test('focused display tabs keep unrelated command panels out of sight', () => {
+  render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+  expect(screen.getByRole('button', { name: 'Locations' })).toHaveAttribute('aria-current', 'page');
+  expect(screen.getByTestId('live-location-explorer')).toBeVisible();
+  expect(screen.getByTestId('combat-display-commander')).not.toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
+  expect(screen.getByTestId('combat-display-commander')).toBeVisible();
+  expect(screen.getByTestId('live-location-explorer')).not.toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Quick Actions' }));
+  expect(screen.getByRole('button', { name: 'Travel Montage' })).toBeVisible();
+  expect(screen.getByTestId('combat-display-commander')).not.toBeVisible();
+});
+
+
+test('switching away to Combat preserves the chosen world location without refetching', async () => {
+  let worldReads = 0;
+  apiClient.get.mockImplementation(url => {
+    if (url.endsWith('/world')) {
+      worldReads += 1;
+      return Promise.resolve({ data: { continents: [{ id: 'continent-a', name: 'Tiacarta', regions: [] }] } });
+    }
+    return Promise.resolve({ data: [] });
+  });
+  render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+  fireEvent.click(await screen.findByRole('button', { name: /World Builder/i }));
+  fireEvent.click(screen.getByRole('button', { name: /Tiacarta/i }));
+  expect(screen.getByRole('heading', { name: 'Tiacarta' })).toBeVisible();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
+  expect(screen.getByTestId('live-location-explorer')).not.toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Locations' }));
+  expect(screen.getByRole('heading', { name: 'Tiacarta' })).toBeVisible();
+  expect(worldReads).toBe(1);
 });
