@@ -556,7 +556,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
       )}
 
       <div style={bodyStyle}>
-        {activeSection === 'locations' && <LiveDisplayLocationExplorer
+        <div hidden={activeSection !== 'locations'}>
+          <LiveDisplayLocationExplorer
           key={campaignId}
           campaignId={campaignId}
           maps={allMaps}
@@ -564,7 +565,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           onRevealScene={revealLocation}
           onRevealImage={revealLocationImage}
           onRevealNpcs={revealLocationNpcs}
-        />}
+        />
+        </div>
         <div hidden={activeSection !== 'screen'}>
           <section style={commandDeckStyle}>
           <div style={targetGridStyle} data-testid="player-display-target-selector">
