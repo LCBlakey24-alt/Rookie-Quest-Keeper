@@ -39,11 +39,13 @@ export function parseShopStockText(value) {
 
 export function formatShopStockText(value = []) {
   return (Array.isArray(value) ? value : [])
-    .filter(item => item && item.name && item.price)
+    // Display incomplete imported items instead of silently deleting them on save.
+    // The parser rejects blank prices, prompting the GM to correct them explicitly.
+    .filter(item => item && item.name)
     .map(item => {
       const hidden = isGmOnlyStockItem(item);
       const hasQuantity = item.quantity !== undefined && item.quantity !== null;
-      return [String(item.name), String(item.price), ...(hasQuantity || hidden ? [hasQuantity ? String(item.quantity) : ''] : []), ...(hidden ? ['GM-only'] : [])].join(' | ');
+      return [String(item.name), String(item.price ?? ''), ...(hasQuantity || hidden ? [hasQuantity ? String(item.quantity) : ''] : []), ...(hidden ? ['GM-only'] : [])].join(' | ');
     })
     .join('\n');
 }
