@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import EndSessionReviewModal from './EndSessionReviewModal';
 import apiClient from '@/lib/apiClient';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
-import { createDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, currentDisplayAccount } from '@/lib/liveDisplayBus';
 import { toast } from 'sonner';
 
 jest.mock('@/lib/apiClient', () => ({
@@ -11,6 +11,7 @@ jest.mock('@/lib/apiClient', () => ({
 }));
 jest.mock('@/lib/liveDisplayBus', () => ({
   createDisplayState: jest.fn((mode, payload) => ({ mode, payload })),
+  currentDisplayAccount: jest.fn(() => 'synthetic-gm'),
 }));
 jest.mock('@/lib/liveDisplayPublishStatus', () => ({
   publishCampaignDisplayStateWithStatus: jest.fn(),
@@ -32,6 +33,8 @@ const summary = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  sessionStorage.clear();
+  currentDisplayAccount.mockReturnValue('synthetic-gm');
   // The Jest setup resets factory mock implementations between tests.
   createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
   apiClient.get.mockImplementation(async url => ({
@@ -134,4 +137,29 @@ test('archived sessions lock story wrap-up and GM recap note choices during disp
   expect(saveNote).toBeDisabled();
   expect(screen.getByRole('status')).toHaveTextContent('options are locked');
   expect(apiClient.put).not.toHaveBeenCalled();
+});
+
+
+test('an uncertain end-session HTTP response is retried with the same durable close id', async () => {
+  let calls = 0;
+  apiClient.post.mockImplementation(async url => {
+    if (url.endsWith('/roll-events/end-session')) {
+      calls += 1;
+      if (calls === 1) throw new Error('Connection lost just after server archive');
+      return { data: summary };
+    }
+    return { data: { id: 'note-1' } };
+  });
+  const onClose = await renderReady();
+  fireEvent.click(screen.getByRole('button', { name: 'Send Dice-Only Player Show' }));
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Could not end session'));
+  expect(onClose).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Send Dice-Only Player Show' }));
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  const archived = apiClient.post.mock.calls.filter(([url]) => url.endsWith('/roll-events/end-session'));
+  expect(archived).toHaveLength(2);
+  expect(archived[0][1].session_close_id).toMatch(/^end-/);
+  expect(archived[0][1].session_close_id).toEqual(archived[1][1].session_close_id);
+  expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledTimes(1);
 });
