@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 from pymongo.errors import DuplicateKeyError
@@ -372,13 +372,23 @@ def summarise(events: List[Dict[str, Any]], player_focus: bool = True) -> Dict[s
     }
 
 
-async def build_summary(campaign_id: str) -> Dict[str, Any]:
+async def build_summary(campaign_id: str, *, cutoff: Optional[str] = None) -> Dict[str, Any]:
+    """Snapshot preview or a point-in-time session before archiving.
+
+    The cutoff prevents late rolls arriving during End Session from being
+    archived without appearing in the saved recap.
+    """
     campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0, "name": 1}) or {}
-    active = await db.roll_events.find({"campaign_id": campaign_id, "archived": {"$ne": True}}, {"_id": 0}).sort("created_at", 1).to_list(2000)
-    all_time = await db.roll_events.find({"campaign_id": campaign_id}, {"_id": 0}).sort("created_at", 1).to_list(10000)
+    active_query = {"campaign_id": campaign_id, "archived": {"$ne": True}}
+    all_time_query = {"campaign_id": campaign_id}
+    if cutoff:
+        active_query["created_at"] = {"$lte": cutoff}
+        all_time_query["created_at"] = {"$lte": cutoff}
+    active = await db.roll_events.find(active_query, {"_id": 0}).sort("created_at", 1).to_list(2000)
+    all_time = await db.roll_events.find(all_time_query, {"_id": 0}).sort("created_at", 1).to_list(10000)
     return {
         "campaignName": campaign.get("name") or "Campaign",
-        "generated_at": now_iso(),
+        "generated_at": cutoff or now_iso(),
         "session": summarise(active, player_focus=True),
         "allTime": summarise(all_time, player_focus=True),
     }
@@ -492,6 +502,67 @@ async def ensure_roll_event_indexes(database=None) -> None:
     )
 
 
+async def ensure_roll_session_indexes(database=None) -> None:
+    """One in-flight close per campaign and one durable summary per close id."""
+    from pymongo import ASCENDING
+    target = database if database is not None else db
+    await target.roll_session_summaries.create_index(
+        [('campaign_id', ASCENDING), ('session_close_id', ASCENDING)],
+        unique=True,
+        background=True,
+        name='roll_session_close_id_unique',
+        partialFilterExpression={'session_close_id': {'$type': 'string'}},
+    )
+    await target.roll_session_summaries.create_index(
+        [('campaign_id', ASCENDING)],
+        unique=True,
+        background=True,
+        name='roll_session_one_pending',
+        partialFilterExpression={'status': 'pending'},
+    )
+
+
+class EndSessionRequest(BaseModel):
+    session_close_id: Optional[str] = Field(
+        default=None, min_length=8, max_length=128, pattern=EVENT_ID_PATTERN.pattern,
+    )
+
+
+def public_roll_summary(record: Dict[str, Any]) -> Dict[str, Any]:
+    """Return recap data only, never internal pending IDs or archive metadata."""
+    return {
+        key: record[key]
+        for key in ('campaignName', 'generated_at', 'session', 'allTime')
+        if key in record
+    }
+
+
+async def finish_pending_roll_session(campaign_id: str, record: Dict[str, Any]) -> Dict[str, Any]:
+    """Idempotently complete a summary that was committed BEFORE rolling archival.
+
+    If the archive write or completion mark fails, the durable 'pending' record
+    remains available for the next request to finish without rebuilding stats.
+    """
+    if record.get('status') != 'complete':
+        await db.roll_events.update_many(
+            {
+                'campaign_id': campaign_id,
+                'archived': {'$ne': True},
+                'created_at': {'$lte': record['generated_at']},
+            },
+            {'$set': {
+                'archived': True,
+                'archived_at': now_iso(),
+                'archived_by_session_id': record['id'],
+            }},
+        )
+        await db.roll_session_summaries.update_one(
+            {'campaign_id': campaign_id, 'id': record['id']},
+            {'$set': {'status': 'complete', 'completed_at': now_iso()}},
+        )
+    return public_roll_summary(record)
+
+
 @router.get("/campaigns/{campaign_id}/roll-events/summary")
 async def get_roll_summary(campaign_id: str, username: str = Depends(get_current_user)):
     """Preview current session and all-time roll stats."""
@@ -500,13 +571,55 @@ async def get_roll_summary(campaign_id: str, username: str = Depends(get_current
 
 
 @router.post("/campaigns/{campaign_id}/roll-events/end-session")
-async def end_session_roll_summary(campaign_id: str, username: str = Depends(get_current_user)):
-    """Build the end-session roll summary and archive the current session rolls."""
+async def end_session_roll_summary(
+    campaign_id: str,
+    request: Optional[EndSessionRequest] = Body(default=None),
+    username: str = Depends(get_current_user),
+):
+    """Persist the recap first, then archive its time-bounded roll snapshot.
+
+    Retrying a close id after a timeout returns the same stored recap, rather
+    than archiving a second, empty session. Older clients with no close id still
+    work, but cannot identify a completed attempt after its response is lost.
+    """
     await verify_campaign_ownership(campaign_id, username)
-    summary = await build_summary(campaign_id)
-    await db.roll_events.update_many(
-        {"campaign_id": campaign_id, "archived": {"$ne": True}},
-        {"$set": {"archived": True, "archived_at": now_iso()}},
+    close_id = request.session_close_id if request and request.session_close_id else f"legacy-{uuid4().hex}"
+
+    existing = await db.roll_session_summaries.find_one(
+        {'campaign_id': campaign_id, 'session_close_id': close_id}, {'_id': 0},
     )
-    await db.roll_session_summaries.insert_one({**summary, "campaign_id": campaign_id, "id": f"roll-summary-{uuid4().hex}"})
-    return summary
+    if existing:
+        return await finish_pending_roll_session(campaign_id, existing)
+
+    # A previous request may have crashed after persisting its pending
+    # snapshot, including when the client cannot supply the original key.
+    pending = await db.roll_session_summaries.find_one(
+        {'campaign_id': campaign_id, 'status': 'pending'}, {'_id': 0},
+    )
+    if pending:
+        return await finish_pending_roll_session(campaign_id, pending)
+
+    cutoff = now_iso()
+    summary = await build_summary(campaign_id, cutoff=cutoff)
+    record = {
+        **summary,
+        'id': f"roll-summary-{uuid4().hex}",
+        'campaign_id': campaign_id,
+        'session_close_id': close_id,
+        'status': 'pending',
+        'created_at': now_iso(),
+    }
+    try:
+        # If this fails nothing has been archived: no session data loss.
+        await db.roll_session_summaries.insert_one(record)
+    except DuplicateKeyError:
+        # Another close of the same campaign won the insertion race.
+        recovered = await db.roll_session_summaries.find_one(
+            {'campaign_id': campaign_id, 'session_close_id': close_id}, {'_id': 0},
+        ) or await db.roll_session_summaries.find_one(
+            {'campaign_id': campaign_id, 'status': 'pending'}, {'_id': 0},
+        )
+        if not recovered:
+            raise
+        return await finish_pending_roll_session(campaign_id, recovered)
+    return await finish_pending_roll_session(campaign_id, record)
