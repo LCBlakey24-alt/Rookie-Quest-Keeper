@@ -316,3 +316,20 @@ def test_world_place_catalog_rejects_malformed_stock_and_gallery(bad):
     with pytest.raises(HTTPException) as exc:
         world_module._place_catalog_patch(bad)
     assert exc.value.status_code == 422
+
+
+def test_world_catalog_retains_gm_only_flags_on_save():
+    data = world_module._place_catalog_patch({
+        'shop_inventory': [
+            {'name': 'Public Sword', 'price': '15 gp'},
+            {'name': 'Secret Key', 'price': '10 gp', 'hidden': True},
+            {'name': 'Hidden Letter', 'price': '1 gp', 'gm_only': True},
+            {'name': 'Private Map', 'price': '20 gp', 'visibility': 'private'},
+        ]
+    })
+    assert data['shop_inventory'] == [
+        {'name': 'Public Sword', 'price': '15 gp'},
+        {'name': 'Secret Key', 'price': '10 gp', 'hidden': True},
+        {'name': 'Hidden Letter', 'price': '1 gp', 'hidden': True},
+        {'name': 'Private Map', 'price': '20 gp', 'hidden': True},
+    ]
