@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatShopStockText, parseShopStockText, parsePlaceImageLines } from '@/lib/shopCatalog';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,7 +66,11 @@ function WorldBuilderTab({ campaignId }) {
     name: '',
     type: '',
     description: '',
-    notes: ''
+    notes: '',
+    owner: '',
+    image_url: '',
+    images_text: '',
+    shop_stock_text: ''
   });
 
   // Rook text generation
@@ -97,7 +102,7 @@ function WorldBuilderTab({ campaignId }) {
     setDialogType(type);
     setParentId(parentId);
     setEditingItem(null);
-    setFormData({ name: '', type: '', description: '', notes: '' });
+    setFormData({ name: '', type: '', description: '', notes: '', owner: '', image_url: '', images_text: '', shop_stock_text: '' });
     setShowDialog(true);
   };
 
@@ -109,7 +114,11 @@ function WorldBuilderTab({ campaignId }) {
       name: item.name || '',
       type: item.type || item.settlement_type || item.place_type || '',
       description: item.description || '',
-      notes: item.notes || ''
+      notes: item.notes || '',
+      owner: item.owner || '',
+      image_url: item.image_url || '',
+      images_text: (item.images || []).join('\n'),
+      shop_stock_text: formatShopStockText(item.shop_inventory)
     });
     setShowDialog(true);
   };
@@ -122,8 +131,27 @@ function WorldBuilderTab({ campaignId }) {
     }
 
     try {
-      const payload = { ...formData };
-      
+      const payload = {
+        name: formData.name,
+        type: formData.type,
+        description: formData.description,
+        notes: formData.notes,
+      };
+      if (dialogType === 'place') {
+        const catalog = parseShopStockText(formData.shop_stock_text);
+        const gallery = parsePlaceImageLines(formData.images_text);
+        if (catalog.error || gallery.error) {
+          toast.error(catalog.error || gallery.error);
+          return;
+        }
+        Object.assign(payload, {
+          owner: formData.owner,
+          image_url: formData.image_url.trim(),
+          images: gallery.images,
+          shop_inventory: catalog.items,
+        });
+      }
+
       if (editingItem) {
         await apiClient.put(`/campaigns/${campaignId}/world/${dialogType}/${editingItem.id}`, {
           ...payload,
@@ -638,6 +666,25 @@ function WorldBuilderTab({ campaignId }) {
                 />
               </div>
               
+              {dialogType === 'place' && <>
+                <label style={{ color: '#fff', display: 'grid', gap: 6, fontSize: 13 }}>
+                  Owner / linked NPC name
+                  <Input value={formData.owner} onChange={e => setFormData({ ...formData, owner: e.target.value })} placeholder="Mara the Smith" />
+                </label>
+                <label style={{ color: '#fff', display: 'grid', gap: 6, fontSize: 13 }}>
+                  Main place image URL
+                  <Input value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} placeholder="https://..." />
+                </label>
+                <label style={{ color: '#fff', display: 'grid', gap: 6, fontSize: 13 }}>
+                  Other image URLs (one per line)
+                  <textarea value={formData.images_text} onChange={e => setFormData({ ...formData, images_text: e.target.value })} rows={2} style={{ background: '#102237', color: '#fff', padding: 8 }} placeholder="https://example.com/interior.png" />
+                </label>
+                {['shop', 'blacksmith', 'tavern'].includes(formData.type) && <label style={{ color: '#fff', display: 'grid', gap: 6, fontSize: 13 }}>
+                  Shop items and prices
+                  <textarea data-testid="world-place-shop-stock-input" value={formData.shop_stock_text} onChange={e => setFormData({ ...formData, shop_stock_text: e.target.value })} rows={4} style={{ background: '#102237', color: '#fff', padding: 8 }} placeholder={'Longsword | 15 gp | 2\nPotion of Healing | 50 gp'} />
+                  <small>Item | Price | Optional quantity. One item per line.</small>
+                </label>}
+              </>}
               <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                 <Button type="submit" className="btn-primary" style={{ flex: 1 }}>
                   {editingItem ? 'Save Changes' : 'Create'}
