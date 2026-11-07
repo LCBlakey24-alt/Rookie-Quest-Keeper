@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import { createDisplayState, currentDisplayAccount } from '@/lib/liveDisplayBus';
 import { getSessionCloseAttempt, markSessionCloseArchived, clearSessionCloseAttempt } from '@/lib/endSessionAttempt';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
+import { rollActorDisplayName } from '@/lib/rollActorLabels';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -54,8 +55,8 @@ function buildRecapNote(summary, storyFocus, options) {
   const session = summary?.session || {};
   const awards = Array.isArray(session.awards) ? session.awards : [];
   const actors = Array.isArray(session.actors) ? session.actors : [];
-  const awardLines = awards.length ? awards.map(award => `- ${award.title}: ${award.name} (${award.value})`).join('\n') : '- No awards generated.';
-  const actorLines = actors.length ? actors.slice(0, 8).map(actor => `- ${actor.name}: ${actor.rolls} rolls, ${actor.nat20s} Nat 20s, ${actor.nat1s} Nat 1s`).join('\n') : '- No player rolls captured.';
+  const awardLines = awards.length ? awards.map(award => `- ${award.title}: ${rollActorDisplayName(award, actors)} (${award.value})`).join('\n') : '- No awards generated.';
+  const actorLines = actors.length ? actors.slice(0, 8).map(actor => `- ${rollActorDisplayName(actor, actors)}: ${actor.rolls} rolls, ${actor.nat20s} Nat 20s, ${actor.nat1s} Nat 1s`).join('\n') : '- No player rolls captured.';
   const reachedLines = storyFocus?.reached?.length ? storyFocus.reached.map(point => `- ${point.title}`).join('\n') : '- No checkpoints marked reached.';
   const skippedLines = storyFocus?.skipped?.length ? storyFocus.skipped.map(point => `- ${point.title}`).join('\n') : '- No checkpoints skipped.';
   const upcomingLines = storyFocus?.upcoming?.length ? storyFocus.upcoming.slice(0, 5).map(point => `- ${point.title}`).join('\n') : '- No unresolved checkpoints.';
@@ -304,11 +305,11 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
             <section style={splitStyle}>
               <div style={panelStyle}>
                 <h3 style={sectionTitleStyle}>Awards preview</h3>
-                {awards.length ? awards.slice(0, 4).map(award => <PreviewRow key={`${award.title}-${award.name}`} title={award.title} text={`${award.name} · ${award.value}`} />) : <p style={mutedStyle}>No awards yet.</p>}
+                {awards.length ? awards.slice(0, 4).map(award => <PreviewRow key={`${award.title}-${award.character_id || award.name}`} title={award.title} text={`${rollActorDisplayName(award, actors)} · ${award.value}`} />) : <p style={mutedStyle}>No awards yet.</p>}
               </div>
               <div style={panelStyle}>
                 <h3 style={sectionTitleStyle}>Player board preview</h3>
-                {actors.length ? actors.slice(0, 5).map(actor => <PreviewRow key={actor.name} title={actor.name} text={`${actor.rolls} rolls · ${actor.nat20s} Nat 20s · ${actor.nat1s} Nat 1s`} />) : <p style={mutedStyle}>No player rolls captured.</p>}
+                {actors.length ? actors.slice(0, 5).map((actor, index) => <PreviewRow key={actor.character_id || `${actor.name}-${index}`} title={rollActorDisplayName(actor, actors)} text={`${actor.rolls} rolls · ${actor.nat20s} Nat 20s · ${actor.nat1s} Nat 1s`} />) : <p style={mutedStyle}>No player rolls captured.</p>}
               </div>
             </section>
 

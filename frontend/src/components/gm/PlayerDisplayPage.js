@@ -8,6 +8,7 @@ import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
 import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
+import { rollActorDisplayName } from '@/lib/rollActorLabels';
 import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import './PlayerDisplayPage.css';
 
@@ -510,15 +511,15 @@ function EndSessionStatsDisplay({ payload, target }) {
 }
 
 function renderStatsPage(page, session, allTime, target) {
-  if (page.id === 'awards') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={awardGridStyle(target)}>{page.awards.length ? page.awards.slice(0, isTable(target) ? 3 : 4).map(award => <AwardCard key={`${award.title}-${award.name}`} award={award} />) : <p style={statsSubtitleStyle(target)}>No awards yet. The dice were suspiciously quiet.</p>}</div></>;
-  if (page.id === 'board') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={actorListStyle}>{page.actors.length ? page.actors.map(actor => <ActorRow key={actor.name} actor={actor} />) : <p style={statsSubtitleStyle(target)}>No player rolls captured this session.</p>}</div></>;
+  if (page.id === 'awards') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={awardGridStyle(target)}>{page.awards.length ? page.awards.slice(0, isTable(target) ? 3 : 4).map(award => <AwardCard key={`${award.title}-${award.character_id || award.name}`} award={award} actors={session.actors || []} />) : <p style={statsSubtitleStyle(target)}>No awards yet. The dice were suspiciously quiet.</p>}</div></>;
+  if (page.id === 'board') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={actorListStyle}>{page.actors.length ? page.actors.map((actor, index) => <ActorRow key={actor.character_id || `${actor.name}-${index}`} actor={actor} actors={session.actors || []} />) : <p style={statsSubtitleStyle(target)}>No player rolls captured this session.</p>}</div></>;
   if (page.id === 'alltime') return <><h1 style={megaNumberStyle(target)}>{page.title}</h1><p style={statsSubtitleStyle(target)}>{page.subtitle}</p><div style={miniStatGridStyle(target)}><StatNumber label="Player Rolls Tonight" value={session.playerRolls ?? session.totalRolls ?? 0} /><StatNumber label="All-Time Dice" value={allTime.totalDice || 0} /><StatNumber label="GM/Table Rolls Hidden" value={session.gmRolls || 0} /></div></>;
   return <><h1 style={page.id === 'intro' ? statsTitleStyle(target) : megaNumberStyle(target)}>{page.title}</h1><p style={statsSubtitleStyle(target)}>{page.subtitle}</p>{page.id === 'intro' && <div style={miniStatGridStyle(target)}><StatNumber label="Player Rolls" value={session.playerRolls ?? session.totalRolls ?? 0} hot /><StatNumber label="Dice Rolled" value={session.totalDice || 0} /><StatNumber label="Awards" value={session.awards?.length || 0} /></div>}</>;
 }
 
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
-function AwardCard({ award }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{award.name}</span><em>{award.value}</em></article>; }
-function ActorRow({ actor }) { return <div style={actorRowStyle}><strong>{actor.name}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
+function AwardCard({ award, actors }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{rollActorDisplayName(award, actors)}</span><em>{award.value}</em></article>; }
+function ActorRow({ actor, actors }) { return <div style={actorRowStyle}><strong>{rollActorDisplayName(actor, actors)}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
 function CombatMapArtwork({ mapUrl, title, target, tokens }) {
   const layerRef = useRef(null);
   const [container, setContainer] = useState({ width: 0, height: 0 });
