@@ -111,7 +111,6 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
   const [prepNextChapter, setPrepNextChapter] = useState(false);
 
   const loadPreview = async () => {
-    if (completedSummary) return; // Archival has succeeded; don't replace it with the now-empty active session.
     setLoading(true);
     setPreviewError('');
     setSummary(null);
@@ -134,7 +133,12 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
     }
   };
 
-  useEffect(() => { loadPreview(); }, [campaignId]);
+  useEffect(() => {
+    // Campaign switches must never reuse the previous campaign's finalized summary.
+    setCompletedSummary(null);
+    setRecapNoteWarning('');
+    loadPreview();
+  }, [campaignId]);
 
   const storyFocus = useMemo(() => findStoryFocus(storyArcs), [storyArcs]);
   const session = summary?.session || {};
