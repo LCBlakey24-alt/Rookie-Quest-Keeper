@@ -43,6 +43,7 @@ test('navigates from world to settlement and shop, revealing only explicitly sel
   const onRevealScene = jest.fn();
   const onRevealImage = jest.fn();
   const onRevealNpcs = jest.fn();
+  const onRevealShop = jest.fn();
 
   render(<LiveDisplayLocationExplorer
     campaignId="campaign-a"
@@ -51,6 +52,7 @@ test('navigates from world to settlement and shop, revealing only explicitly sel
     onRevealScene={onRevealScene}
     onRevealImage={onRevealImage}
     onRevealNpcs={onRevealNpcs}
+    onRevealShop={onRevealShop}
   />);
 
   const worldFolder = await screen.findByRole('button', { name: /World Builder/i });
@@ -65,6 +67,12 @@ test('navigates from world to settlement and shop, revealing only explicitly sel
   expect(screen.getByTestId('location-shop-catalog')).toHaveTextContent('Longsword');
   expect(screen.getByTestId('location-shop-catalog')).toHaveTextContent('15 gp');
   expect(screen.getByTestId('location-shop-catalog')).toHaveTextContent('Stock: 2');
+  fireEvent.click(screen.getByRole('button', { name: /Reveal Shop Stock/i }));
+  expect(onRevealShop).toHaveBeenCalledWith(expect.objectContaining({
+    name: 'The Iron Anvil',
+    items: expect.arrayContaining([expect.objectContaining({ name: 'Longsword', price: '15 gp', quantity: 2 })]),
+  }));
+  expect(JSON.stringify(onRevealShop.mock.calls)).not.toMatch(/GM SECRET|cursed sword/i);
   expect(screen.getByTestId('location-linked-npcs')).toHaveTextContent('Mara the Smith');
 
   fireEvent.click(screen.getByRole('button', { name: 'Reveal Location' }));
