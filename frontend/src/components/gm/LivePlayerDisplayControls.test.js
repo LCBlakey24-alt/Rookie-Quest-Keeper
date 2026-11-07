@@ -198,3 +198,23 @@ test('switching away to Combat preserves the chosen world location without refet
   expect(screen.getByRole('heading', { name: 'Tiacarta' })).toBeVisible();
   expect(worldReads).toBe(1);
 });
+
+
+test('opening the TV or table does not erase the current player display', () => {
+  const open = jest.spyOn(window, 'open').mockImplementation(() => ({}));
+  try {
+    render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Open TV' }));
+    expect(open).toHaveBeenCalledWith(
+      '/campaign/campaign-1/player-display?target=standing-tv', '_blank', 'noopener,noreferrer',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Open Table' }));
+    expect(open).toHaveBeenCalledWith(
+      '/campaign/campaign-1/player-display?target=virtual-table', '_blank', 'noopener,noreferrer',
+    );
+    expect(publishCampaignDisplayStateWithStatus).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalledWith('Display set for Standing TV');
+  } finally {
+    open.mockRestore();
+  }
+});
