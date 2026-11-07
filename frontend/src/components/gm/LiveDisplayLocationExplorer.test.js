@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import apiClient from '@/lib/apiClient';
-import LiveDisplayLocationExplorer, { buildDisplayLocationTree, isPlayerVisibleShopItem } from './LiveDisplayLocationExplorer';
+import LiveDisplayLocationExplorer, { buildDisplayLocationTree, isPlayerVisibleShopItem, relatedNpcs } from './LiveDisplayLocationExplorer';
 
 jest.mock('@/lib/apiClient', () => ({ __esModule: true, default: { get: jest.fn() } }));
 
@@ -118,4 +118,80 @@ test('legacy visibility flags are checked before projecting shop stock', () => {
   ]) {
     expect(isPlayerVisibleShopItem({ name: 'Hidden item', price: '99 gp', ...flag })).toBe(false);
   }
+});
+
+
+test('duplicate settlement names never let a foreign or name-only NPC appear in the wrong town', () => {
+  const twinWorld = { continents: [{
+    id: 'continent-twin', name: 'Continent', regions: [{
+      id: 'region-twin', name: 'Region', settlements: [
+        { id: 'town-a', name: 'Twinbrook', settlement_type: 'town' },
+        { id: 'town-b', name: 'Twinbrook', settlement_type: 'town' },
+      ],
+    }],
+  }] };
+  const tree = buildDisplayLocationTree(twinWorld, [{ id: 'town-c', name: 'Twinbrook' }]);
+  const region = tree[0].children[0].children[0];
+  const townA = region.children[0];
+  const townB = region.children[1];
+  const candidates = [
+    { id: 'npc-a', name: 'Guard A', settlement_id: 'town-a', location: 'Twinbrook' },
+    { id: 'npc-b', name: 'Guard B', settlement_id: 'town-b', location: 'Twinbrook' },
+    { id: 'npc-c', name: 'Old Guard', location: 'Twinbrook' },
+    { id: 'npc-d', name: 'Guard with invalid ID', settlement_id: 'unknown', location: 'Twinbrook' },
+  ];
+  expect(relatedNpcs(townA, candidates, { tree }).map(npc => npc.id)).toEqual(['npc-a']);
+  expect(relatedNpcs(townB, candidates, { tree }).map(npc => npc.id)).toEqual(['npc-b']);
+  expect(relatedNpcs(tree[1].children[0], candidates, { tree })).toEqual([]);
+});
+
+test('legacy free-text NPC locations match only when the location name is unique', () => {
+  const tree = buildDisplayLocationTree({
+    continents: [{ id: 'c', name: 'Continent', regions: [
+      { id: 'r', name: 'Region', settlements: [{ id: 'unique-town', name: 'Silverford' }] },
+    ] }],
+  });
+  const selected = tree[0].children[0].children[0].children[0];
+  expect(relatedNpcs(selected, [
+    { id: 'legacy', name: 'Mapmaker', location: 'Silverford' },
+    { id: 'explicit-different', name: 'Wrong Mapmaker', settlement_id: 'other-town', location: 'Silverford' },
+  ], { tree }).map(npc => npc.id)).toEqual(['legacy']);
+});
+
+test('a shop owner linked to the actual parent town is included, but a foreign owner is excluded', () => {
+  const tree = buildDisplayLocationTree({
+    continents: [{ id: 'c', name: 'Continent', regions: [
+      { id: 'r', name: 'Region', settlements: [{
+        id: 'town-a', name: 'Twinbrook',
+        places: [{ id: 'smith-a', name: 'The Iron Anvil', place_type: 'blacksmith', owner: 'Mara the Smith' }],
+      }],
+      },
+    ] }],
+  });
+  const root = tree[0];
+  const continent = root.children[0];
+  const region = continent.children[0];
+  const town = region.children[0];
+  const shop = town.children[0];
+  const crumbs = [root, continent, region, town, shop];
+  expect(relatedNpcs(shop, [
+    { id: 'owner', name: 'Mara the Smith', settlement_id: 'town-a' },
+  ], { tree, crumbs }).map(npc => npc.id)).toEqual(['owner']);
+  expect(relatedNpcs(shop, [
+    { id: 'foreign-owner', name: 'Mara the Smith', settlement_id: 'town-b' },
+  ], { tree, crumbs })).toEqual([]);
+  expect(relatedNpcs(shop, [
+    { id: 'foreign-place', name: 'Mara the Smith', place_id: 'other-smith', settlement_id: 'town-a' },
+  ], { tree, crumbs })).toEqual([]);
+});
+
+test('ambiguous owner names do not guess which NPC manages a shop', () => {
+  const tree = buildDisplayLocationTree({}, [{
+    id: 'location-a', name: 'Market Row',
+    places_of_interest: [{ id: 'shop-a', name: 'Herbalist', owner: 'Mara' }],
+  }]);
+  const shop = tree[0].children[0].children[0];
+  expect(relatedNpcs(shop, [
+    { id: 'mara-1', name: 'Mara' }, { id: 'mara-2', name: 'Mara' },
+  ], { tree })).toEqual([]);
 });
