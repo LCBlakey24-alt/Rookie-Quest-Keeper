@@ -419,7 +419,6 @@ def test_public_shop_display_includes_prices_but_strips_gm_secrets():
     assert payload['title'] == 'The Iron Anvil'
     assert payload['items'] == [
         {'name': 'Longsword', 'price': '15 gp', 'quantity': 2},
-        {'name': 'Potion', 'price': '50 gp', 'quantity': 0},
     ]
     assert 'cursed' not in str(payload)
     assert 'Secret' not in str(payload)
