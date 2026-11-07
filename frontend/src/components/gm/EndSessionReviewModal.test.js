@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import EndSessionReviewModal from './EndSessionReviewModal';
 import apiClient from '@/lib/apiClient';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
+import { createDisplayState } from '@/lib/liveDisplayBus';
 import { toast } from 'sonner';
 
 jest.mock('@/lib/apiClient', () => ({
@@ -31,6 +32,8 @@ const summary = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // The Jest setup resets factory mock implementations between tests.
+  createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
   apiClient.get.mockImplementation(async url => ({
     data: url.includes('/roll-events/summary') ? summary : [],
   }));
