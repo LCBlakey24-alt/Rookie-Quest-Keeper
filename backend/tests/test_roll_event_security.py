@@ -94,6 +94,12 @@ class Cursor:
     async def to_list(self, limit):
         return self.docs[:limit]
 
+    def __aiter__(self):
+        async def rows():
+            for doc in self.docs:
+                yield doc
+        return rows()
+
 
 class Collection:
     def __init__(self, docs=None, unique=None):
@@ -887,3 +893,121 @@ def test_recovery_id_is_persisted_before_final_roll_archive(env):
     response = run(close_session(env, key='end-session-pending-alias'))
     assert response.status_code == 200
     assert len(env.db.roll_session_summaries.docs) == 1
+
+
+# --------------------------------------------------------------------------
+# Full-history roll analytics: no silent Mongo result limits or name merging.
+# --------------------------------------------------------------------------
+
+def test_same_named_characters_remain_separate_in_roll_leaderboards(env):
+    assert run(post(env, 'player-a', player_roll(
+        'char-a', d20=20, client_event_id='same-name-stats-a1',
+    ))).status_code == 200
+    assert run(post(env, 'player-a', player_roll(
+        'char-a', d20=4, client_event_id='same-name-stats-a2',
+    ))).status_code == 200
+    assert run(post(env, 'player-b', player_roll(
+        'char-b', d20=1, client_event_id='same-name-stats-b1',
+    ))).status_code == 200
+    assert run(post(env, 'gm', {
+        'actor_type': 'gm', 'label': 'GM SECRET: private dice label',
+        'total': 20, 'notation': '1d20',
+        'rolls': [{'sides': 20, 'result': 20}],
+    })).status_code == 200
+
+    recap = run(roll_events.build_summary(CAMPAIGN))
+    for board in (recap['session'], recap['allTime']):
+        assert board['playerRolls'] == 3
+        assert board['gmRolls'] == 1
+        assert board['totalRolls'] == 3
+        assert board['nat20s'] == 1
+        assert board['nat1s'] == 1
+        assert len(board['actors']) == 2
+        assert {actor['character_id']: actor['rolls'] for actor in board['actors']} == {
+            'char-a': 2, 'char-b': 1,
+        }
+        assert [actor['name'] for actor in board['actors']] == ['Aria', 'Aria']
+        assert board['awards'][0]['character_id'] == 'char-a'
+        assert 'GM SECRET' not in str(board)
+
+
+def test_roll_summary_counts_every_roll_beyond_prior_2000_and_10000_limits(env):
+    # Insert synthetic legacy records directly so the regression exercises
+    # 10,025 rolls without thousands of network requests or real players.
+    total = 10025
+    active = 2105
+    for i in range(total):
+        env.db.roll_events.docs.append({
+            'id': f'synthetic-roll-{i}',
+            'campaign_id': CAMPAIGN,
+            'user_id': 'player-a',
+            'actor_type': 'player',
+            'actor': 'Aria',
+            'character_name': 'Aria',
+            'character_id': 'char-a',
+            'created_at': f'2026-01-{1 + i // 86400:02d}T{i // 3600 % 24:02d}:{i // 60 % 60:02d}:{i % 60:02d}+00:00',
+            'total': 20 if i == total - 1 else 6,
+            'label': 'Long campaign roll',
+            'rolls': [{'sides': 20, 'result': 20 if i == total - 1 else 6}],
+            'archived': i < total - active,
+        })
+    recap = run(roll_events.build_summary(CAMPAIGN))
+    assert recap['session']['playerRolls'] == active
+    assert recap['session']['totalRolls'] == active
+    assert recap['allTime']['playerRolls'] == total
+    assert recap['allTime']['totalRolls'] == total
+    assert recap['session']['nat20s'] == 1
+    assert recap['allTime']['nat20s'] == 1
+    assert recap['session']['actors'][0]['rolls'] == active
+    assert recap['allTime']['actors'][0]['rolls'] == total
+
+    # The exact session summary must also be persisted, not only previewed.
+    closed = run(close_session(env, key='large-summary-close-id-0001'))
+    assert closed.status_code == 200
+    assert closed.json()['session']['totalRolls'] == active
+    assert closed.json()['allTime']['totalRolls'] == total
+    assert all(roll['archived'] for roll in stored(env))
+    assert len(env.db.roll_session_summaries.docs) == 1
+
+
+def test_streaming_summary_never_calls_fixed_size_cursor_to_list(env, monkeypatch):
+    def forbid_to_list(*args, **kwargs):
+        raise AssertionError('summary must stream, not truncate a fixed list')
+
+    monkeypatch.setattr(Cursor, 'to_list', forbid_to_list)
+    assert run(post(env, 'player-a', player_roll())).status_code == 200
+    result = run(roll_events.build_summary(CAMPAIGN))
+    assert result['session']['totalRolls'] == 1
+    assert result['allTime']['totalRolls'] == 1
+
+
+def test_archived_rolls_are_all_time_only_and_close_cutoff_is_preserved(env):
+    env.db.roll_events.docs.extend([
+        {
+            'id': 'old-archived', 'campaign_id': CAMPAIGN, 'actor_type': 'player',
+            'user_id': 'player-a', 'character_id': 'char-a', 'character_name': 'Aria',
+            'rolls': [{'sides': 20, 'result': 20}], 'total': 20, 'archived': True,
+            'created_at': '2026-01-01T00:00:00+00:00',
+        },
+        {
+            'id': 'active-before-cutoff', 'campaign_id': CAMPAIGN, 'actor_type': 'player',
+            'user_id': 'player-b', 'character_id': 'char-b', 'character_name': 'Aria',
+            'rolls': [{'sides': 20, 'result': 5}], 'total': 5, 'archived': False,
+            'created_at': '2026-01-01T01:00:00+00:00',
+        },
+        {
+            'id': 'active-after-cutoff', 'campaign_id': CAMPAIGN, 'actor_type': 'player',
+            'user_id': 'player-a', 'character_id': 'char-a', 'character_name': 'Aria',
+            'rolls': [{'sides': 20, 'result': 1}], 'total': 1, 'archived': False,
+            'created_at': '2026-01-01T03:00:00+00:00',
+        },
+    ])
+    cutoff = '2026-01-01T02:00:00+00:00'
+    recap = run(roll_events.build_summary(CAMPAIGN, cutoff=cutoff))
+    assert recap['generated_at'] == cutoff
+    assert recap['session']['playerRolls'] == 1
+    assert recap['session']['actors'][0]['character_id'] == 'char-b'
+    assert recap['allTime']['playerRolls'] == 2
+    assert {a['character_id'] for a in recap['allTime']['actors']} == {'char-a', 'char-b'}
+    assert recap['allTime']['nat20s'] == 1
+    assert recap['session']['nat1s'] == 0
