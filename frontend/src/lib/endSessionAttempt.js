@@ -6,22 +6,39 @@
  * No private player/GM data is stored here, only the retry token and time.
  */
 const MAX_AGE_MS = 8 * 60 * 60 * 1000;
+// Storage can be unavailable (private browsing, quota, blocked access).
+// A per-tab memory fallback still keeps close IDs stable across same-page retries.
+const memoryAttempts = new Map();
 const keyFor = (campaignId, account) => (
   campaignId && account ? `rqk.endSessionAttempt.v1:${encodeURIComponent(account)}:${encodeURIComponent(campaignId)}` : ''
 );
 
+function validAttempt(saved) {
+  if (!saved || typeof saved.id !== 'string' || !Number.isFinite(saved.createdAt)) return null;
+  if (Date.now() - saved.createdAt > MAX_AGE_MS || saved.createdAt > Date.now()) return null;
+  if (!/^[A-Za-z0-9._:-]{8,128}$/.test(saved.id)) return null;
+  return saved;
+}
+
 function read(key) {
+  if (!key) return null;
   try {
-    const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
-    if (!saved || typeof saved.id !== 'string' || !Number.isFinite(saved.createdAt)) return null;
-    if (Date.now() - saved.createdAt > MAX_AGE_MS || saved.createdAt > Date.now()) return null;
-    if (!/^[A-Za-z0-9._:-]{8,128}$/.test(saved.id)) return null;
-    return saved;
-  } catch { return null; }
+    // A successful store supersedes the transient in-memory fallback.
+    return validAttempt(JSON.parse(sessionStorage.getItem(key) || 'null'))
+      || validAttempt(memoryAttempts.get(key));
+  } catch {
+    return validAttempt(memoryAttempts.get(key));
+  }
 }
 
 function write(key, value) {
-  try { if (key) sessionStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ }
+  if (!key) return;
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+    memoryAttempts.delete(key);
+  } catch {
+    memoryAttempts.set(key, value);
+  }
 }
 
 function newId() {
@@ -52,5 +69,6 @@ export function clearSessionCloseAttempt(campaignId, account, id) {
   if (!key) return;
   const saved = read(key);
   if (saved?.id !== id) return;
+  memoryAttempts.delete(key);
   try { sessionStorage.removeItem(key); } catch { /* ignore */ }
 }
