@@ -171,8 +171,30 @@ test('focused display tabs keep unrelated command panels out of sight', () => {
   expect(screen.getByTestId('combat-display-commander')).not.toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
   expect(screen.getByTestId('combat-display-commander')).toBeVisible();
-  expect(screen.queryByTestId('live-location-explorer')).not.toBeInTheDocument();
+  expect(screen.getByTestId('live-location-explorer')).not.toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Quick Actions' }));
   expect(screen.getByRole('button', { name: 'Travel Montage' })).toBeVisible();
   expect(screen.getByTestId('combat-display-commander')).not.toBeVisible();
+});
+
+
+test('switching away to Combat preserves the chosen world location without refetching', async () => {
+  let worldReads = 0;
+  apiClient.get.mockImplementation(url => {
+    if (url.endsWith('/world')) {
+      worldReads += 1;
+      return Promise.resolve({ data: { continents: [{ id: 'continent-a', name: 'Tiacarta', regions: [] }] } });
+    }
+    return Promise.resolve({ data: [] });
+  });
+  render(<LivePlayerDisplayControls campaignId="campaign-1" />);
+  fireEvent.click(await screen.findByRole('button', { name: /World Builder/i }));
+  fireEvent.click(screen.getByRole('button', { name: /Tiacarta/i }));
+  expect(screen.getByRole('heading', { name: 'Tiacarta' })).toBeVisible();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
+  expect(screen.getByTestId('live-location-explorer')).not.toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Locations' }));
+  expect(screen.getByRole('heading', { name: 'Tiacarta' })).toBeVisible();
+  expect(worldReads).toBe(1);
 });
