@@ -396,3 +396,31 @@ def test_a_hidden_token_stays_hidden_even_with_a_character_id():
     ids = [token['id'] for token in state['payload']['tokens']]
     assert ids == ['seen']
     assert 'Unseen Ally' not in str(state['payload'])
+
+
+def test_public_shop_display_includes_prices_but_strips_gm_secrets():
+    state = sanitize_display_state('campaign-a', {
+        'mode': 'shop',
+        'payload': {
+            'title': 'The Iron Anvil',
+            'subtitle': 'Blacksmith of Ironhaven',
+            'image_url': '/images/smithy.jpg',
+            'gm_notes': 'Secret underfloor trap',
+            'items': [
+                {'name': 'Longsword', 'price': '15 gp', 'quantity': 2,
+                 'gm_notes': 'This sword is cursed', 'wholesale_price': '4 gp'},
+                {'name': 'Potion', 'price': '50 gp', 'quantity': 0,
+                 'hidden': True, 'private_story': 'Do not reveal'},
+            ],
+        },
+    }, 'gm')
+    payload = state['payload']
+    assert state['mode'] == 'shop'
+    assert payload['title'] == 'The Iron Anvil'
+    assert payload['items'] == [
+        {'name': 'Longsword', 'price': '15 gp', 'quantity': 2},
+        {'name': 'Potion', 'price': '50 gp', 'quantity': 0},
+    ]
+    assert 'cursed' not in str(payload)
+    assert 'Secret' not in str(payload)
+    assert 'wholesale_price' not in str(payload)
