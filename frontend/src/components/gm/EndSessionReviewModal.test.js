@@ -105,3 +105,33 @@ test('successful archive with a failed optional GM note is reported, not swallow
   expect(toast.warning).toHaveBeenCalledWith(expect.stringMatching(/recap note could not be saved/i));
   expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledTimes(1);
 });
+
+
+test('archived sessions lock story wrap-up and GM recap note choices during display retries', async () => {
+  apiClient.get.mockImplementation(async url => ({
+    data: url.includes('/roll-events/summary') ? summary : [{
+      id: 'arc-1', title: 'Adventure', status: 'active',
+      chapters: [
+        { id: 'chapter-1', title: 'Act One', status: 'prepped', scenes: [] },
+        { id: 'chapter-2', title: 'Act Two', status: 'planned', scenes: [] },
+      ],
+    }],
+  }));
+  publishCampaignDisplayStateWithStatus.mockResolvedValue({ state: {}, remoteSynced: false });
+  await renderReady();
+
+  const markPlayed = screen.getByRole('checkbox', { name: 'Mark current chapter played' });
+  const prepNext = screen.getByRole('checkbox', { name: /Mark current chapter played and prep next chapter/i });
+  const saveNote = screen.getByRole('checkbox', { name: /Save a GM-only roll and story recap note/i });
+  expect(markPlayed).toBeEnabled();
+  expect(prepNext).toBeEnabled();
+  expect(saveNote).toBeEnabled();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Send Dice-Only Player Show' }));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Retry Player Display' })).toBeEnabled());
+  expect(markPlayed).toBeDisabled();
+  expect(prepNext).toBeDisabled();
+  expect(saveNote).toBeDisabled();
+  expect(screen.getByRole('status')).toHaveTextContent('options are locked');
+  expect(apiClient.put).not.toHaveBeenCalled();
+});
