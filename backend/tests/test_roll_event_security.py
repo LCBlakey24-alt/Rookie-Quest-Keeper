@@ -65,6 +65,9 @@ def _matches(doc, query):
         elif expected is None:
             if actual is not None:
                 return False
+        elif isinstance(actual, list) and not isinstance(expected, list):
+            if expected not in actual:
+                return False
         elif actual != expected:
             return False
     return True
@@ -121,6 +124,9 @@ class Collection:
         for doc in self.docs:
             if _matches(doc, query):
                 doc.update(copy.deepcopy(update.get('$set', {})))
+                for key, value in update.get('$addToSet', {}).items():
+                    if value not in doc.setdefault(key, []):
+                        doc[key].append(copy.deepcopy(value))
                 return SimpleNamespace(matched_count=1, modified_count=1)
         return SimpleNamespace(matched_count=0, modified_count=0)
 
@@ -786,6 +792,13 @@ def test_pending_close_is_recovered_even_when_a_new_client_has_another_id(env):
     assert replay.status_code == 200
     assert replay.json()['session']['playerRolls'] == 1
     assert len(env.db.roll_session_summaries.docs) == 1
+    # If the replacement response was also lost, replay the same replacement.
+    # This must not silently archive new events or create an empty recap.
+    replay_again = run(close_session(env, key='end-session-new-client-id'))
+    assert replay_again.status_code == 200
+    assert replay_again.json() == replay.json()
+    assert len(env.db.roll_session_summaries.docs) == 1
+    assert 'end-session-new-client-id' in env.db.roll_session_summaries.docs[0]['recovery_close_ids']
 
 
 def test_new_rolls_after_archival_cutoff_remain_active(env):
@@ -823,7 +836,54 @@ def test_roll_session_recovery_indexes_cover_client_id_and_pending_campaign():
         SimpleNamespace(roll_session_summaries=Recorder()),
     ))
     assert {options['name'] for _, options in recorded} == {
-        'roll_session_close_id_unique', 'roll_session_one_pending'
+        'roll_session_close_id_unique', 'roll_session_one_pending',
+        'roll_session_recovery_id_unique',
     }
     assert all(options['unique'] for _, options in recorded)
     assert any(options['partialFilterExpression'] == {'status': 'pending'} for _, options in recorded)
+
+
+def test_a_second_replacement_id_remains_associated_after_multiple_interrupted_recoveries(env):
+    assert run(post(env, 'player-a', player_roll())).status_code == 200
+    original_archive = env.db.roll_events.update_many
+    async def broken_archive(query, update):
+        raise RuntimeError('archive offline')
+    env.db.roll_events.update_many = broken_archive
+    with pytest.raises(RuntimeError, match='archive offline'):
+        run(close_session(env, key='end-session-primary-id'))
+    with pytest.raises(RuntimeError, match='archive offline'):
+        run(close_session(env, key='end-session-recovery-a'))
+    env.db.roll_events.update_many = original_archive
+    recovered = run(close_session(env, key='end-session-recovery-b'))
+    assert recovered.status_code == 200
+    assert recovered.json()['session']['playerRolls'] == 1
+    for key in ('end-session-primary-id', 'end-session-recovery-a', 'end-session-recovery-b'):
+        replay = run(close_session(env, key=key))
+        assert replay.status_code == 200
+        assert replay.json() == recovered.json()
+    assert len(env.db.roll_session_summaries.docs) == 1
+    assert set(env.db.roll_session_summaries.docs[0]['recovery_close_ids']) == {
+        'end-session-recovery-a', 'end-session-recovery-b'
+    }
+
+
+def test_recovery_id_is_persisted_before_final_roll_archive(env):
+    assert run(post(env, 'player-a', player_roll())).status_code == 200
+    original_archive = env.db.roll_events.update_many
+
+    async def broken_archive(query, update):
+        raise RuntimeError('temporarily unable to archive')
+
+    env.db.roll_events.update_many = broken_archive
+    with pytest.raises(RuntimeError):
+        run(close_session(env, key='end-session-pending-primary'))
+    with pytest.raises(RuntimeError):
+        run(close_session(env, key='end-session-pending-alias'))
+
+    assert 'end-session-pending-alias' in env.db.roll_session_summaries.docs[0]['recovery_close_ids']
+    assert env.db.roll_session_summaries.docs[0]['status'] == 'pending'
+    assert all(not x['archived'] for x in stored(env))
+    env.db.roll_events.update_many = original_archive
+    response = run(close_session(env, key='end-session-pending-alias'))
+    assert response.status_code == 200
+    assert len(env.db.roll_session_summaries.docs) == 1
