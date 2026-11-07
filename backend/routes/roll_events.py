@@ -294,105 +294,168 @@ def d20s_for(event: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [roll for roll in rolls if int(roll.get("sides") or 0) == 20 and not roll.get("dropped")]
 
 
-def summarise(events: List[Dict[str, Any]], player_focus: bool = True) -> Dict[str, Any]:
-    player_events = [event for event in events if event.get("actor_type") == "player"]
-    gm_events = [event for event in events if event.get("actor_type") != "player"]
-    # A zero-player session must remain empty in the player-facing recap.
-    # Falling back to GM-only rolls exposes private labels, totals and awards.
-    focus_events = player_events if player_focus else events
-    by_actor: Dict[str, Dict[str, Any]] = {}
-    total_dice = 0
-    nat20s = 0
-    nat1s = 0
-    explosions = 0
-    highest_total = None
-    biggest_d20 = None
+class RollSummaryAccumulator:
+    """Aggregate a roll stream with memory bounded by characters, not dice.
 
-    for event in focus_events:
-        actor = event.get("character_name") or event.get("actor") or "Player"
-        if actor not in by_actor:
-            by_actor[actor] = {
-                "name": actor,
-                "rolls": 0,
-                "dice": 0,
-                "nat20s": 0,
-                "nat1s": 0,
-                "explosions": 0,
-                "highestTotal": 0,
+    Keep only counters, character leaderboards and the highest-roll references.
+    GM-only rolls contribute to the GM count, never player dice/awards.
+    """
+
+    def __init__(self, player_focus: bool = True):
+        self.player_focus = player_focus
+        self.player_rolls = 0
+        self.gm_rolls = 0
+        self.total_rolls = 0
+        self.by_actor: Dict[tuple, Dict[str, Any]] = {}
+        self.total_dice = 0
+        self.nat20s = 0
+        self.nat1s = 0
+        self.explosions = 0
+        self.highest_total = None
+        self.biggest_d20 = None
+
+    def add(self, event: Dict[str, Any]) -> None:
+        is_player = event.get('actor_type') == 'player'
+        if is_player:
+            self.player_rolls += 1
+        else:
+            self.gm_rolls += 1
+        if self.player_focus and not is_player:
+            return
+
+        self.total_rolls += 1
+        name = event.get('character_name') or event.get('actor') or 'Player'
+        character_id = str(event.get('character_id') or '')
+        # Modern rolls are keyed by saved character ID; legacy rolls with no
+        # character ID use the account ID before falling back to name.
+        if character_id:
+            key = ('character', character_id)
+        elif event.get('user_id'):
+            key = ('legacy-account', str(event['user_id']))
+        else:
+            key = ('legacy-name', name)
+
+        if key not in self.by_actor:
+            self.by_actor[key] = {
+                'name': name, 'rolls': 0, 'dice': 0, 'nat20s': 0,
+                'nat1s': 0, 'explosions': 0, 'highestTotal': 0,
+                **({'character_id': character_id} if character_id else {}),
             }
-        actor_stats = by_actor[actor]
-        visible = event.get("visibleRolls") or event.get("rolls") or []
-        actor_stats["rolls"] += 1
-        actor_stats["dice"] += len(visible)
-        actor_stats["explosions"] += int(event.get("explosionCount") or 0)
-        actor_stats["highestTotal"] = max(actor_stats["highestTotal"], int(event.get("total") or 0))
-        total_dice += len(visible)
-        explosions += int(event.get("explosionCount") or 0)
+        actor_stats = self.by_actor[key]
+        visible = event.get('visibleRolls') or event.get('rolls') or []
+        dice_count = len(visible)
+        total = int(event.get('total') or 0)
+        explosion_count = int(event.get('explosionCount') or 0)
 
-        if highest_total is None or int(event.get("total") or 0) > int(highest_total.get("total") or 0):
-            highest_total = event
+        actor_stats['rolls'] += 1
+        actor_stats['dice'] += dice_count
+        actor_stats['explosions'] += explosion_count
+        actor_stats['highestTotal'] = max(actor_stats['highestTotal'], total)
+        self.total_dice += dice_count
+        self.explosions += explosion_count
+        if self.highest_total is None or total > int(self.highest_total.get('total') or 0):
+            self.highest_total = event
 
         for roll in d20s_for(event):
-            result = int(roll.get("result") or 0)
+            result = int(roll.get('result') or 0)
             if result == 20:
-                nat20s += 1
-                actor_stats["nat20s"] += 1
+                self.nat20s += 1
+                actor_stats['nat20s'] += 1
             if result == 1:
-                nat1s += 1
-                actor_stats["nat1s"] += 1
-            if biggest_d20 is None or result > int(biggest_d20.get("result") or 0):
-                biggest_d20 = {**roll, "actor": actor, "label": event.get("label") or "Roll"}
+                self.nat1s += 1
+                actor_stats['nat1s'] += 1
+            if self.biggest_d20 is None or result > int(self.biggest_d20.get('result') or 0):
+                self.biggest_d20 = {
+                    **roll, 'actor': name, 'label': event.get('label') or 'Roll',
+                    **({'character_id': character_id} if character_id else {}),
+                }
 
-    actors = sorted(by_actor.values(), key=lambda item: (-item["rolls"], -item["nat20s"], item["name"]))
-    most_crits = max(actors, key=lambda item: item["nat20s"], default=None)
-    most_fumbles = max(actors, key=lambda item: item["nat1s"], default=None)
-    busiest = actors[0] if actors else None
-    awards = []
-    if most_crits and most_crits["nat20s"]:
-        awards.append({"title": "Crit Goblin", "name": most_crits["name"], "value": f"{most_crits['nat20s']} Nat 20{'s' if most_crits['nat20s'] != 1 else ''}"})
-    if most_fumbles and most_fumbles["nat1s"]:
-        awards.append({"title": "Dice Betrayal", "name": most_fumbles["name"], "value": f"{most_fumbles['nat1s']} Nat 1{'s' if most_fumbles['nat1s'] != 1 else ''}"})
-    if busiest and busiest["rolls"]:
-        awards.append({"title": "Button Masher", "name": busiest["name"], "value": f"{busiest['rolls']} player roll{'s' if busiest['rolls'] != 1 else ''}"})
-    if highest_total:
-        awards.append({"title": "Big Number Energy", "name": highest_total.get("character_name") or highest_total.get("actor") or "Player", "value": f"{highest_total.get('total', 0)} on {highest_total.get('label') or highest_total.get('notation') or 'a roll'}"})
+    def finish(self) -> Dict[str, Any]:
+        actors = sorted(
+            self.by_actor.values(),
+            key=lambda item: (-item['rolls'], -item['nat20s'], item['name'],
+                              item.get('character_id', '')),
+        )
+        most_crits = max(actors, key=lambda item: item['nat20s'], default=None)
+        most_fumbles = max(actors, key=lambda item: item['nat1s'], default=None)
+        busiest = actors[0] if actors else None
+        awards = []
+        if most_crits and most_crits['nat20s']:
+            awards.append({
+                'title': 'Crit Goblin', 'name': most_crits['name'],
+                'value': f"{most_crits['nat20s']} Nat 20{'s' if most_crits['nat20s'] != 1 else ''}",
+                **({'character_id': most_crits['character_id']} if most_crits.get('character_id') else {}),
+            })
+        if most_fumbles and most_fumbles['nat1s']:
+            awards.append({
+                'title': 'Dice Betrayal', 'name': most_fumbles['name'],
+                'value': f"{most_fumbles['nat1s']} Nat 1{'s' if most_fumbles['nat1s'] != 1 else ''}",
+                **({'character_id': most_fumbles['character_id']} if most_fumbles.get('character_id') else {}),
+            })
+        if busiest and busiest['rolls']:
+            awards.append({
+                'title': 'Button Masher', 'name': busiest['name'],
+                'value': f"{busiest['rolls']} player roll{'s' if busiest['rolls'] == 1 else 's'}",
+                **({'character_id': busiest['character_id']} if busiest.get('character_id') else {}),
+            })
+        if self.highest_total:
+            top = self.highest_total
+            top_character_id = str(top.get('character_id') or '')
+            awards.append({
+                'title': 'Big Number Energy',
+                'name': top.get('character_name') or top.get('actor') or 'Player',
+                'value': f"{top.get('total', 0)} on {top.get('label') or top.get('notation') or 'a roll'}",
+                **({'character_id': top_character_id} if top_character_id else {}),
+            })
 
-    return {
-        "totalRolls": len(focus_events),
-        "playerRolls": len(player_events),
-        "gmRolls": len(gm_events),
-        "totalDice": total_dice,
-        "nat20s": nat20s,
-        "nat1s": nat1s,
-        "explosions": explosions,
-        "highestTotal": highest_total,
-        "biggestD20": biggest_d20,
-        "actors": actors,
-        "awards": awards,
-    }
+        return {
+            'totalRolls': self.total_rolls,
+            'playerRolls': self.player_rolls,
+            'gmRolls': self.gm_rolls,
+            'totalDice': self.total_dice,
+            'nat20s': self.nat20s,
+            'nat1s': self.nat1s,
+            'explosions': self.explosions,
+            'highestTotal': self.highest_total,
+            'biggestD20': self.biggest_d20,
+            'actors': actors,
+            'awards': awards,
+        }
+
+
+def summarise(events: List[Dict[str, Any]], player_focus: bool = True) -> Dict[str, Any]:
+    """Compatibility wrapper for callers with an in-memory iterable."""
+    accumulator = RollSummaryAccumulator(player_focus=player_focus)
+    for event in events:
+        accumulator.add(event)
+    return accumulator.finish()
 
 
 async def build_summary(campaign_id: str, *, cutoff: Optional[str] = None) -> Dict[str, Any]:
-    """Snapshot preview or a point-in-time session before archiving.
+    """Count every persisted roll with one cursor instead of fixed-size reads.
 
-    The cutoff prevents late rolls arriving during End Session from being
-    archived without appearing in the saved recap.
+    A point-in-time cutoff preserves the exact pre-archive snapshot, and
+    archived events count only toward all-time statistics. Motor streams
+    results without retaining an unbounded list in application memory.
     """
-    campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0, "name": 1}) or {}
-    active_query = {"campaign_id": campaign_id, "archived": {"$ne": True}}
-    all_time_query = {"campaign_id": campaign_id}
+    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'name': 1}) or {}
+    query = {'campaign_id': campaign_id}
     if cutoff:
-        active_query["created_at"] = {"$lte": cutoff}
-        all_time_query["created_at"] = {"$lte": cutoff}
-    active = await db.roll_events.find(active_query, {"_id": 0}).sort("created_at", 1).to_list(2000)
-    all_time = await db.roll_events.find(all_time_query, {"_id": 0}).sort("created_at", 1).to_list(10000)
-    return {
-        "campaignName": campaign.get("name") or "Campaign",
-        "generated_at": cutoff or now_iso(),
-        "session": summarise(active, player_focus=True),
-        "allTime": summarise(all_time, player_focus=True),
-    }
+        query['created_at'] = {'$lte': cutoff}
 
+    session = RollSummaryAccumulator(player_focus=True)
+    all_time = RollSummaryAccumulator(player_focus=True)
+    async for event in db.roll_events.find(query, {'_id': 0}).sort('created_at', 1):
+        all_time.add(event)
+        if event.get('archived') != True:
+            session.add(event)
+
+    return {
+        'campaignName': campaign.get('name') or 'Campaign',
+        'generated_at': cutoff or now_iso(),
+        'session': session.finish(),
+        'allTime': all_time.finish(),
+    }
 
 async def read_roll_payload(request: Request) -> RollEventPayload:
     declared = request.headers.get('content-length')
