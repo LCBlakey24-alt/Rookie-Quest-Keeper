@@ -395,7 +395,7 @@ class RollSummaryAccumulator:
         if busiest and busiest['rolls']:
             awards.append({
                 'title': 'Button Masher', 'name': busiest['name'],
-                'value': f"{busiest['rolls']} player roll{'s' if busiest['rolls'] == 1 else 's'}",
+                'value': f"{busiest['rolls']} player roll{'' if busiest['rolls'] == 1 else 's'}",
                 **({'character_id': busiest['character_id']} if busiest.get('character_id') else {}),
             })
         if self.highest_total:
