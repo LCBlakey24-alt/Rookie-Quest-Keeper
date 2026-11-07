@@ -266,8 +266,14 @@ function summarise(events = [], playerFocus = true) {
 
   for (const event of focusEvents) {
     const actor = event.character_name || event.actor || 'Player';
-    if (!byActor.has(actor)) byActor.set(actor, { name: actor, rolls: 0, dice: 0, nat20s: 0, nat1s: 0, explosions: 0, highestTotal: 0 });
-    const stats = byActor.get(actor);
+    const characterId = String(event.character_id || '');
+    const actorKey = characterId ? `character:${characterId}`
+      : event.user_id ? `legacy-account:${event.user_id}` : `legacy-name:${actor}`;
+    if (!byActor.has(actorKey)) byActor.set(actorKey, {
+      name: actor, rolls: 0, dice: 0, nat20s: 0, nat1s: 0, explosions: 0, highestTotal: 0,
+      ...(characterId ? { character_id: characterId } : {}),
+    });
+    const stats = byActor.get(actorKey);
     const visible = event.visibleRolls || event.rolls || [];
     const d20s = d20sFor(event);
     stats.rolls += 1;
@@ -280,19 +286,22 @@ function summarise(events = [], playerFocus = true) {
     for (const roll of d20s) {
       if (roll.result === 20) { nat20s += 1; stats.nat20s += 1; }
       if (roll.result === 1) { nat1s += 1; stats.nat1s += 1; }
-      if (!biggestD20 || Number(roll.result) > Number(biggestD20.result)) biggestD20 = { ...roll, actor, label: event.label };
+      if (!biggestD20 || Number(roll.result) > Number(biggestD20.result)) biggestD20 = {
+        ...roll, actor, label: event.label,
+        ...(characterId ? { character_id: characterId } : {}),
+      };
     }
   }
 
-  const actors = Array.from(byActor.values()).sort((a, b) => b.rolls - a.rolls || b.nat20s - a.nat20s || a.name.localeCompare(b.name));
+  const actors = Array.from(byActor.values()).sort((a, b) => b.rolls - a.rolls || b.nat20s - a.nat20s || a.name.localeCompare(b.name) || String(a.character_id || '').localeCompare(String(b.character_id || '')));
   const mostCrits = [...actors].sort((a, b) => b.nat20s - a.nat20s)[0];
   const mostFumbles = [...actors].sort((a, b) => b.nat1s - a.nat1s)[0];
   const busiest = actors[0];
   const awards = [
-    mostCrits?.nat20s ? { title: 'Crit Goblin', name: mostCrits.name, value: `${mostCrits.nat20s} Nat 20${mostCrits.nat20s === 1 ? '' : 's'}` } : null,
-    mostFumbles?.nat1s ? { title: 'Dice Betrayal', name: mostFumbles.name, value: `${mostFumbles.nat1s} Nat 1${mostFumbles.nat1s === 1 ? '' : 's'}` } : null,
-    busiest?.rolls ? { title: 'Button Masher', name: busiest.name, value: `${busiest.rolls} player roll${busiest.rolls === 1 ? '' : 's'}` } : null,
-    highestTotal ? { title: 'Big Number Energy', name: highestTotal.character_name || highestTotal.actor || 'Player', value: `${highestTotal.total} on ${highestTotal.label || highestTotal.notation || 'a roll'}` } : null,
+    mostCrits?.nat20s ? { title: 'Crit Goblin', name: mostCrits.name, value: `${mostCrits.nat20s} Nat 20${mostCrits.nat20s === 1 ? '' : 's'}`, ...(mostCrits.character_id ? { character_id: mostCrits.character_id } : {}) } : null,
+    mostFumbles?.nat1s ? { title: 'Dice Betrayal', name: mostFumbles.name, value: `${mostFumbles.nat1s} Nat 1${mostFumbles.nat1s === 1 ? '' : 's'}`, ...(mostFumbles.character_id ? { character_id: mostFumbles.character_id } : {}) } : null,
+    busiest?.rolls ? { title: 'Button Masher', name: busiest.name, value: `${busiest.rolls} player roll${busiest.rolls === 1 ? '' : 's'}`, ...(busiest.character_id ? { character_id: busiest.character_id } : {}) } : null,
+    highestTotal ? { title: 'Big Number Energy', name: highestTotal.character_name || highestTotal.actor || 'Player', value: `${highestTotal.total} on ${highestTotal.label || highestTotal.notation || 'a roll'}`, ...(highestTotal.character_id ? { character_id: highestTotal.character_id } : {}) } : null,
   ].filter(Boolean);
 
   return { totalRolls: focusEvents.length, playerRolls: playerEvents.length, gmRolls: gmEvents.length, totalDice, nat20s, nat1s, explosions, highestTotal, biggestD20, actors, awards };
