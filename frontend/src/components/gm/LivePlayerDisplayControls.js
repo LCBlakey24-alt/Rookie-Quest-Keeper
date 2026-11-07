@@ -305,7 +305,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const openPlayerDisplay = (targetId = displayTarget) => {
     const safeTarget = normaliseTarget(targetId);
     setDisplayTarget(safeTarget);
-    void sendDisplayTarget(safeTarget);
+    // The URL already specifies TV vs table. Opening a new viewer must not
+    // broadcast a blank state and erase the current map, combat or reveal.
     const opened = window.open(displayUrlFor(safeTarget), '_blank', 'noopener,noreferrer');
     if (!opened) toast.error('The display tab was blocked. Allow pop-ups, then try again.');
   };
