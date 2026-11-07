@@ -36,6 +36,7 @@ function modeLabel(mode) {
   if (mode === 'table-result') return 'Roll table';
   if (mode === 'image') return 'Map / image';
   if (mode === 'npc-grid') return 'NPC reveal';
+  if (mode === 'shop') return 'Shop catalog';
   if (mode === 'combat') return 'Combat HUD';
   if (mode === 'battle-start') return 'Battle Starting';
   if (mode === 'group-check') return 'Group check';
@@ -268,11 +269,42 @@ function DisplayContent({ state, target, hasPartySidebar = false, partyMembers =
   if (mode === 'table-result') return <TableResultDisplay key={key} payload={payload} target={target} />;
   if (mode === 'image') return <ImageDisplay key={key} payload={payload} target={target} hasPartySidebar={hasPartySidebar} />;
   if (mode === 'npc-grid') return <NPCGridDisplay key={key} payload={payload} target={target} />;
+  if (mode === 'shop') return <ShopDisplay key={key} payload={payload} target={target} />;
   if (mode === 'battle-start') return <BattleStartDisplay target={target} />;
   if (mode === 'combat') return <CombatDisplay key={key} payload={payload} target={target} partyMembers={partyMembers} />;
   if (mode === 'group-check') return <GroupCheckDisplay key={key} payload={payload} target={target} fallbackParty={partyMembers} />;
   if (mode === 'end-session-stats') return <EndSessionStatsDisplay key={key} payload={payload} target={target} />;
   return <BlankDisplay key={key} payload={payload} target={target} />;
+}
+
+function ShopDisplay({ payload, target }) {
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  return (
+    <section data-testid="player-display-shop" style={{
+      display: 'grid', alignContent: 'start', gap: isTable(target) ? 12 : 24,
+      padding: isTable(target) ? 16 : 'clamp(20px, 4vw, 60px)',
+      height: '100%', minHeight: 0, overflowY: 'auto', background: theme.bg,
+    }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+        <div>
+          <p style={{ color: theme.red, fontSize: 14, fontWeight: 800, textTransform: 'uppercase' }}>Shop & Supplies</p>
+          <h1 style={{ color: theme.text, fontSize: 'clamp(28px, 4vw, 58px)', margin: 0 }}>{payload.title || 'Shop'}</h1>
+          {payload.subtitle && <p style={{ color: theme.soft }}>{payload.subtitle}</p>}
+        </div>
+        {payload.image_url && <img src={payload.image_url} alt="Shop" style={{ maxWidth: isTable(target) ? 110 : 220, maxHeight: isTable(target) ? 95 : 160, objectFit: 'cover' }} />}
+      </header>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10 }}>
+        {items.map((item, index) => <React.Fragment key={String(index) + '-' + String(item.name)}>
+          <div style={{ display: 'grid', gap: 3, padding: '12px 0', borderBottom: '1px solid ' + theme.line }}>
+            <strong style={{ fontSize: isTable(target) ? 16 : 23 }}>{item.name || 'Item'}</strong>
+            {item.quantity !== null && item.quantity !== undefined && <small style={{ color: theme.soft }}>{item.quantity === 0 ? 'Out of stock' : 'In stock: ' + item.quantity}</small>}
+          </div>
+          <strong style={{ alignSelf: 'center', textAlign: 'right', fontSize: isTable(target) ? 16 : 23 }}>{item.price || 'Price unavailable'}</strong>
+        </React.Fragment>)}
+      </div>
+      {!items.length && <p>No priced stock has been revealed.</p>}
+    </section>
+  );
 }
 
 function PartySidebar({ members }) {

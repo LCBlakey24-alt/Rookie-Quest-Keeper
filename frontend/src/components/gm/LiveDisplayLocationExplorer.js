@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight, Globe, Image as ImageIcon, MapPin, RefreshCw, Send, Store, Users } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { isGmOnlyStockItem } from '@/lib/shopCatalog';
 
 const arr = value => Array.isArray(value) ? value : [];
 const nameOf = (item, fallback = 'Unnamed location') => String(item?.name || item?.title || fallback);
@@ -59,6 +60,13 @@ function atPath(tree, path) {
 }
 
 const shopTypes = new Set(['shop', 'blacksmith', 'tavern', 'inn', 'market', 'store', 'merchant']);
+
+// Legacy and imported inventories may retain visibility flags even when the
+// current stock editor only stores name/price/quantity. Filter *before*
+// projecting public fields; otherwise the backend cannot identify hidden stock.
+export function isPlayerVisibleShopItem(item) {
+  return Boolean(item && typeof item === 'object' && !isGmOnlyStockItem(item));
+}
 function relatedNpcs(node, npcs) {
   if (!node || node.kind === 'folder') return [];
   const id = String(node.data?.id || '');
@@ -77,7 +85,7 @@ const action = { ...tile, minHeight: 36, padding: '6px 10px', borderBottom: '3px
 const label = { display: 'flex', alignItems: 'center', gap: 7, margin: '0 0 8px', fontSize: 14 };
 const section = { background: 'var(--rq-bg-main,#091b2c)', border: '1px solid var(--rq-border-default,#294156)', padding: 12 };
 
-export default function LiveDisplayLocationExplorer({ campaignId, maps = [], npcs = [], onRevealScene, onRevealImage, onRevealNpcs }) {
+export default function LiveDisplayLocationExplorer({ campaignId, maps = [], npcs = [], onRevealScene, onRevealImage, onRevealNpcs, onRevealShop }) {
   const [world, setWorld] = useState({ continents: [] });
   const [locations, setLocations] = useState([]);
   const [path, setPath] = useState([]);
@@ -122,6 +130,7 @@ export default function LiveDisplayLocationExplorer({ campaignId, maps = [], npc
     ...arr(current?.data?.gallery || current?.data?.images).map(value => typeof value === 'string' ? value : imageOf(value)),
   ].filter(Boolean))], [current]);
   const stock = arr(current?.data?.shop_inventory).filter(row => row && row.name);
+  const revealableStock = stock.filter(isPlayerVisibleShopItem);
   const isShop = shopTypes.has(String(current?.type || '').toLowerCase());
 
   return <section style={box} data-testid="live-location-explorer">
@@ -175,9 +184,20 @@ export default function LiveDisplayLocationExplorer({ campaignId, maps = [], npc
       </section>}
 
       {(isShop || stock.length > 0) && <section style={section} data-testid="location-shop-catalog">
-        <h5 style={label}><Store size={14}/> Items & Prices</h5>
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+          <h5 style={label}><Store size={14}/> Items & Prices</h5>
+          {revealableStock.length > 0 && <button type="button" style={action} onClick={() => onRevealShop?.({
+            name: current.name,
+            description: current.description,
+            image_url: imageOf(current.data),
+            items: revealableStock.map(item => ({
+              name: String(item.name), price: String(item.price || ''),
+              ...(item.quantity !== undefined && item.quantity !== null ? { quantity: Number(item.quantity) } : {}),
+            })),
+          })}><Send size={14}/> Reveal Shop Stock</button>}
+        </div>
         {stock.length > 0 ? stock.map((item, i) => <div key={String(item.id || i)} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: '8px 0', borderBottom: '1px solid var(--rq-border-default,#294156)', justifyContent: 'space-between' }}>
-          <strong>{String(item.name)}</strong><span>{String(item.price || 'Price not set')}</span>{item.quantity !== undefined && <small>{Number(item.quantity) === 0 ? 'Out of stock' : 'Stock: ' + String(item.quantity)}</small>}
+          <strong>{String(item.name)}{!isPlayerVisibleShopItem(item) ? ' (GM-only)' : ''}</strong><span>{String(item.price || 'Price not set')}</span>{item.quantity !== undefined && <small>{Number(item.quantity) === 0 ? 'Out of stock' : 'Stock: ' + String(item.quantity)}</small>}
         </div>) : <p>No prices have been entered for this shop. Shop inventory can be added through campaign editing.</p>}
       </section>}
 

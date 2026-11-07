@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { formatShopStockText, parseShopStockText, parsePlaceImageLines } from '@/lib/shopCatalog';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,6 +103,9 @@ const emptyPlaceForm = {
   owner: '',
   services: '',
   notes: '',
+  image_url: '',
+  images_text: '',
+  shop_stock_text: '',
 };
 
 function typeLabel(typeId) {
@@ -308,6 +312,9 @@ function LocationsTab({ campaignId }) {
       owner: place.owner || '',
       services: place.services || '',
       notes: place.notes || '',
+      image_url: place.image_url || '',
+      images_text: (place.images || []).join('\n'),
+      shop_stock_text: formatShopStockText(place.shop_inventory),
     });
     setShowPlaceDialog(true);
   };
@@ -319,6 +326,12 @@ function LocationsTab({ campaignId }) {
       return;
     }
 
+    const stock = parseShopStockText(placeFormData.shop_stock_text);
+    const gallery = parsePlaceImageLines(placeFormData.images_text);
+    if (stock.error || gallery.error) {
+      toast.error(stock.error || gallery.error);
+      return;
+    }
     const payload = {
       name: placeFormData.name.trim(),
       place_type: placeFormData.place_type || 'other',
@@ -326,6 +339,9 @@ function LocationsTab({ campaignId }) {
       owner: placeFormData.owner.trim(),
       services: placeFormData.services.trim(),
       notes: placeFormData.notes.trim(),
+      image_url: placeFormData.image_url.trim(),
+      images: gallery.images,
+      shop_inventory: stock.items,
     };
 
     try {
@@ -583,6 +599,14 @@ function PlaceDialog({ campaignId, editingPlace, placeFormData, setPlaceFormData
         <TextField label="Owner / linked NPC" testId="place-owner-input" value={placeFormData.owner} onChange={(value) => setPlaceFormData({ ...placeFormData, owner: value })} placeholder="Optional. Full NPCs still belong in NPCs & Figures." />
         <TextAreaField label="Description" testId="place-description-input" value={placeFormData.description} onChange={(value) => setPlaceFormData({ ...placeFormData, description: value })} minHeight={90} placeholder="What is this smaller place inside the location?" />
         <TextAreaField label="Services / purpose" testId="place-services-input" value={placeFormData.services} onChange={(value) => setPlaceFormData({ ...placeFormData, services: value })} minHeight={70} placeholder="What can players buy, learn, do, unlock, or discover here?" />
+        <TextField label="Main image URL" testId="place-image-url" value={placeFormData.image_url} onChange={(value) => setPlaceFormData({ ...placeFormData, image_url: value })} placeholder="https://... or /images/..." />
+        <TextAreaField label="Other image URLs (one per line)" testId="place-gallery-input" value={placeFormData.images_text} onChange={(value) => setPlaceFormData({ ...placeFormData, images_text: value })} minHeight={58} placeholder="https://example.com/shop-inside.png" />
+        {['shop', 'blacksmith', 'tavern'].includes(placeFormData.place_type) && (
+          <div>
+            <TextAreaField label="Shop items & prices" testId="place-shop-stock-input" value={placeFormData.shop_stock_text} onChange={(value) => setPlaceFormData({ ...placeFormData, shop_stock_text: value })} minHeight={110} placeholder={'Longsword | 15 gp | 2\nPotion of Healing | 50 gp'} />
+            <small>One per line: Item | Price | Optional quantity | Optional GM-only. Example: Secret Key | 20 gp | | GM-only. No prices are invented.</small>
+          </div>
+        )}
         <TextAreaField label="GM notes" testId="place-notes-input" value={placeFormData.notes} onChange={(value) => setPlaceFormData({ ...placeFormData, notes: value })} placeholder="Hooks, secrets, clues, changes, or hidden uses." />
         <FormActions onCancel={onCancel} submitTestId="place-submit-btn" submitText={editingPlace ? 'Update Place' : 'Add Place'} />
       </form>

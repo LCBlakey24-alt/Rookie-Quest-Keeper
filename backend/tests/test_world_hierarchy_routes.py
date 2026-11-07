@@ -287,3 +287,49 @@ def test_delete_continent_cascade_is_campaign_scoped(monkeypatch):
         ('regions', {'campaign_id': 'campaign-a', 'parent_id': 'continent-1'}),
         ('continents', {'id': 'continent-1', 'campaign_id': 'campaign-a'}),
     ]
+
+
+def test_world_place_catalog_accepts_explicit_price_and_images_only():
+    catalog = world_module._place_catalog_patch({
+        'shop_inventory': [{'name': ' Sword ', 'price': '15 gp', 'quantity': 0, 'gm_notes': 'cursed'}],
+        'image_url': '/images/smithy.png',
+        'images': ['/images/interior.png'],
+        'owner': 'Mara the Smith',
+        'secret': 'Not shared',
+    })
+    assert catalog == {
+        'shop_inventory': [{'name': 'Sword', 'price': '15 gp', 'quantity': 0}],
+        'image_url': '/images/smithy.png',
+        'images': ['/images/interior.png'],
+        'owner': 'Mara the Smith',
+    }
+    assert 'secret' not in str(catalog)
+
+
+@pytest.mark.parametrize('bad', [
+    {'shop_inventory': [{'name': 'No Price'}]},
+    {'shop_inventory': [{'name': 'Potion', 'price': '50 gp', 'quantity': -1}]},
+    {'shop_inventory': 'not a list'},
+    {'images': ['a'] * 13},
+])
+def test_world_place_catalog_rejects_malformed_stock_and_gallery(bad):
+    with pytest.raises(HTTPException) as exc:
+        world_module._place_catalog_patch(bad)
+    assert exc.value.status_code == 422
+
+
+def test_world_catalog_retains_gm_only_flags_on_save():
+    data = world_module._place_catalog_patch({
+        'shop_inventory': [
+            {'name': 'Public Sword', 'price': '15 gp'},
+            {'name': 'Secret Key', 'price': '10 gp', 'hidden': True},
+            {'name': 'Hidden Letter', 'price': '1 gp', 'gm_only': True},
+            {'name': 'Private Map', 'price': '20 gp', 'visibility': 'private'},
+        ]
+    })
+    assert data['shop_inventory'] == [
+        {'name': 'Public Sword', 'price': '15 gp'},
+        {'name': 'Secret Key', 'price': '10 gp', 'hidden': True},
+        {'name': 'Hidden Letter', 'price': '1 gp', 'hidden': True},
+        {'name': 'Private Map', 'price': '20 gp', 'hidden': True},
+    ]
