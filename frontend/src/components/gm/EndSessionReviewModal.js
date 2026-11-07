@@ -279,8 +279,8 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
                 </div>
                 <div style={panelStyle}>
                   <h3 style={sectionTitleStyle}>GM story options</h3>
-                  <label style={checkRowStyle}><input type="checkbox" checked={markChapterPlayed} onChange={event => setMarkChapterPlayed(event.target.checked)} disabled={!storyFocus.chapter || prepNextChapter} /> Mark current chapter played</label>
-                  <label style={checkRowStyle}><input type="checkbox" checked={prepNextChapter} onChange={event => { setPrepNextChapter(event.target.checked); if (event.target.checked) setMarkChapterPlayed(true); }} disabled={!storyFocus.nextChapter} /> Mark current chapter played and prep next chapter</label>
+                  <label style={checkRowStyle}><input type="checkbox" checked={markChapterPlayed} onChange={event => setMarkChapterPlayed(event.target.checked)} disabled={Boolean(completedSummary) || !storyFocus.chapter || prepNextChapter} /> Mark current chapter played</label>
+                  <label style={checkRowStyle}><input type="checkbox" checked={prepNextChapter} onChange={event => { setPrepNextChapter(event.target.checked); if (event.target.checked) setMarkChapterPlayed(true); }} disabled={Boolean(completedSummary) || !storyFocus.nextChapter} /> Mark current chapter played and prep next chapter</label>
                   {!storyFocus.nextChapter && <p style={mutedStyle}>No next chapter is available yet. Add one in Story Arcs to prep it from here.</p>}
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
 
             <section style={optionsStyle}>
               <label style={checkRowStyle}><input type="checkbox" checked={showAllTime} onChange={event => setShowAllTime(event.target.checked)} /> Show all-time campaign dice stats in the player presentation</label>
-              <label style={checkRowStyle}><input type="checkbox" checked={saveRecapNote} onChange={event => setSaveRecapNote(event.target.checked)} /> Save a GM-only roll and story recap note to Session Notes</label>
+              <label style={checkRowStyle}><input type="checkbox" checked={saveRecapNote} onChange={event => setSaveRecapNote(event.target.checked)} disabled={Boolean(completedSummary)} /> Save a GM-only roll and story recap note to Session Notes</label>
               <p style={mutedStyle}>The player display receives dice and roll stats only. Story wrap-up choices only affect GM campaign tracking.</p>
             </section>
           </>
@@ -307,7 +307,7 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
 
         {completedSummary && (
           <div role="status" style={warningStyle}>
-            Session rolls have already been archived. If the player screen has not synced, use Retry Player Display below. The archive will not run again.
+            Session rolls have already been archived. Story wrap-up and GM-note options are locked to their saved choices. If the player screen has not synced, use Retry Player Display below. The archive will not run again.
           </div>
         )}
         {recapNoteWarning && <div role="alert" style={warningStyle}>{recapNoteWarning}</div>}
