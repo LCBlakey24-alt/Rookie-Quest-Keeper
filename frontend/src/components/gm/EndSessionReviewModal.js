@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, CheckCircle2, Monitor, RefreshCw, ScrollText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState } from '@/lib/liveDisplayBus';
+import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -98,6 +99,9 @@ function buildRecapNote(summary, storyFocus, options) {
 
 export default function EndSessionReviewModal({ campaignId, campaignName = 'Campaign', onClose }) {
   const [summary, setSummary] = useState(null);
+  const [previewError, setPreviewError] = useState('');
+  const [completedSummary, setCompletedSummary] = useState(null);
+  const [recapNoteWarning, setRecapNoteWarning] = useState('');
   const [storyArcs, setStoryArcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -107,7 +111,10 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
   const [prepNextChapter, setPrepNextChapter] = useState(false);
 
   const loadPreview = async () => {
+    if (completedSummary) return; // Archival has succeeded; don't replace it with the now-empty active session.
     setLoading(true);
+    setPreviewError('');
+    setSummary(null);
     try {
       const [rollResponse, arcsResponse] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}/roll-events/summary`),
@@ -116,8 +123,11 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
       setSummary(rollResponse.data);
       setStoryArcs(normalizeArray(arcsResponse.data, 'story_arcs'));
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not preview session stats');
-      setSummary({ campaignName, session: { playerRolls: 0, gmRolls: 0, totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [], awards: [] }, allTime: {} });
+      const message = error?.response?.data?.detail || 'Could not preview session stats';
+      setPreviewError(message);
+      toast.error(message);
+      // A failed GET is not an empty session. Keep End Session disabled until a real preview is loaded.
+      setSummary(null);
       setStoryArcs([]);
     } finally {
       setLoading(false);
@@ -154,22 +164,48 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
   };
 
   const sendEndSessionShow = async () => {
+    if (sending || !summary) return;
     setSending(true);
+    let archivedSummary = completedSummary;
     try {
-      const closedChapterStory = storyFocus;
-      await applyStoryWrapUp();
-      const response = await apiClient.post(`/campaigns/${campaignId}/roll-events/end-session`);
-      const finalSummary = showAllTime ? response.data : { ...response.data, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
-      publishCampaignDisplayState(campaignId, createDisplayState('end-session-stats', finalSummary));
-      if (saveRecapNote) {
-        await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(response.data, closedChapterStory, { markChapterPlayed, prepNextChapter }) }).catch(() => null);
+      if (!archivedSummary) {
+        const closedChapterStory = storyFocus;
+        await applyStoryWrapUp();
+        const response = await apiClient.post(`/campaigns/${campaignId}/roll-events/end-session`);
+        archivedSummary = response.data;
+        // A successful archive must be retained across a failed player-screen publish.
+        // Retrying the display must NEVER call end-session a second time.
+        setCompletedSummary(archivedSummary);
+        setSummary(archivedSummary);
+        if (saveRecapNote) {
+          try {
+            await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(archivedSummary, closedChapterStory, { markChapterPlayed, prepNextChapter }) });
+          } catch {
+            const warning = 'Rolls were archived, but the optional GM recap note could not be saved.';
+            setRecapNoteWarning(warning);
+            toast.warning(warning);
+          }
+        }
       }
-      const rolls = response.data?.session?.playerRolls ?? response.data?.session?.totalRolls ?? 0;
-      if (rolls > 0) toast.success('Dice-only end session show sent to player display', { description: 'Roll stats were archived. GM-only story wrap-up was applied separately.' });
-      else toast.info('Dice-only end session show sent', { description: 'GM-only story wrap-up was applied. No player rolls were captured.' });
+
+      const finalSummary = showAllTime ? archivedSummary : { ...archivedSummary, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
+      const delivery = await publishCampaignDisplayStateWithStatus(
+        campaignId, createDisplayState('end-session-stats', finalSummary)
+      );
+      if (!delivery.remoteSynced) {
+        toast.warning('Rolls archived — player display not synced', {
+          description: 'The player display server did not confirm the update. Retry Player Display; your rolls will NOT be archived again.',
+        });
+        return;
+      }
+      toast.success('Session recap accepted by the display server', {
+        description: 'Player-screen delivery is not yet acknowledged. Check the player display to confirm it appeared.',
+      });
       onClose?.();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not end session');
+      toast.error(archivedSummary
+        ? 'Rolls were archived, but the player screen could not be updated. Retry Player Display.'
+        : (error?.response?.data?.detail || 'Could not end session'));
     } finally {
       setSending(false);
     }
@@ -189,6 +225,12 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
 
         {loading ? (
           <div style={loadingStyle}>Loading session stats and GM story progress…</div>
+        ) : previewError && !summary ? (
+          <div role="alert" style={warningStyle}>
+            <strong>Session statistics could not be loaded</strong>
+            <p>{previewError}. No roll-archiving action has been started.</p>
+            <button type="button" onClick={loadPreview} style={secondaryButtonStyle}>Retry Preview</button>
+          </div>
         ) : (
           <>
             <section style={metricGridStyle}>
@@ -259,10 +301,16 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
           </>
         )}
 
+        {completedSummary && (
+          <div role="status" style={warningStyle}>
+            Session rolls have already been archived. If the player screen has not synced, use Retry Player Display below. The archive will not run again.
+          </div>
+        )}
+        {recapNoteWarning && <div role="alert" style={warningStyle}>{recapNoteWarning}</div>}
         <footer style={actionsStyle}>
-          <button type="button" onClick={loadPreview} disabled={loading || sending} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh Preview</button>
+          <button type="button" onClick={loadPreview} disabled={loading || sending || Boolean(completedSummary)} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh Preview</button>
           <button type="button" onClick={onClose} disabled={sending} style={secondaryButtonStyle}>Cancel</button>
-          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : 'Send Dice-Only Player Show'}</button>
+          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : completedSummary ? 'Retry Player Display' : 'Send Dice-Only Player Show'}</button>
         </footer>
       </section>
     </div>
