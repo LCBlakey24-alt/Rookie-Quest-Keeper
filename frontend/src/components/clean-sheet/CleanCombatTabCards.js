@@ -24,13 +24,28 @@ export function AttackCard({ action, onAttack, onDamage, children, active }) {
 }
 
 export function SimpleActionCard({ title, description, type = 'Action', onClick, disabled = false }) {
+  const interactive = typeof onClick === 'function';
+  const content = (
+    <>
+      <span className="clean-sheet-action-type">{type}{!interactive && ' · Rules reference'}</span>
+      <strong>{title}</strong>
+      <span>{description}</span>
+    </>
+  );
+
   return (
     <div className="clean-sheet-action-card-shell">
-      <button type="button" className="clean-sheet-action-card" onClick={onClick} disabled={disabled}>
-        <span className="clean-sheet-action-type">{type}</span>
-        <strong>{title}</strong>
-        <span>{description}</span>
-      </button>
+      {interactive ? (
+        <button type="button" className="clean-sheet-action-card" onClick={onClick} disabled={disabled}>
+          {content}
+        </button>
+      ) : (
+        // Dash, Dodge, Disengage, Help and Ready describe rules: without an
+        // action handler they must NOT masquerade as controls players can use.
+        <article className="clean-sheet-action-card clean-sheet-action-card--reference">
+          {content}
+        </article>
+      )}
     </div>
   );
 }
