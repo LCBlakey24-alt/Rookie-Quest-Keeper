@@ -60,6 +60,8 @@ def _matches(doc, query):
                     return False
                 if op == '$ne' and actual == value:
                     return False
+                if op == '$lte' and (actual is None or actual > value):
+                    return False
         elif expected is None:
             if actual is not None:
                 return False
@@ -173,7 +175,7 @@ class FakeDb:
             {'id': 'char-gm', 'user_id': 'gm', 'campaign_id': CAMPAIGN, 'name': 'GM Sidekick'},
         ])
         self.roll_events = Collection(unique=('campaign_id', 'user_id', 'client_event_id'))
-        self.roll_session_summaries = Collection()
+        self.roll_session_summaries = Collection(unique=('campaign_id', 'session_close_id'))
         self.campaign_display_states = Collection([group_check_state()])
         self.combat_sessions = Collection([{'id': 'combat-1', 'campaign_id': CAMPAIGN, 'round': 2}])
 
@@ -664,3 +666,164 @@ def test_end_session_summary_counts_players_but_not_gm_dice(env):
         assert section['actors'][0]['name'] == 'Aria'
         assert section['highestTotal']['total'] == 4
         assert 'GM-ONLY dungeon secret' not in str(section)
+
+
+# --------------------------------------------------------------------------
+# End Session archive integrity and idempotent recovery after lost responses.
+# --------------------------------------------------------------------------
+
+async def close_session(env, key='end-session-test-001', user='gm'):
+    transport = httpx.ASGITransport(app=env.app)
+    async with httpx.AsyncClient(transport=transport, base_url='http://test') as client:
+        return await client.post(
+            f'/campaigns/{CAMPAIGN}/roll-events/end-session',
+            json={'session_close_id': key},
+            headers={'x-test-user': user},
+        )
+
+
+def test_ending_session_saves_recaps_before_archiving_and_retries_by_close_id(env):
+    assert run(post(env, 'player-a', player_roll(d20=20))).status_code == 200
+    response = run(close_session(env))
+    assert response.status_code == 200, response.text
+    original = response.json()
+    assert original['session']['playerRolls'] == 1
+    assert original['session']['nat20s'] == 1
+    assert len(env.db.roll_session_summaries.docs) == 1
+    assert env.db.roll_session_summaries.docs[0]['status'] == 'complete'
+    assert all(doc['archived'] for doc in stored(env))
+
+    replay = run(close_session(env))
+    assert replay.status_code == 200
+    assert replay.json() == original
+    assert len(env.db.roll_session_summaries.docs) == 1
+    assert all(doc['archived_by_session_id'] == env.db.roll_session_summaries.docs[0]['id'] for doc in stored(env))
+
+
+def test_failed_summary_persistence_never_archives_rolls(env):
+    assert run(post(env, 'player-a', player_roll())).status_code == 200
+    original_insert = env.db.roll_session_summaries.insert_one
+
+    async def failed_insert(_document):
+        raise RuntimeError('temporary summary database failure')
+
+    env.db.roll_session_summaries.insert_one = failed_insert
+    with pytest.raises(RuntimeError, match='temporary summary database failure'):
+        run(close_session(env, key='end-session-failed-save'))
+    assert all(doc['archived'] is False for doc in stored(env))
+    assert env.db.roll_session_summaries.docs == []
+
+    env.db.roll_session_summaries.insert_one = original_insert
+    completed = run(close_session(env, key='end-session-failed-save'))
+    assert completed.status_code == 200
+    assert completed.json()['session']['playerRolls'] == 1
+
+
+def test_failed_archival_persists_original_snapshot_for_retry(env):
+    assert run(post(env, 'player-a', player_roll(d20=1))).status_code == 200
+    original_update = env.db.roll_events.update_many
+    calls = 0
+
+    async def interrupted_archive(query, update):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError('archive temporarily unavailable')
+        return await original_update(query, update)
+
+    env.db.roll_events.update_many = interrupted_archive
+    with pytest.raises(RuntimeError, match='archive temporarily unavailable'):
+        run(close_session(env, key='end-session-recover-001'))
+    assert len(env.db.roll_session_summaries.docs) == 1
+    assert env.db.roll_session_summaries.docs[0]['status'] == 'pending'
+    assert all(not roll['archived'] for roll in stored(env))
+
+    resumed = run(close_session(env, key='end-session-recover-001'))
+    assert resumed.status_code == 200
+    assert resumed.json()['session']['nat1s'] == 1
+    assert env.db.roll_session_summaries.docs[0]['status'] == 'complete'
+    assert all(roll['archived'] for roll in stored(env))
+    assert len(env.db.roll_session_summaries.docs) == 1
+
+
+def test_failed_completion_mark_retries_without_recounting_archived_dice(env):
+    assert run(post(env, 'player-a', player_roll(d20=18))).status_code == 200
+    original_update = env.db.roll_session_summaries.update_one
+    calls = 0
+
+    async def fails_once(query, update, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError('mark complete failed')
+        return await original_update(query, update, **kwargs)
+
+    env.db.roll_session_summaries.update_one = fails_once
+    with pytest.raises(RuntimeError, match='mark complete failed'):
+        run(close_session(env, key='end-session-complete-001'))
+    assert all(roll['archived'] for roll in stored(env))
+    assert env.db.roll_session_summaries.docs[0]['status'] == 'pending'
+    result = run(close_session(env, key='end-session-complete-001'))
+    assert result.status_code == 200
+    assert result.json()['session']['playerRolls'] == 1
+    assert len(env.db.roll_session_summaries.docs) == 1
+    assert env.db.roll_session_summaries.docs[0]['status'] == 'complete'
+
+
+def test_pending_close_is_recovered_even_when_a_new_client_has_another_id(env):
+    assert run(post(env, 'player-a', player_roll())).status_code == 200
+    original_update = env.db.roll_events.update_many
+
+    async def broken_archive(query, update):
+        raise RuntimeError('archive offline')
+
+    env.db.roll_events.update_many = broken_archive
+    with pytest.raises(RuntimeError, match='archive offline'):
+        run(close_session(env, key='end-session-previous-id'))
+    env.db.roll_events.update_many = original_update
+
+    replay = run(close_session(env, key='end-session-new-client-id'))
+    assert replay.status_code == 200
+    assert replay.json()['session']['playerRolls'] == 1
+    assert len(env.db.roll_session_summaries.docs) == 1
+
+
+def test_new_rolls_after_archival_cutoff_remain_active(env):
+    assert run(post(env, 'player-a', player_roll())).status_code == 200
+    original_build = roll_events.build_summary
+
+    async def inserted_after_snapshot(campaign_id, *, cutoff=None):
+        result = await original_build(campaign_id, cutoff=cutoff)
+        env.db.roll_events.docs.append({
+            'id': 'late-roll', 'campaign_id': campaign_id, 'archived': False,
+            'created_at': '2099-01-01T00:00:00+00:00',
+            'actor_type': 'player', 'character_name': 'Late Player', 'total': 9,
+            'rolls': [{'sides': 20, 'result': 9}],
+        })
+        return result
+
+    roll_events.build_summary = inserted_after_snapshot
+    try:
+        result = run(close_session(env, key='end-session-cutoff-test'))
+    finally:
+        roll_events.build_summary = original_build
+    assert result.status_code == 200
+    assert result.json()['session']['playerRolls'] == 1
+    assert next(x for x in stored(env) if x['id'] == 'late-roll')['archived'] is False
+
+
+def test_roll_session_recovery_indexes_cover_client_id_and_pending_campaign():
+    recorded = []
+
+    class Recorder:
+        async def create_index(self, keys, **options):
+            recorded.append((keys, options))
+
+    run(roll_events.ensure_roll_session_indexes(
+        SimpleNamespace(roll_session_summaries=Recorder()),
+    ))
+    assert {options['name'] for _, options in recorded} == {
+        'roll_session_close_id_unique', 'roll_session_one_pending'
+    }
+    assert all(options['unique'] for _, options in recorded)
+    assert any(options['partialFilterExpression'] == {'status': 'pending'} for _, options in recorded)
