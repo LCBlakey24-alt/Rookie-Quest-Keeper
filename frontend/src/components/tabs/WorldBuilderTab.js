@@ -682,7 +682,7 @@ function WorldBuilderTab({ campaignId }) {
                 {['shop', 'blacksmith', 'tavern'].includes(formData.type) && <label style={{ color: '#fff', display: 'grid', gap: 6, fontSize: 13 }}>
                   Shop items and prices
                   <textarea data-testid="world-place-shop-stock-input" value={formData.shop_stock_text} onChange={e => setFormData({ ...formData, shop_stock_text: e.target.value })} rows={4} style={{ background: '#102237', color: '#fff', padding: 8 }} placeholder={'Longsword | 15 gp | 2\nPotion of Healing | 50 gp'} />
-                  <small>Item | Price | Optional quantity. One item per line.</small>
+                  <small>One per line: Item | Price | Optional quantity | Optional GM-only. Example: Secret Key | 20 gp | | GM-only.</small>
                 </label>}
               </>}
               <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
