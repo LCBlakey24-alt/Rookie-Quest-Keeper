@@ -71,8 +71,10 @@ RESULT = frozenset({
     'created_at', 'updated_at', 'rolled_at', 'timestamp', 'visibleRolls', 'rolls',
 })
 DIE = frozenset({'sides', 'result', 'dropped'})
-AWARD = frozenset({'title', 'name', 'value'})
-ACTOR = frozenset({'name', 'rolls', 'nat20s', 'nat1s'})
+# Character identifiers are already public on the campaign party roster.
+# Keep them in the safe recap so two identically named characters never merge.
+AWARD = frozenset({'title', 'name', 'value', 'character_id'})
+ACTOR = frozenset({'name', 'rolls', 'nat20s', 'nat1s', 'character_id'})
 SESSION = frozenset({
     'nat20s', 'nat1s', 'awards', 'actors', 'playerRolls',
     'totalRolls', 'totalDice', 'gmRolls',
