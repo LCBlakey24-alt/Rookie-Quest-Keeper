@@ -148,6 +148,17 @@ function hasSafeCombatBaseline(state) {
     && Number.isFinite(Number(state.death_saves_failures)));
 }
 
+// Keep an independent, serialisable encounter-start roster. The active
+// combatants change as damage, conditions and initiative are applied.
+function snapshotStartingCombatants(combatants = []) {
+  return combatants.map(item => ({
+    ...item,
+    conditions: [...safeArray(item.conditions)],
+    deathSaves: item.deathSaves && typeof item.deathSaves === 'object'
+      ? { ...item.deathSaves } : item.deathSaves,
+  }));
+}
+
 function playerBaseStates(combatants = []) {
   return combatants.reduce((result, combatant) => {
     if (combatant?.type === 'player' && combatant.character_id) {
@@ -218,6 +229,7 @@ export default function CombatPageTable() {
   const battleStartTimeRef = useRef(0);
   const initiativeSubmissionRef = useRef({});
   const initialPlayerStatesRef = useRef({});
+  const startingCombatantsRef = useRef(null);
   const checkpointRawRef = useRef(null);
 
   useEffect(() => () => {
@@ -230,6 +242,7 @@ export default function CombatPageTable() {
       setLegacyProof(null);
       setLegacyCheck(null);
       setCheckpointConflict(false);
+      startingCombatantsRef.current = null;
       checkpointRawRef.current = null;
       setAuthRevision(revision => revision + 1);
     };
@@ -316,6 +329,10 @@ export default function CombatPageTable() {
       initialPlayerStatesRef.current = fromRecovery
         ? recoveredBaselines(recovery.checkpoint)
         : scenarioBaseStates;
+      // Old checkpoints never stored the original roster. Never silently
+      // reset a wounded snapshot as though it were the encounter start.
+      startingCombatantsRef.current = recovery.checkpoint.startingCombatants
+        ? snapshotStartingCombatants(recovery.checkpoint.startingCombatants) : null;
       setCombatants(restored.combatants);
       setCollectedLoot(safeArray(restored.collectedLoot).map(ensureLootOperation));
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
@@ -328,6 +345,7 @@ export default function CombatPageTable() {
       battleStartTimeRef.current = Date.now();
       const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
       initialPlayerStatesRef.current = playerBaseStates(loaded);
+      startingCombatantsRef.current = snapshotStartingCombatants(loaded);
       setCombatants(loaded);
       setCollectedLoot([]);
       setExpandedId(loaded[0]?.id || '');
@@ -365,6 +383,7 @@ export default function CombatPageTable() {
         scenarioId: scenario.id || scenario.name,
         scenarioName: scenario.name,
         combatants,
+        startingCombatants: startingCombatantsRef.current,
         currentTurn,
         round,
         selectedMapId,
@@ -804,11 +823,21 @@ export default function CombatPageTable() {
       toast.error('Cannot reset a checkpoint owned or modified by another session.');
       return;
     }
+    if (!startingCombatantsRef.current?.length) {
+      toast.error('Reset unavailable: this older saved fight has no original starting roster. Its current checkpoint is safe.');
+      return;
+    }
     if (!window.confirm('Reset this fight to the encounter start and reroll initiative?')) return;
-    try { localStorage.removeItem(combatKey); checkpointRawRef.current = null; } catch { /* ignore */ }
+    // Keep the old checkpoint until React has persisted the reset roster.
+    // Removing it first creates a data-loss window if the tab closes.
     apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`).catch(() => null);
     initiativeSubmissionRef.current = {};
-    const loaded = safeArray(scenario?.combatants).map(initialiseCombatant).sort((a, b) => b.initiative - a.initiative);
+    const loaded = startingCombatantsRef.current.map((item, index) => initialiseCombatant({
+      ...item,
+      initiative: undefined,
+      initiativeRoll: undefined,
+      initiativeSource: 'rook',
+    }, index)).sort((a, b) => b.initiative - a.initiative);
     initialPlayerStatesRef.current = playerBaseStates(loaded);
     setCombatants(loaded);
     setCollectedLoot([]);
@@ -949,7 +978,11 @@ export default function CombatPageTable() {
         </div>
         <div className="combat-round"><span>Round</span><strong>{round}</strong></div>
         <button type="button" onClick={() => setHideMonsterHp(value => !value)} className="combat-icon-button" title="Hide or show enemy HP">{hideMonsterHp ? <EyeOff size={17} /> : <Eye size={17} />}</button>
-        <button type="button" onClick={resetCheckpoint} className="combat-icon-button" title="Reset encounter"><RotateCcw size={16} /></button>
+        <button type="button" onClick={resetCheckpoint} className="combat-icon-button"
+          disabled={!startingCombatantsRef.current?.length}
+          title={startingCombatantsRef.current?.length ? 'Reset encounter' : 'Reset unavailable: original encounter roster not saved'}
+          aria-label={startingCombatantsRef.current?.length ? 'Reset encounter' : 'Reset unavailable: original encounter roster not saved'}
+        ><RotateCcw size={16} /></button>
         <button type="button" onClick={nextTurn} className="combat-next-top"><SkipForward size={16} /> Next</button>
       </header>
 

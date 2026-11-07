@@ -14,7 +14,7 @@ import { getAuthToken } from '@/lib/auth';
 import CombatPageTable from './CombatPageTable';
 
 jest.mock('@/lib/auth', () => ({ ...jest.requireActual('@/lib/auth'), getAuthToken: jest.fn() }));
-jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn() }));
+jest.mock('@/lib/apiClient', () => ({ get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn(), delete: jest.fn(() => Promise.resolve({ data: {} })) }));
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn(), info: jest.fn(), warning: jest.fn() } }));
 jest.mock('@/lib/liveDisplayBus', () => ({
   createDisplayState: jest.fn(() => ({})),
@@ -75,6 +75,8 @@ beforeEach(() => {
   getAuthToken.mockReturnValue(TEST_TOKEN);
   apiClient.get.mockReset();
   apiClient.patch.mockClear();
+  // resetMocks clears factory implementations, so every reset test needs a promise.
+  apiClient.delete.mockResolvedValue({ data: {} });
   apiClient.get.mockResolvedValue({ data: [] });
 });
 
@@ -541,4 +543,49 @@ describe('discarding a saved fight requires owning it', () => {
     await screen.findByTestId('combat-table-page');
     expect(screen.queryByTestId('combat-discard-saved')).not.toBeInTheDocument();
   });
+});
+
+
+test('a recovered fight resets to the original roster, not its wounded checkpoint, and rerolls initiative', async () => {
+  saveFight({
+    startingCombatants: [
+      { id: 'c1', name: 'Rina Ironside', type: 'player', character_id: 'char-1',
+        hp: 54, maxHp: 54, ac: 19, initiative: 18, initiativeRoll: 16, conditions: [], deathSaves: { successes: 0, failures: 0 } },
+      { id: 'c2', name: 'Goblin', type: 'enemy', hp: 7, maxHp: 7, ac: 15, initiative: 12, initiativeRoll: 12 },
+    ],
+    collectedLoot: [{ id: 'loot1', name: 'Old key', offlineOperationId: 'loot-op-1' }],
+  });
+  const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
+  const random = jest.spyOn(Math, 'random').mockReturnValue(0);
+  try {
+    openColdTab();
+    await screen.findByTestId('combat-table-page');
+    expect(screen.getByTestId('combat-table-page')).toHaveTextContent('22/54');
+    fireEvent.click(screen.getByRole('button', { name: 'Reset encounter' }));
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+      const player = saved.combatants.find(item => item.id === 'c1');
+      expect(saved.round).toBe(1);
+      expect(player.hp).toBe(54);
+      expect(player.conditions).toEqual([]);
+      expect(player.initiativeRoll).toBe(1);
+      expect(saved.initialPlayerStates['char-1'].current_hit_points).toBe(54);
+      expect(saved.collectedLoot).toEqual([]);
+    });
+    expect(apiClient.patch).not.toHaveBeenCalled();
+  } finally {
+    confirm.mockRestore();
+    random.mockRestore();
+  }
+});
+
+test('an older recovered fight cannot reset a wounded roster as if it were fresh', async () => {
+  saveFight();
+  openColdTab();
+  await screen.findByTestId('combat-table-page');
+  expect(screen.getByRole('button', { name: /Reset unavailable: original encounter roster not saved/ })).toBeDisabled();
+  const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+  expect(saved.combatants.find(item => item.id === 'c1').hp).toBe(22);
+  expect(saved.round).toBe(4);
 });

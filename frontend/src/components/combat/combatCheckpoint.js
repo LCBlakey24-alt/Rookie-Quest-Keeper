@@ -53,6 +53,14 @@ function isUsableCombatant(value) {
     && String(value.id || '').trim() !== '';
 }
 
+// Starting rosters are optional for old fights. An invalid snapshot must
+// disable Reset, never make an otherwise valid active fight unrecoverable.
+function validatedStartingCombatants(value) {
+  if (!Array.isArray(value) || value.length === 0 || !value.every(isUsableCombatant)) return null;
+  const ids = value.map(item => String(item.id).trim());
+  return new Set(ids).size === ids.length ? value : null;
+}
+
 function finiteOr(value, fallback) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -135,6 +143,7 @@ export function readCombatCheckpoint(campaignId, storage, options = {}) {
       scenarioId: String(parsed.scenarioId || ''),
       scenarioName: String(parsed.scenarioName || ''),
       combatants,
+      startingCombatants: validatedStartingCombatants(parsed.startingCombatants),
       currentTurn,
       round,
       selectedMapId: String(parsed.selectedMapId || ''),
