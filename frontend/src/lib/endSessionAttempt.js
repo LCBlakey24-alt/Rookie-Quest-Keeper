@@ -7,7 +7,7 @@
  */
 const MAX_AGE_MS = 8 * 60 * 60 * 1000;
 const keyFor = (campaignId, account) => (
-  campaignId && account ? \`rqk.endSessionAttempt.v1:\${encodeURIComponent(account)}:\${encodeURIComponent(campaignId)}\` : ''
+  campaignId && account ? `rqk.endSessionAttempt.v1:${encodeURIComponent(account)}:${encodeURIComponent(campaignId)}` : ''
 );
 
 function read(key) {
