@@ -45,6 +45,9 @@ function CombatCreatorTab({ campaignId }) {
   const [battlefieldMode, setBattlefieldMode] = useState('none');
   const [terrainType, setTerrainType] = useState('stone');
   const [selectedMapId, setSelectedMapId] = useState('');
+  const [mapCols, setMapCols] = useState(30);
+  const [mapRows, setMapRows] = useState(20);
+  const [feetPerSquare, setFeetPerSquare] = useState(5);
 
   const [mapUrl, setMapUrl] = useState('');
   const [mapDataUrl, setMapDataUrl] = useState('');
@@ -252,6 +255,9 @@ function CombatCreatorTab({ campaignId }) {
       map_url: battlefieldMode === 'saved' && !selectedMapId ? (mapDataUrl || null) : null,
       battlefield_mode: battlefieldMode,
       terrain_type: normaliseCombatTerrain(terrainType),
+      grid_cols: mapCols,
+      grid_rows: mapRows,
+      feet_per_square: feetPerSquare,
       tokens: tokens,
       grid_size: gridSize,
       show_grid: showGrid
@@ -281,6 +287,9 @@ function CombatCreatorTab({ campaignId }) {
     setBattlefieldMode(battlefieldModeFor(scenario));
     setSelectedMapId(String(scenario.map_id || scenario.mapId || ''));
     setTerrainType(normaliseCombatTerrain(scenario.terrain_type));
+    setMapCols(scenario.grid_cols || 30);
+    setMapRows(scenario.grid_rows || 20);
+    setFeetPerSquare(scenario.feet_per_square || 5);
 
     setGridSize(scenario.grid_size || 40);
     setShowGrid(scenario.show_grid !== false);
@@ -323,6 +332,9 @@ function CombatCreatorTab({ campaignId }) {
     setBattlefieldMode('none');
     setTerrainType('stone');
     setSelectedMapId('');
+    setMapCols(30);
+    setMapRows(20);
+    setFeetPerSquare(5);
   };
 
   // Token dragging
@@ -587,6 +599,22 @@ function CombatCreatorTab({ campaignId }) {
             onModeChange={setBattlefieldMode} onTerrainChange={setTerrainType}
             onMapIdChange={id => { setSelectedMapId(id); if (id) { setMapImage(null); setMapDataUrl(''); } }}
           />
+          {battlefieldMode !== 'saved' && (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'end', marginTop: 12 }}>
+              {[
+                ['Map columns', mapCols, setMapCols, 5, 100],
+                ['Map rows', mapRows, setMapRows, 5, 100],
+                ['Feet per square', feetPerSquare, setFeetPerSquare, 1, 100],
+              ].map(([label, value, setter, min, max]) => (
+                <label key={label} style={{ display: 'grid', gap: 5, color: '#f0eadc', fontSize: 12 }}>
+                  {label}
+                  <input type="number" min={min} max={max} value={value}
+                    onChange={event => setter(Math.max(min, Math.min(max, Number(event.target.value) || min)))}
+                    style={{ width: 100, padding: 9, color: '#fff', background: '#132d40', border: '1px solid #64748b' }} />
+                </label>
+              ))}
+            </div>
+          )}
         </div>
         {/* Legacy image uploads stay available when using a custom map. */}
         {battlefieldMode === 'saved' && <div className="glow-panel" style={{ marginBottom: '20px' }}>
