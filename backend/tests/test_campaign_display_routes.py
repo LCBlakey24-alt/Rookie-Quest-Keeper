@@ -578,3 +578,31 @@ def test_revisionless_legacy_display_put_cannot_overwrite_newer_combat(monkeypat
             assert 'sequence' in str(exc.detail)
         else:
             raise AssertionError('Revisionless or invalid display update must be refused')
+
+
+
+def test_player_display_unique_campaign_index_prevents_duplicate_first_upserts():
+    from pymongo import ASCENDING
+
+    calls = []
+
+    class Collection:
+        async def create_index(self, keys, **options):
+            calls.append((keys, options))
+            return 'campaign_id_1'
+
+    class Database:
+        campaign_display_states = Collection()
+
+    asyncio.run(campaign_display_module.ensure_campaign_display_indexes(Database()))
+    assert calls == [
+        ([('campaign_id', ASCENDING)], {'unique': True, 'background': True}),
+    ]
+
+
+def test_server_startup_registers_display_index_maintenance():
+    # The connection's database gets its uniqueness constraint before a live
+    # campaign receives competing initial display upserts.
+    from pathlib import Path
+    server_source = (Path(__file__).resolve().parents[1] / 'server.py').read_text()
+    assert 'await ensure_campaign_display_indexes(db)' in server_source
