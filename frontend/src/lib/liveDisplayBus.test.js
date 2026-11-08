@@ -63,6 +63,30 @@ describe('liveDisplayBus', () => {
     expect(Object.values({ ...localStorage }).some(value => String(value).includes('ACCOUNT A PUBLISH RESPONSE'))).toBe(false);
   });
 
+  test('a delayed successful response with a later server timestamp never rewinds newer local combat', async () => {
+    const earlier = createDisplayState('battle-start', { title: 'Original warning' });
+    let resolveWrite;
+    apiClient.put.mockImplementationOnce(() => new Promise(resolve => { resolveWrite = resolve; }));
+    const oldWrite = publishCampaignDisplayState('campaign-1', earlier);
+    for (let i = 0; i < 10 && !resolveWrite; i += 1) await Promise.resolve();
+
+    const latest = createDisplayState('combat', { title: 'Actual battle' });
+    publishDisplayState('campaign-1', latest);
+    const lateAck = {
+      ...earlier,
+      updated_at: new Date(Date.parse(latest.updated_at) + 60000).toISOString(),
+    };
+    resolveWrite({ data: lateAck });
+
+    const resolved = await oldWrite;
+
+    expect(resolved.sync_id).toBe(latest.sync_id);
+    expect(loadDisplayState('campaign-1')).toMatchObject({
+      sync_id: latest.sync_id,
+      mode: 'combat',
+    });
+  });
+
   test('a server 409 replaces the rejected optimistic reveal with its authoritative newer combat state', async () => {
     const stale = createDisplayState('battle-start', { title: 'Outdated warning' });
     const authoritative = createDisplayState('combat', { title: 'Battle in progress' });
