@@ -14,6 +14,20 @@ router = APIRouter()
 ALLOWED_DISPLAY_MODES = DISPLAY_MODES
 
 
+async def ensure_campaign_display_indexes(database=None):
+    """One campaign owns exactly one display-state document, even under
+    simultaneous first writes from multiple GM tabs.
+
+    This unique key is required for the atomic conditional upsert below:
+    without it, concurrent upserts can create separate campaign documents.
+    """
+    from pymongo import ASCENDING
+    target = database if database is not None else db
+    await target.campaign_display_states.create_index(
+        [('campaign_id', ASCENDING)], unique=True, background=True,
+    )
+
+
 def default_display_state(campaign_id: str) -> Dict[str, Any]:
     now = datetime.now(timezone.utc)
     sequence = int(now.timestamp() * 1000)
