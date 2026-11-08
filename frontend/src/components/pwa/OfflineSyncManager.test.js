@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import OfflineSyncManager from './OfflineSyncManager';
 import {
   listOfflineCombatClosures,
+  listOfflineCombatLootSyncs,
+  listOfflineCombatSyncs,
   removeOfflineCombatClose,
 } from '@/offline/offlineCombatSyncQueue';
 
@@ -33,6 +35,8 @@ jest.mock('@/offline/offlineCombatSyncQueue', () => ({
 let queued;
 beforeEach(() => {
   jest.clearAllMocks();
+  listOfflineCombatSyncs.mockResolvedValue([]);
+  listOfflineCombatLootSyncs.mockResolvedValue([]);
   queued = null;
   listOfflineCombatClosures.mockImplementation(async () => queued ? [queued] : []);
   removeOfflineCombatClose.mockImplementation(async () => { queued = null; });
