@@ -10,6 +10,8 @@ import RosterSplitView from './RosterSplitView';
 import './MonstersTab.split.css';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import { MONSTER_DATABASE } from '@/data/monsterDatabase';
+import BattlefieldPicker from './BattlefieldPicker';
+import { normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 import { hasRatedMonsterCr, monsterCrValue, monsterToCombatant, normaliseMonsterStatBlock } from '@/lib/monsterStatBlockAdapter';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -37,6 +39,13 @@ function openCombatFallback() {
 export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   const [customCreatures, setCustomCreatures] = useState([]);
   const [scenarios, setScenarios] = useState([]);
+  const [battleMaps, setBattleMaps] = useState([]);
+  const [battlefieldMode, setBattlefieldMode] = useState('none');
+  const [terrainType, setTerrainType] = useState('stone');
+  const [savedMapId, setSavedMapId] = useState('');
+  const [mapCols, setMapCols] = useState(30);
+  const [mapRows, setMapRows] = useState(20);
+  const [feetPerSquare, setFeetPerSquare] = useState(5);
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [crFilter, setCrFilter] = useState('all');
@@ -54,13 +63,15 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     const requestedCampaign = campaignId;
     setLoading(true);
     try {
-      const [creatureRes, scenarioRes] = await Promise.all([
+      const [creatureRes, scenarioRes, mapsRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => ({ data: [] })),
         apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
+        apiClient.get(`/campaigns/${campaignId}/maps`).catch(() => ({ data: [] })),
       ]);
       if (activeCampaignRef.current !== requestedCampaign) return;
       setCustomCreatures(normaliseCreatures(creatureRes.data).map(creature => ({ ...creature, source: 'custom' })));
       setScenarios(Array.isArray(scenarioRes.data) ? scenarioRes.data : []);
+      setBattleMaps(Array.isArray(mapsRes.data) ? mapsRes.data : []);
     } catch (error) {
       if (activeCampaignRef.current !== requestedCampaign) return;
       toast.error(error?.response?.data?.detail || 'Could not load monster library');
@@ -74,6 +85,13 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
     // Selection and encounter drafts always belong to the current campaign.
     setCustomCreatures([]);
     setScenarios([]);
+    setBattleMaps([]);
+    setBattlefieldMode('none');
+    setTerrainType('stone');
+    setSavedMapId('');
+    setMapCols(30);
+    setMapRows(20);
+    setFeetPerSquare(5);
     setSelected({});
     setSelectedCreatureId('');
     setLastSavedEncounter(null);
@@ -137,6 +155,12 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   const clearSelection = () => {
     setSelected({});
     setEncounterName('');
+    setBattlefieldMode('none');
+    setTerrainType('stone');
+    setSavedMapId('');
+    setMapCols(30);
+    setMapRows(20);
+    setFeetPerSquare(5);
   };
 
   const saveEncounter = async () => {
@@ -152,6 +176,12 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
         name,
         description: `Seeded from Monsters tab. Known CR subtotal: ${selectedCr}; ${unratedCount} creatures unrated (excluded from subtotal). SRD entries have sourced actions; custom/legacy entries show only recorded actions. Add players from Combat when ready.`,
         combatants: selectedCombatants,
+        battlefield_mode: battlefieldMode,
+        terrain_type: battlefieldMode === 'generic' ? normaliseCombatTerrain(terrainType) : 'stone',
+        map_id: battlefieldMode === 'saved' ? savedMapId : '',
+        grid_cols: mapCols,
+        grid_rows: mapRows,
+        feet_per_square: feetPerSquare,
         show_grid: true,
         grid_size: 40,
       });
@@ -209,6 +239,29 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
           </div>
         </div>
 
+        <div style={{ display: 'grid', gap: 10, border: `1px solid ${rq.line}`, padding: 12 }}>
+          <h4 style={{ ...sectionTitleStyle, fontSize: 14 }}>Battlefield</h4>
+          <BattlefieldPicker mode={battlefieldMode} terrainType={terrainType}
+            mapId={savedMapId} maps={battleMaps} compact
+            onModeChange={setBattlefieldMode} onTerrainChange={setTerrainType}
+            onMapIdChange={setSavedMapId} />
+          {battlefieldMode !== 'saved' && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {[
+                ['Map columns', mapCols, setMapCols, 5, 100],
+                ['Map rows', mapRows, setMapRows, 5, 100],
+                ['Feet per square', feetPerSquare, setFeetPerSquare, 1, 100],
+              ].map(([label, value, setter, min, max]) => (
+                <label key={label} style={{ display: 'grid', gap: 5, fontSize: 12, minWidth: 100 }}>
+                  {label}
+                  <input type="number" min={min} max={max} value={value}
+                    onChange={event => setter(Math.max(min, Math.min(max, Number(event.target.value) || min)))}
+                    style={selectStyle} />
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
         <div style={filtersStyle}>
           <label style={searchWrapStyle}><Search size={16} /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search creatures, attacks, abilities, type…" style={inputStyle} /></label>
           <label style={selectWrapStyle}><Filter size={15} /><select aria-label="Filter creature type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)} style={selectStyle}><option value="all">All types</option>{creatureTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
