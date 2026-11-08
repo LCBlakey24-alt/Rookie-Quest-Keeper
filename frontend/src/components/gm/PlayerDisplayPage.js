@@ -443,7 +443,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} title={payload.title} target={target} tokens={positionedTokens} />
+          <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} gridCols={payload.grid_cols} gridRows={payload.grid_rows} title={payload.title} target={target} tokens={positionedTokens} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -467,7 +467,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} title={payload.title} target={target} tokens={positionedTokens} />
+        <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} gridCols={payload.grid_cols} gridRows={payload.grid_rows} title={payload.title} target={target} tokens={positionedTokens} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -523,7 +523,7 @@ function renderStatsPage(page, session, allTime, target) {
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award, actors }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{rollActorDisplayName(award, actors)}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor, actors }) { return <div style={actorRowStyle}><strong>{rollActorDisplayName(actor, actors)}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
-function CombatMapArtwork({ mapUrl, terrainType = 'stone', title, target, tokens }) {
+function CombatMapArtwork({ mapUrl, terrainType = 'stone', gridCols = 30, gridRows = 20, title, target, tokens }) {
   const layerRef = useRef(null);
   const [container, setContainer] = useState({ width: 0, height: 0 });
   const [loadedImage, setLoadedImage] = useState(null);
@@ -560,7 +560,7 @@ function CombatMapArtwork({ mapUrl, terrainType = 'stone', title, target, tokens
           data-testid="combat-generic-terrain"
           data-terrain={normaliseCombatTerrain(terrainType)}
           aria-label={`Generic ${normaliseCombatTerrain(terrainType)} battlefield`}
-          style={{ position: 'absolute', inset: 0, ...genericCombatBackdropStyle(terrainType) }}
+          style={{ position: 'absolute', inset: 0, ...genericCombatBackdropStyle(terrainType, gridCols, gridRows) }}
         />
       )}
       {mapUrl && !useGenericTerrain && (
