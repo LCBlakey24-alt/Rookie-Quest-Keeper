@@ -641,7 +641,7 @@ test('a prepared encounter opens a combined battlefield with its map and GM enem
   expect(roster).toHaveTextContent('17');
   // The saved map arrives asynchronously; tokens are positioned in the next effect.
   await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2'));
-  expect(screen.getByRole('combobox', { name: '' })).toHaveValue('map-forest');
+  await waitFor(() => expect(screen.getByRole('combobox', { name: '' })).toHaveValue('map-forest'));
 
   const zoom = screen.getByTestId('map-canvas');
   expect(zoom).toHaveAttribute('data-zoom', '1');
@@ -685,7 +685,8 @@ test('hidden encounter creatures never reach the player display broadcast', asyn
   await waitFor(() => expect(createDisplayState.mock.calls.some(([mode]) => mode === 'combat')).toBe(true));
 
   const combatPayload = createDisplayState.mock.calls.find(([mode]) => mode === 'combat')[1];
-  expect(combatPayload.tokens.map(token => token.name)).toEqual(['Revealed Guard']);
+  expect(combatPayload.tokens.map(token => token.name)).toEqual(['Aria', 'Revealed Guard']);
+  expect(combatPayload.tokens.find(token => token.name === 'Aria')).toMatchObject({ type: 'player' });
   expect(JSON.stringify(combatPayload)).not.toContain('Secret Beholder');
   expect(JSON.stringify(combatPayload)).not.toContain('Secret Dragon');
 });
