@@ -51,7 +51,7 @@ export default function BattlefieldPicker({
   const terrain = normaliseCombatTerrain(terrainType);
   const selectedMap = maps.find(item => String(item.id) === String(mapId)) || null;
   const image = selectedMap?.map_url || selectedMap?.background_url
-    || selectedMap?.background_image || selectedMap?.image_url || '';
+    || selectedMap?.background_image || selectedMap?.image_url || selectedMap?.image_data || '';
   return (
     <section aria-label="Encounter battlefield" data-testid="battlefield-picker"
       style={{ display: 'grid', gap: 11, color: 'var(--rq-text-primary, #f0eadc)' }}>
