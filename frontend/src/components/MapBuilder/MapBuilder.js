@@ -355,6 +355,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
             showGrid={showGrid}
             gridSize={GRID_SIZE}
             zoom={zoom}
+            onZoomChange={setZoom}
           />
           
           {/* Tool hint */}
