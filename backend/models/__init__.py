@@ -915,9 +915,9 @@ class CombatScenario(BaseModel):
     @field_validator("terrain_type")
     @classmethod
     def validate_terrain(cls, value):
-        if value not in COMBAT_TERRAIN_IDS:
-            raise ValueError("Unknown combat terrain")
-        return value
+        # Historical encounter records were schemaless. A stale/unknown
+        # terrain string must not break a whole campaign's saved-encounter list.
+        return value if value in COMBAT_TERRAIN_IDS else "stone"
 
 
 class CombatScenarioCreate(BaseModel):
