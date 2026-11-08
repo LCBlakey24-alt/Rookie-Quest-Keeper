@@ -225,6 +225,7 @@ export default function CombatPageTable() {
   const [maps, setMaps] = useState([]);
   const [selectedMapId, setSelectedMapId] = useState('');
   const [terrainType, setTerrainType] = useState('stone');
+  const [showBattleGrid, setShowBattleGrid] = useState(true);
   const [mapTokens, setMapTokens] = useState([]);
   const [mapZoom, setMapZoom] = useState(1);
   const [collectedLoot, setCollectedLoot] = useState([]);
@@ -344,12 +345,14 @@ export default function CombatPageTable() {
       setRound(Math.max(1, restored.round || 1));
       setSelectedMapId(restored.selectedMapId || '');
       setTerrainType(normaliseCombatTerrain(restored.terrain_type || scenario.terrain_type));
+      setShowBattleGrid(restored.show_grid !== false);
       setMapTokens(safeArray(restored.mapTokens));
       setExpandedId(restored.combatants[Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1))]?.id || '');
       toast.info('Combat restored', { description: `Round ${Math.max(1, restored.round || 1)} checkpoint recovered.` });
     } else {
       battleStartTimeRef.current = Date.now();
       setTerrainType(normaliseCombatTerrain(scenario.terrain_type));
+      setShowBattleGrid(scenario.show_grid !== false);
       const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
       initialPlayerStatesRef.current = playerBaseStates(loaded);
       startingCombatantsRef.current = snapshotStartingCombatants(loaded);
@@ -395,6 +398,7 @@ export default function CombatPageTable() {
         round,
         selectedMapId,
         terrain_type: terrainType,
+        show_grid: showBattleGrid,
         mapTokens,
         collectedLoot,
         initialPlayerStates: initialPlayerStatesRef.current,
@@ -403,7 +407,7 @@ export default function CombatPageTable() {
       localStorage.setItem(combatKey, nextRaw);
       checkpointRawRef.current = nextRaw;
     } catch { /* local checkpoint is best effort */ }
-  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, terrainType, source, accountId, legacyOwnerVerified, checkpointConflict]);
+  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, terrainType, showBattleGrid, source, accountId, legacyOwnerVerified, checkpointConflict]);
 
   useEffect(() => {
     if (!scenario || !maps.length || selectedMapId) return;
@@ -1118,6 +1122,10 @@ export default function CombatPageTable() {
                 {GENERIC_COMBAT_TERRAINS.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
               </select>
             )}
+            <button type="button" onClick={() => setShowBattleGrid(value => !value)}
+              aria-label="Show battlefield grid" aria-pressed={showBattleGrid}>
+              Grid {showBattleGrid ? 'on' : 'off'}
+            </button>
             <button type="button" onClick={() => setMapZoom(value => Math.max(0.5, value - 0.2))}>−</button>
             <span>{Math.round(mapZoom * 100)}%</span>
             <button type="button" onClick={() => setMapZoom(value => Math.min(2, value + 0.2))}>+</button>
@@ -1134,7 +1142,7 @@ export default function CombatPageTable() {
                 onTokenMove={(tokenId, x, y) => setMapTokens(previous => previous.map(token => token.id === tokenId ? { ...token, x, y } : token))}
                 fogOfWar={null}
                 onFogChange={() => {}}
-                showGrid
+                showGrid={showBattleGrid}
                 gridSize={40}
                 zoom={mapZoom}
                 onZoomChange={setMapZoom}
