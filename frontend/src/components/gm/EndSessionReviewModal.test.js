@@ -163,3 +163,86 @@ test('an uncertain end-session HTTP response is retried with the same durable cl
   expect(archived[0][1].session_close_id).toEqual(archived[1][1].session_close_id);
   expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledTimes(1);
 });
+
+
+const fakeArc = {
+  id: 'arc-1', title: 'Adventure', status: 'active',
+  chapters: [
+    { id: 'chapter-1', title: 'Act One', status: 'prepped', scenes: [] },
+    { id: 'chapter-2', title: 'Act Two', status: 'planned', scenes: [] },
+  ],
+};
+
+function withStoryArc() {
+  apiClient.get.mockImplementation(async url => ({
+    data: url.includes('/roll-events/summary') ? summary : [fakeArc],
+  }));
+}
+
+test('archive failure cannot change story chapters or write a GM recap note', async () => {
+  withStoryArc();
+  apiClient.post.mockImplementation(async url => {
+    if (url.endsWith('/roll-events/end-session')) throw new Error('database unavailable');
+    return { data: { id: 'note-1' } };
+  });
+  await renderReady();
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Mark current chapter played' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Send Dice-Only Player Show' }));
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Could not end session'));
+  expect(apiClient.put).not.toHaveBeenCalled();
+  expect(apiClient.post.mock.calls.filter(([url]) => url.endsWith('/ingame-notes'))).toHaveLength(0);
+  expect(publishCampaignDisplayStateWithStatus).not.toHaveBeenCalled();
+});
+
+test('failed story write leaves archived recap intact and retries same frozen chapter', async () => {
+  withStoryArc();
+  apiClient.put
+    .mockRejectedValueOnce(new Error('story database offline'))
+    .mockResolvedValueOnce({ data: { ...fakeArc, chapters: [
+      { ...fakeArc.chapters[0], status: 'played' },
+      { ...fakeArc.chapters[1], status: 'prepped' },
+    ] } });
+  const onClose = await renderReady();
+  fireEvent.click(screen.getByRole('checkbox', { name: /Mark current chapter played and prep next chapter/i }));
+  fireEvent.click(screen.getByRole('button', { name: 'Send Dice-Only Player Show' }));
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('GM story chapter could not be saved');
+  expect(screen.getByRole('button', { name: 'Retry GM Story Save' })).toBeEnabled();
+  expect(screen.getByRole('checkbox', { name: 'Mark current chapter played' })).toBeDisabled();
+  expect(onClose).not.toHaveBeenCalled();
+  expect(publishCampaignDisplayStateWithStatus).not.toHaveBeenCalled();
+  const archivesBeforeRetry = apiClient.post.mock.calls.filter(([url]) => url.endsWith('/roll-events/end-session'));
+  expect(archivesBeforeRetry).toHaveLength(1);
+  expect(apiClient.post.mock.calls.filter(([url]) => url.endsWith('/ingame-notes'))).toHaveLength(0);
+
+  fireEvent.click(screen.getByRole('button', { name: 'Retry GM Story Save' }));
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  expect(apiClient.put).toHaveBeenCalledTimes(2);
+  for (const [, body] of apiClient.put.mock.calls) {
+    expect(body.chapters.map(chapter => chapter.status)).toEqual(['played', 'prepped']);
+  }
+  expect(apiClient.post.mock.calls.filter(([url]) => url.endsWith('/roll-events/end-session'))).toHaveLength(1);
+  expect(apiClient.post.mock.calls.filter(([url]) => url.endsWith('/ingame-notes'))).toHaveLength(1);
+  expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledTimes(1);
+});
+
+test('an unsuccessful display sync does not repeat a successful story wrap-up or GM note', async () => {
+  withStoryArc();
+  apiClient.put.mockResolvedValue({ data: { ...fakeArc, chapters: [
+    { ...fakeArc.chapters[0], status: 'played' },
+    { ...fakeArc.chapters[1], status: 'prepped' },
+  ] } });
+  publishCampaignDisplayStateWithStatus
+    .mockResolvedValueOnce({ state: {}, remoteSynced: false })
+    .mockResolvedValueOnce({ state: {}, remoteSynced: true });
+  const onClose = await renderReady();
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Mark current chapter played' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Send Dice-Only Player Show' }));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Retry Player Display' })).toBeEnabled());
+  fireEvent.click(screen.getByRole('button', { name: 'Retry Player Display' }));
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  expect(apiClient.put).toHaveBeenCalledTimes(1);
+  expect(apiClient.post.mock.calls.filter(([url]) => url.endsWith('/roll-events/end-session'))).toHaveLength(1);
+  expect(apiClient.post.mock.calls.filter(([url]) => url.endsWith('/ingame-notes'))).toHaveLength(1);
+  expect(publishCampaignDisplayStateWithStatus).toHaveBeenCalledTimes(2);
+});
