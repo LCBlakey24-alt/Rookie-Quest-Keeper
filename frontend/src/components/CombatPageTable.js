@@ -21,6 +21,7 @@ import MapCanvas from '@/components/MapBuilder/MapCanvas';
 import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
 import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRules';
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
+import { isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
 import {
   combatStateSnapshot,
@@ -429,7 +430,13 @@ export default function CombatPageTable() {
     if (!initialised || !scenario || !campaignId) return undefined;
     const timer = window.setTimeout(() => {
       const players = combatants.filter(item => item.type === 'player').map(combatantForDisplay);
-      const visibleCreatures = combatants.filter(item => item.type !== 'player').map(combatantForDisplay);
+      // Filter the original combatant before creating the public projection.
+      // combatantForDisplay deliberately drops GM-only fields, including the
+      // visibility flags that the server sanitizer relies on. Mapping first
+      // therefore turned a hidden creature into an apparently public token.
+      const visibleCreatures = combatants
+        .filter(item => item.type !== 'player' && isPlayerVisibleCombatToken(item))
+        .map(combatantForDisplay);
       const activeId = active?.id || '';
       const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage || selectedMap?.background_image || '';
       publishCampaignDisplayState(campaignId, createDisplayState('combat', {
