@@ -398,6 +398,9 @@ export default function CombatPageTable() {
         round,
         selectedMapId,
         terrain_type: terrainType,
+        grid_cols: displayedMap.width,
+        grid_rows: displayedMap.height,
+        feet_per_square: scenario.feet_per_square || 5,
         show_grid: showBattleGrid,
         mapTokens,
         collectedLoot,
@@ -407,7 +410,7 @@ export default function CombatPageTable() {
       localStorage.setItem(combatKey, nextRaw);
       checkpointRawRef.current = nextRaw;
     } catch { /* local checkpoint is best effort */ }
-  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, terrainType, showBattleGrid, source, accountId, legacyOwnerVerified, checkpointConflict]);
+  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, terrainType, showBattleGrid, displayedMap, source, accountId, legacyOwnerVerified, checkpointConflict]);
 
   useEffect(() => {
     if (!scenario || !maps.length || selectedMapId) return;
@@ -417,7 +420,7 @@ export default function CombatPageTable() {
 
   const active = combatants[currentTurn] || null;
   const selectedMap = useMemo(() => maps.find(item => item.id === selectedMapId) || null, [maps, selectedMapId]);
-  const displayedMap = useMemo(() => selectedMap || createGenericCombatMap(terrainType), [selectedMap, terrainType]);
+  const displayedMap = useMemo(() => selectedMap || createGenericCombatMap(terrainType, scenario?.grid_cols, scenario?.grid_rows), [selectedMap, terrainType, scenario?.grid_cols, scenario?.grid_rows]);
 
   useEffect(() => {
     if (!displayedMap || mapTokens.length) return;
@@ -476,6 +479,9 @@ export default function CombatPageTable() {
         active_id: activeId,
         battle_started_at: battleStartTimeRef.current,
         terrain_type: terrainType,
+        grid_cols: displayedMap.width,
+        grid_rows: displayedMap.height,
+        feet_per_square: scenario.feet_per_square || 5,
         party: players,
         tokens: [...players, ...visibleCreatures],
         map_url: mapUrl,
@@ -1143,7 +1149,7 @@ export default function CombatPageTable() {
                 fogOfWar={null}
                 onFogChange={() => {}}
                 showGrid={showBattleGrid}
-                gridSize={40}
+                gridSize={scenario.grid_size || 40}
                 zoom={mapZoom}
                 onZoomChange={setMapZoom}
               />
