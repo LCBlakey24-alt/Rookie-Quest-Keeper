@@ -87,6 +87,56 @@ test('Player Display fixed controls never cover its security and sync status', a
 });
 
 
+test('A saved tile-built battlefield appears with correctly positioned tokens on the virtual table', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.addInitScript(token => {
+    localStorage.setItem('dm_token', token);
+    localStorage.setItem('dm_username', 'responsive-display-user');
+    class QuietWebSocket {
+      readyState = 0;
+      send() {}
+      close() { this.readyState = 3; }
+    }
+    window.WebSocket = QuietWebSocket as unknown as typeof WebSocket;
+  }, syntheticDisplayToken);
+
+  const revision = Date.now() + 100000;
+  await page.route('**/api/**', route => {
+    const url = route.request().url();
+    if (url.endsWith('/display-state')) return route.fulfill({
+      status: 200, contentType: 'application/json', body: JSON.stringify({
+        campaign_id: 'responsive-campaign', sync_id: 'tile-grid-demo',
+        sequence: revision, updated_at: new Date(revision).toISOString(),
+        mode: 'combat', payload: {
+          title: 'Tile-built battlefield', display_target: 'virtual-table',
+          terrain_type: 'stone', terrain_grid: [
+            ['stone', 'grass'], ['sand', 'water'],
+          ], grid_cols: 2, grid_rows: 2,
+          round: 2, tokens: [{ id: 'wolf-1', name: 'Wolf', type: 'enemy', x: 25, y: 25 }],
+          party: [],
+        },
+      }),
+    });
+    if (url.endsWith('/players')) return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/player-display/responsive-campaign?target=virtual-table');
+  const canvas = page.getByTestId('public-terrain-grid');
+  await expect(canvas).toBeVisible();
+  await expect(page.getByTestId('combat-map-token-wolf-1')).toBeVisible();
+  const measurements = await canvas.evaluate(node => {
+    const canvas = node as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+    return { pixelsWide: canvas.width, pixelsHigh: canvas.height, width: rect.width, height: rect.height };
+  });
+  expect(measurements.pixelsWide).toBe(40);
+  expect(measurements.pixelsHigh).toBe(40);
+  expect(Math.abs(measurements.width - measurements.height)).toBeLessThanOrEqual(2);
+  await assertFitsViewport(page, 1280);
+});
+
+
 // Live Play now has a grouped vertical rail on desktop and tablet, and a
 // Tools button + accessible drawer on phones. Assert the actual navigation
 // contract, rather than the retired horizontal six-tool strip.
