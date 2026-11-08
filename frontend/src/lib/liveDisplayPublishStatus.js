@@ -24,7 +24,7 @@ export async function publishCampaignDisplayStateWithStatus(campaignId, state) {
     const remoteSequence = Number(remoteState.sequence || state.sequence || 0);
     if (latestLocal?.sync_id !== state.sync_id &&
         Number(latestLocal?.sequence || 0) > remoteSequence) {
-      return { state: latestLocal, remoteSynced: true };
+      return { state: latestLocal, remoteSynced: false, pendingNewer: true };
     }
     publishDisplayState(campaignId, remoteState, publishingAccount);
     return { state: remoteState, remoteSynced: true };
