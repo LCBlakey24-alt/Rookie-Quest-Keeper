@@ -440,11 +440,19 @@ def test_delayed_older_display_update_cannot_replace_newer_battle_or_broadcast(m
             assert upsert is True
             decision = pipeline[0]['$replaceRoot']['newRoot']['$cond']
             assert decision[0]['$lt'][0] == {'$ifNull': ['$sequence', 0]}
+            assert decision[1]['$mergeObjects'][0] == '$$ROOT'
+            assert decision[2] == '$$ROOT'
             proposed = decision[1]['$mergeObjects'][1]['$literal']
             existing_sequence = (self.state or {}).get('sequence', 0)
-            if existing_sequence < proposed['sequence']:
+            updated = existing_sequence < proposed['sequence']
+            inserted = self.state is None
+            if updated:
                 self.state = dict(proposed)
-            return SimpleNamespace(matched_count=1)
+            return SimpleNamespace(
+                matched_count=0 if inserted else 1,
+                modified_count=1 if updated and not inserted else 0,
+                upserted_id='created' if inserted else None,
+            )
 
         async def find_one(self, query, projection=None):
             return dict(self.state) if self.state else None
@@ -504,6 +512,13 @@ def test_delayed_older_display_update_cannot_replace_newer_battle_or_broadcast(m
 
     newer = asyncio.run(publish('new-turn', 1201, 'combat', 'Next turn'))
     assert newer['sync_id'] == 'new-turn'
+    assert [payload['data']['sync_id'] for _, payload in fake_ws.broadcasts] == ['combat-now', 'new-turn']
+
+    # Reusing the same sync ID must return stored content, not invent a
+    # different public announcement from a payload Mongo never accepted.
+    repeat = asyncio.run(publish('new-turn', 1201, 'title', 'Wrong phantom update'))
+    assert repeat['mode'] == 'combat'
+    assert repeat['payload']['title'] == 'Next turn'
     assert [payload['data']['sync_id'] for _, payload in fake_ws.broadcasts] == ['combat-now', 'new-turn']
 
 
