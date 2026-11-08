@@ -1,5 +1,5 @@
 import apiClient from '@/lib/apiClient';
-import { currentDisplayAccount, publishDisplayState } from '@/lib/liveDisplayBus';
+import { currentDisplayAccount, publishDisplayState, reconcileRejectedDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from './liveDisplayPublishStatus';
 
 jest.mock('@/lib/apiClient', () => ({
@@ -10,6 +10,7 @@ jest.mock('@/lib/apiClient', () => ({
 jest.mock('@/lib/liveDisplayBus', () => ({
   currentDisplayAccount: jest.fn(),
   publishDisplayState: jest.fn(),
+  reconcileRejectedDisplayState: jest.fn(),
 }));
 
 describe('publishCampaignDisplayStateWithStatus', () => {
@@ -41,6 +42,25 @@ describe('publishCampaignDisplayStateWithStatus', () => {
     expect(publishDisplayState).toHaveBeenCalledTimes(1);
     expect(publishDisplayState).toHaveBeenCalledWith('campaign-1', state, 'account-a');
     expect(result).toEqual({ state, remoteSynced: false, error });
+  });
+
+  test('a server 409 reports a conflict and refreshes from authoritative state', async () => {
+    const proposed = { sync_id: 'old-battle-start', sequence: 100, mode: 'battle-start' };
+    const authoritative = { sync_id: 'current-combat', sequence: 101, mode: 'combat' };
+    const conflict = Object.assign(new Error('stale revision'), { response: { status: 409 } });
+    apiClient.put.mockRejectedValueOnce(conflict);
+    reconcileRejectedDisplayState.mockResolvedValueOnce(authoritative);
+
+    const result = await publishCampaignDisplayStateWithStatus('campaign-1', proposed);
+
+    expect(reconcileRejectedDisplayState).toHaveBeenCalledWith('campaign-1', 'account-a');
+    expect(result).toEqual({
+      state: authoritative,
+      remoteSynced: false,
+      conflict: true,
+      error: conflict,
+    });
+    expect(publishDisplayState).toHaveBeenCalledTimes(1);
   });
 
   test('does not publish an old account response after a sign-in switch', async () => {
