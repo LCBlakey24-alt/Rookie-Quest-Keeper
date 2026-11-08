@@ -623,7 +623,8 @@ test('a prepared encounter opens a combined battlefield with its map and GM enem
   expect(roster).toHaveTextContent('Scarab Horror');
   expect(roster).toHaveTextContent('46/46');
   expect(roster).toHaveTextContent('17');
-  expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2');
+  // The saved map arrives asynchronously; tokens are positioned in the next effect.
+  await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2'));
   expect(screen.getByRole('combobox', { name: '' })).toHaveValue('map-forest');
 
   const zoom = screen.getByTestId('map-canvas');
