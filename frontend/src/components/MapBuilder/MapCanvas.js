@@ -7,6 +7,7 @@ const DEFAULT_MAP_HEIGHT = 20; // grid squares
 const TERRAIN_TYPES = {
   empty: { color: '#1a1a2e', name: 'Empty' },
   stone: { color: '#4a4a5a', name: 'Stone Floor' },
+  cobblestone: { color: '#62656c', name: 'Cobblestones' },
   wood: { color: '#8B4513', name: 'Wood Floor' },
   grass: { color: '#228B22', name: 'Grass' },
   water: { color: '#1e90ff', name: 'Water' },
