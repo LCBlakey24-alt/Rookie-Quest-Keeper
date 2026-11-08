@@ -101,6 +101,8 @@ def test_acknowledgement_records_only_the_current_display_state(monkeypatch):
 
         async def update_one(self, query, update, **kwargs):
             self.updates.append((query, update, kwargs))
+            from types import SimpleNamespace
+            return SimpleNamespace(matched_count=int(query.get('sync_id') == self.state['sync_id']))
 
     class FakeDb:
         def __init__(self):
@@ -423,3 +425,109 @@ def test_public_shop_display_includes_prices_but_strips_gm_secrets():
     assert 'cursed' not in str(payload)
     assert 'Secret' not in str(payload)
     assert 'wholesale_price' not in str(payload)
+
+
+def test_delayed_older_display_update_cannot_replace_newer_battle_or_broadcast(monkeypatch):
+    """Simulate requests arriving out of order, with an atomic MongoDB update."""
+    from types import SimpleNamespace
+
+    class FakeCollection:
+        def __init__(self):
+            self.state = None
+
+        async def update_one(self, query, pipeline, upsert=False):
+            assert query == {'campaign_id': 'campaign-1'}
+            assert upsert is True
+            decision = pipeline[0]['$replaceRoot']['newRoot']['$cond']
+            assert decision[0]['$lt'][0] == {'$ifNull': ['$sequence', 0]}
+            proposed = decision[1]['$mergeObjects'][1]['$literal']
+            existing_sequence = (self.state or {}).get('sequence', 0)
+            if existing_sequence < proposed['sequence']:
+                self.state = dict(proposed)
+            return SimpleNamespace(matched_count=1)
+
+        async def find_one(self, query, projection=None):
+            return dict(self.state) if self.state else None
+
+    class FakeDb:
+        campaign_display_states = FakeCollection()
+
+    class FakeWebSockets:
+        def __init__(self):
+            self.broadcasts = []
+
+        async def broadcast_to_campaign(self, campaign_id, payload):
+            self.broadcasts.append((campaign_id, payload))
+
+    async def allow_ownership(campaign_id, username):
+        return True
+
+    fake_db = FakeDb()
+    fake_ws = FakeWebSockets()
+    monkeypatch.setattr(campaign_display_module, 'db', fake_db)
+    monkeypatch.setattr(campaign_display_module, 'ws_manager', fake_ws)
+    monkeypatch.setattr(campaign_display_module, 'verify_campaign_ownership', allow_ownership)
+
+    def publish(sync_id, sequence, mode, title):
+        return campaign_display_module.update_campaign_display_state(
+            'campaign-1', {
+                'sync_id': sync_id,
+                'sequence': sequence,
+                'mode': mode,
+                'payload': {'title': title},
+            },
+            username='gm-user',
+        )
+
+    latest = asyncio.run(publish('combat-now', 1200, 'combat', 'Battle in progress'))
+    assert latest['mode'] == 'combat'
+    assert fake_db.campaign_display_states.state['sync_id'] == 'combat-now'
+
+    try:
+        asyncio.run(publish('old-battle-start', 1100, 'battle-start', 'Battle starting'))
+    except HTTPException as exc:
+        assert exc.status_code == 409
+        assert 'newer' in exc.detail
+    else:
+        raise AssertionError('Delayed older update must be rejected')
+
+    assert fake_db.campaign_display_states.state['mode'] == 'combat'
+    assert fake_db.campaign_display_states.state['sync_id'] == 'combat-now'
+    assert [payload['data']['sync_id'] for _, payload in fake_ws.broadcasts] == ['combat-now']
+
+    try:
+        asyncio.run(publish('different-same-timestamp', 1200, 'title', 'Another message'))
+    except HTTPException as exc:
+        assert exc.status_code == 409
+    else:
+        raise AssertionError('Equal sequence from another request cannot overwrite')
+
+    newer = asyncio.run(publish('new-turn', 1201, 'combat', 'Next turn'))
+    assert newer['sync_id'] == 'new-turn'
+    assert [payload['data']['sync_id'] for _, payload in fake_ws.broadcasts] == ['combat-now', 'new-turn']
+
+
+def test_delayed_display_ack_cannot_attach_to_newer_reveal(monkeypatch):
+    """The display state can switch between ACK read and ACK update."""
+    from types import SimpleNamespace
+
+    class FakeCollection:
+        async def find_one(self, query, projection=None):
+            return {'campaign_id': 'campaign-1', 'sync_id': 'already-replaced', 'mode': 'combat'}
+
+        async def update_one(self, query, update, **kwargs):
+            assert query['sync_id'] == 'already-replaced'
+            return SimpleNamespace(matched_count=0)
+
+    class FakeDb:
+        campaign_display_states = FakeCollection()
+
+    async def allow_membership(campaign_id, username):
+        return True
+
+    monkeypatch.setattr(campaign_display_module, 'db', FakeDb())
+    monkeypatch.setattr(campaign_display_module, 'verify_campaign_membership', allow_membership)
+    result = asyncio.run(acknowledge_campaign_display_state(
+        'campaign-1', {'sync_id': 'already-replaced'}, username='player',
+    ))
+    assert result == {'acknowledged': False, 'stale': True, 'sync_id': 'already-replaced'}
