@@ -881,24 +881,72 @@ class CampaignJoinRequest(BaseModel):
 class AICharacterGenerateRequest(BaseModel):
     description: str  # Player's description of desired character
 
+# Keep the encounter's battlefield alongside its saved combatants. Earlier
+# versions silently discarded these keys from POST, PUT and list responses,
+# because the models had no map fields even though the builder sent them.
+# Defaults keep old encounters readable without a database migration.
+COMBAT_TERRAIN_IDS = {'stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water', 'snow', 'mud', 'lava'}
+
+
 class CombatScenario(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
     name: str
     description: str = ""
-    combatants: List[Dict[str, Any]] = []  # Pre-configured combatant list
+    combatants: List[Dict[str, Any]] = []
+    map_id: str = ""
+    map_url: Optional[str] = None
+    terrain_type: str = "stone"
+    tokens: List[Dict[str, Any]] = []
+    grid_size: int = Field(default=40, ge=10, le=200)
+    show_grid: bool = True
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    @field_validator("terrain_type")
+    @classmethod
+    def validate_terrain(cls, value):
+        if value not in COMBAT_TERRAIN_IDS:
+            raise ValueError("Unknown combat terrain")
+        return value
+
 
 class CombatScenarioCreate(BaseModel):
     name: str
     description: str = ""
     combatants: List[Dict[str, Any]] = []
+    map_id: str = ""
+    map_url: Optional[str] = None
+    terrain_type: str = "stone"
+    tokens: List[Dict[str, Any]] = []
+    grid_size: int = Field(default=40, ge=10, le=200)
+    show_grid: bool = True
+
+    @field_validator("terrain_type")
+    @classmethod
+    def validate_terrain(cls, value):
+        if value not in COMBAT_TERRAIN_IDS:
+            raise ValueError("Unknown combat terrain")
+        return value
+
 
 class CombatScenarioUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     combatants: Optional[List[Dict[str, Any]]] = None
+    map_id: Optional[str] = None
+    map_url: Optional[str] = None
+    terrain_type: Optional[str] = None
+    tokens: Optional[List[Dict[str, Any]]] = None
+    grid_size: Optional[int] = Field(default=None, ge=10, le=200)
+    show_grid: Optional[bool] = None
+
+    @field_validator("terrain_type")
+    @classmethod
+    def validate_terrain(cls, value):
+        if value is not None and value not in COMBAT_TERRAIN_IDS:
+            raise ValueError("Unknown combat terrain")
+        return value
 
 class InGameNote(BaseModel):
     model_config = ConfigDict(extra="ignore")
