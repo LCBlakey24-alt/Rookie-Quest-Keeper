@@ -85,17 +85,17 @@ async def update_campaign_display_state(campaign_id: str, display_state: Dict[st
     # prevents user-authored public strings beginning with "$" from being
     # interpreted as aggregation expressions.
     is_newer = {'$lt': [{'$ifNull': ['$sequence', 0]}, state['sequence']]}
-    await db.campaign_display_states.update_one(
+    result = await db.campaign_display_states.update_one(
         {'campaign_id': campaign_id},
         [{'$replaceRoot': {'newRoot': {'$cond': [
             is_newer,
-            {'$mergeObjects': ['$ROOT', {'$literal': state}]},
-            '$ROOT',
+            {'$mergeObjects': ['$$ROOT', {'$literal': state}]},
+            '$$ROOT',
         ]}}}],
         upsert=True,
     )
     current = await db.campaign_display_states.find_one(
-        {'campaign_id': campaign_id}, {'_id': 0, 'sync_id': 1, 'sequence': 1},
+        {'campaign_id': campaign_id}, {'_id': 0},
     )
     if not current or current.get('sync_id') != state['sync_id']:
         # Return a conflict, never a false acknowledgement. The caller may
@@ -105,6 +105,10 @@ async def update_campaign_display_state(campaign_id: str, display_state: Dict[st
             status_code=status.HTTP_409_CONFLICT,
             detail='A newer player-display update has already been saved',
         )
+    # Replaying the same sync ID is idempotent. Never broadcast an incoming
+    # payload that the conditional write deliberately did not apply.
+    if result.modified_count == 0 and result.upserted_id is None:
+        return public_display_state(current)
     await ws_manager.broadcast_to_campaign(campaign_id, {
         'type': 'player_display_update',
         'user_id': username,
