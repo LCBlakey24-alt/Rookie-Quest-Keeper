@@ -90,7 +90,7 @@ export default function BattlefieldPicker({
         </div>
       )}
       {selectedMode !== 'saved' && (
-        <div style={previewStyle(genericCombatBackdropStyle(selectedMode==='none'?'stone':terrain))}
+        <div style={previewStyle({ ...genericCombatBackdropStyle(selectedMode==='none'?'stone':terrain), backgroundSize: '24px 24px, 24px 24px, 96px 96px' })}
           aria-label={'Battlefield preview: '+(selectedMode==='none'?'stone':terrain)}
           data-testid="battlefield-texture-preview" />
       )}
@@ -101,7 +101,7 @@ export default function BattlefieldPicker({
             <button key={item.id} type="button" style={tileButton(item.id === terrain)}
               onClick={() => onTerrainChange?.(item.id)} aria-pressed={item.id === terrain}
               aria-label={item.label} data-testid={'terrain-choice-'+item.id}>
-              <span aria-hidden="true" style={previewStyle(genericCombatBackdropStyle(item.id))} />
+              <span aria-hidden="true" style={previewStyle({ ...genericCombatBackdropStyle(item.id), backgroundSize: '20px 20px, 20px 20px, 80px 80px' })} />
               <strong style={{ fontSize: 11 }}>{item.label}</strong>
             </button>
           ))}
