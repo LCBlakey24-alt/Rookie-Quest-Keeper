@@ -119,7 +119,7 @@ def sanitize_player_display_payload(mode: str, payload: Any) -> Dict[str, Any]:
         out.pop('display_target', None)
     if mode == 'combat' and 'terrain_type' in out:
         # Only predefined, public terrain names may reach the screen.
-        if out['terrain_type'] not in ('stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water'):
+        if out['terrain_type'] not in ('stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water', 'snow', 'mud', 'lava'):
             out['terrain_type'] = 'stone'
     if isinstance(payload.get('banner'), dict):
         out['banner'] = _scalar_fields(payload['banner'], BANNER)
