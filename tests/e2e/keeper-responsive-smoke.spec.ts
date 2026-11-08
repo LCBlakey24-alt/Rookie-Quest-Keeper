@@ -204,25 +204,39 @@ for (const size of appSizes) {
     await expect(page.getByText(/No preparation needed/i)).toBeVisible();
     await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
 
-    // The battle-map choice belongs in keyboard order between encounter
-    // selection and the Reset/Start controls. Preserve 44px tap targets.
-    const battleMap = launcher.getByRole('combobox', { name: 'Battle map for this encounter' });
+    // The shared battlefield picker replaces the retired solitary map
+    // combobox. Verify accessibility, keyboard order and touch targets for
+    // the three source choices before Reset/Start.
+    const savedMap = launcher.getByRole('button', { name: 'Saved battle map' });
+    const generic = launcher.getByRole('button', { name: 'Generic textured floor' });
+    const none = launcher.getByRole('button', { name: 'No selection' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
-    const [choiceBounds, mapBounds, resetBounds, launchBounds] = await Promise.all([
-      choice.boundingBox(), battleMap.boundingBox(), reset.boundingBox(), launch.boundingBox(),
+    const [choiceBounds, savedBounds, genericBounds, noneBounds, resetBounds, launchBounds] = await Promise.all([
+      choice.boundingBox(), savedMap.boundingBox(), generic.boundingBox(),
+      none.boundingBox(), reset.boundingBox(), launch.boundingBox(),
     ]);
-    expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(mapBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(resetBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
+    for (const rect of [choiceBounds, savedBounds, genericBounds, noneBounds, resetBounds, launchBounds]) {
+      expect(rect?.height).toBeGreaterThanOrEqual(44);
+    }
     await choice.focus();
     await expect(choice).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(battleMap).toBeFocused();
+    await expect(savedMap).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(generic).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(none).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(reset).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(launch).toBeFocused();
+
+    // Terrain gallery must remain usable even on the narrow phone layout.
+    await generic.click();
+    await expect(launcher.getByTestId('terrain-choice-stone')).toBeVisible();
+    await expect(launcher.getByTestId('terrain-choice-lava')).toBeVisible();
+    await launcher.getByTestId('terrain-choice-grass').click();
+    await expect(launcher.getByTestId('terrain-choice-grass')).toHaveAttribute('aria-pressed','true');
     await assertFitsViewport(page, size.width);
 
     await testInfo.attach(`encounter-review-${size.label}`, {
