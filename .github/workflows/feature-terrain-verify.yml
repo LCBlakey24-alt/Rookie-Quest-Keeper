@@ -5,7 +5,7 @@ on:
       - feature/generic-combat-terrain-20261108
 
 concurrency:
-  group: terrain-feature-branch
+  group: terrain-feature-final-20261108
   cancel-in-progress: true
 
 permissions:
