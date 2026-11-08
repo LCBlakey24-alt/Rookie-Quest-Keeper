@@ -148,6 +148,7 @@ export function readCombatCheckpoint(campaignId, storage, options = {}) {
       round,
       selectedMapId: String(parsed.selectedMapId || ''),
       terrain_type: String(parsed.terrain_type || 'stone'),
+      show_grid: parsed.show_grid !== false,
       mapTokens: Array.isArray(parsed.mapTokens) ? parsed.mapTokens : [],
       collectedLoot: Array.isArray(parsed.collectedLoot) ? parsed.collectedLoot : [],
       initialPlayerStates: (parsed.initialPlayerStates && typeof parsed.initialPlayerStates === 'object')
@@ -173,6 +174,7 @@ export function scenarioFromCheckpoint(checkpoint) {
     combatants: checkpoint.combatants,
     map_id: checkpoint.selectedMapId || '',
     terrain_type: checkpoint.terrain_type || 'stone',
+    show_grid: checkpoint.show_grid !== false,
     recovered: true,
   };
 }
