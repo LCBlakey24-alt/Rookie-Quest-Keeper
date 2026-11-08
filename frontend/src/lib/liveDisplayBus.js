@@ -207,9 +207,15 @@ function clearStoredDisplayState(campaignId, account) {
   try { runtimeWindow.localStorage.removeItem(ownedStorageKey(account, campaignId)); } catch { /* ignore */ }
 }
 
+// Rapid GM actions can share the same millisecond. Give every locally
+// created state a strictly increasing sequence so the server can reject an
+// older delayed request without confusing two legitimate consecutive actions.
+let lastCreatedSequence = 0;
+
 export function createDisplayState(mode = 'blank', payload = {}) {
-  const now = new Date().toISOString();
-  const sequence = Date.now();
+  const sequence = Math.max(Date.now(), lastCreatedSequence + 1);
+  lastCreatedSequence = sequence;
+  const now = new Date(sequence).toISOString();
   return {
     sync_id: `${now}-${sequence}-${Math.random().toString(16).slice(2)}`,
     mode,
