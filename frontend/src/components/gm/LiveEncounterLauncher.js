@@ -71,7 +71,7 @@ export function encounterBattleScenario(selected, combatants, mapId = '', timest
   const base = selected
     ? { ...selected, name: selected.name || 'Live Encounter', combatants: safeArray(combatants) }
     : createImpromptuEncounter(combatants, timestamp);
-  const battlefieldMode = ['saved','generic','none'].includes(mode) ? mode : battlefieldModeFor(base);
+  const battlefieldMode = ['saved','generic','none'].includes(mode) ? mode : (mapId ? 'saved' : battlefieldModeFor(base));
   return {
     ...base,
     map_id: battlefieldMode === 'saved' ? String(mapId || '') : '',
