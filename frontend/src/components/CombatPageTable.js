@@ -440,7 +440,7 @@ export default function CombatPageTable() {
         isAlly: combatant.type === 'player' || combatant.type === 'npc',
       };
     }));
-  }, [combatants, mapTokens.length, displayedMap]);
+  }, [combatants, mapTokens.length, displayedMap, initialised]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
