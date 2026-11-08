@@ -1,0 +1,45 @@
+name: Feature terrain verification
+on:
+  push:
+    branches:
+      - feature/generic-combat-terrain-20261108
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - run: yarn install --non-interactive
+      - name: Focused encounter and map tests
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/genericCombatTerrain.test.js src/components/gm/BattlefieldPicker.test.js src/components/gm/LiveEncounterLauncher.test.js src/components/gm/PlayerDisplayPage.map.test.js src/components/CombatPageTableRecovery.test.js src/components/combat/combatCheckpoint.test.js
+      - name: Complete frontend suite
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runInBand
+      - name: Production build
+        run: yarn build
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -c backend/requirements.txt fastapi pydantic motor pymongo PyJWT bcrypt python-dotenv email-validator python-multipart pytest requests google-auth httpx uvicorn websockets
+      - name: Encounter map and player-display checks
+        run: python -m pytest -q backend/tests/test_combat_scenario_battlefields.py backend/tests/test_campaign_display_routes.py backend/tests/test_campaign_collections_resilience.py
