@@ -7,6 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Search, Plus, X, RotateCcw, Trash2, Swords, Save, Map, Upload, Grid, Image, Play, Coins, Package, Skull, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { MONSTER_DATABASE, MONSTER_TYPES, CR_OPTIONS, getCRValue, getXPFromCR } from '@/data/monsterDatabase';
 import EncounterDifficultyCalculator from '@/components/EncounterDifficultyCalculator';
+import BattlefieldPicker, { battlefieldModeFor } from '@/components/gm/BattlefieldPicker';
+import { normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 import QuickTips, { TIPS } from '@/components/QuickTips';
 
 
@@ -39,6 +41,11 @@ function CombatCreatorTab({ campaignId }) {
   
   // Map state
   const [mapImage, setMapImage] = useState(null);
+  const [savedMaps, setSavedMaps] = useState([]);
+  const [battlefieldMode, setBattlefieldMode] = useState('none');
+  const [terrainType, setTerrainType] = useState('stone');
+  const [selectedMapId, setSelectedMapId] = useState('');
+
   const [mapUrl, setMapUrl] = useState('');
   const [mapDataUrl, setMapDataUrl] = useState('');
   const [showGrid, setShowGrid] = useState(true);
@@ -66,6 +73,10 @@ function CombatCreatorTab({ campaignId }) {
       setPlayers(playersRes.data);
       setNpcs(npcsRes.data);
       setScenarios(scenariosRes.data);
+      // Optional resource: a failed map list must never block encounter editing.
+      apiClient.get(`/campaigns/${campaignId}/maps`)
+        .then(response => setSavedMaps(Array.isArray(response.data) ? response.data : []))
+        .catch(() => setSavedMaps([]));
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
@@ -84,6 +95,8 @@ function CombatCreatorTab({ campaignId }) {
     img.onload = () => {
       setMapImage(img);
       setMapDataUrl(mapUrl);
+      setBattlefieldMode('saved');
+      setSelectedMapId('');
       toast.success('Map loaded!');
     };
     img.onerror = () => toast.error('Failed to load map');
@@ -103,6 +116,8 @@ function CombatCreatorTab({ campaignId }) {
       img.onload = () => {
         setMapImage(img);
         setMapDataUrl(event.target.result);
+        setBattlefieldMode('saved');
+        setSelectedMapId('');
         toast.success('Map uploaded!');
       };
       img.src = event.target.result;
@@ -233,7 +248,10 @@ function CombatCreatorTab({ campaignId }) {
       name: scenarioName,
       description: scenarioDescription,
       combatants: combatants,
-      map_url: mapDataUrl || null,
+      map_id: battlefieldMode === 'saved' ? selectedMapId : '',
+      map_url: battlefieldMode === 'saved' && !selectedMapId ? (mapDataUrl || null) : null,
+      battlefield_mode: battlefieldMode,
+      terrain_type: normaliseCombatTerrain(terrainType),
       tokens: tokens,
       grid_size: gridSize,
       show_grid: showGrid
@@ -260,6 +278,10 @@ function CombatCreatorTab({ campaignId }) {
     setScenarioDescription(scenario.description || '');
     setCombatants(scenario.combatants || []);
     setTokens(scenario.tokens || []);
+    setBattlefieldMode(battlefieldModeFor(scenario));
+    setSelectedMapId(String(scenario.map_id || scenario.mapId || ''));
+    setTerrainType(normaliseCombatTerrain(scenario.terrain_type));
+
     setGridSize(scenario.grid_size || 40);
     setShowGrid(scenario.show_grid !== false);
     
@@ -298,6 +320,9 @@ function CombatCreatorTab({ campaignId }) {
     setMapImage(null);
     setMapDataUrl('');
     setMapUrl('');
+    setBattlefieldMode('none');
+    setTerrainType('stone');
+    setSelectedMapId('');
   };
 
   // Token dragging
@@ -554,8 +579,17 @@ function CombatCreatorTab({ campaignId }) {
           </div>
         )}
 
-        {/* Battle Map Section */}
+        {/* Encounter Battlefield — saved map or shared textured fallback. */}
         <div className="glow-panel" style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: 16, marginBottom: 12 }}>Battlefield</h3>
+          <BattlefieldPicker mode={battlefieldMode} terrainType={terrainType}
+            mapId={selectedMapId} maps={savedMaps}
+            onModeChange={setBattlefieldMode} onTerrainChange={setTerrainType}
+            onMapIdChange={id => { setSelectedMapId(id); if (id) { setMapImage(null); setMapDataUrl(''); } }}
+          />
+        </div>
+        {/* Legacy image uploads stay available when using a custom map. */}
+        {battlefieldMode === 'saved' && <div className="glow-panel" style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Map size={20} style={{ color: '#F59E0B' }} />
@@ -601,9 +635,9 @@ function CombatCreatorTab({ campaignId }) {
             </div>
           )}
           <p style={{ color: '#64748b', fontSize: '11px', marginTop: '10px', fontStyle: 'italic' }}>
-            {mapImage ? 'Click and drag tokens to position them. They will snap to grid.' : 'Map is optional - you can create encounters without one.'}
+            {mapImage ? 'Click and drag tokens to position them. They will snap to grid.' : 'You can also choose an existing campaign battle map above.'}
           </p>
-        </div>
+        </div>}
 
         {/* Add Combatants Panel */}
         {showAddPanel && (
