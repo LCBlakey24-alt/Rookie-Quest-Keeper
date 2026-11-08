@@ -523,7 +523,7 @@ function renderStatsPage(page, session, allTime, target) {
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award, actors }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{rollActorDisplayName(award, actors)}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor, actors }) { return <div style={actorRowStyle}><strong>{rollActorDisplayName(actor, actors)}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
-function CombatMapArtwork({ mapUrl, terrainType = 'stone', gridCols = 30, gridRows = 20, title, target, tokens }) {
+function CombatMapArtwork({ mapUrl, terrainType = 'stone', gridCols, gridRows, title, target, tokens }) {
   const layerRef = useRef(null);
   const [container, setContainer] = useState({ width: 0, height: 0 });
   const [loadedImage, setLoadedImage] = useState(null);
@@ -550,9 +550,22 @@ function CombatMapArtwork({ mapUrl, terrainType = 'stone', gridCols = 30, gridRo
   // Do not paint tokens over a stale image when the GM switches maps.
   const useGenericTerrain = !mapUrl || failedMapUrl === mapUrl;
   const imageReady = Boolean(!useGenericTerrain && loadedImage && loadedImage.url === mapUrl);
+  // New combat states include grid dimensions. Place the entire image,
+  // textured surface and token overlay inside that same map rectangle so
+  // squares stay square on differently shaped TV/table screens. Legacy
+  // images without grid geometry keep their natural aspect-ratio behaviour.
+  const columns = Number(gridCols);
+  const rows = Number(gridRows);
+  const hasGridGeometry = Number.isFinite(columns) && Number.isFinite(rows)
+    && columns > 0 && rows > 0;
+  const mapColumns = hasGridGeometry ? columns : 30;
+  const mapRows = hasGridGeometry ? rows : 20;
+  const genericBounds = getContainedMapRect(container.width, container.height, mapColumns, mapRows);
   const bounds = imageReady
-    ? getContainedMapRect(container.width, container.height, loadedImage.width, loadedImage.height)
-    : null;
+    ? getContainedMapRect(container.width, container.height,
+      hasGridGeometry ? columns : loadedImage.width,
+      hasGridGeometry ? rows : loadedImage.height)
+    : genericBounds;
   return (
     <div ref={layerRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }} data-testid="combat-map-artwork">
       {useGenericTerrain && (
@@ -560,11 +573,21 @@ function CombatMapArtwork({ mapUrl, terrainType = 'stone', gridCols = 30, gridRo
           data-testid="combat-generic-terrain"
           data-terrain={normaliseCombatTerrain(terrainType)}
           aria-label={`Generic ${normaliseCombatTerrain(terrainType)} battlefield`}
-          style={{ position: 'absolute', inset: 0, ...genericCombatBackdropStyle(terrainType, gridCols, gridRows) }}
+          style={{
+            position: 'absolute',
+            left: genericBounds?.left ?? 0,
+            top: genericBounds?.top ?? 0,
+            width: genericBounds?.width ?? '100%',
+            height: genericBounds?.height ?? '100%',
+            ...genericCombatBackdropStyle(terrainType, mapColumns, mapRows),
+          }}
         />
       )}
       {mapUrl && !useGenericTerrain && (
-        <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'} style={combatMapImageStyle(target)}
+        <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'}
+          style={hasGridGeometry && bounds
+            ? { position: 'absolute', left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height, objectFit: 'fill' }
+            : combatMapImageStyle(target)}
           onLoad={event => setLoadedImage({
             url: mapUrl,
             width: event.currentTarget.naturalWidth,
@@ -573,7 +596,7 @@ function CombatMapArtwork({ mapUrl, terrainType = 'stone', gridCols = 30, gridRo
           onError={() => { setLoadedImage(null); setFailedMapUrl(mapUrl); }}
         />
       )}
-      {((useGenericTerrain && container.width > 0 && container.height > 0) || bounds) && (
+      {bounds && (
         <div data-testid="combat-map-token-overlay" style={{
           ...tokenOverlayStyle,
           inset: 'auto',
