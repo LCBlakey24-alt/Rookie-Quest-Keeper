@@ -87,7 +87,7 @@ function MapCanvas({
   }, [genericTerrain]);
 
   const savedBackgroundUrl = backgroundImageUrl || map.map_url || map.background_url
-    || map.background_image || map.image_url || '';
+    || map.background_image || map.backgroundImage || map.image_url || map.image_data || '';
   useEffect(() => {
     if (!savedBackgroundUrl) { setBackgroundArtwork(null); return undefined; }
     let cancelled = false;
