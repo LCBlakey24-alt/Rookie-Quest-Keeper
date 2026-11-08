@@ -184,7 +184,13 @@ export function getGenericCombatTerrainImage(value = 'stone') {
   return imageCache.get(id);
 }
 
-export function genericCombatBackdropStyle(value = 'stone') {
+export function genericCombatBackdropStyle(value = 'stone', cols = 30, rows = 20) {
+  const width = Math.max(5, Math.min(100, Math.floor(Number(cols) || 30)));
+  const height = Math.max(5, Math.min(100, Math.floor(Number(rows) || 20)));
+  const squareWidth = (100 / width) + '%';
+  const squareHeight = (100 / height) + '%';
+  const artWidth = (400 / width) + '%';
+  const artHeight = (400 / height) + '%';
   return {
     backgroundColor: KNOWN.get(normaliseCombatTerrain(value)).color,
     // GM and Player Display both use the same 4x4-square texture tile.
@@ -193,7 +199,7 @@ export function genericCombatBackdropStyle(value = 'stone') {
       'linear-gradient(to bottom, rgba(5,15,20,.25) 1px, transparent 1px)',
       'url("' + getGenericCombatTerrainImage(value) + '")',
     ].join(', '),
-    backgroundSize: '3.333333% 5%, 3.333333% 5%, 13.333333% 20%',
+    backgroundSize: squareWidth + ' ' + squareHeight + ', ' + squareWidth + ' ' + squareHeight + ', ' + artWidth + ' ' + artHeight,
     backgroundPosition: '0 0',
   };
 }
