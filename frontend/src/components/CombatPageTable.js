@@ -435,16 +435,35 @@ export default function CombatPageTable() {
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
     const timer = window.setTimeout(() => {
-      const players = combatants.filter(item => item.type === 'player').map(combatantForDisplay);
+      // Canvas token coordinates are map-cell indices. Convert once to the
+      // display's percentage-based coordinate contract for both players and
+      // visible enemies, without exposing GM-only combatant fields.
+      const projected = combatant => {
+        const publicCombatant = combatantForDisplay(combatant);
+        const placed = mapTokens.find(token => String(token.id) === String(combatant.id));
+        const x = Number(placed?.x);
+        const y = Number(placed?.y);
+        if (placed && Number.isFinite(x) && Number.isFinite(y)) {
+          return {
+            ...publicCombatant,
+            x: Math.max(0, Math.min(100, ((x + .5) / displayedMap.width) * 100)),
+            y: Math.max(0, Math.min(100, ((y + .5) / displayedMap.height) * 100)),
+          };
+        }
+        return publicCombatant;
+      };
+      const players = combatants.filter(item => item.type === 'player').map(projected);
       // Filter the original combatant before creating the public projection.
       // combatantForDisplay deliberately drops GM-only fields, including the
       // visibility flags that the server sanitizer relies on. Mapping first
       // therefore turned a hidden creature into an apparently public token.
       const visibleCreatures = combatants
         .filter(item => item.type !== 'player' && isPlayerVisibleCombatToken(item))
-        .map(combatantForDisplay);
+        .map(projected);
       const activeId = active?.id || '';
-      const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage || selectedMap?.background_image || '';
+      const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage
+        || selectedMap?.background_image || selectedMap?.image_url
+        || (scenario.battlefield_mode === 'saved' ? scenario.map_url : '') || '';
       publishCampaignDisplayState(campaignId, createDisplayState('combat', {
         combat_id: scenario.id || scenario.name || 'combat',
         scenario_id: scenario.id || '',
@@ -454,13 +473,13 @@ export default function CombatPageTable() {
         battle_started_at: battleStartTimeRef.current,
         terrain_type: terrainType,
         party: players,
-        tokens: visibleCreatures,
+        tokens: [...players, ...visibleCreatures],
         map_url: mapUrl,
         banner: combatBanner || undefined,
       })).catch(() => {});
     }, 120);
     return () => window.clearTimeout(timer);
-  }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap, terrainType]);
+  }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap, terrainType, mapTokens, displayedMap]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
@@ -1106,6 +1125,7 @@ export default function CombatPageTable() {
           <div className="combat-map-canvas" data-testid={selectedMap ? 'saved-combat-map' : 'generic-combat-map'}>
               <MapCanvas
                 mapData={displayedMap}
+                backgroundImageUrl={scenario.battlefield_mode === 'saved' && !selectedMap ? (scenario.map_url || '') : ''}
                 onMapChange={() => {}}
                 tool="select"
                 selectedTerrain="stone"
