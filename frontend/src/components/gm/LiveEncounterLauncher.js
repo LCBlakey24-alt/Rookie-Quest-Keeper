@@ -64,6 +64,14 @@ export function createImpromptuEncounter(combatants, timestamp = Date.now()) {
   };
 }
 
+/** The exact reviewed roster AND chosen map form one immutable battle handoff. */
+export function encounterBattleScenario(selected, combatants, mapId = '', timestamp = Date.now()) {
+  const base = selected
+    ? { ...selected, name: selected.name || 'Live Encounter', combatants: safeArray(combatants) }
+    : createImpromptuEncounter(combatants, timestamp);
+  return { ...base, map_id: String(mapId || '') };
+}
+
 function numberOr(value, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -247,6 +255,8 @@ export default function LiveEncounterLauncher({
   const [scenarios, setScenarios] = useState([]);
   const [players, setPlayers] = useState([]);
   const [npcs, setNpcs] = useState([]);
+  const [battleMaps, setBattleMaps] = useState([]);
+  const [battleMapsUnavailable, setBattleMapsUnavailable] = useState(false);
   const [travellingIds, setTravellingIds] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   // The signed-in account, from the auth token as combat checkpoints use it.
@@ -406,6 +416,23 @@ export default function LiveEncounterLauncher({
     return () => { cancelled = true; };
   }, [campaignId, accountId, reloadKey, requestedEncounterId, requestedEncounterCampaignId, reopenLastEncounter, encounterRequestNonce]);
 
+  // Maps are optional; an API outage must never prevent a known roster from
+  // launching. The combat page can re-fetch maps if this review cannot.
+  useEffect(() => {
+    let cancelled = false;
+    setBattleMaps([]);
+    setBattleMapsUnavailable(false);
+    if (!campaignId || !accountId) return undefined;
+    apiClient.get(`/campaigns/${campaignId}/maps`)
+      .then(response => {
+        if (!cancelled) setBattleMaps(safeArray(response.data));
+      })
+      .catch(() => {
+        if (!cancelled) setBattleMapsUnavailable(true);
+      });
+    return () => { cancelled = true; };
+  }, [campaignId, accountId, reloadKey]);
+
   const selected = useMemo(() => scenarios.find(item => item.id === selectedId) || null, [scenarios, selectedId]);
   const baseCombatants = useMemo(() => safeArray(selected?.combatants), [selected]);
   const preparedOpponents = useMemo(() => baseCombatants.map((combatant, index) => ({ combatant, index })).filter(item => item.combatant.type !== 'player'), [baseCombatants]);
@@ -479,6 +506,11 @@ export default function LiveEncounterLauncher({
   const extraNpcIds = draft.extraNpcIds;
   const quickCombatants = draft.quickCombatants;
   const quickDraft = draft.quickDraft;
+  const battleMapId = String(draft.battleMapId === null || draft.battleMapId === undefined
+    ? (selected?.map_id || selected?.mapId || '')
+    : draft.battleMapId);
+  const battleMapMissing = Boolean(battleMapId && !battleMapsUnavailable
+    && battleMaps.length > 0 && !battleMaps.some(map => String(map.id) === battleMapId));
 
   // Setters keeping the shape the rest of the component already uses, so the
   // toggles and the quick-creature form are unchanged.
@@ -503,6 +535,7 @@ export default function LiveEncounterLauncher({
     ...previous,
     quickDraft: typeof next === 'function' ? next(previous.quickDraft) : next,
   }));
+  const setBattleMapId = id => commitDraft(previous => ({ ...previous, battleMapId: String(id || '') }));
 
   const discardDraft = () => {
     clearDraft(campaignId, selectedId, { accountId });
@@ -664,9 +697,7 @@ export default function LiveEncounterLauncher({
     discardDraft();
     navigate(`/combat/${campaignId}`, {
       state: {
-        scenario: selected
-          ? { ...selected, combatants, name: selected.name || 'Live Encounter' }
-          : createImpromptuEncounter(combatants),
+        scenario: encounterBattleScenario(selected, combatants, battleMapId),
         campaignId,
         campaignName,
         source: 'live-play',
@@ -690,6 +721,27 @@ export default function LiveEncounterLauncher({
           {scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Untitled Encounter'}</option>)}
         </select>
       </header>
+
+      <label style={{ ...sectionStyle, gap: 5, fontSize: 12 }}>
+        <strong>Battle map</strong>
+        <select
+          aria-label="Battle map for this encounter"
+          value={battleMapId}
+          onChange={event => setBattleMapId(event.target.value)}
+          style={selectStyle}
+        >
+          <option value="">No linked map — choose one during combat</option>
+          {battleMaps.map(map => (
+            <option key={String(map.id)} value={String(map.id)}>{map.name || 'Untitled map'}</option>
+          ))}
+          {battleMapId && !battleMaps.some(map => String(map.id) === battleMapId) && (
+            <option value={battleMapId}>Previously linked map ({battleMapId})</option>
+          )}
+        </select>
+        <span style={mutedStyle}>The selected map opens with the battle tracker when you start combat. Enemy details stay GM-only.</span>
+        {battleMapsUnavailable && <span role="status">Map list could not be refreshed; combat can still start and maps can be selected there.</span>}
+        {battleMapMissing && <span role="status">The linked map is not in the loaded map list. Choose another map before starting for automatic display.</span>}
+      </label>
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
       {partyStatus === 'failed' && (
