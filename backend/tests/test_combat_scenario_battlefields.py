@@ -53,6 +53,16 @@ def test_legacy_records_default_to_stone_and_accept_old_map_id_alias():
     assert legacy.show_grid is True
 
 
+def test_legacy_unknown_terrain_is_safe_stone_without_breaking_encounter_list():
+    record = CombatScenario.model_validate({
+        'campaign_id': 'c1', 'name': 'Ancient Map',
+        'terrain_type': 'legacy-forest-floor',
+        'mapId': 'old-map-id',
+    })
+    assert record.terrain_type == 'stone'
+    assert record.map_id == 'old-map-id'
+
+
 def test_partial_update_does_not_reset_combatants_and_allows_clearing_image():
     update = CombatScenarioUpdate.model_validate({
         'map_id': '',
