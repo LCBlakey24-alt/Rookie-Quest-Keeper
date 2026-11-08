@@ -398,8 +398,8 @@ export default function CombatPageTable() {
         round,
         selectedMapId,
         terrain_type: terrainType,
-        grid_cols: displayedMap.width,
-        grid_rows: displayedMap.height,
+        grid_cols: scenario.grid_cols || 30,
+        grid_rows: scenario.grid_rows || 20,
         feet_per_square: scenario.feet_per_square || 5,
         show_grid: showBattleGrid,
         mapTokens,
@@ -410,7 +410,7 @@ export default function CombatPageTable() {
       localStorage.setItem(combatKey, nextRaw);
       checkpointRawRef.current = nextRaw;
     } catch { /* local checkpoint is best effort */ }
-  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, terrainType, showBattleGrid, displayedMap, source, accountId, legacyOwnerVerified, checkpointConflict]);
+  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, terrainType, showBattleGrid, source, accountId, legacyOwnerVerified, checkpointConflict]);
 
   useEffect(() => {
     if (!scenario || !maps.length || selectedMapId) return;
