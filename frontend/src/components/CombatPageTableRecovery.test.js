@@ -21,13 +21,14 @@ jest.mock('@/lib/liveDisplayBus', () => ({
   publishCampaignDisplayState: jest.fn(() => Promise.resolve()),
   clearCampaignDisplayState: jest.fn(() => Promise.resolve()),
 }));
-jest.mock('@/components/MapBuilder/MapCanvas', () => () => <div data-testid="map-canvas" />);
+jest.mock('@/components/MapBuilder/MapCanvas', () => ({ zoom, tokens }) => <div data-testid="map-canvas" data-zoom={String(zoom)} data-tokens={String(tokens?.length || 0)} />);
 jest.mock('@/components/NPCCombatRecruiter', () => () => <div />);
 jest.mock('@/components/gm/QuickBestiaryCombatPicker', () => () => <div />);
 jest.mock('@/components/gm/TargetedAttackPanel', () => () => <div />);
 
 const apiClient = require('@/lib/apiClient');
 const { toast } = require('sonner');
+const { publishCampaignDisplayState, createDisplayState } = require('@/lib/liveDisplayBus');
 
 const CAMPAIGN = 'camp-1';
 const ACCOUNT = 'keeper-gm';
@@ -74,6 +75,10 @@ beforeEach(() => {
   localStorage.clear();
   getAuthToken.mockReturnValue(TEST_TOKEN);
   apiClient.get.mockReset();
+  // The global Jest config resets module-factory mocks on each test. Combat's
+  // asynchronous player display publish expects an actual Promise response.
+  createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
+  publishCampaignDisplayState.mockImplementation(() => Promise.resolve());
   apiClient.patch.mockClear();
   // resetMocks clears factory implementations, so every reset test needs a promise.
   apiClient.delete.mockResolvedValue({ data: {} });
@@ -588,4 +593,78 @@ test('an older recovered fight cannot reset a wounded roster as if it were fresh
   const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
   expect(saved.combatants.find(item => item.id === 'c1').hp).toBe(22);
   expect(saved.round).toBe(4);
+});
+
+
+test('a prepared encounter opens a combined battlefield with its map and GM enemy stats', async () => {
+  apiClient.get.mockImplementation(url => Promise.resolve({
+    data: url.endsWith('/maps') ? [{
+      id: 'map-forest', name: 'Forest Clearing', width: 20, height: 15, terrain: [], tokens: [],
+    }] : [],
+  }));
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: {
+        source: 'live-play', campaignName: 'Spilsby Wednesday',
+        scenario: {
+          id: 'enc-forest', name: 'Forest Ambush', map_id: 'map-forest',
+          combatants: [
+            { id: 'hero-1', name: 'Aria', type: 'player', character_id: 'hero-1', hp: 18, maxHp: 25, ac: 15, initiative: 16 },
+            { id: 'enemy-1', name: 'Scarab Horror', type: 'enemy', hp: 46, maxHp: 46, ac: 17, initiative: 12,
+              actions: [{ name: 'Claw', attack_bonus: 6, damage_dice: '2d8' }] },
+          ],
+        },
+      },
+    }]}>
+      <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByTestId('map-canvas')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Battle' })).toHaveAttribute('aria-pressed', 'true');
+  const roster = document.querySelector('.combat-list');
+  expect(roster).toHaveTextContent('Aria');
+  expect(roster).toHaveTextContent('Scarab Horror');
+  expect(roster).toHaveTextContent('46/46');
+  expect(roster).toHaveTextContent('17');
+  // The saved map arrives asynchronously; tokens are positioned in the next effect.
+  await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2'));
+  expect(screen.getByRole('combobox', { name: '' })).toHaveValue('map-forest');
+
+  const zoom = screen.getByTestId('map-canvas');
+  expect(zoom).toHaveAttribute('data-zoom', '1');
+  fireEvent.click(within(document.querySelector('.combat-map-toolbar')).getByRole('button', { name: '+' }));
+  expect(zoom).toHaveAttribute('data-zoom', '1.2');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Tracker' }));
+  expect(screen.queryByTestId('map-canvas')).not.toBeInTheDocument();
+  expect(document.querySelector('.combat-list')).toHaveTextContent('Scarab Horror');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Map' }));
+  expect(screen.getByTestId('map-canvas')).toBeInTheDocument();
+  expect(document.querySelector('.combat-list')).toBeNull();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Battle' }));
+  expect(screen.getByTestId('map-canvas')).toBeInTheDocument();
+  expect(document.querySelector('.combat-list')).toHaveTextContent('Scarab Horror');
+});
+
+test('without a linked map, encounter still starts with GM controls and an honest map chooser', async () => {
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: {
+        scenario: { id: 'enc-no-map', name: 'Street Fight', combatants: [
+          { id: 'enemy-1', name: 'Bandit Captain', type: 'enemy', hp: 30, ac: 15 },
+        ] },
+      },
+    }]}>
+      <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+    </MemoryRouter>,
+  );
+  expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
+  expect(screen.getByText('No battle map selected')).toBeInTheDocument();
+  expect(document.querySelector('.combat-list')).toHaveTextContent('Bandit Captain');
+  expect(screen.getByRole('button', { name: 'Battle' })).toHaveAttribute('aria-pressed', 'true');
 });

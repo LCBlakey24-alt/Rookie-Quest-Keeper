@@ -204,15 +204,21 @@ for (const size of appSizes) {
     await expect(page.getByText(/No preparation needed/i)).toBeVisible();
     await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
 
-    // Reset review (#764) sits before Start in reading order; both must be
-    // reachable by keyboard and large enough to tap.
+    // The battle-map choice belongs in keyboard order between encounter
+    // selection and the Reset/Start controls. Preserve 44px tap targets.
+    const battleMap = launcher.getByRole('combobox', { name: 'Battle map for this encounter' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
-    const [choiceBounds, resetBounds, launchBounds] = await Promise.all([choice.boundingBox(), reset.boundingBox(), launch.boundingBox()]);
+    const [choiceBounds, mapBounds, resetBounds, launchBounds] = await Promise.all([
+      choice.boundingBox(), battleMap.boundingBox(), reset.boundingBox(), launch.boundingBox(),
+    ]);
     expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
+    expect(mapBounds?.height).toBeGreaterThanOrEqual(44);
     expect(resetBounds?.height).toBeGreaterThanOrEqual(44);
     expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
     await choice.focus();
     await expect(choice).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(battleMap).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(reset).toBeFocused();
     await page.keyboard.press('Tab');
