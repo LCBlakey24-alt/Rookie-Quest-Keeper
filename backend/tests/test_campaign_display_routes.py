@@ -546,3 +546,35 @@ def test_delayed_display_ack_cannot_attach_to_newer_reveal(monkeypatch):
         'campaign-1', {'sync_id': 'already-replaced'}, username='player',
     ))
     assert result == {'acknowledged': False, 'stale': True, 'sync_id': 'already-replaced'}
+
+
+
+def test_revisionless_legacy_display_put_cannot_overwrite_newer_combat(monkeypatch):
+    """An offline PWA retry without its original revision must not get a fresh one."""
+    async def allow_ownership(campaign_id, username):
+        return True
+
+    class MustNotUpdate:
+        async def update_one(self, *args, **kwargs):
+            raise AssertionError('Revisionless update must never touch MongoDB')
+
+    class FakeDb:
+        campaign_display_states = MustNotUpdate()
+
+    monkeypatch.setattr(campaign_display_module, 'db', FakeDb())
+    monkeypatch.setattr(campaign_display_module, 'verify_campaign_ownership', allow_ownership)
+    for proposed in (
+        {'mode': 'blank', 'payload': {'title': 'Old offline close'}},
+        {'sequence': 0, 'mode': 'combat', 'payload': {}},
+        {'sequence': 'not-a-revision', 'mode': 'title', 'payload': {}},
+        {'sequence': 9007199254740992, 'mode': 'combat', 'payload': {}},
+    ):
+        try:
+            asyncio.run(campaign_display_module.update_campaign_display_state(
+                'campaign-1', proposed, username='gm-user',
+            ))
+        except HTTPException as exc:
+            assert exc.status_code == 400
+            assert 'sequence' in str(exc.detail)
+        else:
+            raise AssertionError('Revisionless or invalid display update must be refused')
