@@ -57,7 +57,19 @@ describe('visible map token alignment', () => {
   test('a mapless encounter still renders without an image-size crash', () => {
     renderTable('');
     expect(screen.getByTestId('virtual-table-combat-hud')).toBeInTheDocument();
-    expect(screen.getByText('Battle map waiting')).toBeInTheDocument();
+    expect(screen.getByTestId('combat-generic-terrain')).toHaveAttribute('data-terrain', 'stone');
+  });
+
+  test('a broken saved image falls back to generic terrain and keeps tokens on the map', () => {
+    jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
+      x: 0, y: 0, left: 0, top: 0, right: 1280, bottom: 720,
+      width: 1280, height: 720, toJSON: () => ({}),
+    });
+    renderTable('https://example.test/missing-map.png');
+    fireEvent.error(screen.getByRole('img', { name: 'Battle map' }));
+
+    expect(screen.getByTestId('combat-generic-terrain')).toHaveAttribute('data-terrain', 'stone');
+    expect(screen.getByTestId('combat-map-token-goblin')).toBeInTheDocument();
   });
 
   test('hidden enemies are absent from the player map, roster and token shelf', () => {
