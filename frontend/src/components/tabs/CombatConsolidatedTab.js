@@ -236,6 +236,7 @@ export default function CombatConsolidatedTab({ campaignId }) {
           scenarios={scenarios}
           selectedScenario={selectedScenario}
           setSelectedScenario={setSelectedScenario}
+          onScenarioUpdated={saved => setScenarios(previous => uniqueScenarioList(previous, saved))}
           launchCombat={launchCombat}
           quickStartCombat={quickStartCombat}
           players={players}
