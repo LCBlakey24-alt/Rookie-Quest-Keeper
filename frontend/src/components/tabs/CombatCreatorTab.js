@@ -66,6 +66,22 @@ function CombatCreatorTab({ campaignId }) {
     fetchData();
   }, [campaignId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setSavedMaps([]);
+    if (!campaignId) return undefined;
+    // The map list is optional and campaign-scoped. A slow response from a
+    // previous campaign must never appear in the next campaign's selector.
+    apiClient.get(`/campaigns/${campaignId}/maps`)
+      .then(response => {
+        if (!cancelled) setSavedMaps(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setSavedMaps([]);
+      });
+    return () => { cancelled = true; };
+  }, [campaignId]);
+
   const fetchData = async () => {
     try {
       const [playersRes, npcsRes, scenariosRes] = await Promise.all([
@@ -76,10 +92,6 @@ function CombatCreatorTab({ campaignId }) {
       setPlayers(playersRes.data);
       setNpcs(npcsRes.data);
       setScenarios(scenariosRes.data);
-      // Optional resource: a failed map list must never block encounter editing.
-      apiClient.get(`/campaigns/${campaignId}/maps`)
-        .then(response => setSavedMaps(Array.isArray(response.data) ? response.data : []))
-        .catch(() => setSavedMaps([]));
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
