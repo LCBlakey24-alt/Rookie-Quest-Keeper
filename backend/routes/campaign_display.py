@@ -76,11 +76,35 @@ async def update_campaign_display_state(campaign_id: str, display_state: Dict[st
     """Persist and broadcast a GM-authored player-display state update."""
     await verify_campaign_ownership(campaign_id, username)
     state = sanitize_display_state(campaign_id, display_state, username)
+    # Do the revision comparison *inside* MongoDB's atomic document update.
+    # A GET followed by an unconditional $set is not enough: an older
+    # in-flight request can otherwise arrive after the new battle state and
+    # replace it (or an older reveal can erase an initiative prompt).
+    #
+    # The upsert branch keeps the existing campaign_id key and _id; $literal
+    # prevents user-authored public strings beginning with "$" from being
+    # interpreted as aggregation expressions.
+    is_newer = {'$lt': [{'$ifNull': ['$sequence', 0]}, state['sequence']]}
     await db.campaign_display_states.update_one(
         {'campaign_id': campaign_id},
-        {'$set': state},
+        [{'$replaceRoot': {'newRoot': {'$cond': [
+            is_newer,
+            {'$mergeObjects': ['$ROOT', {'$literal': state}]},
+            '$ROOT',
+        ]}}}],
         upsert=True,
     )
+    current = await db.campaign_display_states.find_one(
+        {'campaign_id': campaign_id}, {'_id': 0, 'sync_id': 1, 'sequence': 1},
+    )
+    if not current or current.get('sync_id') != state['sync_id']:
+        # Return a conflict, never a false acknowledgement. The caller may
+        # refresh the newer display state, but must not broadcast this stale
+        # payload to connected players.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='A newer player-display update has already been saved',
+        )
     await ws_manager.broadcast_to_campaign(campaign_id, {
         'type': 'player_display_update',
         'user_id': username,
@@ -120,8 +144,10 @@ async def acknowledge_campaign_display_state(campaign_id: str, acknowledgement: 
         'display_target': str(acknowledgement.get('display_target') or '').strip(),
         'mode': str(acknowledgement.get('mode') or current.get('mode') or 'blank').strip() or 'blank',
     }
-    await db.campaign_display_states.update_one(
-        {'campaign_id': campaign_id},
+    result = await db.campaign_display_states.update_one(
+        {'campaign_id': campaign_id, 'sync_id': sync_id},
         {'$set': {'delivery_ack': delivery_ack}},
     )
+    if result.matched_count == 0:
+        return {'acknowledged': False, 'stale': True, 'sync_id': sync_id}
     return {'acknowledged': True, **delivery_ack}
