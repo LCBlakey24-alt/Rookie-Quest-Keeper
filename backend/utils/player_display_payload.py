@@ -21,7 +21,7 @@ MODE_FIELDS = {
     'combat': {
         'party', 'tokens', 'map_url', 'round', 'round_number',
         'active_id', 'activeCombatantId', 'turn_id', 'current_turn_id',
-        'battle_started_at',
+        'battle_started_at', 'terrain_type',
         # The map's scale and grid. Token coordinates are percentages, so a
         # distance in feet cannot be worked out without them, and a player
         # client cannot show how far its character may still move.
@@ -117,6 +117,10 @@ def sanitize_player_display_payload(mode: str, payload: Any) -> Dict[str, Any]:
     out = _scalar_fields(payload, COMMON | MODE_FIELDS.get(mode, set()))
     if out.get('display_target') not in (None, 'standing-tv', 'virtual-table'):
         out.pop('display_target', None)
+    if mode == 'combat' and 'terrain_type' in out:
+        # Only predefined, public terrain names may reach the screen.
+        if out['terrain_type'] not in ('stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water'):
+            out['terrain_type'] = 'stone'
     if isinstance(payload.get('banner'), dict):
         out['banner'] = _scalar_fields(payload['banner'], BANNER)
     if 'party' in MODE_FIELDS.get(mode, set()) and isinstance(payload.get('party'), list):
