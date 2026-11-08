@@ -26,7 +26,7 @@ const previewStyle = texture => ({
   ...texture,
 });
 const modeStyle = selected => ({
-  cursor: 'pointer', fontSize: 13, padding: '10px 12px',
+  cursor: 'pointer', fontSize: 13, padding: '10px 12px', minHeight: 44,
   border: selected ? '2px solid #eb7c3b' : '1px solid rgba(160,180,197,.32)',
   background: selected ? 'rgba(231,109,42,.13)' : 'var(--rq-card, #10273b)',
   color: 'var(--rq-text-primary, #f0eadc)', borderRadius: 6,
