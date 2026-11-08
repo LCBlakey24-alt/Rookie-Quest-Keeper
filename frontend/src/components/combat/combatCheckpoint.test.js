@@ -151,6 +151,9 @@ describe('everything the fight needs survives the round trip', () => {
     const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(checkpoint.combatants[0]).toMatchObject({ hp: 22, max_hp: 54, initiative: 18, character_id: 'char-1' });
     expect(checkpoint.selectedMapId).toBe('map-2');
+    expect(checkpoint.grid_cols).toBe(30);
+    expect(checkpoint.grid_rows).toBe(20);
+    expect(checkpoint.feet_per_square).toBe(5);
     expect(checkpoint.mapTokens).toEqual([{ id: 't1', x: 10, y: 20 }]);
     expect(checkpoint.collectedLoot).toEqual([{ name: 'Rusty dagger' }]);
     expect(checkpoint.round).toBe(3);
