@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { getGenericCombatTerrainImage, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
+import { GENERIC_COMBAT_TERRAINS, getGenericCombatTerrainImage, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 
 const GRID_SIZE = 40; // pixels per grid square
 const DEFAULT_MAP_WIDTH = 30; // grid squares
@@ -58,6 +58,7 @@ function MapCanvas({
   const [draggingToken, setDraggingToken] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
   const [terrainArtwork, setTerrainArtwork] = useState(null);
+  const [terrainImages, setTerrainImages] = useState({});
   const [backgroundArtwork, setBackgroundArtwork] = useState(null);
 
   // Initialize map data if not provided
@@ -97,6 +98,25 @@ function MapCanvas({
     artwork.src = savedBackgroundUrl;
     return () => { cancelled = true; };
   }, [savedBackgroundUrl]);
+
+  // All editable map tiles use the same shared texture catalogue as generic
+  // encounters. Load once per canvas mount, then reuse cached Image objects
+  // on every pan, resize, map edit and token move.
+  useEffect(() => {
+    let cancelled = false;
+    const artwork = GENERIC_COMBAT_TERRAINS.map(({ id }) => {
+      const image = new window.Image();
+      image.onload = () => {
+        if (!cancelled) setTerrainImages(previous => ({ ...previous, [id]: image }));
+      };
+      image.src = getGenericCombatTerrainImage(id);
+      return image;
+    });
+    return () => {
+      cancelled = true;
+      artwork.forEach(image => { image.onload = null; });
+    };
+  }, []);
 
   // Get canvas coordinates from mouse event
   const getCanvasCoords = useCallback((e) => {
@@ -147,22 +167,36 @@ function MapCanvas({
       }
     }
 
-    // Draw legacy individual terrain cells only when a procedural texture has
-    // not loaded (including the safe colour fallback while loading).
+    // Painted / saved map tiles also share the deterministic texture library.
+    // Cache one pattern per terrain per draw rather than creating a pattern for
+    // every grid square. The pattern's origin is the complete map, allowing
+    // matching adjacent tiles to join seamlessly.
+    const tilePatterns = {};
+    if (!textured) {
+      for (const id of Object.keys(terrainImages)) {
+        const pattern = ctx.createPattern(terrainImages[id], 'repeat');
+        if (pattern) {
+          if (typeof pattern.setTransform === 'function' && typeof DOMMatrix !== 'undefined') {
+            pattern.setTransform(new DOMMatrix().scale(gridSize / 40));
+          }
+          tilePatterns[id] = pattern;
+        }
+      }
+    }
     if (!textured) for (let y = 0; y < map.height; y++) {
       for (let x = 0; x < map.width; x++) {
         const terrainType = map.terrain[y]?.[x] || 'empty';
         const terrain = TERRAIN_TYPES[terrainType] || TERRAIN_TYPES.empty;
         
-        ctx.fillStyle = terrain.color;
+        ctx.fillStyle = tilePatterns[terrainType] || terrain.color;
         ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
-
-        // Add subtle texture
-        if (terrainType !== 'empty') {
-          ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        // Paint a subtle deterministic fallback grain only while artwork is
+        // loading, never fresh Math.random() noise on repeated redraws.
+        if (terrainType !== 'empty' && !tilePatterns[terrainType]) {
+          ctx.fillStyle = 'rgba(255,255,255,0.045)';
           for (let i = 0; i < 3; i++) {
-            const tx = x * gridSize + Math.random() * gridSize;
-            const ty = y * gridSize + Math.random() * gridSize;
+            const tx = x * gridSize + ((x * 17 + y * 31 + i * 13) % gridSize);
+            const ty = y * gridSize + ((x * 23 + y * 19 + i * 11) % gridSize);
             ctx.fillRect(tx, ty, 2, 2);
           }
         }
@@ -337,7 +371,7 @@ function MapCanvas({
     }
 
     ctx.restore();
-  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView, terrainArtwork, genericTerrain, backgroundArtwork, savedBackgroundUrl]);
+  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView, terrainArtwork, terrainImages, genericTerrain, backgroundArtwork, savedBackgroundUrl]);
 
   // Redraw when dependencies change
   useEffect(() => {
