@@ -901,6 +901,9 @@ class CombatScenario(BaseModel):
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
+    grid_cols: int = Field(default=30, ge=5, le=100)
+    grid_rows: int = Field(default=20, ge=5, le=100)
+    feet_per_square: int = Field(default=5, ge=1, le=100)
     show_grid: bool = True
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -922,6 +925,9 @@ class CombatScenarioCreate(BaseModel):
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
+    grid_cols: int = Field(default=30, ge=5, le=100)
+    grid_rows: int = Field(default=20, ge=5, le=100)
+    feet_per_square: int = Field(default=5, ge=1, le=100)
     show_grid: bool = True
 
     @field_validator("terrain_type")
@@ -942,6 +948,9 @@ class CombatScenarioUpdate(BaseModel):
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: Optional[List[Dict[str, Any]]] = None
     grid_size: Optional[int] = Field(default=None, ge=10, le=200)
+    grid_cols: Optional[int] = Field(default=None, ge=5, le=100)
+    grid_rows: Optional[int] = Field(default=None, ge=5, le=100)
+    feet_per_square: Optional[int] = Field(default=None, ge=1, le=100)
     show_grid: Optional[bool] = None
 
     @field_validator("terrain_type")
