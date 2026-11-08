@@ -22,10 +22,10 @@ jest.mock('@/components/gm/GroupCheckDisplay', () => () => null);
 
 function renderTable(mapUrl, tokens = [
   { id: 'goblin', name: 'Goblin', x: 50, y: 50 },
-], linkTarget = 'virtual-table', broadcastTarget = 'virtual-table') {
+], linkTarget = 'virtual-table', broadcastTarget = 'virtual-table', extras = {}) {
   loadDisplayState.mockReturnValue({
     mode: 'combat',
-    payload: { display_target: broadcastTarget, map_url: mapUrl, tokens },
+    payload: { display_target: broadcastTarget, map_url: mapUrl, tokens, ...extras },
   });
   return render(
     <MemoryRouter initialEntries={[`/campaign/example/player-display?target=${linkTarget}`]}>
@@ -70,6 +70,19 @@ describe('visible map token alignment', () => {
 
     expect(screen.getByTestId('combat-generic-terrain')).toHaveAttribute('data-terrain', 'stone');
     expect(screen.getByTestId('combat-map-token-goblin')).toBeInTheDocument();
+  });
+
+  test('a saved tile-built battlefield uses its actual public terrain layout', () => {
+    jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    renderTable('', [{ id: 'wolf', name: 'Wolf', x: 25, y: 25 }],
+      'virtual-table', 'virtual-table', {
+        terrain_grid: [['grass', 'grass'], ['stone', 'water']],
+        grid_cols: 2,
+        grid_rows: 2,
+      });
+    expect(screen.getByTestId('public-terrain-grid')).toBeInTheDocument();
+    expect(screen.queryByTestId('combat-generic-terrain')).not.toBeInTheDocument();
+    expect(screen.getByTestId('public-terrain-grid')).toHaveAttribute('aria-label', 'Battlefield terrain map');
   });
 
   test('hidden enemies are absent from the player map, roster and token shelf', () => {
