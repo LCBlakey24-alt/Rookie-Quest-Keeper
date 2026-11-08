@@ -195,6 +195,17 @@ async def run_startup_maintenance():
     except Exception as e:
         logger.warning(f"Could not create roll event indexes: {e}")
 
+    # Player-display revision writes use atomic upserts keyed by campaign.
+    # Enforce one document per campaign, including simultaneous first writes.
+    # Keep this separate from other maintenance, so unrelated indexes cannot
+    # prevent display-state uniqueness from being ensured.
+    try:
+        from routes.campaign_display import ensure_campaign_display_indexes
+        await ensure_campaign_display_indexes(db)
+        logger.info("Player display unique campaign index ensured")
+    except Exception as e:
+        logger.warning(f"Could not ensure unique player-display campaign index: {e}")
+
     # Separate from dice de-duplication so interrupted End Session recovery
     # can also enforce one pending recap per campaign at the database level.
     try:
