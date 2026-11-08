@@ -472,7 +472,7 @@ export default function CombatPageTable() {
         .map(projected);
       const activeId = active?.id || '';
       const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage
-        || selectedMap?.background_image || selectedMap?.image_url
+        || selectedMap?.background_image || selectedMap?.image_url || selectedMap?.image_data
         || (scenario.battlefield_mode === 'saved' ? scenario.map_url : '') || '';
       publishCampaignDisplayState(campaignId, createDisplayState('combat', {
         combat_id: scenario.id || scenario.name || 'combat',
