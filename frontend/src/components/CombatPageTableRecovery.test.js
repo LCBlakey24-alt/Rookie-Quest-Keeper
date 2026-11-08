@@ -28,6 +28,7 @@ jest.mock('@/components/gm/TargetedAttackPanel', () => () => <div />);
 
 const apiClient = require('@/lib/apiClient');
 const { toast } = require('sonner');
+const { publishCampaignDisplayState, createDisplayState } = require('@/lib/liveDisplayBus');
 
 const CAMPAIGN = 'camp-1';
 const ACCOUNT = 'keeper-gm';
@@ -74,6 +75,10 @@ beforeEach(() => {
   localStorage.clear();
   getAuthToken.mockReturnValue(TEST_TOKEN);
   apiClient.get.mockReset();
+  // The global Jest config resets module-factory mocks on each test. Combat's
+  // asynchronous player display publish expects an actual Promise response.
+  createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
+  publishCampaignDisplayState.mockImplementation(() => Promise.resolve());
   apiClient.patch.mockClear();
   // resetMocks clears factory implementations, so every reset test needs a promise.
   apiClient.delete.mockResolvedValue({ data: {} });
