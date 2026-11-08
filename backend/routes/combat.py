@@ -46,7 +46,13 @@ async def get_combat_scenario(campaign_id: str, scenario_id: str, username: str 
 async def update_combat_scenario(campaign_id: str, scenario_id: str, scenario_data: CombatScenarioUpdate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
-    update_dict = {k: v for k, v in scenario_data.model_dump().items() if v is not None}
+    # A null map_url is an intentional removal (switching from an image to
+    # textured terrain). Unset optional fields still mean "leave unchanged".
+    # Preserve the previous partial-update contract for other nullable keys.
+    update_dict = {
+        key: value for key, value in scenario_data.model_dump(exclude_unset=True).items()
+        if value is not None or key == 'map_url'
+    }
     result = await db.combat_scenarios.update_one(
         {'id': scenario_id, 'campaign_id': campaign_id},
         {'$set': update_dict}
