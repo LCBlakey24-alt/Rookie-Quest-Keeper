@@ -154,6 +154,26 @@ def test_player_display_accepts_live_battle_and_table_roll_modes():
             assert 'roll' not in state['payload']
 
 
+def test_public_combat_terrain_is_allowlisted_and_cannot_reveal_gm_fields():
+    for terrain in ('stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water'):
+        state = sanitize_display_state('campaign-1', {
+            'mode': 'combat',
+            'payload': {
+                'title': 'The battle begins',
+                'terrain_type': terrain,
+                'gm_notes': 'Secret passage to the villain',
+            },
+        }, 'gm')
+        assert state['payload']['terrain_type'] == terrain
+        assert 'gm_notes' not in state['payload']
+
+    invalid = sanitize_display_state('campaign-1', {
+        'mode': 'combat',
+        'payload': {'terrain_type': 'url(javascript:alert(1))'},
+    }, 'gm')
+    assert invalid['payload']['terrain_type'] == 'stone'
+
+
 def test_player_display_removes_private_nested_gm_data_and_hidden_tokens():
     original = {
         'mode': 'combat',
