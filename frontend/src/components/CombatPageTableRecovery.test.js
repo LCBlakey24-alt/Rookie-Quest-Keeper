@@ -650,6 +650,35 @@ test('a prepared encounter opens a combined battlefield with its map and GM enem
   expect(document.querySelector('.combat-list')).toHaveTextContent('Scarab Horror');
 });
 
+test('hidden encounter creatures never reach the player display broadcast', async () => {
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: {
+        source: 'live-play',
+        scenario: {
+          id: 'enc-hidden', name: 'Hidden Threat', combatants: [
+            { id: 'hero-1', name: 'Aria', type: 'player', character_id: 'hero-1', hp: 18, maxHp: 25 },
+            { id: 'enemy-visible', name: 'Revealed Guard', type: 'enemy', hp: 12, maxHp: 12 },
+            { id: 'enemy-hidden', name: 'Secret Beholder', type: 'enemy', hp: 99, maxHp: 99, hidden: true },
+            { id: 'enemy-private', name: 'Secret Dragon', type: 'enemy', hp: 150, maxHp: 150, player_visible: false },
+          ],
+        },
+      },
+    }]}>
+      <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
+  await waitFor(() => expect(createDisplayState.mock.calls.some(([mode]) => mode === 'combat')).toBe(true));
+
+  const combatPayload = createDisplayState.mock.calls.find(([mode]) => mode === 'combat')[1];
+  expect(combatPayload.tokens.map(token => token.name)).toEqual(['Revealed Guard']);
+  expect(JSON.stringify(combatPayload)).not.toContain('Secret Beholder');
+  expect(JSON.stringify(combatPayload)).not.toContain('Secret Dragon');
+});
+
 test('without a linked map, encounter still starts with GM controls and an honest map chooser', async () => {
   render(
     <MemoryRouter initialEntries={[{
