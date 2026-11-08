@@ -895,9 +895,10 @@ class CombatScenario(BaseModel):
     name: str
     description: str = ""
     combatants: List[Dict[str, Any]] = []
-    map_id: str = ""
+    map_id: str = Field(default="", validation_alias=AliasChoices("map_id", "mapId"))
     map_url: Optional[str] = None
     terrain_type: str = "stone"
+    battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
     show_grid: bool = True
@@ -915,9 +916,10 @@ class CombatScenarioCreate(BaseModel):
     name: str
     description: str = ""
     combatants: List[Dict[str, Any]] = []
-    map_id: str = ""
+    map_id: str = Field(default="", validation_alias=AliasChoices("map_id", "mapId"))
     map_url: Optional[str] = None
     terrain_type: str = "stone"
+    battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
     show_grid: bool = True
@@ -934,9 +936,10 @@ class CombatScenarioUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     combatants: Optional[List[Dict[str, Any]]] = None
-    map_id: Optional[str] = None
+    map_id: Optional[str] = Field(default=None, validation_alias=AliasChoices("map_id", "mapId"))
     map_url: Optional[str] = None
     terrain_type: Optional[str] = None
+    battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: Optional[List[Dict[str, Any]]] = None
     grid_size: Optional[int] = Field(default=None, ge=10, le=200)
     show_grid: Optional[bool] = None
