@@ -895,6 +895,11 @@ class CombatScenario(BaseModel):
     name: str
     description: str = ""
     combatants: List[Dict[str, Any]] = []
+    live_ready: bool = False
+    played: bool = False
+    legacy: bool = False
+    live_default: bool = False
+    planned_encounter_order: Optional[int] = None
     map_id: str = Field(default="", validation_alias=AliasChoices("map_id", "mapId"))
     map_url: Optional[str] = None
     terrain_type: str = "stone"
@@ -919,6 +924,11 @@ class CombatScenarioCreate(BaseModel):
     name: str
     description: str = ""
     combatants: List[Dict[str, Any]] = []
+    live_ready: bool = False
+    played: bool = False
+    legacy: bool = False
+    live_default: bool = False
+    planned_encounter_order: Optional[int] = None
     map_id: str = Field(default="", validation_alias=AliasChoices("map_id", "mapId"))
     map_url: Optional[str] = None
     terrain_type: str = "stone"
@@ -942,6 +952,11 @@ class CombatScenarioUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     combatants: Optional[List[Dict[str, Any]]] = None
+    live_ready: Optional[bool] = None
+    played: Optional[bool] = None
+    legacy: Optional[bool] = None
+    live_default: Optional[bool] = None
+    planned_encounter_order: Optional[int] = None
     map_id: Optional[str] = Field(default=None, validation_alias=AliasChoices("map_id", "mapId"))
     map_url: Optional[str] = None
     terrain_type: Optional[str] = None
