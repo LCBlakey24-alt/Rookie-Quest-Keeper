@@ -6,9 +6,9 @@ import {
 } from './genericCombatTerrain';
 
 describe('generic battlefield fallback', () => {
-  test('offers the seven agreed terrain types and defaults unknown inputs to stone', () => {
+  test('offers the ten terrain types and defaults unknown inputs to stone', () => {
     expect(GENERIC_COMBAT_TERRAINS.map(item => item.id)).toEqual([
-      'stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water',
+      'stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water', 'snow', 'mud', 'lava',
     ]);
     expect(normaliseCombatTerrain(' GRASS ')).toBe('grass');
     expect(normaliseCombatTerrain('url(javascript:alert(1))')).toBe('stone');
@@ -33,8 +33,8 @@ describe('generic battlefield fallback', () => {
 
   test('uses only built-in texture values in the player display', () => {
     const grass = genericCombatBackdropStyle('grass');
-    expect(grass.backgroundColor).toBe('#426848');
-    expect(grass.backgroundImage).toContain('linear-gradient');
+    expect(grass.backgroundColor).toBe('#466b45');
+    expect(grass.backgroundImage).toContain('data:image/svg+xml');
     expect(genericCombatBackdropStyle('unknown').backgroundColor)
       .toBe(genericCombatBackdropStyle('stone').backgroundColor);
   });
