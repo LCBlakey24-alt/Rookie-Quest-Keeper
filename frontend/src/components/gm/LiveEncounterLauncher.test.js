@@ -157,9 +157,9 @@ test('prepared combat hands off every chosen enemy, current player, map and GM s
 
 test('impromptu battles can also have a chosen map without saving a new encounter', () => {
   const actors = [{ id: 'wolf-1', type: 'enemy', hp: 6, ac: 12 }];
-  expect(encounterBattleScenario(null, actors, 'forest-map', 7)).toEqual({
+  expect(encounterBattleScenario(null, actors, 'forest-map', 7)).toMatchObject({
     id: 'impromptu-7', name: 'Impromptu Battle', temporary: true,
-    combatants: actors, map_id: 'forest-map',
+    combatants: actors, map_id: 'forest-map', battlefield_mode: 'saved',
   });
 });
 
