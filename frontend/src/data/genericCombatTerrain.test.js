@@ -35,6 +35,9 @@ describe('generic battlefield fallback', () => {
     const grass = genericCombatBackdropStyle('grass');
     expect(grass.backgroundColor).toBe('#466b45');
     expect(grass.backgroundImage).toContain('data:image/svg+xml');
+    const rectangular = genericCombatBackdropStyle('mud', 40, 16);
+    expect(rectangular.backgroundSize).toContain('2.5%');
+    expect(rectangular.backgroundSize).toContain('6.25%');
     expect(genericCombatBackdropStyle('unknown').backgroundColor)
       .toBe(genericCombatBackdropStyle('stone').backgroundColor);
   });
