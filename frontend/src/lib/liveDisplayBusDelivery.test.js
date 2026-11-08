@@ -1,6 +1,7 @@
 import apiClient from '@/lib/apiClient';
 import {
   acknowledgePlayerDisplayState,
+  createDisplayState,
   displayStateRevisionIdentity,
   isPlayerDisplayPath,
 } from './liveDisplayBus';
@@ -78,4 +79,18 @@ describe('player display delivery acknowledgement', () => {
 
     expect(next).not.toBe(first);
   });
+});
+
+
+test('two rapid GM display announcements get distinct increasing sequences within one millisecond', () => {
+  const now = jest.spyOn(Date, 'now').mockReturnValue(1794150000123);
+  try {
+    const alert = createDisplayState('battle-start', { title: 'Battle starting' });
+    const battle = createDisplayState('combat', { title: 'Combat in progress' });
+    expect(battle.sequence).toBeGreaterThan(alert.sequence);
+    expect(alert.sync_id).not.toBe(battle.sync_id);
+    expect(Date.parse(battle.updated_at)).toBeGreaterThan(Date.parse(alert.updated_at));
+  } finally {
+    now.mockRestore();
+  }
 });

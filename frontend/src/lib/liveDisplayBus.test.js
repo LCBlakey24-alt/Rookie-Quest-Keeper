@@ -1,5 +1,6 @@
 import {
   createDisplayState,
+  loadDisplayState,
   publishCampaignDisplayState,
   publishDisplayState,
   subscribeDisplayState,
@@ -60,6 +61,70 @@ describe('liveDisplayBus', () => {
 
     expect(receivedByB).toEqual([]);
     expect(Object.values({ ...localStorage }).some(value => String(value).includes('ACCOUNT A PUBLISH RESPONSE'))).toBe(false);
+  });
+
+  test('a delayed successful response with a later server timestamp never rewinds newer local combat', async () => {
+    const earlier = createDisplayState('battle-start', { title: 'Original warning' });
+    let resolveWrite;
+    apiClient.put.mockImplementationOnce(() => new Promise(resolve => { resolveWrite = resolve; }));
+    const oldWrite = publishCampaignDisplayState('campaign-1', earlier);
+    for (let i = 0; i < 10 && !resolveWrite; i += 1) await Promise.resolve();
+
+    const latest = createDisplayState('combat', { title: 'Actual battle' });
+    publishDisplayState('campaign-1', latest);
+    const lateAck = {
+      ...earlier,
+      updated_at: new Date(Date.parse(latest.updated_at) + 60000).toISOString(),
+    };
+    resolveWrite({ data: lateAck });
+
+    const resolved = await oldWrite;
+
+    expect(resolved.sync_id).toBe(latest.sync_id);
+    expect(loadDisplayState('campaign-1')).toMatchObject({
+      sync_id: latest.sync_id,
+      mode: 'combat',
+    });
+  });
+
+  test('a server 409 replaces the rejected optimistic reveal with its authoritative newer combat state', async () => {
+    const stale = createDisplayState('battle-start', { title: 'Outdated warning' });
+    const authoritative = createDisplayState('combat', { title: 'Battle in progress' });
+    const conflict = Object.assign(new Error('stale revision'), { response: { status: 409 } });
+    apiClient.put.mockRejectedValueOnce(conflict);
+    apiClient.get.mockResolvedValueOnce({ data: authoritative, headers: {} });
+
+    const resolved = await publishCampaignDisplayState('campaign-1', stale);
+
+    expect(apiClient.get).toHaveBeenCalledWith('/campaigns/campaign-1/display-state');
+    expect(resolved.sync_id).toBe(authoritative.sync_id);
+    expect(loadDisplayState('campaign-1')).toMatchObject({
+      sync_id: authoritative.sync_id,
+      mode: 'combat',
+      payload: { title: 'Battle in progress' },
+    });
+  });
+
+  test('an old 409 cannot erase another newer GM reveal that is still pending locally', async () => {
+    const rejected = createDisplayState('battle-start', { title: 'Old warning' });
+    let rejectWrite;
+    apiClient.put.mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectWrite = reject; }));
+    const oldWrite = publishCampaignDisplayState('campaign-1', rejected);
+    for (let i = 0; i < 10 && !rejectWrite; i += 1) await Promise.resolve();
+
+    const serverState = createDisplayState('combat', { title: 'Server battle' });
+    const latestLocal = createDisplayState('title', { title: 'Newest GM action still pending' });
+    publishDisplayState('campaign-1', latestLocal);
+    apiClient.get.mockResolvedValueOnce({ data: serverState, headers: {} });
+    rejectWrite(Object.assign(new Error('stale revision'), { response: { status: 409 } }));
+
+    const resolved = await oldWrite;
+
+    expect(resolved.sync_id).toBe(latestLocal.sync_id);
+    expect(loadDisplayState('campaign-1')).toMatchObject({
+      sync_id: latestLocal.sync_id,
+      payload: { title: 'Newest GM action still pending' },
+    });
   });
 
   test('an offline fallback cannot undo a 403 or restore its cached reveal', async () => {
