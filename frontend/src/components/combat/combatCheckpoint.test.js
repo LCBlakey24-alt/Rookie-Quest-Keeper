@@ -157,6 +157,19 @@ describe('everything the fight needs survives the round trip', () => {
     expect(checkpoint.currentTurn).toBe(1);
   });
 
+  test('generic terrain survives an owned checkpoint round trip', () => {
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint({
+      selectedMapId: '', terrain_type: 'cobblestone',
+    })));
+    expect(checkpoint.terrain_type).toBe('cobblestone');
+    expect(scenarioFromCheckpoint(checkpoint).terrain_type).toBe('cobblestone');
+  });
+
+  test('older checkpoints without a terrain choice get the safe stone default', () => {
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
+    expect(checkpoint.terrain_type).toBe('stone');
+  });
+
   test('where the GM came from is remembered, so End Combat goes back there', () => {
     const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(checkpoint.source).toBe('live-play');
