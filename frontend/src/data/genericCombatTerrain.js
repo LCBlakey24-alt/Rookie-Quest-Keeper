@@ -59,7 +59,8 @@ export function genericCombatBackdropStyle(value = 'stone') {
       'linear-gradient(to bottom, rgba(10,18,25,.25) 1px, transparent 1px)',
       selected.texture,
     ].join(', '),
-    backgroundSize: '40px 40px, 40px 40px, 100% 100%',
+    // Match the GM fallback's 30-by-20 cells at any TV/table viewport size.
+    backgroundSize: '3.333333% 5%, 3.333333% 5%, 100% 100%',
     backgroundPosition: '0 0',
   };
 }
