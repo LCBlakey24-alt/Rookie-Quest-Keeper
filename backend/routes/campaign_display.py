@@ -75,6 +75,20 @@ async def get_campaign_display_state(campaign_id: str, username: str = Depends(g
 async def update_campaign_display_state(campaign_id: str, display_state: Dict[str, Any], username: str = Depends(get_current_user)):
     """Persist and broadcast a GM-authored player-display state update."""
     await verify_campaign_ownership(campaign_id, username)
+    # A delayed legacy/PWA retry without its original revision must not be
+    # promoted to the server's *current* time: that would make an old
+    # battle-end/scene change newer than a live battle. Every writer in the
+    # maintained app uses createDisplayState(), which supplies a sequence.
+    raw_sequence = display_state.get('sequence', display_state.get('seq'))
+    try:
+        sequence = int(raw_sequence)
+    except (TypeError, ValueError, OverflowError):
+        sequence = 0
+    if sequence <= 0 or sequence > 9007199254740991:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Player-display updates require a valid sequence',
+        )
     state = sanitize_display_state(campaign_id, display_state, username)
     # Do the revision comparison *inside* MongoDB's atomic document update.
     # A GET followed by an unconditional $set is not enough: an older
