@@ -13,6 +13,9 @@ def test_create_and_read_saved_encounter_preserves_battlefield():
         'battlefield_mode': 'saved',
         'terrain_type': 'stone',
         'grid_size': 50,
+        'grid_cols': 40,
+        'grid_rows': 25,
+        'feet_per_square': 10,
         'show_grid': False,
         'tokens': [{'id': 'scarab-1', 'x': 2, 'y': 4}],
     }
@@ -23,6 +26,9 @@ def test_create_and_read_saved_encounter_preserves_battlefield():
     assert loaded.battlefield_mode == 'saved'
     assert loaded.tokens == [{'id': 'scarab-1', 'x': 2, 'y': 4}]
     assert loaded.grid_size == 50
+    assert loaded.grid_cols == 40
+    assert loaded.grid_rows == 25
+    assert loaded.feet_per_square == 10
     assert loaded.show_grid is False
     assert loaded.combatants[0]['id'] == 'scarab-1'
 
