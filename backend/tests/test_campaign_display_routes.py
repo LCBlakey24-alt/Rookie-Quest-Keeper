@@ -155,7 +155,7 @@ def test_player_display_accepts_live_battle_and_table_roll_modes():
 
 
 def test_public_combat_terrain_is_allowlisted_and_cannot_reveal_gm_fields():
-    for terrain in ('stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water'):
+    for terrain in ('stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water', 'snow', 'mud', 'lava'):
         state = sanitize_display_state('campaign-1', {
             'mode': 'combat',
             'payload': {
