@@ -174,6 +174,42 @@ def test_public_combat_terrain_is_allowlisted_and_cannot_reveal_gm_fields():
     assert invalid['payload']['terrain_type'] == 'stone'
 
 
+def test_public_saved_map_floor_grid_never_transmits_hidden_map_objects():
+    state = sanitize_display_state('campaign-1', {
+        'mode': 'combat',
+        'payload': {
+            'terrain_grid': [
+                ['stone', 'grass', {'gm_notes': 'Secret entrance'}, 'javascript:bad'],
+                ['water', 'void', 'empty', 'snow'],
+            ],
+            'grid_cols': 4,
+            'grid_rows': 2,
+            'walls': [{'gm_only': True, 'description': 'Illusion'}],
+            'objects': [{'hidden': True, 'name': 'Secret vault'}],
+            'fog_of_war': [[True]],
+            'gm_notes': 'Do not reveal the vault',
+        },
+    }, 'gm')
+    out = state['payload']
+    assert out['terrain_grid'] == [
+        ['stone', 'grass', 'empty', 'empty'],
+        ['water', 'void', 'empty', 'snow'],
+    ]
+    assert out['grid_cols'] == 4
+    assert out['grid_rows'] == 2
+    for private in ('walls', 'objects', 'fog_of_war', 'gm_notes'):
+        assert private not in out
+
+
+def test_public_floor_grid_limits_row_and_column_counts():
+    state = sanitize_display_state('campaign-1', {
+        'mode': 'combat',
+        'payload': {'terrain_grid': [['mud'] * 101] * 101},
+    }, 'gm')
+    assert len(state['payload']['terrain_grid']) == 100
+    assert all(len(row) == 100 for row in state['payload']['terrain_grid'])
+
+
 def test_player_display_removes_private_nested_gm_data_and_hidden_tokens():
     original = {
         'mode': 'combat',
