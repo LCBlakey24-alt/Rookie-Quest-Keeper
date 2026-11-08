@@ -149,10 +149,15 @@ export function displayStateRevisionIdentity(state = {}) {
 function isNewerState(candidate, current) {
   if (!candidate) return false;
   if (!current) return true;
+  // The server uses sequence as its ordering authority. Its updated_at is
+  // assigned when the HTTP request arrives, so delayed acknowledgements can
+  // have later timestamps than a newer GM action already shown locally.
+  const candidateSequence = stateSequence(candidate);
+  const currentSequence = stateSequence(current);
+  if (candidateSequence !== currentSequence) return candidateSequence > currentSequence;
   const candidateTime = stateTime(candidate);
   const currentTime = stateTime(current);
-  if (candidateTime !== currentTime) return candidateTime > currentTime;
-  return stateSequence(candidate) >= stateSequence(current);
+  return candidateTime >= currentTime;
 }
 
 function normaliseDisplayState(state = {}) {
