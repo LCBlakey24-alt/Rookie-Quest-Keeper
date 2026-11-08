@@ -29,7 +29,7 @@ jobs:
       - name: Focused encounter and map tests
         env:
           CI: true
-        run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/genericCombatTerrain.test.js src/components/gm/BattlefieldPicker.test.js src/components/gm/LiveEncounterLauncher.test.js src/components/gm/PlayerDisplayPage.map.test.js src/components/CombatPageTableRecovery.test.js src/components/combat/combatCheckpoint.test.js
+        run: yarn test --watchAll=false --runInBand --runTestsByPath src/data/genericCombatTerrain.test.js src/components/gm/BattlefieldPicker.test.js src/components/gm/SavedEncounterBattlefieldEditor.test.js src/components/gm/LiveEncounterLauncher.test.js src/components/gm/PlayerDisplayPage.map.test.js src/components/CombatPageTableRecovery.test.js src/components/combat/combatCheckpoint.test.js
       - name: Complete frontend suite
         env:
           CI: true
