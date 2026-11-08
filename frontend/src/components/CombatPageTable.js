@@ -22,6 +22,7 @@ import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
 import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRules';
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 import { isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
+import { createGenericCombatMap, GENERIC_COMBAT_TERRAINS, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
 import {
   combatStateSnapshot,
@@ -223,6 +224,7 @@ export default function CombatPageTable() {
   const [view, setView] = useState('battle');
   const [maps, setMaps] = useState([]);
   const [selectedMapId, setSelectedMapId] = useState('');
+  const [terrainType, setTerrainType] = useState('stone');
   const [mapTokens, setMapTokens] = useState([]);
   const [mapZoom, setMapZoom] = useState(1);
   const [collectedLoot, setCollectedLoot] = useState([]);
@@ -341,11 +343,13 @@ export default function CombatPageTable() {
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
       setRound(Math.max(1, restored.round || 1));
       setSelectedMapId(restored.selectedMapId || '');
+      setTerrainType(normaliseCombatTerrain(restored.terrain_type || scenario.terrain_type));
       setMapTokens(safeArray(restored.mapTokens));
       setExpandedId(restored.combatants[Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1))]?.id || '');
       toast.info('Combat restored', { description: `Round ${Math.max(1, restored.round || 1)} checkpoint recovered.` });
     } else {
       battleStartTimeRef.current = Date.now();
+      setTerrainType(normaliseCombatTerrain(scenario.terrain_type));
       const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
       initialPlayerStatesRef.current = playerBaseStates(loaded);
       startingCombatantsRef.current = snapshotStartingCombatants(loaded);
@@ -390,6 +394,7 @@ export default function CombatPageTable() {
         currentTurn,
         round,
         selectedMapId,
+        terrain_type: terrainType,
         mapTokens,
         collectedLoot,
         initialPlayerStates: initialPlayerStatesRef.current,
@@ -398,7 +403,7 @@ export default function CombatPageTable() {
       localStorage.setItem(combatKey, nextRaw);
       checkpointRawRef.current = nextRaw;
     } catch { /* local checkpoint is best effort */ }
-  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, source, accountId, legacyOwnerVerified, checkpointConflict]);
+  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, terrainType, source, accountId, legacyOwnerVerified, checkpointConflict]);
 
   useEffect(() => {
     if (!scenario || !maps.length || selectedMapId) return;
@@ -408,10 +413,11 @@ export default function CombatPageTable() {
 
   const active = combatants[currentTurn] || null;
   const selectedMap = useMemo(() => maps.find(item => item.id === selectedMapId) || null, [maps, selectedMapId]);
+  const displayedMap = useMemo(() => selectedMap || createGenericCombatMap(terrainType), [selectedMap, terrainType]);
 
   useEffect(() => {
-    if (!selectedMap || mapTokens.length) return;
-    const savedTokens = safeArray(selectedMap.tokens);
+    if (!displayedMap || mapTokens.length) return;
+    const savedTokens = safeArray(displayedMap.tokens);
     setMapTokens(combatants.map((combatant, index) => {
       const saved = savedTokens.find(token => token.id === combatant.id);
       return {
@@ -424,7 +430,7 @@ export default function CombatPageTable() {
         isAlly: combatant.type === 'player' || combatant.type === 'npc',
       };
     }));
-  }, [combatants, mapTokens.length, selectedMap]);
+  }, [combatants, mapTokens.length, displayedMap]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
@@ -446,6 +452,7 @@ export default function CombatPageTable() {
         round,
         active_id: activeId,
         battle_started_at: battleStartTimeRef.current,
+        terrain_type: terrainType,
         party: players,
         tokens: visibleCreatures,
         map_url: mapUrl,
@@ -453,7 +460,7 @@ export default function CombatPageTable() {
       })).catch(() => {});
     }, 120);
     return () => window.clearTimeout(timer);
-  }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap]);
+  }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap, terrainType]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
@@ -1087,14 +1094,18 @@ export default function CombatPageTable() {
               <option value="">Choose battle map…</option>
               {maps.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
+            {!selectedMap && (
+              <select aria-label="Generic battlefield terrain" value={terrainType} onChange={event => setTerrainType(normaliseCombatTerrain(event.target.value))}>
+                {GENERIC_COMBAT_TERRAINS.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+              </select>
+            )}
             <button type="button" onClick={() => setMapZoom(value => Math.max(0.5, value - 0.2))}>−</button>
             <span>{Math.round(mapZoom * 100)}%</span>
             <button type="button" onClick={() => setMapZoom(value => Math.min(2, value + 0.2))}>+</button>
           </div>
-          {selectedMap ? (
-            <div className="combat-map-canvas">
+          <div className="combat-map-canvas" data-testid={selectedMap ? 'saved-combat-map' : 'generic-combat-map'}>
               <MapCanvas
-                mapData={selectedMap}
+                mapData={displayedMap}
                 onMapChange={() => {}}
                 tool="select"
                 selectedTerrain="stone"
@@ -1109,9 +1120,6 @@ export default function CombatPageTable() {
                 onZoomChange={setMapZoom}
               />
             </div>
-          ) : (
-            <div className="combat-map-empty"><Map size={38} /><strong>No battle map selected</strong><span>Choose a battle map above. The full GM roster, enemy stats and initiative remain available beside it.</span></div>
-          )}
         </main>
       )}
       </div>
