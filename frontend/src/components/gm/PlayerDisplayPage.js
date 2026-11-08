@@ -102,7 +102,9 @@ function normaliseCombatToken(token = {}, index = 0) {
 
 function buildCombatRoster(partyMembers = [], tokens = []) {
   const players = partyMembers.map((member, index) => ({ ...member, id: `player-${member.id || index}`, type: 'player', subtitle: `${member.className || 'Adventurer'}${member.race ? ` · ${member.race}` : ''}` }));
-  const creatures = tokens.filter(isPlayerVisibleCombatToken);
+  // Player tokens also position heroes on the map; party already supplies
+  // their roster entries, so never render them twice in the initiative rail.
+  const creatures = tokens.filter(token => token.type !== 'player' && isPlayerVisibleCombatToken(token));
   return [...players, ...creatures].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0));
 }
 
