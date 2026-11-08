@@ -14,6 +14,7 @@ const TERRAIN_TYPES = {
   water: { color: '#1e90ff', name: 'Water' },
   sand: { color: '#f4a460', name: 'Sand' },
   dirt: { color: '#8B7355', name: 'Dirt' },
+  mud: { color: '#57483a', name: 'Mud' },
   snow: { color: '#e8e8e8', name: 'Snow' },
   lava: { color: '#ff4500', name: 'Lava' },
   void: { color: '#000000', name: 'Void/Pit' }
