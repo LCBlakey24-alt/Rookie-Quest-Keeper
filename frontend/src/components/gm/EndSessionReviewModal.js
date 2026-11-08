@@ -102,6 +102,8 @@ function buildRecapNote(summary, storyFocus, options) {
 export default function EndSessionReviewModal({ campaignId, campaignName = 'Campaign', onClose }) {
   const [summary, setSummary] = useState(null);
   const closeAttemptRef = useRef(null);
+  const storyWrapAttemptRef = useRef(null);
+  const [storyWrapWarning, setStoryWrapWarning] = useState('');
   const [previewError, setPreviewError] = useState('');
   const [completedSummary, setCompletedSummary] = useState(null);
   const [recapNoteWarning, setRecapNoteWarning] = useState('');
@@ -140,6 +142,8 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
     // Campaign switches must never reuse the previous campaign's finalized summary.
     setCompletedSummary(null);
     closeAttemptRef.current = null;
+    storyWrapAttemptRef.current = null;
+    setStoryWrapWarning('');
     setRecapNoteWarning('');
     loadPreview();
   }, [campaignId]);
@@ -160,15 +164,23 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
     return showAllTime ? summary : { ...summary, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
   }, [summary, showAllTime]);
 
-  const applyStoryWrapUp = async () => {
-    if (!storyFocus.arc || !storyFocus.chapter || (!markChapterPlayed && !prepNextChapter)) return;
-    const nextChapters = asList(storyFocus.arc.chapters).map(chapter => {
-      if (chapter.id === storyFocus.chapter.id && (markChapterPlayed || prepNextChapter)) return { ...chapter, status: 'played' };
-      if (prepNextChapter && storyFocus.nextChapter && chapter.id === storyFocus.nextChapter.id) return { ...chapter, status: 'prepped' };
+  const prepareStoryWrapUp = () => {
+    // Capture the exact chapter selected at close time. A retry must not
+    // silently apply to the next chapter after the first PUT succeeds.
+    const story = storyFocus;
+    const choices = { markChapterPlayed, prepNextChapter };
+    if (!story.arc || !story.chapter || (!markChapterPlayed && !prepNextChapter)) {
+      return { story, choices, update: null, storySaved: true, noteAttempted: false };
+    }
+    const chapters = asList(story.arc.chapters).map(chapter => {
+      if (chapter.id === story.chapter.id) return { ...chapter, status: 'played' };
+      if (prepNextChapter && story.nextChapter && chapter.id === story.nextChapter.id) return { ...chapter, status: 'prepped' };
       return chapter;
     });
-    const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${storyFocus.arc.id}`, { chapters: nextChapters });
-    setStoryArcs(prev => prev.map(arc => arc.id === response.data.id ? response.data : arc));
+    return {
+      story, choices, storySaved: false, noteAttempted: false,
+      update: { arcId: story.arc.id, chapters },
+    };
   };
 
   const sendEndSessionShow = async () => {
@@ -177,8 +189,8 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
     let archivedSummary = completedSummary;
     try {
       if (!archivedSummary) {
-        const closedChapterStory = storyFocus;
-        await applyStoryWrapUp();
+        // Dice archival is the commit point. Never mutate story chapters
+        // before the archival endpoint has acknowledged the saved recap.
         // Reuse the identical close id if a network response was lost after
         // server-side archiving; the backend returns the original recap.
         const account = currentDisplayAccount();
@@ -194,14 +206,40 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
         // Retrying the display must NEVER call end-session a second time.
         setCompletedSummary(archivedSummary);
         setSummary(archivedSummary);
-        if (saveRecapNote) {
-          try {
-            await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(archivedSummary, closedChapterStory, { markChapterPlayed, prepNextChapter }) });
-          } catch {
-            const warning = 'Rolls were archived, but the optional GM recap note could not be saved.';
-            setRecapNoteWarning(warning);
-            toast.warning(warning);
-          }
+      }
+
+      if (!storyWrapAttemptRef.current) {
+        storyWrapAttemptRef.current = prepareStoryWrapUp();
+      }
+      const wrap = storyWrapAttemptRef.current;
+      if (!wrap.storySaved && wrap.update) {
+        try {
+          const response = await apiClient.put(
+            `/campaigns/${campaignId}/story-arcs/${wrap.update.arcId}`,
+            { chapters: wrap.update.chapters },
+          );
+          wrap.storySaved = true;
+          setStoryArcs(prev => prev.map(arc => arc.id === response.data.id ? response.data : arc));
+          setStoryWrapWarning('');
+        } catch {
+          const warning = 'Rolls are archived, but the GM story chapter could not be saved. Retry GM Story Save; dice will not be archived again.';
+          setStoryWrapWarning(warning);
+          toast.warning(warning);
+          return;
+        }
+      }
+      // An optional note is best-effort and MUST NOT be recreated on a
+      // display-only retry. It is attempted only after story persistence.
+      if (saveRecapNote && !wrap.noteAttempted) {
+        wrap.noteAttempted = true;
+        try {
+          await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, {
+            content: buildRecapNote(archivedSummary, wrap.story, wrap.choices),
+          });
+        } catch {
+          const warning = 'Rolls were archived, but the optional GM recap note could not be saved.';
+          setRecapNoteWarning(warning);
+          toast.warning(warning);
         }
       }
 
@@ -326,11 +364,12 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
             Session rolls have already been archived. Story wrap-up and GM-note options are locked to their saved choices. If the player screen has not synced, use Retry Player Display below. The archive will not run again.
           </div>
         )}
+        {storyWrapWarning && <div role="alert" style={warningStyle}>{storyWrapWarning}</div>}
         {recapNoteWarning && <div role="alert" style={warningStyle}>{recapNoteWarning}</div>}
         <footer style={actionsStyle}>
           <button type="button" onClick={loadPreview} disabled={loading || sending || Boolean(completedSummary)} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh Preview</button>
           <button type="button" onClick={onClose} disabled={sending} style={secondaryButtonStyle}>Cancel</button>
-          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : completedSummary ? 'Retry Player Display' : 'Send Dice-Only Player Show'}</button>
+          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : storyWrapWarning ? 'Retry GM Story Save' : completedSummary ? 'Retry Player Display' : 'Send Dice-Only Player Show'}</button>
         </footer>
       </section>
     </div>
