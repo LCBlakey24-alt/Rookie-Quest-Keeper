@@ -49,3 +49,41 @@ jobs:
         env:
           PYTHONPATH: backend
         run: python -m pytest -q backend/tests/test_combat_scenario_battlefields.py backend/tests/test_campaign_display_routes.py backend/tests/test_campaign_collections_resilience.py
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: yarn
+          cache-dependency-path: |
+            frontend/yarn.lock
+            tests/yarn.lock
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: yarn install --non-interactive
+      - name: Build release frontend
+        working-directory: frontend
+        run: yarn build
+      - name: Install browser test dependencies
+        working-directory: tests
+        run: yarn install --non-interactive
+      - name: Install Chromium
+        working-directory: tests
+        run: yarn playwright install --with-deps chromium
+      - name: Responsive GM and player browser smoke
+        working-directory: tests
+        run: yarn playwright test --config=playwright.responsive.config.ts --project=chromium
+      - name: Save failing browser snapshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terrain-feature-browser-report
+          path: tests/test-results
+          if-no-files-found: ignore
