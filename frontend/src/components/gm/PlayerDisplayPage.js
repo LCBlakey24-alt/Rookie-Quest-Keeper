@@ -10,6 +10,7 @@ import { getContainedMapRect } from '@/data/containedMapGeometry';
 import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
 import { rollActorDisplayName } from '@/lib/rollActorLabels';
 import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
+import { genericCombatBackdropStyle, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 import './PlayerDisplayPage.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -440,7 +441,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
+          <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} title={payload.title} target={target} tokens={positionedTokens} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -464,7 +465,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
+        <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} title={payload.title} target={target} tokens={positionedTokens} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -520,10 +521,11 @@ function renderStatsPage(page, session, allTime, target) {
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award, actors }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{rollActorDisplayName(award, actors)}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor, actors }) { return <div style={actorRowStyle}><strong>{rollActorDisplayName(actor, actors)}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
-function CombatMapArtwork({ mapUrl, title, target, tokens }) {
+function CombatMapArtwork({ mapUrl, terrainType = 'stone', title, target, tokens }) {
   const layerRef = useRef(null);
   const [container, setContainer] = useState({ width: 0, height: 0 });
   const [loadedImage, setLoadedImage] = useState(null);
+  const [failedMapUrl, setFailedMapUrl] = useState('');
 
   useEffect(() => {
     const element = layerRef.current;
@@ -544,22 +546,32 @@ function CombatMapArtwork({ mapUrl, title, target, tokens }) {
   }, []);
 
   // Do not paint tokens over a stale image when the GM switches maps.
-  const imageReady = Boolean(mapUrl && loadedImage && loadedImage.url === mapUrl);
+  const useGenericTerrain = !mapUrl || failedMapUrl === mapUrl;
+  const imageReady = Boolean(!useGenericTerrain && loadedImage && loadedImage.url === mapUrl);
   const bounds = imageReady
     ? getContainedMapRect(container.width, container.height, loadedImage.width, loadedImage.height)
     : null;
   return (
     <div ref={layerRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }} data-testid="combat-map-artwork">
-      {mapUrl
-        ? <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'} style={combatMapImageStyle(target)}
-            onLoad={event => setLoadedImage({
-              url: mapUrl,
-              width: event.currentTarget.naturalWidth,
-              height: event.currentTarget.naturalHeight,
-            })}
-            onError={() => setLoadedImage(null)} />
-        : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-      {((!mapUrl && container.width > 0 && container.height > 0) || bounds) && (
+      {useGenericTerrain && (
+        <div
+          data-testid="combat-generic-terrain"
+          data-terrain={normaliseCombatTerrain(terrainType)}
+          aria-label={`Generic ${normaliseCombatTerrain(terrainType)} battlefield`}
+          style={{ position: 'absolute', inset: 0, ...genericCombatBackdropStyle(terrainType) }}
+        />
+      )}
+      {mapUrl && !useGenericTerrain && (
+        <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'} style={combatMapImageStyle(target)}
+          onLoad={event => setLoadedImage({
+            url: mapUrl,
+            width: event.currentTarget.naturalWidth,
+            height: event.currentTarget.naturalHeight,
+          })}
+          onError={() => { setLoadedImage(null); setFailedMapUrl(mapUrl); }}
+        />
+      )}
+      {((useGenericTerrain && container.width > 0 && container.height > 0) || bounds) && (
         <div data-testid="combat-map-token-overlay" style={{
           ...tokenOverlayStyle,
           inset: 'auto',
