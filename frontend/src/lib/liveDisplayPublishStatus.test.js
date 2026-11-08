@@ -55,7 +55,7 @@ describe('publishCampaignDisplayStateWithStatus', () => {
 
     const result = await publishCampaignDisplayStateWithStatus('campaign-1', olderState);
 
-    expect(result).toEqual({ state: newerState, remoteSynced: true });
+    expect(result).toEqual({ state: newerState, remoteSynced: false, pendingNewer: true });
     expect(publishDisplayState).toHaveBeenCalledTimes(1);
     expect(publishDisplayState).toHaveBeenCalledWith('campaign-1', olderState, 'account-a');
   });
