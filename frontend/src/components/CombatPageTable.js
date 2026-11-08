@@ -423,7 +423,10 @@ export default function CombatPageTable() {
   const displayedMap = useMemo(() => selectedMap || createGenericCombatMap(terrainType, scenario?.grid_cols, scenario?.grid_rows), [selectedMap, terrainType, scenario?.grid_cols, scenario?.grid_rows]);
 
   useEffect(() => {
-    if (!displayedMap || mapTokens.length) return;
+    // Do not initialise before the encounter restore effect has consumed its
+    // checkpoint. An empty initial render previously queued setMapTokens([])
+    // after restoring saved positions, silently replacing exact token cells.
+    if (!initialised || !combatants.length || !displayedMap || mapTokens.length) return;
     const savedTokens = safeArray(displayedMap.tokens);
     setMapTokens(combatants.map((combatant, index) => {
       const saved = savedTokens.find(token => token.id === combatant.id);
