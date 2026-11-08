@@ -149,10 +149,15 @@ export function displayStateRevisionIdentity(state = {}) {
 function isNewerState(candidate, current) {
   if (!candidate) return false;
   if (!current) return true;
+  // The server uses sequence as its ordering authority. Its updated_at is
+  // assigned when the HTTP request arrives, so delayed acknowledgements can
+  // have later timestamps than a newer GM action already shown locally.
+  const candidateSequence = stateSequence(candidate);
+  const currentSequence = stateSequence(current);
+  if (candidateSequence !== currentSequence) return candidateSequence > currentSequence;
   const candidateTime = stateTime(candidate);
   const currentTime = stateTime(current);
-  if (candidateTime !== currentTime) return candidateTime > currentTime;
-  return stateSequence(candidate) >= stateSequence(current);
+  return candidateTime >= currentTime;
 }
 
 function normaliseDisplayState(state = {}) {
@@ -207,9 +212,15 @@ function clearStoredDisplayState(campaignId, account) {
   try { runtimeWindow.localStorage.removeItem(ownedStorageKey(account, campaignId)); } catch { /* ignore */ }
 }
 
+// Rapid GM actions can share the same millisecond. Give every locally
+// created state a strictly increasing sequence so the server can reject an
+// older delayed request without confusing two legitimate consecutive actions.
+let lastCreatedSequence = 0;
+
 export function createDisplayState(mode = 'blank', payload = {}) {
-  const now = new Date().toISOString();
-  const sequence = Date.now();
+  const sequence = Math.max(Date.now(), lastCreatedSequence + 1);
+  lastCreatedSequence = sequence;
+  const now = new Date(sequence).toISOString();
   return {
     sync_id: `${now}-${sequence}-${Math.random().toString(16).slice(2)}`,
     mode,
@@ -279,6 +290,31 @@ export function publishDisplayState(campaignId, state, account = currentDisplayA
   }
 }
 
+/**
+ * A 409 means the backend kept a newer reveal, but this browser may have
+ * already shown the rejected optimistic state. Re-fetch the authoritative
+ * reveal and correct the local transports without overwriting a third,
+ * still-pending GM action created after the rejected one.
+ */
+export async function reconcileRejectedDisplayState(campaignId, account = currentDisplayAccount()) {
+  if (!campaignId || !account || currentDisplayAccount() !== account) return null;
+  try {
+    const apiClient = await getApiClient();
+    const response = await apiClient.get(`/campaigns/${campaignId}/display-state`);
+    if (isOfflineResponse(response) || currentDisplayAccount() !== account) return null;
+    const serverState = normaliseDisplayState(response?.data || {});
+    const latestLocal = readStoredDisplayState(campaignId, account);
+    if (!latestLocal || stateSequence(serverState) >= stateSequence(latestLocal)) {
+      publishDisplayState(campaignId, serverState, account);
+      return serverState;
+    }
+    return latestLocal;
+  } catch {
+    // Keep the offline-tolerant publish contract if reconciliation is unavailable.
+    return null;
+  }
+}
+
 export async function publishCampaignDisplayState(campaignId, state) {
   const localState = normaliseDisplayState(state);
   const publishingAccount = currentDisplayAccount();
@@ -298,7 +334,10 @@ export async function publishCampaignDisplayState(campaignId, state) {
       return remoteState;
     }
     return latestLocalState;
-  } catch {
+  } catch (error) {
+    if (failureStatus(error) === 409) {
+      return (await reconcileRejectedDisplayState(campaignId, publishingAccount)) || localState;
+    }
     return localState;
   }
 }
