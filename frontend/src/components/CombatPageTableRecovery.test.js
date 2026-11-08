@@ -142,6 +142,17 @@ test("another campaign's checkpoint is blocked and preserved", async () => {
   expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(raw);
 });
 
+test('a recovered fight restores the generic terrain choice without losing wounds', async () => {
+  saveFight({ terrain_type: 'grass' });
+  openColdTab();
+  await screen.findByTestId('combat-table-page');
+  expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument();
+  expect(screen.getByRole('combobox', { name: 'Generic battlefield terrain' })).toHaveValue('grass');
+  const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+  expect(saved.terrain_type).toBe('grass');
+  expect(saved.combatants.find(combatant => combatant.id === 'c1').hp).toBe(22);
+});
+
 test('a recovered fight remembers it came from Live Play', async () => {
   // Checked through the checkpoint rather than by driving End Combat, which
   // needs the network path; the routing value is what this fixes.
@@ -693,7 +704,8 @@ test('without a linked map, encounter still starts with GM controls and an hones
     </MemoryRouter>,
   );
   expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
-  expect(screen.getByText('No battle map selected')).toBeInTheDocument();
+  expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument();
+  expect(screen.getByRole('combobox', { name: 'Generic battlefield terrain' })).toHaveValue('stone');
   expect(document.querySelector('.combat-list')).toHaveTextContent('Bandit Captain');
   expect(screen.getByRole('button', { name: 'Battle' })).toHaveAttribute('aria-pressed', 'true');
 });
