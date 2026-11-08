@@ -40,7 +40,8 @@ function MapCanvas({
   gridSize = GRID_SIZE,
   zoom: controlledZoom,
   onZoomChange,
-  isPlayerView = false
+  isPlayerView = false,
+  backgroundImageUrl = ''
 }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -56,6 +57,7 @@ function MapCanvas({
   const [draggingToken, setDraggingToken] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
   const [terrainArtwork, setTerrainArtwork] = useState(null);
+  const [backgroundArtwork, setBackgroundArtwork] = useState(null);
 
   // Initialize map data if not provided
   const map = mapData || {
@@ -82,6 +84,18 @@ function MapCanvas({
     artwork.src = getGenericCombatTerrainImage(genericTerrain);
     return () => { cancelled = true; };
   }, [genericTerrain]);
+
+  const savedBackgroundUrl = backgroundImageUrl || map.map_url || map.background_url
+    || map.background_image || map.image_url || '';
+  useEffect(() => {
+    if (!savedBackgroundUrl) { setBackgroundArtwork(null); return undefined; }
+    let cancelled = false;
+    const artwork = new window.Image();
+    artwork.onload = () => { if (!cancelled) setBackgroundArtwork({ url: savedBackgroundUrl, image: artwork }); };
+    artwork.onerror = () => { if (!cancelled) setBackgroundArtwork(null); };
+    artwork.src = savedBackgroundUrl;
+    return () => { cancelled = true; };
+  }, [savedBackgroundUrl]);
 
   // Get canvas coordinates from mouse event
   const getCanvasCoords = useCallback((e) => {
@@ -152,6 +166,13 @@ function MapCanvas({
           }
         }
       }
+    }
+
+    // Image-backed maps may be encountered from older map builders and
+    // imported encounter images. Use the original grid coordinates rather
+    // than drawing a separate untracked DOM image behind the tokens.
+    if (backgroundArtwork?.url === savedBackgroundUrl) {
+      ctx.drawImage(backgroundArtwork.image, 0, 0, map.width * gridSize, map.height * gridSize);
     }
 
     // Draw grid
@@ -315,7 +336,7 @@ function MapCanvas({
     }
 
     ctx.restore();
-  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView, terrainArtwork, genericTerrain]);
+  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView, terrainArtwork, genericTerrain, backgroundArtwork, savedBackgroundUrl]);
 
   // Redraw when dependencies change
   useEffect(() => {
