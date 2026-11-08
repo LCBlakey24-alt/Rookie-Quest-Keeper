@@ -291,7 +291,7 @@ export function publishDisplayState(campaignId, state, account = currentDisplayA
  * reveal and correct the local transports without overwriting a third,
  * still-pending GM action created after the rejected one.
  */
-export async function reconcileRejectedDisplayState(campaignId, _rejectedState, account = currentDisplayAccount()) {
+export async function reconcileRejectedDisplayState(campaignId, account = currentDisplayAccount()) {
   if (!campaignId || !account || currentDisplayAccount() !== account) return null;
   try {
     const apiClient = await getApiClient();
@@ -331,7 +331,7 @@ export async function publishCampaignDisplayState(campaignId, state) {
     return latestLocalState;
   } catch (error) {
     if (failureStatus(error) === 409) {
-      return (await reconcileRejectedDisplayState(campaignId, localState, publishingAccount)) || localState;
+      return (await reconcileRejectedDisplayState(campaignId, publishingAccount)) || localState;
     }
     return localState;
   }
