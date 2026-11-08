@@ -485,6 +485,10 @@ export default function CombatPageTable() {
         grid_cols: displayedMap.width,
         grid_rows: displayedMap.height,
         feet_per_square: scenario.feet_per_square || 5,
+        // A saved tile-built map can have no image URL. The server projects
+        // only approved floor identifiers; no private objects or fog travel.
+        terrain_grid: selectedMap && !mapUrl && Array.isArray(selectedMap.terrain)
+          ? selectedMap.terrain : undefined,
         party: players,
         tokens: [...players, ...visibleCreatures],
         map_url: mapUrl,
