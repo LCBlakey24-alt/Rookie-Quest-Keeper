@@ -285,6 +285,31 @@ export function publishDisplayState(campaignId, state, account = currentDisplayA
   }
 }
 
+/**
+ * A 409 means the backend kept a newer reveal, but this browser may have
+ * already shown the rejected optimistic state. Re-fetch the authoritative
+ * reveal and correct the local transports without overwriting a third,
+ * still-pending GM action created after the rejected one.
+ */
+export async function reconcileRejectedDisplayState(campaignId, _rejectedState, account = currentDisplayAccount()) {
+  if (!campaignId || !account || currentDisplayAccount() !== account) return null;
+  try {
+    const apiClient = await getApiClient();
+    const response = await apiClient.get(`/campaigns/${campaignId}/display-state`);
+    if (isOfflineResponse(response) || currentDisplayAccount() !== account) return null;
+    const serverState = normaliseDisplayState(response?.data || {});
+    const latestLocal = readStoredDisplayState(campaignId, account);
+    if (!latestLocal || stateSequence(serverState) >= stateSequence(latestLocal)) {
+      publishDisplayState(campaignId, serverState, account);
+      return serverState;
+    }
+    return latestLocal;
+  } catch {
+    // Keep the offline-tolerant publish contract if reconciliation is unavailable.
+    return null;
+  }
+}
+
 export async function publishCampaignDisplayState(campaignId, state) {
   const localState = normaliseDisplayState(state);
   const publishingAccount = currentDisplayAccount();
@@ -304,7 +329,10 @@ export async function publishCampaignDisplayState(campaignId, state) {
       return remoteState;
     }
     return latestLocalState;
-  } catch {
+  } catch (error) {
+    if (failureStatus(error) === 409) {
+      return (await reconcileRejectedDisplayState(campaignId, localState, publishingAccount)) || localState;
+    }
     return localState;
   }
 }
