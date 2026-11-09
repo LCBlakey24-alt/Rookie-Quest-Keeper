@@ -24,7 +24,7 @@ class CampaignCollection:
         self.records = [
             {'id': 'private-1', 'dm_user_id': 'owner-a', 'name': 'Private world A'},
             {'id': 'private-2', 'dm_user_id': 'owner-a', 'name': 'Private adventure A'},
-            {'id': 'new-1', 'dm_user_id': 'owner-b', 'name': 'New user's world'},
+            {'id': 'new-1', 'dm_user_id': 'owner-b', 'name': "New user's world"},
         ]
         self.queries = []
 
