@@ -19,6 +19,7 @@ import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { getAuthToken, getStoredAuthUsername, setAuthToken, setStoredAuthUsername } from '@/lib/auth';
+import { accountFromToken } from '@/lib/liveDisplayScope';
 import { isLocalPreview, PREVIEW_USER } from '@/preview/previewMode';
 
 const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
@@ -129,7 +130,8 @@ export function AppRoutes() {
   // holding the previous user's campaign/character lists cannot survive this
   // boundary, even if both accounts happen to visit the same URL.
   const accountWorkspaceKey = preview ? 'preview-workspace'
-    : isAuthenticated ? `account:${String(username || '').trim().toLowerCase()}`
+    : isAuthenticated
+      ? `account:${accountFromToken(getAuthToken() || '') || String(username || '').trim().toLowerCase()}`
       : 'signed-out';
 
   const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
