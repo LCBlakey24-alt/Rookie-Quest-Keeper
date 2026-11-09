@@ -1,18 +1,26 @@
 import { calendarMonthAfter, calendarWeekdayOffset, daysUntilNextOccurrence, eventOccursOn } from './customCalendarUtilities';
-import { tiaKartaCalendar } from './tiaKartaCalendar';
+// Synthetic six-day calendar fixture. Not tied to any user's campaign.
+const calendarFixture = () => ({
+  calendar_type: 'custom',
+  days_per_week: 6,
+  current_day: 25, current_month: 1, current_year: 592,
+  custom_months: Array.from({ length: 12 }, (_, index) => ({
+    name: `Month ${index + 1}`, days: 30,
+  })),
+});
 
-const calendar = tiaKartaCalendar('eldritch-heralds');
+const calendar = calendarFixture();
 const annual = { year: 592, month: 1, day: 1, is_recurring: true, recurrence_type: 'annual' };
 const monthly = { year: 592, month: 1, day: 15, is_recurring: true, recurrence_type: 'monthly' };
 const weekly = { year: 592, month: 1, day: 1, is_recurring: true, recurrence_type: 'weekly' };
 
-describe('independent Tia-Karta custom calendar', () => {
+describe('independent fictional custom calendar', () => {
   test('browse months without changing either campaign date', () => {
     expect(calendarMonthAfter(calendar, 592, 1, -1)).toEqual({ year: 591, month: 12 });
     expect(calendarMonthAfter(calendar, 592, 12, 1)).toEqual({ year: 593, month: 1 });
     expect(calendar.current_day).toBe(25);
   });
-  test('weekly events follow six-day Tia-Karta weeks', () => {
+  test('weekly events follow six-day fictional weeks', () => {
     expect(eventOccursOn(weekly, calendar, 592, 1, 25)).toBe(true);
     expect(eventOccursOn(weekly, calendar, 592, 1, 26)).toBe(false);
     expect(daysUntilNextOccurrence(weekly, calendar)).toBe(0);
@@ -54,7 +62,7 @@ describe('independent Tia-Karta custom calendar', () => {
 });
 
 describe('custom in-world calendar weekday alignment', () => {
-  test('Tia-Karta 30-day months stay aligned to six-day weeks', () => {
+  test('fictional 30-day months stay aligned to six-day weeks', () => {
     expect(calendarWeekdayOffset(calendar, 592, 1)).toBe(0);
     expect(calendarWeekdayOffset(calendar, 592, 2)).toBe(0);
     expect(calendarWeekdayOffset(calendar, 592, 12)).toBe(0);
