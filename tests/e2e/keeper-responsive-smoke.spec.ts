@@ -232,101 +232,85 @@ for (const size of appSizes) {
   });
 }
 
-// Regression for #767: the global Offline launcher must remain usable but
-// must not steal clicks from the Live Play rail, mobile drawer or Start combat.
-// Use actual Chromium hit-testing, not assertions about CSS source text.
+// No fixed Offline pill may cover the global nav, GM rail or encounter controls.
+// The campaign pack manager remains accessible only after a deliberate action.
 for (const size of [
   { label: 'phone', width: 390, height: 844 },
-  { label: 'small phone', width: 320, height: 780 },
   { label: 'tablet', width: 768, height: 1024 },
-  { label: 'landscape tablet', width: 1024, height: 768 },
-  { label: 'rail breakpoint', width: 1180, height: 820 },
   { label: 'desktop', width: 1440, height: 900 },
 ]) {
-  test(`Offline launcher does not cover GM Live Play controls at ${size.label} (${size.width}px)`, async ({ page }) => {
+  test('GM Live has no floating Offline tab at ' + size.label, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
     await page.goto('/gm-screen/preview-campaign?demo=1');
     await expect(page.getByTestId('live-session-grid')).toBeVisible();
+    await expect(page.locator('.rqk-offline-launcher')).toHaveCount(0);
+    await expect(page.locator('.rqk-offline-card')).toHaveCount(0);
+    await assertFitsViewport(page, size.width);
+  });
+}
 
-    const offline = page.locator('.rqk-offline-launcher');
-    const control = page.locator('.rqk-offline-control');
-    await expect(offline).toBeVisible();
-    // The existing phone layout deliberately docks the pill at the *right*
-    // edge. Only tablet and desktop use left offsets to clear the tool rail.
-    const position = await control.evaluate(element => {
-      const rect = element.getBoundingClientRect();
-      return {
-        left: rect.left, right: rect.right,
-        computedLeft: Number.parseFloat(getComputedStyle(element).left),
-      };
-    });
-    if (size.width < 720) {
-      expect(position.left).toBeGreaterThanOrEqual(0);
-      expect(position.right).toBeLessThanOrEqual(size.width + 2);
-    } else if (size.width <= 1180) {
-      expect(position.computedLeft).toBeGreaterThanOrEqual(88);
+test('GM More opens offline-copy manager and can close it without a floating launcher', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/campaign/preview-campaign?demo=1');
+  await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+  await expect(page.locator('.rqk-offline-launcher')).toHaveCount(0);
+  // The PWA manager discovers the route using a light 600ms observer.
+  await page.waitForTimeout(700);
+  await page.locator('.campaign-dashboard-group-row').getByRole('button', { name: 'More', exact: true }).click();
+  await page.getByTestId('gm-offline-copy-action').click();
+  await expect(page.getByRole('region', { name: 'Offline campaign' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Download Campaign|Refresh Copy/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Close offline campaign panel' }).click();
+  await expect(page.locator('.rqk-offline-card')).toHaveCount(0);
+  await expect(page.locator('.rqk-offline-launcher')).toHaveCount(0);
+});
+
+test('players can still access their offline copy from their campaign details', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/player/campaign/preview-campaign?demo=1');
+  const saveOffline = page.getByRole('button', { name: /Save for offline play/ });
+  await expect(saveOffline).toBeVisible();
+  await page.waitForTimeout(700);
+  await saveOffline.click();
+  await expect(page.getByRole('region', { name: 'Offline campaign' })).toBeVisible();
+  await expect(page.getByText('Offline Player Pack')).toBeVisible();
+  await page.getByRole('button', { name: 'Close offline campaign panel' }).click();
+});
+
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test('dice opens from integrated navigation without a floating launcher on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+    const floating = page.getByTestId('dice-roller-toggle');
+    await expect(floating).toBeHidden();
+    if (size.width >= 720) {
+      const rail = page.getByRole('complementary', { name: 'App navigation' });
+      const trigger = rail.getByRole('button', { name: 'Open dice roller' });
+      await expect(trigger).toBeVisible();
+      const [triggerBox, railBox] = await Promise.all([trigger.boundingBox(), rail.boundingBox()]);
+      expect(triggerBox && railBox).toBeTruthy();
+      expect((triggerBox?.x || 0) + (triggerBox?.width || 0), 'Dice action must fit inside the real app rail')
+        .toBeLessThanOrEqual((railBox?.x || 0) + (railBox?.width || 0) + 2);
+      await trigger.click();
     } else {
-      expect(position.computedLeft).toBeGreaterThanOrEqual(256);
+      await page.getByRole('button', { name: 'Open more tools' }).click();
+      await page.getByRole('menuitem', { name: 'Dice roller' }).click();
     }
-
-    // The floating control must still work, not just move offscreen.
-    await offline.click();
-    const closeOffline = page.getByRole('button', { name: 'Close offline campaign panel' });
-    await expect(closeOffline).toBeVisible();
-    await closeOffline.click();
-    await expect(offline).toBeVisible();
-
-    if (size.width < 720) {
-      // A modal drawer takes priority over the floating button.
-      const menu = page.getByTestId('live-tool-menu');
-      await menu.click();
-      const drawer = page.getByTestId('live-tool-rail');
-      await expect(drawer).toBeVisible();
-      await expect(offline).toBeHidden();
-      await drawer.getByTestId('live-tool-combat').click();
-      await expect(drawer).toHaveCount(0);
-      await expect(offline).toBeVisible();
-
-      const start = page.getByTestId('live-encounter-start');
-      await expect(start).toBeVisible();
-      await start.scrollIntoViewIfNeeded();
-      const intercepted = await start.evaluate(button => {
-        const r = button.getBoundingClientRect();
-        const launcher = document.querySelector('.rqk-offline-launcher');
-        return [0.15, 0.5, 0.85].some(fraction => {
-          const hit = document.elementFromPoint(r.left + r.width * fraction, r.top + r.height / 2);
-          return Boolean(launcher && hit && launcher.contains(hit));
-        });
-      });
-      expect(intercepted, 'Offline launcher intercepted the Start Combat button').toBe(false);
-    } else {
-      const rail = page.getByTestId('live-tool-rail');
-      await expect(rail).toBeVisible();
-      for (const category of ['players','npcs','beasts','world','rules','items','session','tools']) {
-        const toggle = rail.getByTestId(`live-category-${category}`);
-        if (await toggle.getAttribute('aria-expanded') === 'false') await toggle.click();
-      }
-      // Move each rail action into view. This covers the previously blocked
-      // Session planner at 1180px and exercises actual overlay hit targets.
-      const buttons = rail.locator('.rqk-tool-rail__item, .rqk-tool-rail__group-button');
-      const total = await buttons.count();
-      expect(total).toBeGreaterThan(16);
-      for (let i = 0; i < total; i += 1) {
-        const button = buttons.nth(i);
-        await button.scrollIntoViewIfNeeded();
-        const obscured = await button.evaluate(element => {
-          const r = element.getBoundingClientRect();
-          const launcher = document.querySelector('.rqk-offline-launcher');
-          const x = r.left + r.width / 2;
-          const y = r.top + r.height / 2;
-          if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return false;
-          const hit = document.elementFromPoint(x, y);
-          return Boolean(launcher && hit && launcher.contains(hit));
-        });
-        expect(obscured, `Offline launcher intercepted rail button ${i}`).toBe(false);
-      }
-    }
+    await expect(page.getByTestId('dice-roller-panel')).toBeVisible();
+    const panel = await page.getByTestId('dice-roller-panel').boundingBox();
+    expect(panel).not.toBeNull();
+    expect((panel?.x || 0) + (panel?.width || 0)).toBeLessThanOrEqual(size.width + 1);
+    await page.getByTestId('dice-roller-close').click();
+    await expect(page.getByTestId('dice-roller-panel')).toHaveCount(0);
+    await expect(floating).toBeHidden();
     await assertFitsViewport(page, size.width);
   });
 }
