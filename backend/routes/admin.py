@@ -598,33 +598,14 @@ async def admin_export_users_csv(username: str = Depends(get_current_user)):
 
 @router.get("/admin/export/campaigns.csv")
 async def admin_export_campaigns_csv(username: str = Depends(get_current_user)):
-    """Admin-only: stream a CSV of all campaigns."""
-    from fastapi.responses import StreamingResponse
-    await verify_admin(username)
+    """Campaign names and settings are private to their owning GM.
 
-    async def gen():
-        header = ["id", "name", "dm_user_id", "system", "rules_edition",
-                  "setting", "player_count", "created_at", "updated_at"]
-        yield ",".join(header) + "\n"
-        async for c in db.campaigns.find({}, {'_id': 0}):
-            players = c.get('players') or []
-            row = [
-                _csv_escape(c.get('id')),
-                _csv_escape(c.get('name')),
-                _csv_escape(c.get('dm_user_id')),
-                _csv_escape(c.get('system')),
-                _csv_escape(c.get('rules_edition', '2024')),
-                _csv_escape(c.get('setting')),
-                _csv_escape(len(players) if isinstance(players, list) else 0),
-                _csv_escape(c.get('created_at')),
-                _csv_escape(c.get('updated_at')),
-            ]
-            yield ",".join(row) + "\n"
-
-    return StreamingResponse(
-        gen(),
-        media_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="rook-campaigns.csv"'}
+    Site admins can inspect anonymous aggregate counts from /admin/overview,
+    not export every user's campaign names, owners or world settings.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Exporting other users' campaign details is disabled for privacy.",
     )
 
 
