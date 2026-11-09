@@ -88,7 +88,7 @@ function isCampaignMembersRead(path) {
 export function isCacheableOfflineGet(config = {}) {
   if (String(config.method || 'get').toLowerCase() !== 'get') return false;
   const path = normaliseUrl(config);
-  if (!path || path === '/auth/me' || path.startsWith('/auth/') || path.startsWith('/admin') || path.startsWith('/rook')) return false;
+  if (!path || path === '/auth/me' || path.startsWith('/auth/') || path.startsWith('/admin') || path.startsWith('/rook') || path.includes('/private-source-archive')) return false;
   return CACHEABLE_EXACT.has(path)
     || isCampaignMembersRead(path)
     || CACHEABLE_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
