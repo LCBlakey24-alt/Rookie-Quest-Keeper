@@ -555,3 +555,21 @@
     font-size: 13px;
   }
 }
+
+/* The app shell owns a real dice action in its navigation (mobile: More).
+ * Suppress the detached floating launcher there, but keep the dice panel
+ * available, attached to the workspace's right edge when deliberately open. */
+#root:has(.rqk-app-shell) .rq-floating-dice {
+  left: auto !important;
+  right: max(16px, env(safe-area-inset-right, 0px)) !important;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
+}
+#root:has(.rqk-app-shell) .rq-floating-dice__toggle {
+  display: none !important;
+}
+@media (max-width: 719px) {
+  #root:has(.rqk-app-shell) .rq-floating-dice {
+    right: 10px !important;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
