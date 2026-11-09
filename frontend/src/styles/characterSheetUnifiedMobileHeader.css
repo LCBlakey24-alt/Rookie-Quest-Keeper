@@ -40,6 +40,23 @@
     margin-bottom: 8px !important;
   }
 
+  /* Long names can span lines. An older 70px right padding on this narrow
+     angular heading clipped text even when overflow-wrap was enabled. */
+  #root .character-page-v2 .clean-sheet-header .clean-sheet-identity h1 {
+    padding-right: 4px !important;
+    max-width: calc(100% - 82px) !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+  #root .character-page-v2 .clean-sheet-header .clean-sheet-identity h1 > .rqk-cc-hero-name {
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+  /* The level badge previously overlapped the options button by a few pixels. */
+  #root .character-page-v2 .clean-sheet-header .clean-sheet-hero-level-badge {
+    top: -7px !important;
+  }
+
   #root .character-page-v2 .clean-sheet-hero-subtitle {
     margin-top: 8px !important;
     margin-bottom: 0 !important;

@@ -944,7 +944,28 @@ for (const scenario of [
     expect(writes, 'Character save must reach the backend exactly once').toBe(1);
     expect(stored?.character_class).toBe(scenario.role);
     expect(stored?.level).toBe(1);
+    expect(stored?.subclass, 'Fighter and Wizard cannot pick a 2014 subclass at level one').toBe('');
+    await expect(page.locator('.clean-sheet-hero-subtitle')).not.toContainText(/Champion|School of Abjuration/);
     await assertFitsViewport(page, scenario.width);
+
+    if (scenario.role === 'Wizard') {
+      // Resources must align with the core content, not stretch under the
+      // fixed 215px desktop navigation rail.
+      const [resources, coreStats] = await Promise.all([
+        page.getByTestId('player-resource-rail').boundingBox(),
+        page.getByRole('region', { name: 'Character combat snapshot' }).boundingBox(),
+      ]);
+      expect(resources, 'Wizard resource rail must be rendered').not.toBeNull();
+      expect(coreStats, 'Core stats must be rendered').not.toBeNull();
+      expect(Math.abs((resources?.x || 0) - (coreStats?.x || 0)), 'Resource rail left edge must align with core stats').toBeLessThanOrEqual(3);
+      expect(Math.abs((resources?.width || 0) - (coreStats?.width || 0)), 'Resource rail width must align with core stats').toBeLessThanOrEqual(3);
+    } else {
+      const badge = await page.locator('.clean-sheet-hero-level-badge').boundingBox();
+      const options = await page.getByRole('button', { name: 'Character options' }).boundingBox();
+      expect(rectanglesOverlap(badge, options), 'Mobile level badge must not overlap character options').toBe(false);
+      const clipped = await page.locator('.rqk-cc-hero-name').evaluate(el => el.scrollWidth > el.clientWidth + 2);
+      expect(clipped, 'Long mobile character names must wrap instead of clipping').toBe(false);
+    }
     await capturePlayerScreenshot(page, 'player-' + scenario.role.toLowerCase() + '-sheet-' + scenario.width + 'px');
 
     const hitPoints = page.getByRole('meter', { name: 'Hit points remaining' });

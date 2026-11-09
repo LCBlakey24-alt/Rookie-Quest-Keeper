@@ -350,7 +350,14 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
   const level = clampLevel(targetLevel || payload.level || 1);
   const hitDie = hitDieNumber(classData.hitDie || payload.hit_die || payload.hit_dice, 8);
   const subclassSource = selectedSubclass !== undefined ? { subclass: selectedSubclass } : payload;
-  const subclassName = resolvePayloadSubclassName(subclassSource, classSubclasses, '');
+  // No subclass can exist before that class's rules-edition unlock level.
+  // The resolver defaults an empty choice to the first available option,
+  // which previously silently gave a level-one Fighter "Champion" and a
+  // level-one Wizard "School of Abjuration" during save enhancement.
+  const subclassAvailable = level >= subclassUnlockLevel(className, resolveRulesEdition(payload), classData);
+  const subclassName = subclassAvailable
+    ? resolvePayloadSubclassName(subclassSource, classSubclasses, '')
+    : '';
   const classFeatures = classFeaturesUpTo(className, classData, level, payload.class_features);
   const subclassFeatures = uploadedSubclassFeaturesUpTo(options, className, subclassName, level);
   const features = [...classFeatures];
