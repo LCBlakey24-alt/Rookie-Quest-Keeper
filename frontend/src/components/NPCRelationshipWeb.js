@@ -267,7 +267,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
       <div>
         <p className="rqk-rel-eyebrow"><Network size={16} /> GM network</p>
         <h2>NPC relationships</h2>
-        <p>Every connection belongs to this campaign. Shared Tia-Karta people can have different stories in each party.</p>
+        <p>Every connection belongs to this campaign. Characters and NPCs can have different stories in each party.</p>
       </div>
       <div className="rqk-rel-heading-actions">
         <span className="rqk-rel-count">{npcs.length} saved NPCs</span>
