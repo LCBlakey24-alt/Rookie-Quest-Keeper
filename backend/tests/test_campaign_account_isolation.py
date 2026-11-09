@@ -4,11 +4,19 @@ Synthetic records only. No production accounts or campaign material are read
 or created by this test.
 """
 import asyncio
+import importlib.util
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 from fastapi import HTTPException
-from routes import campaigns as campaigns_api
+
+# Import this one route module directly. Loading routes/__init__.py imports
+# unrelated optional email SDKs that the focused CI job need not install.
+_route_path = Path(__file__).resolve().parents[1] / 'routes' / 'campaigns.py'
+_spec = importlib.util.spec_from_file_location('campaign_account_isolation_under_test', _route_path)
+campaigns_api = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(campaigns_api)
 
 
 class Cursor:
