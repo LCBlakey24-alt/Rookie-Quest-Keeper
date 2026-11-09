@@ -47,7 +47,7 @@ export function shouldUseOfflineCache(config = {}) {
   if (method !== 'get') return false;
 
   const url = String(config.url || '').split('?')[0];
-  if (!url || url === '/auth/me' || url.startsWith('/auth/') || url.startsWith('/admin') || url.startsWith('/rook')) {
+  if (!url || url === '/auth/me' || url.startsWith('/auth/') || url.startsWith('/admin') || url.startsWith('/rook') || url.includes('/private-source-archive')) {
     return false;
   }
 
