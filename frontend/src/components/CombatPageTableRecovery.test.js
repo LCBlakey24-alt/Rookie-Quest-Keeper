@@ -153,6 +153,38 @@ test('a recovered fight restores the generic terrain choice without losing wound
   expect(saved.combatants.find(combatant => combatant.id === 'c1').hp).toBe(22);
 });
 
+test('external player display is not sent a stone placeholder while a saved map is loading', async () => {
+  let resolveMapRequest;
+  apiClient.get.mockImplementation(url => url.endsWith('/maps')
+    ? new Promise(resolve => { resolveMapRequest = resolve; })
+    : Promise.resolve({ data: [] }));
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: {
+        source: 'live-play',
+        scenario: { id: 'enc-map-load', name: 'Map Loading',
+          battlefield_mode: 'saved', map_id: 'custom-map',
+          combatants: [{ id: 'c1', name: 'Rina', type: 'player', hp: 20, maxHp: 30, initiative: 11 }],
+        },
+      },
+    }]}>
+      <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+    </MemoryRouter>,
+  );
+  await screen.findByTestId('combat-table-page');
+  await waitFor(() => expect(resolveMapRequest).toEqual(expect.any(Function)));
+  await new Promise(resolve => setTimeout(resolve, 180));
+  expect(publishCampaignDisplayState.mock.calls.some(([, state]) => state.mode === 'combat')).toBe(false);
+
+  resolveMapRequest({ data: [{
+    id: 'custom-map', name: 'Dungeon map',
+    width: 30, height: 20, image_url: 'https://example.test/dungeon.png',
+  }] });
+  await waitFor(() => expect(publishCampaignDisplayState.mock.calls.some(([, state]) =>
+    state.mode === 'combat' && state.payload?.map_url === 'https://example.test/dungeon.png')).toBe(true));
+});
+
 test('switching from a saved battle map to generic terrain keeps HP, placed tokens and recovery state', async () => {
   apiClient.get.mockImplementation(url => Promise.resolve({
     data: url.endsWith('/maps')
