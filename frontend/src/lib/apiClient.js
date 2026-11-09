@@ -183,6 +183,10 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (incomingConfig) => {
+  // Remember the session before *any* async request preparation. Even if
+  // character-creation validation loads a chunk while the account changes,
+  // the old operation may not silently go out under the next user's token.
+  const initiatingToken = getAuthToken();
   let config = applyLegacyApiCompatibility(incomingConfig);
   config = applyLoginTimeoutPolicy(config);
   config = await applyCharacterCreationReadinessPolicy(config);
@@ -204,6 +208,13 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
   }
   if (readCurrentScope) assertExpectedAuthScope(config, readCurrentScope());
   const token = getAuthToken();
+  const authPath = String(config.url || '').split('?')[0];
+  if (initiatingToken !== token && !['/auth/login', '/auth/register', '/auth/google'].includes(authPath)) {
+    const scopeError = new Error('The signed-in account changed before this request could be sent.');
+    scopeError.rqkAuthScopeChanged = true;
+    scopeError.config = config;
+    throw scopeError;
+  }
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
   // Record which account this request belongs to while it is going out. The
