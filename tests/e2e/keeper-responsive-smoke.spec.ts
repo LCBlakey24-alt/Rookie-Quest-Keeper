@@ -937,6 +937,9 @@ for (const scenario of [
     expect(stored?.character_class).toBe(scenario.role);
     expect(stored?.level).toBe(1);
     await assertFitsViewport(page, scenario.width);
+    await testInfo.attach('player-' + scenario.role.toLowerCase() + '-sheet-' + scenario.width + 'px', {
+      body: await page.screenshot(), contentType: 'image/png',
+    });
 
     const hitPoints = page.getByRole('meter', { name: 'Hit points remaining' });
     const originalHp = Number(await hitPoints.getAttribute('aria-valuenow'));
@@ -988,6 +991,9 @@ for (const scenario of [
       expect(stored?.level).toBe(2);
       expect(levelUpWrites, 'Level-up must persist exactly once').toBe(1);
       await assertFitsViewport(page, scenario.width);
+      await testInfo.attach('player-fighter-level2-' + scenario.width + 'px', {
+        body: await page.screenshot(), contentType: 'image/png',
+      });
     }
     expect(failures, 'No uncaught browser exceptions during the player journey').toEqual([]);
   });
