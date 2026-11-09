@@ -38,7 +38,7 @@ const UploadTab = React.lazy(() => import('@/components/gm/UploadTab'));
 const PlayerInvitePanel = React.lazy(() => import('@/components/gm/PlayerInvitePanel'));
 const GMPartyWorkspace = React.lazy(() => import('@/components/gm/GMPartyWorkspace'));
 const GMHandoutsWorkspace = React.lazy(() => import('@/components/gm/GMHandoutsWorkspace'));
-const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKartaCampaignPackPanel'));
+const PrivateCampaignArchivePanel = React.lazy(() => import('@/components/gm/PrivateCampaignArchivePanel'));
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 import CampaignMobileNavigator from '@/components/gm/dashboard/CampaignMobileNavigator';
@@ -253,7 +253,7 @@ export default function CampaignDashboard() {
 
   const withTiaKarta = (destination, children) => (
     <>
-      {canUsePersonalCampaignPacks && <TiaKartaCampaignPackPanel campaignId={campaignId} destination={destination} />}
+      {canUsePersonalCampaignPacks && <PrivateCampaignArchivePanel campaignId={campaignId} />}
       {children}
     </>
   );
