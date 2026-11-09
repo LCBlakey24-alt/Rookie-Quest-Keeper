@@ -795,3 +795,147 @@ for (const size of [
     await assertFitsViewport(page, size.width);
   });
 }
+
+
+// Real Chromium player golden path, backed by a per-test in-memory API.
+// No live credentials, saved characters, campaign data, or hosted API writes.
+// Keeps the canonical creator and sheet usable across mobile and desktop.
+for (const scenario of [
+  { role: 'Fighter', width: 390, height: 844 },
+  { role: 'Wizard', width: 1440, height: 900 },
+] as const) {
+  test('player golden path: create, roll, damage, reload and open level up — ' + scenario.role, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: scenario.width, height: scenario.height });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(token => {
+      localStorage.setItem('dm_token', token);
+      localStorage.setItem('dm_username', 'responsive-display-user');
+    }, syntheticDisplayToken);
+    await avoidThirdPartyRequests(page);
+
+    const characterId = 'isolated-player-journey-' + scenario.role.toLowerCase();
+    const heroName = 'QA ' + scenario.role + ' ' + characterId;
+    let stored: Record<string, any> | null = null;
+    let writes = 0;
+    const failures: string[] = [];
+    page.on('pageerror', error => failures.push(error.message));
+
+    await page.route('**/api/**', route => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      const json = (value: unknown, status = 200) => route.fulfill({
+        status, contentType: 'application/json', body: JSON.stringify(value),
+      });
+      if (path === '/api/auth/me') return json({ username: 'responsive-display-user', is_admin: false });
+      if (path === '/api/admin/check') return json({ is_admin: false });
+      if (path === '/api/site-settings') return json({
+        character_creation_enabled: true, campaign_creation_enabled: true,
+        uploads_enabled: false, rook_text_enabled: false,
+      });
+      if (path === '/api/dashboard/bootstrap') return json({
+        characters: stored ? [stored] : [], campaigns: [], homebrew_items: [],
+        site_settings: { character_creation_enabled: true }, is_admin: false,
+      });
+      if (path === '/api/characters' && request.method() === 'POST') {
+        stored = { ...(request.postDataJSON() as Record<string, any>), id: characterId, user_id: 'responsive-display-user' };
+        writes++;
+        return json(stored, 201);
+      }
+      if (path === '/api/characters' && request.method() === 'GET') return json(stored ? [stored] : []);
+      if (path === '/api/characters/' + characterId && request.method() === 'GET') {
+        return stored ? json(stored) : json({ detail: 'Missing test character' }, 404);
+      }
+      if (path === '/api/characters/' + characterId && request.method() === 'PATCH') {
+        stored = { ...stored, ...(request.postDataJSON() as Record<string, any>) };
+        writes++;
+        return json(stored);
+      }
+      // Other optional rule-library requests use empty synthetic collections.
+      // All requests are trapped; no fixture accidentally reaches production.
+      return json(request.method() === 'GET' ? [] : {});
+    });
+
+    const next = () => page.locator('.full-creator-footer').getByRole('button', { name: /next/i }).click();
+    const choices = (heading: RegExp) => page.locator('section.full-creator-choice-block').filter({ hasText: heading });
+    await page.goto('/characters/new');
+    await expect(page.getByRole('heading', { name: 'Create Character' })).toBeVisible();
+    await page.getByLabel('Character name').fill(heroName);
+    await page.getByLabel('Rules edition').selectOption('2014');
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Choose race' })).toBeVisible();
+    const language = choices(/Race languages 0\/1/i);
+    await expect(language).toBeVisible();
+    await language.locator('button').first().click();
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Choose class' })).toBeVisible();
+    if (scenario.role === 'Wizard') {
+      await page.getByRole('group', { name: 'Class options' }).getByRole('button', { name: /Wizard/i }).click();
+    } else {
+      await choices(/Fighting Style/i).getByRole('button', { name: 'Defense' }).click();
+    }
+    const skills = choices(/Class skills 0\/2/i);
+    await expect(skills).toBeVisible();
+    await skills.locator('button').nth(0).click();
+    await skills.locator('button').nth(1).click();
+    if (scenario.role === 'Wizard') {
+      for (const heading of [/Cantrips 0\/3/i, /Level 1 spells 0\/6/i]) {
+        const section = choices(heading);
+        await expect(section).toBeVisible();
+        const amount = heading.source.includes('Cantrips') ? 3 : 6;
+        for (let i = 0; i < amount; i++) await section.locator('button.full-creator-spell-chip').nth(i).click();
+      }
+    }
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Choose background' })).toBeVisible();
+    await next();
+    await expect(page.getByRole('heading', { name: 'Ability scores' })).toBeVisible();
+    await next();
+    await expect(page.getByRole('heading', { name: 'Equipment' })).toBeVisible();
+    await page.getByRole('button', { name: 'Roll starting gold', exact: true }).click();
+    await page.getByRole('button', { name: /^Roll \d+d\d+/i }).click();
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Review and save' })).toBeVisible();
+    const save = page.locator('.full-creator-footer').getByRole('button', { name: 'Create Character' });
+    await expect(save).toBeEnabled();
+    await save.click();
+    await expect(page).toHaveURL(new RegExp('/characters/' + characterId + '$'));
+    await expect(page.getByRole('heading', { name: heroName })).toBeVisible();
+    expect(writes, 'Character save must reach the backend exactly once').toBe(1);
+    expect(stored?.character_class).toBe(scenario.role);
+    expect(stored?.level).toBe(1);
+    await assertFitsViewport(page, scenario.width);
+
+    const hitPoints = page.getByRole('meter', { name: 'Hit points remaining' });
+    const originalHp = Number(await hitPoints.getAttribute('aria-valuenow'));
+    await page.getByRole('button', { name: 'Take 1 hit point of damage' }).click();
+    await expect(hitPoints).toHaveAttribute('aria-valuenow', String(originalHp - 1));
+    await expect.poll(() => writes).toBe(2);
+
+    await page.locator('.clean-sheet-quick-stat--rollable').click();
+    await expect(page.getByTestId('flat-dice-overlay')).toBeVisible();
+    await expect(page.getByTestId('flat-dice-total')).toBeVisible();
+    await page.getByRole('button', { name: 'Close dice result' }).click();
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: heroName })).toBeVisible();
+    await expect(hitPoints).toHaveAttribute('aria-valuenow', String(originalHp - 1));
+
+    const levelUp = page.getByRole('button', { name: 'Level Up', exact: true });
+    if (await levelUp.isVisible()) {
+      await levelUp.click();
+    } else {
+      await page.getByRole('button', { name: 'Character options' }).click();
+      await page.getByRole('menuitem', { name: 'Level Up Character' }).click();
+    }
+    await expect(page.getByText(/Level Up|Multiclass/i).first()).toBeVisible();
+    await assertFitsViewport(page, scenario.width);
+    await testInfo.attach('player-' + scenario.role.toLowerCase() + '-levelup-' + scenario.width + 'px', {
+      body: await page.screenshot(), contentType: 'image/png',
+    });
+    expect(failures, 'No uncaught browser exceptions during the player journey').toEqual([]);
+  });
+}
