@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices, Shield, Sparkles, Swords, Wand2 } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
+import { accountDraftStorageKey } from '@/lib/accountDraftStorage';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import {
@@ -118,7 +119,7 @@ function defaultDraft() {
 
 function loadDraft() {
   try {
-    const stored = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+    const stored = JSON.parse(localStorage.getItem(accountDraftStorageKey(DRAFT_KEY)) || 'null');
     if (!stored) return defaultDraft();
     const base = defaultDraft();
     const characterClass = stored.characterClass || base.characterClass;
@@ -328,7 +329,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     // already guards the matching read.
     try {
       if (!editMode) {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, equipmentMode, step, startingLevel: 1 }));
+        localStorage.setItem(accountDraftStorageKey(DRAFT_KEY), JSON.stringify({ ...draft, equipmentMode, step, startingLevel: 1 }));
       }
     } catch {
       /* Draft autosave is best-effort; keep the builder usable without it. */
@@ -645,7 +646,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         // storage error reach the catch below would show "failed to save" and
         // invite the user to submit again, creating a duplicate.
         try {
-          localStorage.removeItem(DRAFT_KEY);
+          localStorage.removeItem(accountDraftStorageKey(DRAFT_KEY));
         } catch {
           /* ignore */
         }
