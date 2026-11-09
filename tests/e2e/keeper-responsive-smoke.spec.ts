@@ -731,3 +731,36 @@ for (const size of [
     await assertFitsViewport(page, size.width);
   });
 }
+
+
+// Reproduces the screenshot where the desktop campaign workspace is obscured
+// by the global icon-only rail. Uses the isolated read-only preview campaign.
+for (const size of [
+  { label: 'laptop', width: 1366, height: 768 },
+  { label: 'desktop', width: 1640, height: 900 },
+  { label: 'tablet', width: 1024, height: 768 },
+]) {
+  test('campaign workspace sidebar stays beside the app rail on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    const heading = page.getByRole('heading', { name: 'Preview campaign', exact: true });
+    await expect(heading).toBeVisible();
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+    const [rail, header, nav, main, title] = await Promise.all([
+      page.locator('.rqk-app-rail').boundingBox(),
+      page.locator('.campaign-dashboard-header').boundingBox(),
+      page.getByRole('navigation', { name: 'Campaign workspace' }).boundingBox(),
+      page.locator('.guild-command-main').boundingBox(),
+      heading.boundingBox(),
+    ]);
+    const railRight = (rail?.x || 0) + (rail?.width || 0);
+    const positions = JSON.stringify({ railRight, header, nav, main, title });
+    expect(rail && header && nav && main && title, 'All navigation layout surfaces must be visible').toBeTruthy();
+    expect((header?.x || 0) + 2, 'Campaign heading hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    expect((nav?.x || 0) + 2, 'Campaign tool menu hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    expect((main?.x || 0) + 2, 'Campaign contents hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    expect((title?.x || 0) + 2, 'Campaign title hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    await assertFitsViewport(page, size.width);
+  });
+}
