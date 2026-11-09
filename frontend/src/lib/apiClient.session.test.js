@@ -27,7 +27,7 @@ test('a late 401 for an old request preserves a newer sign-in', async () => {
   await expect(apiClient.get('/campaigns', { adapter: async config => {
     setAuthToken('new-token');
     throw unauthorized(config);
-  } })).rejects.toThrow('Session expired');
+  } })).rejects.toMatchObject({ rqkAuthScopeChanged: true });
   expect(getAuthToken()).toBe('new-token');
 });
 
