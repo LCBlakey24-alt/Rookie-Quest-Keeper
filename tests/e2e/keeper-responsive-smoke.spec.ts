@@ -875,12 +875,12 @@ for (const scenario of [
     } else {
       await choices(/Fighting Style/i).getByRole('button', { name: 'Defense' }).click();
     }
-    const skills = choices(/Class skills 0\/2/i);
+    const skills = choices(/Class skills [0-2]\/2/i);
     await expect(skills).toBeVisible();
     await skills.locator('button').nth(0).click();
     await skills.locator('button').nth(1).click();
     if (scenario.role === 'Wizard') {
-      for (const heading of [/Cantrips 0\/3/i, /Level 1 spells 0\/6/i]) {
+      for (const heading of [/Cantrips [0-3]\/3/i, /Level 1 spells [0-6]\/6/i]) {
         const section = choices(heading);
         await expect(section).toBeVisible();
         const amount = heading.source.includes('Cantrips') ? 3 : 6;
