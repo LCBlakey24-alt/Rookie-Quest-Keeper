@@ -168,6 +168,24 @@ describe('everything the fight needs survives the round trip', () => {
     expect(scenarioFromCheckpoint(checkpoint).terrain_type).toBe('cobblestone');
   });
 
+  test('a GM switch from a linked map to generic survives refresh without resetting the fight', () => {
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint({
+      selectedMapId: '',
+      map_override_generic: true,
+      terrain_type: 'grass',
+      mapTokens: [{ id: 'c1', x: 7, y: 4 }],
+      collectedLoot: [{ name: 'Magic dagger' }],
+    })));
+    expect(checkpoint.map_override_generic).toBe(true);
+    const restored = scenarioFromCheckpoint(checkpoint);
+    expect(restored.battlefield_mode).toBe('generic');
+    expect(restored.map_id).toBe('');
+    expect(restored.terrain_type).toBe('grass');
+    expect(checkpoint.combatants[0].hp).toBe(22);
+    expect(checkpoint.mapTokens).toEqual([{ id: 'c1', x: 7, y: 4 }]);
+    expect(checkpoint.collectedLoot).toEqual([{ name: 'Magic dagger' }]);
+  });
+
   test('older checkpoints without a terrain choice get the safe stone default', () => {
     const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(checkpoint.terrain_type).toBe('stone');
