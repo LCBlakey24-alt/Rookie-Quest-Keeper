@@ -290,6 +290,16 @@ export default function AppShell({ children }) {
         <div className="rqk-app-rail-bottom">
           {!isMobile && <>
             <p className="rqk-app-rail-section-label">Support</p>
+            <button
+              type="button"
+              className="rqk-app-rail-link rqk-app-rail-dice rqk-app-rail-support-link"
+              onClick={openDice}
+              aria-label="Open dice roller"
+              title="Open dice roller"
+            >
+              <Dices size={20} aria-hidden="true" />
+              <span>Dice roller</span>
+            </button>
             <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook} aria-label="Ask Rook" title="Ask Rook">
               <Sparkles size={20} aria-hidden="true" />
               <span>Ask Rook</span>

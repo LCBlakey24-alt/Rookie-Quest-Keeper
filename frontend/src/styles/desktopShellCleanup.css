@@ -24,6 +24,13 @@
     grid-column: 1 / -1 !important;
   }
 
+  /* One full-width dice action keeps a 44px target even in the 76px icon rail. */
+  #root .rqk-app-rail-bottom > .rqk-app-rail-dice {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-height: 44px !important;
+  }
+
   #root .rqk-app-rail-support-link {
     min-width: 0 !important;
     min-height: 42px !important;
