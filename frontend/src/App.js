@@ -245,9 +245,9 @@ export function AppRoutes() {
       </Routes>
       {isAuthenticated && !isPublicBrandRoute && (
         <Suspense fallback={null}>
-          {!preview && <RookGlobalAssistant key={accountWorkspaceKey} />}
-          <FloatingDiceRoller key={accountWorkspaceKey} />
-          {!preview && <GlobalFeedbackButton key={accountWorkspaceKey} isAuthenticated={isAuthenticated} />}
+          {!preview && <RookGlobalAssistant key={`rook:${accountWorkspaceKey}`} />}
+          <FloatingDiceRoller key={`dice:${accountWorkspaceKey}`} />
+          {!preview && <GlobalFeedbackButton key={`feedback:${accountWorkspaceKey}`} isAuthenticated={isAuthenticated} />}
         </Suspense>
       )}
     </>
