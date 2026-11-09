@@ -539,24 +539,17 @@ async def check_admin_status(username: str = Depends(get_current_user)):
 
 @router.post("/admin/users/{target_username}/impersonate")
 async def admin_impersonate_user(target_username: str, username: str = Depends(get_current_user)):
-    """Admin-only: issue a short-lived JWT for the target user so support can
-    reproduce their view. The client should stash its current token before swapping."""
-    await verify_admin(username)
-    target = await db.users.find_one({'username': target_username}, {'_id': 0})
-    if not target:
-        # Try by email as a fallback for convenience
-        target = await db.users.find_one({'email': target_username}, {'_id': 0})
-    if not target:
-        raise HTTPException(status_code=404, detail="User not found")
-    from utils.auth import create_token, session_version
-    token = create_token(target['username'], session_version(target))
-    logger.info(f"Admin {username} impersonating {target['username']}")
-    return {
-        "token": token,
-        "username": target['username'],
-        "email": target.get('email'),
-        "impersonated_by": username
-    }
+    """Permanently disabled: administrators must never mint another user's token.
+
+    Support staff retain aggregate usage and feedback tools, but must not
+    access personal campaigns, characters, notes or other account data by
+    impersonating a user. A consent-based support mechanism would need its
+    own separately reviewed, short-lived, audited permission model.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Account impersonation is disabled to protect user privacy.",
+    )
 
 
 # ==================== CSV EXPORT ====================
