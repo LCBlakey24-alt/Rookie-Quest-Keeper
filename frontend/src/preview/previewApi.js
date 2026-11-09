@@ -2,7 +2,7 @@ import { buildLongRestUpdates, buildShortRestUpdates } from '../data/characterRe
 import { canonicalisePreviewCreatedCharacter } from './previewCharacterCreation';
 import { createPreviewSeed } from './previewSeed';
 import { isReadOnlyDemo, PREVIEW_STORAGE_KEY, PREVIEW_USER } from './previewMode';
-import { advanceCustomCalendar } from '@/data/tiaKartaCalendar';
+import { advanceCustomCalendar } from '@/data/genericCalendarMath';
 
 const copy = value => JSON.parse(JSON.stringify(value));
 const COLLECTIONS = new Set(['timeline', 'handouts', 'ingame-notes', 'quests', 'story-arcs', 'npcs', 'locations', 'maps', 'calendar-events', 'combat-scenarios', 'encounters', 'factions', 'roll-tables', 'loot-tables', 'treasury-transactions', 'session-recaps']);

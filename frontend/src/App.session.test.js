@@ -3,11 +3,18 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
 import apiClient from '@/lib/apiClient';
-import { clearAuthToken, setAuthToken } from '@/lib/auth';
+import { clearAuthToken, setAuthToken, setStoredAuthUsername } from '@/lib/auth';
 
 jest.mock('@/lib/apiClient', () => ({ __esModule: true, default: { get: jest.fn() } }));
 jest.mock('@/components/app/AppShell', () => ({ children }) => <div>{children}</div>);
 jest.mock('@/components/UnifiedDashboard', () => ({ username }) => <h1>Dashboard for {username}</h1>);
+jest.mock('@/components/MyCampaignsPage', () => () => {
+  // Simulate a screen holding a previous account's records in React state.
+  // Only a complete remount may change this value.
+  const React = require('react');
+  const [ownerAtMount] = React.useState(() => globalThis.localStorage.getItem('dm_username'));
+  return <h1>Campaign workspace for {ownerAtMount}</h1>;
+});
 jest.mock('@/components/gm/PlayerDisplayPage', () => () => <h1>Player display</h1>);
 jest.mock('@/components/AuthPage', () => ({ onLogin }) => <button onClick={() => onLogin('new-token', 'New Keeper', true)}>Sign in</button>);
 jest.mock('@/components/LandingPage', () => () => <h1>Rookie Quest Keeper landing</h1>);
@@ -80,6 +87,35 @@ test('a late profile failure cannot sign out a newly selected account', async ()
   });
   expect(screen.getByRole('heading', { name: 'Dashboard for Another Keeper' })).toBeInTheDocument();
   expect(localStorage.getItem('dm_token')).toBe('another-token');
+});
+
+test('switching signed-in accounts remounts campaigns instead of showing the first account data', async () => {
+  openApp('/campaigns');
+  expect(await screen.findByRole('heading', { name: 'Campaign workspace for Keeper' })).toBeInTheDocument();
+
+  act(() => {
+    setStoredAuthUsername('New Keeper');
+    setAuthToken('new-keeper-token');
+  });
+
+  expect(await screen.findByRole('heading', { name: 'Campaign workspace for New Keeper' })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Campaign workspace for Keeper' })).not.toBeInTheDocument();
+});
+
+test('logout clears the mounted personal workspace before a different account signs in', async () => {
+  openApp('/campaigns');
+  expect(await screen.findByRole('heading', { name: 'Campaign workspace for Keeper' })).toBeInTheDocument();
+
+  act(() => clearAuthToken());
+  expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Campaign workspace for Keeper' })).not.toBeInTheDocument();
+
+  act(() => {
+    setStoredAuthUsername('Fresh Account');
+    setAuthToken('fresh-token');
+  });
+  expect(await screen.findByRole('heading', { name: 'Campaign workspace for Fresh Account' })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Campaign workspace for Keeper' })).not.toBeInTheDocument();
 });
 
 test('successful sign-in persists the username alongside the session', async () => {

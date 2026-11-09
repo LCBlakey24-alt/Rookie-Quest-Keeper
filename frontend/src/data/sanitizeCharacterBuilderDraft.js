@@ -3,6 +3,7 @@
 // selected class skills after changing class/background or after older drafts.
 import { BACKGROUNDS, CLASSES } from './characterRules5e';
 import './applyTestBackgrounds';
+import { accountDraftStorageKey } from '@/lib/accountDraftStorage';
 
 const DRAFT_KEY = 'rq_character_builder_draft_v2';
 
@@ -20,7 +21,7 @@ function getClassSkillOptions(className) {
 }
 
 try {
-  const raw = localStorage.getItem(DRAFT_KEY);
+  const raw = localStorage.getItem(accountDraftStorageKey(DRAFT_KEY));
   if (raw) {
     const draft = JSON.parse(raw);
     const className = draft?.className || '';
@@ -42,10 +43,10 @@ try {
         cleaned.some((skill, index) => skill !== draft.selectedSkills[index])
       ) {
         draft.selectedSkills = cleaned;
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        localStorage.setItem(accountDraftStorageKey(DRAFT_KEY), JSON.stringify(draft));
       }
     }
   }
 } catch {
-  localStorage.removeItem(DRAFT_KEY);
+  localStorage.removeItem(accountDraftStorageKey(DRAFT_KEY));
 }

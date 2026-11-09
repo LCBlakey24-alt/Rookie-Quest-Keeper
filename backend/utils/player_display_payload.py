@@ -13,6 +13,8 @@ DISPLAY_MODES = frozenset({
 })
 
 COMMON = frozenset({'display_target', 'title', 'subtitle', 'eyebrow', 'caption', 'banner'})
+PUBLIC_TERRAINS = frozenset({'stone', 'cobblestone', 'grass', 'dirt', 'sand', 'wood', 'water', 'snow', 'mud', 'lava'})
+PUBLIC_TERRAIN_CELLS = PUBLIC_TERRAINS | {'empty', 'void'}
 MODE_FIELDS = {
     'blank': set(),
     'title': {'party'},
@@ -21,7 +23,7 @@ MODE_FIELDS = {
     'combat': {
         'party', 'tokens', 'map_url', 'round', 'round_number',
         'active_id', 'activeCombatantId', 'turn_id', 'current_turn_id',
-        'battle_started_at',
+        'battle_started_at', 'terrain_type',
         # The map's scale and grid. Token coordinates are percentages, so a
         # distance in feet cannot be worked out without them, and a player
         # client cannot show how far its character may still move.
@@ -117,8 +119,21 @@ def sanitize_player_display_payload(mode: str, payload: Any) -> Dict[str, Any]:
     out = _scalar_fields(payload, COMMON | MODE_FIELDS.get(mode, set()))
     if out.get('display_target') not in (None, 'standing-tv', 'virtual-table'):
         out.pop('display_target', None)
+    if mode == 'combat' and 'terrain_type' in out:
+        # Only predefined, public terrain names may reach the screen.
+        if out['terrain_type'] not in PUBLIC_TERRAINS:
+            out['terrain_type'] = 'stone'
     if isinstance(payload.get('banner'), dict):
         out['banner'] = _scalar_fields(payload['banner'], BANNER)
+    if mode == 'combat' and isinstance(payload.get('terrain_grid'), list):
+        # Saved tile-built maps have no image URL. The public display needs
+        # only floor IDs, not private map objects, fog, walls or GM metadata.
+        # Bound both dimensions and discard arbitrary nested data entirely.
+        out['terrain_grid'] = [
+            [cell if isinstance(cell, str) and cell in PUBLIC_TERRAIN_CELLS else 'empty'
+             for cell in row[:100]]
+            for row in payload['terrain_grid'][:100] if isinstance(row, list)
+        ]
     if 'party' in MODE_FIELDS.get(mode, set()) and isinstance(payload.get('party'), list):
         out['party'] = _safe_list(payload['party'], PARTY)
     if mode == 'npc-grid' and isinstance(payload.get('npcs'), list):

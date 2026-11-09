@@ -2,6 +2,8 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import apiClient from '@/lib/apiClient';
 import CleanNotesTab from './CleanNotesTab';
+import { accountDraftStorageKey } from '@/lib/accountDraftStorage';
+import { setAuthToken } from '@/lib/auth';
 
 jest.mock('@/lib/apiClient', () => ({
   __esModule: true,
@@ -13,7 +15,7 @@ jest.mock('sonner', () => ({
 }));
 
 const character = { id: 'hero-1', notes: 'Old note' };
-const draftKey = 'rqk.character-notes-draft:hero-1';
+const draftKey = accountDraftStorageKey('rqk.character-notes-draft:hero-1');
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -92,6 +94,26 @@ test('keeps a failed autosave draft locally and restores it when the Notes tab r
 
   expect(screen.getByPlaceholderText('Write live character notes here...')).toHaveValue('Do not lose this clue');
   expect(screen.getByTestId('character-notes-save-status')).toHaveTextContent('Unsaved changes');
+});
+
+test('a new signed-in account cannot read a previous account’s unsaved character notes', () => {
+  const encode = value => window.btoa(JSON.stringify(value)).replace(/=/g, '').replaceAll('+', '-').replaceAll('/', '_');
+  const tokenFor = sub => `${encode({ alg: 'HS256' })}.${encode({ sub })}.signature`;
+
+  setAuthToken(tokenFor('account-a'));
+  const accountAKey = accountDraftStorageKey('rqk.character-notes-draft:hero-1');
+  localStorage.setItem(accountAKey, 'Secret draft for account A');
+
+  setAuthToken(tokenFor('account-b'));
+  const accountBKey = accountDraftStorageKey('rqk.character-notes-draft:hero-1');
+  expect(accountAKey).not.toBe(accountBKey);
+
+  const result = render(<CleanNotesTab character={character} />);
+  expect(screen.getByPlaceholderText('Write live character notes here...')).toHaveValue('Old note');
+  expect(localStorage.getItem(accountAKey)).toBe('Secret draft for account A');
+  result.unmount();
+  setAuthToken(tokenFor('account-a'));
+  expect(accountDraftStorageKey('rqk.character-notes-draft:hero-1')).toBe(accountAKey);
 });
 
 test('blurring dirty notes triggers an immediate save without waiting for the debounce', async () => {

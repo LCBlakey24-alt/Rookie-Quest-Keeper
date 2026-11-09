@@ -1,12 +1,13 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import TiaKartaSecondScreenQuickRemote from '@/components/gm/TiaKartaSecondScreenQuickRemote';
+import LiveSecondScreenDock from '@/components/gm/LiveSecondScreenDock';
 
+/** A generic, campaign-owned second-screen remote for every GM account. */
 export default function SecondScreenRemotePage() {
   const { campaignId } = useParams();
   return (
     <main style={pageStyle} data-testid="second-screen-remote-page">
-      <TiaKartaSecondScreenQuickRemote campaignId={campaignId} />
+      <LiveSecondScreenDock campaignId={campaignId} />
     </main>
   );
 }

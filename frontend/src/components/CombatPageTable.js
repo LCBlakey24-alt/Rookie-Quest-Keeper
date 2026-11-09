@@ -22,6 +22,7 @@ import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
 import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRules';
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 import { isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
+import { createGenericCombatMap, GENERIC_COMBAT_TERRAINS, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
 import {
   combatStateSnapshot,
@@ -222,7 +223,11 @@ export default function CombatPageTable() {
   // tracker/map tabs remain available for small screens and focused use.
   const [view, setView] = useState('battle');
   const [maps, setMaps] = useState([]);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
   const [selectedMapId, setSelectedMapId] = useState('');
+  const [mapOverrideGeneric, setMapOverrideGeneric] = useState(false);
+  const [terrainType, setTerrainType] = useState('stone');
+  const [showBattleGrid, setShowBattleGrid] = useState(true);
   const [mapTokens, setMapTokens] = useState([]);
   const [mapZoom, setMapZoom] = useState(1);
   const [collectedLoot, setCollectedLoot] = useState([]);
@@ -341,11 +346,22 @@ export default function CombatPageTable() {
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
       setRound(Math.max(1, restored.round || 1));
       setSelectedMapId(restored.selectedMapId || '');
+      setMapOverrideGeneric(restored.map_override_generic === true);
+      setTerrainType(normaliseCombatTerrain(restored.terrain_type || scenario.terrain_type));
+      setShowBattleGrid(restored.show_grid !== false);
       setMapTokens(safeArray(restored.mapTokens));
       setExpandedId(restored.combatants[Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1))]?.id || '');
       toast.info('Combat restored', { description: `Round ${Math.max(1, restored.round || 1)} checkpoint recovered.` });
     } else {
       battleStartTimeRef.current = Date.now();
+      // Choose the prepared map once at battle start. Re-applying it whenever
+      // the map list refreshes would undo the GM's deliberate generic choice.
+      const preparedMapId = scenario.battlefield_mode === 'generic' || scenario.battlefield_mode === 'none'
+        ? '' : String(scenario.map_id || scenario.mapId || '');
+      setSelectedMapId(preparedMapId);
+      setMapOverrideGeneric(scenario.battlefield_mode === 'generic' || scenario.battlefield_mode === 'none');
+      setTerrainType(normaliseCombatTerrain(scenario.terrain_type));
+      setShowBattleGrid(scenario.show_grid !== false);
       const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
       initialPlayerStatesRef.current = playerBaseStates(loaded);
       startingCombatantsRef.current = snapshotStartingCombatants(loaded);
@@ -358,10 +374,24 @@ export default function CombatPageTable() {
   }, [campaignId, combatKey, navigate, scenario, source, fromRecovery, recovery, accountId, checkpointConflict, routerScenario]);
 
   useEffect(() => {
-    if (!campaignId || !scenario || !accountId) return;
+    let cancelled = false;
+    setMaps([]);
+    setMapsLoaded(false);
+    if (!campaignId || !scenario || !accountId) return undefined;
     apiClient.get(`/campaigns/${campaignId}/maps`)
-      .then(response => setMaps(safeArray(response.data)))
-      .catch(() => setMaps([]));
+      .then(response => {
+        if (!cancelled) {
+          setMaps(safeArray(response.data));
+          setMapsLoaded(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMaps([]);
+          setMapsLoaded(true);
+        }
+      });
+    return () => { cancelled = true; };
   }, [campaignId, scenario, accountId]);
 
   useEffect(() => {
@@ -390,6 +420,12 @@ export default function CombatPageTable() {
         currentTurn,
         round,
         selectedMapId,
+        map_override_generic: mapOverrideGeneric,
+        terrain_type: terrainType,
+        grid_cols: scenario.grid_cols || 30,
+        grid_rows: scenario.grid_rows || 20,
+        feet_per_square: scenario.feet_per_square || 5,
+        show_grid: showBattleGrid,
         mapTokens,
         collectedLoot,
         initialPlayerStates: initialPlayerStatesRef.current,
@@ -398,20 +434,21 @@ export default function CombatPageTable() {
       localStorage.setItem(combatKey, nextRaw);
       checkpointRawRef.current = nextRaw;
     } catch { /* local checkpoint is best effort */ }
-  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, source, accountId, legacyOwnerVerified, checkpointConflict]);
-
-  useEffect(() => {
-    if (!scenario || !maps.length || selectedMapId) return;
-    const requested = scenario.map_id || scenario.mapId || '';
-    if (requested && maps.some(item => item.id === requested)) setSelectedMapId(requested);
-  }, [maps, scenario, selectedMapId]);
+  }, [campaignId, campaignName, collectedLoot, combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId, mapOverrideGeneric, terrainType, showBattleGrid, source, accountId, legacyOwnerVerified, checkpointConflict]);
 
   const active = combatants[currentTurn] || null;
-  const selectedMap = useMemo(() => maps.find(item => item.id === selectedMapId) || null, [maps, selectedMapId]);
+  const selectedMap = useMemo(() => maps.find(item => String(item.id) === String(selectedMapId)) || null, [maps, selectedMapId]);
+  const hasEncounterImage = Boolean(scenario?.map_url
+    && scenario.battlefield_mode !== 'generic' && scenario.battlefield_mode !== 'none');
+  const sourceImageActive = !mapOverrideGeneric && !selectedMap && !selectedMapId && hasEncounterImage;
+  const displayedMap = useMemo(() => selectedMap || createGenericCombatMap(terrainType, scenario?.grid_cols, scenario?.grid_rows), [selectedMap, terrainType, scenario?.grid_cols, scenario?.grid_rows]);
 
   useEffect(() => {
-    if (!selectedMap || mapTokens.length) return;
-    const savedTokens = safeArray(selectedMap.tokens);
+    // Do not initialise before the encounter restore effect has consumed its
+    // checkpoint. An empty initial render previously queued setMapTokens([])
+    // after restoring saved positions, silently replacing exact token cells.
+    if (!initialised || !mapsLoaded || !combatants.length || !displayedMap || mapTokens.length) return;
+    const savedTokens = safeArray(displayedMap.tokens);
     setMapTokens(combatants.map((combatant, index) => {
       const saved = savedTokens.find(token => token.id === combatant.id);
       return {
@@ -424,21 +461,43 @@ export default function CombatPageTable() {
         isAlly: combatant.type === 'player' || combatant.type === 'npc',
       };
     }));
-  }, [combatants, mapTokens.length, selectedMap]);
+  }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded]);
 
   useEffect(() => {
-    if (!initialised || !scenario || !campaignId) return undefined;
+    // Do not broadcast the generic loading placeholder to an external TV
+    // before the prepared saved map has finished resolving. Both displays
+    // should receive one coherent battlefield and matching token positions.
+    if (!initialised || !mapsLoaded || !scenario || !campaignId) return undefined;
     const timer = window.setTimeout(() => {
-      const players = combatants.filter(item => item.type === 'player').map(combatantForDisplay);
+      // Canvas token coordinates are map-cell indices. Convert once to the
+      // display's percentage-based coordinate contract for both players and
+      // visible enemies, without exposing GM-only combatant fields.
+      const projected = combatant => {
+        const publicCombatant = combatantForDisplay(combatant);
+        const placed = mapTokens.find(token => String(token.id) === String(combatant.id));
+        const x = Number(placed?.x);
+        const y = Number(placed?.y);
+        if (placed && Number.isFinite(x) && Number.isFinite(y)) {
+          return {
+            ...publicCombatant,
+            x: Math.max(0, Math.min(100, ((x + .5) / displayedMap.width) * 100)),
+            y: Math.max(0, Math.min(100, ((y + .5) / displayedMap.height) * 100)),
+          };
+        }
+        return publicCombatant;
+      };
+      const players = combatants.filter(item => item.type === 'player').map(projected);
       // Filter the original combatant before creating the public projection.
       // combatantForDisplay deliberately drops GM-only fields, including the
       // visibility flags that the server sanitizer relies on. Mapping first
       // therefore turned a hidden creature into an apparently public token.
       const visibleCreatures = combatants
         .filter(item => item.type !== 'player' && isPlayerVisibleCombatToken(item))
-        .map(combatantForDisplay);
+        .map(projected);
       const activeId = active?.id || '';
-      const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage || selectedMap?.background_image || '';
+      const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage
+        || selectedMap?.background_image || selectedMap?.image_url || selectedMap?.image_data
+        || (sourceImageActive ? scenario.map_url : '') || '';
       publishCampaignDisplayState(campaignId, createDisplayState('combat', {
         combat_id: scenario.id || scenario.name || 'combat',
         scenario_id: scenario.id || '',
@@ -446,14 +505,22 @@ export default function CombatPageTable() {
         round,
         active_id: activeId,
         battle_started_at: battleStartTimeRef.current,
+        terrain_type: terrainType,
+        grid_cols: displayedMap.width,
+        grid_rows: displayedMap.height,
+        feet_per_square: scenario.feet_per_square || 5,
+        // A saved tile-built map can have no image URL. The server projects
+        // only approved floor identifiers; no private objects or fog travel.
+        terrain_grid: selectedMap && !mapUrl && Array.isArray(selectedMap.terrain)
+          ? selectedMap.terrain : undefined,
         party: players,
-        tokens: visibleCreatures,
+        tokens: [...players, ...visibleCreatures],
         map_url: mapUrl,
         banner: combatBanner || undefined,
       })).catch(() => {});
     }, 120);
     return () => window.clearTimeout(timer);
-  }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap]);
+  }, [active, campaignId, combatBanner, combatants, initialised, mapsLoaded, round, scenario, selectedMap, terrainType, mapTokens, displayedMap, sourceImageActive]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
@@ -1083,18 +1150,42 @@ export default function CombatPageTable() {
       {(view === 'map' || view === 'battle') && (
         <main className="combat-map-view">
           <div className="combat-map-toolbar">
-            <select value={selectedMapId} onChange={event => { setSelectedMapId(event.target.value); setMapTokens([]); }}>
-              <option value="">Choose battle map…</option>
+            <select aria-label="Battlefield map" value={sourceImageActive ? '__encounter_image__' : selectedMapId}
+              onChange={event => {
+                const value = event.target.value;
+                if (value === '__encounter_image__') {
+                  setSelectedMapId('');
+                  setMapOverrideGeneric(false);
+                } else {
+                  setSelectedMapId(value);
+                  setMapOverrideGeneric(!value);
+                }
+                // Keep existing battlefield token cells and combat state.
+                // Changing maps is not the same as starting a new encounter.
+              }}>
+              <option value="">Generic textured floor</option>
+              {hasEncounterImage && <option value="__encounter_image__">Encounter uploaded map</option>}
               {maps.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+              {selectedMapId && !selectedMap && <option value={selectedMapId}>Missing linked map ({selectedMapId})</option>}
             </select>
+            {!selectedMap && !sourceImageActive && (
+              <select aria-label="Generic battlefield terrain" value={terrainType}
+                onChange={event => { setTerrainType(normaliseCombatTerrain(event.target.value)); setMapOverrideGeneric(true); }}>
+                {GENERIC_COMBAT_TERRAINS.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+              </select>
+            )}
+            <button type="button" onClick={() => setShowBattleGrid(value => !value)}
+              aria-label="Show battlefield grid" aria-pressed={showBattleGrid}>
+              Grid {showBattleGrid ? 'on' : 'off'}
+            </button>
             <button type="button" onClick={() => setMapZoom(value => Math.max(0.5, value - 0.2))}>−</button>
             <span>{Math.round(mapZoom * 100)}%</span>
             <button type="button" onClick={() => setMapZoom(value => Math.min(2, value + 0.2))}>+</button>
           </div>
-          {selectedMap ? (
-            <div className="combat-map-canvas">
+          <div className="combat-map-canvas" data-testid={selectedMap ? 'saved-combat-map' : 'generic-combat-map'}>
               <MapCanvas
-                mapData={selectedMap}
+                mapData={displayedMap}
+                backgroundImageUrl={sourceImageActive ? (scenario.map_url || '') : ''}
                 onMapChange={() => {}}
                 tool="select"
                 selectedTerrain="stone"
@@ -1103,15 +1194,12 @@ export default function CombatPageTable() {
                 onTokenMove={(tokenId, x, y) => setMapTokens(previous => previous.map(token => token.id === tokenId ? { ...token, x, y } : token))}
                 fogOfWar={null}
                 onFogChange={() => {}}
-                showGrid
-                gridSize={40}
+                showGrid={showBattleGrid}
+                gridSize={scenario.grid_size || 40}
                 zoom={mapZoom}
                 onZoomChange={setMapZoom}
               />
             </div>
-          ) : (
-            <div className="combat-map-empty"><Map size={38} /><strong>No battle map selected</strong><span>Choose a battle map above. The full GM roster, enemy stats and initiative remain available beside it.</span></div>
-          )}
         </main>
       )}
       </div>

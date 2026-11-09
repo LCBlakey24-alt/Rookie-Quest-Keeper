@@ -10,6 +10,8 @@ import { getContainedMapRect } from '@/data/containedMapGeometry';
 import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
 import { rollActorDisplayName } from '@/lib/rollActorLabels';
 import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
+import { genericCombatBackdropStyle, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
+import PublicTerrainGridCanvas from './PublicTerrainGridCanvas';
 import './PlayerDisplayPage.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -101,7 +103,9 @@ function normaliseCombatToken(token = {}, index = 0) {
 
 function buildCombatRoster(partyMembers = [], tokens = []) {
   const players = partyMembers.map((member, index) => ({ ...member, id: `player-${member.id || index}`, type: 'player', subtitle: `${member.className || 'Adventurer'}${member.race ? ` · ${member.race}` : ''}` }));
-  const creatures = tokens.filter(isPlayerVisibleCombatToken);
+  // Player tokens also position heroes on the map; party already supplies
+  // their roster entries, so never render them twice in the initiative rail.
+  const creatures = tokens.filter(token => token.type !== 'player' && isPlayerVisibleCombatToken(token));
   return [...players, ...creatures].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0));
 }
 
@@ -440,7 +444,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
     return (
       <section style={tableCombatShellStyle} data-testid="virtual-table-combat-hud">
         <div style={tableMapStyle}>
-          <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
+          <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} terrainGrid={payload.terrain_grid} gridCols={payload.grid_cols} gridRows={payload.grid_rows} title={payload.title} target={target} tokens={positionedTokens} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
           <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
@@ -464,7 +468,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         </div>
       </aside>
       <div style={combatMapStageStyle}>
-        <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
+        <CombatMapArtwork mapUrl={payload.map_url} terrainType={payload.terrain_type} terrainGrid={payload.terrain_grid} gridCols={payload.grid_cols} gridRows={payload.grid_rows} title={payload.title} target={target} tokens={positionedTokens} />
         {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
         <div style={combatMapInfoStyle}>
           <p style={eyebrowStyle(target)}>Encounter</p>
@@ -520,10 +524,11 @@ function renderStatsPage(page, session, allTime, target) {
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award, actors }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{rollActorDisplayName(award, actors)}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor, actors }) { return <div style={actorRowStyle}><strong>{rollActorDisplayName(actor, actors)}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
-function CombatMapArtwork({ mapUrl, title, target, tokens }) {
+function CombatMapArtwork({ mapUrl, terrainType = 'stone', terrainGrid, gridCols, gridRows, title, target, tokens }) {
   const layerRef = useRef(null);
   const [container, setContainer] = useState({ width: 0, height: 0 });
   const [loadedImage, setLoadedImage] = useState(null);
+  const [failedMapUrl, setFailedMapUrl] = useState('');
 
   useEffect(() => {
     const element = layerRef.current;
@@ -544,22 +549,67 @@ function CombatMapArtwork({ mapUrl, title, target, tokens }) {
   }, []);
 
   // Do not paint tokens over a stale image when the GM switches maps.
-  const imageReady = Boolean(mapUrl && loadedImage && loadedImage.url === mapUrl);
+  const useGenericTerrain = !mapUrl || failedMapUrl === mapUrl;
+  const hasSavedFloorTiles = useGenericTerrain && Array.isArray(terrainGrid)
+    && terrainGrid.some(row => Array.isArray(row) && row.length > 0);
+  const imageReady = Boolean(!useGenericTerrain && loadedImage && loadedImage.url === mapUrl);
+  // New combat states include grid dimensions. Place the entire image,
+  // textured surface and token overlay inside that same map rectangle so
+  // squares stay square on differently shaped TV/table screens. Legacy
+  // images without grid geometry keep their natural aspect-ratio behaviour.
+  const columns = Number(gridCols);
+  const rows = Number(gridRows);
+  const hasGridGeometry = Number.isFinite(columns) && Number.isFinite(rows)
+    && columns > 0 && rows > 0;
+  const mapColumns = hasGridGeometry ? columns : 30;
+  const mapRows = hasGridGeometry ? rows : 20;
+  const genericBounds = getContainedMapRect(container.width, container.height, mapColumns, mapRows);
   const bounds = imageReady
-    ? getContainedMapRect(container.width, container.height, loadedImage.width, loadedImage.height)
-    : null;
+    ? getContainedMapRect(container.width, container.height,
+      hasGridGeometry ? columns : loadedImage.width,
+      hasGridGeometry ? rows : loadedImage.height)
+    : genericBounds;
   return (
     <div ref={layerRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }} data-testid="combat-map-artwork">
-      {mapUrl
-        ? <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'} style={combatMapImageStyle(target)}
-            onLoad={event => setLoadedImage({
-              url: mapUrl,
-              width: event.currentTarget.naturalWidth,
-              height: event.currentTarget.naturalHeight,
-            })}
-            onError={() => setLoadedImage(null)} />
-        : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-      {((!mapUrl && container.width > 0 && container.height > 0) || bounds) && (
+      {hasSavedFloorTiles && (
+        <PublicTerrainGridCanvas terrainGrid={terrainGrid} columns={mapColumns} rows={mapRows}
+          style={{
+            position: 'absolute',
+            left: genericBounds?.left ?? 0,
+            top: genericBounds?.top ?? 0,
+            width: genericBounds?.width ?? '100%',
+            height: genericBounds?.height ?? '100%',
+          }} />
+      )}
+      {useGenericTerrain && !hasSavedFloorTiles && (
+        <div
+          data-testid="combat-generic-terrain"
+          data-terrain={normaliseCombatTerrain(terrainType)}
+          aria-label={`Generic ${normaliseCombatTerrain(terrainType)} battlefield`}
+          style={{
+            position: 'absolute',
+            left: genericBounds?.left ?? 0,
+            top: genericBounds?.top ?? 0,
+            width: genericBounds?.width ?? '100%',
+            height: genericBounds?.height ?? '100%',
+            ...genericCombatBackdropStyle(terrainType, mapColumns, mapRows),
+          }}
+        />
+      )}
+      {mapUrl && !useGenericTerrain && (
+        <img key={mapUrl} src={mapUrl} alt={title || 'Battle map'}
+          style={hasGridGeometry && bounds
+            ? { position: 'absolute', left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height, objectFit: 'fill' }
+            : combatMapImageStyle(target)}
+          onLoad={event => setLoadedImage({
+            url: mapUrl,
+            width: event.currentTarget.naturalWidth,
+            height: event.currentTarget.naturalHeight,
+          })}
+          onError={() => { setLoadedImage(null); setFailedMapUrl(mapUrl); }}
+        />
+      )}
+      {bounds && (
         <div data-testid="combat-map-token-overlay" style={{
           ...tokenOverlayStyle,
           inset: 'auto',

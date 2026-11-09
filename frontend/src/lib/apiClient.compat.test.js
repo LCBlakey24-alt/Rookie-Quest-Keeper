@@ -58,6 +58,77 @@ describe('account-bound queued mutations', () => {
   });
 });
 
+describe('cross-account response isolation', () => {
+  afterEach(() => clearAuthToken());
+
+  test('a successful campaign response arriving after a switch cannot reach the next account', async () => {
+    setAuthToken(fakeJwt('gm-a'));
+    let deliver;
+    let dispatched;
+    const arrived = new Promise(resolve => { dispatched = resolve; });
+    const adapter = jest.fn(config => {
+      dispatched();
+      return new Promise(resolve => { deliver = () => resolve({
+        config, data: [{ id: 'private-a', name: 'Account A campaign' }],
+        status: 200, headers: {},
+      }); });
+    });
+    const pending = apiClient.get('/campaigns', { adapter });
+    await arrived;
+    setAuthToken(fakeJwt('gm-b'));
+    deliver();
+
+    await expect(pending).rejects.toMatchObject({ rqkAuthScopeChanged: true });
+    expect(adapter).toHaveBeenCalledTimes(1);
+  });
+
+  test('a late network failure cannot expose an old offline response to the next account', async () => {
+    setAuthToken(fakeJwt('gm-a'));
+    let fail;
+    let dispatched;
+    const arrived = new Promise(resolve => { dispatched = resolve; });
+    const adapter = jest.fn(config => {
+      dispatched();
+      return new Promise((resolve, reject) => {
+        fail = () => reject(Object.assign(new Error('offline'), { config }));
+      });
+    });
+    const pending = apiClient.get('/campaigns', { adapter });
+    await arrived;
+    setAuthToken(fakeJwt('gm-b'));
+    fail();
+
+    await expect(pending).rejects.toMatchObject({ rqkAuthScopeChanged: true });
+  });
+
+  test('late writes from the previous account are also rejected, not reported as saved', async () => {
+    setAuthToken(fakeJwt('gm-a'));
+    let deliver;
+    let dispatched;
+    const arrived = new Promise(resolve => { dispatched = resolve; });
+    const adapter = jest.fn(config => {
+      dispatched();
+      return new Promise(resolve => { deliver = () => resolve({
+        config, status: 200, headers: {}, data: { saved: true },
+      }); });
+    });
+    const pending = apiClient.put('/campaigns/camp-a/setting', { content: 'GM secrets' }, { adapter });
+    await arrived;
+    setAuthToken(fakeJwt('gm-b'));
+    deliver();
+    await expect(pending).rejects.toMatchObject({ rqkAuthScopeChanged: true });
+  });
+
+  test('a new registration can create a fresh account even if an old token remains', async () => {
+    setAuthToken(fakeJwt('old-account'));
+    const adapter = jest.fn(async config => ({
+      config, status: 201, headers: {}, data: { token: 'new-user-session' },
+    }));
+    await expect(apiClient.post('/auth/register', { username: 'new-account' }, { adapter }))
+      .resolves.toMatchObject({ status: 201 });
+  });
+});
+
 describe('legacy account API compatibility', () => {
   test.each([
     ['get', '/account/profile', 'get', '/auth/me'],
@@ -110,6 +181,8 @@ describe('offline cache gate', () => {
     [{ method: 'get', url: '/auth/me' }, false],
     [{ method: 'get', url: '/auth/me?fresh=1' }, false],
     [{ method: 'get', url: '/admin/check' }, false],
+    [{ method: 'get', url: '/campaigns/any/private-source-archive' }, false],
+    [{ method: 'get', url: '/campaigns/any/private-source-archive/source-sha' }, false],
     [{ method: 'get', url: '/rook/chat' }, false],
     [{ method: 'get', url: '/campaigns' }, true],
     [{ method: 'get', url: '/characters/c1' }, true],

@@ -35,6 +35,11 @@ jobs:
         run: |
           python -m pytest -q \
             backend/tests/test_campaign_display_routes.py \
+            backend/tests/test_campaign_account_isolation.py \
+            backend/tests/test_custom_creature_permissions.py \
+            backend/tests/test_admin_impersonation_disabled.py \
+            backend/tests/test_private_campaign_archive.py \
+            backend/tests/test_combat_scenario_battlefields.py \
             backend/tests/test_roll_event_security.py \
             backend/tests/test_note_sync_requires_approval.py \
             backend/tests/test_session_note_sync.py \

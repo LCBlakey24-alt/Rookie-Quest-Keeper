@@ -142,6 +142,102 @@ test("another campaign's checkpoint is blocked and preserved", async () => {
   expect(localStorage.getItem(combatCheckpointKey(CAMPAIGN))).toBe(raw);
 });
 
+test('a recovered fight restores the generic terrain choice without losing wounds', async () => {
+  saveFight({ terrain_type: 'grass' });
+  openColdTab();
+  await screen.findByTestId('combat-table-page');
+  expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument();
+  expect(screen.getByRole('combobox', { name: 'Generic battlefield terrain' })).toHaveValue('grass');
+  const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+  expect(saved.terrain_type).toBe('grass');
+  expect(saved.combatants.find(combatant => combatant.id === 'c1').hp).toBe(22);
+});
+
+test('external player display is not sent a stone placeholder while a saved map is loading', async () => {
+  let resolveMapRequest;
+  apiClient.get.mockImplementation(url => url.endsWith('/maps')
+    ? new Promise(resolve => { resolveMapRequest = resolve; })
+    : Promise.resolve({ data: [] }));
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: {
+        source: 'live-play',
+        scenario: { id: 'enc-map-load', name: 'Map Loading',
+          battlefield_mode: 'saved', map_id: 'custom-map',
+          combatants: [{ id: 'c1', name: 'Rina', type: 'player', hp: 20, maxHp: 30, initiative: 11 }],
+        },
+      },
+    }]}>
+      <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+    </MemoryRouter>,
+  );
+  await screen.findByTestId('combat-table-page');
+  await waitFor(() => expect(resolveMapRequest).toEqual(expect.any(Function)));
+  await new Promise(resolve => setTimeout(resolve, 180));
+  expect(publishCampaignDisplayState.mock.calls.some(([, state]) => state.mode === 'combat')).toBe(false);
+
+  resolveMapRequest({ data: [{
+    id: 'custom-map', name: 'Dungeon map',
+    width: 30, height: 20, image_url: 'https://example.test/dungeon.png',
+  }] });
+  await waitFor(() => expect(publishCampaignDisplayState.mock.calls.some(([, state]) =>
+    state.mode === 'combat' && state.payload?.map_url === 'https://example.test/dungeon.png')).toBe(true));
+});
+
+test('switching from a saved battle map to generic terrain keeps HP, placed tokens and recovery state', async () => {
+  apiClient.get.mockImplementation(url => Promise.resolve({
+    data: url.endsWith('/maps')
+      ? [{ id: 'crypt-map', name: 'Crypt', width: 20, height: 12, terrain: [['stone']],
+        tokens: [{ id: 'c1', x: 7, y: 4 }, { id: 'c2', x: 9, y: 5 }] }]
+      : [],
+  }));
+  const screenView = render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: {
+        source: 'live-play',
+        scenario: {
+          id: 'enc-generic-switch', name: 'Crypt fight',
+          battlefield_mode: 'saved', map_id: 'crypt-map', terrain_type: 'stone',
+          combatants: [
+            { id: 'c1', name: 'Rina Ironside', type: 'player', hp: 22, maxHp: 54, initiative: 19 },
+            { id: 'c2', name: 'Guard', type: 'enemy', hp: 3, maxHp: 7, initiative: 9 },
+          ],
+        },
+      },
+    }]}>
+      <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+    </MemoryRouter>,
+  );
+  const select = await screen.findByRole('combobox', { name: 'Battlefield map' });
+  await waitFor(() => expect(select).toHaveValue('crypt-map'));
+  await waitFor(() => expect(screen.getByTestId('saved-combat-map')).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2'));
+  let checkpoint = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+  const originalTokens = checkpoint.mapTokens;
+  expect(originalTokens.map(token => [token.x, token.y])).toEqual([[7, 4], [9, 5]]);
+
+  fireEvent.change(select, { target: { value: '' } });
+  await waitFor(() => expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument());
+  expect(select).toHaveValue('');
+  expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2');
+  await waitFor(() => {
+    checkpoint = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+    expect(checkpoint.map_override_generic).toBe(true);
+  });
+  expect(checkpoint.selectedMapId).toBe('');
+  expect(checkpoint.mapTokens).toEqual(originalTokens);
+  expect(checkpoint.combatants.map(item => item.hp)).toEqual([22, 3]);
+
+  screenView.unmount();
+  openColdTab();
+  await screen.findByTestId('combat-table-page');
+  expect(screen.getByRole('combobox', { name: 'Battlefield map' })).toHaveValue('');
+  expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument();
+  expect(screen.getByTestId('combat-table-page')).toHaveTextContent('22/54');
+});
+
 test('a recovered fight remembers it came from Live Play', async () => {
   // Checked through the checkpoint rather than by driving End Combat, which
   // needs the network path; the routing value is what this fixes.
@@ -630,7 +726,7 @@ test('a prepared encounter opens a combined battlefield with its map and GM enem
   expect(roster).toHaveTextContent('17');
   // The saved map arrives asynchronously; tokens are positioned in the next effect.
   await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2'));
-  expect(screen.getByRole('combobox', { name: '' })).toHaveValue('map-forest');
+  await waitFor(() => expect(screen.getByRole('combobox', { name: 'Battlefield map' })).toHaveValue('map-forest'));
 
   const zoom = screen.getByTestId('map-canvas');
   expect(zoom).toHaveAttribute('data-zoom', '1');
@@ -674,7 +770,8 @@ test('hidden encounter creatures never reach the player display broadcast', asyn
   await waitFor(() => expect(createDisplayState.mock.calls.some(([mode]) => mode === 'combat')).toBe(true));
 
   const combatPayload = createDisplayState.mock.calls.find(([mode]) => mode === 'combat')[1];
-  expect(combatPayload.tokens.map(token => token.name)).toEqual(['Revealed Guard']);
+  expect(combatPayload.tokens.map(token => token.name)).toEqual(['Aria', 'Revealed Guard']);
+  expect(combatPayload.tokens.find(token => token.name === 'Aria')).toMatchObject({ type: 'player' });
   expect(JSON.stringify(combatPayload)).not.toContain('Secret Beholder');
   expect(JSON.stringify(combatPayload)).not.toContain('Secret Dragon');
 });
@@ -693,7 +790,8 @@ test('without a linked map, encounter still starts with GM controls and an hones
     </MemoryRouter>,
   );
   expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
-  expect(screen.getByText('No battle map selected')).toBeInTheDocument();
+  expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument();
+  expect(screen.getByRole('combobox', { name: 'Generic battlefield terrain' })).toHaveValue('stone');
   expect(document.querySelector('.combat-list')).toHaveTextContent('Bandit Captain');
   expect(screen.getByRole('button', { name: 'Battle' })).toHaveAttribute('aria-pressed', 'true');
 });

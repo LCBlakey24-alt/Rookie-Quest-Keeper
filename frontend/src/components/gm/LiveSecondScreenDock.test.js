@@ -31,13 +31,6 @@ jest.mock('@/lib/liveDisplayPublishStatus', () => ({
   publishCampaignDisplayStateWithStatus: jest.fn(async (_campaignId, state) => ({ state, remoteSynced: true })),
 }));
 
-jest.mock('@/data/tiaKartaSecondScreenPresets', () => [{
-  id: 'test-screen',
-  title: 'Test Screen',
-  eyebrow: 'Test',
-  subtitle: 'Testing',
-}]);
-
 describe('LiveSecondScreenDock reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -129,6 +122,23 @@ describe('LiveSecondScreenDock reliability', () => {
     expect(JSON.stringify(state.payload)).not.toContain('Private GM plot detail');
   });
 
+  test('ordinary campaigns get a generic title broadcast, not personal lore shortcuts', async () => {
+    apiClient.get.mockResolvedValue({ data: [] });
+    render(<LiveSecondScreenDock campaignId="other-account-campaign" />);
+    expect(screen.queryByTestId('personal-campaign-quick-reveals')).not.toBeInTheDocument();
+    expect(screen.getByTestId('generic-campaign-title-reveal')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Table' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Scene title' }), {
+      target: { value: 'The Broken Bridge' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Show scene title/i }));
+    await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
+      'other-account-campaign',
+      expect.objectContaining({ mode: 'title', payload: expect.objectContaining({ title: 'The Broken Bridge' }) }),
+    ));
+  });
+
   test('GM can switch TV to virtual table even if the previous reveal was for TV', async () => {
     apiClient.get.mockResolvedValue({ data: [] });
     liveDisplayBus.loadDisplayState.mockReturnValue({
@@ -137,7 +147,8 @@ describe('LiveSecondScreenDock reliability', () => {
 
     render(<LiveSecondScreenDock campaignId="campaign-1" />);
     fireEvent.click(screen.getByRole('button', { name: 'Table' }));
-    fireEvent.click(screen.getByRole('button', { name: /Test Screen/i }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Scene title' }), { target: { value: 'Combat Begins' } });
+    fireEvent.click(screen.getByRole('button', { name: /Show scene title/i }));
 
     await waitFor(() => expect(liveDisplayPublishStatus.publishCampaignDisplayStateWithStatus).toHaveBeenCalledWith(
       'campaign-1',
@@ -198,7 +209,8 @@ describe('LiveSecondScreenDock reliability', () => {
 
     render(<LiveSecondScreenDock campaignId="campaign-1" />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Test Screen/i }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Scene title' }), { target: { value: 'Combat Begins' } });
+    fireEvent.click(screen.getByRole('button', { name: /Show scene title/i }));
 
     await waitFor(() => expect(toast.warning).toHaveBeenCalledWith(
       'Updated locally — remote display not synced',

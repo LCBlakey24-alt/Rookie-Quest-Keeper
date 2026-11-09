@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field
 
 from config import db, logger
-from utils.auth import get_current_user
+from utils.auth import get_current_user, verify_campaign_ownership
 from utils.admin_identity import is_admin_username, require_admin
 from models import (
     Review, ReviewCreate, CustomCreature, CustomCreatureCreate,
@@ -373,7 +373,8 @@ async def delete_review(review_id: str, username: str = Depends(get_current_user
 
 @router.get("/campaigns/{campaign_id}/custom-creatures")
 async def get_custom_creatures(campaign_id: str, username: str = Depends(get_current_user)):
-    """Get all custom creatures for a campaign"""
+    """Get private custom creatures only from the signed-in GM's campaign."""
+    await verify_campaign_ownership(campaign_id, username)
     creatures = await db.custom_creatures.find(
         {'campaign_id': campaign_id},
         {'_id': 0}
@@ -382,7 +383,8 @@ async def get_custom_creatures(campaign_id: str, username: str = Depends(get_cur
 
 @router.post("/campaigns/{campaign_id}/custom-creatures")
 async def create_custom_creature(campaign_id: str, creature_data: CustomCreatureCreate, username: str = Depends(get_current_user)):
-    """Create a new custom creature"""
+    """Create a custom creature in an owned campaign."""
+    await verify_campaign_ownership(campaign_id, username)
     creature = CustomCreature(
         campaign_id=campaign_id,
         name=creature_data.name,
@@ -401,7 +403,8 @@ async def create_custom_creature(campaign_id: str, creature_data: CustomCreature
 
 @router.put("/campaigns/{campaign_id}/custom-creatures/{creature_id}")
 async def update_custom_creature(campaign_id: str, creature_id: str, creature_data: CustomCreatureCreate, username: str = Depends(get_current_user)):
-    """Update a custom creature"""
+    """Update only the signed-in GM's creature."""
+    await verify_campaign_ownership(campaign_id, username)
     result = await db.custom_creatures.update_one(
         {'id': creature_id, 'campaign_id': campaign_id},
         {'$set': {
@@ -422,7 +425,8 @@ async def update_custom_creature(campaign_id: str, creature_id: str, creature_da
 
 @router.delete("/campaigns/{campaign_id}/custom-creatures/{creature_id}")
 async def delete_custom_creature(campaign_id: str, creature_id: str, username: str = Depends(get_current_user)):
-    """Delete a custom creature"""
+    """Delete only the signed-in GM's creature."""
+    await verify_campaign_ownership(campaign_id, username)
     result = await db.custom_creatures.delete_one({'id': creature_id, 'campaign_id': campaign_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Creature not found")
@@ -430,7 +434,8 @@ async def delete_custom_creature(campaign_id: str, creature_id: str, username: s
 
 @router.post("/campaigns/{campaign_id}/custom-creatures/import")
 async def import_custom_creatures(campaign_id: str, creatures: list[CustomCreatureCreate], username: str = Depends(get_current_user)):
-    """Import multiple custom creatures from CSV/JSON data"""
+    """Bulk import only into a campaign owned by the current GM."""
+    await verify_campaign_ownership(campaign_id, username)
     imported = []
     for creature_data in creatures:
         creature = CustomCreature(
@@ -534,24 +539,17 @@ async def check_admin_status(username: str = Depends(get_current_user)):
 
 @router.post("/admin/users/{target_username}/impersonate")
 async def admin_impersonate_user(target_username: str, username: str = Depends(get_current_user)):
-    """Admin-only: issue a short-lived JWT for the target user so support can
-    reproduce their view. The client should stash its current token before swapping."""
-    await verify_admin(username)
-    target = await db.users.find_one({'username': target_username}, {'_id': 0})
-    if not target:
-        # Try by email as a fallback for convenience
-        target = await db.users.find_one({'email': target_username}, {'_id': 0})
-    if not target:
-        raise HTTPException(status_code=404, detail="User not found")
-    from utils.auth import create_token, session_version
-    token = create_token(target['username'], session_version(target))
-    logger.info(f"Admin {username} impersonating {target['username']}")
-    return {
-        "token": token,
-        "username": target['username'],
-        "email": target.get('email'),
-        "impersonated_by": username
-    }
+    """Permanently disabled: administrators must never mint another user's token.
+
+    Support staff retain aggregate usage and feedback tools, but must not
+    access personal campaigns, characters, notes or other account data by
+    impersonating a user. A consent-based support mechanism would need its
+    own separately reviewed, short-lived, audited permission model.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Account impersonation is disabled to protect user privacy.",
+    )
 
 
 # ==================== CSV EXPORT ====================
@@ -600,33 +598,14 @@ async def admin_export_users_csv(username: str = Depends(get_current_user)):
 
 @router.get("/admin/export/campaigns.csv")
 async def admin_export_campaigns_csv(username: str = Depends(get_current_user)):
-    """Admin-only: stream a CSV of all campaigns."""
-    from fastapi.responses import StreamingResponse
-    await verify_admin(username)
+    """Campaign names and settings are private to their owning GM.
 
-    async def gen():
-        header = ["id", "name", "dm_user_id", "system", "rules_edition",
-                  "setting", "player_count", "created_at", "updated_at"]
-        yield ",".join(header) + "\n"
-        async for c in db.campaigns.find({}, {'_id': 0}):
-            players = c.get('players') or []
-            row = [
-                _csv_escape(c.get('id')),
-                _csv_escape(c.get('name')),
-                _csv_escape(c.get('dm_user_id')),
-                _csv_escape(c.get('system')),
-                _csv_escape(c.get('rules_edition', '2024')),
-                _csv_escape(c.get('setting')),
-                _csv_escape(len(players) if isinstance(players, list) else 0),
-                _csv_escape(c.get('created_at')),
-                _csv_escape(c.get('updated_at')),
-            ]
-            yield ",".join(row) + "\n"
-
-    return StreamingResponse(
-        gen(),
-        media_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="rook-campaigns.csv"'}
+    Site admins can inspect anonymous aggregate counts from /admin/overview,
+    not export every user's campaign names, owners or world settings.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Exporting other users' campaign details is disabled for privacy.",
     )
 
 

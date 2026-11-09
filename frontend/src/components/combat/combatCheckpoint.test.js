@@ -151,10 +151,44 @@ describe('everything the fight needs survives the round trip', () => {
     const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
     expect(checkpoint.combatants[0]).toMatchObject({ hp: 22, max_hp: 54, initiative: 18, character_id: 'char-1' });
     expect(checkpoint.selectedMapId).toBe('map-2');
+    expect(checkpoint.grid_cols).toBe(30);
+    expect(checkpoint.grid_rows).toBe(20);
+    expect(checkpoint.feet_per_square).toBe(5);
     expect(checkpoint.mapTokens).toEqual([{ id: 't1', x: 10, y: 20 }]);
     expect(checkpoint.collectedLoot).toEqual([{ name: 'Rusty dagger' }]);
     expect(checkpoint.round).toBe(3);
     expect(checkpoint.currentTurn).toBe(1);
+  });
+
+  test('generic terrain survives an owned checkpoint round trip', () => {
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint({
+      selectedMapId: '', terrain_type: 'cobblestone',
+    })));
+    expect(checkpoint.terrain_type).toBe('cobblestone');
+    expect(scenarioFromCheckpoint(checkpoint).terrain_type).toBe('cobblestone');
+  });
+
+  test('a GM switch from a linked map to generic survives refresh without resetting the fight', () => {
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint({
+      selectedMapId: '',
+      map_override_generic: true,
+      terrain_type: 'grass',
+      mapTokens: [{ id: 'c1', x: 7, y: 4 }],
+      collectedLoot: [{ name: 'Magic dagger' }],
+    })));
+    expect(checkpoint.map_override_generic).toBe(true);
+    const restored = scenarioFromCheckpoint(checkpoint);
+    expect(restored.battlefield_mode).toBe('generic');
+    expect(restored.map_id).toBe('');
+    expect(restored.terrain_type).toBe('grass');
+    expect(checkpoint.combatants[0].hp).toBe(22);
+    expect(checkpoint.mapTokens).toEqual([{ id: 'c1', x: 7, y: 4 }]);
+    expect(checkpoint.collectedLoot).toEqual([{ name: 'Magic dagger' }]);
+  });
+
+  test('older checkpoints without a terrain choice get the safe stone default', () => {
+    const { checkpoint } = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
+    expect(checkpoint.terrain_type).toBe('stone');
   });
 
   test('where the GM came from is remembered, so End Combat goes back there', () => {

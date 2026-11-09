@@ -38,7 +38,7 @@ const UploadTab = React.lazy(() => import('@/components/gm/UploadTab'));
 const PlayerInvitePanel = React.lazy(() => import('@/components/gm/PlayerInvitePanel'));
 const GMPartyWorkspace = React.lazy(() => import('@/components/gm/GMPartyWorkspace'));
 const GMHandoutsWorkspace = React.lazy(() => import('@/components/gm/GMHandoutsWorkspace'));
-const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKartaCampaignPackPanel'));
+const PrivateCampaignArchivePanel = React.lazy(() => import('@/components/gm/PrivateCampaignArchivePanel'));
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 import CampaignMobileNavigator from '@/components/gm/dashboard/CampaignMobileNavigator';
@@ -46,6 +46,7 @@ import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
 import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
+import usePrivateCampaignPackAccess from '@/hooks/usePrivateCampaignPackAccess';
 import './CampaignDashboard.css';
 
 const uploadTheme = {
@@ -64,6 +65,7 @@ function tabFromHash() {
 export default function CampaignDashboard() {
   const { campaignId } = useParams();
   const navigate = useNavigate();
+  const canUsePersonalCampaignPacks = usePrivateCampaignPackAccess(campaignId);
   const [initialTab] = useState(tabFromHash);
   const [campaign, setCampaign] = useState(null);
   const [homeBootstrap, setHomeBootstrap] = useState(null);
@@ -251,7 +253,7 @@ export default function CampaignDashboard() {
 
   const withTiaKarta = (destination, children) => (
     <>
-      <TiaKartaCampaignPackPanel campaignId={campaignId} destination={destination} />
+      {canUsePersonalCampaignPacks && <PrivateCampaignArchivePanel campaignId={campaignId} />}
       {children}
     </>
   );

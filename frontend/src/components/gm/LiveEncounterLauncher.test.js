@@ -157,8 +157,47 @@ test('prepared combat hands off every chosen enemy, current player, map and GM s
 
 test('impromptu battles can also have a chosen map without saving a new encounter', () => {
   const actors = [{ id: 'wolf-1', type: 'enemy', hp: 6, ac: 12 }];
-  expect(encounterBattleScenario(null, actors, 'forest-map', 7)).toEqual({
+  expect(encounterBattleScenario(null, actors, 'forest-map', 7)).toMatchObject({
     id: 'impromptu-7', name: 'Impromptu Battle', temporary: true,
-    combatants: actors, map_id: 'forest-map',
+    combatants: actors, map_id: 'forest-map', battlefield_mode: 'saved',
+  });
+});
+
+
+describe('prepared battlefield handoff to combat', () => {
+  const fighters = [
+    { id: 'hero-a', type: 'player', name: 'Aria', hp: 23, maxHp: 30 },
+    { id: 'beast-1', type: 'enemy', name: 'Horror', hp: 50, maxHp: 50 },
+  ];
+
+  test('a saved terrain is delivered without changing the encounter record', () => {
+    const saved = { id: 'h1', name: 'Hollowmere', combatants: fighters, battlefield_mode: 'generic', terrain_type: 'grass' };
+    const before = JSON.stringify(saved);
+    const launched = encounterBattleScenario(saved, fighters, '', 1234, 'grass', 'generic');
+    expect(launched).toMatchObject({ battlefield_mode: 'generic', terrain_type: 'grass', map_id: '', combatants: fighters });
+    expect(JSON.stringify(saved)).toBe(before);
+  });
+
+  test('live review can choose cobblestone instead of the saved map without editing it', () => {
+    const saved = { id: 'h1', name: 'Hollowmere', map_id: 'map-old', battlefield_mode: 'saved', combatants: fighters };
+    const launched = encounterBattleScenario(saved, fighters, '', 1234, 'cobblestone', 'generic');
+    expect(launched.map_id).toBe('');
+    expect(launched.map_url).toBeNull();
+    expect(launched.terrain_type).toBe('cobblestone');
+    expect(saved.map_id).toBe('map-old');
+  });
+
+  test('no choice safely loads stone even if a previous terrain was remembered', () => {
+    const launched = encounterBattleScenario(null, fighters, '', 1234, 'lava', 'none');
+    expect(launched.terrain_type).toBe('stone');
+    expect(launched.map_id).toBe('');
+    expect(launched.temporary).toBe(true);
+  });
+
+  test('legacy mapId is still recognised and an explicit map survives', () => {
+    const saved = { id: 'old-encounter', mapId: 'old-map', combatants: fighters };
+    const launched = encounterBattleScenario(saved, fighters, 'old-map', 1234);
+    expect(launched.map_id).toBe('old-map');
+    expect(launched.battlefield_mode).toBe('saved');
   });
 });

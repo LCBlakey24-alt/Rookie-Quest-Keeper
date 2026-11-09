@@ -323,7 +323,7 @@ function buildCharacter(config) {
     alignment: 'Neutral',
     personality_traits: 'Prototype test character.',
     ideals: 'Built to test class behaviour quickly.',
-    bonds: 'Linked to the Tia-Karta prototype campaign.',
+    bonds: 'Linked to a fictional sample campaign.',
     flaws: 'May reveal bugs. That is their sacred purpose.',
     backstory: `${config.name} is a local-only ${config.className} prototype for mobile testing.`,
     appearance: 'Prototype adventurer.',

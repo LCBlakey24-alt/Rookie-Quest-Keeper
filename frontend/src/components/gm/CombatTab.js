@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import InitiativeTracker from './InitiativeTracker';
 import apiClient from '@/lib/apiClient';
+import SavedEncounterBattlefieldEditor from './SavedEncounterBattlefieldEditor';
 
 const toNumber = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const dexMod = (stats = {}) => Math.floor(((toNumber(stats.dexterity, 10)) - 10) / 2);
@@ -152,7 +153,7 @@ function storyFocusFrom(arcs) {
   return { arc, chapter, beats: asList(chapter?.combats) };
 }
 
-export default function CombatTab({ theme: incomingTheme, campaignId, scenarios = [], selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players = [] }) {
+export default function CombatTab({ theme: incomingTheme, campaignId, scenarios = [], selectedScenario, setSelectedScenario, onScenarioUpdated, launchCombat, quickStartCombat, players = [] }) {
   const theme = incomingTheme || fallbackTheme;
   const [npcs, setNpcs] = useState([]);
   const [creatures, setCreatures] = useState([]);
@@ -380,6 +381,9 @@ export default function CombatTab({ theme: incomingTheme, campaignId, scenarios 
             {players.length > 0 && <Button onClick={quickStartCombat} data-testid="quick-combat-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, background: theme.accent.subtle, border: `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.secondary, fontSize: 15 }}><Users size={16} /> Start with All Players ({players.length})</Button>}
           </div>
           {selectedScenario && <SelectedScenarioPreview theme={theme} scenario={selectedScenario} scenarioWithParty={selectedScenarioWithParty} alreadyHasPlayers={selectedScenarioAlreadyHasPlayers} players={players} warnings={savedEncounterWarnings} />}
+          {selectedScenario && <SavedEncounterBattlefieldEditor key={`${campaignId}:${selectedScenario.id}`}
+            campaignId={campaignId} scenario={selectedScenario}
+            onSaved={saved => { setSelectedScenario?.(saved); onScenarioUpdated?.(saved); }} />}
         </section>
       </div>
 

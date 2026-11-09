@@ -47,11 +47,34 @@ export function shouldUseOfflineCache(config = {}) {
   if (method !== 'get') return false;
 
   const url = String(config.url || '').split('?')[0];
-  if (!url || url === '/auth/me' || url.startsWith('/auth/') || url.startsWith('/admin') || url.startsWith('/rook')) {
+  if (!url || url === '/auth/me' || url.startsWith('/auth/') || url.startsWith('/admin') || url.startsWith('/rook') || url.includes('/private-source-archive')) {
     return false;
   }
 
   return true;
+}
+
+/**
+ * A response belongs to the bearer session that initiated it, not whichever
+ * user happens to be signed in by the time it arrives. Reject stale responses
+ * *before* a component can render old campaign data or write an offline cache.
+ *
+ * Public sign-in/register requests are exempt: they legitimately replace an
+ * existing session. Every authenticated campaign/character read and mutation
+ * must still belong to the current token.
+ */
+export function assertCurrentResponseAccount(config = {}, currentToken = getAuthToken()) {
+  const url = String(config?.url || '').split('?')[0];
+  if (['/auth/login', '/auth/register', '/auth/google'].includes(url)) return;
+  const authorization = config?.headers?.Authorization
+    || config?.headers?.authorization
+    || config?.headers?.get?.('Authorization');
+  if (!authorization || !String(authorization).startsWith('Bearer ')) return;
+  if (authorization === `Bearer ${currentToken}`) return;
+  const error = new Error('The signed-in account changed before this request completed.');
+  error.rqkAuthScopeChanged = true;
+  error.config = config;
+  throw error;
 }
 
 export function assertExpectedAuthScope(config = {}, currentScope = '') {
@@ -160,6 +183,10 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (incomingConfig) => {
+  // Remember the session before *any* async request preparation. Even if
+  // character-creation validation loads a chunk while the account changes,
+  // the old operation may not silently go out under the next user's token.
+  const initiatingToken = getAuthToken();
   let config = applyLegacyApiCompatibility(incomingConfig);
   config = applyLoginTimeoutPolicy(config);
   config = await applyCharacterCreationReadinessPolicy(config);
@@ -181,6 +208,13 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
   }
   if (readCurrentScope) assertExpectedAuthScope(config, readCurrentScope());
   const token = getAuthToken();
+  const authPath = String(config.url || '').split('?')[0];
+  if (initiatingToken !== token && !['/auth/login', '/auth/register', '/auth/google'].includes(authPath)) {
+    const scopeError = new Error('The signed-in account changed before this request could be sent.');
+    scopeError.rqkAuthScopeChanged = true;
+    scopeError.config = config;
+    throw scopeError;
+  }
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
   // Record which account this request belongs to while it is going out. The
@@ -200,6 +234,7 @@ apiClient.interceptors.request.use(async (incomingConfig) => {
 apiClient.interceptors.response.use(
   (response) => {
     if (isLocalPreview()) return response;
+    assertCurrentResponseAccount(response.config);
 
     // IndexedDB/offline support is valuable once signed-in data is being read,
     // but it should not be part of public/auth startup. Load it after a cache-
@@ -212,6 +247,15 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
+    if (error?.rqkAuthScopeChanged) return Promise.reject(error);
+    if (!isLocalPreview() && error?.config) {
+      try {
+        assertCurrentResponseAccount(error.config);
+      } catch (scopeError) {
+        return Promise.reject(scopeError);
+      }
+    }
+
     if (error?.response?.data?.detail) {
       error.formattedDetail = formatApiErrorDetail(error.response.data.detail);
     } else if (isLoginNetworkFailure(error)) {

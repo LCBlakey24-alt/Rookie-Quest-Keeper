@@ -37,8 +37,23 @@
   grid-template-columns: 76px minmax(0, 1fr) !important;
 }
 
-#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] .rqk-app-rail {
+/* A 76px grid track alone does not constrain the rail's intrinsic size:
+ * the old 220px labelled navigation can still overflow its assigned track
+ * and cover the campaign title and tools. Chromium regression checks the
+ * rail's physical right edge against the campaign header and menu. */
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] > .rqk-app-rail {
+  width: 76px !important;
+  min-width: 0 !important;
+  max-width: 76px !important;
+  box-sizing: border-box !important;
+  justify-self: start !important;
+  overflow: hidden !important;
   padding: 14px 8px !important;
+}
+
+#root .rqk-app-shell[data-rq-focus='detail'][data-rq-device='desktop'] > .rqk-app-workspace {
+  grid-column: 2 !important;
+  min-width: 0 !important;
 }
 
 /* The words go, the targets do not: 46px keeps every control above the

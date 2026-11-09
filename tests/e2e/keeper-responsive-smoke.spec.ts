@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
 
 // This suite exercises a fresh built web app, not an existing PWA installation.
 // Prevent a previously installed service worker from replaying stale assets
@@ -84,6 +85,56 @@ test('Player Display fixed controls never cover its security and sync status', a
   expect(rectanglesOverlap(feedbackBox, syncBox), 'Feedback covered the access/sync status').toBe(false);
   expect(rectanglesOverlap(diceBox, contextBox), 'Dice covered the display context footer').toBe(false);
   await assertFitsViewport(page, 1024);
+});
+
+
+test('A saved tile-built battlefield appears with correctly positioned tokens on the virtual table', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.addInitScript(token => {
+    localStorage.setItem('dm_token', token);
+    localStorage.setItem('dm_username', 'responsive-display-user');
+    class QuietWebSocket {
+      readyState = 0;
+      send() {}
+      close() { this.readyState = 3; }
+    }
+    window.WebSocket = QuietWebSocket as unknown as typeof WebSocket;
+  }, syntheticDisplayToken);
+
+  const revision = Date.now() + 100000;
+  await page.route('**/api/**', route => {
+    const url = route.request().url();
+    if (url.endsWith('/display-state')) return route.fulfill({
+      status: 200, contentType: 'application/json', body: JSON.stringify({
+        campaign_id: 'responsive-campaign', sync_id: 'tile-grid-demo',
+        sequence: revision, updated_at: new Date(revision).toISOString(),
+        mode: 'combat', payload: {
+          title: 'Tile-built battlefield', display_target: 'virtual-table',
+          terrain_type: 'stone', terrain_grid: [
+            ['stone', 'grass'], ['sand', 'water'],
+          ], grid_cols: 2, grid_rows: 2,
+          round: 2, tokens: [{ id: 'wolf-1', name: 'Wolf', type: 'enemy', x: 25, y: 25 }],
+          party: [],
+        },
+      }),
+    });
+    if (url.endsWith('/players')) return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/player-display/responsive-campaign?target=virtual-table');
+  const canvas = page.getByTestId('public-terrain-grid');
+  await expect(canvas).toBeVisible();
+  await expect(page.getByTestId('combat-map-token-wolf-1')).toBeVisible();
+  const measurements = await canvas.evaluate(node => {
+    const canvas = node as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+    return { pixelsWide: canvas.width, pixelsHigh: canvas.height, width: rect.width, height: rect.height };
+  });
+  expect(measurements.pixelsWide).toBe(40);
+  expect(measurements.pixelsHigh).toBe(40);
+  expect(Math.abs(measurements.width - measurements.height)).toBeLessThanOrEqual(2);
+  await assertFitsViewport(page, 1280);
 });
 
 
@@ -204,25 +255,39 @@ for (const size of appSizes) {
     await expect(page.getByText(/No preparation needed/i)).toBeVisible();
     await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
 
-    // The battle-map choice belongs in keyboard order between encounter
-    // selection and the Reset/Start controls. Preserve 44px tap targets.
-    const battleMap = launcher.getByRole('combobox', { name: 'Battle map for this encounter' });
+    // The shared battlefield picker replaces the retired solitary map
+    // combobox. Verify accessibility, keyboard order and touch targets for
+    // the three source choices before Reset/Start.
+    const savedMap = launcher.getByRole('button', { name: 'Saved battle map' });
+    const generic = launcher.getByRole('button', { name: 'Generic textured floor' });
+    const none = launcher.getByRole('button', { name: 'No selection' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
-    const [choiceBounds, mapBounds, resetBounds, launchBounds] = await Promise.all([
-      choice.boundingBox(), battleMap.boundingBox(), reset.boundingBox(), launch.boundingBox(),
+    const [choiceBounds, savedBounds, genericBounds, noneBounds, resetBounds, launchBounds] = await Promise.all([
+      choice.boundingBox(), savedMap.boundingBox(), generic.boundingBox(),
+      none.boundingBox(), reset.boundingBox(), launch.boundingBox(),
     ]);
-    expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(mapBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(resetBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
+    for (const rect of [choiceBounds, savedBounds, genericBounds, noneBounds, resetBounds, launchBounds]) {
+      expect(rect?.height).toBeGreaterThanOrEqual(44);
+    }
     await choice.focus();
     await expect(choice).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(battleMap).toBeFocused();
+    await expect(savedMap).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(generic).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(none).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(reset).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(launch).toBeFocused();
+
+    // Terrain gallery must remain usable even on the narrow phone layout.
+    await generic.click();
+    await expect(launcher.getByTestId('terrain-choice-stone')).toBeVisible();
+    await expect(launcher.getByTestId('terrain-choice-lava')).toBeVisible();
+    await launcher.getByTestId('terrain-choice-grass').click();
+    await expect(launcher.getByTestId('terrain-choice-grass')).toHaveAttribute('aria-pressed','true');
     await assertFitsViewport(page, size.width);
 
     await testInfo.attach(`encounter-review-${size.label}`, {
@@ -728,6 +793,267 @@ for (const size of [
     await page.reload();
     await expect(hp).toHaveAttribute('aria-valuenow', '17');
     await expect(page.locator('.clean-sheet-combat-temp-pill')).toHaveText('Temp 1');
+    await assertFitsViewport(page, size.width);
+  });
+}
+
+
+// Screenshot outputs live outside test-results: Playwright's HTML reporter
+// clears that tree on exit, which previously erased successful attachments.
+async function capturePlayerScreenshot(page: Page, name: string) {
+  mkdirSync('qa-screenshots', { recursive: true });
+  await page.screenshot({ path: 'qa-screenshots/' + name + '.png' });
+}
+
+// Real Chromium player golden path, backed by a per-test in-memory API.
+// No live credentials, saved characters, campaign data, or hosted API writes.
+// Keeps the canonical creator and sheet usable across mobile and desktop.
+for (const scenario of [
+  { role: 'Fighter', width: 390, height: 844 },
+  { role: 'Wizard', width: 1440, height: 900 },
+] as const) {
+  test('player golden path: create, roll, damage, reload and open level up — ' + scenario.role, async ({ page }) => {
+    await page.setViewportSize({ width: scenario.width, height: scenario.height });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(token => {
+      localStorage.setItem('dm_token', token);
+      localStorage.setItem('dm_username', 'responsive-display-user');
+    }, syntheticDisplayToken);
+    await avoidThirdPartyRequests(page);
+
+    const characterId = 'isolated-player-journey-' + scenario.role.toLowerCase();
+    const heroName = 'QA ' + scenario.role + ' ' + characterId;
+    let stored: Record<string, any> | null = null;
+    let writes = 0;
+    let levelUpWrites = 0;
+    let preflightReads = 0;
+    const failures: string[] = [];
+    page.on('pageerror', error => failures.push(error.message));
+
+    await page.route('**/api/**', route => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      const json = (value: unknown, status = 200) => route.fulfill({
+        status, contentType: 'application/json', body: JSON.stringify(value),
+      });
+      if (path === '/api/auth/me') return json({ username: 'responsive-display-user', is_admin: false });
+      if (path === '/api/admin/check') return json({ is_admin: false });
+      if (path === '/api/site-settings') return json({
+        character_creation_enabled: true, campaign_creation_enabled: true,
+        uploads_enabled: false, rook_text_enabled: false,
+      });
+      if (path === '/api/dashboard/bootstrap') return json({
+        characters: stored ? [stored] : [], campaigns: [], homebrew_items: [],
+        site_settings: { character_creation_enabled: true }, is_admin: false,
+      });
+      if (path === '/api/characters' && request.method() === 'POST') {
+        stored = { ...(request.postDataJSON() as Record<string, any>), id: characterId, user_id: 'responsive-display-user' };
+        writes++;
+        return json(stored, 201);
+      }
+      if (path === '/api/characters' && request.method() === 'GET') return json(stored ? [stored] : []);
+      if (path === '/api/characters/' + characterId + '/level-up-options' && request.method() === 'GET') {
+        preflightReads++;
+        return json({
+          edition: '2014', hit_die: scenario.role === 'Fighter' ? 10 : 6,
+          can_choose_subclass: false, is_asi_level: false,
+          cantrips_to_learn: 0, spells_to_learn: scenario.role === 'Wizard' ? 2 : 0,
+        });
+      }
+      if (path === '/api/characters/' + characterId + '/level-up' && request.method() === 'POST') {
+        const payload = request.postDataJSON() as Record<string, any>;
+        if (payload.new_level !== 2 || payload.new_class !== scenario.role || payload.hp_method !== 'average') {
+          return json({ detail: 'Unexpected level-up request' }, 422);
+        }
+        if (!stored) return json({ detail: 'Test character not saved' }, 404);
+        levelUpWrites++;
+        const averageDie = scenario.role === 'Fighter' ? 6 : 4;
+        const gain = Math.max(1, averageDie + Math.floor((Number(stored.constitution || 10) - 10) / 2));
+        stored = {
+          ...stored, level: 2,
+          max_hit_points: Number(stored.max_hit_points || 0) + gain,
+          current_hit_points: Number(stored.current_hit_points || 0) + gain,
+          hit_dice: '2d' + (scenario.role === 'Fighter' ? 10 : 6),
+          hit_dice_remaining: 2,
+          class_levels: { [scenario.role]: 2 },
+        };
+        return json(stored);
+      }
+      if (path === '/api/characters/' + characterId && request.method() === 'GET') {
+        return stored ? json(stored) : json({ detail: 'Missing test character' }, 404);
+      }
+      if (path === '/api/characters/' + characterId && request.method() === 'PATCH') {
+        stored = { ...stored, ...(request.postDataJSON() as Record<string, any>) };
+        writes++;
+        return json(stored);
+      }
+      // Other optional rule-library requests use empty synthetic collections.
+      // All requests are trapped; no fixture accidentally reaches production.
+      return json(request.method() === 'GET' ? [] : {});
+    });
+
+    const next = () => page.locator('.full-creator-footer').getByRole('button', { name: /next/i }).click();
+    const choices = (heading: RegExp) => page.locator('section.full-creator-choice-block').filter({ hasText: heading });
+    await page.goto('/characters/new');
+    await expect(page.getByRole('heading', { name: 'Create Character' })).toBeVisible();
+    await page.getByLabel('Character name').fill(heroName);
+    await page.getByLabel('Rules edition').selectOption('2014');
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Choose race' })).toBeVisible();
+    const language = choices(/Race languages 0\/1/i);
+    await expect(language).toBeVisible();
+    await language.locator('button').first().click();
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Choose class' })).toBeVisible();
+    if (scenario.role === 'Wizard') {
+      await page.getByRole('group', { name: 'Class options' }).getByRole('button', { name: /Wizard/i }).click();
+    } else {
+      await choices(/Fighting Style/i).getByRole('button', { name: 'Defense' }).click();
+    }
+    const skills = choices(/Class skills [0-2]\/2/i);
+    await expect(skills).toBeVisible();
+    await skills.locator('button').nth(0).click();
+    await skills.locator('button').nth(1).click();
+    if (scenario.role === 'Wizard') {
+      for (const heading of [/Cantrips [0-3]\/3/i, /Level 1 spells [0-6]\/6/i]) {
+        const section = choices(heading);
+        await expect(section).toBeVisible();
+        const amount = heading.source.includes('Cantrips') ? 3 : 6;
+        for (let i = 0; i < amount; i++) await section.locator('button.full-creator-spell-chip').nth(i).click();
+      }
+    }
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Choose background' })).toBeVisible();
+    await next();
+    await expect(page.getByRole('heading', { name: 'Ability scores' })).toBeVisible();
+    await next();
+    await expect(page.getByRole('heading', { name: 'Equipment' })).toBeVisible();
+    await page.getByRole('button', { name: 'Roll starting gold', exact: true }).click();
+    await page.getByRole('button', { name: /^Roll \d+d\d+/i }).click();
+    await next();
+
+    await expect(page.getByRole('heading', { name: 'Review and save' })).toBeVisible();
+    const save = page.locator('.full-creator-footer').getByRole('button', { name: 'Create Character' });
+    await expect(save).toBeEnabled();
+    await save.click();
+    await expect(page).toHaveURL(new RegExp('/characters/' + characterId + '$'));
+    await expect(page.getByRole('heading', { name: heroName })).toBeVisible();
+    expect(writes, 'Character save must reach the backend exactly once').toBe(1);
+    expect(stored?.character_class).toBe(scenario.role);
+    expect(stored?.level).toBe(1);
+    expect(stored?.subclass, 'Fighter and Wizard cannot pick a 2014 subclass at level one').toBe('');
+    await expect(page.locator('.clean-sheet-hero-subtitle')).not.toContainText(/Champion|School of Abjuration/);
+    await assertFitsViewport(page, scenario.width);
+
+    if (scenario.role === 'Wizard') {
+      // Resources must align with the core content, not stretch under the
+      // fixed 215px desktop navigation rail.
+      const [resources, coreStats] = await Promise.all([
+        page.getByTestId('player-resource-rail').boundingBox(),
+        page.getByRole('region', { name: 'Character combat snapshot' }).boundingBox(),
+      ]);
+      expect(resources, 'Wizard resource rail must be rendered').not.toBeNull();
+      expect(coreStats, 'Core stats must be rendered').not.toBeNull();
+      expect(Math.abs((resources?.x || 0) - (coreStats?.x || 0)), 'Resource rail left edge must align with core stats').toBeLessThanOrEqual(3);
+      expect(Math.abs((resources?.width || 0) - (coreStats?.width || 0)), 'Resource rail width must align with core stats').toBeLessThanOrEqual(3);
+    } else {
+      const badge = await page.locator('.clean-sheet-hero-level-badge').boundingBox();
+      const options = await page.getByRole('button', { name: 'Character options' }).boundingBox();
+      expect(rectanglesOverlap(badge, options), 'Mobile level badge must not overlap character options').toBe(false);
+      const clipped = await page.locator('.rqk-cc-hero-name').evaluate(el => el.scrollWidth > el.clientWidth + 2);
+      expect(clipped, 'Long mobile character names must wrap instead of clipping').toBe(false);
+    }
+    await capturePlayerScreenshot(page, 'player-' + scenario.role.toLowerCase() + '-sheet-' + scenario.width + 'px');
+
+    const hitPoints = page.getByRole('meter', { name: 'Hit points remaining' });
+    const originalHp = Number(await hitPoints.getAttribute('aria-valuenow'));
+    await page.getByRole('button', { name: 'Take 1 hit point of damage' }).click();
+    await expect(hitPoints).toHaveAttribute('aria-valuenow', String(originalHp - 1));
+    await expect.poll(() => writes).toBe(2);
+
+    await page.locator('.clean-sheet-quick-stat--rollable').click();
+    await expect(page.getByTestId('flat-dice-overlay')).toBeVisible();
+    await expect(page.getByTestId('flat-dice-total')).toBeVisible();
+    await page.getByRole('button', { name: 'Close dice result' }).click();
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: heroName })).toBeVisible();
+    await expect(hitPoints).toHaveAttribute('aria-valuenow', String(originalHp - 1));
+
+    const levelUp = page.getByRole('button', { name: 'Level Up', exact: true });
+    if (await levelUp.isVisible()) {
+      await levelUp.click();
+    } else {
+      await page.getByRole('button', { name: 'Character options' }).click();
+      await page.getByRole('menuitem', { name: 'Level Up Character' }).click();
+    }
+    const wizard = page.getByTestId('level-up-wizard');
+    await expect(wizard).toBeVisible();
+    await assertFitsViewport(page, scenario.width);
+    await capturePlayerScreenshot(page, 'player-' + scenario.role.toLowerCase() + '-levelup-' + scenario.width + 'px');
+    await expect.poll(() => preflightReads, { timeout: 10_000 }).toBeGreaterThan(0);
+
+    if (scenario.role === 'Fighter') {
+      const advance = wizard.getByRole('button', { name: /^Next$/ });
+      await expect(wizard.getByRole('heading', { name: 'Choose where this level goes' })).toBeVisible();
+      await advance.click();
+      await expect(advance).toBeEnabled();
+      await advance.click();
+      await expect(wizard.getByRole('heading', { name: 'Choose how to gain hit points' })).toBeVisible();
+      await expect(wizard.getByTestId('level-up-hp-receipt')).toBeVisible();
+      await advance.click();
+      await expect(wizard.getByRole('heading', { name: 'Confirm progression' })).toBeVisible();
+      await wizard.getByRole('button', { name: 'Confirm Level 2' }).click();
+      await expect.poll(() => levelUpWrites).toBe(1);
+      await expect(wizard).toBeHidden();
+      await expect(page.getByText('Level 2', { exact: true }).first()).toBeVisible();
+      await page.reload();
+      await expect(page.getByRole('heading', { name: heroName })).toBeVisible();
+      await expect(page.getByText('Level 2', { exact: true }).first()).toBeVisible();
+      expect(stored?.level).toBe(2);
+      expect(levelUpWrites, 'Level-up must persist exactly once').toBe(1);
+      await assertFitsViewport(page, scenario.width);
+      await capturePlayerScreenshot(page, 'player-fighter-level2-' + scenario.width + 'px');
+    }
+    expect(failures, 'No uncaught browser exceptions during the player journey').toEqual([]);
+  });
+}
+
+
+// Regression for the real desktop campaign overlay reported Nov 2026.
+// Uses an isolated read-only preview campaign rather than real GM data.
+for (const size of [
+  { label: 'laptop', width: 1366, height: 768 },
+  { label: 'desktop', width: 1640, height: 900 },
+  { label: 'tablet', width: 1024, height: 768 },
+]) {
+  test('campaign workspace sidebar stays beside the app rail on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    const heading = page.getByRole('heading', { name: 'Preview campaign', exact: true });
+    await expect(heading).toBeVisible();
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+    const rail = page.locator('.rqk-app-rail');
+    const shell = page.locator('.rqk-app-shell');
+    const header = page.locator('.campaign-dashboard-header');
+    const nav = page.getByRole('navigation', { name: 'Campaign workspace' });
+    const campaignMain = page.locator('.guild-command-main');
+    const [railBox, shellBox, headerBox, navBox, mainBox, titleBox] = await Promise.all([
+      rail.boundingBox(), shell.boundingBox(), header.boundingBox(), nav.boundingBox(),
+      campaignMain.boundingBox(), heading.boundingBox(),
+    ]);
+    await capturePlayerScreenshot(page, 'player-campaign-nav-' + size.label);
+    expect(railBox && shellBox && headerBox && navBox && mainBox && titleBox, 'All layout surfaces must be mounted').toBeTruthy();
+    const railRight = (railBox?.x || 0) + (railBox?.width || 0);
+    const description = JSON.stringify({ railRight, headerBox, navBox, mainBox, titleBox });
+    expect((headerBox?.x || 0) + 2, 'Campaign header must not sit under the app rail: ' + description).toBeGreaterThanOrEqual(railRight);
+    expect((navBox?.x || 0) + 2, 'Campaign tools must not sit under the app rail: ' + description).toBeGreaterThanOrEqual(railRight);
+    expect((mainBox?.x || 0) + 2, 'Campaign content must not sit under the app rail: ' + description).toBeGreaterThanOrEqual(railRight);
+    expect((titleBox?.x || 0) + 2, 'Campaign title must not be obscured: ' + description).toBeGreaterThanOrEqual(railRight);
     await assertFitsViewport(page, size.width);
   });
 }

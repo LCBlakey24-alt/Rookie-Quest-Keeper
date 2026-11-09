@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { accountDraftStorageKey } from '@/lib/accountDraftStorage';
 
 const AUTOSAVE_DELAY_MS = 1200;
 const DRAFT_PREFIX = 'rqk.character-notes-draft:';
 
 function draftKey(characterId) {
-  return `${DRAFT_PREFIX}${characterId}`;
+  return accountDraftStorageKey(`${DRAFT_PREFIX}${characterId}`);
 }
 
 export function readCharacterNotesDraft(characterId) {

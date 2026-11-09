@@ -147,6 +147,12 @@ export function readCombatCheckpoint(campaignId, storage, options = {}) {
       currentTurn,
       round,
       selectedMapId: String(parsed.selectedMapId || ''),
+      map_override_generic: parsed.map_override_generic === true,
+      terrain_type: String(parsed.terrain_type || 'stone'),
+      grid_cols: Math.max(5, Math.min(100, Math.floor(finiteOr(parsed.grid_cols, 30)))),
+      grid_rows: Math.max(5, Math.min(100, Math.floor(finiteOr(parsed.grid_rows, 20)))),
+      feet_per_square: Math.max(1, Math.min(100, Math.floor(finiteOr(parsed.feet_per_square, 5)))),
+      show_grid: parsed.show_grid !== false,
       mapTokens: Array.isArray(parsed.mapTokens) ? parsed.mapTokens : [],
       collectedLoot: Array.isArray(parsed.collectedLoot) ? parsed.collectedLoot : [],
       initialPlayerStates: (parsed.initialPlayerStates && typeof parsed.initialPlayerStates === 'object')
@@ -171,6 +177,13 @@ export function scenarioFromCheckpoint(checkpoint) {
     name: checkpoint.scenarioName || 'Combat in progress',
     combatants: checkpoint.combatants,
     map_id: checkpoint.selectedMapId || '',
+    battlefield_mode: checkpoint.map_override_generic ? 'generic' : 'saved',
+    map_override_generic: checkpoint.map_override_generic === true,
+    terrain_type: checkpoint.terrain_type || 'stone',
+    grid_cols: checkpoint.grid_cols || 30,
+    grid_rows: checkpoint.grid_rows || 20,
+    feet_per_square: checkpoint.feet_per_square || 5,
+    show_grid: checkpoint.show_grid !== false,
     recovered: true,
   };
 }
