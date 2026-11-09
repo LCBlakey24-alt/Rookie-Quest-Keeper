@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner';
 import { Calendar as CalendarIcon, ChevronRight, Edit, Plus, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import usePrivateCampaignPackAccess from '@/hooks/usePrivateCampaignPackAccess';
 import './CalendarTab.css';
 import {
   calendarOrdinal,
@@ -15,6 +16,7 @@ const fallbackCalendar = { calendar_type: 'gregorian', current_day: 1, current_m
 
 
 export default function CalendarTab({ campaignId }) {
+  const canUsePersonalCampaignPacks = usePrivateCampaignPackAccess(campaignId);
   const activeCampaignRef = useRef(campaignId);
   const [calendar, setCalendar] = useState(null);
   const [events, setEvents] = useState([]);
@@ -116,6 +118,7 @@ export default function CalendarTab({ campaignId }) {
   };
 
   const applyTiaKarta = async () => {
+    if (!canUsePersonalCampaignPacks) return;
     if (!window.confirm('Apply the Tia-Karta 12-month calendar? If this campaign already has a custom in-world date it will be preserved. Existing events will not be deleted.')) return;
     setApplyingTiaKarta(true);
     try {
@@ -281,7 +284,7 @@ export default function CalendarTab({ campaignId }) {
             <h2><CalendarIcon size={22} aria-hidden="true" /> Campaign calendar</h2>
             <p>Plan events, navigate the world calendar and track this party's independent date.</p>
           </div>
-          <button type="button" className="btn-secondary" onClick={applyTiaKarta} disabled={applyingTiaKarta}>{applyingTiaKarta ? 'Restoring…' : 'Restore Tia-Karta months'}</button>
+          {canUsePersonalCampaignPacks && <button type="button" className="btn-secondary" onClick={applyTiaKarta} disabled={applyingTiaKarta}>{applyingTiaKarta ? 'Restoring…' : 'Restore Tia-Karta months'}</button>}
         </header>
 
         <section className="rqk-calendar-panel rqk-calendar-current">
@@ -341,7 +344,7 @@ export default function CalendarTab({ campaignId }) {
           {showCalendarEditor && structureDraft && (
             <form className="rqk-calendar-structure-form" onSubmit={saveCalendarSettings}>
               <p>Edit month names, lengths and seasons, or the number of days in a week.
-                This affects only this campaign. The 12-month Tia-Karta standard is available with the Restore button above.</p>
+                This affects only this campaign. You can create any calendar structure you like.</p>
               <label>Days per week
                 <input data-testid="calendar-week-length" type="number" min="1" max="10"
                   value={structureDraft.days_per_week}
