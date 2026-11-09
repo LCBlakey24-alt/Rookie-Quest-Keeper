@@ -124,11 +124,11 @@ export const LATEST_UPDATES = [
     badge: 'New',
     category: 'Prototype Mode',
     title: 'Local mobile prototype lab added',
-    summary: 'A backend-free mobile prototype lab now lets every core class and the Tia-Karta GM world be tested locally in the browser.',
+    summary: 'A backend-free mobile prototype lab now lets every core class and a fictional sample GM world be tested locally in the browser.',
     details: [
       'Added one local prototype character for every core class so class-specific HP, Hit Dice, resources, spells, rests, and sheet behaviour can be compared quickly.',
       'Added a mobile-first prototype sheet with a left icon rail for Overview, Combat, Spells, Inventory, and Notes.',
-      'Added a local Tia-Karta GM prototype page with gods, places, factions, campaign hooks, rebuild levers, and local GM notes.',
+      'Added a local fictional GM prototype page with gods, places, factions, campaign hooks, and editable GM notes.',
       'Prototype changes save to browser localStorage so testing is much smoother without waiting for backend calls.',
     ],
     public: true,
