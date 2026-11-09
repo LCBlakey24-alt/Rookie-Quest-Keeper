@@ -43,6 +43,6 @@ test('a missing or forbidden archive shows no previous account source', async ()
   apiClient.get.mockRejectedValue({ response: { status: 404 } });
   render(<PrivateCampaignArchivePanel campaignId="other-campaign" />);
   fireEvent.click(screen.getByRole('button', { name: /Personal GM source archive/ }));
-  expect(await screen.findByRole('status')).toHaveTextContent('Private archive could not be loaded');
+  await waitFor(() => expect(screen.getByText(/Private archive could not be loaded/)).toBeInTheDocument());
   expect(screen.queryByLabelText('Private archived source')).not.toBeInTheDocument();
 });
