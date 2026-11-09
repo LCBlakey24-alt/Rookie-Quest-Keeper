@@ -95,7 +95,7 @@ export default function WorldsLandingPage() {
 
         <div className="rq-worlds-nav-links">
           <button type="button" onClick={() => scrollToSection('discover')}>Discover</button>
-          <button type="button" onClick={() => scrollToSection('tia-karta')}>Tia-Karta</button>
+          <button type="button" onClick={() => scrollToSection('worlds-prototype')}>Prototype</button>
           <button type="button" onClick={() => scrollToSection('ecosystem')}>Connected play</button>
         </div>
 
@@ -129,8 +129,8 @@ export default function WorldsLandingPage() {
               <button className="rq-worlds-button rq-worlds-button-primary" type="button" onClick={() => scrollToSection('discover')}>
                 Explore the vision <Compass size={17} aria-hidden="true" />
               </button>
-              <button className="rq-worlds-button rq-worlds-button-secondary" type="button" onClick={() => scrollToSection('tia-karta')}>
-                Preview Tia-Karta <ArrowRight size={17} aria-hidden="true" />
+              <button className="rq-worlds-button rq-worlds-button-secondary" type="button" onClick={() => scrollToSection('worlds-prototype')}>
+                Preview the format <ArrowRight size={17} aria-hidden="true" />
               </button>
             </div>
             <p className="rq-worlds-roadmap-note">Worlds is being designed now, but it is not being presented as a finished shop or released product yet.</p>
@@ -145,7 +145,7 @@ export default function WorldsLandingPage() {
               <div className="rq-worlds-atlas-pin rq-worlds-atlas-pin-one"><Mountain size={19} /></div>
               <div className="rq-worlds-atlas-pin rq-worlds-atlas-pin-two"><Castle size={18} /></div>
               <div className="rq-worlds-atlas-label rq-worlds-atlas-label-one">THE SILVER REACHES</div>
-              <div className="rq-worlds-atlas-label rq-worlds-atlas-label-two">TIA-KARTA</div>
+              <div className="rq-worlds-atlas-label rq-worlds-atlas-label-two">A NEW REALM</div>
             </div>
             <div className="rq-worlds-atlas-caption">
               <BookOpen size={18} aria-hidden="true" />
@@ -181,21 +181,21 @@ export default function WorldsLandingPage() {
           </div>
         </section>
 
-        <section className="rq-worlds-tia" id="tia-karta">
+        <section className="rq-worlds-tia" id="worlds-prototype">
           <div className="rq-worlds-tia-map" aria-hidden="true">
             <div className="rq-worlds-tia-map-ring" />
             <div className="rq-worlds-tia-continent rq-worlds-tia-continent-a" />
             <div className="rq-worlds-tia-continent rq-worlds-tia-continent-b" />
             <div className="rq-worlds-tia-continent rq-worlds-tia-continent-c" />
-            <span className="rq-worlds-tia-map-label">TIA-KARTA</span>
+            <span className="rq-worlds-tia-map-label">A NEW REALM</span>
           </div>
 
           <div className="rq-worlds-tia-copy">
             <p className="rq-worlds-kicker">Featured world · Prototype</p>
-            <h2>Tia-Karta</h2>
-            <h3>The first setting we can use to prove what Rookie Quest Worlds should become.</h3>
+            <h2>A world you can make your own</h2>
+            <h3>A future showcase for what Rookie Quest Worlds can become.</h3>
             <p>
-              Instead of filling this page with fake products, Tia-Karta will be our working example: a real world we can shape into regions, places, people, adventures and practical GM material while the Worlds format is developed.
+              Worlds will eventually include original, opt-in public settings designed for all tables. Private GM campaigns remain in their owners' Keeper accounts and are never published as starter content.
             </p>
 
             <div className="rq-worlds-tia-chapters">
@@ -258,8 +258,8 @@ export default function WorldsLandingPage() {
             <button className="rq-worlds-button rq-worlds-button-secondary" type="button" onClick={() => navigate('/')}>
               <ArrowLeft size={17} aria-hidden="true" /> Back to Rookie Quest
             </button>
-            <button className="rq-worlds-button rq-worlds-button-primary" type="button" onClick={() => scrollToSection('tia-karta')}>
-              Return to Tia-Karta <Compass size={17} aria-hidden="true" />
+            <button className="rq-worlds-button rq-worlds-button-primary" type="button" onClick={() => scrollToSection('worlds-prototype')}>
+              Return to the prototype <Compass size={17} aria-hidden="true" />
             </button>
           </div>
         </section>
