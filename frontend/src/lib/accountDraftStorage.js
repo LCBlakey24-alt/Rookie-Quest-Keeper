@@ -13,7 +13,8 @@ import { isLocalPreview } from '@/preview/previewMode';
  * drafts that have not yet been persisted to the backend.
  */
 export function accountDraftStorageKey(baseKey) {
+  const token = getAuthToken();
   const account = isLocalPreview() ? 'local-preview'
-    : accountFromToken(getAuthToken() || '') || (getAuthToken() ? getStoredAuthUsername() : '') || 'no-session';
+    : accountFromToken(token || '') || (token ? getStoredAuthUsername() : '') || 'no-session';
   return `${String(baseKey)}:owner:${encodeURIComponent(String(account).trim().toLowerCase())}`;
 }
