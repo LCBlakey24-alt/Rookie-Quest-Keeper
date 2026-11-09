@@ -6,6 +6,7 @@ import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 import { createDisplayState, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
+import usePrivateCampaignPackAccess from '@/hooks/usePrivateCampaignPackAccess';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -44,6 +45,7 @@ function displaySubtitle(state) {
 }
 
 export default function LiveSecondScreenDock({ campaignId }) {
+  const canUsePersonalCampaignPacks = usePrivateCampaignPackAccess(campaignId);
   const initialExtras = getLiveBootstrapExtras(campaignId);
   const [state, setState] = useState(() => initialExtras?.displayState || loadDisplayState(campaignId));
   const [maps, setMaps] = useState(() => Array.isArray(initialExtras?.maps) ? initialExtras.maps : []);
@@ -156,7 +158,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
     }
   };
 
-  const sendPreset = (preset) => publish('title', {
+  const sendPreset = (preset) => canUsePersonalCampaignPacks && publish('title', {
     eyebrow: preset.eyebrow,
     title: preset.title,
     subtitle: preset.subtitle,
@@ -230,10 +232,12 @@ export default function LiveSecondScreenDock({ campaignId }) {
         </div>
       )}
 
-      <section style={buttonGroupStyle}>
-        <p style={sectionLabelStyle}>Quick reveals</p>
-        {tiaKartaSecondScreenPresets.slice(0, 10).map(preset => <button key={preset.id} type="button" onClick={() => sendPreset(preset)} disabled={busy === preset.id} style={revealButtonStyle}><Send size={13} /> {preset.title}</button>)}
-      </section>
+      {canUsePersonalCampaignPacks && (
+        <section style={buttonGroupStyle} data-testid="personal-campaign-quick-reveals">
+          <p style={sectionLabelStyle}>Personal campaign quick reveals</p>
+          {tiaKartaSecondScreenPresets.slice(0, 10).map(preset => <button key={preset.id} type="button" onClick={() => sendPreset(preset)} disabled={busy === preset.id} style={revealButtonStyle}><Send size={13} /> {preset.title}</button>)}
+        </section>
+      )}
 
       <section style={buttonGroupStyle}>
         <p style={sectionLabelStyle}>NPCs · select multiple</p>
