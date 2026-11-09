@@ -223,6 +223,7 @@ export default function CombatPageTable() {
   // tracker/map tabs remain available for small screens and focused use.
   const [view, setView] = useState('battle');
   const [maps, setMaps] = useState([]);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
   const [selectedMapId, setSelectedMapId] = useState('');
   const [mapOverrideGeneric, setMapOverrideGeneric] = useState(false);
   const [terrainType, setTerrainType] = useState('stone');
@@ -373,10 +374,24 @@ export default function CombatPageTable() {
   }, [campaignId, combatKey, navigate, scenario, source, fromRecovery, recovery, accountId, checkpointConflict, routerScenario]);
 
   useEffect(() => {
-    if (!campaignId || !scenario || !accountId) return;
+    let cancelled = false;
+    setMaps([]);
+    setMapsLoaded(false);
+    if (!campaignId || !scenario || !accountId) return undefined;
     apiClient.get(`/campaigns/${campaignId}/maps`)
-      .then(response => setMaps(safeArray(response.data)))
-      .catch(() => setMaps([]));
+      .then(response => {
+        if (!cancelled) {
+          setMaps(safeArray(response.data));
+          setMapsLoaded(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMaps([]);
+          setMapsLoaded(true);
+        }
+      });
+    return () => { cancelled = true; };
   }, [campaignId, scenario, accountId]);
 
   useEffect(() => {
@@ -432,7 +447,7 @@ export default function CombatPageTable() {
     // Do not initialise before the encounter restore effect has consumed its
     // checkpoint. An empty initial render previously queued setMapTokens([])
     // after restoring saved positions, silently replacing exact token cells.
-    if (!initialised || !combatants.length || !displayedMap || mapTokens.length) return;
+    if (!initialised || !mapsLoaded || !combatants.length || !displayedMap || mapTokens.length) return;
     const savedTokens = safeArray(displayedMap.tokens);
     setMapTokens(combatants.map((combatant, index) => {
       const saved = savedTokens.find(token => token.id === combatant.id);
@@ -446,7 +461,7 @@ export default function CombatPageTable() {
         isAlly: combatant.type === 'player' || combatant.type === 'npc',
       };
     }));
-  }, [combatants, mapTokens.length, displayedMap, initialised]);
+  }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
