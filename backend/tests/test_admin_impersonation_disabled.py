@@ -46,3 +46,14 @@ def test_route_stays_registered_as_a_deny_only_tombstone():
               if getattr(route, "path", None) == "/admin/users/{target_username}/impersonate"]
     assert len(routes) == 1
     assert routes[0].methods == {"POST"}
+
+
+def test_admin_cannot_export_every_users_private_campaign_titles(monkeypatch):
+    class ForbiddenDb:
+        def __getattr__(self, name):
+            raise AssertionError(f"Private campaign export touched {name}")
+
+    monkeypatch.setattr(admin, "db", ForbiddenDb())
+    with pytest.raises(HTTPException) as denied:
+        asyncio.run(admin.admin_export_campaigns_csv(username="site-admin"))
+    assert denied.value.status_code == 403
