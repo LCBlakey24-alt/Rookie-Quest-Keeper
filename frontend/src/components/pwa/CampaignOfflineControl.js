@@ -76,6 +76,22 @@ export default function CampaignOfflineControl() {
     return () => { cancelled = true; };
   }, [audience, campaignId, playerMode]);
 
+  useEffect(() => {
+    const openOnRequest = () => {
+      const active = campaignContextFromPath(window.location.pathname);
+      if (active.campaignId === campaignId && active.audience === audience) setOpen(true);
+    };
+    window.addEventListener('rqk:open-offline-campaign', openOnRequest);
+    return () => window.removeEventListener('rqk:open-offline-campaign', openOnRequest);
+  }, [audience, campaignId]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const closeOnEscape = event => { if (event.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [open]);
+
   const status = useMemo(() => {
     if (downloading) return { label: 'Downloading', tone: 'working' };
     if (!pack) return { label: 'Not downloaded', tone: 'empty' };
@@ -130,8 +146,12 @@ export default function CampaignOfflineControl() {
       ? 'Maps, images & attachments'
       : playerMode ? 'Player-safe campaign data' : 'Campaign data';
 
+  // Only show the manager when deliberately opened from the campaign.
+  // Offline caches, downloaded packs and background syncing remain intact.
+  if (!open) return null;
+
   return (
-    <div className="rqk-offline-control" data-open={open ? 'true' : 'false'} data-audience={audience}>
+    <div className="rqk-offline-control" data-open="true" data-audience={audience}>
       {open && (
         <section className="rqk-offline-card" aria-label="Offline campaign">
           <header className="rqk-offline-card__header">
@@ -203,17 +223,6 @@ export default function CampaignOfflineControl() {
         </section>
       )}
 
-      <button
-        type="button"
-        className="rqk-offline-launcher"
-        data-tone={pack?.failedSections ? 'warning' : pack ? 'ready' : 'default'}
-        onClick={() => setOpen(value => !value)}
-        aria-expanded={open}
-        title={playerMode ? 'Offline player campaign' : 'Offline campaign'}
-      >
-        {pack ? <CheckCircle2 size={16} /> : <Download size={16} />}
-        <span>Offline</span>
-      </button>
     </div>
   );
 }
