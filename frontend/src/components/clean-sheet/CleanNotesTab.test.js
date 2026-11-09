@@ -97,7 +97,7 @@ test('keeps a failed autosave draft locally and restores it when the Notes tab r
 });
 
 test('a new signed-in account cannot read a previous account’s unsaved character notes', () => {
-  const encode = value => window.btoa(JSON.stringify(value)).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');
+  const encode = value => window.btoa(JSON.stringify(value)).replace(/=/g, '').replaceAll('+', '-').replaceAll('/', '_');
   const tokenFor = sub => `${encode({ alg: 'HS256' })}.${encode({ sub })}.signature`;
 
   setAuthToken(tokenFor('account-a'));
