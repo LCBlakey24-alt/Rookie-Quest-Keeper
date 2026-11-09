@@ -817,6 +817,8 @@ for (const scenario of [
     const heroName = 'QA ' + scenario.role + ' ' + characterId;
     let stored: Record<string, any> | null = null;
     let writes = 0;
+    let levelUpWrites = 0;
+    let preflightReads = 0;
     const failures: string[] = [];
     page.on('pageerror', error => failures.push(error.message));
 
@@ -842,6 +844,32 @@ for (const scenario of [
         return json(stored, 201);
       }
       if (path === '/api/characters' && request.method() === 'GET') return json(stored ? [stored] : []);
+      if (path === '/api/characters/' + characterId + '/level-up-options' && request.method() === 'GET') {
+        preflightReads++;
+        return json({
+          edition: '2014', hit_die: scenario.role === 'Fighter' ? 10 : 6,
+          can_choose_subclass: false, is_asi_level: false,
+          cantrips_to_learn: 0, spells_to_learn: 0,
+        });
+      }
+      if (path === '/api/characters/' + characterId + '/level-up' && request.method() === 'POST') {
+        const payload = request.postDataJSON() as Record<string, any>;
+        if (payload.new_level !== 2 || payload.new_class !== scenario.role || payload.hp_method !== 'average') {
+          return json({ detail: 'Unexpected level-up request' }, 422);
+        }
+        if (!stored) return json({ detail: 'Test character not saved' }, 404);
+        levelUpWrites++;
+        const gain = scenario.role === 'Fighter' ? 6 : 4;
+        stored = {
+          ...stored, level: 2,
+          max_hit_points: Number(stored.max_hit_points || 0) + gain,
+          current_hit_points: Number(stored.current_hit_points || 0) + gain,
+          hit_dice: '2d' + (scenario.role === 'Fighter' ? 10 : 6),
+          hit_dice_remaining: 2,
+          class_levels: { [scenario.role]: 2 },
+        };
+        return json(stored);
+      }
       if (path === '/api/characters/' + characterId && request.method() === 'GET') {
         return stored ? json(stored) : json({ detail: 'Missing test character' }, 404);
       }
@@ -931,11 +959,35 @@ for (const scenario of [
       await page.getByRole('button', { name: 'Character options' }).click();
       await page.getByRole('menuitem', { name: 'Level Up Character' }).click();
     }
-    await expect(page.getByText(/Level Up|Multiclass/i).first()).toBeVisible();
+    const wizard = page.getByTestId('level-up-wizard');
+    await expect(wizard).toBeVisible();
     await assertFitsViewport(page, scenario.width);
     await testInfo.attach('player-' + scenario.role.toLowerCase() + '-levelup-' + scenario.width + 'px', {
       body: await page.screenshot(), contentType: 'image/png',
     });
+    await expect.poll(() => preflightReads, { timeout: 10_000 }).toBeGreaterThan(0);
+
+    if (scenario.role === 'Fighter') {
+      const advance = wizard.getByRole('button', { name: /^Next$/ });
+      await expect(wizard.getByRole('heading', { name: 'Choose where this level goes' })).toBeVisible();
+      await advance.click();
+      await expect(advance).toBeEnabled();
+      await advance.click();
+      await expect(wizard.getByRole('heading', { name: 'Choose how to gain hit points' })).toBeVisible();
+      await expect(wizard.getByTestId('level-up-hp-receipt')).toBeVisible();
+      await advance.click();
+      await expect(wizard.getByRole('heading', { name: 'Confirm progression' })).toBeVisible();
+      await wizard.getByRole('button', { name: 'Confirm Level 2' }).click();
+      await expect.poll(() => levelUpWrites).toBe(1);
+      await expect(wizard).toBeHidden();
+      await expect(page.getByText('Level 2', { exact: true }).first()).toBeVisible();
+      await page.reload();
+      await expect(page.getByRole('heading', { name: heroName })).toBeVisible();
+      await expect(page.getByText('Level 2', { exact: true }).first()).toBeVisible();
+      expect(stored?.level).toBe(2);
+      expect(levelUpWrites, 'Level-up must persist exactly once').toBe(1);
+      await assertFitsViewport(page, scenario.width);
+    }
     expect(failures, 'No uncaught browser exceptions during the player journey').toEqual([]);
   });
 }
