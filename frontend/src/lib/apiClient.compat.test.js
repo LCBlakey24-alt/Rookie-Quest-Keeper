@@ -181,6 +181,8 @@ describe('offline cache gate', () => {
     [{ method: 'get', url: '/auth/me' }, false],
     [{ method: 'get', url: '/auth/me?fresh=1' }, false],
     [{ method: 'get', url: '/admin/check' }, false],
+    [{ method: 'get', url: '/campaigns/any/private-source-archive' }, false],
+    [{ method: 'get', url: '/campaigns/any/private-source-archive/source-sha' }, false],
     [{ method: 'get', url: '/rook/chat' }, false],
     [{ method: 'get', url: '/campaigns' }, true],
     [{ method: 'get', url: '/characters/c1' }, true],
