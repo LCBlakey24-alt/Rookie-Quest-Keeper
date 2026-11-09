@@ -12,7 +12,7 @@ jest.mock('@/components/MyCampaignsPage', () => () => {
   // Simulate a screen holding a previous account's records in React state.
   // Only a complete remount may change this value.
   const React = require('react');
-  const [ownerAtMount] = React.useState(() => localStorage.getItem('dm_username'));
+  const [ownerAtMount] = React.useState(() => globalThis.localStorage.getItem('dm_username'));
   return <h1>Campaign workspace for {ownerAtMount}</h1>;
 });
 jest.mock('@/components/gm/PlayerDisplayPage', () => () => <h1>Player display</h1>);
