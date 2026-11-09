@@ -274,7 +274,11 @@ def test_deleting_the_account_ends_an_open_socket(db, client):
 
 
 def test_token_expiry_ends_an_open_socket_without_any_database_change(db, client):
-    short = jwt.encode({'sub': PLAYER, 'tv': 0, 'exp': int(time.time()) + 1},
+    # A one-second JWT can expire during the WebSocket handshake on loaded
+    # CI runners, testing refusal at CONNECT instead of expiry while OPEN.
+    # Leave room for authentication to finish; the socket watcher still must
+    # close the connection automatically at its actual JWT expiry.
+    short = jwt.encode({'sub': PLAYER, 'tv': 0, 'exp': int(time.time()) + 4},
                        auth_utils.JWT_SECRET, algorithm=auth_utils.JWT_ALGORITHM)
     with live(client, short) as ws:
         assert ping(ws) == {'type': 'pong'}
