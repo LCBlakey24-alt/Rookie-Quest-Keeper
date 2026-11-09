@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Download, LogIn, RefreshCw, Search, Users as UsersIcon } from 'lucide-react';
+import { Download, RefreshCw, Search, Users as UsersIcon } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 
 const rq = {
   panel: 'var(--rq-bg-panel, #242424)',
@@ -38,17 +37,12 @@ const subtleButtonStyle = {
   fontSize: 11, fontWeight: 800, cursor: 'pointer'
 };
 
-/**
- * AdminUsersTab — user account list + email visibility + usage counts + CSV exports + impersonation.
- * Impersonation stashes the admin's current token in sessionStorage so the
- * admin can restore their session later via the top-banner "Stop impersonating" button.
- */
+/** Admin-only account management: usage summaries and CSV exports, not account access. */
 export default function AdminUsersTab() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [exportingKind, setExportingKind] = useState('');
-  const [impersonatingUser, setImpersonatingUser] = useState('');
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches);
 
   useEffect(() => {
@@ -92,27 +86,6 @@ export default function AdminUsersTab() {
       toast.error(err?.response?.data?.detail || `Failed to export ${kind}`);
     } finally {
       setExportingKind('');
-    }
-  };
-
-  const impersonate = async (targetUsername) => {
-    if (!window.confirm(`Impersonate ${targetUsername}? Your current session will be stashed and restorable via the top banner.`)) return;
-    try {
-      setImpersonatingUser(targetUsername);
-      const res = await apiClient.post(`/admin/users/${encodeURIComponent(targetUsername)}/impersonate`, {});
-      const { token, username } = res.data || {};
-      if (!token) throw new Error('No token returned');
-      const adminToken = getAuthToken();
-      const adminUsername = localStorage.getItem(AUTH_USERNAME_KEY);
-      sessionStorage.setItem('rq_admin_token_stash', adminToken || '');
-      sessionStorage.setItem('rq_admin_username_stash', adminUsername || '');
-      setAuthToken(token);
-      localStorage.setItem(AUTH_USERNAME_KEY, username);
-      toast.success(`Now viewing as ${username}`);
-      window.location.assign('/home');
-    } catch (err) {
-      toast.error(err?.response?.data?.detail || 'Impersonation failed');
-      setImpersonatingUser('');
     }
   };
 
@@ -178,23 +151,14 @@ export default function AdminUsersTab() {
           {filtered.length === 0 ? (
             <div style={emptyStyle}>No users match</div>
           ) : filtered.map(user => {
-            const impersonating = impersonatingUser === user.username;
             return (
-              <article key={user.username || user.email} data-testid={`user-row-${user.username}`} style={userCardStyle} aria-busy={impersonating ? 'true' : 'false'}>
+              <article key={user.username || user.email} data-testid={`user-row-${user.username}`} style={userCardStyle}>
                 <div style={userCardHeaderStyle}>
                   <div style={{ minWidth: 0 }}>
                     <strong style={userNameStyle}>{user.username || 'Unnamed user'}</strong>
                     <span style={userMetaStyle}>{user.email || 'No recovery email'}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => impersonate(user.username)}
-                    data-testid={`impersonate-${user.username}`}
-                    style={busySubtleStyle(impersonating)}
-                    disabled={!user.username || Boolean(impersonatingUser)}
-                  >
-                    {impersonating ? <RefreshCw size={12} style={usersSpinStyle} /> : <LogIn size={12} />} {impersonating ? 'Opening…' : 'Impersonate'}
-                  </button>
+
                 </div>
                 <div style={userStatsGridStyle}>
                   <MiniStat label="Joined" value={formatDate(user.created_at)} />
@@ -221,17 +185,15 @@ export default function AdminUsersTab() {
                 <th style={thStyle}>Joined</th>
                 <th style={thStyle}>Feedback</th>
                 <th style={thStyle}>Reviews</th>
-                <th style={{ ...thStyle, width: 150 }}></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan="9" style={{ color: rq.muted, padding: 24, textAlign: 'center' }}>No users match</td></tr>
+                <tr><td colSpan="8" style={{ color: rq.muted, padding: 24, textAlign: 'center' }}>No users match</td></tr>
               ) : (
                 filtered.map(user => {
-                  const impersonating = impersonatingUser === user.username;
-                  return (
-                    <tr key={user.username || user.email} data-testid={`user-row-${user.username}`} style={trStyle} aria-busy={impersonating ? 'true' : 'false'}>
+                        return (
+                    <tr key={user.username || user.email} data-testid={`user-row-${user.username}`} style={trStyle}>
                       <td style={tdStrongStyle}>{user.username || '-'}</td>
                       <td style={tdStyle}>{user.email || '-'}</td>
                       <td style={tdStyle}>{formatDate(user.created_at)}</td>
@@ -240,17 +202,7 @@ export default function AdminUsersTab() {
                       <td style={tdNumberStyle}>{user.joined_campaign_count || 0}</td>
                       <td style={tdNumberStyle}>{user.feedback_count || 0}</td>
                       <td style={tdNumberStyle}>{user.review_count || 0}</td>
-                      <td style={{ padding: '10px', textAlign: 'right' }}>
-                        <button
-                          type="button"
-                          onClick={() => impersonate(user.username)}
-                          data-testid={`impersonate-${user.username}`}
-                          style={busySubtleStyle(impersonating)}
-                          disabled={!user.username || Boolean(impersonatingUser)}
-                        >
-                          {impersonating ? <RefreshCw size={12} style={usersSpinStyle} /> : <LogIn size={12} />} {impersonating ? 'Opening…' : 'Impersonate'}
-                        </button>
-                      </td>
+
                     </tr>
                   );
                 })
