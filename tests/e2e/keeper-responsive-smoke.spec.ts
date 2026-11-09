@@ -849,7 +849,7 @@ for (const scenario of [
         return json({
           edition: '2014', hit_die: scenario.role === 'Fighter' ? 10 : 6,
           can_choose_subclass: false, is_asi_level: false,
-          cantrips_to_learn: 0, spells_to_learn: 0,
+          cantrips_to_learn: 0, spells_to_learn: scenario.role === 'Wizard' ? 2 : 0,
         });
       }
       if (path === '/api/characters/' + characterId + '/level-up' && request.method() === 'POST') {
@@ -859,7 +859,8 @@ for (const scenario of [
         }
         if (!stored) return json({ detail: 'Test character not saved' }, 404);
         levelUpWrites++;
-        const gain = scenario.role === 'Fighter' ? 6 : 4;
+        const averageDie = scenario.role === 'Fighter' ? 6 : 4;
+        const gain = Math.max(1, averageDie + Math.floor((Number(stored.constitution || 10) - 10) / 2));
         stored = {
           ...stored, level: 2,
           max_hit_points: Number(stored.max_hit_points || 0) + gain,
