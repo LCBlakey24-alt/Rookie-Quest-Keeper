@@ -1,7 +1,15 @@
-import { tiaKartaCalendar } from '@/data/tiaKartaCalendar';
+// Synthetic six-day calendar fixture. Not tied to any user's campaign.
+const calendarFixture = () => ({
+  calendar_type: 'custom',
+  days_per_week: 6,
+  current_day: 25, current_month: 1, current_year: 592,
+  custom_months: Array.from({ length: 12 }, (_, index) => ({
+    name: `Month ${index + 1}`, days: 30,
+  })),
+});
 import { eventCountdownLabel, nextCampaignEvent } from './campaignHomeCalendar';
 
-const date = tiaKartaCalendar('spilsby-wednesday');
+const date = calendarFixture();
 
 describe('GM home calendar summary', () => {
   test('finds repeating events instead of dropping their past initial dates', () => {
