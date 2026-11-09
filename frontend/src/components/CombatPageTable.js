@@ -464,7 +464,10 @@ export default function CombatPageTable() {
   }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded]);
 
   useEffect(() => {
-    if (!initialised || !scenario || !campaignId) return undefined;
+    // Do not broadcast the generic loading placeholder to an external TV
+    // before the prepared saved map has finished resolving. Both displays
+    // should receive one coherent battlefield and matching token positions.
+    if (!initialised || !mapsLoaded || !scenario || !campaignId) return undefined;
     const timer = window.setTimeout(() => {
       // Canvas token coordinates are map-cell indices. Convert once to the
       // display's percentage-based coordinate contract for both players and
@@ -517,7 +520,7 @@ export default function CombatPageTable() {
       })).catch(() => {});
     }, 120);
     return () => window.clearTimeout(timer);
-  }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap, terrainType, mapTokens, displayedMap, sourceImageActive]);
+  }, [active, campaignId, combatBanner, combatants, initialised, mapsLoaded, round, scenario, selectedMap, terrainType, mapTokens, displayedMap, sourceImageActive]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
