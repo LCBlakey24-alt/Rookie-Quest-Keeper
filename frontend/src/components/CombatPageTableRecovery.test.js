@@ -153,6 +153,59 @@ test('a recovered fight restores the generic terrain choice without losing wound
   expect(saved.combatants.find(combatant => combatant.id === 'c1').hp).toBe(22);
 });
 
+test('switching from a saved battle map to generic terrain keeps HP, placed tokens and recovery state', async () => {
+  apiClient.get.mockImplementation(url => Promise.resolve({
+    data: url.endsWith('/maps')
+      ? [{ id: 'crypt-map', name: 'Crypt', width: 20, height: 12, terrain: [['stone']],
+        tokens: [{ id: 'c1', x: 7, y: 4 }, { id: 'c2', x: 9, y: 5 }] }]
+      : [],
+  }));
+  const screenView = render(
+    <MemoryRouter initialEntries={[{
+      pathname: `/combat/${CAMPAIGN}`,
+      state: {
+        source: 'live-play',
+        scenario: {
+          id: 'enc-generic-switch', name: 'Crypt fight',
+          battlefield_mode: 'saved', map_id: 'crypt-map', terrain_type: 'stone',
+          combatants: [
+            { id: 'c1', name: 'Rina Ironside', type: 'player', hp: 22, maxHp: 54, initiative: 19 },
+            { id: 'c2', name: 'Guard', type: 'enemy', hp: 3, maxHp: 7, initiative: 9 },
+          ],
+        },
+      },
+    }]}>
+      <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+    </MemoryRouter>,
+  );
+  const select = await screen.findByRole('combobox', { name: 'Battlefield map' });
+  await waitFor(() => expect(select).toHaveValue('crypt-map'));
+  await waitFor(() => expect(screen.getByTestId('saved-combat-map')).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2'));
+  let checkpoint = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+  const originalTokens = checkpoint.mapTokens;
+  expect(originalTokens.map(token => [token.x, token.y])).toEqual([[7, 4], [9, 5]]);
+
+  fireEvent.change(select, { target: { value: '' } });
+  await waitFor(() => expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument());
+  expect(select).toHaveValue('');
+  expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2');
+  await waitFor(() => {
+    checkpoint = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+    expect(checkpoint.map_override_generic).toBe(true);
+  });
+  expect(checkpoint.selectedMapId).toBe('');
+  expect(checkpoint.mapTokens).toEqual(originalTokens);
+  expect(checkpoint.combatants.map(item => item.hp)).toEqual([22, 3]);
+
+  screenView.unmount();
+  openColdTab();
+  await screen.findByTestId('combat-table-page');
+  expect(screen.getByRole('combobox', { name: 'Battlefield map' })).toHaveValue('');
+  expect(screen.getByTestId('generic-combat-map')).toBeInTheDocument();
+  expect(screen.getByTestId('combat-table-page')).toHaveTextContent('22/54');
+});
+
 test('a recovered fight remembers it came from Live Play', async () => {
   // Checked through the checkpoint rather than by driving End Combat, which
   // needs the network path; the routing value is what this fixes.
