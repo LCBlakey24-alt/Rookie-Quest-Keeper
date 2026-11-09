@@ -1021,3 +1021,39 @@ for (const scenario of [
     expect(failures, 'No uncaught browser exceptions during the player journey').toEqual([]);
   });
 }
+
+
+// Regression for the real desktop campaign overlay reported Nov 2026.
+// Uses an isolated read-only preview campaign rather than real GM data.
+for (const size of [
+  { label: 'laptop', width: 1366, height: 768 },
+  { label: 'desktop', width: 1640, height: 900 },
+  { label: 'tablet', width: 1024, height: 768 },
+]) {
+  test('campaign workspace sidebar stays beside the app rail on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    const heading = page.getByRole('heading', { name: 'Preview campaign', exact: true });
+    await expect(heading).toBeVisible();
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+    const rail = page.locator('.rqk-app-rail');
+    const shell = page.locator('.rqk-app-shell');
+    const header = page.locator('.campaign-dashboard-header');
+    const nav = page.getByRole('navigation', { name: 'Campaign workspace' });
+    const campaignMain = page.locator('.guild-command-main');
+    const [railBox, shellBox, headerBox, navBox, mainBox, titleBox] = await Promise.all([
+      rail.boundingBox(), shell.boundingBox(), header.boundingBox(), nav.boundingBox(),
+      campaignMain.boundingBox(), heading.boundingBox(),
+    ]);
+    await capturePlayerScreenshot(page, 'player-campaign-nav-' + size.label);
+    expect(railBox && shellBox && headerBox && navBox && mainBox && titleBox, 'All layout surfaces must be mounted').toBeTruthy();
+    const railRight = (railBox?.x || 0) + (railBox?.width || 0);
+    const description = JSON.stringify({ railRight, headerBox, navBox, mainBox, titleBox });
+    expect((headerBox?.x || 0) + 2, 'Campaign header must not sit under the app rail: ' + description).toBeGreaterThanOrEqual(railRight);
+    expect((navBox?.x || 0) + 2, 'Campaign tools must not sit under the app rail: ' + description).toBeGreaterThanOrEqual(railRight);
+    expect((mainBox?.x || 0) + 2, 'Campaign content must not sit under the app rail: ' + description).toBeGreaterThanOrEqual(railRight);
+    expect((titleBox?.x || 0) + 2, 'Campaign title must not be obscured: ' + description).toBeGreaterThanOrEqual(railRight);
+    await assertFitsViewport(page, size.width);
+  });
+}
