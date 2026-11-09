@@ -228,3 +228,11 @@
     transition: none !important;
   }
 }
+
+/* GM Live is a standalone page without the AppShell More menu.
+ * Don't hide its only dice launcher on a phone. */
+@media (max-width: 719px) {
+  #root:not(:has(.rqk-app-shell)) .rq-floating-dice.is-app-shell .rq-floating-dice__toggle {
+    display: grid !important;
+  }
+}
