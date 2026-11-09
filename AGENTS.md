@@ -184,9 +184,11 @@ Rook is the assistant plus deterministic rules/knowledge layer.
 - Never silently update quests, NPC travel state, campaign notes, or combat state merely because Rook detected something in text.
 - Keep live-play answers short and table-ready.
 
-## Tia-Karta import safety
+## Private campaign import safety
 
-The repository includes campaign-pack/import work used to establish known Tia-Karta/Balderin data.
+A campaign belongs to its GM; personally authored world lore and spoilers
+must live in authenticated, account-owned storage, never hardcoded into
+publicly distributed frontend modules.
 
 Importers must be:
 
@@ -196,7 +198,7 @@ Importers must be:
 - explicit about what they add/repair,
 - free from invented stats/canon.
 
-Correct spelling for the city in current campaign data is **Balderin**.
+Do not seed private personal campaign packs into generic signup or demo accounts.
 
 ## Mobile and installable-app direction
 
