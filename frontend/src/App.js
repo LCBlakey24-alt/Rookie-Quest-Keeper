@@ -125,6 +125,12 @@ export function AppRoutes() {
   const [username, setUsername] = useState(() => preview ? PREVIEW_USER : getStoredAuthUsername());
   const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
+  // Recreate the entire protected route tree when accounts switch. A component
+  // holding the previous user's campaign/character lists cannot survive this
+  // boundary, even if both accounts happen to visit the same URL.
+  const accountWorkspaceKey = preview ? 'preview-workspace'
+    : isAuthenticated ? `account:${String(username || '').trim().toLowerCase()}`
+      : 'signed-out';
 
   const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
     if (!preview) {
@@ -184,10 +190,10 @@ export function AppRoutes() {
   return (
     <>
       <ThemeRouter />
-      {!preview && <ImpersonationBanner />}
+      {!preview && <ImpersonationBanner key={accountWorkspaceKey} />}
       <GlobalActionFillEffects />
       <GlobalScrollRecovery />
-      <Routes>
+      <Routes key={accountWorkspaceKey}>
         <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
         <Route path="/keeper" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
         <Route path="/forge" element={<Navigate to="/" replace />} />
@@ -237,9 +243,9 @@ export function AppRoutes() {
       </Routes>
       {isAuthenticated && !isPublicBrandRoute && (
         <Suspense fallback={null}>
-          {!preview && <RookGlobalAssistant />}
-          <FloatingDiceRoller />
-          {!preview && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
+          {!preview && <RookGlobalAssistant key={accountWorkspaceKey} />}
+          <FloatingDiceRoller key={accountWorkspaceKey} />
+          {!preview && <GlobalFeedbackButton key={accountWorkspaceKey} isAuthenticated={isAuthenticated} />}
         </Suspense>
       )}
     </>
