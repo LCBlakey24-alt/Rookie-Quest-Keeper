@@ -1,4 +1,5 @@
 import { CLASSES } from './characterRules5e';
+import { accountDraftStorageKey } from '@/lib/accountDraftStorage';
 import { buildClassSpecificChoicePlan, normaliseClassSpecificSelection } from './classSpecificChoiceEngine';
 import {
   buildStartingLevelChoicePlan,
@@ -178,7 +179,10 @@ export function readHigherLevelCreationSelections(storage = typeof sessionStorag
   if (!storage) return { levelChoices: {}, detailChoices: {} };
   const read = (key) => {
     try {
-      return JSON.parse(storage.getItem(key) || '{}') || {};
+      // An explicitly injected test/adapter store retains its caller-defined keys.
+      // Real browser selection drafts are keyed by the signed-in account.
+      const scoped = typeof sessionStorage !== 'undefined' && storage === sessionStorage;
+      return JSON.parse(storage.getItem(scoped ? accountDraftStorageKey(key) : key) || '{}') || {};
     } catch {
       return {};
     }
