@@ -119,9 +119,7 @@ export default function AdminUsersTab() {
           <button type="button" onClick={() => downloadCsv('users')} disabled={Boolean(exportingKind)} aria-busy={exportingKind === 'users' ? 'true' : 'false'} data-testid="export-users-csv-btn" style={busyButtonStyle(exportingKind === 'users')}>
             {exportingKind === 'users' ? <RefreshCw size={14} style={usersSpinStyle} /> : <Download size={14} />} {exportingKind === 'users' ? 'Exporting users…' : 'Export Users CSV'}
           </button>
-          <button type="button" onClick={() => downloadCsv('campaigns')} disabled={Boolean(exportingKind)} aria-busy={exportingKind === 'campaigns' ? 'true' : 'false'} data-testid="export-campaigns-csv-btn" style={busyButtonStyle(exportingKind === 'campaigns')}>
-            {exportingKind === 'campaigns' ? <RefreshCw size={14} style={usersSpinStyle} /> : <Download size={14} />} {exportingKind === 'campaigns' ? 'Exporting campaigns…' : 'Export Campaigns CSV'}
-          </button>
+
         </div>
       </div>
 
