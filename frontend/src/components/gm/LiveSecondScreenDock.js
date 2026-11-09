@@ -5,8 +5,6 @@ import apiClient from '@/lib/apiClient';
 import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 import { createDisplayState, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
-import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
-import usePrivateCampaignPackAccess from '@/hooks/usePrivateCampaignPackAccess';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -45,7 +43,6 @@ function displaySubtitle(state) {
 }
 
 export default function LiveSecondScreenDock({ campaignId }) {
-  const canUsePersonalCampaignPacks = usePrivateCampaignPackAccess(campaignId);
   const initialExtras = getLiveBootstrapExtras(campaignId);
   const [state, setState] = useState(() => initialExtras?.displayState || loadDisplayState(campaignId));
   const [maps, setMaps] = useState(() => Array.isArray(initialExtras?.maps) ? initialExtras.maps : []);
@@ -57,6 +54,8 @@ export default function LiveSecondScreenDock({ campaignId }) {
   const [busy, setBusy] = useState('');
   const [refreshingAssets, setRefreshingAssets] = useState(false);
   const [assetWarning, setAssetWarning] = useState('');
+  const [customTitle, setCustomTitle] = useState('');
+  const [customSubtitle, setCustomSubtitle] = useState('');
 
   useEffect(() => {
     const cachedState = getLiveBootstrapExtras(campaignId)?.displayState;
@@ -158,11 +157,14 @@ export default function LiveSecondScreenDock({ campaignId }) {
     }
   };
 
-  const sendPreset = (preset) => canUsePersonalCampaignPacks && publish('title', {
-    eyebrow: preset.eyebrow,
-    title: preset.title,
-    subtitle: preset.subtitle,
-  }, preset.id);
+  const sendCustomTitle = () => {
+    const title = customTitle.trim();
+    if (!title) return;
+    return publish('title', {
+      title,
+      subtitle: customSubtitle.trim(),
+    }, 'custom-title');
+  };
 
   const sendMap = (map) => publish('image', {
     title: map.name || map.title || 'Map',
@@ -232,12 +234,19 @@ export default function LiveSecondScreenDock({ campaignId }) {
         </div>
       )}
 
-      {canUsePersonalCampaignPacks && (
-        <section style={buttonGroupStyle} data-testid="personal-campaign-quick-reveals">
-          <p style={sectionLabelStyle}>Personal campaign quick reveals</p>
-          {tiaKartaSecondScreenPresets.slice(0, 10).map(preset => <button key={preset.id} type="button" onClick={() => sendPreset(preset)} disabled={busy === preset.id} style={revealButtonStyle}><Send size={13} /> {preset.title}</button>)}
-        </section>
-      )}
+      <section style={buttonGroupStyle} data-testid="generic-campaign-title-reveal">
+        <p style={sectionLabelStyle}>Show custom scene title</p>
+        <input type="text" aria-label="Scene title" value={customTitle}
+          onChange={event => setCustomTitle(event.target.value)}
+          placeholder="Your scene title" style={npcSearchStyle} maxLength={120} />
+        <input type="text" aria-label="Scene subtitle" value={customSubtitle}
+          onChange={event => setCustomSubtitle(event.target.value)}
+          placeholder="Optional subtitle" style={npcSearchStyle} maxLength={240} />
+        <button type="button" onClick={sendCustomTitle}
+          disabled={!customTitle.trim() || Boolean(busy)} style={revealButtonStyle}>
+          <Send size={13} /> Show scene title
+        </button>
+      </section>
 
       <section style={buttonGroupStyle}>
         <p style={sectionLabelStyle}>NPCs · select multiple</p>
