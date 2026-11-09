@@ -42,6 +42,7 @@ import {
   pruneStartingLevelDetailSelections,
 } from '@/data/startingLevelChoiceEngine';
 import apiClient from '@/lib/apiClient';
+import { accountDraftStorageKey } from '@/lib/accountDraftStorage';
 import usePlayerRulesOptions, { buildMergedCharacterRules } from '@/hooks/usePlayerRulesOptions';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
@@ -78,7 +79,7 @@ function useCampaignIdFromQuery() {
 
 function readJson(key, fallback = {}) {
   try {
-    return JSON.parse(sessionStorage.getItem(key) || 'null') || fallback;
+    return JSON.parse(sessionStorage.getItem(accountDraftStorageKey(key)) || 'null') || fallback;
   } catch {
     return fallback;
   }
@@ -86,7 +87,7 @@ function readJson(key, fallback = {}) {
 
 function readBuilderDraft() {
   try {
-    return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') || {};
+    return JSON.parse(localStorage.getItem(accountDraftStorageKey(DRAFT_KEY)) || '{}') || {};
   } catch {
     return {};
   }
@@ -424,8 +425,8 @@ export default function CharacterRulesBridgeV2(props) {
   const { options, loading, error, hasCustomContent, counts } = usePlayerRulesOptions({ campaignId });
   installUploadedBuilderRules(options || {});
   const [builderDraft, setBuilderDraft] = useState(readBuilderDraft);
-  const [targetLevel, setTargetLevel] = useState(() => clampLevel(sessionStorage.getItem(LEVEL_KEY) || 1));
-  const [selectedSubclass, setSelectedSubclass] = useState(() => sessionStorage.getItem(SUBCLASS_KEY) || '');
+  const [targetLevel, setTargetLevel] = useState(() => clampLevel(sessionStorage.getItem(accountDraftStorageKey(LEVEL_KEY)) || 1));
+  const [selectedSubclass, setSelectedSubclass] = useState(() => sessionStorage.getItem(accountDraftStorageKey(SUBCLASS_KEY)) || '');
   const [levelChoiceSelections, setLevelChoiceSelections] = useState(() => readJson(CHOICES_KEY, {}));
   const [detailSelections, setDetailSelections] = useState(() => readJson(DETAIL_CHOICES_KEY, { spells: {}, warlock: {}, classSpecific: {} }));
 
@@ -445,13 +446,13 @@ export default function CharacterRulesBridgeV2(props) {
     };
   }, []);
 
-  useEffect(() => { sessionStorage.setItem(LEVEL_KEY, String(targetLevel)); }, [targetLevel]);
+  useEffect(() => { sessionStorage.setItem(accountDraftStorageKey(LEVEL_KEY), String(targetLevel)); }, [targetLevel]);
   useEffect(() => {
-    if (selectedSubclass) sessionStorage.setItem(SUBCLASS_KEY, selectedSubclass);
-    else sessionStorage.removeItem(SUBCLASS_KEY);
+    if (selectedSubclass) sessionStorage.setItem(accountDraftStorageKey(SUBCLASS_KEY), selectedSubclass);
+    else sessionStorage.removeItem(accountDraftStorageKey(SUBCLASS_KEY));
   }, [selectedSubclass]);
-  useEffect(() => { sessionStorage.setItem(CHOICES_KEY, JSON.stringify(levelChoiceSelections || {})); }, [levelChoiceSelections]);
-  useEffect(() => { sessionStorage.setItem(DETAIL_CHOICES_KEY, JSON.stringify(detailSelections || {})); }, [detailSelections]);
+  useEffect(() => { sessionStorage.setItem(accountDraftStorageKey(CHOICES_KEY), JSON.stringify(levelChoiceSelections || {})); }, [levelChoiceSelections]);
+  useEffect(() => { sessionStorage.setItem(accountDraftStorageKey(DETAIL_CHOICES_KEY), JSON.stringify(detailSelections || {})); }, [detailSelections]);
 
   const currentClassName = resolveDraftClassName(builderDraft, CLASSES);
   const currentEdition = resolveRulesEdition(builderDraft);
