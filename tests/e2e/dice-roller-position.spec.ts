@@ -3,7 +3,7 @@ import { dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 /**
  * Tests for the global Rookie Quest Keeper dice roller:
- * - Floating dice button stays anchored bottom-left
+ * - Dice opens from the app rail without a floating control covering content
  * - Dice tray opens inside the viewport
  * - Every roll uses the compact flat result overlay
  * - Multi-dice/custom rolls remain visible without a cinematic renderer
@@ -31,7 +31,7 @@ async function registerTestUser(page: any) {
 async function openDiceRoller(page: any) {
   await page.goto('/home', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2000);
-  await page.getByTestId('dice-roller-toggle').click();
+  await page.getByRole('complementary', { name: 'App navigation' }).getByRole('button', { name: 'Open dice roller' }).click();
   await page.waitForTimeout(300);
 }
 
@@ -42,20 +42,18 @@ test.describe('Global flat dice roller', () => {
     await removeBlockingBadges(page);
   });
 
-  test('Dice Roller button is positioned at bottom-left', async ({ page }) => {
+  test('Dice Roller opens from the app rail instead of covering content', async ({ page }) => {
     await page.goto('/home', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const diceToggle = page.getByTestId('dice-roller-toggle');
-    await expect(diceToggle).toBeVisible();
-
-    const box = await diceToggle.boundingBox();
-    expect(box).not.toBeNull();
-
-    const viewportSize = page.viewportSize();
-    expect(box!.x).toBeLessThan(100);
-    const bottomDistance = viewportSize!.height - (box!.y + box!.height);
-    expect(bottomDistance).toBeLessThan(100);
+    await expect(page.getByTestId('dice-roller-toggle')).toBeHidden();
+    const rail = page.getByRole('complementary', { name: 'App navigation' });
+    const dice = rail.getByRole('button', { name: 'Open dice roller' });
+    await expect(dice).toBeVisible();
+    const [box, railBox] = await Promise.all([dice.boundingBox(), rail.boundingBox()]);
+    expect(box && railBox).toBeTruthy();
+    expect(box!.x).toBeGreaterThanOrEqual(railBox!.x);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(railBox!.x + railBox!.width + 2);
   });
 
   test('Dice Roller panel stays fully inside the viewport', async ({ page }) => {
@@ -140,6 +138,7 @@ test.describe('Global flat dice roller', () => {
     await expect(panel).toBeVisible();
     await page.getByTestId('dice-roller-close').click();
     await expect(panel).not.toBeVisible();
-    await expect(page.getByTestId('dice-roller-toggle')).toBeVisible();
+    await expect(page.getByTestId('dice-roller-toggle')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Open dice roller' })).toBeVisible();
   });
 });
