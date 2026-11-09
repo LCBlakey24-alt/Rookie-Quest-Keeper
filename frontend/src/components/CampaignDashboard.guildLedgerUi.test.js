@@ -33,3 +33,22 @@ describe('Guild Ledger campaign workspace UI', () => {
     expect(css).toContain('transform: none !important');
   });
 });
+
+describe('GM accordion keeps child tools under their parent', () => {
+  const sidebarCss = fs.readFileSync(path.join(__dirname, '../styles/guildCommand.css'), 'utf8');
+
+  test('renders campaign categories and inline accessible subpages', () => {
+    expect(source).toContain('data-testid="gm-workspace-accordion"');
+    expect(source).toContain("data-testid={'gm-accordion-group-' + group.id}");
+    expect(source).toContain("data-testid={'gm-accordion-tab-' + tab.id}");
+    expect(source).toContain('aria-expanded={expanded}');
+    expect(source).toContain('hidden={!expanded}');
+  });
+
+  test('desktop hides the obsolete detached child-tab row', () => {
+    expect(sidebarCss).toContain('@media (min-width: 1181px)');
+    expect(sidebarCss).toContain('.guild-command-sidebar .campaign-dashboard-tab-row');
+    expect(sidebarCss).toContain('.gm-workspace-accordion__items[hidden]');
+    expect(sidebarCss).toContain('display: none !important');
+  });
+});
