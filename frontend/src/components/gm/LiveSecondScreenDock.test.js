@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import * as liveDisplayBus from '@/lib/liveDisplayBus';
 import * as liveDisplayPublishStatus from '@/lib/liveDisplayPublishStatus';
 import { toast } from 'sonner';
+import usePrivateCampaignPackAccess from '@/hooks/usePrivateCampaignPackAccess';
 
 jest.mock('@/lib/apiClient', () => ({
   __esModule: true,
@@ -31,6 +32,8 @@ jest.mock('@/lib/liveDisplayPublishStatus', () => ({
   publishCampaignDisplayStateWithStatus: jest.fn(async (_campaignId, state) => ({ state, remoteSynced: true })),
 }));
 
+jest.mock('@/hooks/usePrivateCampaignPackAccess', () => jest.fn());
+
 jest.mock('@/data/tiaKartaSecondScreenPresets', () => [{
   id: 'test-screen',
   title: 'Test Screen',
@@ -41,6 +44,9 @@ jest.mock('@/data/tiaKartaSecondScreenPresets', () => [{
 describe('LiveSecondScreenDock reliability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // The reveal tests describe the verified private admin campaign.
+    // Ordinary users are explicitly covered by the denied-access test.
+    usePrivateCampaignPackAccess.mockReturnValue(true);
     liveDisplayBus.createDisplayState.mockImplementation((mode, payload) => ({ mode, payload }));
     liveDisplayBus.loadDisplayState.mockReturnValue({ mode: 'blank', payload: {} });
     liveDisplayBus.subscribeDisplayState.mockImplementation(() => () => {});
@@ -127,6 +133,16 @@ describe('LiveSecondScreenDock reliability', () => {
     expect(state.payload.npcs.map(npc => npc.name)).toEqual(['NPC 01', 'NPC 30']);
     expect(state.payload.npcs.every(npc => npc.image_url === '')).toBe(true);
     expect(JSON.stringify(state.payload)).not.toContain('Private GM plot detail');
+  });
+
+  test('ordinary campaign users see no private campaign reveal presets', async () => {
+    usePrivateCampaignPackAccess.mockReturnValue(false);
+    apiClient.get.mockResolvedValue({ data: [] });
+    render(<LiveSecondScreenDock campaignId="other-account-campaign" />);
+    expect(screen.queryByTestId('personal-campaign-quick-reveals')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Test Screen/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Table' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open' })).toBeInTheDocument();
   });
 
   test('GM can switch TV to virtual table even if the previous reveal was for TV', async () => {
