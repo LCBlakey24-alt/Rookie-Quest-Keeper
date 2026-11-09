@@ -308,6 +308,11 @@ for (const size of [
     const panel = await page.getByTestId('dice-roller-panel').boundingBox();
     expect(panel).not.toBeNull();
     expect((panel?.x || 0) + (panel?.width || 0)).toBeLessThanOrEqual(size.width + 1);
+    // The desktop tray leaves a protected right-hand lane for Rook and
+    // feedback buttons, rather than covering those fixed launchers.
+    if (size.width >= 720) {
+      expect(size.width - ((panel?.x || 0) + (panel?.width || 0))).toBeGreaterThanOrEqual(100);
+    }
     await page.getByTestId('dice-roller-close').click();
     await expect(page.getByTestId('dice-roller-panel')).toHaveCount(0);
     await expect(floating).toBeHidden();

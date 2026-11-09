@@ -561,7 +561,8 @@
  * available, attached to the workspace's right edge when deliberately open. */
 #root:has(.rqk-app-shell) .rq-floating-dice {
   left: auto !important;
-  right: max(16px, env(safe-area-inset-right, 0px)) !important;
+  /* Leave room for the standalone Rook/feedback launchers at the right. */
+  right: max(112px, env(safe-area-inset-right, 0px)) !important;
   bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
 }
 #root:has(.rqk-app-shell) .rq-floating-dice__toggle {
