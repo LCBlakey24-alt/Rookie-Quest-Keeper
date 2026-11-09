@@ -1,4 +1,4 @@
-import { calendarOrdinal, calendarDaysUntil } from './tiaKartaCalendar';
+import { calendarOrdinal, calendarDaysUntil } from './genericCalendarMath';
 
 /** Keep an event on its own campaign calendar, including repeat rules. */
 export function eventOccursOn(event, calendar, year, month, day) {
