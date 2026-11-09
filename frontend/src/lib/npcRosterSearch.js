@@ -26,6 +26,8 @@ export function matchesNpcSearch(npc, searchTerm) {
  */
 export function npcNeedsReview(npc) {
   if (!npc || typeof npc !== 'object') return false;
-  const status = [npc.role, npc.occupation, npc.mechanics_status].filter(Boolean).join(' ');
-  return /\b(?:legacy|provisional|unconfirmed|unresolved|proposed)\b|stats missing|not established|not confirmed/i.test(status);
+  // Never equate missing combat stats or an uncertain *future outcome* with
+  // an unconfirmed person: existing core characters may have both.
+  const role = [npc.role, npc.occupation].filter(Boolean).join(' ');
+  return /\blegacy\b|\bprovisional\b|^\s*proposed\b|\bidentity\b.{0,40}\b(?:unconfirmed|unresolved)\b/i.test(role);
 }

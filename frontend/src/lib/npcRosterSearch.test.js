@@ -36,10 +36,9 @@ describe('GM NPC roster search', () => {
 describe('GM NPC provisional-import review', () => {
   test.each([
     'Legacy / provisional healer',
-    'Identity and mechanics UNCONFIRMED',
+    'Aaron Crow; identity and mechanics UNCONFIRMED',
     'Proposed Master of Trade; appointment NOT established',
     'Legacy identity UNRESOLVED',
-    'Mine associate, stats missing',
   ])('flags uncertain campaign lore (%s) without mutating it', role => {
     const entry = { id: 'saved-npc', name: 'Draft person', role };
     expect(npcNeedsReview(entry)).toBe(true);
@@ -51,6 +50,9 @@ describe('GM NPC provisional-import review', () => {
     '13-year-old alchemist',
     'First Councillor / elderly adviser (PUBLIC FORM)',
     'Master Smith / Works and Industry candidate',
+    'Royal heir; exact magic build NOT confirmed',
+    'Mine associate; Wednesday fate UNRESOLVED; stats missing',
+    'Former king (deceased; flashback only)',
   ])('keeps established NPCs in the primary roster (%s)', role => {
     expect(npcNeedsReview({ role })).toBe(false);
   });
