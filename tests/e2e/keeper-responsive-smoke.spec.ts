@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
 
 // This suite exercises a fresh built web app, not an existing PWA installation.
 // Prevent a previously installed service worker from replaying stale assets
@@ -797,6 +798,13 @@ for (const size of [
 }
 
 
+// Screenshot outputs live outside test-results: Playwright's HTML reporter
+// clears that tree on exit, which previously erased successful attachments.
+async function capturePlayerScreenshot(page: Page, name: string) {
+  mkdirSync('qa-screenshots', { recursive: true });
+  await page.screenshot({ path: 'qa-screenshots/' + name + '.png' });
+}
+
 // Real Chromium player golden path, backed by a per-test in-memory API.
 // No live credentials, saved characters, campaign data, or hosted API writes.
 // Keeps the canonical creator and sheet usable across mobile and desktop.
@@ -804,7 +812,7 @@ for (const scenario of [
   { role: 'Fighter', width: 390, height: 844 },
   { role: 'Wizard', width: 1440, height: 900 },
 ] as const) {
-  test('player golden path: create, roll, damage, reload and open level up — ' + scenario.role, async ({ page }, testInfo) => {
+  test('player golden path: create, roll, damage, reload and open level up — ' + scenario.role, async ({ page }) => {
     await page.setViewportSize({ width: scenario.width, height: scenario.height });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.addInitScript(token => {
@@ -937,9 +945,7 @@ for (const scenario of [
     expect(stored?.character_class).toBe(scenario.role);
     expect(stored?.level).toBe(1);
     await assertFitsViewport(page, scenario.width);
-    await testInfo.attach('player-' + scenario.role.toLowerCase() + '-sheet-' + scenario.width + 'px', {
-      body: await page.screenshot(), contentType: 'image/png',
-    });
+    await capturePlayerScreenshot(page, 'player-' + scenario.role.toLowerCase() + '-sheet-' + scenario.width + 'px');
 
     const hitPoints = page.getByRole('meter', { name: 'Hit points remaining' });
     const originalHp = Number(await hitPoints.getAttribute('aria-valuenow'));
@@ -966,9 +972,7 @@ for (const scenario of [
     const wizard = page.getByTestId('level-up-wizard');
     await expect(wizard).toBeVisible();
     await assertFitsViewport(page, scenario.width);
-    await testInfo.attach('player-' + scenario.role.toLowerCase() + '-levelup-' + scenario.width + 'px', {
-      body: await page.screenshot(), contentType: 'image/png',
-    });
+    await capturePlayerScreenshot(page, 'player-' + scenario.role.toLowerCase() + '-levelup-' + scenario.width + 'px');
     await expect.poll(() => preflightReads, { timeout: 10_000 }).toBeGreaterThan(0);
 
     if (scenario.role === 'Fighter') {
@@ -991,9 +995,7 @@ for (const scenario of [
       expect(stored?.level).toBe(2);
       expect(levelUpWrites, 'Level-up must persist exactly once').toBe(1);
       await assertFitsViewport(page, scenario.width);
-      await testInfo.attach('player-fighter-level2-' + scenario.width + 'px', {
-        body: await page.screenshot(), contentType: 'image/png',
-      });
+      await capturePlayerScreenshot(page, 'player-fighter-level2-' + scenario.width + 'px');
     }
     expect(failures, 'No uncaught browser exceptions during the player journey').toEqual([]);
   });
