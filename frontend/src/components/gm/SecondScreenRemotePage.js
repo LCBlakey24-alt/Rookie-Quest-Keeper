@@ -1,12 +1,24 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import TiaKartaSecondScreenQuickRemote from '@/components/gm/TiaKartaSecondScreenQuickRemote';
+import usePrivateCampaignPackAccess from '@/hooks/usePrivateCampaignPackAccess';
+
+const TiaKartaSecondScreenQuickRemote = React.lazy(() => import('@/components/gm/TiaKartaSecondScreenQuickRemote'));
 
 export default function SecondScreenRemotePage() {
   const { campaignId } = useParams();
+  const canUsePersonalCampaignPacks = usePrivateCampaignPackAccess(campaignId);
   return (
     <main style={pageStyle} data-testid="second-screen-remote-page">
-      <TiaKartaSecondScreenQuickRemote campaignId={campaignId} />
+      {canUsePersonalCampaignPacks ? (
+        <React.Suspense fallback={<p role="status">Opening campaign remote…</p>}>
+          <TiaKartaSecondScreenQuickRemote campaignId={campaignId} />
+        </React.Suspense>
+      ) : (
+        <section data-testid="private-remote-restricted">
+          <h1>Personal campaign remote</h1>
+          <p>This private campaign tool is not available for your account. Open Live Play to use the general player display controls.</p>
+        </section>
+      )}
     </main>
   );
 }
