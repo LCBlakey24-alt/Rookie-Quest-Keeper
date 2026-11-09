@@ -1057,3 +1057,58 @@ for (const size of [
     await assertFitsViewport(page, size.width);
   });
 }
+
+
+// Desktop campaign navigation groups must expand in place, not append a
+// separate list of child tools below all parent categories. Tablet/phone
+// retain their existing alternative navigation surfaces.
+for (const size of [
+  { label: 'desktop sidebar', width: 1366, height: 850 },
+  { label: 'tablet selector', width: 1024, height: 768 },
+  { label: 'mobile selector', width: 390, height: 844 },
+]) {
+  test('GM campaign accordion navigation at ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+
+    const accordion = page.getByTestId('gm-workspace-accordion');
+    if (size.width >= 1181) {
+      await expect(accordion).toBeVisible();
+      const campaignGroup = accordion.getByTestId('gm-accordion-group-campaign');
+      const worldGroup = accordion.getByTestId('gm-accordion-group-world');
+      const prepGroup = accordion.getByTestId('gm-accordion-group-prep');
+      await expect(campaignGroup).toHaveAttribute('aria-expanded', 'true');
+      await expect(worldGroup).toHaveAttribute('aria-expanded', 'false');
+      await worldGroup.click();
+      await expect(worldGroup).toHaveAttribute('aria-expanded', 'true');
+      await expect(campaignGroup).toHaveAttribute('aria-expanded', 'false');
+      const worldPanel = accordion.getByTestId('gm-accordion-panel-world');
+      await expect(worldPanel).toBeVisible();
+      await expect(accordion.getByTestId('gm-accordion-panel-campaign')).toBeHidden();
+      await worldPanel.getByTestId('gm-accordion-tab-npcs').click();
+      await expect(accordion.getByTestId('gm-accordion-tab-npcs')).toHaveAttribute('aria-current', 'page');
+      await expect(page.getByTestId('npcs-consolidated-tab')).toBeVisible();
+      await prepGroup.click();
+      await expect(accordion.getByTestId('gm-accordion-panel-prep')).toBeVisible();
+      await expect(worldPanel).toBeHidden();
+      const worldBox = await worldGroup.boundingBox();
+      const prepBox = await prepGroup.boundingBox();
+      expect((worldBox?.y || 0) + (worldBox?.height || 0)).toBeLessThan(prepBox?.y || 0);
+      await expect(page.locator('.guild-command-sidebar .campaign-dashboard-tab-row')).toBeHidden();
+    } else {
+      await expect(accordion).toBeHidden();
+      if (size.width <= 760) {
+        const selector = page.getByTestId('campaign-mobile-workspace-select');
+        await expect(selector).toBeVisible();
+        await selector.selectOption('npcs');
+        await expect(page.getByTestId('npcs-consolidated-tab')).toBeVisible();
+      } else {
+        await expect(page.locator('.campaign-dashboard-group-row')).toBeVisible();
+        await expect(page.locator('.campaign-dashboard-tab-row')).toBeVisible();
+      }
+    }
+    await assertFitsViewport(page, size.width);
+  });
+}

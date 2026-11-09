@@ -327,3 +327,37 @@
   #root .rqk-npc-onboarding__actions { display: grid; grid-template-columns: 1fr; }
   #root .rqk-npc-onboarding__actions button { width: 100%; }
 }
+
+
+/* Existing provisional imports remain saved; this is a GM-only review lens. */
+#root .rqk-npc-review-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: var(--rq-bg-panel, #102238);
+  border: 1px solid var(--rq-border-strong, #30465c);
+  border-radius: 8px;
+}
+#root .rqk-npc-review-banner > div { flex: 1 1 240px; min-width: 0; }
+#root .rqk-npc-review-banner strong { color: var(--rq-text-primary, #eadfc8); font-size: 14px; }
+#root .rqk-npc-review-banner p, #root .rqk-npc-review-empty {
+  margin: 5px 0 0;
+  color: var(--rq-text-secondary, #bac9d7);
+  font-size: 12px;
+  line-height: 1.5;
+}
+#root .rqk-npc-review-toggle {
+  min-height: 44px;
+  padding: 9px 13px;
+  color: var(--rq-text-primary, #eadfc8);
+  background: #153957;
+  border: 1px solid #3c92e0;
+  border-radius: 6px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#root .rqk-npc-review-toggle:focus-visible { outline: 2px solid #e8c988; outline-offset: 2px; }

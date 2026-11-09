@@ -17,3 +17,15 @@ export function matchesNpcSearch(npc, searchTerm) {
 
   return values.some(value => String(value ?? '').toLowerCase().includes(term));
 }
+
+
+/**
+ * Conservative, read-only review indicator for imported/unfinished NPC lore.
+ * Never mutates or deletes campaign data; confirmed people stay visible.
+ * These words occur in structured NPC roles, not arbitrary GM notes.
+ */
+export function npcNeedsReview(npc) {
+  if (!npc || typeof npc !== 'object') return false;
+  const status = [npc.role, npc.occupation, npc.mechanics_status].filter(Boolean).join(' ');
+  return /\b(?:legacy|provisional|unconfirmed|unresolved|proposed)\b|stats missing|not established|not confirmed/i.test(status);
+}

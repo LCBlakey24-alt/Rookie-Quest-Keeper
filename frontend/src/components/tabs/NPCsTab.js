@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Edit, Trash2, Wand2, User, Search, X } from 'lucide-react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
-import { matchesNpcSearch } from '@/lib/npcRosterSearch';
+import { matchesNpcSearch, npcNeedsReview } from '@/lib/npcRosterSearch';
 import './NPCsTab.css';
 
 const NPC_BASIC_FIELDS = [
@@ -51,6 +51,7 @@ function NPCsTab({ campaignId, onOpenCreate }) {
   const [editingNPC, setEditingNPC] = useState(null);
   const [deletingNPC, setDeletingNPC] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showProvisional, setShowProvisional] = useState(false);
   const [selectedNpcId, setSelectedNpcId] = useState('');
   const [formData, setFormData] = useState(() => createNpcDraft());
 
@@ -60,6 +61,7 @@ function NPCsTab({ campaignId, onOpenCreate }) {
     setNpcs([]);
     setSelectedNpcId('');
     setSearchTerm('');
+    setShowProvisional(false);
     setLoadError(false);
     setLoading(true);
     fetchNPCs();
@@ -155,8 +157,10 @@ function NPCsTab({ campaignId, onOpenCreate }) {
 
   // Find NPCs by story, role, skills and GM notes as well as the displayed name.
   // Search is always local to the active campaign; never mix the two parties.
+  const provisionalCount = npcs.filter(npcNeedsReview).length;
+  const searching = Boolean(searchTerm.trim());
   const filteredNPCs = npcs
-    .filter(npc => matchesNpcSearch(npc, searchTerm))
+    .filter(npc => (showProvisional || searching || !npcNeedsReview(npc)) && matchesNpcSearch(npc, searchTerm))
     .sort((left, right) => String(left.name || '').localeCompare(String(right.name || '')));
 
   // Loading state
@@ -375,6 +379,27 @@ function NPCsTab({ campaignId, onOpenCreate }) {
         </Dialog>
       </div>
 
+      {provisionalCount > 0 && (
+        <div className="rqk-npc-review-banner" data-testid="npc-provisional-banner">
+          <div>
+            <strong>{provisionalCount} unfinished or provisional NPC{provisionalCount === 1 ? '' : 's'}</strong>
+            <p>Imported names with unconfirmed identities, roles or story details are kept safe, but separated from the main roster until you review them. Search still finds them.</p>
+          </div>
+          <button
+            type="button"
+            className="rqk-npc-review-toggle"
+            data-testid="npc-provisional-toggle"
+            aria-pressed={showProvisional}
+            onClick={() => setShowProvisional(value => !value)}
+          >
+            {showProvisional ? 'Hide unconfirmed' : 'Review unconfirmed (' + provisionalCount + ')'}
+          </button>
+        </div>
+      )}
+      {!filteredNPCs.length && !searching && provisionalCount > 0 && (
+        <p className="rqk-npc-review-empty">No confirmed NPCs to show. Select “Review unconfirmed” to inspect your saved drafts.</p>
+      )}
+
       {/* Search Bar */}
       {npcs.length > 3 && (
         <div style={{ marginBottom: '20px' }}>
@@ -423,7 +448,7 @@ function NPCsTab({ campaignId, onOpenCreate }) {
           selectedId={selectedNpcId}
           onSelect={setSelectedNpcId}
           getSubtitle={npc => npc.role || npc.occupation || npc.location || 'NPC'}
-          getBadge={npc => npc.player_discovery_status === 'known' ? 'Known to party' : 'Unknown'}
+          getBadge={npc => npcNeedsReview(npc) ? 'Needs GM review' : npc.player_discovery_status === 'known' ? 'Known to party' : 'Unknown'}
           renderDetail={npc => (
             <div className="rqk-npc-selected-sheet" data-testid={`npc-card-${npc.id}`}>
               <div className="rqk-reference-browser__detail-actions">

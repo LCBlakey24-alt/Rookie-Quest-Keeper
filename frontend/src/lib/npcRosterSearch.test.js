@@ -1,4 +1,4 @@
-import { matchesNpcSearch } from './npcRosterSearch';
+import { matchesNpcSearch, npcNeedsReview } from './npcRosterSearch';
 
 describe('GM NPC roster search', () => {
   const npc = {
@@ -29,5 +29,34 @@ describe('GM NPC roster search', () => {
     expect(matchesNpcSearch({}, 'Jordan')).toBe(false);
     expect(matchesNpcSearch(null, 'Jordan')).toBe(false);
     expect(matchesNpcSearch({ name: 'Jordan Crow', skills: null }, 'crow')).toBe(true);
+  });
+});
+
+
+describe('GM NPC provisional-import review', () => {
+  test.each([
+    'Legacy / provisional healer',
+    'Identity and mechanics UNCONFIRMED',
+    'Proposed Master of Trade; appointment NOT established',
+    'Legacy identity UNRESOLVED',
+    'Mine associate, stats missing',
+  ])('flags uncertain campaign lore (%s) without mutating it', role => {
+    const entry = { id: 'saved-npc', name: 'Draft person', role };
+    expect(npcNeedsReview(entry)).toBe(true);
+    expect(entry.role).toBe(role);
+  });
+
+  test.each([
+    'Master of Defence / Shield commander',
+    '13-year-old alchemist',
+    'First Councillor / elderly adviser (PUBLIC FORM)',
+    'Master Smith / Works and Industry candidate',
+  ])('keeps established NPCs in the primary roster (%s)', role => {
+    expect(npcNeedsReview({ role })).toBe(false);
+  });
+
+  test('null and sparse records do not break the roster', () => {
+    expect(npcNeedsReview(null)).toBe(false);
+    expect(npcNeedsReview({ name: 'Untitled' })).toBe(false);
   });
 });

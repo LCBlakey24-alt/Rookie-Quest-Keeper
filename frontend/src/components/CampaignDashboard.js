@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   CalendarDays,
+  ChevronDown,
   FileText,
   Flag,
   Heart,
@@ -72,6 +73,7 @@ export default function CampaignDashboard() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [expandedSidebarGroup, setExpandedSidebarGroup] = useState(() => allTabs.find(tab => tab.id === initialTab)?.groupId || 'campaign');
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteCampaignId, setInviteCampaignId] = useState(null);
@@ -164,6 +166,11 @@ export default function CampaignDashboard() {
       window.removeEventListener('popstate', onHashChange);
     };
   }, []);
+
+  // Deep links and tool searches must expand the selected category.
+  useEffect(() => {
+    if (activeTabMeta?.groupId) setExpandedSidebarGroup(activeTabMeta.groupId);
+  }, [activeTabMeta?.groupId]);
 
   // Deep links and the quick finder can select an off-screen tab. Bring its
   // button into the horizontal navigation viewport without stealing focus.
@@ -370,6 +377,53 @@ export default function CampaignDashboard() {
       <div className="guild-command-frame">
       <nav className="campaign-dashboard-nav guild-command-sidebar" aria-label="Campaign workspace">
         <CampaignMobileNavigator activeTab={activeTab} onOpenTab={handleTabClick} />
+        <div className="gm-workspace-accordion" data-testid="gm-workspace-accordion" aria-label="Campaign sections">
+          {tabGroups.map(group => {
+            const GroupIcon = group.icon;
+            const expanded = expandedSidebarGroup === group.id;
+            const selectedGroup = activeGroup?.id === group.id;
+            return (
+              <div className="gm-workspace-accordion__group" key={group.id}>
+                <button
+                  type="button"
+                  className={'gm-workspace-accordion__heading' + (selectedGroup ? ' is-current' : '')}
+                  data-testid={'gm-accordion-group-' + group.id}
+                  aria-expanded={expanded}
+                  aria-controls={'gm-accordion-panel-' + group.id}
+                  onClick={() => setExpandedSidebarGroup(previous => previous === group.id ? '' : group.id)}
+                >
+                  <GroupIcon size={18} aria-hidden="true" />
+                  <span>{group.label}</span>
+                  <ChevronDown size={17} aria-hidden="true" className="gm-workspace-accordion__chevron" />
+                </button>
+                <div
+                  id={'gm-accordion-panel-' + group.id}
+                  className="gm-workspace-accordion__items"
+                  data-testid={'gm-accordion-panel-' + group.id}
+                  hidden={!expanded}
+                >
+                  {group.tabs.map(tab => {
+                    const Icon = tab.icon;
+                    const selected = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        className={'gm-workspace-accordion__item' + (selected ? ' is-active' : '')}
+                        data-testid={'gm-accordion-tab-' + tab.id}
+                        aria-current={selected ? 'page' : undefined}
+                        onClick={() => handleTabClick(tab.id)}
+                      >
+                        <Icon size={16} aria-hidden="true" />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
         <div className="campaign-dashboard-group-row" aria-label="Campaign tool groups">
           {tabGroups.map((group) => {
             const GroupIcon = group.icon;
