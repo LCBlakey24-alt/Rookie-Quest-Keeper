@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field
 
 from config import db, logger
-from utils.auth import get_current_user
+from utils.auth import get_current_user, verify_campaign_ownership
 from utils.admin_identity import is_admin_username, require_admin
 from models import (
     Review, ReviewCreate, CustomCreature, CustomCreatureCreate,
@@ -373,7 +373,8 @@ async def delete_review(review_id: str, username: str = Depends(get_current_user
 
 @router.get("/campaigns/{campaign_id}/custom-creatures")
 async def get_custom_creatures(campaign_id: str, username: str = Depends(get_current_user)):
-    """Get all custom creatures for a campaign"""
+    """Get private custom creatures only from the signed-in GM's campaign."""
+    await verify_campaign_ownership(campaign_id, username)
     creatures = await db.custom_creatures.find(
         {'campaign_id': campaign_id},
         {'_id': 0}
@@ -382,7 +383,8 @@ async def get_custom_creatures(campaign_id: str, username: str = Depends(get_cur
 
 @router.post("/campaigns/{campaign_id}/custom-creatures")
 async def create_custom_creature(campaign_id: str, creature_data: CustomCreatureCreate, username: str = Depends(get_current_user)):
-    """Create a new custom creature"""
+    """Create a custom creature in an owned campaign."""
+    await verify_campaign_ownership(campaign_id, username)
     creature = CustomCreature(
         campaign_id=campaign_id,
         name=creature_data.name,
@@ -401,7 +403,8 @@ async def create_custom_creature(campaign_id: str, creature_data: CustomCreature
 
 @router.put("/campaigns/{campaign_id}/custom-creatures/{creature_id}")
 async def update_custom_creature(campaign_id: str, creature_id: str, creature_data: CustomCreatureCreate, username: str = Depends(get_current_user)):
-    """Update a custom creature"""
+    """Update only the signed-in GM's creature."""
+    await verify_campaign_ownership(campaign_id, username)
     result = await db.custom_creatures.update_one(
         {'id': creature_id, 'campaign_id': campaign_id},
         {'$set': {
@@ -422,7 +425,8 @@ async def update_custom_creature(campaign_id: str, creature_id: str, creature_da
 
 @router.delete("/campaigns/{campaign_id}/custom-creatures/{creature_id}")
 async def delete_custom_creature(campaign_id: str, creature_id: str, username: str = Depends(get_current_user)):
-    """Delete a custom creature"""
+    """Delete only the signed-in GM's creature."""
+    await verify_campaign_ownership(campaign_id, username)
     result = await db.custom_creatures.delete_one({'id': creature_id, 'campaign_id': campaign_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Creature not found")
@@ -430,7 +434,8 @@ async def delete_custom_creature(campaign_id: str, creature_id: str, username: s
 
 @router.post("/campaigns/{campaign_id}/custom-creatures/import")
 async def import_custom_creatures(campaign_id: str, creatures: list[CustomCreatureCreate], username: str = Depends(get_current_user)):
-    """Import multiple custom creatures from CSV/JSON data"""
+    """Bulk import only into a campaign owned by the current GM."""
+    await verify_campaign_ownership(campaign_id, username)
     imported = []
     for creature_data in creatures:
         creature = CustomCreature(
