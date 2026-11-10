@@ -753,3 +753,55 @@ for (const size of [
     await assertFitsViewport(page, size.width);
   });
 }
+
+// Regression: main navigation must not collapse when entering the Homebrew
+// library. Previously /homebrew was incorrectly classified as a compact
+// working-surface route, shrinking the desktop global rail from 236px to 76px.
+for (const size of [
+  { label: 'laptop', width: 1366, height: 768 },
+  { label: 'desktop', width: 1440, height: 900 },
+  { label: 'tablet', width: 1024, height: 768 },
+]) {
+  test('Homebrew preserves the Home navigation rail width on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await page.addInitScript(token => {
+      localStorage.setItem('dm_token', token);
+      localStorage.setItem('dm_username', 'responsive-display-user');
+    }, syntheticDisplayToken);
+    await avoidThirdPartyRequests(page);
+    await page.route('**/api/**', route => {
+      const path = new URL(route.request().url()).pathname;
+      let data: unknown = [];
+      if (path === '/api/auth/me') data = { username: 'responsive-display-user' };
+      else if (path === '/api/admin/check') data = { is_admin: false };
+      else if (path === '/api/dashboard/bootstrap') {
+        data = { characters: [], campaigns: [], homebrew_items: [], site_settings: {}, is_admin: false };
+      }
+      else if (path === '/api/homebrew') data = { homebrew: {} };
+      else if (path === '/api/site-settings') data = {};
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
+    });
+
+    await page.goto('/home');
+    const shell = page.locator('.rqk-app-shell');
+    const rail = page.getByRole('complementary', { name: 'App navigation' });
+    const primaryNav = page.getByRole('navigation', { name: 'Main app sections' });
+    await expect(rail).toBeVisible();
+    await expect(shell).not.toHaveAttribute('data-rq-focus', 'detail');
+    const before = await rail.boundingBox();
+    expect(before, 'The Home rail must have a measurable desktop/tablet width').toBeTruthy();
+
+    await primaryNav.getByRole('link', { name: 'Homebrew' }).click();
+    await expect(page).toHaveURL(/\/homebrew\/?$/);
+    await expect(shell).not.toHaveAttribute('data-rq-focus', 'detail');
+    await expect(primaryNav.getByRole('link', { name: 'Homebrew' })).toHaveAttribute('aria-current', 'page');
+    const after = await rail.boundingBox();
+    expect(after, 'The Homebrew rail must remain visible').toBeTruthy();
+    expect(Math.abs((after?.width || 0) - (before?.width || 0)), 'Global navigation should not shrink when Homebrew opens').toBeLessThanOrEqual(2);
+    if (size.width >= 1181) {
+      expect((after?.width || 0), 'Desktop main navigation should retain its labelled width').toBeGreaterThanOrEqual(200);
+      await expect(primaryNav.getByRole('link', { name: 'Homebrew' }).locator('span')).toBeVisible();
+    }
+  });
+}
+
