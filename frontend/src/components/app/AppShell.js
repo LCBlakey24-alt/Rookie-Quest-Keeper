@@ -73,22 +73,27 @@ async function loadAdminStatus() {
 }
 
 const mainNavItems = [
-  { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
+  { label: 'Home', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
   { label: 'Characters', to: '/characters', icon: UsersRound, matches: ['/characters'], mobilePrimary: true },
   { label: 'Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign', '/player/campaign'], mobilePrimary: true },
   { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'], mobilePrimary: true },
-  { label: 'Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
-  { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'], mobilePrimary: false },
+  { label: 'Community Creations', mobileLabel: 'Community', to: '/community', icon: Sparkles, matches: ['/community'], mobilePrimary: true },
+];
+// Legacy upload and account routes remain accessible without appearing as
+// primary destinations; imports belong inside their relevant sections.
+const utilityNavItems = [
+  { label: 'Account settings', to: '/account', icon: Settings, matches: ['/account'], mobilePrimary: false },
+  { label: 'Legacy uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'], mobilePrimary: false },
 ];
 
-const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches: ['/admin'], mobilePrimary: true };
+const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches: ['/admin'], mobilePrimary: false };
 
 function isActive(pathname, item) {
   return item.matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
 }
 
 function sectionLabel(pathname) {
-  const item = [...mainNavItems, adminNavItem].find((candidate) => isActive(pathname, candidate));
+  const item = [...mainNavItems, ...utilityNavItems, adminNavItem].find((candidate) => isActive(pathname, candidate));
   return item?.label || 'Workspace';
 }
 
@@ -241,6 +246,7 @@ export default function AppShell({ children }) {
     return [
       { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
       { label: 'Dice roller', icon: Dices, kind: 'dice' },
+      ...utilityNavItems,
       ...availableNavItems.filter((item) => item.mobilePrimary === false),
       { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
     ];
@@ -269,7 +275,7 @@ export default function AppShell({ children }) {
       data-rq-device={deviceLayout}
       data-rq-focus={isDetailRoute(location.pathname) ? 'detail' : undefined}
     >
-      <aside className={isMobile && isAdmin ? "rqk-app-rail rqk-app-rail--admin-mobile" : "rqk-app-rail"} aria-label="App navigation">
+      <aside className="rqk-app-rail" aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
             <BrandMiniLogo size={36} alt="" />
@@ -311,24 +317,7 @@ export default function AppShell({ children }) {
 
           </>}
 
-          {isMobile && !isAdmin && <button
-            type="button"
-            className={[
-              'rqk-app-rail-link',
-              'rqk-app-mobile-more-trigger',
-              isMoreOpen ? 'is-open' : '',
-              mobileMoreCurrentSection ? 'has-current-section' : '',
-            ].filter(Boolean).join(' ')}
-            onClick={() => setIsMoreOpen((value) => !value)}
-            aria-label={mobileMoreCurrentSection
-              ? `Open more tools, current section ${mobileMoreCurrentSection.label}`
-              : 'Open more tools'}
-            aria-expanded={isMoreOpen}
-            aria-controls="rqk-app-mobile-more-panel"
-          >
-            <MoreHorizontal size={20} aria-hidden="true" />
-            <span>More</span>
-          </button>}
+
         </div>
 
         {isMobile && isMoreOpen && (
@@ -349,9 +338,10 @@ export default function AppShell({ children }) {
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
           </div>}
-          {isMobile && isAdmin && (
+          {!isMobile && <Link to="/account" aria-label="Account settings" title="Account settings" className="rqk-app-topbar-settings" style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, color: "#cddce8" }}><Settings size={20} aria-hidden="true" /></Link>}
+          {isMobile && (
             <button type="button" className="rqk-app-topbar-tools-toggle"
-              aria-label="Open more tools" aria-expanded={isMoreOpen}
+              aria-label={mobileMoreCurrentSection ? `Open more tools, current section ${mobileMoreCurrentSection.label}` : "Open more tools"} aria-expanded={isMoreOpen}
               aria-controls="rqk-app-mobile-more-panel"
               onClick={() => setIsMoreOpen((open) => !open)}>
               <MoreHorizontal size={20} aria-hidden="true" />
