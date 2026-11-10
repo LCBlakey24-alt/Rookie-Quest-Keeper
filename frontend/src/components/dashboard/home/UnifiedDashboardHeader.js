@@ -7,11 +7,9 @@ export default function UnifiedDashboardHeader({
   return (
     <header className="unified-dashboard-header unified-dashboard-header--simple">
       <div className="dashboard-brand-row">
-        <p className="dashboard-eyebrow">Rookie Quest Keeper</p>
-        <h1>Dashboard</h1>
-        <p className="dashboard-muted">
-          Welcome back, <strong>{username || 'User'}</strong>. Pick up where you left off.
-        </p>
+        <p className="dashboard-eyebrow">HOME / DASHBOARD</p>
+        <h1>Your Adventure Hub</h1>
+        <p className="dashboard-muted">Welcome back, <strong>{username || 'User'}</strong>. Your worlds, characters and creations in one place.</p>
       </div>
 
       <div className="dashboard-header-buttons">
