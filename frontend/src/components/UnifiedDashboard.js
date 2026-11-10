@@ -40,7 +40,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     { label: 'Shared Creations', count: safeHomebrew.filter((item) => item.visibility === 'public').length, to: '/homebrew', icon: Globe2, hint: 'Your public homebrew (community gallery coming later)' },
   ];
 
-  const showGettingStarted = !loading && !dashboardWarning && safeCharacters.length === 0 && safeCampaigns.length === 0;
+  const showGettingStarted = !loading && !dashboardWarning && safeCharacters.length === 0 && safeCampaigns.length === 0 && safeHomebrew.length === 0;
   const recentActivity = useMemo(() => {
     const charActivity = safeArray(recentCharacters).map((item) => ({
       kind: 'Character',
