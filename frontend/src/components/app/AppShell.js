@@ -341,7 +341,7 @@ export default function AppShell({ children }) {
           {!isMobile && <Link to="/account" aria-label="Account settings" title="Account settings" className="rqk-app-topbar-settings" style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, color: "#cddce8" }}><Settings size={20} aria-hidden="true" /></Link>}
           {isMobile && (
             <button type="button" className="rqk-app-topbar-tools-toggle"
-              aria-label="Open more tools" aria-expanded={isMoreOpen}
+              aria-label={mobileMoreCurrentSection ? `Open more tools, current section ${mobileMoreCurrentSection.label}` : "Open more tools"} aria-expanded={isMoreOpen}
               aria-controls="rqk-app-mobile-more-panel"
               onClick={() => setIsMoreOpen((open) => !open)}>
               <MoreHorizontal size={20} aria-hidden="true" />
