@@ -50,6 +50,15 @@ describe('Home Dashboard v5', () => {
     expect(screen.getByRole('link', { name: /Create a Character/ })).toHaveAttribute('href', '/characters/new');
     expect(screen.getByRole('link', { name: /Create a Campaign/ })).toHaveAttribute('href', '/campaigns');
   });
+  test('does not call an established homebrew-only account empty', () => {
+    useDashboardData.mockReturnValue(fixture({
+      characters: [], campaigns: [], homebrewItems: [{ id: 'hb-42', name: 'Saved spell', visibility: 'private' }],
+      recentCharacters: [], recentCampaigns: [], recentHomebrew: [],
+    }));
+    renderHome();
+    expect(screen.queryByText('Start Your Adventure')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Homebrew: 1/ })).toHaveAttribute('href', '/homebrew');
+  });
   test('retains warning and retry, without claiming an offline account is empty', () => {
     const loadDashboard = jest.fn();
     useDashboardData.mockReturnValue(fixture({ characters: [], campaigns: [], dashboardWarning: 'Could not refresh your library', loadDashboard }));
