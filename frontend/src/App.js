@@ -71,6 +71,8 @@ const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/Charac
 const CharacterCreator = lazyWithChunkRetry(() => import('@/routes/CharacterCreatorRoute'));
 const CharacterProfileEditor = lazyWithChunkRetry(() => import('@/components/CharacterProfileEditor'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
+// Preview only: reachable by URL, linked from nowhere, until it is ready.
+const HexCharacterSheet = lazyWithChunkRetry(() => import('@/components/hex-sheet/HexCharacterSheet'));
 
 // These tools are only visible after sign-in. Keeping them out of the shared
 // startup bundle lets public/auth routes and the main workspace become usable
@@ -234,6 +236,7 @@ export function AppRoutes() {
 
         <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <SignInRedirect />} />
         <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><CharacterProfileEditor /></AppShell> : <SignInRedirect />} />
+        <Route path="/characters/:characterId/hex" element={isAuthenticated ? <HexCharacterSheet /> : <SignInRedirect />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <SignInRedirect />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
