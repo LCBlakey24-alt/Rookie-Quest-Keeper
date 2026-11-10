@@ -61,6 +61,24 @@ describe('Keeper simplified navigation', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
+  test('keeps the labelled desktop rail on Homebrew and compact detail rail only on detail pages', async () => {
+    window.innerWidth = 1440;
+    mockPathname = '/home';
+    const view = render(<AppShell><main>Home screen</main></AppShell>);
+    const shell = view.container.querySelector('.rqk-app-shell');
+    expect(shell).not.toHaveAttribute('data-rq-focus');
+
+    mockPathname = '/homebrew';
+    view.rerender(<AppShell><main>Homebrew screen</main></AppShell>);
+    expect(shell).not.toHaveAttribute('data-rq-focus');
+    expect(within(screen.getByRole('navigation', { name: 'Main app sections' }))
+      .getByRole('link', { name: 'Homebrew' })).toHaveAttribute('aria-current', 'page');
+
+    mockPathname = '/campaign/sample-id';
+    view.rerender(<AppShell><main>Campaign detail screen</main></AppShell>);
+    expect(shell).toHaveAttribute('data-rq-focus', 'detail');
+  });
+
   test('keeps player campaign details under the Campaigns tab', async () => {
     mockPathname = '/player/campaign/c1';
     window.innerWidth = 390;
