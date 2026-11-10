@@ -2,7 +2,7 @@
  * The hexagonal sheet as a player uses it: synthetic character, mocked API.
  */
 import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import HexCharacterSheet from './HexCharacterSheet';
@@ -55,6 +55,7 @@ const crumbs = () => within(screen.getByTestId('hex-crumbs')).getAllByRole('list
 
 beforeEach(() => {
   jest.clearAllMocks();
+  apiClient.patch.mockReset();
   rolled.length = 0;
 });
 
@@ -76,10 +77,13 @@ describe('header and vitals', () => {
     expect(lastRoll().rolls[0].sides).toBe(20);
   });
 
-  test('HP explains that the HP wheel is the next step and offers the classic sheet', async () => {
+  test('HP opens the HP dial in place, and Back returns to the wheel', async () => {
     await openSheet();
     fireEvent.click(screen.getByTestId('hex-vital-hp'));
-    expect(toast.info).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('hex-hp-dial')).toBeInTheDocument();
+    expect(crumbs()).toEqual(['Character', 'Hit Points']);
+    fireEvent.click(screen.getByTestId('hex-back'));
+    expect(screen.getByTestId('hex-wedge-core')).toBeInTheDocument();
   });
 });
 
@@ -229,7 +233,7 @@ describe('footer', () => {
   });
 });
 
-test('the preview only reads: it never writes to the character', async () => {
+test('rolling and browsing never write to the character', async () => {
   await openSheet();
   fireEvent.click(screen.getByTestId('hex-wedge-core'));
   fireEvent.click(screen.getByTestId('hex-wedge-strength'));
@@ -248,4 +252,75 @@ test('a character that cannot be loaded says so and offers a way out', async () 
   );
   expect(await screen.findByRole('alert')).toHaveTextContent('Character not found');
   expect(screen.getByRole('link', { name: 'Back to My Characters' })).toBeInTheDocument();
+});
+
+describe('the HP dial saves through the existing queue', () => {
+  // Each test gets its own character: the save queue rightly makes a
+  // character's next load wait for its earlier writes, so tests must not
+  // share one.
+  let serial = 0;
+  const openDial = async (character = PUNCH) => {
+    serial += 1;
+    await openSheet({ ...character, id: `char-dial-${serial}` });
+    fireEvent.click(screen.getByTestId('hex-vital-hp'));
+    return screen.getByTestId('hex-hp-slider');
+  };
+
+  test('confirming sends the classic-sheet PATCH and reports success only after the server answers', async () => {
+    let answer;
+    apiClient.patch.mockImplementation((url, body) => new Promise((resolve) => { answer = () => resolve({ data: { ...PUNCH, ...body } }); }));
+    const slider = await openDial({ ...PUNCH, current_hit_points: 30, temporary_hit_points: 4 });
+    fireEvent.keyDown(slider, { key: 'PageDown' });
+    fireEvent.keyDown(slider, { key: 'ArrowDown' }); // -6
+    fireEvent.click(screen.getByTestId('hex-hp-confirm'));
+    await waitFor(() => expect(apiClient.patch).toHaveBeenCalledWith(expect.stringMatching(/^\/characters\/char-dial-\d+$/), { current_hit_points: 28, temporary_hit_points: 0, temp_hp: 0 }));
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.getByTestId('hex-hp-status')).toHaveTextContent('Saving');
+    await act(async () => { answer(); });
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Hit points 28 / 35'));
+    expect(screen.getByTestId('hex-vital-hp')).toHaveTextContent('28 / 35');
+    expect(screen.getByTestId('hex-hp-status')).toHaveTextContent('Saved');
+  });
+
+  test('a failed save is reported, rolled back and never shown as saved', async () => {
+    apiClient.patch.mockRejectedValue({ response: { data: { detail: 'Server unavailable' } } });
+    const slider = await openDial({ ...PUNCH, current_hit_points: 20 });
+    fireEvent.keyDown(slider, { key: 'ArrowUp' });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-hp-confirm')); });
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.getByTestId('hex-vital-hp')).toHaveTextContent('20 / 35');
+    expect(screen.getByTestId('hex-hp-status')).toHaveTextContent('Not saved');
+  });
+
+  test('damage while concentrating raises the concentration check', async () => {
+    apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...PUNCH, concentrating_on: 'Bless', ...body } }));
+    const slider = await openDial({ ...PUNCH, concentrating_on: 'Bless' });
+    fireEvent.keyDown(slider, { key: 'PageDown' }); // -5
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-hp-confirm')); });
+    await waitFor(() => expect(toast.warning).toHaveBeenCalled());
+    const [title, options] = toast.warning.mock.calls[0];
+    expect(title).toContain('5 damage');
+    expect(options.description).toContain('DC 10');
+    act(() => { options.action.onClick(); });
+    expect(lastRoll().label).toBe('Concentration Save DC 10');
+  });
+
+  test('temporary HP changes go to the temporary pool only', async () => {
+    apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...PUNCH, ...body } }));
+    const slider = await openDial();
+    fireEvent.click(screen.getByTestId('hex-hp-target-temp'));
+    fireEvent.keyDown(slider, { key: 'PageUp' });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-hp-confirm')); });
+    await waitFor(() => expect(apiClient.patch).toHaveBeenCalledWith(expect.stringMatching(/^\/characters\/char-dial-\d+$/), { temporary_hit_points: 5, temp_hp: 5 }));
+    await waitFor(() => expect(screen.getByTestId('hex-vital-hp')).toHaveTextContent('+5 temp'));
+  });
+
+  test('cancel changes nothing', async () => {
+    const slider = await openDial();
+    fireEvent.keyDown(slider, { key: 'PageDown' });
+    fireEvent.click(screen.getByTestId('hex-hp-cancel'));
+    expect(apiClient.patch).not.toHaveBeenCalled();
+    expect(screen.getByTestId('hex-wedge-core')).toBeInTheDocument();
+  });
 });

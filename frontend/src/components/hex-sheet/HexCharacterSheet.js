@@ -9,11 +9,13 @@ import LevelUpWizard from '@/components/LevelUpWizard';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import { rollDiceNotation } from '@/data/diceRoller';
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
+import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier } from '@/data/characterConcentrationRules';
 
+import HexHpDial from './HexHpDial';
 import HexPortrait from './HexPortrait';
 import HexWheel from './HexWheel';
 import { SLOT } from './hexGeometry';
-import { abilityRows, formatModifier, identityLines, portraitUrlFor, vitalsFor } from './hexSheetModel';
+import { abilityRows, formatModifier, identityLines, portraitUrlFor, proficiencyBonusFor, vitalsFor } from './hexSheetModel';
 import './hexSheet.css';
 
 /** Main wheel, laid out as in the hand-drawn reference. */
@@ -46,7 +48,7 @@ export const DICE_SLOTS = [
 ];
 
 const SECTION_TITLES = Object.fromEntries(MAIN_SECTIONS.map((section) => [section.id, section.label]));
-const VIEW_TITLES = { main: 'Character', core: 'Core Abilities', dice: 'Dice', ...SECTION_TITLES };
+const VIEW_TITLES = { main: 'Character', core: 'Core Abilities', dice: 'Dice', hp: 'Hit Points', ...SECTION_TITLES };
 
 function viewTitle(entry, rows) {
   if (entry.view === 'roll') return rows.find((row) => row.key === entry.ability)?.name || 'Roll';
@@ -145,6 +147,32 @@ export default function HexCharacterSheet() {
   };
 
   const openDice = () => push({ view: 'dice' });
+
+  /**
+   * Save an HP dial change through the same queue as the classic sheet.
+   * Resolves true only once the server has accepted it.
+   */
+  const confirmHp = async (target, delta, adjustment) => {
+    const saved = await queueRef.current.patch(adjustment.updates, {
+      error: target === 'temp' ? 'Could not save temporary HP' : 'Could not save HP',
+    });
+    if (!saved) return false;
+    const { result } = adjustment;
+    toast.success(target === 'temp'
+      ? `Temporary HP is now ${result.tempHp}`
+      : `Hit points ${result.currentHp} / ${result.maxHp}${result.tempHp ? ` (+${result.tempHp} temp)` : ''}`);
+    const concentratingOn = getConcentrationName(character?.concentrating_on || character?.concentration);
+    if (adjustment.damage > 0 && concentratingOn) {
+      const dc = getConcentrationSaveDc(adjustment.damage);
+      const modifier = getConcentrationSaveModifier(character, proficiencyBonusFor(character));
+      toast.warning(`You took ${adjustment.damage} damage — concentration check`, {
+        description: `Concentrating on ${concentratingOn}. Make a Constitution save, DC ${dc}.`,
+        duration: 12000,
+        action: { label: 'Roll CON Save', onClick: () => rollCheck(`Concentration Save DC ${dc}`, modifier) },
+      });
+    }
+    return true;
+  };
   const centreDice = { label: 'D20', ariaLabel: 'Open the dice wheel', onSelect: openDice };
 
   let wheel;
@@ -182,6 +210,8 @@ export default function HexCharacterSheet() {
         centre={centreDice}
       />
     );
+  } else if (current.view === 'hp') {
+    wheel = <HexHpDial character={character} initialTarget={current.target || 'hp'} onConfirm={confirmHp} onCancel={back} />;
   } else if (current.view === 'dice') {
     wheel = (
       <HexWheel
@@ -244,10 +274,7 @@ export default function HexCharacterSheet() {
           className="hex-sheet__vital hex-sheet__vital--hp"
           data-testid="hex-vital-hp"
           aria-label={`Hit points ${vitals.currentHp} of ${vitals.maxHp}${vitals.tempHp ? `, plus ${vitals.tempHp} temporary` : ''}. Adjust hit points.`}
-          onClick={() => toast.info('The HP wheel is the next step of this preview.', {
-            description: 'For now, adjust HP on the classic sheet.',
-            action: { label: 'Open classic sheet', onClick: () => navigate(`/characters/${characterId}`) },
-          })}
+          onClick={() => { if (current.view !== 'hp') push({ view: 'hp' }); }}
         >
           <span className="hex-sheet__vital-label">Hit Points</span>
           <strong>{vitals.currentHp} / {vitals.maxHp}</strong>
