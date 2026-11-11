@@ -117,4 +117,52 @@ describe('Keeper simplified navigation', () => {
     fireEvent(window, new Event('resize'));
     expect(screen.getByRole('button', { name: 'Open more tools' })).toHaveAttribute('aria-expanded', 'false');
   });
+
+  describe('phone navigation polish', () => {
+    test('the More panel takes focus when it opens and a tap outside closes it', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
+      const more = screen.getByRole('menu', { name: 'More app tools' });
+      expect(within(more).getAllByRole('menuitem')[0]).toHaveFocus();
+      fireEvent.click(screen.getByTestId('mobile-more-backdrop'));
+      expect(screen.queryByRole('menu', { name: 'More app tools' })).not.toBeInTheDocument();
+    });
+
+    test('the veil is not a control: keyboard users close with Escape or the close button', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
+      const veil = screen.getByTestId('mobile-more-backdrop');
+      expect(veil.tagName).toBe('DIV');
+      expect(veil).toHaveAttribute('aria-hidden', 'true');
+      fireEvent.click(screen.getByRole('button', { name: 'Close more tools' }));
+      expect(screen.queryByRole('menu', { name: 'More app tools' })).not.toBeInTheDocument();
+    });
+
+    test('phones show the brand mark linking home beside the section title', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      expect(screen.getByRole('link', { name: 'Rookie Quest Keeper home' })).toHaveAttribute('href', '/home');
+    });
+
+    test('larger screens keep their own header without the phone brand mark', async () => {
+      window.innerWidth = 1280;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      expect(screen.queryByRole('link', { name: 'Rookie Quest Keeper home' })).not.toBeInTheDocument();
+    });
+
+    test('every tab carries the current-tab indicator, hidden from assistive tech', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      const nav = screen.getByRole('navigation', { name: 'Main app sections' });
+      within(nav).getAllByRole('link').forEach((link) => {
+        const indicator = link.querySelector('.rqk-app-rail-indicator');
+        expect(indicator).not.toBeNull();
+        expect(indicator).toHaveAttribute('aria-hidden', 'true');
+      });
+      // Accessible names are unchanged by the indicator.
+      expect(within(nav).getByRole('link', { name: 'Campaigns' })).toHaveAttribute('aria-current', 'page');
+    });
+  });
 });

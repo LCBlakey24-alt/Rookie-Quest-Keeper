@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { isDetailRoute } from '@/components/app/detailRoutes';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
@@ -19,6 +19,8 @@ import '@/layouts/mobile/appShell.css';
 import { isLocalPreview } from '@/preview/previewMode';
 import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
 import '@/preview/previewWorkspace.css';
+// Last on purpose: the phone navigation's single source of truth.
+import '@/styles/mobileNavigation.css';
 
 const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000;
 let adminCheckInFlight = null;
@@ -116,6 +118,8 @@ function RailLink({ item, pathname, className = '', onClick, compact = false }) 
       aria-current={active ? 'page' : undefined}
       onClick={onClick}
     >
+      {/* The phone tab bar's current-tab line; hidden on every other layout. */}
+      <i className="rqk-app-rail-indicator" aria-hidden="true" />
       <Icon size={20} aria-hidden="true" />
       <span>{compact && item.mobileLabel ? item.mobileLabel : item.label}</span>
     </Link>
@@ -135,8 +139,20 @@ function openDice() {
 }
 
 function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice }) {
+  const panelRef = useRef(null);
+  // Opening the panel moves focus into it, so keyboard and screen-reader
+  // users land on the first tool rather than behind the sheet.
+  useEffect(() => {
+    panelRef.current?.querySelector('.rqk-app-mobile-more-item')?.focus();
+  }, []);
+
   return (
-    <div id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
+    <>
+    {/* Tapping anywhere outside the panel closes it. A plain element, not a
+      * button: keyboard users close with Escape or the close button, and the
+      * app-wide button theme would otherwise paint it solid. */}
+    <div className="rqk-app-mobile-more-backdrop" aria-hidden="true" onClick={onClose} data-testid="mobile-more-backdrop" />
+    <div ref={panelRef} id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
@@ -194,6 +210,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
         })}
       </div>
     </div>
+    </>
   );
 }
 
@@ -335,6 +352,11 @@ export default function AppShell({ children }) {
       <div className="rqk-app-workspace">
         <header className="rqk-app-topbar" aria-label="Workspace controls">
           {isLocalPreview() ? <PreviewWorkspaceControls /> : <div className="rqk-app-topbar-title">
+            {isMobile && (
+              <Link to="/home" className="rqk-app-topbar-brand" aria-label="Rookie Quest Keeper home">
+                <BrandMiniLogo size={28} alt="" />
+              </Link>
+            )}
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
           </div>}
