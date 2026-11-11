@@ -1,4 +1,9 @@
-import { DEGREES_PER_HP, angleStep, deltaForRotation, hpAdjustment, pointerAngle, rotationForDelta } from './hpDial';
+import { DEGREES_PER_HP, angleStep, deltaForRotation, hpAdjustment, pointerAngle, rotationForDelta,
+  coastStep,
+  flickVelocity,
+  settledRotation,
+  FLICK_MAX_SPEED,
+} from './hpDial';
 
 const hero = { max_hit_points: 35, current_hit_points: 30, temporary_hit_points: 5 };
 
@@ -75,5 +80,32 @@ describe('what a confirmed change does, by the classic sheet rules', () => {
   test('no change means nothing to save', () => {
     expect(hpAdjustment(hero, 'hp', 0)).toBeNull();
     expect(hpAdjustment({ ...hero, temporary_hit_points: 0 }, 'temp', -2)).toBeNull();
+  });
+});
+
+describe('flicking', () => {
+  const samples = (degPerMs, count = 6, every = 16) => Array.from({ length: count }, (_, i) => ({ t: i * every, total: i * every * degPerMs }));
+
+  test('a fast swipe released while moving coasts at its speed', () => {
+    expect(flickVelocity(samples(0.8), 80 + 5)).toBeCloseTo(0.8);
+    expect(flickVelocity(samples(-0.8), 80 + 5)).toBeCloseTo(-0.8);
+  });
+
+  test('a finger that stopped before lifting, or moved slowly, does not coast', () => {
+    expect(flickVelocity(samples(0.8), 80 + 200)).toBe(0);
+    expect(flickVelocity(samples(0.1), 85)).toBe(0);
+    expect(flickVelocity([], 0)).toBe(0);
+  });
+
+  test('a very fast flick is capped', () => {
+    expect(flickVelocity(samples(9), 85)).toBe(FLICK_MAX_SPEED);
+  });
+
+  test('coasting slows down and lands on a whole hit point', () => {
+    const step = coastStep(1, 16);
+    expect(step.distance).toBe(16);
+    expect(step.velocity).toBeLessThan(1);
+    expect(settledRotation(100)).toBe(72);
+    expect(settledRotation(-100)).toBe(-72);
   });
 });

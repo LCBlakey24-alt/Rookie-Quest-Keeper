@@ -99,3 +99,47 @@ export function hpAdjustment(character, target, delta) {
   }
   return { updates, result: { currentHp: outcome.current_hit_points, maxHp, tempHp }, damage: 0 };
 }
+
+/*
+ * Flicking. A thumb holding the phone can only sweep a short arc on one
+ * side of the dial, so a quick swipe keeps the dial spinning after the
+ * finger lifts, slowing down like a real wheel. Speeds are in degrees per
+ * millisecond of dial rotation.
+ */
+export const FLICK_MIN_SPEED = 0.25; // slower than this on release: no coast
+export const FLICK_MAX_SPEED = 1.6; // cap so one flick moves a sensible amount
+export const FLICK_FRICTION = 0.92; // speed kept per 16 ms frame
+export const FLICK_STOP_SPEED = 0.02;
+const FLICK_WINDOW_MS = 100; // only the last part of the swipe counts
+const FLICK_HOLD_MS = 60; // a finger that stopped before lifting is not a flick
+
+/**
+ * The dial's speed at release, from recent samples of { t, total } (time in
+ * ms, total turn in degrees). Zero when the finger had stopped, or moved
+ * too slowly to count as a flick.
+ */
+export function flickVelocity(samples, releasedAt) {
+  if (!samples || samples.length < 2) return 0;
+  const last = samples[samples.length - 1];
+  if (releasedAt - last.t > FLICK_HOLD_MS) return 0;
+  const recent = samples.filter((sample) => last.t - sample.t <= FLICK_WINDOW_MS);
+  const first = recent[0];
+  const span = last.t - first.t;
+  if (span < 8) return 0;
+  const speed = (last.total - first.total) / span;
+  if (Math.abs(speed) < FLICK_MIN_SPEED) return 0;
+  return Math.max(-FLICK_MAX_SPEED, Math.min(FLICK_MAX_SPEED, speed));
+}
+
+/** One frame of coasting: how far the dial moves and its new speed. */
+export function coastStep(velocity, elapsedMs) {
+  return {
+    distance: velocity * elapsedMs,
+    velocity: velocity * FLICK_FRICTION ** (elapsedMs / 16),
+  };
+}
+
+/** Where a coast lands: the whole hit point it slowed down in. */
+export function settledRotation(totalDegrees, degreesPerHp = DEGREES_PER_HP) {
+  return rotationForDelta(deltaForRotation(totalDegrees, degreesPerHp), degreesPerHp);
+}

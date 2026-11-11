@@ -22,6 +22,12 @@ const RADIUS = 900;
 
 beforeAll(() => { window.PointerEvent = TestPointerEvent; });
 
+// A still clock unless a test moves it: an ordinary drag is never mistaken
+// for a flick just because the test machine was slow.
+let nowSpy;
+beforeEach(() => { nowSpy = jest.spyOn(performance, 'now').mockReturnValue(0); });
+afterEach(() => { nowSpy.mockRestore(); jest.useRealTimers(); });
+
 function renderDial(onConfirm = jest.fn().mockResolvedValue(true), character = HERO) {
   const onCancel = jest.fn();
   const view = render(<HexHpDial character={character} onConfirm={onConfirm} onCancel={onCancel} />);
@@ -251,5 +257,76 @@ describe('two halves and the round dial', () => {
     renderDial();
     expect(screen.getByTestId('hex-hp-sound')).toHaveAttribute('aria-pressed', 'false');
     window.localStorage.removeItem('rqk.hexSheet.dialSound');
+  });
+});
+
+/** A straight vertical thumb swipe at a fixed x, as from the side of the phone. */
+function swipe(svg, x, fromY, toY, { stepMs = 0, release = true, pointerId = 7 } = {}) {
+  const half = svg.querySelector('[data-region="hp"] polygon');
+  fireEvent.pointerDown(half, { pointerId, button: 0, clientX: x, clientY: fromY });
+  const step = fromY < toY ? 20 : -20;
+  for (let y = fromY + step; step > 0 ? y <= toY : y >= toY; y += step) {
+    if (stepMs) jest.advanceTimersByTime(stepMs);
+    fireEvent.pointerMove(svg, { pointerId, clientX: x, clientY: y });
+  }
+  if (release) fireEvent.pointerUp(svg, { pointerId, clientX: x, clientY: toY });
+}
+
+describe('one thumb on the side of the dial', () => {
+  test('swiping up the right side turns the dial anticlockwise, like the edge of a real wheel', () => {
+    const { svg } = renderDial();
+    swipe(svg, CENTRE + 700, CENTRE + 300, CENTRE - 300);
+    expect(Number(screen.getByTestId('hex-hp-slider').getAttribute('aria-valuenow'))).toBeLessThan(0);
+  });
+
+  test('swiping up the left side turns it clockwise', () => {
+    const { svg } = renderDial();
+    swipe(svg, CENTRE - 700, CENTRE + 300, CENTRE - 300);
+    expect(Number(screen.getByTestId('hex-hp-slider').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+  });
+
+  test('a slow swipe stops where the thumb lifts', () => {
+    jest.useFakeTimers();
+    const { svg } = renderDial();
+    swipe(svg, CENTRE - 700, CENTRE + 300, CENTRE - 300, { stepMs: 200 });
+    const atRelease = rotation();
+    act(() => { jest.advanceTimersByTime(1000); });
+    expect(rotation()).toBe(atRelease);
+  });
+
+  test('a flick keeps the dial spinning, slowing down, and it settles on a whole hit point', () => {
+    jest.useFakeTimers();
+    nowSpy.mockImplementation(() => Date.now()); // the fake clock drives performance.now
+    const { svg } = renderDial();
+    swipe(svg, CENTRE - 700, CENTRE + 300, CENTRE - 300, { stepMs: 2 });
+    const atRelease = rotation();
+    const deltaAtRelease = Number(screen.getByTestId('hex-hp-slider').getAttribute('aria-valuenow'));
+    act(() => { jest.advanceTimersByTime(80); });
+    const early = rotation();
+    expect(early).toBeGreaterThan(atRelease); // still turning clockwise after the lift
+    act(() => { jest.advanceTimersByTime(3000); });
+    const settled = rotation();
+    expect(settled).toBeGreaterThan(early);
+    expect(settled % 36).toBe(0); // on a whole hit point
+    const delta = Number(screen.getByTestId('hex-hp-slider').getAttribute('aria-valuenow'));
+    expect(delta).toBeGreaterThan(deltaAtRelease);
+    expect(delta).toBeLessThan(40); // one flick moves a sensible amount
+  });
+
+  test('touching a spinning dial catches it, and the centre confirms what it shows', async () => {
+    jest.useFakeTimers();
+    nowSpy.mockImplementation(() => Date.now());
+    const { svg, onConfirm } = renderDial(jest.fn().mockResolvedValue(true), { ...HERO, current_hit_points: 1 });
+    swipe(svg, CENTRE - 700, CENTRE + 300, CENTRE - 300, { stepMs: 2 });
+    act(() => { jest.advanceTimersByTime(48); });
+    const half = svg.querySelector('[data-region="hp"] polygon');
+    fireEvent.pointerDown(half, { pointerId: 9, button: 0, clientX: CENTRE - 700, clientY: CENTRE });
+    const caught = rotation();
+    expect(caught % 36).toBe(0);
+    act(() => { jest.advanceTimersByTime(1000); });
+    expect(rotation()).toBe(caught);
+    fireEvent.pointerUp(svg, { pointerId: 9, clientX: CENTRE - 700, clientY: CENTRE });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-hp-confirm')); });
+    expect(onConfirm).toHaveBeenCalledWith('hp', caught / 36, expect.anything());
   });
 });

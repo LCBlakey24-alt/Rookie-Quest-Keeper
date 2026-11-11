@@ -8,11 +8,15 @@ import { INNER_RADIUS, OUTER_RADIUS, hexVertex, hexVertices, pointsAttribute, wh
 import {
   DEGREES_PER_HP,
   DRAG_THRESHOLD_DEGREES,
+  FLICK_STOP_SPEED,
   angleStep,
+  coastStep,
   deltaForRotation,
+  flickVelocity,
   hpAdjustment,
   pointerAngle,
   rotationForDelta,
+  settledRotation,
 } from './hpDial';
 import { isDialSoundOn, playDialTick, setDialSoundOn } from './dialSound';
 
@@ -71,6 +75,11 @@ function trailPath(rotation) {
  * until the centre is tapped, and nothing is reported as saved until the
  * server says so (`onConfirm` resolves true). Then the dial turns home.
  *
+ * One thumb: the dial follows a finger moving along just one side of it,
+ * and a quick flick keeps it spinning after the finger lifts, slowing down
+ * and settling on a whole hit point -- so a thumb on the edge of the
+ * screen can spin it without reaching round the whole wheel.
+ *
  * Without turning: the − / + buttons and the slider (arrow keys, Page
  * Up/Down, Enter, Escape) do the same job.
  */
@@ -87,9 +96,52 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
   const drag = useRef(null);
   const lastDelta = useRef(0);
   const returnTimer = useRef(null);
+  const rotationRef = useRef(0);
+  const coast = useRef(null);
   const filterId = useSvgId('hex-hp-glow');
 
-  useEffect(() => () => window.clearTimeout(returnTimer.current), []);
+  useEffect(() => () => {
+    window.clearTimeout(returnTimer.current);
+    if (coast.current) window.cancelAnimationFrame(coast.current.frame);
+  }, []);
+
+  const turnTo = (next) => {
+    rotationRef.current = next;
+    setRotation(next);
+  };
+
+  const stopCoasting = () => {
+    if (!coast.current) return;
+    window.cancelAnimationFrame(coast.current.frame);
+    coast.current = null;
+    turnTo(settledRotation(rotationRef.current));
+  };
+
+  const startCoasting = (velocity) => {
+    const state = { velocity, last: performance.now(), frame: 0 };
+    coast.current = state;
+    const frame = () => {
+      if (coast.current !== state) return;
+      const now = performance.now();
+      const elapsed = Math.max(0, Math.min(48, now - state.last));
+      state.last = now;
+      const step = coastStep(state.velocity, elapsed);
+      state.velocity = step.velocity;
+      const next = rotationRef.current + step.distance;
+      turnTo(next);
+      const nextDelta = deltaForRotation(next);
+      if (nextDelta !== lastDelta.current) {
+        lastDelta.current = nextDelta;
+        tick();
+      }
+      if (Math.abs(state.velocity) < FLICK_STOP_SPEED) {
+        stopCoasting();
+        return;
+      }
+      state.frame = window.requestAnimationFrame(frame);
+    };
+    state.frame = window.requestAnimationFrame(frame);
+  };
 
   const delta = deltaForRotation(rotation);
   const adjustment = useMemo(() => hpAdjustment(character, target, delta), [character, target, delta]);
@@ -107,18 +159,20 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
 
   const setDelta = (next) => {
     if (saving) return;
+    stopCoasting();
     setArmed(true);
     setStatus('');
     if (next !== delta) tick();
-    setRotation(rotationForDelta(next));
+    turnTo(rotationForDelta(next));
   };
 
   const chooseTarget = (next) => {
     if (saving) return;
     if (armed && next === target) return;
+    stopCoasting();
     setTarget(next);
     setArmed(true);
-    setRotation(0);
+    turnTo(0);
     setStatus('');
   };
 
@@ -130,15 +184,17 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
   const onPointerDown = (event) => {
     if (saving || event.button > 0) return;
     if (event.target.closest('[data-dial-centre]')) return;
+    stopCoasting(); // a touch catches a spinning dial
     const [cx, cy] = centreOf();
     drag.current = {
       pointerId: event.pointerId,
       lastAngle: pointerAngle(event.clientX, event.clientY, cx, cy),
-      startRotation: rotation,
+      startRotation: rotationRef.current,
       travelled: 0,
+      samples: [],
       region: event.target.closest('[data-region]')?.getAttribute('data-region') || null,
     };
-    lastDelta.current = deltaForRotation(rotation);
+    lastDelta.current = deltaForRotation(rotationRef.current);
   };
 
   const onPointerMove = (event) => {
@@ -149,6 +205,8 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
     const step = angleStep(state.lastAngle, angle);
     state.lastAngle = angle;
     state.travelled += step;
+    state.samples.push({ t: performance.now(), total: state.travelled });
+    if (state.samples.length > 8) state.samples.shift();
     if (!dragging && Math.abs(state.travelled) < DRAG_THRESHOLD_DEGREES) return;
     if (!dragging) {
       // Only now take the pointer: a plain tap must still reach the half
@@ -164,7 +222,7 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
     }
     // The dial follows the finger continuously; only the number steps.
     const next = state.startRotation + state.travelled;
-    setRotation(next);
+    turnTo(next);
     const nextDelta = deltaForRotation(next);
     if (nextDelta !== lastDelta.current) {
       lastDelta.current = nextDelta;
@@ -179,26 +237,32 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
     if (dragging) {
       svgRef.current.releasePointerCapture?.(event.pointerId);
       setDragging(false); // the dial stays where it was let go; nothing is saved yet
+      const velocity = flickVelocity(state.samples, performance.now());
+      if (velocity) startCoasting(velocity);
     }
   };
 
   const confirm = async () => {
     if (saving) return;
+    stopCoasting(); // confirm what the dial shows now
+    // Read the dial itself: a coast that was just stopped has not re-rendered yet.
+    const amount = deltaForRotation(rotationRef.current);
+    const change = hpAdjustment(character, target, amount);
     if (!armed) {
       setStatus('Tap Hit Points or Temp HP first.');
       return;
     }
-    if (!delta) {
+    if (!amount) {
       setStatus('Turn the dial to choose an amount.');
       return;
     }
-    if (!adjustment) {
-      setStatus(target === 'hp' && delta > 0 ? 'Already at maximum hit points.' : 'Nothing to change.');
+    if (!change) {
+      setStatus(target === 'hp' && amount > 0 ? 'Already at maximum hit points.' : 'Nothing to change.');
       return;
     }
     setSaving(true);
     setStatus('Saving…');
-    const saved = await onConfirm?.(target, delta, adjustment);
+    const saved = await onConfirm?.(target, amount, change);
     setSaving(false);
     if (!saved) {
       setStatus('Not saved. Tap the centre to try again, or cancel.');
@@ -206,7 +270,7 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
     }
     setStatus('Saved');
     setReturning(true);
-    setRotation(0);
+    turnTo(0);
     returnTimer.current = window.setTimeout(() => {
       setReturning(false);
       setArmed(false);
@@ -215,7 +279,8 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
 
   const cancel = () => {
     if (saving) return;
-    setRotation(0);
+    stopCoasting();
+    turnTo(0);
     setArmed(false);
     setStatus('');
     onCancel?.();
