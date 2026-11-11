@@ -614,9 +614,10 @@ export default function CleanCharacterSheet() {
   }
 
   const classProgression = formatClassProgression(character);
+  // Species and subspecies are one part ("Halfling (Lightfoot)"); as two
+  // parts they were joined with a bullet and pushed the class onto a second line.
   const subtitle = [
-    character.race,
-    character.subrace ? `(${character.subrace})` : null,
+    [character.race, character.subrace ? `(${character.subrace})` : null].filter(Boolean).join(' ') || null,
     classProgression,
     `Lv ${character.level || 1}`,
   ].filter(Boolean).join(' • ');
