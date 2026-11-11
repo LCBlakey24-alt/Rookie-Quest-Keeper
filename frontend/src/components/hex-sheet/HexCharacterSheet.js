@@ -16,6 +16,7 @@ import HexHpDial from './HexHpDial';
 import HexPortrait from './HexPortrait';
 import HexWheel from './HexWheel';
 import { SLOT } from './hexGeometry';
+import { HEX_THEMES, getHexTheme, loadHexThemeId, saveHexThemeId } from './hexThemes';
 import { abilityRows, formatModifier, identityLines, portraitUrlFor, proficiencyBonusFor, vitalsFor } from './hexSheetModel';
 import './hexSheet.css';
 
@@ -94,6 +95,30 @@ export default function HexCharacterSheet() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showPortrait, setShowPortrait] = useState(false);
+  const [themeId, setThemeId] = useState(loadHexThemeId);
+  const themeVars = getHexTheme(themeId).vars;
+  const settingsRef = useRef(null);
+
+  // The settings menu closes on a tap anywhere else or Escape; it stays open
+  // while choosing a theme so the player can compare several.
+  useEffect(() => {
+    if (!showSettings) return undefined;
+    const onPointer = (event) => {
+      if (!settingsRef.current?.contains(event.target)) setShowSettings(false);
+    };
+    const onKey = (event) => { if (event.key === 'Escape') setShowSettings(false); };
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [showSettings]);
+
+  const chooseTheme = (id) => {
+    setThemeId(id);
+    saveHexThemeId(id);
+  };
   const rollCounter = useRef(0);
   const choiceRef = useRef(null);
 
@@ -276,7 +301,7 @@ export default function HexCharacterSheet() {
 
   if (loading && !character) {
     return (
-      <div className="hex-sheet hex-sheet--state" role="status" aria-live="polite">
+      <div className="hex-sheet hex-sheet--state" style={themeVars} role="status" aria-live="polite">
         <span className="hex-sheet__loading-hex" aria-hidden="true" />
         <p>Opening character…</p>
       </div>
@@ -285,7 +310,7 @@ export default function HexCharacterSheet() {
 
   if (!character) {
     return (
-      <div className="hex-sheet hex-sheet--state" role="alert">
+      <div className="hex-sheet hex-sheet--state" style={themeVars} role="alert">
         <p>{loadError || 'This character could not be loaded.'}</p>
         <Link className="hex-sheet__text-button" to="/characters"><span className="hex-glass" aria-hidden="true" />Back to My Characters</Link>
       </div>
@@ -293,7 +318,7 @@ export default function HexCharacterSheet() {
   }
 
   return (
-    <div className={`hex-sheet${current.view === 'combat' ? ' hex-sheet--with-list' : ''}`} data-testid="hex-sheet">
+    <div className={`hex-sheet${current.view === 'combat' ? ' hex-sheet--with-list' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
       <header className="hex-sheet__header">
         <button type="button" className="hex-sheet__hex-button" onClick={() => navigate('/characters')} aria-label="Back to My Characters" data-testid="hex-leave">
           <span className="hex-sheet__hex-button-rim" aria-hidden="true">
@@ -399,16 +424,35 @@ export default function HexCharacterSheet() {
           <span className="hex-glass" aria-hidden="true" />
           <TrendingUp size={18} aria-hidden="true" /> Level Up
         </button>
-        <button type="button" className="hex-sheet__footer-button hex-sheet__footer-button--icon" onClick={() => setShowSettings((open) => !open)} aria-expanded={showSettings} aria-label="Settings and edit character" data-testid="hex-settings">
-          <span className="hex-glass" aria-hidden="true" />
-          <Settings size={22} aria-hidden="true" />
-        </button>
-        {showSettings && (
-          <div className="hex-sheet__menu" role="menu" aria-label="Character settings">
-            <button type="button" role="menuitem" onClick={() => navigate(`/characters/${characterId}/edit`)}>Edit character</button>
-            <button type="button" role="menuitem" onClick={() => navigate(`/characters/${characterId}`)}>Open classic sheet</button>
-          </div>
-        )}
+        <div className="hex-sheet__settings" ref={settingsRef}>
+          <button type="button" className="hex-sheet__footer-button hex-sheet__footer-button--icon" onClick={() => setShowSettings((open) => !open)} aria-expanded={showSettings} aria-label="Settings and edit character" data-testid="hex-settings">
+            <span className="hex-glass" aria-hidden="true" />
+            <Settings size={22} aria-hidden="true" />
+          </button>
+          {showSettings && (
+            <div className="hex-sheet__menu" role="menu" aria-label="Character settings">
+              <button type="button" role="menuitem" onClick={() => navigate(`/characters/${characterId}/edit`)}>Edit character</button>
+              <button type="button" role="menuitem" onClick={() => navigate(`/characters/${characterId}`)}>Open classic sheet</button>
+              <p className="hex-sheet__theme-heading" id="hex-theme-heading">Colour theme</p>
+              <div className="hex-sheet__themes" role="group" aria-labelledby="hex-theme-heading">
+                {HEX_THEMES.map((entry) => (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={themeId === entry.id}
+                    onClick={() => chooseTheme(entry.id)}
+                    data-testid={`hex-theme-${entry.id}`}
+                  >
+                    <span className="hex-sheet__theme-swatch" style={{ background: entry.swatch.glow }} aria-hidden="true"><i style={{ background: entry.swatch.bg }} /></span>
+                    {entry.name}
+                    {themeId === entry.id && <span className="hex-sheet__theme-check" aria-hidden="true">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </footer>
 
       {showPortrait && (

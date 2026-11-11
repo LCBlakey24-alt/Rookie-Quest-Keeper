@@ -378,3 +378,44 @@ describe('the Combat wheel', () => {
     expect(lastRoll()).toMatchObject({ label: 'Concentration Save', modifier: 2 }); // CON 14, not proficient
   });
 });
+
+describe('colour themes', () => {
+  afterEach(() => window.localStorage.removeItem('rqk.hexSheet.theme'));
+
+  test('Guild Ledger Brass is the default', async () => {
+    window.localStorage.removeItem('rqk.hexSheet.theme');
+    await openSheet({ ...PUNCH, id: 'char-theme-1' });
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'ledger');
+    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#c9a24a');
+  });
+
+  test('choosing a theme recolours the sheet and is remembered on this device', async () => {
+    await openSheet({ ...PUNCH, id: 'char-theme-2' });
+    fireEvent.click(screen.getByTestId('hex-settings'));
+    fireEvent.click(screen.getByTestId('hex-theme-frost'));
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'frost');
+    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#5fc8f0');
+    expect(screen.getByTestId('hex-theme-frost')).toHaveAttribute('aria-checked', 'true');
+    expect(window.localStorage.getItem('rqk.hexSheet.theme')).toBe('frost');
+  });
+
+  test('an unknown saved theme falls back to the default', async () => {
+    window.localStorage.setItem('rqk.hexSheet.theme', 'neon-pink');
+    await openSheet({ ...PUNCH, id: 'char-theme-3' });
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'ledger');
+  });
+});
+
+test('the settings menu closes on a tap elsewhere or Escape, but stays open while choosing a theme', async () => {
+  await openSheet({ ...PUNCH, id: 'char-menu-close' });
+  fireEvent.click(screen.getByTestId('hex-settings'));
+  fireEvent.pointerDown(screen.getByTestId('hex-theme-dragon'));
+  fireEvent.click(screen.getByTestId('hex-theme-dragon'));
+  expect(screen.getByRole('menu', { name: 'Character settings' })).toBeInTheDocument();
+  fireEvent.pointerDown(screen.getByTestId('hex-wheel'));
+  expect(screen.queryByRole('menu', { name: 'Character settings' })).toBeNull();
+  fireEvent.click(screen.getByTestId('hex-settings'));
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(screen.queryByRole('menu', { name: 'Character settings' })).toBeNull();
+  window.localStorage.removeItem('rqk.hexSheet.theme');
+});

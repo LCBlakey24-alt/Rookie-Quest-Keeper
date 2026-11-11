@@ -8,17 +8,24 @@
  * SVG shapes; inset shadows for boxes). Selected things glow stronger.
  */
 .hex-sheet {
-  --hex-bg: #0a1828;
+  /* Defaults are Guild Ledger Brass; hexThemes.js sets the chosen theme inline. */
+  --hex-bg: #0b1520;
+  --hex-bg-rgb: 11, 21, 32;
+  --hex-glow-rgb: 201, 162, 74;
+  --hex-muted-rgb: 205, 191, 158;
+  --hex-hi: #ecd08a;
+  --hex-sub: #d9b86a;
+  --hex-title-font: 'Cinzel', Georgia, serif;
   --hex-panel: #0f2438;
   --hex-panel-2: #123a4a;
   --hex-teal: #145a66;
-  --hex-orange: #f2892f;
-  --hex-orange-soft: rgba(242, 137, 47, 0.55);
-  --hex-text: #ffffff;
-  --hex-muted: #c6d3df;
-  --hex-line: rgba(242, 137, 47, 0.22);
-  --hex-glow: inset 0 0 14px rgba(242, 137, 47, 0.26), inset 0 0 3px rgba(242, 137, 47, 0.32);
-  --hex-glow-strong: inset 0 0 18px rgba(242, 137, 47, 0.5), inset 0 0 4px rgba(242, 137, 47, 0.6);
+  --hex-orange: #c9a24a;
+  --hex-orange-soft: rgba(201, 162, 74, 0.55);
+  --hex-text: #f4ead2;
+  --hex-muted: #cdbf9e;
+  --hex-line: rgba(var(--hex-glow-rgb), 0.22);
+  --hex-glow: inset 0 0 14px rgba(var(--hex-glow-rgb), 0.26), inset 0 0 3px rgba(var(--hex-glow-rgb), 0.32);
+  --hex-glow-strong: inset 0 0 18px rgba(var(--hex-glow-rgb), 0.5), inset 0 0 4px rgba(var(--hex-glow-rgb), 0.6);
   --hex-radius: 12px;
 
   /* The app-wide control theme (styles/threeModeMinimalist.css) paints every
@@ -59,7 +66,7 @@
 #root .hex-sheet :is(button, a):has(> .hex-glass) { position: relative; isolation: isolate; border-width: 0 !important; }
 /* The app-wide hover/press fill (styles/actionFillAnimations.css) slides a
    solid blue panel across buttons; here it is a faint orange wash instead. */
-#root .hex-sheet :is(button, [role='button'], a) { --rq-fill-color: rgba(242, 137, 47, 0.14); }
+#root .hex-sheet :is(button, [role='button'], a) { --rq-fill-color: rgba(var(--hex-glow-rgb), 0.14); }
 /* "#root button > *" makes every button child position: relative. */
 .hex-glass {
   position: absolute !important; inset: 0; z-index: -1; pointer-events: none;
@@ -94,7 +101,7 @@
 }
 .hex-sheet__hex-button-rim { background: var(--hex-orange); padding: 2px; }
 .hex-sheet__hex-button-face { background: var(--hex-bg); box-shadow: var(--hex-glow-strong); }
-.hex-sheet .hex-sheet__hex-button:hover .hex-sheet__hex-button-face { box-shadow: inset 0 0 22px rgba(242, 137, 47, 0.7); }
+.hex-sheet .hex-sheet__hex-button:hover .hex-sheet__hex-button-face { box-shadow: inset 0 0 22px rgba(var(--hex-glow-rgb), 0.7); }
 .hex-sheet__identity { min-width: 0; text-align: center; }
 .hex-sheet__identity h1 { margin: 0; font-size: clamp(1.25rem, 5vw, 1.6rem); line-height: 1.1; font-weight: 800; letter-spacing: 0.01em; }
 .hex-sheet__identity p { margin: 2px 0 0; font-size: 0.86rem; color: var(--hex-muted); line-height: 1.25; overflow-wrap: anywhere; }
@@ -160,7 +167,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
   overflow: visible;
   touch-action: manipulation;
 }
-.hex-wheel__frame { fill: none; stroke: rgba(242, 137, 47, 0.35); stroke-width: 1; }
+.hex-wheel__frame { fill: none; stroke: rgba(var(--hex-glow-rgb), 0.35); stroke-width: 1; }
 
 /* Inner glow (GlowPolygon): the fill is the page itself, the blurred halo is
    clipped to the inside of the shape, and a thin edge sits on top. */
@@ -181,11 +188,11 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-wheel__sublabel { fill: var(--hex-orange); font-weight: 700; letter-spacing: 0.06em; pointer-events: none; }
 .hex-wheel__centre { cursor: pointer; outline: none; }
 .hex-wheel__centre-shape .hex-glow__halo { opacity: 0.95; }
-.hex-wheel__centre-shape .hex-glow__edge { stroke: #ffb066; stroke-width: 1.6; }
+.hex-wheel__centre-shape .hex-glow__edge { stroke: var(--hex-hi); stroke-width: 1.6; }
 .hex-wheel__centre:hover .hex-glow__halo { opacity: 1; stroke-width: 9; }
 .hex-wheel__centre:focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 2.4; }
 .hex-wheel__centre-label { fill: var(--hex-text); font-weight: 900; letter-spacing: 0.04em; pointer-events: none; }
-.hex-wheel__centre-sublabel { fill: #f2b06a; font-weight: 700; pointer-events: none; }
+.hex-wheel__centre-sublabel { fill: var(--hex-sub); font-weight: 700; pointer-events: none; }
 
 /* Changing view deals the wedges out from the centre one at a time; the
    delay and duration are set per wedge by HexWheel (DEAL_STAGGER_MS). */
@@ -226,7 +233,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
   display: grid; padding: 6px; border-radius: var(--hex-radius); border: 1px solid var(--hex-orange-soft); background: var(--hex-bg); box-shadow: var(--hex-glow);
 }
 .hex-sheet__menu button { min-height: 44px; text-align: left; padding: 0 12px; border: 0; background: transparent; color: var(--hex-text); font: inherit; cursor: pointer; border-radius: 8px; }
-.hex-sheet__menu button:hover, .hex-sheet__menu button:focus-visible { background: rgba(242, 137, 47, 0.12); }
+.hex-sheet__menu button:hover, .hex-sheet__menu button:focus-visible { background: rgba(var(--hex-glow-rgb), 0.12); }
 
 .hex-sheet__overlay {
   position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
@@ -274,7 +281,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 
 .hex-hp__ring { pointer-events: none; transform-box: view-box; transform-origin: 0 0; animation: hex-hp-ring-in 160ms cubic-bezier(.2, .8, .3, 1.1) both; }
 @keyframes hex-hp-ring-in { from { opacity: 0; transform: scale(0.82); } to { opacity: 1; transform: none; } }
-.hex-hp__ring-face { fill: rgba(10, 24, 40, 0.9); stroke: var(--hex-orange-soft); stroke-width: 1; }
+.hex-hp__ring-face { fill: rgba(var(--hex-bg-rgb), 0.9); stroke: var(--hex-orange-soft); stroke-width: 1; }
 /* With transform-box: view-box the origin is measured from the user-space
    origin (0,0), which is exactly the wheel's centre. "center" would be half
    the viewBox's width and height away from it, and a turn would swing the
@@ -283,9 +290,9 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 /* Home again after a confirmed save: a smooth return, never a snap. */
 .hex-hp__svg.is-returning .hex-hp__rotor { transition: transform 420ms cubic-bezier(.2, .8, .2, 1); }
 .hex-hp__notch { stroke: var(--hex-orange); stroke-width: 1.8; stroke-linecap: round; }
-.hex-hp__notch--minor { stroke: rgba(198, 211, 223, 0.45); stroke-width: 0.8; }
+.hex-hp__notch--minor { stroke: rgba(var(--hex-muted-rgb), 0.45); stroke-width: 0.8; }
 .hex-hp__trail { fill: none; stroke: var(--hex-orange); stroke-width: 2.4; stroke-linecap: round; opacity: 0.6; }
-.hex-hp__pointer { fill: #ffb066; }
+.hex-hp__pointer { fill: var(--hex-hi); }
 .hex-hp__centre.is-negative .hex-wheel__centre-label { fill: #ff9b7a; }
 .hex-hp__centre.is-positive .hex-wheel__centre-label { fill: #ffc46b; }
 
@@ -340,7 +347,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-combat-list .clean-sheet-action-card strong { font-size: .98rem; font-weight: 800; }
 .hex-combat-list .clean-sheet-action-card > span:not(.clean-sheet-action-type) { font-size: .82rem; color: var(--hex-muted); line-height: 1.35; }
 .hex-combat-list .clean-sheet-action-type {
-  font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--hex-sub, #f2b06a);
+  font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--hex-sub, var(--hex-sub));
 }
 .hex-combat-list .clean-sheet-attack-card-top { display: grid; gap: 2px; }
 .hex-combat-list .clean-sheet-attack-details { font-size: .8rem; color: var(--hex-muted); }
@@ -366,3 +373,26 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 }
 .hex-combat-list .clean-sheet-variable-resource-spend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .hex-combat-list .clean-sheet-variable-resource-spend input { min-height: 40px; width: 72px; text-align: center; }
+
+/* Theme title font: the character's name, section headings and the centre. */
+.hex-sheet__identity h1,
+.hex-wheel__centre-label,
+.hex-sheet__theme-heading { font-family: var(--hex-title-font); }
+.hex-sheet__identity h1 { letter-spacing: .03em; }
+
+/* Theme picker, in the settings menu. */
+.hex-sheet__theme-heading { margin: 6px 12px 2px; font-size: .78rem; font-weight: 700; color: var(--hex-muted); letter-spacing: .06em; }
+.hex-sheet__themes { display: grid; gap: 2px; }
+.hex-sheet .hex-sheet__themes button { display: flex; align-items: center; gap: 10px; }
+.hex-sheet__theme-swatch {
+  flex: none; width: 22px; height: 25px; padding: 2px; box-sizing: border-box;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.hex-sheet__theme-swatch > i { display: block; width: 100%; height: 100%; clip-path: inherit; }
+.hex-sheet .hex-sheet__themes button[aria-checked='true'] { font-weight: 800; }
+.hex-sheet__theme-check { margin-left: auto; color: var(--hex-orange); }
+
+/* App-wide resets strip padding from these cards; keep the text off the edge. */
+.hex-sheet .hex-combat-list .clean-sheet-action-card { padding: 10px 12px !important; }
+.hex-sheet .hex-combat-list .clean-sheet-attack-stat-box { padding: 6px 4px !important; }
+.hex-sheet .hex-combat-list .clean-sheet-panel { padding: 12px !important; }
