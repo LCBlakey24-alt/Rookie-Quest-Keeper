@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import '@/styles/guildTokens.css';
 import { angleStep, optionAtTop, pointerAngle, rotationForOption, settleRotation, shortLabels } from './choiceWheel';
 import './GuildChoiceWheel.css';
 
