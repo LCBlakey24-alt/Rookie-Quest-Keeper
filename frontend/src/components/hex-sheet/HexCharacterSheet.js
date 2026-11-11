@@ -15,6 +15,7 @@ import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModif
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexPortrait from './HexPortrait';
+import HexSkillDial from './HexSkillDial';
 import HexSpinWheel from './HexSpinWheel';
 import HexWheel from './HexWheel';
 import { SLOT } from './hexGeometry';
@@ -264,6 +265,8 @@ export default function HexCharacterSheet() {
         centre={centreDice}
       />
     );
+  } else if (current.view === 'skills') {
+    wheel = character ? <HexSkillDial character={character} proficiencyBonus={proficiencyBonusFor(character)} onRoll={rollCheck} /> : null;
   } else if (current.view === 'equipment') {
     wheel = character ? (
       <HexEquipment
@@ -317,7 +320,7 @@ export default function HexCharacterSheet() {
   }
 
   return (
-    <div className={`hex-sheet${['combat', 'equipment'].includes(current.view) ? ' hex-sheet--with-list' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
+    <div className={`hex-sheet${['combat', 'equipment', 'skills'].includes(current.view) ? ' hex-sheet--with-list' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
       <header className="hex-sheet__header">
         <button type="button" className="hex-sheet__hex-button" onClick={() => navigate('/characters')} aria-label="Back to My Characters" data-testid="hex-leave">
           <span className="hex-sheet__hex-button-rim" aria-hidden="true">
@@ -410,7 +413,7 @@ export default function HexCharacterSheet() {
             />
           </section>
         )}
-        {SECTION_TITLES[current.view] && !['core', 'combat', 'equipment'].includes(current.view) && (
+        {SECTION_TITLES[current.view] && !['core', 'combat', 'equipment', 'skills'].includes(current.view) && (
           <div className="hex-sheet__coming" data-testid="hex-coming-soon">
             <p>{VIEW_TITLES[current.view]} joins the wheel in the next phase.</p>
             <Link className="hex-sheet__text-button" to={`/characters/${characterId}`}><span className="hex-glass" aria-hidden="true" />Open on the classic sheet</Link>

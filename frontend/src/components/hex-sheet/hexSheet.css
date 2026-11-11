@@ -514,3 +514,55 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-spin__sub { fill: var(--hex-sub); font-size: 6px; font-weight: 700; letter-spacing: .08em; pointer-events: none; }
 .hex-spin__pointer { fill: var(--hex-hi); }
 @media (prefers-reduced-motion: reduce) { .hex-spin__rotor { transition: none; } }
+
+/* Type: numbers use equal-width digits so stats line up and do not jiggle. */
+.hex-sheet { font-variant-numeric: tabular-nums; }
+
+/* Skills dial ------------------------------------------------------------ */
+.hex-skills { width: min(100%, 760px); display: grid; gap: 14px; justify-items: center; }
+.hex-skills__dial { width: min(100%, 400px); touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; outline: none; }
+.hex-skills__dial.is-spinning { cursor: grabbing; }
+.hex-skills__dial:focus-visible .hex-skills__ring { stroke: var(--hex-text); }
+.hex-skills__case .hex-glow__halo { opacity: 0.3; }
+.hex-skills__ring { fill: none; stroke: var(--hex-orange-soft); stroke-width: 0.9; pointer-events: none; }
+.hex-skills__rotor { transform-box: view-box; transform-origin: 0 0; transition: transform 260ms cubic-bezier(.2, .8, .25, 1.05); }
+.hex-skills__dial.is-spinning .hex-skills__rotor { transition: none; }
+.hex-skills__segment { fill: transparent; cursor: pointer; }
+.hex-skills__skill.is-selected .hex-skills__segment { fill: rgba(var(--hex-glow-rgb), 0.16); }
+.hex-skills__divider { stroke: var(--hex-line); stroke-width: 0.6; pointer-events: none; }
+.hex-skills__abbr { fill: var(--hex-muted); font-size: 6.4px; font-weight: 800; letter-spacing: .06em; pointer-events: none; }
+.hex-skills__skill.is-proficient .hex-skills__abbr { fill: var(--hex-orange); }
+.hex-skills__skill.is-expert .hex-skills__abbr { fill: var(--hex-hi); text-shadow: 0 0 4px rgba(var(--hex-glow-rgb), 0.9); }
+.hex-skills__skill.is-selected .hex-skills__abbr { fill: var(--hex-text); }
+.hex-skills__centre-meta { fill: var(--hex-sub); font-size: 4.6px; font-weight: 800; letter-spacing: .1em; pointer-events: none; }
+.hex-skills__centre-name { fill: var(--hex-text); font-weight: 800; font-family: var(--hex-title-font); pointer-events: none; }
+.hex-skills__centre-mod { fill: var(--hex-hi); font-size: 22px; font-weight: 900; pointer-events: none; }
+.hex-skills__centre-hint { fill: var(--hex-muted); font-size: 4.6px; font-weight: 700; pointer-events: none; }
+
+.hex-skills__list {
+  list-style: none; margin: 0; padding: 6px 12px; width: 100%;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); column-gap: 18px;
+  border-radius: var(--hex-radius); border: 1px solid var(--hex-orange-soft); background: var(--hex-bg); box-shadow: var(--hex-glow);
+}
+.hex-skills__list li { display: flex; align-items: center; gap: 8px; min-height: 46px; border-bottom: 1px solid var(--hex-line); }
+.hex-skills__list li.is-selected strong { color: var(--hex-hi); }
+.hex-sheet .hex-skills__pick {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 !important;
+  border: 0 !important; background: transparent; --rq-control-blue: transparent; color: var(--hex-text); font: inherit; text-align: left; cursor: pointer;
+}
+.hex-skills__pick strong { font-size: .92rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hex-skills__pick small { margin-left: auto; font-size: .66rem; font-weight: 800; letter-spacing: .08em; color: var(--hex-muted); }
+.hex-skills__dot {
+  flex: none; width: 10px; height: 11.5px; box-sizing: border-box;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: rgba(var(--hex-muted-rgb), 0.25);
+}
+.hex-skills__dot.is-proficient { background: var(--hex-orange); }
+.hex-skills__dot.is-expert { background: var(--hex-hi); box-shadow: 0 0 6px var(--hex-hi); }
+.hex-skills__dot.is-half { background: linear-gradient(90deg, var(--hex-orange) 50%, rgba(var(--hex-muted-rgb), 0.25) 50%); }
+.hex-sheet .hex-skills__roll {
+  flex: none; min-width: 56px; min-height: 40px; border-radius: 10px; border: 0 !important;
+  outline: 1px solid var(--hex-orange-soft); outline-offset: -1px; background: transparent; --rq-control-blue: transparent;
+  color: var(--hex-text); font: inherit; font-weight: 800; cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) { .hex-skills__rotor { transition: none; } }

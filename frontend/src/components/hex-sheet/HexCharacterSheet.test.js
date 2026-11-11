@@ -111,7 +111,7 @@ describe('the main wheel', () => {
     expect(screen.getByTestId('hex-centre').closest('.hex-wheel__deal')).toBeNull();
   });
 
-  test.each(['skills', 'magic', 'traits'])('%s opens in place and offers the classic sheet for now', async (id) => {
+  test.each(['magic', 'traits'])('%s opens in place and offers the classic sheet for now', async (id) => {
     await openSheet();
     fireEvent.click(screen.getByTestId(`hex-wedge-${id}`));
     expect(screen.getByTestId('hex-coming-soon')).toBeInTheDocument();
@@ -427,4 +427,34 @@ test('the settings menu closes on a tap elsewhere or Escape, but stays open whil
   fireEvent.keyDown(document, { key: 'Escape' });
   expect(screen.queryByRole('menu', { name: 'Character settings' })).toBeNull();
   window.localStorage.removeItem('rqk.hexSheet.theme');
+});
+
+describe('the Skills dial', () => {
+  const openSkills = async (character = PUNCH) => {
+    await openSheet({ ...character, id: `char-skills-${Math.random()}` });
+    fireEvent.click(screen.getByTestId('hex-wedge-skills'));
+  };
+
+  test('all 18 skills are on the ring, Acrobatics starts under the pointer, and the centre rolls it', async () => {
+    await openSkills({ ...PUNCH, skill_proficiencies: ['Acrobatics', 'Stealth'] });
+    expect(within(screen.getByTestId('hex-skill-dial')).getAllByRole('radio')).toHaveLength(18);
+    expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName('Acrobatics +7');
+    fireEvent.click(screen.getByTestId('hex-skill-roll'));
+    expect(lastRoll()).toMatchObject({ label: 'Acrobatics', modifier: 7 });
+  });
+
+  test('turning the dial with the keys brings the next skill to the top', async () => {
+    await openSkills();
+    fireEvent.keyDown(screen.getByTestId('hex-skill-dial'), { key: 'ArrowLeft' });
+    expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(expect.stringMatching(/^Survival/));
+    expect(screen.getByTestId('hex-skill-dial')).toHaveAttribute('data-rotation', '20');
+  });
+
+  test('picking from the list turns the dial to that skill; each row can roll directly', async () => {
+    await openSkills({ ...PUNCH, skill_proficiencies: ['Stealth'], expertise: ['Stealth'] });
+    fireEvent.click(screen.getByRole('button', { name: /^Stealth/ }));
+    expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName('Stealth +10'); // DEX 4 + 2 x proficiency 3
+    fireEvent.click(screen.getByTestId('hex-skill-roll-Perception'));
+    expect(lastRoll()).toMatchObject({ label: 'Perception', modifier: 3 });
+  });
 });
