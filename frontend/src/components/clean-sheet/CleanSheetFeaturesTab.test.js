@@ -2,6 +2,7 @@ import {
   featureFilterBucket,
   filterClassFeatures,
   formatActionCost,
+  mergeFeatures,
   resolveActionResourceCost,
   resourceDedupeKey,
 } from './CleanSheetFeaturesTab';
@@ -107,5 +108,20 @@ describe('CleanSheetFeaturesTab class feature filters', () => {
     expect(filterClassFeatures(features, 'action', 'action').map(feature => feature.name))
       .toEqual(['Action Surge']);
     expect(filterClassFeatures(features, 'action', 'reaction')).toEqual([]);
+  });
+});
+
+describe('class feature list', () => {
+  test('the same feature at the same level appears once, whichever list it came from', () => {
+    const merged = mergeFeatures(
+      [{ name: 'Sneak Attack (2d6)', level: 3, source: 'class' }, { name: 'Cunning Action', level: 2, source: 'class' }],
+      [{ name: 'Sneak Attack (2d6)', level: 3, source: 'Rogue' }, { name: 'cunning action', level: 2, source: 'Rogue progression' }],
+    );
+    expect(merged.map((feature) => `${feature.name}@${feature.level}`)).toEqual(['Cunning Action@2', 'Sneak Attack (2d6)@3']);
+  });
+
+  test('the same name at different levels stays separate (Sneak Attack 1d6 and 2d6 are distinct entries)', () => {
+    const merged = mergeFeatures([{ name: 'Extra Attack', level: 5 }], [{ name: 'Extra Attack', level: 11 }]);
+    expect(merged).toHaveLength(2);
   });
 });

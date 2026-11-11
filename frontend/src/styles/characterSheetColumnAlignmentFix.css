@@ -9,6 +9,7 @@
 #root .character-page-v2 .clean-sheet-header,
 #root .character-page-v2 .clean-sheet-header-actions,
 #root .character-page-v2 .clean-sheet-compact-status,
+#root .character-page-v2 .clean-sheet-resource-rail,
 #root .character-page-v2 .clean-sheet-content {
   width: 100% !important;
   max-width: 980px !important;

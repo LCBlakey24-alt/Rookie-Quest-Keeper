@@ -38,12 +38,18 @@ describe('the dye set', () => {
     });
   });
 
-  test('defaults to a warm die with dark numerals, against the navy app', () => {
+  test('defaults to the Glow die: readable numerals, and an orange glow so it stands out from the navy tray', () => {
     const fallback = getDye(DEFAULT_DYE_ID);
-    expect(fallback.id).toBe('amber');
-    // Light body, dark ink: the point of the default is to stand out from
-    // the navy tray rather than blend into it.
-    expect(contrastRatio(fallback.body, '#0B1B2B')).toBeGreaterThanOrEqual(4.5);
+    expect(fallback.id).toBe('glow');
+    expect(contrastRatio(fallback.ink, fallback.body)).toBeGreaterThanOrEqual(7);
+    // The body alone would sit close to the navy tray; the glow is what
+    // separates it, so it must contrast with the tray on its own.
+    expect(contrastRatio(fallback.glow, '#0B1B2B')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('only dyes that declare a glow get one', () => {
+    DICE_DYES.filter((dye) => dye.glow).forEach((dye) => expect(dye.glow).toMatch(/^#[0-9A-Fa-f]{6}$/));
+    expect(getDye('amber').glow).toBeUndefined();
   });
 
   test('falls back rather than returning nothing for an unknown dye', () => {

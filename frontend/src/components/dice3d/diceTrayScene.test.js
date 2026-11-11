@@ -62,7 +62,7 @@ describe('the throw is deterministic', () => {
 describe('the engine decides the number, the physics only decides the look', () => {
   const CASES = [
     [20, 1], [20, 20], [20, 13],
-    [12, 7], [10, 10], [8, 2], [6, 6], [6, 1], [4, 3], [100, 70],
+    [12, 7], [10, 10], [8, 2], [6, 6], [6, 1], [4, 3], [100, 70], [100, 0],
   ];
 
   test.each(CASES)('a d%s asked for %s lands showing it', (sides, result) => {

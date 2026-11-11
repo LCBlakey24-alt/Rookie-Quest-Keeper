@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Eye } from 'lucide-react';
 
-import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
+import { bestSkill, skillModifier } from '@/data/skillModifiers';
 import CleanSheetProgressionHistory from './CleanSheetProgressionHistory';
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
 import './CleanSheetOverviewCompact.css';
@@ -45,7 +45,7 @@ export default function CleanSheetOverviewTab({
   onRoll,
 }) {
   const [skillFilter, setSkillFilter] = useState('all');
-  const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
+  const top = useMemo(() => bestSkill(character, SKILLS, proficiencyBonus), [character, proficiencyBonus]);
 
   return (
     <div className="clean-sheet-grid clean-sheet-stats-tab clean-sheet-stats-tab--compact">
@@ -92,7 +92,7 @@ export default function CleanSheetOverviewTab({
         </div>
         <div className="clean-sheet-skills-summary">
           <div><span>Proficient</span><strong>{skillProficiencies.length}</strong></div>
-          <div><span>Best Skill</span><strong>{snapshot.skills?.topSkill || '—'}</strong></div>
+          <div><span>Best Skill</span><strong data-testid="overview-best-skill">{top ? `${top.skill} ${fmt(top.modifier)}` : '—'}</strong></div>
           <div><span>Filter</span><strong>{SKILL_FILTERS.find(([id]) => id === skillFilter)?.[1] || 'All'}</strong></div>
         </div>
         <div className="clean-sheet-skill-filter-row" role="group" aria-label="Filter skills">
@@ -104,14 +104,14 @@ export default function CleanSheetOverviewTab({
           {SKILLS
             .filter(([skill, ability]) => skillMatchesFilter(ability, skillFilter, skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase())))
             .map(([skill, ability]) => {
-              const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
-              const modifier = mod(character?.[ability]) + (proficient ? proficiencyBonus : 0);
+              const { modifier, proficient, expertise, halfProficiency } = skillModifier(character, skill, ability, proficiencyBonus);
               return (
                 <div className={`clean-sheet-compact-skill ${proficient ? 'is-proficient' : ''}`} key={skill}>
                   <div className="clean-sheet-skill-name">
                     <span className="clean-sheet-skill-label" title={skill}>{skill}</span>
                     <div className="clean-sheet-skill-tags">
-                      {proficient && <small>Prof</small>}
+                      {expertise ? <small title="Expertise: proficiency counts twice">Expert</small> : proficient && <small>Prof</small>}
+                      {halfProficiency && <small title="Jack of All Trades: half proficiency">½</small>}
                       <em>{ability.slice(0, 3).toUpperCase()}</em>
                     </div>
                   </div>

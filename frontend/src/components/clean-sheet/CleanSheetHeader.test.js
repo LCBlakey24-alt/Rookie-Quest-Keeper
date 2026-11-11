@@ -33,6 +33,12 @@ describe('CleanSheetHeader subtitle formatting', () => {
     ]);
   });
 
+  test('species and subspecies share one part, so the class stays on the first line', () => {
+    const parts = compactSubtitleParts({ race: 'Halfling', character_class: 'Rogue', level: 3 }, 'Halfling (Lightfoot) • Rogue 3 (Arcane Trickster) • Lv 3');
+    expect(parts).toEqual(['Halfling (Lightfoot)', 'Rogue 3 (Arcane Trickster)']);
+    expect(parts.slice(0, 2).join(' • ')).toBe('Halfling (Lightfoot) • Rogue 3 (Arcane Trickster)');
+  });
+
   test('falls back to direct character fields when no supplied subtitle exists', () => {
     expect(compactSubtitleParts({
       race: 'human',

@@ -9,14 +9,32 @@
  *
  * Crit and fumble inks get the same treatment: a natural 20 marking the
  * die is worth nothing if the 20 stops being legible while it does so.
+ *
+ * A dye may also carry a `glow`: a soft light drawn just inside every face
+ * edge, the same inner glow the hexagonal sheet uses on its boxes and
+ * wedges. Only the Glow dye has one; the others keep their plain faces.
  */
 
-const DEFAULT_DYE_ID = 'amber';
+const DEFAULT_DYE_ID = 'glow';
 
 export const DICE_DYES = [
   // Light bodies take dark numerals; dark bodies take cream. A body in the
   // middle of the range fails both ways, which is how an earlier draft of
   // this palette ended up with eight combinations below AA.
+  {
+    // The default, matching the hexagonal sheet: a deep slate-navy body,
+    // white numerals, and an orange glow inside every face edge. The body
+    // is a step lighter than the tray so the die's shape still reads, and
+    // the glow outlines every face against the navy.
+    id: 'glow',
+    name: 'Glow',
+    body: '#17324A',
+    ink: '#FFFFFF',
+    edge: '#F2892F',
+    crit: '#FFC46B',
+    fumble: '#FF9B7A',
+    glow: '#F2892F',
+  },
   {
     id: 'amber',
     name: 'Amber',
