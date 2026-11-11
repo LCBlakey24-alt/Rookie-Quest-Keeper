@@ -6,6 +6,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import HexCharacterSheet from './HexCharacterSheet';
+import { DEAL_DURATION_MS, DEAL_STAGGER_MS } from './HexWheel';
 import { SLOT } from './hexGeometry';
 
 jest.mock('@/lib/apiClient', () => ({
@@ -98,6 +99,16 @@ describe('the main wheel', () => {
     expect(slotOf('traits')).toBe(SLOT.LOWER_LEFT);
     expect(slotOf('combat')).toBe(SLOT.LOWER_RIGHT);
     expect(screen.getByTestId('hex-centre')).toHaveTextContent('D20');
+  });
+
+  test('wedges deal out clockwise from the upper left, and the whole wheel is in place within a second', async () => {
+    await openSheet();
+    const delayOf = (id) => parseInt(screen.getByTestId(`hex-wedge-${id}`).style.animationDelay, 10);
+    const clockwise = ['core', 'skills', 'magic', 'combat', 'traits', 'equipment'].map(delayOf);
+    expect(clockwise).toEqual([0, 1, 2, 3, 4, 5].map((n) => n * DEAL_STAGGER_MS));
+    expect(Math.max(...clockwise) + DEAL_DURATION_MS).toBeLessThanOrEqual(1000);
+    // The centre never moves: it is not part of the deal.
+    expect(screen.getByTestId('hex-centre').closest('.hex-wheel__deal')).toBeNull();
   });
 
   test.each(['skills', 'equipment', 'magic', 'traits', 'combat'])('%s opens in place and offers the classic sheet for now', async (id) => {

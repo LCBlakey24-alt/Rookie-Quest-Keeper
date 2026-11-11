@@ -13,9 +13,18 @@ import {
   wedgePolygon,
   wheelViewBox,
 } from './hexGeometry';
+import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 
 const WEDGE_GAP = 0.035; // fraction each wedge shrinks toward its centre
 const CENTRE_RADIUS = INNER_RADIUS - 4;
+
+/**
+ * Changing view deals the new wedges out one at a time, clockwise from the
+ * upper left, while the centre stays put. The whole wheel is in place well
+ * inside a second: the last wedge starts at 5 x 60 ms and lands 200 ms later.
+ */
+export const DEAL_STAGGER_MS = 60;
+export const DEAL_DURATION_MS = 200;
 
 function shrink(points, factor) {
   const cx = points.reduce((sum, [x]) => sum + x, 0) / points.length;
@@ -40,11 +49,12 @@ function activate(event, handler) {
  *
  * Wedges are real buttons for assistive tech and the keyboard: Tab reaches
  * them, Enter or Space selects, and the arrow keys move round the wheel.
- * Changing `viewKey` replays a short fade so the player sees the wheel
- * transform rather than jump.
+ * Changing `viewKey` deals the wedges out again, so the player sees the
+ * wheel transform rather than jump.
  */
 export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKey = 'main', label = 'Character wheel' }) {
   const wedgeRefs = useRef({});
+  const filterId = useSvgId('hex-glow');
   const bySlot = new Map(wedges.map((wedge) => [wedge.slot, wedge]));
 
   const moveFocus = (slot, step) => {
@@ -83,13 +93,19 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
       data-testid="hex-wheel"
       data-view={viewKey}
     >
+      <GlowFilter id={filterId} />
       <polygon className="hex-wheel__frame" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} aria-hidden="true" />
       <g className="hex-wheel__view" key={viewKey}>
-        {READING_ORDER.map((slot) => {
+        {READING_ORDER.map((slot, order) => {
+          const deal = { animationDelay: `${order * DEAL_STAGGER_MS}ms`, animationDuration: `${DEAL_DURATION_MS}ms` };
           const wedge = bySlot.get(slot);
           const polygon = pointsAttribute(shrink(wedgePolygon(slot), WEDGE_GAP));
           if (!wedge) {
-            return <polygon key={slot} className="hex-wheel__wedge hex-wheel__wedge--empty" points={polygon} aria-hidden="true" />;
+            return (
+              <g key={slot} className="hex-wheel__deal hex-wheel__slot--empty" style={deal} data-deal-order={order} aria-hidden="true">
+                <GlowPolygon className="hex-wheel__wedge hex-wheel__wedge--empty" points={polygon} filterId={filterId} />
+              </g>
+            );
           }
           const [cx, cy] = wedgeCentre(slot);
           // Short labels (a die size) read faster upright; names follow the edge.
@@ -98,17 +114,19 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
             <g
               key={slot}
               ref={(node) => { wedgeRefs.current[slot] = node; }}
-              className={`hex-wheel__slot${wedge.disabled ? ' is-disabled' : ''}${wedge.active ? ' is-active' : ''}`}
+              className={`hex-wheel__deal hex-wheel__slot${wedge.disabled ? ' is-disabled' : ''}${wedge.active ? ' is-active' : ''}`}
               role="button"
               tabIndex={wedge.disabled ? -1 : 0}
               aria-label={wedge.ariaLabel || wedge.label}
               aria-disabled={wedge.disabled ? 'true' : undefined}
               data-slot={slot}
+              data-deal-order={order}
+              style={deal}
               data-testid={`hex-wedge-${wedge.id}`}
               onClick={() => { if (!wedge.disabled) wedge.onSelect?.(); }}
               onKeyDown={(event) => onWedgeKey(event, wedge)}
             >
-              <polygon className="hex-wheel__wedge" points={polygon} />
+              <GlowPolygon className="hex-wheel__wedge" points={polygon} filterId={filterId} />
               {variant === 'menu' && (
                 <text
                   className="hex-wheel__label"
@@ -169,7 +187,7 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
           onClick={() => centre.onSelect?.()}
           onKeyDown={(event) => activate(event, centre.onSelect)}
         >
-          <polygon className="hex-wheel__centre-shape" points={pointsAttribute(hexVertices(CENTRE_RADIUS))} />
+          <GlowPolygon className="hex-wheel__centre-shape" points={pointsAttribute(hexVertices(CENTRE_RADIUS))} filterId={filterId} />
           <text className="hex-wheel__centre-label" x={0} y={centre.sublabel ? -4 : 0} fontSize={fitFontSize(centre.label, 52, 15)} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
             {centre.label}
           </text>

@@ -247,7 +247,7 @@ export default function HexCharacterSheet() {
     return (
       <div className="hex-sheet hex-sheet--state" role="alert">
         <p>{loadError || 'This character could not be loaded.'}</p>
-        <Link className="hex-sheet__text-button" to="/characters">Back to My Characters</Link>
+        <Link className="hex-sheet__text-button" to="/characters"><span className="hex-glass" aria-hidden="true" />Back to My Characters</Link>
       </div>
     );
   }
@@ -276,6 +276,7 @@ export default function HexCharacterSheet() {
           aria-label={`Hit points ${vitals.currentHp} of ${vitals.maxHp}${vitals.tempHp ? `, plus ${vitals.tempHp} temporary` : ''}. Adjust hit points.`}
           onClick={() => { if (current.view !== 'hp') push({ view: 'hp' }); }}
         >
+          <span className="hex-glass" aria-hidden="true" />
           <span className="hex-sheet__vital-label">Hit Points</span>
           <strong>{vitals.currentHp} / {vitals.maxHp}</strong>
           {vitals.tempHp > 0 && <span className="hex-sheet__vital-extra">+{vitals.tempHp} temp</span>}
@@ -287,6 +288,7 @@ export default function HexCharacterSheet() {
           aria-label={`Initiative ${formatModifier(vitals.initiative)}. Roll initiative.`}
           onClick={() => rollCheck('Initiative', vitals.initiative)}
         >
+          <span className="hex-glass" aria-hidden="true" />
           <span className="hex-sheet__vital-label">Initiative</span>
           <strong>{formatModifier(vitals.initiative)}</strong>
         </button>
@@ -299,6 +301,7 @@ export default function HexCharacterSheet() {
       <nav className="hex-sheet__trail" aria-label="Wheel navigation">
         {stack.length > 1 ? (
           <button type="button" className="hex-sheet__back" onClick={back} data-testid="hex-back">
+            <span className="hex-glass" aria-hidden="true" />
             <ChevronLeft size={16} aria-hidden="true" /> Back
           </button>
         ) : <span className="hex-sheet__back-spacer" aria-hidden="true" />}
@@ -316,31 +319,36 @@ export default function HexCharacterSheet() {
         {rollRow && (
           <div className="hex-sheet__choice" ref={choiceRef} role="group" aria-label={`${rollRow.name} roll`} data-testid="hex-roll-choice">
             <button type="button" onClick={() => { rollCheck(`${rollRow.name} Check`, rollRow.check); back(); }} data-testid="hex-roll-check">
+              <span className="hex-glass" aria-hidden="true" />
               <span>{rollRow.name} check</span><strong>{formatModifier(rollRow.check)}</strong>
             </button>
             <button type="button" onClick={() => { rollCheck(`${rollRow.name} Save`, rollRow.save); back(); }} data-testid="hex-roll-save">
+              <span className="hex-glass" aria-hidden="true" />
               <span>{rollRow.name} save{rollRow.saveProficient ? ' ●' : ''}</span><strong>{formatModifier(rollRow.save)}</strong>
             </button>
           </div>
         )}
         {current.view === 'dice' && (
           <button type="button" className="hex-sheet__text-button" onClick={() => window.dispatchEvent(new Event('rq-dice-open'))} data-testid="hex-more-dice">
+            <span className="hex-glass" aria-hidden="true" />
             More dice and custom rolls
           </button>
         )}
         {SECTION_TITLES[current.view] && current.view !== 'core' && (
           <div className="hex-sheet__coming" data-testid="hex-coming-soon">
             <p>{VIEW_TITLES[current.view]} joins the wheel in the next phase.</p>
-            <Link className="hex-sheet__text-button" to={`/characters/${characterId}`}>Open on the classic sheet</Link>
+            <Link className="hex-sheet__text-button" to={`/characters/${characterId}`}><span className="hex-glass" aria-hidden="true" />Open on the classic sheet</Link>
           </div>
         )}
       </main>
 
       <footer className="hex-sheet__footer">
         <button type="button" className="hex-sheet__footer-button" onClick={() => setShowLevelUp(true)} data-testid="hex-level-up">
+          <span className="hex-glass" aria-hidden="true" />
           <TrendingUp size={18} aria-hidden="true" /> Level Up
         </button>
         <button type="button" className="hex-sheet__footer-button hex-sheet__footer-button--icon" onClick={() => setShowSettings((open) => !open)} aria-expanded={showSettings} aria-label="Settings and edit character" data-testid="hex-settings">
+          <span className="hex-glass" aria-hidden="true" />
           <Settings size={22} aria-hidden="true" />
         </button>
         {showSettings && (
@@ -354,7 +362,7 @@ export default function HexCharacterSheet() {
       {showPortrait && (
         <div className="hex-sheet__overlay" role="dialog" aria-modal="true" aria-label={`${identity.name} portrait`} onClick={() => setShowPortrait(false)} onKeyDown={(event) => { if (event.key === 'Escape') setShowPortrait(false); }}>
           <HexPortrait url={portraitUrlFor(character)} name={identity.name} size="large" />
-          <button type="button" className="hex-sheet__text-button" autoFocus onClick={() => setShowPortrait(false)}>Close</button>
+          <button type="button" className="hex-sheet__text-button" autoFocus onClick={() => setShowPortrait(false)}><span className="hex-glass" aria-hidden="true" />Close</button>
         </div>
       )}
 

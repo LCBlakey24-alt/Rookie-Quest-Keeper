@@ -2,7 +2,7 @@
  * The rotary HP dial under a finger: synthetic character, saves controlled.
  */
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 
 import HexHpDial from './HexHpDial';
 
@@ -143,7 +143,8 @@ describe('confirming', () => {
     fireEvent.click(screen.getByTestId('hex-hp-cancel'));
     expect(onConfirm).not.toHaveBeenCalled();
     expect(onCancel).toHaveBeenCalled();
-    expect(rotation()).toBe(0);
+    expect(screen.getByTestId('hex-hp-slider')).toHaveAttribute('aria-valuenow', '0');
+    expect(screen.queryByTestId('hex-hp-ring')).toBeNull();
   });
 
   test('healing at full health is refused with a reason', async () => {
@@ -156,12 +157,11 @@ describe('confirming', () => {
 });
 
 describe('temporary HP', () => {
-  test('tapping the lower part chooses Temp HP, and the change goes to that pool', async () => {
+  test('tapping the lower half chooses Temp HP, and the change goes to that pool', async () => {
     const { svg, onConfirm } = renderDial();
-    const temp = svg.querySelector('[data-region="temp"] polygon');
-    fireEvent.pointerDown(temp, { pointerId: 2, button: 0, ...at(90) });
-    fireEvent.pointerUp(svg, { pointerId: 2, ...at(90) });
+    fireEvent.click(screen.getByTestId('hex-hp-target-temp'));
     expect(screen.getByTestId('hex-hp-target-temp')).toHaveAttribute('aria-checked', 'true');
+    expect(centreText()).toContain('0');
     turn(svg, -90, 25);
     await act(async () => { fireEvent.click(screen.getByTestId('hex-hp-confirm')); });
     expect(onConfirm).toHaveBeenCalledWith('temp', 3, expect.objectContaining({ updates: { temporary_hit_points: 3, temp_hp: 3 } }));
@@ -169,15 +169,14 @@ describe('temporary HP', () => {
 });
 
 describe('without turning', () => {
-  test('the side wedges step by one', () => {
-    const { svg } = renderDial();
-    const plus = svg.querySelector('[data-region="plus"] polygon');
-    fireEvent.pointerDown(plus, { pointerId: 3, button: 0, ...at(0) });
-    fireEvent.pointerUp(svg, { pointerId: 3, ...at(0) });
-    fireEvent.pointerDown(plus, { pointerId: 3, button: 0, ...at(0) });
-    fireEvent.pointerUp(svg, { pointerId: 3, ...at(0) });
+  test('the − and + buttons step by one and the dial turns to match', () => {
+    renderDial();
+    fireEvent.click(screen.getByTestId('hex-hp-plus'));
+    fireEvent.click(screen.getByTestId('hex-hp-plus'));
+    fireEvent.click(screen.getByTestId('hex-hp-plus'));
+    fireEvent.click(screen.getByTestId('hex-hp-minus'));
     expect(screen.getByTestId('hex-hp-slider')).toHaveAttribute('aria-valuenow', '2');
-    expect(rotation()).toBe(72); // the dial turns to match
+    expect(rotation()).toBe(72);
   });
 
   test('the keyboard can adjust, confirm and cancel', async () => {
@@ -191,5 +190,66 @@ describe('without turning', () => {
     expect(onConfirm).toHaveBeenCalledWith('hp', -6, expect.anything());
     fireEvent.keyDown(slider, { key: 'Escape' });
     expect(onCancel).toHaveBeenCalled();
+  });
+});
+
+describe('two halves and the round dial', () => {
+  test('nothing is chosen at first: the centre asks for a half and there is no dial yet', () => {
+    renderDial();
+    expect(centreText()).toContain('Tap a half');
+    expect(screen.queryByTestId('hex-hp-ring')).toBeNull();
+    expect(screen.getByTestId('hex-hp-target-hp')).toHaveTextContent('30 / 35');
+    expect(screen.getByTestId('hex-hp-target-temp')).toHaveTextContent('0');
+  });
+
+  test('confirming before choosing a half explains what to do and saves nothing', async () => {
+    const { onConfirm } = renderDial();
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-hp-confirm')); });
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByTestId('hex-hp-status')).toHaveTextContent('Tap Hit Points or Temp HP first');
+  });
+
+  test('tapping the top half drops in the round dial with 0 in the centre', () => {
+    renderDial();
+    fireEvent.click(screen.getByTestId('hex-hp-target-hp'));
+    expect(screen.getByTestId('hex-hp-ring')).toBeInTheDocument();
+    expect(centreText()).toMatch(/^0/);
+    expect(rotation()).toBe(0);
+  });
+
+  test('turning without tapping first chooses the half the turn started on', () => {
+    const { svg } = renderDial();
+    const temp = svg.querySelector('[data-region="temp"] polygon');
+    fireEvent.pointerDown(temp, { pointerId: 4, button: 0, ...at(90) });
+    for (let angle = 96; angle <= 180; angle += 6) fireEvent.pointerMove(svg, { pointerId: 4, ...at(angle) });
+    fireEvent.pointerUp(svg, { pointerId: 4, ...at(180) });
+    expect(screen.getByTestId('hex-hp-target-temp')).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByTestId('hex-hp-slider')).toHaveAttribute('aria-valuenow', '2');
+  });
+
+  test('switching halves starts again from 0', () => {
+    renderDial();
+    fireEvent.click(screen.getByTestId('hex-hp-plus'));
+    fireEvent.click(screen.getByTestId('hex-hp-target-temp'));
+    expect(screen.getByTestId('hex-hp-slider')).toHaveAttribute('aria-valuenow', '0');
+  });
+
+  test('the halves deal in one after the other', () => {
+    renderDial();
+    expect(screen.getByTestId('hex-hp-target-hp').style.animationDelay).toBe('0ms');
+    expect(screen.getByTestId('hex-hp-target-temp').style.animationDelay).toBe('60ms');
+  });
+
+  test('the click sound can be switched off and the choice is remembered', () => {
+    window.localStorage.removeItem('rqk.hexSheet.dialSound');
+    renderDial();
+    const sound = screen.getByTestId('hex-hp-sound');
+    expect(sound).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(sound);
+    expect(sound).toHaveAttribute('aria-pressed', 'false');
+    cleanup();
+    renderDial();
+    expect(screen.getByTestId('hex-hp-sound')).toHaveAttribute('aria-pressed', 'false');
+    window.localStorage.removeItem('rqk.hexSheet.dialSound');
   });
 });
