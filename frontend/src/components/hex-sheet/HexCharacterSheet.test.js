@@ -341,41 +341,50 @@ describe('the Combat wheel', () => {
     await openSheet({ ...PUNCH, id: `char-combat-${Math.random()}` });
     fireEvent.click(screen.getByTestId('hex-wedge-combat'));
   };
+  // A tap on a wedge: pointer down and up without moving.
+  const tap = (testId) => {
+    const target = screen.getByTestId(testId).querySelector('polygon');
+    fireEvent.pointerDown(target, { pointerId: 1, button: 0, clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(target, { pointerId: 1, clientX: 0, clientY: 0 });
+  };
 
-  test('opens on Actions and lists what the character can do with an action, below the wheel', async () => {
+  test('three wedges, Actions at the top, and the Actions list below the wheel', async () => {
     await openCombat();
+    expect(screen.getAllByRole('radio').map((radio) => radio.getAttribute('aria-label'))).toEqual(['Actions', 'Bonus Actions', 'Reactions']);
+    expect(screen.getByTestId('hex-spin-action')).toHaveAttribute('aria-checked', 'true');
     expect(crumbs()).toEqual(['Character', 'Actions']);
     const list = screen.getByTestId('hex-combat-list');
     expect(within(list).getByRole('heading', { name: 'Actions' })).toBeInTheDocument();
     expect(within(list).getByText('Unarmed Strike')).toBeInTheDocument();
-    expect(within(list).getByText('Dodge')).toBeInTheDocument();
     expect(within(list).queryByRole('heading', { name: 'Bonus Actions' })).toBeNull();
   });
 
-  test('choosing Bonus Actions or Reactions swaps the list without stacking history', async () => {
+  test('tapping a wedge spins it to the top and shows its list, without stacking history', async () => {
     await openCombat();
-    fireEvent.click(screen.getByTestId('hex-wedge-combat-bonus'));
-    expect(crumbs()).toEqual(['Character', 'Bonus Actions']);
+    tap('hex-spin-bonus');
+    expect(screen.getByTestId('hex-spin-bonus')).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByTestId('hex-spin-wheel')).toHaveAttribute('data-rotation', '-120');
     expect(within(screen.getByTestId('hex-combat-list')).getByRole('heading', { name: 'Bonus Actions' })).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('hex-wedge-combat-reaction'));
+    tap('hex-spin-reaction');
     expect(within(screen.getByTestId('hex-combat-list')).getByText(/Opportunity Attack/)).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('hex-back'));
-    expect(screen.getByTestId('hex-wedge-core')).toBeInTheDocument(); // one Back returns to the main wheel
+    expect(screen.getByTestId('hex-wedge-core')).toBeInTheDocument();
+  });
+
+  test('the arrow keys turn the wheel one wedge at a time', async () => {
+    await openCombat();
+    fireEvent.keyDown(screen.getByTestId('hex-spin-wheel'), { key: 'ArrowRight' });
+    expect(screen.getByTestId('hex-spin-bonus')).toHaveAttribute('aria-checked', 'true');
+    fireEvent.keyDown(screen.getByTestId('hex-spin-wheel'), { key: 'ArrowLeft' });
+    fireEvent.keyDown(screen.getByTestId('hex-spin-wheel'), { key: 'ArrowLeft' });
+    expect(screen.getByTestId('hex-spin-reaction')).toHaveAttribute('aria-checked', 'true');
   });
 
   test('an attack rolls through the dice window with the attack bonus', async () => {
     await openCombat();
     const unarmed = within(screen.getByTestId('hex-combat-list')).getByText('Unarmed Strike').closest('article');
     fireEvent.click(within(unarmed).getByRole('button', { name: /to hit/i }));
-    expect(lastRoll()).toMatchObject({ label: 'Unarmed Strike', modifier: 7 }); // DEX 18 (+4) + proficiency 3
-  });
-
-  test('Initiative and Concentration are one-tap rolls on the wheel', async () => {
-    await openCombat();
-    fireEvent.click(screen.getByTestId('hex-wedge-combat-initiative'));
-    expect(lastRoll()).toMatchObject({ label: 'Initiative', modifier: 4 });
-    fireEvent.click(screen.getByTestId('hex-wedge-combat-concentration'));
-    expect(lastRoll()).toMatchObject({ label: 'Concentration Save', modifier: 2 }); // CON 14, not proficient
+    expect(lastRoll()).toMatchObject({ label: 'Unarmed Strike', modifier: 7 });
   });
 });
 

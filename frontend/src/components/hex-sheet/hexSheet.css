@@ -498,3 +498,19 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 @media (max-width: 380px) {
   .hex-equip__coins { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Spinning wheel (three wedges): drag to turn, it settles with a wedge at
+   the top under the pointer. */
+.hex-spin { touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; outline: none; }
+.hex-spin.is-spinning { cursor: grabbing; }
+.hex-spin:focus-visible .hex-wheel__frame { stroke: var(--hex-text); stroke-width: 2; }
+.hex-spin__rotor { transform-box: view-box; transform-origin: 0 0; transition: transform 320ms cubic-bezier(.2, .8, .25, 1.08); }
+.hex-spin.is-spinning .hex-spin__rotor { transition: none; }
+.hex-spin__sector { cursor: pointer; }
+.hex-spin__sector.is-active .hex-glow__halo { opacity: 0.95; }
+.hex-spin__sector.is-active .hex-glow__edge { stroke: var(--hex-orange); stroke-width: 1.8; }
+.hex-spin__label { fill: var(--hex-text); font-size: 11px; font-weight: 800; letter-spacing: .02em; font-family: var(--hex-title-font); pointer-events: none; }
+.hex-spin__sector:not(.is-active) .hex-spin__label { fill: var(--hex-muted); }
+.hex-spin__sub { fill: var(--hex-sub); font-size: 6px; font-weight: 700; letter-spacing: .08em; pointer-events: none; }
+.hex-spin__pointer { fill: var(--hex-hi); }
+@media (prefers-reduced-motion: reduce) { .hex-spin__rotor { transition: none; } }

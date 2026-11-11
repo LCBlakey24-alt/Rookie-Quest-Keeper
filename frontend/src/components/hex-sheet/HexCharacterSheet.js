@@ -15,6 +15,7 @@ import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModif
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexPortrait from './HexPortrait';
+import HexSpinWheel from './HexSpinWheel';
 import HexWheel from './HexWheel';
 import { SLOT } from './hexGeometry';
 import { HEX_THEMES, getHexTheme, loadHexThemeId, saveHexThemeId } from './hexThemes';
@@ -42,19 +43,17 @@ export const ABILITY_SLOTS = {
 };
 
 /**
- * Combat wheel: the three parts of a turn plus "other" features, and two
- * one-tap rolls every fight needs. Choosing a group lists everything the
- * character can do with it below the wheel (attacks, spells, features,
- * items and the standard actions), using the classic sheet's own combat
- * rules so nothing is worked out twice.
+ * Combat wheel: three wedges, Actions, Bonus Actions and Reactions. Spin
+ * one to the top (or tap it) and everything the character can do with it
+ * is listed below the wheel: attacks, spells, features, items and the
+ * standard actions, from the classic sheet's own combat rules. Features
+ * that use none of the three ("other") are listed with Actions.
  */
 export const COMBAT_GROUPS = [
-  { id: 'action', label: 'Actions', slot: SLOT.UPPER_LEFT },
-  { id: 'bonus', label: 'Bonus Actions', slot: SLOT.UPPER_RIGHT },
-  { id: 'reaction', label: 'Reactions', slot: SLOT.RIGHT },
-  { id: 'other', label: 'Other', slot: SLOT.LOWER_RIGHT },
+  { id: 'action', label: 'Actions', sections: ['action', 'other'] },
+  { id: 'bonus', label: 'Bonus Actions', short: 'Bonus', sections: ['bonus'] },
+  { id: 'reaction', label: 'Reactions', sections: ['reaction'] },
 ];
-const COMBAT_ROLLS = { initiative: SLOT.LOWER_LEFT, concentration: SLOT.LEFT };
 
 export const DICE_SLOTS = [
   { sides: 4, slot: SLOT.UPPER_LEFT },
@@ -256,23 +255,12 @@ export default function HexCharacterSheet() {
       />
     );
   } else if (current.view === 'combat') {
-    const concentrationModifier = getConcentrationSaveModifier(character, proficiencyBonusFor(character));
     wheel = (
-      <HexWheel
-        viewKey="combat"
-        label="Combat"
-        wedges={[
-          ...COMBAT_GROUPS.map((group) => ({
-            id: `combat-${group.id}`,
-            slot: group.slot,
-            label: group.label,
-            active: current.group === group.id,
-            ariaLabel: `Show ${group.label.toLowerCase()}`,
-            onSelect: () => setStack((previous) => [...previous.slice(0, -1), { view: 'combat', group: group.id }]),
-          })),
-          { id: 'combat-initiative', slot: COMBAT_ROLLS.initiative, label: `Initiative ${formatModifier(vitals.initiative)}`, ariaLabel: `Roll initiative ${formatModifier(vitals.initiative)}`, onSelect: () => rollCheck('Initiative', vitals.initiative) },
-          { id: 'combat-concentration', slot: COMBAT_ROLLS.concentration, label: `Concentration ${formatModifier(concentrationModifier)}`, ariaLabel: `Roll a concentration save ${formatModifier(concentrationModifier)}`, onSelect: () => rollCheck('Concentration Save', concentrationModifier) },
-        ]}
+      <HexSpinWheel
+        label="Combat: spin a wedge to the top"
+        sectors={COMBAT_GROUPS}
+        value={current.group}
+        onChange={(group) => setStack((previous) => [...previous.slice(0, -1), { view: 'combat', group }])}
         centre={centreDice}
       />
     );
@@ -415,7 +403,7 @@ export default function HexCharacterSheet() {
             <CleanCombatTab
               character={character}
               proficiencyBonus={proficiencyBonusFor(character)}
-              section={current.group}
+              section={COMBAT_GROUPS.find((group) => group.id === current.group)?.sections || ['action', 'other']}
               onRoll={rollCheck}
               onCharacterUpdate={(updates, options = {}) => queueRef.current.patch(updates, options)}
               onDiceResult={(entry) => present(entry)}

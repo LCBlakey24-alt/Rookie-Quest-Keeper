@@ -141,7 +141,7 @@ function gatherActionFeatures(character = {}) {
  * wheel at a time. Without it every group is shown, as on the classic sheet.
  */
 export default function CleanCombatTab({ character, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult, section = null }) {
-  const shows = (group) => !section || section === group;
+  const shows = (group) => !section || (Array.isArray(section) ? section.includes(group) : section === group);
   const [pendingDamage, setPendingDamage] = useState(null);
   const [lastDamage, setLastDamage] = useState(null);
   const [resourceDrafts, setResourceDrafts] = useState({});
@@ -449,7 +449,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           <SimpleActionCard title="Use Reaction Feature" type="Reaction" description="Use a reaction from a class feature, species trait, feat, spell, or item." />
         </ActionSection>}
 
-        {shows('other') && section === 'other' && resourceActions.other.length === 0 && (
+        {section === 'other' && resourceActions.other.length === 0 && (
           <ActionSection title="Other Features" summary="Nothing here yet: this character has no triggered, passive or rest-timed features that skip the action economy." />
         )}
 
