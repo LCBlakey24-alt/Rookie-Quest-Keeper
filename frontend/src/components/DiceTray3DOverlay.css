@@ -89,6 +89,11 @@
   overflow: hidden;
 }
 
+.rq-dice-tray__canvas-holder {
+  position: absolute;
+  inset: 0;
+}
+
 .rq-dice-tray__canvas {
   display: block;
   width: 100%;

@@ -83,7 +83,7 @@ describe('shape lookup', () => {
     expect(DICE_SHAPES[20].readFace).toBe('up');
   });
 
-  test('reads a d100 in tens', () => {
-    expect(DICE_SHAPES[100].values).toEqual([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
+  test('reads a d100 tens die as 00 to 90', () => {
+    expect(DICE_SHAPES[100].values).toEqual([0, 10, 20, 30, 40, 50, 60, 70, 80, 90]);
   });
 });

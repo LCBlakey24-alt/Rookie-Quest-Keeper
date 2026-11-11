@@ -24,14 +24,14 @@
 
 import * as CANNON from 'cannon-es';
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
+  Color,
   DirectionalLight,
-  EdgesGeometry,
-  LineBasicMaterial,
-  LineSegments,
   Mesh,
-  MeshStandardMaterial,
+  MeshPhysicalMaterial,
   PCFSoftShadowMap,
+  PMREMGenerator,
   PerspectiveCamera,
   PlaneGeometry,
   Quaternion as ThreeQuaternion,
@@ -41,9 +41,10 @@ import {
   WebGLRenderer,
 } from 'three';
 
-import { atlasColumns, buildDieGeometry, drawFaceAtlas } from './dieMesh';
+import { atlasColumns, buildDieGeometry, drawFaceAtlas, faceLayouts } from './dieMesh';
 import { assignFaceValues, faceConfidence, seededRandom, settledFaceIndex } from './diceFaceReading';
-import { faceNormals, shapeForSides } from './diceShapes';
+import { PERCENTILE_UNITS_VALUES, faceNormals, shapeForSides } from './diceShapes';
+import { createStudioScene } from './studioEnvironment';
 
 const TRAY_HALF = 3.5;
 const WALL_HEIGHT = 7.5;
@@ -241,6 +242,26 @@ export function planThrow(specs, baseSeed) {
 }
 
 /**
+ * A d100 is thrown as two dice, the way it is at a table: a tens die
+ * (00-90) and a units die (0-9). 00 with 0 reads 100. Every other die
+ * passes through unchanged. The result panel still shows the d100's total;
+ * only what is thrown in the tray changes.
+ */
+export function expandPercentileDice(rolls) {
+  return (Array.isArray(rolls) ? rolls : []).flatMap((die) => {
+    if (Number(die?.sides) !== 100) return [die];
+    const total = Number(die.result);
+    if (!Number.isInteger(total) || total < 1 || total > 100) return [die];
+    const tens = total === 100 ? 0 : Math.floor(total / 10) * 10;
+    const units = total % 10;
+    return [
+      { ...die, sides: 100, result: tens, percentile: 'tens' },
+      { ...die, sides: 10, result: units, percentile: 'units' },
+    ];
+  });
+}
+
+/**
  * Describe a die for the scene: its solid, face normals, legal values and
  * the result it must show. Returns null for a die with no polyhedron, so
  * the caller can fall back to the flat overlay.
@@ -251,7 +272,8 @@ export function specForDie(die) {
 
   const solid = shape.build();
   const result = Number(die.result);
-  if (!shape.values.includes(result)) return null;
+  const values = die.percentile === 'units' ? PERCENTILE_UNITS_VALUES : shape.values;
+  if (!values.includes(result)) return null;
 
   // A natural 20 or a natural 1 is a moment at the table, so the die that
   // produced it is marked -- in its numerals and its edge, not with a
@@ -265,7 +287,7 @@ export function specForDie(die) {
   return {
     solid,
     normals: faceNormals(solid),
-    values: shape.values,
+    values,
     readFace: shape.readFace,
     result,
     dropped: Boolean(die.dropped),
@@ -326,8 +348,22 @@ export function createDiceTray({ canvas, palette }) {
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;
+  // Filmic tone mapping keeps a bright key light from flattening the
+  // facets into one tone, which is what made the dice look like cut-outs.
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
 
   const scene = new Scene();
+
+  // A soft studio room for the dice to reflect. Without anything to
+  // reflect, a glossy surface has nothing to show and reads as flat paint;
+  // with it, every facet catches a slightly different tone of the room.
+  // Built once per tray and released in dispose().
+  const pmrem = new PMREMGenerator(renderer);
+  const studio = createStudioScene();
+  const environment = pmrem.fromScene(studio.scene, 0.04).texture;
+  studio.dispose();
+  scene.environment = environment;
   // Steep and close: the number the player needs is on the upward face, so
   // the view is nearly overhead, with just enough tilt to read as solid.
   // A starting view; roll() reframes per throw from where the dice land.
@@ -339,9 +375,11 @@ export function createDiceTray({ canvas, palette }) {
   // Three-point lighting. The key models the facets, the ledger-blue fill
   // keeps the shadowed sides from going black, and the rim picks out the
   // silhouette so a navy die still reads against a navy tray.
-  scene.add(new AmbientLight(0xffffff, 1.9));
+  // The environment now does most of the filling, so the ambient is low:
+  // a high flat ambient was washing every face to the same tone.
+  scene.add(new AmbientLight(0xffffff, 0.35));
 
-  const key = new DirectionalLight(0xfff6e8, 2.9);
+  const key = new DirectionalLight(0xfff6e8, 2.6);
   key.position.set(3.2, 12, 4.2);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -353,7 +391,7 @@ export function createDiceTray({ canvas, palette }) {
   key.shadow.camera.bottom = -TRAY_HALF * 1.6;
   scene.add(key);
 
-  const fill = new DirectionalLight(palette.support, 0.85);
+  const fill = new DirectionalLight(palette.support, 0.6);
   fill.position.set(-5.5, 4, -3.5);
   scene.add(fill);
 
@@ -363,7 +401,7 @@ export function createDiceTray({ canvas, palette }) {
 
   const floor = new Mesh(
     new PlaneGeometry(TRAY_HALF * 4, TRAY_HALF * 4),
-    new ShadowMaterial({ opacity: 0.34 }),
+    new ShadowMaterial({ opacity: 0.46 }),
   );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
@@ -415,7 +453,14 @@ export function createDiceTray({ canvas, palette }) {
 
     active = entries.map((entry, index) => {
       const columns = atlasColumns(entry.spec.solid.faces.length);
+      // Where each face's number sits and which way is up, shared by the
+      // texture and the UVs so the two always agree.
+      const labelLayouts = faceLayouts(entry.spec.solid);
       const texture = drawFaceAtlas(plan.layouts[index], {
+        layouts: labelLayouts,
+        solid: entry.spec.solid,
+        // A dropped die (the advantage die not kept) loses its glow too.
+        glow: entry.spec.dropped ? null : (palette.glow || null),
         columns,
         cellPixels: cellPixelsFor(specs.length),
         body: palette.body,
@@ -427,17 +472,27 @@ export function createDiceTray({ canvas, palette }) {
         corners: entry.spec.solid.faces[0].length,
       });
 
-      const geometry = buildDieGeometry(entry.spec.solid, columns);
+      // A natural 20 or 1 is marked in its numerals and its edges: the
+      // rounded bevels take the accent colour, the faces keep the dye.
+      const accent = entry.spec.dropped ? null
+        : entry.spec.accent === 'crit' ? palette.crit
+        : entry.spec.accent === 'fumble' ? palette.fumble
+        : null;
+      const edgeColor = accent ? new Color(accent).toArray() : [1, 1, 1];
+      const geometry = buildDieGeometry(entry.spec.solid, columns, { edgeColor, layouts: labelLayouts });
       const mesh = new Mesh(
         geometry,
-        new MeshStandardMaterial({
+        new MeshPhysicalMaterial({
           map: texture,
-          // Metalness without an environment map makes a surface reflect
-          // nothing and go black, which read as see-through against a navy
-          // tray. These dice are resin, not metal, so it stays near zero
-          // and the sheen comes from the lights instead.
-          roughness: 0.38,
-          metalness: 0.04,
+          vertexColors: true,
+          // Polished resin: a little body roughness, under a clear coat
+          // that gives the sharp highlight a real die has. Metalness stays
+          // near zero -- these are resin, not metal.
+          roughness: 0.42,
+          metalness: 0.02,
+          clearcoat: 0.85,
+          clearcoatRoughness: 0.16,
+          envMapIntensity: 0.9,
           // A dropped die is dimmed, not made transparent. Transparency let
           // the die's own far faces show through its near ones, which looks
           // like a rendering fault rather than "this one does not count".
@@ -446,22 +501,7 @@ export function createDiceTray({ canvas, palette }) {
       );
       mesh.scale.setScalar(entry.scale);
       mesh.castShadow = true;
-
-      // A hairline along every real edge. The threshold drops the fan
-      // diagonals inside a pentagon or kite, which are coplanar, and keeps
-      // only the edges between faces -- the bevel a resin die catches light
-      // on. It rides as a child so it follows the die's transform.
-      const edges = new LineSegments(
-        new EdgesGeometry(geometry, 8),
-        new LineBasicMaterial({
-          color: entry.spec.accent === 'crit' ? palette.crit
-            : entry.spec.accent === 'fumble' ? palette.fumble
-            : palette.edge,
-          transparent: true,
-          opacity: entry.spec.dropped ? 0.16 : 0.5,
-        }),
-      );
-      mesh.add(edges);
+      mesh.receiveShadow = true;
 
       scene.add(mesh);
       return { ...entry, mesh };
@@ -510,6 +550,8 @@ export function createDiceTray({ canvas, palette }) {
     clearDice();
     floor.geometry.dispose();
     floor.material.dispose();
+    environment.dispose();
+    pmrem.dispose();
 
     // A browser allows only a handful of live WebGL contexts -- Chrome
     // around sixteen -- and a table rolls far more often than that in a

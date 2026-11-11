@@ -198,7 +198,9 @@ function sequence(count) {
  * corners of each face, would show it; that needs three labels per face
  * rather than one and is not done here.
  *
- * A d100 is the tens die of a percentile pair and reads 10, 20 ... 100.
+ * A d100 is thrown as a real percentile pair: this "100" shape is the tens
+ * die, printed 00, 10 ... 90, and a d10 printed 0 ... 9 gives the units
+ * (see expandPercentileDice in diceTrayScene). 00 and 0 together are 100.
  */
 export const DICE_SHAPES = {
   4: { sides: 4, values: sequence(4), readFace: 'down' },
@@ -207,7 +209,7 @@ export const DICE_SHAPES = {
   10: { sides: 10, values: sequence(10), readFace: 'up' },
   12: { sides: 12, values: sequence(12), readFace: 'up' },
   20: { sides: 20, values: sequence(20), readFace: 'up' },
-  100: { sides: 100, values: sequence(10).map((value) => value * 10), readFace: 'up' },
+  100: { sides: 100, values: sequence(10).map((value) => (value - 1) * 10), readFace: 'up' },
 };
 
 Object.keys(BUILDERS).forEach((key) => {
@@ -215,6 +217,9 @@ Object.keys(BUILDERS).forEach((key) => {
 });
 
 export const SUPPORTED_SIDES = Object.keys(DICE_SHAPES).map(Number).sort((a, b) => a - b);
+
+/** The units die of a percentile pair: a d10 printed 0 to 9. */
+export const PERCENTILE_UNITS_VALUES = sequence(10).map((value) => value - 1);
 
 /** The shape a die with this many sides is rolled as, or null. */
 export function shapeForSides(sides) {
