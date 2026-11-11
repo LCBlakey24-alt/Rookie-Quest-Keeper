@@ -1,0 +1,23 @@
+/* Shared colours for the hex-sheet look.
+ *
+ * One place sets the palette for every restyled surface (creator, level-up
+ * wizard, celebration, motif badge, back button). It matches the default
+ * "Glow" dice: a strong deep blue, white-cream text and an orange glow.
+ *
+ * --guild-glow scales every glow: 1 is the original strength, lower is
+ * calmer. Change the values here and every surface follows.
+ */
+:root {
+  --guild-bg: #0a2342;          /* page: strong deep blue */
+  --guild-bg-deep: #071a33;     /* wells and inputs */
+  --guild-panel: #0e2d55;       /* raised panels */
+  --guild-accent: #f2892f;      /* the dice's orange */
+  --guild-accent-rgb: 242, 137, 47;
+  --guild-hi: #ffb066;          /* brighter accent for edges and numerals */
+  --guild-hi-rgb: 255, 176, 102;
+  --guild-text: #ffffff;
+  --guild-muted: #c6d3e2;
+  --guild-ink: #0a1a2e;         /* text on a solid accent button */
+  --guild-select: rgba(96, 156, 232, 0.2); /* fill of a selected card: lighter blue, not tinted orange */
+  --guild-glow: 0.5;
+}

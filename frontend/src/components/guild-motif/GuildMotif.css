@@ -1,12 +1,12 @@
 /* The Rookie motif (hexagon, ring, smaller hexagon) in Guild Ledger brass.
    Colours can be re-themed by setting the --gm-* properties on a parent. */
 .guild-motif {
-  --_brass: var(--gm-brass, #c9a24a);
-  --_hi: var(--gm-hi, #ecd08a);
-  --_bg: var(--gm-bg, #0b1520);
-  --_muted: var(--gm-muted, #cdbf9e);
+  --_brass: var(--gm-brass, var(--guild-accent));
+  --_hi: var(--gm-hi, var(--guild-hi));
+  --_bg: var(--gm-bg, var(--guild-bg));
+  --_muted: var(--gm-muted, var(--guild-muted));
   flex: none; display: block; overflow: visible;
-  filter: drop-shadow(0 0 6px rgba(201, 162, 74, 0.35));
+  filter: drop-shadow(0 0 6px rgba(var(--guild-accent-rgb), calc(0.35 * var(--guild-glow))));
 }
 .guild-motif__case { fill: var(--_bg); stroke: var(--_brass); stroke-width: 2.4; }
 .guild-motif__ring { fill: none; stroke: var(--_brass); stroke-opacity: 0.4; stroke-width: 1; }
