@@ -26,7 +26,8 @@ function titleCaseSlug(value) {
       const lower = word.toLowerCase();
       if (ACRONYMS.has(lower)) return lower.toUpperCase();
       if (index > 0 && SMALL_WORDS.has(lower)) return lower;
-      return `${lower.slice(0, 1).toUpperCase()}${lower.slice(1)}`;
+      // Capitalise the first letter, not the first character: "(lightfoot)" -> "(Lightfoot)".
+      return lower.replace(/[a-z]/, (letter) => letter.toUpperCase());
     })
     .join(' ');
 

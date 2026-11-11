@@ -16,14 +16,19 @@ const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const firstArray = (...values) => values.find(value => toArray(value).length) || [];
 const oneOrArray = (value) => value ? (Array.isArray(value) ? value : [value]) : [];
 const titleFromKey = (value = '') => String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+// On the Class tab every feature is a class feature; saying so on each card is noise.
+const GENERIC_SOURCES = new Set(['class', 'class feature', 'class features', 'feature']);
 const isBlankValue = (value) => value === null || value === undefined || value === '' || value === false;
 
-function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
+export function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
   const seen = new Set();
   return [...snapshotFeatures, ...legacyFeatures]
     .filter(feature => feature?.name && !feature.isChoice)
     .filter(feature => {
-      const key = `${String(feature.name).toLowerCase()}-${feature.level || ''}-${feature.source || ''}`;
+      // One card per feature and level. The derived snapshot and the legacy
+      // list describe the same feature with different `source` values, so
+      // keying on source showed "Sneak Attack (2d6)" and "Cunning Action" twice.
+      const key = `${String(feature.name).trim().toLowerCase()}-${feature.level || ''}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -353,7 +358,7 @@ export default function CleanSheetFeaturesTab({
                     {feature.level && <span>Level {feature.level}</span>}
                   </div>
                   {feature.uses && <em>{feature.uses}</em>}
-                  {feature.source && <em>{feature.source}</em>}
+                  {feature.source && !GENERIC_SOURCES.has(String(feature.source).trim().toLowerCase()) && <em>{titleFromKey(feature.source)}</em>}
                   {feature.description && <p>{feature.description}</p>}
                 </article>
               )) : (
