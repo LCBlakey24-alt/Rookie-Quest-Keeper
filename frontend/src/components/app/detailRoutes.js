@@ -46,18 +46,16 @@ export function isDetailRoute(pathname) {
 }
 
 /**
- * Which routes are a single task the player is in the middle of: building,
- * importing or editing a character.
+ * Which routes are "inside" a section rather than the home dashboard.
  *
- * On a phone these pages hide the bottom tab bar, so the page's own
- * Previous / Next bar sits at the bottom of the screen, and the top bar
- * shows a back arrow to the home dashboard instead. Desktop and tablet keep
- * their side rail.
+ * On a phone the home dashboard is the hub: it lists My Characters, My
+ * Campaigns, Homebrew, Community and the rest. Every other page hides the
+ * bottom tab bar and shows a hexagon back button in the top-left corner
+ * that returns to the dashboard. Desktop and tablet keep their side rail.
  */
-const TASK_EXACT = ['/characters/new', '/characters/import'];
-const TASK_PATTERNS = [/^\/characters\/[^/]+\/edit$/];
+const HUB_ROUTES = ['/', '/home'];
 
-export function isTaskRoute(pathname) {
+export function isInnerRoute(pathname) {
   const path = normalise(pathname);
-  return TASK_EXACT.includes(path) || TASK_PATTERNS.some((pattern) => pattern.test(path));
+  return Boolean(path) && !HUB_ROUTES.includes(path);
 }

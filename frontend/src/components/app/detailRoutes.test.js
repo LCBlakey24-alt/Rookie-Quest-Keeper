@@ -1,4 +1,4 @@
-import { isDetailRoute, isTaskRoute } from './detailRoutes';
+import { isDetailRoute, isInnerRoute } from './detailRoutes';
 
 describe('which pages get the compact rail', () => {
   test.each([
@@ -51,22 +51,25 @@ describe('which pages get the compact rail', () => {
 
 describe('which pages hide the phone tab bar', () => {
   test.each([
+    ['/characters'],
     ['/characters/new'],
-    ['/characters/new/'],
-    ['/characters/import'],
     ['/characters/char-1/edit'],
-  ])('%s is a task in progress', (path) => {
-    expect(isTaskRoute(path)).toBe(true);
+    ['/campaigns'],
+    ['/campaign/camp-1'],
+    ['/homebrew'],
+    ['/community'],
+    ['/account'],
+    ['/admin'],
+  ])('%s is inside a section', (path) => {
+    expect(isInnerRoute(path)).toBe(true);
   });
 
   test.each([
+    ['/'],
     ['/home'],
-    ['/characters'],
-    ['/characters/char-1'],
-    ['/campaign/camp-1'],
-    ['/homebrew'],
-    ['/characters/new/extra'],
-  ])('%s keeps the tab bar', (path) => {
-    expect(isTaskRoute(path)).toBe(false);
+    ['/home/'],
+    ['/home?welcome=1'],
+  ])('%s is the hub and keeps the tab bar', (path) => {
+    expect(isInnerRoute(path)).toBe(false);
   });
 });
