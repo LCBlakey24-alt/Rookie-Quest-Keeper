@@ -111,7 +111,7 @@ describe('the main wheel', () => {
     expect(screen.getByTestId('hex-centre').closest('.hex-wheel__deal')).toBeNull();
   });
 
-  test.each(['skills', 'equipment', 'magic', 'traits'])('%s opens in place and offers the classic sheet for now', async (id) => {
+  test.each(['skills', 'magic', 'traits'])('%s opens in place and offers the classic sheet for now', async (id) => {
     await openSheet();
     fireEvent.click(screen.getByTestId(`hex-wedge-${id}`));
     expect(screen.getByTestId('hex-coming-soon')).toBeInTheDocument();

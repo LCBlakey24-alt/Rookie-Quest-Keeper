@@ -12,6 +12,7 @@ import { rollDiceNotation } from '@/data/diceRoller';
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
 import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier } from '@/data/characterConcentrationRules';
 
+import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexPortrait from './HexPortrait';
 import HexWheel from './HexWheel';
@@ -275,6 +276,16 @@ export default function HexCharacterSheet() {
         centre={centreDice}
       />
     );
+  } else if (current.view === 'equipment') {
+    wheel = character ? (
+      <HexEquipment
+        character={character}
+        proficiencyBonus={proficiencyBonusFor(character)}
+        onRoll={rollCheck}
+        onPresent={(burst) => present(burst)}
+        onSave={(updates, options) => queueRef.current.patch(updates, options)}
+      />
+    ) : null;
   } else if (current.view === 'hp') {
     wheel = <HexHpDial character={character} initialTarget={current.target || 'hp'} onConfirm={confirmHp} onCancel={back} />;
   } else if (current.view === 'dice') {
@@ -318,7 +329,7 @@ export default function HexCharacterSheet() {
   }
 
   return (
-    <div className={`hex-sheet${current.view === 'combat' ? ' hex-sheet--with-list' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
+    <div className={`hex-sheet${['combat', 'equipment'].includes(current.view) ? ' hex-sheet--with-list' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
       <header className="hex-sheet__header">
         <button type="button" className="hex-sheet__hex-button" onClick={() => navigate('/characters')} aria-label="Back to My Characters" data-testid="hex-leave">
           <span className="hex-sheet__hex-button-rim" aria-hidden="true">
@@ -411,7 +422,7 @@ export default function HexCharacterSheet() {
             />
           </section>
         )}
-        {SECTION_TITLES[current.view] && current.view !== 'core' && current.view !== 'combat' && (
+        {SECTION_TITLES[current.view] && !['core', 'combat', 'equipment'].includes(current.view) && (
           <div className="hex-sheet__coming" data-testid="hex-coming-soon">
             <p>{VIEW_TITLES[current.view]} joins the wheel in the next phase.</p>
             <Link className="hex-sheet__text-button" to={`/characters/${characterId}`}><span className="hex-glass" aria-hidden="true" />Open on the classic sheet</Link>
