@@ -1,5 +1,6 @@
 import React from 'react';
 
+import '@/styles/guildTokens.css';
 import './GuildMotif.css';
 
 const R = 100;

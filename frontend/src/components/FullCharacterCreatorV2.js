@@ -43,6 +43,7 @@ import {
 } from '@/components/full-character-creator/CreatorPresentation';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
+import '@/styles/guildTokens.css';
 import './FullCharacterCreatorGuild.css';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
