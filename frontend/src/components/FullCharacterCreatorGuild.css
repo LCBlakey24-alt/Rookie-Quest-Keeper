@@ -1,0 +1,67 @@
+/* Character creator in the hex-sheet look: ink background, brass linework,
+   glass panels with an inner glow. Loaded after the creator's own styles.
+
+   The creator already takes every colour from its --rqk-creator-* variables,
+   so the palette change is just new values for those. Buttons need more:
+   the app-wide control layer fixes their border colour and removes
+   box-shadows with layered !important rules, so each button's edge and glow
+   are drawn on ::after and its fill comes through --rq-control-blue. */
+.full-creator-page.full-creator-page {
+  --gl-bg: #0b1520; --gl-brass: #c9a24a; --gl-hi: #ecd08a; --gl-text: #f4ead2; --gl-muted: #cdbf9e;
+  --gl-line: rgba(201, 162, 74, 0.28); --gl-glass: rgba(201, 162, 74, 0.05); --gl-soft: rgba(201, 162, 74, 0.2);
+  --rqk-creator-bg: var(--gl-bg); --rqk-creator-deep: #0e1b29; --rqk-creator-panel: var(--gl-bg);
+  --rqk-creator-card: var(--gl-glass); --rqk-creator-card-hover: var(--gl-soft);
+  --rqk-creator-text: var(--gl-text); --rqk-creator-muted: var(--gl-muted); --rqk-creator-faint: rgba(205, 191, 158, 0.75);
+  --rqk-creator-line: var(--gl-line); --rqk-creator-line-strong: var(--gl-brass);
+  --rqk-creator-accent: var(--gl-brass); --rqk-creator-blue: var(--gl-hi);
+  --rq-control-blue: var(--gl-glass); --rq-control-wax: var(--gl-soft); --rq-fill-color: rgba(201, 162, 74, 0.14);
+  --rq-text-primary: var(--gl-text); --rq-secondary: var(--gl-hi);
+}
+
+/* Panels: glass with a soft inner glow. */
+.full-creator-page :is(.full-creator-header, .full-creator-panel, .full-creator-preview, .full-creator-footer, .full-creator-progress-card) {
+  border-radius: 14px; border-color: var(--gl-line);
+  box-shadow: inset 0 0 30px rgba(201, 162, 74, 0.07);
+}
+.full-creator-page :is(.full-creator-header h1, .full-creator-section-title h2, .full-creator-preview h2) {
+  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif); color: var(--gl-hi);
+}
+
+/* Progress: the motif shows the step number and fills with the journey. */
+.full-creator-page .full-creator-progress-card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: center; }
+.full-creator-page .full-creator-progress-card .full-creator-progress-motif { grid-row: 1 / span 3; }
+.full-creator-page .full-creator-progress-heading { margin-bottom: 0; }
+.full-creator-page .full-creator-progress-heading span { color: var(--gl-brass); }
+.full-creator-page .full-creator-progress-track { border-color: var(--gl-line); }
+.full-creator-page .full-creator-progress-track span { background: linear-gradient(90deg, var(--gl-brass), var(--gl-hi)); }
+
+/* Buttons: edge and glow on ::after. */
+.full-creator-page button { position: relative; border-width: 0 !important; border-radius: 10px; }
+.full-creator-page button::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  border: 1px solid var(--gl-line); box-shadow: inset 0 0 14px rgba(201, 162, 74, 0.09);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.full-creator-page button:hover:not(:disabled)::after,
+.full-creator-page button:focus-visible::after { border-color: var(--gl-brass); box-shadow: inset 0 0 18px rgba(201, 162, 74, 0.22); }
+.full-creator-page button:is(.active, .is-active, [aria-pressed='true'], [aria-checked='true'], [aria-current='step'])::after {
+  border-color: var(--gl-hi); box-shadow: inset 0 0 22px rgba(236, 208, 138, 0.3);
+}
+.full-creator-page button:is(.active, .is-active, [aria-checked='true']) { --rq-control-blue: var(--gl-soft); }
+.full-creator-page button:is(.active, .is-active, [aria-pressed='true'], [aria-checked='true']) strong { color: var(--gl-hi); }
+
+/* Step tabs: the current step is filled with soft brass under a bright edge.
+   (Its label keeps the light text colour, which other creator rules pin.) */
+.full-creator-page .full-creator-steps button[aria-current='step'] { --rq-control-blue: rgba(201, 162, 74, 0.34); }
+.full-creator-page .full-creator-steps button[aria-current='step']::after { border-width: 2px; }
+.full-creator-page .full-creator-steps button.is-complete:not([aria-current='step']) small { color: var(--gl-hi); }
+
+/* Primary actions: solid brass with ink text. */
+.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) { --rq-control-blue: var(--gl-brass); --rq-text-primary: #1a1408; --rq-fill-color: rgba(255, 255, 255, 0.18); font-weight: 900; }
+.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled)::after { border-color: var(--gl-hi); box-shadow: 0 0 14px rgba(201, 162, 74, 0.35); }
+.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) svg { color: #1a1408; }
+.full-creator-page .full-creator-roll-gold { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* Fields. */
+.full-creator-page :is(input, select, textarea) { border-radius: 10px; }
+.full-creator-page :is(input, select, textarea):focus-visible { outline: 2px solid var(--gl-hi); outline-offset: 2px; }

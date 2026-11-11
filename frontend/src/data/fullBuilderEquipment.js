@@ -19,6 +19,19 @@ export function rollStartingGoldRule(rule = {}, rng = Math.random) {
   return total * multiplier;
 }
 
+/**
+ * Starting gold with the individual dice kept, so the creator can throw them
+ * in the 3D tray. `total` matches what rollStartingGoldRule would save.
+ */
+export function rollStartingGoldDice(rule = {}, rng = Math.random) {
+  if (rule.fixed) return { dice: [], total: Math.max(0, Number(rule.average || 0)), multiplier: 1 };
+  const count = Math.max(0, Number(rule.dice || 0));
+  const sides = Math.max(1, Number(rule.die || 1));
+  const multiplier = Math.max(0, Number(rule.multiplier || 1));
+  const dice = Array.from({ length: count }, () => ({ sides, result: rollDie(sides, rng) }));
+  return { dice, multiplier, total: dice.reduce((sum, die) => sum + die.result, 0) * multiplier };
+}
+
 export function splitStartingCurrency(labels = []) {
   const currency = { ...EMPTY_CURRENCY };
   const equipmentLabels = [];
