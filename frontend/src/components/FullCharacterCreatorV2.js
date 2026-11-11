@@ -5,6 +5,7 @@ import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices,
 
 import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
+import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 import GuildMotif from '@/components/guild-motif/GuildMotif';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
@@ -786,25 +787,57 @@ function Setup({ draft, update }) {
   </>;
 }
 
+const CHOICE_VIEW_KEY = 'rqk.creator.choiceView';
+function loadChoiceView() {
+  try { return window.localStorage.getItem(CHOICE_VIEW_KEY) === 'list' ? 'list' : 'wheel'; } catch { return 'wheel'; }
+}
+
+/**
+ * Race and class are chosen on a wheel by default; "Show as list" swaps in
+ * the cards for anyone who prefers them. The preference is remembered on
+ * this device. Both views call the same `onChoose`.
+ */
+function ChoicePicker({ label, caption, options, value, onChoose, children }) {
+  const [view, setView] = useState(loadChoiceView);
+  const switchTo = (next) => {
+    setView(next);
+    try { window.localStorage.setItem(CHOICE_VIEW_KEY, next); } catch { /* storage unavailable */ }
+  };
+  return (
+    <div className="full-creator-choice-picker" data-view={view}>
+      {view === 'wheel'
+        ? <GuildChoiceWheel label={label} caption={caption} options={options} value={value} onChange={onChoose} />
+        : children}
+      <button type="button" className="full-creator-choice-view" onClick={() => switchTo(view === 'wheel' ? 'list' : 'wheel')} data-testid={`choice-view-${label.toLowerCase()}`}>
+        {view === 'wheel' ? 'Show as list' : 'Show as wheel'}
+      </button>
+    </div>
+  );
+}
+
 function Species({ draft, update, subraces, raceData, racialTraits, baseLanguages, languageChoices, bonus, speciesLabel, selectedLanguages, unavailableLanguages, toggleLanguage }) {
   const speed = raceData.subraces?.[draft.subrace]?.speed || raceData.speed || 30;
+  const chooseRace = (name) => update({ race: name, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] });
   return <>
     <Title icon={Shield} title={`Choose ${speciesLabel.toLowerCase()}`} text={`Pick your character's ${speciesLabel.toLowerCase()} and review what it gives them.`} />
-    <div className="full-creator-option-grid" role="group" aria-label={`${speciesLabel} options`}>
-      {Object.keys(RACES).map((name) => {
-        const option = RACES[name] || {};
-        const summary = option.description || `${option.size || 'Medium'} · ${option.speed || 30} ft speed`;
-        return (
-          <OptionCard
-            key={name}
-            title={name}
-            summary={summary}
-            active={draft.race === name}
-            onClick={() => update({ race: name, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] })}
-          />
-        );
-      })}
-    </div>
+    <ChoicePicker label={speciesLabel} caption={speciesLabel.toUpperCase()} options={Object.keys(RACES).map((name) => ({ id: name, label: name }))} value={draft.race} onChoose={chooseRace}>
+      <div className="full-creator-option-grid" role="group" aria-label={`${speciesLabel} options`}>
+        {Object.keys(RACES).map((name) => {
+          const option = RACES[name] || {};
+          const summary = option.description || `${option.size || 'Medium'} · ${option.speed || 30} ft speed`;
+          return (
+            <OptionCard
+              key={name}
+              title={name}
+              summary={summary}
+              active={draft.race === name}
+              onClick={() => chooseRace(name)}
+            />
+          );
+        })}
+      </div>
+    </ChoicePicker>
+    {RACES[draft.race]?.description && <p className="full-creator-choice-summary" data-testid="race-summary">{RACES[draft.race].description}</p>}
     {subraces.length > 0 && (
       <div className="full-creator-form-grid">
         <label><span>{speciesLabel} option</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value, raceChosenLanguages: [], backgroundChosenLanguages: [] })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>
@@ -831,32 +864,36 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
   const armor = arr(classData.armorProficiencies);
   const weapons = arr(classData.weaponProficiencies);
   const saves = arr(classData.savingThrows);
+  const chooseClass = (name) => update({
+    characterClass: name,
+    subclass: '',
+    fighterFightingStyle: '',
+    selectedSkills: [],
+    selectedCantrips: [],
+    selectedSpells: [],
+    startingEquipmentChoices: defaultStartingEquipmentChoices(name),
+    rolledStartingGold: 0,
+  });
   return <>
     <Title icon={Swords} title="Choose class" text="Class handles class, subclass timing, class skills, spells, features, and proficiencies." />
-    <div className="full-creator-option-grid" role="group" aria-label="Class options">
-      {Object.keys(CLASSES).map((name) => {
-        const option = CLASSES[name] || {};
-        const summary = option.description || `Hit die d${option.hitDie || 8} · ${String(option.primaryAbility || 'varies').toUpperCase()} primary`;
-        return (
-          <OptionCard
-            key={name}
-            title={name}
-            summary={summary}
-            active={draft.characterClass === name}
-            onClick={() => update({
-              characterClass: name,
-              subclass: '',
-              fighterFightingStyle: '',
-              selectedSkills: [],
-              selectedCantrips: [],
-              selectedSpells: [],
-              startingEquipmentChoices: defaultStartingEquipmentChoices(name),
-              rolledStartingGold: 0,
-            })}
-          />
-        );
-      })}
-    </div>
+    <ChoicePicker label="Class" caption="CLASS" options={Object.keys(CLASSES).map((name) => ({ id: name, label: name }))} value={draft.characterClass} onChoose={chooseClass}>
+      <div className="full-creator-option-grid" role="group" aria-label="Class options">
+        {Object.keys(CLASSES).map((name) => {
+          const option = CLASSES[name] || {};
+          const summary = option.description || `Hit die d${option.hitDie || 8} · ${String(option.primaryAbility || 'varies').toUpperCase()} primary`;
+          return (
+            <OptionCard
+              key={name}
+              title={name}
+              summary={summary}
+              active={draft.characterClass === name}
+              onClick={() => chooseClass(name)}
+            />
+          );
+        })}
+      </div>
+    </ChoicePicker>
+    {CLASSES[draft.characterClass]?.description && <p className="full-creator-choice-summary" data-testid="class-summary">{CLASSES[draft.characterClass].description}</p>}
     {classChoicesRequired && (
       <div className="full-creator-form-grid">
         <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>
