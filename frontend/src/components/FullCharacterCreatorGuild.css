@@ -72,3 +72,8 @@
 .full-creator-page .full-creator-choice-picker .full-creator-option-grid { width: 100%; }
 .full-creator-page .full-creator-choice-view { min-height: 44px; padding: 0 16px; font-size: 0.85rem; font-weight: 800; justify-self: center; }
 .full-creator-page .full-creator-choice-summary { margin: 0; text-align: center; font-size: 0.95rem; }
+
+/* Phone: let the wheel use the panel's full width. */
+@media (max-width: 719px) {
+  .full-creator-page .full-creator-choice-picker .guild-wheel { width: calc(100% + 16px); margin-inline: -8px; }
+}
