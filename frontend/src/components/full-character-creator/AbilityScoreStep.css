@@ -1,0 +1,77 @@
+/* Ability score step in the character creator. Uses the creator's own
+   tokens (FullCharacterCreatorV2.css), so it follows the creator's theme. */
+.ability-step { display: grid; gap: 14px; }
+
+.ability-step__methods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ability-step__methods button {
+  min-height: 56px; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--rqk-creator-line); background: var(--rqk-creator-card);
+  color: var(--rqk-creator-text); font: inherit; text-align: left; cursor: pointer;
+  display: grid; gap: 2px;
+}
+.ability-step__methods button strong { font-size: 0.95rem; font-weight: 900; }
+.ability-step__methods button span { font-size: 0.78rem; color: var(--rqk-creator-muted); }
+.ability-step__methods button.is-active { border-color: var(--rqk-creator-accent); box-shadow: inset 0 0 0 1px var(--rqk-creator-accent); }
+
+.ability-step__hint { margin: 0; font-size: 0.9rem; color: var(--rqk-creator-muted); }
+
+.ability-step__roll-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ability-step__roll-actions button {
+  min-height: 46px; padding: 0 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--rqk-creator-line-strong); background: var(--rqk-creator-card);
+  color: var(--rqk-creator-text); font: inherit; font-weight: 800; cursor: pointer;
+}
+.ability-step__roll-actions button.is-primary { border-color: var(--rqk-creator-accent); }
+
+.ability-step__grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.ability-step__card {
+  display: grid; gap: 6px; align-content: start; padding: 8px; border-radius: 8px;
+  border: 1px solid var(--rqk-creator-line); background: var(--rqk-creator-panel);
+}
+.ability-step__card.is-selected { border-color: var(--rqk-creator-accent); box-shadow: inset 0 0 0 1px var(--rqk-creator-accent); }
+.ability-step__card.is-empty { opacity: 0.6; }
+.ability-step__pick {
+  display: grid; justify-items: center; gap: 2px; min-height: 64px; width: 100%; padding: 6px 4px;
+  border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--rqk-creator-text); font: inherit;
+}
+button.ability-step__pick { cursor: pointer; }
+.ability-step__pick span { font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; color: var(--rqk-creator-muted); }
+.ability-step__pick strong { font-size: 1.6rem; line-height: 1.1; font-weight: 900; }
+.ability-step__pick input { width: 100%; max-width: 72px; min-height: 40px; text-align: center; font: inherit; font-size: 1.2rem; font-weight: 800; }
+.ability-step__stepper { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.ability-step__stepper button {
+  min-height: 36px; display: grid; place-items: center; border-radius: 6px;
+  border: 1px solid var(--rqk-creator-line); background: var(--rqk-creator-card); color: var(--rqk-creator-text); cursor: pointer;
+}
+.ability-step__stepper button:disabled { opacity: 0.4; cursor: default; }
+.ability-step__dice { display: flex; justify-content: center; gap: 3px; }
+.ability-step__dice i {
+  font-style: normal; font-size: 0.75rem; font-weight: 800; min-width: 20px; height: 20px; display: grid; place-items: center;
+  border-radius: 4px; border: 1px solid var(--rqk-creator-line-strong);
+}
+.ability-step__dice i.is-dropped { opacity: 0.45; text-decoration: line-through; }
+.ability-step__final { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.8rem; color: var(--rqk-creator-muted); }
+.ability-step__final em { font-style: normal; }
+.ability-step__final b { color: var(--rqk-creator-text); font-size: 0.95rem; }
+
+/* Point-buy dial */
+.ability-knob { display: grid; justify-items: center; gap: 4px; }
+.ability-knob__svg { width: min(78vw, 260px); height: auto; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; outline: none; }
+.ability-knob__svg.is-turning { cursor: grabbing; }
+.ability-knob__svg:focus-visible .ability-knob__body { stroke: var(--rqk-creator-text); stroke-width: 3; }
+.ability-knob__track { fill: none; stroke: var(--rqk-creator-line-strong); stroke-width: 6; stroke-linecap: round; }
+.ability-knob__spent { fill: none; stroke: var(--rqk-creator-accent); stroke-width: 6; stroke-linecap: round; }
+.ability-knob__notch { fill: var(--rqk-creator-muted); font-size: 12px; font-weight: 800; }
+.ability-knob__notch.is-current { fill: var(--rqk-creator-accent); font-size: 15px; }
+.ability-knob__notch.is-unaffordable { opacity: 0.3; }
+.ability-knob__body { fill: var(--rqk-creator-card); stroke: var(--rqk-creator-accent); stroke-width: 1.5; }
+.ability-knob__indicator { stroke: var(--rqk-creator-accent); stroke-width: 5; stroke-linecap: round; }
+.ability-knob__label { fill: var(--rqk-creator-muted); font-size: 11px; font-weight: 900; letter-spacing: 0.1em; }
+.ability-knob__value { fill: var(--rqk-creator-text); font-size: 30px; font-weight: 900; }
+.ability-knob__left { fill: var(--rqk-creator-muted); font-size: 10px; font-weight: 700; }
+.ability-knob__hint { margin: 0; font-size: 0.82rem; color: var(--rqk-creator-muted); text-align: center; }
+
+@media (max-width: 760px) {
+  .ability-step__methods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ability-step__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
