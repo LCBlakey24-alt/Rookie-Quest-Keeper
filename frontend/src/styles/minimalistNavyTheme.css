@@ -7,13 +7,13 @@
   --rq-bg-main: #0a1728;
   --rq-bg-deep: #06101c;
   --rq-bg-rail: #06101c;
-  --rq-bg-panel: #102238;
+  --rq-bg-panel: #0e2d55;
   --rq-bg-panel-alt: #14283e;
   --rq-bg-card: #14283e;
   --rq-bg-input: #06101c;
   --rq-bg-button: #0e1d30;
   --rq-bg-button-hover: #172d47;
-  --rq-surface: #102238;
+  --rq-surface: #0e2d55;
   --rq-card: #14283e;
   --rq-card-hover: #1a314b;
   --rq-button: #0e1d30;
@@ -288,7 +288,7 @@ html[data-theme='player'] #root .rqk-app-rail-link:hover {
 
 .rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__panel,
 .rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__total {
-  background: #102238 !important;
+  background: #0e2d55 !important;
   background-image: none !important;
   border-color: rgba(181, 203, 226, 0.2) !important;
   box-shadow: none !important;

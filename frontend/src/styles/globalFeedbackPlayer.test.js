@@ -16,7 +16,7 @@ describe('Player feedback presentation ownership', () => {
     expect(css).toContain('#071522');
     expect(css).toContain('#112A40');
     expect(css).toContain('#79BCE8');
-    expect(css).toContain('#D6A84F');
+    expect(css).toContain('#f2892f');
     expect(css).toContain("[data-testid='global-feedback-modal'][data-testid]");
     expect(css).toContain("[data-testid='global-feedback-btn'][data-testid]");
   });

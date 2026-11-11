@@ -23,9 +23,9 @@
     var(--rq-citrus-orange) 50%,
     var(--rq-citrus-blood) 72%,
     var(--rq-citrus-blood) 100%);
-  --rq-citrus-navy: #0B1B2B;
-  --rq-citrus-panel: #0B1B2B;
-  --rq-citrus-control: #0B1B2B;
+  --rq-citrus-navy: #0a2342;
+  --rq-citrus-panel: #0a2342;
+  --rq-citrus-control: #0a2342;
   --rq-citrus-cream: #F5F1E8;
   --rq-citrus-sweep: 340ms cubic-bezier(.22,.78,.18,1);
 }

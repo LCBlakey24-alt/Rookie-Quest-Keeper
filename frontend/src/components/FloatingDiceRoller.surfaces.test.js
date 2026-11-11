@@ -6,7 +6,7 @@ import path from 'path';
 const CSS = fs.readFileSync(path.join(__dirname, 'FloatingDiceRoller.css'), 'utf8');
 const DECLARATIONS = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
 
-const FLAT_SURFACE = '#0B1B2B';
+const FLAT_SURFACE = '#0A2342';
 
 // The stacked surfaces and antique-gold accents this panel used before the
 // flat pass. Any of them reappearing is the box-in-a-different-blue look the
@@ -18,8 +18,8 @@ const RETIRED = {
   '#071A29': 'the old input blue',
   '#17364F': 'the old hover blue',
   '#79BCE8': 'the washed-out blue',
-  '#D6A84F': 'the antique-gold accent',
-  '#C9A96B': 'the retired brand gold',
+  '#f2892f': 'the antique-gold accent',
+  '#f2892f': 'the retired brand gold',
   '#7E2D2D': 'the retired wax red',
 };
 

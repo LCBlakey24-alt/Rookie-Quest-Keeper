@@ -1,8 +1,8 @@
 /* Keeper NPC Workspace: one visual language across NPCs, creation and lore. */
 #root .rqk-npc-hub {
-  --npc-hub-gold: var(--rq-accent-primary, #c9a96b);
-  --npc-hub-cream: var(--rq-text-primary, #eadfc8);
-  --npc-hub-soft: var(--rq-text-secondary, rgba(234, 223, 200, .78));
+  --npc-hub-gold: var(--rq-accent-primary, #f2892f);
+  --npc-hub-cream: var(--rq-text-primary, #ffffff);
+  --npc-hub-soft: var(--rq-text-secondary, rgba(255, 255, 255, .78));
   --npc-hub-line: var(--rq-border-default, rgba(137, 157, 176, .24));
   display: grid;
   align-content: start;
@@ -26,7 +26,7 @@
   gap: 10px 24px;
   min-width: 0;
   padding: 0 0 18px;
-  border-bottom: 1px solid rgba(201, 169, 107, .28);
+  border-bottom: 1px solid rgba(242, 137, 47, .28);
 }
 
 #root .rqk-npc-hub__heading {
@@ -68,7 +68,7 @@
   padding: 7px 10px;
   border: 1px solid var(--npc-hub-line);
   border-radius: 6px;
-  background: var(--rq-bg-deep, #0b1b2b);
+  background: var(--rq-bg-deep, #0a2342);
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -103,7 +103,7 @@
   font: inherit;
   color: var(--npc-hub-cream);
   cursor: pointer;
-  background: var(--rq-bg-panel, #0b1b2b);
+  background: var(--rq-bg-panel, #0a2342);
   border: 1px solid var(--npc-hub-line);
   border-radius: 9px;
   box-shadow: none;
@@ -116,9 +116,9 @@
   height: 38px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(201, 169, 107, .19);
+  border: 1px solid rgba(242, 137, 47, .19);
   border-radius: 7px;
-  background: var(--rq-bg-deep, #0b1b2b);
+  background: var(--rq-bg-deep, #0a2342);
   color: var(--rq-secondary, #3c92e0);
 }
 
@@ -154,13 +154,13 @@
 }
 
 #root .rqk-npc-hub__tab.is-active {
-  border-color: rgba(201, 169, 107, .7);
-  background: var(--rq-card, #0B1B2B);
+  border-color: rgba(242, 137, 47, .7);
+  background: var(--rq-card, #0a2342);
 }
 
 #root .rqk-npc-hub__tab.is-active .rqk-npc-hub__tab-icon {
   color: var(--npc-hub-gold);
-  border-color: rgba(201, 169, 107, .5);
+  border-color: rgba(242, 137, 47, .5);
 }
 
 #root .rqk-npc-hub__tab.is-active .rqk-npc-hub__tab-indicator {
@@ -168,8 +168,8 @@
 }
 
 #root .rqk-npc-hub__tab:hover {
-  border-color: rgba(201, 169, 107, .5);
-  background: var(--rq-card-hover, #0B1B2B);
+  border-color: rgba(242, 137, 47, .5);
+  background: var(--rq-card-hover, #0a2342);
 }
 
 #root .rqk-npc-hub__tab:focus-visible {
@@ -181,9 +181,9 @@
   min-width: 0;
   width: 100%;
   padding: clamp(10px, 2vw, 18px);
-  border: 1px solid rgba(201, 169, 107, .23);
+  border: 1px solid rgba(242, 137, 47, .23);
   border-radius: 9px;
-  background: var(--rq-bg-deep, #0b1b2b);
+  background: var(--rq-bg-deep, #0a2342);
 }
 
 #root .rqk-npc-hub__panel:focus-visible {

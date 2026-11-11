@@ -50,10 +50,10 @@ import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
 
 const uploadTheme = {
-  bg: { black: '#0B1B2B', panel: '#0B1B2B', card: '#0B1B2B', hover: '#0B1B2B' },
-  accent: { primary: '#C9A96B', secondary: '#3C92E0', subtle: 'rgba(201,169,107,0.12)' },
-  text: { white: '#EADFC8', primary: '#EADFC8', secondary: '#D5C9B6', muted: '#AEAB9F' },
-  border: 'rgba(201,169,107,0.26)',
+  bg: { black: '#0a2342', panel: '#0a2342', card: '#0a2342', hover: '#0a2342' },
+  accent: { primary: '#f2892f', secondary: '#3C92E0', subtle: 'rgba(242, 137, 47,0.12)' },
+  text: { white: '#ffffff', primary: '#ffffff', secondary: '#D5C9B6', muted: '#AEAB9F' },
+  border: 'rgba(242, 137, 47,0.26)',
 };
 
 function tabFromHash() {

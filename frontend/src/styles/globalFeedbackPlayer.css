@@ -4,7 +4,7 @@
 #root [data-testid='global-feedback-btn'][data-testid] {
   min-height: 40px !important;
   padding: 0 11px !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid #f2892f !important;
   border-radius: 5px !important;
   background: #112A40 !important;
   background-image: none !important;
@@ -21,8 +21,8 @@
 #root [data-testid='global-feedback-btn'][data-testid]:hover,
 #root [data-testid='global-feedback-btn'][data-testid]:focus-visible {
   background: #17364F !important;
-  border-color: #D6A84F !important;
-  outline: 1px solid #D6A84F !important;
+  border-color: #f2892f !important;
+  outline: 1px solid #f2892f !important;
   outline-offset: 2px !important;
   filter: none !important;
   transform: none !important;
@@ -31,7 +31,7 @@
 #root [data-testid='global-feedback-modal'][data-testid] {
   position: relative !important;
   overflow-y: auto !important;
-  border: 1px solid rgba(214,168,79,.28) !important;
+  border: 1px solid rgba(242, 137, 47,.28) !important;
   border-radius: 7px !important;
   background: #071522 !important;
   background-image: none !important;
@@ -74,7 +74,7 @@
 #root [data-testid='global-feedback-modal'][data-testid] select,
 #root [data-testid='global-feedback-modal'][data-testid] textarea {
   min-height: 40px !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   background: #071A29 !important;
   background-image: none !important;
@@ -91,8 +91,8 @@
 #root [data-testid='global-feedback-modal'][data-testid] input:focus,
 #root [data-testid='global-feedback-modal'][data-testid] select:focus,
 #root [data-testid='global-feedback-modal'][data-testid] textarea:focus {
-  border-color: #D6A84F !important;
-  outline: 1px solid #D6A84F !important;
+  border-color: #f2892f !important;
+  outline: 1px solid #f2892f !important;
   outline-offset: 1px !important;
   box-shadow: none !important;
 }
@@ -103,7 +103,7 @@
   background: #112A40 !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   box-shadow: none !important;
 }
 
@@ -114,7 +114,7 @@
 #root [data-testid='global-feedback-modal'][data-testid] button:hover:not(:disabled),
 #root [data-testid='global-feedback-modal'][data-testid] button:focus-visible {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   outline: none !important;
 }
 
@@ -122,7 +122,7 @@
   background: #112A40 !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid #f2892f !important;
   font-weight: 900 !important;
 }
 

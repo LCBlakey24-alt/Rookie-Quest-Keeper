@@ -285,12 +285,12 @@ export default function CalendarTab({ campaignId }) {
         </header>
 
         <section className="rqk-calendar-panel rqk-calendar-current">
-          <h3 style={{ color: '#EADFC8', fontSize: 34, margin: '0 0 6px' }}>{calendar?.current_day || 1} {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.name || 'Month'}, {calendar?.current_year || 1}{calendar?.calendar_type === 'custom' ? ' PC' : ''}</h3>
+          <h3 style={{ color: '#ffffff', fontSize: 34, margin: '0 0 6px' }}>{calendar?.current_day || 1} {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.name || 'Month'}, {calendar?.current_year || 1}{calendar?.calendar_type === 'custom' ? ' PC' : ''}</h3>
           {calendar?.custom_months?.[(calendar?.current_month || 1) - 1]?.season &&
             <p style={{ color: '#C8BDA8', margin: '0 0 8px' }}>
               {calendar.custom_months[calendar.current_month - 1].season} · {daysPerWeek}-day week · {calendar?.custom_months?.length || 12}-month year
             </p>}
-          <p style={{ color: '#EADFC8', margin: '0 0 14px' }}>Current in-game date</p>
+          <p style={{ color: '#ffffff', margin: '0 0 14px' }}>Current in-game date</p>
           <div className="rqk-calendar-clock-actions" role="group" aria-label="Advance this campaign's in-game time">
             <button type="button" className="btn-secondary" disabled={advancingTime}
               onClick={() => advanceTime(1)} data-testid="calendar-advance-day">+1 day</button>
@@ -389,7 +389,7 @@ export default function CalendarTab({ campaignId }) {
 
         <section className="rqk-calendar-panel rqk-calendar-month-panel">
           <div className="rqk-calendar-month-heading">
-            <h3 style={{ color: '#EADFC8', margin: 0 }}>{currentMonth} {viewYear} — Days of the Month</h3>
+            <h3 style={{ color: '#ffffff', margin: 0 }}>{currentMonth} {viewYear} — Days of the Month</h3>
             <div className="rqk-calendar-month-actions">
               <button type="button" className="btn-secondary" onClick={() => browseMonth(-1)} aria-label="Previous in-game month">‹ Previous</button>
               <button type="button" className="btn-secondary" onClick={jumpToCurrentMonth}>Current month</button>
@@ -399,7 +399,7 @@ export default function CalendarTab({ campaignId }) {
           <div className="rqk-calendar-month-scroller" style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${daysPerWeek}, minmax(48px, 1fr))`, gap: 5, minWidth: daysPerWeek * 48 }}>
               {Array.from({ length: daysPerWeek }, (_, index) => (
-                <strong key={index} style={{ color: '#D9BC82', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
+                <strong key={index} style={{ color: '#ffb066', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
               ))}
               {Array.from({ length: monthStartOffset }, (_, index) => (
                 <span key={`weekday-offset-${index}`} className="rqk-calendar-day-placeholder" aria-hidden="true" />
@@ -489,8 +489,8 @@ export default function CalendarTab({ campaignId }) {
         </section>
 
         <section className="rqk-calendar-panel rqk-calendar-events-list">
-          <h3 style={{ color: '#EADFC8', marginTop: 0 }}>All Events</h3>
-          {sortedEvents.length === 0 ? <p style={{ color: '#EADFC8' }}>No events scheduled.</p> : sortedEvents.map(event => {
+          <h3 style={{ color: '#ffffff', marginTop: 0 }}>All Events</h3>
+          {sortedEvents.length === 0 ? <p style={{ color: '#ffffff' }}>No events scheduled.</p> : sortedEvents.map(event => {
             const monthName = calendar?.custom_months?.[event.month - 1]?.name || `Month ${event.month}`;
             return (
               <article key={event.id} data-testid={`event-${event.id}`} className="initiative-entry rqk-calendar-event-record">
@@ -520,11 +520,11 @@ export default function CalendarTab({ campaignId }) {
       </main>
 
       <aside className="rqk-calendar-panel rqk-calendar-upcoming">
-        <h3 style={{ color: '#EADFC8', marginTop: 0 }}>Upcoming 30 Days</h3>
-        {upcomingEvents.length === 0 ? <p style={{ color: '#EADFC8' }}>No upcoming events.</p> : upcomingEvents.map(event => (
-          <div key={event.id} style={{ border: '1px solid rgba(201,169,107,0.24)', background: '#0B1B2B', padding: 10, marginBottom: 8 }}>
-            <strong style={{ color: '#EADFC8' }}>{event.name}</strong>
-            <p style={{ color: '#EADFC8', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
+        <h3 style={{ color: '#ffffff', marginTop: 0 }}>Upcoming 30 Days</h3>
+        {upcomingEvents.length === 0 ? <p style={{ color: '#ffffff' }}>No upcoming events.</p> : upcomingEvents.map(event => (
+          <div key={event.id} style={{ border: '1px solid rgba(242, 137, 47,0.24)', background: '#0a2342', padding: 10, marginBottom: 8 }}>
+            <strong style={{ color: '#ffffff' }}>{event.name}</strong>
+            <p style={{ color: '#ffffff', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
           </div>
         ))}
       </aside>

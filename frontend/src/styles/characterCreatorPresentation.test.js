@@ -16,9 +16,9 @@ describe('Character Creator presentation ownership', () => {
     const css = `${base}\n${flow}`;
 
     expect(css).toContain('var(--rq-bg');
-    expect(css).toContain('#C9A96B');
+    expect(css).toContain('#f2892f');
     expect(css).toContain('#3C92E0');
-    expect(css).toContain('#EADFC8');
+    expect(css).toContain('#ffffff');
     expect(css).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
     expect(css).not.toMatch(/rqk-creator-sunset|rq-sunset-gradient|rq-sunset-cream/i);
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
@@ -33,7 +33,7 @@ describe('Character Creator presentation ownership', () => {
     const component = read('../components/FullCharacterCreatorV2.js');
     const css = `${base}\n${flow}\n${mobile}`;
 
-    expect(base).toContain('--rqk-creator-accent: var(--rq-primary, #C9A96B)');
+    expect(base).toContain('--rqk-creator-accent: var(--rq-primary, #f2892f)');
     expect(css).not.toContain('--rqk-creator-pink');
     expect(css).not.toMatch(/255\s*,\s*45\s*,\s*170|#FF2DAA/i);
     expect(component).toContain('Draft saves automatically on this device.');

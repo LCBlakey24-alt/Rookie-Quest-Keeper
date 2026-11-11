@@ -11,7 +11,7 @@
   padding: 16px !important;
   background: #0C2234 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -57,21 +57,21 @@
   color: #F7F1E7 !important;
   background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
 }
 
 #root .characters-library-page--simple .library-page-button-primary {
   background: #112A40 !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   color: #F7F1E7 !important;
 }
 
 #root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary):hover,
 #root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary):focus-visible {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   outline: none !important;
 }
 
@@ -97,7 +97,7 @@
   padding: 12px !important;
   background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -105,7 +105,7 @@
 #root .characters-library-page--simple .character-library-card--simple:hover,
 #root .characters-library-page--simple .character-library-card--simple:focus-within {
   background: #17364F !important;
-  border-color: rgba(214,168,79,.42) !important;
+  border-color: rgba(242, 137, 47,.42) !important;
 }
 
 #root .characters-library-page--simple .character-card-main {
@@ -147,7 +147,7 @@
   padding: 0 7px !important;
   background: rgba(121,188,232,.10) !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(214,168,79,.28) !important;
+  border: 1px solid rgba(242, 137, 47,.28) !important;
   border-radius: 5px !important;
   font-size: 9px !important;
   font-weight: 800 !important;
@@ -228,13 +228,13 @@
 #root .characters-library-page--simple .library-page-button-danger {
   background: #112A40 !important;
   color: #F7F1E7 !important;
-  border-color: rgba(214,168,79,.28) !important;
+  border-color: rgba(242, 137, 47,.28) !important;
 }
 
 #root .characters-library-page--simple .library-page-button-danger:hover,
 #root .characters-library-page--simple .library-page-button-danger:focus-visible {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
 }
 
 /* Mobile: compact hero, one card per row, finger-friendly actions. */

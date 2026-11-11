@@ -16,7 +16,7 @@ describe('every dye keeps its numbers readable', () => {
     expect(contrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21, 1);
     expect(contrastRatio('#FFFFFF', '#FFFFFF')).toBeCloseTo(1, 5);
     // Order must not matter.
-    expect(contrastRatio('#0B1B2B', '#F2A93B')).toBeCloseTo(contrastRatio('#F2A93B', '#0B1B2B'), 5);
+    expect(contrastRatio('#0a2342', '#F2A93B')).toBeCloseTo(contrastRatio('#F2A93B', '#0a2342'), 5);
   });
 });
 
@@ -44,7 +44,7 @@ describe('the dye set', () => {
     expect(contrastRatio(fallback.ink, fallback.body)).toBeGreaterThanOrEqual(7);
     // The body alone would sit close to the navy tray; the glow is what
     // separates it, so it must contrast with the tray on its own.
-    expect(contrastRatio(fallback.glow, '#0B1B2B')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(fallback.glow, '#0a2342')).toBeGreaterThanOrEqual(4.5);
   });
 
   test('only dyes that declare a glow get one', () => {

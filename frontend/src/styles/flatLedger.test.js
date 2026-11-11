@@ -1,7 +1,7 @@
 /**
  * Flat Ledger: one background colour for the whole app.
  *
- * Surfaces used to stack — page #0B1B2B, panel #1E2936, card #263748,
+ * Surfaces used to stack — page #0a2342, panel #1E2936, card #263748,
  * control #263F59, rail #07131F, input #101F2D — so every box sat at a
  * different lightness. They are now all the page ink, and structure comes
  * from rules instead: a citrus rule under a selected control, a line for a
@@ -22,7 +22,7 @@ const CSS = read('flatLedger.css');
 const DECLARATIONS = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
 const DESIGN = read('designSystem.css');
 
-const INK = '#0B1B2B';
+const INK = '#0A2342';
 
 describe('there is only one surface colour', () => {
   test.each([

@@ -25,18 +25,18 @@
   --input: 207 28% 60% / 0.18;
   --ring: 204 65% 69%;
   --radius: 7px;
-  --rq-bg-main: #0B1B2B;
-  --rq-bg-page: #0B1B2B;
-  --rq-bg-rail: #0B1B2B;
-  --rq-bg-panel: #0B1B2B;
-  --rq-bg-panel-alt: #0B1B2B;
-  --rq-bg-elevated: #0B1B2B;
-  --rq-bg-input: #0B1B2B;
-  --rq-card: #0B1B2B;
-  --rq-card-hover: #0B1B2B;
+  --rq-bg-main: #0a2342;
+  --rq-bg-page: #0a2342;
+  --rq-bg-rail: #0a2342;
+  --rq-bg-panel: #0a2342;
+  --rq-bg-panel-alt: #0a2342;
+  --rq-bg-elevated: #0a2342;
+  --rq-bg-input: #0a2342;
+  --rq-card: #0a2342;
+  --rq-card-hover: #0a2342;
   /* Antique gold is for text only. Clickable surfaces use these controls. */
-  --rq-gold-text: #C9A96B;
-  --rq-control-blue: #0B1B2B;
+  --rq-gold-text: #f2892f;
+  --rq-control-blue: #0a2342;
   --rq-control-wax: #7E2D2D;
   --rq-control-ink: #F8F0E5;
 
@@ -44,18 +44,18 @@
   --rq-secondary-soft: rgba(60, 146, 224, 0.10);
   --rq-secondary-border: rgba(121, 188, 232, 0.28);
 
-  --rq-accent-primary: #C9A96B;
-  --rq-accent-hover: #D9BC82;
+  --rq-accent-primary: #f2892f;
+  --rq-accent-hover: #ffb066;
   --rq-accent-active: #B7924D;
-  --rq-accent-soft: rgba(201, 169, 107, 0.12);
-  --rq-accent-border: rgba(201, 169, 107, 0.30);
+  --rq-accent-soft: rgba(242, 137, 47, 0.12);
+  --rq-accent-border: rgba(242, 137, 47, 0.30);
   --rq-accent-strong-border: rgba(232, 197, 110, 0.62);
 
-  --rq-text-primary: #EADFC8;
-  --rq-text-secondary: rgba(234, 223, 200, 0.78);
-  --rq-text-muted: rgba(234, 223, 200, 0.60);
+  --rq-text-primary: #ffffff;
+  --rq-text-secondary: rgba(255, 255, 255, 0.78);
+  --rq-text-muted: rgba(255, 255, 255, 0.60);
   --rq-text-disabled: rgba(247, 241, 231, 0.38);
-  --rq-text-inverse: #0B1B2B;
+  --rq-text-inverse: #0a2342;
 
   --rq-border-default: rgba(137, 157, 176, 0.14);
   --rq-border-strong: rgba(60, 146, 224, 0.36);
@@ -90,10 +90,10 @@
   --bg-overlay: rgba(7, 21, 34, 0.94);
   --bg-light: var(--rq-bg-elevated);
 
-  --text-primary: #EADFC8;
-  --text-secondary: rgba(234, 223, 200, 0.78);
-  --text-muted: rgba(234, 223, 200, 0.60);
-  --text-dim: rgba(234, 223, 200, 0.46);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.78);
+  --text-muted: rgba(255, 255, 255, 0.60);
+  --text-dim: rgba(255, 255, 255, 0.46);
   --text-disabled: rgba(247, 241, 231, 0.38);
 
   --accent-red: var(--rq-accent-primary);
@@ -165,8 +165,8 @@
   --font-display: var(--rq-font-display, 'Recoleta', 'RQKDisplay', Georgia, serif);
 
   --rq-bg-panel-soft: var(--rq-bg-panel-alt);
-  --rq-text-main: #EADFC8;
-  --rq-text-soft: rgba(234, 223, 200, 0.78);
+  --rq-text-main: #ffffff;
+  --rq-text-soft: rgba(255, 255, 255, 0.78);
   --rq-border: var(--border-subtle);
 
   /* Legacy aliases are deliberately flat so old CSS cannot recreate gradients. */
@@ -180,7 +180,7 @@ html,
 body,
 #root,
 .App {
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   background-image: none !important;
   color: var(--rq-text-primary) !important;
 }

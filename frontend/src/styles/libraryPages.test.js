@@ -32,7 +32,7 @@ describe('library presentation ownership', () => {
     expect(shared).toContain('#0C2234');
     expect(shared).toContain('#112A40');
     expect(shared).toContain('#79BCE8');
-    expect(shared).toContain('#D6A84F');
+    expect(shared).toContain('#f2892f');
     expect(shared).toContain('#F7F1E7');
     expect(shared).toContain("[data-rq-device='mobile']");
     expect(shared).toContain("[data-rq-device='tablet']");

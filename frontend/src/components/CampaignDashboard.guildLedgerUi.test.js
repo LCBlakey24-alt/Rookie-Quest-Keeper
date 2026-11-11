@@ -23,8 +23,8 @@ describe('Guild Ledger campaign workspace UI', () => {
   test('uses dark text on antique-gold actions and visible keyboard focus', () => {
     expect(css).toContain('background: var(--rqk-campaign-brass) !important');
     expect(css).toContain('background: var(--rqk-campaign-wax) !important');
-    expect(css).toContain('color: #0b1b2b !important');
-    expect(css).toContain('outline: 3px solid #d9bc82 !important');
+    expect(css).toContain('color: #0a2342 !important');
+    expect(css).toContain('outline: 3px solid #ffb066 !important');
   });
 
   test('respects reduced-motion preferences', () => {

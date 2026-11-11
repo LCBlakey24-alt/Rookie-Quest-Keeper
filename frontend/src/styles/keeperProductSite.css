@@ -3,27 +3,27 @@
    UI primitives rather than decorative one-off art assets. */
 
 #root .landing-page-final.keeper-product-site {
-  --landing-bg: var(--rq-bg-main, #0B1B2B);
-  --landing-bg-deep: var(--rq-bg-deep, #0B1B2B);
-  --landing-surface: var(--rq-bg-panel, #0B1B2B);
-  --landing-card: var(--rq-card, #0B1B2B);
-  --landing-card-hover: var(--rq-card-hover, #0B1B2B);
-  --landing-input: var(--rq-bg-input, #0B1B2B);
+  --landing-bg: var(--rq-bg-main, #0a2342);
+  --landing-bg-deep: var(--rq-bg-deep, #0a2342);
+  --landing-surface: var(--rq-bg-panel, #0a2342);
+  --landing-card: var(--rq-card, #0a2342);
+  --landing-card-hover: var(--rq-card-hover, #0a2342);
+  --landing-input: var(--rq-bg-input, #0a2342);
   --landing-line: var(--rq-line, rgba(137, 157, 176, 0.14));
-  --landing-line-strong: var(--rq-line-strong, rgba(201, 169, 107, 0.30));
-  --landing-gold: var(--rq-primary, #C9A96B);
-  --landing-gold-bright: var(--rq-primary-hover, #D9BC82);
-  --landing-gold-soft: var(--rq-primary-soft, rgba(201, 169, 107, 0.12));
+  --landing-line-strong: var(--rq-line-strong, rgba(242, 137, 47, 0.30));
+  --landing-gold: var(--rq-primary, #f2892f);
+  --landing-gold-bright: var(--rq-primary-hover, #ffb066);
+  --landing-gold-soft: var(--rq-primary-soft, rgba(242, 137, 47, 0.12));
   /* Compatibility aliases retained for the shared professional-theme contract. */
-  --landing-red: #C9A96B;
-  --landing-red-bright: #D9BC82;
-  --landing-red-soft: rgba(201, 169, 107, 0.12);
+  --landing-red: #f2892f;
+  --landing-red-bright: #ffb066;
+  --landing-red-soft: rgba(242, 137, 47, 0.12);
   --landing-blue: var(--rq-secondary, #3C92E0);
   --landing-secondary: #3C92E0;
   --landing-blue-soft: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10));
-  --landing-text: #EADFC8;
-  --landing-muted: var(--rq-text-secondary, rgba(234, 223, 200, 0.78));
-  --landing-faint: var(--rq-text-muted, rgba(234, 223, 200, 0.58));
+  --landing-text: #ffffff;
+  --landing-muted: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
+  --landing-faint: var(--rq-text-muted, rgba(255, 255, 255, 0.58));
   --landing-seal: #7F2D2D;
 
   min-height: 100dvh;
@@ -81,7 +81,7 @@
   align-items: center;
   gap: 18px;
   padding: 7px 8px;
-  background: rgba(11, 27, 43, 0.97) !important;
+  background: rgba(10, 35, 66, 0.97) !important;
   background-image: none !important;
   border: 1px solid var(--landing-line) !important;
   border-bottom-color: var(--landing-line-strong) !important;
@@ -183,14 +183,14 @@
 /* Interactive controls animate through the shared waxSealInteractive layer. */
 
 #root .keeper-product-site .landing-button-primary {
-  background: var(--rq-control-blue, #0B1B2B) !important;
+  background: var(--rq-control-blue, #0a2342) !important;
   background-image: none !important;
   border-color: var(--rq-secondary, #3C92E0) !important;
   color: var(--landing-text) !important;
 }
 
 #root .keeper-product-site .landing-button-primary:hover:not(:disabled) {
-  background: var(--rq-control-blue, #0B1B2B) !important;
+  background: var(--rq-control-blue, #0a2342) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
@@ -201,7 +201,7 @@
 }
 
 #root .keeper-product-site .landing-button-ghost:hover:not(:disabled) {
-  background: var(--rq-control-blue, #0B1B2B) !important;
+  background: var(--rq-control-blue, #0a2342) !important;
   border-color: var(--rq-control-wax, #7E2D2D) !important;
 }
 
@@ -343,7 +343,7 @@
 
 #root .keeper-product-site .landing-product-stage::before {
   inset: 10px;
-  border: 1px solid rgba(201, 169, 107, 0.09);
+  border: 1px solid rgba(242, 137, 47, 0.09);
 }
 
 #root .keeper-product-site .landing-product-stage::after {
@@ -588,7 +588,7 @@
   padding: 0 8px;
   border: 1px solid var(--rq-secondary, #3C92E0);
   border-radius: 4px;
-  background: var(--rq-control-blue, #0B1B2B);
+  background: var(--rq-control-blue, #0a2342);
   color: var(--rq-control-ink, #F8F0E5);
   font-size: 8px;
   font-weight: 800;
@@ -702,7 +702,7 @@
   height: 100px;
   right: 16px;
   top: 16px;
-  border: 1px solid rgba(201, 169, 107, 0.08);
+  border: 1px solid rgba(242, 137, 47, 0.08);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -866,7 +866,7 @@
   display: grid;
   place-items: center;
   background: #25384A;
-  color: #D9BC82;
+  color: #ffb066;
   border: 1px solid rgba(20, 32, 43, 0.42);
 }
 
@@ -1077,7 +1077,7 @@
   position: absolute;
   right: -16px;
   bottom: -16px;
-  color: rgba(201, 169, 107, 0.14);
+  color: rgba(242, 137, 47, 0.14);
 }
 
 #root .keeper-product-site .landing-faq-list {
@@ -2026,7 +2026,7 @@
 
   #root .keeper-product-site .landing-feature-card-grid article {
     padding: 13px !important;
-    background: rgba(11, 27, 43, 0.72) !important;
+    background: rgba(10, 35, 66, 0.72) !important;
   }
 
   #root .keeper-product-site .landing-feature-card-grid button {

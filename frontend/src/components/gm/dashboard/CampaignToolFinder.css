@@ -7,27 +7,27 @@
   align-items: center !important;
   gap: 9px !important;
   padding: 0 12px !important;
-  border: 1px solid var(--rq-line-strong, rgba(201,169,107,.3)) !important;
-  background: var(--rq-bg-panel, #0b1b2b) !important;
-  color: var(--rq-text-primary, #eadfc8) !important;
+  border: 1px solid var(--rq-line-strong, rgba(242, 137, 47,.3)) !important;
+  background: var(--rq-bg-panel, #0a2342) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   white-space: nowrap;
 }
 #root .rqk-tool-finder-trigger svg {
-  color: var(--rq-accent-primary, #c9a96b) !important;
+  color: var(--rq-accent-primary, #f2892f) !important;
   flex-shrink: 0;
 }
 #root .rqk-tool-finder-trigger kbd {
   padding: 3px 5px;
   margin-left: 5px;
-  border: 1px solid rgba(201,169,107,.24);
+  border: 1px solid rgba(242, 137, 47,.24);
   border-radius: 4px;
   color: var(--rq-text-secondary, #c0b5a1);
   font: 10px/1.2 inherit;
 }
 #root .rqk-tool-finder-trigger:hover,
 #root .rqk-tool-finder-trigger:focus-visible {
-  border-color: var(--rq-accent-primary, #c9a96b) !important;
-  background: var(--rq-card-hover, #0B1B2B) !important;
+  border-color: var(--rq-accent-primary, #f2892f) !important;
+  background: var(--rq-card-hover, #0a2342) !important;
 }
 
 .rqk-tool-finder-backdrop {
@@ -49,10 +49,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(201,169,107,.58);
+  border: 1px solid rgba(242, 137, 47,.58);
   border-radius: 12px;
   background: #142535;
-  color: #eadfc8;
+  color: #ffffff;
   box-shadow: 0 24px 72px rgba(0,0,0,.54);
 }
 .rqk-tool-finder-header {
@@ -91,10 +91,10 @@
   min-height: 42px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(201,169,107,.25);
+  border: 1px solid rgba(242, 137, 47,.25);
   border-radius: 7px;
-  background: #0b1b2b;
-  color: #eadfc8;
+  background: #0a2342;
+  color: #ffffff;
   cursor: pointer;
 }
 .rqk-tool-finder-search {
@@ -106,8 +106,8 @@
   padding: 0 14px;
   border: 1px solid #987e51;
   border-radius: 8px;
-  background: #0b1b2b;
-  color: #c9a96b;
+  background: #0a2342;
+  color: #f2892f;
 }
 .rqk-tool-finder-search input {
   width: 100%;
@@ -128,7 +128,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 22px;
-  border-top: 1px solid rgba(201,169,107,.15);
+  border-top: 1px solid rgba(242, 137, 47,.15);
   color: #c0b5a1;
   text-transform: uppercase;
   letter-spacing: .09em;
@@ -153,15 +153,15 @@
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
-  color: #eadfc8;
+  color: #ffffff;
   text-align: left;
   cursor: pointer;
 }
 .rqk-tool-finder-result:hover,
 .rqk-tool-finder-result.is-highlighted,
 .rqk-tool-finder-result:focus-visible {
-  border-color: rgba(201,169,107,.48);
-  background: #0B1B2B;
+  border-color: rgba(242, 137, 47,.48);
+  background: #0a2342;
 }
 .rqk-tool-finder-result:focus-visible,
 .rqk-tool-finder-close:focus-visible {
@@ -174,8 +174,8 @@
   display: grid;
   place-items: center;
   border-radius: 8px;
-  border: 1px solid rgba(201,169,107,.26);
-  background: #0b1b2b;
+  border: 1px solid rgba(242, 137, 47,.26);
+  background: #0a2342;
   color: #e1c188;
 }
 .rqk-tool-finder-result-copy { min-width: 0; display: grid; gap: 3px; }
@@ -186,7 +186,7 @@
   overflow-wrap: anywhere;
 }
 .rqk-tool-finder-result-copy small { color: #b6bec7; font-size: 12px; }
-.rqk-tool-finder-result > svg:last-child { color: #c9a96b; }
+.rqk-tool-finder-result > svg:last-child { color: #f2892f; }
 .rqk-tool-finder-empty {
   padding: 18px 14px;
   font-size: 14px;
@@ -199,7 +199,7 @@
   align-items: center;
   gap: 13px;
   padding: 12px 22px;
-  border-top: 1px solid rgba(201,169,107,.16);
+  border-top: 1px solid rgba(242, 137, 47,.16);
   color: #b7bcbd;
   font-size: 11px;
 }
@@ -207,11 +207,11 @@
   display: inline-block;
   padding: 3px 6px;
   margin-right: 2px;
-  border: 1px solid rgba(201,169,107,.24);
+  border: 1px solid rgba(242, 137, 47,.24);
   border-radius: 4px;
   font-family: inherit;
   color: #ddc99e;
-  background: #0b1b2b;
+  background: #0a2342;
 }
 @media (max-width: 760px) {
   #root .campaign-dashboard-actions .rqk-tool-finder-trigger {

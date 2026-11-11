@@ -11,7 +11,7 @@
   align-content: start !important;
   gap: 18px !important;
   background: transparent !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   box-sizing: border-box !important;
 }
 
@@ -34,7 +34,7 @@
   align-items: center !important;
   gap: 18px !important;
   padding: 18px 20px !important;
-  background: var(--rq-bg-panel, #0B1B2B) !important;
+  background: var(--rq-bg-panel, #0a2342) !important;
   background-image: none !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
@@ -54,7 +54,7 @@
 #root .dashboard-eyebrow {
   margin: 0 0 5px !important;
   padding: 0 !important;
-  color: var(--rq-primary-hover, #D9BC82) !important;
+  color: var(--rq-primary-hover, #ffb066) !important;
   background: transparent !important;
   border: 0 !important;
   font-size: 10px !important;
@@ -65,7 +65,7 @@
 
 #root .unified-dashboard-header--simple h1 {
   margin: 0 !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   font-family: inherit !important;
   font-size: clamp(1.7rem, 3vw, 2.15rem) !important;
   font-weight: 800 !important;
@@ -79,13 +79,13 @@
 
 #root .dashboard-muted {
   margin: 7px 0 0 !important;
-  color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
   font-size: 13px !important;
   line-height: 1.45 !important;
 }
 
 #root .dashboard-muted strong {
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 #root .dashboard-header-buttons {
@@ -102,9 +102,9 @@
   align-items: center !important;
   justify-content: center !important;
   padding: 0 12px !important;
-  background: var(--rq-card, #0B1B2B) !important;
+  background: var(--rq-card, #0a2342) !important;
   background-image: none !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
   box-shadow: none !important;
@@ -116,7 +116,7 @@
 
 #root .unified-dashboard-button:hover:not(:disabled),
 #root .unified-dashboard-button:focus-visible {
-  background: var(--rq-card-hover, #0B1B2B) !important;
+  background: var(--rq-card-hover, #0a2342) !important;
   border-color: var(--rq-line-strong, rgba(60,146,224, 0.30)) !important;
 }
 
@@ -153,7 +153,7 @@
 
 #root .dashboard-simple-heading h2 {
   margin: 0 !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   font-family: inherit !important;
   font-size: 1.05rem !important;
   font-weight: 800 !important;
@@ -185,8 +185,8 @@
   align-items: center !important;
   gap: 12px !important;
   padding: 16px !important;
-  background: var(--rq-bg-panel, #0B1B2B) !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  background: var(--rq-bg-panel, #0a2342) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-left: 3px solid var(--rq-primary, #3C92E0) !important;
   border-radius: var(--rq-radius, 7px) !important;
@@ -196,7 +196,7 @@
 
 #root .dashboard-continue-card:hover,
 #root .dashboard-continue-card:focus-visible {
-  background: var(--rq-card, #0B1B2B) !important;
+  background: var(--rq-card, #0a2342) !important;
   border-color: var(--rq-line-strong, rgba(60,146,224, 0.30)) !important;
 }
 
@@ -205,7 +205,7 @@
   height: 42px !important;
   display: grid !important;
   place-items: center !important;
-  color: var(--rq-primary, #C9A96B) !important;
+  color: var(--rq-primary, #f2892f) !important;
   background: var(--rq-secondary-soft, rgba(60,146,224,0.12)) !important;
   border: 1px solid var(--rq-accent-border, rgba(60,146,224, 0.30)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
@@ -218,7 +218,7 @@
 }
 
 #root .dashboard-continue-copy em {
-  color: var(--rq-primary, #C9A96B) !important;
+  color: var(--rq-primary, #f2892f) !important;
   font-size: 10px !important;
   font-style: normal !important;
   font-weight: 800 !important;
@@ -228,7 +228,7 @@
 
 #root .dashboard-continue-copy strong {
   overflow: hidden !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   font-size: 15px !important;
   font-weight: 800 !important;
   text-overflow: ellipsis !important;
@@ -237,7 +237,7 @@
 
 #root .dashboard-continue-copy span,
 #root .dashboard-continue-cta {
-  color: var(--rq-text-muted, rgba(234, 223, 200, 0.60)) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.60)) !important;
   font-size: 11px !important;
 }
 
@@ -267,9 +267,9 @@
   align-items: center !important;
   gap: 12px !important;
   padding: 15px !important;
-  background: var(--rq-card, #0B1B2B) !important;
+  background: var(--rq-card, #0a2342) !important;
   background-image: none !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
   box-shadow: none !important;
@@ -280,7 +280,7 @@
 
 #root .dashboard-command-card--simple:hover,
 #root .dashboard-command-card--simple:focus-visible {
-  background: var(--rq-card-hover, #0B1B2B) !important;
+  background: var(--rq-card-hover, #0a2342) !important;
   border-color: var(--rq-line-strong, rgba(60,146,224, 0.30)) !important;
   transform: none !important;
 }
@@ -292,7 +292,7 @@
 #root .dashboard-command-card--simple.is-primary .dashboard-command-icon {
   background: var(--rq-secondary-soft, rgba(60,146,224,0.12)) !important;
   border-color: var(--rq-accent-border, rgba(60,146,224, 0.30)) !important;
-  color: var(--rq-primary, #C9A96B) !important;
+  color: var(--rq-primary, #f2892f) !important;
 }
 
 #root .dashboard-command-icon {
@@ -315,21 +315,21 @@
 }
 
 #root .dashboard-command-copy strong {
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   font-size: 14px !important;
   font-weight: 800 !important;
   line-height: 1.2 !important;
 }
 
 #root .dashboard-command-copy > span {
-  color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
   font-size: 11px !important;
   line-height: 1.35 !important;
 }
 
 #root .dashboard-command-card--simple > em {
   justify-self: end !important;
-  color: var(--rq-text-muted, rgba(234, 223, 200, 0.58)) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.58)) !important;
   font-size: 10px !important;
   font-style: normal !important;
   font-weight: 800 !important;
@@ -347,7 +347,7 @@
   display: grid !important;
   gap: 0 !important;
   overflow: hidden !important;
-  background: var(--rq-bg-panel, #0B1B2B) !important;
+  background: var(--rq-bg-panel, #0a2342) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
 }
@@ -362,7 +362,7 @@
   padding: 10px 12px !important;
   background: transparent !important;
   background-image: none !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   border: 0 !important;
   border-bottom: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: 0 !important;
@@ -397,7 +397,7 @@
 
 #root .dashboard-activity-copy strong {
   overflow: hidden !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   font-size: 12px !important;
   font-weight: 800 !important;
   text-overflow: ellipsis !important;
@@ -406,7 +406,7 @@
 
 #root .dashboard-activity-copy span,
 #root .dashboard-activity-item time {
-  color: var(--rq-text-muted, rgba(234, 223, 200, 0.58)) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.58)) !important;
   font-size: 10px !important;
 }
 
@@ -427,8 +427,8 @@
   align-content: center !important;
   gap: 7px !important;
   padding: 16px !important;
-  background: var(--rq-bg-panel, #0B1B2B) !important;
-  color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
+  background: var(--rq-bg-panel, #0a2342) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
   border: 1px dashed var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
   text-align: center !important;
@@ -436,7 +436,7 @@
 
 #root .dashboard-empty-compact p {
   margin: 0 !important;
-  color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
   font-size: 12px !important;
 }
 
@@ -450,8 +450,8 @@
   place-items: center !important;
   align-content: center !important;
   gap: 9px !important;
-  color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
-  background: var(--rq-bg-panel, #0B1B2B) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
+  background: var(--rq-bg-panel, #0a2342) !important;
   border: 1px solid var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
 }

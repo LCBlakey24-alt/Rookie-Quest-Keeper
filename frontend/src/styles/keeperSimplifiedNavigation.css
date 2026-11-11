@@ -68,7 +68,7 @@
   align-items: center;
   gap: 10px;
   margin: 0;
-  color: #eadfc8;
+  color: #ffffff;
   font-size: clamp(1.55rem, 4.5vw, 2rem);
 }
 #root .rqk-app-shell .campaigns-joined-section h3 {
@@ -88,7 +88,7 @@
 }
 #root .rqk-app-shell .dashboard-news-card h3 {
   margin: 2px 0 8px;
-  color: #eadfc8;
+  color: #ffffff;
   font-family: var(--rq-font-keeper, 'Almendra Display', Georgia, serif) !important;
   font-size: clamp(1.4rem, 3.4vw, 1.8rem);
   font-weight: 400;

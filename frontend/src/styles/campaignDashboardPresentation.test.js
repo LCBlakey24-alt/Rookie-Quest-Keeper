@@ -67,11 +67,11 @@ describe('Campaign Dashboard presentation ownership', () => {
     expect(css).toContain("[data-rq-device='tablet']");
     expect(css).toContain("[data-rq-device='desktop']");
     expect(css).toContain('var(--rq-bg-deep, #06111f)');
-    expect(css).toContain('var(--rq-primary, #C9A96B)');
+    expect(css).toContain('var(--rq-primary, #f2892f)');
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
     expect(css).not.toMatch(/#FF2DAA|rgba\(255,45,170|#7CCBFF/i);
     expect(css).toContain('Guild Ledger campaign workspace');
-    expect(css).toContain('--rqk-campaign-brass: #c9a96b;');
+    expect(css).toContain('--rqk-campaign-brass: #f2892f;');
     expect(css).toContain('.campaign-home-overview');
   });
 

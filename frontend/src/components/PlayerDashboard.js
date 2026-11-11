@@ -314,8 +314,8 @@ const loadWarningStyle = {
   border: '1px solid rgba(211, 154, 67, 0.28)',
   borderLeft: '3px solid var(--rq-warning, #D39A43)',
   borderRadius: 7,
-  background: 'var(--rq-bg-panel, #0B1B2B)',
-  color: 'var(--rq-text-primary, #EADFC8)',
+  background: 'var(--rq-bg-panel, #0a2342)',
+  color: 'var(--rq-text-primary, #ffffff)',
 };
 
 const handoutWarningStyle = {
@@ -332,8 +332,8 @@ const tabLoadingStyle = {
   padding: 12,
   border: '1px solid var(--rq-line, rgba(137, 157, 176, .14))',
   borderRadius: 7,
-  background: 'var(--rq-bg-panel, #0B1B2B)',
-  color: 'var(--rq-text-secondary, rgba(234, 223, 200, .78))',
+  background: 'var(--rq-bg-panel, #0a2342)',
+  color: 'var(--rq-text-secondary, rgba(255, 255, 255, .78))',
   fontSize: 13,
   fontWeight: 600,
 };

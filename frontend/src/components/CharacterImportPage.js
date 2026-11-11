@@ -339,7 +339,7 @@ function ScanSummary({ scan }) {
   if (scan.status === 'error') {
     return (
       <div style={styles.scanPanel} role="alert">
-        <AlertTriangle size={18} color="#D6A84F" />
+        <AlertTriangle size={18} color="#f2892f" />
         <div>
           <strong style={styles.sectionTitle}>Automatic scan did not finish</strong>
           <p style={styles.bodyCopy}>{scan.message || 'You can still fill the character in manually below.'}</p>
@@ -654,7 +654,7 @@ const styles = {
     margin: '0 auto 10px',
     padding: 'clamp(10px, 2vw, 14px)',
     background: '#0C2234',
-    border: '1px solid rgba(214,168,79,.18)',
+    border: '1px solid rgba(242, 137, 47,.18)',
     borderRadius: 7,
   },
   eyebrow: {
@@ -693,7 +693,7 @@ const styles = {
     boxSizing: 'border-box',
     margin: '0 auto 8px',
     background: '#112A40',
-    border: '1px solid rgba(214,168,79,.18)',
+    border: '1px solid rgba(242, 137, 47,.18)',
     borderRadius: 7,
     padding: 'clamp(10px, 2vw, 13px)',
     boxShadow: 'none',
@@ -706,7 +706,7 @@ const styles = {
     alignItems: 'flex-start',
     margin: '0 auto 8px',
     background: 'rgba(121,188,232,.08)',
-    border: '1px solid rgba(214,168,79,.18)',
+    border: '1px solid rgba(242, 137, 47,.18)',
     borderRadius: 7,
     padding: 11,
   },
@@ -754,7 +754,7 @@ const styles = {
     width: '100%',
     boxSizing: 'border-box',
     borderRadius: 5,
-    border: '1px solid rgba(214,168,79,.18)',
+    border: '1px solid rgba(242, 137, 47,.18)',
     background: '#071A29',
     color: '#F7F1E7',
     padding: '8px 9px',
@@ -767,7 +767,7 @@ const styles = {
     boxSizing: 'border-box',
     padding: 9,
     borderRadius: 5,
-    border: '1px dashed rgba(214,168,79,.32)',
+    border: '1px dashed rgba(242, 137, 47,.32)',
     background: '#071A29',
     color: '#F7F1E7',
   },
@@ -811,7 +811,7 @@ const styles = {
     fontWeight: 900,
   },
   reviewPill: {
-    border: '1px solid #D6A84F',
+    border: '1px solid #f2892f',
     borderRadius: 999,
     padding: '3px 7px',
     color: '#F7F1E7',
@@ -832,7 +832,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 7,
-    border: '1px solid #D6A84F',
+    border: '1px solid #f2892f',
     borderRadius: 5,
     padding: '0 11px',
     background: '#112A40',
@@ -847,7 +847,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 7,
-    border: '1px solid rgba(214,168,79,.18)',
+    border: '1px solid rgba(242, 137, 47,.18)',
     borderRadius: 5,
     padding: '0 11px',
     background: '#112A40',
@@ -862,7 +862,7 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 7,
-    border: '1px solid rgba(214,168,79,.18)',
+    border: '1px solid rgba(242, 137, 47,.18)',
     borderRadius: 5,
     padding: '0 10px',
     background: '#112A40',
@@ -883,7 +883,7 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
     background: '#0C2234',
-    border: '1px solid rgba(214,168,79,.28)',
+    border: '1px solid rgba(242, 137, 47,.28)',
     borderRadius: 7,
     padding: 10,
     boxShadow: 'none',
