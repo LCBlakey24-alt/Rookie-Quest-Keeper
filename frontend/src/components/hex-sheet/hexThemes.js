@@ -40,6 +40,8 @@ const FRAUNCES = "'Fraunces', Georgia, serif";
 const MANROPE = "var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)";
 
 export const HEX_THEMES = [
+  // The default, matching the rest of the app and the Glow dice: strong deep blue, white text, orange glow.
+  theme({ id: 'keeper', name: 'Keeper Blue', bg: '#0a2342', glow: '#f2892f', hi: '#ffb066', sub: '#ffb066', text: '#ffffff', muted: '#c6d3e2', titleFont: FRAUNCES }),
   theme({ id: 'ledger', name: 'Guild Ledger Brass', bg: '#0b1520', glow: '#c9a24a', hi: '#ecd08a', sub: '#d9b86a', text: '#f4ead2', muted: '#cdbf9e', titleFont: CINZEL }),
   theme({ id: 'ember', name: 'Ember Forge', bg: '#0a1828', glow: '#f2892f', hi: '#ffb066', sub: '#f2b06a', text: '#ffffff', muted: '#c6d3df', titleFont: MANROPE }),
   theme({ id: 'frost', name: 'Arcane Frost', bg: '#08111f', glow: '#5fc8f0', hi: '#c4ecff', sub: '#9fd8f2', text: '#f4f9ff', muted: '#c3d4e6', titleFont: CINZEL }),
@@ -48,7 +50,7 @@ export const HEX_THEMES = [
   theme({ id: 'shadow', name: 'Shadowfell Tome', bg: '#0d0f12', glow: '#7fd6c2', hi: '#d2fff4', sub: '#9fe0cf', text: '#eef3f1', muted: '#bfc8c6', titleFont: FRAUNCES }),
 ];
 
-export const DEFAULT_HEX_THEME = 'ledger';
+export const DEFAULT_HEX_THEME = 'keeper';
 
 export function getHexTheme(id) {
   return HEX_THEMES.find((entry) => entry.id === id) || HEX_THEMES.find((entry) => entry.id === DEFAULT_HEX_THEME);

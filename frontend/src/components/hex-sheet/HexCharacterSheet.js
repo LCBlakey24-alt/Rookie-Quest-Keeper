@@ -1,11 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, Settings, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
-import DiceRollFlicker from '@/components/DiceRollFlicker';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
+import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
+import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
+// After the clean-sheet tabs, as on the classic sheet, so both chunks load their styles in one order.
+import DiceRollFlicker from '@/components/DiceRollFlicker';
+import { buildClassFeatureSummary, buildProficiencySummary, groupByActionEconomy, rulesEditionOf } from '@/components/clean-sheet/sheetFeatureSummary';
+import { deriveArmorClass, deriveWalkingSpeed } from '@/data/characterCombatDerivations';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import { rollDiceNotation } from '@/data/diceRoller';
@@ -77,7 +82,7 @@ function viewTitle(entry, rows) {
 /**
  * The hexagonal character sheet (preview).
  *
- * Lives beside the classic sheet at /characters/:id/hex and changes nothing
+ * The character sheet at /characters/:id (the classic sheet is at /classic). It changes nothing
  * about it. It reads the same character record, computes every number with
  * the classic sheet's helpers, and rolls through the same dice tray, so a
  * roll made here is recorded exactly as one made there.
@@ -94,6 +99,7 @@ export default function HexCharacterSheet() {
   const [stack, setStack] = useState([{ view: 'main' }]);
   const [rollBurst, setRollBurst] = useState(null);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const location = useLocation();
   const [showSettings, setShowSettings] = useState(false);
   const [showPortrait, setShowPortrait] = useState(false);
   const [themeId, setThemeId] = useState(loadHexThemeId);
@@ -218,6 +224,29 @@ export default function HexCharacterSheet() {
     }
     return true;
   };
+  // Arriving from a GM-granted "Level up now" (?levelup=1) opens the wizard
+  // once the sheet has loaded, then drops the flag from the address.
+  const wantsLevelUp = new URLSearchParams(location.search).get('levelup') === '1';
+  useEffect(() => {
+    if (!wantsLevelUp || !character) return;
+    setShowLevelUp(true);
+    navigate(location.pathname, { replace: true });
+  }, [wantsLevelUp, character, navigate, location.pathname]);
+  // A level up the GM granted and the player has not taken yet.
+  const levelUpReady = Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1);
+
+  // The Traits list is the classic sheet's Features tab, fed the same derived data.
+  const featureProps = useMemo(() => {
+    const rulesEdition = rulesEditionOf(character);
+    const classFeatureSummary = character ? buildClassFeatureSummary(character, rulesEdition) : [];
+    return {
+      rulesEdition,
+      classFeatureSummary,
+      actionEconomyGroups: groupByActionEconomy(classFeatureSummary),
+      proficiencySummary: buildProficiencySummary(character),
+    };
+  }, [character]);
+
   const centreDice = { label: 'D20', ariaLabel: 'Open the dice wheel', onSelect: openDice };
 
   let wheel;
@@ -296,7 +325,8 @@ export default function HexCharacterSheet() {
       />
     );
   } else {
-    wheel = <HexWheel viewKey={current.view} label={`${VIEW_TITLES[current.view]} (coming soon)`} wedges={[]} centre={centreDice} />;
+    // Magic and Traits are lists for now: no empty wheel above them.
+    wheel = ['magic', 'traits'].includes(current.view) ? null : <HexWheel viewKey={current.view} label={VIEW_TITLES[current.view]} wedges={[]} centre={centreDice} />;
   }
 
   const rollRow = current.view === 'roll' ? rows.find((row) => row.key === current.ability) : null;
@@ -320,7 +350,7 @@ export default function HexCharacterSheet() {
   }
 
   return (
-    <div className={`hex-sheet${['combat', 'equipment', 'skills'].includes(current.view) ? ' hex-sheet--with-list' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
+    <div className={`hex-sheet${['combat', 'equipment', 'skills', 'magic', 'traits'].includes(current.view) ? ' hex-sheet--with-list' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
       <header className="hex-sheet__header">
         <button type="button" className="hex-sheet__hex-button" onClick={() => navigate('/characters')} aria-label="Back to My Characters" data-testid="hex-leave">
           <span className="hex-sheet__hex-button-rim" aria-hidden="true">
@@ -413,18 +443,40 @@ export default function HexCharacterSheet() {
             />
           </section>
         )}
-        {SECTION_TITLES[current.view] && !['core', 'combat', 'equipment', 'skills'].includes(current.view) && (
+        {current.view === 'magic' && character && (
+          <section className="hex-combat-list hex-section-list character-page-v2" aria-label="Magic" data-testid="hex-magic-list">
+            <CleanSpellsTab character={character} onCharacterUpdate={(updates, options = {}) => queueRef.current.patch(updates, options)} />
+          </section>
+        )}
+        {current.view === 'traits' && character && (
+          <section className="hex-combat-list hex-section-list character-page-v2" aria-label="Traits and feats" data-testid="hex-traits-list">
+            <CleanSheetFeaturesTab
+              ac={deriveArmorClass(character)}
+              actionEconomyGroups={featureProps.actionEconomyGroups}
+              character={character}
+              classFeatureSummary={featureProps.classFeatureSummary}
+              exhaustionLevel={Number(character.exhaustion_level || 0)}
+              proficiencyBonus={proficiencyBonusFor(character)}
+              proficiencySummary={featureProps.proficiencySummary}
+              rulesEdition={featureProps.rulesEdition}
+              speed={deriveWalkingSpeed(character)}
+              onOpenInventory={() => push({ view: 'equipment' })}
+              onCharacterUpdate={(updates, options = {}) => queueRef.current.patch(updates, options)}
+            />
+          </section>
+        )}
+        {SECTION_TITLES[current.view] && !['core', 'combat', 'equipment', 'skills', 'magic', 'traits'].includes(current.view) && (
           <div className="hex-sheet__coming" data-testid="hex-coming-soon">
             <p>{VIEW_TITLES[current.view]} joins the wheel in the next phase.</p>
-            <Link className="hex-sheet__text-button" to={`/characters/${characterId}`}><span className="hex-glass" aria-hidden="true" />Open on the classic sheet</Link>
+            <Link className="hex-sheet__text-button" to={`/characters/${characterId}/classic`}><span className="hex-glass" aria-hidden="true" />Open on the classic sheet</Link>
           </div>
         )}
       </main>
 
       <footer className="hex-sheet__footer">
-        <button type="button" className="hex-sheet__footer-button" onClick={() => setShowLevelUp(true)} data-testid="hex-level-up">
+        <button type="button" className={`hex-sheet__footer-button${levelUpReady ? ' is-ready' : ''}`} onClick={() => setShowLevelUp(true)} data-testid="hex-level-up">
           <span className="hex-glass" aria-hidden="true" />
-          <TrendingUp size={18} aria-hidden="true" /> Level Up
+          <TrendingUp size={18} aria-hidden="true" /> {levelUpReady ? `Level up ready · ${character.level_up_grant.to_level}` : 'Level Up'}
         </button>
         <div className="hex-sheet__settings" ref={settingsRef}>
           <button type="button" className="hex-sheet__footer-button hex-sheet__footer-button--icon" onClick={() => setShowSettings((open) => !open)} aria-expanded={showSettings} aria-label="Settings and edit character" data-testid="hex-settings">
@@ -434,7 +486,7 @@ export default function HexCharacterSheet() {
           {showSettings && (
             <div className="hex-sheet__menu" role="menu" aria-label="Character settings">
               <button type="button" role="menuitem" onClick={() => navigate(`/characters/${characterId}/edit`)}>Edit character</button>
-              <button type="button" role="menuitem" onClick={() => navigate(`/characters/${characterId}`)}>Open classic sheet</button>
+              <button type="button" role="menuitem" onClick={() => navigate(`/characters/${characterId}/classic`)}>Open classic sheet</button>
               <p className="hex-sheet__theme-heading" id="hex-theme-heading">Colour theme</p>
               <div className="hex-sheet__themes" role="group" aria-labelledby="hex-theme-heading">
                 {HEX_THEMES.map((entry) => (

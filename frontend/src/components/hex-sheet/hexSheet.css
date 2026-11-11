@@ -566,3 +566,16 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
   color: var(--hex-text); font: inherit; font-weight: 800; cursor: pointer;
 }
 @media (prefers-reduced-motion: reduce) { .hex-skills__rotor { transition: none; } }
+
+/* A level up the GM has granted and the player has not taken yet. */
+.hex-sheet__footer-button.is-ready { --hex-glass-edge: var(--hex-hi); --hex-glass-glow: var(--hex-glow-strong); color: var(--hex-hi); animation: hex-ready-pulse 1.8s ease-in-out infinite; }
+@keyframes hex-ready-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+@media (prefers-reduced-motion: reduce) { .hex-sheet__footer-button.is-ready { animation: none; } }
+/* Magic and Traits reuse the classic lists under the wheel. */
+.hex-section-list { width: 100%; }
+/* The classic lists expect to sit in the classic page frame; here they fill the sheet's own column. */
+.hex-sheet .hex-section-list.character-page-v2 {
+  display: block !important; width: 100% !important; max-width: none !important; min-height: 0 !important;
+  margin: 0 !important; padding: 12px !important; grid-template-columns: none !important;
+}
+.hex-sheet .hex-section-list.character-page-v2 > * { width: 100% !important; max-width: none !important; margin-inline: 0 !important; }

@@ -236,8 +236,10 @@ export function AppRoutes() {
 
         <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <SignInRedirect />} />
         <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><CharacterProfileEditor /></AppShell> : <SignInRedirect />} />
+        {/* The hexagon sheet is the character sheet. The earlier sheet stays at /classic as a fallback. */}
+        <Route path="/characters/:characterId/classic" element={isAuthenticated ? <CleanCharacterSheet /> : <SignInRedirect />} />
         <Route path="/characters/:characterId/hex" element={isAuthenticated ? <HexCharacterSheet /> : <SignInRedirect />} />
-        <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <SignInRedirect />} />
+        <Route path="/characters/:characterId" element={isAuthenticated ? <HexCharacterSheet /> : <SignInRedirect />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
       {isAuthenticated && !isPublicBrandRoute && (

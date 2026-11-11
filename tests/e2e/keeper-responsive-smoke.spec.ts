@@ -683,7 +683,8 @@ for (const size of [
       return route.fulfill({ status: 200, contentType: 'application/json', body: request.method() === 'GET' ? '[]' : '{}' });
     });
 
-    await page.goto('/characters/' + characterId);
+    // The classic sheet: the hexagon sheet now answers /characters/:id.
+    await page.goto('/characters/' + characterId + '/classic');
     const hp = page.getByRole('meter', { name: 'Hit points remaining' });
     const damage = page.getByRole('button', { name: 'Take 1 hit point of damage' });
     const addTemp = page.getByRole('button', { name: 'Add 1 temporary hit point' });

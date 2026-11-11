@@ -111,10 +111,11 @@ describe('the main wheel', () => {
     expect(screen.getByTestId('hex-centre').closest('.hex-wheel__deal')).toBeNull();
   });
 
-  test.each(['magic', 'traits'])('%s opens in place and offers the classic sheet for now', async (id) => {
+  test.each(['magic', 'traits'])('%s opens in place with its list under the wheel', async (id) => {
     await openSheet();
-    fireEvent.click(screen.getByTestId(`hex-wedge-${id}`));
-    expect(screen.getByTestId('hex-coming-soon')).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByTestId(`hex-wedge-${id}`)); });
+    expect(screen.getByTestId(`hex-${id}-list`)).toBeInTheDocument();
+    expect(screen.queryByTestId('hex-coming-soon')).toBeNull();
     expect(screen.getByTestId('hex-sheet')).toBeInTheDocument(); // never left the page
     fireEvent.click(screen.getByTestId('hex-back'));
     expect(screen.getByTestId('hex-wedge-core')).toBeInTheDocument();
@@ -391,11 +392,11 @@ describe('the Combat wheel', () => {
 describe('colour themes', () => {
   afterEach(() => window.localStorage.removeItem('rqk.hexSheet.theme'));
 
-  test('Guild Ledger Brass is the default', async () => {
+  test('Keeper Blue is the default', async () => {
     window.localStorage.removeItem('rqk.hexSheet.theme');
     await openSheet({ ...PUNCH, id: 'char-theme-1' });
-    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'ledger');
-    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#c9a24a');
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'keeper');
+    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#f2892f');
   });
 
   test('choosing a theme recolours the sheet and is remembered on this device', async () => {
@@ -411,7 +412,7 @@ describe('colour themes', () => {
   test('an unknown saved theme falls back to the default', async () => {
     window.localStorage.setItem('rqk.hexSheet.theme', 'neon-pink');
     await openSheet({ ...PUNCH, id: 'char-theme-3' });
-    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'ledger');
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'keeper');
   });
 });
 
