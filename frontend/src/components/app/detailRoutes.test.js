@@ -1,4 +1,4 @@
-import { isDetailRoute } from './detailRoutes';
+import { isDetailRoute, isInnerRoute } from './detailRoutes';
 
 describe('which pages get the compact rail', () => {
   test.each([
@@ -46,5 +46,30 @@ describe('which pages get the compact rail', () => {
     [undefined, null, '', 123].forEach((value) => {
       expect(isDetailRoute(value)).toBe(false);
     });
+  });
+});
+
+describe('which pages hide the phone tab bar', () => {
+  test.each([
+    ['/characters'],
+    ['/characters/new'],
+    ['/characters/char-1/edit'],
+    ['/campaigns'],
+    ['/campaign/camp-1'],
+    ['/homebrew'],
+    ['/community'],
+    ['/account'],
+    ['/admin'],
+  ])('%s is inside a section', (path) => {
+    expect(isInnerRoute(path)).toBe(true);
+  });
+
+  test.each([
+    ['/'],
+    ['/home'],
+    ['/home/'],
+    ['/home?welcome=1'],
+  ])('%s is the hub and keeps the tab bar', (path) => {
+    expect(isInnerRoute(path)).toBe(false);
   });
 });
