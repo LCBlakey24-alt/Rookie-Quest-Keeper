@@ -25,8 +25,10 @@
 .rq-levelup__text span { color: var(--lu-muted); }
 .rq-levelup__actions { display: flex; gap: 10px; margin-top: 8px; animation: rq-levelup-rise 600ms 1.6s ease-out both; }
 .rq-levelup__actions button { min-height: 48px; padding: 0 22px; border-radius: 12px; font: 800 1rem/1 var(--rq-body-font, Manrope, sans-serif); cursor: pointer; }
-.rq-levelup__primary { border: 1px solid var(--lu-hi) !important; background: var(--lu-brass) !important; color: #1a1205 !important; -webkit-text-fill-color: #1a1205 !important; }
-.rq-levelup__secondary { border: 1px solid rgba(201, 162, 74, 0.55) !important; background: transparent !important; color: var(--lu-text) !important; }
+/* The app's control layer fixes button colours with layered !important rules, so the
+   buttons are coloured through the variables those rules read, with the edge on an outline. */
+.rq-levelup__primary { --rq-control-blue: var(--lu-brass); --rq-text-primary: #1a1205; --rq-fill-color: rgba(255, 255, 255, 0.18); border-width: 0 !important; outline: 1px solid var(--lu-hi); box-shadow: none; }
+.rq-levelup__secondary { --rq-control-blue: transparent; --rq-text-primary: var(--lu-text); --rq-fill-color: rgba(201, 162, 74, 0.14); border-width: 0 !important; outline: 1px solid rgba(201, 162, 74, 0.55); }
 
 @keyframes rq-levelup-fade { from { opacity: 0; } }
 @keyframes rq-levelup-spin { from { transform: rotate(-540deg); } to { transform: rotate(0); } }

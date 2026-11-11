@@ -16,8 +16,19 @@ const TICKS = Array.from({ length: 36 }, (_, i) => i * 10);
  * ring of ticks sweeping round and the new level arriving in the centre.
  * Shown once per GM grant. "Level up now" goes to the wizard; "Later" (or
  * Escape) closes it and the sheet keeps a "Level up ready" reminder.
+ *
+ * The level-up wizard reuses it when a level is confirmed, with its own
+ * message and a single button (`secondaryLabel={null}`).
  */
-export default function LevelUpCelebration({ grant, onLevelUp, onLater }) {
+export default function LevelUpCelebration({
+  grant,
+  onLevelUp,
+  onLater,
+  title = 'Levelled up!',
+  message,
+  primaryLabel = 'Level up now',
+  secondaryLabel = 'Later',
+}) {
   const primaryRef = useRef(null);
   useEffect(() => { primaryRef.current?.focus(); }, []);
   useEffect(() => {
@@ -50,14 +61,18 @@ export default function LevelUpCelebration({ grant, onLevelUp, onLater }) {
           <text className="rq-levelup__to" x="0" y="4" textAnchor="middle" dominantBaseline="central">{grant.to_level}</text>
           <text className="rq-levelup__caption" x="0" y="-30" textAnchor="middle" dominantBaseline="central">LEVEL</text>
         </svg>
-        <h2 id="rq-levelup-title" className="rq-levelup__title">Levelled up!</h2>
+        <h2 id="rq-levelup-title" className="rq-levelup__title">{title}</h2>
         <p className="rq-levelup__text">
-          <strong>{grant.character_name}</strong> can now reach level {grant.to_level}
-          {grant.campaign_name ? <span> · {grant.campaign_name}</span> : null}
+          {message || (
+            <>
+              <strong>{grant.character_name}</strong> can now reach level {grant.to_level}
+              {grant.campaign_name ? <span> · {grant.campaign_name}</span> : null}
+            </>
+          )}
         </p>
         <div className="rq-levelup__actions">
-          <button ref={primaryRef} type="button" className="rq-levelup__primary" onClick={onLevelUp} data-testid="level-up-now">Level up now</button>
-          <button type="button" className="rq-levelup__secondary" onClick={onLater} data-testid="level-up-later">Later</button>
+          <button ref={primaryRef} type="button" className="rq-levelup__primary" onClick={onLevelUp} data-testid="level-up-now">{primaryLabel}</button>
+          {secondaryLabel && <button type="button" className="rq-levelup__secondary" onClick={onLater} data-testid="level-up-later">{secondaryLabel}</button>}
         </div>
       </dialog>
     </div>

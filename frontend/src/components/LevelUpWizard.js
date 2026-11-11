@@ -11,6 +11,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import DiceRollFlicker from '@/components/DiceRollFlicker';
+import GuildMotif from '@/components/guild-motif/GuildMotif';
+import LevelUpCelebration from '@/components/level-up-grant/LevelUpCelebration';
+import { loadDiceDyeId } from '@/lib/diceDyePreference';
+import './LevelUpWizardGuild.css';
+
 import apiClient from '@/lib/apiClient';
 import { rollDie } from '@/data/diceRoller';
 import { getLevelUpHpChoice, getLevelUpHpReceipt } from '@/data/levelUpHpRules';
@@ -188,6 +194,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   ), [characterStats, currentClasses]);
 
   const [mode, setMode] = useState('existing');
+  const [hpBurst, setHpBurst] = useState(null);
+  const [celebration, setCelebration] = useState(null);
   const [existingClass, setExistingClass] = useState(primaryClass);
   const [newClass, setNewClass] = useState('');
   const [preflight, setPreflight] = useState(null);
@@ -552,11 +560,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       setSaving(true);
       const endpoint = isMulticlass ? `/characters/${character.id}/multiclass` : `/characters/${character.id}/level-up`;
       await apiClient.post(endpoint, payload);
-      toast.success(`${character.name} reached level ${newLevel}`, {
-        description: `${isMulticlass ? `Added ${characterClass}. ` : `${characterClass} advanced. `}HP increased by ${hpGain}.`,
-      });
-      onLevelUp?.(newLevel);
-      onClose?.();
+      // The celebration takes over; closing it hands back to the sheet.
+      setCelebration({ level: newLevel, hpGain, className: characterClass, multiclass: isMulticlass });
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not level up character');
     } finally {
@@ -568,14 +573,47 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     const roll = rollDie(hitDie);
     setHpMethod('roll');
     setHpRoll(roll);
-    toast.success(`Rolled ${roll} on d${hitDie}`);
+    // The die is thrown in the 3D tray; the receipt below shows the working.
+    setHpBurst({
+      rollId: `level-up-hp-${Date.now()}`,
+      label: `Hit points · d${hitDie}`,
+      rolls: [{ sides: hitDie, result: roll }],
+      total: getLevelUpHpChoice({ hitDie, constitutionModifier: conMod, method: 'roll', rawRoll: roll }).gain,
+    });
   };
+
+  const finishCelebration = () => {
+    const level = celebration?.level;
+    setCelebration(null);
+    onLevelUp?.(level);
+    onClose?.();
+  };
+
+  if (celebration) {
+    return (
+      <LevelUpCelebration
+        grant={{ from_level: currentLevel, to_level: celebration.level, character_name: character.name }}
+        title={`Level ${celebration.level}!`}
+        message={(
+          <>
+            <strong>{character.name}</strong> {celebration.multiclass ? `added ${celebration.className}` : `is now a level ${celebration.level} character`}
+            <span> · +{celebration.hpGain} HP</span>
+          </>
+        )}
+        primaryLabel="Back to sheet"
+        secondaryLabel={null}
+        onLevelUp={finishCelebration}
+        onLater={finishCelebration}
+      />
+    );
+  }
 
   return (
     <div style={styles.overlay} onClick={onClose}>
-      <section style={styles.modal} onClick={(event) => event.stopPropagation()} data-testid="level-up-wizard">
+      <section className="rq-lu" style={styles.modal} onClick={(event) => event.stopPropagation()} data-testid="level-up-wizard">
         <header style={styles.header}>
-          <div>
+          <GuildMotif caption="LEVEL" value={newLevel} progress={(stepIndex + 1) / steps.length} size={62} className="rq-lu__motif" />
+          <div className="rq-lu__heading">
             <p style={styles.eyebrow}>Character progression</p>
             <h2 style={styles.title}>Level Up</h2>
             <p style={styles.subtitle}>{character.name} · {isMulticlass ? `Add ${characterClass}` : `Advance ${characterClass}`} · Level {currentLevel} → {newLevel}</p>
@@ -605,7 +643,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       key={className}
                       type="button"
                       onClick={() => { setMode('existing'); setExistingClass(className); }}
-                      style={styles.choiceCard(active)}
+                      style={styles.choiceCard(active)} aria-pressed={active}
                     >
                       <strong>Continue {className}</strong>
                       <span>Class level {classLevels[className]} → {Number(classLevels[className]) + 1}</span>
@@ -617,7 +655,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   type="button"
                   onClick={() => setMode('new')}
                   disabled={!multiclassOptions.length}
-                  style={styles.choiceCard(isMulticlass, !multiclassOptions.length)}
+                  style={styles.choiceCard(isMulticlass, !multiclassOptions.length)} aria-pressed={isMulticlass}
                 >
                   <strong>Add a new class</strong>
                   <span>{multiclassOptions.length ? `${multiclassOptions.length} legal option${multiclassOptions.length === 1 ? '' : 's'}` : 'No legal options from current ability scores'}</span>
@@ -627,7 +665,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {isMulticlass && (
                 <div style={styles.list}>
                   {multiclassOptions.map((className) => (
-                    <button key={className} type="button" onClick={() => setNewClass(className)} style={styles.wideChoice(normaliseName(newClass) === normaliseName(className))}>
+                    <button key={className} type="button" onClick={() => setNewClass(className)} style={styles.wideChoice(normaliseName(newClass) === normaliseName(className))} aria-pressed={normaliseName(newClass) === normaliseName(className)}>
                       <strong>{className}</strong>
                       <span>d{HIT_DICE[className] || CLASSES[className]?.hitDie || 8} hit die · {requirementText(className)}</span>
                     </button>
@@ -691,15 +729,15 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                 Keeper adds the modifier for you, so physical-dice mode only asks for the number showing on the die.
               </p>
               <div style={styles.choiceGrid}>
-                <button type="button" onClick={() => setHpMethod('average')} style={styles.choiceCard(hpMethod === 'average')}>
+                <button type="button" onClick={() => setHpMethod('average')} style={styles.choiceCard(hpMethod === 'average')} aria-pressed={hpMethod === 'average'}>
                   <strong>Take fixed {averageDie}</strong>
                   <span>{averageHpChoice.formula}</span>
                 </button>
-                <button type="button" onClick={rollHp} style={styles.choiceCard(hpMethod === 'roll')}>
+                <button type="button" onClick={rollHp} style={styles.choiceCard(hpMethod === 'roll')} aria-pressed={hpMethod === 'roll'}>
                   <strong>Roll in Keeper · d{hitDie}</strong>
                   <span>{hpRoll ? hpChoice.formula : `Keeper rolls the d${hitDie} and shows the working.`}</span>
                 </button>
-                <button type="button" onClick={() => setHpMethod('manual')} style={styles.choiceCard(hpMethod === 'manual')}>
+                <button type="button" onClick={() => setHpMethod('manual')} style={styles.choiceCard(hpMethod === 'manual')} aria-pressed={hpMethod === 'manual'}>
                   <strong>Use physical die · d{hitDie}</strong>
                   <span>Roll at the table, then enter only the raw die result.</span>
                 </button>
@@ -720,9 +758,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   {manualHpRoll && !validManualRoll && <em style={styles.error}>Enter a whole number from 1 to {hitDie}.</em>}
                 </label>
               )}
-              <div style={styles.result} data-testid="level-up-hp-receipt">
+              <div className="rq-lu__receipt" style={styles.result} data-testid="level-up-hp-receipt">
                 <Dices size={18} />
-                <div>
+                <div className="rq-lu__receipt-lines">
                   <span>{hpChoice.sourceLabel || 'Hit points'}</span>
                   <strong>{hpChoice.valid ? hpChoice.formula : 'Choose a valid HP result to continue.'}</strong>
                   {hpReceipt.valid && (
@@ -739,7 +777,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               <p style={styles.copy}>This choice belongs specifically to your {characterClass} levels. It will not overwrite a subclass on another class.</p>
               <div style={styles.list}>
                 {subclassOptions.map((option) => (
-                  <button key={option.id || option.name} type="button" onClick={() => setSelectedSubclass(option.name)} style={styles.wideChoice(normaliseName(selectedSubclass) === normaliseName(option.name))}>
+                  <button key={option.id || option.name} type="button" onClick={() => setSelectedSubclass(option.name)} style={styles.wideChoice(normaliseName(selectedSubclass) === normaliseName(option.name))} aria-pressed={normaliseName(selectedSubclass) === normaliseName(option.name)}>
                     <strong>{option.name}</strong><span>{option.description || 'Subclass option.'}</span>
                   </button>
                 ))}
@@ -826,8 +864,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
             <section style={styles.section}>
               <h3 style={styles.sectionTitle}>Ability increase or feat</h3>
               <div style={styles.choiceGrid}>
-                <button type="button" onClick={() => setChoiceType('asi')} style={styles.choiceCard(choiceType === 'asi')}><strong>Ability Score Improvement</strong><span>Increase two abilities by +1, including the same ability twice up to 20.</span></button>
-                <button type="button" onClick={() => setChoiceType('feat')} style={styles.choiceCard(choiceType === 'feat')}><strong>Feat</strong><span>Choose an available general feat.</span></button>
+                <button type="button" onClick={() => setChoiceType('asi')} style={styles.choiceCard(choiceType === 'asi')} aria-pressed={choiceType === 'asi'}><strong>Ability Score Improvement</strong><span>Increase two abilities by +1, including the same ability twice up to 20.</span></button>
+                <button type="button" onClick={() => setChoiceType('feat')} style={styles.choiceCard(choiceType === 'feat')} aria-pressed={choiceType === 'feat'}><strong>Feat</strong><span>Choose an available general feat.</span></button>
               </div>
               {choiceType === 'asi' && (
                 <div style={styles.summaryGrid}>
@@ -845,7 +883,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {choiceType === 'feat' && (
                 <div style={styles.list}>
                   {featOptions.map((feat) => (
-                    <button key={feat.name} type="button" onClick={() => setSelectedFeat(feat)} style={styles.wideChoice(selectedFeat?.name === feat.name)}>
+                    <button key={feat.name} type="button" onClick={() => setSelectedFeat(feat)} style={styles.wideChoice(selectedFeat?.name === feat.name)} aria-pressed={selectedFeat?.name === feat.name}>
                       <strong>{feat.name}</strong><span>{feat.description || feat.prereq || 'Available feat.'}</span>
                     </button>
                   ))}
@@ -892,14 +930,28 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         </div>
 
         <footer style={styles.footer}>
-          <button type="button" onClick={() => setStepIndex((index) => Math.max(0, index - 1))} disabled={stepIndex === 0 || saving} style={styles.secondaryButton}><ChevronLeft size={16} /> Back</button>
+          <button type="button" onClick={() => setStepIndex((index) => Math.max(0, index - 1))} disabled={stepIndex === 0 || saving} className="rq-lu__secondary" style={styles.secondaryButton}><ChevronLeft size={16} /> Back</button>
           {activeStep === 'confirm' ? (
-            <button type="button" onClick={submitLevelUp} disabled={!canProceed() || saving} style={styles.primaryButton}><Sparkles size={16} /> {saving ? 'Levelling…' : `Confirm Level ${newLevel}`}</button>
+            <button type="button" onClick={submitLevelUp} disabled={!canProceed() || saving} className="rq-lu__primary" style={styles.primaryButton}><Sparkles size={16} /> {saving ? 'Levelling…' : `Confirm Level ${newLevel}`}</button>
           ) : (
-            <button type="button" onClick={() => canProceed() && setStepIndex((index) => Math.min(index + 1, steps.length - 1))} disabled={!canProceed()} style={styles.primaryButton}>Next <ChevronRight size={16} /></button>
+            <button type="button" onClick={() => canProceed() && setStepIndex((index) => Math.min(index + 1, steps.length - 1))} disabled={!canProceed()} className="rq-lu__primary" style={styles.primaryButton}>Next <ChevronRight size={16} /></button>
           )}
         </footer>
       </section>
+      {hpBurst && (
+        <DiceRollFlicker
+          key={hpBurst.rollId}
+          rollId={hpBurst.rollId}
+          isOpen
+          onClose={() => setHpBurst(null)}
+          label={hpBurst.label}
+          rolls={hpBurst.rolls}
+          total={hpBurst.total}
+          modifier={conMod}
+          dyeId={loadDiceDyeId()}
+          theme="builder"
+        />
+      )}
     </div>
   );
 }
@@ -930,7 +982,7 @@ function SpellPicker({ title, spells, selected, existingNames, limit, onToggle }
           const active = selected.some((entry) => normaliseName(entry.name) === key);
           const blocked = alreadyKnown || (!active && selected.length >= limit);
           return (
-            <button key={`${spell.level || 0}-${spell.name}`} type="button" onClick={() => !blocked && onToggle(spell)} disabled={blocked} style={styles.spellButton(active, blocked)} title={alreadyKnown ? 'Already on this character' : ''}>
+            <button key={`${spell.level || 0}-${spell.name}`} type="button" onClick={() => !blocked && onToggle(spell)} disabled={blocked} style={styles.spellButton(active, blocked)} aria-pressed={active} title={alreadyKnown ? 'Already on this character' : ''}>
               {spell.name}{alreadyKnown ? ' · known' : ''}
             </button>
           );
