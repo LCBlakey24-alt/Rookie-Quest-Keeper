@@ -11,6 +11,8 @@ jest.mock('react-router-dom', () => ({
   useLocation: () => ({ pathname: mockPathname }),
 }), { virtual: true });
 
+jest.mock('@/components/level-up-grant/LevelUpGrantWatcher', () => () => null);
+
 jest.mock('@/lib/apiClient', () => ({
   get: jest.fn(() => Promise.resolve({ data: { is_admin: false } })),
 }), { virtual: true });
@@ -140,10 +142,37 @@ describe('Keeper simplified navigation', () => {
       expect(screen.queryByRole('menu', { name: 'More app tools' })).not.toBeInTheDocument();
     });
 
-    test('phones show the brand mark linking home beside the section title', async () => {
+    test('on the phone home dashboard the brand mark links home and the shell is not marked inner', async () => {
       window.innerWidth = 390;
-      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      mockPathname = '/home';
+      let view;
+      await act(async () => { view = render(<AppShell><main>Content</main></AppShell>); });
       expect(screen.getByRole('link', { name: 'Rookie Quest Keeper home' })).toHaveAttribute('href', '/home');
+      expect(screen.queryByRole('link', { name: 'Back to home dashboard' })).not.toBeInTheDocument();
+      expect(view.container.querySelector('.rqk-app-shell')).not.toHaveAttribute('data-rq-inner');
+    });
+
+    test.each([['/characters'], ['/characters/new'], ['/campaigns'], ['/homebrew'], ['/community']])(
+      'on a phone, %s shows the hexagon back button home and marks the shell inner',
+      async (path) => {
+        window.innerWidth = 390;
+        mockPathname = path;
+        let view;
+        await act(async () => { view = render(<AppShell><main>Content</main></AppShell>); });
+        expect(screen.getByRole('link', { name: 'Back to home dashboard' })).toHaveAttribute('href', '/home');
+        expect(screen.queryByRole('link', { name: 'Rookie Quest Keeper home' })).not.toBeInTheDocument();
+        expect(view.container.querySelector('.rqk-app-shell')).toHaveAttribute('data-rq-inner', 'true');
+      },
+    );
+
+    test('on an inner phone page the More tools still open, beside the hidden tab bar', async () => {
+      window.innerWidth = 390;
+      mockPathname = '/campaigns';
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      fireEvent.click(screen.getByRole('button', { name: /Open more tools/ }));
+      const menu = screen.getByRole('menu', { name: 'More app tools' });
+      expect(menu.closest('.rqk-app-rail')).toBeNull();
+      expect(screen.getByRole('menuitem', { name: 'Dice roller' })).toBeInTheDocument();
     });
 
     test('larger screens keep their own header without the phone brand mark', async () => {

@@ -1,0 +1,19 @@
+/* The Rookie motif (hexagon, ring, smaller hexagon) in Guild Ledger brass.
+   Colours can be re-themed by setting the --gm-* properties on a parent. */
+.guild-motif {
+  --_brass: var(--gm-brass, var(--guild-accent));
+  --_hi: var(--gm-hi, var(--guild-hi));
+  --_bg: var(--gm-bg, var(--guild-bg));
+  --_muted: var(--gm-muted, var(--guild-muted));
+  flex: none; display: block; overflow: visible;
+  filter: drop-shadow(0 0 6px rgba(var(--guild-accent-rgb), calc(0.35 * var(--guild-glow))));
+}
+.guild-motif__case { fill: var(--_bg); stroke: var(--_brass); stroke-width: 2.4; }
+.guild-motif__ring { fill: none; stroke: var(--_brass); stroke-opacity: 0.4; stroke-width: 1; }
+.guild-motif__tick { stroke: var(--_brass); stroke-opacity: 0.22; stroke-width: 3.2; stroke-linecap: round; transition: stroke-opacity 260ms ease, stroke 260ms ease; }
+.guild-motif__tick.is-lit { stroke: var(--_hi); stroke-opacity: 1; }
+.guild-motif__core { fill: var(--_bg); stroke: var(--_hi); stroke-width: 2.6; }
+.guild-motif__caption { fill: var(--_muted); font: 800 11px/1 var(--rq-body-font, Manrope, sans-serif); letter-spacing: 0.18em; }
+.guild-motif__value { fill: var(--_hi); font: 700 44px/1 var(--rq-font-display, 'Fraunces', Georgia, serif); }
+.guild-motif__value.is-long { font-size: 30px; }
+@media (prefers-reduced-motion: reduce) { .guild-motif__tick { transition: none; } }

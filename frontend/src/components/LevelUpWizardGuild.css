@@ -1,0 +1,67 @@
+/* Level Up wizard in the hex-sheet look: deep blue background, accent linework,
+   glass cards with an inner glow.
+
+   The wizard lays itself out with inline styles that read the app's colour
+   variables, so most of the re-theme is simply giving those variables the
+   shared guild values inside the wizard. Buttons are different: the app-wide control
+   layer fixes their border colour and removes box-shadows with layered
+   !important rules that cannot be out-specified. Their border is therefore
+   hidden and redrawn, with the glow, on ::after. */
+section.rq-lu.rq-lu.rq-lu {
+  --lu-bg: var(--guild-bg); --lu-brass: var(--guild-accent); --lu-hi: var(--guild-hi); --lu-text: var(--guild-text); --lu-muted: var(--guild-muted);
+  --lu-line: rgba(var(--guild-accent-rgb), 0.3); --lu-glass: rgba(var(--guild-accent-rgb), 0.06); --lu-soft: var(--guild-select);
+  --rq-bg-main: var(--lu-bg); --rq-bg-panel: var(--lu-bg); --rq-card: var(--lu-glass);
+  --rq-accent-primary: var(--lu-brass); --rq-accent-soft: var(--lu-soft); --rq-secondary: var(--lu-hi);
+  --rq-text-primary: var(--lu-text); --rq-border-default: var(--lu-line); --rq-border-strong: var(--lu-brass);
+  --rq-control-blue: var(--lu-glass); --rq-control-wax: var(--lu-soft); --rq-fill-color: rgba(var(--guild-accent-rgb), 0.14);
+  --cs-bg: var(--lu-bg) !important; --cs-panel: var(--lu-bg) !important; --cs-input: var(--guild-bg-deep) !important;
+  --cs-border: var(--lu-line) !important; --cs-border-strong: var(--lu-brass) !important;
+  --cs-accent: var(--lu-brass) !important; --cs-blue: var(--lu-hi) !important; --cs-blue-soft: var(--lu-soft) !important;
+  --cs-text: var(--lu-text) !important; --cs-text-soft: var(--lu-muted) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 0 0 1px rgba(var(--guild-accent-rgb), calc(0.25 * var(--guild-glow))), inset 0 0 38px rgba(var(--guild-accent-rgb), calc(0.1 * var(--guild-glow))), 0 18px 60px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Header: motif badge, then the title in the display face. */
+section.rq-lu.rq-lu.rq-lu > header { justify-content: flex-start !important; align-items: center !important; gap: 12px !important; border-bottom-color: var(--lu-line) !important; }
+section.rq-lu.rq-lu.rq-lu > header .rq-lu__heading { flex: 1; min-width: 0; }
+section.rq-lu.rq-lu.rq-lu > header h2 {
+  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
+  color: var(--lu-text) !important; letter-spacing: 0 !important;
+}
+section.rq-lu.rq-lu.rq-lu > header p:first-child { color: var(--lu-brass) !important; }
+section.rq-lu.rq-lu.rq-lu h3 { font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important; font-weight: 700 !important; color: var(--lu-text) !important; }
+
+/* Steps: small brass chips; the current one is filled. */
+section.rq-lu.rq-lu.rq-lu > nav span { border-radius: 999px !important; padding: 6px 10px !important; color: var(--lu-muted) !important; }
+section.rq-lu.rq-lu.rq-lu > nav span[aria-current='step'] { color: var(--guild-ink) !important; outline: 0 !important; background: var(--lu-brass) !important; }
+
+/* Glass buttons: border and inner glow drawn on ::after. */
+section.rq-lu.rq-lu.rq-lu button { position: relative; border-width: 0 !important; border-radius: 10px !important; }
+section.rq-lu.rq-lu.rq-lu button::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  border: 1px solid var(--lu-line); box-shadow: inset 0 0 14px rgba(var(--guild-accent-rgb), calc(0.1 * var(--guild-glow)));
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+section.rq-lu.rq-lu.rq-lu button:hover:not(:disabled)::after,
+section.rq-lu.rq-lu.rq-lu button:focus-visible::after { border-color: var(--lu-brass); box-shadow: inset 0 0 18px rgba(var(--guild-accent-rgb), calc(0.22 * var(--guild-glow))); }
+section.rq-lu.rq-lu.rq-lu button[aria-pressed='true']::after { border-color: var(--lu-hi); box-shadow: inset 0 0 22px rgba(var(--guild-hi-rgb), calc(0.32 * var(--guild-glow))); }
+section.rq-lu.rq-lu.rq-lu button[aria-pressed='true'] strong { color: var(--lu-hi) !important; }
+section.rq-lu.rq-lu.rq-lu button span { color: var(--lu-muted); }
+
+/* Primary action: solid brass with dark ink text. */
+section.rq-lu.rq-lu.rq-lu button.rq-lu__primary { --rq-control-blue: var(--lu-brass); --rq-text-primary: var(--guild-ink); --rq-fill-color: rgba(255, 255, 255, 0.18); }
+section.rq-lu.rq-lu.rq-lu button.rq-lu__primary::after { border-color: var(--lu-hi); box-shadow: 0 0 14px rgba(var(--guild-accent-rgb), calc(0.35 * var(--guild-glow))); }
+section.rq-lu.rq-lu.rq-lu button.rq-lu__primary:disabled { --rq-control-blue: rgba(var(--guild-accent-rgb), 0.25); --rq-text-primary: var(--lu-muted); }
+section.rq-lu.rq-lu.rq-lu button.rq-lu__primary:disabled::after { box-shadow: none; border-color: var(--lu-line); }
+
+/* Panels and the hit point receipt. */
+section.rq-lu.rq-lu.rq-lu > div > section > div:not([class]) > div { border-radius: 10px; }
+section.rq-lu.rq-lu.rq-lu .rq-lu__receipt { border-radius: 10px; border-color: var(--lu-brass) !important; box-shadow: inset 0 0 18px rgba(var(--guild-accent-rgb), calc(0.14 * var(--guild-glow))); color: var(--lu-hi); }
+section.rq-lu.rq-lu.rq-lu .rq-lu__receipt-lines { display: grid; gap: 2px; }
+section.rq-lu.rq-lu.rq-lu .rq-lu__receipt-lines span { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lu-muted); }
+section.rq-lu.rq-lu.rq-lu .rq-lu__receipt-lines strong { color: var(--lu-hi) !important; font-size: 1.05rem; }
+
+@media (max-width: 620px) {
+  section.rq-lu.rq-lu.rq-lu > header .guild-motif { width: 60px; height: auto; }
+}

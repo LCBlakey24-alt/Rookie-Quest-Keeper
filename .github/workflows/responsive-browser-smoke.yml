@@ -43,7 +43,16 @@ jobs:
 
       - name: Install Chromium and required Linux libraries
         working-directory: tests
-        run: yarn playwright install --with-deps chromium
+        # --with-deps also installs font packages through apt. When the runner
+        # cannot reach the Ubuntu mirrors that step fails (or hangs to the job
+        # limit) before any test runs. The hosted image already carries the
+        # libraries Chromium needs, so fall back to installing the browser
+        # alone; the smoke tests below still prove that it launches.
+        run: |
+          if ! timeout 240 yarn playwright install --with-deps chromium; then
+            echo "::warning::Could not install Linux packages (package mirrors unreachable?). Installing Chromium only."
+            yarn playwright install chromium
+          fi
 
       - name: Exercise built app at phone, tablet, desktop and TV resolutions
         working-directory: tests

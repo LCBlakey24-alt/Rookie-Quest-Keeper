@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices, Shield, Sparkles, Swords, Wand2 } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
+import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
+import GuildMotif from '@/components/guild-motif/GuildMotif';
+import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import {
@@ -22,7 +26,7 @@ import { countChoiceLanguages, getFixedLanguages } from '@/data/languageChoiceUt
 import {
   buildFullBuilderEquipmentState,
   defaultStartingEquipmentChoices,
-  rollStartingGoldRule,
+  rollStartingGoldDice,
   startingEquipmentChoicesComplete,
 } from '@/data/fullBuilderEquipment';
 import { getStartingEquipmentGroups } from '@/data/startingEquipmentRules';
@@ -39,6 +43,8 @@ import {
 } from '@/components/full-character-creator/CreatorPresentation';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
+import '@/styles/guildTokens.css';
+import './FullCharacterCreatorGuild.css';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 const LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
@@ -208,6 +214,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const [saving, setSaving] = useState(false);
   const [spellSearch, setSpellSearch] = useState('');
   const [touchStartX, setTouchStartX] = useState(null);
+  const [leaving, setLeaving] = useState(false);
+  const leaveTimer = useRef(null);
+  useEffect(() => () => { if (leaveTimer.current) window.clearTimeout(leaveTimer.current); }, []);
 
   const raceData = RACES[draft.race] || {};
   const classData = CLASSES[draft.characterClass] || {};
@@ -405,7 +414,27 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }, [editMode, characterId, navigate]);
 
   const update = (patch) => setDraft((prev) => ({ ...prev, ...patch }));
-  const setStep = (nextStep) => update({ step: Math.max(0, Math.min(steps.length - 1, nextStep)) });
+  const applyStep = (nextStep) => update({ step: Math.max(0, Math.min(steps.length - 1, nextStep)) });
+  // Leaving a step that shows a wheel: its wedges shrink in first, then the
+  // next step's wheel deals its wedges back out. Skipped when the player
+  // asks for reduced motion (and where matchMedia does not exist).
+  const setStep = (nextStep) => {
+    const target = Math.max(0, Math.min(steps.length - 1, nextStep));
+    const canAnimate = typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!canAnimate || target === step || !document.querySelector('.full-creator-panel .guild-wheel')) {
+      applyStep(target);
+      return;
+    }
+    if (leaveTimer.current) return;
+    setLeaving(true);
+    leaveTimer.current = window.setTimeout(() => {
+      leaveTimer.current = null;
+      setLeaving(false);
+      applyStep(target);
+    }, WHEEL_LEAVE_MS);
+  };
   const setScore = (ability, value) => update({ scores: { ...draft.scores, [ability]: clamp(value) } });
 
   function validate() {
@@ -692,6 +721,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       </header>
 
       <section className="full-creator-progress-card" aria-label="Character creation progress">
+        <GuildMotif caption="STEP" value={step + 1} progress={Math.max(journeyPercent / 100, 1 / steps.length)} size={58} className="full-creator-progress-motif" />
         <div className="full-creator-progress-heading">
           <span>{currentStep?.label || 'Step'}</span>
           <strong>{journeyPercent}% complete</strong>
@@ -727,7 +757,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         </nav>
 
         <section className="full-creator-layout">
-          <article className="full-creator-panel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <article className={`full-creator-panel${leaving ? ' is-leaving' : ''}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
             {stepId === 'setup' && <Setup draft={draft} update={update} />}
             {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} selectedLanguages={draft.raceChosenLanguages} unavailableLanguages={[...baseLanguages, ...arr(draft.backgroundChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('raceChosenLanguages', language, languageChoices)} />}
@@ -762,8 +792,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       <footer className="full-creator-footer">
         <button type="button" onClick={goPrevious} disabled={step === 0}><ChevronLeft size={16} /> Previous</button>
         {step < steps.length - 1
-          ? <button type="button" onClick={goNext}>Next <ChevronRight size={16} /></button>
-          : <button type="button" onClick={saveCharacter} disabled={saving || !canSave}><Check size={16} /> {saving ? 'Saving…' : canSave ? editMode ? 'Save Changes' : 'Create Character' : 'Complete choices'}</button>}
+          ? <button type="button" className="full-creator-primary" onClick={goNext}>Next <ChevronRight size={16} /></button>
+          : <button type="button" className="full-creator-primary" onClick={saveCharacter} disabled={saving || !canSave}><Check size={16} /> {saving ? 'Saving…' : canSave ? editMode ? 'Save Changes' : 'Create Character' : 'Complete choices'}</button>}
       </footer>
     </main>
   );
@@ -781,25 +811,58 @@ function Setup({ draft, update }) {
   </>;
 }
 
+const WHEEL_LEAVE_MS = 200;
+const CHOICE_VIEW_KEY = 'rqk.creator.choiceView';
+function loadChoiceView() {
+  try { return window.localStorage.getItem(CHOICE_VIEW_KEY) === 'list' ? 'list' : 'wheel'; } catch { return 'wheel'; }
+}
+
+/**
+ * Race and class are chosen on a wheel by default; "Show as list" swaps in
+ * the cards for anyone who prefers them. The preference is remembered on
+ * this device. Both views call the same `onChoose`.
+ */
+function ChoicePicker({ label, caption, options, value, onChoose, children }) {
+  const [view, setView] = useState(loadChoiceView);
+  const switchTo = (next) => {
+    setView(next);
+    try { window.localStorage.setItem(CHOICE_VIEW_KEY, next); } catch { /* storage unavailable */ }
+  };
+  return (
+    <div className="full-creator-choice-picker" data-view={view}>
+      {view === 'wheel'
+        ? <GuildChoiceWheel label={label} caption={caption} options={options} value={value} onChange={onChoose} />
+        : children}
+      <button type="button" className="full-creator-choice-view" onClick={() => switchTo(view === 'wheel' ? 'list' : 'wheel')} data-testid={`choice-view-${label.toLowerCase()}`}>
+        {view === 'wheel' ? 'Show as list' : 'Show as wheel'}
+      </button>
+    </div>
+  );
+}
+
 function Species({ draft, update, subraces, raceData, racialTraits, baseLanguages, languageChoices, bonus, speciesLabel, selectedLanguages, unavailableLanguages, toggleLanguage }) {
   const speed = raceData.subraces?.[draft.subrace]?.speed || raceData.speed || 30;
+  const chooseRace = (name) => update({ race: name, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] });
   return <>
     <Title icon={Shield} title={`Choose ${speciesLabel.toLowerCase()}`} text={`Pick your character's ${speciesLabel.toLowerCase()} and review what it gives them.`} />
-    <div className="full-creator-option-grid" role="group" aria-label={`${speciesLabel} options`}>
-      {Object.keys(RACES).map((name) => {
-        const option = RACES[name] || {};
-        const summary = option.description || `${option.size || 'Medium'} · ${option.speed || 30} ft speed`;
-        return (
-          <OptionCard
-            key={name}
-            title={name}
-            summary={summary}
-            active={draft.race === name}
-            onClick={() => update({ race: name, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] })}
-          />
-        );
-      })}
-    </div>
+    <ChoicePicker label={speciesLabel} caption={speciesLabel.toUpperCase()} options={Object.keys(RACES).map((name) => ({ id: name, label: name }))} value={draft.race} onChoose={chooseRace}>
+      <div className="full-creator-option-grid" role="group" aria-label={`${speciesLabel} options`}>
+        {Object.keys(RACES).map((name) => {
+          const option = RACES[name] || {};
+          const summary = option.description || `${option.size || 'Medium'} · ${option.speed || 30} ft speed`;
+          return (
+            <OptionCard
+              key={name}
+              title={name}
+              summary={summary}
+              active={draft.race === name}
+              onClick={() => chooseRace(name)}
+            />
+          );
+        })}
+      </div>
+    </ChoicePicker>
+    {RACES[draft.race]?.description && <p className="full-creator-choice-summary" data-testid="race-summary">{RACES[draft.race].description}</p>}
     {subraces.length > 0 && (
       <div className="full-creator-form-grid">
         <label><span>{speciesLabel} option</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value, raceChosenLanguages: [], backgroundChosenLanguages: [] })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>
@@ -826,32 +889,36 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
   const armor = arr(classData.armorProficiencies);
   const weapons = arr(classData.weaponProficiencies);
   const saves = arr(classData.savingThrows);
+  const chooseClass = (name) => update({
+    characterClass: name,
+    subclass: '',
+    fighterFightingStyle: '',
+    selectedSkills: [],
+    selectedCantrips: [],
+    selectedSpells: [],
+    startingEquipmentChoices: defaultStartingEquipmentChoices(name),
+    rolledStartingGold: 0,
+  });
   return <>
     <Title icon={Swords} title="Choose class" text="Class handles class, subclass timing, class skills, spells, features, and proficiencies." />
-    <div className="full-creator-option-grid" role="group" aria-label="Class options">
-      {Object.keys(CLASSES).map((name) => {
-        const option = CLASSES[name] || {};
-        const summary = option.description || `Hit die d${option.hitDie || 8} · ${String(option.primaryAbility || 'varies').toUpperCase()} primary`;
-        return (
-          <OptionCard
-            key={name}
-            title={name}
-            summary={summary}
-            active={draft.characterClass === name}
-            onClick={() => update({
-              characterClass: name,
-              subclass: '',
-              fighterFightingStyle: '',
-              selectedSkills: [],
-              selectedCantrips: [],
-              selectedSpells: [],
-              startingEquipmentChoices: defaultStartingEquipmentChoices(name),
-              rolledStartingGold: 0,
-            })}
-          />
-        );
-      })}
-    </div>
+    <ChoicePicker label="Class" caption="CLASS" options={Object.keys(CLASSES).map((name) => ({ id: name, label: name }))} value={draft.characterClass} onChoose={chooseClass}>
+      <div className="full-creator-option-grid" role="group" aria-label="Class options">
+        {Object.keys(CLASSES).map((name) => {
+          const option = CLASSES[name] || {};
+          const summary = option.description || `Hit die d${option.hitDie || 8} · ${String(option.primaryAbility || 'varies').toUpperCase()} primary`;
+          return (
+            <OptionCard
+              key={name}
+              title={name}
+              summary={summary}
+              active={draft.characterClass === name}
+              onClick={() => chooseClass(name)}
+            />
+          );
+        })}
+      </div>
+    </ChoicePicker>
+    {CLASSES[draft.characterClass]?.description && <p className="full-creator-choice-summary" data-testid="class-summary">{CLASSES[draft.characterClass].description}</p>}
     {classChoicesRequired && (
       <div className="full-creator-form-grid">
         <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>
@@ -950,6 +1017,20 @@ function SpellChip({ spell, active, onClick }) {
 function Equipment({ draft, update, equipment, equipmentGroups, equipmentCurrency, startingGoldRule, startingGold }) {
   const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   const is2024 = draft.edition === '2024';
+  const [goldBurst, setGoldBurst] = useState(null);
+  const rollGold = () => {
+    const roll = rollStartingGoldDice(startingGoldRule);
+    update({ rolledStartingGold: roll.total });
+    // The dice are thrown in the 3D tray; the multiplier is applied in "Saved gold".
+    if (roll.dice.length) {
+      setGoldBurst({
+        rollId: `starting-gold-${Date.now()}`,
+        label: `Starting gold · ${startingGoldRule.formula}`,
+        rolls: roll.dice,
+        total: roll.dice.reduce((sum, die) => sum + die.result, 0),
+      });
+    }
+  };
   const equipmentCoin = [
     ['platinum', 'pp'],
     ['gold', 'gp'],
@@ -967,7 +1048,21 @@ function Equipment({ draft, update, equipment, equipmentGroups, equipmentCurrenc
     </div>
     {equipmentMode === 'gold' ? (
       <>
-        {!startingGoldRule.fixed && <button type="button" onClick={() => update({ rolledStartingGold: rollStartingGoldRule(startingGoldRule) })}>Roll {startingGoldRule.formula}</button>}
+        {!startingGoldRule.fixed && <button type="button" className="full-creator-roll-gold" onClick={rollGold} data-testid="creator-roll-gold"><Dices size={16} aria-hidden="true" /> Roll {startingGoldRule.formula}</button>}
+        {goldBurst && (
+          <DiceRollFlicker
+            key={goldBurst.rollId}
+            rollId={goldBurst.rollId}
+            isOpen
+            onClose={() => setGoldBurst(null)}
+            label={goldBurst.label}
+            rolls={goldBurst.rolls}
+            total={goldBurst.total}
+            modifier={0}
+            dyeId={loadDiceDyeId()}
+            theme="builder"
+          />
+        )}
         <div className="full-creator-review-grid">
           <ReviewItem label={startingGoldRule.fixed ? 'Gold option' : 'Gold roll'} value={startingGoldRule.formula} />
           <ReviewItem label="Saved gold" value={startingGold ? `${startingGold} gp` : 'Not rolled yet'} />

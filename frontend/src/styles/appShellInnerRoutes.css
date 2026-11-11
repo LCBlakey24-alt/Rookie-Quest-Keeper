@@ -1,0 +1,15 @@
+/* Phone: every page except the home dashboard hides the tab bar.
+ *
+ * AppShell marks these routes with data-rq-inner; see
+ * components/app/detailRoutes.js. The page's own Previous / Next bar then
+ * sits at the bottom of the screen and the top bar's hexagon back button
+ * returns to the home dashboard. Loaded after the other shell sheets, which set these
+ * properties with !important. */
+html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'][data-rq-inner] > .rqk-app-rail { display: none !important; }
+html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'][data-rq-inner] .rqk-app-shell-content {
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'][data-rq-inner] .rqk-app-workspace { min-height: 100dvh !important; }
+html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'][data-rq-inner] .full-creator-footer { bottom: env(safe-area-inset-bottom, 0px) !important; }
+
+#root .rqk-app-topbar-back { margin-left: -6px; }

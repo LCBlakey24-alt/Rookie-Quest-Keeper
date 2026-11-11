@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { isDetailRoute } from '@/components/app/detailRoutes';
+import { isDetailRoute, isInnerRoute } from '@/components/app/detailRoutes';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import HexBackButton from '@/components/guild-motif/HexBackButton';
 import { AUTH_USERNAME_KEY } from '@/lib/auth';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
@@ -18,9 +19,11 @@ import '@/layouts/tablet/appShell.css';
 import '@/layouts/mobile/appShell.css';
 import { isLocalPreview } from '@/preview/previewMode';
 import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
+import LevelUpGrantWatcher from '@/components/level-up-grant/LevelUpGrantWatcher';
 import '@/preview/previewWorkspace.css';
 // Last on purpose: the phone navigation's single source of truth.
 import '@/styles/mobileNavigation.css';
+import '@/styles/appShellInnerRoutes.css';
 
 const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000;
 let adminCheckInFlight = null;
@@ -285,12 +288,16 @@ export default function AppShell({ children }) {
     openFeedback();
   };
 
+  // Anything but the home dashboard: on a phone, no tab bar and a hexagon back button.
+  const innerRoute = isInnerRoute(location.pathname);
+
   return (
     <div
       className="rqk-app-shell"
       data-rq-layout-shell="app"
       data-rq-device={deviceLayout}
       data-rq-focus={isDetailRoute(location.pathname) ? 'detail' : undefined}
+      data-rq-inner={innerRoute ? 'true' : undefined}
     >
       <aside className="rqk-app-rail" aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
@@ -337,7 +344,7 @@ export default function AppShell({ children }) {
 
         </div>
 
-        {isMobile && isMoreOpen && (
+        {isMobile && isMoreOpen && !innerRoute && (
           <MobileMorePanel
             items={mobileMoreItems}
             pathname={location.pathname}
@@ -349,14 +356,28 @@ export default function AppShell({ children }) {
         )}
       </aside>
 
+      {/* The tab bar is hidden on inner pages, so the More panel is rendered beside it. */}
+      {isMobile && isMoreOpen && innerRoute && (
+        <MobileMorePanel
+          items={mobileMoreItems}
+          pathname={location.pathname}
+          onClose={() => setIsMoreOpen(false)}
+          onRook={handleRook}
+          onDice={handleDice}
+          onFeedback={handleFeedback}
+        />
+      )}
+
       <div className="rqk-app-workspace">
         <header className="rqk-app-topbar" aria-label="Workspace controls">
           {isLocalPreview() ? <PreviewWorkspaceControls /> : <div className="rqk-app-topbar-title">
-            {isMobile && (
+            {isMobile && (innerRoute ? (
+              <HexBackButton className="rqk-app-topbar-back" />
+            ) : (
               <Link to="/home" className="rqk-app-topbar-brand" aria-label="Rookie Quest Keeper home">
                 <BrandMiniLogo size={28} alt="" />
               </Link>
-            )}
+            ))}
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
           </div>}
@@ -375,6 +396,8 @@ export default function AppShell({ children }) {
           {children}
         </div>
       </div>
+      {/* GM-granted level ups: plays "Levelled up!" once per grant. */}
+      <LevelUpGrantWatcher />
     </div>
   );
 }
