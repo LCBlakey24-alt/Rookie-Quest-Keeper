@@ -267,3 +267,17 @@ describe('knowing when there is something to lose', () => {
     expect(draftHasUnsavedWork({ ...createEmptyDraft('camp-1', 'enc-1'), quickDraft: { quantity: '1' } })).toBe(false);
   });
 });
+
+
+test('battle-map selection persists with this encounter only, including explicit no-map', () => {
+  const storage = memoryStore();
+  const draft = { ...createEmptyDraft('camp-1', 'enc-1', 'gm-1'), battleMapId: 'map-forest' };
+  expect(writeDraft(draft, { accountId: 'gm-1', storage })).toBe('saved');
+  expect(readDraft('camp-1', 'enc-1', { accountId: 'gm-1', storage }).battleMapId).toBe('map-forest');
+  expect(readDraft('camp-1', 'enc-2', { accountId: 'gm-1', storage })).toBeNull();
+  expect(readDraft('camp-1', 'enc-1', { accountId: 'gm-2', storage })).toBeNull();
+  expect(reconcileDraft(draft, { ...AVAILABLE, mapIds: [] }).battleMapId).toBe('map-forest');
+  expect(draftHasUnsavedWork(draft)).toBe(true);
+  expect(draftHasUnsavedWork({ ...draft, battleMapId: '' })).toBe(true);
+  expect(draftHasUnsavedWork(createEmptyDraft('camp-1', 'enc-1', 'gm-1'))).toBe(false);
+});

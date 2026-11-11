@@ -1,4 +1,4 @@
-import { clearQueuedNpcIds, combinePreparedEncounterParty, createImpromptuEncounter, persistQueuedNpcIds, playerToCombatant, preferredPreparedEncounterId, readQueuedNpcIds } from './LiveEncounterLauncher';
+import { clearQueuedNpcIds, combinePreparedEncounterParty, createImpromptuEncounter, encounterBattleScenario, persistQueuedNpcIds, playerToCombatant, preferredPreparedEncounterId, readQueuedNpcIds } from './LiveEncounterLauncher';
 
 describe('LiveEncounterLauncher player combat handoff', () => {
   test('preserves temp HP, death saves and concentration', () => {
@@ -128,5 +128,37 @@ describe('Prepared Hollowmere scenarios in Live Play', () => {
     expect(preferredPreparedEncounterId(scenarios)).toBe('hm01');
     expect(preferredPreparedEncounterId(scenarios, '', 'old')).toBe('hm01');
     expect(preferredPreparedEncounterId(scenarios, 'hm02')).toBe('hm02');
+  });
+});
+
+
+test('prepared combat hands off every chosen enemy, current player, map and GM stat block', () => {
+  const saved = {
+    id: 'hollowmere-2', name: 'Hollowmere Manor',
+    map_id: 'map-old', description: 'GM secret: servant entrance',
+    combatants: [{ id: 'guard', name: 'Unused Guard' }],
+  };
+  const chosen = [
+    { id: 'hero-1', character_id: 'hero-1', type: 'player', name: 'Aria', hp: 14, maxHp: 25, ac: 16 },
+    { id: 'beast-1', type: 'enemy', name: 'Scarab Horror', hp: 48, maxHp: 48, ac: 17,
+      actions: [{ name: 'Claw', attack_bonus: 6, damage_dice: '2d8' }],
+      reactions: [{ name: 'Parry' }], loot: [{ name: 'Scarab shard' }] },
+  ];
+  const launched = encounterBattleScenario(saved, chosen, 'manor-battle-map');
+  expect(launched).toMatchObject({
+    id: 'hollowmere-2', name: 'Hollowmere Manor', map_id: 'manor-battle-map',
+    combatants: chosen,
+  });
+  expect(launched.combatants[1].actions).toEqual(chosen[1].actions);
+  expect(launched.combatants[1].loot).toEqual(chosen[1].loot);
+  expect(saved.map_id).toBe('map-old');
+  expect(saved.combatants).toEqual([{ id: 'guard', name: 'Unused Guard' }]);
+});
+
+test('impromptu battles can also have a chosen map without saving a new encounter', () => {
+  const actors = [{ id: 'wolf-1', type: 'enemy', hp: 6, ac: 12 }];
+  expect(encounterBattleScenario(null, actors, 'forest-map', 7)).toEqual({
+    id: 'impromptu-7', name: 'Impromptu Battle', temporary: true,
+    combatants: actors, map_id: 'forest-map',
   });
 });

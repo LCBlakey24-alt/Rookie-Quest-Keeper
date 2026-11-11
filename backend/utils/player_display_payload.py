@@ -9,7 +9,7 @@ from typing import Any, Dict
 
 DISPLAY_MODES = frozenset({
     'blank', 'title', 'image', 'npc-grid', 'combat', 'battle-start',
-    'group-check', 'table-result', 'end-session-stats',
+    'group-check', 'table-result', 'end-session-stats', 'shop',
 })
 
 COMMON = frozenset({'display_target', 'title', 'subtitle', 'eyebrow', 'caption', 'banner'})
@@ -37,6 +37,7 @@ MODE_FIELDS = {
     },
     'table-result': {'die', 'roll', 'result', 'party'},
     'end-session-stats': {'campaignName', 'generated_at', 'session', 'allTime'},
+    'shop': {'image_url', 'party', 'items'},
 }
 
 # Compatibility aliases here are limited to known player-display readers.
@@ -60,6 +61,7 @@ TOKEN = frozenset({
     # not private: the party list already names the characters on screen.
     'character_id', 'characterId',
 })
+SHOP_ITEM = frozenset({'name', 'price', 'quantity'})
 BANNER = frozenset({'id', 'eyebrow', 'title', 'text', 'subtitle', 'tone'})
 RESULT = frozenset({
     'id', 'character_id', 'characterId', 'player_id', 'playerId',
@@ -69,8 +71,10 @@ RESULT = frozenset({
     'created_at', 'updated_at', 'rolled_at', 'timestamp', 'visibleRolls', 'rolls',
 })
 DIE = frozenset({'sides', 'result', 'dropped'})
-AWARD = frozenset({'title', 'name', 'value'})
-ACTOR = frozenset({'name', 'rolls', 'nat20s', 'nat1s'})
+# Character identifiers are already public on the campaign party roster.
+# Keep them in the safe recap so two identically named characters never merge.
+AWARD = frozenset({'title', 'name', 'value', 'character_id'})
+ACTOR = frozenset({'name', 'rolls', 'nat20s', 'nat1s', 'character_id'})
 SESSION = frozenset({
     'nat20s', 'nat1s', 'awards', 'actors', 'playerRolls',
     'totalRolls', 'totalDice', 'gmRolls',
@@ -119,6 +123,11 @@ def sanitize_player_display_payload(mode: str, payload: Any) -> Dict[str, Any]:
         out['party'] = _safe_list(payload['party'], PARTY)
     if mode == 'npc-grid' and isinstance(payload.get('npcs'), list):
         out['npcs'] = _safe_list(payload['npcs'], NPC)
+    if mode == 'shop' and isinstance(payload.get('items'), list):
+        out['items'] = _safe_list(
+            [item for item in payload['items'] if isinstance(item, dict) and _visible_token(item)],
+            SHOP_ITEM,
+        )
     if mode == 'combat' and isinstance(payload.get('tokens'), list):
         out['tokens'] = [
             _token_payload(item) for item in payload['tokens']

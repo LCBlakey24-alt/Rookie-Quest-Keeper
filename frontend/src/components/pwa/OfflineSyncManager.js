@@ -91,10 +91,19 @@ export default function OfflineSyncManager() {
       // Closing the shared combat display is independent of character conflicts
       // or a loot retry. The fight is over even if one record still needs work.
       for (const record of queuedClosures) {
+        const displayRevision = Number(record.displayState?.sequence);
+        if (!Number.isSafeInteger(displayRevision) || displayRevision <= 0) {
+          // An older queue record had no creation-time revision. Publishing
+          // a newly timestamped "combat ended" state here could overwrite a
+          // newer battle. Do not clear newer initiative submissions either.
+          await removeOfflineCombatClose(record.key);
+          toast.warning('Legacy combat display cleanup skipped to protect the current battle');
+          continue;
+        }
         try {
           await apiClient.put(
             `/campaigns/${record.campaignId}/display-state`,
-            record.displayState || { mode: 'blank', payload: { title: 'Combat ended', subtitle: 'Waiting for the GM' } },
+            record.displayState,
             { timeout: 15000 }
           );
           await apiClient.delete(`/campaigns/${record.campaignId}/combat-initiative/submissions`, { timeout: 15000 });
@@ -103,6 +112,14 @@ export default function OfflineSyncManager() {
           toast.success('Offline combat cleanup synced');
         } catch (error) {
           if (!error?.response || error?.response?.status === 401) break;
+          if (error.response.status === 409) {
+            // A newer combat/scene already owns the display. This old
+            // closure is obsolete: never delete the new fight's initiative,
+            // and don't retry it indefinitely on each reconnect.
+            await removeOfflineCombatClose(record.key);
+            toast.info('Skipped outdated combat display cleanup; a newer display is active');
+            continue;
+          }
           await markOfflineCombatCloseError(record.key, error?.response?.data?.detail || error?.message || 'Combat cleanup failed');
         }
       }

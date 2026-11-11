@@ -36,6 +36,8 @@ function MapCanvas({
   onFogChange,
   showGrid,
   gridSize = GRID_SIZE,
+  zoom: controlledZoom,
+  onZoomChange,
   isPlayerView = false
 }) {
   const canvasRef = useRef(null);
@@ -44,7 +46,11 @@ function MapCanvas({
   const [isDrawing, setIsDrawing] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [lastPanPos, setLastPanPos] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [localZoom, setLocalZoom] = useState(1);
+  const hasControlledZoom = controlledZoom !== undefined && controlledZoom !== null
+    && Number.isFinite(Number(controlledZoom));
+  const zoom = hasControlledZoom
+    ? Math.max(0.25, Math.min(3, Number(controlledZoom))) : localZoom;
   const [draggingToken, setDraggingToken] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
 
@@ -362,7 +368,11 @@ function MapCanvas({
   const handleWheel = (e) => {
     e.preventDefault();
     const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoom(prev => Math.max(0.25, Math.min(3, prev * zoomFactor)));
+    const next = Math.max(0.25, Math.min(3, zoom * zoomFactor));
+    // External battle toolbar and scroll-wheel zoom must agree. Other map
+    // editors keep their local wheel behaviour without needing new props.
+    if (hasControlledZoom && onZoomChange) onZoomChange(next);
+    else setLocalZoom(next);
   };
 
   // Apply the current tool

@@ -42,20 +42,20 @@ describe('Keeper simplified navigation', () => {
     expect(html).toContain('Homebrew');
   });
 
-  test.each([320, 390, 719])('keeps four main tabs plus More for ordinary players at %ipx', async (width) => {
+  test.each([320, 390, 719])('keeps five primary tabs and a top-bar tools menu for ordinary players at %ipx', async (width) => {
     window.innerWidth = width;
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
     const nav = screen.getByRole('navigation', { name: 'Main app sections' });
     expect(within(nav).getAllByRole('link').map(link => link.textContent)).toEqual([
-      'Dashboard', 'Characters', 'Campaigns', 'Homebrew',
+      'Home', 'Characters', 'Campaigns', 'Homebrew', 'Community',
     ]);
     expect(within(nav).getByRole('link', { name: 'Campaigns' })).toHaveAttribute('aria-current', 'page');
     expect(within(nav).queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
     const moreTrigger = screen.getByRole('button', { name: 'Open more tools' });
     fireEvent.click(moreTrigger);
     const more = screen.getByRole('menu', { name: 'More app tools' });
-    expect(within(more).getByRole('menuitem', { name: 'Settings' })).toHaveAttribute('href', '/account');
-    expect(within(more).getByRole('menuitem', { name: 'Uploads' })).toHaveAttribute('href', '/uploads');
+    expect(within(more).getByRole('menuitem', { name: 'Account settings' })).toHaveAttribute('href', '/account');
+    expect(within(more).getByRole('menuitem', { name: 'Legacy uploads' })).toHaveAttribute('href', '/uploads');
     expect(within(more).queryByRole('menuitem', { name: 'Admin' })).not.toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
@@ -73,38 +73,38 @@ describe('Keeper simplified navigation', () => {
     mockPathname = '/account';
     window.innerWidth = 390;
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
-    const trigger = screen.getByRole('button', { name: 'Open more tools, current section Settings' });
+    const trigger = screen.getByRole('button', { name: 'Open more tools, current section Account settings' });
     fireEvent.click(trigger);
-    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
+    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Account settings' })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('shows Admin as fifth mobile tab only after the backend grants access', async () => {
+  test('keeps the five primary mobile tabs and exposes Admin in More only after backend approval', async () => {
     window.innerWidth = 390;
     apiClient.get.mockResolvedValue({ data: { is_admin: true } });
     await act(async () => { render(<AppShell><main>Admin tools</main></AppShell>); });
     const nav = screen.getByRole('navigation', { name: 'Main app sections' });
     await waitFor(() => expect(within(nav).getAllByRole('link')).toHaveLength(5));
     expect(within(nav).getAllByRole('link').map(link => link.textContent)).toEqual([
-      'Dashboard', 'Characters', 'Campaigns', 'Homebrew', 'Admin',
+      'Home', 'Characters', 'Campaigns', 'Homebrew', 'Community',
     ]);
-    expect(within(nav).getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin');
+    expect(within(nav).queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
     const more = screen.getByRole('button', { name: 'Open more tools' });
     expect(more.closest('.rqk-app-topbar')).toBeInTheDocument();
     fireEvent.click(more);
-    expect(screen.getByRole('menu', { name: 'More app tools' })).toBeInTheDocument();
+    expect(within(screen.getByRole('menu', { name: 'More app tools' })).getByRole('menuitem', { name: 'Admin' })).toHaveAttribute('href', '/admin');
   });
 
-  test.each([720, 1180, 1440])('retains primary and secondary destinations on larger screens at %ipx', async (width) => {
+  test.each([720, 1180, 1440])('keeps the approved five primary destinations on larger screens at %ipx', async (width) => {
     window.innerWidth = width;
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
     const nav = screen.getByRole('navigation', { name: 'Main app sections' });
-    expect(within(nav).getAllByRole('link')).toHaveLength(6);
+    expect(within(nav).getAllByRole('link')).toHaveLength(5);
     expect(within(nav).getByRole('link', { name: 'Homebrew' })).toHaveAttribute('href', '/homebrew');
     expect(screen.getByRole('link', { name: 'Rookie Quest Keeper dashboard' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ask Rook' })).toBeInTheDocument();
   });
 
-  test('closes More on resize and preserves four destinations', async () => {
+  test('closes More on resize and preserves five primary destinations', async () => {
     window.innerWidth = 390;
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
     fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
@@ -116,5 +116,53 @@ describe('Keeper simplified navigation', () => {
     window.innerWidth = 390;
     fireEvent(window, new Event('resize'));
     expect(screen.getByRole('button', { name: 'Open more tools' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  describe('phone navigation polish', () => {
+    test('the More panel takes focus when it opens and a tap outside closes it', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
+      const more = screen.getByRole('menu', { name: 'More app tools' });
+      expect(within(more).getAllByRole('menuitem')[0]).toHaveFocus();
+      fireEvent.click(screen.getByTestId('mobile-more-backdrop'));
+      expect(screen.queryByRole('menu', { name: 'More app tools' })).not.toBeInTheDocument();
+    });
+
+    test('the veil is not a control: keyboard users close with Escape or the close button', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
+      const veil = screen.getByTestId('mobile-more-backdrop');
+      expect(veil.tagName).toBe('DIV');
+      expect(veil).toHaveAttribute('aria-hidden', 'true');
+      fireEvent.click(screen.getByRole('button', { name: 'Close more tools' }));
+      expect(screen.queryByRole('menu', { name: 'More app tools' })).not.toBeInTheDocument();
+    });
+
+    test('phones show the brand mark linking home beside the section title', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      expect(screen.getByRole('link', { name: 'Rookie Quest Keeper home' })).toHaveAttribute('href', '/home');
+    });
+
+    test('larger screens keep their own header without the phone brand mark', async () => {
+      window.innerWidth = 1280;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      expect(screen.queryByRole('link', { name: 'Rookie Quest Keeper home' })).not.toBeInTheDocument();
+    });
+
+    test('every tab carries the current-tab indicator, hidden from assistive tech', async () => {
+      window.innerWidth = 390;
+      await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
+      const nav = screen.getByRole('navigation', { name: 'Main app sections' });
+      within(nav).getAllByRole('link').forEach((link) => {
+        const indicator = link.querySelector('.rqk-app-rail-indicator');
+        expect(indicator).not.toBeNull();
+        expect(indicator).toHaveAttribute('aria-hidden', 'true');
+      });
+      // Accessible names are unchanged by the indicator.
+      expect(within(nav).getByRole('link', { name: 'Campaigns' })).toHaveAttribute('aria-current', 'page');
+    });
   });
 });

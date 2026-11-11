@@ -78,6 +78,8 @@ export function createEmptyDraft(campaignId, encounterId, ownerId = '') {
     extraNpcIds: [],
     quickCombatants: [],
     quickDraft: { ...EMPTY_QUICK_DRAFT },
+    // null uses the saved encounter map; '' explicitly launches without one.
+    battleMapId: null,
     savedAt: 0,
   };
 }
@@ -154,6 +156,7 @@ export function draftHasUnsavedWork(draft) {
     || (draft.includedCompanionIds || []).length
     || (draft.extraNpcIds || []).length
     || (draft.quickCombatants || []).length
+    || draft.battleMapId !== null && draft.battleMapId !== undefined
     || typing,
   );
 }

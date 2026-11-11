@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, Monitor, RefreshCw, ScrollText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, currentDisplayAccount } from '@/lib/liveDisplayBus';
+import { getSessionCloseAttempt, markSessionCloseArchived, clearSessionCloseAttempt } from '@/lib/endSessionAttempt';
+import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
+import { rollActorDisplayName } from '@/lib/rollActorLabels';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -52,8 +55,8 @@ function buildRecapNote(summary, storyFocus, options) {
   const session = summary?.session || {};
   const awards = Array.isArray(session.awards) ? session.awards : [];
   const actors = Array.isArray(session.actors) ? session.actors : [];
-  const awardLines = awards.length ? awards.map(award => `- ${award.title}: ${award.name} (${award.value})`).join('\n') : '- No awards generated.';
-  const actorLines = actors.length ? actors.slice(0, 8).map(actor => `- ${actor.name}: ${actor.rolls} rolls, ${actor.nat20s} Nat 20s, ${actor.nat1s} Nat 1s`).join('\n') : '- No player rolls captured.';
+  const awardLines = awards.length ? awards.map(award => `- ${award.title}: ${rollActorDisplayName(award, actors)} (${award.value})`).join('\n') : '- No awards generated.';
+  const actorLines = actors.length ? actors.slice(0, 8).map(actor => `- ${rollActorDisplayName(actor, actors)}: ${actor.rolls} rolls, ${actor.nat20s} Nat 20s, ${actor.nat1s} Nat 1s`).join('\n') : '- No player rolls captured.';
   const reachedLines = storyFocus?.reached?.length ? storyFocus.reached.map(point => `- ${point.title}`).join('\n') : '- No checkpoints marked reached.';
   const skippedLines = storyFocus?.skipped?.length ? storyFocus.skipped.map(point => `- ${point.title}`).join('\n') : '- No checkpoints skipped.';
   const upcomingLines = storyFocus?.upcoming?.length ? storyFocus.upcoming.slice(0, 5).map(point => `- ${point.title}`).join('\n') : '- No unresolved checkpoints.';
@@ -98,6 +101,12 @@ function buildRecapNote(summary, storyFocus, options) {
 
 export default function EndSessionReviewModal({ campaignId, campaignName = 'Campaign', onClose }) {
   const [summary, setSummary] = useState(null);
+  const closeAttemptRef = useRef(null);
+  const storyWrapAttemptRef = useRef(null);
+  const [storyWrapWarning, setStoryWrapWarning] = useState('');
+  const [previewError, setPreviewError] = useState('');
+  const [completedSummary, setCompletedSummary] = useState(null);
+  const [recapNoteWarning, setRecapNoteWarning] = useState('');
   const [storyArcs, setStoryArcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -108,6 +117,8 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
 
   const loadPreview = async () => {
     setLoading(true);
+    setPreviewError('');
+    setSummary(null);
     try {
       const [rollResponse, arcsResponse] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}/roll-events/summary`),
@@ -116,15 +127,26 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
       setSummary(rollResponse.data);
       setStoryArcs(normalizeArray(arcsResponse.data, 'story_arcs'));
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not preview session stats');
-      setSummary({ campaignName, session: { playerRolls: 0, gmRolls: 0, totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [], awards: [] }, allTime: {} });
+      const message = error?.response?.data?.detail || 'Could not preview session stats';
+      setPreviewError(message);
+      toast.error(message);
+      // A failed GET is not an empty session. Keep End Session disabled until a real preview is loaded.
+      setSummary(null);
       setStoryArcs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { loadPreview(); }, [campaignId]);
+  useEffect(() => {
+    // Campaign switches must never reuse the previous campaign's finalized summary.
+    setCompletedSummary(null);
+    closeAttemptRef.current = null;
+    storyWrapAttemptRef.current = null;
+    setStoryWrapWarning('');
+    setRecapNoteWarning('');
+    loadPreview();
+  }, [campaignId]);
 
   const storyFocus = useMemo(() => findStoryFocus(storyArcs), [storyArcs]);
   const session = summary?.session || {};
@@ -142,34 +164,106 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
     return showAllTime ? summary : { ...summary, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
   }, [summary, showAllTime]);
 
-  const applyStoryWrapUp = async () => {
-    if (!storyFocus.arc || !storyFocus.chapter || (!markChapterPlayed && !prepNextChapter)) return;
-    const nextChapters = asList(storyFocus.arc.chapters).map(chapter => {
-      if (chapter.id === storyFocus.chapter.id && (markChapterPlayed || prepNextChapter)) return { ...chapter, status: 'played' };
-      if (prepNextChapter && storyFocus.nextChapter && chapter.id === storyFocus.nextChapter.id) return { ...chapter, status: 'prepped' };
+  const prepareStoryWrapUp = () => {
+    // Capture the exact chapter selected at close time. A retry must not
+    // silently apply to the next chapter after the first PUT succeeds.
+    const story = storyFocus;
+    const choices = { markChapterPlayed, prepNextChapter };
+    if (!story.arc || !story.chapter || (!markChapterPlayed && !prepNextChapter)) {
+      return { story, choices, update: null, storySaved: true, noteAttempted: false };
+    }
+    const chapters = asList(story.arc.chapters).map(chapter => {
+      if (chapter.id === story.chapter.id) return { ...chapter, status: 'played' };
+      if (prepNextChapter && story.nextChapter && chapter.id === story.nextChapter.id) return { ...chapter, status: 'prepped' };
       return chapter;
     });
-    const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${storyFocus.arc.id}`, { chapters: nextChapters });
-    setStoryArcs(prev => prev.map(arc => arc.id === response.data.id ? response.data : arc));
+    return {
+      story, choices, storySaved: false, noteAttempted: false,
+      update: { arcId: story.arc.id, chapters },
+    };
   };
 
   const sendEndSessionShow = async () => {
+    if (sending || !summary) return;
     setSending(true);
+    let archivedSummary = completedSummary;
     try {
-      const closedChapterStory = storyFocus;
-      await applyStoryWrapUp();
-      const response = await apiClient.post(`/campaigns/${campaignId}/roll-events/end-session`);
-      const finalSummary = showAllTime ? response.data : { ...response.data, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
-      publishCampaignDisplayState(campaignId, createDisplayState('end-session-stats', finalSummary));
-      if (saveRecapNote) {
-        await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(response.data, closedChapterStory, { markChapterPlayed, prepNextChapter }) }).catch(() => null);
+      if (!archivedSummary) {
+        // Dice archival is the commit point. Never mutate story chapters
+        // before the archival endpoint has acknowledged the saved recap.
+        // Reuse the identical close id if a network response was lost after
+        // server-side archiving; the backend returns the original recap.
+        const account = currentDisplayAccount();
+        const closeId = getSessionCloseAttempt(campaignId, account, playerRollCount + gmRollCount);
+        closeAttemptRef.current = { account, id: closeId };
+        const response = await apiClient.post(
+          `/campaigns/${campaignId}/roll-events/end-session`,
+          { session_close_id: closeId },
+        );
+        archivedSummary = response.data;
+        markSessionCloseArchived(campaignId, account, closeId);
+        // A successful archive must be retained across a failed player-screen publish.
+        // Retrying the display must NEVER call end-session a second time.
+        setCompletedSummary(archivedSummary);
+        setSummary(archivedSummary);
       }
-      const rolls = response.data?.session?.playerRolls ?? response.data?.session?.totalRolls ?? 0;
-      if (rolls > 0) toast.success('Dice-only end session show sent to player display', { description: 'Roll stats were archived. GM-only story wrap-up was applied separately.' });
-      else toast.info('Dice-only end session show sent', { description: 'GM-only story wrap-up was applied. No player rolls were captured.' });
+
+      if (!storyWrapAttemptRef.current) {
+        storyWrapAttemptRef.current = prepareStoryWrapUp();
+      }
+      const wrap = storyWrapAttemptRef.current;
+      if (!wrap.storySaved && wrap.update) {
+        try {
+          const response = await apiClient.put(
+            `/campaigns/${campaignId}/story-arcs/${wrap.update.arcId}`,
+            { chapters: wrap.update.chapters },
+          );
+          wrap.storySaved = true;
+          setStoryArcs(prev => prev.map(arc => arc.id === response.data.id ? response.data : arc));
+          setStoryWrapWarning('');
+        } catch {
+          const warning = 'Rolls are archived, but the GM story chapter could not be saved. Retry GM Story Save; dice will not be archived again.';
+          setStoryWrapWarning(warning);
+          toast.warning(warning);
+          return;
+        }
+      }
+      // An optional note is best-effort and MUST NOT be recreated on a
+      // display-only retry. It is attempted only after story persistence.
+      if (saveRecapNote && !wrap.noteAttempted) {
+        wrap.noteAttempted = true;
+        try {
+          await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, {
+            content: buildRecapNote(archivedSummary, wrap.story, wrap.choices),
+          });
+        } catch {
+          const warning = 'Rolls were archived, but the optional GM recap note could not be saved.';
+          setRecapNoteWarning(warning);
+          toast.warning(warning);
+        }
+      }
+
+      const finalSummary = showAllTime ? archivedSummary : { ...archivedSummary, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
+      const delivery = await publishCampaignDisplayStateWithStatus(
+        campaignId, createDisplayState('end-session-stats', finalSummary)
+      );
+      if (!delivery.remoteSynced) {
+        toast.warning('Rolls archived — player display not synced', {
+          description: 'The player display server did not confirm the update. Retry Player Display; your rolls will NOT be archived again.',
+        });
+        return;
+      }
+      if (closeAttemptRef.current) {
+        clearSessionCloseAttempt(campaignId, closeAttemptRef.current.account, closeAttemptRef.current.id);
+      }
+      toast.success('Session recap accepted by the display server', {
+        description: 'Player-screen delivery is not yet acknowledged. Check the player display to confirm it appeared.',
+      });
       onClose?.();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not end session');
+      toast.error(archivedSummary
+        ? 'Rolls were archived, but the player screen could not be updated. Retry Player Display.'
+        : (error?.response?.data?.detail || 'Could not end session'));
     } finally {
       setSending(false);
     }
@@ -189,6 +283,12 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
 
         {loading ? (
           <div style={loadingStyle}>Loading session stats and GM story progress…</div>
+        ) : previewError && !summary ? (
+          <div role="alert" style={warningStyle}>
+            <strong>Session statistics could not be loaded</strong>
+            <p>{previewError}. No roll-archiving action has been started.</p>
+            <button type="button" onClick={loadPreview} style={secondaryButtonStyle}>Retry Preview</button>
+          </div>
         ) : (
           <>
             <section style={metricGridStyle}>
@@ -233,8 +333,8 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
                 </div>
                 <div style={panelStyle}>
                   <h3 style={sectionTitleStyle}>GM story options</h3>
-                  <label style={checkRowStyle}><input type="checkbox" checked={markChapterPlayed} onChange={event => setMarkChapterPlayed(event.target.checked)} disabled={!storyFocus.chapter || prepNextChapter} /> Mark current chapter played</label>
-                  <label style={checkRowStyle}><input type="checkbox" checked={prepNextChapter} onChange={event => { setPrepNextChapter(event.target.checked); if (event.target.checked) setMarkChapterPlayed(true); }} disabled={!storyFocus.nextChapter} /> Mark current chapter played and prep next chapter</label>
+                  <label style={checkRowStyle}><input type="checkbox" checked={markChapterPlayed} onChange={event => setMarkChapterPlayed(event.target.checked)} disabled={Boolean(completedSummary) || !storyFocus.chapter || prepNextChapter} /> Mark current chapter played</label>
+                  <label style={checkRowStyle}><input type="checkbox" checked={prepNextChapter} onChange={event => { setPrepNextChapter(event.target.checked); if (event.target.checked) setMarkChapterPlayed(true); }} disabled={Boolean(completedSummary) || !storyFocus.nextChapter} /> Mark current chapter played and prep next chapter</label>
                   {!storyFocus.nextChapter && <p style={mutedStyle}>No next chapter is available yet. Add one in Story Arcs to prep it from here.</p>}
                 </div>
               </div>
@@ -243,26 +343,33 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
             <section style={splitStyle}>
               <div style={panelStyle}>
                 <h3 style={sectionTitleStyle}>Awards preview</h3>
-                {awards.length ? awards.slice(0, 4).map(award => <PreviewRow key={`${award.title}-${award.name}`} title={award.title} text={`${award.name} · ${award.value}`} />) : <p style={mutedStyle}>No awards yet.</p>}
+                {awards.length ? awards.slice(0, 4).map(award => <PreviewRow key={`${award.title}-${award.character_id || award.name}`} title={award.title} text={`${rollActorDisplayName(award, actors)} · ${award.value}`} />) : <p style={mutedStyle}>No awards yet.</p>}
               </div>
               <div style={panelStyle}>
                 <h3 style={sectionTitleStyle}>Player board preview</h3>
-                {actors.length ? actors.slice(0, 5).map(actor => <PreviewRow key={actor.name} title={actor.name} text={`${actor.rolls} rolls · ${actor.nat20s} Nat 20s · ${actor.nat1s} Nat 1s`} />) : <p style={mutedStyle}>No player rolls captured.</p>}
+                {actors.length ? actors.slice(0, 5).map((actor, index) => <PreviewRow key={actor.character_id || `${actor.name}-${index}`} title={rollActorDisplayName(actor, actors)} text={`${actor.rolls} rolls · ${actor.nat20s} Nat 20s · ${actor.nat1s} Nat 1s`} />) : <p style={mutedStyle}>No player rolls captured.</p>}
               </div>
             </section>
 
             <section style={optionsStyle}>
               <label style={checkRowStyle}><input type="checkbox" checked={showAllTime} onChange={event => setShowAllTime(event.target.checked)} /> Show all-time campaign dice stats in the player presentation</label>
-              <label style={checkRowStyle}><input type="checkbox" checked={saveRecapNote} onChange={event => setSaveRecapNote(event.target.checked)} /> Save a GM-only roll and story recap note to Session Notes</label>
+              <label style={checkRowStyle}><input type="checkbox" checked={saveRecapNote} onChange={event => setSaveRecapNote(event.target.checked)} disabled={Boolean(completedSummary)} /> Save a GM-only roll and story recap note to Session Notes</label>
               <p style={mutedStyle}>The player display receives dice and roll stats only. Story wrap-up choices only affect GM campaign tracking.</p>
             </section>
           </>
         )}
 
+        {completedSummary && (
+          <div role="status" style={warningStyle}>
+            Session rolls have already been archived. Story wrap-up and GM-note options are locked to their saved choices. If the player screen has not synced, use Retry Player Display below. The archive will not run again.
+          </div>
+        )}
+        {storyWrapWarning && <div role="alert" style={warningStyle}>{storyWrapWarning}</div>}
+        {recapNoteWarning && <div role="alert" style={warningStyle}>{recapNoteWarning}</div>}
         <footer style={actionsStyle}>
-          <button type="button" onClick={loadPreview} disabled={loading || sending} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh Preview</button>
+          <button type="button" onClick={loadPreview} disabled={loading || sending || Boolean(completedSummary)} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh Preview</button>
           <button type="button" onClick={onClose} disabled={sending} style={secondaryButtonStyle}>Cancel</button>
-          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : 'Send Dice-Only Player Show'}</button>
+          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : storyWrapWarning ? 'Retry GM Story Save' : completedSummary ? 'Retry Player Display' : 'Send Dice-Only Player Show'}</button>
         </footer>
       </section>
     </div>

@@ -175,6 +175,13 @@ class GodUpdate(BaseModel):
     alignment: Optional[str] = None
     notes: Optional[str] = None
 
+class ShopInventoryItem(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    price: str = Field(min_length=1, max_length=60)
+    quantity: Optional[int] = Field(default=None, ge=0, le=999999)
+    hidden: bool = False  # GM-only stock must survive place edits and serialization
+
+
 class PlaceOfInterest(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -183,6 +190,9 @@ class PlaceOfInterest(BaseModel):
     owner: str = ""  # NPC who runs the place
     services: str = ""  # What services/items they offer
     notes: str = ""
+    image_url: str = ""
+    images: List[str] = Field(default_factory=list, max_length=12)
+    shop_inventory: List[ShopInventoryItem] = Field(default_factory=list, max_length=100)
 
 class PlaceOfInterestCreate(BaseModel):
     name: str
@@ -191,6 +201,9 @@ class PlaceOfInterestCreate(BaseModel):
     owner: str = ""
     services: str = ""
     notes: str = ""
+    image_url: str = ""
+    images: List[str] = Field(default_factory=list, max_length=12)
+    shop_inventory: List[ShopInventoryItem] = Field(default_factory=list, max_length=100)
 
 class PlaceOfInterestUpdate(BaseModel):
     name: Optional[str] = None
@@ -199,6 +212,9 @@ class PlaceOfInterestUpdate(BaseModel):
     owner: Optional[str] = None
     services: Optional[str] = None
     notes: Optional[str] = None
+    image_url: Optional[str] = None
+    images: Optional[List[str]] = Field(default=None, max_length=12)
+    shop_inventory: Optional[List[ShopInventoryItem]] = Field(default=None, max_length=100)
 
 class Location(BaseModel):
     model_config = ConfigDict(extra="ignore")

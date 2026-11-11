@@ -204,15 +204,21 @@ for (const size of appSizes) {
     await expect(page.getByText(/No preparation needed/i)).toBeVisible();
     await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
 
-    // Reset review (#764) sits before Start in reading order; both must be
-    // reachable by keyboard and large enough to tap.
+    // The battle-map choice belongs in keyboard order between encounter
+    // selection and the Reset/Start controls. Preserve 44px tap targets.
+    const battleMap = launcher.getByRole('combobox', { name: 'Battle map for this encounter' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
-    const [choiceBounds, resetBounds, launchBounds] = await Promise.all([choice.boundingBox(), reset.boundingBox(), launch.boundingBox()]);
+    const [choiceBounds, mapBounds, resetBounds, launchBounds] = await Promise.all([
+      choice.boundingBox(), battleMap.boundingBox(), reset.boundingBox(), launch.boundingBox(),
+    ]);
     expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
+    expect(mapBounds?.height).toBeGreaterThanOrEqual(44);
     expect(resetBounds?.height).toBeGreaterThanOrEqual(44);
     expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
     await choice.focus();
     await expect(choice).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(battleMap).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(reset).toBeFocused();
     await page.keyboard.press('Tab');
@@ -226,101 +232,90 @@ for (const size of appSizes) {
   });
 }
 
-// Regression for #767: the global Offline launcher must remain usable but
-// must not steal clicks from the Live Play rail, mobile drawer or Start combat.
-// Use actual Chromium hit-testing, not assertions about CSS source text.
+// No fixed Offline pill may cover the global nav, GM rail or encounter controls.
+// The campaign pack manager remains accessible only after a deliberate action.
 for (const size of [
   { label: 'phone', width: 390, height: 844 },
-  { label: 'small phone', width: 320, height: 780 },
   { label: 'tablet', width: 768, height: 1024 },
-  { label: 'landscape tablet', width: 1024, height: 768 },
-  { label: 'rail breakpoint', width: 1180, height: 820 },
   { label: 'desktop', width: 1440, height: 900 },
 ]) {
-  test(`Offline launcher does not cover GM Live Play controls at ${size.label} (${size.width}px)`, async ({ page }) => {
+  test('GM Live has no floating Offline tab at ' + size.label, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
     await page.goto('/gm-screen/preview-campaign?demo=1');
     await expect(page.getByTestId('live-session-grid')).toBeVisible();
+    await expect(page.locator('.rqk-offline-launcher')).toHaveCount(0);
+    await expect(page.locator('.rqk-offline-card')).toHaveCount(0);
+    await assertFitsViewport(page, size.width);
+  });
+}
 
-    const offline = page.locator('.rqk-offline-launcher');
-    const control = page.locator('.rqk-offline-control');
-    await expect(offline).toBeVisible();
-    // The existing phone layout deliberately docks the pill at the *right*
-    // edge. Only tablet and desktop use left offsets to clear the tool rail.
-    const position = await control.evaluate(element => {
-      const rect = element.getBoundingClientRect();
-      return {
-        left: rect.left, right: rect.right,
-        computedLeft: Number.parseFloat(getComputedStyle(element).left),
-      };
-    });
-    if (size.width < 720) {
-      expect(position.left).toBeGreaterThanOrEqual(0);
-      expect(position.right).toBeLessThanOrEqual(size.width + 2);
-    } else if (size.width <= 1180) {
-      expect(position.computedLeft).toBeGreaterThanOrEqual(88);
+test('GM More opens offline-copy manager and can close it without a floating launcher', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/campaign/preview-campaign?demo=1');
+  await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+  await expect(page.locator('.rqk-offline-launcher')).toHaveCount(0);
+  // The PWA manager discovers the route using a light 600ms observer.
+  await page.waitForTimeout(700);
+  await page.locator('.campaign-dashboard-group-row').getByRole('button', { name: 'More', exact: true }).click();
+  await page.getByTestId('gm-offline-copy-action').click();
+  await expect(page.getByRole('region', { name: 'Offline campaign' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Download Campaign|Refresh Copy/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Close offline campaign panel' }).click();
+  await expect(page.locator('.rqk-offline-card')).toHaveCount(0);
+  await expect(page.locator('.rqk-offline-launcher')).toHaveCount(0);
+});
+
+test('players can still access their offline copy from their campaign details', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await avoidThirdPartyRequests(page);
+  await page.goto('/player/campaign/preview-campaign?demo=1');
+  const saveOffline = page.getByRole('button', { name: /Save for offline play/ });
+  await expect(saveOffline).toBeVisible();
+  await page.waitForTimeout(700);
+  await saveOffline.click();
+  await expect(page.getByRole('region', { name: 'Offline campaign' })).toBeVisible();
+  await expect(page.getByText('Offline Player Pack')).toBeVisible();
+  await page.getByRole('button', { name: 'Close offline campaign panel' }).click();
+});
+
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test('dice opens from integrated navigation without a floating launcher on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+    const floating = page.getByTestId('dice-roller-toggle');
+    await expect(floating).toBeHidden();
+    if (size.width >= 720) {
+      const rail = page.getByRole('complementary', { name: 'App navigation' });
+      const trigger = rail.getByRole('button', { name: 'Open dice roller' });
+      await expect(trigger).toBeVisible();
+      const [triggerBox, railBox] = await Promise.all([trigger.boundingBox(), rail.boundingBox()]);
+      expect(triggerBox && railBox).toBeTruthy();
+      expect((triggerBox?.x || 0) + (triggerBox?.width || 0), 'Dice action must fit inside the real app rail')
+        .toBeLessThanOrEqual((railBox?.x || 0) + (railBox?.width || 0) + 2);
+      await trigger.click();
     } else {
-      expect(position.computedLeft).toBeGreaterThanOrEqual(256);
+      await page.getByRole('button', { name: 'Open more tools' }).click();
+      await page.getByRole('menuitem', { name: 'Dice roller' }).click();
     }
-
-    // The floating control must still work, not just move offscreen.
-    await offline.click();
-    const closeOffline = page.getByRole('button', { name: 'Close offline campaign panel' });
-    await expect(closeOffline).toBeVisible();
-    await closeOffline.click();
-    await expect(offline).toBeVisible();
-
-    if (size.width < 720) {
-      // A modal drawer takes priority over the floating button.
-      const menu = page.getByTestId('live-tool-menu');
-      await menu.click();
-      const drawer = page.getByTestId('live-tool-rail');
-      await expect(drawer).toBeVisible();
-      await expect(offline).toBeHidden();
-      await drawer.getByTestId('live-tool-combat').click();
-      await expect(drawer).toHaveCount(0);
-      await expect(offline).toBeVisible();
-
-      const start = page.getByTestId('live-encounter-start');
-      await expect(start).toBeVisible();
-      await start.scrollIntoViewIfNeeded();
-      const intercepted = await start.evaluate(button => {
-        const r = button.getBoundingClientRect();
-        const launcher = document.querySelector('.rqk-offline-launcher');
-        return [0.15, 0.5, 0.85].some(fraction => {
-          const hit = document.elementFromPoint(r.left + r.width * fraction, r.top + r.height / 2);
-          return Boolean(launcher && hit && launcher.contains(hit));
-        });
-      });
-      expect(intercepted, 'Offline launcher intercepted the Start Combat button').toBe(false);
-    } else {
-      const rail = page.getByTestId('live-tool-rail');
-      await expect(rail).toBeVisible();
-      for (const category of ['players','npcs','beasts','world','rules','items','session','tools']) {
-        const toggle = rail.getByTestId(`live-category-${category}`);
-        if (await toggle.getAttribute('aria-expanded') === 'false') await toggle.click();
-      }
-      // Move each rail action into view. This covers the previously blocked
-      // Session planner at 1180px and exercises actual overlay hit targets.
-      const buttons = rail.locator('.rqk-tool-rail__item, .rqk-tool-rail__group-button');
-      const total = await buttons.count();
-      expect(total).toBeGreaterThan(16);
-      for (let i = 0; i < total; i += 1) {
-        const button = buttons.nth(i);
-        await button.scrollIntoViewIfNeeded();
-        const obscured = await button.evaluate(element => {
-          const r = element.getBoundingClientRect();
-          const launcher = document.querySelector('.rqk-offline-launcher');
-          const x = r.left + r.width / 2;
-          const y = r.top + r.height / 2;
-          if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return false;
-          const hit = document.elementFromPoint(x, y);
-          return Boolean(launcher && hit && launcher.contains(hit));
-        });
-        expect(obscured, `Offline launcher intercepted rail button ${i}`).toBe(false);
-      }
+    await expect(page.getByTestId('dice-roller-panel')).toBeVisible();
+    const panel = await page.getByTestId('dice-roller-panel').boundingBox();
+    expect(panel).not.toBeNull();
+    expect((panel?.x || 0) + (panel?.width || 0)).toBeLessThanOrEqual(size.width + 1);
+    // The desktop tray leaves a protected right-hand lane for Rook and
+    // feedback buttons, rather than covering those fixed launchers.
+    if (size.width >= 720) {
+      expect(size.width - ((panel?.x || 0) + (panel?.width || 0))).toBeGreaterThanOrEqual(100);
     }
+    await page.getByTestId('dice-roller-close').click();
+    await expect(page.getByTestId('dice-roller-panel')).toHaveCount(0);
+    await expect(floating).toBeHidden();
     await assertFitsViewport(page, size.width);
   });
 }
@@ -636,3 +631,125 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   await expect(frame).toHaveCSS('background-image', 'none');
   await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
 });
+
+
+// Browser regression for #779. These are real interactions against the built
+// frontend, but every /api request is answered by an in-memory fixture. The
+// test never sends writes to the hosted API or uses a real account.
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test('rapid HP and temporary HP taps persist through a slow server on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await page.addInitScript(token => {
+      localStorage.setItem('dm_token', token);
+      localStorage.setItem('dm_username', 'responsive-display-user');
+    }, syntheticDisplayToken);
+    await avoidThirdPartyRequests(page);
+
+    const characterId = 'browser-fixture-hp';
+    let stored = {
+      id: characterId, user_id: 'responsive-display-user',
+      name: 'Synthetic Hero', level: 3, character_class: 'Rogue',
+      race: 'Human', edition: '2014',
+      strength: 10, dexterity: 16, constitution: 12,
+      intelligence: 10, wisdom: 12, charisma: 10,
+      max_hit_points: 20, current_hit_points: 20,
+      temporary_hit_points: 0, armor_class: 14, hit_dice: '3d8',
+    };
+    const patches: Record<string, unknown>[] = [];
+    let completed = 0;
+    await page.route('**/api/**', async route => {
+      const request = route.request();
+      const url = new URL(request.url());
+      const path = url.pathname;
+      if (path === '/api/auth/me') {
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ username: 'responsive-display-user' }) });
+      }
+      if (path === '/api/characters/' + characterId && request.method() === 'GET') {
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(stored) });
+      }
+      if (path === '/api/characters/' + characterId && request.method() === 'PATCH') {
+        const changes = request.postDataJSON() as Record<string, unknown>;
+        // A deliberately slow API demonstrates that clicks remain usable
+        // while the character save queue serialises its server requests.
+        await new Promise(resolve => setTimeout(resolve, 750));
+        patches.push(changes);
+        stored = { ...stored, ...changes };
+        completed += 1;
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(stored) });
+      }
+      return route.fulfill({ status: 200, contentType: 'application/json', body: request.method() === 'GET' ? '[]' : '{}' });
+    });
+
+    await page.goto('/characters/' + characterId);
+    const hp = page.getByRole('meter', { name: 'Hit points remaining' });
+    const damage = page.getByRole('button', { name: 'Take 1 hit point of damage' });
+    const addTemp = page.getByRole('button', { name: 'Add 1 temporary hit point' });
+    const saveStatus = page.getByTestId('hp-save-status');
+    await expect(hp).toHaveAttribute('aria-valuenow', '20');
+    await expect(damage).toBeEnabled();
+
+    await damage.click();
+    await damage.click();
+    await damage.click();
+    // Every click counts now, before the 750ms server responses arrive.
+    await expect(hp).toHaveAttribute('aria-valuenow', '17');
+    await expect(saveStatus).toContainText('Saving');
+    await expect(damage).toBeEnabled();
+
+    await addTemp.click();
+    await addTemp.click();
+    await damage.click(); // consumes one pending temporary HP, not real HP
+    await expect(hp).toHaveAttribute('aria-valuenow', '17');
+    await expect(page.locator('.clean-sheet-combat-temp-pill')).toHaveText('Temp 1');
+
+    await expect.poll(() => completed, { timeout: 25_000 }).toBe(6);
+    await expect(saveStatus).toHaveText('');
+    expect(patches.filter(p => 'current_hit_points' in p).map(p => p.current_hit_points)).toEqual([19, 18, 17, 17]);
+    // Damage PATCHes also carry the current temp HP (zero for the first
+    // three damage taps); temp changes then produce 1, 2, and finally 1.
+    expect(patches.filter(p => 'temporary_hit_points' in p).map(p => p.temporary_hit_points)).toEqual([0, 0, 0, 1, 2, 1]);
+    expect(stored.current_hit_points).toBe(17);
+    expect(stored.temporary_hit_points).toBe(1);
+
+    await page.reload();
+    await expect(hp).toHaveAttribute('aria-valuenow', '17');
+    await expect(page.locator('.clean-sheet-combat-temp-pill')).toHaveText('Temp 1');
+    await assertFitsViewport(page, size.width);
+  });
+}
+
+
+// Reproduces the screenshot where the desktop campaign workspace is obscured
+// by the global icon-only rail. Uses the isolated read-only preview campaign.
+for (const size of [
+  { label: 'laptop', width: 1366, height: 768 },
+  { label: 'desktop', width: 1640, height: 900 },
+  { label: 'tablet', width: 1024, height: 768 },
+]) {
+  test('campaign workspace sidebar stays beside the app rail on ' + size.label, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+    const heading = page.getByRole('heading', { name: 'Preview campaign', exact: true });
+    await expect(heading).toBeVisible();
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+    const [rail, header, nav, main, title] = await Promise.all([
+      page.locator('.rqk-app-rail').boundingBox(),
+      page.locator('.campaign-dashboard-header').boundingBox(),
+      page.getByRole('navigation', { name: 'Campaign workspace' }).boundingBox(),
+      page.locator('.guild-command-main').boundingBox(),
+      heading.boundingBox(),
+    ]);
+    const railRight = (rail?.x || 0) + (rail?.width || 0);
+    const positions = JSON.stringify({ railRight, header, nav, main, title });
+    expect(rail && header && nav && main && title, 'All navigation layout surfaces must be visible').toBeTruthy();
+    expect((header?.x || 0) + 2, 'Campaign heading hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    expect((nav?.x || 0) + 2, 'Campaign tool menu hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    expect((main?.x || 0) + 2, 'Campaign contents hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    expect((title?.x || 0) + 2, 'Campaign title hidden behind global nav: ' + positions).toBeGreaterThanOrEqual(railRight);
+    await assertFitsViewport(page, size.width);
+  });
+}

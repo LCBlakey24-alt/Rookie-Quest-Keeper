@@ -19,6 +19,7 @@ import { installRookAiConsentGate } from "@/privacy/rookAiConsent";
 import { installAccountDeletionLocalCleanup } from "@/privacy/accountDeletionCleanup";
 import { installStaleAssetRecovery } from "@/utils/staleAssetRecovery";
 import { isLocalPreview } from '@/preview/previewMode';
+import { installQueuedRollSync } from '@/lib/sessionRollStats';
 
 // One final product-level visual authority. App Store usability fixes load first;
 // the three-mode design then owns palette and desktop/tablet/mobile geometry.
@@ -40,7 +41,10 @@ import "@/styles/appShellFocusRail.css";
 installSafeToasts();
 installQueuedCombatPartyOverlay();
 installStaleAssetRecovery();
-if (!isLocalPreview()) installRookAiConsentGate();
+if (!isLocalPreview()) {
+  installRookAiConsentGate();
+  installQueuedRollSync();
+}
 installAccountDeletionLocalCleanup();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

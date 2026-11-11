@@ -482,3 +482,19 @@
     pointer-events: none;
   }
 }
+
+/* Offline copies are managed only after an explicit campaign action.
+ * Put the opened manager beside the content, never on the permanent nav
+ * rail. The closed state renders no control or overlay at all. */
+#root .rqk-offline-control[data-open='true'] {
+  left: auto !important;
+  right: max(16px, env(safe-area-inset-right, 0px)) !important;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
+}
+@media (max-width: 719px) {
+  #root .rqk-offline-control[data-open='true'] {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

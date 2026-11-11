@@ -29,15 +29,22 @@ export function dexterityModifier(score = 10) {
 }
 
 export function getInitiativeModifier(source = {}) {
-  const explicit = source?.initiativeMod ?? source?.initiative_bonus ?? source?.initiative_mod;
-  if (explicit !== undefined && explicit !== null && explicit !== '') {
-    return normaliseInitiativeModifier(explicit);
-  }
-
+  // Older character models save initiative_bonus: 0 by default, even when
+  // the character has a nonzero DEX modifier. An explicit current modifier
+  // or a manually marked legacy zero is different and must be respected.
   const dexterity = source?.dexterity
     ?? source?.dex
     ?? source?.stats?.dexterity
     ?? source?.stats?.dex
     ?? 10;
+  const explicit = source?.initiativeMod ?? source?.initiative_mod;
+  if (explicit !== undefined && explicit !== null && explicit !== '') {
+    return normaliseInitiativeModifier(explicit);
+  }
+  const saved = source?.initiative_bonus;
+  const markedManual = source?.initiative_bonus_override === true || source?.initiative_is_manual === true;
+  if (saved !== undefined && saved !== null && saved !== '' && (Number(saved) !== 0 || markedManual)) {
+    return normaliseInitiativeModifier(saved);
+  }
   return dexterityModifier(dexterity);
 }

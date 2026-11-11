@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, FileText, Mail, Clock, Flag, RefreshCw } from 'lucide-react';
+import { ArrowLeft, BookOpen, FileText, Mail, Clock, Flag, RefreshCw, Download } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -177,6 +177,13 @@ export function PlayerCampaignWorkspace({ campaignId }) {
               {environment.background_image && <img className="player-campaign-image" src={environment.background_image} alt="Campaign setting" />}
               {campaign?.world_name && <h3>{campaign.world_name}</h3>}
               <p className="player-campaign-description">{campaign?.description || (loading ? 'Loading campaign details…' : 'Your GM’s shared campaign details will appear here.')}</p>
+              <button
+                type="button"
+                className="player-campaign-action"
+                onClick={() => window.dispatchEvent(new Event('rqk:open-offline-campaign'))}
+              >
+                <Download size={15} aria-hidden="true" /> Save for offline play
+              </button>
               <dl className="player-campaign-environment">{['weather', 'time_of_day', 'season', 'terrain', 'temperature'].filter(key => environment[key]).map(key => (
                 <div key={key}><dt>{key.replaceAll('_', ' ')}</dt><dd>{environment[key]}</dd></div>
               ))}</dl>

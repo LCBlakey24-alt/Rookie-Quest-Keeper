@@ -14,6 +14,20 @@ router = APIRouter()
 ALLOWED_DISPLAY_MODES = DISPLAY_MODES
 
 
+async def ensure_campaign_display_indexes(database=None):
+    """One campaign owns exactly one display-state document, even under
+    simultaneous first writes from multiple GM tabs.
+
+    This unique key is required for the atomic conditional upsert below:
+    without it, concurrent upserts can create separate campaign documents.
+    """
+    from pymongo import ASCENDING
+    target = database if database is not None else db
+    await target.campaign_display_states.create_index(
+        [('campaign_id', ASCENDING)], unique=True, background=True,
+    )
+
+
 def default_display_state(campaign_id: str) -> Dict[str, Any]:
     now = datetime.now(timezone.utc)
     sequence = int(now.timestamp() * 1000)
@@ -75,12 +89,54 @@ async def get_campaign_display_state(campaign_id: str, username: str = Depends(g
 async def update_campaign_display_state(campaign_id: str, display_state: Dict[str, Any], username: str = Depends(get_current_user)):
     """Persist and broadcast a GM-authored player-display state update."""
     await verify_campaign_ownership(campaign_id, username)
+    # A delayed legacy/PWA retry without its original revision must not be
+    # promoted to the server's *current* time: that would make an old
+    # battle-end/scene change newer than a live battle. Every writer in the
+    # maintained app uses createDisplayState(), which supplies a sequence.
+    raw_sequence = display_state.get('sequence', display_state.get('seq'))
+    try:
+        sequence = int(raw_sequence)
+    except (TypeError, ValueError, OverflowError):
+        sequence = 0
+    if sequence <= 0 or sequence > 9007199254740991:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Player-display updates require a valid sequence',
+        )
     state = sanitize_display_state(campaign_id, display_state, username)
-    await db.campaign_display_states.update_one(
+    # Do the revision comparison *inside* MongoDB's atomic document update.
+    # A GET followed by an unconditional $set is not enough: an older
+    # in-flight request can otherwise arrive after the new battle state and
+    # replace it (or an older reveal can erase an initiative prompt).
+    #
+    # The upsert branch keeps the existing campaign_id key and _id; $literal
+    # prevents user-authored public strings beginning with "$" from being
+    # interpreted as aggregation expressions.
+    is_newer = {'$lt': [{'$ifNull': ['$sequence', 0]}, state['sequence']]}
+    result = await db.campaign_display_states.update_one(
         {'campaign_id': campaign_id},
-        {'$set': state},
+        [{'$replaceRoot': {'newRoot': {'$cond': [
+            is_newer,
+            {'$mergeObjects': ['$$ROOT', {'$literal': state}]},
+            '$$ROOT',
+        ]}}}],
         upsert=True,
     )
+    current = await db.campaign_display_states.find_one(
+        {'campaign_id': campaign_id}, {'_id': 0},
+    )
+    if not current or current.get('sync_id') != state['sync_id']:
+        # Return a conflict, never a false acknowledgement. The caller may
+        # refresh the newer display state, but must not broadcast this stale
+        # payload to connected players.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='A newer player-display update has already been saved',
+        )
+    # Replaying the same sync ID is idempotent. Never broadcast an incoming
+    # payload that the conditional write deliberately did not apply.
+    if result.modified_count == 0 and result.upserted_id is None:
+        return public_display_state(current)
     await ws_manager.broadcast_to_campaign(campaign_id, {
         'type': 'player_display_update',
         'user_id': username,
@@ -120,8 +176,10 @@ async def acknowledge_campaign_display_state(campaign_id: str, acknowledgement: 
         'display_target': str(acknowledgement.get('display_target') or '').strip(),
         'mode': str(acknowledgement.get('mode') or current.get('mode') or 'blank').strip() or 'blank',
     }
-    await db.campaign_display_states.update_one(
-        {'campaign_id': campaign_id},
+    result = await db.campaign_display_states.update_one(
+        {'campaign_id': campaign_id, 'sync_id': sync_id},
         {'$set': {'delivery_ack': delivery_ack}},
     )
+    if result.matched_count == 0:
+        return {'acknowledged': False, 'stale': True, 'sync_id': sync_id}
     return {'acknowledged': True, **delivery_ack}

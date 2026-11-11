@@ -134,3 +134,23 @@
     overflow-wrap: anywhere;
   }
 }
+
+
+/* Approved Home v5 primary navigation: five equal-width mobile destinations.
+   Secondary tools and verified Admin are in the top-bar More menu. */
+@media (max-width: 719px) {
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+  html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-bottom {
+    display: none !important;
+  }
+  #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: clamp(0.53rem, 2.1vw, 0.64rem) !important;
+  }
+}

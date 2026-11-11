@@ -8,6 +8,7 @@ import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
 import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
+import { rollActorDisplayName } from '@/lib/rollActorLabels';
 import { clampMapPercent, getCombatTokenMapPosition, isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import './PlayerDisplayPage.css';
 
@@ -36,6 +37,7 @@ function modeLabel(mode) {
   if (mode === 'table-result') return 'Roll table';
   if (mode === 'image') return 'Map / image';
   if (mode === 'npc-grid') return 'NPC reveal';
+  if (mode === 'shop') return 'Shop catalog';
   if (mode === 'combat') return 'Combat HUD';
   if (mode === 'battle-start') return 'Battle Starting';
   if (mode === 'group-check') return 'Group check';
@@ -268,11 +270,42 @@ function DisplayContent({ state, target, hasPartySidebar = false, partyMembers =
   if (mode === 'table-result') return <TableResultDisplay key={key} payload={payload} target={target} />;
   if (mode === 'image') return <ImageDisplay key={key} payload={payload} target={target} hasPartySidebar={hasPartySidebar} />;
   if (mode === 'npc-grid') return <NPCGridDisplay key={key} payload={payload} target={target} />;
+  if (mode === 'shop') return <ShopDisplay key={key} payload={payload} target={target} />;
   if (mode === 'battle-start') return <BattleStartDisplay target={target} />;
   if (mode === 'combat') return <CombatDisplay key={key} payload={payload} target={target} partyMembers={partyMembers} />;
   if (mode === 'group-check') return <GroupCheckDisplay key={key} payload={payload} target={target} fallbackParty={partyMembers} />;
   if (mode === 'end-session-stats') return <EndSessionStatsDisplay key={key} payload={payload} target={target} />;
   return <BlankDisplay key={key} payload={payload} target={target} />;
+}
+
+function ShopDisplay({ payload, target }) {
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  return (
+    <section data-testid="player-display-shop" style={{
+      display: 'grid', alignContent: 'start', gap: isTable(target) ? 12 : 24,
+      padding: isTable(target) ? 16 : 'clamp(20px, 4vw, 60px)',
+      height: '100%', minHeight: 0, overflowY: 'auto', background: theme.bg,
+    }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+        <div>
+          <p style={{ color: theme.red, fontSize: 14, fontWeight: 800, textTransform: 'uppercase' }}>Shop & Supplies</p>
+          <h1 style={{ color: theme.text, fontSize: 'clamp(28px, 4vw, 58px)', margin: 0 }}>{payload.title || 'Shop'}</h1>
+          {payload.subtitle && <p style={{ color: theme.soft }}>{payload.subtitle}</p>}
+        </div>
+        {payload.image_url && <img src={payload.image_url} alt="Shop" style={{ maxWidth: isTable(target) ? 110 : 220, maxHeight: isTable(target) ? 95 : 160, objectFit: 'cover' }} />}
+      </header>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10 }}>
+        {items.map((item, index) => <React.Fragment key={String(index) + '-' + String(item.name)}>
+          <div style={{ display: 'grid', gap: 3, padding: '12px 0', borderBottom: '1px solid ' + theme.line }}>
+            <strong style={{ fontSize: isTable(target) ? 16 : 23 }}>{item.name || 'Item'}</strong>
+            {item.quantity !== null && item.quantity !== undefined && <small style={{ color: theme.soft }}>{item.quantity === 0 ? 'Out of stock' : 'In stock: ' + item.quantity}</small>}
+          </div>
+          <strong style={{ alignSelf: 'center', textAlign: 'right', fontSize: isTable(target) ? 16 : 23 }}>{item.price || 'Price unavailable'}</strong>
+        </React.Fragment>)}
+      </div>
+      {!items.length && <p>No priced stock has been revealed.</p>}
+    </section>
+  );
 }
 
 function PartySidebar({ members }) {
@@ -478,15 +511,15 @@ function EndSessionStatsDisplay({ payload, target }) {
 }
 
 function renderStatsPage(page, session, allTime, target) {
-  if (page.id === 'awards') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={awardGridStyle(target)}>{page.awards.length ? page.awards.slice(0, isTable(target) ? 3 : 4).map(award => <AwardCard key={`${award.title}-${award.name}`} award={award} />) : <p style={statsSubtitleStyle(target)}>No awards yet. The dice were suspiciously quiet.</p>}</div></>;
-  if (page.id === 'board') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={actorListStyle}>{page.actors.length ? page.actors.map(actor => <ActorRow key={actor.name} actor={actor} />) : <p style={statsSubtitleStyle(target)}>No player rolls captured this session.</p>}</div></>;
+  if (page.id === 'awards') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={awardGridStyle(target)}>{page.awards.length ? page.awards.slice(0, isTable(target) ? 3 : 4).map(award => <AwardCard key={`${award.title}-${award.character_id || award.name}`} award={award} actors={session.actors || []} />) : <p style={statsSubtitleStyle(target)}>No awards yet. The dice were suspiciously quiet.</p>}</div></>;
+  if (page.id === 'board') return <><h1 style={statsTitleStyle(target)}>{page.title}</h1><div style={actorListStyle}>{page.actors.length ? page.actors.map((actor, index) => <ActorRow key={actor.character_id || `${actor.name}-${index}`} actor={actor} actors={session.actors || []} />) : <p style={statsSubtitleStyle(target)}>No player rolls captured this session.</p>}</div></>;
   if (page.id === 'alltime') return <><h1 style={megaNumberStyle(target)}>{page.title}</h1><p style={statsSubtitleStyle(target)}>{page.subtitle}</p><div style={miniStatGridStyle(target)}><StatNumber label="Player Rolls Tonight" value={session.playerRolls ?? session.totalRolls ?? 0} /><StatNumber label="All-Time Dice" value={allTime.totalDice || 0} /><StatNumber label="GM/Table Rolls Hidden" value={session.gmRolls || 0} /></div></>;
   return <><h1 style={page.id === 'intro' ? statsTitleStyle(target) : megaNumberStyle(target)}>{page.title}</h1><p style={statsSubtitleStyle(target)}>{page.subtitle}</p>{page.id === 'intro' && <div style={miniStatGridStyle(target)}><StatNumber label="Player Rolls" value={session.playerRolls ?? session.totalRolls ?? 0} hot /><StatNumber label="Dice Rolled" value={session.totalDice || 0} /><StatNumber label="Awards" value={session.awards?.length || 0} /></div>}</>;
 }
 
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
-function AwardCard({ award }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{award.name}</span><em>{award.value}</em></article>; }
-function ActorRow({ actor }) { return <div style={actorRowStyle}><strong>{actor.name}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
+function AwardCard({ award, actors }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{rollActorDisplayName(award, actors)}</span><em>{award.value}</em></article>; }
+function ActorRow({ actor, actors }) { return <div style={actorRowStyle}><strong>{rollActorDisplayName(actor, actors)}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
 function CombatMapArtwork({ mapUrl, title, target, tokens }) {
   const layerRef = useRef(null);
   const [container, setContainer] = useState({ width: 0, height: 0 });

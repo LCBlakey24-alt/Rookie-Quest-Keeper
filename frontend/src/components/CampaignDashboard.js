@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   CalendarDays,
+  Download,
   FileText,
   Flag,
   Heart,
@@ -405,6 +406,17 @@ export default function CampaignDashboard() {
               </button>
             );
           })}
+          {activeGroup?.id === 'more' && (
+            <button
+              type="button"
+              className="campaign-dashboard-tab"
+              data-testid="gm-offline-copy-action"
+              onClick={() => window.dispatchEvent(new Event('rqk:open-offline-campaign'))}
+            >
+              <Download size={15} aria-hidden="true" />
+              <span>Offline copy</span>
+            </button>
+          )}
         </div>
       </nav>
 

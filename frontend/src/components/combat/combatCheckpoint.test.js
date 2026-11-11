@@ -226,3 +226,34 @@ describe('account boundaries, legacy saves and distinct combatants', () => {
     expect(readForTest(CAMPAIGN, storageWith(goodCheckpoint({ combatants }))).status).toBe('corrupt');
   });
 });
+
+
+describe('encounter start snapshot for safe Reset', () => {
+  test('a valid original roster survives recovery separately from current wounds', () => {
+    const start = [
+      { id: 'c1', name: 'Rina Ironside', hp: 54, maxHp: 54 },
+      { id: 'c2', name: 'Goblin', hp: 7, maxHp: 7 },
+    ];
+    const checkpoint = goodCheckpoint({ startingCombatants: start });
+    const result = readForTest(CAMPAIGN, storageWith(checkpoint));
+    expect(result.status).toBe('ok');
+    expect(result.checkpoint.startingCombatants).toEqual(start);
+    expect(result.checkpoint.combatants[0].hp).toBe(22);
+  });
+
+  test('older or corrupt starting rosters disable Reset without losing active combat', () => {
+    const old = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
+    expect(old.status).toBe('ok');
+    expect(old.checkpoint.startingCombatants).toBeNull();
+
+    const invalid = readForTest(CAMPAIGN, storageWith(goodCheckpoint({
+      startingCombatants: [
+        { id: 'duplicate', hp: 7 },
+        { id: 'duplicate', hp: 2 },
+      ],
+    })));
+    expect(invalid.status).toBe('ok');
+    expect(invalid.checkpoint.startingCombatants).toBeNull();
+    expect(invalid.checkpoint.combatants[0].hp).toBe(22);
+  });
+});

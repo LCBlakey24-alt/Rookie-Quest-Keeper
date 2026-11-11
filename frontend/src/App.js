@@ -52,6 +52,7 @@ function lazyWithChunkRetry(importer) {
 
 const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
 const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
+const CommunityCreationsPreview = lazyWithChunkRetry(() => import('@/components/community/CommunityCreationsPreview'));
 const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
 const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
@@ -197,6 +198,7 @@ export function AppRoutes() {
         {/* Recovery links are public even when this browser still has an older session. */}
         <Route path="/reset-password" element={<AuthPage onLogin={handleAuthLogin} onPasswordReset={handleLogout} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={preview ? undefined : handleLogout} /></AppShell> : <SignInRedirect />} />
+        <Route path="/community" element={isAuthenticated ? <AppShell><CommunityCreationsPreview /></AppShell> : <SignInRedirect />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <SignInRedirect />} />
         <Route path="/player" element={<Navigate to="/campaigns" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <SignInRedirect />} />

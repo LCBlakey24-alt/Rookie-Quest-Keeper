@@ -21,6 +21,7 @@ import MapCanvas from '@/components/MapBuilder/MapCanvas';
 import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
 import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRules';
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
+import { isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
 import {
   combatStateSnapshot,
@@ -148,6 +149,17 @@ function hasSafeCombatBaseline(state) {
     && Number.isFinite(Number(state.death_saves_failures)));
 }
 
+// Keep an independent, serialisable encounter-start roster. The active
+// combatants change as damage, conditions and initiative are applied.
+function snapshotStartingCombatants(combatants = []) {
+  return combatants.map(item => ({
+    ...item,
+    conditions: [...safeArray(item.conditions)],
+    deathSaves: item.deathSaves && typeof item.deathSaves === 'object'
+      ? { ...item.deathSaves } : item.deathSaves,
+  }));
+}
+
 function playerBaseStates(combatants = []) {
   return combatants.reduce((result, combatant) => {
     if (combatant?.type === 'player' && combatant.character_id) {
@@ -206,7 +218,9 @@ export default function CombatPageTable() {
   const [hpAmounts, setHpAmounts] = useState({});
   const [hideMonsterHp, setHideMonsterHp] = useState(false);
   const [attackingId, setAttackingId] = useState('');
-  const [view, setView] = useState('tracker');
+  // A battle opens with the actual map and GM tracker together. Dedicated
+  // tracker/map tabs remain available for small screens and focused use.
+  const [view, setView] = useState('battle');
   const [maps, setMaps] = useState([]);
   const [selectedMapId, setSelectedMapId] = useState('');
   const [mapTokens, setMapTokens] = useState([]);
@@ -218,6 +232,7 @@ export default function CombatPageTable() {
   const battleStartTimeRef = useRef(0);
   const initiativeSubmissionRef = useRef({});
   const initialPlayerStatesRef = useRef({});
+  const startingCombatantsRef = useRef(null);
   const checkpointRawRef = useRef(null);
 
   useEffect(() => () => {
@@ -230,6 +245,7 @@ export default function CombatPageTable() {
       setLegacyProof(null);
       setLegacyCheck(null);
       setCheckpointConflict(false);
+      startingCombatantsRef.current = null;
       checkpointRawRef.current = null;
       setAuthRevision(revision => revision + 1);
     };
@@ -316,6 +332,10 @@ export default function CombatPageTable() {
       initialPlayerStatesRef.current = fromRecovery
         ? recoveredBaselines(recovery.checkpoint)
         : scenarioBaseStates;
+      // Old checkpoints never stored the original roster. Never silently
+      // reset a wounded snapshot as though it were the encounter start.
+      startingCombatantsRef.current = recovery.checkpoint.startingCombatants
+        ? snapshotStartingCombatants(recovery.checkpoint.startingCombatants) : null;
       setCombatants(restored.combatants);
       setCollectedLoot(safeArray(restored.collectedLoot).map(ensureLootOperation));
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
@@ -328,6 +348,7 @@ export default function CombatPageTable() {
       battleStartTimeRef.current = Date.now();
       const loaded = scenarioStart.sort((a, b) => b.initiative - a.initiative);
       initialPlayerStatesRef.current = playerBaseStates(loaded);
+      startingCombatantsRef.current = snapshotStartingCombatants(loaded);
       setCombatants(loaded);
       setCollectedLoot([]);
       setExpandedId(loaded[0]?.id || '');
@@ -365,6 +386,7 @@ export default function CombatPageTable() {
         scenarioId: scenario.id || scenario.name,
         scenarioName: scenario.name,
         combatants,
+        startingCombatants: startingCombatantsRef.current,
         currentTurn,
         round,
         selectedMapId,
@@ -408,7 +430,13 @@ export default function CombatPageTable() {
     if (!initialised || !scenario || !campaignId) return undefined;
     const timer = window.setTimeout(() => {
       const players = combatants.filter(item => item.type === 'player').map(combatantForDisplay);
-      const visibleCreatures = combatants.filter(item => item.type !== 'player').map(combatantForDisplay);
+      // Filter the original combatant before creating the public projection.
+      // combatantForDisplay deliberately drops GM-only fields, including the
+      // visibility flags that the server sanitizer relies on. Mapping first
+      // therefore turned a hidden creature into an apparently public token.
+      const visibleCreatures = combatants
+        .filter(item => item.type !== 'player' && isPlayerVisibleCombatToken(item))
+        .map(combatantForDisplay);
       const activeId = active?.id || '';
       const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage || selectedMap?.background_image || '';
       publishCampaignDisplayState(campaignId, createDisplayState('combat', {
@@ -804,11 +832,21 @@ export default function CombatPageTable() {
       toast.error('Cannot reset a checkpoint owned or modified by another session.');
       return;
     }
+    if (!startingCombatantsRef.current?.length) {
+      toast.error('Reset unavailable: this older saved fight has no original starting roster. Its current checkpoint is safe.');
+      return;
+    }
     if (!window.confirm('Reset this fight to the encounter start and reroll initiative?')) return;
-    try { localStorage.removeItem(combatKey); checkpointRawRef.current = null; } catch { /* ignore */ }
+    // Keep the old checkpoint until React has persisted the reset roster.
+    // Removing it first creates a data-loss window if the tab closes.
     apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`).catch(() => null);
     initiativeSubmissionRef.current = {};
-    const loaded = safeArray(scenario?.combatants).map(initialiseCombatant).sort((a, b) => b.initiative - a.initiative);
+    const loaded = startingCombatantsRef.current.map((item, index) => initialiseCombatant({
+      ...item,
+      initiative: undefined,
+      initiativeRoll: undefined,
+      initiativeSource: 'rook',
+    }, index)).sort((a, b) => b.initiative - a.initiative);
     initialPlayerStatesRef.current = playerBaseStates(loaded);
     setCombatants(loaded);
     setCollectedLoot([]);
@@ -949,16 +987,22 @@ export default function CombatPageTable() {
         </div>
         <div className="combat-round"><span>Round</span><strong>{round}</strong></div>
         <button type="button" onClick={() => setHideMonsterHp(value => !value)} className="combat-icon-button" title="Hide or show enemy HP">{hideMonsterHp ? <EyeOff size={17} /> : <Eye size={17} />}</button>
-        <button type="button" onClick={resetCheckpoint} className="combat-icon-button" title="Reset encounter"><RotateCcw size={16} /></button>
+        <button type="button" onClick={resetCheckpoint} className="combat-icon-button"
+          disabled={!startingCombatantsRef.current?.length}
+          title={startingCombatantsRef.current?.length ? 'Reset encounter' : 'Reset unavailable: original encounter roster not saved'}
+          aria-label={startingCombatantsRef.current?.length ? 'Reset encounter' : 'Reset unavailable: original encounter roster not saved'}
+        ><RotateCcw size={16} /></button>
         <button type="button" onClick={nextTurn} className="combat-next-top"><SkipForward size={16} /> Next</button>
       </header>
 
-      <nav className="combat-view-tabs">
-        <button type="button" onClick={() => setView('tracker')} data-active={view === 'tracker'}><Swords size={14} /> Tracker</button>
-        <button type="button" onClick={() => setView('map')} data-active={view === 'map'}><Map size={14} /> Map</button>
+      <nav className="combat-view-tabs" aria-label="Combat workspace views">
+        <button type="button" onClick={() => setView('battle')} data-active={view === 'battle'} aria-pressed={view === 'battle'}><Swords size={14} /> Battle</button>
+        <button type="button" onClick={() => setView('tracker')} data-active={view === 'tracker'} aria-pressed={view === 'tracker'}><Swords size={14} /> Tracker</button>
+        <button type="button" onClick={() => setView('map')} data-active={view === 'map'} aria-pressed={view === 'map'}><Map size={14} /> Map</button>
       </nav>
 
-      {view === 'tracker' ? (
+      <div className={view === 'battle' ? 'combat-battle-layout' : 'combat-single-layout'}>
+      {(view === 'tracker' || view === 'battle') && (
         <main className="combat-tracker">
           <section className="combat-now">
             <span className="combat-eyebrow">Current turn</span>
@@ -1035,7 +1079,8 @@ export default function CombatPageTable() {
             <button type="button" onClick={saveLoot} className="combat-loot-save"><Package size={14} /> Add {collectedLoot.length} collected item{collectedLoot.length === 1 ? '' : 's'} to party loot</button>
           )}
         </main>
-      ) : (
+      )}
+      {(view === 'map' || view === 'battle') && (
         <main className="combat-map-view">
           <div className="combat-map-toolbar">
             <select value={selectedMapId} onChange={event => { setSelectedMapId(event.target.value); setMapTokens([]); }}>
@@ -1061,13 +1106,15 @@ export default function CombatPageTable() {
                 showGrid
                 gridSize={40}
                 zoom={mapZoom}
+                onZoomChange={setMapZoom}
               />
             </div>
           ) : (
-            <div className="combat-map-empty"><Map size={38} /><strong>No battle map selected</strong><span>The combat tracker remains the main table view. Choose a saved map only when you need one.</span></div>
+            <div className="combat-map-empty"><Map size={38} /><strong>No battle map selected</strong><span>Choose a battle map above. The full GM roster, enemy stats and initiative remain available beside it.</span></div>
           )}
         </main>
       )}
+      </div>
 
       <footer className="combat-bottom-bar">
         <span><strong>{active?.name || 'Combat'}</strong><small>Round {round}</small></span>
@@ -1188,7 +1235,17 @@ const combatCss = `
   .combat-round span { color: ${rq.muted}; text-transform: uppercase; font-size: 7px; letter-spacing: .08em; }
   .combat-round strong { font-size: 16px; }
   .combat-next-top { min-height: 38px; border: 1px solid ${rq.pink}; background: ${rq.card}; color: #fff; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 950; cursor: pointer; }
-  .combat-view-tabs { max-width: 920px; margin: 8px auto 0; padding: 0 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+  .combat-view-tabs { max-width: 1680px; margin: 8px auto 0; padding: 0 8px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1px; }
+  .combat-battle-layout { max-width: 1680px; margin: 0 auto; padding: 8px; display: grid; grid-template-columns: minmax(0,1.3fr) minmax(350px,.9fr); gap: 10px; align-items: start; }
+  .combat-battle-layout .combat-map-view { grid-column: 1; grid-row: 1; position: sticky; top: 120px; max-width: none; min-width: 0; margin: 0; padding: 0; }
+  .combat-battle-layout .combat-tracker { grid-column: 2; grid-row: 1; max-width: none; min-width: 0; margin: 0; padding: 0; }
+  .combat-battle-layout .combat-map-canvas { height: min(70vh,820px); }
+  @media (max-width: 960px) {
+    .combat-battle-layout { display: flex; flex-direction: column; }
+    .combat-battle-layout .combat-map-view { order: 0; width: 100%; position: static; }
+    .combat-battle-layout .combat-tracker { order: 1; width: 100%; }
+    .combat-battle-layout .combat-map-canvas { height: min(55vh,510px); min-height: 280px; }
+  }
   .combat-view-tabs button { min-height: 38px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.muted}; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 900; cursor: pointer; }
   .combat-view-tabs button[data-active="true"] { background: ${rq.card}; color: ${rq.text}; border-color: ${rq.red}; }
   .combat-tracker, .combat-map-view { max-width: 920px; margin: 0 auto; padding: 8px; display: grid; gap: 7px; }
