@@ -53,6 +53,7 @@ from routes.character_progression_state import router as character_progression_s
 from routes.character_creation_state import router as character_creation_state_router
 from routes.character_edit_state import router as character_edit_state_router
 from routes.character_patch import router as character_patch_router
+from routes.level_up_grants import router as level_up_grants_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
 from routes.progression import router as progression_router
@@ -163,6 +164,9 @@ all_routers = [
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,
+    # Before the general character routes, so /characters/level-up-grants/mine
+    # can never be read as a character id.
+    level_up_grants_router,
     characters_router,
     srd_router,
     progression_router,

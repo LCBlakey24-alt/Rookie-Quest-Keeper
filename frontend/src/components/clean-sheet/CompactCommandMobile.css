@@ -533,3 +533,15 @@
     overflow: visible !important;
   }
 }
+
+/* A level up the GM granted: the Level Up button glows until it is taken. */
+#root .character-page-v2 .clean-sheet-header-actions .clean-sheet-level.is-ready {
+  border-color: #ecd08a !important;
+  color: #ecd08a !important;
+  -webkit-text-fill-color: #ecd08a !important;
+  animation: rq-level-ready 2.4s ease-in-out infinite;
+}
+@keyframes rq-level-ready { 50% { filter: drop-shadow(0 0 6px rgba(236, 208, 138, 0.7)); } }
+@media (prefers-reduced-motion: reduce) {
+  #root .character-page-v2 .clean-sheet-header-actions .clean-sheet-level.is-ready { animation: none; }
+}

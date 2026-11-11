@@ -57,7 +57,7 @@ export function compactSubtitleParts(character, fallbackSubtitle) {
   return formatSubtitleParts(directParts);
 }
 
-export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, resting }) {
+export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, resting, levelUpReady = false }) {
   const [showOptions, setShowOptions] = useState(false);
   const subtitleParts = compactSubtitleParts(character, subtitle);
   const primaryLine = subtitleParts.slice(0, 2).join(' • ');
@@ -117,8 +117,8 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
         </div>
       </header>
       <div className="clean-sheet-header-actions clean-sheet-header-actions--play" aria-label="Character sheet actions">
-        <button className="clean-sheet-level" onClick={onLevelUp} type="button">
-          <TrendingUp size={18} /> Level Up
+        <button className={`clean-sheet-level${levelUpReady ? ' is-ready' : ''}`} onClick={onLevelUp} type="button" data-testid="sheet-level-up">
+          <TrendingUp size={18} /> {levelUpReady ? `Level up ready · ${character?.level_up_grant?.to_level}` : 'Level Up'}
         </button>
         <button className="clean-sheet-edit" onClick={onEdit} type="button">
           <Edit3 size={18} /> Edit

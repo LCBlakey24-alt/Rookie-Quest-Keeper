@@ -11,6 +11,8 @@ jest.mock('react-router-dom', () => ({
   useLocation: () => ({ pathname: mockPathname }),
 }), { virtual: true });
 
+jest.mock('@/components/level-up-grant/LevelUpGrantWatcher', () => () => null);
+
 jest.mock('@/lib/apiClient', () => ({
   get: jest.fn(() => Promise.resolve({ data: { is_admin: false } })),
 }), { virtual: true });
