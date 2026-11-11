@@ -1,0 +1,32 @@
+/* Choice wheel: options on a ring inside the hexagon. Colours come from
+   styles/guildTokens.css. */
+.guild-wheel {
+  --_bg: var(--guild-bg, #0a2342); --_panel: var(--guild-panel, #0e2d55);
+  --_accent: var(--guild-accent, #f2892f); --_accent-rgb: var(--guild-accent-rgb, 242, 137, 47);
+  --_hi: var(--guild-hi, #ffb066); --_text: var(--guild-text, #ffffff); --_muted: var(--guild-muted, #c6d3e2);
+  display: grid; justify-items: center; gap: 4px;
+}
+.guild-wheel__svg {
+  width: min(100%, 340px); height: auto; display: block; overflow: visible;
+  touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; outline: none;
+  filter: drop-shadow(0 0 10px rgba(var(--_accent-rgb), calc(0.4 * var(--guild-glow, 0.5))));
+}
+.guild-wheel__svg.is-dragging { cursor: grabbing; }
+.guild-wheel__svg:focus-visible .guild-wheel__case { stroke: var(--_hi); stroke-width: 3; }
+.guild-wheel__case { fill: var(--_bg); stroke: var(--_accent); stroke-width: 2; }
+.guild-wheel__rim { fill: var(--_panel); stroke: rgba(var(--_accent-rgb), 0.45); stroke-width: 1; }
+.guild-wheel__ring { transform-box: view-box; transform-origin: 0 0; transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.guild-wheel__svg.is-dragging .guild-wheel__ring { transition: none; }
+.guild-wheel__segment path { fill: transparent; stroke: rgba(var(--_accent-rgb), 0.28); stroke-width: 0.8; transition: fill 140ms ease; }
+.guild-wheel__segment text { fill: var(--_muted); font: 800 8.5px/1 var(--rq-body-font, Manrope, sans-serif); letter-spacing: 0.06em; pointer-events: none; }
+.guild-wheel__segment.is-preview path { fill: var(--guild-select, rgba(96, 156, 232, 0.2)); stroke: var(--_hi); stroke-width: 1.4; }
+.guild-wheel__segment.is-preview text { fill: var(--_text); }
+.guild-wheel__segment.is-selected text { fill: var(--_hi); }
+.guild-wheel__pointer { fill: var(--_hi); }
+.guild-wheel__core { fill: var(--_bg); stroke: var(--_hi); stroke-width: 2; pointer-events: none; }
+.guild-wheel__caption { fill: var(--_muted); font: 800 7px/1 var(--rq-body-font, Manrope, sans-serif); letter-spacing: 0.2em; pointer-events: none; }
+.guild-wheel__name { fill: var(--_text); font: 700 17px/1 var(--rq-font-display, 'Fraunces', Georgia, serif); pointer-events: none; }
+.guild-wheel__name.is-medium { font-size: 14px; }
+.guild-wheel__name.is-long { font-size: 11.5px; }
+.guild-wheel__status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .guild-wheel__ring, .guild-wheel__segment path { transition: none; } }
