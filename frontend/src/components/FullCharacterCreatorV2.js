@@ -4,6 +4,9 @@ import { toast } from 'sonner';
 import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices, Shield, Sparkles, Swords, Wand2 } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
+import GuildMotif from '@/components/guild-motif/GuildMotif';
+import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import {
@@ -22,7 +25,7 @@ import { countChoiceLanguages, getFixedLanguages } from '@/data/languageChoiceUt
 import {
   buildFullBuilderEquipmentState,
   defaultStartingEquipmentChoices,
-  rollStartingGoldRule,
+  rollStartingGoldDice,
   startingEquipmentChoicesComplete,
 } from '@/data/fullBuilderEquipment';
 import { getStartingEquipmentGroups } from '@/data/startingEquipmentRules';
@@ -39,6 +42,7 @@ import {
 } from '@/components/full-character-creator/CreatorPresentation';
 import './FullCharacterCreatorV2.css';
 import './FullCharacterCreatorFlow.css';
+import './FullCharacterCreatorGuild.css';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 const LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
@@ -692,6 +696,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       </header>
 
       <section className="full-creator-progress-card" aria-label="Character creation progress">
+        <GuildMotif caption="STEP" value={step + 1} progress={Math.max(journeyPercent / 100, 1 / steps.length)} size={58} className="full-creator-progress-motif" />
         <div className="full-creator-progress-heading">
           <span>{currentStep?.label || 'Step'}</span>
           <strong>{journeyPercent}% complete</strong>
@@ -762,8 +767,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       <footer className="full-creator-footer">
         <button type="button" onClick={goPrevious} disabled={step === 0}><ChevronLeft size={16} /> Previous</button>
         {step < steps.length - 1
-          ? <button type="button" onClick={goNext}>Next <ChevronRight size={16} /></button>
-          : <button type="button" onClick={saveCharacter} disabled={saving || !canSave}><Check size={16} /> {saving ? 'Saving…' : canSave ? editMode ? 'Save Changes' : 'Create Character' : 'Complete choices'}</button>}
+          ? <button type="button" className="full-creator-primary" onClick={goNext}>Next <ChevronRight size={16} /></button>
+          : <button type="button" className="full-creator-primary" onClick={saveCharacter} disabled={saving || !canSave}><Check size={16} /> {saving ? 'Saving…' : canSave ? editMode ? 'Save Changes' : 'Create Character' : 'Complete choices'}</button>}
       </footer>
     </main>
   );
@@ -950,6 +955,20 @@ function SpellChip({ spell, active, onClick }) {
 function Equipment({ draft, update, equipment, equipmentGroups, equipmentCurrency, startingGoldRule, startingGold }) {
   const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   const is2024 = draft.edition === '2024';
+  const [goldBurst, setGoldBurst] = useState(null);
+  const rollGold = () => {
+    const roll = rollStartingGoldDice(startingGoldRule);
+    update({ rolledStartingGold: roll.total });
+    // The dice are thrown in the 3D tray; the multiplier is applied in "Saved gold".
+    if (roll.dice.length) {
+      setGoldBurst({
+        rollId: `starting-gold-${Date.now()}`,
+        label: `Starting gold · ${startingGoldRule.formula}`,
+        rolls: roll.dice,
+        total: roll.dice.reduce((sum, die) => sum + die.result, 0),
+      });
+    }
+  };
   const equipmentCoin = [
     ['platinum', 'pp'],
     ['gold', 'gp'],
@@ -967,7 +986,21 @@ function Equipment({ draft, update, equipment, equipmentGroups, equipmentCurrenc
     </div>
     {equipmentMode === 'gold' ? (
       <>
-        {!startingGoldRule.fixed && <button type="button" onClick={() => update({ rolledStartingGold: rollStartingGoldRule(startingGoldRule) })}>Roll {startingGoldRule.formula}</button>}
+        {!startingGoldRule.fixed && <button type="button" className="full-creator-roll-gold" onClick={rollGold} data-testid="creator-roll-gold"><Dices size={16} aria-hidden="true" /> Roll {startingGoldRule.formula}</button>}
+        {goldBurst && (
+          <DiceRollFlicker
+            key={goldBurst.rollId}
+            rollId={goldBurst.rollId}
+            isOpen
+            onClose={() => setGoldBurst(null)}
+            label={goldBurst.label}
+            rolls={goldBurst.rolls}
+            total={goldBurst.total}
+            modifier={0}
+            dyeId={loadDiceDyeId()}
+            theme="builder"
+          />
+        )}
         <div className="full-creator-review-grid">
           <ReviewItem label={startingGoldRule.fixed ? 'Gold option' : 'Gold roll'} value={startingGoldRule.formula} />
           <ReviewItem label="Saved gold" value={startingGold ? `${startingGold} gp` : 'Not rolled yet'} />

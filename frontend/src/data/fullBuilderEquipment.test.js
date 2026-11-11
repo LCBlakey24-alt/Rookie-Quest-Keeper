@@ -1,6 +1,7 @@
 import {
   buildFullBuilderEquipmentState,
   defaultStartingEquipmentChoices,
+  rollStartingGoldDice,
   rollStartingGoldRule,
   selectedStartingEquipmentLabels,
   splitStartingCurrency,
@@ -147,5 +148,18 @@ describe('full builder starting equipment', () => {
 
     expect(labels).toEqual(['Leather Armor', 'Dagger', 'Common clothes']);
     expect(startingEquipmentChoicesComplete('Clockwork Knight', {}, ['Leather Armor', 'Dagger'])).toBe(true);
+  });
+});
+
+describe('rollStartingGoldDice', () => {
+  test('keeps each die and applies the multiplier to the total only', () => {
+    const roll = rollStartingGoldDice({ dice: 5, die: 4, multiplier: 10 }, () => 0.5);
+    expect(roll.dice).toEqual(Array(5).fill({ sides: 4, result: 3 }));
+    expect(roll.total).toBe(150);
+    expect(roll.total).toBe(rollStartingGoldRule({ dice: 5, die: 4, multiplier: 10 }, () => 0.5));
+  });
+
+  test('a fixed rule has no dice to throw', () => {
+    expect(rollStartingGoldDice({ fixed: true, average: 50 })).toEqual({ dice: [], total: 50, multiplier: 1 });
   });
 });
