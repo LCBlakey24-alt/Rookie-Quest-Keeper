@@ -15,6 +15,7 @@ import DiceRollFlicker from '@/components/DiceRollFlicker';
 import GuildMotif from '@/components/guild-motif/GuildMotif';
 import LevelUpCelebration from '@/components/level-up-grant/LevelUpCelebration';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
+import '@/styles/guildTokens.css';
 import './LevelUpWizardGuild.css';
 
 import apiClient from '@/lib/apiClient';

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
+import '@/styles/guildTokens.css';
 import './LevelUpCelebration.css';
 
 const R = 100;
