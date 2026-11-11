@@ -111,7 +111,7 @@ describe('the main wheel', () => {
     expect(screen.getByTestId('hex-centre').closest('.hex-wheel__deal')).toBeNull();
   });
 
-  test.each(['skills', 'equipment', 'magic', 'traits', 'combat'])('%s opens in place and offers the classic sheet for now', async (id) => {
+  test.each(['skills', 'equipment', 'magic', 'traits'])('%s opens in place and offers the classic sheet for now', async (id) => {
     await openSheet();
     fireEvent.click(screen.getByTestId(`hex-wedge-${id}`));
     expect(screen.getByTestId('hex-coming-soon')).toBeInTheDocument();
@@ -333,5 +333,48 @@ describe('the HP dial saves through the existing queue', () => {
     fireEvent.click(screen.getByTestId('hex-hp-cancel'));
     expect(apiClient.patch).not.toHaveBeenCalled();
     expect(screen.getByTestId('hex-wedge-core')).toBeInTheDocument();
+  });
+});
+
+describe('the Combat wheel', () => {
+  const openCombat = async () => {
+    await openSheet({ ...PUNCH, id: `char-combat-${Math.random()}` });
+    fireEvent.click(screen.getByTestId('hex-wedge-combat'));
+  };
+
+  test('opens on Actions and lists what the character can do with an action, below the wheel', async () => {
+    await openCombat();
+    expect(crumbs()).toEqual(['Character', 'Actions']);
+    const list = screen.getByTestId('hex-combat-list');
+    expect(within(list).getByRole('heading', { name: 'Actions' })).toBeInTheDocument();
+    expect(within(list).getByText('Unarmed Strike')).toBeInTheDocument();
+    expect(within(list).getByText('Dodge')).toBeInTheDocument();
+    expect(within(list).queryByRole('heading', { name: 'Bonus Actions' })).toBeNull();
+  });
+
+  test('choosing Bonus Actions or Reactions swaps the list without stacking history', async () => {
+    await openCombat();
+    fireEvent.click(screen.getByTestId('hex-wedge-combat-bonus'));
+    expect(crumbs()).toEqual(['Character', 'Bonus Actions']);
+    expect(within(screen.getByTestId('hex-combat-list')).getByRole('heading', { name: 'Bonus Actions' })).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('hex-wedge-combat-reaction'));
+    expect(within(screen.getByTestId('hex-combat-list')).getByText(/Opportunity Attack/)).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('hex-back'));
+    expect(screen.getByTestId('hex-wedge-core')).toBeInTheDocument(); // one Back returns to the main wheel
+  });
+
+  test('an attack rolls through the dice window with the attack bonus', async () => {
+    await openCombat();
+    const unarmed = within(screen.getByTestId('hex-combat-list')).getByText('Unarmed Strike').closest('article');
+    fireEvent.click(within(unarmed).getByRole('button', { name: /to hit/i }));
+    expect(lastRoll()).toMatchObject({ label: 'Unarmed Strike', modifier: 7 }); // DEX 18 (+4) + proficiency 3
+  });
+
+  test('Initiative and Concentration are one-tap rolls on the wheel', async () => {
+    await openCombat();
+    fireEvent.click(screen.getByTestId('hex-wedge-combat-initiative'));
+    expect(lastRoll()).toMatchObject({ label: 'Initiative', modifier: 4 });
+    fireEvent.click(screen.getByTestId('hex-wedge-combat-concentration'));
+    expect(lastRoll()).toMatchObject({ label: 'Concentration Save', modifier: 2 }); // CON 14, not proficient
   });
 });

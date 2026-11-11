@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
+import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import { rollDiceNotation } from '@/data/diceRoller';
@@ -38,6 +39,21 @@ export const ABILITY_SLOTS = {
   charisma: SLOT.LEFT,
 };
 
+/**
+ * Combat wheel: the three parts of a turn plus "other" features, and two
+ * one-tap rolls every fight needs. Choosing a group lists everything the
+ * character can do with it below the wheel (attacks, spells, features,
+ * items and the standard actions), using the classic sheet's own combat
+ * rules so nothing is worked out twice.
+ */
+export const COMBAT_GROUPS = [
+  { id: 'action', label: 'Actions', slot: SLOT.UPPER_LEFT },
+  { id: 'bonus', label: 'Bonus Actions', slot: SLOT.UPPER_RIGHT },
+  { id: 'reaction', label: 'Reactions', slot: SLOT.RIGHT },
+  { id: 'other', label: 'Other', slot: SLOT.LOWER_RIGHT },
+];
+const COMBAT_ROLLS = { initiative: SLOT.LOWER_LEFT, concentration: SLOT.LEFT };
+
 export const DICE_SLOTS = [
   { sides: 4, slot: SLOT.UPPER_LEFT },
   { sides: 6, slot: SLOT.UPPER_RIGHT },
@@ -52,6 +68,7 @@ const VIEW_TITLES = { main: 'Character', core: 'Core Abilities', dice: 'Dice', h
 
 function viewTitle(entry, rows) {
   if (entry.view === 'roll') return rows.find((row) => row.key === entry.ability)?.name || 'Roll';
+  if (entry.view === 'combat' && entry.group) return COMBAT_GROUPS.find((group) => group.id === entry.group)?.label || 'Combat';
   return VIEW_TITLES[entry.view] || 'Character';
 }
 
@@ -134,6 +151,8 @@ export default function HexCharacterSheet() {
   const rollCheck = (label, modifier) => {
     const result = rollD20(Number(modifier) || 0, { mode: 'normal', label });
     present({ label, rolls: result.rolls, modifier: result.modifier, total: result.total, d20: result.d20, sides: 20 });
+    // Attacks read the natural d20 back to spot a 1 or a critical hit.
+    return result;
   };
 
   const rollDie = (sides) => {
@@ -184,7 +203,7 @@ export default function HexCharacterSheet() {
         wedges={MAIN_SECTIONS.map((section) => ({
           ...section,
           ariaLabel: `Open ${section.label}`,
-          onSelect: () => push({ view: section.id }),
+          onSelect: () => push(section.id === 'combat' ? { view: 'combat', group: 'action' } : { view: section.id }),
         }))}
         centre={centreDice}
       />
@@ -207,6 +226,27 @@ export default function HexCharacterSheet() {
             ? setStack((previous) => [...previous.slice(0, -1), { view: 'roll', ability: row.key }])
             : push({ view: 'roll', ability: row.key })),
         }))}
+        centre={centreDice}
+      />
+    );
+  } else if (current.view === 'combat') {
+    const concentrationModifier = getConcentrationSaveModifier(character, proficiencyBonusFor(character));
+    wheel = (
+      <HexWheel
+        viewKey="combat"
+        label="Combat"
+        wedges={[
+          ...COMBAT_GROUPS.map((group) => ({
+            id: `combat-${group.id}`,
+            slot: group.slot,
+            label: group.label,
+            active: current.group === group.id,
+            ariaLabel: `Show ${group.label.toLowerCase()}`,
+            onSelect: () => setStack((previous) => [...previous.slice(0, -1), { view: 'combat', group: group.id }]),
+          })),
+          { id: 'combat-initiative', slot: COMBAT_ROLLS.initiative, label: `Initiative ${formatModifier(vitals.initiative)}`, ariaLabel: `Roll initiative ${formatModifier(vitals.initiative)}`, onSelect: () => rollCheck('Initiative', vitals.initiative) },
+          { id: 'combat-concentration', slot: COMBAT_ROLLS.concentration, label: `Concentration ${formatModifier(concentrationModifier)}`, ariaLabel: `Roll a concentration save ${formatModifier(concentrationModifier)}`, onSelect: () => rollCheck('Concentration Save', concentrationModifier) },
+        ]}
         centre={centreDice}
       />
     );
@@ -253,7 +293,7 @@ export default function HexCharacterSheet() {
   }
 
   return (
-    <div className="hex-sheet" data-testid="hex-sheet">
+    <div className={`hex-sheet${current.view === 'combat' ? ' hex-sheet--with-list' : ''}`} data-testid="hex-sheet">
       <header className="hex-sheet__header">
         <button type="button" className="hex-sheet__hex-button" onClick={() => navigate('/characters')} aria-label="Back to My Characters" data-testid="hex-leave">
           <span className="hex-sheet__hex-button-rim" aria-hidden="true">
@@ -334,7 +374,19 @@ export default function HexCharacterSheet() {
             More dice and custom rolls
           </button>
         )}
-        {SECTION_TITLES[current.view] && current.view !== 'core' && (
+        {current.view === 'combat' && character && (
+          <section className="hex-combat-list" aria-label={viewTitle(current, rows)} data-testid="hex-combat-list">
+            <CleanCombatTab
+              character={character}
+              proficiencyBonus={proficiencyBonusFor(character)}
+              section={current.group}
+              onRoll={rollCheck}
+              onCharacterUpdate={(updates, options = {}) => queueRef.current.patch(updates, options)}
+              onDiceResult={(entry) => present(entry)}
+            />
+          </section>
+        )}
+        {SECTION_TITLES[current.view] && current.view !== 'core' && current.view !== 'combat' && (
           <div className="hex-sheet__coming" data-testid="hex-coming-soon">
             <p>{VIEW_TITLES[current.view]} joins the wheel in the next phase.</p>
             <Link className="hex-sheet__text-button" to={`/characters/${characterId}`}><span className="hex-glass" aria-hidden="true" />Open on the classic sheet</Link>

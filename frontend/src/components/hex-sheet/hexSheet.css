@@ -306,3 +306,63 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 @media (prefers-reduced-motion: reduce) {
   .hex-hp__svg.is-returning .hex-hp__rotor, .hex-hp__label, .hex-hp__value { transition: none; }
 }
+
+/* Combat: the wheel picks a group, the list below it shows everything the
+   character can do with it. The page scrolls in this view, and the wheel
+   keeps a steady size instead of shrinking to fit the screen. */
+.hex-sheet.hex-sheet--with-list { height: auto; min-height: 100dvh; }
+.hex-sheet--with-list .hex-sheet__wheel-area { flex: 0 0 auto; justify-content: flex-start; }
+.hex-sheet--with-list .hex-wheel { width: min(100%, 400px); }
+
+.hex-combat-list { width: min(100%, 760px); }
+.hex-combat-list .clean-sheet-grid { display: grid; gap: 12px; }
+.hex-combat-list .clean-sheet-panel {
+  padding: 12px; border-radius: var(--hex-radius);
+  border: 1px solid var(--hex-orange-soft); background: var(--hex-bg); box-shadow: var(--hex-glow);
+}
+.hex-combat-list .clean-sheet-panel > h2 {
+  margin: 0 0 4px; font-size: 1.05rem; font-weight: 800; letter-spacing: .02em; color: var(--hex-text);
+  font-family: var(--hex-title-font, inherit);
+}
+.hex-combat-list .clean-sheet-muted { margin: 0 0 8px; font-size: .82rem; color: var(--hex-muted); }
+.hex-combat-list .clean-sheet-action-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 8px; }
+.hex-combat-list .clean-sheet-action-card-shell { display: grid; gap: 6px; }
+/* Buttons have their border colour and shadow locked by the app-wide
+   control theme, so their edge is drawn as an outline instead. */
+.hex-combat-list .clean-sheet-action-card {
+  display: grid; gap: 3px; width: 100%; min-height: 64px; padding: 10px 12px; text-align: left;
+  border-radius: 10px; border: 0 !important; outline: 1px solid var(--hex-orange-soft); outline-offset: -1px;
+  background: var(--hex-bg); color: var(--hex-text); font: inherit; box-shadow: var(--hex-glow);
+}
+.hex-combat-list button.clean-sheet-action-card { cursor: pointer; --rq-control-blue: var(--hex-bg); }
+.hex-combat-list button.clean-sheet-action-card:hover { outline-color: var(--hex-orange); }
+.hex-combat-list .clean-sheet-action-card--reference { outline-color: var(--hex-line); box-shadow: none; opacity: .9; }
+.hex-combat-list .clean-sheet-action-card strong { font-size: .98rem; font-weight: 800; }
+.hex-combat-list .clean-sheet-action-card > span:not(.clean-sheet-action-type) { font-size: .82rem; color: var(--hex-muted); line-height: 1.35; }
+.hex-combat-list .clean-sheet-action-type {
+  font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--hex-sub, #f2b06a);
+}
+.hex-combat-list .clean-sheet-attack-card-top { display: grid; gap: 2px; }
+.hex-combat-list .clean-sheet-attack-details { font-size: .8rem; color: var(--hex-muted); }
+.hex-combat-list .clean-sheet-attack-stat-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.hex-combat-list .clean-sheet-attack-stat-box {
+  display: grid; gap: 1px; justify-items: center; min-height: 52px; padding: 6px 4px; border-radius: 8px;
+  border: 0 !important; outline: 1px solid var(--hex-orange-soft); outline-offset: -1px;
+  background: var(--hex-bg); color: var(--hex-text); font: inherit; --rq-control-blue: var(--hex-bg);
+}
+.hex-combat-list button.clean-sheet-attack-stat-box { cursor: pointer; }
+.hex-combat-list .clean-sheet-attack-roll-box { outline-color: var(--hex-orange); }
+.hex-combat-list .clean-sheet-attack-stat-box span { font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--hex-muted); }
+.hex-combat-list .clean-sheet-attack-stat-box strong { font-size: .92rem; font-weight: 800; text-align: center; }
+.hex-combat-list .clean-sheet-pending-damage {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px;
+  border-radius: 8px; border: 1px dashed var(--hex-orange-soft); font-size: .82rem; color: var(--hex-muted);
+}
+.hex-combat-list .clean-sheet-pending-damage button,
+.hex-combat-list .clean-sheet-variable-resource-spend button,
+.hex-combat-list .clean-sheet-fighter-buttons button {
+  min-height: 40px; padding: 0 12px; border-radius: 8px; border: 0 !important; outline: 1px solid var(--hex-orange-soft); outline-offset: -1px;
+  background: transparent; --rq-control-blue: transparent; color: var(--hex-text); font: inherit; font-weight: 700; cursor: pointer;
+}
+.hex-combat-list .clean-sheet-variable-resource-spend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.hex-combat-list .clean-sheet-variable-resource-spend input { min-height: 40px; width: 72px; text-align: center; }
