@@ -1,3 +1,4 @@
+import { passiveScore } from '@/data/skillModifiers';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -161,11 +162,9 @@ export default function CleanCharacterSheet() {
   const showDeathSaves = currentHp <= 0 || deathSaveSuccesses > 0 || deathSaveFailures > 0;
 
   const passiveScores = useMemo(() => {
-    return PASSIVE_SKILLS.map(([skill, ability]) => {
-      const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
-      return [skill, 10 + mod(character?.[ability]) + (proficient ? proficiencyBonus : 0)];
-    });
-  }, [character, proficiencyBonus, skillProficiencies]);
+    // Expertise and Jack of All Trades count, as they do for the skill itself.
+    return PASSIVE_SKILLS.map(([skill, ability]) => [skill, passiveScore(character, skill, ability, proficiencyBonus)]);
+  }, [character, proficiencyBonus]);
 
   const rulesEdition = String(character?.rules_edition || character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
   const personalityMissing = !hasAnyText(
