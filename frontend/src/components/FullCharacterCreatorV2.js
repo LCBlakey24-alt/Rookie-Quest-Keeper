@@ -26,6 +26,8 @@ import {
   startingEquipmentChoicesComplete,
 } from '@/data/fullBuilderEquipment';
 import { getStartingEquipmentGroups } from '@/data/startingEquipmentRules';
+import { isStandardArray } from '@/data/abilityScoreMethods';
+import AbilityScoreStep from '@/components/full-character-creator/AbilityScoreStep';
 import {
   Choice,
   Chip,
@@ -96,6 +98,8 @@ function defaultDraft() {
     background: 'Soldier',
     alignment: 'Neutral',
     scores: STANDARD,
+    abilityMethod: 'standard',
+    rolledScores: [],
     floatingAsi: {},
     selectedSkills: [],
     selectedCantrips: [],
@@ -131,6 +135,10 @@ function loadDraft() {
       rolledStartingGold: Number(stored.rolledStartingGold || 0),
       startingLevel: 1,
       scores: { ...STANDARD, ...(stored.scores || {}) },
+      // Drafts saved before the method picker existed: a standard-array
+      // spread stays standard, anything else was typed in by hand.
+      abilityMethod: stored.abilityMethod || (isStandardArray({ ...STANDARD, ...(stored.scores || {}) }) ? 'standard' : 'manual'),
+      rolledScores: Array.isArray(stored.rolledScores) ? stored.rolledScores : [],
     };
   } catch {
     return defaultDraft();
@@ -369,6 +377,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           background: loadedBackgroundName,
           alignment: data.alignment || 'Neutral',
           scores: Object.fromEntries(ABILITIES.map((ability) => [ability, Number(data[ability] || 10)])),
+          // An existing character's scores are kept exactly as they are.
+          abilityMethod: 'manual',
+          rolledScores: [],
           selectedSkills: classSkillsForEdit(data.skill_proficiencies, loadedBackgroundSkills),
           selectedCantrips: arr(data.cantrips_known || data.cantrips).map((spell) => spell.name || spell),
           selectedSpells: [...arr(data.spells_known || data.known_spells), ...arr(data.spellbook), ...arr(data.spells_prepared || data.prepared_spells)].map((spell) => spell.name || spell),
@@ -722,7 +733,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} selectedLanguages={draft.raceChosenLanguages} unavailableLanguages={[...baseLanguages, ...arr(draft.backgroundChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('raceChosenLanguages', language, languageChoices)} />}
             {stepId === 'class' && <ClassStep draft={draft} update={update} classData={classData} classFeatures={classFeatures} classChoicesRequired={classChoicesRequired} subclassLevel={subclassLevel} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
             {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} backgroundFeature={backgroundFeature} backgroundLanguageBudget={backgroundLanguageBudget} unavailableLanguages={[...baseLanguages, ...arr(draft.raceChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('backgroundChosenLanguages', language, backgroundLanguageBudget)} />}
-            {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
+            {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} bonus={bonus} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
               const next = { ...draft.floatingAsi };
               if (next[ability]) delete next[ability];
               else if (floatingSpent < floatingBudget) next[ability] = 1;
@@ -736,7 +747,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             <p>Live sheet preview</p>
             <h2>{draft.name || 'Unnamed Character'}</h2>
             <span>{draft.edition} rules • {draft.race}{draft.subrace ? ` (${draft.subrace})` : ''} • {draft.characterClass} • Lv 1</span>
-            <div className="full-creator-mini-grid"><strong>{hp}</strong><span>HP</span><strong>{ac}</strong><span>AC</span><strong>{fmt(mod(finalScores.dexterity))}</strong><span>Init</span></div>
+            <div className="full-creator-mini-grid">{[['HP', hp], ['AC', ac], ['Init', fmt(mod(finalScores.dexterity))]].map(([label, value]) => <div key={label} data-testid={`creator-preview-${label.toLowerCase()}`}><span>{label}</span><strong>{value}</strong></div>)}</div>
             <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
             <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
             <small>Languages: {finalLanguages.length ? finalLanguages.join(', ') : 'none selected'}</small>
@@ -903,11 +914,10 @@ function Background({ draft, update, featRequired, originFeat, backgroundFeature
   </>;
 }
 
-function Abilities({ draft, update, setScore, finalScores, floatingBudget, floatingSpent, toggleFloating }) {
+function Abilities({ draft, update, setScore, finalScores, bonus, floatingBudget, floatingSpent, toggleFloating }) {
   return <>
-    <Title icon={Dices} title="Ability scores" text="Use the standard array for now, or manually adjust each score." />
-    <button type="button" onClick={() => update({ scores: STANDARD })}>Reset to standard array</button>
-    <div className="full-creator-score-editor">{ABILITIES.map((ability) => <label key={ability}><span>{LABELS[ability]}</span><input type="number" min="3" max="20" value={draft.scores[ability]} onChange={(event) => setScore(ability, event.target.value)} /><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></label>)}</div>
+    <Title icon={Dices} title="Ability scores" text="Choose how to set them: the standard array, point buy, rolling 4d6, or typing them in." />
+    <AbilityScoreStep draft={draft} update={update} setScore={setScore} finalScores={finalScores} bonus={bonus} />
     {floatingBudget > 0 && <Choice title={`Floating species bonus ${floatingSpent}/${floatingBudget}`} interactive>{ABILITIES.map((ability) => <Chip key={ability} active={Boolean(draft.floatingAsi[ability])} onClick={() => toggleFloating(ability)}>{LABELS[ability]} +1</Chip>)}</Choice>}
   </>;
 }

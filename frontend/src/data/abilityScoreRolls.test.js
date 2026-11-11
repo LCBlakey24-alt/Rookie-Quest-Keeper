@@ -14,6 +14,12 @@ describe('ability score rolls', () => {
       kept: [2, 4, 6],
       dropped: [1],
       total: 12,
+      dice: [
+        { sides: 6, result: 1, dropped: true },
+        { sides: 6, result: 2, dropped: false },
+        { sides: 6, result: 4, dropped: false },
+        { sides: 6, result: 6, dropped: false },
+      ],
     });
   });
 

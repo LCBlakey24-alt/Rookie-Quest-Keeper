@@ -17,6 +17,8 @@ export function rollAbilityScore(rng = Math.random) {
     kept,
     dropped,
     total: result.total,
+    // The four dice as the 3D tray throws them, the lowest marked dropped.
+    dice: result.rolls.map(roll => ({ sides: 6, result: roll.result, dropped: Boolean(roll.dropped) })),
   };
 }
 
