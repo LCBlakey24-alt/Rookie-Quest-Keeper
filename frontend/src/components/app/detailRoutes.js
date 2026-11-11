@@ -44,3 +44,20 @@ export function isDetailRoute(pathname) {
   // A trailing segment is required, so a list page keeps the full rail.
   return DETAIL_PARENTS.some((parent) => path.startsWith(parent + '/') && path.length > parent.length + 1);
 }
+
+/**
+ * Which routes are a single task the player is in the middle of: building,
+ * importing or editing a character.
+ *
+ * On a phone these pages hide the bottom tab bar, so the page's own
+ * Previous / Next bar sits at the bottom of the screen, and the top bar
+ * shows a back arrow to the home dashboard instead. Desktop and tablet keep
+ * their side rail.
+ */
+const TASK_EXACT = ['/characters/new', '/characters/import'];
+const TASK_PATTERNS = [/^\/characters\/[^/]+\/edit$/];
+
+export function isTaskRoute(pathname) {
+  const path = normalise(pathname);
+  return TASK_EXACT.includes(path) || TASK_PATTERNS.some((pattern) => pattern.test(path));
+}

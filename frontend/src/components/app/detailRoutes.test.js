@@ -1,4 +1,4 @@
-import { isDetailRoute } from './detailRoutes';
+import { isDetailRoute, isTaskRoute } from './detailRoutes';
 
 describe('which pages get the compact rail', () => {
   test.each([
@@ -46,5 +46,27 @@ describe('which pages get the compact rail', () => {
     [undefined, null, '', 123].forEach((value) => {
       expect(isDetailRoute(value)).toBe(false);
     });
+  });
+});
+
+describe('which pages hide the phone tab bar', () => {
+  test.each([
+    ['/characters/new'],
+    ['/characters/new/'],
+    ['/characters/import'],
+    ['/characters/char-1/edit'],
+  ])('%s is a task in progress', (path) => {
+    expect(isTaskRoute(path)).toBe(true);
+  });
+
+  test.each([
+    ['/home'],
+    ['/characters'],
+    ['/characters/char-1'],
+    ['/campaign/camp-1'],
+    ['/homebrew'],
+    ['/characters/new/extra'],
+  ])('%s keeps the tab bar', (path) => {
+    expect(isTaskRoute(path)).toBe(false);
   });
 });

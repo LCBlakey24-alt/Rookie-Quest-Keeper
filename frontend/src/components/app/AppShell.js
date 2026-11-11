@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { isDetailRoute } from '@/components/app/detailRoutes';
-import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
+import { isDetailRoute, isTaskRoute } from '@/components/app/detailRoutes';
+import { ArrowLeft, BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY } from '@/lib/auth';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
@@ -22,6 +22,7 @@ import LevelUpGrantWatcher from '@/components/level-up-grant/LevelUpGrantWatcher
 import '@/preview/previewWorkspace.css';
 // Last on purpose: the phone navigation's single source of truth.
 import '@/styles/mobileNavigation.css';
+import '@/styles/appShellTaskRoutes.css';
 
 const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000;
 let adminCheckInFlight = null;
@@ -286,12 +287,16 @@ export default function AppShell({ children }) {
     openFeedback();
   };
 
+  // A task in progress (creator, import, edit): no phone tab bar, back arrow instead.
+  const taskRoute = isTaskRoute(location.pathname);
+
   return (
     <div
       className="rqk-app-shell"
       data-rq-layout-shell="app"
       data-rq-device={deviceLayout}
       data-rq-focus={isDetailRoute(location.pathname) ? 'detail' : undefined}
+      data-rq-task={taskRoute ? 'true' : undefined}
     >
       <aside className="rqk-app-rail" aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
@@ -353,16 +358,20 @@ export default function AppShell({ children }) {
       <div className="rqk-app-workspace">
         <header className="rqk-app-topbar" aria-label="Workspace controls">
           {isLocalPreview() ? <PreviewWorkspaceControls /> : <div className="rqk-app-topbar-title">
-            {isMobile && (
+            {isMobile && (taskRoute ? (
+              <Link to="/home" className="rqk-app-topbar-back" aria-label="Back to home dashboard" data-testid="topbar-back-home">
+                <ArrowLeft size={22} aria-hidden="true" />
+              </Link>
+            ) : (
               <Link to="/home" className="rqk-app-topbar-brand" aria-label="Rookie Quest Keeper home">
                 <BrandMiniLogo size={28} alt="" />
               </Link>
-            )}
+            ))}
             <span>Rookie Quest Keeper</span>
             <strong>{sectionLabel(location.pathname)}</strong>
           </div>}
           {!isMobile && <Link to="/account" aria-label="Account settings" title="Account settings" className="rqk-app-topbar-settings" style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, color: "#cddce8" }}><Settings size={20} aria-hidden="true" /></Link>}
-          {isMobile && (
+          {isMobile && !taskRoute && (
             <button type="button" className="rqk-app-topbar-tools-toggle"
               aria-label={mobileMoreCurrentSection ? `Open more tools, current section ${mobileMoreCurrentSection.label}` : "Open more tools"} aria-expanded={isMoreOpen}
               aria-controls="rqk-app-mobile-more-panel"

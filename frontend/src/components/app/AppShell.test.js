@@ -148,6 +148,24 @@ describe('Keeper simplified navigation', () => {
       expect(screen.getByRole('link', { name: 'Rookie Quest Keeper home' })).toHaveAttribute('href', '/home');
     });
 
+    test('on a phone, the creator swaps the brand mark for a back arrow home and marks the shell as a task', async () => {
+      window.innerWidth = 390;
+      mockPathname = '/characters/new';
+      let view;
+      await act(async () => { view = render(<AppShell><main>Content</main></AppShell>); });
+      expect(screen.getByRole('link', { name: 'Back to home dashboard' })).toHaveAttribute('href', '/home');
+      expect(screen.queryByRole('link', { name: 'Rookie Quest Keeper home' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Open more tools/ })).not.toBeInTheDocument();
+      expect(view.container.querySelector('.rqk-app-shell')).toHaveAttribute('data-rq-task', 'true');
+    });
+
+    test('ordinary pages are not marked as a task', async () => {
+      window.innerWidth = 390;
+      let view;
+      await act(async () => { view = render(<AppShell><main>Content</main></AppShell>); });
+      expect(view.container.querySelector('.rqk-app-shell')).not.toHaveAttribute('data-rq-task');
+    });
+
     test('larger screens keep their own header without the phone brand mark', async () => {
       window.innerWidth = 1280;
       await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
