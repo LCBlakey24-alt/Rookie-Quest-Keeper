@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices, Shield, Sparkles, Swords, Wand2 } from 'lucide-react';
@@ -214,6 +214,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const [saving, setSaving] = useState(false);
   const [spellSearch, setSpellSearch] = useState('');
   const [touchStartX, setTouchStartX] = useState(null);
+  const [leaving, setLeaving] = useState(false);
+  const leaveTimer = useRef(null);
+  useEffect(() => () => { if (leaveTimer.current) window.clearTimeout(leaveTimer.current); }, []);
 
   const raceData = RACES[draft.race] || {};
   const classData = CLASSES[draft.characterClass] || {};
@@ -411,7 +414,27 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }, [editMode, characterId, navigate]);
 
   const update = (patch) => setDraft((prev) => ({ ...prev, ...patch }));
-  const setStep = (nextStep) => update({ step: Math.max(0, Math.min(steps.length - 1, nextStep)) });
+  const applyStep = (nextStep) => update({ step: Math.max(0, Math.min(steps.length - 1, nextStep)) });
+  // Leaving a step that shows a wheel: its wedges shrink in first, then the
+  // next step's wheel deals its wedges back out. Skipped when the player
+  // asks for reduced motion (and where matchMedia does not exist).
+  const setStep = (nextStep) => {
+    const target = Math.max(0, Math.min(steps.length - 1, nextStep));
+    const canAnimate = typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!canAnimate || target === step || !document.querySelector('.full-creator-panel .guild-wheel')) {
+      applyStep(target);
+      return;
+    }
+    if (leaveTimer.current) return;
+    setLeaving(true);
+    leaveTimer.current = window.setTimeout(() => {
+      leaveTimer.current = null;
+      setLeaving(false);
+      applyStep(target);
+    }, WHEEL_LEAVE_MS);
+  };
   const setScore = (ability, value) => update({ scores: { ...draft.scores, [ability]: clamp(value) } });
 
   function validate() {
@@ -734,7 +757,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         </nav>
 
         <section className="full-creator-layout">
-          <article className="full-creator-panel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <article className={`full-creator-panel${leaving ? ' is-leaving' : ''}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
             {stepId === 'setup' && <Setup draft={draft} update={update} />}
             {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} selectedLanguages={draft.raceChosenLanguages} unavailableLanguages={[...baseLanguages, ...arr(draft.backgroundChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('raceChosenLanguages', language, languageChoices)} />}
@@ -788,6 +811,7 @@ function Setup({ draft, update }) {
   </>;
 }
 
+const WHEEL_LEAVE_MS = 200;
 const CHOICE_VIEW_KEY = 'rqk.creator.choiceView';
 function loadChoiceView() {
   try { return window.localStorage.getItem(CHOICE_VIEW_KEY) === 'list' ? 'list' : 'wheel'; } catch { return 'wheel'; }

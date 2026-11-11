@@ -19,5 +19,6 @@
   --guild-muted: #c6d3e2;
   --guild-ink: #0a1a2e;         /* text on a solid accent button */
   --guild-select: rgba(96, 156, 232, 0.2); /* fill of a selected card: lighter blue, not tinted orange */
+  --guild-cool: #6fb8ff;        /* light blue glow on unselected shapes */
   --guild-glow: 0.5;
 }

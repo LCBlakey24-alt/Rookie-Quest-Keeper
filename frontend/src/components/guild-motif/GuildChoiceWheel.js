@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import '@/styles/guildTokens.css';
 import { angleStep, optionAtTop, pointerAngle, rotationForOption, settleRotation, shortLabels } from './choiceWheel';
@@ -63,6 +63,7 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
   const rotationRef = useRef(rotation);
   const svgRef = useRef(null);
   const drag = useRef(null);
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   const turnTo = (next) => {
     rotationRef.current = next;
@@ -161,7 +162,7 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
       <svg
         ref={svgRef}
         className={`guild-wheel__svg${dragging ? ' is-dragging' : ''}`}
-        viewBox="-110 -115 220 230"
+        viewBox="-91 -104 182 208"
         role="radiogroup"
         tabIndex={0}
         aria-label={`${label}: turn the wheel or use the arrow keys`}
@@ -171,7 +172,17 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
         onPointerCancel={onPointerUp}
         onKeyDown={onKeyDown}
       >
+        <defs>
+          {/* Soft light just inside an edge: a blurred stroke clipped to its own shape, so nothing spills outside. */}
+          <filter id={`${uid}-blur`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6" /></filter>
+          <clipPath id={`${uid}-case`}><polygon points={hexPoints(R)} /></clipPath>
+          <clipPath id={`${uid}-core`}><polygon points={hexPoints(48)} /></clipPath>
+          {options.map((option, index) => (
+            <clipPath key={option.id} id={`${uid}-seg-${index}`}><path d={segmentPath(index, step)} /></clipPath>
+          ))}
+        </defs>
         <polygon className="guild-wheel__case" points={hexPoints(R)} />
+        <polygon className="guild-wheel__glow guild-wheel__glow--case" points={hexPoints(R)} clipPath={`url(#${uid}-case)`} filter={`url(#${uid}-blur)`} />
         <circle className="guild-wheel__rim" cx="0" cy="0" r={RING_OUTER} />
         <g className="guild-wheel__ring" style={{ transform: `rotate(${rotation}deg)` }}>
           {options.map((option, index) => {
@@ -186,8 +197,12 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
                 aria-label={option.label}
                 data-wheel-index={index}
                 className={`guild-wheel__segment${isSelected ? ' is-selected' : ''}${isPreview ? ' is-preview' : ''}`}
+                style={{ '--wheel-order': index }}
               >
-                <path d={segmentPath(index, step)} />
+                <path className="guild-wheel__face" d={segmentPath(index, step)} />
+                {/* Light blue inside every wedge; orange inside the one at the top. */}
+                <path className="guild-wheel__glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
+                <path className="guild-wheel__edge" d={segmentPath(index, step)} />
                 {/* Printed on the ring: the code turns with its segment. */}
                 <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" transform={`rotate(${index * step} ${lx} ${ly})`} aria-hidden="true">{codes[index]}</text>
               </g>
@@ -196,6 +211,7 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
         </g>
         <path className="guild-wheel__pointer" d="M -7 -97 L 7 -97 L 0 -86 Z" aria-hidden="true" />
         <polygon className="guild-wheel__core" points={hexPoints(48)} />
+        <polygon className="guild-wheel__glow guild-wheel__glow--core" points={hexPoints(48)} clipPath={`url(#${uid}-core)`} filter={`url(#${uid}-blur)`} />
         {caption && <text className="guild-wheel__caption" x="0" y="-18" textAnchor="middle" aria-hidden="true">{caption}</text>}
         <text className={`guild-wheel__name${nameClass}`} x="0" y={caption ? 6 : 0} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{name}</text>
       </svg>
