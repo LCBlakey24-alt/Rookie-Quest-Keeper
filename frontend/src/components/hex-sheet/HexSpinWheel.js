@@ -15,7 +15,8 @@ function buzz() {
 /**
  * A hexagon of three wedges that turns. Spin it (or tap a wedge, or use the
  * arrow keys) and whichever wedge comes to rest at the top is chosen; a
- * small pointer marks the top. Labels stay upright as the wheel turns.
+ * small pointer marks the top. Labels are printed on their wedges and
+ * turn with them, reading upright at the top.
  *
  * Controlled: `value` is the chosen sector's id and `onChange` is called
  * with the new id when the wheel settles on a different one.
@@ -140,8 +141,10 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
               data-testid={`hex-spin-${sector.id}`}
             >
               <GlowPolygon className="hex-wheel__wedge" points={pointsAttribute(sectorPolygon(sectorIndex))} filterId={filterId} />
-              {/* Counter-rotated about its own point, so it always reads upright. */}
-              <g transform={`rotate(${-rotation} ${lx} ${ly})`} aria-hidden="true">
+              {/* Printed on the wedge: the text turns with it, upside down at the
+                  bottom like the markings on a real dial, and reads upright
+                  when its wedge is at the top. */}
+              <g transform={`rotate(${sectorIndex * SPIN_STEP} ${lx} ${ly})`} aria-hidden="true">
                 <text className="hex-spin__label" x={lx} y={ly - (sector.sub ? 4 : 0)} textAnchor="middle" dominantBaseline="central">{sector.short || sector.label}</text>
                 {sector.sub && <text className="hex-spin__sub" x={lx} y={ly + 9} textAnchor="middle" dominantBaseline="central">{sector.sub}</text>}
               </g>
