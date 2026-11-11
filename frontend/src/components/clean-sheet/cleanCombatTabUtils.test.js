@@ -549,3 +549,41 @@ describe('Monk Martial Arts bonus action', () => {
     expect(getMonkBonusUnarmedAction(character, unarmed)).toBeNull();
   });
 });
+
+describe('Martial Arts with monk weapons', () => {
+  const quarterstaff = { name: 'Quarterstaff', type: 'Weapon', damage_dice: '1d6', damage_type: 'bludgeoning', equipped: true };
+  // STR 12 (+1), DEX 18 (+4), proficiency +3.
+  const monk = (overrides = {}) => ({
+    character_class: 'Monk', level: 6, rules_edition: '2014', strength: 12, dexterity: 18,
+    weapon_proficiencies: ['simple', 'shortsword'], equipped: { mainHand: quarterstaff }, ...overrides,
+  });
+
+  test('a Monk attacks with a monk weapon using DEX: +7 to hit and 1d6 + 4 (it was +4 and 1d6 + 1)', () => {
+    const attack = getEquippedWeaponAttack(monk(), 'mainHand', 1, 4, 4, 3);
+    expect(attack.attackMod).toBe(7);
+    expect(attack.damage).toMatchObject({ count: 1, sides: 6, modifier: 4 });
+    expect(attack.details).toContain('Martial Arts d6');
+  });
+
+  test('the Martial Arts die replaces a smaller weapon die (2024 level 5 Monk: d8 over a dagger d4)', () => {
+    const dagger = { name: 'Dagger', type: 'Weapon', damage_dice: '1d4', damage_type: 'piercing', equipped: true };
+    const attack = getEquippedWeaponAttack(monk({ rules_edition: '2024', level: 5, equipped: { mainHand: dagger } }), 'mainHand', 1, 4, 4, 3);
+    expect(attack.damage.sides).toBe(8);
+  });
+
+  test('wearing armour or holding a shield switches Martial Arts off', () => {
+    const armoured = monk({ equipped: { mainHand: quarterstaff, armor: { name: 'Leather Armor', type: 'Armor' } } });
+    expect(getEquippedWeaponAttack(armoured, 'mainHand', 1, 4, 4, 3).attackMod).toBe(4);
+  });
+
+  test('a weapon that is not a monk weapon is unchanged (a greatsword is heavy and two-handed)', () => {
+    const greatsword = { name: 'Greatsword', type: 'Weapon', damage_dice: '2d6', damage_type: 'slashing', equipped: true };
+    const attack = getEquippedWeaponAttack(monk({ equipped: { mainHand: greatsword } }), 'mainHand', 1, 4, 4, 3);
+    expect(attack.damage).toMatchObject({ count: 2, sides: 6, modifier: 1 });
+  });
+
+  test('characters who are not Monks are unchanged', () => {
+    const fighter = { character_class: 'Fighter', level: 6, weapon_proficiencies: ['simple', 'martial'], equipped: { mainHand: quarterstaff } };
+    expect(getEquippedWeaponAttack(fighter, 'mainHand', 1, 4, 4, 3).attackMod).toBe(4);
+  });
+});

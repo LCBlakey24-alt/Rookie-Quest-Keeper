@@ -297,18 +297,42 @@ export function hasWeaponProficiency(character = {}, item, rule = findWeaponRule
   }) || !categoryKnown && !rule;
 }
 
+/**
+ * Martial Arts applies to a Monk's monk weapons as well as unarmed strikes
+ * (2014 and 2024): while the Monk wears no armour and holds no shield, a
+ * monk weapon may use DEX instead of STR, and may roll the Martial Arts die
+ * in place of its own damage die when that die is bigger.
+ */
+function martialArtsForWeapon(character, item) {
+  const monkLevel = getMonkClassLevel(character);
+  if (!monkLevel || !item) return null;
+  const edition = String(character?.rules_edition || character?.ruleset_id || character?.edition || '').includes('2024') ? '2024' : '2014';
+  const armor = getEquippedItemForSlot(character, 'armor');
+  const offHand = getEquippedItemForSlot(character, 'offHand');
+  if (armor || (offHand && isShieldItem(offHand))) return null;
+  if (!isMonkWeapon(item, edition)) return null;
+  const die = getMonkMartialArtsDie(monkLevel, edition);
+  return { die, sides: Number(String(die).replace(/[^0-9]/g, '')) || 0 };
+}
+
 function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus) {
   const rule = findWeaponRule(item);
   const name = rule?.name || getItemName(item) || 'Weapon Attack';
   const explicitDice = parseDamageDice(item?.damage || item?.damage_dice || item?.dice || item?.damageDice);
   const ruleDice = parseDamageDice(rule?.damage);
-  const dice = explicitDice || ruleDice || { count: 1, sides: 8 };
+  const weaponDice = explicitDice || ruleDice || { count: 1, sides: 8 };
+  const martialArts = martialArtsForWeapon(character, item);
+  const dice = martialArts && weaponDice.count === 1 && martialArts.sides > weaponDice.sides
+    ? { count: 1, sides: martialArts.sides }
+    : weaponDice;
   const explicitAbility = String(item?.ability || item?.attack_ability || '').toLowerCase();
   const abilityMod = explicitAbility.includes('dex')
     ? dexterityMod
     : explicitAbility.includes('str')
       ? strengthMod
-      : getWeaponAbilityMod(rule, strengthMod, dexterityMod);
+      : martialArts
+        ? Math.max(strengthMod, dexterityMod, getWeaponAbilityMod(rule, strengthMod, dexterityMod))
+        : getWeaponAbilityMod(rule, strengthMod, dexterityMod);
   const damageType = item?.damage_type || item?.damageType || rule?.damageType || 'weapon';
   const range = item?.range || rule?.range || 'Melee or ranged';
   const properties = item?.properties || item?.property || item?.notes || (rule?.properties || []).join(', ');
@@ -323,7 +347,7 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
     : `${dice.count}d${dice.sides}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`;
   const category = normaliseName(rule?.category || item?.weapon_category || item?.category || '');
   const isMelee = category.includes('melee') || /^\s*(melee|reach)\b/i.test(String(range || ''));
-  const detailParts = [range, properties, proficient ? null : 'Not proficient'].filter(Boolean);
+  const detailParts = [range, properties, martialArts ? `Martial Arts ${martialArts.die}` : null, proficient ? null : 'Not proficient'].filter(Boolean);
 
   return {
     id: `weapon-${String(name).toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
