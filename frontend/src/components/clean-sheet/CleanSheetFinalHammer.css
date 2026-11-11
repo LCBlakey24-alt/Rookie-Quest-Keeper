@@ -3,39 +3,39 @@
 
 .character-page-v2.clean-sheet-page,
 .clean-sheet-page.character-page-v2 {
-  --cs-bg: #0B1B2B !important;
-  --cs-panel: #0B1B2B !important;
-  --cs-card: #0B1B2B !important;
-  --cs-input: #0B1B2B !important;
-  --cs-text: #EADFC8 !important;
-  --cs-text-soft: rgba(234,223,200, 0.78) !important;
-  --cs-muted: rgba(234,223,200, 0.60) !important;
+  --cs-bg: #0a2342 !important;
+  --cs-panel: #0a2342 !important;
+  --cs-card: #0a2342 !important;
+  --cs-input: #0a2342 !important;
+  --cs-text: #ffffff !important;
+  --cs-text-soft: rgba(255, 255, 255, 0.78) !important;
+  --cs-muted: rgba(255, 255, 255, 0.60) !important;
   --cs-border: rgba(137,157,176, 0.14) !important;
-  --cs-border-strong: rgba(201,169,107, 0.30) !important;
-  --cs-accent: #C9A96B !important;
-  --cs-accent-soft: rgba(201,169,107, 0.12) !important;
+  --cs-border-strong: rgba(242, 137, 47, 0.30) !important;
+  --cs-accent: #f2892f !important;
+  --cs-accent-soft: rgba(242, 137, 47, 0.12) !important;
   --cs-blue: #3C92E0 !important;
   --cs-blue-soft: rgba(60,146,224, 0.10) !important;
   --cs-success: #5FA67A !important;
   --cs-warning: #D39A43 !important;
   --cs-danger: #B94A4F !important;
 
-  --rq-bg-main: #0B1B2B !important;
-  --rq-bg-panel: #0B1B2B !important;
-  --rq-bg-card: #0B1B2B !important;
-  --rq-bg-input: #0B1B2B !important;
-  --rq-bg-button: #0B1B2B !important;
-  --rq-card: #0B1B2B !important;
-  --rq-panel: #0B1B2B !important;
-  --rq-surface: #0B1B2B !important;
+  --rq-bg-main: #0a2342 !important;
+  --rq-bg-panel: #0a2342 !important;
+  --rq-bg-card: #0a2342 !important;
+  --rq-bg-input: #0a2342 !important;
+  --rq-bg-button: #0a2342 !important;
+  --rq-card: #0a2342 !important;
+  --rq-panel: #0a2342 !important;
+  --rq-surface: #0a2342 !important;
   --rq-border-default: rgba(137,157,176, 0.14) !important;
-  --rq-accent-primary: #C9A96B !important;
+  --rq-accent-primary: #f2892f !important;
   --rq-secondary: #3C92E0 !important;
-  --rq-sunset-gradient: #C9A96B !important;
+  --rq-sunset-gradient: #f2892f !important;
 
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   background-image: none !important;
-  color: #EADFC8 !important;
+  color: #ffffff !important;
   overflow-x: hidden !important;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .character-page-v2 :where(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,em,b,i,li,dt,dd,button,a,th,td) {
-  color: #EADFC8 !important;
+  color: #ffffff !important;
   -webkit-text-fill-color: currentColor !important;
 }
 
@@ -75,11 +75,11 @@
 .character-page-v2 .clean-sheet-skills-summary,
 .character-page-v2 .clean-sheet-readable-saves,
 .character-page-v2 .clean-sheet-readable-skills {
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   background-image: none !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 7px !important;
-  color: #EADFC8 !important;
+  color: #ffffff !important;
 }
 
 .character-page-v2 .clean-sheet-identity,
@@ -98,12 +98,12 @@
 .character-page-v2 .clean-sheet-note-field,
 .character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-compact-stat--hp {
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   background-image: none !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-left-width: 1px !important;
   border-radius: 5px !important;
-  color: #EADFC8 !important;
+  color: #ffffff !important;
 }
 
 .character-page-v2 .clean-sheet-header::before,
@@ -163,9 +163,9 @@
   min-height: 42px !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 5px !important;
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   background-image: none !important;
-  color: #EADFC8 !important;
+  color: #ffffff !important;
 }
 
 .character-page-v2 .clean-sheet-level,
@@ -193,8 +193,8 @@
 .character-page-v2 button:hover:not(:disabled),
 .character-page-v2 button:focus-visible,
 .character-page-v2 .clean-sheet-clickable:hover {
-  background: #0B1B2B !important;
-  border-color: #C9A96B !important;
+  background: #0a2342 !important;
+  border-color: #f2892f !important;
   filter: none !important;
   transform: none !important;
 }
@@ -211,12 +211,12 @@
 .character-page-v2 input,
 .character-page-v2 select,
 .character-page-v2 textarea {
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   background-image: none !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 5px !important;
-  color: #EADFC8 !important;
-  -webkit-text-fill-color: #EADFC8 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
@@ -235,7 +235,7 @@
 .character-page-v2 .clean-sheet-hp-bar,
 .character-page-v2 .clean-sheet-slot-pips i,
 .character-page-v2 .clean-sheet-death-track button {
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   border-color: rgba(137,157,176, 0.14) !important;
 }
 
@@ -259,7 +259,7 @@
   background-image: none !important;
   border: 1px solid transparent !important;
   border-radius: 5px !important;
-  color: #EADFC8 !important;
+  color: #ffffff !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button svg,
@@ -289,24 +289,24 @@
 .character-page-v2 .clean-sheet-tab-warning,
 .character-page-v2 .clean-sheet-save-prof-marker,
 .character-page-v2 .clean-sheet-compact-skill.is-proficient::before {
-  background: #C9A96B !important;
+  background: #f2892f !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient {
-  border-left: 1px solid #C9A96B !important;
+  border-left: 1px solid #f2892f !important;
 }
 
 .character-page-v2 .clean-sheet-attention-section,
 .character-page-v2 .clean-sheet-snapshot-warning,
 .character-page-v2 .clean-sheet-detail-warning,
 .character-page-v2 .clean-sheet-spell-warning {
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   background-image: none !important;
-  border: 1px solid #C9A96B !important;
+  border: 1px solid #f2892f !important;
   border-radius: 5px !important;
-  color: #EADFC8 !important;
+  color: #ffffff !important;
 }
 
 /* Guild Ledger information hierarchy: values stay prominent; labels and rules copy recede. */
@@ -404,7 +404,7 @@
     overflow-y: hidden !important;
     overscroll-behavior-inline: contain !important;
     scrollbar-width: thin !important;
-    background: #0B1B2B !important;
+    background: #0a2342 !important;
     border: 1px solid rgba(137,157,176, 0.14) !important;
   }
 

@@ -14,7 +14,7 @@ describe('Guild Ledger visual finishing pass', () => {
     const css = read('./guildLedgerFinish.css');
     const fonts = read('../index.css');
     expect(css).toContain('--rq-guild-wine: #7E2D2D');
-    expect(css).toContain('--rq-guild-heading: #D9BC82');
+    expect(css).toContain('--rq-guild-heading: #ffb066');
     expect(css).toContain('--rq-guild-copy: #F1EEE7');
     expect(css).toContain('linear-gradient(115deg, #35212A');
     expect(fonts).toContain("--rq-font-display: 'Fraunces'");

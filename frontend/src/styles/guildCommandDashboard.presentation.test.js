@@ -58,7 +58,7 @@ describe('Approved Guild Command screenshot-to-web implementation', () => {
   });
 
   test('normal controls stay navy and gradients only decorate thin edges', () => {
-    expect(css).toContain('background-color: #0B1B2B !important;');
+    expect(css).toContain('background-color: #0a2342 !important;');
     expect(css).toContain('background-size: 100% 3px !important;');
     expect(css).toContain('background-position: left bottom !important;');
     expect(css).not.toContain('background-size: 100% 100%');

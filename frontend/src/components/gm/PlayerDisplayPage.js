@@ -15,17 +15,17 @@ import './PlayerDisplayPage.css';
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-font-display, Fraunces, Georgia, serif)';
 const theme = {
-  bg: 'var(--rq-bg-main, #0B1B2B)',
-  panel: 'var(--rq-bg-panel, #0B1B2B)',
-  card: 'var(--rq-card, #0B1B2B)',
+  bg: 'var(--rq-bg-main, #0a2342)',
+  panel: 'var(--rq-bg-panel, #0a2342)',
+  card: 'var(--rq-card, #0a2342)',
   // Compatibility alias: historical code calls the brand accent 'red'.
-  red: 'var(--rq-primary, #C9A96B)',
+  red: 'var(--rq-primary, #f2892f)',
   danger: 'var(--rq-danger, #B94A4F)',
-  text: 'var(--rq-text-primary, #EADFC8)',
-  soft: 'var(--rq-text-secondary, rgba(234,223,200,0.78))',
-  muted: 'var(--rq-text-muted, rgba(234,223,200,0.60))',
+  text: 'var(--rq-text-primary, #ffffff)',
+  soft: 'var(--rq-text-secondary, rgba(255, 255, 255,0.78))',
+  muted: 'var(--rq-text-muted, rgba(255, 255, 255,0.60))',
   line: 'var(--rq-line, rgba(137,157,176,0.14))',
-  lineStrong: 'var(--rq-line-strong, rgba(201,169,107,0.30))',
+  lineStrong: 'var(--rq-line-strong, rgba(242, 137, 47,0.30))',
 };
 
 function normaliseTarget(target) { return target === 'virtual-table' ? 'virtual-table' : 'standing-tv'; }
@@ -598,7 +598,7 @@ function MapToken({ token, target }) {
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = (target) => ({ height: '100dvh', maxHeight: '100dvh', minHeight: 0, width: '100%', maxWidth: '100vw', boxSizing: 'border-box', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
-const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'var(--rq-bg-deep, #0B1B2B)' : theme.bg, boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
+const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'var(--rq-bg-deep, #0a2342)' : theme.bg, boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
 const displayGridStyle = (target, showParty) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateColumns: !isTable(target) && showParty ? 'minmax(155px, 205px) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: !isTable(target) && showParty ? 12 : 0, paddingTop: !isTable(target) && showParty ? 12 : 0 });
 /**
  * What the footer may honestly claim. "Synced" only after a successful
@@ -628,9 +628,9 @@ function AccessNotice({ status }) {
   );
 }
 
-const accessNoticeStyle = { gridColumn: '1 / -1', alignSelf: 'center', justifySelf: 'center', maxWidth: 560, display: 'grid', gap: 10, padding: '24px 22px', background: 'var(--rq-bg-panel, #0B1B2B)', border: '1px solid var(--rq-secondary, #3C92E0)', color: 'var(--rq-text-primary, #EADFC8)', textAlign: 'center' };
+const accessNoticeStyle = { gridColumn: '1 / -1', alignSelf: 'center', justifySelf: 'center', maxWidth: 560, display: 'grid', gap: 10, padding: '24px 22px', background: 'var(--rq-bg-panel, #0a2342)', border: '1px solid var(--rq-secondary, #3C92E0)', color: 'var(--rq-text-primary, #ffffff)', textAlign: 'center' };
 const accessTitleStyle = { fontSize: 20, fontWeight: 900 };
-const accessBodyStyle = { fontSize: 14, lineHeight: 1.5, color: 'var(--rq-text-secondary, rgba(234,223,200,.78))' };
+const accessBodyStyle = { fontSize: 14, lineHeight: 1.5, color: 'var(--rq-text-secondary, rgba(255, 255, 255,.78))' };
 // The fullscreen control is fixed top-right over the status bar. The bar
 // reserves room for it (PlayerDisplayPage.css reads this as
 // --rqk-fullscreen-clearance) so status text such as party-sync warnings is
@@ -705,7 +705,7 @@ const combatHudShellStyle = { minHeight: 0, height: '100%', display: 'grid', gri
 const combatRosterPanelStyle = { minHeight: 0, display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 10, padding: 10, background: 'rgba(0,0,0,0.62)', border: `1px solid ${theme.line}`, borderLeft: `7px solid ${theme.red}`, overflow: 'hidden', boxShadow: '0 28px 90px rgba(0,0,0,0.36)' };
 const combatRosterHeaderStyle = { display: 'grid', gap: 3, color: theme.text, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const combatRosterListStyle = { minHeight: 0, overflowY: 'auto', display: 'grid', alignContent: 'start', gap: 8, paddingRight: 2 };
-const combatRosterCardStyle = (type, active) => ({ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 8, padding: 8, background: active ? 'var(--rq-accent-soft, rgba(201,169,107,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, borderLeft: `5px solid ${type === 'player' ? 'rgba(255,255,255,0.78)' : theme.red}`, boxShadow: 'none' });
+const combatRosterCardStyle = (type, active) => ({ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 8, padding: 8, background: active ? 'var(--rq-accent-soft, rgba(242, 137, 47,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, borderLeft: `5px solid ${type === 'player' ? 'rgba(255,255,255,0.78)' : theme.red}`, boxShadow: 'none' });
 const combatPortraitStyle = (type) => ({ width: 48, height: 48, display: 'grid', placeItems: 'center', overflow: 'hidden', background: type === 'player' ? 'rgba(255,255,255,0.13)' : theme.panel, color: theme.text, fontFamily: titleFont, fontSize: 24, border: `1px solid ${theme.lineStrong}` });
 const combatNameRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, color: theme.text, fontSize: 12, fontWeight: 950 };
 const combatMiniGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4, marginTop: 4 };
@@ -721,7 +721,7 @@ const combatTokenShelfStyle = { position: 'absolute', left: 14, right: 14, botto
 const tableTokenShelfStyle = { position: 'absolute', left: 8, right: 8, bottom: 58, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', padding: 7, background: 'rgba(0,0,0,0.58)', border: `1px solid ${theme.line}` };
 const tableMapLabelStyle = { position: 'absolute', top: 8, left: 8, display: 'grid', gap: 2, maxWidth: 'min(520px, 70%)', background: 'rgba(0,0,0,0.62)', borderLeft: `5px solid ${theme.red}`, padding: '7px 10px', color: theme.text, fontSize: 13 };
 const tableCombatRailStyle = { position: 'absolute', left: 8, right: 8, bottom: 8, display: 'flex', gap: 6, overflowX: 'auto', padding: 7, background: 'rgba(0,0,0,0.68)', border: `1px solid ${theme.line}` };
-const combatRailPillStyle = (type, active) => ({ flex: '0 0 auto', minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 9px', background: active ? 'var(--rq-accent-soft, rgba(201,169,107,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, color: theme.text, fontSize: 11, fontWeight: 950, textTransform: 'uppercase' });
+const combatRailPillStyle = (type, active) => ({ flex: '0 0 auto', minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 9px', background: active ? 'var(--rq-accent-soft, rgba(242, 137, 47,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, color: theme.text, fontSize: 11, fontWeight: 950, textTransform: 'uppercase' });
 const visibleCreatureCardStyle = { display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 10, alignItems: 'center', padding: '9px 10px', background: theme.card, borderLeft: `6px solid ${theme.red}`, color: theme.text, fontWeight: 900 };
 const tokenShelfCardStyle = (target) => ({ display: 'grid', gridTemplateColumns: `${isTable(target) ? 28 : 34}px minmax(0, 1fr)`, gap: 7, alignItems: 'center', padding: isTable(target) ? '5px 7px' : '6px 8px', background: theme.card, borderLeft: `5px solid ${theme.red}`, color: theme.text, fontWeight: 900, maxWidth: isTable(target) ? 160 : 210, fontSize: isTable(target) ? 11 : 13 });
 const creatureImageStyle = (compact, target) => ({ width: compact ? (isTable(target) ? 28 : 34) : 48, height: compact ? (isTable(target) ? 28 : 34) : 48, objectFit: 'cover', background: '#000' });
@@ -749,13 +749,13 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     @keyframes rqkDisplayPulse { 0%, 100% { transform: translateY(0); box-shadow: 0 22px 80px rgba(208,0,0,0.2); } 50% { transform: translateY(-4px); box-shadow: 0 28px 100px rgba(208,0,0,0.38); } }
     @keyframes rqkBannerPop { from { opacity: 0; transform: translateY(28px) scale(0.98); filter: blur(7px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     @keyframes rqkBattleBorder { 0%, 100% { box-shadow: inset 0 0 36px rgba(185,74,79,0.8), inset 0 0 90px rgba(185,74,79,0.25); } 50% { box-shadow: inset 0 0 70px rgba(185,74,79,1), inset 0 0 150px rgba(185,74,79,0.48); } }
-    .rqk-battle-start { width: 100%; height: 100%; min-height: 0; background: radial-gradient(ellipse at center, rgba(95,17,21,0.22), #0b1b2b 68%); color: #eadfc8; display: grid; place-items: center; border: clamp(9px, 1.5vw, 22px) solid #b94a4f; box-sizing: border-box; animation: rqkBattleBorder 1.5s ease-in-out infinite; }
+    .rqk-battle-start { width: 100%; height: 100%; min-height: 0; background: radial-gradient(ellipse at center, rgba(95,17,21,0.22), #0a2342 68%); color: #ffffff; display: grid; place-items: center; border: clamp(9px, 1.5vw, 22px) solid #b94a4f; box-sizing: border-box; animation: rqkBattleBorder 1.5s ease-in-out infinite; }
     .rqk-battle-start__frame { text-align: center; display: grid; justify-items: center; align-content: center; gap: clamp(10px, 2vw, 25px); padding: 20px; }
-    .rqk-battle-start__frame > svg { color: #c9a96b; }
+    .rqk-battle-start__frame > svg { color: #f2892f; }
     .rqk-battle-start__frame p { margin: 0; font-size: clamp(13px, 2vw, 24px); letter-spacing: 0.22em; text-transform: uppercase; color: #d39a43; font-weight: 800; }
     .rqk-battle-start__frame h1 { margin: 0; font-size: clamp(42px, 8vw, 128px); font-family: var(--rq-font-display, Georgia, serif); line-height: 0.9; text-shadow: 0 10px 36px rgba(0,0,0,0.8); }
-    .rqk-battle-start__frame strong { display: inline-flex; align-items: center; gap: 14px; font-size: clamp(17px, 2.4vw, 33px); letter-spacing: 0.1em; color: #c9a96b; }
-    .rqk-battle-start__overlay { position: absolute; inset: 0; z-index: 11; background: #0b1b2b; }
+    .rqk-battle-start__frame strong { display: inline-flex; align-items: center; gap: 14px; font-size: clamp(17px, 2.4vw, 33px); letter-spacing: 0.1em; color: #f2892f; }
+    .rqk-battle-start__overlay { position: absolute; inset: 0; z-index: 11; background: #0a2342; }
     @media (prefers-reduced-motion: reduce) { .rqk-battle-start { animation: none; box-shadow: inset 0 0 70px rgba(185,74,79,0.55); } }
     @keyframes rqkPartyReveal { from { opacity: 0; transform: translateX(-20px); filter: blur(5px); } to { opacity: 1; transform: translateX(0); filter: blur(0); } }
     [data-testid="player-display-page"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 100% 4px; mix-blend-mode: screen; opacity: 0.28; z-index: 2; }

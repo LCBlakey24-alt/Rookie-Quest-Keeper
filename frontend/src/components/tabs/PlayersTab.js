@@ -608,7 +608,7 @@ function PlayersTab({ campaignId }) {
                     // docs/UI_DESIGN_SYSTEM.md. The accent is never a fill.
                     backgroundColor: idx + 1 < wizardStep
                       ? 'rgba(34, 197, 94, 0.18)'
-                      : 'var(--rq-citrus-control, #0B1B2B)',
+                      : 'var(--rq-citrus-control, #0a2342)',
                     backgroundImage: wizardStep === idx + 1
                       ? 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))'
                       : 'none',
@@ -621,7 +621,7 @@ function PlayersTab({ campaignId }) {
                     transition: 'all 0.3s'
                   }}
                 >
-                  <div style={{ fontSize: '11px', marginBottom: '2px', color: 'rgba(234, 223, 200, 0.78)' }}>Step {idx + 1}</div>
+                  <div style={{ fontSize: '11px', marginBottom: '2px', color: 'rgba(255, 255, 255, 0.78)' }}>Step {idx + 1}</div>
                   <div style={{ fontWeight: '600', fontSize: '12px', color: 'var(--rq-citrus-cream, #F5F1E8)' }}>{step}</div>
                   {idx + 1 < wizardStep && <Check size={14} style={{ marginTop: '4px', color: '#22C55E' }} />}
                 </div>

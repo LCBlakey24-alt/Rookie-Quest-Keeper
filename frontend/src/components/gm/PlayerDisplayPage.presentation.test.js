@@ -33,9 +33,9 @@ describe('Player display — responsive, player-safe presentation', () => {
   test('uses the Guild Ledger presentation palette without exposing GM-only data', () => {
     const css = read('./PlayerDisplayPage.css');
     const source = read('./PlayerDisplayPage.js');
-    expect(css).toContain('--rqk-tv-navy: #0b1b2b');
-    expect(css).toContain('--rqk-tv-gold: #c9a96b');
-    expect(css).toContain('--rqk-tv-cream: #eadfc8');
+    expect(css).toContain('--rqk-tv-navy: #0a2342');
+    expect(css).toContain('--rqk-tv-gold: #f2892f');
+    expect(css).toContain('--rqk-tv-cream: #ffffff');
     expect(source).toContain('<PlayerBanner banner={payload.banner} target={target} />');
     expect(source).toContain('showPartySidebar && <PartySidebar');
   });

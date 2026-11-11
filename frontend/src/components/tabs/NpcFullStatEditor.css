@@ -2,10 +2,10 @@
    Uses the Guild Ledger colours and respects reduced-motion preferences. */
 #root .rqk-npc-editor {
   margin: 14px 0;
-  border: 1px solid var(--rq-line-strong, rgba(201,169,107,.35));
-  background: var(--rq-bg-panel, #0b1b2b);
+  border: 1px solid var(--rq-line-strong, rgba(242, 137, 47,.35));
+  background: var(--rq-bg-panel, #0a2342);
   border-radius: 7px;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   min-width: 0;
 }
 #root .rqk-npc-editor > summary {
@@ -20,7 +20,7 @@
   justify-content: space-between;
 }
 #root .rqk-npc-editor > summary span {
-  color: var(--rq-primary, #c9a96b);
+  color: var(--rq-primary, #f2892f);
   font-size: 11px;
 }
 #root .rqk-npc-editor__body {
@@ -40,7 +40,7 @@
   align-content: start;
   gap: 6px;
   min-width: 0;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   font-size: 12px;
   font-weight: 750;
 }
@@ -51,16 +51,16 @@
   min-width: 0;
   min-height: 42px;
   padding: 9px 10px;
-  background: var(--rq-bg-main, #0b1b2b);
+  background: var(--rq-bg-main, #0a2342);
   border: 1px solid var(--rq-line-strong, #34485a);
   border-radius: 5px;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   font-size: 14px;
   font-weight: 500;
 }
 #root .rqk-npc-editor__field textarea { min-height: 88px; resize: vertical; line-height: 1.45; }
 #root .rqk-npc-editor :is(input, textarea, summary, button):focus-visible {
-  outline: 2px solid var(--rq-primary, #c9a96b);
+  outline: 2px solid var(--rq-primary, #f2892f);
   outline-offset: 2px;
 }
 #root .rqk-npc-editor__hint {
@@ -77,11 +77,11 @@
   font-weight: 700;
   cursor: pointer;
 }
-#root .rqk-npc-editor__checkbox input { width: 18px; height: 18px; flex-shrink: 0; accent-color: #c9a96b; }
+#root .rqk-npc-editor__checkbox input { width: 18px; height: 18px; flex-shrink: 0; accent-color: #f2892f; }
 #root .rqk-npc-editor__ability-heading {
   padding: 9px 0 5px;
   border-bottom: 1px solid var(--rq-line, #34485a);
-  color: var(--rq-primary, #c9a96b);
+  color: var(--rq-primary, #f2892f);
   font-size: 13px;
   font-weight: 900;
 }
@@ -104,11 +104,11 @@
   font-weight: 800;
   cursor: pointer;
 }
-#root .rqk-npc-editor__action-group > summary span { color: var(--rq-primary, #c9a96b); margin-left: 6px; }
+#root .rqk-npc-editor__action-group > summary span { color: var(--rq-primary, #f2892f); margin-left: 6px; }
 #root .rqk-npc-editor__action-list { display: grid; gap: 10px; padding: 10px; border-top: 1px solid var(--rq-line, #34485a); }
 #root .rqk-npc-editor__action-entry {
   display: grid; gap: 9px; padding: 12px;
-  background: var(--rq-bg-main, #0b1b2b);
+  background: var(--rq-bg-main, #0a2342);
   border: 1px solid var(--rq-line, #34485a);
   border-radius: 5px;
 }
@@ -121,12 +121,12 @@
 #root .rqk-npc-editor__add {
   min-height: 40px; border-radius: 5px;
   background: transparent; padding: 8px 12px; cursor: pointer;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   border: 1px solid var(--rq-line-strong, #34485a);
   font-size: 12px; font-weight: 800;
 }
 #root .rqk-npc-editor__action-entry-top button { border-color: #aa6262; color: #f5c3c3; }
-#root .rqk-npc-editor__add { width: 100%; border-color: var(--rq-primary, #c9a96b); }
+#root .rqk-npc-editor__add { width: 100%; border-color: var(--rq-primary, #f2892f); }
 @media (max-width: 650px) {
   #root .rqk-npc-editor__body { padding: 10px; }
   #root .rqk-npc-editor__two { grid-template-columns: minmax(0, 1fr); }

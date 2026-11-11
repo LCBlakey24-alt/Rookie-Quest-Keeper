@@ -168,7 +168,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   background: var(--rqk-creator-panel);
-  border-color: rgba(201,169,107,.28);
+  border-color: rgba(242, 137, 47,.28);
 }
 
 [data-rq-device='mobile'] .full-creator-footer button:last-child:not(:disabled) {

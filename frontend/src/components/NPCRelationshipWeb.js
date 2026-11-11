@@ -312,7 +312,7 @@ export default function NPCRelationshipWeb({ campaignId }) {
           <defs>
             <marker id="rqk-npc-directed-arrow" viewBox="0 0 10 10" refX="8" refY="5"
               markerWidth="8" markerHeight="8" orient="auto">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#D9BC82"/>
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffb066"/>
             </marker>
           </defs>
           {visibleLines.map(link => {

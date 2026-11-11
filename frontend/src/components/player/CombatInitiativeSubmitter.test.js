@@ -32,7 +32,7 @@ describe('player combat initiative widget', () => {
     expect(source).toContain("panel: '#0C2234'");
     expect(source).toContain("card: '#112A40'");
     expect(source).toContain("blue: '#79BCE8'");
-    expect(source).toContain("lineStrong: '#D6A84F'");
+    expect(source).toContain("lineStrong: '#f2892f'");
     expect(source).not.toMatch(/var\(--rq-accent-primary\)|#d00000/i);
   });
 

@@ -20,7 +20,7 @@ describe('Uploads presentation ownership', () => {
     expect(css).toContain('#0C2234');
     expect(css).toContain('#112A40');
     expect(css).toContain('#79BCE8');
-    expect(css).toContain('#D6A84F');
+    expect(css).toContain('#f2892f');
     expect(css).toContain('#F7F1E7');
   });
 

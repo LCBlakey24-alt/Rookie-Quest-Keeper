@@ -291,4 +291,4 @@ const revealButtonStyle = { minHeight: 34, border: `1px solid ${theme.pink}`, ba
 const mediaButtonStyle = { minHeight: 32, border: 0, background: theme.card, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 6, textAlign: 'left', justifyContent: 'flex-start', fontSize: 12, fontWeight: 850, cursor: 'pointer', overflow: 'hidden' };
 const mutedStyle = { margin: 0, color: theme.muted, fontSize: 12, lineHeight: 1.35 };
 const npcSearchStyle = { boxSizing: 'border-box', width: '100%', minHeight: 46, fontSize: 16, background: theme.bg, color: theme.text, border: `1px solid ${theme.line}`, borderRadius: 5, padding: '0 10px' };
-const noPortraitStyle = { marginLeft: 'auto', color: 'var(--rq-text-secondary, #EADFC8)', fontSize: 10 };
+const noPortraitStyle = { marginLeft: 'auto', color: 'var(--rq-text-secondary, #ffffff)', fontSize: 10 };

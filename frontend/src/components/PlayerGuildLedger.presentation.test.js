@@ -39,7 +39,7 @@ test('player alerts and unread badges respect semantic status and neutral border
   expect(dashboardBoard).toContain('--rq-control-blue');
   expect(dashboard).not.toMatch(/#FF2DAA|#7CCBFF|#0C2234/i);
   expect(dashboardTabs).not.toMatch(/#FF2DAA/i);
-  expect(campaignBadge).not.toMatch(/#D6A84F/i);
+  expect(campaignBadge).not.toMatch(/#f2892f/i);
 });
 
 
@@ -49,5 +49,5 @@ test('mobile More menu uses neutral blue controls and the citrus active underlin
   expect(mobileMore).toContain('--rq-citrus-gradient');
   expect(mobileMore).toContain('background-size: 100% 3px');
   expect(mobileMore).toContain(':focus-visible');
-  expect(mobileMore).not.toMatch(/#D6A84F|#FF2DAA|214,168,79/i);
+  expect(mobileMore).not.toMatch(/#f2892f|#FF2DAA|214,168,79/i);
 });

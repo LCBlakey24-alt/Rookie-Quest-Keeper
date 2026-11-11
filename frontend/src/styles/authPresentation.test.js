@@ -10,10 +10,10 @@ describe('Guild Ledger authentication presentation', () => {
     const auth = read('../components/AuthPage.css');
     const polish = read('./authExperiencePolish.css');
 
-    expect(auth).toContain('background: #0B1B2B !important;');
-    expect(auth).toContain('background: #0B1B2B !important;');
-    expect(auth).toContain('background: #0B1B2B !important;');
-    expect(auth).not.toContain('background: #C9A96B !important;');
+    expect(auth).toContain('background: #0a2342 !important;');
+    expect(auth).toContain('background: #0a2342 !important;');
+    expect(auth).toContain('background: #0a2342 !important;');
+    expect(auth).not.toContain('background: #f2892f !important;');
     expect(auth).toContain('outline: 3px solid #3C92E0');
     expect(auth).toContain('background: #7F2D2D !important;');
     expect(`${auth}\n${polish}`).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
@@ -26,9 +26,9 @@ describe('Guild Ledger authentication presentation', () => {
     const end = publicPolish.indexOf('/* ---------- Responsive behaviour ---------- */', start);
     const authSection = publicPolish.slice(start, end);
 
-    expect(authSection).toContain('background: #0B1B2B !important;');
-    expect(authSection).toContain('background: #0B1B2B !important;');
-    expect(authSection).not.toContain('background: #C9A96B !important;');
+    expect(authSection).toContain('background: #0a2342 !important;');
+    expect(authSection).toContain('background: #0a2342 !important;');
+    expect(authSection).not.toContain('background: #f2892f !important;');
     expect(authSection).toContain('outline: 3px solid #3C92E0');
     expect(authSection).not.toMatch(/#ff2daa|#ff4f81|#d84df1|#7357ff|#ff9542/i);
     expect(authSection).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);

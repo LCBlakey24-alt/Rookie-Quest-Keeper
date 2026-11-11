@@ -14,7 +14,7 @@ html {
   overflow-y: auto !important;
   overscroll-behavior-y: auto !important;
   scroll-behavior: auto;
-  scrollbar-color: #61758A #0B1B2B;
+  scrollbar-color: #61758A #0a2342;
   scrollbar-width: thin;
 }
 
@@ -27,7 +27,7 @@ body,
   overflow-y: visible !important;
   overscroll-behavior-y: auto !important;
   scroll-behavior: auto;
-  scrollbar-color: #61758A #0B1B2B;
+  scrollbar-color: #61758A #0a2342;
   scrollbar-width: thin;
 }
 
@@ -62,7 +62,7 @@ body div[style*="display: flex"][style*="overflow: hidden"][style*="position: re
 .rq-scroll-x,
 [role="dialog"] {
   -webkit-overflow-scrolling: touch;
-  scrollbar-color: #61758A #0B1B2B;
+  scrollbar-color: #61758A #0a2342;
   scrollbar-width: thin;
 }
 
@@ -72,12 +72,12 @@ body div[style*="display: flex"][style*="overflow: hidden"][style*="position: re
 }
 
 *::-webkit-scrollbar-track {
-  background: #0B1B2B;
+  background: #0a2342;
 }
 
 *::-webkit-scrollbar-thumb {
   background: #61758A;
-  border: 2px solid #0B1B2B;
+  border: 2px solid #0a2342;
   border-radius: 8px;
 }
 

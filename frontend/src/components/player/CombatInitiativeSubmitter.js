@@ -14,8 +14,8 @@ const theme = {
   cardHover: '#17364F',
   input: '#071A29',
   text: '#F7F1E7',
-  line: 'rgba(214,168,79,.18)',
-  lineStrong: '#D6A84F',
+  line: 'rgba(242, 137, 47,.18)',
+  lineStrong: '#f2892f',
   blue: '#79BCE8',
   blueSoft: 'rgba(121,188,232,.10)',
 };

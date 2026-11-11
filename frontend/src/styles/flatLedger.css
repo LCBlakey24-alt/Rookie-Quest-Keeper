@@ -24,8 +24,8 @@
     var(--rq-citrus-orange, #F4551F) 50%,
     var(--rq-citrus-blood, #E03A2F) 72%,
     var(--rq-citrus-blood, #E03A2F) 100%);
-  --rq-ledger-hair: rgba(234, 223, 200, 0.12);
-  --rq-ledger-hair-soft: rgba(234, 223, 200, 0.08);
+  --rq-ledger-hair: rgba(255, 255, 255, 0.12);
+  --rq-ledger-hair-soft: rgba(255, 255, 255, 0.08);
 }
 
 /* ---- 1. Selected states: a rule underneath, never a coloured body ------- */

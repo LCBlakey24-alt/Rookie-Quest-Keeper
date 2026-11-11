@@ -15,9 +15,9 @@
  */
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] {
-  --rqk-nav-bg: rgba(8, 18, 30, 0.97);
-  --rqk-nav-line: rgba(234, 223, 200, 0.10);
-  --rqk-nav-ink: rgba(234, 223, 200, 0.68);
+  --rqk-nav-bg: rgba(8, 29, 56, 0.97);
+  --rqk-nav-line: rgba(255, 255, 255, 0.10);
+  --rqk-nav-ink: rgba(255, 255, 255, 0.68);
   --rqk-nav-ink-strong: #f5f1e8;
   --rqk-nav-accent: #f2b544;
   --rqk-nav-accent-soft: rgba(242, 181, 68, 0.14);
@@ -399,7 +399,7 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
   height: 18px !important;
   padding: 8px !important;
   border-radius: 10px !important;
-  background: rgba(234, 223, 200, 0.06) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   color: var(--rqk-nav-ink-strong) !important;
 }
 
@@ -412,7 +412,7 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] .rqk-app-mobile-more-item:hover,
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] .rqk-app-mobile-more-item:focus-visible {
-  background: rgba(234, 223, 200, 0.06) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   outline: none !important;
 }
 

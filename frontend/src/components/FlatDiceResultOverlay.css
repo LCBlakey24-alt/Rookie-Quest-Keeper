@@ -10,7 +10,7 @@
   padding: 13px;
   border: 1px solid var(--rq-line-strong, rgba(181, 203, 226, .28));
   border-radius: 12px;
-  background: var(--rq-surface, #102238);
+  background: var(--rq-surface, #0e2d55);
   color: var(--rq-text, #f7f9fc);
   box-shadow: 0 18px 48px rgba(0, 0, 0, .42);
   pointer-events: auto;

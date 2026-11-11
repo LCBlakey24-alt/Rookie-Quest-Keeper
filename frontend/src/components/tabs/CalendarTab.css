@@ -44,13 +44,13 @@
 }
 
 /* Full custom-calendar controls, shared across Friday and Wednesday without shared dates. */
-.rqk-calendar-load-error { display: grid; justify-items: start; gap: 10px; padding: 18px; border: 1px solid #9f7b67; background: #0b1b2b; color: #eadfc8; border-radius: 6px; }
+.rqk-calendar-load-error { display: grid; justify-items: start; gap: 10px; padding: 18px; border: 1px solid #9f7b67; background: #0a2342; color: #ffffff; border-radius: 6px; }
 .rqk-calendar-load-error p { margin: 0; }
-#root .rqk-calendar-settings-panel { display: grid; gap: 13px; padding: clamp(12px, 2vw, 18px); margin-bottom: 16px; background: #0c2234; border: 1px solid rgba(201,169,107,.3); }
-#root .rqk-calendar-settings-panel h3 { margin: 0; color: #eadfc8; }
+#root .rqk-calendar-settings-panel { display: grid; gap: 13px; padding: clamp(12px, 2vw, 18px); margin-bottom: 16px; background: #0c2234; border: 1px solid rgba(242, 137, 47,.3); }
+#root .rqk-calendar-settings-panel h3 { margin: 0; color: #ffffff; }
 #root .rqk-calendar-settings-panel > p, #root .rqk-calendar-structure-form > p { color: #b8c8d4; font-size: 13px; line-height: 1.5; margin: 0; }
 .rqk-calendar-date-controls { display: grid; grid-template-columns: minmax(72px,.7fr) minmax(100px,1.4fr) minmax(88px,1fr) auto; align-items: end; gap: 9px; }
-.rqk-calendar-date-controls label, .rqk-calendar-structure-form label, .rqk-calendar-repeat-label { display: grid; gap: 5px; min-width: 0; color: #eadfc8; font-size: 12px; font-weight: 800; }
+.rqk-calendar-date-controls label, .rqk-calendar-structure-form label, .rqk-calendar-repeat-label { display: grid; gap: 5px; min-width: 0; color: #ffffff; font-size: 12px; font-weight: 800; }
 .rqk-calendar-date-controls :is(input,select), .rqk-calendar-structure-form input, .rqk-calendar-repeat-label select {
   box-sizing: border-box; min-width: 0; width: 100%; min-height: 41px; padding: 8px;
   background: #091a29; border: 1px solid #738392; border-radius: 5px; color: #f2e4d1;
@@ -83,7 +83,7 @@
    Guild Ledger calendar / day selection / agenda
    ------------------------------------------------------------------------- */
 #root .rqk-calendar-layout {
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
 }
 #root .rqk-calendar-title {
   display: flex;
@@ -93,11 +93,11 @@
   gap: 16px;
   margin-bottom: 16px;
   padding: 0 0 17px;
-  border-bottom: 1px solid rgba(201,169,107,.28);
+  border-bottom: 1px solid rgba(242, 137, 47,.28);
 }
 #root .rqk-calendar-kicker {
   margin: 0 0 7px;
-  color: var(--rq-primary, #c9a96b);
+  color: var(--rq-primary, #f2892f);
   font-size: 10px;
   font-weight: 850;
   text-transform: uppercase;
@@ -108,45 +108,45 @@
   align-items: center;
   gap: 10px;
   margin: 0;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   font: 700 clamp(1.5rem, 3vw, 2rem)/1.15 var(--rq-font-display, Georgia, serif);
 }
-#root .rqk-calendar-title h2 svg { color: var(--rq-primary, #c9a96b); }
+#root .rqk-calendar-title h2 svg { color: var(--rq-primary, #f2892f); }
 #root .rqk-calendar-title > div > p:last-child {
   margin: 7px 0 0;
-  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.78));
   font-size: 13px;
   line-height: 1.55;
 }
 #root .rqk-calendar-title > button {
   min-height: 44px;
-  border: 1px solid rgba(201,169,107,.38);
+  border: 1px solid rgba(242, 137, 47,.38);
   border-radius: 6px;
 }
 #root .rqk-calendar-panel {
   min-width: 0;
   padding: clamp(14px, 2vw, 22px);
   margin-bottom: 14px;
-  background: var(--rq-bg-panel, #0b1b2b);
-  border: 1px solid rgba(201,169,107,.25);
+  background: var(--rq-bg-panel, #0a2342);
+  border: 1px solid rgba(242, 137, 47,.25);
   border-radius: 8px;
   box-shadow: none;
 }
 #root .rqk-calendar-panel h3 {
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
 }
 #root .rqk-calendar-current {
   position: relative;
   text-align: center;
   border-top: 3px solid var(--rq-secondary, #3c92e0);
-  background: var(--rq-bg-panel, #0b1b2b);
+  background: var(--rq-bg-panel, #0a2342);
 }
 #root .rqk-calendar-current > h3 {
   margin: 0 0 8px !important;
   font: 700 clamp(1.7rem, 3.8vw, 2.45rem)/1.2 var(--rq-font-display, Georgia, serif) !important;
 }
 #root .rqk-calendar-current > p {
-  color: var(--rq-text-secondary, rgba(234,223,200,.78)) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.78)) !important;
 }
 #root .rqk-calendar-month-panel,
 #root .rqk-calendar-agenda,
@@ -172,15 +172,15 @@
   padding: 8px 7px;
   border: 1px solid rgba(137,157,176,.24);
   border-radius: 5px;
-  background: var(--rq-bg-deep, #0b1b2b);
-  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-deep, #0a2342);
+  color: var(--rq-text-primary, #ffffff);
   text-align: left;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
 }
 #root .rqk-calendar-day strong {
-  color: var(--rq-text-primary, #eadfc8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   font-size: 14px;
   font-weight: 850;
 }
@@ -191,12 +191,12 @@
   color: #d4e5f2 !important;
 }
 #root .rqk-calendar-day.is-selected {
-  background: var(--rq-control-blue, #0B1B2B);
+  background: var(--rq-control-blue, #0a2342);
   border: 2px solid var(--rq-control-wax, #7E2D2D);
   padding: 7px 6px;
 }
 #root .rqk-calendar-day:is(:hover, :focus-visible) {
-  background: var(--rq-bg-card, #0B1B2B);
+  background: var(--rq-bg-card, #0a2342);
   border-color: var(--rq-control-wax, #7E2D2D);
   outline: 2px solid var(--rq-info, #3c92e0);
   outline-offset: 1px;
@@ -208,7 +208,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--rq-primary-hover, #d9bc82);
+  color: var(--rq-primary-hover, #ffb066);
   font-size: 10px;
   line-height: 1.35;
 }
@@ -241,8 +241,8 @@
   gap: 5px;
   justify-items: start;
   padding: 12px;
-  background: var(--rq-bg-deep, #0b1b2b);
-  border: 1px solid rgba(201,169,107,.22);
+  background: var(--rq-bg-deep, #0a2342);
+  border: 1px solid rgba(242, 137, 47,.22);
   border-radius: 6px;
 }
 #root .rqk-calendar-agenda-list li > :is(strong,p,small) { margin: 0; }
@@ -256,21 +256,21 @@
 #root .rqk-calendar-agenda-list li button {
   min-height: 38px;
   padding: 6px 13px;
-  color: var(--rq-primary-hover, #d9bc82);
-  background: var(--rq-bg-card, #0B1B2B);
-  border: 1px solid rgba(201,169,107,.32);
+  color: var(--rq-primary-hover, #ffb066);
+  background: var(--rq-bg-card, #0a2342);
+  border: 1px solid rgba(242, 137, 47,.32);
   border-radius: 5px;
   cursor: pointer;
 }
 #root .rqk-calendar-event-editor :is(input,select,textarea) {
-  border: 1px solid rgba(201,169,107,.28);
-  background: var(--rq-bg-input, #0b1b2b);
-  color: var(--rq-text-primary, #eadfc8);
+  border: 1px solid rgba(242, 137, 47,.28);
+  background: var(--rq-bg-input, #0a2342);
+  color: var(--rq-text-primary, #ffffff);
 }
 #root .rqk-calendar-upcoming { height: fit-content; }
 #root .rqk-calendar-events-list .initiative-entry {
-  background: var(--rq-bg-card, #0B1B2B);
-  border: 1px solid rgba(201,169,107,.18);
+  background: var(--rq-bg-card, #0a2342);
+  border: 1px solid rgba(242, 137, 47,.18);
   border-radius: 6px;
   padding: 11px;
 }
@@ -296,7 +296,7 @@
   display: block;
   border: 1px dashed rgba(137,157,176,.12);
   border-radius: 5px;
-  background: rgba(11,27,43,.35);
+  background: rgba(10, 35, 66,.35);
   pointer-events: none;
 }
 #root .rqk-calendar-event-editor .rqk-calendar-event-date-fields {
@@ -307,10 +307,10 @@
   min-width: 0;
   width: 100%;
   min-height: 46px;
-  border: 1px solid rgba(201,169,107,.42);
+  border: 1px solid rgba(242, 137, 47,.42);
   border-radius: 6px;
-  background: var(--rq-bg-input, #0b1b2b);
-  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-input, #0a2342);
+  color: var(--rq-text-primary, #ffffff);
   padding-inline: 10px;
   font: inherit;
 }
@@ -321,8 +321,8 @@
   gap: 14px;
   padding: 14px 15px;
   margin-bottom: 9px;
-  background: var(--rq-bg-card, #0B1B2B);
-  border: 1px solid rgba(201,169,107,.24);
+  background: var(--rq-bg-card, #0a2342);
+  border: 1px solid rgba(242, 137, 47,.24);
   border-radius: 8px;
 }
 #root .rqk-calendar-event-record-content {
@@ -332,19 +332,19 @@
   flex: 1;
 }
 #root .rqk-calendar-event-record-date {
-  color: var(--rq-primary-hover, #d9bc82);
+  color: var(--rq-primary-hover, #ffb066);
   font-size: 12px;
   font-weight: 800;
 }
 #root .rqk-calendar-event-record-content h4 {
   margin: 0;
   font: 700 clamp(15px,1.4vw,18px)/1.3 var(--rq-font-display, Georgia, serif);
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   overflow-wrap: anywhere;
 }
 #root .rqk-calendar-event-record-content p {
   margin: 2px 0 0;
-  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.78));
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-size: 13px;
@@ -373,14 +373,14 @@
   height: 44px;
   min-width: 44px;
   min-height: 44px;
-  border: 1px solid rgba(201,169,107,.34);
+  border: 1px solid rgba(242, 137, 47,.34);
   border-radius: 7px;
-  color: var(--rq-text-primary, #eadfc8);
-  background: var(--rq-bg-deep, #0b1b2b);
+  color: var(--rq-text-primary, #ffffff);
+  background: var(--rq-bg-deep, #0a2342);
   cursor: pointer;
 }
 #root .rqk-calendar-event-record-actions > button:is(:hover,:focus-visible) {
-  background: var(--rq-bg-elevated, #0B1B2B);
+  background: var(--rq-bg-elevated, #0a2342);
   border-color: var(--rq-control-wax, #7E2D2D);
 }
 @media (max-width: 580px) {
@@ -423,7 +423,7 @@
   min-width: 0;
   gap: 4px;
   text-align: left;
-  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.78));
   font-size: 11px;
   font-weight: 750;
 }
@@ -432,10 +432,10 @@
   min-width: 0;
   min-height: 46px;
   padding-inline: 9px;
-  border: 1px solid rgba(201,169,107,.35);
+  border: 1px solid rgba(242, 137, 47,.35);
   border-radius: 6px;
-  background: var(--rq-bg-input, #0b1b2b);
-  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-input, #0a2342);
+  color: var(--rq-text-primary, #ffffff);
   text-align: center;
   font-size: 15px;
 }
@@ -445,7 +445,7 @@
   margin: 10px auto 0;
   font-size: 11px;
   line-height: 1.45;
-  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.78));
 }
 #root .rqk-calendar-clock-actions button:disabled {
   opacity: .6;

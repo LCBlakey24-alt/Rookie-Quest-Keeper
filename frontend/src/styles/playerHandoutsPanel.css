@@ -26,7 +26,7 @@
 /* Refresh / action buttons */
 .player-handouts-surface button {
   min-height: 38px !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   background: #112A40 !important;
   color: #F7F1E7 !important;
@@ -36,7 +36,7 @@
 .player-handouts-surface button:hover:not(:disabled),
 .player-handouts-surface button:focus-visible {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   outline: none !important;
 }
 
@@ -52,7 +52,7 @@
   padding: 9px 10px !important;
   margin: 0 !important;
   background: #112A40 !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid #f2892f !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;
@@ -63,7 +63,7 @@
   gap: 7px !important;
   padding: 8px 9px !important;
   background: rgba(121,188,232,.08) !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;
@@ -88,7 +88,7 @@
   align-items: center !important;
   padding: 0 6px !important;
   background: rgba(121,188,232,.10) !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 4px !important;
   color: #F7F1E7 !important;
   font-size: 9px !important;
@@ -106,17 +106,17 @@
   min-height: 32px !important;
   padding: 0 8px !important;
   background: #112A40 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 10px !important;
 }
 
 .player-handouts-surface > section > div:has(> button) > button[style*="--rq-accent-primary"],
-.player-handouts-surface > section > div:has(> button) > button[style*="#D6A84F"],
-.player-handouts-surface > section > div:has(> button) > button[style*="#D6A84F"] {
+.player-handouts-surface > section > div:has(> button) > button[style*="#f2892f"],
+.player-handouts-surface > section > div:has(> button) > button[style*="#f2892f"] {
   background: rgba(121,188,232,.10) !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
 }
 
 /* Handout cards */
@@ -124,8 +124,8 @@
   padding: 0 !important;
   overflow: hidden !important;
   background: #112A40 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
-  border-left: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border-left: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
 }
@@ -167,7 +167,7 @@
 .player-handouts-surface article > div {
   margin-top: 0 !important;
   padding: 9px !important;
-  border-top: 1px solid rgba(214,168,79,.14) !important;
+  border-top: 1px solid rgba(242, 137, 47,.14) !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;
   line-height: 1.45 !important;
@@ -181,7 +181,7 @@
 }
 
 .player-handouts-surface article img {
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   background: #071A29 !important;
 }
@@ -196,15 +196,15 @@
   min-height: 34px !important;
   padding: 0 8px !important;
   background: #112A40 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   color: #F7F1E7 !important;
   font-size: 10px !important;
 }
 
 .player-handouts-surface article > div > div:has(> button) > button[style*="--rq-accent-primary"],
-.player-handouts-surface article > div > div:has(> button) > button[style*="#D6A84F"] {
+.player-handouts-surface article > div > div:has(> button) > button[style*="#f2892f"] {
   background: rgba(121,188,232,.10) !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
 }
 
 .player-handouts-surface article > div > div:has(> button) > span {
@@ -213,7 +213,7 @@
   align-items: center !important;
   padding: 0 8px !important;
   background: #071A29 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 9px !important;
@@ -227,7 +227,7 @@
   align-items: center !important;
   gap: 5px !important;
   background: #071A29 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 10px !important;
@@ -244,7 +244,7 @@
   place-items: center !important;
   gap: 6px !important;
   background: #112A40 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;

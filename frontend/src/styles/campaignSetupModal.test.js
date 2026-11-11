@@ -12,7 +12,7 @@ describe('campaign setup presentation', () => {
     expect(css).not.toMatch(/rq-sunset-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
     expect(css).toContain('var(--rq-primary, #d00000)');
-    expect(css).toContain('var(--rq-surface, #102238)');
+    expect(css).toContain('var(--rq-surface, #0e2d55)');
   });
 
   test.each([

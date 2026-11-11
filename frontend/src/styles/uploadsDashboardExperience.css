@@ -36,7 +36,7 @@
   overflow: hidden !important;
   background: #112A40 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
 }
@@ -123,7 +123,7 @@
   gap: 6px !important;
   padding: 11px !important;
   background: #071A29 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
 }
 
@@ -142,7 +142,7 @@
   display: inline-grid !important;
   place-items: center !important;
   padding: 8px !important;
-  border: 1px solid rgba(214,168,79,.28) !important;
+  border: 1px solid rgba(242, 137, 47,.28) !important;
   border-radius: 5px !important;
   background: rgba(121,188,232,.10) !important;
   background-image: none !important;
@@ -175,7 +175,7 @@
   justify-content: center !important;
   gap: 6px !important;
   padding: 0 10px !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   background: #112A40 !important;
   background-image: none !important;
@@ -193,7 +193,7 @@
 #root .uploads-dashboard-action-row .library-page-button-primary,
 #root .uploads-dashboard-route-card em {
   background: #112A40 !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   color: #F7F1E7 !important;
 }
 
@@ -206,7 +206,7 @@
 #root .uploads-dashboard-safety-grid article:hover,
 #root .uploads-dashboard-safety-grid article:focus-within {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   outline: none !important;
   transform: none !important;
   filter: none !important;
@@ -217,7 +217,7 @@
 #root .uploads-dashboard-route-card:hover em,
 #root .uploads-dashboard-route-card:focus-visible em {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
 }
 
 #root .uploads-dashboard-route-grid,

@@ -25,7 +25,7 @@
   min-width: 0 !important;
   min-height: 58px !important;
   padding: 8px 10px !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #0e2d55) !important;
   background-image: none !important;
   border: 0 !important;
   border-bottom: 1px solid var(--rq-line, #213a54) !important;
@@ -113,8 +113,8 @@
 }
 
 #root .campaign-button-primary {
-  background: var(--rq-primary, #C9A96B) !important;
-  border-color: var(--rq-primary, #C9A96B) !important;
+  background: var(--rq-primary, #f2892f) !important;
+  border-color: var(--rq-primary, #f2892f) !important;
   color: #fff !important;
 }
 
@@ -128,8 +128,8 @@
 
 #root .campaign-button-primary:hover,
 #root .campaign-button-primary:focus-visible {
-  background: var(--rq-primary-hover, #D9BC82) !important;
-  border-color: var(--rq-primary-hover, #D9BC82) !important;
+  background: var(--rq-primary-hover, #ffb066) !important;
+  border-color: var(--rq-primary-hover, #ffb066) !important;
 }
 
 /* Two-row campaign navigation */
@@ -194,7 +194,7 @@
 #root .campaign-dashboard-tab {
   min-height: 38px !important;
   padding: 0 10px !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #0e2d55) !important;
   border-color: var(--rq-line, #213a54) !important;
   font-size: 11px !important;
 }
@@ -210,14 +210,14 @@
 
 #root .campaign-dashboard-group.is-active {
   color: #fff !important;
-  background: var(--rq-primary-soft, rgba(201, 169, 107, .14)) !important;
-  border-color: rgba(201, 169, 107, .34) !important;
+  background: var(--rq-primary-soft, rgba(242, 137, 47, .14)) !important;
+  border-color: rgba(242, 137, 47, .34) !important;
 }
 
 #root .campaign-dashboard-tab.is-active {
   color: #fff !important;
-  background: var(--rq-primary, #C9A96B) !important;
-  border-color: var(--rq-primary, #C9A96B) !important;
+  background: var(--rq-primary, #f2892f) !important;
+  border-color: var(--rq-primary, #f2892f) !important;
 }
 
 /* Workspace intentionally has no extra panel chrome. */
@@ -292,7 +292,7 @@
 
 #root .campaign-home-quick-card svg {
   flex: 0 0 auto !important;
-  color: var(--rq-primary-hover, #D9BC82) !important;
+  color: var(--rq-primary-hover, #ffb066) !important;
 }
 
 #root .campaign-home-quick-card strong {
@@ -312,7 +312,7 @@
 
 #root .campaign-home-join-code {
   width: min(100%, 620px) !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #0e2d55) !important;
   border: 1px solid var(--rq-line, #213a54) !important;
   border-radius: var(--rq-inner-radius, 6px) !important;
   overflow: hidden !important;
@@ -353,14 +353,14 @@
   justify-items: center !important;
   gap: 9px !important;
   padding: 18px !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #0e2d55) !important;
   border: 1px solid var(--rq-line, #213a54) !important;
   border-radius: var(--rq-radius, 8px) !important;
   text-align: center !important;
 }
 
 #root .campaign-dashboard-error-card svg {
-  color: var(--rq-primary-hover, #D9BC82) !important;
+  color: var(--rq-primary-hover, #ffb066) !important;
 }
 
 #root .campaign-dashboard-error-card h1,
@@ -475,17 +475,17 @@
    campaigns. No old neon/pink override layer below this point.
    ========================================================================= */
 #root .campaign-dashboard-simple {
-  --rqk-campaign-ink: #0b1b2b;
-  --rqk-campaign-navy: #0b1b2b;
-  --rqk-campaign-surface: #0b1b2b;
-  --rqk-campaign-elevated: #0B1B2B;
-  --rqk-campaign-brass: #c9a96b;
-  --rqk-campaign-brass-light: #d9bc82;
+  --rqk-campaign-ink: #0a2342;
+  --rqk-campaign-navy: #0a2342;
+  --rqk-campaign-surface: #0a2342;
+  --rqk-campaign-elevated: #0a2342;
+  --rqk-campaign-brass: #f2892f;
+  --rqk-campaign-brass-light: #ffb066;
   --rqk-campaign-wax: var(--rq-guild-wine, #7E2D2D);
   --rqk-campaign-wax-text: #F8F0E5;
-  --rqk-campaign-cream: #eadfc8;
-  --rqk-campaign-muted: rgba(234, 223, 200, .75);
-  --rqk-campaign-hairline: rgba(201, 169, 107, .24);
+  --rqk-campaign-cream: #ffffff;
+  --rqk-campaign-muted: rgba(255, 255, 255, .75);
+  --rqk-campaign-hairline: rgba(242, 137, 47, .24);
   color: var(--rqk-campaign-cream) !important;
   background: transparent !important;
 }
@@ -562,7 +562,7 @@
 #root .campaign-button:is(:hover,:focus-visible),
 #root .campaign-icon-button:is(:hover,:focus-visible),
 #root .campaign-home-quick-card:is(:hover,:focus-visible) {
-  background: #0B1B2B !important;
+  background: #0a2342 !important;
   border-color: var(--rqk-campaign-brass) !important;
 }
 #root .campaign-button-primary:is(:hover,:focus-visible) {
@@ -1017,8 +1017,8 @@
   gap: 14px !important;
   min-width: 0 !important;
   padding: clamp(12px, 1.5vw, 18px) !important;
-  background: var(--rqk-campaign-ink, #0b1b2b) !important;
-  border: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
+  background: var(--rqk-campaign-ink, #0a2342) !important;
+  border: 1px solid var(--rqk-campaign-hairline, rgba(242, 137, 47,.24)) !important;
   border-radius: 8px !important;
 }
 #root .campaign-home-session-rail__heading {
@@ -1028,7 +1028,7 @@
   align-content: center !important;
 }
 #root .campaign-home-session-rail__heading > span {
-  color: var(--rqk-campaign-brass-light, #d9bc82) !important;
+  color: var(--rqk-campaign-brass-light, #ffb066) !important;
   font: 700 clamp(17px, 2vw, 22px)/1.2 var(--rq-font-display, Georgia, serif) !important;
 }
 #root .campaign-home-session-rail__heading > small {
@@ -1058,16 +1058,16 @@
   align-content: center !important;
   gap: 8px !important;
   padding: 10px 7px !important;
-  border: 1px solid rgba(201,169,107,.22) !important;
+  border: 1px solid rgba(242, 137, 47,.22) !important;
   border-radius: 7px !important;
-  background: var(--rqk-campaign-surface, #0b1b2b) !important;
-  color: var(--rqk-campaign-cream, #eadfc8) !important;
+  background: var(--rqk-campaign-surface, #0a2342) !important;
+  color: var(--rqk-campaign-cream, #ffffff) !important;
   text-align: center !important;
   cursor: pointer !important;
   scroll-snap-align: start !important;
 }
 #root .campaign-home-session-rail__action > svg {
-  color: var(--rqk-campaign-brass, #c9a96b) !important;
+  color: var(--rqk-campaign-brass, #f2892f) !important;
   flex-shrink: 0 !important;
 }
 #root .campaign-home-session-rail__action > span {
@@ -1080,8 +1080,8 @@
 }
 #root .campaign-home-session-rail__action:hover,
 #root .campaign-home-session-rail__action:focus-visible {
-  background: var(--rqk-campaign-elevated, #0B1B2B) !important;
-  border-color: var(--rqk-campaign-brass, #c9a96b) !important;
+  background: var(--rqk-campaign-elevated, #0a2342) !important;
+  border-color: var(--rqk-campaign-brass, #f2892f) !important;
 }
 @media (max-width: 850px) {
   #root .campaign-home-session-rail {
@@ -1149,25 +1149,25 @@
 }
 #root .campaign-dashboard-simple .campaign-dashboard-group:is(:focus-visible,:hover),
 #root .campaign-dashboard-simple .campaign-dashboard-tab:is(:focus-visible,:hover) {
-  outline: 2px solid var(--rqk-campaign-brass-light, #d9bc82) !important;
+  outline: 2px solid var(--rqk-campaign-brass-light, #ffb066) !important;
   outline-offset: -2px !important;
 }
 #root .campaign-home-workbench .campaign-home-section {
   min-width: 0 !important;
   padding: clamp(12px, 1.5vw, 19px) !important;
-  border: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
+  border: 1px solid var(--rqk-campaign-hairline, rgba(242, 137, 47,.24)) !important;
   border-radius: 8px !important;
-  background: var(--rqk-campaign-surface, #0b1b2b) !important;
+  background: var(--rqk-campaign-surface, #0a2342) !important;
 }
 #root .campaign-home-workbench .campaign-home-section-heading > h2 {
-  color: var(--rqk-campaign-brass-light, #d9bc82) !important;
+  color: var(--rqk-campaign-brass-light, #ffb066) !important;
 }
 #root .campaign-home-workbench .campaign-home-quick-card {
   min-height: 58px !important;
   padding: 11px !important;
 }
 #root .campaign-home-workbench :is(.campaign-home-quick-card,.campaign-home-focus-card):focus-visible {
-  outline: 2px solid var(--rqk-campaign-brass-light, #d9bc82) !important;
+  outline: 2px solid var(--rqk-campaign-brass-light, #ffb066) !important;
   outline-offset: 3px !important;
 }
 @media (min-width: 1180px) {
@@ -1231,8 +1231,8 @@
 @media (max-width: 760px) {
   #root .campaign-dashboard-simple .campaign-dashboard-nav {
     padding: 0 !important;
-    background: var(--rqk-campaign-ink, #0b1b2b) !important;
-    border-bottom: 1px solid var(--rqk-campaign-hairline, rgba(201,169,107,.24)) !important;
+    background: var(--rqk-campaign-ink, #0a2342) !important;
+    border-bottom: 1px solid var(--rqk-campaign-hairline, rgba(242, 137, 47,.24)) !important;
   }
   #root .campaign-dashboard-simple .campaign-dashboard-group-row,
   #root .campaign-dashboard-simple .campaign-dashboard-tab-row {
@@ -1245,7 +1245,7 @@
     gap: 10px !important;
     min-width: 0 !important;
     padding: 10px max(10px, env(safe-area-inset-right,0px)) 10px max(10px, env(safe-area-inset-left,0px)) !important;
-    color: var(--rqk-campaign-cream, #eadfc8) !important;
+    color: var(--rqk-campaign-cream, #ffffff) !important;
   }
   #root .rqk-campaign-mobile-navigator__context {
     display: flex !important;
@@ -1256,7 +1256,7 @@
     padding-bottom: 2px !important;
   }
   #root .rqk-campaign-mobile-navigator__context > svg {
-    color: var(--rqk-campaign-brass, #c9a96b) !important;
+    color: var(--rqk-campaign-brass, #f2892f) !important;
     flex: 0 0 auto !important;
   }
   #root .rqk-campaign-mobile-navigator__context > div {
@@ -1266,13 +1266,13 @@
   }
   #root .rqk-campaign-mobile-navigator__context span,
   #root .rqk-campaign-mobile-navigator__control > label {
-    color: var(--rqk-campaign-muted, rgba(234,223,200,.75)) !important;
+    color: var(--rqk-campaign-muted, rgba(255, 255, 255,.75)) !important;
     font-size: 10px !important;
     font-weight: 750 !important;
     line-height: 1.2 !important;
   }
   #root .rqk-campaign-mobile-navigator__context strong {
-    color: var(--rqk-campaign-cream, #eadfc8) !important;
+    color: var(--rqk-campaign-cream, #ffffff) !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -1296,10 +1296,10 @@
     min-height: 46px !important;
     min-width: 0 !important;
     padding: 0 36px 0 12px !important;
-    background: var(--rqk-campaign-surface, #0b1b2b) !important;
-    border: 1px solid var(--rqk-campaign-brass, #c9a96b) !important;
+    background: var(--rqk-campaign-surface, #0a2342) !important;
+    border: 1px solid var(--rqk-campaign-brass, #f2892f) !important;
     border-radius: 7px !important;
-    color: var(--rqk-campaign-cream, #eadfc8) !important;
+    color: var(--rqk-campaign-cream, #ffffff) !important;
     font: inherit !important;
     font-size: 13px !important;
     font-weight: 750 !important;
@@ -1312,10 +1312,10 @@
     right: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    color: var(--rqk-campaign-brass-light, #d9bc82) !important;
+    color: var(--rqk-campaign-brass-light, #ffb066) !important;
   }
   #root .rqk-campaign-mobile-navigator__select-wrap select:focus-visible {
-    outline: 3px solid var(--rqk-campaign-brass-light, #d9bc82) !important;
+    outline: 3px solid var(--rqk-campaign-brass-light, #ffb066) !important;
     outline-offset: 2px !important;
   }
   #root .campaign-home-command {
@@ -1358,7 +1358,7 @@
   gap: clamp(12px, 1.7vw, 22px) !important;
 }
 #root .campaign-dashboard-simple .campaign-dashboard-title-copy h1 {
-  color: #eadfc8 !important;
+  color: #ffffff !important;
   line-height: 1.25 !important;
 }
 #root .campaign-dashboard-simple .campaign-dashboard-title-copy > span {
@@ -1372,12 +1372,12 @@
 }
 #root .campaign-dashboard-simple .campaign-button-primary:hover,
 #root .campaign-dashboard-simple .campaign-button-primary:focus-visible {
-  background: #d9bc82 !important;
-  border-color: #d9bc82 !important;
-  color: #0b1b2b !important;
+  background: #ffb066 !important;
+  border-color: #ffb066 !important;
+  color: #0a2342 !important;
 }
 #root .campaign-dashboard-simple :is(button, a, input, select, textarea):focus-visible {
-  outline: 3px solid #d9bc82 !important;
+  outline: 3px solid #ffb066 !important;
   outline-offset: 3px !important;
 }
 #root .campaign-dashboard-simple .campaign-dashboard-group-row,
@@ -1460,7 +1460,7 @@
 /* Guild Ledger UI polish: readable gold actions, clear keyboard focus and
    deliberate desktop/mobile density. No data or navigation changes. */
 #root .campaign-dashboard-simple .campaign-button-primary {
-  color: #0b1b2b !important;
+  color: #0a2342 !important;
   font-weight: 850 !important;
 }
 /* Selected navigation is wax-seal red; primary action buttons remain brass. */
@@ -1472,7 +1472,7 @@
   font-weight: 850 !important;
 }
 #root .campaign-dashboard-simple .campaign-button-primary:is(:hover,:focus-visible) {
-  color: #0b1b2b !important;
+  color: #0a2342 !important;
 }
 #root .campaign-dashboard-simple :is(
   .campaign-icon-button, .campaign-button, .campaign-dashboard-group,

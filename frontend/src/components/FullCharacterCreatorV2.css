@@ -4,17 +4,17 @@
 /* Character Creator — route-owned RQK 1.0 presentation. */
 
 .full-creator-page {
-  --rqk-creator-bg: var(--rq-bg, #0B1B2B);
-  --rqk-creator-deep: var(--rq-bg-input, #0B1B2B);
-  --rqk-creator-panel: var(--rq-bg-panel, #0B1B2B);
-  --rqk-creator-card: var(--rq-card, #0B1B2B);
-  --rqk-creator-card-hover: var(--rq-card-hover, #0B1B2B);
-  --rqk-creator-text: var(--rq-text-primary, #EADFC8);
+  --rqk-creator-bg: var(--rq-bg, #0a2342);
+  --rqk-creator-deep: var(--rq-bg-input, #0a2342);
+  --rqk-creator-panel: var(--rq-bg-panel, #0a2342);
+  --rqk-creator-card: var(--rq-card, #0a2342);
+  --rqk-creator-card-hover: var(--rq-card-hover, #0a2342);
+  --rqk-creator-text: var(--rq-text-primary, #ffffff);
   --rqk-creator-muted: var(--rq-text-secondary, rgba(247,241,231,.78));
   --rqk-creator-faint: var(--rq-text-muted, rgba(247,241,231,.60));
   --rqk-creator-line: var(--rq-line, rgba(166,193,216,.14));
-  --rqk-creator-line-strong: var(--rq-line-strong, rgba(214,168,79,.30));
-  --rqk-creator-accent: var(--rq-primary, #C9A96B);
+  --rqk-creator-line-strong: var(--rq-line-strong, rgba(242, 137, 47,.30));
+  --rqk-creator-accent: var(--rq-primary, #f2892f);
   --rqk-creator-blue: var(--rq-secondary, #3C92E0);
   --rqk-creator-warning: var(--rq-warning, #D39A43);
   --rqk-creator-success: var(--rq-success, #5FA67A);
@@ -397,7 +397,7 @@
 .full-creator-equipment-modes button[aria-pressed='true'],
 .full-creator-spell-chip[aria-pressed='true'] {
   border-color: var(--rqk-creator-accent) !important;
-  box-shadow: inset 3px 0 0 rgba(201,169,107,.72) !important;
+  box-shadow: inset 3px 0 0 rgba(242, 137, 47,.72) !important;
 }
 
 .full-creator-choice-block button[aria-pressed='false'],
@@ -498,7 +498,7 @@
   content: 'Selected';
   color: var(--rqk-creator-text);
   border-color: var(--rqk-creator-accent);
-  background: rgba(201,169,107,.10);
+  background: rgba(242, 137, 47,.10);
 }
 
 .full-creator-spell-chip:hover:not(:disabled) {

@@ -7,13 +7,13 @@
   gap: 14px;
   width: 100%;
   min-width: 0;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
 }
 #root .rqk-reference-browser__sidebar,
 #root .rqk-reference-browser__detail {
   min-width: 0;
   border: 1px solid var(--rq-border-default, rgba(137,157,176,.28));
-  background: var(--rq-bg-panel, #0b1b2b);
+  background: var(--rq-bg-panel, #0a2342);
   border-radius: 9px;
 }
 #root .rqk-reference-browser__sidebar { overflow: hidden; }
@@ -23,9 +23,9 @@
   align-items: center;
   gap: 8px;
   padding: 13px 12px;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   border-bottom: 1px solid var(--rq-border-default, rgba(137,157,176,.28));
-  background: var(--rq-bg-deep, #0b1b2b);
+  background: var(--rq-bg-deep, #0a2342);
 }
 #root .rqk-reference-browser__sidebar-heading strong { font-size: 12px; letter-spacing: .025em; }
 #root .rqk-reference-browser__sidebar-heading span {
@@ -58,25 +58,25 @@
   border-bottom: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
   border-radius: 0;
   background: transparent;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   cursor: pointer;
 }
 #root .rqk-reference-browser__item:hover {
-  background: var(--rq-card, #0B1B2B);
+  background: var(--rq-card, #0a2342);
 }
 #root .rqk-reference-browser__item.is-selected {
-  background: var(--rq-card, #0B1B2B);
-  border-left-color: var(--rq-accent-primary, #c9a96b);
+  background: var(--rq-card, #0a2342);
+  border-left-color: var(--rq-accent-primary, #f2892f);
 }
 #root .rqk-reference-browser__item:focus-visible {
-  outline: 2px solid var(--rq-accent-primary, #c9a96b);
+  outline: 2px solid var(--rq-accent-primary, #f2892f);
   outline-offset: -3px;
   position: relative;
   z-index: 1;
 }
 #root .rqk-reference-browser__item-name {
   width: 100%;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   font-weight: 800;
   font-size: 13px;
   overflow: hidden;
@@ -86,13 +86,13 @@
 #root .rqk-reference-browser__item-subtitle,
 #root .rqk-reference-browser__item-badge {
   font-size: 11px;
-  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.78));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
 }
-#root .rqk-reference-browser__item-badge { color: var(--rq-accent-primary, #c9a96b); }
+#root .rqk-reference-browser__item-badge { color: var(--rq-accent-primary, #f2892f); }
 #root .rqk-reference-browser__detail { padding: clamp(10px, 2vw, 20px); }
 #root .rqk-reference-browser__detail-content { min-width: 0; overflow-wrap: anywhere; }
 #root .rqk-reference-browser__detail-placeholder,
@@ -137,7 +137,7 @@
     border-right: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
     scroll-snap-align: start;
   }
-  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #c9a96b); }
+  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #f2892f); }
   #root .rqk-reference-browser__detail { padding: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -158,7 +158,7 @@
     border-right: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
     scroll-snap-align: start;
   }
-  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #c9a96b); }
+  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #f2892f); }
   #root .rqk-reference-browser__detail { padding: 9px; }
 }
 
@@ -182,14 +182,14 @@
   gap: 4px;
 }
 #root .rqk-reference-browser__position > span {
-  color: var(--rq-text-secondary, rgba(234,223,200,.76));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.76));
   font-size: 11px;
   font-weight: 750;
   text-transform: uppercase;
   letter-spacing: .065em;
 }
 #root .rqk-reference-browser__position > strong {
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   font-family: var(--rq-font-display, Georgia, serif);
   font-size: clamp(15px, 1.4vw, 18px);
   overflow: hidden;
@@ -210,21 +210,21 @@
   justify-content: center;
   gap: 5px;
   padding: 8px 10px;
-  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
+  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
   border-radius: 6px;
-  color: var(--rq-text-primary, #eadfc8);
-  background: var(--rq-bg-deep, #0b1b2b);
+  color: var(--rq-text-primary, #ffffff);
+  background: var(--rq-bg-deep, #0a2342);
   font: inherit;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
 }
 #root .rqk-reference-browser__paging button:not(:disabled):is(:hover,:focus-visible) {
-  background: var(--rq-card, #0B1B2B);
-  border-color: var(--rq-accent-primary, #c9a96b);
+  background: var(--rq-card, #0a2342);
+  border-color: var(--rq-accent-primary, #f2892f);
 }
 #root .rqk-reference-browser__paging button:focus-visible {
-  outline: 2px solid var(--rq-accent-primary, #c9a96b);
+  outline: 2px solid var(--rq-accent-primary, #f2892f);
   outline-offset: 2px;
 }
 #root .rqk-reference-browser__paging button:disabled {
@@ -249,7 +249,7 @@
    Important rules in rq-controls outrank older global button styling. */
 @layer rq-controls {
   #root .rqk-reference-browser .rqk-reference-browser__list {
-    scrollbar-color: #61758A #0B1B2B;
+    scrollbar-color: #61758A #0a2342;
   }
   #root .rqk-reference-browser .rqk-reference-browser__item {
     box-sizing: border-box !important;
@@ -265,7 +265,7 @@
     overflow: visible !important;
     white-space: normal !important;
     line-height: 1.4 !important;
-    background-color: #0B1B2B !important;
+    background-color: #0a2342 !important;
     background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F)) !important;
     background-position: left center !important;
     background-size: 0% 3px !important;

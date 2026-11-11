@@ -15,7 +15,7 @@
     max(20px, env(safe-area-inset-left)) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
-  background: var(--rq-citrus-navy, #0B1B2B) !important;
+  background: var(--rq-citrus-navy, #0a2342) !important;
   background-image: none !important;
   color: var(--rq-citrus-cream, #F5F1E8) !important;
   text-align: center !important;
@@ -109,7 +109,7 @@
   overflow: hidden !important;
   border: 0 !important;
   border-radius: 2px !important;
-  background: var(--rq-ledger-hair, rgba(234, 223, 200, .12)) !important;
+  background: var(--rq-ledger-hair, rgba(255, 255, 255, .12)) !important;
 }
 
 #root .route-loading-screen .rqk-route-activity > span {
@@ -124,7 +124,7 @@
 
 #root .route-loading-screen .rqk-route-description {
   margin: 17px 0 0 !important;
-  color: var(--rq-text-muted, rgba(234, 223, 200, .60)) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, .60)) !important;
   font-family: var(--rq-font-sans, 'Manrope', system-ui, sans-serif) !important;
   font-size: .82rem !important;
   font-weight: 400 !important;
@@ -145,7 +145,7 @@
 
 #root .route-loading-screen .rqk-route-recovery p {
   margin: 0 !important;
-  color: var(--rq-text-secondary, rgba(234, 223, 200, .78)) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, .78)) !important;
   font-size: .84rem !important;
   line-height: 1.55 !important;
 }
@@ -155,7 +155,7 @@
   padding: 10px 19px !important;
   border: 1px solid rgba(60, 146, 224, .36) !important;
   border-radius: 7px !important;
-  background-color: var(--rq-citrus-control, #0B1B2B) !important;
+  background-color: var(--rq-citrus-control, #0a2342) !important;
   background-image: var(--rq-citrus-gradient) !important;
   background-position: left bottom !important;
   background-repeat: no-repeat !important;

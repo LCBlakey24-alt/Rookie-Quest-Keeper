@@ -1,7 +1,7 @@
 /* Floating dice roller — Guild Ledger flat surfaces.
  *
  * This panel was missed by the flat-single-surface pass and still stacked
- * five different blues (page #0B1B2B behind a #071522 panel, #112A40 cards,
+ * five different blues (page #0a2342 behind a #071522 panel, #112A40 cards,
  * a #071A29 input and a #0C2234 toggle) with antique-gold borders. The
  * approved direction is one background colour everywhere, with structure
  * carried by hairlines and the citrus rule -- "rules only, no boxes".
@@ -15,17 +15,17 @@
  */
 
 .rq-floating-dice {
-  --dice-bg: #0B1B2B;
-  --dice-panel: #0B1B2B;
-  --dice-card: #0B1B2B;
-  --dice-input: #0B1B2B;
+  --dice-bg: #0a2342;
+  --dice-panel: #0a2342;
+  --dice-card: #0a2342;
+  --dice-input: #0a2342;
   --dice-text: #F5F1E8;
-  --dice-muted: rgba(234, 223, 200, 0.70);
+  --dice-muted: rgba(255, 255, 255, 0.70);
   --dice-blue: #3C92E0;
-  --dice-accent: rgba(234, 223, 200, 0.28);
-  --dice-line: rgba(234, 223, 200, 0.14);
-  --dice-line-strong: rgba(234, 223, 200, 0.22);
-  --dice-hover: rgba(234, 223, 200, 0.06);
+  --dice-accent: rgba(255, 255, 255, 0.28);
+  --dice-line: rgba(255, 255, 255, 0.14);
+  --dice-line-strong: rgba(255, 255, 255, 0.22);
+  --dice-hover: rgba(255, 255, 255, 0.06);
   /* The citrus ramp is defined once in styles/flatLedger.css, which
      index.js loads app-wide. Referencing the shared token keeps this panel
      on the same accent as the rest of the app instead of pinning a second
