@@ -19,6 +19,7 @@ import {
 import { faceCentroids, faceNormals } from './diceShapes';
 
 const CELL_PADDING = 0.9;
+const DEFAULT_GLOW = 'rgba(242, 137, 47, 1)';
 
 function subtract(a, b) {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -42,6 +43,127 @@ function faceBasis(normal, vertices, face, centroid) {
   const first = subtract(vertices[face[0]], centroid);
   const axisU = normalise(subtract(first, normal.map((value) => value * dot(normal, first))));
   return { axisU, axisV: cross(normal, axisU) };
+}
+
+function polygonAreaCentroid(points) {
+  // Area-weighted centre of a planar polygon given in 2D. For a kite this
+  // sits towards the wide end, where a real die prints its number.
+  let area = 0;
+  let cx = 0;
+  let cy = 0;
+  for (let i = 0; i < points.length; i += 1) {
+    const [x0, y0] = points[i];
+    const [x1, y1] = points[(i + 1) % points.length];
+    const crossed = x0 * y1 - x1 * y0;
+    area += crossed;
+    cx += (x0 + x1) * crossed;
+    cy += (y0 + y1) * crossed;
+  }
+  if (Math.abs(area) < 1e-12) return [0, 0];
+  return [cx / (3 * area), cy / (3 * area)];
+}
+
+function distanceToSegmentLine([px, py], [ax, ay], [bx, by]) {
+  const length = Math.hypot(bx - ax, by - ay) || 1;
+  return Math.abs((bx - ax) * (ay - py) - (ax - px) * (by - ay)) / length;
+}
+
+/**
+ * How each face is labelled: where its number sits, which way is "up" for
+ * the number, and how much room there is.
+ *
+ * - The number sits at the face's area centre, not the average of its
+ *   corners (they differ on a kite).
+ * - "Up" points at a corner for triangles and pentagons, along an edge for
+ *   squares (so a d6 reads square to its sides), and at the far tip for a
+ *   d10/d100 kite, as on a real die.
+ * - `inradius` is the distance from that centre to the nearest edge: the
+ *   number is sized to fit inside that circle, so it can never touch an
+ *   edge on any shape.
+ *
+ * The geometry's UVs and the atlas's drawing both use these layouts, so
+ * the number is painted exactly where the face is.
+ */
+export function faceLayouts(solid, { bevel = BEVEL } = {}) {
+  const normals = faceNormals(solid);
+  const vertexCentroids = faceCentroids(solid);
+  const radius = Math.max(...solid.vertices.map((v) => Math.hypot(...v)));
+  const inset = Math.max(0, bevel) * radius;
+
+  return solid.faces.map((face, faceIndex) => {
+    const normal = normals[faceIndex];
+    const origin = vertexCentroids[faceIndex];
+    // A provisional basis, only to find the area centre in the plane.
+    const tempU = normalise(subtract(subtract(solid.vertices[face[0]], origin), normal.map((value) => value * dot(normal, subtract(solid.vertices[face[0]], origin)))));
+    const tempV = cross(normal, tempU);
+    const flat = face.map((vertexIndex) => {
+      const offset = subtract(solid.vertices[vertexIndex], origin);
+      return [dot(offset, tempU), dot(offset, tempV)];
+    });
+    const [ax, ay] = polygonAreaCentroid(flat);
+    const centre = add(origin, add(scaleVector(tempU, ax), scaleVector(tempV, ay)));
+
+    // Which way is up for the number.
+    let target;
+    if (face.length === 4) {
+      const lengths = face.map((vertexIndex, i) => Math.hypot(...subtract(solid.vertices[vertexIndex], solid.vertices[face[(i + 1) % 4]])));
+      const square = Math.max(...lengths) - Math.min(...lengths) < 1e-6;
+      if (square) {
+        target = scaleVector(add(solid.vertices[face[0]], solid.vertices[face[1]]), 0.5);
+      } else {
+        // Kite: the tip is the corner furthest from the centre.
+        target = face
+          .map((vertexIndex) => solid.vertices[vertexIndex])
+          .reduce((best, vertex) => (Math.hypot(...subtract(vertex, centre)) > Math.hypot(...subtract(best, centre)) ? vertex : best));
+      }
+    } else {
+      target = solid.vertices[face[0]];
+    }
+    const towards = subtract(target, centre);
+    const axisV = normalise(subtract(towards, normal.map((value) => value * dot(normal, towards))));
+    const axisU = cross(axisV, normal);
+
+    const planar = (point) => {
+      const offset = subtract(point, centre);
+      return [dot(offset, axisU), dot(offset, axisV)];
+    };
+    const corners = face.map((vertexIndex) => planar(solid.vertices[vertexIndex]));
+    // The visible face is inset by the bevel; the glow follows that edge.
+    const insetCorners = face.map((vertexIndex) => {
+      const vertex = solid.vertices[vertexIndex];
+      const toCentre = subtract(origin, vertex);
+      const distance = Math.hypot(...toCentre) || 1;
+      return planar(add(vertex, scaleVector(toCentre, Math.min(0.45, inset / distance))));
+    });
+    const reach = Math.max(...corners.map(([u, v]) => Math.hypot(u, v))) || 1;
+    const inradius = Math.min(...corners.map((corner, i) => distanceToSegmentLine([0, 0], corner, corners[(i + 1) % corners.length])));
+
+    return { face, normal, centre, axisU, axisV, reach, inradius, corners, insetCorners };
+  });
+}
+
+/**
+ * The value at each vertex of a d4, from the value of each face.
+ *
+ * A real d4 prints the same number at one corner of each of the three
+ * faces meeting there, and is read from the corner pointing up. The scene
+ * reads a d4 from the face it lands on, so each corner takes the value of
+ * the face opposite it: whatever face ends up underneath, its value is the
+ * number at the top corner.
+ */
+export function d4VertexValues(solid, faceValues) {
+  const values = new Array(solid.vertices.length).fill(null);
+  solid.faces.forEach((face, faceIndex) => {
+    const opposite = solid.vertices.findIndex((unused, vertexIndex) => !face.includes(vertexIndex));
+    values[opposite] = faceValues[faceIndex];
+  });
+  return values;
+}
+
+/** How a value is printed: a percentile tens die shows 00, 10 ... 90. */
+export function labelFor(value, size) {
+  if (Number(size) === 100) return Number(value) === 0 ? '00' : String(value);
+  return String(value);
 }
 
 /**
@@ -81,7 +203,9 @@ function shade(hex, amount) {
  * 6 and 9 get an underline, as they do on a real die, because on a d6 and a
  * d10 they are otherwise the same glyph upside down.
  */
-export function drawFaceAtlas(faceValues, { columns, cellPixels, body, ink, size, corners = 4 }) {
+export function drawFaceAtlas(faceValues, {
+  columns, cellPixels, body, ink, size, corners = 4, layouts = null, solid = null, glow = DEFAULT_GLOW,
+}) {
   const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
   if (!canvas) return null;
 
@@ -99,40 +223,110 @@ export function drawFaceAtlas(faceValues, { columns, cellPixels, body, ink, size
   const kite = Number(size) === 10 || Number(size) === 100;
   const lip = shade(body, -0.38);
   const highlight = shade(body, 0.45);
+  const d4Values = Number(size) === 4 && layouts && solid ? d4VertexValues(solid, faceValues) : null;
 
-  faceValues.forEach((value, index) => {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    const centreX = (column + 0.5) * cellPixels;
-    // A triangular face is widest towards its base, so the glyph sits a
-    // little below the cell's centre to stay clear of the apex.
-    const centreY = (row + 0.5) * cellPixels + (corners === 3 ? cellPixels * 0.07 : 0);
-
-    // Longer numbers need to be smaller again to stay inside the face.
-    const digits = String(value).length;
-    const fit = digits > 2 ? 0.62 : digits > 1 ? 0.8 : 1;
-    const scale = (kite ? KITE_SCALE : (GLYPH_SCALE[corners] || 0.46)) * fit;
-    const glyphPx = Math.round(cellPixels * scale);
+  // Engraved numeral: a darker lip below each stroke, a faint highlight
+  // above, then the ink. 6 and 9 get an underline where a lone digit could
+  // be read upside down.
+  const engrave = (text, x, y, glyphPx, rotation = 0) => {
+    context.save();
+    context.translate(x, y);
+    context.rotate(rotation);
     context.font = `700 ${glyphPx}px Manrope, Inter, system-ui, sans-serif`;
     const depth = Math.max(1, glyphPx * 0.045);
-
     const paint = (colour, dx, dy) => {
       context.fillStyle = colour;
       context.strokeStyle = colour;
-      context.fillText(String(value), centreX + dx, centreY + dy);
-      if (value === 6 || value === 9) {
-        const width = cellPixels * 0.17 * (kite ? 0.8 : 1);
-        const underlineY = centreY + dy + glyphPx * 0.62;
+      context.fillText(text, dx, dy);
+      if (text === '6' || text === '9') {
+        const width = glyphPx * 0.3;
+        const underlineY = dy + glyphPx * 0.6;
         context.lineWidth = Math.max(2, glyphPx * 0.07);
         context.beginPath();
-        context.moveTo(centreX + dx - width, underlineY);
-        context.lineTo(centreX + dx + width, underlineY);
+        context.moveTo(dx - width, underlineY);
+        context.lineTo(dx + width, underlineY);
         context.stroke();
       }
     };
     paint(highlight, -depth * 0.6, -depth * 0.6);
     paint(lip, depth, depth);
     paint(ink, 0, 0);
+    context.restore();
+  };
+
+  // The biggest font size whose text box fits inside a circle of radius r.
+  const fitGlyph = (text, radiusPx) => {
+    let glyphPx = Math.max(8, Math.floor(radiusPx * 1.5));
+    for (let guard = 0; guard < 40; guard += 1) {
+      context.font = `700 ${glyphPx}px Manrope, Inter, system-ui, sans-serif`;
+      const width = context.measureText(text).width || glyphPx * 0.6 * text.length;
+      const height = glyphPx * ((text === '6' || text === '9') ? 0.95 : 0.74);
+      if (Math.hypot(width / 2, height / 2) <= radiusPx) break;
+      glyphPx = Math.floor(glyphPx * 0.92);
+    }
+    return glyphPx;
+  };
+
+  faceValues.forEach((value, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const centreX = (column + 0.5) * cellPixels;
+    const centreY = (row + 0.5) * cellPixels;
+    const layout = layouts?.[index];
+
+    if (!layout) {
+      // Legacy sizing, kept for callers that do not pass layouts.
+      const digits = String(value).length;
+      const fit = digits > 2 ? 0.62 : digits > 1 ? 0.8 : 1;
+      const scale = (kite ? KITE_SCALE : (GLYPH_SCALE[corners] || 0.46)) * fit;
+      engrave(labelFor(value, size), centreX, centreY, Math.round(cellPixels * scale));
+      return;
+    }
+
+    // Face units to pixels: the face's furthest corner reaches CELL_PADDING
+    // of the way to the cell edge, matching the UVs in buildDieGeometry.
+    const unit = (cellPixels * 0.5 * CELL_PADDING) / layout.reach;
+    const toPixel = ([u, v]) => [centreX + u * unit, centreY - v * unit];
+
+    // Inner glow: a soft orange light along the visible edge, clipped to the
+    // face so it only falls inwards -- the same look as the sheet's boxes.
+    if (glow) {
+      const edge = layout.insetCorners.map(toPixel);
+      context.save();
+      context.beginPath();
+      edge.forEach(([x, y], i) => (i ? context.lineTo(x, y) : context.moveTo(x, y)));
+      context.closePath();
+      context.clip();
+      context.strokeStyle = glow;
+      context.shadowColor = glow;
+      context.shadowBlur = layout.inradius * unit * 0.35;
+      context.lineJoin = 'round';
+      context.globalAlpha = 0.55;
+      context.lineWidth = layout.inradius * unit * 0.22;
+      context.stroke();
+      context.globalAlpha = 0.9;
+      context.shadowBlur = 0;
+      context.lineWidth = Math.max(1.5, layout.inradius * unit * 0.05);
+      context.stroke();
+      context.restore();
+    }
+
+    if (d4Values) {
+      // A d4 face carries the value of each corner, near that corner and
+      // upright towards it, like a printed d4.
+      layout.face.forEach((vertexIndex, cornerIndex) => {
+        const [u, v] = layout.corners[cornerIndex];
+        const at = [u * 0.5, v * 0.5];
+        const [x, y] = toPixel(at);
+        const rotation = Math.atan2(u, v); // canvas: rotate so "up" faces the corner
+        const text = labelFor(d4Values[vertexIndex], size);
+        engrave(text, x, y, fitGlyph(text, layout.inradius * unit * 0.42), rotation);
+      });
+      return;
+    }
+
+    const text = labelFor(value, size);
+    engrave(text, centreX, centreY, fitGlyph(text, layout.inradius * unit * 0.86));
   });
 
   const texture = new CanvasTexture(canvas);
@@ -177,7 +371,7 @@ function scaleVector(v, k) {
  * colour, and carry a vertex colour so a natural 20 or 1 can tint just its
  * edges.
  */
-export function buildDieGeometry(solid, columns, { bevel = BEVEL, edgeColor = [1, 1, 1] } = {}) {
+export function buildDieGeometry(solid, columns, { bevel = BEVEL, edgeColor = [1, 1, 1], layouts = null } = {}) {
   const normals = faceNormals(solid);
   const centroids = faceCentroids(solid);
   const radius = Math.max(...solid.vertices.map((v) => Math.hypot(...v)));
@@ -219,15 +413,20 @@ export function buildDieGeometry(solid, columns, { bevel = BEVEL, edgeColor = [1
   solid.faces.forEach((face, faceIndex) => {
     const normal = normals[faceIndex];
     const centroid = centroids[faceIndex];
-    const { axisU, axisV } = faceBasis(normal, solid.vertices, face, centroid);
+    // Labelled faces map from their label centre and upright axes (see
+    // faceLayouts), so the number lands centred and the right way up.
+    const layout = layouts?.[faceIndex];
+    const basis = layout || faceBasis(normal, solid.vertices, face, centroid);
+    const { axisU, axisV } = basis;
+    const origin = layout ? layout.centre : centroid;
 
     // UVs are measured from the ORIGINAL corners, so the numeral keeps its
     // size and place; the inset corners simply sample slightly inside it.
     const planarOf = (point) => {
-      const offset = subtract(point, centroid);
+      const offset = subtract(point, origin);
       return [dot(offset, axisU), dot(offset, axisV)];
     };
-    const reach = Math.max(...face.map((vertexIndex) => Math.hypot(...planarOf(solid.vertices[vertexIndex])))) || 1;
+    const reach = layout ? layout.reach : (Math.max(...face.map((vertexIndex) => Math.hypot(...planarOf(solid.vertices[vertexIndex])))) || 1);
     const column = faceIndex % columns;
     const row = Math.floor(faceIndex / columns);
     const cell = 1 / columns;

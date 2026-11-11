@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { DICE_DYES } from '@/components/dice3d/diceDyes';
+import { DEFAULT_DYE_ID, DICE_DYES } from '@/components/dice3d/diceDyes';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import FloatingDiceRoller from './FloatingDiceRoller';
 
@@ -57,7 +57,7 @@ describe('choosing a dice colour', () => {
       (dye) => screen.getByTestId(`dice-dye-${dye.id}`).getAttribute('aria-pressed') === 'true',
     );
     expect(chosen).toHaveLength(1);
-    expect(chosen[0].id).toBe('amber');
+    expect(chosen[0].id).toBe(DEFAULT_DYE_ID);
   });
 
   test('a swatch shows a number in that dye, not just a blob of colour', () => {

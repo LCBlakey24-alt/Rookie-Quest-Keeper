@@ -41,9 +41,9 @@ import {
   WebGLRenderer,
 } from 'three';
 
-import { atlasColumns, buildDieGeometry, drawFaceAtlas } from './dieMesh';
+import { atlasColumns, buildDieGeometry, drawFaceAtlas, faceLayouts } from './dieMesh';
 import { assignFaceValues, faceConfidence, seededRandom, settledFaceIndex } from './diceFaceReading';
-import { faceNormals, shapeForSides } from './diceShapes';
+import { PERCENTILE_UNITS_VALUES, faceNormals, shapeForSides } from './diceShapes';
 import { createStudioScene } from './studioEnvironment';
 
 const TRAY_HALF = 3.5;
@@ -242,6 +242,26 @@ export function planThrow(specs, baseSeed) {
 }
 
 /**
+ * A d100 is thrown as two dice, the way it is at a table: a tens die
+ * (00-90) and a units die (0-9). 00 with 0 reads 100. Every other die
+ * passes through unchanged. The result panel still shows the d100's total;
+ * only what is thrown in the tray changes.
+ */
+export function expandPercentileDice(rolls) {
+  return (Array.isArray(rolls) ? rolls : []).flatMap((die) => {
+    if (Number(die?.sides) !== 100) return [die];
+    const total = Number(die.result);
+    if (!Number.isInteger(total) || total < 1 || total > 100) return [die];
+    const tens = total === 100 ? 0 : Math.floor(total / 10) * 10;
+    const units = total % 10;
+    return [
+      { ...die, sides: 100, result: tens, percentile: 'tens' },
+      { ...die, sides: 10, result: units, percentile: 'units' },
+    ];
+  });
+}
+
+/**
  * Describe a die for the scene: its solid, face normals, legal values and
  * the result it must show. Returns null for a die with no polyhedron, so
  * the caller can fall back to the flat overlay.
@@ -252,7 +272,8 @@ export function specForDie(die) {
 
   const solid = shape.build();
   const result = Number(die.result);
-  if (!shape.values.includes(result)) return null;
+  const values = die.percentile === 'units' ? PERCENTILE_UNITS_VALUES : shape.values;
+  if (!values.includes(result)) return null;
 
   // A natural 20 or a natural 1 is a moment at the table, so the die that
   // produced it is marked -- in its numerals and its edge, not with a
@@ -266,7 +287,7 @@ export function specForDie(die) {
   return {
     solid,
     normals: faceNormals(solid),
-    values: shape.values,
+    values,
     readFace: shape.readFace,
     result,
     dropped: Boolean(die.dropped),
@@ -432,7 +453,14 @@ export function createDiceTray({ canvas, palette }) {
 
     active = entries.map((entry, index) => {
       const columns = atlasColumns(entry.spec.solid.faces.length);
+      // Where each face's number sits and which way is up, shared by the
+      // texture and the UVs so the two always agree.
+      const labelLayouts = faceLayouts(entry.spec.solid);
       const texture = drawFaceAtlas(plan.layouts[index], {
+        layouts: labelLayouts,
+        solid: entry.spec.solid,
+        // A dropped die (the advantage die not kept) loses its glow too.
+        glow: entry.spec.dropped ? null : (palette.glow || null),
         columns,
         cellPixels: cellPixelsFor(specs.length),
         body: palette.body,
@@ -451,7 +479,7 @@ export function createDiceTray({ canvas, palette }) {
         : entry.spec.accent === 'fumble' ? palette.fumble
         : null;
       const edgeColor = accent ? new Color(accent).toArray() : [1, 1, 1];
-      const geometry = buildDieGeometry(entry.spec.solid, columns, { edgeColor });
+      const geometry = buildDieGeometry(entry.spec.solid, columns, { edgeColor, layouts: labelLayouts });
       const mesh = new Mesh(
         geometry,
         new MeshPhysicalMaterial({

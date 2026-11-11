@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Dices, X } from 'lucide-react';
 
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
-import { createDiceTray, specForDie } from '@/components/dice3d/diceTrayScene';
+import { createDiceTray, expandPercentileDice, specForDie } from '@/components/dice3d/diceTrayScene';
 import { seedFromKey } from '@/components/dice3d/diceFaceReading';
 import { getDye } from '@/components/dice3d/diceDyes';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
@@ -47,6 +47,7 @@ function paletteFor(dye) {
     bodyMuted: 0xd4d9de,
     crit: dye.crit,
     fumble: dye.fumble,
+    glow: dye.glow || null,
     edge: hexToInt(dye.edge),
     support: 0x3c92e0,
   };
@@ -111,7 +112,8 @@ export default function DiceTray3DOverlay(props) {
   if (specsKeyRef.current !== diceSignature) {
     specsKeyRef.current = diceSignature;
     const list = Array.isArray(rolls) ? rolls : [];
-    const built = list.map(specForDie);
+    // A d100 is thrown as its real pair: a tens die and a units d10.
+    const built = expandPercentileDice(list).map(specForDie);
     specsRef.current = list.length && built.every(Boolean) ? built : null;
   }
   const specs = specsRef.current;
@@ -127,12 +129,25 @@ export default function DiceTray3DOverlay(props) {
   }, []);
 
   useEffect(() => {
-    if (!canRender || !canvasRef.current) return undefined;
+    const holder = canvasRef.current;
+    if (!canRender || !holder) return undefined;
+
+    // Every throw gets a canvas of its own. dispose() forces the WebGL
+    // context to be lost (so the browser's small context limit is never
+    // exhausted), and a lost context cannot be had again from the same
+    // canvas: re-running this effect on the old canvas -- which React's
+    // StrictMode does on every mount in development -- found no context and
+    // silently fell back to the flat card.
+    const canvas = document.createElement('canvas');
+    canvas.className = 'rq-dice-tray__canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    holder.appendChild(canvas);
 
     let tray;
     try {
-      tray = createDiceTray({ canvas: canvasRef.current, palette });
+      tray = createDiceTray({ canvas, palette });
     } catch (error) {
+      canvas.remove();
       setFailed(true);
       return undefined;
     }
@@ -150,6 +165,7 @@ export default function DiceTray3DOverlay(props) {
     if (!thrown) {
       // No seed produced a throw where every die landed flat.
       tray.dispose();
+      canvas.remove();
       trayRef.current = null;
       setFailed(true);
       return undefined;
@@ -161,6 +177,7 @@ export default function DiceTray3DOverlay(props) {
     return () => {
       observer?.disconnect();
       tray.dispose();
+      canvas.remove();
       trayRef.current = null;
     };
     // specsRef is read rather than listed: the signature is what decides
@@ -188,7 +205,7 @@ export default function DiceTray3DOverlay(props) {
         </header>
 
         <div className="rq-dice-tray__stage" ref={frameRef}>
-          <canvas ref={canvasRef} className="rq-dice-tray__canvas" aria-hidden="true" />
+          <div ref={canvasRef} className="rq-dice-tray__canvas-holder" />
           {!isRevealed && (
             <button type="button" className="rq-dice-tray__skip" onClick={onRevealNow}>
               Skip
