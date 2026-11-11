@@ -1,6 +1,6 @@
 import { passiveScore } from '@/data/skillModifiers';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
@@ -61,6 +61,7 @@ const hasAnyText = (...values) => values.some(value => String(value || '').trim(
 export default function CleanCharacterSheet() {
   const { characterId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isPhone = useDeviceLayout() === 'mobile';
   const [character, setCharacter] = useState(null);
   const saveControllerRef = useRef(null);
@@ -96,6 +97,17 @@ export default function CleanCharacterSheet() {
     });
   };
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
+
+  // Arriving from a GM-granted "Level up now" (?levelup=1) opens the wizard
+  // once the sheet has loaded, then drops the flag from the address.
+  const wantsLevelUp = new URLSearchParams(location.search).get('levelup') === '1';
+  useEffect(() => {
+    if (!wantsLevelUp || !character) return;
+    setShowLevelUpWizard(true);
+    navigate(location.pathname, { replace: true });
+  }, [wantsLevelUp, character, navigate, location.pathname]);
+  // A level up the GM granted and the player has not taken yet.
+  const levelUpReady = Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1);
   const [rollHistory, setRollHistory] = useState([]);
   const [showRollHistory, setShowRollHistory] = useState(false);
   const [showConditionPicker, setShowConditionPicker] = useState(false);
@@ -665,6 +677,7 @@ export default function CleanCharacterSheet() {
         resting={savingQuickState}
         onEdit={() => navigate(`/characters/${character.id}/edit`)}
         onLevelUp={() => setShowLevelUpWizard(true)}
+        levelUpReady={levelUpReady}
         onShortRest={() => handleRest('short')}
         onLongRest={() => handleRest('long')}
       />

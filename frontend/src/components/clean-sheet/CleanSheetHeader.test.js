@@ -61,3 +61,11 @@ test('mobile header keeps real character name, options and edit action available
   fireEvent.click(screen.getByRole('menuitem', { name: /Edit Character/ }));
   expect(onEdit).toHaveBeenCalledTimes(1);
 });
+
+test('a GM-granted level up turns the Level Up button into "Level up ready"', () => {
+  const { render: renderUi, screen: ui } = require('@testing-library/react');
+  const CleanSheetHeaderComponent = require('./CleanSheetHeader').default;
+  renderUi(<CleanSheetHeaderComponent character={{ name: 'Punch', level: 4, level_up_grant: { to_level: 5 } }} levelUpReady onLevelUp={() => {}} onEdit={() => {}} />);
+  expect(ui.getByTestId('sheet-level-up')).toHaveTextContent('Level up ready · 5');
+  expect(ui.getByTestId('sheet-level-up')).toHaveClass('is-ready');
+});

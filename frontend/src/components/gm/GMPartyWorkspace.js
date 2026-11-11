@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, RefreshCw, Shield, UserCheck, Users } from 'lucide-react';
+import { AlertCircle, CheckCircle2, RefreshCw, Shield, TrendingUp, UserCheck, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import PlayersTab from '@/components/tabs/PlayersTab';
@@ -29,6 +29,8 @@ export default function GMPartyWorkspace({ campaignId }) {
   const [savingId, setSavingId] = useState('');
   const [showLegacy, setShowLegacy] = useState(false);
   const [loadWarning, setLoadWarning] = useState('');
+  // character id -> level they were just granted, for this visit.
+  const [granted, setGranted] = useState({});
 
   const load = useCallback(async ({ silent = true } = {}) => {
     if (!campaignId) return { ok: false, failures: ['campaign'] };
@@ -101,6 +103,24 @@ export default function GMPartyWorkspace({ campaignId }) {
     }
   };
 
+  const grantLevelUp = async (member, name, level) => {
+    if (!member.character_id) return;
+    const nextLevel = Number(level || 1) + 1;
+    if (!window.confirm(`Let ${name} level up to ${nextLevel}? They will see "Levelled up!" next time their app checks, and level up themselves.`)) return;
+    setSavingId(member.id);
+    try {
+      const response = await apiClient.post(`/campaigns/${campaignId}/characters/${member.character_id}/level-up-grant`);
+      const grant = response?.data?.grant || {};
+      setGranted(prev => ({ ...prev, [member.character_id]: grant.to_level || nextLevel }));
+      if (response?.data?.already_pending) toast.info(response.data.message || `${name} already has a level up waiting`);
+      else toast.success(response?.data?.message || `${name} can now level up`);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not grant the level up');
+    } finally {
+      setSavingId('');
+    }
+  };
+
   if (loading && members.length === 0 && party.length === 0) return <div style={emptyStyle}>Loading party…</div>;
 
   return (
@@ -146,6 +166,19 @@ export default function GMPartyWorkspace({ campaignId }) {
 
               <div style={actionsStyle}>
                 {pending && <button type="button" disabled={savingId === member.id} onClick={() => updateStatus(member, 'active')} style={approveButtonStyle}><CheckCircle2 size={13} /> Approve</button>}
+                {status === 'active' && member.character_id && (granted[member.character_id]
+                  ? <span style={grantedStyle} data-testid={`level-up-granted-${member.character_id}`}><TrendingUp size={13} /> Level {granted[member.character_id]} granted</span>
+                  : (
+                    <button
+                      type="button"
+                      disabled={savingId === member.id}
+                      onClick={() => grantLevelUp(member, member.character_name || live.name || 'This character', member.character_level || live.level)}
+                      style={approveButtonStyle}
+                      data-testid={`grant-level-up-${member.character_id}`}
+                    >
+                      <TrendingUp size={13} /> Grant level up
+                    </button>
+                  ))}
                 <select value={status} disabled={savingId === member.id} onChange={event => updateStatus(member, event.target.value)} style={statusSelectStyle}>
                   {STATUSES.map(option => <option key={option} value={option}>{nice(option)}</option>)}
                 </select>
@@ -196,6 +229,7 @@ const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap
 const statStyle = { minHeight: 38, background: rq.bg, border: `1px solid ${rq.line}`, display: 'grid', placeItems: 'center', alignContent: 'center', gap: 1, fontSize: 11 };
 const actionsStyle = { display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' };
 const approveButtonStyle = { minHeight: 30, border: `1px solid ${rq.pink}`, background: rq.card, color: '#FFFFFF', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 900, cursor: 'pointer' };
+const grantedStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '0 8px', fontSize: 10, fontWeight: 900, color: '#ECD08A', border: '1px solid rgba(236, 208, 138, 0.55)' };
 const statusSelectStyle = { minHeight: 30, flex: 1, minWidth: 100, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.text, padding: '0 6px', fontSize: 10 };
 const legacyNoticeStyle = { display: 'flex', alignItems: 'center', gap: 6, background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, padding: 7, fontSize: 10 };
 const legacyToggleStyle = { minHeight: 38, border: `1px solid ${rq.line}`, background: rq.panel, color: rq.soft, padding: '0 9px', display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 6, cursor: 'pointer', fontWeight: 850, fontSize: 10 };

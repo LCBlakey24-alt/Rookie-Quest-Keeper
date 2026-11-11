@@ -1,0 +1,44 @@
+/* "Levelled up!" overlay in the Rookie brand (Guild Ledger brass). */
+.rq-levelup {
+  --lu-brass: #c9a24a; --lu-hi: #ecd08a; --lu-text: #f4ead2; --lu-muted: #cdbf9e; --lu-bg: #0b1520;
+  position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 24px;
+  background: radial-gradient(circle at 50% 40%, rgba(201, 162, 74, 0.14), transparent 55%), rgba(5, 10, 17, 0.97);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: rq-levelup-fade 260ms ease-out both;
+}
+.rq-levelup__stage { position: static; margin: 0; padding: 0; border: 0; background: none; color: inherit; width: auto; display: grid; justify-items: center; gap: 12px; text-align: center; max-width: 420px; }
+.rq-levelup__motif { width: min(72vw, 300px); height: auto; overflow: visible; }
+.rq-levelup__case { fill: var(--lu-bg); stroke: var(--lu-brass); stroke-width: 1.6; }
+.rq-levelup__case-glow { fill: none; stroke: var(--lu-brass); stroke-width: 8; opacity: .45; }
+.rq-levelup__ring { fill: none; stroke: rgba(201, 162, 74, 0.45); stroke-width: 1; }
+.rq-levelup__pulse { fill: none; stroke: var(--lu-hi); stroke-width: 2; opacity: 0; transform-box: view-box; transform-origin: 0 0; animation: rq-levelup-pulse 1.4s 1.25s ease-out 2; }
+.rq-levelup__ticks { transform-box: view-box; transform-origin: 0 0; animation: rq-levelup-spin 2.2s cubic-bezier(.15, .7, .2, 1) both; }
+.rq-levelup__ticks line { stroke: rgba(201, 162, 74, 0.25); stroke-width: 2.4; stroke-linecap: round; animation: rq-levelup-tick 1.1s ease-out both; }
+.rq-levelup__core { fill: var(--lu-bg); stroke: var(--lu-hi); stroke-width: 2; }
+.rq-levelup__core-glow { fill: none; stroke: var(--lu-hi); stroke-width: 10; opacity: 0; animation: rq-levelup-glow 1s 1.2s ease-out both; }
+.rq-levelup__caption { fill: var(--lu-muted); font: 800 7px/1 var(--rq-body-font, Manrope, sans-serif); letter-spacing: .2em; }
+.rq-levelup__from, .rq-levelup__to { font: 700 40px/1 var(--rq-font-display, 'Fraunces', Georgia, serif); fill: var(--lu-hi); }
+.rq-levelup__from { animation: rq-levelup-out 500ms 800ms ease-in both; }
+.rq-levelup__to { opacity: 0; transform-box: fill-box; transform-origin: center; animation: rq-levelup-in 600ms 1.2s cubic-bezier(.2, .9, .3, 1.4) both; }
+.rq-levelup__title { margin: 4px 0 0; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1.1 var(--rq-font-display, 'Fraunces', Georgia, serif); color: var(--lu-hi); letter-spacing: .04em; text-shadow: 0 0 18px rgba(236, 208, 138, 0.45); animation: rq-levelup-rise 600ms 1.3s ease-out both; }
+.rq-levelup__text { margin: 0; color: var(--lu-text); font-size: 1rem; line-height: 1.4; animation: rq-levelup-rise 600ms 1.45s ease-out both; }
+.rq-levelup__text span { color: var(--lu-muted); }
+.rq-levelup__actions { display: flex; gap: 10px; margin-top: 8px; animation: rq-levelup-rise 600ms 1.6s ease-out both; }
+.rq-levelup__actions button { min-height: 48px; padding: 0 22px; border-radius: 12px; font: 800 1rem/1 var(--rq-body-font, Manrope, sans-serif); cursor: pointer; }
+.rq-levelup__primary { border: 1px solid var(--lu-hi) !important; background: var(--lu-brass) !important; color: #1a1205 !important; -webkit-text-fill-color: #1a1205 !important; }
+.rq-levelup__secondary { border: 1px solid rgba(201, 162, 74, 0.55) !important; background: transparent !important; color: var(--lu-text) !important; }
+
+@keyframes rq-levelup-fade { from { opacity: 0; } }
+@keyframes rq-levelup-spin { from { transform: rotate(-540deg); } to { transform: rotate(0); } }
+@keyframes rq-levelup-tick { 0% { stroke: rgba(201, 162, 74, 0.2); } 60% { stroke: #ecd08a; } 100% { stroke: #c9a24a; } }
+@keyframes rq-levelup-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes rq-levelup-in { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes rq-levelup-glow { 0% { opacity: 0; } 40% { opacity: .9; } 100% { opacity: .45; } }
+@keyframes rq-levelup-pulse { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.35); } }
+@keyframes rq-levelup-rise { from { opacity: 0; transform: translateY(10px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rq-levelup, .rq-levelup * { animation: none !important; }
+  .rq-levelup__from { opacity: 0; }
+  .rq-levelup__to, .rq-levelup__core-glow { opacity: 1; }
+}

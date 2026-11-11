@@ -18,6 +18,7 @@ import '@/layouts/tablet/appShell.css';
 import '@/layouts/mobile/appShell.css';
 import { isLocalPreview } from '@/preview/previewMode';
 import PreviewWorkspaceControls from '@/preview/PreviewWorkspaceControls';
+import LevelUpGrantWatcher from '@/components/level-up-grant/LevelUpGrantWatcher';
 import '@/preview/previewWorkspace.css';
 // Last on purpose: the phone navigation's single source of truth.
 import '@/styles/mobileNavigation.css';
@@ -375,6 +376,8 @@ export default function AppShell({ children }) {
           {children}
         </div>
       </div>
+      {/* GM-granted level ups: plays "Levelled up!" once per grant. */}
+      <LevelUpGrantWatcher />
     </div>
   );
 }
