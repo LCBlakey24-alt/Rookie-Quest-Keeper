@@ -5,6 +5,7 @@ import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 import { createDiceTray, expandPercentileDice, specForDie } from '@/components/dice3d/diceTrayScene';
 import { seedFromKey } from '@/components/dice3d/diceFaceReading';
 import { getDye } from '@/components/dice3d/diceDyes';
+import { HEX_CLIP, locateHexWindow } from '@/components/dice3d/hexWindow';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import './DiceTray3DOverlay.css';
 
@@ -48,10 +49,16 @@ function paletteFor(dye) {
     crit: dye.crit,
     fumble: dye.fumble,
     glow: dye.glow || null,
+    glowStops: dye.glowStops || null,
     edge: hexToInt(dye.edge),
     support: 0x3c92e0,
   };
 }
+
+/** How long settled dice rest on screen before the total is shown. */
+export const REVEAL_PAUSE_MS = 450;
+/** Pull the camera back in the hexagon so the dice stay clear of its corners. */
+const HEX_FRAME_SCALE = 1.25;
 
 function supportsWebGl() {
   if (typeof document === 'undefined') return false;
@@ -64,7 +71,23 @@ function supportsWebGl() {
 }
 
 export default function DiceTray3DOverlay(props) {
-  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose } = props;
+  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector } = props;
+  const isHex = shape === 'hex';
+
+  // The hexagon window sits over the wheel's own hexagon (or mid-screen),
+  // and follows it if the page scrolls or the window is resized.
+  const [hexWindow, setHexWindow] = useState(() => (isHex ? locateHexWindow(anchorSelector) : null));
+  useEffect(() => {
+    if (!isHex) return undefined;
+    const update = () => setHexWindow(locateHexWindow(anchorSelector));
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [isHex, anchorSelector]);
 
   // Snapshot the chosen colour for this roll. Changing the picker during a
   // throw does not recolour moving dice; a new roll gets the new material.
@@ -124,9 +147,14 @@ export default function DiceTray3DOverlay(props) {
   // Keep the physics callback stable so that alone cannot restart a throw.
   const onRevealNowRef = useRef(onRevealNow);
   useEffect(() => { onRevealNowRef.current = onRevealNow; }, [onRevealNow]);
+  // Once the dice have come to rest, let them sit still for a moment before
+  // the total appears, so the player sees the face that landed first.
+  const revealTimerRef = useRef(null);
   const handleSettled = useCallback(() => {
-    onRevealNowRef.current?.();
+    window.clearTimeout(revealTimerRef.current);
+    revealTimerRef.current = window.setTimeout(() => onRevealNowRef.current?.(), REVEAL_PAUSE_MS);
   }, []);
+  useEffect(() => () => window.clearTimeout(revealTimerRef.current), []);
 
   useEffect(() => {
     const holder = canvasRef.current;
@@ -145,7 +173,7 @@ export default function DiceTray3DOverlay(props) {
 
     let tray;
     try {
-      tray = createDiceTray({ canvas, palette });
+      tray = createDiceTray({ canvas, palette, frameScale: isHex ? HEX_FRAME_SCALE : 1 });
     } catch (error) {
       canvas.remove();
       setFailed(true);
@@ -182,13 +210,55 @@ export default function DiceTray3DOverlay(props) {
     };
     // specsRef is read rather than listed: the signature is what decides
     // whether this is a new throw.
-  }, [canRender, diceSignature, handleSettled, palette]);
+  }, [canRender, diceSignature, handleSettled, palette, isHex]);
 
   if (!canRender) {
     return <FlatDiceResultOverlay {...props} />;
   }
 
   const outcome = isCrit ? 'is-crit' : isFumble ? 'is-fumble' : '';
+
+  if (isHex && hexWindow) {
+    const { left, top, width, height } = hexWindow;
+    return (
+      <div className="rq-dice-tray rq-dice-tray--hex" data-testid="dice-tray-overlay" role="dialog" aria-modal="true" aria-label="Dice roll">
+        <button type="button" className="rq-dice-tray__scrim rq-dice-tray__scrim--hex" aria-label="Dismiss roll" onClick={onClose} />
+        <section
+          className={`rq-dice-hex ${outcome}${isRevealed ? ' is-revealed' : ''}`}
+          style={{ left, top, width, height }}
+          data-testid="dice-tray-hex"
+        >
+          <div className="rq-dice-hex__stage" ref={frameRef} style={{ clipPath: HEX_CLIP, WebkitClipPath: HEX_CLIP }}>
+            <div ref={canvasRef} className="rq-dice-tray__canvas-holder" />
+          </div>
+          <svg className="rq-dice-hex__case" viewBox="-86.6 -100 173.2 200" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <clipPath id="rq-dice-hex-clip"><polygon points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50" /></clipPath>
+            </defs>
+            <polygon className="rq-dice-hex__glow" points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50" clipPath="url(#rq-dice-hex-clip)" />
+            <polygon className="rq-dice-hex__edge" points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50" />
+          </svg>
+          <span className="rq-dice-hex__label">{label || 'Roll'}</span>
+          <div className="rq-dice-hex__result" aria-live="polite">
+            {isRevealed ? (
+              <>
+                <strong data-testid="dice-tray-total">{total}</strong>
+                <span>{formulaText}</span>
+              </>
+            ) : (
+              <>
+                <span className="rq-dice-tray__rolling">Rolling…</span>
+                <button type="button" className="rq-dice-hex__skip" onClick={onRevealNow}>Skip</button>
+              </>
+            )}
+          </div>
+          <button type="button" className="rq-dice-hex__close" aria-label="Close roll" onClick={onClose}>
+            <X size={16} />
+          </button>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="rq-dice-tray" data-testid="dice-tray-overlay" role="dialog" aria-modal="true" aria-label="Dice roll">

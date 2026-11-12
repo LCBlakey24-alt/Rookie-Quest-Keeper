@@ -89,6 +89,9 @@ export default function DiceRollFlicker({
   isCrit = false,
   isFumble = false,
   theme = 'player',
+  // 'hex' puts the 3D throw in a hexagon over the wheel matching anchorSelector.
+  shape,
+  anchorSelector,
 }) {
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
@@ -283,6 +286,8 @@ export default function DiceRollFlicker({
       isFixedDamage={isFixedDamage}
       onRevealNow={() => setShowTotal(true)}
       onClose={() => onCloseRef.current?.()}
+      shape={shape}
+      anchorSelector={anchorSelector}
     />,
     document.body,
   );

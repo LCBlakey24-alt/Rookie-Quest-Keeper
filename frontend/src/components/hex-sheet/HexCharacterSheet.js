@@ -562,6 +562,8 @@ export default function HexCharacterSheet() {
           isCrit={rollBurst.sides === 20 && rollBurst.d20 === 20}
           isFumble={rollBurst.sides === 20 && rollBurst.d20 === 1}
           theme="player"
+          shape="hex"
+          anchorSelector=".hex-sheet__wheel-area svg[data-hex-radius]"
         />
       )}
     </div>

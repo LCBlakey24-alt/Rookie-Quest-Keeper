@@ -333,6 +333,7 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
         ref={svgRef}
         className={`hex-wheel hex-hp__svg${armed ? ' is-armed' : ''}${dragging ? ' is-rotating' : ''}${returning ? ' is-returning' : ''}`}
         viewBox={wheelViewBox()}
+        data-hex-radius={OUTER_RADIUS + 2}
         role="group"
         aria-label="Hit point dial"
         onPointerDown={onPointerDown}

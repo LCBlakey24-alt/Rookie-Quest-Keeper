@@ -1,4 +1,4 @@
-import { centreRadiusFor, planThrow, simulateThrow, specForDie, throwAttemptsFor } from './diceTrayScene';
+import { QUICK_STEPS, REST_HOLD_STEPS, centreRadiusFor, planThrow, simulateThrow, specForDie, throwAttemptsFor } from './diceTrayScene';
 import { seedFromKey, settledFaceIndex } from './diceFaceReading';
 
 const spec = (sides, result, dropped = false) => specForDie({ sides, result, dropped });
@@ -173,5 +173,18 @@ describe('rotation helper', () => {
     const normals = [[0, 1, 0], [0, -1, 0], [1, 0, 0]];
     expect(settledFaceIndex(normals, { x: 0, y: 0, z: 0, w: 1 }, 'up')).toBe(0);
     expect(settledFaceIndex(normals, { x: 0, y: 0, z: 0, w: 1 }, 'down')).toBe(1);
+  });
+});
+
+describe('settling', () => {
+  test('a throw only ends once every die has stayed still, and the planned throw lands in a few seconds', () => {
+    const spec = specForDie({ sides: 20, result: 17 });
+    const outcome = simulateThrow([spec], 12345);
+    expect(outcome === null || outcome.steps >= REST_HOLD_STEPS).toBe(true);
+    const plan = planThrow([spec], 4242);
+    expect(plan).not.toBeNull();
+    const replay = simulateThrow([spec], plan.seed);
+    expect(replay.faces).toEqual(plan.settled); // the rehearsal and the replay agree
+    expect(replay.steps).toBeLessThanOrEqual(QUICK_STEPS);
   });
 });

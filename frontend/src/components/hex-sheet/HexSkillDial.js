@@ -160,6 +160,7 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
         ref={svgRef}
         className={`hex-wheel hex-skills__dial${dragging ? ' is-spinning' : ''}`}
         viewBox={wheelViewBox()}
+        data-hex-radius={OUTER_RADIUS}
         // A radio group, not a listbox: an app-wide theme rule paints a panel
         // background behind every listbox.
         role="radiogroup"
