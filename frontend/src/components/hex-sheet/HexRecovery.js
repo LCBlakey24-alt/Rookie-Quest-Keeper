@@ -54,7 +54,9 @@ export default function HexRecovery({ character, busy = false, onRest, onSpendHi
                     disabled={busy}
                     data-testid={`hex-death-${type}-${index}`}
                     onClick={() => onPatch(deathSavePipUpdates(state, type, index), { error: 'Could not update death saves' })}
-                  />
+                  >
+                    <span className="hex-recovery__pip-fill" aria-hidden="true" />
+                  </button>
                 ))}
               </div>
             );
