@@ -11,6 +11,7 @@ import {
 import ImageUploadPanel from '@/components/ImageUploadPanel';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { rollDiceNotation } from '@/data/diceRoller';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 
 const colors = {
@@ -404,7 +405,7 @@ function PartyInventory({ campaignId, players = [] }) {
 
   const totalWeight = items.reduce((sum, item) => sum + (item.weight || 0) * (item.quantity || 1), 0);
 
-  if (loading) return <div className="loading-spinner" />;
+  if (loading) return <HexLoader label="Loading party inventory…" />;
 
   return (
     <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>

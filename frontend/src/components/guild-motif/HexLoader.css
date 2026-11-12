@@ -1,0 +1,66 @@
+/* The loading mark (HexLoader.js): a hexagon turning slowly one way and the
+   sheet's wheel turning the other way inside it. */
+.rq-hex-loader {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 10px;
+  margin: 0 auto;
+  color: var(--guild-text, #fff);
+}
+.rq-hex-loader__mark { display: block; overflow: visible; }
+.rq-hex-loader--sm { display: inline-grid; grid-auto-flow: column; gap: 8px; align-items: center; vertical-align: middle; margin: 0; }
+.rq-hex-loader--sm .rq-hex-loader__mark { width: 36px; height: 36px; }
+.rq-hex-loader--md { padding: 18px 0; }
+.rq-hex-loader--md .rq-hex-loader__mark { width: 84px; height: 84px; }
+.rq-hex-loader--lg .rq-hex-loader__mark { width: clamp(132px, 34vw, 168px); height: clamp(132px, 34vw, 168px); }
+
+.rq-hex-loader__stop-c1 { stop-color: var(--guild-c1, #ff3d8b); }
+.rq-hex-loader__stop-c2 { stop-color: var(--guild-c2, #b04dff); }
+.rq-hex-loader__stop-c3 { stop-color: var(--guild-c3, #4fb3ff); }
+.rq-hex-loader__stop-h1 { stop-color: var(--guild-h1, #ffb066); }
+.rq-hex-loader__stop-h2 { stop-color: var(--guild-h2, #ff5fa0); }
+.rq-hex-loader__stop-h3 { stop-color: var(--guild-h3, #ffd27a); }
+
+/* The hexagon: a thin edge, and a soft glow band just inside it. */
+.rq-hex-loader__case-edge { fill: var(--guild-bg, #0a2342); fill-opacity: 0.55; stroke-width: 3; stroke-linejoin: round; }
+.rq-hex-loader__case-glow { fill: none; stroke-width: 12; stroke-linejoin: round; opacity: 0.18; }
+/* The wheel: six wedges with a warm edge, lit in turn. */
+.rq-hex-loader__wedge { fill: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.08); stroke-width: 2.4; stroke-linejoin: round; }
+.rq-hex-loader__centre { fill: var(--guild-bg, #0a2342); stroke-width: 2.6; stroke-linejoin: round; }
+
+.rq-hex-loader__case,
+.rq-hex-loader__wheel {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.rq-hex-loader__case { animation: rq-hex-loader-turn 9s linear infinite; }
+.rq-hex-loader__wheel { animation: rq-hex-loader-turn 5.4s linear infinite reverse; }
+.rq-hex-loader__wedge { animation: rq-hex-loader-light 2.4s ease-in-out infinite; }
+.rq-hex-loader__wedge--1 { animation-delay: 0.4s; }
+.rq-hex-loader__wedge--2 { animation-delay: 0.8s; }
+.rq-hex-loader__wedge--3 { animation-delay: 1.2s; }
+.rq-hex-loader__wedge--4 { animation-delay: 1.6s; }
+.rq-hex-loader__wedge--5 { animation-delay: 2s; }
+
+.rq-hex-loader__label {
+  margin: 0;
+  font-family: var(--guild-font-body, 'Inter', system-ui, sans-serif);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--guild-muted, #c9d2e6);
+}
+.rq-hex-loader--sm .rq-hex-loader__label { font-size: 0.85rem; font-weight: 500; }
+
+@keyframes rq-hex-loader-turn { to { transform: rotate(360deg); } }
+@keyframes rq-hex-loader-light {
+  0%, 100% { fill: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.08); }
+  30% { fill: rgba(var(--guild-h1-rgb, 255, 176, 102), 0.42); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rq-hex-loader__case,
+  .rq-hex-loader__wheel,
+  .rq-hex-loader__wedge { animation: none; }
+}

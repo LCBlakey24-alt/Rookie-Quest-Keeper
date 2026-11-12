@@ -1,6 +1,7 @@
-/* Keeper route fallback: approved flat navy / citrus Guild Command direction.
-   Scoped to full-page lazy-route loading; sheet and encounter loaders are separate.
-   Decorative branding never stands in for a measured loading percentage. */
+/* Keeper route fallback in the approved look: Neon Coast on a Dusk sky
+   (DESIGN_SYSTEM §3). The turning HexLoader is the mark; the dusk sky and the
+   background hexagons show behind it. Decorative movement never stands in for
+   a measured loading percentage. */
 #root .loading-screen.route-loading-screen {
   position: relative !important;
   isolation: isolate !important;
@@ -15,9 +16,9 @@
     max(20px, env(safe-area-inset-left)) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
-  background: var(--rq-citrus-navy, #0a2342) !important;
+  background: transparent !important;
   background-image: none !important;
-  color: var(--rq-citrus-cream, #F5F1E8) !important;
+  color: var(--guild-text, #ffffff) !important;
   text-align: center !important;
 }
 
@@ -48,21 +49,10 @@
   box-shadow: none !important;
 }
 
-#root .route-loading-screen .rqk-route-logo {
-  display: block !important;
-  width: clamp(94px, 17vw, 112px) !important;
-  height: clamp(94px, 17vw, 112px) !important;
-  margin: 0 auto 24px !important;
-  object-fit: contain !important;
-  border: 0 !important;
-  background: transparent !important;
-  filter: none !important;
-}
-
 #root .route-loading-screen .rqk-route-eyebrow {
   margin: 0 0 5px !important;
-  color: var(--rq-citrus-cream, #F5F1E8) !important;
-  font-family: var(--rq-font-sans, 'Manrope', system-ui, sans-serif) !important;
+  color: var(--guild-hi, #ffb066) !important;
+  font-family: var(--guild-font-body, 'Inter', system-ui, sans-serif) !important;
   font-size: .78rem !important;
   font-weight: 700 !important;
   letter-spacing: .26em !important;
@@ -72,8 +62,8 @@
 #root .route-loading-screen .rqk-route-heading {
   margin: 0 !important;
   max-width: 100% !important;
-  color: var(--rq-citrus-cream, #F5F1E8) !important;
-  font-family: var(--rq-font-display, 'Cinzel', Georgia, serif) !important;
+  color: var(--guild-text, #ffffff) !important;
+  font-family: var(--guild-font-display, 'Cinzel', Georgia, serif) !important;
   font-size: clamp(2.8rem, 9vw, 4.1rem) !important;
   font-weight: 700 !important;
   letter-spacing: .075em !important;
@@ -81,51 +71,19 @@
   text-wrap: balance;
 }
 
-#root .route-loading-screen .rqk-route-brand-rule {
-  width: min(270px, 82%) !important;
-  height: 3px !important;
-  margin: 17px auto 0 !important;
-  border: 0 !important;
-  border-radius: 2px !important;
-  background-color: var(--rq-citrus-yellow, #FF8A1F) !important;
-  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) !important;
-  background-size: 100% 100% !important;
-  background-repeat: no-repeat !important;
-}
-
 #root .route-loading-screen .rqk-route-status-copy {
   margin: 29px 0 0 !important;
-  color: var(--rq-citrus-cream, #F5F1E8) !important;
-  font-family: var(--rq-font-sans, 'Manrope', system-ui, sans-serif) !important;
+  color: var(--guild-text, #ffffff) !important;
+  font-family: var(--guild-font-body, 'Inter', system-ui, sans-serif) !important;
   font-size: .94rem !important;
   font-weight: 600 !important;
   line-height: 1.55 !important;
 }
 
-#root .route-loading-screen .rqk-route-activity {
-  width: min(210px, 72%) !important;
-  height: 3px !important;
-  margin: 15px auto 0 !important;
-  overflow: hidden !important;
-  border: 0 !important;
-  border-radius: 2px !important;
-  background: var(--rq-ledger-hair, rgba(255, 255, 255, .12)) !important;
-}
-
-#root .route-loading-screen .rqk-route-activity > span {
-  display: block !important;
-  width: 36% !important;
-  height: 100% !important;
-  border: 0 !important;
-  border-radius: inherit !important;
-  background: var(--rq-ledger-rule, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) !important;
-  animation: rqkKeeperLoad 1.65s ease-in-out infinite !important;
-}
-
 #root .route-loading-screen .rqk-route-description {
   margin: 17px 0 0 !important;
   color: var(--rq-text-muted, rgba(255, 255, 255, .60)) !important;
-  font-family: var(--rq-font-sans, 'Manrope', system-ui, sans-serif) !important;
+  font-family: var(--guild-font-body, 'Inter', system-ui, sans-serif) !important;
   font-size: .82rem !important;
   font-weight: 400 !important;
   line-height: 1.55 !important;
@@ -153,26 +111,28 @@
 #root .route-loading-screen .rqk-route-recovery button {
   min-height: 46px !important;
   padding: 10px 19px !important;
-  border: 1px solid rgba(60, 146, 224, .36) !important;
-  border-radius: 7px !important;
-  background-color: var(--rq-citrus-control, #0a2342) !important;
-  background-image: var(--rq-citrus-gradient) !important;
-  background-position: left bottom !important;
-  background-repeat: no-repeat !important;
-  background-size: 0% 3px !important;
-  color: var(--rq-citrus-cream, #F5F1E8) !important;
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, .45)) !important;
+  border-radius: 12px !important;
+  background: var(--guild-bg, #0a2342) !important;
+  box-shadow: var(--guild-control-glow, none) !important;
+  color: var(--guild-text, #ffffff) !important;
   -webkit-text-fill-color: currentColor !important;
   font: inherit !important;
   font-size: .9rem !important;
   font-weight: 700 !important;
   cursor: pointer !important;
-  transition: background-size var(--rq-citrus-sweep, 340ms ease) !important;
+  transition: border-color 140ms ease !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery button:hover,
-#root .route-loading-screen .rqk-route-recovery button:active,
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
-  background-size: 100% 3px !important;
+  border-color: var(--guild-line-hot, rgba(255, 176, 102, .85)) !important;
+  box-shadow: var(--guild-control-glow-hot, none) !important;
+}
+
+#root .route-loading-screen .rqk-route-recovery button:focus-visible {
+  outline: 2px solid var(--guild-hi, #ffb066) !important;
+  outline-offset: 3px !important;
 }
 
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
@@ -180,24 +140,14 @@
   outline-offset: 3px !important;
 }
 
-@keyframes rqkKeeperLoad {
-  from { transform: translateX(-105%); }
-  to { transform: translateX(310%); }
-}
+#root .route-loading-screen .rqk-route-loader { margin: 0 auto 22px !important; }
 
 @media (max-width: 520px) {
   #root .route-loading-screen .rqk-route-stage { padding: 12px 2px !important; }
-  #root .route-loading-screen .rqk-route-logo { margin-bottom: 21px !important; }
   #root .route-loading-screen .rqk-route-eyebrow { letter-spacing: .2em !important; }
   #root .route-loading-screen .rqk-route-heading { font-size: clamp(2.5rem, 12vw, 3.35rem) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #root .route-loading-screen .rqk-route-logo,
-  #root .route-loading-screen .rqk-route-activity > span {
-    animation: none !important;
-    transform: none !important;
-  }
-  #root .route-loading-screen .rqk-route-activity > span { width: 100% !important; }
   #root .route-loading-screen .rqk-route-recovery button { transition: none !important; }
 }

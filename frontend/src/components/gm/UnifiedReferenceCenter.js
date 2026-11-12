@@ -4,6 +4,7 @@ import { ARMOR, ALL_WEAPONS } from '@/data/equipmentDatabase';
 import { POTION_ITEMS, MAGIC_ITEMS } from '@/data/itemsDatabase';
 import { CONDITION_EFFECTS } from '@/data/conditionEffects';
 import { SPELL_DATABASE } from '@/data/spellDatabase';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 // Only load the optional campaign ledger when a GM opens Optional Rules.
 const ChaosFateTracker = React.lazy(() => import('./ChaosFateTracker'));
@@ -353,7 +354,7 @@ export default function UnifiedReferenceCenter({ campaignId, onRollDamage, isCom
               Use it only if your group has agreed to it.
             </p>
           </header>
-          <Suspense fallback={<p role="status">Loading optional rules…</p>}>
+          <Suspense fallback={<HexLoader size="sm" label="Loading optional rules…" />}>
             <ChaosFateTracker key={campaignId} campaignId={campaignId} compact />
           </Suspense>
         </section>

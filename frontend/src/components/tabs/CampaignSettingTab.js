@@ -3,6 +3,7 @@ import { Clipboard, RefreshCw, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const WORLD_SETTINGS = [
   ['custom', 'Custom setting'], ['high_fantasy', 'High fantasy'], ['classic_fantasy', 'Classic fantasy'],
@@ -173,7 +174,7 @@ export default function CampaignSettingTab({ campaignId }) {
     }
   };
 
-  if (loading && !settingLoaded && !worldLoaded) return <div style={loadingStyle}><div className="loading-spinner" /></div>;
+  if (loading && !settingLoaded && !worldLoaded) return <div style={loadingStyle}><HexLoader label="Loading campaign setting…" /></div>;
 
   const settingOptions = availableSettings.length
     ? availableSettings.map(setting => [setting.id, setting.name])

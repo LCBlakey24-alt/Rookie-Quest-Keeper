@@ -22,6 +22,7 @@ import { readActiveCharacterId, storeActiveCharacterId } from '@/components/dash
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import '@/styles/playerDashboardBoard.css';
 import '@/styles/playerHandoutsPanel.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
@@ -280,12 +281,12 @@ export default function PlayerDashboard() {
         )}
 
         {activeTab === 'notes' && (
-          <Suspense fallback={<div style={tabLoadingStyle}>Loading notes…</div>}>
+          <Suspense fallback={<div style={tabLoadingStyle}><HexLoader size="sm" label="Loading notes…" /></div>}>
             <PlayerNotesTab campaigns={linkedCampaigns} />
           </Suspense>
         )}
         {activeTab === 'handouts' && (
-          <Suspense fallback={<div style={tabLoadingStyle}>Loading received handouts…</div>}>
+          <Suspense fallback={<div style={tabLoadingStyle}><HexLoader size="sm" label="Loading received handouts…" /></div>}>
             <div className="player-handouts-surface">
               <PlayerHandoutsPanel onSummaryChange={acceptHandoutSummary} />
             </div>

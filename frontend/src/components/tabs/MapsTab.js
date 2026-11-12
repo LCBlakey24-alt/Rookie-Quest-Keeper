@@ -5,6 +5,7 @@ import { Map, PlusCircle, Trash2, Edit, Grid } from 'lucide-react';
 import { MapBuilder } from '@/components/MapBuilder';
 import LiveMapsPanel from '@/components/gm/LiveMapsPanel';
 import apiClient from '@/lib/apiClient';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const rq = {
   panel: 'var(--rq-bg-panel, #242424)',
@@ -84,7 +85,7 @@ function EditableMapsTab({ campaignId }) {
     toast.success('Map saved!');
   };
 
-  if (loading) return <div className="loading-spinner" />;
+  if (loading) return <HexLoader label="Loading maps…" />;
 
   return (
     <div>

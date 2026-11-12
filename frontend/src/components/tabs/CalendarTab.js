@@ -9,6 +9,7 @@ import {
   tiaKartaCalendar,
 } from '@/data/tiaKartaCalendar';
 import { eventOccursOn, calendarMonthAfter, calendarWeekdayOffset, daysUntilNextOccurrence } from '@/data/customCalendarUtilities';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const emptyEvent = { name: '', description: '', day: 1, month: 1, year: 1, is_recurring: false, recurrence_type: 'none' };
 const fallbackCalendar = { calendar_type: 'gregorian', current_day: 1, current_month: 1, current_year: 1, custom_months: [{ name: 'Month 1', days: 30 }] };
@@ -265,7 +266,7 @@ export default function CalendarTab({ campaignId }) {
     }
   };
 
-  if (loading) return <div className="loading-spinner" />;
+  if (loading) return <HexLoader label="Loading calendar…" />;
   if (loadError) return <div className="rqk-calendar-load-error" role="alert">
     <strong>Calendar could not be loaded</strong>
     <p>{String(loadError)} Your saved dates and events have not been reset.</p>

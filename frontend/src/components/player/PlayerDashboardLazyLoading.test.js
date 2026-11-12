@@ -9,7 +9,7 @@ describe('Player Dashboard optional tab loading', () => {
     expect(source).toContain("const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));\n");
     expect(source).not.toMatch(/import PlayerNotesTab from ['\"]@\/components\/tabs\/PlayerNotesTab['\"]/);
     expect(source).not.toMatch(/import \{ PlayerHandoutsPanel \} from ['\"]@\/components\/tabs\/HandoutsTab['\"]/);
-    expect(source).toContain('<Suspense fallback={<div style={tabLoadingStyle}>Loading notes…</div>}>');
-    expect(source).toContain('<Suspense fallback={<div style={tabLoadingStyle}>Loading received handouts…</div>}>');
+    expect(source).toContain('<Suspense fallback={<div style={tabLoadingStyle}><HexLoader size="sm" label="Loading notes…" /></div>}>');
+    expect(source).toContain('<Suspense fallback={<div style={tabLoadingStyle}><HexLoader size="sm" label="Loading received handouts…" /></div>}>');
   });
 });

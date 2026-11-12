@@ -19,6 +19,7 @@ import '@/styles/campaignSetupModal.css';
 import './MyCampaignsPage.css';
 import '@/styles/guildTokens.css';
 import '@/styles/libraryGuild.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then((mod) => ({ default: mod.PlayerHandoutsPanel })));
@@ -351,7 +352,7 @@ export default function MyCampaignsPage() {
         </div>
         {activeTool && (
           <div className="campaign-player-tools-panel" aria-label={activeTool === 'notes' ? 'My Notes' : 'Received Handouts'}>
-            <Suspense fallback={<p role="status">Loading {activeTool === 'notes' ? 'notes' : 'handouts'}…</p>}>
+            <Suspense fallback={<HexLoader size="sm" label={`Loading ${activeTool === 'notes' ? 'notes' : 'handouts'}…`} />}>
               {activeTool === 'notes' ? <PlayerNotesTab campaigns={[...campaigns, ...joinedCampaigns]} /> : <PlayerHandoutsPanel />}
             </Suspense>
           </div>

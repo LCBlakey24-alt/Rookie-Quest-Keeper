@@ -15,6 +15,7 @@ import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
 import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
 import LiveDataWarning from '@/components/gm/LiveDataWarning';
 import PlayerDisplayDeliveryStatus from '@/components/gm/PlayerDisplayDeliveryStatus';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const LootGenerator = React.lazy(() => import('@/components/LootGenerator'));
 const PartyLocationTracker = React.lazy(() => import('@/components/PartyLocationTracker'));
@@ -244,7 +245,7 @@ export default function LiveSessionGridPage() {
 
   const renderTool = (toolId, { openEncounterReview } = {}) => {
     const lazyTool = (content) => (
-      <Suspense fallback={<div style={toolLoadingStyle}>Loading tool…</div>}>
+      <Suspense fallback={<div style={toolLoadingStyle}><HexLoader size="sm" label="Loading tool…" /></div>}>
         {content}
       </Suspense>
     );
@@ -272,7 +273,7 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  if (loading) return <div className="loading-screen"><div className="loading-spinner" /></div>;
+  if (loading) return <div className="loading-screen"><HexLoader label="Opening Live Play…" /></div>;
 
   return (
     <>

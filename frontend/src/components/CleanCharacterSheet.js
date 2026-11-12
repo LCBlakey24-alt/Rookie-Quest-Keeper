@@ -55,6 +55,7 @@ import {
 import '@/components/clean-sheet/CleanCharacterSheetPolish.css';
 import '@/components/clean-sheet/CleanSheetListPolish.css';
 import '@/components/clean-sheet/CleanSheetMobileBoxGrid.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const hasObjectItems = (value = {}) => Object.keys(value || {}).length > 0;
 const hasAnyText = (...values) => values.some(value => String(value || '').trim().length > 0);
@@ -579,8 +580,7 @@ export default function CleanCharacterSheet() {
   if (loading) {
     return (
       <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
-        <img src="/brand/rookie-quest-keeper-app-icon.svg" alt="Rookie Quest Keeper" />
-        <p>Loading character...</p>
+        <HexLoader label="Opening character…" />
       </div>
     );
   }

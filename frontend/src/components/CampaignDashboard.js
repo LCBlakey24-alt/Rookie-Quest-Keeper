@@ -50,6 +50,7 @@ import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
 import '@/styles/guildTokens.css';
 import '@/styles/campaignGuild.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const uploadTheme = {
   bg: { black: '#0a2342', panel: '#0a2342', card: '#0a2342', hover: '#0a2342' },
@@ -315,7 +316,7 @@ export default function CampaignDashboard() {
   if (loading || (campaign && campaign.id !== campaignId)) {
     return (
       <main className="campaign-dashboard-loading" role="status" aria-live="polite">
-        <div className="loading-spinner" aria-hidden="true" />
+        <HexLoader />
         <span>Opening campaign…</span>
       </main>
     );
@@ -424,7 +425,7 @@ export default function CampaignDashboard() {
 
       <main className="campaign-dashboard-workspace guild-command-main">
         <section className="campaign-dashboard-panel" data-testid="gm-active-workspace">
-          <Suspense fallback={<div className="campaign-dashboard-loading" role="status">Loading workspace…</div>}>
+          <Suspense fallback={<div className="campaign-dashboard-loading"><HexLoader size="sm" label="Loading workspace…" /></div>}>
             {renderActiveTab()}
           </Suspense>
         </section>

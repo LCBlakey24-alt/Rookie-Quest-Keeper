@@ -37,10 +37,12 @@ describe('Guild Ledger visual finishing pass', () => {
     const splash = read('../components/RouteLoadingScreen.css');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(splash).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(splash).toContain('.rqk-route-logo');
-    expect(splash).toContain('animation: none !important');
-    expect(splash).toContain('background: var(--rq-citrus-navy');
-    expect(splash).toContain('--rq-citrus-gradient');
+    // The route splash now draws the turning HexLoader, which stands still
+    // for reduced motion in its own stylesheet; the splash sits on the sky.
+    const loader = read('../components/guild-motif/HexLoader.css');
+    expect(loader).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(loader).toContain('animation: none');
+    expect(splash).toContain('background: transparent !important');
     expect(splash).not.toContain('radial-gradient');
     expect(splash).not.toContain('#FF2DAA');
   });
