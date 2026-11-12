@@ -221,8 +221,9 @@ export default function DiceTray3DOverlay(props) {
   if (isHex && hexWindow) {
     const { left, top, width, height } = hexWindow;
     return (
-      <div className="rq-dice-tray rq-dice-tray--hex" data-testid="dice-tray-overlay" role="dialog" aria-modal="true" aria-label="Dice roll">
-        <button type="button" className="rq-dice-tray__scrim rq-dice-tray__scrim--hex" aria-label="Dismiss roll" onClick={onClose} />
+      // No scrim: the rest of the sheet stays clear and usable while the
+      // hexagon sits over the wheel. Close with the X, Escape, or wait.
+      <div className="rq-dice-tray rq-dice-tray--hex" data-testid="dice-tray-overlay" role="dialog" aria-modal="false" aria-label="Dice roll">
         <section
           className={`rq-dice-hex ${outcome}${isRevealed ? ' is-revealed' : ''}`}
           style={{ left, top, width, height }}

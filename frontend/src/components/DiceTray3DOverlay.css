@@ -189,7 +189,8 @@
  * The throw appears in a hexagon laid exactly over the wheel's own case,
  * in the Neon Coast look: the deep blue page colour as the bed the dice land
  * on, a thin peach-pink-gold edge, and a soft glow that stays inside it. */
-.rq-dice-tray--hex { display: block; padding: 0; }
+.rq-dice-tray--hex { display: block; padding: 0; pointer-events: none; }
+.rq-dice-tray--hex .rq-dice-hex { pointer-events: auto; }
 /* App-wide dialog rules give every [role=dialog] a panel background (from a
    layered rule that reads --rq-bg-panel), a size cap and a scroller. The
    hexagon roll covers the whole screen and is otherwise see-through. */
@@ -201,20 +202,6 @@ html body .rq-dice-tray.rq-dice-tray--hex[role='dialog'] {
   max-height: none !important;
   overflow: visible !important;
   border: 0 !important;
-}
-.rq-dice-tray__scrim--hex {
-  /* The scrim is a button, and the app-wide control layer paints every
-     button with --rq-control-blue; set that to the light dimming instead. */
-  --rq-control-blue: rgba(7, 26, 51, 0.45);
-  --rq-fill-color: transparent;
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  background: rgba(7, 26, 51, 0.45);
 }
 .rq-dice-hex {
   position: fixed;
