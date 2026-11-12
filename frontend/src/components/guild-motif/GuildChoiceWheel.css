@@ -89,3 +89,7 @@ html body #root .guild-wheel button.guild-wheel__confirm, .guild-wheel button.gu
 /* Keyboard focus is shown by the case's bright edge (above); the app-wide
    focus ring would draw a rectangle around the hexagon. */
 html body #root .guild-wheel__svg:focus-visible { outline: none !important; box-shadow: none !important; }
+
+/* Dots under a wedge label (spell slots left at that level). */
+.guild-wheel__pip { fill: none; stroke: var(--_muted); stroke-width: 0.8; pointer-events: none; }
+.guild-wheel__pip.is-lit { fill: var(--_hi); stroke: var(--_hi); }

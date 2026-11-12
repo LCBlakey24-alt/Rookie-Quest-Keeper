@@ -42,7 +42,8 @@ function buzz() {
  * a class does not briefly select it.
  *
  * @param {object} props
- * @param {{ id: string, label: string, short?: string }[]} props.options
+ * @param {{ id: string, label: string, short?: string, pips?: { total: number, left: number } }[]} props.options
+ *   `pips` draws a row of dots under the wedge's label (lit = left)
  * @param {string} props.value          id of the selected option
  * @param {(id: string) => void} props.onChange
  * @param {string} props.label          accessible name, e.g. "Class"
@@ -237,7 +238,22 @@ export default function GuildChoiceWheel({
                 <path className="guild-wheel__glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
                 <path className="guild-wheel__edge" d={segmentPath(index, step)} />
                 {/* Printed on the ring: the code turns with its segment. */}
-                <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" transform={`rotate(${index * step} ${lx} ${ly})`} aria-hidden="true">{codes[index]}</text>
+                <g transform={`rotate(${index * step} ${lx} ${ly})`} aria-hidden="true">
+                  <text x={lx} y={option.pips ? ly - 4 : ly} textAnchor="middle" dominantBaseline="central">{codes[index]}</text>
+                  {/* Optional dots under the label, e.g. spell slots left of a level. */}
+                  {option.pips && Array.from({ length: Math.min(9, Number(option.pips.total) || 0) }, (_, pip) => {
+                    const total = Math.min(9, Number(option.pips.total) || 0);
+                    return (
+                      <circle
+                        key={pip}
+                        className={`guild-wheel__pip${pip < (Number(option.pips.left) || 0) ? ' is-lit' : ''}`}
+                        cx={lx + (pip - (total - 1) / 2) * 5.2}
+                        cy={ly + 6}
+                        r={1.8}
+                      />
+                    );
+                  })}
+                </g>
               </g>
             );
           })}

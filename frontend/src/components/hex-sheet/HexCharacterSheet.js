@@ -24,6 +24,7 @@ import HexSkillDial from './HexSkillDial';
 import HexSpinWheel from './HexSpinWheel';
 import HexWheel from './HexWheel';
 import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
+import HexMagicView from './HexMagicView';
 import { spellDiceEntry } from '@/components/clean-sheet/SpellRollRow';
 import { SLOT } from './hexGeometry';
 import { HEX_THEMES, getHexTheme, loadHexThemeId, saveHexThemeId } from './hexThemes';
@@ -200,6 +201,12 @@ export default function HexCharacterSheet() {
   };
 
   const openDice = () => push({ view: 'dice' });
+  const [manageSpells, setManageSpells] = useState(false);
+  const rollSpellDice = (request) => {
+    const entry = spellDiceEntry(request);
+    if (!entry) { toast.error(`Could not roll ${request.notation}`); return; }
+    present(entry);
+  };
   const [diceChoice, setDiceChoice] = useState(20);
   const [diceCount, setDiceCount] = useState(1);
   const diceNotation = `${diceCount}d${diceChoice}`;
@@ -481,16 +488,22 @@ export default function HexCharacterSheet() {
           </section>
         )}
         {current.view === 'magic' && character && (
-          <section className="hex-combat-list hex-section-list character-page-v2" aria-label="Magic" data-testid="hex-magic-list">
+          <HexMagicView
+            character={character}
+            proficiencyBonus={proficiencyBonusFor(character)}
+            onRollAttack={rollCheck}
+            onRollDice={rollSpellDice}
+            onSave={patchWithConcentrationGuard}
+            onManage={() => setManageSpells((open) => !open)}
+          />
+        )}
+        {current.view === 'magic' && character && manageSpells && (
+          <section className="hex-combat-list hex-section-list character-page-v2" aria-label="Manage spells" data-testid="hex-magic-manage-list">
             <CleanSpellsTab
               character={character}
               onCharacterUpdate={patchWithConcentrationGuard}
               onRollAttack={rollCheck}
-              onRollDice={(request) => {
-                const entry = spellDiceEntry(request);
-                if (!entry) { toast.error(`Could not roll ${request.notation}`); return; }
-                present(entry);
-              }}
+              onRollDice={rollSpellDice}
             />
           </section>
         )}

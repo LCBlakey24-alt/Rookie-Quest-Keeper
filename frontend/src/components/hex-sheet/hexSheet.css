@@ -616,3 +616,56 @@ html body #root .d20-glyph__label { fill: var(--hex-text, #fff); font-family: va
   min-width: 7.5ch; text-align: center; font: 700 1.35rem/1 var(--hex-title-font); color: var(--hex-text);
   font-variant-numeric: tabular-nums;
 }
+
+/* Magic (HexMagicView): the spell-level wheel, then a boxed list ---------- */
+.hex-magic { display: grid; gap: 14px; width: min(100%, 560px); justify-items: center; }
+.hex-magic .guild-wheel { max-width: 420px; }
+.hex-magic__list { width: 100%; display: grid; gap: 10px; }
+.hex-magic__empty { margin: 0; text-align: center; color: var(--hex-muted); font-size: 0.9rem; }
+.hex-magic__manage { justify-self: center; }
+.hex-magic--empty { justify-items: center; color: var(--hex-muted); }
+
+.hex-spell {
+  display: grid; gap: 8px; padding: 10px 12px; border-radius: var(--hex-radius);
+  border: 1px solid var(--hex-orange-soft); background: var(--hex-bg); box-shadow: var(--hex-glow);
+}
+.hex-spell.is-open { box-shadow: var(--hex-glow-strong); }
+.hex-spell__row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+
+/* The hexagon that casts the spell (spends a slot). */
+.hex-sheet .hex-spell__cast {
+  position: relative; width: 44px !important; height: 50px !important; min-width: 44px; padding: 0 !important;
+  display: grid; place-items: center; border: 0 !important; background: transparent !important; box-shadow: none !important;
+  color: var(--hex-text); font: 800 0.95rem/1 var(--hex-title-font); cursor: pointer; --rq-control-blue: transparent;
+}
+.hex-spell__cast svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.hex-spell__cast polygon {
+  fill: var(--hex-bg); stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 4; vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 0 transparent);
+}
+html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 var(--hex-title-font) !important; pointer-events: none; }
+.hex-sheet .hex-spell__cast:not(:disabled):is(:hover, :focus-visible) polygon { fill: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.18); }
+.hex-sheet .hex-spell__cast:disabled { opacity: 0.4; cursor: default; }
+.hex-spell__cast--free polygon { stroke: var(--hex-stroke-cool, var(--hex-cool)); }
+.hex-spell__cast--free { cursor: default; color: var(--hex-muted); }
+
+/* Name and details: tap to open. */
+.hex-sheet .hex-spell__name {
+  display: grid; gap: 2px; min-width: 0; padding: 0 !important; border: 0 !important; background: transparent !important;
+  box-shadow: none !important; text-align: left; color: var(--hex-text); cursor: pointer; --rq-control-blue: transparent;
+}
+.hex-spell__name strong { font: 700 1rem/1.2 var(--hex-title-font); overflow-wrap: anywhere; }
+.hex-spell__name small { color: var(--hex-muted); font-size: 0.75rem; text-transform: capitalize; overflow-wrap: anywhere; }
+
+/* Attack, DC and damage on the right. */
+.hex-spell__rolls { display: grid; gap: 6px; justify-items: end; }
+.hex-sheet .hex-spell__rolls button, .hex-sheet .hex-spell__details button {
+  min-height: 38px; padding: 0 12px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--hex-orange-soft) !important; background: var(--hex-bg); box-shadow: var(--hex-glow);
+  color: var(--hex-text); font: 800 0.85rem/1 var(--rq-font-sans, Inter, sans-serif); cursor: pointer; --rq-control-blue: var(--hex-bg);
+}
+.hex-sheet .hex-spell__rolls button:is(:hover, :focus-visible), .hex-sheet .hex-spell__details button:is(:hover, :focus-visible) { box-shadow: var(--hex-glow-strong); }
+.hex-spell__dc { font-size: 0.8rem; font-weight: 800; color: var(--hex-hi); white-space: nowrap; }
+.hex-spell__details { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid var(--hex-line); }
+.hex-spell__details p { margin: 0; color: var(--hex-muted); font-size: 0.88rem; line-height: 1.5; }
+.hex-spell__hint { font-size: 0.8rem !important; color: var(--hex-sub) !important; }
