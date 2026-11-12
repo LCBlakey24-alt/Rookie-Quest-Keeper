@@ -121,7 +121,8 @@ describe('the main wheel', () => {
   test.each(['magic', 'traits'])('%s opens in place with its list under the wheel', async (id) => {
     await openSheet();
     await act(async () => { fireEvent.click(screen.getByTestId(`hex-wedge-${id}`)); });
-    expect(screen.getByTestId(`hex-${id}-list`)).toBeInTheDocument();
+    // Magic opens its spell-level wheel; Traits its list.
+    expect(screen.getByTestId(id === 'magic' ? 'hex-magic' : `hex-${id}-list`)).toBeInTheDocument();
     expect(screen.queryByTestId('hex-coming-soon')).toBeNull();
     expect(screen.getByTestId('hex-sheet')).toBeInTheDocument(); // never left the page
     fireEvent.click(screen.getByTestId('hex-back'));
@@ -510,6 +511,8 @@ describe('Magic keeps the concentration warning', () => {
     apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...caster, ...body } }));
     await openSheet(caster);
     await act(async () => { fireEvent.click(screen.getByTestId('hex-wedge-magic')); });
+    // The full spell manager opens under the Magic wheel.
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-magic-manage')); });
     const { toast } = require('sonner');
     toast.warning.mockClear();
     // The guard the Magic list is given: replacing Bless with Hold Person.

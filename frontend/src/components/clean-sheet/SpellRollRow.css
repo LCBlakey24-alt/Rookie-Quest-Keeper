@@ -1,0 +1,35 @@
+/* Spell roll buttons under each spell (SpellRollRow). */
+.clean-sheet-spell-rolls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 2px 0 4px; }
+.clean-sheet-spell-rolls button { min-height: 40px; padding: 0 12px; font-weight: 800; }
+.clean-sheet-spell-roll-note { font-size: 0.82rem; font-weight: 700; }
+.clean-sheet-spell-roll-slot { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; }
+.clean-sheet-spell-roll-slot select { min-height: 40px; min-width: 56px; border-radius: 10px; padding: 0 8px; }
+
+/* Roll buttons read as buttons: the app-wide control layer pins borders and
+   shadows, so the edge and glow are drawn on ::after (as elsewhere). */
+html body #root .clean-sheet-spell-rolls button {
+  position: relative;
+  border-color: transparent !important;
+  border-radius: 12px !important;
+  --rq-control-blue: var(--guild-bg, #0a2342);
+  --rq-text-primary: var(--guild-text, #fff);
+}
+html body #root .clean-sheet-spell-rolls button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45));
+  box-shadow: var(--guild-box-glow, none);
+}
+html body #root .clean-sheet-spell-rolls button:is(:hover, :focus-visible)::after {
+  border-color: var(--guild-line-hot, rgba(255, 176, 102, 0.85));
+  box-shadow: var(--guild-box-glow-hot, none);
+}
+
+/* On the hexagon sheet's phone layout, one spell per row so the roll
+   buttons have room. */
+@media (max-width: 600px) {
+  html body #root .hex-section-list .clean-sheet-spell-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}

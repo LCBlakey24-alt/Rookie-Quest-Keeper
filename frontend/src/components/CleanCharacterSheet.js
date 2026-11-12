@@ -20,6 +20,7 @@ import CleanSheetResourceRail from '@/components/clean-sheet/CleanSheetResourceR
 import CleanSheetSpeciesTab from '@/components/clean-sheet/CleanSheetSpeciesTab';
 import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
+import { spellDiceEntry } from '@/components/clean-sheet/SpellRollRow';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerHelperTab, { hasUrgentRookTips } from '@/components/clean-sheet/RookPlayerHelperTab';
@@ -618,7 +619,7 @@ export default function CleanCharacterSheet() {
           onClose={() => setRollBurst(null)}
           label={rollBurst.label}
           rolls={(rollBurst.rolls || rollBurst.allRolls || [rollBurst.d20]).filter(value => value !== undefined).map(value => ({
-            sides: rollBurst.sides || (rollBurst.mode === 'hit-die' ? hitDieInfo.sides : 20),
+            sides: (typeof value === 'object' && value.sides) || rollBurst.sides || (rollBurst.mode === 'hit-die' ? hitDieInfo.sides : 20),
             result: typeof value === 'object' ? value.result : value,
             // Advantage/disadvantage: the lower/higher d20 does not count.
             // Without this the tray, the formula and the recorded roll all
@@ -704,7 +705,19 @@ export default function CleanCharacterSheet() {
         {activeTab === 'turn' && playTools}
         {activeTab === 'combat' && combatTools}
         {activeTab === 'rook' && <RookPlayerHelperTab character={character} />}
-        {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacterWithConcentrationGuard} />}
+        {activeTab === 'spells' && (
+          <CleanSpellsTab
+            character={character}
+            onCharacterUpdate={patchCharacterWithConcentrationGuard}
+            onRollAttack={makeRoll}
+            onRollDice={(request) => {
+              const entry = spellDiceEntry(request);
+              if (!entry) { toast.error(`Could not roll ${request.notation}`); return; }
+              presentRollBurst(entry);
+              setRollHistory((prev) => [entry, ...prev].slice(0, 12));
+            }}
+          />
+        )}
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onSaveCharacter={patchCharacter} onRoll={makeRoll} />}
         {activeTab === 'class' && (
           <CleanSheetFeaturesTab
