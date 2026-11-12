@@ -935,13 +935,15 @@ export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAtt
                 : primaryCaster?.abilityLabel || '—'}
             </strong>
           </div>
-          <div><span>Save DC</span><strong>{character?.spell_save_dc || primaryCaster?.saveDc || '—'}</strong></div>
+          <div><span>Save DC</span><strong>{primaryCaster?.saveDc ?? (Number(character?.spell_save_dc) || '—')}</strong></div>
           <div>
             <span>Attack</span>
             <strong>
-              {character?.spell_attack_bonus !== undefined
-                ? formatBonus(character.spell_attack_bonus)
-                : primaryCaster ? formatBonus(primaryCaster.attackBonus) : '—'}
+              {primaryCaster && primaryCaster.attackBonus !== null && primaryCaster.attackBonus !== undefined
+                ? formatBonus(primaryCaster.attackBonus)
+                : character?.spell_attack_bonus !== undefined && character?.spell_attack_bonus !== null
+                  ? formatBonus(character.spell_attack_bonus)
+                  : '—'}
             </strong>
           </div>
           <div><span>Lists</span><strong>{listSummary}</strong></div>
