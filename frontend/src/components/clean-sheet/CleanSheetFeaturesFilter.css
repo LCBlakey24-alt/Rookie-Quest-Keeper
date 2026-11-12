@@ -85,3 +85,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Phones: search on its own row, the filter chips in a wrapping row under
+   it (two columns squeezed the chips into a single narrow column). */
+@media (max-width: 600px) {
+  .character-page-v2 .clean-sheet-feature-filter-bar { grid-template-columns: minmax(0, 1fr); }
+  .character-page-v2 .clean-sheet-feature-filter-chips { justify-content: flex-start; }
+  .character-page-v2 .clean-sheet-feature-filter-chips button { width: auto !important; flex: 0 0 auto; }
+}
