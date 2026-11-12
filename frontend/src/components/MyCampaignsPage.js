@@ -17,6 +17,8 @@ import { readActiveCharacterId } from '@/components/dashboard/player/playerActiv
 import '@/styles/libraryPages.css';
 import '@/styles/campaignSetupModal.css';
 import './MyCampaignsPage.css';
+import '@/styles/guildTokens.css';
+import '@/styles/libraryGuild.css';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then((mod) => ({ default: mod.PlayerHandoutsPanel })));

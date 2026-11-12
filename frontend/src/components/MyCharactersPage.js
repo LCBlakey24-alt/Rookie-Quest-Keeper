@@ -6,6 +6,8 @@ import apiClient from '@/lib/apiClient';
 import { playerSheetReturnState } from '@/components/player/playerSheetNavigation';
 import '@/styles/libraryPages.css';
 import './MyCharactersPage.css';
+import '@/styles/guildTokens.css';
+import '@/styles/libraryGuild.css';
 
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.characterId || '';
