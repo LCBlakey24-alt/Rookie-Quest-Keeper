@@ -1,3 +1,4 @@
+import { getInitiativeModifier } from './initiativeRules';
 const arr = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const normalize = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -54,7 +55,13 @@ export function normalizeCampaignCharacter(value = {}) {
   const tempHp = num(character.temporary_hit_points, character.temp_hp, character.tempHp, value.temporary_hit_points, value.temp_hp, value.tempHp);
   const armorClass = num(character.armor_class, character.ac, character.armorClass, value.armor_class, value.ac, value.armorClass);
   const speed = num(character.speed, character.walking_speed, character.movement_speed, value.speed, value.walking_speed, value.movement_speed, 30) || 30;
-  const initiative = num(character.initiative_bonus, character.initiative, character.init, value.initiative_bonus, value.initiative, value.init);
+  // Same modifier as the character sheet: a saved default 0 falls back to DEX.
+  const sheetSource = ['initiativeMod', 'initiative_mod', 'initiative_bonus', 'dexterity', 'dex', 'stats'].some((key) => character[key] !== undefined && character[key] !== null)
+    ? character
+    : null;
+  const initiative = sheetSource
+    ? getInitiativeModifier(sheetSource)
+    : num(character.initiative, character.init, value.initiative_bonus, value.initiativeMod, value.initiative, value.init);
   const passivePerception = num(character.passive_perception, character.passivePerception, character.senses?.passive_perception, value.passive_perception, value.passivePerception, 10) || 10;
   const hpPercent = maxHp ? clamp(Math.round((currentHp / maxHp) * 100), 0, 100) : 0;
   const hpStatus = maxHp && currentHp <= 0 ? 'down' : hpPercent <= 33 ? 'bloodied' : hpPercent <= 66 ? 'hurt' : 'healthy';
