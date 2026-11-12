@@ -48,6 +48,8 @@ import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
 import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
 import './CampaignDashboard.css';
+import '@/styles/guildTokens.css';
+import '@/styles/campaignGuild.css';
 
 const uploadTheme = {
   bg: { black: '#0a2342', panel: '#0a2342', card: '#0a2342', hover: '#0a2342' },
