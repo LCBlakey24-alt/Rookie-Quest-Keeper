@@ -104,3 +104,18 @@ html body #root .rqk-app-shell .rqk-app-workspace.rqk-app-workspace,
 html body #root .rqk-app-shell .rqk-app-shell-content.rqk-app-shell-content {
   background: transparent !important;
 }
+
+/* The side rail's current page: the lighter-blue selected fill and a warm
+   marker bar, instead of the older app-wide yellow-to-red gradient. That
+   rule paints from the control layer, so it is switched off through the
+   variables it reads; the marker bar reads the same variable on ::before. */
+html body #root .rqk-app-shell:not([data-rq-device='mobile']) .rqk-app-rail-link:is(.is-active, [aria-current='page']) {
+  --rq-citrus-gradient: none;
+  --rq-citrus-control: var(--guild-select);
+  background-color: var(--guild-select) !important;
+  color: var(--guild-text) !important;
+}
+html body #root .rqk-app-shell:not([data-rq-device='mobile']) .rqk-app-rail-link:is(.is-active, [aria-current='page'])::before {
+  --rq-citrus-gradient: linear-gradient(180deg, var(--guild-h1), var(--guild-h2) 50%, var(--guild-h3));
+  background: var(--rq-citrus-gradient) !important;
+}
