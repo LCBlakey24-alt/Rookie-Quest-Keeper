@@ -277,7 +277,10 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce), (max-width: 1180px) {
+/* Calm motion only for people who ask for it. This used to apply to every
+   screen up to 1180px too, which froze all animation on phones and tablets
+   (the turning background hexagons, wheel turns and transitions). */
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {

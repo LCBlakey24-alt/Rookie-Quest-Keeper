@@ -18,7 +18,7 @@
   opacity: 0.16;
   transform-origin: 50% 50%;
   will-change: transform;
-  animation: rq-hex-backdrop-turn var(--turn, 200s) linear infinite;
+  animation: rq-hex-backdrop-turn var(--turn, 70s) linear infinite;
 }
 .rq-hex-backdrop__hex :is(polygon, circle) {
   fill: none;
@@ -30,12 +30,13 @@
 .rq-hex-backdrop__inner { opacity: 0.4; }
 
 /* Sizes, places and speeds: big ones off the corners, smaller ones turning
-   the other way, so the sky never looks tiled. */
-.rq-hex-backdrop__hex--one   { width: 78vmax; height: 78vmax; left: -26vmax; top: -30vmax; --turn: 260s; }
-.rq-hex-backdrop__hex--two   { width: 52vmax; height: 52vmax; right: -18vmax; top: 28vh;   --turn: 200s; animation-direction: reverse; }
-.rq-hex-backdrop__hex--three { width: 34vmax; height: 34vmax; left: 6vw;     bottom: -14vmax; --turn: 170s; }
-.rq-hex-backdrop__hex--four  { width: 20vmax; height: 20vmax; right: 14vw;   top: 6vh;    --turn: 130s; animation-direction: reverse; opacity: 0.13; }
-.rq-hex-backdrop__hex--five  { width: 14vmax; height: 14vmax; left: 38vw;    top: 46vh;   --turn: 110s; opacity: 0.1; }
+   the other way, so the sky never looks tiled. A full turn takes 40-90
+   seconds: slow and calm, but visibly moving on a phone. */
+.rq-hex-backdrop__hex--one   { width: 78vmax; height: 78vmax; left: -26vmax; top: -30vmax; --turn: 90s; }
+.rq-hex-backdrop__hex--two   { width: 52vmax; height: 52vmax; right: -18vmax; top: 28vh;   --turn: 70s; animation-direction: reverse; }
+.rq-hex-backdrop__hex--three { width: 34vmax; height: 34vmax; left: 6vw;     bottom: -14vmax; --turn: 60s; }
+.rq-hex-backdrop__hex--four  { width: 20vmax; height: 20vmax; right: 14vw;   top: 6vh;    --turn: 48s; animation-direction: reverse; opacity: 0.13; }
+.rq-hex-backdrop__hex--five  { width: 14vmax; height: 14vmax; left: 38vw;    top: 46vh;   --turn: 40s; opacity: 0.1; }
 /* One warm hexagon, like a chosen shape on the sheet. */
 .rq-hex-backdrop__hex--two :is(polygon, circle) { stroke: var(--guild-stroke-hot, #ff5fa0); }
 
