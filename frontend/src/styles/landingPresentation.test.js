@@ -21,19 +21,20 @@ describe('Guild Ledger public landing presentation', () => {
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
   });
 
-  test('implements the approved public-site reference structure', () => {
+  test('implements the short wheel landing page (owner-approved, 12 November 2026)', () => {
     const page = read('../components/LandingPage.js');
 
     expect(page).toContain('Your campaign.');
     expect(page).toContain('Kept together.');
-    expect(page).toContain('Everything you need to run and play.');
-    expect(page).toContain('Keep your story close.');
-    expect(page).toContain('Plan deeper.');
-    expect(page).toContain('From idea to adventure.');
-    expect(page).toContain('Got questions?');
-    expect(page).toContain('landing-product-stage');
-    expect(page).toContain('landing-character-folio');
-    expect(page).toContain('landing-ledger-stack');
+    expect(page).toContain('Explore Keeper');
+    expect(page).toContain('GuildChoiceWheel');
+    expect(page).toContain('landing-section-card');
+    expect(page).toContain('Turn to the next section');
+    expect(page).toContain('Show as list');
+    ['Characters', 'Campaigns', 'Live Play', 'Homebrew', 'Community', 'Rook'].forEach((label) => {
+      expect(page).toContain(`label: '${label}'`);
+    });
+    expect(page).not.toMatch(/label: 'Admin'/i);
   });
 
   test('keeps the mockup implementation responsive and accessible', () => {

@@ -1,144 +1,123 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowRight,
-  BookOpen,
-  CalendarDays,
-  Castle,
-  ChevronRight,
-  Compass,
-  NotebookPen,
-  ScrollText,
-  ShieldCheck,
-  Sparkles,
-  Swords,
-  Users,
-} from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
-import useRevealOnScroll from '@/hooks/useRevealOnScroll';
+import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
+import '@/styles/guildTokens.css';
+import '@/styles/landingGuild.css';
 
 const LANDING_META_DESCRIPTION = 'Rookie Quest Keeper keeps characters, campaigns, session prep, notes, and live table tools together in one refined tabletop workspace.';
 
-const pillars = [
+/*
+ * The parts of Keeper a visitor can explore on the wheel. `next` is where a
+ * new account lands after signing up from that section.
+ */
+export const LANDING_SECTIONS = [
   {
-    icon: Users,
+    id: 'characters',
     label: 'Characters',
-    text: 'Bring your party to life and keep their stories close.',
+    title: 'My Characters',
+    text: 'Build a hero in one guided creator, then play from a sheet made for the table.',
+    points: [
+      'Choose race and class on the wheel, then roll or buy ability scores',
+      'The sheet tracks hit points, spells, equipment and conditions',
+      'Level up when your GM says so, with every choice explained',
+    ],
+    next: '/characters/new',
   },
   {
-    icon: BookOpen,
+    id: 'campaigns',
     label: 'Campaigns',
-    text: 'Plan rich worlds and unforgettable adventures.',
+    title: 'My Campaigns',
+    text: 'Your campaign library: the people, places and quests your table keeps coming back to.',
+    points: [
+      'NPCs, locations, quests, maps and handouts linked together',
+      'Invite your players and share what they should see',
+      'Run several quests at once without losing the thread',
+    ],
+    next: '/campaigns',
   },
   {
-    icon: CalendarDays,
-    label: 'Sessions',
-    text: 'Stay organised from prep to play.',
+    id: 'live-play',
+    label: 'Live Play',
+    title: 'Live Play',
+    text: 'The GM screen for session night. Look things up fast and make quick updates without leaving the table.',
+    points: [
+      'Find an NPC, place or rule in seconds',
+      'Start an encounter from the ones you prepared',
+      'Combat hands you back to Live Play when it ends',
+    ],
+    next: '/campaigns',
   },
   {
-    icon: Swords,
-    label: 'Live play',
-    text: 'Keep the table moving when the dice start rolling.',
+    id: 'homebrew',
+    label: 'Homebrew',
+    title: 'Homebrew',
+    text: 'Make your own spells, items, monsters and subclasses, and use them in your games.',
+    points: [
+      'Draft, review, then save into your library',
+      'Keep it private or share it with your table',
+      'Use it in the character creator and on the sheet',
+    ],
+    next: '/homebrew',
+  },
+  {
+    id: 'community',
+    label: 'Community',
+    title: 'Community Creations',
+    text: 'Browse what other players and GMs have shared, and add the best of it to your own library.',
+    points: [
+      'Search by type: spells, items, monsters and more',
+      'Copy a creation into your homebrew to adapt it',
+      'Share your own when it is ready',
+    ],
+    next: '/community',
+  },
+  {
+    id: 'rook',
+    label: 'Rook',
+    title: 'Rook, your table helper',
+    text: 'Ask Rook for a name, a ruling or a next step. Rook suggests; you decide what becomes part of your campaign.',
+    points: [
+      'Short, table-ready answers during play',
+      'Drafts you review before anything is saved',
+      'Never changes your campaign on its own',
+    ],
+    next: '/home',
   },
 ];
 
-const featureCards = [
-  {
-    icon: Compass,
-    title: 'Rich campaign tools',
-    text: 'Keep locations, NPCs, quests, maps, notes, and campaign context connected in one place.',
-  },
-  {
-    icon: NotebookPen,
-    title: 'Flexible note taking',
-    text: 'Capture session notes, plot ideas, handouts, prep, and table reminders without losing the thread.',
-  },
-  {
-    icon: Users,
-    title: 'Built for the whole table',
-    text: 'Players get clear character tools while GMs keep the wider campaign organised behind the screen.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Less admin, more adventure',
-    text: 'Put the useful information close to the moment you need it so the game keeps moving.',
-  },
-];
+const VIEW_KEY = 'rqk.landing.view';
 
-const workflow = [
-  {
-    number: '1',
-    title: 'Plan',
-    text: 'Build your world, characters, and campaign details.',
-  },
-  {
-    number: '2',
-    title: 'Organise',
-    text: 'Keep notes, NPCs, locations, sessions, and quests together.',
-  },
-  {
-    number: '3',
-    title: 'Play',
-    text: 'Open the right tools quickly while everyone is at the table.',
-  },
-  {
-    number: '4',
-    title: 'Grow',
-    text: 'Carry decisions, notes, and story progress into the next session.',
-  },
-];
+function loadView() {
+  try { return window.localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'wheel'; } catch { return 'wheel'; }
+}
 
-const faqItems = [
-  {
-    question: 'What is Rookie Quest Keeper?',
-    answer: 'Rookie Quest Keeper is a tabletop campaign companion for organising characters, campaigns, session prep, notes, live play, and GM tools in one connected workspace.',
-  },
-  {
-    question: 'Is it for both players and GMs?',
-    answer: 'Yes. Players get character-focused tools and readable sheets, while GMs get campaign prep, notes, locations, NPCs, encounters, handouts, and live-session support.',
-  },
-  {
-    question: 'Can I use it for 5e-style campaigns?',
-    answer: 'Yes. Keeper currently focuses on 5e-style play while keeping campaign organisation and table tools useful beyond a single rulebook.',
-  },
-  {
-    question: 'Can I use it on my phone or tablet?',
-    answer: 'Yes. Mobile and tablet are treated as first-class play surfaces so Keeper remains practical at the table.',
-  },
-  {
-    question: 'Does Keeper replace my books or table rulings?',
-    answer: 'No. Keeper is an organisation and play companion. Your group still decides which books, rulings, homebrew, and table agreements you use.',
-  },
-];
-
-const previewStats = [
-  ['8', 'Sessions'],
-  ['6', 'Characters'],
-  ['12', 'NPCs'],
-  ['4', 'Locations'],
-];
-
-const recentActivity = [
-  'Session 4 notes updated',
-  'New NPC: Ser Valen',
-  'Greyne Keep map added',
-];
+function SectionCard({ section, index, onStart, headingLevel = 'h2' }) {
+  const Heading = headingLevel;
+  return (
+    <article className="landing-section-card" data-testid={`landing-section-${section.id}`}>
+      <span className="landing-section-card__count">{index + 1} of {LANDING_SECTIONS.length}</span>
+      <Heading>{section.title}</Heading>
+      <p>{section.text}</p>
+      <ul>{section.points.map((point) => <li key={point}>{point}</li>)}</ul>
+      <button type="button" className="landing-button landing-button-ghost landing-section-card__start" onClick={() => onStart(section)}>
+        Start with {section.label} <ArrowRight size={16} aria-hidden="true" />
+      </button>
+    </article>
+  );
+}
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  // Scroll-entrance motion for the sections below the fold. The hero is
-  // deliberately left out: hiding above-the-fold content until an observer
-  // fires would delay the first thing a visitor sees.
-  const revealRef = useRevealOnScroll();
-  const featuresRef = useRef(null);
-  const playersRef = useRef(null);
-  const gmsRef = useRef(null);
-  const faqRef = useRef(null);
+  const [activeId, setActiveId] = useState(LANDING_SECTIONS[0].id);
+  const [view, setView] = useState(loadView);
+  const activeIndex = Math.max(0, LANDING_SECTIONS.findIndex((section) => section.id === activeId));
+  const active = LANDING_SECTIONS[activeIndex];
 
-  // Never delay routing for an animation. Hover/press feedback is CSS-only;
-  // navigating immediately keeps Sign in responsive even on slower devices.
+  // Never delay routing for an animation.
   const navigateWithFill = useCallback((target, nextPage) => {
     navigate(target, nextPage ? { state: { from: { pathname: nextPage } } } : undefined);
   }, [navigate]);
@@ -166,57 +145,30 @@ export default function LandingPage() {
     };
   }, []);
 
-  const scrollTo = useCallback((ref) => {
-    const target = ref.current;
-    if (!target) return;
-    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-  }, []);
-
-  const buttonClass = base => base;
   const goLogin = () => navigateWithFill('/auth');
   const goRegister = () => navigateWithFill('/auth?mode=register');
-  const goBuild = () => navigateWithFill('/auth?mode=register', '/characters/new');
+  const startWith = (section) => navigateWithFill('/auth?mode=register', section.next);
+  const turn = (step) => setActiveId(LANDING_SECTIONS[(activeIndex + step + LANDING_SECTIONS.length) % LANDING_SECTIONS.length].id);
+  const toggleView = () => setView((current) => {
+    const next = current === 'list' ? 'wheel' : 'list';
+    try { window.localStorage.setItem(VIEW_KEY, next); } catch { /* not stored */ }
+    return next;
+  });
 
   return (
-    <div ref={revealRef} data-testid="landing-page" className="landing-page landing-page-clean landing-page-final keeper-product-site">
+    <div data-testid="landing-page" className="landing-page landing-page-clean landing-page-final keeper-product-site">
       <a className="landing-skip-link" href="#landing-main">Skip to landing content</a>
 
       <nav className="landing-final-nav" aria-label="Rookie Quest Keeper navigation">
-        <button
-          type="button"
-          className="landing-nav-brand"
-          onClick={() => navigate('/')}
-          aria-label="Rookie Quest Keeper home"
-        >
+        <button type="button" className="landing-nav-brand" onClick={() => navigate('/')} aria-label="Rookie Quest Keeper home">
           <BrandMiniLogo size={42} alt="" />
-          <span>
-            <BrandMainLogo width={168} alt="Rookie Quest Keeper" />
-          </span>
+          <span><BrandMainLogo width={168} alt="Rookie Quest Keeper" /></span>
         </button>
-
-        <div className="landing-nav-links" aria-label="Landing page sections">
-          <button type="button" onClick={() => scrollTo(featuresRef)}>Features</button>
-          <button type="button" onClick={() => scrollTo(playersRef)}>For Players</button>
-          <button type="button" onClick={() => scrollTo(gmsRef)}>For GMs</button>
-          <button type="button" onClick={() => scrollTo(faqRef)}>FAQ</button>
-        </div>
-
         <div className="landing-nav-actions">
-          <button
-            data-testid="landing-signin-btn"
-            type="button"
-            className={buttonClass('landing-button landing-button-ghost', '/auth')}
-            onClick={goLogin}
-                                  >
+          <button data-testid="landing-signin-btn" type="button" className="landing-button landing-button-ghost" onClick={goLogin}>
             Sign in
           </button>
-          <button
-            data-testid="landing-getstarted-btn"
-            type="button"
-            className={buttonClass('landing-button landing-button-primary', '/auth?mode=register')}
-            onClick={goRegister}
-                                  >
+          <button data-testid="landing-getstarted-btn" type="button" className="landing-button landing-button-primary" onClick={goRegister}>
             Open Keeper <ArrowRight size={16} aria-hidden="true" />
           </button>
         </div>
@@ -225,219 +177,65 @@ export default function LandingPage() {
       <main id="landing-main" className="landing-final-main">
         <section className="landing-final-hero" aria-labelledby="landing-hero-title">
           <div className="landing-hero-copy">
-            <p className="landing-kicker">A refined campaign companion</p>
+            <p className="landing-kicker">Your tabletop companion</p>
             <h1 id="landing-hero-title">Your campaign.<br />Kept together.</h1>
             <p className="landing-final-intro">
-              Plan, organise, and play unforgettable adventures. Keep your characters, campaigns,
-              notes, session prep, and live-table tools in one beautifully focused place.
+              Characters, campaigns and live-table tools in one place. Turn the wheel to see what each part of Keeper does.
             </p>
-
             <div className="landing-hero-actions" aria-label="Landing page actions">
-              <button
-                data-testid="landing-cta-btn"
-                type="button"
-                className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')}
-                onClick={goBuild}
-                                              >
+              <button data-testid="landing-cta-btn" type="button" className="landing-button landing-button-primary landing-button-large" onClick={goRegister}>
                 Open Keeper <ArrowRight size={18} aria-hidden="true" />
               </button>
-              <button
-                type="button"
-                className="landing-button landing-button-ghost landing-button-large"
-                onClick={() => scrollTo(featuresRef)}
-              >
-                Explore features
+              <button type="button" className="landing-button landing-button-ghost landing-button-large" onClick={goLogin}>
+                Sign in
+              </button>
+            </div>
+          </div>
+
+          <div className="landing-explore" aria-labelledby="landing-explore-title">
+            <div className="landing-explore__head">
+              <h2 id="landing-explore-title" className="landing-explore__title">Explore Keeper</h2>
+              <button type="button" className="landing-button landing-button-ghost landing-explore__toggle" onClick={toggleView} aria-pressed={view === 'list'} data-testid="landing-view-toggle">
+                <List size={16} aria-hidden="true" /> {view === 'list' ? 'Show as wheel' : 'Show as list'}
               </button>
             </div>
 
-            <div className="landing-hero-trust" aria-label="Rookie Quest Keeper qualities">
-              <span><ShieldCheck size={15} aria-hidden="true" /> Organised</span>
-              <span><Compass size={15} aria-hidden="true" /> Trustworthy</span>
-              <span><BookOpen size={15} aria-hidden="true" /> Refined</span>
-              <span><Users size={15} aria-hidden="true" /> Table-ready</span>
-            </div>
-          </div>
-
-          <aside className="landing-product-stage" aria-hidden="true">
-            <div className="landing-stage-ornament landing-stage-ornament--top" aria-hidden="true"><Compass size={24} /></div>
-            <div className="landing-app-preview">
-              <div className="landing-app-preview__bar">
-                <div className="landing-app-preview__brand">
-                  <BrandMiniLogo size={28} alt="" />
-                  <span><strong>Keeper</strong><small>Guild Ledger</small></span>
+            {view === 'wheel' ? (
+              <>
+                <div className="landing-explore__wheel-row">
+                  <button type="button" className="landing-explore__arrow" onClick={() => turn(-1)} aria-label="Turn to the previous section" data-testid="landing-wheel-prev">
+                    <ChevronLeft size={24} aria-hidden="true" />
+                  </button>
+                  <GuildChoiceWheel
+                    label="Parts of Keeper"
+                    caption="EXPLORE"
+                    options={LANDING_SECTIONS.map((section) => ({ id: section.id, label: section.label, short: section.label.toUpperCase() }))}
+                    value={activeId}
+                    onChange={setActiveId}
+                    onConfirm={() => startWith(active)}
+                    confirmLabel="OPEN"
+                    confirmAria={`Open ${active.title} in Keeper`}
+                  />
+                  <button type="button" className="landing-explore__arrow" onClick={() => turn(1)} aria-label="Turn to the next section" data-testid="landing-wheel-next">
+                    <ChevronRight size={24} aria-hidden="true" />
+                  </button>
                 </div>
-                <span className="landing-app-preview__status">Campaign workspace</span>
+                <p className="landing-explore__hint"><span className="landing-explore__hint--touch">Turn the wheel with your finger, or tap a wedge.</span><span className="landing-explore__hint--pointer">Drag the wheel round, tap a wedge, or use the arrows.</span></p>
+                <div aria-live="polite">
+                  <SectionCard section={active} index={activeIndex} onStart={startWith} headingLevel="h3" />
+                </div>
+                <div className="landing-explore__dots" aria-hidden="true">
+                  {LANDING_SECTIONS.map((section) => <span key={section.id} className={section.id === activeId ? 'is-on' : ''} />)}
+                </div>
+              </>
+            ) : (
+              <div className="landing-explore__list" data-testid="landing-section-list">
+                {LANDING_SECTIONS.map((section, index) => (
+                  <SectionCard key={section.id} section={section} index={index} onStart={startWith} headingLevel="h3" />
+                ))}
               </div>
-
-              <div className="landing-app-preview__body">
-                <div className="landing-app-preview__rail">
-                  {['Dashboard', 'Campaigns', 'Sessions', 'Characters', 'Locations', 'NPCs', 'Notes'].map((item, index) => (
-                    <span key={item} className={index === 0 ? 'is-active' : ''}>{item}</span>
-                  ))}
-                </div>
-
-                <div className="landing-app-preview__main">
-                  <div className="landing-app-preview__heading">
-                    <div>
-                      <small>Campaign overview</small>
-                      <h2>The Ashen Crown</h2>
-                      <p>Political intrigue, hidden truths, and a party about to change the realm.</p>
-                    </div>
-                    <span>In progress</span>
-                  </div>
-
-                  <div className="landing-app-preview__tabs">
-                    <strong>Overview</strong><span>Sessions</span><span>Characters</span><span>Locations</span>
-                  </div>
-
-                  <div className="landing-app-preview__stats">
-                    {previewStats.map(([value, label]) => (
-                      <div key={label}><strong>{value}</strong><span>{label}</span></div>
-                    ))}
-                  </div>
-
-                  <div className="landing-app-preview__grid">
-                    <section>
-                      <small>Next session</small>
-                      <strong>The Council Convenes</strong>
-                      <p>Saturday · 4:00 PM</p>
-                      <span className="landing-app-preview__action">View session</span>
-                    </section>
-                    <section>
-                      <small>Recent activity</small>
-                      {recentActivity.map(item => <p key={item}>{item}</p>)}
-                    </section>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="landing-stage-dice" aria-hidden="true">
-              <span>20</span><span>12</span><span>8</span>
-            </div>
-          </aside>
-        </section>
-
-        <section className="landing-pillar-strip" aria-label="Rookie Quest Keeper focus areas">
-          {pillars.map(({ icon: Icon, label, text }) => (
-            <article key={label} className="rqk-reveal rqk-reveal--subtle">
-              <Icon size={24} aria-hidden="true" />
-              <div><strong>{label}</strong><span>{text}</span></div>
-            </article>
-          ))}
-        </section>
-
-        <section ref={featuresRef} id="features" className="landing-showcase-section rqk-reveal" aria-labelledby="landing-features-title">
-          <div className="landing-showcase-heading">
-            <p className="landing-kicker">Features</p>
-            <h2 id="landing-features-title">Everything you need to run and play.</h2>
-            <p>A campaign companion built to keep your world, your notes, and your players in harmony without burying the table in admin.</p>
+            )}
           </div>
-
-          <div className="landing-feature-card-grid">
-            {featureCards.map(({ icon: Icon, title, text }) => (
-              <article key={title} className="rqk-reveal rqk-reveal--subtle">
-                <span className="landing-feature-card-icon"><Icon size={24} aria-hidden="true" /></span>
-                <h3>{title}</h3>
-                <p>{text}</p>
-                <button type="button" onClick={() => scrollTo(playersRef)}>Learn more <ChevronRight size={15} aria-hidden="true" /></button>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="landing-audience-showcase" aria-label="Rookie Quest Keeper for players and game masters">
-          <article ref={playersRef} id="for-players" className="landing-audience-panel landing-audience-panel--player rqk-reveal">
-            <div className="landing-audience-copy">
-              <p className="landing-kicker">For players</p>
-              <h2>Keep your story close.</h2>
-              <p>Track your character, notes, inventory, quests, and campaign context without losing sight of what matters during play.</p>
-              <button type="button" className="landing-button landing-button-ghost" onClick={goRegister}>Learn more for players <ArrowRight size={15} aria-hidden="true" /></button>
-            </div>
-
-            <div className="landing-character-folio" aria-hidden="true">
-              <div className="landing-character-folio__portrait"><Users size={42} /></div>
-              <div>
-                <small>Character folio</small>
-                <strong>Thalion</strong>
-                <span>Half-Elf Ranger · Level 5</span>
-              </div>
-              <ul>
-                <li><ScrollText size={15} /> Background</li>
-                <li><BookOpen size={15} /> Inventory</li>
-                <li><Users size={15} /> Allies</li>
-                <li><Compass size={15} /> Quests</li>
-              </ul>
-            </div>
-          </article>
-
-          <article ref={gmsRef} id="for-gms" className="landing-audience-panel landing-audience-panel--gm rqk-reveal">
-            <div className="landing-audience-copy">
-              <p className="landing-kicker">For GMs</p>
-              <h2>Plan deeper.<br />Run smoother.</h2>
-              <p>Organise the world behind the screen, prepare the next session, and keep everything useful close when the party goes off-script.</p>
-              <button type="button" className="landing-button landing-button-ghost" onClick={goRegister}>Learn more for GMs <ArrowRight size={15} aria-hidden="true" /></button>
-            </div>
-
-            <div className="landing-ledger-stack" aria-hidden="true">
-              {['Campaigns', 'NPCs', 'Locations', 'Session notes'].map((label, index) => (
-                <div key={label} style={{ '--book-offset': `${index * 7}px` }}>
-                  <BookOpen size={17} /><span>{label}</span>
-                </div>
-              ))}
-              <span className="landing-ledger-stack__seal"><BrandMiniLogo size={42} alt="" /></span>
-            </div>
-          </article>
-        </section>
-
-        <section className="landing-workflow-section rqk-reveal" aria-labelledby="landing-workflow-title">
-          <div>
-            <p className="landing-kicker">How it works</p>
-            <h2 id="landing-workflow-title">From idea to adventure.</h2>
-            <p>A simple flow that keeps the campaign moving from the first spark to the next unforgettable session.</p>
-          </div>
-
-          <ol>
-            {workflow.map((step) => (
-              <li key={step.number} className="rqk-reveal rqk-reveal--subtle">
-                <span>{step.number}</span>
-                <div><strong>{step.title}</strong><p>{step.text}</p></div>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section ref={faqRef} id="faq" className="landing-faq-panel landing-faq-layout rqk-reveal" aria-labelledby="landing-faq-title">
-          <div className="landing-faq-intro">
-            <p className="landing-kicker">Frequently asked questions</p>
-            <h2 id="landing-faq-title">Got questions?</h2>
-            <p>Everything you need to know before opening Rookie Quest Keeper.</p>
-            <Compass size={88} aria-hidden="true" />
-          </div>
-
-          <div className="landing-faq-list">
-            {faqItems.map((item, index) => (
-              <details key={item.question} className="landing-faq-item" open={index === 0 ? true : undefined}>
-                <summary>{item.question}</summary>
-                <p>{item.answer}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        <section className="landing-final-cta landing-final-cta--reference rqk-reveal" aria-label="Open Rookie Quest Keeper">
-          <div className="landing-final-cta__mark" aria-hidden="true"><Castle size={44} /></div>
-          <div>
-            <p className="landing-kicker">Your next adventure starts here</p>
-            <h2>Open Keeper.</h2>
-            <p>Plan, organise, and play unforgettable campaigns with one connected place for the whole table.</p>
-          </div>
-          <button
-            type="button"
-            className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')}
-            onClick={goRegister}
-                      >
-            Open Keeper <ArrowRight size={17} aria-hidden="true" />
-          </button>
         </section>
       </main>
 
@@ -446,14 +244,8 @@ export default function LandingPage() {
           <BrandMiniLogo size={40} />
           <div>
             <strong>Rookie Quest Keeper</strong>
-            <p>Guild Ledger · Plan. Organise. Play.</p>
+            <p>Plan. Organise. Play.</p>
           </div>
-        </div>
-        <div className="landing-footer-actions" aria-label="Footer navigation">
-          <button type="button" onClick={() => scrollTo(featuresRef)}>Features</button>
-          <button type="button" onClick={() => scrollTo(playersRef)}>For Players</button>
-          <button type="button" onClick={() => scrollTo(gmsRef)}>For GMs</button>
-          <button type="button" onClick={() => scrollTo(faqRef)}>FAQ</button>
         </div>
         <p className="landing-footer-note">© {new Date().getFullYear()} Rookie Quest Keeper. Independent tabletop campaign companion.</p>
       </footer>

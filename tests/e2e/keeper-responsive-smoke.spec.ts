@@ -408,12 +408,12 @@ for (const size of [
     });
     expect(columns, 'hero should be a single column below the desktop breakpoint').toBe(1);
 
-    // The preview must get enough width that its labels stop wrapping.
-    const previewWidth = await page.evaluate(() => {
-      const preview = document.querySelector('.landing-app-preview');
-      return preview ? Math.round(preview.getBoundingClientRect().width) : 0;
+    // The Explore Keeper wheel must get room to read (it caps at 440px).
+    const wheelWidth = await page.evaluate(() => {
+      const wheel = document.querySelector('.landing-explore .guild-wheel__svg');
+      return wheel ? Math.round(wheel.getBoundingClientRect().width) : 0;
     });
-    expect(previewWidth).toBeGreaterThan(420);
+    expect(wheelWidth).toBeGreaterThan(300);
 
     await assertFitsViewport(page, size.width);
   });
