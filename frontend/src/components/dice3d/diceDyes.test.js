@@ -38,13 +38,15 @@ describe('the dye set', () => {
     });
   });
 
-  test('defaults to the Glow die: readable numerals, and an orange glow so it stands out from the navy tray', () => {
+  test('defaults to the Neon Coast die: readable numerals, and a glow that stands out from the navy tray', () => {
     const fallback = getDye(DEFAULT_DYE_ID);
     expect(fallback.id).toBe('glow');
     expect(contrastRatio(fallback.ink, fallback.body)).toBeGreaterThanOrEqual(7);
     // The body alone would sit close to the navy tray; the glow is what
     // separates it, so it must contrast with the tray on its own.
     expect(contrastRatio(fallback.glow, '#0a2342')).toBeGreaterThanOrEqual(4.5);
+    // The Neon Coast colours, pink -> violet -> blue.
+    expect(fallback.glowStops).toEqual(['#FF3D8B', '#B04DFF', '#4FB3FF']);
   });
 
   test('only dyes that declare a glow get one', () => {

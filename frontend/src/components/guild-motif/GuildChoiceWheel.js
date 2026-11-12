@@ -194,6 +194,7 @@ export default function GuildChoiceWheel({
         ref={svgRef}
         className={`guild-wheel__svg${dragging ? ' is-dragging' : ''}`}
         viewBox="-91 -104 182 208"
+        data-hex-radius={R}
         role="radiogroup"
         tabIndex={0}
         aria-label={`${label}: turn the wheel or use the arrow keys`}

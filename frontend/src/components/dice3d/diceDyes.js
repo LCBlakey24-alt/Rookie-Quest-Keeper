@@ -12,7 +12,8 @@
  *
  * A dye may also carry a `glow`: a soft light drawn just inside every face
  * edge, the same inner glow the hexagonal sheet uses on its boxes and
- * wedges. Only the Glow dye has one; the others keep their plain faces.
+ * wedges. Only the Neon Coast dye has one (with `glowStops`, so the light
+ * runs pink -> violet -> blue); the others keep their plain faces.
  */
 
 const DEFAULT_DYE_ID = 'glow';
@@ -22,18 +23,19 @@ export const DICE_DYES = [
   // middle of the range fails both ways, which is how an earlier draft of
   // this palette ended up with eight combinations below AA.
   {
-    // The default, matching the hexagonal sheet: a deep slate-navy body,
-    // white numerals, and an orange glow inside every face edge. The body
-    // is a step lighter than the tray so the die's shape still reads, and
-    // the glow outlines every face against the navy.
+    // The default, matching the Neon Coast look (DESIGN_SYSTEM §3): a deep
+    // blue body a step lighter than the page, white numerals, and a glow
+    // inside every face edge that runs pink -> violet -> blue. The id stays
+    // 'glow' so a player's saved choice keeps working.
     id: 'glow',
-    name: 'Glow',
-    body: '#17324A',
+    name: 'Neon Coast',
+    body: '#14294F',
     ink: '#FFFFFF',
-    edge: '#F2892F',
-    crit: '#FFC46B',
+    edge: '#FF5FA0',
+    crit: '#FFD27A',
     fumble: '#FF9B7A',
-    glow: '#F2892F',
+    glow: '#FF5FA0',
+    glowStops: ['#FF3D8B', '#B04DFF', '#4FB3FF'],
   },
   {
     id: 'amber',

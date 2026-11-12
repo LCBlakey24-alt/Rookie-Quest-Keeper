@@ -57,7 +57,36 @@ const DIE_RADIUS = 0.9;
 const DIE_BULK = { 4: 1.06, 6: 0.94, 8: 1.0, 10: 0.98, 12: 0.95, 20: 1.0, 100: 0.98 };
 const STEP = 1 / 60;
 const MAX_STEPS = 600;
-const SETTLED_SPEED = 0.08;
+const SETTLED_SPEED = 0.05;
+/*
+ * A throw is over only once every die has stayed still for this many
+ * physics steps in a row (0.6 s of simulated time). Stopping at the first
+ * instant the dice were slow caught them mid-wobble, so the tray could
+ * stop before a die had really come down on a face. The rehearsal and the
+ * replay use the same rule, so they stop on the same step.
+ */
+export const REST_HOLD_STEPS = 36;
+/*
+ * The replay runs on the clock, not one physics step per screen frame
+ * (a 120 Hz phone was playing the throw twice as fast), and a little
+ * slower than real time, so the tumble has room to be seen.
+ */
+export const TIME_SCALE = 0.8;
+/*
+ * A d20 can roll on for many seconds. Throws that settle within this many
+ * steps (about 5.5 s on screen) are preferred; a longer one is only used
+ * when no quicker one is found.
+ */
+export const QUICK_STEPS = 270;
+
+/**
+ * The longest a replay can run on screen, in milliseconds: MAX_STEPS at
+ * TIME_SCALE. The overlay's reveal backstop waits at least this long so a
+ * slow (reserve) throw is never cut short by the parent's timers.
+ */
+export function longestReplayMs() {
+  return Math.ceil((MAX_STEPS * STEP * 1000) / TIME_SCALE);
+}
 const COCKED_THRESHOLD = 0.86;
 /**
  * How far from the middle a die may finish, and how many throws to try.
@@ -177,9 +206,11 @@ export function simulateThrow(specs, seed) {
   const entries = throwBodies(world, specs, seededRandom(seed));
 
   let steps = 0;
-  while (steps < MAX_STEPS && !atRest(entries)) {
+  let still = 0;
+  while (steps < MAX_STEPS && still < REST_HOLD_STEPS) {
     world.step(STEP);
     steps += 1;
+    still = atRest(entries) ? still + 1 : 0;
   }
 
   const faces = [];
@@ -191,7 +222,7 @@ export function simulateThrow(specs, seed) {
     positions.push([body.position.x, body.position.z]);
   }
 
-  return { faces, positions };
+  return { faces, positions, steps };
 }
 
 /** Did the dice finish near the middle, where they can be read together? */
@@ -221,9 +252,9 @@ export function planThrow(specs, baseSeed) {
     };
   };
 
-  // Two things make a throw worth showing: no die is left cocked against a
-  // wall, and the dice finish near the middle where they can be read
-  // together. Seeds are tried until both hold. A throw that is merely
+  // Three things make a throw worth showing: no die is left cocked against a
+  // wall, the dice finish near the middle where they can be read together,
+  // and they come to rest in a few seconds. Seeds are tried until both hold. A throw that is merely
   // readable is kept as a reserve, so an awkward pool still gets a real
   // throw instead of dropping to the flat card.
   let reserve = null;
@@ -234,7 +265,7 @@ export function planThrow(specs, baseSeed) {
     const outcome = simulateThrow(specs, seed);
     if (!outcome) continue;
 
-    if (landedCentrally(outcome.positions)) return build(seed, outcome.faces, outcome.positions);
+    if (landedCentrally(outcome.positions) && outcome.steps <= QUICK_STEPS) return build(seed, outcome.faces, outcome.positions);
     if (!reserve) reserve = build(seed, outcome.faces, outcome.positions);
   }
 
@@ -321,10 +352,14 @@ export function cellPixelsFor(count) {
  * The elevation stays fixed, so every throw is seen from the same angle
  * and only the distance changes.
  */
-export function cameraFraming(positions, fovDegrees) {
+export function cameraFraming(positions, fovDegrees, { aspect = 1, scale = 1 } = {}) {
   const reach = positions.reduce((worst, [x, z]) => Math.max(worst, Math.abs(x), Math.abs(z)), 0);
   const halfExtent = reach + DIE_RADIUS + 0.75;
-  const distance = halfExtent / Math.tan((fovDegrees / 2) * (Math.PI / 180));
+  // A frame narrower than it is tall (the hexagon window) has the smaller
+  // half-angle across, so frame to that. `scale` pulls the camera back to
+  // keep the dice inside a shaped window's middle.
+  const tanHalf = Math.tan((fovDegrees / 2) * (Math.PI / 180)) * Math.min(1, aspect || 1);
+  const distance = (halfExtent * scale) / tanHalf;
 
   const centreX = positions.reduce((sum, [x]) => sum + x, 0) / (positions.length || 1);
   const centreZ = positions.reduce((sum, [, z]) => sum + z, 0) / (positions.length || 1);
@@ -343,7 +378,7 @@ export function cameraFraming(positions, fovDegrees) {
  * inside a second coloured box -- the flat-surface direction applies to the
  * 3D view too, and the tray's edge is the panel's own hairline border.
  */
-export function createDiceTray({ canvas, palette }) {
+export function createDiceTray({ canvas, palette, frameScale = 1 }) {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
@@ -444,7 +479,7 @@ export function createDiceTray({ canvas, palette }) {
     clearDice();
     if (frame) cancelAnimationFrame(frame);
 
-    const framing = cameraFraming(plan.positions, FOV);
+    const framing = cameraFraming(plan.positions, FOV, { aspect: camera.aspect, scale: frameScale });
     camera.position.set(...framing.position);
     camera.lookAt(...framing.target);
 
@@ -461,6 +496,7 @@ export function createDiceTray({ canvas, palette }) {
         solid: entry.spec.solid,
         // A dropped die (the advantage die not kept) loses its glow too.
         glow: entry.spec.dropped ? null : (palette.glow || null),
+        glowStops: entry.spec.dropped ? null : (palette.glowStops || null),
         columns,
         cellPixels: cellPixelsFor(specs.length),
         body: palette.body,
@@ -508,32 +544,47 @@ export function createDiceTray({ canvas, palette }) {
     });
 
     let steps = 0;
+    let still = 0;
     let announced = false;
     let settleFrames = 0;
+    let lastTime = null;
+    let owed = 0;
 
-    const tick = () => {
-      if (disposed) return;
-      world.step(STEP);
-      steps += 1;
-
+    const place = () => {
       active.forEach(({ body, mesh }) => {
         mesh.position.set(body.position.x, body.position.y, body.position.z);
         mesh.quaternion.copy(new ThreeQuaternion(
           body.quaternion.x, body.quaternion.y, body.quaternion.z, body.quaternion.w,
         ));
       });
+    };
+
+    const tick = (now) => {
+      if (disposed) return;
+      // Advance the physics by the time that has passed (scaled), in whole
+      // steps, until the dice have been still long enough. Then stop
+      // stepping: the dice stay exactly where the rehearsal read them.
+      if (!announced) {
+        const elapsed = lastTime === null ? STEP : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
+        owed += elapsed * TIME_SCALE;
+        while (owed >= STEP && !announced) {
+          owed -= STEP;
+          world.step(STEP);
+          steps += 1;
+          still = atRest(active) ? still + 1 : 0;
+          if (still >= REST_HOLD_STEPS || steps >= MAX_STEPS) announced = true;
+        }
+        place();
+        if (announced) onSettled?.();
+      }
+      lastTime = now;
 
       renderer.render(scene, camera);
-
-      if (!announced && (atRest(active) || steps >= MAX_STEPS)) {
-        announced = true;
-        onSettled?.();
-      }
 
       // A few frames after the dice stop the picture is final, so the loop
       // ends rather than burning a rAF every frame for the panel's lifetime.
       if (announced) settleFrames += 1;
-      if (settleFrames < SETTLE_HOLD_FRAMES && steps < MAX_STEPS + SETTLE_HOLD_FRAMES) {
+      if (settleFrames < SETTLE_HOLD_FRAMES) {
         frame = requestAnimationFrame(tick);
       } else {
         frame = null;

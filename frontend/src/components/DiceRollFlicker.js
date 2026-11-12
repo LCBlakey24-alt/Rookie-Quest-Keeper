@@ -11,7 +11,9 @@ const REVEAL_DELAY = 360;
 // put the total on screen while they were still in the air, and the
 // auto-close that follows it could shut the panel as they landed. This is
 // only a backstop for a throw that somehow never reports settling.
-const TRAY_REVEAL_CEILING = 8000;
+// The longest replay is MAX_STEPS at TIME_SCALE (dice3d/diceTrayScene.js
+// longestReplayMs, 12.5 s) plus the pause before the total: wait for that.
+const TRAY_REVEAL_CEILING = 13500;
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 6000;
 
@@ -89,6 +91,9 @@ export default function DiceRollFlicker({
   isCrit = false,
   isFumble = false,
   theme = 'player',
+  // 'hex' puts the 3D throw in a hexagon over the wheel matching anchorSelector.
+  shape,
+  anchorSelector,
 }) {
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
@@ -283,6 +288,8 @@ export default function DiceRollFlicker({
       isFixedDamage={isFixedDamage}
       onRevealNow={() => setShowTotal(true)}
       onClose={() => onCloseRef.current?.()}
+      shape={shape}
+      anchorSelector={anchorSelector}
     />,
     document.body,
   );

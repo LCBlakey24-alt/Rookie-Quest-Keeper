@@ -184,3 +184,112 @@
      line of defence if the tray is ever mounted directly. */
   .rq-dice-tray__canvas { display: none; }
 }
+
+/* Hexagon window (the character sheet). ------------------------------------
+ * The throw appears in a hexagon laid exactly over the wheel's own case,
+ * in the Neon Coast look: the deep blue page colour as the bed the dice land
+ * on, a thin peach-pink-gold edge, and a soft glow that stays inside it. */
+.rq-dice-tray--hex { display: block; padding: 0; pointer-events: none; }
+.rq-dice-tray--hex .rq-dice-hex { pointer-events: auto; }
+/* App-wide dialog rules give every [role=dialog] a panel background (from a
+   layered rule that reads --rq-bg-panel), a size cap and a scroller. The
+   hexagon roll covers the whole screen and is otherwise see-through. */
+html body .rq-dice-tray.rq-dice-tray--hex[role='dialog'] {
+  --rq-bg-panel: transparent;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  overflow: visible !important;
+  border: 0 !important;
+}
+.rq-dice-hex {
+  position: fixed;
+  color: var(--guild-text, #fff);
+  font-family: var(--guild-font-body, Inter, system-ui, sans-serif);
+  animation: rq-dice-hex-in 220ms cubic-bezier(.2, .8, .3, 1.1) both;
+}
+@keyframes rq-dice-hex-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+.rq-dice-hex__stage {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, #10305a 0%, var(--guild-bg, #0a2342) 62%, var(--guild-bg-deep, #071a33) 100%);
+}
+.rq-dice-hex__stage .rq-dice-tray__canvas-holder { position: absolute; inset: 0; }
+.rq-dice-hex__stage .rq-dice-tray__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Clipped here too: some GPUs composite the WebGL canvas on its own
+     layer, where the stage's clip alone does not reach. */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+.rq-dice-hex__case { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.rq-dice-hex__glow { fill: none; stroke: var(--guild-stroke-hot, #ff5fa0); stroke-width: 16; opacity: 0.45; filter: blur(5px); vector-effect: non-scaling-stroke; }
+.rq-dice-hex__edge { fill: none; stroke: var(--guild-stroke-hot, #ff5fa0); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.rq-dice-hex.is-crit .rq-dice-hex__glow { opacity: 0.8; }
+
+.rq-dice-hex__label {
+  position: absolute;
+  top: 13%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 62%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--guild-hi, #ffb066);
+  pointer-events: none;
+}
+.rq-dice-hex__result {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  transform: translateX(-50%);
+  width: 70%;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+html body #root ~ .rq-dice-tray .rq-dice-hex__result strong,
+.rq-dice-hex__result strong {
+  font-family: var(--guild-font-display, 'Cinzel', serif) !important;
+  font-size: clamp(2.2rem, 9vw, 3.2rem);
+  line-height: 1;
+  color: var(--guild-text, #fff);
+  animation: rq-dice-hex-total 260ms ease-out both;
+}
+@keyframes rq-dice-hex-total { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: none; } }
+.rq-dice-hex.is-crit .rq-dice-hex__result strong { color: var(--guild-h3, #ffd27a); }
+.rq-dice-hex.is-fumble .rq-dice-hex__result strong { color: #ff9b7a; }
+.rq-dice-hex__result span { font-size: 0.78rem; color: var(--guild-muted, #c9d2e6); }
+.rq-dice-hex__result .rq-dice-tray__rolling { font-size: 0.9rem; font-weight: 700; color: var(--guild-text, #fff); }
+.rq-dice-hex__skip,
+.rq-dice-hex__close {
+  border: 1px solid rgba(var(--guild-c2-rgb, 176, 77, 255), 0.55) !important;
+  background: var(--guild-bg, #0a2342) !important;
+  color: var(--guild-text, #fff) !important;
+  box-shadow: inset 0 0 10px rgba(var(--guild-c2-rgb, 176, 77, 255), 0.3) !important;
+  cursor: pointer;
+}
+.rq-dice-hex__skip { min-height: 32px; padding: 0 14px; border-radius: 999px !important; font: 700 0.78rem var(--guild-font-body, Inter, sans-serif); }
+.rq-dice-hex__close {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border-radius: 50% !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rq-dice-hex, .rq-dice-hex__result strong { animation: none; }
+}

@@ -114,6 +114,7 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
       ref={svgRef}
       className={`hex-wheel hex-spin${dragging ? ' is-spinning' : ''}`}
       viewBox={wheelViewBox()}
+      data-hex-radius={OUTER_RADIUS + 2}
       role="radiogroup"
       aria-label={label}
       tabIndex={0}

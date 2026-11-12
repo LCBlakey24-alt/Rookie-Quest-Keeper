@@ -204,7 +204,7 @@ function shade(hex, amount) {
  * d10 they are otherwise the same glyph upside down.
  */
 export function drawFaceAtlas(faceValues, {
-  columns, cellPixels, body, ink, size, corners = 4, layouts = null, solid = null, glow = DEFAULT_GLOW,
+  columns, cellPixels, body, ink, size, corners = 4, layouts = null, solid = null, glow = DEFAULT_GLOW, glowStops = null,
 }) {
   const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
   if (!canvas) return null;
@@ -297,7 +297,18 @@ export function drawFaceAtlas(faceValues, {
       edge.forEach(([x, y], i) => (i ? context.lineTo(x, y) : context.moveTo(x, y)));
       context.closePath();
       context.clip();
-      context.strokeStyle = glow;
+      // A dye may glow in several colours: the light runs across the face
+      // from one corner to the opposite one, like the sheet's Neon Coast
+      // edges. A single colour is used where the canvas has no gradients.
+      let stroke = glow;
+      if (Array.isArray(glowStops) && glowStops.length > 1 && typeof context.createLinearGradient === 'function') {
+        const xs = edge.map(([x]) => x);
+        const ys = edge.map(([, y]) => y);
+        const gradient = context.createLinearGradient(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
+        glowStops.forEach((colour, index) => gradient.addColorStop(index / (glowStops.length - 1), colour));
+        stroke = gradient;
+      }
+      context.strokeStyle = stroke;
       context.shadowColor = glow;
       context.shadowBlur = layout.inradius * unit * 0.35;
       context.lineJoin = 'round';

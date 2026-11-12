@@ -85,6 +85,7 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
     <svg
       className={`hex-wheel hex-wheel--${variant}`}
       viewBox={wheelViewBox()}
+      data-hex-radius={OUTER_RADIUS + 2}
       role="group"
       aria-label={label}
       data-testid="hex-wheel"
