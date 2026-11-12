@@ -18,6 +18,11 @@ from pymongo.errors import DuplicateKeyError
 from datetime import datetime, timezone, timedelta
 import resend
 from utils.ws_session import end_live_sessions
+from utils.campaign_cleanup_scope import (
+    CAMPAIGN_SWEEP_EXCLUSIONS,
+    USER_HOMEBREW_CAMPAIGN_REFERENCES,
+    USER_PLAYTEST_CAMPAIGN_REFERENCES,
+)
 from starlette.concurrency import run_in_threadpool
 
 EMAIL_DELIVERY_CONFIGURED = bool(RESEND_API_KEY) and RESEND_API_KEY != 'your_resend_api_key_here'
@@ -41,13 +46,6 @@ SAFE_USERNAME_RE = re.compile(r"^[A-Za-z0-9_-]{3,24}$")
 
 # These collections can reference an owned campaign but contain records that
 # belong to another person. Keep them, then unlink them explicitly below.
-CAMPAIGN_SWEEP_EXCLUSIONS = {
-    'users',
-    'player_characters',
-    'player_notes',
-    'password_resets',
-}
-
 # Personal records that should be removed when the account itself is deleted,
 # even when they belong to a campaign owned by somebody else.
 USER_OWNED_COLLECTIONS = [
@@ -167,7 +165,7 @@ async def cleanup_user_account(username: str) -> dict:
         # economy, current inventory and future campaign-scoped collections.
         collection_names = await db.list_collection_names()
         for collection_name in collection_names:
-            if collection_name in CAMPAIGN_SWEEP_EXCLUSIONS or collection_name == 'campaigns':
+            if collection_name in CAMPAIGN_SWEEP_EXCLUSIONS:
                 continue
             await delete_many(collection_name, campaign_query)
 
@@ -185,12 +183,29 @@ async def cleanup_user_account(username: str) -> dict:
             }
         )
 
-        # Personal player notes remain personal; only their live campaign link
-        # is removed so they cannot point at a deleted campaign id.
-        await db.player_notes.update_many(
-            {'campaign_id': {'$in': campaign_ids}},
-            {'$set': {'campaign_id': None, 'updated_at': datetime.now(timezone.utc).isoformat()}}
-        )
+        # Personal player notes and journals remain personal; only their live
+        # campaign link is removed so they cannot point at a deleted campaign id.
+        now = datetime.now(timezone.utc).isoformat()
+        for collection_name in ('player_notes', 'player_journal'):
+            await db[collection_name].update_many(
+                {'campaign_id': {'$in': campaign_ids}},
+                {'$set': {'campaign_id': None, 'updated_at': now}}
+            )
+
+        # Other users' homebrew and playtest content only references these
+        # campaigns: it stays theirs. Homebrew becomes private and unscoped,
+        # playtest content is unlinked -- exactly as campaign deletion does.
+        # (This account's own copies were already deleted above.)
+        for collection_name in USER_HOMEBREW_CAMPAIGN_REFERENCES:
+            await db[collection_name].update_many(
+                {'campaign_id': {'$in': campaign_ids}},
+                {'$set': {'campaign_id': None, 'visibility': 'private', 'updated_at': now}}
+            )
+        for collection_name in USER_PLAYTEST_CAMPAIGN_REFERENCES:
+            await db[collection_name].update_many(
+                {'campaign_id': {'$in': campaign_ids}},
+                {'$set': {'campaign_id': None, 'updated_at': now}}
+            )
 
         await delete_many('campaigns', {'id': {'$in': campaign_ids}})
 
