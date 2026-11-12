@@ -82,3 +82,20 @@ describe('castableSpells with an older Wizard save', () => {
   });
 });
 
+describe('castableSpells keeps what the legacy rule leaves alone', () => {
+  it('a name-only cantrip in an older Wizard save stays castable', () => {
+    const names = castableSpells({ character_class: 'Wizard', level: 3, spells_known: ['Light', { name: 'Sleep', level: 1 }] }).map((spell) => spell.name);
+    expect(names).toContain('Light');
+    expect(names).not.toContain('Sleep');
+  });
+
+  it('a multiclass keeps the untagged copy of a spell', () => {
+    const spells = castableSpells({
+      class_levels: { Wizard: 3, Sorcerer: 2 },
+      spells_known: [{ name: 'Sleep', level: 1 }, { name: 'Sleep', level: 1, sourceClass: 'Wizard' }],
+    });
+    expect(spells.filter((spell) => spell.name === 'Sleep')).toHaveLength(1);
+    expect(spells.find((spell) => spell.name === 'Sleep').sourceClass).toBeUndefined();
+  });
+});
+

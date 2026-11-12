@@ -7,6 +7,7 @@ import {
   getSpellListDestination,
   getSpellListLabel,
   legacySpellbookEntries,
+  legacySpellbookIdentities,
   normaliseCharacterClassLevels,
   spellBelongsToClass,
   spellListContains,
@@ -219,6 +220,20 @@ describe('legacySpellbookEntries', () => {
       class_levels: { Wizard: 3, Sorcerer: 2 },
       spells_known: [{ name: 'Sleep', level: 1 }, { name: 'Shield', level: 1, sourceClass: 'Wizard' }],
     }).map((spell) => spell.name)).toEqual(['Shield']);
+  });
+});
+
+describe('legacySpellbookEntries edge cases', () => {
+  it('knows a name-only cantrip is a cantrip', () => {
+    expect(legacySpellbookEntries({ character_class: 'Wizard', level: 3, spells_known: ['Light', 'Sleep'] }).map((spell) => spell.name)).toEqual(['Sleep']);
+  });
+
+  it('identities keep an untagged copy apart from the Wizard-tagged one', () => {
+    const keys = legacySpellbookIdentities({
+      class_levels: { Wizard: 3, Sorcerer: 2 },
+      spells_known: [{ name: 'Sleep', level: 1 }, { name: 'Sleep', level: 1, sourceClass: 'Wizard' }],
+    });
+    expect([...keys]).toEqual(['wizard:sleep']);
   });
 });
 

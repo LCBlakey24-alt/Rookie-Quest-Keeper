@@ -7,7 +7,7 @@
  * cast at that level.
  */
 import { SPELL_DATABASE } from '@/data/spellDatabase';
-import { legacySpellbookEntries, spellListContains } from '@/data/characterSpellListRules';
+import { characterSpellIdentity, legacySpellbookIdentities } from '@/data/characterSpellListRules';
 
 const normalise = (value = '') => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const asList = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
@@ -59,9 +59,9 @@ export function castableSpells(character = {}) {
   asList(character.spells_prepared || character.prepared_spells || character.preparedSpells).forEach((entry) => add(entry, null));
   // A Wizard's older save may hold its spellbook in spells_known: those
   // entries must be prepared (above) before they can be cast.
-  const unprepared = legacySpellbookEntries(character);
+  const unprepared = legacySpellbookIdentities(character);
   asList(character.spells_known || character.known_spells)
-    .filter((entry) => !spellListContains(unprepared, entry))
+    .filter((entry) => !unprepared.has(characterSpellIdentity(entry)))
     .forEach((entry) => add(entry, null));
   return out;
 }

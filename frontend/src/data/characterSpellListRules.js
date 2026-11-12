@@ -1,8 +1,10 @@
-import { SPELLCASTING_CLASSES } from './spellDatabase';
+import { SPELL_DATABASE, SPELLCASTING_CLASSES } from './spellDatabase';
 import { getPreparedSpellCapacity, getSpellSelectionMode, normaliseSpellEdition } from './spellPreparationRules';
 
 const normaliseName = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 const toArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
+// Reference cantrips, so a name-only saved entry ('Light') is still known to be one.
+const REFERENCE_CANTRIPS = new Set(toArray(SPELL_DATABASE?.cantrips).map((spell) => normaliseName(spell?.name)));
 
 function normaliseSpell(spell = {}) {
   if (typeof spell === 'string') return { name: spell };
@@ -152,10 +154,21 @@ export function legacySpellbookEntries(character = {}, suppliedClassLevels = nul
   const everyClassKeepsSpellbook = casterClasses.length > 0 && casterClasses.every(keepsSpellbook);
   return uniqueSpells(character.spells_known || character.known_spells).filter((spell) => {
     const level = spell.level ?? spell.spell_level;
-    if (level !== undefined && level !== null && Number(level) === 0) return false;
+    const savedLevel = level !== undefined && level !== null && level !== '';
+    if (savedLevel ? Number(level) === 0 : REFERENCE_CANTRIPS.has(normaliseName(spell.name))) return false;
     const source = sourceClassOf(spell);
     return source ? keepsSpellbook(source) : everyClassKeepsSpellbook;
   });
+}
+
+/**
+ * The exact identities (source class + name) of legacySpellbookEntries, for
+ * leaving those entries out of known/castable lists. Exact identities, not
+ * spellListContains, whose untagged wildcard would also hide an untagged copy
+ * of the same spell that the helper deliberately left alone.
+ */
+export function legacySpellbookIdentities(character = {}, suppliedClassLevels = null) {
+  return new Set(legacySpellbookEntries(character, suppliedClassLevels).map((spell) => characterSpellIdentity(spell)));
 }
 
 /**
