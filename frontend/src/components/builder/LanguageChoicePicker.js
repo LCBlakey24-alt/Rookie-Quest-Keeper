@@ -67,6 +67,7 @@ export default function LanguageChoicePicker({
               key={language}
               type="button"
               disabled={disabled}
+              aria-pressed={selected}
               data-testid={`${testIdPrefix}-${language.toLowerCase().replace(/\s+/g, '-')}`}
               onClick={() => toggleLanguage(language)}
               style={{

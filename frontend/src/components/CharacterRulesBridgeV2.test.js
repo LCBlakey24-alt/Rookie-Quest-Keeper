@@ -1,4 +1,5 @@
-import { normaliseFeatCategory, normaliseSpellClasses, spellEntryFromHomebrew } from './CharacterRulesBridgeV2';
+import { normaliseFeatCategory, normaliseSpellClasses, spellEntryFromHomebrew, startingSubclassName } from './CharacterRulesBridgeV2';
+import { CLASSES } from '@/data/characterRules5e';
 
 describe('uploaded builder option normalization', () => {
   test('splits comma separated spell class lists instead of falling back to every caster', () => {
@@ -33,5 +34,20 @@ describe('uploaded builder option normalization', () => {
     expect(normaliseFeatCategory({ name: 'First Lesson', prerequisite: 'Level 1 only' })).toBe('origin');
     expect(normaliseFeatCategory({ name: 'Mythic Champion', tags: ['Epic Boon'], prerequisite: '19th-level character' })).toBe('epic');
     expect(normaliseFeatCategory({ name: 'Tavern Trickster' })).toBe('general');
+  });
+});
+
+describe('the subclass a new character is saved with', () => {
+  const fighter = CLASSES.Fighter;
+  test('a level 1 Fighter has no subclass yet (it comes at level 3), even with nothing chosen', () => {
+    expect(startingSubclassName({ rules_edition: '2014', subclass: '' }, { selectedSubclass: '', level: 1, className: 'Fighter', classData: fighter })).toBe('');
+    expect(startingSubclassName({ rules_edition: '2024' }, { selectedSubclass: '', level: 2, className: 'Fighter', classData: fighter })).toBe('');
+  });
+  test('from the unlock level, the chosen subclass is kept', () => {
+    expect(startingSubclassName({ rules_edition: '2014' }, { selectedSubclass: 'Battle Master', level: 3, className: 'Fighter', classData: fighter })).toBe('Battle Master');
+  });
+  test('classes that choose at level 1 in 2014 keep their choice', () => {
+    expect(startingSubclassName({ rules_edition: '2014', subclass: CLASSES.Cleric.subclasses[1] }, { level: 1, className: 'Cleric', classData: CLASSES.Cleric }))
+      .toBe(CLASSES.Cleric.subclasses[1]);
   });
 });

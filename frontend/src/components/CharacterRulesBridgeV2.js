@@ -341,6 +341,22 @@ function averageHitPoints(level, hitDie, constitutionScore) {
   return first + Math.max(0, level - 1) * later;
 }
 
+/**
+ * The subclass a new character is saved with.
+ *
+ * Below the level where the class unlocks its subclass there is none: a
+ * level 1 Fighter has no Martial Archetype yet. resolveSubclassName falls
+ * back to the class's first subclass when nothing is chosen (for the level
+ * picker's default), which saved every new level 1 Fighter as a Champion.
+ */
+export function startingSubclassName(payload = {}, { selectedSubclass, level = 1, className = '', classData = {} } = {}) {
+  const edition = payload?.rules_edition || payload?.edition || '2014';
+  if (level < subclassUnlockLevel(className, edition, classData)) return '';
+  const subclasses = arr(classData.subclasses).map(displayName).filter(Boolean);
+  const source = selectedSubclass !== undefined ? { subclass: selectedSubclass } : payload;
+  return resolvePayloadSubclassName(source, subclasses, '');
+}
+
 function withStartingLevel(payload, { targetLevel, selectedSubclass, options, levelChoiceSelections, featOptions, detailSelections }) {
   if (!payload || typeof payload !== 'object') return payload;
   const className = resolvePayloadClassName(payload, CLASSES);
@@ -348,8 +364,7 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
   const classSubclasses = arr(classData.subclasses).map(displayName).filter(Boolean);
   const level = clampLevel(targetLevel || payload.level || 1);
   const hitDie = hitDieNumber(classData.hitDie || payload.hit_die || payload.hit_dice, 8);
-  const subclassSource = selectedSubclass !== undefined ? { subclass: selectedSubclass } : payload;
-  const subclassName = resolvePayloadSubclassName(subclassSource, classSubclasses, '');
+  const subclassName = startingSubclassName(payload, { selectedSubclass, level, className, classData });
   const classFeatures = classFeaturesUpTo(className, classData, level, payload.class_features);
   const subclassFeatures = uploadedSubclassFeaturesUpTo(options, className, subclassName, level);
   const features = [...classFeatures];
