@@ -2,6 +2,7 @@
 from typing import Any, Dict, List
 
 from config import db as default_db
+from utils.character_campaign_link import character_belongs_to_campaign
 from utils.initiative import initiative_modifier
 
 
@@ -99,7 +100,8 @@ async def build_live_party_rows(campaign_id: str, database=None) -> List[Dict[st
     real_names = set()
     for member in members:
         character = character_by_id.get(member.get("character_id"))
-        if not character:
+        # A character that has moved to another campaign is not in this party.
+        if not character_belongs_to_campaign(character, campaign_id):
             continue
         row = _character_row(character, member)
         rows.append(row)
