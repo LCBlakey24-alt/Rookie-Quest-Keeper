@@ -1,13 +1,22 @@
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, BookOpen, Clock3, Globe2, PlusCircle, ScrollText, UserPlus, UsersRound, Wand2 } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock3, Globe2, List, PlusCircle, ScrollText, UserPlus, UsersRound, Wand2 } from 'lucide-react';
+import HomeHubWheel from '@/components/dashboard/home/HomeHubWheel';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
 import { safeArray } from '@/components/dashboard/home/unifiedDashboardUtils';
 import { KeeperAnnouncementCarousel, LatestKeeperUpdates, UrgentKeeperNotices, useKeeperUpdates } from '@/components/dashboard/home/HomeUpdates';
 import '@/styles/unifiedDashboardPolish.css';
 import '@/styles/homeDashboardV5.css';
+import '@/styles/guildTokens.css';
+import '@/styles/homeGuild.css';
+
+const VIEW_KEY = 'rqk.home.hubView';
+
+function loadHubView() {
+  try { return window.localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'wheel'; } catch { return 'wheel'; }
+}
 
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.campaign_id || record?.characterId || record?.campaignId || '';
@@ -27,6 +36,12 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     recentCharacters, recentCampaigns, recentHomebrew, dashboardWarning, loadDashboard,
   } = useDashboardData();
   const updates = useKeeperUpdates();
+  const [hubView, setHubView] = useState(loadHubView);
+  const toggleHubView = () => setHubView((current) => {
+    const next = current === 'list' ? 'wheel' : 'list';
+    try { window.localStorage.setItem(VIEW_KEY, next); } catch { /* not stored */ }
+    return next;
+  });
   const safeCharacters = safeArray(characters);
   const safeCampaigns = safeArray(campaigns);
   const safeHomebrew = safeArray(homebrewItems);
@@ -38,6 +53,12 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     // No community publication endpoint exists yet. Count only public items
     // returned for this user; do not invent community upvotes or catalog stats.
     { label: 'Shared Creations', count: safeHomebrew.filter((item) => item.visibility === 'public').length, to: '/homebrew', icon: Globe2, hint: 'Your public homebrew (community gallery coming later)' },
+  ];
+
+  const hubPlaces = [
+    ...personalTotals.map(({ label, count, to, hint }) => ({ id: label.toLowerCase().replace(/\s+/g, '-'), label: label === 'Shared Creations' ? 'Shared' : label, value: count, to, ariaLabel: `${label}: ${count}. ${hint}` })),
+    { id: 'community', label: 'Community', value: '\u2192', to: '/community', ariaLabel: 'Community: browse shared creations' },
+    { id: 'new-character', label: 'New Character', value: '+', to: '/characters/new', ariaLabel: 'Create Character' },
   ];
 
   const showGettingStarted = !loading && !dashboardWarning && safeCharacters.length === 0 && safeCampaigns.length === 0 && safeHomebrew.length === 0;
@@ -94,7 +115,15 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       <UrgentKeeperNotices items={updates.items} />
       <KeeperAnnouncementCarousel items={updates.items} loading={updates.loading} error={updates.error} onRefresh={updates.refresh} />
       <section className="rqk-home-totals" aria-labelledby="rqk-home-totals-heading">
-        <h2 id="rqk-home-totals-heading">My Dashboard</h2>
+        <div className="rqk-home-totals-heading">
+          <h2 id="rqk-home-totals-heading">My Dashboard</h2>
+          <button type="button" className="rqk-home-view-toggle" onClick={toggleHubView} aria-pressed={hubView === 'list'} data-testid="home-hub-view-toggle">
+            <List size={16} aria-hidden="true" /> {hubView === 'list' ? 'Show as wheel' : 'Show as list'}
+          </button>
+        </div>
+        {hubView === 'wheel' ? (
+          <HomeHubWheel places={hubPlaces} />
+        ) : (
         <div className="rqk-home-metrics">
           {personalTotals.map(({ label, count, to, icon: Icon, hint }) => (
             <Link key={label} to={to} className="rqk-home-metric" aria-label={`${label}: ${count}. ${hint}`}>
@@ -104,6 +133,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
             </Link>
           ))}
         </div>
+        )}
       </section>
       {showGettingStarted && (
         <section className="rqk-home-getting-started" aria-labelledby="rqk-home-start-heading">
