@@ -1,4 +1,4 @@
-import { angleStep, optionAtTop, rotationForOption, settleRotation, shortLabels } from './choiceWheel';
+import { angleStep, optionAtTop, rotationForOption, settleRotation } from './choiceWheel';
 
 test('the option at the top follows the rotation, in both directions', () => {
   expect(optionAtTop(0, 12)).toBe(0);
@@ -25,14 +25,4 @@ test('a released wheel settles on the nearest option', () => {
 test('crossing the half-turn seam is a small step, not a jump', () => {
   expect(angleStep(170, -170)).toBe(20);
   expect(angleStep(-170, 170)).toBe(-20);
-});
-
-test('ring labels are three letters and unique', () => {
-  const races = ['Human', 'Elf', 'Dwarf', 'Halfling', 'Gnome', 'Half-Orc', 'Half-Elf', 'Tiefling', 'Aasimar', 'Goliath', 'Orc'];
-  const short = shortLabels(races);
-  expect(short).toEqual(['HUM', 'ELF', 'DWA', 'HAL', 'GNO', 'HOR', 'HEL', 'TIE', 'AAS', 'GOL', 'ORC']);
-  expect(new Set(short).size).toBe(races.length);
-  const classes = shortLabels(['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard']);
-  expect(new Set(classes).size).toBe(12);
-  expect(classes.slice(0, 2)).toEqual(['BAR', 'BRD']);
 });

@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import '@/styles/guildTokens.css';
-import { angleStep, optionAtTop, pointerAngle, rotationForOption, settleRotation, shortLabels } from './choiceWheel';
+import { angleStep, fitRingLabels, optionAtTop, pointerAngle, readsUpsideDown, rotationForOption, settleRotation } from './choiceWheel';
 import './GuildChoiceWheel.css';
 
 const R = 100;
@@ -33,8 +33,11 @@ function buzz() {
 /**
  * A choice wheel: the options sit on a ring inside the hexagon and the one
  * resting under the pointer at the top is selected. Drag the ring round,
- * tap a segment, or use the arrow keys. Ring labels are short codes that
- * turn with the ring; the centre shows the selected option's full name.
+ * tap a segment, or use the arrow keys. Ring labels turn with the ring: full
+ * names sized to fit their wedge, so a wheel with more options (homebrew or
+ * community races and classes) has smaller wedges and smaller names, or a
+ * wheel's own short labels where it gives them. The centre shows the
+ * selected option's full name.
  * (A radiogroup, not a listbox: the app styles every listbox as a panel.)
  *
  * `onChange` fires when the wheel comes to rest on a different option, not
@@ -64,10 +67,13 @@ export default function GuildChoiceWheel({
 }) {
   const count = options.length;
   const step = 360 / Math.max(1, count);
-  const codes = useMemo(() => {
-    const generated = shortLabels(options.map((option) => option.label));
-    return options.map((option, index) => option.short || generated[index]);
-  }, [options]);
+  // Ring labels: a wheel's own short label where it gives one (dice sizes,
+  // spell levels), otherwise the full name sized to fit its wedge.
+  const ringLabels = useMemo(() => fitRingLabels(
+    options.map((option) => option.label),
+    step,
+    (index) => ({ radius: options[index].pips ? LABEL_RADIUS + 3 : LABEL_RADIUS, singleOnly: Boolean(options[index].pips) }),
+  ), [options, step]);
   const selectedIndex = Math.max(0, options.findIndex((option) => option.id === value));
 
   const [rotation, setRotation] = useState(() => rotationForOption(selectedIndex, 0, count));
@@ -237,9 +243,26 @@ export default function GuildChoiceWheel({
                 {/* Light blue inside every wedge; orange inside the one at the top. */}
                 <path className="guild-wheel__glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
                 <path className="guild-wheel__edge" d={segmentPath(index, step)} />
-                {/* Printed on the ring: the code turns with its segment. */}
-                <g transform={`rotate(${index * step} ${lx} ${ly})`} aria-hidden="true">
-                  <text x={lx} y={option.pips ? ly - 4 : ly} textAnchor="middle" dominantBaseline="central">{codes[index]}</text>
+                {/* Printed on the ring: the label turns with its segment, and
+                    flips on the lower half so it always reads upright. */}
+                <g transform={`rotate(${index * step + (readsUpsideDown(index * step + rotation) ? 180 : 0)} ${lx} ${ly})`} aria-hidden="true">
+                  {option.short ? (
+                    <text x={lx} y={option.pips ? ly - 4 : ly} textAnchor="middle" dominantBaseline="central">{option.short}</text>
+                  ) : ringLabels[index].lines.map((line) => (
+                    // Each line sits on its own radius, measured up the wedge's centre line.
+                    <text
+                      key={line.text}
+                      className="guild-wheel__label"
+                      x={lx}
+                      y={ly - (line.radius - LABEL_RADIUS) - (option.pips ? 4 : 0)}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      style={{ fontSize: `${ringLabels[index].size}px` }}
+                      {...(line.squeeze ? { textLength: line.squeeze, lengthAdjust: 'spacingAndGlyphs' } : {})}
+                    >
+                      {line.text}
+                    </text>
+                  ))}
                   {/* Optional dots under the label, e.g. spell slots left of a level. */}
                   {option.pips && Array.from({ length: Math.min(9, Number(option.pips.total) || 0) }, (_, pip) => {
                     const total = Math.min(9, Number(option.pips.total) || 0);
