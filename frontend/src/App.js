@@ -1,5 +1,6 @@
 import React, { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import GuildGlowDefs from '@/components/guild-motif/GuildGlowDefs';
+import HexBackdrop from '@/components/guild-motif/HexBackdrop';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 
@@ -262,6 +263,7 @@ export default function App() {
       <BrowserRouter>
         <AppErrorBoundary>
           <GuildGlowDefs />
+          <HexBackdrop />
           <Suspense fallback={<RouteLoadingScreen />}>
             <AppRoutes />
           </Suspense>
