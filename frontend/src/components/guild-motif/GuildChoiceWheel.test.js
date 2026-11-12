@@ -51,3 +51,19 @@ test('the wheel follows a selection made elsewhere', () => {
   expect(screen.getByRole('radio', { name: 'Druid' })).toHaveAttribute('aria-checked', 'true');
   expect(screen.getByTestId('guild-choice-wheel-status')).toHaveTextContent('Druid selected');
 });
+
+describe('the centre hexagon as Confirm', () => {
+  test('confirms the selected option, by tap or by Enter on the wheel', () => {
+    const onConfirm = jest.fn();
+    render(<GuildChoiceWheel options={OPTIONS} value="Cleric" onChange={jest.fn()} onConfirm={onConfirm} label="Class" caption="CLASS" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Cleric' }));
+    expect(onConfirm).toHaveBeenLastCalledWith('Cleric');
+    fireEvent.keyDown(screen.getByRole('radiogroup'), { key: 'Enter' });
+    expect(onConfirm).toHaveBeenCalledTimes(2);
+  });
+
+  test('without onConfirm there is no Confirm button', () => {
+    setup('Cleric');
+    expect(screen.queryByTestId('guild-choice-wheel-confirm')).toBeNull();
+  });
+});

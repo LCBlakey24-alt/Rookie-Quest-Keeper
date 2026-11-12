@@ -187,6 +187,17 @@ Do not force all text to full white/cream. A professional screen needs visible p
 
 Cards should organise information. Do not create a box around every sentence.
 
+## 6a. Wheels (owner-approved, 12 November 2026)
+
+Rookie's signature control is the **wheel**: a round ring of wedges inside a hexagon, with a hexagon button in the centre. The `guild-motif/GuildChoiceWheel` component draws one.
+
+- **Not triangular wedges.** The ring is round. The hexagon is only the case around it and the centre button.
+- **The centre hexagon opens the 3D dice roller.** The one exception is a wheel used to make a choice (race, class, and other creator choices). There the centre is **Confirm**: it confirms the option at the top and moves on, running the same checks as Next.
+- **Selection** is the wedge resting under the pointer at the top. Drag the ring, tap a wedge, or use the arrow keys.
+- **Glow** sits inside each shape only: light blue on ordinary wedges, orange on the selected wedge, the case and the centre.
+- **Labels** on the ring turn with their wedge.
+- Every wheel offers a plain list alternative (Show as list).
+
 ## 7. Buttons and controls
 
 ### Default

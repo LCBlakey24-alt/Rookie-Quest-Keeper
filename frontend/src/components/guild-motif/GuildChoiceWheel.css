@@ -9,7 +9,7 @@
   --_accent: var(--guild-accent, #f2892f); --_accent-rgb: var(--guild-accent-rgb, 242, 137, 47);
   --_hi: var(--guild-hi, #ffb066); --_text: var(--guild-text, #ffffff); --_muted: var(--guild-muted, #c6d3e2);
   --_cool: var(--guild-cool, #6fb8ff);
-  display: grid; justify-items: center; gap: 4px; width: 100%;
+  display: grid; justify-items: center; gap: 4px; width: 100%; position: relative;
 }
 .guild-wheel__svg {
   width: min(100%, 460px); height: auto; display: block; overflow: visible;
@@ -54,3 +54,23 @@
   .guild-wheel__segment, .guild-wheel__core, .guild-wheel__glow--core, .guild-wheel__name, .guild-wheel__caption,
   .is-leaving .guild-wheel__segment, .is-leaving .guild-wheel__name, .is-leaving .guild-wheel__caption { animation: none; }
 }
+
+/* Confirm: the centre hexagon becomes a button. The visible hexagon is the
+   drawing; this transparent button sits exactly over it. The svg is
+   centred, its viewBox centre is at 50% / 50%, and the core hexagon (radius
+   48 of a 182-wide viewBox) spans about 46% of the drawing's width. */
+.guild-wheel__confirm-label { fill: var(--_accent); font: 800 6.5px/1 var(--rq-body-font, Manrope, sans-serif); letter-spacing: 0.22em; pointer-events: none; }
+.guild-wheel.has-confirm .guild-wheel__name { transform: translateY(-2px); }
+html body #root .guild-wheel button.guild-wheel__confirm, .guild-wheel button.guild-wheel__confirm {
+  --rq-control-blue: transparent; --rq-fill-color: transparent;
+  position: absolute; top: calc(50% - 2px); left: 50%; translate: -50% -50%;
+  /* Sized with !important: the app widens every labelled button to auto. */
+  width: min(46%, 212px) !important; height: auto !important; min-width: 0 !important; aspect-ratio: 0.866; min-height: 0 !important; padding: 0 !important; margin: 0;
+  border-width: 0 !important; border-radius: 0; cursor: pointer;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  -webkit-tap-highlight-color: transparent;
+}
+.guild-wheel button.guild-wheel__confirm::before, .guild-wheel button.guild-wheel__confirm::after { content: none !important; }
+.guild-wheel:has(.guild-wheel__confirm:hover) .guild-wheel__core,
+.guild-wheel:has(.guild-wheel__confirm:active) .guild-wheel__core { fill: rgba(var(--_accent-rgb), 0.16); }
+.guild-wheel:has(.guild-wheel__confirm:focus-visible) .guild-wheel__core { stroke: var(--_text); stroke-width: 3; }

@@ -760,8 +760,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           <article className={`full-creator-panel${leaving ? ' is-leaving' : ''}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
             {stepId === 'setup' && <Setup draft={draft} update={update} />}
-            {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} selectedLanguages={draft.raceChosenLanguages} unavailableLanguages={[...baseLanguages, ...arr(draft.backgroundChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('raceChosenLanguages', language, languageChoices)} />}
-            {stepId === 'class' && <ClassStep draft={draft} update={update} classData={classData} classFeatures={classFeatures} classChoicesRequired={classChoicesRequired} subclassLevel={subclassLevel} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
+            {stepId === 'species' && <Species onConfirm={goNext} draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} selectedLanguages={draft.raceChosenLanguages} unavailableLanguages={[...baseLanguages, ...arr(draft.backgroundChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('raceChosenLanguages', language, languageChoices)} />}
+            {stepId === 'class' && <ClassStep onConfirm={goNext} draft={draft} update={update} classData={classData} classFeatures={classFeatures} classChoicesRequired={classChoicesRequired} subclassLevel={subclassLevel} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
             {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} backgroundFeature={backgroundFeature} backgroundLanguageBudget={backgroundLanguageBudget} unavailableLanguages={[...baseLanguages, ...arr(draft.raceChosenLanguages), ...arr(draft.preservedLanguages)]} toggleLanguage={(language) => toggleList('backgroundChosenLanguages', language, backgroundLanguageBudget)} />}
             {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} bonus={bonus} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
               const next = { ...draft.floatingAsi };
@@ -818,11 +818,12 @@ function loadChoiceView() {
 }
 
 /**
- * Race and class are chosen on a wheel by default; "Show as list" swaps in
- * the cards for anyone who prefers them. The preference is remembered on
- * this device. Both views call the same `onChoose`.
+ * Race and class are chosen on a wheel by default. Its centre hexagon
+ * confirms the choice and moves on: the same as Next, so the same checks
+ * run. "Show as list" swaps in the cards for anyone who prefers them; the
+ * preference is remembered on this device. Both views call `onChoose`.
  */
-function ChoicePicker({ label, caption, options, value, onChoose, children }) {
+function ChoicePicker({ label, caption, options, value, onChoose, onConfirm, children }) {
   const [view, setView] = useState(loadChoiceView);
   const switchTo = (next) => {
     setView(next);
@@ -831,7 +832,7 @@ function ChoicePicker({ label, caption, options, value, onChoose, children }) {
   return (
     <div className="full-creator-choice-picker" data-view={view}>
       {view === 'wheel'
-        ? <GuildChoiceWheel label={label} caption={caption} options={options} value={value} onChange={onChoose} />
+        ? <GuildChoiceWheel label={label} caption={caption} options={options} value={value} onChange={onChoose} onConfirm={onConfirm} />
         : children}
       <button type="button" className="full-creator-choice-view" onClick={() => switchTo(view === 'wheel' ? 'list' : 'wheel')} data-testid={`choice-view-${label.toLowerCase()}`}>
         {view === 'wheel' ? 'Show as list' : 'Show as wheel'}
@@ -840,12 +841,12 @@ function ChoicePicker({ label, caption, options, value, onChoose, children }) {
   );
 }
 
-function Species({ draft, update, subraces, raceData, racialTraits, baseLanguages, languageChoices, bonus, speciesLabel, selectedLanguages, unavailableLanguages, toggleLanguage }) {
+function Species({ onConfirm, draft, update, subraces, raceData, racialTraits, baseLanguages, languageChoices, bonus, speciesLabel, selectedLanguages, unavailableLanguages, toggleLanguage }) {
   const speed = raceData.subraces?.[draft.subrace]?.speed || raceData.speed || 30;
   const chooseRace = (name) => update({ race: name, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] });
   return <>
     <Title icon={Shield} title={`Choose ${speciesLabel.toLowerCase()}`} text={`Pick your character's ${speciesLabel.toLowerCase()} and review what it gives them.`} />
-    <ChoicePicker label={speciesLabel} caption={speciesLabel.toUpperCase()} options={Object.keys(RACES).map((name) => ({ id: name, label: name }))} value={draft.race} onChoose={chooseRace}>
+    <ChoicePicker label={speciesLabel} caption={speciesLabel.toUpperCase()} options={Object.keys(RACES).map((name) => ({ id: name, label: name }))} value={draft.race} onChoose={chooseRace} onConfirm={onConfirm}>
       <div className="full-creator-option-grid" role="group" aria-label={`${speciesLabel} options`}>
         {Object.keys(RACES).map((name) => {
           const option = RACES[name] || {};
@@ -885,7 +886,7 @@ function Species({ draft, update, subraces, raceData, racialTraits, baseLanguage
   </>;
 }
 
-function ClassStep({ draft, update, classData, classFeatures, classChoicesRequired, subclassLevel, backgroundSkills, skillOptions, selectedSkills, skillTarget, toggleSkill, hasSpells, spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
+function ClassStep({ onConfirm, draft, update, classData, classFeatures, classChoicesRequired, subclassLevel, backgroundSkills, skillOptions, selectedSkills, skillTarget, toggleSkill, hasSpells, spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
   const armor = arr(classData.armorProficiencies);
   const weapons = arr(classData.weaponProficiencies);
   const saves = arr(classData.savingThrows);
@@ -901,7 +902,7 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
   });
   return <>
     <Title icon={Swords} title="Choose class" text="Class handles class, subclass timing, class skills, spells, features, and proficiencies." />
-    <ChoicePicker label="Class" caption="CLASS" options={Object.keys(CLASSES).map((name) => ({ id: name, label: name }))} value={draft.characterClass} onChoose={chooseClass}>
+    <ChoicePicker label="Class" caption="CLASS" options={Object.keys(CLASSES).map((name) => ({ id: name, label: name }))} value={draft.characterClass} onChoose={chooseClass} onConfirm={onConfirm}>
       <div className="full-creator-option-grid" role="group" aria-label="Class options">
         {Object.keys(CLASSES).map((name) => {
           const option = CLASSES[name] || {};
