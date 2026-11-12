@@ -15,6 +15,7 @@ import {
   wheelViewBox,
 } from './hexGeometry';
 import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
+import D20Glyph from '@/components/guild-motif/D20Glyph';
 
 const CENTRE_RADIUS = INNER_RADIUS - 4;
 
@@ -182,9 +183,13 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
           onKeyDown={(event) => activate(event, centre.onSelect)}
         >
           <GlowPolygon className="hex-wheel__centre-shape" points={pointsAttribute(hexVertices(CENTRE_RADIUS))} filterId={filterId} />
-          <text className="hex-wheel__centre-label" x={0} y={centre.sublabel ? -4 : 0} fontSize={fitFontSize(centre.label, 52, 15)} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
-            {centre.label}
-          </text>
+          {centre.icon === 'd20' ? (
+            <D20Glyph radius={21} />
+          ) : (
+            <text className="hex-wheel__centre-label" x={0} y={centre.sublabel ? -4 : 0} fontSize={fitFontSize(centre.label, 52, 15)} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
+              {centre.label}
+            </text>
+          )}
           {centre.sublabel && (
             <text className="hex-wheel__centre-sublabel" x={0} y={11} fontSize={6} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
               {centre.sublabel}

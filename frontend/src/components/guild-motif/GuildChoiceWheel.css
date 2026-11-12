@@ -86,3 +86,6 @@ html body #root .guild-wheel button.guild-wheel__confirm, .guild-wheel button.gu
 .guild-wheel.is-compact .guild-wheel__name { font-size: 26px; }
 .guild-wheel.is-compact .guild-wheel__caption { font-size: 9px; }
 .guild-wheel.is-compact .guild-wheel__confirm-label { font-size: 8px; }
+/* Keyboard focus is shown by the case's bright edge (above); the app-wide
+   focus ring would draw a rectangle around the hexagon. */
+html body #root .guild-wheel__svg:focus-visible { outline: none !important; box-shadow: none !important; }

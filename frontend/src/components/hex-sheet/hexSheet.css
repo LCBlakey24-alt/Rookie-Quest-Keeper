@@ -593,3 +593,10 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
   margin: 0 !important; padding: 12px !important; grid-template-columns: none !important;
 }
 .hex-sheet .hex-section-list.character-page-v2 > * { width: 100% !important; max-width: none !important; margin-inline: 0 !important; }
+
+/* The d20 symbol in a wheel's centre (D20Glyph). */
+.d20-glyph { pointer-events: none; }
+.d20-glyph__outline, .d20-glyph__face { fill: none; stroke: var(--hex-text, #fff); stroke-width: 1.4; stroke-linejoin: round; }
+.d20-glyph__edge { stroke: var(--hex-text, #fff); stroke-width: 0.9; stroke-linecap: round; opacity: 0.75; }
+.d20-glyph__face { fill: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.16); stroke-width: 1.5; }
+html body #root .d20-glyph__label { fill: var(--hex-text, #fff); font-family: var(--guild-font-display, 'Cinzel', serif) !important; font-weight: 700; }
