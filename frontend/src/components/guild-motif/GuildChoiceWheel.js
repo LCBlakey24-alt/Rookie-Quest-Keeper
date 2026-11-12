@@ -50,8 +50,17 @@ function buzz() {
  * @param {(id: string) => void} [props.onConfirm]  makes the centre hexagon a
  *   Confirm button for the selected option (also Enter on the wheel). Without
  *   it the centre only shows the selection.
+ * @param {string[]} [props.disabledIds] options shown dimmed that cannot be chosen
+ * @param {string} [props.centreText]    replaces the selected name in the centre
+ * @param {string} [props.centreNote]    small line under the centre text
+ * @param {string} [props.confirmLabel]  word on the centre button (default CONFIRM)
+ * @param {string} [props.confirmAria]   accessible name for the centre button
+ * @param {boolean} [props.compact]      a smaller wheel, one of several on screen
  */
-export default function GuildChoiceWheel({ options, value, onChange, label, caption, onConfirm }) {
+export default function GuildChoiceWheel({
+  options, value, onChange, label, caption, onConfirm,
+  disabledIds = [], centreText, centreNote, confirmLabel = 'CONFIRM', confirmAria, compact = false,
+}) {
   const count = options.length;
   const step = 360 / Math.max(1, count);
   const codes = useMemo(() => {
@@ -80,7 +89,17 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
     turnTo(rotationForOption(selectedIndex, rotationRef.current, count));
   }, [selectedIndex, count]);
 
+  const disabled = useMemo(() => new Set(disabledIds), [disabledIds]);
+  const isDisabled = (index) => disabled.has(options[index]?.id);
+
   const commit = (index) => {
+    // A dimmed option cannot be chosen: turn back to the current one.
+    if (isDisabled(index) && index !== selectedIndex) {
+      buzz();
+      setPreview(selectedIndex);
+      turnTo(rotationForOption(selectedIndex, rotationRef.current, count));
+      return;
+    }
     setPreview(index);
     turnTo(rotationForOption(index, rotationRef.current, count));
     if (index !== selectedIndex) {
@@ -146,7 +165,13 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
     const keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
     if (keys[event.key]) {
       event.preventDefault();
-      commit((selectedIndex + keys[event.key] + count) % count);
+      // Step to the next option that can be chosen, if any.
+      let next = selectedIndex;
+      for (let tries = 0; tries < count; tries += 1) {
+        next = (next + keys[event.key] + count) % count;
+        if (!isDisabled(next)) break;
+      }
+      commit(next);
     } else if (event.key === 'Home') {
       event.preventDefault();
       commit(0);
@@ -160,11 +185,11 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
   };
 
   const shown = options[preview] || options[selectedIndex];
-  const name = shown?.label || '';
+  const name = centreText !== undefined && preview === selectedIndex ? String(centreText) : (shown?.label || '');
   const nameClass = name.length > 9 ? ' is-long' : name.length > 6 ? ' is-medium' : '';
 
   return (
-    <div className={`guild-wheel${onConfirm ? ' has-confirm' : ''}`} data-testid="guild-choice-wheel">
+    <div className={`guild-wheel${onConfirm ? ' has-confirm' : ''}${compact ? ' is-compact' : ''}`} data-testid="guild-choice-wheel">
       <svg
         ref={svgRef}
         className={`guild-wheel__svg${dragging ? ' is-dragging' : ''}`}
@@ -202,7 +227,8 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
                 aria-checked={isSelected}
                 aria-label={option.label}
                 data-wheel-index={index}
-                className={`guild-wheel__segment${isSelected ? ' is-selected' : ''}${isPreview ? ' is-preview' : ''}`}
+                aria-disabled={isDisabled(index) || undefined}
+                className={`guild-wheel__segment${isSelected ? ' is-selected' : ''}${isPreview ? ' is-preview' : ''}${isDisabled(index) ? ' is-disabled' : ''}`}
                 style={{ '--wheel-order': index }}
               >
                 <path className="guild-wheel__face" d={segmentPath(index, step)} />
@@ -220,7 +246,8 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
         <polygon className="guild-wheel__glow guild-wheel__glow--core" points={hexPoints(48)} clipPath={`url(#${uid}-core)`} filter={`url(#${uid}-blur)`} />
         {caption && <text className="guild-wheel__caption" x="0" y="-18" textAnchor="middle" aria-hidden="true">{caption}</text>}
         <text className={`guild-wheel__name${nameClass}`} x="0" y={caption ? 6 : 0} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{name}</text>
-        {onConfirm && <text className="guild-wheel__confirm-label" x="0" y="27" textAnchor="middle" aria-hidden="true">CONFIRM</text>}
+        {onConfirm && <text className="guild-wheel__confirm-label" x="0" y="27" textAnchor="middle" aria-hidden="true">{confirmLabel}</text>}
+        {!onConfirm && centreNote && <text className="guild-wheel__note" x="0" y="28" textAnchor="middle" aria-hidden="true">{centreNote}</text>}
       </svg>
       {/* The centre hexagon as a real button laid over the drawing, so it is
           reachable and announced on its own rather than inside the ring. */}
@@ -229,7 +256,7 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
           type="button"
           className="guild-wheel__confirm"
           onClick={() => onConfirm(options[selectedIndex].id)}
-          aria-label={`Confirm ${options[selectedIndex].label}`}
+          aria-label={confirmAria || `Confirm ${options[selectedIndex].label}`}
           data-testid="guild-choice-wheel-confirm"
         />
       )}

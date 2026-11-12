@@ -55,23 +55,23 @@ button.ability-step__pick { cursor: pointer; }
 .ability-step__final b { color: var(--rqk-creator-text); font-size: 0.95rem; }
 
 /* Point-buy dial */
-.ability-knob { display: grid; justify-items: center; gap: 4px; }
-.ability-knob__svg { width: min(78vw, 260px); height: auto; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; outline: none; }
-.ability-knob__svg.is-turning { cursor: grabbing; }
-.ability-knob__svg:focus-visible .ability-knob__body { stroke: var(--rqk-creator-text); stroke-width: 3; }
-.ability-knob__track { fill: none; stroke: var(--rqk-creator-line-strong); stroke-width: 6; stroke-linecap: round; }
-.ability-knob__spent { fill: none; stroke: var(--rqk-creator-accent); stroke-width: 6; stroke-linecap: round; }
-.ability-knob__notch { fill: var(--rqk-creator-muted); font-size: 12px; font-weight: 800; }
-.ability-knob__notch.is-current { fill: var(--rqk-creator-accent); font-size: 15px; }
-.ability-knob__notch.is-unaffordable { opacity: 0.3; }
-.ability-knob__body { fill: var(--rqk-creator-card); stroke: var(--rqk-creator-accent); stroke-width: 1.5; }
-.ability-knob__indicator { stroke: var(--rqk-creator-accent); stroke-width: 5; stroke-linecap: round; }
-.ability-knob__label { fill: var(--rqk-creator-muted); font-size: 11px; font-weight: 900; letter-spacing: 0.1em; }
-.ability-knob__value { fill: var(--rqk-creator-text); font-size: 30px; font-weight: 900; }
-.ability-knob__left { fill: var(--rqk-creator-muted); font-size: 10px; font-weight: 700; }
-.ability-knob__hint { margin: 0; font-size: 0.82rem; color: var(--rqk-creator-muted); text-align: center; }
 
 @media (max-width: 760px) {
   .ability-step__methods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ability-step__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Six wheels, one per ability: two across on a phone, three on wider screens. */
+.ability-step__wheels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 8px; }
+@media (min-width: 720px) { .ability-step__wheels { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; } }
+.ability-step__wheel-card { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+.ability-step__wheel-card .ability-step__stepper { display: flex; gap: 8px; }
+.ability-step__wheel-card .ability-step__final { font-size: 0.8rem; }
+
+/* List alternative to the wheels: same method, same rules. */
+.ability-step__view-toggle { justify-self: start; min-height: 44px; padding: 0 14px; font-weight: 800; }
+.ability-step__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ability-step__list-row { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem 3rem; align-items: center; gap: 10px; }
+.ability-step__list-row select, .ability-step__list-row button { min-height: 44px; }
+.ability-step__list-row b { text-align: right; }
+.ability-step__assigned { font-size: 0.85rem; font-weight: 800; color: var(--rqk-creator-text); }
