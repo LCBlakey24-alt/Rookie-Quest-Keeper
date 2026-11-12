@@ -488,7 +488,7 @@ export default function HexCharacterSheet() {
               proficiencyBonus={proficiencyBonusFor(character)}
               section={COMBAT_GROUPS.find((group) => group.id === current.group)?.sections || ['action', 'other']}
               onRoll={rollCheck}
-              onCharacterUpdate={(updates, options = {}) => queueRef.current.patch(updates, options)}
+              onCharacterUpdate={patchWithConcentrationGuard}
               onDiceResult={(entry) => present(entry)}
             />
           </section>
