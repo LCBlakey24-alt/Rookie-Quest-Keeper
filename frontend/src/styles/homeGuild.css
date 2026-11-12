@@ -1,0 +1,119 @@
+/* Home in the character sheet's look (DESIGN_SYSTEM §4 and §6a).
+ *
+ * One strong deep blue, no lighter panels: panels, cards and buttons are
+ * told apart by a thin edge with a glow inside the shape (light blue on
+ * ordinary shapes, orange on primary actions and notices). Loaded after
+ * homeDashboardV5.css and unifiedDashboardPolish.css; the extra `html body`
+ * keeps these rules ahead of theirs. Buttons get their edge on ::after
+ * because the app-wide control layer pins button borders and shadows.
+ */
+html body #root .rqk-home-v5 {
+  --hg-line: rgba(111, 184, 255, 0.42);
+  --hg-line-hot: rgba(var(--guild-hi-rgb), 0.85);
+  --hg-glow-cool: inset 0 0 24px rgba(111, 184, 255, calc(0.22 * var(--guild-glow)));
+  --hg-glow-hot: inset 0 0 24px rgba(var(--guild-accent-rgb), calc(0.4 * var(--guild-glow)));
+  --rq-control-blue: var(--guild-bg);
+  --rq-control-wax: var(--guild-select);
+  --rq-fill-color: rgba(var(--guild-accent-rgb), 0.14);
+  --rq-text-primary: var(--guild-text);
+  /* The app-wide layered heading rule paints headings with this variable. */
+  --rq-guild-heading: var(--guild-text);
+  background: var(--guild-bg) !important;
+  color: var(--guild-text) !important;
+}
+
+/* Headings: white in the display face, small kickers in the accent. */
+html body #root .rqk-home-v5 :is(h1, h2) {
+  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+}
+html body #root .rqk-home-v5 .unified-dashboard-header--simple h1::after { display: none !important; }
+html body #root .rqk-home-v5 :is(.dashboard-eyebrow, .rqk-home-start-heading span, .rqk-home-update-row span, .rqk-home-announcement-top) { color: var(--guild-hi) !important; }
+html body #root .rqk-home-v5 :is(.dashboard-muted, .rqk-home-metric small, .rqk-home-update-row p, .rqk-home-feed-empty, .rqk-home-empty, .rqk-home-start-heading p) { color: var(--guild-muted) !important; }
+
+/* Panels and cards: the page's own blue with a light-blue inner glow. */
+html body #root .rqk-home-v5 :is(
+  .unified-dashboard-header--simple,
+  .rqk-home-empty,
+  .rqk-home-announcement,
+  .rqk-home-metric,
+  .rqk-home-getting-started,
+  .rqk-home-start-actions a,
+  .rqk-home-feed-box,
+  .dashboard-activity-list,
+  .rqk-home-actions-grid a
+) {
+  background: var(--guild-bg) !important;
+  background-image: none !important;
+  border: 1px solid var(--hg-line) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--hg-glow-cool) !important;
+  color: var(--guild-text) !important;
+}
+html body #root .rqk-home-v5 .unified-dashboard-header--simple::before,
+html body #root .rqk-home-v5 .unified-dashboard-header--simple::after { display: none !important; }
+html body #root .rqk-home-v5 :is(.rqk-home-metric, .rqk-home-start-actions a, .rqk-home-actions-grid a) { transition: border-color 140ms ease, box-shadow 140ms ease; }
+html body #root .rqk-home-v5 :is(.rqk-home-metric, .rqk-home-start-actions a, .rqk-home-actions-grid a):is(:hover, :focus-visible) {
+  border-color: var(--hg-line-hot) !important;
+  box-shadow: var(--hg-glow-hot) !important;
+}
+html body #root .rqk-home-v5 :is(.rqk-home-metric-top svg, .rqk-home-start-heading > svg, .rqk-home-start-actions svg, .rqk-home-actions-grid a svg, .rqk-home-section-heading h2 svg) { color: var(--guild-hi) !important; }
+
+/* Notices stay orange: they are the thing to read first. */
+html body #root .rqk-home-v5 .rqk-home-alert {
+  background: var(--guild-bg) !important;
+  border: 1px solid var(--hg-line-hot) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--hg-glow-hot) !important;
+  color: var(--guild-text) !important;
+}
+
+/* Buttons: rounded glass, edge and glow on ::after. */
+html body #root .rqk-home-v5 :is(.unified-dashboard-button, .rqk-home-refresh, .rqk-home-carousel-arrows button, .rqk-home-view-toggle) {
+  position: relative;
+  border-color: transparent !important;
+  border-radius: 12px !important;
+  background: var(--guild-bg) !important;
+  color: var(--guild-text) !important;
+}
+html body #root .rqk-home-v5 :is(.unified-dashboard-button, .rqk-home-refresh, .rqk-home-carousel-arrows button, .rqk-home-view-toggle)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid var(--hg-line);
+  box-shadow: var(--hg-glow-cool);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+html body #root .rqk-home-v5 :is(.unified-dashboard-button, .rqk-home-refresh, .rqk-home-carousel-arrows button, .rqk-home-view-toggle):is(:hover, :focus-visible)::after {
+  border-color: var(--hg-line-hot);
+  box-shadow: var(--hg-glow-hot);
+}
+html body #root .rqk-home-v5 .rqk-home-carousel-dots button.is-active { border-color: var(--guild-accent) !important; background: var(--guild-accent) !important; }
+
+/* The hub wheel: heading row with the list toggle, then the wheel. */
+html body #root .rqk-home-v5 .rqk-home-totals-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+html body #root .rqk-home-v5 .rqk-home-view-toggle {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; width: auto !important;
+  padding: 0 14px; font: inherit; font-size: 0.85rem; font-weight: 800; cursor: pointer;
+}
+.rqk-home-hub {
+  /* The sheet's wheel reads its colours from --hex-*; give it the Keeper Blue theme. */
+  --hex-bg: var(--guild-bg);
+  --hex-glow-rgb: var(--guild-accent-rgb);
+  --hex-orange: var(--guild-accent);
+  --hex-orange-soft: rgba(var(--guild-accent-rgb), 0.55);
+  --hex-hi: var(--guild-hi);
+  --hex-sub: var(--guild-hi);
+  --hex-text: var(--guild-text);
+  --hex-muted: var(--guild-muted);
+  --hex-cool: var(--guild-cool);
+  --hex-cool-soft: rgba(111, 184, 255, 0.5);
+  --hex-title-font: var(--rq-font-display, 'Fraunces', Georgia, serif);
+  display: grid;
+  justify-items: center;
+}
+.rqk-home-hub .hex-wheel { width: min(100%, 460px); height: auto; overflow: visible; }
+.rqk-home-hub .hex-wheel__centre-label { font-family: var(--hex-title-font); }
