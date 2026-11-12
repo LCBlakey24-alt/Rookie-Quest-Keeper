@@ -37,6 +37,15 @@ const fighter = {
 };
 
 describe('campaign character bridge', () => {
+  it('shows the same initiative as the character sheet', () => {
+    const summary = (character) => normalizeCampaignCharacter({ character_id: 'c1', character: { id: 'c1', name: 'Quick', ...character } });
+    expect(summary({ dexterity: 16, initiative_bonus: 0 }).initiative).toBe(3);
+    expect(summary({ dexterity: 16, initiative_bonus: 5 }).initiative).toBe(5);
+    expect(summary({ dexterity: 16, initiative_bonus: 0, initiative_bonus_override: true }).initiative).toBe(0);
+    expect(normalizeCampaignCharacter({ name: 'Row', initiativeMod: 2 }).initiative).toBe(2);
+  });
+
+
   test('normalizes a linked campaign character summary', () => {
     const summary = normalizeCampaignCharacter({ username: 'Lewis', character_id: wizard.id, character: wizard });
 

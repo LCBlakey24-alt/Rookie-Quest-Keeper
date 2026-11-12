@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 from config import db as default_db
 from utils.character_campaign_link import character_belongs_to_campaign
+from utils.initiative import initiative_modifier
 
 
 def _int(value: Any, fallback: int) -> int:
@@ -35,7 +36,7 @@ def _character_row(character: Dict[str, Any], member: Dict[str, Any]) -> Dict[st
         "temporary_hit_points": temp_hp,
         "temp_hp": temp_hp,
         "ac": _int(character.get("armor_class"), 10),
-        "initiativeMod": _int(character.get("initiative_bonus"), _ability_mod(character.get("dexterity"))),
+        "initiativeMod": initiative_modifier(character),
         "conditions": character.get("conditions") if isinstance(character.get("conditions"), list) else [],
         "death_saves_successes": max(0, min(3, _int(character.get("death_saves_successes"), 0))),
         "death_saves_failures": max(0, min(3, _int(character.get("death_saves_failures"), 0))),

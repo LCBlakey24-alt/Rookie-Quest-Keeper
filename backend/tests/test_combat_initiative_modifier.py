@@ -19,8 +19,11 @@ from routes.combat_initiative_submissions import initiative_bonus_for  # noqa: E
 
 
 class TestCombatInitiativeModifier(unittest.TestCase):
-    def test_explicit_bonus_wins_even_when_zero_or_negative(self):
-        self.assertEqual(initiative_bonus_for({"initiative_bonus": 0, "dexterity": 18}), 0)
+    def test_explicit_bonus_wins_when_nonzero_or_marked_manual(self):
+        # A saved 0 is the old model default, so it falls back to DEX like the
+        # character sheet does; a 0 the player marked as manual is kept.
+        self.assertEqual(initiative_bonus_for({"initiative_bonus": 0, "dexterity": 18}), 4)
+        self.assertEqual(initiative_bonus_for({"initiative_bonus": 0, "initiative_bonus_override": True, "dexterity": 18}), 0)
         self.assertEqual(initiative_bonus_for({"initiative_bonus": -2, "dexterity": 18}), -2)
         self.assertEqual(initiative_bonus_for({"initiative_bonus": "5", "dexterity": 8}), 5)
 
