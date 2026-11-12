@@ -37,7 +37,7 @@ export default function HomeHubWheel({ places }) {
           ariaLabel: place.ariaLabel,
           onSelect: () => navigate(place.to),
         }))}
-        centre={{ label: 'D20', ariaLabel: 'Open the dice roller', onSelect: openDice }}
+        centre={{ label: 'D20', icon: 'd20', ariaLabel: 'Open the dice roller', onSelect: openDice }}
       />
     </div>
   );

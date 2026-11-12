@@ -23,6 +23,7 @@ import HexPortrait from './HexPortrait';
 import HexSkillDial from './HexSkillDial';
 import HexSpinWheel from './HexSpinWheel';
 import HexWheel from './HexWheel';
+import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 import { SLOT } from './hexGeometry';
 import { HEX_THEMES, getHexTheme, loadHexThemeId, saveHexThemeId } from './hexThemes';
 import { abilityRows, formatModifier, identityLines, portraitUrlFor, proficiencyBonusFor, vitalsFor } from './hexSheetModel';
@@ -61,14 +62,8 @@ export const COMBAT_GROUPS = [
   { id: 'reaction', label: 'Reactions', sections: ['reaction'] },
 ];
 
-export const DICE_SLOTS = [
-  { sides: 4, slot: SLOT.UPPER_LEFT },
-  { sides: 6, slot: SLOT.UPPER_RIGHT },
-  { sides: 8, slot: SLOT.RIGHT },
-  { sides: 10, slot: SLOT.LOWER_RIGHT },
-  { sides: 12, slot: SLOT.LOWER_LEFT },
-  { sides: 20, slot: SLOT.LEFT },
-];
+/** The dice on the dice wheel, in the order they sit round the ring. */
+export const DICE_CHOICES = [4, 6, 8, 10, 12, 20, 100];
 
 const SECTION_TITLES = Object.fromEntries(MAIN_SECTIONS.map((section) => [section.id, section.label]));
 const VIEW_TITLES = { main: 'Character', core: 'Core Abilities', dice: 'Dice', hp: 'Hit Points', ...SECTION_TITLES };
@@ -198,6 +193,7 @@ export default function HexCharacterSheet() {
   };
 
   const openDice = () => push({ view: 'dice' });
+  const [diceChoice, setDiceChoice] = useState(20);
 
   /**
    * Save an HP dial change through the same queue as the classic sheet.
@@ -269,7 +265,7 @@ export default function HexCharacterSheet() {
     };
   }, [character]);
 
-  const centreDice = { label: 'D20', ariaLabel: 'Open the dice wheel', onSelect: openDice };
+  const centreDice = { label: 'D20', icon: 'd20', ariaLabel: 'Open the dice wheel', onSelect: openDice };
 
   let wheel;
   if (current.view === 'main') {
@@ -331,19 +327,18 @@ export default function HexCharacterSheet() {
   } else if (current.view === 'hp') {
     wheel = <HexHpDial character={character} initialTarget={current.target || 'hp'} onConfirm={confirmHp} onCancel={back} />;
   } else if (current.view === 'dice') {
+    // Turn the die you want to the top, then press the centre to roll it.
     wheel = (
-      <HexWheel
-        viewKey="dice"
+      <GuildChoiceWheel
         label="Dice"
-        wedges={DICE_SLOTS.map(({ sides, slot }) => ({
-          id: `d${sides}`,
-          slot,
-          label: `D${sides}`,
-          upright: true,
-          ariaLabel: `Roll a d${sides}`,
-          onSelect: () => rollDie(sides),
-        }))}
-        centre={{ label: 'D100', ariaLabel: 'Roll a d100', onSelect: () => rollDie(100) }}
+        caption="DICE"
+        options={DICE_CHOICES.map((sides) => ({ id: `d${sides}`, label: `d${sides}`, short: `D${sides}` }))}
+        value={`d${diceChoice}`}
+        onChange={(id) => setDiceChoice(Number(id.slice(1)))}
+        centreText={`D${diceChoice}`}
+        onConfirm={() => rollDie(diceChoice)}
+        confirmLabel="ROLL"
+        confirmAria={`Roll a d${diceChoice}`}
       />
     );
   } else {

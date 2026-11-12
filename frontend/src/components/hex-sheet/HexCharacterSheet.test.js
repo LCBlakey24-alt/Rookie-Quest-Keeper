@@ -103,7 +103,9 @@ describe('the main wheel', () => {
     expect(slotOf('magic')).toBe(SLOT.RIGHT);
     expect(slotOf('traits')).toBe(SLOT.LOWER_LEFT);
     expect(slotOf('combat')).toBe(SLOT.LOWER_RIGHT);
-    expect(screen.getByTestId('hex-centre')).toHaveTextContent('D20');
+    // The centre shows the d20 symbol and is named for what it does.
+    expect(within(screen.getByTestId('hex-centre')).getByTestId('d20-glyph')).toBeInTheDocument();
+    expect(screen.getByTestId('hex-centre')).toHaveAttribute('aria-label', 'Open the dice wheel');
   });
 
   test('wedges deal out clockwise from the upper left, and the whole wheel is in place within a second', async () => {
@@ -187,21 +189,30 @@ describe('Back works like history', () => {
 });
 
 describe('the D20 centre and dice wheel', () => {
-  test('the centre turns the wheel into dice, and a die rolls through the existing tray', async () => {
+  test('the centre opens a wheel of dice; turn the die you want to the top and the centre rolls it', async () => {
     await openSheet();
     fireEvent.click(screen.getByTestId('hex-centre'));
     expect(crumbs()).toEqual(['Character', 'Dice']);
-    ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].forEach((id) => expect(screen.getByTestId(`hex-wedge-${id}`)).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('hex-wedge-d6'));
-    expect(lastRoll().label).toBe('d6');
-    expect(lastRoll().rolls.every((roll) => roll.sides === 6 && roll.result >= 1 && roll.result <= 6)).toBe(true);
+    ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'].forEach((name) => expect(screen.getByRole('radio', { name })).toBeInTheDocument());
+    expect(screen.getByRole('radio', { name: 'd20' })).toHaveAttribute('aria-checked', 'true');
+
+    fireEvent.click(screen.getByTestId('guild-choice-wheel-confirm'));
+    expect(lastRoll().label).toBe('d20');
+
+    // Turn one step back round the ring, to the d12, and roll that.
+    fireEvent.keyDown(screen.getByRole('radiogroup', { name: /^Dice/ }), { key: 'ArrowLeft' });
+    expect(screen.getByRole('radio', { name: 'd12' })).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Roll a d12' }));
+    expect(lastRoll().label).toBe('d12');
+    expect(lastRoll().rolls.every((roll) => roll.sides === 12 && roll.result >= 1 && roll.result <= 12)).toBe(true);
     expect(crumbs()).toEqual(['Character', 'Dice']); // stays on the dice wheel
   });
 
-  test('the dice wheel centre rolls a d100 and More dice opens the full roller', async () => {
+  test('the d100 is on the wheel and More dice opens the full roller', async () => {
     await openSheet();
     fireEvent.click(screen.getByTestId('hex-centre'));
-    fireEvent.click(screen.getByTestId('hex-centre'));
+    fireEvent.keyDown(screen.getByRole('radiogroup', { name: /^Dice/ }), { key: 'ArrowRight' });
+    fireEvent.click(screen.getByRole('button', { name: 'Roll a d100' }));
     expect(lastRoll().label).toBe('d100');
     const opened = jest.fn();
     window.addEventListener('rq-dice-open', opened);

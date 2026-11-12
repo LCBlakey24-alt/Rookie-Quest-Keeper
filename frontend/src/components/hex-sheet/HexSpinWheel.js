@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
+import D20Glyph from '@/components/guild-motif/D20Glyph';
 import { INNER_RADIUS, OUTER_RADIUS, hexVertices, pointsAttribute, wheelViewBox } from './hexGeometry';
 import { DRAG_THRESHOLD_DEGREES, angleStep, pointerAngle } from './hpDial';
 import { playDialTick } from './dialSound';
@@ -165,7 +166,9 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
           data-testid="hex-centre"
         >
           <GlowPolygon className="hex-wheel__centre-shape" points={pointsAttribute(hexVertices(CENTRE_RADIUS))} filterId={filterId} />
-          <text className="hex-wheel__centre-label" x={0} y={0} fontSize={15} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{centre.label}</text>
+          {centre.icon === 'd20'
+            ? <D20Glyph radius={21} />
+            : <text className="hex-wheel__centre-label" x={0} y={0} fontSize={15} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{centre.label}</text>}
         </g>
       )}
     </svg>
