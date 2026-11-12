@@ -13,7 +13,7 @@ const rgb = (hex) => {
   return [0, 2, 4].map((offset) => parseInt(value.slice(offset, offset + 2), 16)).join(', ');
 };
 
-function theme({ id, name, bg, glow, hi, sub, text, muted, titleFont }) {
+function theme({ id, name, bg, glow, hi, sub, text, muted, titleFont, extra = {} }) {
   return {
     id,
     name,
@@ -31,6 +31,7 @@ function theme({ id, name, bg, glow, hi, sub, text, muted, titleFont }) {
       '--hex-muted': muted,
       '--hex-muted-rgb': rgb(muted),
       '--hex-title-font': titleFont,
+      ...extra,
     },
   };
 }
@@ -40,8 +41,23 @@ const FRAUNCES = "'Fraunces', Georgia, serif";
 const MANROPE = "var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)";
 
 export const HEX_THEMES = [
-  // The default, matching the rest of the app and the Glow dice: strong deep blue, white text, orange glow.
-  theme({ id: 'keeper', name: 'Keeper Blue', bg: '#0a2342', glow: '#f2892f', hi: '#ffb066', sub: '#ffb066', text: '#ffffff', muted: '#c6d3e2', titleFont: FRAUNCES }),
+  // The default, matching the rest of the app (styles/guildTokens.css): the
+  // Neon Coast glow on a dusk sky, Cinzel headings. Ordinary shapes glow
+  // pink -> violet -> blue; chosen ones peach -> pink -> gold.
+  theme({
+    id: 'keeper', name: 'Neon Coast', bg: '#0a2342', glow: '#ff5fa0', hi: '#ffb066', sub: '#ffb066', text: '#ffffff', muted: '#c9d2e6', titleFont: CINZEL,
+    extra: {
+      '--hex-page': 'var(--guild-sky)',
+      '--hex-cool': '#b04dff',
+      '--hex-cool-soft': 'rgba(176, 77, 255, 0.5)',
+      '--hex-stroke-cool': 'var(--guild-stroke-cool)',
+      '--hex-stroke-hot': 'var(--guild-stroke-hot)',
+      '--hex-glow': 'var(--guild-box-glow)',
+      '--hex-glow-strong': 'var(--guild-box-glow-hot)',
+      '--hex-line': 'rgba(176, 77, 255, 0.3)',
+      '--hex-orange-soft': 'rgba(176, 77, 255, 0.55)',
+    },
+  }),
   theme({ id: 'ledger', name: 'Guild Ledger Brass', bg: '#0b1520', glow: '#c9a24a', hi: '#ecd08a', sub: '#d9b86a', text: '#f4ead2', muted: '#cdbf9e', titleFont: CINZEL }),
   theme({ id: 'ember', name: 'Ember Forge', bg: '#0a1828', glow: '#f2892f', hi: '#ffb066', sub: '#f2b06a', text: '#ffffff', muted: '#c6d3df', titleFont: MANROPE }),
   theme({ id: 'frost', name: 'Arcane Frost', bg: '#08111f', glow: '#5fc8f0', hi: '#c4ecff', sub: '#9fd8f2', text: '#f4f9ff', muted: '#c3d4e6', titleFont: CINZEL }),

@@ -3,7 +3,7 @@
    and oxblood seal-red only where a user can interact.
    Status/danger/success colours and visible keyboard focus are preserved. */
 :root {
-  --rq-font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --rq-font-display: 'Cinzel', 'Fraunces', Georgia, 'Times New Roman', serif;
   --rq-guild-heading: #ffb066;
   --rq-guild-copy: #F1EEE7;
   --rq-guild-muted: #C9C6BF;

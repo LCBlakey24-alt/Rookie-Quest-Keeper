@@ -8,23 +8,23 @@
  * because the app-wide control layer pins button borders and shadows.
  */
 html body #root .rqk-home-v5 {
-  --hg-line: rgba(111, 184, 255, 0.42);
-  --hg-line-hot: rgba(var(--guild-hi-rgb), 0.85);
-  --hg-glow-cool: inset 0 0 24px rgba(111, 184, 255, calc(0.22 * var(--guild-glow)));
-  --hg-glow-hot: inset 0 0 24px rgba(var(--guild-accent-rgb), calc(0.4 * var(--guild-glow)));
+  --hg-line: var(--guild-line);
+  --hg-line-hot: var(--guild-line-hot);
+  --hg-glow-cool: var(--guild-box-glow);
+  --hg-glow-hot: var(--guild-box-glow-hot);
   --rq-control-blue: var(--guild-bg);
   --rq-control-wax: var(--guild-select);
   --rq-fill-color: rgba(var(--guild-accent-rgb), 0.14);
   --rq-text-primary: var(--guild-text);
   /* The app-wide layered heading rule paints headings with this variable. */
   --rq-guild-heading: var(--guild-text);
-  background: var(--guild-bg) !important;
+  background: transparent !important;
   color: var(--guild-text) !important;
 }
 
 /* Headings: white in the display face, small kickers in the accent. */
 html body #root .rqk-home-v5 :is(h1, h2) {
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
+  font-family: var(--rq-font-display, 'Cinzel', Georgia, serif) !important;
   color: var(--guild-text) !important;
   -webkit-text-fill-color: var(--guild-text) !important;
 }
@@ -110,8 +110,10 @@ html body #root .rqk-home-v5 .rqk-home-view-toggle {
   --hex-text: var(--guild-text);
   --hex-muted: var(--guild-muted);
   --hex-cool: var(--guild-cool);
-  --hex-cool-soft: rgba(111, 184, 255, 0.5);
-  --hex-title-font: var(--rq-font-display, 'Fraunces', Georgia, serif);
+  --hex-cool-soft: rgba(176, 77, 255, 0.5);
+  --hex-stroke-cool: var(--guild-stroke-cool);
+  --hex-stroke-hot: var(--guild-stroke-hot);
+  --hex-title-font: var(--rq-font-display, 'Cinzel', Georgia, serif);
   display: grid;
   justify-items: center;
 }

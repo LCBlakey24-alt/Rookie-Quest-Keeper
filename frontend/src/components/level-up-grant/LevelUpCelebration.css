@@ -17,10 +17,10 @@
 .rq-levelup__core { fill: var(--lu-bg); stroke: var(--lu-hi); stroke-width: 2; }
 .rq-levelup__core-glow { fill: none; stroke: var(--lu-hi); stroke-width: 10; opacity: 0; animation: rq-levelup-glow 1s 1.2s ease-out both; }
 .rq-levelup__caption { fill: var(--lu-muted); font: 800 7px/1 var(--rq-body-font, Manrope, sans-serif); letter-spacing: .2em; }
-.rq-levelup__from, .rq-levelup__to { font: 700 40px/1 var(--rq-font-display, 'Fraunces', Georgia, serif); fill: var(--lu-hi); }
+.rq-levelup__from, .rq-levelup__to { font: 700 40px/1 var(--rq-font-display, 'Cinzel', Georgia, serif); fill: var(--lu-hi); }
 .rq-levelup__from { animation: rq-levelup-out 500ms 800ms ease-in both; }
 .rq-levelup__to { opacity: 0; transform-box: fill-box; transform-origin: center; animation: rq-levelup-in 600ms 1.2s cubic-bezier(.2, .9, .3, 1.4) both; }
-.rq-levelup__title { margin: 4px 0 0; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1.1 var(--rq-font-display, 'Fraunces', Georgia, serif); color: var(--lu-hi); letter-spacing: .04em; text-shadow: 0 0 18px rgba(var(--guild-hi-rgb), calc(0.45 * var(--guild-glow))); animation: rq-levelup-rise 600ms 1.3s ease-out both; }
+.rq-levelup__title { margin: 4px 0 0; font: 700 clamp(1.8rem, 7vw, 2.4rem)/1.1 var(--rq-font-display, 'Cinzel', Georgia, serif); color: var(--lu-hi); letter-spacing: .04em; text-shadow: 0 0 18px rgba(var(--guild-hi-rgb), calc(0.45 * var(--guild-glow))); animation: rq-levelup-rise 600ms 1.3s ease-out both; }
 .rq-levelup__text { margin: 0; color: var(--lu-text); font-size: 1rem; line-height: 1.4; animation: rq-levelup-rise 600ms 1.45s ease-out both; }
 .rq-levelup__text span { color: var(--lu-muted); }
 .rq-levelup__actions { display: flex; gap: 10px; margin-top: 8px; animation: rq-levelup-rise 600ms 1.6s ease-out both; }

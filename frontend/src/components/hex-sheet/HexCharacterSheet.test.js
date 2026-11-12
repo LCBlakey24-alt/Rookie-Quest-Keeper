@@ -401,7 +401,7 @@ describe('colour themes', () => {
     window.localStorage.removeItem('rqk.hexSheet.theme');
     await openSheet({ ...PUNCH, id: 'char-theme-1' });
     expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'keeper');
-    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#f2892f');
+    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#ff5fa0');
   });
 
   test('choosing a theme recolours the sheet and is remembered on this device', async () => {
