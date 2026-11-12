@@ -21,6 +21,10 @@
   --hex-teal: #145a66;
   --hex-orange: #c9a24a;
   --hex-orange-soft: rgba(201, 162, 74, 0.55);
+  /* Ordinary wedges glow light blue inside; the chosen wedge, the case and
+     the centre glow in the theme's accent (DESIGN_SYSTEM §6a). */
+  --hex-cool: #6fb8ff;
+  --hex-cool-soft: rgba(111, 184, 255, 0.5);
   --hex-text: #f4ead2;
   --hex-muted: #cdbf9e;
   --hex-line: rgba(var(--hex-glow-rgb), 0.22);
@@ -175,6 +179,13 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-glow__halo { fill: none; stroke: var(--hex-orange); stroke-width: 7; stroke-linejoin: round; opacity: 0.38; transition: opacity 140ms ease; }
 .hex-glow__edge { fill: none; stroke: var(--hex-orange-soft); stroke-width: 1.1; stroke-linejoin: round; transition: stroke 140ms ease; }
 
+.hex-wheel__wedge .hex-glow__halo { stroke: var(--hex-cool); }
+.hex-wheel__wedge .hex-glow__edge { stroke: var(--hex-cool-soft); }
+.hex-wheel__slot.is-active .hex-wheel__wedge .hex-glow__halo,
+.hex-spin__sector.is-active .hex-wheel__wedge .hex-glow__halo,
+.hex-hp__svg.is-armed .hex-hp__half.is-selected .hex-wheel__wedge .hex-glow__halo,
+.hex-skills__case.hex-wheel__wedge .hex-glow__halo { stroke: var(--hex-orange); }
+.hex-skills__case.hex-wheel__wedge .hex-glow__edge { stroke: var(--hex-orange-soft); }
 .hex-wheel__wedge--empty { opacity: 0.4; }
 .hex-wheel__slot { cursor: pointer; outline: none; }
 .hex-wheel__slot:hover .hex-glow__halo { opacity: 0.6; }

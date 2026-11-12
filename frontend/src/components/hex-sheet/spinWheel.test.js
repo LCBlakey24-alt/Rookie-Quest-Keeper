@@ -1,11 +1,19 @@
 import { rotationForSector, sectorAtTop, sectorPolygon, settleRotation } from './spinWheel';
-import { OUTER_RADIUS } from './hexGeometry';
+import { RING_INNER, RING_OUTER } from './hexGeometry';
 
-test('wedge 0 is centred on the top corner and covers two slices', () => {
+test('wedge 0 is a third of the ring, centred on the top', () => {
   const polygon = sectorPolygon(0);
-  expect(polygon).toHaveLength(6);
-  expect(polygon[1][0]).toBeCloseTo(0);
-  expect(polygon[1][1]).toBeCloseTo(-OUTER_RADIUS);
+  const outer = polygon.slice(0, polygon.length / 2);
+  const middle = outer[outer.length / 2 - 0.5] || outer[Math.floor(outer.length / 2)];
+  expect(middle[0]).toBeCloseTo(0);
+  expect(middle[1]).toBeCloseTo(-RING_OUTER);
+  polygon.forEach(([x, y]) => {
+    const r = Math.hypot(x, y);
+    expect(r > RING_INNER - 0.01 && r < RING_OUTER + 0.01).toBe(true);
+  });
+  // The ends sit just inside +-60 degrees, so the three wedges do not touch.
+  expect(outer[0][0]).toBeLessThan(0);
+  expect(outer[outer.length - 1][0]).toBeGreaterThan(0);
 });
 
 test('the wedge at the top follows the rotation in steps of 120 degrees', () => {

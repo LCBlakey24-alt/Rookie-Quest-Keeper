@@ -1,5 +1,5 @@
 import {
-  OUTER_RADIUS, SLOT, edgeLabelPoint, edgeTextRotation, fitFontSize, hexVertex, hexVertices, wedgeCentre, wedgePolygon,
+  OUTER_RADIUS, RING_INNER, RING_OUTER, SLOT, edgeLabelPoint, polarPoint, slotAngle, slotSegment, edgeTextRotation, fitFontSize, hexVertex, hexVertices, wedgeCentre, wedgePolygon,
 } from './hexGeometry';
 
 describe('the hexagon points up and down', () => {
@@ -69,4 +69,23 @@ test('long labels shrink to fit and short ones keep the base size', () => {
   expect(fitFontSize('D4', 60, 10)).toBe(10);
   expect(fitFontSize('A very long section name here', 60, 10)).toBeLessThan(10);
   expect(fitFontSize('x'.repeat(200), 60, 10)).toBe(5.5);
+});
+
+describe('the round ring inside the hexagon', () => {
+  test('the ring stays inside the hexagon and clear of the centre button', () => {
+    expect(RING_OUTER).toBeLessThan(OUTER_RADIUS * Math.cos(Math.PI / 6));
+    expect(RING_INNER).toBeGreaterThan(36);
+  });
+
+  test('each slot is a ring segment facing its hexagon side', () => {
+    const points = slotSegment(SLOT.RIGHT);
+    points.forEach(([x, y]) => {
+      const r = Math.hypot(x, y);
+      expect(r).toBeGreaterThan(RING_INNER - 0.01);
+      expect(r).toBeLessThan(RING_OUTER + 0.01);
+    });
+    const [x, y] = polarPoint(slotAngle(SLOT.RIGHT), 60);
+    expect(x).toBeCloseTo(60);
+    expect(y).toBeCloseTo(0);
+  });
 });

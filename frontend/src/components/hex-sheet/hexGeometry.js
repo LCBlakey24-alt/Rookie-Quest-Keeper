@@ -108,3 +108,38 @@ export function wheelViewBox(outer = OUTER_RADIUS, margin = 4) {
   const halfHeight = outer + margin;
   return `${round(-halfWidth)} ${round(-halfHeight)} ${round(halfWidth * 2)} ${round(halfHeight * 2)}`;
 }
+
+/*
+ * The round ring of wedges inside the hexagon (the approved wheel: a ring,
+ * not triangular hexagon slices). Angles are degrees clockwise from the top.
+ * The ring's outer edge stays inside the hexagon's flat sides (86.6).
+ */
+export const RING_OUTER = 84;
+export const RING_INNER = 42;
+
+export function polarPoint(degrees, radius) {
+  const radians = ((degrees - 90) * Math.PI) / 180;
+  return [round(radius * Math.cos(radians)), round(radius * Math.sin(radians))];
+}
+
+/**
+ * A ring segment from `start` to `end` degrees as polygon points: the outer
+ * arc clockwise, then the inner arc back. `gap` trims each end (in degrees)
+ * so neighbouring segments sit apart.
+ */
+export function ringSegment(start, end, { outer = RING_OUTER, inner = RING_INNER, gap = 1.6, steps = 14 } = {}) {
+  const from = start + gap / 2;
+  const to = end - gap / 2;
+  const arc = (radius, a, b) => Array.from({ length: steps + 1 }, (_, i) => polarPoint(a + ((b - a) * i) / steps, radius));
+  return [...arc(outer, from, to), ...arc(inner, to, from)];
+}
+
+/** The ring segment for hexagon slot `slot`, centred on that slot's edge. */
+export function slotSegment(slot, options) {
+  return ringSegment(60 * slot, 60 * slot + 60, options);
+}
+
+/** Angle (degrees clockwise from the top) through the middle of `slot`. */
+export function slotAngle(slot) {
+  return 60 * slot + 30;
+}

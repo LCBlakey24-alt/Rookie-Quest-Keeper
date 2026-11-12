@@ -4,18 +4,18 @@ import {
   INNER_RADIUS,
   OUTER_RADIUS,
   READING_ORDER,
-  edgeLabelPoint,
+  RING_OUTER,
   edgeTextRotation,
   fitFontSize,
   hexVertices,
   pointsAttribute,
-  wedgeCentre,
-  wedgePolygon,
+  polarPoint,
+  slotAngle,
+  slotSegment,
   wheelViewBox,
 } from './hexGeometry';
 import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 
-const WEDGE_GAP = 0.035; // fraction each wedge shrinks toward its centre
 const CENTRE_RADIUS = INNER_RADIUS - 4;
 
 /**
@@ -26,12 +26,6 @@ const CENTRE_RADIUS = INNER_RADIUS - 4;
 export const DEAL_STAGGER_MS = 60;
 export const DEAL_DURATION_MS = 200;
 
-function shrink(points, factor) {
-  const cx = points.reduce((sum, [x]) => sum + x, 0) / points.length;
-  const cy = points.reduce((sum, [, y]) => sum + y, 0) / points.length;
-  return points.map(([x, y]) => [cx + (x - cx) * (1 - factor), cy + (y - cy) * (1 - factor)]);
-}
-
 function activate(event, handler) {
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
@@ -40,7 +34,9 @@ function activate(event, handler) {
 }
 
 /**
- * The transforming wheel: six wedges round a central hexagon.
+ * The transforming wheel: a round ring of six wedges inside a hexagon, with
+ * a hexagon button in the middle (the approved wheel, docs/DESIGN_SYSTEM.md
+ * §6a). Each wedge faces one of the hexagon's sides.
  *
  * `variant="menu"` writes each wedge's label across the wedge, following
  * its edge. `variant="stat"` writes a small name along the outer edge and a
@@ -99,7 +95,7 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
         {READING_ORDER.map((slot, order) => {
           const deal = { animationDelay: `${order * DEAL_STAGGER_MS}ms`, animationDuration: `${DEAL_DURATION_MS}ms` };
           const wedge = bySlot.get(slot);
-          const polygon = pointsAttribute(shrink(wedgePolygon(slot), WEDGE_GAP));
+          const polygon = pointsAttribute(slotSegment(slot));
           if (!wedge) {
             return (
               <g key={slot} className="hex-wheel__deal hex-wheel__slot--empty" style={deal} data-deal-order={order} aria-hidden="true">
@@ -107,7 +103,7 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
               </g>
             );
           }
-          const [cx, cy] = wedgeCentre(slot);
+          const [cx, cy] = polarPoint(slotAngle(slot), 63);
           // Short labels (a die size) read faster upright; names follow the edge.
           const rotation = wedge.upright ? 0 : edgeTextRotation(slot);
           return (
@@ -142,12 +138,10 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
                 </text>
               )}
               {variant === 'stat' && (() => {
-                const [ex, ey] = edgeLabelPoint(slot, 9.5);
-                // The value sits a little inside the wedge's centre, midway
-                // between the inner hexagon and the name on the rim, so the
-                // two never touch on any side of the wheel.
-                const vx = cx * 0.89;
-                const vy = cy * 0.89;
+                const [ex, ey] = polarPoint(slotAngle(slot), RING_OUTER - 8.5);
+                // The value sits towards the inside of the ring, clear of the
+                // name printed along its outer edge.
+                const [vx, vy] = polarPoint(slotAngle(slot), 55);
                 return (
                   <>
                     <text
@@ -162,11 +156,11 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
                     >
                       {String(wedge.edgeLabel || wedge.label).toUpperCase()}
                     </text>
-                    <text className="hex-wheel__value" x={vx} y={vy} fontSize={23} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
+                    <text className="hex-wheel__value" x={vx} y={vy} fontSize={21} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
                       {wedge.value}
                     </text>
                     {wedge.sublabel && (
-                      <text className="hex-wheel__sublabel" x={vx} y={vy + 14} fontSize={6} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
+                      <text className="hex-wheel__sublabel" x={vx} y={vy + 12} fontSize={6} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
                         {wedge.sublabel}
                       </text>
                     )}
