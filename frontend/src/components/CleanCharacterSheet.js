@@ -568,7 +568,7 @@ export default function CleanCharacterSheet() {
       speed={speed}
       proficiencyBonus={proficiencyBonus}
       onRoll={makeRoll}
-      onCharacterUpdate={patchCharacter}
+      onCharacterUpdate={patchCharacterWithConcentrationGuard}
       onDiceResult={(entry) => {
         presentRollBurst(entry);
         setRollHistory(prev => [entry, ...prev].slice(0, 12));

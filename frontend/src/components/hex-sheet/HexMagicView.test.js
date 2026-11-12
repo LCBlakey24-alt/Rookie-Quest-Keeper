@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
-import HexMagicView from './HexMagicView';
+import HexMagicView, { casterFor } from './HexMagicView';
 
 jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn(), warning: jest.fn() } }));
 
@@ -65,4 +65,15 @@ test('a Warlock with 3rd-level pact slots sees 1st-level spells, scaled to the s
   const rebuke = screen.getByTestId('hex-spell-Hellish Rebuke');
   expect(within(rebuke).getByRole('button', { name: /Cast Hellish Rebuke, using a 3rd-level slot/ })).toBeEnabled();
   expect(within(rebuke).getByRole('button', { name: /Damage for Hellish Rebuke: 4d10/ })).toBeInTheDocument();
+});
+
+describe('casterFor', () => {
+  it('uses a homebrew caster\'s own spellcasting ability', () => {
+    const runesmith = { character_class: 'Runesmith', level: 5, intelligence: 18, spellcasting_ability: 'intelligence' };
+    expect(casterFor(runesmith, { name: 'Rune Bolt' }, 3)).toEqual({ attackBonus: 7, saveDc: 15, mod: 4 });
+  });
+
+  it('keeps the class ability for a standard caster', () => {
+    expect(casterFor(wizard, { name: 'Fireball' }, 3)).toEqual({ attackBonus: 6, saveDc: 14, mod: 3 });
+  });
 });

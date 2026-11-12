@@ -7,6 +7,7 @@ import { SPELLCASTING_CLASSES, getCanonicalSpellcastingClass } from '@/data/spel
 import { buildCharacterSpellCastUpdate, getCharacterCastOptions, getCharacterSpellPools } from '@/data/characterSpellCastingActions';
 import { spellRequiresConcentration } from '@/data/spellConcentrationRules';
 import { spellRoll } from '@/data/spellRollRules';
+import { customCasterNumbers } from '@/data/savedCustomSpellcastingPresentation';
 import { castOptionAt, castableSpells, magicLevels, ordinal, spellsAtLevel } from './magicModel';
 
 const signed = (value) => (Number(value) >= 0 ? `+${Number(value)}` : `${Number(value)}`);
@@ -14,9 +15,14 @@ const abilityMod = (score) => Math.floor(((Number(score) || 10) - 10) / 2);
 const HEX = '50,0 100,25 100,75 50,100 0,75 0,25';
 
 /** The class a spell is cast with, and its attack bonus, save DC and modifier. */
-function casterFor(character, spell, proficiencyBonus) {
+export function casterFor(character, spell, proficiencyBonus) {
   const className = getCanonicalSpellcastingClass(spell.sourceClass || spell.source_class || character.character_class || character.class_name || '');
   const info = SPELLCASTING_CLASSES[className];
+  if (!info) {
+    // A homebrew caster: its own spellcasting ability, from current scores.
+    const custom = customCasterNumbers(character, proficiencyBonus);
+    if (custom.saveDc !== null) return { attackBonus: custom.attackBonus ?? proficiencyBonus, saveDc: custom.saveDc, mod: custom.modifier };
+  }
   const mod = info ? abilityMod(character[info.ability]) : 0;
   return { attackBonus: proficiencyBonus + mod, saveDc: 8 + proficiencyBonus + mod, mod };
 }

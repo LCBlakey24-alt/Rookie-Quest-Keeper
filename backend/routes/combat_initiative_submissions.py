@@ -13,6 +13,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from config import db
 from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
 
+from utils.initiative import INITIATIVE_SOURCE_FIELDS, initiative_modifier
+
 router = APIRouter()
 
 
@@ -21,18 +23,7 @@ def now_iso() -> str:
 
 
 def initiative_bonus_for(character: Dict[str, Any] | None) -> int:
-    character = character if isinstance(character, dict) else {}
-    explicit = character.get('initiative_bonus')
-    if explicit is not None and explicit != '':
-        try:
-            return int(explicit)
-        except (TypeError, ValueError):
-            pass
-    try:
-        dexterity = int(character.get('dexterity', 10))
-    except (TypeError, ValueError):
-        dexterity = 10
-    return (dexterity - 10) // 2
+    return initiative_modifier(character)
 
 
 def combat_id_from_display(state: Dict[str, Any] | None) -> str:
@@ -71,7 +62,7 @@ async def get_my_combat_initiative(campaign_id: str, username: str = Depends(get
 
     character = await db.player_characters.find_one(
         {'campaign_id': campaign_id, 'user_id': username},
-        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1, 'dexterity': 1},
+        {'_id': 0, 'id': 1, 'name': 1, **{field: 1 for field in INITIATIVE_SOURCE_FIELDS}},
     )
     if not character:
         return {'combat_active': True, 'combat_id': combat_id, 'submission': None, 'character': None}
@@ -103,7 +94,7 @@ async def submit_combat_initiative(campaign_id: str, payload: Dict[str, Any], us
 
     character = await db.player_characters.find_one(
         {'campaign_id': campaign_id, 'user_id': username},
-        {'_id': 0, 'id': 1, 'name': 1, 'initiative_bonus': 1, 'dexterity': 1},
+        {'_id': 0, 'id': 1, 'name': 1, **{field: 1 for field in INITIATIVE_SOURCE_FIELDS}},
     )
     if not character:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No linked character found for this campaign')

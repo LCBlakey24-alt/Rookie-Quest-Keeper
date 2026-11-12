@@ -190,3 +190,39 @@ test('Champion expanded critical range carries a 19 into doubled damage', () => 
   expect(result.critical).toBe(true);
   expect(result.rolls).toHaveLength(2);
 });
+
+test('casting a concentration spell from Combat marks the caster as concentrating', async () => {
+  const onCharacterUpdate = jest.fn().mockResolvedValue(true);
+  const cleric = {
+    ...baseCharacter,
+    character_class: 'Cleric',
+    wisdom: 16,
+    spells_prepared: [{ name: 'Bless', level: 1, duration: 'Concentration, up to 1 minute' }],
+    spell_slots: { 1: 2 },
+    spell_slots_remaining: { 1: 2 },
+  };
+  render(<CleanCombatTab character={cleric} proficiencyBonus={2} onRoll={jest.fn()} onCharacterUpdate={onCharacterUpdate} />);
+
+  fireEvent.click(screen.getAllByText('Bless')[0].closest('button'));
+
+  await waitFor(() => expect(onCharacterUpdate).toHaveBeenCalled());
+  expect(onCharacterUpdate.mock.calls[0][0]).toMatchObject({ concentrating_on: 'Bless', concentration: 'Bless' });
+});
+
+test('casting a spell without concentration leaves concentration alone', async () => {
+  const onCharacterUpdate = jest.fn().mockResolvedValue(true);
+  const wizard = {
+    ...baseCharacter,
+    character_class: 'Wizard',
+    intelligence: 16,
+    spells_prepared: [{ name: 'Magic Missile', level: 1 }],
+    spell_slots: { 1: 2 },
+    spell_slots_remaining: { 1: 2 },
+  };
+  render(<CleanCombatTab character={wizard} proficiencyBonus={2} onRoll={jest.fn()} onCharacterUpdate={onCharacterUpdate} />);
+
+  fireEvent.click(screen.getAllByText('Magic Missile')[0].closest('button'));
+
+  await waitFor(() => expect(onCharacterUpdate).toHaveBeenCalled());
+  expect(onCharacterUpdate.mock.calls[0][0]).not.toHaveProperty('concentrating_on');
+});

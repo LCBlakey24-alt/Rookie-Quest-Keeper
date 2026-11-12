@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { getClassResourceRules } from '../../data/classResourceRules';
 import { getCharacterActionFeatures } from '../../data/characterFeatureSelectors';
 import { buildCharacterSpellCastUpdate } from '../../data/characterSpellCastingActions';
+import { spellRequiresConcentration } from '../../data/spellConcentrationRules';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
 import CombatSpellActionCard from './CombatSpellActionCard';
 import { ActionSection, AttackCard, SimpleActionCard, VariableResourceActionCard } from './CleanCombatTabCards';
@@ -293,7 +294,17 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
       return;
     }
 
+    // A concentration spell marks the caster as concentrating, like casting
+    // from the Spells tab; the sheet asks before replacing a current one.
+    const concentration = spellRequiresConcentration(spell)
+      ? { concentrating_on: spellName, concentration: spellName }
+      : null;
+
     if (cast.option?.source === 'cantrip') {
+      if (concentration && onCharacterUpdate) {
+        const ok = await onCharacterUpdate(concentration, { error: 'Could not set concentration' });
+        if (ok === false) return;
+      }
       toast.success(`${spellName} used`, { description: 'Cantrips do not spend spell slots.' });
       return;
     }
@@ -304,7 +315,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     }
 
     const ok = await onCharacterUpdate(
-      cast.updates,
+      { ...cast.updates, ...(concentration || {}) },
       { error: cast.option?.source === 'pact' ? 'Could not update Pact Magic' : 'Could not update spell slots' },
     );
     if (ok === false) return;
