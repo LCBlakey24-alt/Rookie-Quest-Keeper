@@ -47,8 +47,11 @@ function buzz() {
  * @param {(id: string) => void} props.onChange
  * @param {string} props.label          accessible name, e.g. "Class"
  * @param {string} [props.caption]      small text above the name in the centre
+ * @param {(id: string) => void} [props.onConfirm]  makes the centre hexagon a
+ *   Confirm button for the selected option (also Enter on the wheel). Without
+ *   it the centre only shows the selection.
  */
-export default function GuildChoiceWheel({ options, value, onChange, label, caption }) {
+export default function GuildChoiceWheel({ options, value, onChange, label, caption, onConfirm }) {
   const count = options.length;
   const step = 360 / Math.max(1, count);
   const codes = useMemo(() => {
@@ -150,6 +153,9 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
     } else if (event.key === 'End') {
       event.preventDefault();
       commit(count - 1);
+    } else if (event.key === 'Enter' && onConfirm && options[selectedIndex]) {
+      event.preventDefault();
+      onConfirm(options[selectedIndex].id);
     }
   };
 
@@ -158,7 +164,7 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
   const nameClass = name.length > 9 ? ' is-long' : name.length > 6 ? ' is-medium' : '';
 
   return (
-    <div className="guild-wheel" data-testid="guild-choice-wheel">
+    <div className={`guild-wheel${onConfirm ? ' has-confirm' : ''}`} data-testid="guild-choice-wheel">
       <svg
         ref={svgRef}
         className={`guild-wheel__svg${dragging ? ' is-dragging' : ''}`}
@@ -214,7 +220,19 @@ export default function GuildChoiceWheel({ options, value, onChange, label, capt
         <polygon className="guild-wheel__glow guild-wheel__glow--core" points={hexPoints(48)} clipPath={`url(#${uid}-core)`} filter={`url(#${uid}-blur)`} />
         {caption && <text className="guild-wheel__caption" x="0" y="-18" textAnchor="middle" aria-hidden="true">{caption}</text>}
         <text className={`guild-wheel__name${nameClass}`} x="0" y={caption ? 6 : 0} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{name}</text>
+        {onConfirm && <text className="guild-wheel__confirm-label" x="0" y="27" textAnchor="middle" aria-hidden="true">CONFIRM</text>}
       </svg>
+      {/* The centre hexagon as a real button laid over the drawing, so it is
+          reachable and announced on its own rather than inside the ring. */}
+      {onConfirm && options[selectedIndex] && (
+        <button
+          type="button"
+          className="guild-wheel__confirm"
+          onClick={() => onConfirm(options[selectedIndex].id)}
+          aria-label={`Confirm ${options[selectedIndex].label}`}
+          data-testid="guild-choice-wheel-confirm"
+        />
+      )}
       <p className="guild-wheel__status" role="status" aria-live="polite" data-testid="guild-choice-wheel-status">
         {options[selectedIndex]?.label} selected
       </p>
