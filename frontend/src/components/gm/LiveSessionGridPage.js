@@ -281,7 +281,7 @@ export default function LiveSessionGridPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-outline" style={smallButtonStyle}><ArrowLeft size={16} /> Campaign Prep</Button>
             <div style={{ minWidth: 0 }}>
-              <p style={eyebrowStyle}>Live Play Mode</p>
+              <p className="rqk-live-page__eyebrow" style={eyebrowStyle}>Live Play Mode</p>
               <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
               <p className="rqk-live-page__subtitle" style={subtitleStyle}>Campaign controls, encounters and player display in one place.</p>
               {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
