@@ -29,6 +29,7 @@ import {
 } from '@/data/editionSpellSlotRules';
 import {
   buildLegacyPreparedMigrationPlan,
+  legacySpellbookEntries,
   canonicalSpellClassName,
   getCharacterPreparedCapacity,
   getCharacterSpellListMode,
@@ -586,11 +587,15 @@ export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAtt
 
   const cantrips = uniqueSpells(character?.cantrips_known || character?.cantrips, 0);
   const rawKnown = uniqueSpells(character?.spells_known || character?.known_spells, null);
-  const spellbook = uniqueSpells(character?.spellbook, null);
+  // A Wizard's older save may hold its spellbook in spells_known; those are
+  // spellbook entries (prepare before casting), not known spells.
+  const legacySpellbook = legacySpellbookEntries(character, classLevels);
+  const spellbook = uniqueSpells([...(character?.spellbook || []), ...legacySpellbook], null);
   const canonicalPrepared = uniqueSpells(character?.spells_prepared || character?.prepared_spells || character?.preparedSpells, null);
   const prepared = uniqueSpells(migrationPlan.effectivePrepared?.length ? migrationPlan.effectivePrepared : canonicalPrepared, null);
   const legacyMigrationMarker = Boolean(character?.spell_list_migration?.legacy_preserved);
   const known = rawKnown.filter((spell) => {
+    if (spellListContains(legacySpellbook, spell)) return false;
     const source = sourceClassFor(spell);
     const sourceRow = source
       ? spellcastingRows.find((row) => normalizeName(row.className) === normalizeName(source))

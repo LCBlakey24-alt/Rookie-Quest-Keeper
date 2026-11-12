@@ -64,3 +64,21 @@ test('the same spell from two classes is kept once per class; untagged repeats a
   expect(castableSpells(multiclass).map((spell) => spell.sourceClass)).toEqual(['Cleric', 'Bard']);
   expect(castableSpells({ spells_known: ['Shield', { name: 'Shield' }] })).toHaveLength(1);
 });
+
+describe('castableSpells with an older Wizard save', () => {
+  it('only lists spellbook spells kept in spells_known once they are prepared', () => {
+    const names = castableSpells({
+      character_class: 'Wizard', level: 3,
+      spells_known: [{ name: 'Sleep', level: 1 }, { name: 'Shield', level: 1 }],
+      spells_prepared: [{ name: 'Shield', level: 1 }],
+    }).map((spell) => spell.name);
+    expect(names).toContain('Shield');
+    expect(names).not.toContain('Sleep');
+  });
+
+  it('keeps known spells castable for a known caster', () => {
+    const names = castableSpells({ character_class: 'Sorcerer', level: 3, spells_known: [{ name: 'Sleep', level: 1 }] }).map((spell) => spell.name);
+    expect(names).toContain('Sleep');
+  });
+});
+

@@ -6,6 +6,7 @@ import {
   getCharacterSpellListMode,
   getSpellListDestination,
   getSpellListLabel,
+  legacySpellbookEntries,
   normaliseCharacterClassLevels,
   spellBelongsToClass,
   spellListContains,
@@ -200,3 +201,24 @@ describe('character sheet spell list rules', () => {
     expect(plan.candidates).toEqual([]);
   });
 });
+
+describe('legacySpellbookEntries', () => {
+  const legacyWizard = {
+    character_class: 'Wizard', level: 3, intelligence: 16,
+    spells_known: [{ name: 'Sleep', level: 1 }, { name: 'Shield', level: 1 }, { name: 'Light', level: 0 }],
+    spells_prepared: [{ name: 'Shield', level: 1 }],
+  };
+
+  it('treats a Wizard\'s untagged known spells (not cantrips) as spellbook entries', () => {
+    expect(legacySpellbookEntries(legacyWizard).map((spell) => spell.name)).toEqual(['Sleep', 'Shield']);
+  });
+
+  it('leaves known casters alone and does not guess for a multiclass', () => {
+    expect(legacySpellbookEntries({ character_class: 'Sorcerer', level: 3, spells_known: [{ name: 'Sleep', level: 1 }] })).toEqual([]);
+    expect(legacySpellbookEntries({
+      class_levels: { Wizard: 3, Sorcerer: 2 },
+      spells_known: [{ name: 'Sleep', level: 1 }, { name: 'Shield', level: 1, sourceClass: 'Wizard' }],
+    }).map((spell) => spell.name)).toEqual(['Shield']);
+  });
+});
+

@@ -137,6 +137,28 @@ function spellsExplicitlyForClass(spells = [], className = '') {
 }
 
 /**
+ * Spells an older save kept in `spells_known` for a spellbook caster (a
+ * Wizard). They are spellbook entries, so they can only be cast once
+ * prepared. A tagged entry counts when its class keeps a spellbook; an
+ * untagged one only when every spellcasting class on the character keeps a
+ * spellbook (a multiclass is not guessed). Cantrips never count.
+ */
+export function legacySpellbookEntries(character = {}, suppliedClassLevels = null) {
+  const classLevels = suppliedClassLevels || normaliseCharacterClassLevels(character);
+  const keepsSpellbook = (className) => getCharacterSpellListMode(character, className) === 'spellbook';
+  const casterClasses = Object.keys(classLevels)
+    .map((name) => canonicalSpellClassName(name))
+    .filter((name) => SPELLCASTING_CLASSES[name]);
+  const everyClassKeepsSpellbook = casterClasses.length > 0 && casterClasses.every(keepsSpellbook);
+  return uniqueSpells(character.spells_known || character.known_spells).filter((spell) => {
+    const level = spell.level ?? spell.spell_level;
+    if (level !== undefined && level !== null && Number(level) === 0) return false;
+    const source = sourceClassOf(spell);
+    return source ? keepsSpellbook(source) : everyClassKeepsSpellbook;
+  });
+}
+
+/**
  * Build a non-destructive migration plan for old 2024 saves that still keep
  * revised prepared-caster spells in `spells_known`.
  *
