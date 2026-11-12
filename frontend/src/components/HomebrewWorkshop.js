@@ -26,6 +26,8 @@ import {
   Zap,
 } from 'lucide-react';
 import ImageUploadPanel from '@/components/ImageUploadPanel';
+import '@/styles/guildTokens.css';
+import '@/styles/homebrewGuild.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -509,18 +511,18 @@ export default function HomebrewWorkshop() {
     } catch (error) { toast.error(error?.response?.data?.detail || 'Delete failed'); }
   };
 
-  return <main style={pageStyle} data-testid="homebrew-workshop">
+  return <main className="hb-page" style={pageStyle} data-testid="homebrew-workshop">
     <section style={wrapStyle}>
-      <header style={headerStyle}>
-        <button type="button" onClick={() => navigate('/home')} style={secondaryButtonStyle} data-testid="hb-back-btn"><ArrowLeft size={15} /> Back</button>
-        <div style={{ minWidth: 0, flex: 1 }}><p style={eyebrowStyle}>Rook-assisted creation</p><h1 style={titleStyle}><Sparkles size={28} /> Homebrew Workshop</h1><p style={subtitleStyle}>Download a fillable template, write your class, feat, subclass, species, spell, item, monster, NPC, or custom rule, then upload it back. Rook parses it into structured fields that can flow into builders and sheets.</p></div>
+      <header className="hb-panel hb-header" style={headerStyle}>
+        <button type="button" onClick={() => navigate('/home')} className="hb-back" style={secondaryButtonStyle} data-testid="hb-back-btn"><ArrowLeft size={15} /> Back</button>
+        <div style={{ minWidth: 0, flex: 1 }}><p style={eyebrowStyle}>Rook-assisted creation</p><h1 className="hb-title" style={titleStyle}><Sparkles size={28} /> Homebrew Workshop</h1><p style={subtitleStyle}>Download a fillable template, write your class, feat, subclass, species, spell, item, monster, NPC, or custom rule, then upload it back. Rook parses it into structured fields that can flow into builders and sheets.</p></div>
         <select value={edition} onChange={event => setEdition(event.target.value)} style={selectButtonStyle} data-testid="hb-edition"><option value="2014">2014 Rules</option><option value="2024">2024 Rules</option></select>
       </header>
 
-      <section style={typeGridStyle}>{TYPES.map(item => { const Icon = item.icon; const active = type === item.key; return <button key={item.key} type="button" onClick={() => switchType(item.key)} style={typeCardStyle(active)} data-testid={`hb-type-${item.key}`}><Icon size={18} /><strong>{item.label}</strong><span>{item.help}</span></button>; })}</section>
+      <section className="hb-types" style={typeGridStyle}>{TYPES.map(item => { const Icon = item.icon; const active = type === item.key; return <button key={item.key} type="button" onClick={() => switchType(item.key)} className={`hb-type${active ? ' is-active' : ''}`} aria-pressed={active} style={typeCardStyle(active)} data-testid={`hb-type-${item.key}`}><Icon size={18} /><strong>{item.label}</strong><span>{item.help}</span></button>; })}</section>
 
       <section style={builderGridStyle}>
-        <aside style={panelStyle}>
+        <aside className="hb-panel" style={panelStyle}>
           <h2 style={sectionTitleStyle}><Wand2 size={17} /> Source / Rook input</h2>
           <p style={helpStyle}>Start with a template, upload a file, paste rough notes, or type directly into the draft. Rook can parse or complete the missing parts. Artwork is added inside the draft panel.</p>
           <button type="button" onClick={handleDownloadTemplate} disabled={downloading} style={downloadButtonStyle} data-testid="hb-download-template-btn">{downloading ? <Loader2 size={16} className="rq-spin" /> : <Download size={16} />} Download {currentMeta.label} template</button>
@@ -530,7 +532,7 @@ export default function HomebrewWorkshop() {
           <div style={tipStyle}><strong>Power tip:</strong> write formulas like “Scarab Charges = Warlock level” or “Greed Tokens = proficiency bonus, GM adjustable”. Rook will try to preserve those as sheet resources.</div>
         </aside>
 
-        <section style={panelStyle}>
+        <section className="hb-panel" style={panelStyle}>
           <div style={draftHeaderStyle}><div><h2 style={sectionTitleStyle}>{editingId ? 'Editing' : 'Draft'} · {currentMeta.label}</h2><p style={helpStyle}>{currentMeta.help}</p></div>{shownMissing.length > 0 && <span style={missingPillStyle}><AlertTriangle size={14} /> {shownMissing.length} missing</span>}</div>
           <DraftEditor contentType={type} draft={draft} missing={shownMissing} onChange={setDraft} />
           <section style={saveOptionsStyle}>
@@ -541,7 +543,7 @@ export default function HomebrewWorkshop() {
         </section>
       </section>
 
-      <section style={libraryStyle}>
+      <section className="hb-panel" style={libraryStyle}>
         <div style={libraryHeaderStyle}>
           <h2 style={sectionTitleStyle}>My {currentMeta.label} Library <span style={countStyle}>({items.length})</span></h2>
           <div style={libraryHeaderActionsStyle}>
@@ -563,7 +565,7 @@ function LibraryCard({ item, onEdit, onDelete }) {
     .map(formatLibraryChip)
     .slice(0, 3);
   const summary = item.summary || item.description || item.prerequisite || item.feature_description || item.rule_text || 'No description yet.';
-  return <article style={libraryCardStyle}>{img && <img src={img} alt="" style={libraryImageStyle} />}<div><strong>{item.name || 'Untitled'}</strong>{chips.length > 0 && <div style={libraryBadgeRowStyle}>{chips.map(chip => <span key={chip} style={libraryBadgeStyle}>{chip}</span>)}</div>}<p>{summary}</p><small>{item.visibility || 'private'} · {item.edition || '2014'}</small></div><div style={cardActionsStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={smallButtonStyle}><Trash2 size={13} /> Delete</button></div></article>;
+  return <article className="hb-card" style={libraryCardStyle}>{img && <img src={img} alt="" style={libraryImageStyle} />}<div><strong>{item.name || 'Untitled'}</strong>{chips.length > 0 && <div style={libraryBadgeRowStyle}>{chips.map(chip => <span key={chip} style={libraryBadgeStyle}>{chip}</span>)}</div>}<p>{summary}</p><small>{item.visibility || 'private'} · {item.edition || '2014'}</small></div><div style={cardActionsStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={smallButtonStyle}><Trash2 size={13} /> Delete</button></div></article>;
 }
 
 const pageStyle = { minHeight: '100dvh', background: rq.bg, color: rq.text, fontFamily: fontStack, padding: 'clamp(12px, 2vw, 24px)' };
