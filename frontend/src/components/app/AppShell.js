@@ -5,7 +5,7 @@ import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Sett
 import apiClient from '@/lib/apiClient';
 import HexBackButton from '@/components/guild-motif/HexBackButton';
 import { AUTH_USERNAME_KEY } from '@/lib/auth';
-import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
@@ -302,10 +302,9 @@ export default function AppShell({ children }) {
       <aside className="rqk-app-rail" aria-label="App navigation">
         {!isMobile && <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
           <span className="rqk-app-rail-brand-mark" aria-hidden="true">
-            <BrandMiniLogo size={36} alt="" />
+            <BrandMiniLogo size={48} alt="" />
           </span>
           <span className="rqk-app-rail-brand-copy">
-            <BrandMainLogo width={112} alt="" />
             <small>Keeper Hub</small>
           </span>
         </Link>}

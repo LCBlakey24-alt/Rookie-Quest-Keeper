@@ -1049,3 +1049,14 @@
   #root .rqk-auth-page .rqk-auth-card { padding: 16px !important; }
   #root .rqk-auth-page .rqk-auth-brand__text small { display: none !important; }
 }
+
+/* The hexagon badge (it spells out the name) leads the sign-in page. */
+html body #root .rqk-auth-brand .rqk-auth-brand__sigil {
+  width: 84px !important;
+  height: 84px !important;
+  max-width: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  object-fit: contain;
+}

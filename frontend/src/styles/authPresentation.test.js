@@ -34,10 +34,12 @@ describe('Guild Ledger authentication presentation', () => {
     expect(authSection).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
   });
 
-  test('auth copy carries the Guild Ledger brand without a marketing column', () => {
+  test('the sign-in page carries the hexagon badge, which spells out the name', () => {
     const page = read('../components/AuthPage.js');
 
-    expect(page).toContain('Guild Ledger • Table tools');
+    expect(page).toContain('rqk-auth-brand__sigil');
+    expect(page).toContain('alt="Rookie Quest Keeper"');
+    expect(page).not.toContain('BrandMainLogo');
   });
 
   test('the sign-in page is one centred card, not a two-column pitch', () => {

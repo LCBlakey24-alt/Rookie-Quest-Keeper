@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, List } from 'lucide-react';
-import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
@@ -161,8 +161,7 @@ export default function LandingPage() {
 
       <nav className="landing-final-nav" aria-label="Rookie Quest Keeper navigation">
         <button type="button" className="landing-nav-brand" onClick={() => navigate('/')} aria-label="Rookie Quest Keeper home">
-          <BrandMiniLogo size={42} alt="" />
-          <span><BrandMainLogo width={168} alt="Rookie Quest Keeper" /></span>
+          <BrandMiniLogo size={58} alt="Rookie Quest Keeper" className="landing-nav-badge" />
         </button>
         <div className="landing-nav-actions">
           <button data-testid="landing-signin-btn" type="button" className="landing-button landing-button-ghost" onClick={goLogin}>
@@ -241,7 +240,7 @@ export default function LandingPage() {
 
       <footer className="landing-final-footer landing-product-footer">
         <div className="landing-footer-brand">
-          <BrandMiniLogo size={40} />
+          <BrandMiniLogo size={52} alt="" />
           <div>
             <strong>Rookie Quest Keeper</strong>
             <p>Plan. Organise. Play.</p>

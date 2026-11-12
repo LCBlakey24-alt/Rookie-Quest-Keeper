@@ -14,7 +14,7 @@ describe('RouteLoadingScreen', () => {
     expect(html).toContain('KEEPER');
     expect(html).toContain('Preparing your workspace');
     expect(html).toContain('rqk-route-brand-rule');
-    expect(html).toContain('/brand/rookie-quest-keeper-app-icon.svg');
+    expect(html).toContain('/brand/rqk-hex-logo-360.png');
     expect(html).not.toContain('rqk-route-orbit');
     expect(html).not.toContain('Loading checklist');
     expect(html).not.toContain('rqk-route-card');
@@ -31,7 +31,7 @@ describe('RouteLoadingScreen', () => {
 
   test('uses a decorative logo and an accessible live status', () => {
     const { container } = render(<RouteLoadingScreen />);
-    const logo = container.querySelector('img[src="/brand/rookie-quest-keeper-app-icon.svg"]');
+    const logo = container.querySelector('img[src="/brand/rqk-hex-logo-360.png"]');
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute('alt', '');
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
