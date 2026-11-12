@@ -70,11 +70,27 @@
   --guild-font-body: 'Inter', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-/* The dusk sky behind every page. */
-html, body {
-  background-color: var(--guild-bg);
-  background-image: var(--guild-sky);
-  background-attachment: fixed;
+/* The dusk sky behind every page. The app-wide reset in citrusCommand.css
+   flattens outer page surfaces from inside @layer rq-controls, where
+   !important outranks anything unlayered, so the sky is set from the same
+   layer with a more specific selector. Nested outer surfaces all paint the
+   same viewport-fixed sky, so they line up seamlessly. The sign-in page and
+   the TV player display stay flat. */
+@layer rq-controls {
+  html:root,
+  html:root > body,
+  html:root #root,
+  html:root #root :is(.App, .rqk-app-shell, .keeper-product-site, .character-page-v2, .clean-sheet-page) {
+    background-color: var(--guild-bg) !important;
+    background-image: var(--guild-sky) !important;
+    background-attachment: fixed !important;
+  }
+}
+
+/* SVG labels that should be in the display face. The app-wide
+   `* { font-family: var(--rq-font-sans) !important }` would otherwise win. */
+html body #root :is(.guild-wheel__name, .guild-motif__value, .hex-wheel__centre-label, .hex-spin__label, .rq-levelup__from, .rq-levelup__to) {
+  font-family: var(--guild-font-display) !important;
 }
 
 /* Signed-in pages: the app frame shows the sky instead of its old flat
