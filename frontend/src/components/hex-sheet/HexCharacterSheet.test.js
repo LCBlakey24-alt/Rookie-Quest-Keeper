@@ -570,5 +570,27 @@ describe('rest and recovery under the hit-point dial', () => {
     await openHp(hero);
     await act(async () => { fireEvent.click(screen.getByTestId('hex-short-rest')); });
     expect(apiClient.post).toHaveBeenCalledWith('/characters/char-short-rest/short-rest');
+
+describe('Combat keeps the concentration warning', () => {
+  test('casting a second concentration spell from Combat asks before ending the first', async () => {
+    const caster = {
+      ...PUNCH,
+      id: 'char-combat-conc-guard',
+      character_class: 'Cleric',
+      wisdom: 16,
+      concentrating_on: 'Bless',
+      spells_prepared: [{ name: 'Hold Person', level: 2, duration: 'Concentration, up to 1 minute' }],
+      spell_slots: { 1: 4, 2: 2 },
+      spell_slots_remaining: { 1: 4, 2: 2 },
+    };
+    apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...caster, ...body } }));
+    await openSheet(caster);
+    fireEvent.click(screen.getByTestId('hex-wedge-combat'));
+    const { toast } = require('sonner');
+    toast.warning.mockClear();
+    const list = screen.getByTestId('hex-combat-list');
+    await act(async () => { fireEvent.click(within(list).getAllByText('Hold Person')[0].closest('button')); });
+    expect(toast.warning).toHaveBeenCalledWith('Already concentrating on Bless', expect.objectContaining({ description: expect.stringContaining('Hold Person') }));
+    expect(apiClient.patch).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ concentrating_on: 'Hold Person' }));
   });
 });
