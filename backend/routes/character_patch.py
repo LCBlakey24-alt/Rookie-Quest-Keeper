@@ -31,6 +31,11 @@ CORE_HIT_DICE = {
     "wizard": 6,
 }
 
+HOMEBREW_MECHANICS_FIELDS = (
+    "homebrew_resources", "homebrew_actions", "passive_effects", "homebrew_scaling",
+    "homebrew_upgrades", "homebrew_automation_notes", "homebrew_content_refs",
+)
+
 ALLOWED_CHARACTER_PATCH_FIELDS = {
     "name", "race", "subrace", "character_class", "subclass", "background",
     "edition", "rules_edition", "ruleset_id", "alignment", "portrait_url", "creation_mode",
@@ -46,6 +51,11 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "used_spell_slots", "spells_known", "spells_prepared", "cantrips_known", "prepared_spell_names", "spellbook", "spell_preparation_loadout", "homebrew_spellcasting",
     "equipment", "inventory", "equipped", "item_effects", "currency", "gold", "fighting_style", "equipment_choice", "starting_equipment",
     "resources", "class_levels", "multiclass_levels", "level_progression", "asi_increases",
+    # Homebrew mechanics the builder collects from the selected class,
+    # subclass, feats and spells (CharacterRulesBridgeV2). POST /characters
+    # cleans through this list too (_clean_create), so leaving them out
+    # silently dropped them when a character was created or edited.
+    *HOMEBREW_MECHANICS_FIELDS,
     # Deliberately NOT patchable: "campaign_id", "campaign_name",
     # "campaign_join_status".
     #
@@ -83,6 +93,7 @@ LIST_FIELDS = {
     "conditions", "saving_throw_proficiencies", "skill_proficiencies", "weapon_proficiencies", "armor_proficiencies",
     "armour_proficiencies", "tool_proficiencies", "languages", "racial_traits", "class_features", "background_features", "feats",
     "spells_known", "spells_prepared", "cantrips_known", "spellbook", "starting_equipment", "equipment", "inventory",
+    *HOMEBREW_MECHANICS_FIELDS,
 }
 
 DICT_FIELDS = {
