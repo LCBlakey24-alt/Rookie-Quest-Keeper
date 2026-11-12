@@ -248,9 +248,9 @@ html body .rq-dice-tray.rq-dice-tray--hex[role='dialog'] {
 .rq-dice-hex__result {
   position: absolute;
   left: 50%;
-  bottom: 9%;
+  bottom: 16%;
   transform: translateX(-50%);
-  width: 70%;
+  width: 64%;
   display: grid;
   justify-items: center;
   gap: 2px;
@@ -267,7 +267,13 @@ html body #root ~ .rq-dice-tray .rq-dice-hex__result strong,
 @keyframes rq-dice-hex-total { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: none; } }
 .rq-dice-hex.is-crit .rq-dice-hex__result strong { color: var(--guild-h3, #ffd27a); }
 .rq-dice-hex.is-fumble .rq-dice-hex__result strong { color: #ff9b7a; }
-.rq-dice-hex__result span { font-size: 0.78rem; color: var(--guild-muted, #c9d2e6); }
+.rq-dice-hex__result span { font-size: 0.74rem; color: var(--guild-muted, #c9d2e6); white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+/* A soft backing so the total stays readable over the dice and the page. */
+.rq-dice-hex__result {
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(var(--guild-bg-rgb, 10, 35, 66), 0.72);
+}
 .rq-dice-hex__result .rq-dice-tray__rolling { font-size: 0.9rem; font-weight: 700; color: var(--guild-text, #fff); }
 .rq-dice-hex__skip,
 .rq-dice-hex__close {

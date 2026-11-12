@@ -24,6 +24,7 @@ import HexSkillDial from './HexSkillDial';
 import HexSpinWheel from './HexSpinWheel';
 import HexWheel from './HexWheel';
 import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
+import { spellDiceEntry } from '@/components/clean-sheet/SpellRollRow';
 import { SLOT } from './hexGeometry';
 import { HEX_THEMES, getHexTheme, loadHexThemeId, saveHexThemeId } from './hexThemes';
 import { abilityRows, formatModifier, identityLines, portraitUrlFor, proficiencyBonusFor, vitalsFor } from './hexSheetModel';
@@ -481,7 +482,16 @@ export default function HexCharacterSheet() {
         )}
         {current.view === 'magic' && character && (
           <section className="hex-combat-list hex-section-list character-page-v2" aria-label="Magic" data-testid="hex-magic-list">
-            <CleanSpellsTab character={character} onCharacterUpdate={patchWithConcentrationGuard} />
+            <CleanSpellsTab
+              character={character}
+              onCharacterUpdate={patchWithConcentrationGuard}
+              onRollAttack={rollCheck}
+              onRollDice={(request) => {
+                const entry = spellDiceEntry(request);
+                if (!entry) { toast.error(`Could not roll ${request.notation}`); return; }
+                present(entry);
+              }}
+            />
           </section>
         )}
         {current.view === 'traits' && character && (

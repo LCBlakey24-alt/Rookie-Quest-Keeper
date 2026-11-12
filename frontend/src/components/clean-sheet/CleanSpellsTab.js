@@ -45,6 +45,7 @@ import {
   spendCastOption,
 } from '@/data/spellcastingPools';
 import './CleanSheetSpellsMobileOverrides.css';
+import SpellRollRow, { SpellRollContext } from './SpellRollRow';
 
 const ABILITY_LABELS = {
   strength: 'STR',
@@ -349,6 +350,7 @@ function SpellCard({
             : `${spell.description.slice(0, 130)}${spell.description.length > 130 ? '…' : ''}`}
         </p>
       )}
+      <SpellRollRow spell={spell} />
       {!castable && castBlockedText && <p className="clean-sheet-muted">{castBlockedText}</p>}
       {castable && levelled && !hasAvailableSlot && (
         <p className="clean-sheet-muted">No valid ordinary or Pact Magic slots are available for this spell.</p>
@@ -500,7 +502,7 @@ function SpellGroup({
   );
 }
 
-export default function CleanSpellsTab({ character, onCharacterUpdate }) {
+export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAttack, onRollDice }) {
   const [spellSearch, setSpellSearch] = useState('');
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [migratingLegacy, setMigratingLegacy] = useState(false);
@@ -882,6 +884,29 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     hasPactMagic ? 'Pact Magic' : '',
   ].filter(Boolean).join(' + ') || 'None';
 
+  // Spell attack and damage rolls (SpellRollRow): the caster row for the
+  // class a spell is cast with, and the highest slot it could be cast in.
+  const spellRollContext = useMemo(() => {
+    if (!onRollDice) return null;
+    const slotLevels = Object.entries(effectiveSlots || {})
+      .filter(([, total]) => Number(total) > 0)
+      .map(([level]) => Number(level));
+    if (pactPool.available) slotLevels.push(Number(pactPool.level) || 0);
+    return {
+      characterLevel: Number(character?.level) || 1,
+      maxSlotLevel: Math.max(0, ...slotLevels),
+      casterFor: (spell) => {
+        const wanted = normalizeName(spell?.sourceClass || spell?.source_class || '');
+        const row = (wanted && spellcastingRows.find((entry) => normalizeName(entry.className) === wanted)) || primaryCaster;
+        if (!row) return { attackBonus: 0, saveDc: null, mod: 0 };
+        const attackBonus = Number(row.attackBonus) || 0;
+        return { attackBonus, saveDc: row.saveDc ?? null, mod: attackBonus - proficiencyBonus };
+      },
+      onRollAttack,
+      onRollDice,
+    };
+  }, [onRollDice, onRollAttack, effectiveSlots, pactPool, character?.level, spellcastingRows, primaryCaster, proficiencyBonus]);
+
   const listSummary = [
     known.length ? `${known.length} known` : '',
     spellbook.length ? `${spellbook.length} book` : '',
@@ -889,6 +914,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   ].filter(Boolean).join(' · ') || 'No levelled spells';
 
   return (
+    <SpellRollContext.Provider value={spellRollContext}>
     <div className="clean-sheet-grid clean-sheet-spells-tab">
       <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-summary-board">
         <div className="clean-sheet-spellcasting-heading">
@@ -1093,5 +1119,6 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         </section>
       )}
     </div>
+    </SpellRollContext.Provider>
   );
 }
