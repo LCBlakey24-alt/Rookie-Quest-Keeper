@@ -57,6 +57,16 @@ Decoration never wins over legibility or table-speed.
 
 ## 3. Core visual language
 
+> **Current look: "Neon Coast" on a "Dusk sky" (owner-approved, 12 November 2026).** This supersedes the colour and typography decisions further down wherever they disagree. The tokens live in `frontend/src/styles/guildTokens.css`; read them rather than copying values.
+>
+> - **Background:** deep blue `#0A2342` fading to dusk purple at the bottom of the page (`--guild-sky`). Shapes are filled with the deep blue.
+> - **Glow:** a thin edge with a soft glow that stays *inside* the shape, never outside it. Ordinary shapes glow hot pink `#FF3D8B` → violet `#B04DFF` → sky blue `#4FB3FF` (`--guild-box-glow`, `--guild-stroke-cool`). Chosen, primary and centre shapes glow peach `#FFB066` → pink `#FF5FA0` → gold `#FFD27A` (`--guild-box-glow-hot`, `--guild-stroke-hot`). Each wall of a box glows in its own colour. Keep it subtle; the middle of a box stays deep blue.
+> - **Type:** headings in **Cinzel**, text in **Inter**.
+> - **Text:** white, with `#C9D2E6` for muted text; peach `#FFB066` for small kickers.
+> - Status colours (success, warning, danger) are unchanged and stay semantic.
+>
+> This replaces the earlier bans on pink, purple and sunset colouring, but only in this controlled form: glow inside shapes and the dusk sky. Pink and purple are still not used as fills for controls or text blocks.
+
 The currently approved visual system is **solid deep navy + warm cream + blue controls + thin bright-orange-to-red gradient accent lines** (29 October 2026). The Guild Command layout remains in force. This overrides the earlier full-card wax-red design and rejects the craft-paper wallpaper.
 
 - Navy supplies structure and depth.
@@ -144,7 +154,7 @@ Use tokens instead of route-specific hardcoded colours wherever possible.
 
 ### UI/body
 
-Use the shared sans-serif stack (currently Manrope) for:
+Use the shared sans-serif stack (**Inter**, approved 12 November 2026; `--rq-font-sans`) for:
 
 - body copy
 - buttons
@@ -158,7 +168,7 @@ Use the shared sans-serif stack (currently Manrope) for:
 
 ### Display branding
 
-A fantasy/display face may appear in branding or a deliberate hero/title moment. It must not leak into dense controls or long-form text.
+Headings use **Cinzel** (`--rq-font-display`, approved 12 November 2026). A fantasy/display face may appear in branding or a deliberate hero/title moment. It must not leak into dense controls or long-form text.
 
 ### Hierarchy
 
@@ -194,7 +204,7 @@ Rookie's signature control is the **wheel**: a round ring of wedges inside a hex
 - **Not triangular wedges.** The ring is round. The hexagon is only the case around it and the centre button.
 - **The centre hexagon opens the 3D dice roller.** The one exception is a wheel used to make a choice (race, class, and other creator choices). There the centre is **Confirm**: it confirms the option at the top and moves on, running the same checks as Next.
 - **Selection** is the wedge resting under the pointer at the top. Drag the ring, tap a wedge, or use the arrow keys.
-- **Glow** sits inside each shape only: light blue on ordinary wedges, orange on the selected wedge, the case and the centre.
+- **Glow** sits inside each shape only: the Neon Coast colours (pink → violet → blue) on ordinary wedges, and peach → pink → gold on the selected wedge, the case and the centre (§3).
 - **Labels** on the ring turn with their wedge.
 - Every wheel offers a plain list alternative (Show as list).
 

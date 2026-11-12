@@ -15,7 +15,7 @@ Core user goals:
 - Players can open and use character sheets at the table.
 - GMs can build a campaign library, prepare encounters, and run Live Play.
 - The app should feel polished, compact, clear, and beginner-friendly.
-- The visual direction is **Guild Ledger**: ink/deep navy structure, slate surfaces, warm parchment/cream text hierarchy, antique brass/gold for brand and primary-action emphasis, restrained ledger blue for information/focus support, and wine-seal red only for small brand or semantic accents.
+- The visual direction is **Neon Coast on a Dusk sky** (owner-approved 12 November 2026; see `docs/DESIGN_SYSTEM.md` §3): a deep blue page fading to dusk purple, shapes told apart by a thin edge with a subtle glow inside them (pink → violet → blue for ordinary shapes, peach → pink → gold for chosen and primary ones), white text, Cinzel headings and Inter text. The signature control is the wheel (§6a).
 
 ## Product principles
 
@@ -79,7 +79,7 @@ Do not create placeholder/probe files in the repository. Delete accidental files
 
 ## Styling direction
 
-Before making any visual/UI change, read `docs/DESIGN_SYSTEM.md`. It is the repository implementation contract for the approved **Guild Ledger** theme.
+Before making any visual/UI change, read `docs/DESIGN_SYSTEM.md`. It is the repository implementation contract for the approved look; its §3 decision note (Neon Coast on a Dusk sky) takes precedence over older Guild Ledger wording.
 
 The visual source of truth is the approved Google Drive brand area:
 
@@ -97,16 +97,15 @@ Do not use anything in `90 - Superseded & Legacy` as inspiration for new UI. If 
 
 Use the current Rookie Quest direction:
 
-- Ink/deep navy backgrounds with slate/ledger-grey surfaces.
-- Warm parchment/cream primary text with a clear muted hierarchy.
-- Antique brass/gold for brand, primary actions, selected states and restrained dividers.
-- Ledger blue for information and focus support.
-- Wine-seal red only for small brand moments or semantic states; never as the default UI accent.
-- Restrained ledger linework and wax-seal cues; no decorative glow-heavy chrome.
+- Deep blue `#0A2342` page fading to dusk purple at the bottom (`--guild-sky`); shapes filled with the deep blue.
+- White primary text with a clear muted hierarchy; Cinzel for headings, Inter for text.
+- A thin edge with a subtle glow inside each shape: pink → violet → blue for ordinary shapes, peach → pink → gold for chosen, primary and centre shapes. Glow never spills outside a shape and never takes over the box.
+- Status colours (success, warning, danger) stay semantic.
+- Tokens live in `frontend/src/styles/guildTokens.css`; use them rather than hard-coded colours.
 - Compact information density without tiny touch targets.
 - Responsive phone/tablet/desktop layouts.
 
-Avoid reintroducing neon pink, broad Rookie-red, purple/pink/orange Sunset or Twilight themes, route-wide parchment/leather skins, or any competing global visual system.
+Use the Neon Coast colours only as the subtle inner glow and the dusk sky described in the design system; never as control or text-block fills. Avoid broad Rookie-red, route-wide parchment/leather skins, or any competing global visual system.
 
 Preferred feel:
 

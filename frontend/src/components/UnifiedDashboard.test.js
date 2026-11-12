@@ -28,8 +28,26 @@ function renderHome(props = {}) {
 }
 
 describe('Home Dashboard v5', () => {
-  beforeEach(() => { jest.clearAllMocks(); useDashboardData.mockReturnValue(fixture()); });
+  beforeEach(() => { jest.clearAllMocks(); window.localStorage.clear(); useDashboardData.mockReturnValue(fixture()); });
+  test('the hub wheel shows each count, opens its page and has a list alternative', () => {
+    renderHome();
+    const wheel = screen.getByTestId('home-hub-wheel');
+    expect(wheel).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Characters: 1/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Shared Creations: 1/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Character' })).toBeInTheDocument();
+    const dice = jest.fn();
+    window.addEventListener('rq-dice-open', dice);
+    fireEvent.click(screen.getByRole('button', { name: 'Open the dice roller' }));
+    window.removeEventListener('rq-dice-open', dice);
+    expect(dice).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByTestId('home-hub-view-toggle'));
+    expect(screen.queryByTestId('home-hub-wheel')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Characters: 1/ })).toHaveAttribute('href', '/characters');
+    expect(window.localStorage.getItem('rqk.home.hubView')).toBe('list');
+  });
   test('shows the four personal cards without counting private homebrew as shared', () => {
+    window.localStorage.setItem('rqk.home.hubView', 'list');
     renderHome();
     expect(screen.getByRole('heading', { name: 'Your Adventure Hub' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Announcements' })).toBeInTheDocument();
@@ -55,6 +73,7 @@ describe('Home Dashboard v5', () => {
       characters: [], campaigns: [], homebrewItems: [{ id: 'hb-42', name: 'Saved spell', visibility: 'private' }],
       recentCharacters: [], recentCampaigns: [], recentHomebrew: [],
     }));
+    window.localStorage.setItem('rqk.home.hubView', 'list');
     renderHome();
     expect(screen.queryByText('Start Your Adventure')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Homebrew: 1/ })).toHaveAttribute('href', '/homebrew');
