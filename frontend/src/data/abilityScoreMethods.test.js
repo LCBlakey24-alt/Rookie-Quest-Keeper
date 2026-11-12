@@ -1,6 +1,6 @@
 import {
   canSetPointBuy, isStandardArray, pointBuyRemaining, pointBuySpent, pointBuyStart,
-  addRollFor, assignRoll, assignValue, migrateRolls, normaliseRolls,
+  addRollFor, addRollInSlot, assignRoll, assignValue, migrateRolls, normaliseRolls,
   scoresFromRolls, standardArrayScores, swapScores,
 } from './abilityScoreMethods';
 import { rollAbilityScore } from './abilityScoreRolls';
@@ -103,8 +103,31 @@ describe('older drafts with swapped rolled scores', () => {
     expect(scoresFromRolls(traded)).toMatchObject({ strength: 8, charisma: 16, dexterity: 13, constitution: 14 });
   });
 
-  test('named rolls are left as they are', () => {
+  test('named rolls keep their ability', () => {
     const named = [{ total: 9, ability: 'wisdom' }];
-    expect(migrateRolls(named, { wisdom: 15 })).toEqual(named);
+    expect(migrateRolls(named, { wisdom: 15 })).toEqual([{ total: 9, ability: 'wisdom', slot: 0 }]);
+  });
+});
+
+describe('roll wheels: each roll sits on its own wheel and is turned to an ability', () => {
+  const r = (total) => ({ total, dice: [] });
+
+  test("a roll goes to its wheel's own ability when free, otherwise the first free one", () => {
+    let rolled = addRollInSlot([], 2, r(15));
+    expect(rolled[0]).toMatchObject({ slot: 2, ability: 'constitution' });
+    // Give that roll Strength instead, then roll wheel 0: Strength is taken.
+    rolled = assignRoll(rolled, 'strength', 0);
+    rolled = addRollInSlot(rolled, 0, r(9));
+    const wheel0 = rolled.find((entry) => entry.slot === 0);
+    expect(wheel0.ability).toBe('dexterity');
+    expect(scoresFromRolls(rolled)).toMatchObject({ strength: 15, dexterity: 9 });
+  });
+
+  test('turning a roll to an ability another roll holds swaps the two', () => {
+    let rolled = addRollInSlot([], 0, r(16));
+    rolled = addRollInSlot(rolled, 1, r(8));
+    const index = rolled.findIndex((entry) => entry.slot === 1);
+    rolled = assignRoll(rolled, 'strength', index);
+    expect(scoresFromRolls(rolled)).toMatchObject({ strength: 8, dexterity: 16 });
   });
 });

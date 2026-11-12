@@ -77,40 +77,52 @@ describe('point buy', () => {
 });
 
 describe('rolling 4d6', () => {
-  test("each wheel's centre rolls that ability in the 3D dice window, in any order", () => {
+  const rollWheel = (slot) => within(screen.getByTestId(`ability-roll-slot-${slot}`));
+
+  test('six roll wheels: tapping a centre throws 4d6 in the 3D window and the total stays in the centre', () => {
     render(<Harness />);
     fireEvent.click(screen.getByTestId('ability-method-roll'));
-    expect(screen.getByTestId('ability-card-wisdom')).toHaveClass('is-empty');
-    fireEvent.click(wheelOf('wisdom').getByRole('button', { name: /Roll Wisdom/ }));
+    expect(screen.getByTestId('ability-roll-slot-3')).toHaveClass('is-empty');
+    fireEvent.click(rollWheel(3).getByRole('button', { name: 'Roll 4d6 for roll 4' }));
     const flicker = screen.getByTestId('dice-flicker');
-    expect(flicker).toHaveTextContent('Wisdom · 4d6, lowest dropped');
+    expect(flicker).toHaveTextContent('Roll 4 · 4d6, lowest dropped');
     expect(flicker).toHaveAttribute('data-theme', 'builder');
-    expect(screen.getByTestId('ability-card-wisdom')).not.toHaveClass('is-empty');
-    expect(draftNow().rolledScores).toHaveLength(1);
-    expect(draftNow().rolledScores[0].ability).toBe('wisdom');
-    expect(draftNow().scores.wisdom).toBe(Number(flicker.getAttribute('data-total')));
-    // Rolled abilities have no roll button; the others still do.
-    expect(wheelOf('wisdom').queryByRole('button', { name: /Roll Wisdom/ })).toBeNull();
-    expect(wheelOf('strength').getByRole('button', { name: /Roll Strength/ })).toBeInTheDocument();
+    const total = Number(flicker.getAttribute('data-total'));
+    expect(screen.getByTestId('ability-roll-slot-3')).not.toHaveClass('is-empty');
+    // Wheel 4's own ability is Intelligence; the roll lands there first.
+    expect(screen.getByTestId('ability-roll-slot-3-ability')).toHaveTextContent('Intelligence');
+    expect(draftNow().scores.intelligence).toBe(total);
+    // The wedges are the six abilities.
+    expect(rollWheel(3).getAllByRole('radio').map((radio) => radio.getAttribute('aria-label')))
+      .toEqual(['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma']);
   });
 
-  test('rolls cannot be traded until all six are in; then turning swaps two rolls', () => {
+  test('turning a roll wheel gives that roll to the chosen ability; the roll that had it swaps', () => {
     render(<Harness />);
     fireEvent.click(screen.getByTestId('ability-method-roll'));
     act(() => { fireEvent.click(screen.getByTestId('ability-roll-rest')); });
     const before = draftNow().scores;
-    const strengthRoll = String(before.strength);
-    const wisdomRoll = String(before.wisdom);
-    // Turn Strength to the roll Wisdom holds (by its position in the ring).
-    const wisdomIndex = draftNow().rolledScores.findIndex((entry) => entry.ability === 'wisdom');
-    const radios = wheelOf('strength').getAllByRole('radio');
-    const option = radios[wisdomIndex];
+    // Roll 1 holds Strength; turn it to Wisdom.
+    const option = rollWheel(0).getByRole('radio', { name: 'Wisdom' });
     fireEvent.pointerDown(option, { pointerId: 1, button: 0, clientX: 5, clientY: 5 });
     fireEvent.pointerUp(option, { pointerId: 1, clientX: 5, clientY: 5 });
     const after = draftNow().scores;
-    expect(String(after.strength)).toBe(wisdomRoll);
-    expect(String(after.wisdom)).toBe(strengthRoll);
+    expect(after.wisdom).toBe(before.strength);
+    expect(after.strength).toBe(before.wisdom);
+    expect(screen.getByTestId('ability-roll-slot-0-ability')).toHaveTextContent('Wisdom');
     expect(screen.getByTestId('ability-step-hint')).toHaveTextContent('All six rolled');
+  });
+});
+
+describe('physical dice', () => {
+  test("each ability's wheel runs 3 to 18 and is turned to the total rolled at the table", () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByTestId('ability-method-physical'));
+    const labels = wheelOf('strength').getAllByRole('radio').map((radio) => radio.getAttribute('aria-label'));
+    expect(labels[0]).toBe('3');
+    expect(labels[labels.length - 1]).toBe('18');
+    turn('strength', '17');
+    expect(draftNow().scores.strength).toBe(17);
   });
 });
 
@@ -140,11 +152,11 @@ describe('list alternative', () => {
     expect(within(wisdom).getByRole('option', { name: '9' })).toBeDisabled();
   });
 
-  test('in the list, each unrolled ability has its own Roll button', () => {
+  test('in the list, each unrolled roll has its own Roll button', () => {
     render(<Harness />);
     fireEvent.click(screen.getByTestId('ability-method-roll'));
     fireEvent.click(screen.getByTestId('ability-view-toggle'));
-    fireEvent.click(screen.getByTestId('ability-list-roll-intelligence'));
-    expect(draftNow().rolledScores[0].ability).toBe('intelligence');
+    fireEvent.click(screen.getByTestId('ability-list-roll-roll-3'));
+    expect(draftNow().rolledScores[0]).toMatchObject({ slot: 3, ability: 'intelligence' });
   });
 });

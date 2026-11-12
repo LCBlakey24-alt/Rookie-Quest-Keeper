@@ -17,8 +17,13 @@ export const ABILITY_METHODS = [
   { id: 'standard', label: 'Standard array', hint: '15, 14, 13, 12, 10, 8' },
   { id: 'point', label: 'Point buy', hint: `${POINT_BUY_TOTAL} points` },
   { id: 'roll', label: 'Roll 4d6', hint: 'drop the lowest die' },
+  { id: 'physical', label: 'Physical dice', hint: 'roll at the table' },
   { id: 'manual', label: 'Manual', hint: 'type your own' },
 ];
+
+/** Scores physical 4d6-drop-lowest can produce. */
+export const PHYSICAL_MIN = 3;
+export const PHYSICAL_MAX = 18;
 
 export function pointBuySpent(scores = {}) {
   return ABILITY_ORDER.reduce((sum, ability) => sum + calculatePointBuyCost(scores[ability]), 0);
@@ -61,6 +66,8 @@ export function normaliseRolls(rolled = []) {
   return (Array.isArray(rolled) ? rolled : []).map((entry, index) => ({
     ...entry,
     ability: entry?.ability || ABILITY_ORDER[index],
+    // Which of the six roll wheels the roll sits on.
+    slot: Number.isInteger(entry?.slot) ? entry.slot : index,
   }));
 }
 
@@ -86,7 +93,7 @@ export function migrateRolls(rolled = [], scores = {}) {
       ability = free.has(ABILITY_ORDER[index]) ? ABILITY_ORDER[index] : [...free][0];
       free.delete(ability);
     }
-    return { ...entry, ability };
+    return { ...entry, ability, slot: Number.isInteger(entry?.slot) ? entry.slot : index };
   });
 }
 
@@ -104,10 +111,25 @@ export function scoresFromRolls(rolled = []) {
   return Object.fromEntries(ABILITY_ORDER.map((ability) => [ability, Number(byAbility[ability]?.total) || 10]));
 }
 
+/**
+ * Record a roll on one of the six roll wheels. It goes to that wheel's own
+ * ability if no roll holds it yet, otherwise to the first ability still free;
+ * the player then turns the wheel to the ability they want.
+ */
+export function addRollInSlot(rolled = [], slot, result) {
+  const rolls = normaliseRolls(rolled).filter((entry) => entry.slot !== slot);
+  const held = new Set(rolls.map((entry) => entry.ability));
+  const preferred = ABILITY_ORDER[slot];
+  const ability = preferred && !held.has(preferred) ? preferred : ABILITY_ORDER.find((candidate) => !held.has(candidate));
+  return [...rolls, { total: result.total, dice: result.dice, ability, slot }];
+}
+
 /** Record a roll for one ability, replacing any it already had. */
 export function addRollFor(rolled = [], ability, result) {
   const kept = normaliseRolls(rolled).filter((entry) => entry.ability !== ability);
-  return [...kept, { total: result.total, dice: result.dice, ability }];
+  const used = new Set(kept.map((entry) => entry.slot));
+  const slot = [0, 1, 2, 3, 4, 5].find((candidate) => !used.has(candidate)) ?? kept.length;
+  return [...kept, { total: result.total, dice: result.dice, ability, slot }];
 }
 
 /**

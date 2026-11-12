@@ -74,3 +74,4 @@ button.ability-step__pick { cursor: pointer; }
 .ability-step__list-row { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem 3rem; align-items: center; gap: 10px; }
 .ability-step__list-row select, .ability-step__list-row button { min-height: 44px; }
 .ability-step__list-row b { text-align: right; }
+.ability-step__assigned { font-size: 0.85rem; font-weight: 800; color: var(--rqk-creator-text); }
