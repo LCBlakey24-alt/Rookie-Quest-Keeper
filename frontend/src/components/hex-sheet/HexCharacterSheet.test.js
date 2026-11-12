@@ -523,3 +523,52 @@ describe('Magic keeps the concentration warning', () => {
     expect(apiClient.patch).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ concentrating_on: 'Hold Person' }));
   });
 });
+
+describe('rest and recovery under the hit-point dial', () => {
+  const openHp = async (character) => {
+    apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...character, ...body } }));
+    await openSheet(character);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-vital-hp')); });
+  };
+
+  test('spending a Hit Die rolls it and saves the healing', async () => {
+    await openHp({ ...PUNCH, id: 'char-hit-die', current_hit_points: 10, hit_dice: '5d8', hit_dice_remaining: 5 });
+    expect(screen.getByTestId('hex-spend-hit-die')).toHaveTextContent('d8 · 5 of 5 left');
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-spend-hit-die')); });
+    const body = apiClient.patch.mock.calls.at(-1)[1];
+    expect(body.hit_dice_remaining).toBe(4);
+    expect(body.current_hit_points).toBeGreaterThan(10);
+  });
+
+  test('death saves appear at 0 HP and a roll is saved', async () => {
+    await openHp({ ...PUNCH, id: 'char-dying', current_hit_points: 0 });
+    expect(screen.getByTestId('hex-death-saves')).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-roll-death-save')); });
+    const body = apiClient.patch.mock.calls.at(-1)[1];
+    expect(Object.keys(body).some((key) => key.startsWith('death_saves') || key === 'current_hit_points')).toBe(true);
+  });
+
+  test('death saves stay hidden while the character is up and unmarked', async () => {
+    await openHp({ ...PUNCH, id: 'char-healthy' });
+    expect(screen.queryByTestId('hex-death-saves')).toBeNull();
+  });
+
+  test('a long rest needs a second tap and uses the server rest route', async () => {
+    const hero = { ...PUNCH, id: 'char-long-rest', current_hit_points: 5 };
+    apiClient.post.mockResolvedValue({ data: { ...hero, current_hit_points: 35 } });
+    await openHp(hero);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(screen.getByTestId('hex-long-rest')).toHaveTextContent('Tap again to rest');
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    expect(apiClient.post).toHaveBeenCalledWith('/characters/char-long-rest/long-rest');
+  });
+
+  test('a short rest uses the server rest route straight away', async () => {
+    const hero = { ...PUNCH, id: 'char-short-rest' };
+    apiClient.post.mockResolvedValue({ data: hero });
+    await openHp(hero);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-short-rest')); });
+    expect(apiClient.post).toHaveBeenCalledWith('/characters/char-short-rest/short-rest');
+  });
+});

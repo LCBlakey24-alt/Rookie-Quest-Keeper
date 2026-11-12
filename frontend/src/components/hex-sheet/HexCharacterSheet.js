@@ -14,12 +14,15 @@ import { deriveArmorClass, deriveWalkingSpeed } from '@/data/characterCombatDeri
 import LevelUpWizard from '@/components/LevelUpWizard';
 import LevelUpReveal from '@/components/level-up-grant/LevelUpReveal';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
-import { rollDiceNotation } from '@/data/diceRoller';
+import { rollDiceNotation, rollDie as rollOneDie } from '@/data/diceRoller';
+import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
 import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier, needsConcentrationReplacement } from '@/data/characterConcentrationRules';
 
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
+import HexRecovery from './HexRecovery';
+import { deathSaveUpdates, hitDieBlocker, hitDieUpdates, recoveryState } from './recoveryModel';
 import HexPortrait from './HexPortrait';
 import HexSkillDial from './HexSkillDial';
 import HexSpinWheel from './HexSpinWheel';
@@ -238,6 +241,56 @@ export default function HexCharacterSheet() {
     }
     return true;
   };
+  // Rests, Hit Dice and death saves (under the hit-point dial), with the
+  // classic sheet's rules: rests go through the server's rest routes.
+  const [recovering, setRecovering] = useState(false);
+  const rest = async (type) => {
+    if (!character || recovering) return;
+    setRecovering(true);
+    const endpoint = type === 'long' ? 'long-rest' : 'short-rest';
+    try {
+      await queueRef.current.runServerAction(async (id, confirmed) => {
+        try {
+          return await apiClient.post(`/characters/${id}/${endpoint}`);
+        } catch (error) {
+          // Fall back only when an older backend lacks the route; retrying
+          // after a timeout or 500 could apply the rest twice.
+          const status = error?.response?.status;
+          if (status !== 404 && status !== 405) throw error;
+          return apiClient.patch(`/characters/${id}`, type === 'long' ? buildLongRestUpdates(confirmed) : buildShortRestUpdates(confirmed));
+        }
+      }, {
+        success: type === 'long' ? 'Long rest completed' : 'Short rest completed',
+        error: `Could not apply ${type} rest`,
+      });
+    } finally {
+      setRecovering(false);
+    }
+  };
+  const spendHitDie = async () => {
+    if (!character || recovering) return;
+    const state = recoveryState(character);
+    const blocker = hitDieBlocker(state);
+    if (blocker) {
+      toast.error(blocker);
+      return;
+    }
+    const die = rollOneDie(state.hitDieSides);
+    const spend = hitDieUpdates(state, die);
+    present({ label: `Hit Die d${state.hitDieSides}`, rolls: [{ sides: state.hitDieSides, result: die }], modifier: state.conMod, total: spend.total, d20: null, sides: state.hitDieSides });
+    setRecovering(true);
+    await queueRef.current.patch(spend.updates, { success: `Recovered ${spend.healed} HP`, error: 'Could not spend the Hit Die' });
+    setRecovering(false);
+  };
+  const rollDeathSave = async () => {
+    if (!character || recovering) return;
+    const result = rollCheck('Death Save', 0);
+    const outcome = deathSaveUpdates(recoveryState(character), result.d20);
+    setRecovering(true);
+    await queueRef.current.patch(outcome.updates, { success: outcome.message, error: 'Could not save the death save' });
+    setRecovering(false);
+  };
+
   // Arriving from a GM-granted "Level up now" (?levelup=1) opens the wizard
   // once the sheet has loaded, then drops the flag from the address.
   const wantsLevelUp = new URLSearchParams(location.search).get('levelup') === '1';
@@ -452,6 +505,16 @@ export default function HexCharacterSheet() {
 
       <main className="hex-sheet__wheel-area">
         {wheel}
+        {current.view === 'hp' && character && (
+          <HexRecovery
+            character={character}
+            busy={recovering}
+            onRest={rest}
+            onSpendHitDie={spendHitDie}
+            onRollDeathSave={rollDeathSave}
+            onPatch={(updates, options) => queueRef.current.patch(updates, options)}
+          />
+        )}
         {rollRow && (
           <div className="hex-sheet__choice" ref={choiceRef} role="group" aria-label={`${rollRow.name} roll`} data-testid="hex-roll-choice">
             <button type="button" onClick={() => { rollCheck(`${rollRow.name} Check`, rollRow.check); back(); }} data-testid="hex-roll-check">
