@@ -222,6 +222,34 @@ describe('the D20 centre and dice wheel', () => {
   });
 });
 
+describe('rolling several dice at once', () => {
+  test('the − and + buttons set how many dice the centre rolls, e.g. 3d6', async () => {
+    await openSheet();
+    fireEvent.click(screen.getByTestId('hex-centre'));
+    // Turn from the d20 back to the d6: d20 -> d12 -> d10 -> d8 -> d6.
+    const ring = screen.getByRole('radiogroup', { name: /^Dice/ });
+    ['ArrowLeft', 'ArrowLeft', 'ArrowLeft', 'ArrowLeft'].forEach((key) => fireEvent.keyDown(ring, { key }));
+    expect(screen.getByTestId('hex-dice-fewer')).toBeDisabled();
+    fireEvent.click(screen.getByTestId('hex-dice-more'));
+    fireEvent.click(screen.getByTestId('hex-dice-more'));
+    expect(screen.getByTestId('hex-dice-count')).toHaveTextContent('3 × D6');
+    fireEvent.click(screen.getByRole('button', { name: 'Roll 3d6' }));
+    const roll = lastRoll();
+    expect(roll.label).toBe('3d6');
+    expect(roll.rolls).toHaveLength(3);
+    expect(roll.rolls.every((die) => die.sides === 6)).toBe(true);
+    expect(roll.total).toBe(roll.rolls.reduce((sum, die) => sum + die.result, 0));
+  });
+
+  test('stops at ten dice', async () => {
+    await openSheet();
+    fireEvent.click(screen.getByTestId('hex-centre'));
+    for (let i = 0; i < 12; i += 1) fireEvent.click(screen.getByTestId('hex-dice-more'));
+    expect(screen.getByTestId('hex-dice-count')).toHaveTextContent('10 × D20');
+    expect(screen.getByTestId('hex-dice-more')).toBeDisabled();
+  });
+});
+
 describe('keyboard', () => {
   test('wedges are buttons that Enter and Space activate', async () => {
     await openSheet();

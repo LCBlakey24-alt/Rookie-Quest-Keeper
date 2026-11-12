@@ -64,6 +64,8 @@ export const COMBAT_GROUPS = [
 
 /** The dice on the dice wheel, in the order they sit round the ring. */
 export const DICE_CHOICES = [4, 6, 8, 10, 12, 20, 100];
+/** The most dice of one size rolled together from the wheel. */
+export const MAX_DICE = 10;
 
 const SECTION_TITLES = Object.fromEntries(MAIN_SECTIONS.map((section) => [section.id, section.label]));
 const VIEW_TITLES = { main: 'Character', core: 'Core Abilities', dice: 'Dice', hp: 'Hit Points', ...SECTION_TITLES };
@@ -182,18 +184,24 @@ export default function HexCharacterSheet() {
     return result;
   };
 
-  const rollDie = (sides) => {
-    const result = rollDiceNotation(`1d${sides}`);
+  /** Roll `count` dice of one size together, e.g. 3d6, through the tray. */
+  const rollDie = (sides, count = 1) => {
+    const notation = `${count}d${sides}`;
+    const result = rollDiceNotation(notation);
     if (!result.valid || !result.rolls.length) {
-      toast.error(`Could not roll a d${sides}`);
+      toast.error(`Could not roll ${count > 1 ? notation : `a d${sides}`}`);
       return;
     }
     const kept = result.rolls.find((roll) => !roll.dropped) || result.rolls[0];
-    present({ label: `d${sides}`, rolls: result.rolls, modifier: result.modifier, total: result.total, d20: sides === 20 ? kept.result : null, sides });
+    // A natural 20 or 1 only means something on a single d20.
+    const single20 = sides === 20 && count === 1;
+    present({ label: count > 1 ? notation : `d${sides}`, rolls: result.rolls, modifier: result.modifier, total: result.total, d20: single20 ? kept.result : null, sides });
   };
 
   const openDice = () => push({ view: 'dice' });
   const [diceChoice, setDiceChoice] = useState(20);
+  const [diceCount, setDiceCount] = useState(1);
+  const diceNotation = `${diceCount}d${diceChoice}`;
 
   /**
    * Save an HP dial change through the same queue as the classic sheet.
@@ -335,10 +343,10 @@ export default function HexCharacterSheet() {
         options={DICE_CHOICES.map((sides) => ({ id: `d${sides}`, label: `d${sides}`, short: `D${sides}` }))}
         value={`d${diceChoice}`}
         onChange={(id) => setDiceChoice(Number(id.slice(1)))}
-        centreText={`D${diceChoice}`}
-        onConfirm={() => rollDie(diceChoice)}
+        centreText={diceCount > 1 ? `${diceCount}D${diceChoice}` : `D${diceChoice}`}
+        onConfirm={() => rollDie(diceChoice, diceCount)}
         confirmLabel="ROLL"
-        confirmAria={`Roll a d${diceChoice}`}
+        confirmAria={diceCount > 1 ? `Roll ${diceNotation}` : `Roll a d${diceChoice}`}
       />
     );
   } else {
@@ -443,9 +451,20 @@ export default function HexCharacterSheet() {
           </div>
         )}
         {current.view === 'dice' && (
+          <div className="hex-dice-count" role="group" aria-label="How many dice">
+            <button type="button" onClick={() => setDiceCount((n) => Math.max(1, n - 1))} disabled={diceCount <= 1} aria-label="One die fewer" data-testid="hex-dice-fewer">
+              <span className="hex-glass" aria-hidden="true" />−
+            </button>
+            <output aria-live="polite" data-testid="hex-dice-count">{diceCount} × D{diceChoice}</output>
+            <button type="button" onClick={() => setDiceCount((n) => Math.min(MAX_DICE, n + 1))} disabled={diceCount >= MAX_DICE} aria-label="One die more" data-testid="hex-dice-more">
+              <span className="hex-glass" aria-hidden="true" />+
+            </button>
+          </div>
+        )}
+        {current.view === 'dice' && (
           <button type="button" className="hex-sheet__text-button" onClick={() => window.dispatchEvent(new Event('rq-dice-open'))} data-testid="hex-more-dice">
             <span className="hex-glass" aria-hidden="true" />
-            More dice and custom rolls
+            Mixed dice and custom rolls
           </button>
         )}
         {current.view === 'combat' && character && (
