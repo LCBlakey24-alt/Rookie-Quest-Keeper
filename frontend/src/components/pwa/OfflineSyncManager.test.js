@@ -67,3 +67,18 @@ test('legacy offline closure without a timestamped revision is discarded safely'
   expect(apiClient.delete).not.toHaveBeenCalled();
   expect(toast.warning).toHaveBeenCalledWith(expect.stringContaining('Legacy combat display'));
 });
+
+test('replaying offline combat reads the campaign combat state, not the owner-only character', async () => {
+  const { combatStatesMatch, removeOfflineCombatSync } = jest.requireMock('@/offline/offlineCombatSyncQueue');
+  listOfflineCombatClosures.mockResolvedValue([]);
+  listOfflineCombatSyncs.mockResolvedValue([{
+    key: 'combat-1', campaignId: 'campaign-1', characterId: 'char-9', characterName: 'Pip',
+    baseState: { current_hit_points: 10 }, state: { current_hit_points: 4 }, status: 'queued',
+  }]);
+  combatStatesMatch.mockReturnValue(true);
+  apiClient.patch.mockResolvedValue({ data: {} });
+  render(<OfflineSyncManager />);
+  await waitFor(() => expect(removeOfflineCombatSync).toHaveBeenCalledWith('combat-1'));
+  expect(apiClient.get.mock.calls[0][0]).toBe('/campaigns/campaign-1/characters/char-9/combat-state');
+  expect(apiClient.patch).toHaveBeenCalledWith('/characters/char-9', { current_hit_points: 4 }, expect.anything());
+});

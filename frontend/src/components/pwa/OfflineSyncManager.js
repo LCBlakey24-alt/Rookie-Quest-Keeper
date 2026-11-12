@@ -18,6 +18,12 @@ import {
 } from '@/offline/offlineCombatSyncQueue';
 import '@/styles/offlineSyncManager.css';
 
+
+/** Where a queued combat record reads the character's current combat state. */
+export function combatStatePath(record = {}) {
+  return `/campaigns/${encodeURIComponent(record.campaignId)}/characters/${encodeURIComponent(record.characterId)}/combat-state`;
+}
+
 export default function OfflineSyncManager() {
   const [records, setRecords] = useState([]);
   const [lootRecords, setLootRecords] = useState([]);
@@ -52,7 +58,9 @@ export default function OfflineSyncManager() {
 
       for (const record of queued.filter(item => item.status !== 'conflict')) {
         try {
-          const currentResponse = await apiClient.get(`/characters/${record.characterId}`, { timeout: 15000 });
+          // Combat state through the campaign: GET /characters/{id} is
+          // owner-only, so a GM replaying the party's combat could not read it.
+          const currentResponse = await apiClient.get(combatStatePath(record), { timeout: 15000 });
           if (currentResponse?.rqkOffline) break;
           const cloudState = combatStateSnapshot(currentResponse.data || {});
           if (!combatStatesMatch(cloudState, record.baseState)) {

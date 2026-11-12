@@ -6,7 +6,7 @@ when saving portrait_url, notes, inspiration, conditions, death saves, inventory
 spell slot state, spellbook entries, and other live-sheet fields.
 """
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -450,6 +450,47 @@ async def create_character_lenient(payload: Dict[str, Any], username: str = Depe
         "character_id": character["id"],
         "character": character,
     }
+
+
+COMBAT_STATE_FIELDS = (
+    "current_hit_points", "temporary_hit_points", "temp_hp", "conditions",
+    "death_saves_successes", "death_saves_failures", "concentrating_on", "concentration",
+)
+
+
+async def _character_for_combat(character_id: str, username: str, campaign_id: Optional[str] = None) -> Dict[str, Any]:
+    """The character if `username` owns it, or GMs the campaign it is linked to.
+
+    The same rule the GM combat PATCH below uses: the character must still be
+    in that GM's campaign and on its roster.
+    """
+    character = await db.player_characters.find_one({"id": character_id}, {"_id": 0})
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    if character.get("user_id") == username:
+        return character
+    current_campaign = character.get("campaign_id")
+    if not current_campaign or (campaign_id and str(campaign_id) != str(current_campaign)):
+        raise HTTPException(status_code=404, detail="Character not found")
+    campaign = await db.campaigns.find_one({"id": current_campaign, "dm_user_id": username}, {"_id": 0, "id": 1})
+    linked_member = await db.campaign_members.find_one({"campaign_id": current_campaign, "character_id": character_id}, {"_id": 0, "id": 1})
+    if not campaign or not linked_member:
+        raise HTTPException(status_code=404, detail="Character not found")
+    return character
+
+
+@router.get("/campaigns/{campaign_id}/characters/{character_id}/combat-state")
+async def get_character_combat_state(campaign_id: str, character_id: str, username: str = Depends(get_current_user)):
+    """Combat state only, for the owner or the GM of the character's campaign.
+
+    Offline combat replay compares this with the state it saved before going
+    offline. GET /characters/{id} is owner-only, so a GM replaying combat for
+    the party could never read it.
+    """
+    character = await _character_for_combat(character_id, username, campaign_id)
+    state = {field: character.get(field) for field in COMBAT_STATE_FIELDS if field in character}
+    state["id"] = character.get("id")
+    return state
 
 
 @router.patch("/characters/{character_id}")
