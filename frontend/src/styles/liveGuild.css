@@ -1,0 +1,80 @@
+/* Live Play in the approved look: Neon Coast on a Dusk sky, Cinzel and
+ * Inter (DESIGN_SYSTEM §3, tokens in guildTokens.css).
+ *
+ * Live Play is a working screen, so this pass is deliberately light:
+ * headings move to white Cinzel, the old citrus line under the session
+ * brief becomes the warm peach -> pink -> gold edge, and the main panels
+ * get the thin edge with the soft inner glow. Status colours (the player
+ * display warning, damage and healing) stay semantic. Panels draw their
+ * edge and glow on ::after because the control layer pins border and shadow.
+ */
+html body #root .live-session-with-second-screen {
+  --rq-citrus-gradient: linear-gradient(90deg, var(--guild-h1) 0%, var(--guild-h2) 50%, var(--guild-h3) 100%);
+  --rq-citrus-control: var(--guild-bg);
+  --rq-control-blue: var(--guild-bg);
+  --rq-control-wax: var(--guild-select);
+  --rq-guild-wine: var(--guild-select);
+  --rq-guild-wine-selected: none;
+  --rq-guild-heading: var(--guild-text);
+  --rq-text-primary: var(--guild-text);
+  --rq-fill-color: rgba(var(--guild-c2-rgb), 0.16);
+}
+
+/* Headings: white Cinzel. The kicker above the campaign name takes the
+   accent instead of the old orange. */
+html body #root .live-session-with-second-screen :is(h1, h2, h3) {
+  font-family: var(--guild-font-display) !important;
+  font-weight: 700 !important;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+  letter-spacing: 0.01em !important;
+}
+html body #root .live-session-with-second-screen .rqk-live-page__eyebrow { color: var(--guild-hi) !important; }
+
+/* Main panels: a thin edge with the glow inside. */
+html body #root .live-session-with-second-screen.live-session-with-second-screen :is(
+  .rqk-live-page__header,
+  .rqk-live-page__story-utility,
+  .rqk-tool-rail--desktop,
+  .rqk-live-grid__session-brief,
+  .rqk-live-grid__core-card
+) {
+  border-radius: 14px !important;
+}
+/* The ::after edge needs a positioned parent. The desktop tool rail is
+   already position: sticky (LiveToolRail.css), which serves, so it keeps
+   its stickiness and stays on screen while a tall tool scrolls. */
+html body #root .live-session-with-second-screen.live-session-with-second-screen :is(
+  .rqk-live-page__header,
+  .rqk-live-page__story-utility,
+  .rqk-live-grid__session-brief,
+  .rqk-live-grid__core-card
+) {
+  position: relative;
+}
+html body #root .live-session-with-second-screen.live-session-with-second-screen :is(
+  .rqk-live-page__header,
+  .rqk-live-page__story-utility,
+  .rqk-tool-rail--desktop,
+  .rqk-live-grid__session-brief,
+  .rqk-live-grid__core-card
+)::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid var(--guild-line) !important;
+  box-shadow: var(--guild-box-glow) !important;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+html body #root .live-session-with-second-screen.live-session-with-second-screen .rqk-live-grid__core-card:is(:hover, :focus-visible)::after {
+  border-color: var(--guild-line-hot) !important;
+  box-shadow: var(--guild-box-glow-hot) !important;
+}
+
+/* The current tool in the rail: the selected blue, not a fill colour. */
+html body #root .live-session-with-second-screen .rqk-tool-rail__item.is-active {
+  --rq-citrus-gradient: none;
+  --rq-citrus-control: var(--guild-select);
+}

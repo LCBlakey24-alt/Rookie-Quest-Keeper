@@ -4,6 +4,8 @@ import LiveSessionGridPage from '@/components/gm/LiveSessionGridPage';
 import LiveSecondScreenDock from '@/components/gm/LiveSecondScreenDock';
 import { useParams } from 'react-router-dom';
 import './LiveSessionWithSecondScreenPage.css';
+import '@/styles/guildTokens.css';
+import '@/styles/liveGuild.css';
 
 export default function LiveSessionWithSecondScreenPage() {
   const { campaignId } = useParams();
