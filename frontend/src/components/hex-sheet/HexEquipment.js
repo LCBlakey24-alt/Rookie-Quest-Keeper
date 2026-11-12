@@ -59,8 +59,9 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
     starting: character?.starting_equipment,
     equipped,
   }), [inventory, character, equipped]);
-  const equippedIds = useMemo(() => new Set(BODY_SLOTS.map((slot) => equipped[slot.id]).filter(Boolean).map(inventoryItemIdentity)), [equipped]);
-  const backpack = carried.filter((item) => !equippedIds.has(inventoryItemIdentity(item)));
+  // The carried view marks each worn copy, so a spare same-named item (a
+  // second Dagger) stays in the backpack.
+  const backpack = carried.filter((item) => !(item && typeof item === 'object' && (item.equipped || item.is_equipped)));
   const attunedCount = carried.filter(isAttuned).length;
   const currency = normaliseCurrencyState(character || {});
   const weight = carriedWeight(carried, currency);

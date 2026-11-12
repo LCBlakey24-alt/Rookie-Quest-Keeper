@@ -263,3 +263,20 @@ describe('character inventory state', () => {
     expect(buildCurrencyUpdate(character, 'cp', -50).currency.cp).toBe(0);
   });
 });
+
+describe('worn accessories stay in step with their inventory copies', () => {
+  const ring = { id: 'ring-p', name: 'Ring of Protection', requires_attunement: true, attuned: false };
+
+  test('a ring worn in ring1 is marked worn in the inventory', () => {
+    const synced = syncInventoryWithEquipment([ring], { ring1: { ...ring, equipped: true } });
+    expect(synced[0]).toMatchObject({ equipped: true, equip_slot: 'ring1' });
+  });
+
+  test('attuning a worn ring updates the worn copy too, so its bonus applies', () => {
+    const equipped = { ring1: { ...ring, equipped: true, equip_slot: 'ring1' } };
+    const state = updateInventoryItemState({ inventory: [ring], equipped, item: equipped.ring1, updates: { attuned: true } });
+    expect(state.updated).toBe(true);
+    expect(state.equipped.ring1.attuned).toBe(true);
+    expect(state.inventory[0]).toMatchObject({ attuned: true, equipped: true, equip_slot: 'ring1' });
+  });
+});

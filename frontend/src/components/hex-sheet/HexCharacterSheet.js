@@ -15,7 +15,7 @@ import LevelUpWizard from '@/components/LevelUpWizard';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import { rollDiceNotation } from '@/data/diceRoller';
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
-import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier } from '@/data/characterConcentrationRules';
+import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier, needsConcentrationReplacement } from '@/data/characterConcentrationRules';
 
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
@@ -235,6 +235,28 @@ export default function HexCharacterSheet() {
   // A level up the GM granted and the player has not taken yet.
   const levelUpReady = Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1);
 
+  // Starting concentration on a second spell ends the first, so ask first,
+  // exactly as the classic sheet does.
+  const patchWithConcentrationGuard = async (updates, options = {}) => {
+    const current = character?.concentrating_on || character?.concentration || null;
+    const next = updates?.concentrating_on ?? updates?.concentration;
+    if (!needsConcentrationReplacement(current, next)) return queueRef.current.patch(updates, options);
+    const nextName = getConcentrationName(next);
+    const currentName = getConcentrationName(current) || 'your current spell';
+    // Toast actions can outlive this sheet; bind the choice to this character.
+    const session = queueRef.current.getSession();
+    toast.warning(`Already concentrating on ${currentName}`, {
+      description: `Starting concentration on ${nextName} will end ${currentName}.`,
+      duration: 10000,
+      action: {
+        label: `Switch to ${nextName}`,
+        onClick: () => queueRef.current.patchForSession(session, updates, { ...options, success: `Concentrating on ${nextName}` }),
+      },
+      cancel: { label: `Keep ${currentName}`, onClick: () => {} },
+    });
+    return false;
+  };
+
   // The Traits list is the classic sheet's Features tab, fed the same derived data.
   const featureProps = useMemo(() => {
     const rulesEdition = rulesEditionOf(character);
@@ -445,7 +467,7 @@ export default function HexCharacterSheet() {
         )}
         {current.view === 'magic' && character && (
           <section className="hex-combat-list hex-section-list character-page-v2" aria-label="Magic" data-testid="hex-magic-list">
-            <CleanSpellsTab character={character} onCharacterUpdate={(updates, options = {}) => queueRef.current.patch(updates, options)} />
+            <CleanSpellsTab character={character} onCharacterUpdate={patchWithConcentrationGuard} />
           </section>
         )}
         {current.view === 'traits' && character && (

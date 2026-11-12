@@ -59,6 +59,9 @@ export function slotsForItem(item) {
   const text = textOf(item);
   const explicit = typeof item === 'object' ? (item.equip_slot || item.equipped_slot) : '';
   if (explicit === 'shield' || /\bshield\b/.test(text)) return ['offHand'];
+  // Known armour first: "Ring Mail" is armour, not a ring.
+  const isArmourName = ALL_ARMOR.some((armour) => armour.name.toLowerCase() === nameOf(item).toLowerCase() && !/shield/i.test(armour.name));
+  if (isArmourName || /ring mail/.test(text)) return ['armor'];
   if (/\bring\b/.test(text)) return RINGS;
   if (/amulet|necklace|periapt|medallion|talisman|scarab/.test(text)) return ['neck'];
   if (/cloak|cape|mantle/.test(text)) return ['shoulders'];
@@ -67,8 +70,7 @@ export function slotsForItem(item) {
   if (/boot|slipper|shoe|sandal/.test(text)) return ['boots'];
   if (/belt|girdle/.test(text)) return ['waist'];
   if (/helm|\bhat\b|circlet|headband|crown|diadem|\bcap\b|goggles/.test(text)) return ['head'];
-  const isArmourName = ALL_ARMOR.some((armour) => armour.name.toLowerCase() === nameOf(item).toLowerCase() && !/shield/i.test(armour.name));
-  if (isArmourName || /\barmou?r\b|chain mail|plate|breastplate|splint|padded|studded|ring mail|scale mail|half plate|hide armou?r|leather armou?r/.test(text)) return ['armor'];
+  if (/\barmou?r\b|chain mail|plate|breastplate|splint|padded|studded|ring mail|scale mail|half plate|hide armou?r|leather armou?r/.test(text)) return ['armor'];
   const isWeapon = ALL_WEAPONS.some((weapon) => weapon.name.toLowerCase() === nameOf(item).toLowerCase())
     || /weapon|sword|bow|crossbow|axe|mace|staff|dagger|spear|lance|hammer|rapier|club|flail|halberd|pike|trident|whip|scimitar|sickle|javelin|dart|sling|wand|rod|orb|focus/.test(text)
     || Boolean(typeof item === 'object' && (item.damage_dice || item.damage));

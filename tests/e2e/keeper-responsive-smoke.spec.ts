@@ -560,7 +560,7 @@ test('desktop blue control reveals only the citrus gradient underline on hover',
     };
   });
   const resting = await readStyle();
-  expect(resting.backgroundColor).toBe('rgb(11, 27, 43)');
+  expect(resting.backgroundColor).toBe('rgb(10, 35, 66)');
   expect(resting.backgroundImage).toContain('255, 138, 31');
   expect(resting.backgroundSize).toMatch(/^0(?:px|%) 3px$/);
   expect(resting.transitionDuration).toContain('0.34s');
@@ -608,12 +608,12 @@ test('page surfaces are flat navy and never use the retired craft-paper texture'
   const landing = page.getByTestId('landing-page');
   await expect(landing).toBeVisible();
   await expect(landing).toHaveCSS('background-image', 'none');
-  await expect(landing).toHaveCSS('background-color', 'rgb(11, 27, 43)');
+  await expect(landing).toHaveCSS('background-color', 'rgb(10, 35, 66)');
   await page.getByTestId('landing-signin-btn').click();
   const login = page.getByTestId('auth-page');
   await expect(login).toBeVisible();
   await expect(login).toHaveCSS('background-image', 'none');
-  await expect(login).toHaveCSS('background-color', 'rgb(11, 27, 43)');
+  await expect(login).toHaveCSS('background-color', 'rgb(10, 35, 66)');
 });
 
 test('1080p player display keeps a flat dark-navy frame without wallpaper', async ({ page }) => {
@@ -629,7 +629,7 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   const frame = page.locator('.rqk-player-display__frame');
   await expect(frame).toBeVisible();
   await expect(frame).toHaveCSS('background-image', 'none');
-  await expect(frame).toHaveCSS('background-color', 'rgb(11, 27, 43)');
+  await expect(frame).toHaveCSS('background-color', 'rgb(10, 35, 66)');
 });
 
 

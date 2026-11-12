@@ -99,3 +99,17 @@ test('money can be edited and saved, and weight counts coins at 50 to the pound'
   await act(async () => { fireEvent.click(screen.getByTestId('hex-money-save')); });
   expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ currency: expect.objectContaining({ gp: 75 }) }), expect.anything());
 });
+
+test('a spare copy of a worn name-only item stays in the backpack', () => {
+  const fighter = {
+    id: 'char-daggers', strength: 12, dexterity: 14, level: 1, character_class: 'Rogue',
+    equipped: { mainHand: { name: 'Dagger', type: 'Weapon', damage_dice: '1d4', equipped: true } },
+    inventory: [
+      { name: 'Dagger', type: 'Weapon', damage_dice: '1d4', equipped: true, equip_slot: 'mainHand' },
+      { name: 'Dagger', type: 'Weapon', damage_dice: '1d4' },
+    ],
+  };
+  renderEquipment(fighter);
+  // The spare dagger is offered for the free off hand.
+  expect(screen.getByTestId('hex-pack-equip-Dagger')).toHaveTextContent('Off Hand');
+});

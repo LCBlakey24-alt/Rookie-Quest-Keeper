@@ -84,3 +84,11 @@ describe('Armour Class from worn magic items', () => {
     expect(deriveArmorClass(paladin, { ignoreStoredAc: true })).toBe(22);
   });
 });
+
+describe('armour whose name contains "ring"', () => {
+  test('Ring Mail goes in the armour slot, not on a finger', () => {
+    expect(slotsForItem({ name: 'Ring Mail', type: 'Armor' })).toEqual(['armor']);
+    expect(slotsForItem('Ring Mail')).toEqual(['armor']);
+    expect(slotsForItem({ name: 'Ring of Protection', type: 'Ring' })).toEqual(['ring1', 'ring2']);
+  });
+});

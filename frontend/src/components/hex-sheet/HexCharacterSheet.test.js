@@ -17,6 +17,11 @@ jest.mock('sonner', () => {
   const toast = Object.assign(jest.fn(), { success: jest.fn(), error: jest.fn(), info: jest.fn(), warning: jest.fn() });
   return { toast, Toaster: () => null };
 });
+// The spell list itself is tested on its own; here only what the sheet hands it matters.
+jest.mock('@/components/clean-sheet/CleanSpellsTab', () => {
+  const mock = function MockSpellsTab(props) { mock.__lastProps = props; return null; };
+  return { __esModule: true, default: mock, __lastProps: null, get lastProps() { return mock.__lastProps; } };
+});
 // The real tray needs WebGL. These tests only need to know what was rolled.
 const rolled = [];
 jest.mock('@/components/DiceRollFlicker', () => function MockFlicker(props) {
@@ -457,5 +462,22 @@ describe('the Skills dial', () => {
     expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName('Stealth +10'); // DEX 4 + 2 x proficiency 3
     fireEvent.click(screen.getByTestId('hex-skill-roll-Perception'));
     expect(lastRoll()).toMatchObject({ label: 'Perception', modifier: 3 });
+  });
+});
+
+describe('Magic keeps the concentration warning', () => {
+  test('starting a second concentration spell asks before ending the first', async () => {
+    const caster = { ...PUNCH, id: 'char-conc-guard', concentrating_on: 'Bless' };
+    apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...caster, ...body } }));
+    await openSheet(caster);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-wedge-magic')); });
+    const { toast } = require('sonner');
+    toast.warning.mockClear();
+    // The guard the Magic list is given: replacing Bless with Hold Person.
+    const spellsProps = require('@/components/clean-sheet/CleanSpellsTab').default.__lastProps;
+    expect(spellsProps).toBeTruthy();
+    await act(async () => { await spellsProps.onCharacterUpdate({ concentrating_on: 'Hold Person' }); });
+    expect(toast.warning).toHaveBeenCalledWith('Already concentrating on Bless', expect.objectContaining({ description: expect.stringContaining('Hold Person') }));
+    expect(apiClient.patch).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ concentrating_on: 'Hold Person' }));
   });
 });
