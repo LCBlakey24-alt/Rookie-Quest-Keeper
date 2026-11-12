@@ -53,6 +53,8 @@ export default function LevelUpGrantWatcher() {
   return (
     <LevelUpCelebration
       grant={grant}
+      title="Level up ready!"
+      primaryLabel={`Roll for level ${grant.to_level}`}
       onLater={close}
       onLevelUp={() => {
         const id = grant.character_id;
