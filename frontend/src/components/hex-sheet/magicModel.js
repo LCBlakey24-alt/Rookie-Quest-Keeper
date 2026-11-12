@@ -7,6 +7,7 @@
  * cast at that level.
  */
 import { SPELL_DATABASE } from '@/data/spellDatabase';
+import { characterSpellIdentity, legacySpellbookIdentities } from '@/data/characterSpellListRules';
 
 const normalise = (value = '') => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const asList = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
@@ -33,7 +34,8 @@ export function spellWithDetails(entry, fallbackLevel = null) {
 /**
  * The spells a character can cast now: cantrips, plus prepared spells (for
  * preparing casters) and known spells (for known casters). Spellbook-only
- * entries are left out: they must be prepared before they can be cast.
+ * entries, including a Wizard's spellbook in an older save's spells_known,
+ * are left out: they must be prepared before they can be cast.
  */
 export function castableSpells(character = {}) {
   const seen = new Set();
@@ -55,7 +57,12 @@ export function castableSpells(character = {}) {
   };
   asList(character.cantrips_known || character.cantrips).forEach((entry) => add(entry, 0));
   asList(character.spells_prepared || character.prepared_spells || character.preparedSpells).forEach((entry) => add(entry, null));
-  asList(character.spells_known || character.known_spells).forEach((entry) => add(entry, null));
+  // A Wizard's older save may hold its spellbook in spells_known: those
+  // entries must be prepared (above) before they can be cast.
+  const unprepared = legacySpellbookIdentities(character);
+  asList(character.spells_known || character.known_spells)
+    .filter((entry) => !unprepared.has(characterSpellIdentity(entry)))
+    .forEach((entry) => add(entry, null));
   return out;
 }
 
