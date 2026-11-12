@@ -29,7 +29,7 @@
 .library-page-empty,
 .library-page-stat-card {
   min-width: 0;
-  background: var(--rq-surface, #102238);
+  background: var(--rq-surface, #0e2d55);
   background-image: none !important;
   border: 1px solid var(--rq-line, rgba(181, 203, 226, 0.16));
   border-radius: var(--rq-radius, 10px);

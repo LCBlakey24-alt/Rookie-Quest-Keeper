@@ -7,8 +7,8 @@
   padding: 18px;
   border: 1px solid var(--rq-line, #34485a);
   border-radius: 8px;
-  background: var(--rq-bg-panel, #0b1b2b);
-  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-panel, #0a2342);
+  color: var(--rq-text-primary, #ffffff);
 }
 .rqk-npc-load-error p { margin: 0; line-height: 1.45; }
 .rqk-npcs-roster-grid > div:first-child { min-width: 0; }
@@ -67,7 +67,7 @@
     margin: 0 0 3px !important;
     white-space: normal !important;
     overflow-wrap: anywhere !important;
-    color: var(--rq-text-primary, #eadfc8) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
   }
   #root .rqk-npc-identity p {
     margin: 0 !important;
@@ -134,21 +134,21 @@
   padding: 7px 12px;
   border: 1px solid var(--rq-line-strong, #576373);
   border-radius: 6px;
-  background: var(--rq-bg-panel, #0b1b2b);
-  color: var(--rq-text-primary, #eadfc8);
+  background: var(--rq-bg-panel, #0a2342);
+  color: var(--rq-text-primary, #ffffff);
   cursor: pointer;
   font: inherit;
   font-weight: 800;
 }
 .rqk-npc-expand-toggle:hover,
 .rqk-npc-expand-toggle:focus-visible {
-  border-color: var(--rq-primary, #c9a96b);
+  border-color: var(--rq-primary, #f2892f);
   outline-offset: 3px;
 }
 #root .rqk-npc-combat-summary {
   display: list-item;
   padding: 8px 2px;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
@@ -156,7 +156,7 @@
 .rqk-npc-summary-title {
   display: inline-block;
   margin-right: 8px;
-  color: var(--rq-primary, #c9a96b);
+  color: var(--rq-primary, #f2892f);
 }
 .rqk-npc-summary-stats {
   display: inline-flex;
@@ -169,12 +169,12 @@
 .rqk-npc-summary-stats > span {
   display: inline-block;
   padding: 2px 6px;
-  border: 1px solid var(--rq-border-default, rgba(201,169,107,.25));
+  border: 1px solid var(--rq-border-default, rgba(242, 137, 47,.25));
   border-radius: 4px;
-  background: var(--rq-bg-main, #0b1b2b);
+  background: var(--rq-bg-main, #0a2342);
   color: var(--rq-text-secondary, #bec7d4);
 }
-.rqk-npc-summary-stats strong { color: var(--rq-text-primary, #eadfc8); }
+.rqk-npc-summary-stats strong { color: var(--rq-text-primary, #ffffff); }
 .rqk-npc-combat-details[open] > .rqk-stat-block {
   margin: 8px 0 0;
 }
@@ -223,7 +223,7 @@
 #root .rqk-npc-selected-delete-confirm {
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
   padding: 8px 10px; border: 1px solid var(--rq-danger, #b94a4f);
-  border-radius: 6px; color: var(--rq-text-primary, #eadfc8);
+  border-radius: 6px; color: var(--rq-text-primary, #ffffff);
 }
 #root .rqk-npc-selected-delete-confirm strong { font-size: 12px; }
 @media (max-width: 640px) {
@@ -245,10 +245,10 @@
   align-content: start;
   gap: 12px;
   padding: clamp(20px, 4vw, 36px);
-  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
-  border-top: 3px solid var(--rq-accent-primary, #c9a96b);
+  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
+  border-top: 3px solid var(--rq-accent-primary, #f2892f);
   border-radius: 9px;
-  background: var(--rq-bg-panel, #0b1b2b);
+  background: var(--rq-bg-panel, #0a2342);
   box-shadow: none;
 }
 #root .rqk-npc-onboarding__icon {
@@ -256,14 +256,14 @@
   place-items: center;
   width: 54px;
   height: 54px;
-  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
+  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
   border-radius: 9px;
-  color: var(--rq-accent-primary, #c9a96b);
-  background: var(--rq-bg-deep, #0b1b2b);
+  color: var(--rq-accent-primary, #f2892f);
+  background: var(--rq-bg-deep, #0a2342);
 }
 #root .rqk-npc-onboarding__eyebrow {
   margin: 0;
-  color: var(--rq-accent-primary, #c9a96b);
+  color: var(--rq-accent-primary, #f2892f);
   text-transform: uppercase;
   letter-spacing: .1em;
   font-size: 11px;
@@ -271,7 +271,7 @@
 }
 #root .rqk-npc-onboarding__intro h2 {
   margin: 0;
-  color: var(--rq-text-primary, #eadfc8);
+  color: var(--rq-text-primary, #ffffff);
   font-family: var(--rq-font-display, Georgia, serif);
   font-size: clamp(24px, 3.5vw, 34px);
   line-height: 1.15;
@@ -279,7 +279,7 @@
 #root .rqk-npc-onboarding__intro > p:not(.rqk-npc-onboarding__eyebrow) {
   margin: 0;
   max-width: 56ch;
-  color: var(--rq-text-secondary, rgba(234,223,200,.78));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.78));
   font-size: 14px;
   line-height: 1.6;
 }
@@ -303,24 +303,24 @@
   border-radius: 6px;
 }
 #root .rqk-npc-onboarding__actions .btn-primary {
-  color: #0b1b2b;
-  background: var(--rq-accent-primary, #c9a96b);
-  border: 1px solid var(--rq-accent-primary, #c9a96b);
+  color: #0a2342;
+  background: var(--rq-accent-primary, #f2892f);
+  border: 1px solid var(--rq-accent-primary, #f2892f);
 }
 #root .rqk-npc-onboarding__actions .btn-secondary {
-  color: var(--rq-text-primary, #eadfc8);
-  background: var(--rq-bg-deep, #0b1b2b);
-  border: 1px solid var(--rq-border-strong, rgba(201,169,107,.3));
+  color: var(--rq-text-primary, #ffffff);
+  background: var(--rq-bg-deep, #0a2342);
+  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
 }
 #root .rqk-npc-onboarding__actions button:is(:hover,:focus-visible) {
-  border-color: var(--rq-accent-hover, #d9bc82);
-  outline: 2px solid var(--rq-accent-hover, #d9bc82);
+  border-color: var(--rq-accent-hover, #ffb066);
+  outline: 2px solid var(--rq-accent-hover, #ffb066);
   outline-offset: 2px;
 }
 #root .rqk-npc-onboarding__intro > small {
   font-size: 12px;
   line-height: 1.4;
-  color: var(--rq-text-secondary, rgba(234,223,200,.7));
+  color: var(--rq-text-secondary, rgba(255, 255, 255,.7));
 }
 @media (max-width: 600px) {
   #root .rqk-npc-onboarding__intro { width: 100%; padding: 20px 16px; }

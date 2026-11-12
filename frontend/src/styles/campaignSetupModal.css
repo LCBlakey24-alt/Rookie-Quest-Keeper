@@ -20,7 +20,7 @@
   width: min(100%, 1120px) !important;
   max-height: 92dvh !important;
   overflow: auto !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #0e2d55) !important;
   background-image: none !important;
   border: 1px solid var(--rq-line-strong, rgba(181, 203, 226, 0.28)) !important;
   border-left: 1px solid var(--rq-line-strong, rgba(181, 203, 226, 0.28)) !important;

@@ -2,11 +2,11 @@
    Scope strictly to the separate presentation route; GM-only data and controls
    do not belong on this screen. Supports short 720p / 768p TV viewports. */
 .rqk-player-display {
-  --rqk-tv-ink: #0b1b2b;
-  --rqk-tv-navy: #0b1b2b;
-  --rqk-tv-panel: #0b1b2b;
-  --rqk-tv-gold: #c9a96b;
-  --rqk-tv-cream: #eadfc8;
+  --rqk-tv-ink: #0a2342;
+  --rqk-tv-navy: #0a2342;
+  --rqk-tv-panel: #0a2342;
+  --rqk-tv-gold: #f2892f;
+  --rqk-tv-cream: #ffffff;
   /* Approved yellow-to-red accent. Used only as thin rules: title underlines
      and section markers — never as a panel or card fill. */
   --rqk-tv-citrus: var(--rq-citrus-gradient, linear-gradient(90deg,
@@ -27,7 +27,7 @@
   box-sizing: border-box;
 }
 .rqk-player-display__frame {
-  background: linear-gradient(145deg, #0b1b2b 0%, #0b1b2b 52%, #0b1b2b 100%) !important;
+  background: linear-gradient(145deg, #0a2342 0%, #0a2342 52%, #0a2342 100%) !important;
   box-shadow: none !important;
 }
 .rqk-player-display__status {
@@ -43,7 +43,7 @@
 }
 .rqk-player-display__npc-card {
   background: var(--rqk-tv-panel) !important;
-  border-color: rgba(201,169,107,.30) !important;
+  border-color: rgba(242, 137, 47,.30) !important;
   border-left-color: var(--rqk-tv-gold) !important;
   box-shadow: none !important;
 }
@@ -65,8 +65,8 @@
 }
 .rqk-player-display__fullscreen {
   border-radius: 6px !important;
-  background: rgba(11,27,43,.93) !important;
-  border-color: rgba(201,169,107,.5) !important;
+  background: rgba(10, 35, 66,.93) !important;
+  border-color: rgba(242, 137, 47,.5) !important;
   color: var(--rqk-tv-cream) !important;
   box-shadow: none !important;
 }
@@ -98,7 +98,7 @@
 .rqk-player-display__npc-pages button {
   min-height: 40px;
   padding: 0 12px;
-  border: 1px solid rgba(201, 169, 107, .45);
+  border: 1px solid rgba(242, 137, 47, .45);
   border-radius: 5px;
   background: var(--rqk-tv-panel);
   color: var(--rqk-tv-cream);

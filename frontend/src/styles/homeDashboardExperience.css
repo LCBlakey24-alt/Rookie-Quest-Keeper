@@ -27,7 +27,7 @@
   min-width: 0 !important;
   position: relative !important;
   overflow: hidden !important;
-  background: var(--rq-surface, #102238) !important;
+  background: var(--rq-surface, #0e2d55) !important;
   background-image: none !important;
   border: 1px solid var(--rq-line, rgba(181,203,226,.16)) !important;
   border-radius: var(--rq-radius, 10px) !important;

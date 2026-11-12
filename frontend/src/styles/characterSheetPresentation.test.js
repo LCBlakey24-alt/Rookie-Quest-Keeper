@@ -19,7 +19,7 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(css).not.toMatch(/Cinzel/i);
     expect(css).not.toMatch(/#d00000|rgba\(208\s*,\s*0\s*,\s*0/i);
     expect(css).toContain('var(--cs-');
-    expect(css).not.toMatch(/#071522|#0C2234|#112A40|#071A29|#79BCE8|#D6A84F|#F7F1E7|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
+    expect(css).not.toMatch(/#071522|#0C2234|#112A40|#071A29|#79BCE8|#f2892f|#F7F1E7|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
   });
 
   test('redundant hero badge correction layer stays deleted', () => {
@@ -87,7 +87,7 @@ describe('Clean Character Sheet presentation ownership', () => {
 
     files.forEach((source) => {
       expect(source).toContain('var(--cs-');
-      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#071A29|#79BCE8|#D6A84F|#F7F1E7|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
+      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#071A29|#79BCE8|#f2892f|#F7F1E7|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
     });
   });
 
@@ -128,7 +128,7 @@ describe('Clean Character Sheet presentation ownership', () => {
 
     files.forEach((source) => {
       expect(source).toContain('var(--cs-');
-      expect(source).not.toMatch(/#0C2234|#112A40|#F7F1E7|#D6A84F|#79BCE8|#071A29|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
+      expect(source).not.toMatch(/#0C2234|#112A40|#F7F1E7|#f2892f|#79BCE8|#071A29|rgba\(\s*214\s*,\s*168\s*,\s*79|rgba\(\s*121\s*,\s*188\s*,\s*232|rgba\(\s*255\s*,\s*255\s*,\s*255/i);
       expect(source).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
     });
   });
@@ -155,7 +155,7 @@ describe('Clean Character Sheet presentation ownership', () => {
 
     files.forEach((source) => {
       expect(source).toContain('var(--cs-');
-      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7|#17364F|#071A29/i);
+      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#f2892f|#F7F1E7|#17364F|#071A29/i);
     });
 
     const actions = files[1];
@@ -197,7 +197,7 @@ describe('Clean Character Sheet presentation ownership', () => {
 
     files.forEach((source) => {
       expect(source).toContain('var(--cs-');
-      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7|#071A29|rgba\(214\s*,\s*168\s*,\s*79|rgba\(121\s*,\s*188\s*,\s*232/i);
+      expect(source).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#f2892f|#F7F1E7|#071A29|rgba\(214\s*,\s*168\s*,\s*79|rgba\(121\s*,\s*188\s*,\s*232/i);
     });
 
     expect(playHeader).toContain('.clean-sheet-inspiration-toggle.is-active');
@@ -217,7 +217,7 @@ describe('Clean Character Sheet presentation ownership', () => {
     const css = [railHero, unavailable, attention].join('\n');
 
     expect(css).toContain('var(--cs-');
-    expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#79BCE8|#D6A84F|#F7F1E7|#112A40|#0C2234|#071A29|#050E18|rgba\(214\s*,\s*168\s*,\s*79|rgba\(121\s*,\s*188\s*,\s*232/i);
+    expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#79BCE8|#f2892f|#F7F1E7|#112A40|#0C2234|#071A29|#050E18|rgba\(214\s*,\s*168\s*,\s*79|rgba\(121\s*,\s*188\s*,\s*232/i);
     expect(css).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
 
     expect(railHero).toContain('background: var(--cs-blue-soft) !important;');
@@ -241,8 +241,8 @@ describe('Clean Character Sheet presentation ownership', () => {
     expect(rail).toContain('width: 46px !important;');
     expect(rail).toContain('height: 46px !important;');
 
-    expect(header).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7/i);
-    expect(rail).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#D6A84F|#F7F1E7/i);
+    expect(header).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#f2892f|#F7F1E7/i);
+    expect(rail).not.toMatch(/#071522|#0C2234|#112A40|#79BCE8|#f2892f|#F7F1E7/i);
   });
 
   test('Guild Ledger hierarchy keeps secondary copy softer than primary values', () => {
@@ -261,10 +261,10 @@ describe('Clean Character Sheet presentation ownership', () => {
     const compactStatus = read('../components/clean-sheet/CleanSheetCompactStatus.js');
     const sheet = read('../components/CleanCharacterSheet.js');
 
-    expect(finalAuthority).toContain('--cs-bg: #0B1B2B');
-    expect(finalAuthority).toContain('--cs-panel: #0B1B2B');
-    expect(finalAuthority).toContain('--cs-card: #0B1B2B');
-    expect(finalAuthority).toContain('--cs-accent: #C9A96B');
+    expect(finalAuthority).toContain('--cs-bg: #0a2342');
+    expect(finalAuthority).toContain('--cs-panel: #0a2342');
+    expect(finalAuthority).toContain('--cs-card: #0a2342');
+    expect(finalAuthority).toContain('--cs-accent: #f2892f');
     expect(finalAuthority).toContain('--cs-blue: #3C92E0');
     expect(finalAuthority).toContain('flex-direction: row !important;');
     expect(finalAuthority).toContain('overflow-x: auto !important;');

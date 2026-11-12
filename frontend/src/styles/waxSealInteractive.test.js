@@ -15,8 +15,8 @@ describe('Guild Command citrus site-wide design contract', () => {
 
   test('flat navy backgrounds without noisy wallpaper', () => {
     const css = read('./citrusCommand.css');
-    expect(css).toContain('--rq-citrus-navy: #0B1B2B;');
-    expect(css).toContain('--rq-citrus-panel: #0B1B2B;');
+    expect(css).toContain('--rq-citrus-navy: #0a2342;');
+    expect(css).toContain('--rq-citrus-panel: #0a2342;');
     expect(css).toContain('background-image: none !important;');
     expect(css).toContain('.rqk-player-display__frame');
     expect(css).toContain('.keeper-product-site');

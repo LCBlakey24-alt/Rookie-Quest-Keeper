@@ -72,6 +72,16 @@ Do not reintroduce neon pink, broad red decoration, purple theme drift, gradient
 
 ## 4. Colour tokens
 
+> **Palette decision, 11 November 2026 (owner-approved).** The app moved from ink navy with antique brass to a stronger deep blue with the default dice's orange accent, so pages match the 3D dice (blue faces, white numerals, orange edge glow).
+>
+> - Page and surfaces: `#0A2342` (one flat surface colour, as before).
+> - Accent, primary actions and headings: `#F2892F`; brighter edge `#FFB066`.
+> - Text: `#FFFFFF`, with 78% and 60% white for secondary and muted text.
+> - Information and focus support stays ledger blue `#3C92E0`; unselected shapes on wheels glow light blue `#6FB8FF`.
+> - Glow sits inside a shape only, at half its earlier strength (`--guild-glow: 0.5` in `frontend/src/styles/guildTokens.css`).
+>
+> Where the tables below still name brass (`#C9A96B`, `#D6A84F`) or ink (`#0B1B2B`), read the values above. Status colours are unchanged.
+
 Use tokens instead of route-specific hardcoded colours wherever possible.
 
 ```css

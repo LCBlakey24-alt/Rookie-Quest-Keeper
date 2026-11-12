@@ -135,7 +135,13 @@ function gatherActionFeatures(character = {}) {
     });
 }
 
-export default function CleanCombatTab({ character, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult }) {
+/**
+ * `section` ('action' | 'bonus' | 'reaction' | 'other') shows a single group,
+ * for the hexagonal sheet's Combat wheel, which lists one group below the
+ * wheel at a time. Without it every group is shown, as on the classic sheet.
+ */
+export default function CleanCombatTab({ character, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult, section = null }) {
+  const shows = (group) => !section || (Array.isArray(section) ? section.includes(group) : section === group);
   const [pendingDamage, setPendingDamage] = useState(null);
   const [lastDamage, setLastDamage] = useState(null);
   const [resourceDrafts, setResourceDrafts] = useState({});
@@ -367,7 +373,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   return (
     <div className="clean-sheet-combat-wrap clean-sheet-actions-tab">
       <div className="clean-sheet-grid">
-        <ActionSection
+        {shows('action') && <ActionSection
           title="Actions"
           summary={`Attack action: ${attacksPerAction} attack${attacksPerAction === 1 ? '' : 's'}`}
         >
@@ -405,9 +411,9 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           <SimpleActionCard title="Help" description="Give an ally advantage on a relevant check or attack." />
           <SimpleActionCard title="Ready" description="Prepare an action to trigger later this round." />
           <SimpleActionCard title="Roll Concentration Save" description={`Constitution save ${fmt(concentrationMod)} if damage threatens concentration.`} onClick={() => onRoll('Concentration Save', concentrationMod)} />
-        </ActionSection>
+        </ActionSection>}
 
-        <ActionSection title="Bonus Actions">
+        {shows('bonus') && <ActionSection title="Bonus Actions">
           {spellCards(groupedSpells.bonus, 'bonus')}
           {resourceCards(resourceActions.bonus)}
           {featureCards(groupedFeatures.bonus)}
@@ -427,9 +433,9 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
               onClick={() => onRoll(monkBonusAttack.attackLabel, monkBonusAttack.attackMod)}
             />
           )}
-        </ActionSection>
+        </ActionSection>}
 
-        <ActionSection title="Reactions">
+        {shows('reaction') && <ActionSection title="Reactions">
           {spellCards(groupedSpells.reaction, 'reaction')}
           {resourceCards(resourceActions.reaction)}
           {featureCards(groupedFeatures.reaction)}
@@ -441,9 +447,13 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           />
           <SimpleActionCard title="Readied Action" type="Reaction" description="Use your reaction to trigger a previously readied action." />
           <SimpleActionCard title="Use Reaction Feature" type="Reaction" description="Use a reaction from a class feature, species trait, feat, spell, or item." />
-        </ActionSection>
+        </ActionSection>}
 
-        {resourceActions.other.length > 0 && (
+        {section === 'other' && resourceActions.other.length === 0 && (
+          <ActionSection title="Other Features" summary="Nothing here yet: this character has no triggered, passive or rest-timed features that skip the action economy." />
+        )}
+
+        {shows('other') && resourceActions.other.length > 0 && (
           <ActionSection title="Other Features" summary="Triggered, passive, or rest-timed features that do not spend your Action, Bonus Action, or Reaction.">
             {resourceCards(resourceActions.other)}
           </ActionSection>

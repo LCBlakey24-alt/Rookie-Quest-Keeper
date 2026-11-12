@@ -5,6 +5,7 @@ import { findWeaponRule, getWeaponAbilityMod, weaponEnhancementBonus } from './e
 import { calculateArmorAc, findArmorRule } from './armorRules5e';
 import { getMonkClassLevel } from './monkCharacterShape';
 import { getMonkUnarmoredMovementBonus } from './monkProgression';
+import { wornMagicAcBonus } from './equipmentLoadout';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -195,8 +196,10 @@ export function deriveArmorClass(character, options = {}) {
     // No named armour rule, but equipped items may still carry ac_bonus.
     const armorBonus = typeof armor === 'object' && armor ? Number(armor.ac_bonus || 0) : 0;
     const shieldBonus = typeof shield === 'object' && shield ? Math.max(Number(shield.ac_bonus || 0), 2) : 0;
-    return unarmoredAc + armorBonus + shieldBonus;
+    return unarmoredAc + armorBonus + shieldBonus + wornMagicAcBonus(equipped);
   }
 
-  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc });
+  // Worn magic accessories (Ring or Cloak of Protection, ...) add on top of
+  // armour and shield; they count only while attuned when they need it.
+  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc }) + wornMagicAcBonus(equipped);
 }

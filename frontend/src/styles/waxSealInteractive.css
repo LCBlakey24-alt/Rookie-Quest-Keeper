@@ -6,7 +6,7 @@
  * Keep this file last and in the existing rq-controls important cascade layer.
  */
 :root {
-  --rq-control-blue: #0B1B2B;
+  --rq-control-blue: #0a2342;
   --rq-control-wax: #7E2D2D;
   --rq-control-ink: #F8F0E5;
   --rq-control-sweep-duration: 340ms;

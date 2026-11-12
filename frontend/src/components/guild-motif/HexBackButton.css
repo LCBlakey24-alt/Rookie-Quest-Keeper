@@ -4,8 +4,8 @@
   width: 44px; height: 44px; padding: 0; border: 0; background: none; text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
-.hex-back__case { fill: rgba(201, 162, 74, 0.08); stroke: var(--gm-brass, #c9a24a); stroke-width: 1.6; transition: fill 140ms ease, stroke 140ms ease; }
-.hex-back__arrow { fill: none; stroke: var(--gm-hi, #ecd08a); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-a.hex-back:hover .hex-back__case, a.hex-back:active .hex-back__case { fill: rgba(201, 162, 74, 0.2); stroke: var(--gm-hi, #ecd08a); }
-a.hex-back:focus-visible { outline: 2px solid var(--gm-hi, #ecd08a); outline-offset: 2px; border-radius: 10px; }
+.hex-back__case { fill: rgba(var(--guild-accent-rgb, 242, 137, 47), 0.08); stroke: var(--guild-accent, #f2892f); stroke-width: 1.6; transition: fill 140ms ease, stroke 140ms ease; }
+.hex-back__arrow { fill: none; stroke: var(--guild-hi, #ffb066); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+a.hex-back:hover .hex-back__case, a.hex-back:active .hex-back__case { fill: rgba(var(--guild-accent-rgb, 242, 137, 47), 0.2); stroke: var(--guild-hi, #ffb066); }
+a.hex-back:focus-visible { outline: 2px solid var(--guild-hi, #ffb066); outline-offset: 2px; border-radius: 10px; }
 @media (prefers-reduced-motion: reduce) { .hex-back__case { transition: none; } }

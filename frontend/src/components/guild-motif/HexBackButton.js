@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import '@/styles/guildTokens.css';
 import './HexBackButton.css';
 
 const POINTS = [0, 1, 2, 3, 4, 5]

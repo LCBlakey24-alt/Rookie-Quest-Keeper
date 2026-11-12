@@ -4,15 +4,15 @@
 #root .rqk-app-shell {
   min-width: 0 !important;
   min-height: 100dvh !important;
-  background: var(--rq-bg-main, #0B1B2B) !important;
+  background: var(--rq-bg-main, #0a2342) !important;
   background-image: none !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 #root .rqk-app-workspace,
 #root .rqk-app-shell-content {
   min-width: 0 !important;
-  background: var(--rq-bg-main, #0B1B2B) !important;
+  background: var(--rq-bg-main, #0a2342) !important;
   background-image: none !important;
 }
 
@@ -24,7 +24,7 @@
 
 #root .rqk-app-rail {
   overflow: hidden !important;
-  background: var(--rq-bg-rail, #0B1B2B) !important;
+  background: var(--rq-bg-rail, #0a2342) !important;
   background-image: none !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   box-shadow: none !important;
@@ -44,7 +44,7 @@
   background: transparent !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-radius, 7px) !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   box-shadow: none !important;
 }
 
@@ -57,20 +57,20 @@
 }
 
 #root .rqk-app-rail-brand-mark {
-  background: var(--rq-primary-soft, rgba(201, 169, 107, 0.12)) !important;
-  border: 1px solid var(--rq-accent-border, rgba(201, 169, 107, 0.30)) !important;
+  background: var(--rq-primary-soft, rgba(242, 137, 47, 0.12)) !important;
+  border: 1px solid var(--rq-accent-border, rgba(242, 137, 47, 0.30)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-rail-brand-copy strong,
 #root .rqk-app-rail-link span {
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 #root .rqk-app-rail-brand-copy small,
 #root .rqk-app-rail-section-label {
-  color: var(--rq-text-muted, rgba(234, 223, 200, 0.60)) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.60)) !important;
 }
 
 #root .rqk-app-rail-link,
@@ -80,38 +80,38 @@
   background: transparent !important;
   border-color: transparent !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
-  color: var(--rq-text-secondary, rgba(234, 223, 200, 0.78)) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-rail-link svg,
 #root .rqk-app-rail-rook svg {
-  color: var(--rq-text-muted, rgba(234, 223, 200, 0.60)) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.60)) !important;
 }
 
 #root .rqk-app-rail-link:hover,
 #root .rqk-app-rail-rook:hover,
 #root .rqk-app-rail-feedback:hover {
-  background: var(--rq-card-hover, #0B1B2B) !important;
+  background: var(--rq-card-hover, #0a2342) !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   transform: none !important;
 }
 
 #root .rqk-app-rail-link.is-active {
   background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
-  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  border-color: var(--rq-line-strong, rgba(242, 137, 47, 0.30)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 #root .rqk-app-rail-link.is-active::before {
-  background: var(--rq-primary, #C9A96B) !important;
+  background: var(--rq-primary, #f2892f) !important;
   border-radius: 2px !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-rail-link.is-active svg {
   background: transparent !important;
-  color: var(--rq-primary, #C9A96B) !important;
+  color: var(--rq-primary, #f2892f) !important;
   box-shadow: none !important;
 }
 
@@ -125,17 +125,17 @@
 
 #root .rqk-app-topbar {
   min-width: 0 !important;
-  background: var(--rq-bg-deep, #0B1B2B) !important;
+  background: var(--rq-bg-deep, #0a2342) !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-topbar-title span {
-  color: var(--rq-text-muted, rgba(234, 223, 200, 0.60)) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.60)) !important;
 }
 
 #root .rqk-app-topbar-title strong {
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 /* Desktop keeps the permanent labelled ledger rail. */
@@ -266,29 +266,29 @@
   width: auto !important;
   height: 3px !important;
   display: block !important;
-  background: var(--rq-primary, #C9A96B) !important;
+  background: var(--rq-primary, #f2892f) !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.is-open,
 #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.has-current-section {
   background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
-  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
+  border-color: var(--rq-line-strong, rgba(242, 137, 47, 0.30)) !important;
 }
 
 #root .rqk-app-mobile-more-panel {
-  background: var(--rq-bg-panel, #0B1B2B) !important;
+  background: var(--rq-bg-panel, #0a2342) !important;
   background-image: none !important;
-  border-color: var(--rq-line-strong, rgba(201, 169, 107, 0.30)) !important;
+  border-color: var(--rq-line-strong, rgba(242, 137, 47, 0.30)) !important;
   border-radius: var(--rq-radius, 7px) !important;
   box-shadow: none !important;
 }
 
 #root .rqk-app-mobile-more-item,
 #root .rqk-app-mobile-more-close {
-  background: var(--rq-card, #0B1B2B) !important;
+  background: var(--rq-card, #0a2342) !important;
   border-color: var(--rq-line, rgba(137, 157, 176, 0.14)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   box-shadow: none !important;
 }
 
@@ -299,11 +299,11 @@
 #root .rqk-app-mobile-more-item:hover,
 #root .rqk-app-mobile-more-item.is-active,
 #root .rqk-app-mobile-more-close:hover {
-  background: var(--rq-card-hover, #0B1B2B) !important;
+  background: var(--rq-card-hover, #0a2342) !important;
 }
 
 #root .rqk-app-mobile-more-item.is-active {
-  border-color: var(--rq-primary, #C9A96B) !important;
+  border-color: var(--rq-primary, #f2892f) !important;
 }
 
 @media (max-width: 420px) {

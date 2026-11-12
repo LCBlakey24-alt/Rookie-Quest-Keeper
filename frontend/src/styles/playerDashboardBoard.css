@@ -16,7 +16,7 @@
 .player-dashboard-tab-shell {
   background: var(--rq-bg-panel, #0C2234);
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18);
+  border: 1px solid rgba(242, 137, 47,.18);
   border-radius: 7px;
   box-shadow: none;
 }
@@ -117,7 +117,7 @@
   background: var(--rq-bg-input, #071A29) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   padding: 0 10px;
   box-shadow: none !important;
@@ -155,7 +155,7 @@
   gap: 8px;
   align-items: flex-start;
   background: var(--rq-bg-panel-alt, #112A40);
-  border: 1px solid rgba(214,168,79,.18);
+  border: 1px solid rgba(242, 137, 47,.18);
   border-radius: 5px;
   padding: 9px;
   box-shadow: none;
@@ -205,14 +205,14 @@
   gap: 0;
   width: 100%;
   height: auto !important;
-  border-bottom: 1px solid rgba(214,168,79,.18);
+  border-bottom: 1px solid rgba(242, 137, 47,.18);
 }
 
 .player-dashboard-tab {
   min-width: 0;
   min-height: 44px;
   border: 0 !important;
-  border-right: 1px solid rgba(214,168,79,.18) !important;
+  border-right: 1px solid rgba(242, 137, 47,.18) !important;
   background: var(--rq-bg-panel-alt, #112A40) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
@@ -238,12 +238,12 @@
 
 .player-dashboard-tab-active,
 .player-dashboard-tab[data-state="active"] {
-  background-color: var(--rq-control-blue, #0B1B2B) !important;
+  background-color: var(--rq-control-blue, #0a2342) !important;
   background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) !important;
   background-size: 100% 3px !important;
   background-position: left bottom !important;
   background-repeat: no-repeat !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   border-bottom: 0 !important;
   box-shadow: none !important;
 }
@@ -262,7 +262,7 @@
 .player-dashboard-card {
   background: var(--rq-bg-panel-alt, #112A40) !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -270,7 +270,7 @@
 .player-dashboard-card:hover,
 .player-dashboard-card:focus-within {
   background: #17364F !important;
-  border-color: rgba(214,168,79,.42) !important;
+  border-color: rgba(242, 137, 47,.42) !important;
 }
 
 .player-dashboard-card-content {
@@ -296,7 +296,7 @@
 
 .player-dashboard-empty-state {
   background: var(--rq-bg-panel-alt, #112A40);
-  border: 1px solid rgba(214,168,79,.18);
+  border: 1px solid rgba(242, 137, 47,.18);
   border-radius: 7px;
   padding: 18px;
   text-align: center;
@@ -315,12 +315,12 @@
 
 .player-dashboard-page .btn-primary {
   background: var(--rq-bg-panel-alt, #112A40) !important;
-  border: 1px solid #D6A84F !important;
+  border: 1px solid #f2892f !important;
 }
 
 .player-dashboard-page .btn-outline {
   background: var(--rq-bg-panel-alt, #112A40) !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
 }
 
 .player-dashboard-page .btn-primary:hover,
@@ -328,7 +328,7 @@
 .player-dashboard-page .btn-outline:hover,
 .player-dashboard-page .btn-outline:focus-visible {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   outline: none !important;
 }
 

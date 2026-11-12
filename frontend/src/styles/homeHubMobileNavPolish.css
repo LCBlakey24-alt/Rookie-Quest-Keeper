@@ -8,9 +8,9 @@
 
 #root .rqk-app-rail-rook {
   border-color: rgba(60,146,224,.28) !important;
-  background: var(--rq-citrus-control, #0B1B2B) !important;
+  background: var(--rq-citrus-control, #0a2342) !important;
   background-image: none !important;
-  color: var(--rq-text-primary, #EADFC8) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
   box-shadow: none !important;
 }
 
@@ -22,7 +22,7 @@
 #root .rqk-app-rail-rook:hover,
 #root .rqk-app-rail-rook:focus-visible {
   border-color: var(--rq-secondary, #3C92E0) !important;
-  background: var(--rq-card-hover, #0B1B2B) !important;
+  background: var(--rq-card-hover, #0a2342) !important;
 }
 
 @media (max-width: 719px) {
@@ -54,9 +54,9 @@
     padding: 12px !important;
     border: 1px solid rgba(60,146,224,.32) !important;
     border-radius: 9px !important;
-    background: var(--rq-bg-panel, #0B1B2B) !important;
+    background: var(--rq-bg-panel, #0a2342) !important;
     background-image: none !important;
-    color: var(--rq-text-primary, #EADFC8) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
   }
@@ -82,7 +82,7 @@
   }
 
   #root .rqk-app-mobile-more-heading strong {
-    color: var(--rq-text-primary, #EADFC8) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
     font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
     font-size: 1rem !important;
     font-weight: 900 !important;
@@ -92,7 +92,7 @@
   }
 
   #root .rqk-app-mobile-more-heading span {
-    color: var(--rq-text-primary, #EADFC8) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
     font-size: .76rem !important;
     line-height: 1.4 !important;
   }
@@ -106,15 +106,15 @@
     padding: 0 !important;
     border: 1px solid rgba(60,146,224,.30) !important;
     border-radius: 5px !important;
-    background: var(--rq-citrus-control, #0B1B2B) !important;
-    color: var(--rq-text-primary, #EADFC8) !important;
+    background: var(--rq-citrus-control, #0a2342) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
     box-shadow: none !important;
   }
 
   #root .rqk-app-mobile-more-close:hover,
   #root .rqk-app-mobile-more-close:focus-visible {
     border-color: var(--rq-secondary, #3C92E0) !important;
-    background: var(--rq-card-hover, #0B1B2B) !important;
+    background: var(--rq-card-hover, #0a2342) !important;
     outline: none !important;
   }
 
@@ -134,9 +134,9 @@
     padding: 9px 10px !important;
     border: 1px solid rgba(60,146,224,.28) !important;
     border-radius: 7px !important;
-    background: var(--rq-citrus-control, #0B1B2B) !important;
+    background: var(--rq-citrus-control, #0a2342) !important;
     background-image: none !important;
-    color: var(--rq-text-primary, #EADFC8) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
     text-align: left !important;
     text-decoration: none !important;
     font: inherit !important;
@@ -162,21 +162,21 @@
   #root .rqk-app-mobile-more-item span {
     min-width: 0 !important;
     overflow: hidden !important;
-    color: var(--rq-text-primary, #EADFC8) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
   #root .rqk-app-mobile-more-item:hover,
   #root .rqk-app-mobile-more-item:focus-visible {
-    background: var(--rq-card-hover, #0B1B2B) !important;
+    background: var(--rq-card-hover, #0a2342) !important;
     border-color: rgba(60,146,224,.45) !important;
     outline: none !important;
     transform: none !important;
   }
 
   #root .rqk-app-mobile-more-item.is-active {
-    background-color: var(--rq-citrus-control, #0B1B2B) !important;
+    background-color: var(--rq-citrus-control, #0a2342) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-repeat: no-repeat !important;
     background-position: left bottom !important;
@@ -194,7 +194,7 @@
   #root .rqk-app-mobile-more-item--rook {
     grid-column: 1 / -1 !important;
     min-height: 56px !important;
-    background: var(--rq-citrus-control, #0B1B2B) !important;
+    background: var(--rq-citrus-control, #0a2342) !important;
     border-color: var(--rq-secondary, #3C92E0) !important;
   }
 

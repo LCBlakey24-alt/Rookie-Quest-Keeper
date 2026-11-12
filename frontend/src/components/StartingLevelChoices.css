@@ -110,7 +110,7 @@
 
 .full-creator-toggle-option[aria-disabled='true']:focus-visible {
   opacity: .76;
-  border-color: rgba(214,168,79,.42);
+  border-color: rgba(242, 137, 47,.42);
 }
 
 .full-creator-toggle-option span,
@@ -163,7 +163,7 @@
 .full-creator-readiness-hero {
   grid-column: 1 / -1;
   background: rgba(121,188,232,.08);
-  border-color: rgba(214,168,79,.28);
+  border-color: rgba(242, 137, 47,.28);
 }
 
 .full-creator-readiness-list {
@@ -172,7 +172,7 @@
 }
 
 .full-creator-readiness-list.priority {
-  background: rgba(214,168,79,.04);
+  background: rgba(242, 137, 47,.04);
 }
 
 .full-creator-readiness-list.ready {
@@ -207,7 +207,7 @@
 }
 
 .full-creator-readiness-list.priority li::before {
-  background: #D6A84F;
+  background: #f2892f;
 }
 
 @media (max-width: 760px) {

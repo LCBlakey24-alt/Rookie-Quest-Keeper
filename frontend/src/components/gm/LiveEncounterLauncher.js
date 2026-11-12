@@ -117,7 +117,7 @@ function npcToCombatant(npc) {
     initiativeMod: numberOr(npc.initiativeMod, dexMod(npc)),
     conditions: [], description: npc.description || npc.notes || '',
     actions: npc.actions || npc.attacks || [], reactions: npc.reactions || [], bonus_actions: npc.bonus_actions || [],
-    tokenColor: '#D6A84F', tokenSize: 40,
+    tokenColor: '#f2892f', tokenSize: 40,
   };
 }
 
@@ -581,7 +581,7 @@ export default function LiveEncounterLauncher({
     const created = Array.from({ length: quantity }, (_, index) => ({
       id: `quick-${stamp}-${index}`,
       name: quantity === 1 ? name : `${name} ${index + 1}`,
-      type: 'enemy', hp, maxHp: hp, ac, initiativeMod, conditions: [], tokenColor: '#D6A84F', tokenSize: 40, temporary: true,
+      type: 'enemy', hp, maxHp: hp, ac, initiativeMod, conditions: [], tokenColor: '#f2892f', tokenSize: 40, temporary: true,
     }));
     commitDraft(previous => ({
       ...previous,
@@ -895,13 +895,13 @@ const footerTextStyle = { color: rq.muted, fontSize: 11, lineHeight: 1.45 };
 const launchButtonStyle = {
   minHeight: 46,
   border: '1px solid var(--rq-secondary, #3C92E0)',
-  backgroundColor: 'var(--rq-control-blue, #0B1B2B)',
+  backgroundColor: 'var(--rq-control-blue, #0a2342)',
   backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))',
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'left bottom',
   backgroundSize: '100% 3px',
   borderRadius: 8,
-  color: 'var(--rq-text-primary, #EADFC8)',
+  color: 'var(--rq-text-primary, #ffffff)',
   padding: '0 17px',
   display: 'inline-flex',
   alignItems: 'center',
@@ -911,8 +911,8 @@ const launchButtonStyle = {
   fontWeight: 850,
   fontSize: 12,
 };
-const resetButtonStyle = { minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 6, border: '1px solid rgba(234,223,200,.22)', background: 'transparent', color: 'var(--rq-text-secondary, rgba(234,223,200,.78))', fontSize: 12, fontWeight: 800, cursor: 'pointer' };
-const partyWarningStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0B1B2B)', color: 'var(--rq-text-primary, #EADFC8)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
-const draftWarningStyle = { border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0B1B2B)', color: 'var(--rq-text-primary, #EADFC8)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
+const resetButtonStyle = { minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 6, border: '1px solid rgba(255, 255, 255,.22)', background: 'transparent', color: 'var(--rq-text-secondary, rgba(255, 255, 255,.78))', fontSize: 12, fontWeight: 800, cursor: 'pointer' };
+const partyWarningStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0a2342)', color: 'var(--rq-text-primary, #ffffff)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
+const draftWarningStyle = { border: '1px solid var(--rq-warning, #D39A43)', borderRadius: 8, background: 'var(--rq-bg-panel, #0a2342)', color: 'var(--rq-text-primary, #ffffff)', padding: '8px 10px', fontSize: 12, lineHeight: 1.4 };
 const mutedStyle = { color: rq.muted, fontSize: 9, padding: 3 };
 const emptyStyle = { minHeight: 130, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px solid ${rq.line}`, color: rq.muted, textAlign: 'center', padding: 16, fontSize: 10 };

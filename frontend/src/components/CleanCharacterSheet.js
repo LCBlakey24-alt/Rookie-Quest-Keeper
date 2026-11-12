@@ -31,7 +31,7 @@ import {
   getConcentrationSaveModifier,
   needsConcentrationReplacement,
 } from '@/data/characterConcentrationRules';
-import { getClassFeatures } from '@/data/classFeatures';
+import { buildClassFeatureSummary, buildProficiencySummary, groupByActionEconomy } from '@/components/clean-sheet/sheetFeatureSummary';
 import { formatClassProgression } from '@/data/levelUpProgressionRules';
 import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
@@ -41,7 +41,6 @@ import {
   calculateHpDamage,
   calculateHpHealing,
   clampDeathCount,
-  featureTypeLabel,
   getCurrentHp,
   getMaxHp,
   getTempHp,
@@ -226,46 +225,9 @@ export default function CleanCharacterSheet() {
     needsAttention: Boolean(tabAttention[tab.id]),
   })), [rulesEdition, tabAttention.character, tabAttention.inventory, tabAttention.spells, tabAttention.class, tabAttention.species, tabAttention.feats, tabAttention.rook]);
 
-  const classFeatureSummary = useMemo(() => {
-    const className = character?.character_class;
-    const level = Number(character?.level || 1);
-    const tableFeatures = getClassFeatures(className, level, rulesEdition);
-    const characterFeatures = toArray(character?.features || character?.class_features).map((feature, index) => (
-      typeof feature === 'string'
-        ? { name: feature, description: 'Saved on this character sheet.', type: 'passive', level: null, source: 'sheet' }
-        : { ...feature, name: feature?.name || `Feature ${index + 1}`, source: 'sheet' }
-    ));
-    const merged = [...tableFeatures, ...characterFeatures];
-    const seen = new Set();
-    return merged
-      .filter(feature => feature?.name && !feature.isChoice)
-      .filter(feature => {
-        const key = `${feature.name}-${feature.level || ''}`.toLowerCase();
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => Number(a.level || 999) - Number(b.level || 999));
-  }, [character, rulesEdition]);
-
-  const actionEconomyGroups = useMemo(() => {
-    const groups = { Action: [], 'Bonus action': [], Reaction: [], Passive: [] };
-    classFeatureSummary.forEach(feature => {
-      const label = featureTypeLabel(feature.type);
-      if (label === 'Action' || label === 'Special') groups.Action.push(feature);
-      else if (label === 'Bonus action') groups['Bonus action'].push(feature);
-      else if (label === 'Reaction') groups.Reaction.push(feature);
-      else groups.Passive.push(feature);
-    });
-    return groups;
-  }, [classFeatureSummary]);
-
-  const proficiencySummary = useMemo(() => ([
-    ['Armor', toArray(character?.armor_proficiencies || character?.proficiencies?.armor)],
-    ['Weapons', toArray(character?.weapon_proficiencies || character?.proficiencies?.weapons)],
-    ['Tools', toArray(character?.tool_proficiencies || character?.proficiencies?.tools)],
-    ['Languages', toArray(character?.languages || character?.proficiencies?.languages)],
-  ]), [character]);
+  const classFeatureSummary = useMemo(() => buildClassFeatureSummary(character, rulesEdition), [character, rulesEdition]);
+  const actionEconomyGroups = useMemo(() => groupByActionEconomy(classFeatureSummary), [classFeatureSummary]);
+  const proficiencySummary = useMemo(() => buildProficiencySummary(character), [character]);
 
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
   const getRollBonus = () => Number(rollBonus) || 0;

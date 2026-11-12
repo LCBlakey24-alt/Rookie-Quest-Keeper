@@ -39,7 +39,7 @@
   min-width: 0 !important;
   background: #0C2234 !important;
   background-image: none !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
   padding: 11px !important;
@@ -111,7 +111,7 @@
   background: #112A40 !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   text-align: left !important;
   cursor: pointer !important;
@@ -120,14 +120,14 @@
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:hover,
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:focus-visible {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   outline: none !important;
 }
 
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='rgb(208, 0, 0)'],
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='#d00000'] {
   background: rgba(121,188,232,.10) !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   color: #F7F1E7 !important;
 }
 
@@ -158,7 +158,7 @@
   background: #071A29 !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   outline: none !important;
@@ -167,8 +167,8 @@
 #root [data-testid='homebrew-workshop'] input:not([type='file']):focus,
 #root [data-testid='homebrew-workshop'] select:focus,
 #root [data-testid='homebrew-workshop'] textarea:focus {
-  border-color: #D6A84F !important;
-  outline: 1px solid #D6A84F !important;
+  border-color: #f2892f !important;
+  outline: 1px solid #f2892f !important;
   outline-offset: 1px !important;
   box-shadow: none !important;
 }
@@ -189,7 +189,7 @@
   background: #112A40 !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(214,168,79,.18) !important;
+  border: 1px solid rgba(242, 137, 47,.18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   font-size: 12px !important;
@@ -206,21 +206,21 @@
 #root [data-testid='homebrew-workshop'] button:focus-visible,
 #root [data-testid='homebrew-workshop'] label[for='hb-file-input']:hover {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   outline: none !important;
 }
 
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn'],
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn'] {
   background: #112A40 !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
   color: #F7F1E7 !important;
 }
 
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn']:hover:not(:disabled),
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn']:hover:not(:disabled) {
   background: #17364F !important;
-  border-color: #D6A84F !important;
+  border-color: #f2892f !important;
 }
 
 #root [data-testid='homebrew-workshop'] button:disabled,

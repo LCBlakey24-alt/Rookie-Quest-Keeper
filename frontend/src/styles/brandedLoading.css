@@ -403,41 +403,41 @@
 
 .loading-screen,
 .clean-sheet-loading {
-  background: #0B1B2B !important;
-  color: #EADFC8 !important;
+  background: #0a2342 !important;
+  color: #ffffff !important;
 }
 
 .loading-screen::before,
 .clean-sheet-loading::before {
-  background: #0B1B2B !important;
-  border: 1px solid rgba(201, 169, 107, 0.24) !important;
-  border-left: 4px solid #C9A96B !important;
+  background: #0a2342 !important;
+  border: 1px solid rgba(242, 137, 47, 0.24) !important;
+  border-left: 4px solid #f2892f !important;
   border-radius: 7px !important;
 }
 
 .loading-brand-mark,
 .loading-screen .loading-spinner {
-  background: #0B1B2B !important;
-  border: 1px solid rgba(201, 169, 107, 0.30) !important;
-  color: #EADFC8 !important;
+  background: #0a2342 !important;
+  border: 1px solid rgba(242, 137, 47, 0.30) !important;
+  color: #ffffff !important;
   border-radius: 5px !important;
 }
 
 .loading-screen .loading-spinner::before,
 .clean-sheet-loading::after {
   background-image: none !important;
-  border: 3px solid rgba(201, 169, 107, 0.22) !important;
-  border-top-color: #C9A96B !important;
+  border: 3px solid rgba(242, 137, 47, 0.22) !important;
+  border-top-color: #f2892f !important;
   mask: none !important;
   -webkit-mask: none !important;
 }
 
 .loading-screen :where(h1,h2,h3,strong),
 .clean-sheet-loading :where(h1,h2,h3,strong) {
-  color: #EADFC8 !important;
+  color: #ffffff !important;
 }
 
 .loading-screen :where(p,span,small),
 .clean-sheet-loading :where(p,span,small) {
-  color: rgba(234, 223, 200, 0.76) !important;
+  color: rgba(255, 255, 255, 0.76) !important;
 }

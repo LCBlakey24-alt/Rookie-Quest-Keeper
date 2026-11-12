@@ -32,7 +32,7 @@ describe('document scroll ownership', () => {
   });
   test('global scrollbars use quiet blue rather than the retired neon red', () => {
     const css = read('scrollFixes.css');
-    expect(css).toContain('scrollbar-color: #61758A #0B1B2B;');
+    expect(css).toContain('scrollbar-color: #61758A #0a2342;');
     expect(css).toContain('background: #61758A;');
     expect(css).toContain('background: #E03A2F;');
     expect(css).not.toContain('#d00000');

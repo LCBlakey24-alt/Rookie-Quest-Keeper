@@ -68,8 +68,24 @@ export function setCanonicalInventorySlot(equipped = {}, slot = '', item = null)
   return next;
 }
 
+// Slot keys that are aliases of an original slot (weapon, shield, gloves...).
+const ALIAS_KEYS = new Set(Object.values(INVENTORY_SLOT_ALIASES).flat());
+
+/**
+ * Every slot that can hold a worn item: the original five plus any other key
+ * in `equipped` (head, neck, shoulders, wrists, waist, ring1, ring2...), so
+ * rings, cloaks and amulets stay in step with their inventory copies.
+ */
+function equippedSlotKeys(equipped = {}) {
+  const extra = Object.keys(equipped || {}).filter((key) => (
+    !ALIAS_KEYS.has(key) && !INVENTORY_SLOT_ALIASES[key]
+    && equipped[key] && (typeof equipped[key] === 'object' || typeof equipped[key] === 'string')
+  ));
+  return [...Object.keys(INVENTORY_SLOT_ALIASES), ...extra];
+}
+
 function equippedAssignments(equipped = {}) {
-  return Object.keys(INVENTORY_SLOT_ALIASES).flatMap((slot) => {
+  return equippedSlotKeys(equipped).flatMap((slot) => {
     const item = getCanonicalEquippedItem(equipped, slot);
     return item ? [{ slot, item, identity: inventoryItemIdentity(item) }] : [];
   });

@@ -7,7 +7,7 @@
   margin-top: clamp(18px, 3vw, 30px);
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid rgba(201, 169, 107, 0.16);
+  border: 1px solid rgba(242, 137, 47, 0.16);
   background: #0F1A26;
   box-shadow: none;
 }
@@ -16,13 +16,13 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #EADFC8;
+  color: #ffffff;
   font-weight: 950;
 }
 
 .rqk-auth-preview-card p {
   margin: 0;
-  color: rgba(234, 223, 200, 0.76) !important;
+  color: rgba(255, 255, 255, 0.76) !important;
   font-size: 0.92rem;
   letter-spacing: 0.01em;
 }
@@ -36,7 +36,7 @@
 }
 
 .rqk-auth-required-mark {
-  color: #C9A96B;
+  color: #f2892f;
   text-shadow: none;
 }
 
@@ -47,7 +47,7 @@
 .rqk-auth-input-shell:has(.rqk-auth-field:disabled) {
   opacity: 0.72;
   transform: none;
-  border-color: rgba(201, 169, 107, 0.10);
+  border-color: rgba(242, 137, 47, 0.10);
   background: #0F1A26;
 }
 
@@ -62,7 +62,7 @@
 
 #root .rqk-auth-page .rqk-auth-field:disabled {
   cursor: not-allowed;
-  -webkit-text-fill-color: rgba(234, 223, 200, 0.60) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.60) !important;
 }
 
 @supports not selector(:has(*)) {
@@ -79,8 +79,8 @@
 }
 
 #root .rqk-auth-page .rqk-auth-icon-button[aria-pressed="true"] {
-  border-color: rgba(201, 169, 107, 0.46) !important;
-  color: #C9A96B !important;
+  border-color: rgba(242, 137, 47, 0.46) !important;
+  color: #f2892f !important;
   box-shadow: none !important;
 }
 
@@ -107,7 +107,7 @@
 
 #root .rqk-auth-page ::selection {
   background: rgba(60, 146, 224, 0.28);
-  color: #EADFC8;
+  color: #ffffff;
 }
 
 #root .rqk-auth-page :where(.rqk-auth-primary, .rqk-auth-secondary, .rqk-auth-switch-button, .rqk-auth-link-button, .rqk-auth-icon-button, .rqk-auth-mode-toggle button) {
@@ -128,9 +128,9 @@
 #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:hover,
 #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:focus {
   border-radius: 7px;
-  caret-color: #EADFC8 !important;
+  caret-color: #ffffff !important;
   -webkit-box-shadow: 0 0 0 1000px #0F1A26 inset !important;
-  -webkit-text-fill-color: #EADFC8 !important;
+  -webkit-text-fill-color: #ffffff !important;
   transition: background-color 9999s ease-in-out 0s !important;
 }
 
@@ -168,7 +168,7 @@
 }
 
 .rqk-auth-assurance span {
-  color: #C9A96B;
+  color: #f2892f;
   font-size: 0.7rem;
   font-weight: 950;
   letter-spacing: 0.13em;
@@ -176,14 +176,14 @@
 }
 
 .rqk-auth-assurance strong {
-  color: #EADFC8;
+  color: #ffffff;
   font-size: 0.9rem;
   font-weight: 950;
 }
 
 .rqk-auth-assurance p {
   margin: 0;
-  color: rgba(234, 223, 200, 0.76) !important;
+  color: rgba(255, 255, 255, 0.76) !important;
   font-size: 0.82rem;
   line-height: 1.45;
 }
@@ -194,7 +194,7 @@
   margin-top: -3px;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(201, 169, 107, 0.14);
+  border: 1px solid rgba(242, 137, 47, 0.14);
   background: #0F1A26;
 }
 
@@ -203,13 +203,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: rgba(234, 223, 200, 0.72);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.78rem;
   font-weight: 900;
 }
 
 .rqk-auth-password-readiness__top strong {
-  color: #EADFC8;
+  color: #ffffff;
   font-size: 0.82rem;
 }
 
@@ -222,7 +222,7 @@
 .rqk-auth-strength-meter span {
   height: 5px;
   border-radius: 5px;
-  background: rgba(234, 223, 200, 0.12);
+  background: rgba(255, 255, 255, 0.12);
   overflow: hidden;
 }
 
@@ -247,9 +247,9 @@
   min-height: 28px;
   padding: 5px 8px;
   border-radius: 5px;
-  border: 1px solid rgba(201, 169, 107, 0.12);
-  color: rgba(234, 223, 200, 0.62);
-  background: #0B1B2B;
+  border: 1px solid rgba(242, 137, 47, 0.12);
+  color: rgba(255, 255, 255, 0.62);
+  background: #0a2342;
   font-size: 0.75rem;
   font-weight: 850;
 }
@@ -259,11 +259,11 @@
   width: 8px;
   height: 8px;
   border-radius: 5px;
-  background: rgba(234, 223, 200, 0.20);
+  background: rgba(255, 255, 255, 0.20);
 }
 
 .rqk-auth-password-readiness li.is-passed {
-  color: #EADFC8;
+  color: #ffffff;
   border-color: rgba(95, 166, 122, 0.34);
 }
 
@@ -289,7 +289,7 @@
   align-items: center;
   gap: 8px;
   margin: -4px 0 0;
-  color: rgba(234, 223, 200, 0.62) !important;
+  color: rgba(255, 255, 255, 0.62) !important;
   font-size: 0.8rem;
   line-height: 1.35;
 }
@@ -306,12 +306,12 @@
   margin-top: 18px;
   padding: 13px;
   border-radius: 8px;
-  border: 1px solid rgba(201, 169, 107, 0.14);
+  border: 1px solid rgba(242, 137, 47, 0.14);
   background: #0F1A26;
 }
 
 .rqk-auth-next-steps > span {
-  color: rgba(234, 223, 200, 0.72);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.72rem;
   font-weight: 950;
   letter-spacing: 0.12em;
@@ -336,9 +336,9 @@
   gap: 4px;
   padding: 10px;
   border-radius: 7px;
-  border: 1px solid rgba(201, 169, 107, 0.14);
-  background: #0B1B2B;
-  color: #EADFC8;
+  border: 1px solid rgba(242, 137, 47, 0.14);
+  background: #0a2342;
+  color: #ffffff;
   font-size: 0.76rem;
   font-weight: 900;
   line-height: 1.2;
@@ -346,7 +346,7 @@
 
 .rqk-auth-next-steps li::before {
   content: counter(rqk-auth-step, decimal-leading-zero);
-  color: #C9A96B;
+  color: #f2892f;
   font-size: 0.68rem;
   letter-spacing: 0.08em;
 }
@@ -359,7 +359,7 @@
   gap: 8px;
   margin-top: 14px;
   padding-top: 16px;
-  border-top: 1px solid rgba(201, 169, 107, 0.12);
+  border-top: 1px solid rgba(242, 137, 47, 0.12);
 }
 
 .rqk-auth-trust-row span {
@@ -368,9 +368,9 @@
   min-height: 28px;
   padding: 5px 9px;
   border-radius: 5px;
-  border: 1px solid rgba(201, 169, 107, 0.18);
+  border: 1px solid rgba(242, 137, 47, 0.18);
   background: #0F1A26;
-  color: rgba(234, 223, 200, 0.72);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.74rem;
   font-weight: 900;
 }

@@ -17,7 +17,7 @@ describe('Account Settings presentation ownership', () => {
     expect(css).toContain('#0C2234');
     expect(css).toContain('#112A40');
     expect(css).toContain('#79BCE8');
-    expect(css).toContain('#D6A84F');
+    expect(css).toContain('#f2892f');
     expect(css).toContain('Destructive account actions keep semantic danger colouring');
     expect(css).not.toMatch(/account-settings-primary[\s\S]{0,220}#d00000/i);
     expect(route).toContain("@/styles/accountSettings.css");
