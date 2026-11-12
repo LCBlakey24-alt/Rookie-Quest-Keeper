@@ -17,7 +17,7 @@ describe('Guild Ledger visual finishing pass', () => {
     expect(css).toContain('--rq-guild-heading: #ffb066');
     expect(css).toContain('--rq-guild-copy: #F1EEE7');
     expect(css).toContain('linear-gradient(115deg, #35212A');
-    expect(fonts).toContain("--rq-font-display: 'Fraunces'");
+    expect(fonts).toContain("--rq-font-display: 'Cinzel'");
     expect(css).not.toMatch(/#ff2daa|#7357ff|#d84df1|#ff9542/i);
   });
 

@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useEffect, useCallback, useRef } from 'react';
+import GuildGlowDefs from '@/components/guild-motif/GuildGlowDefs';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 
@@ -260,6 +261,7 @@ export default function App() {
     <ThemeProvider>
       <BrowserRouter>
         <AppErrorBoundary>
+          <GuildGlowDefs />
           <Suspense fallback={<RouteLoadingScreen />}>
             <AppRoutes />
           </Suspense>

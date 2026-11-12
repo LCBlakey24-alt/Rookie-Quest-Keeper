@@ -1,24 +1,106 @@
-/* Shared colours for the hex-sheet look.
+/* Shared look for every restyled surface: "Neon Coast" glow on a "Dusk sky".
  *
- * One place sets the palette for every restyled surface (creator, level-up
- * wizard, celebration, motif badge, back button). It matches the default
- * "Glow" dice: a strong deep blue, white-cream text and an orange glow.
+ * One place sets the palette for the character sheet, creator, level-up,
+ * celebration, motif badge, back button, Home and the landing page
+ * (docs/DESIGN_SYSTEM.md §4). Approved by the owner on 2026-11-12:
  *
- * --guild-glow scales every glow: 1 is the original strength, lower is
- * calmer. Change the values here and every surface follows.
+ * - The page is a deep blue that fades to dusk purple at the bottom.
+ * - Shapes are told apart by a thin edge with a soft glow that stays inside
+ *   the shape. Ordinary shapes glow hot pink -> violet -> sky blue; chosen,
+ *   primary and centre shapes glow peach -> pink -> gold.
+ * - Headings are Cinzel, text is Inter.
+ *
+ * --guild-glow scales every glow. Change values here and every surface
+ * follows.
  */
 :root {
-  --guild-bg: #0a2342;          /* page: strong deep blue */
+  --guild-bg: #0a2342;          /* page and shape fill: strong deep blue */
   --guild-bg-deep: #071a33;     /* wells and inputs */
   --guild-panel: #0e2d55;       /* raised panels */
-  --guild-accent: #f2892f;      /* the dice's orange */
-  --guild-accent-rgb: 242, 137, 47;
-  --guild-hi: #ffb066;          /* brighter accent for edges and numerals */
+  --guild-sky: linear-gradient(180deg, #0a2342 0%, #0d2147 45%, #2a1b4f 78%, #4a1f52 100%);
+
+  /* Neon Coast: the glow on ordinary shapes, left to right. */
+  --guild-c1: #ff3d8b; --guild-c1-rgb: 255, 61, 139;   /* hot pink */
+  --guild-c2: #b04dff; --guild-c2-rgb: 176, 77, 255;   /* violet */
+  --guild-c3: #4fb3ff; --guild-c3-rgb: 79, 179, 255;   /* sky blue */
+  /* The glow on chosen, primary and centre shapes. */
+  --guild-h1: #ffb066; --guild-h1-rgb: 255, 176, 102;  /* peach */
+  --guild-h2: #ff5fa0; --guild-h2-rgb: 255, 95, 160;   /* pink */
+  --guild-h3: #ffd27a; --guild-h3-rgb: 255, 210, 122;  /* gold */
+
+  /* Single colours for places that take one: selected and primary. */
+  --guild-accent: #ff5fa0;
+  --guild-accent-rgb: 255, 95, 160;
+  --guild-hi: #ffb066;          /* brighter accent for edges, numerals and kickers */
   --guild-hi-rgb: 255, 176, 102;
   --guild-text: #ffffff;
-  --guild-muted: #c6d3e2;
-  --guild-ink: #0a1a2e;         /* text on a solid accent button */
-  --guild-select: rgba(96, 156, 232, 0.2); /* fill of a selected card: lighter blue, not tinted orange */
-  --guild-cool: #6fb8ff;        /* light blue glow on unselected shapes */
+  --guild-muted: #c9d2e6;
+  --guild-ink: #1a0f2e;         /* text on a solid accent button */
+  --guild-select: rgba(96, 156, 232, 0.2); /* fill of a selected card: a lighter blue; Neon Coast colours stay in the glow */
+  --guild-cool: #b04dff;        /* one-colour stand-in for the ordinary glow */
+  --guild-line: rgba(176, 77, 255, 0.45);
+  --guild-line-hot: rgba(255, 176, 102, 0.85);
   --guild-glow: 0.5;
+
+  /* SVG strokes: the gradients live once in the page (GuildGlowDefs); the
+     colour after url() is the fallback where they are missing. */
+  --guild-stroke-cool: url(#rq-glow-cool) #b04dff;
+  --guild-stroke-hot: url(#rq-glow-hot) #ff5fa0;
+
+  /* Boxes: each wall glows inward in its own colour (left, top, right,
+     bottom), softly, so the middle of the box stays the page's blue. */
+  --guild-box-glow:
+    inset 9px 0 13px -6px rgba(var(--guild-c1-rgb), calc(0.6 * var(--guild-glow))),
+    inset 0 9px 13px -6px rgba(var(--guild-c2-rgb), calc(0.6 * var(--guild-glow))),
+    inset -9px 0 13px -6px rgba(var(--guild-c3-rgb), calc(0.6 * var(--guild-glow))),
+    inset 0 -9px 13px -6px rgba(var(--guild-c2-rgb), calc(0.6 * var(--guild-glow)));
+  --guild-box-glow-hot:
+    inset 11px 0 15px -7px rgba(var(--guild-h1-rgb), calc(0.8 * var(--guild-glow))),
+    inset 0 11px 15px -7px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow))),
+    inset -11px 0 15px -7px rgba(var(--guild-h3-rgb), calc(0.8 * var(--guild-glow))),
+    inset 0 -11px 15px -7px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow)));
+  /* A box's 1px edge in the same colours: background for an element with
+     `border: 1px solid transparent`. */
+  --guild-edge-cool: linear-gradient(120deg, rgba(var(--guild-c1-rgb), 0.75), rgba(var(--guild-c2-rgb), 0.75) 50%, rgba(var(--guild-c3-rgb), 0.75));
+  --guild-edge-hot: linear-gradient(120deg, var(--guild-h1), var(--guild-h2) 50%, var(--guild-h3));
+  --guild-box: linear-gradient(var(--guild-bg), var(--guild-bg)) padding-box, var(--guild-edge-cool) border-box;
+  --guild-box-hot: linear-gradient(var(--guild-bg), var(--guild-bg)) padding-box, var(--guild-edge-hot) border-box;
+
+  --guild-font-display: 'Cinzel', 'Fraunces', Georgia, serif;
+  --guild-font-body: 'Inter', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* The dusk sky behind every page. The app-wide reset in citrusCommand.css
+   flattens outer page surfaces from inside @layer rq-controls, where
+   !important outranks anything unlayered, so the sky is set from the same
+   layer with a more specific selector. Nested outer surfaces all paint the
+   same viewport-fixed sky, so they line up seamlessly. The sign-in page and
+   the TV player display stay flat. */
+@layer rq-controls {
+  html:root,
+  html:root > body,
+  html:root #root,
+  html:root #root :is(.App, .rqk-app-shell, .keeper-product-site, .character-page-v2, .clean-sheet-page) {
+    background-color: var(--guild-bg) !important;
+    background-image: var(--guild-sky) !important;
+    background-attachment: fixed !important;
+  }
+}
+
+/* SVG labels that should be in the display face. The app-wide
+   `* { font-family: var(--rq-font-sans) !important }` would otherwise win. */
+html body #root :is(.guild-wheel__name, .guild-motif__value, .hex-wheel__centre-label, .hex-spin__label, .rq-levelup__from, .rq-levelup__to) {
+  font-family: var(--guild-font-display) !important;
+}
+
+/* Signed-in pages: the app frame shows the sky instead of its old flat
+   ink, so every page sits on the same dusk background. */
+html body #root .rqk-app-shell.rqk-app-shell {
+  background-color: var(--guild-bg) !important;
+  background-image: var(--guild-sky) !important;
+  background-attachment: fixed !important;
+}
+html body #root .rqk-app-shell .rqk-app-workspace.rqk-app-workspace,
+html body #root .rqk-app-shell .rqk-app-shell-content.rqk-app-shell-content {
+  background: transparent !important;
 }

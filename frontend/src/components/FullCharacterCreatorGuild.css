@@ -8,7 +8,7 @@
    are drawn on ::after and its fill comes through --rq-control-blue. */
 .full-creator-page.full-creator-page {
   --gl-bg: var(--guild-bg); --gl-brass: var(--guild-accent); --gl-hi: var(--guild-hi); --gl-text: var(--guild-text); --gl-muted: var(--guild-muted);
-  --gl-line: rgba(var(--guild-accent-rgb), 0.28); --gl-glass: rgba(var(--guild-accent-rgb), 0.05); --gl-soft: var(--guild-select);
+  --gl-line: var(--guild-line); --gl-glass: var(--guild-bg); --gl-soft: var(--guild-select);
   --rqk-creator-bg: var(--gl-bg); --rqk-creator-deep: var(--guild-bg-deep); --rqk-creator-panel: var(--guild-panel);
   --rqk-creator-card: var(--gl-glass); --rqk-creator-card-hover: var(--gl-soft);
   --rqk-creator-text: var(--gl-text); --rqk-creator-muted: var(--gl-muted); --rqk-creator-faint: var(--guild-muted);
@@ -21,10 +21,10 @@
 /* Panels: glass with a soft inner glow. */
 .full-creator-page :is(.full-creator-header, .full-creator-panel, .full-creator-preview, .full-creator-footer, .full-creator-progress-card) {
   border-radius: 14px; border-color: var(--gl-line);
-  box-shadow: inset 0 0 30px rgba(var(--guild-accent-rgb), calc(0.07 * var(--guild-glow)));
+  box-shadow: var(--guild-box-glow);
 }
 .full-creator-page :is(.full-creator-header h1, .full-creator-section-title h2, .full-creator-preview h2) {
-  font-family: var(--rq-font-display, 'Fraunces', Georgia, serif); color: var(--gl-text) !important; -webkit-text-fill-color: var(--gl-text) !important;
+  font-family: var(--rq-font-display, 'Cinzel', Georgia, serif); color: var(--gl-text) !important; -webkit-text-fill-color: var(--gl-text) !important;
 }
 
 /* Progress: the motif shows the step number and fills with the journey. */
@@ -39,13 +39,13 @@
 .full-creator-page button { position: relative; border-width: 0 !important; border-radius: 10px; }
 .full-creator-page button::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  border: 1px solid var(--gl-line); box-shadow: inset 0 0 14px rgba(var(--guild-accent-rgb), calc(0.09 * var(--guild-glow)));
+  border: 1px solid var(--gl-line); box-shadow: var(--guild-box-glow);
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 .full-creator-page button:hover:not(:disabled)::after,
-.full-creator-page button:focus-visible::after { border-color: var(--gl-brass); box-shadow: inset 0 0 18px rgba(var(--guild-accent-rgb), calc(0.22 * var(--guild-glow))); }
+.full-creator-page button:focus-visible::after { border-color: var(--gl-hi); box-shadow: var(--guild-box-glow-hot); }
 .full-creator-page button:is(.active, .is-active, [aria-pressed='true'], [aria-checked='true'], [aria-current='step'])::after {
-  border-color: var(--gl-hi); box-shadow: inset 0 0 22px rgba(var(--guild-hi-rgb), calc(0.3 * var(--guild-glow)));
+  border-color: var(--gl-hi); box-shadow: var(--guild-box-glow-hot);
 }
 .full-creator-page button:is(.active, .is-active, [aria-checked='true']) { --rq-control-blue: var(--gl-soft); }
 .full-creator-page button:is(.active, .is-active, [aria-pressed='true'], [aria-checked='true']) strong { color: var(--gl-hi); }
@@ -56,10 +56,10 @@
 .full-creator-page .full-creator-steps button[aria-current='step']::after { border-width: 2px; }
 .full-creator-page .full-creator-steps button.is-complete:not([aria-current='step']) small { color: var(--gl-hi); }
 
-/* Primary actions: solid brass with ink text. */
-.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) { --rq-control-blue: var(--gl-brass); --rq-text-primary: var(--guild-ink); --rq-fill-color: rgba(255, 255, 255, 0.18); font-weight: 900; }
-.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled)::after { border-color: var(--gl-hi); box-shadow: 0 0 14px rgba(var(--guild-accent-rgb), calc(0.35 * var(--guild-glow))); }
-.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) svg { color: var(--guild-ink); }
+/* Primary actions: the warm Neon Coast glow (peach, pink, gold) inside a bright edge. */
+.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) { --rq-control-blue: var(--gl-bg); --rq-text-primary: var(--gl-text); --rq-fill-color: rgba(var(--guild-h2-rgb), 0.16); font-weight: 900; }
+.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled)::after { border-color: var(--gl-hi); box-shadow: var(--guild-box-glow-hot); }
+.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) svg { color: var(--gl-hi); }
 .full-creator-page .full-creator-roll-gold { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 
 /* Fields. */
@@ -77,3 +77,9 @@
 @media (max-width: 719px) {
   .full-creator-page .full-creator-choice-picker .guild-wheel { width: calc(100% + 16px); margin-inline: -8px; }
 }
+
+/* The dusk sky behind the creator (styles/guildTokens.css). */
+.full-creator-page.full-creator-page { background-color: var(--guild-bg); background-image: var(--guild-sky); background-attachment: fixed; }
+.full-creator-page .full-creator-progress-track span { background: linear-gradient(90deg, var(--guild-c1), var(--guild-c2), var(--guild-c3)); }
+/* Headings read white, as on the sheet; the app-wide heading rule uses this variable. */
+.full-creator-page.full-creator-page { --rq-guild-heading: var(--guild-text); }
