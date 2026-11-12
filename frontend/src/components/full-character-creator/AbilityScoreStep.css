@@ -67,3 +67,10 @@ button.ability-step__pick { cursor: pointer; }
 .ability-step__wheel-card { display: grid; justify-items: center; gap: 4px; min-width: 0; }
 .ability-step__wheel-card .ability-step__stepper { display: flex; gap: 8px; }
 .ability-step__wheel-card .ability-step__final { font-size: 0.8rem; }
+
+/* List alternative to the wheels: same method, same rules. */
+.ability-step__view-toggle { justify-self: start; min-height: 44px; padding: 0 14px; font-weight: 800; }
+.ability-step__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ability-step__list-row { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem 3rem; align-items: center; gap: 10px; }
+.ability-step__list-row select, .ability-step__list-row button { min-height: 44px; }
+.ability-step__list-row b { text-align: right; }

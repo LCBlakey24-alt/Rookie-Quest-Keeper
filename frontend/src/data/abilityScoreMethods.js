@@ -64,6 +64,32 @@ export function normaliseRolls(rolled = []) {
   }));
 }
 
+/**
+ * Rolls from an older draft carry no ability, and that draft may have
+ * swapped scores between abilities without moving the rolls. Name each
+ * roll after the ability whose saved score it now is, so the next trade
+ * does not undo those swaps. Rolls that match no saved score fall back to
+ * their position.
+ */
+export function migrateRolls(rolled = [], scores = {}) {
+  const list = Array.isArray(rolled) ? rolled : [];
+  if (!list.length || list.some((entry) => entry?.ability)) return normaliseRolls(list);
+  const free = new Set(ABILITY_ORDER);
+  const placed = list.map((entry) => {
+    const holder = ABILITY_ORDER.find((ability) => free.has(ability) && Number(scores[ability]) === Number(entry?.total));
+    if (holder) free.delete(holder);
+    return holder || null;
+  });
+  return list.map((entry, index) => {
+    let ability = placed[index];
+    if (!ability) {
+      ability = free.has(ABILITY_ORDER[index]) ? ABILITY_ORDER[index] : [...free][0];
+      free.delete(ability);
+    }
+    return { ...entry, ability };
+  });
+}
+
 /** The roll each ability holds, by ability. */
 export function rollsByAbility(rolled = []) {
   return Object.fromEntries(normaliseRolls(rolled).map((entry) => [entry.ability, entry]));

@@ -14,7 +14,7 @@ import {
   assignRoll,
   assignValue,
   canSetPointBuy,
-  normaliseRolls,
+  migrateRolls,
   pointBuyRemaining,
   pointBuyStart,
   scoresFromRolls,
@@ -32,6 +32,10 @@ const SHORT = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intellig
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 const mod = (score) => Math.floor((Number(score) - 10) / 2);
 const ROLLS_NEEDED = ABILITY_ORDER.length;
+const ABILITY_VIEW_KEY = 'rqk.creator.abilityView';
+function loadAbilityView() {
+  try { return window.localStorage.getItem(ABILITY_VIEW_KEY) === 'list' ? 'list' : 'wheel'; } catch { return 'wheel'; }
+}
 
 /**
  * Setting ability scores in the creator, on six wheels, one per ability,
@@ -52,7 +56,12 @@ const ROLLS_NEEDED = ABILITY_ORDER.length;
 export default function AbilityScoreStep({ draft, update, setScore, finalScores, bonus = {} }) {
   const method = draft.abilityMethod || 'standard';
   const scores = draft.scores || {};
-  const rolled = useMemo(() => normaliseRolls(draft.rolledScores), [draft.rolledScores]);
+  const rolled = useMemo(() => migrateRolls(draft.rolledScores, draft.scores), [draft.rolledScores, draft.scores]);
+  const [view, setView] = useState(loadAbilityView);
+  const switchView = (next) => {
+    setView(next);
+    try { window.localStorage.setItem(ABILITY_VIEW_KEY, next); } catch { /* storage unavailable */ }
+  };
   const [burst, setBurst] = useState(null);
 
   const remaining = useMemo(() => pointBuyRemaining(scores), [scores]);
@@ -104,6 +113,14 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
       : `Tap a wheel's centre to roll that ability (${rolledCount} of ${ROLLS_NEEDED} rolled). Four d6 are thrown and the lowest is dropped.`,
     manual: 'Type each score from 3 to 20.',
   }[method];
+  // In the list view the same rules apply; only the wording changes.
+  const hint = view === 'list' && method !== 'manual'
+    ? methodHint
+      .replace('Turn a wheel to give that ability a score', 'Pick a score for an ability')
+      .replace('Turn each wheel to set its score', 'Pick each score')
+      .replace("Tap a wheel's centre to roll that ability", 'Roll each ability')
+      .replace('Turn a wheel to the roll you want for that ability', 'Pick the roll you want for each ability')
+    : methodHint;
 
   // What each ability's wheel offers, and what turning it does.
   const wheelFor = (ability) => {
@@ -162,7 +179,7 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
         ))}
       </div>
 
-      <p className="ability-step__hint" data-testid="ability-step-hint">{methodHint}</p>
+      <p className="ability-step__hint" data-testid="ability-step-hint">{hint}</p>
 
       {method === 'roll' && (
         <div className="ability-step__roll-actions">
@@ -173,6 +190,42 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
             <button type="button" onClick={startOver} data-testid="ability-roll-restart"><RotateCcw size={16} aria-hidden="true" /> Start over</button>
           )}
         </div>
+      )}
+
+      {method !== 'manual' && (
+        <button type="button" className="ability-step__view-toggle" onClick={() => switchView(view === 'list' ? 'wheel' : 'list')} data-testid="ability-view-toggle">
+          {view === 'list' ? 'Show as wheels' : 'Show as list'}
+        </button>
+      )}
+
+      {method !== 'manual' && view === 'list' && (
+        <ul className="ability-step__list" data-testid="ability-list">
+          {ABILITY_ORDER.map((ability) => {
+            const wheel = wheelFor(ability);
+            const notRolledYet = method === 'roll' && !rolledAbilities.has(ability);
+            const blocked = new Set(wheel.disabledIds || []);
+            return (
+              <li key={ability} className="ability-step__list-row" data-testid={`ability-row-${ability}`}>
+                <label htmlFor={`ability-list-${ability}`}>{NAMES[ability]}</label>
+                {notRolledYet ? (
+                  <button type="button" onClick={wheel.onConfirm} data-testid={`ability-list-roll-${ability}`}>Roll {NAMES[ability]}</button>
+                ) : (
+                  <select
+                    id={`ability-list-${ability}`}
+                    value={wheel.value}
+                    disabled={method === 'roll' && !rollingDone}
+                    onChange={(event) => wheel.onChange(event.target.value)}
+                  >
+                    {wheel.options.filter((option) => !option.id.startsWith('p-')).map((option) => (
+                      <option key={option.id} value={option.id} disabled={blocked.has(option.id) && option.id !== wheel.value}>{option.label}</option>
+                    ))}
+                  </select>
+                )}
+                <b>{notRolledYet ? '—' : fmt(mod(finalScores?.[ability]))}</b>
+              </li>
+            );
+          })}
+        </ul>
       )}
 
       {method === 'manual' ? (
@@ -194,7 +247,7 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
             );
           })}
         </div>
-      ) : (
+      ) : view === 'list' ? null : (
         <div className="ability-step__wheels">
           {ABILITY_ORDER.map((ability) => {
             const wheel = wheelFor(ability);

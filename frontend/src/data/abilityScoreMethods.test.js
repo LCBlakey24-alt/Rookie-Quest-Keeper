@@ -1,6 +1,6 @@
 import {
   canSetPointBuy, isStandardArray, pointBuyRemaining, pointBuySpent, pointBuyStart,
-  addRollFor, assignRoll, assignValue, normaliseRolls,
+  addRollFor, assignRoll, assignValue, migrateRolls, normaliseRolls,
   scoresFromRolls, standardArrayScores, swapScores,
 } from './abilityScoreMethods';
 import { rollAbilityScore } from './abilityScoreRolls';
@@ -88,5 +88,23 @@ describe('rolling per ability and assigning by turning', () => {
     expect(next.charisma).toBe(15);
     expect(next.strength).toBe(8);
     expect(Object.values(next).sort()).toEqual(Object.values(scores).sort());
+  });
+});
+
+describe('older drafts with swapped rolled scores', () => {
+  test('each unnamed roll takes the ability that now holds its total', () => {
+    const rolled = [{ total: 16 }, { total: 14 }, { total: 13 }, { total: 12 }, { total: 10 }, { total: 8 }];
+    // The old swap moved scores (STR <-> CHA) but left the rolls in order.
+    const scores = { strength: 8, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 16 };
+    const migrated = migrateRolls(rolled, scores);
+    expect(scoresFromRolls(migrated)).toEqual(scores);
+    // A later trade keeps the earlier swap.
+    const traded = assignRoll(migrated, 'dexterity', migrated.findIndex((e) => e.ability === 'constitution'));
+    expect(scoresFromRolls(traded)).toMatchObject({ strength: 8, charisma: 16, dexterity: 13, constitution: 14 });
+  });
+
+  test('named rolls are left as they are', () => {
+    const named = [{ total: 9, ability: 'wisdom' }];
+    expect(migrateRolls(named, { wisdom: 15 })).toEqual(named);
   });
 });

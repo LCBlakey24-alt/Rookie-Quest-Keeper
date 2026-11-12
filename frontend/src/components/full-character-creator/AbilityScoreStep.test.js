@@ -121,3 +121,30 @@ describe('manual', () => {
     expect(draftNow().scores.strength).toBe(17);
   });
 });
+
+describe('list alternative', () => {
+  afterEach(() => window.localStorage.removeItem('rqk.creator.abilityView'));
+
+  test('Show as list keeps the method: standard-array picks still swap', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByTestId('ability-view-toggle'));
+    expect(screen.getByTestId('ability-list')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Charisma'), { target: { value: '15' } });
+    expect(draftNow().scores).toMatchObject({ charisma: 15, strength: 8 });
+  });
+
+  test('in the list, point buy refuses scores you cannot afford', () => {
+    render(<Harness initial={{ abilityMethod: 'point', scores: { strength: 15, dexterity: 15, constitution: 15, intelligence: 8, wisdom: 8, charisma: 8 } }} />);
+    fireEvent.click(screen.getByTestId('ability-view-toggle'));
+    const wisdom = screen.getByLabelText('Wisdom');
+    expect(within(wisdom).getByRole('option', { name: '9' })).toBeDisabled();
+  });
+
+  test('in the list, each unrolled ability has its own Roll button', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByTestId('ability-method-roll'));
+    fireEvent.click(screen.getByTestId('ability-view-toggle'));
+    fireEvent.click(screen.getByTestId('ability-list-roll-intelligence'));
+    expect(draftNow().rolledScores[0].ability).toBe('intelligence');
+  });
+});

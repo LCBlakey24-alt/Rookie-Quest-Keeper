@@ -479,6 +479,11 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }
 
   function handleTouchStart(event) {
+    // Turning a wheel is not a swipe between steps.
+    if (event.target?.closest?.('.guild-wheel')) {
+      setTouchStartX(null);
+      return;
+    }
     setTouchStartX(event.touches?.[0]?.clientX ?? null);
   }
 
