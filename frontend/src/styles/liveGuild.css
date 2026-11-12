@@ -39,8 +39,18 @@ html body #root .live-session-with-second-screen.live-session-with-second-screen
   .rqk-live-grid__session-brief,
   .rqk-live-grid__core-card
 ) {
-  position: relative;
   border-radius: 14px !important;
+}
+/* The ::after edge needs a positioned parent. The desktop tool rail is
+   already position: sticky (LiveToolRail.css), which serves, so it keeps
+   its stickiness and stays on screen while a tall tool scrolls. */
+html body #root .live-session-with-second-screen.live-session-with-second-screen :is(
+  .rqk-live-page__header,
+  .rqk-live-page__story-utility,
+  .rqk-live-grid__session-brief,
+  .rqk-live-grid__core-card
+) {
+  position: relative;
 }
 html body #root .live-session-with-second-screen.live-session-with-second-screen :is(
   .rqk-live-page__header,
