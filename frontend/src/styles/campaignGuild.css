@@ -1,0 +1,84 @@
+/* The GM campaign dashboard in the approved look: Neon Coast on a Dusk sky,
+ * Cinzel and Inter (DESIGN_SYSTEM §3, tokens in guildTokens.css).
+ *
+ * The dashboard's older colours come from shared variables read by
+ * app-wide rules inside @layer rq-controls, which outrank any unlayered
+ * rule. So the look is changed by pointing those variables at the guild
+ * tokens instead of fighting each rule:
+ * - the citrus line under headings and the hover sweep becomes the warm
+ *   peach -> pink -> gold edge;
+ * - selected navigation (the "wax seal") becomes the lighter selected blue;
+ * - the orange heading colour becomes white.
+ * Where a property is not pinned by that layer, it is set directly.
+ */
+html body #root .campaign-dashboard-simple {
+  --rq-citrus-gradient: linear-gradient(90deg, var(--guild-h1) 0%, var(--guild-h2) 50%, var(--guild-h3) 100%);
+  --rq-citrus-control: var(--guild-bg);
+  --rq-control-blue: var(--guild-bg);
+  --rq-control-wax: var(--guild-select);
+  --rq-guild-wine: var(--guild-select);
+  --rq-guild-wine-selected: none;
+  --rqk-campaign-wax: var(--guild-select);
+  --rqk-campaign-wax-text: var(--guild-text);
+  --rq-guild-heading: var(--guild-text);
+  --rq-text-primary: var(--guild-text);
+  --rq-bg-panel: var(--guild-bg);
+  --rq-fill-color: rgba(var(--guild-c2-rgb), 0.16);
+}
+
+/* Selected navigation: the selected blue, white text, a warm line under it. */
+html body #root .campaign-dashboard-simple :is(.campaign-dashboard-group, .campaign-dashboard-tab).is-active {
+  --rq-citrus-gradient: none;
+  --rq-citrus-control: var(--guild-select);
+  color: var(--guild-text) !important;
+}
+html body #root .campaign-dashboard-simple :is(.campaign-dashboard-group, .campaign-dashboard-tab).is-active :is(span, svg) { color: var(--guild-text) !important; }
+
+/* Headings: white Cinzel; small kickers in the accent. */
+html body #root .campaign-dashboard-simple :is(h1, h2, h3) {
+  font-family: var(--guild-font-display) !important;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+}
+
+/* Cards and panels: the app-wide control layer pins their border and
+   shadow (and, on button cards, ::before), so the edge and the inner glow
+   are drawn together on ::after, laid over the pinned border. */
+html body #root .campaign-dashboard-simple.campaign-dashboard-simple :is(
+  .campaign-home-command,
+  .campaign-home-session-rail,
+  .campaign-home-overview-item,
+  .campaign-home-focus-card,
+  .guild-command-party,
+  .campaign-home-detail
+) {
+  position: relative;
+}
+html body #root .campaign-dashboard-simple.campaign-dashboard-simple :is(
+  .campaign-home-command,
+  .campaign-home-session-rail,
+  .campaign-home-overview-item,
+  .campaign-home-focus-card,
+  .guild-command-party,
+  .campaign-home-detail
+)::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid var(--guild-line) !important;
+  box-shadow: var(--guild-box-glow) !important;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+html body #root .campaign-dashboard-simple.campaign-dashboard-simple :is(.campaign-home-overview-item, .campaign-home-focus-card, .campaign-home-quick-card):is(:hover, :focus-visible)::after {
+  border-color: var(--guild-line-hot) !important;
+  box-shadow: var(--guild-box-glow-hot) !important;
+}
+
+/* The "At the table" label reads as a heading: white Cinzel. */
+html body #root .campaign-dashboard-simple.campaign-dashboard-simple .campaign-home-session-rail__heading > span {
+  font-family: var(--guild-font-display) !important;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+}
