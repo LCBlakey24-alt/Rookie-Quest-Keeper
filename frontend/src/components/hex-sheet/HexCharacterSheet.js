@@ -12,6 +12,7 @@ import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { buildClassFeatureSummary, buildProficiencySummary, groupByActionEconomy, rulesEditionOf } from '@/components/clean-sheet/sheetFeatureSummary';
 import { deriveArmorClass, deriveWalkingSpeed } from '@/data/characterCombatDerivations';
 import LevelUpWizard from '@/components/LevelUpWizard';
+import LevelUpReveal from '@/components/level-up-grant/LevelUpReveal';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import { rollDiceNotation } from '@/data/diceRoller';
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
@@ -98,6 +99,7 @@ export default function HexCharacterSheet() {
   const [stack, setStack] = useState([{ view: 'main' }]);
   const [rollBurst, setRollBurst] = useState(null);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [showLevelReveal, setShowLevelReveal] = useState(false);
   const location = useLocation();
   const [showSettings, setShowSettings] = useState(false);
   const [showPortrait, setShowPortrait] = useState(false);
@@ -239,13 +241,17 @@ export default function HexCharacterSheet() {
   // Arriving from a GM-granted "Level up now" (?levelup=1) opens the wizard
   // once the sheet has loaded, then drops the flag from the address.
   const wantsLevelUp = new URLSearchParams(location.search).get('levelup') === '1';
-  useEffect(() => {
-    if (!wantsLevelUp || !character) return;
-    setShowLevelUp(true);
-    navigate(location.pathname, { replace: true });
-  }, [wantsLevelUp, character, navigate, location.pathname]);
   // A level up the GM granted and the player has not taken yet.
   const levelUpReady = Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1);
+  // A granted level starts with the D20 reveal; levelling without a grant
+  // goes straight to the choices.
+  const startLevelUp = () => (levelUpReady ? setShowLevelReveal(true) : setShowLevelUp(true));
+  useEffect(() => {
+    if (!wantsLevelUp || !character) return;
+    if (Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1)) setShowLevelReveal(true);
+    else setShowLevelUp(true);
+    navigate(location.pathname, { replace: true });
+  }, [wantsLevelUp, character, navigate, location.pathname]);
 
   // Starting concentration on a second spell ends the first, so ask first,
   // exactly as the classic sheet does.
@@ -533,7 +539,7 @@ export default function HexCharacterSheet() {
       </main>
 
       <footer className="hex-sheet__footer">
-        <button type="button" className={`hex-sheet__footer-button${levelUpReady ? ' is-ready' : ''}`} onClick={() => setShowLevelUp(true)} data-testid="hex-level-up">
+        <button type="button" className={`hex-sheet__footer-button${levelUpReady ? ' is-ready' : ''}`} onClick={startLevelUp} data-testid="hex-level-up">
           <span className="hex-glass" aria-hidden="true" />
           <TrendingUp size={18} aria-hidden="true" /> {levelUpReady ? `Level up ready · ${character.level_up_grant.to_level}` : 'Level Up'}
         </button>
@@ -573,6 +579,16 @@ export default function HexCharacterSheet() {
           <HexPortrait url={portraitUrlFor(character)} name={identity.name} size="large" />
           <button type="button" className="hex-sheet__text-button" autoFocus onClick={() => setShowPortrait(false)}><span className="hex-glass" aria-hidden="true" />Close</button>
         </div>
+      )}
+
+      {showLevelReveal && levelUpReady && (
+        <LevelUpReveal
+          characterName={character.name}
+          fromLevel={Number(character.level) || 1}
+          toLevel={Number(character.level_up_grant.to_level)}
+          onContinue={() => { setShowLevelReveal(false); setShowLevelUp(true); }}
+          onLater={() => setShowLevelReveal(false)}
+        />
       )}
 
       {showLevelUp && (

@@ -22,6 +22,7 @@ import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import { spellDiceEntry } from '@/components/clean-sheet/SpellRollRow';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
+import LevelUpReveal from '@/components/level-up-grant/LevelUpReveal';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerHelperTab, { hasUrgentRookTips } from '@/components/clean-sheet/RookPlayerHelperTab';
 import { deriveArmorClass, deriveWalkingSpeed } from '@/data/characterCombatDerivations';
@@ -97,17 +98,22 @@ export default function CleanCharacterSheet() {
     });
   };
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
+  const [showLevelReveal, setShowLevelReveal] = useState(false);
+  // A level up the GM granted and the player has not taken yet.
+  const levelUpReady = Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1);
+  // A granted level starts with the D20 reveal; levelling without a grant
+  // goes straight to the choices.
+  const startLevelUp = () => (levelUpReady ? setShowLevelReveal(true) : setShowLevelUpWizard(true));
 
-  // Arriving from a GM-granted "Level up now" (?levelup=1) opens the wizard
-  // once the sheet has loaded, then drops the flag from the address.
+  // Arriving from a GM-granted "Level up now" (?levelup=1) opens the reveal
+  // (or the wizard) once the sheet has loaded, then drops the flag.
   const wantsLevelUp = new URLSearchParams(location.search).get('levelup') === '1';
   useEffect(() => {
     if (!wantsLevelUp || !character) return;
-    setShowLevelUpWizard(true);
+    if (Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1)) setShowLevelReveal(true);
+    else setShowLevelUpWizard(true);
     navigate(location.pathname, { replace: true });
   }, [wantsLevelUp, character, navigate, location.pathname]);
-  // A level up the GM granted and the player has not taken yet.
-  const levelUpReady = Number(character?.level_up_grant?.to_level || 0) > Number(character?.level || 1);
   const [rollHistory, setRollHistory] = useState([]);
   const [showRollHistory, setShowRollHistory] = useState(false);
   const [showConditionPicker, setShowConditionPicker] = useState(false);
@@ -508,7 +514,7 @@ export default function CleanCharacterSheet() {
 
   const handleSelectTab = (tab) => {
     if (tab?.action === 'levelup') {
-      setShowLevelUpWizard(true);
+      startLevelUp();
       return;
     }
     setActiveTab(tab?.id || tab);
@@ -599,6 +605,15 @@ export default function CleanCharacterSheet() {
 
   return (
     <div className="clean-sheet-page character-page-v2">
+      {showLevelReveal && levelUpReady && (
+        <LevelUpReveal
+          characterName={character.name}
+          fromLevel={Number(character.level) || 1}
+          toLevel={Number(character.level_up_grant.to_level)}
+          onContinue={() => { setShowLevelReveal(false); setShowLevelUpWizard(true); }}
+          onLater={() => setShowLevelReveal(false)}
+        />
+      )}
       {showLevelUpWizard && character && (
         <LevelUpWizard
           character={character}
@@ -639,7 +654,7 @@ export default function CleanCharacterSheet() {
         subtitle={subtitle}
         resting={savingQuickState}
         onEdit={() => navigate(`/characters/${character.id}/edit`)}
-        onLevelUp={() => setShowLevelUpWizard(true)}
+        onLevelUp={startLevelUp}
         levelUpReady={levelUpReady}
         onShortRest={() => handleRest('short')}
         onLongRest={() => handleRest('long')}

@@ -28,10 +28,10 @@ beforeEach(() => {
   apiClient.post.mockResolvedValue({ data: { ok: true } });
 });
 
-test('a new grant plays "Levelled up!" once and is marked seen straight away', async () => {
+test('a new grant shows "Level up ready!" once and is marked seen straight away', async () => {
   apiClient.get.mockResolvedValue({ data: [GRANT] });
   renderWatcher();
-  expect(await screen.findByRole('dialog', { name: 'Levelled up!' })).toHaveTextContent('Punch can now reach level 5');
+  expect(await screen.findByRole('dialog', { name: 'Level up ready!' })).toHaveTextContent('Punch can now reach level 5');
   expect(apiClient.get).toHaveBeenCalledWith('/characters/level-up-grants/mine');
   expect(apiClient.post).toHaveBeenCalledWith('/characters/char-1/level-up-grant/seen', { grant_id: 'g1' });
 });

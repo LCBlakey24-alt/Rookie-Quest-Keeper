@@ -91,6 +91,9 @@ export default function DiceRollFlicker({
   // 'hex' puts the 3D throw in a hexagon over the wheel matching anchorSelector.
   shape,
   anchorSelector,
+  // Replaces the "dice + modifier = total" line under the result, for a
+  // throw that is ceremony rather than arithmetic (the level-up reveal).
+  resultCaption,
 }) {
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
@@ -259,9 +262,9 @@ export default function DiceRollFlicker({
 
   if (!visible || typeof document === 'undefined') return null;
 
-  const formulaText = isFixedDamage
+  const formulaText = resultCaption || (isFixedDamage
     ? `Fixed damage: ${fixedBase}${formatModifier(modifier)} = ${finalTotal}`
-    : `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
+    : `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`);
 
   // Physical tumbling dice by default; the flat overlay stays the
   // presentation for viewers who ask for reduced motion
