@@ -15,9 +15,12 @@ import {
   Users,
 } from 'lucide-react';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import LandingWheelPreview from '@/components/landing/LandingWheelPreview';
 import useRevealOnScroll from '@/hooks/useRevealOnScroll';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
+import '@/styles/guildTokens.css';
+import '@/styles/landingGuild.css';
 
 const LANDING_META_DESCRIPTION = 'Rookie Quest Keeper keeps characters, campaigns, session prep, notes, and live table tools together in one refined tabletop workspace.';
 
@@ -111,19 +114,6 @@ const faqItems = [
     question: 'Does Keeper replace my books or table rulings?',
     answer: 'No. Keeper is an organisation and play companion. Your group still decides which books, rulings, homebrew, and table agreements you use.',
   },
-];
-
-const previewStats = [
-  ['8', 'Sessions'],
-  ['6', 'Characters'],
-  ['12', 'NPCs'],
-  ['4', 'Locations'],
-];
-
-const recentActivity = [
-  'Session 4 notes updated',
-  'New NPC: Ser Valen',
-  'Greyne Keep map added',
 ];
 
 export default function LandingPage() {
@@ -259,61 +249,8 @@ export default function LandingPage() {
           </div>
 
           <aside className="landing-product-stage" aria-hidden="true">
-            <div className="landing-stage-ornament landing-stage-ornament--top" aria-hidden="true"><Compass size={24} /></div>
-            <div className="landing-app-preview">
-              <div className="landing-app-preview__bar">
-                <div className="landing-app-preview__brand">
-                  <BrandMiniLogo size={28} alt="" />
-                  <span><strong>Keeper</strong><small>Guild Ledger</small></span>
-                </div>
-                <span className="landing-app-preview__status">Campaign workspace</span>
-              </div>
-
-              <div className="landing-app-preview__body">
-                <div className="landing-app-preview__rail">
-                  {['Dashboard', 'Campaigns', 'Sessions', 'Characters', 'Locations', 'NPCs', 'Notes'].map((item, index) => (
-                    <span key={item} className={index === 0 ? 'is-active' : ''}>{item}</span>
-                  ))}
-                </div>
-
-                <div className="landing-app-preview__main">
-                  <div className="landing-app-preview__heading">
-                    <div>
-                      <small>Campaign overview</small>
-                      <h2>The Ashen Crown</h2>
-                      <p>Political intrigue, hidden truths, and a party about to change the realm.</p>
-                    </div>
-                    <span>In progress</span>
-                  </div>
-
-                  <div className="landing-app-preview__tabs">
-                    <strong>Overview</strong><span>Sessions</span><span>Characters</span><span>Locations</span>
-                  </div>
-
-                  <div className="landing-app-preview__stats">
-                    {previewStats.map(([value, label]) => (
-                      <div key={label}><strong>{value}</strong><span>{label}</span></div>
-                    ))}
-                  </div>
-
-                  <div className="landing-app-preview__grid">
-                    <section>
-                      <small>Next session</small>
-                      <strong>The Council Convenes</strong>
-                      <p>Saturday · 4:00 PM</p>
-                      <span className="landing-app-preview__action">View session</span>
-                    </section>
-                    <section>
-                      <small>Recent activity</small>
-                      {recentActivity.map(item => <p key={item}>{item}</p>)}
-                    </section>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="landing-stage-dice" aria-hidden="true">
-              <span>20</span><span>12</span><span>8</span>
-            </div>
+            <LandingWheelPreview />
+            <p className="landing-stage-caption">Your character sheet, one turn of the wheel away.</p>
           </aside>
         </section>
 
