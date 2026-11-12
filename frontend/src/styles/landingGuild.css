@@ -144,3 +144,10 @@ html body #root .keeper-product-site .landing-explore__hint--touch { display: no
 html body #root .keeper-product-site .landing-final-footer { border-top-color: var(--guild-line) !important; background: transparent !important; }
 html body #root .keeper-product-site .landing-footer-brand p,
 html body #root .keeper-product-site .landing-footer-note { color: var(--guild-muted) !important; }
+
+/* The hexagon badge is the brand: always shown in the header and footer. */
+html body #root .keeper-product-site .landing-nav-brand { display: inline-flex !important; align-items: center; padding: 0 !important; background: transparent !important; border: 0 !important; }
+html body #root .keeper-product-site .landing-nav-brand::after { display: none !important; }
+html body #root .keeper-product-site .landing-nav-brand img.landing-nav-badge {
+  display: block !important; visibility: visible !important; width: 58px !important; height: 58px !important; max-height: none !important; object-fit: contain;
+}

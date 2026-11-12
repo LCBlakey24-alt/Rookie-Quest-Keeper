@@ -6,7 +6,7 @@ import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { getSignInDestination } from '@/components/auth/SignInRedirect';
 import ReadOnlyDemoAccess from '@/components/auth/ReadOnlyDemoAccess';
-import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import './AuthPage.css';
 
 const AUTH_COPY = {
@@ -398,11 +398,7 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
           data-no-fill-animation="true"
           aria-label="Back to Rookie Quest Keeper home"
         >
-          <BrandMiniLogo className="rqk-auth-brand__sigil" size={38} alt="" />
-          <span className="rqk-auth-brand__text">
-            <BrandMainLogo width={168} alt="" />
-            <small>Guild Ledger • Table tools</small>
-          </span>
+          <BrandMiniLogo className="rqk-auth-brand__sigil" size={64} alt="Rookie Quest Keeper" />
         </button>
 
         <div className="rqk-auth-layout">

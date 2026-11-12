@@ -38,7 +38,7 @@ describe('Keeper simplified navigation', () => {
 
   test('retains canonical vector branding with no Player home navigation', () => {
     const html = renderToStaticMarkup(<AppShell><main>GM prep content</main></AppShell>);
-    expect(html).toContain('/brand/rookie-quest-keeper-app-icon.svg');
+    expect(html).toContain('/brand/rqk-hex-logo-360.png');
     expect(html).toContain('GM prep content');
     expect(html).not.toContain('Player home');
     expect(html).toContain('Homebrew');

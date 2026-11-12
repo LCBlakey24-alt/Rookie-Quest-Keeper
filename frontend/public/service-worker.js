@@ -12,6 +12,7 @@ const APP_SHELL = [
   '/asset-manifest.json',
   '/site.webmanifest',
   '/brand/rookie-quest-keeper-main-logo.svg',
+  '/brand/rqk-hex-logo-360.png',
   '/brand/rookie-quest-keeper-app-icon.svg',
   '/icons/keeper-192.png',
   '/icons/keeper-512.png',
