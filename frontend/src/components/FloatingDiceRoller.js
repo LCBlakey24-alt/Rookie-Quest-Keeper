@@ -10,6 +10,7 @@ import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import './FloatingDiceRoller.css';
 import './FloatingDiceRollerExperience.css';
+import { characterIdFromPath } from '@/lib/characterRoute';
 
 const QUICK_DICE = [4, 6, 8, 10, 12, 20, 100];
 const HISTORY_LIMIT = 5;
@@ -80,10 +81,6 @@ function campaignIdFromPath(pathname = '') {
   return match?.[1] || '';
 }
 
-function characterIdFromPath(pathname = '') {
-  const match = pathname.match(/\/characters\/([^/]+)/i);
-  return match?.[1] || '';
-}
 
 function activeGroupCheck(displayState, playerContext) {
   if (displayState?.mode !== 'group-check') return null;

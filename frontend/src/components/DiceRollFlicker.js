@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
+import { currentCharacterId } from '@/lib/characterRoute';
 
 const characterCache = new Map();
 const REVEAL_DELAY = 360;
@@ -53,11 +54,7 @@ function normalizeDice(rolls, fallbackTotal) {
   return [{ id: 'fallback', sides: Math.max(20, result), result, sign: 1, contribution: result, dropped: false, exploded: false, originalIndex: 0 }];
 }
 
-function getCharacterIdFromPath() {
-  if (typeof window === 'undefined') return '';
-  const match = window.location.pathname.match(/\/characters\/([^/]+)/i);
-  return match?.[1] || '';
-}
+const getCharacterIdFromPath = currentCharacterId;
 
 function getPrefersReducedMotion() {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;

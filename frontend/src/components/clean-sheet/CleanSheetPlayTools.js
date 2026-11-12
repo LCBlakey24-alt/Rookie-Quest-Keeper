@@ -7,12 +7,9 @@ import { canStartRest } from '@/data/characterRestRules';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { COMMON_CONDITIONS, fmt, parseHitDie } from './cleanSheetUtils';
 import { DeathSaveTrack } from './CleanSheetCommon';
+import { currentCharacterId } from '@/lib/characterRoute';
 
-function getCharacterIdFromPath() {
-  if (typeof window === 'undefined') return '';
-  const match = window.location.pathname.match(/\/characters\/([^/]+)/i);
-  return match?.[1] || '';
-}
+const getCharacterIdFromPath = currentCharacterId;
 
 export default function CleanSheetPlayTools({
   activeConditions,
