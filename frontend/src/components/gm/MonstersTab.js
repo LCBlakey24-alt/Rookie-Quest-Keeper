@@ -217,7 +217,7 @@ export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
             {typeFilter === 'beast' ? 'Show all creatures' : 'Beasts only'}
           </button>
           <select value={crFilter} onChange={event => setCrFilter(event.target.value)} style={selectStyle}><option value="all">All CR</option><option value="low">CR 0–2</option><option value="mid">CR 3–8</option><option value="high">CR 9+</option></select>
-          <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} style={selectStyle}><option value="all">All sources</option><option value="srd">SRD 5.1 (verified)</option><option value="legacy-reference">Legacy reference</option><option value="custom">Custom</option></select>
+          <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} style={selectStyle}><option value="all">All sources</option><option value="srd">SRD 5.1 (verified)</option><option value="custom">Custom</option></select>
           <Input value={encounterName} onChange={event => setEncounterName(event.target.value)} placeholder="Encounter name, optional" style={inputStyle} />
           <Button onClick={loadLibrary} disabled={loading} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</Button>
         </div>
