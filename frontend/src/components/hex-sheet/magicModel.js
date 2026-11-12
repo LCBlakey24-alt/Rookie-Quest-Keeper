@@ -42,12 +42,16 @@ export function castableSpells(character = {}) {
     if (!entry) return;
     const spell = spellWithDetails(entry, fallbackLevel);
     if (!spell.name) return;
-    const key = `${normalise(spell.sourceClass || spell.source_class)}:${normalise(spell.name)}`;
-    const bare = `:${normalise(spell.name)}`;
-    if (seen.has(key) || seen.has(bare)) return;
+    // A spell known through two classes stays twice, once per class, since
+    // each copy casts with its own class's modifier. Untagged copies of a
+    // name already listed are dropped.
+    const source = normalise(spell.sourceClass || spell.source_class);
+    const name = normalise(spell.name);
+    const key = `${source}:${name}`;
+    if (seen.has(key) || (!source && seen.has(`name:${name}`))) return;
     seen.add(key);
-    seen.add(bare);
-    out.push(spell);
+    seen.add(`name:${name}`);
+    out.push({ ...spell, key });
   };
   asList(character.cantrips_known || character.cantrips).forEach((entry) => add(entry, 0));
   asList(character.spells_prepared || character.prepared_spells || character.preparedSpells).forEach((entry) => add(entry, null));
@@ -86,9 +90,21 @@ export function magicLevels(spells = [], pools = {}) {
   return levels;
 }
 
-/** The spells listed under a wedge: those of exactly that level, by name. */
-export function spellsAtLevel(spells = [], level = 0) {
-  return spells.filter((spell) => spell.level === level).sort((a, b) => a.name.localeCompare(b.name));
+/**
+ * The spells listed under a wedge, by name. Each spell sits under the lowest
+ * wedge at or above its own level, so a spell whose level has no slots of its
+ * own (a Warlock's 1st-level spells once Pact Magic slots are 3rd level) is
+ * still listed and cast with the higher slot. `wedgeLevels` are the levels on
+ * the wheel; without them a wedge lists only spells of exactly its level.
+ */
+export function spellsAtLevel(spells = [], level = 0, wedgeLevels = null) {
+  const levels = Array.isArray(wedgeLevels) ? [...wedgeLevels].sort((a, b) => a - b) : null;
+  const home = (spellLevel) => {
+    if (!levels || spellLevel === 0) return spellLevel;
+    const above = levels.find((value) => value >= spellLevel);
+    return above === undefined ? spellLevel : above;
+  };
+  return spells.filter((spell) => home(spell.level) === level).sort((a, b) => a.name.localeCompare(b.name) || String(a.key).localeCompare(String(b.key)));
 }
 
 /**

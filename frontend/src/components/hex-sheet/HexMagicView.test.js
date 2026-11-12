@@ -55,3 +55,14 @@ test('a character with no spells or slots gets a way to manage spells', () => {
   fireEvent.click(screen.getByTestId('hex-magic-manage'));
   expect(onManage).toHaveBeenCalled();
 });
+
+test('a Warlock with 3rd-level pact slots sees 1st-level spells, scaled to the slot they will use', () => {
+  renderMagic({
+    id: 'k1', character_class: 'Warlock', level: 5, charisma: 16,
+    spells_known: [{ name: 'Hellish Rebuke', level: 1 }],
+    pact_slots: 2, pact_slots_remaining: 2, pact_slot_level: 3,
+  });
+  const rebuke = screen.getByTestId('hex-spell-Hellish Rebuke');
+  expect(within(rebuke).getByRole('button', { name: /Cast Hellish Rebuke, using a 3rd-level slot/ })).toBeEnabled();
+  expect(within(rebuke).getByRole('button', { name: /Damage for Hellish Rebuke: 4d10/ })).toBeInTheDocument();
+});

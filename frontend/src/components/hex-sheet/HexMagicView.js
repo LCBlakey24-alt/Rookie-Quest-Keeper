@@ -39,7 +39,7 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
   const [casting, setCasting] = useState(null);
 
   const current = levels.find((entry) => entry.id === levelId) || levels.find((entry) => entry.level > 0) || levels[0];
-  const listed = current ? spellsAtLevel(spells, current.level) : [];
+  const listed = current ? spellsAtLevel(spells, current.level, levels.map((entry) => entry.level)) : [];
 
   if (!levels.length) {
     return (
@@ -50,9 +50,7 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
     );
   }
 
-  const cast = async (spell) => {
-    const { options } = getCharacterCastOptions(character, spell);
-    const option = castOptionAt(options, current.level);
+  const cast = async (spell, option) => {
     if (!option) {
       toast.error(`No ${ordinal(current.level)}-level slot left for ${spell.name}`);
       return;
@@ -71,7 +69,7 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
       toast.success(`${spell.name} cast`);
       return;
     }
-    setCasting(spell.name);
+    setCasting(spell.key || spell.name);
     const ok = await onSave?.(updates, { error: 'Could not spend the spell slot' });
     setCasting(null);
     if (ok === false) return;
@@ -98,26 +96,31 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
         )}
         {listed.map((spell) => {
           const caster = casterFor(character, spell, proficiencyBonus);
-          const roll = spellRoll(spell, { characterLevel: Number(character.level) || 1, castingMod: caster.mod, slotLevel: current.level });
-          const isOpen = openSpell === spell.name;
-          const critical = crit === spell.name && roll?.kind === 'attack';
+          const option = current.level > 0 ? castOptionAt(getCharacterCastOptions(character, spell).options, current.level) : null;
+          // Damage and healing scale with the slot the cast would really use.
+          const slotLevel = option ? Number(option.level) || current.level : current.level;
+          const roll = spellRoll(spell, { characterLevel: Number(character.level) || 1, castingMod: caster.mod, slotLevel });
+          const id = spell.key || spell.name;
+          const isOpen = openSpell === id;
+          const critical = crit === id && roll?.kind === 'attack';
           const damage = roll?.notation ? (critical ? criticalNotation(roll.notation) : roll.notation) : null;
-          const noSlot = current.level > 0 && !castOptionAt(getCharacterCastOptions(character, spell).options, current.level);
+          const noSlot = current.level > 0 && !option;
+          const sourceNote = spell.sourceClass || spell.source_class;
           return (
-            <article key={spell.name} className={`hex-spell${isOpen ? ' is-open' : ''}`} data-testid={`hex-spell-${spell.name}`}>
+            <article key={id} className={`hex-spell${isOpen ? ' is-open' : ''}`} data-testid={`hex-spell-${spell.name}`}>
               <div className="hex-spell__row">
                 {current.level > 0 ? (
                   <button
                     type="button"
                     className="hex-spell__cast"
-                    onClick={() => cast(spell)}
-                    disabled={noSlot || casting === spell.name}
-                    aria-label={`Cast ${spell.name}, using a ${ordinal(current.level)}-level slot`}
+                    onClick={() => cast(spell, option)}
+                    disabled={noSlot || casting === id}
+                    aria-label={`Cast ${spell.name}${sourceNote ? ` (${sourceNote})` : ''}, using a ${ordinal(slotLevel)}-level slot`}
                     title={noSlot ? 'No slot left' : 'Cast: uses a slot'}
                   >
                     <svg viewBox="0 0 100 100" aria-hidden="true">
                       <polygon points={HEX} />
-                      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">{current.level}</text>
+                      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">{slotLevel}</text>
                     </svg>
                   </button>
                 ) : (
@@ -128,15 +131,15 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
                     </svg>
                   </span>
                 )}
-                <button type="button" className="hex-spell__name" onClick={() => setOpenSpell(isOpen ? null : spell.name)} aria-expanded={isOpen}>
+                <button type="button" className="hex-spell__name" onClick={() => setOpenSpell(isOpen ? null : id)} aria-expanded={isOpen}>
                   <strong>{spell.name}</strong>
-                  <small>{[spell.school, roll?.type, roll?.label].filter(Boolean).join(' · ') || (spell.level === 0 ? 'Cantrip' : `${ordinal(spell.level)} level`)}</small>
+                  <small>{[sourceNote, spell.level > 0 && spell.level !== current.level ? `${ordinal(spell.level)} level` : null, spell.school, roll?.type, roll?.label].filter(Boolean).join(' · ') || (spell.level === 0 ? 'Cantrip' : `${ordinal(spell.level)} level`)}</small>
                 </button>
                 <div className="hex-spell__rolls">
                   {roll?.kind === 'attack' && (
                     <button
                       type="button"
-                      onClick={() => setCrit(Number(onRollAttack?.(`${spell.name} attack`, caster.attackBonus)?.d20) === 20 ? spell.name : null)}
+                      onClick={() => setCrit(Number(onRollAttack?.(`${spell.name} attack`, caster.attackBonus)?.d20) === 20 ? id : null)}
                       aria-label={`Spell attack for ${spell.name}, ${signed(caster.attackBonus)}`}
                     >
                       Hit {signed(caster.attackBonus)}

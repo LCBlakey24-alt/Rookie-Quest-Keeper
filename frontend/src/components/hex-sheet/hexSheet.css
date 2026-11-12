@@ -644,7 +644,8 @@ html body #root .d20-glyph__label { fill: var(--hex-text, #fff); font-family: va
   filter: drop-shadow(0 0 0 transparent);
 }
 html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 var(--hex-title-font) !important; pointer-events: none; }
-.hex-sheet .hex-spell__cast:not(:disabled):is(:hover, :focus-visible) polygon { fill: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.18); }
+/* Hover and focus thicken the edge; the fill stays the sheet's blue. */
+.hex-sheet .hex-spell__cast:not(:disabled):is(:hover, :focus-visible) polygon { stroke-width: 7; }
 .hex-sheet .hex-spell__cast:disabled { opacity: 0.4; cursor: default; }
 .hex-spell__cast--free polygon { stroke: var(--hex-stroke-cool, var(--hex-cool)); }
 .hex-spell__cast--free { cursor: default; color: var(--hex-muted); }

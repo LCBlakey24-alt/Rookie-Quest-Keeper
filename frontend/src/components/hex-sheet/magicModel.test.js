@@ -41,3 +41,26 @@ test('casting from a wedge uses that level\'s slot, else the lowest higher one',
   expect(castOptionAt([], 1)).toBeNull();
   expect(castOptionAt([{ source: 'cantrip', level: 0 }], 0)).toMatchObject({ source: 'cantrip' });
 });
+
+test('a Warlock\'s lower-level spells sit under the Pact Magic wedge', () => {
+  const warlock = { spells_known: [{ name: 'Hex', level: 1 }, { name: 'Hold Person', level: 2 }, { name: 'Counterspell', level: 3 }] };
+  const pools = { pact: { available: true, level: 3, total: 2, current: 2 } };
+  const spells = castableSpells(warlock);
+  const levels = magicLevels(spells, pools).map((entry) => entry.level);
+  expect(levels).toEqual([3]);
+  expect(spellsAtLevel(spells, 3, levels).map((spell) => spell.name)).toEqual(['Counterspell', 'Hex', 'Hold Person']);
+});
+
+test('a spell with its own wedge is not repeated under higher wedges', () => {
+  const spells = castableSpells(wizard);
+  expect(spellsAtLevel(spells, 3, [0, 1, 3]).map((spell) => spell.name)).toEqual(['Fireball']);
+});
+
+test('the same spell from two classes is kept once per class; untagged repeats are dropped', () => {
+  const multiclass = {
+    spells_prepared: [{ name: 'Cure Wounds', sourceClass: 'Cleric' }, { name: 'Cure Wounds', sourceClass: 'Bard' }],
+    spells_known: ['Cure Wounds'],
+  };
+  expect(castableSpells(multiclass).map((spell) => spell.sourceClass)).toEqual(['Cleric', 'Bard']);
+  expect(castableSpells({ spells_known: ['Shield', { name: 'Shield' }] })).toHaveLength(1);
+});
