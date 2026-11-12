@@ -1,0 +1,75 @@
+/* The player's campaign page in the approved look: Neon Coast on a Dusk
+ * sky, Cinzel and Inter (DESIGN_SYSTEM §3, tokens in guildTokens.css).
+ *
+ * Like the GM dashboard, its older colours come from shared variables read
+ * inside @layer rq-controls, so those variables are pointed at the guild
+ * tokens: the citrus line under the chosen tab becomes the warm
+ * peach -> pink -> gold edge. Cards draw their edge and inner glow on
+ * ::after, because the control layer pins their border and shadow.
+ */
+html body #root .player-campaign-page {
+  --rq-citrus-gradient: linear-gradient(90deg, var(--guild-h1) 0%, var(--guild-h2) 50%, var(--guild-h3) 100%);
+  --rq-citrus-control: var(--guild-bg);
+  --rq-control-blue: var(--guild-bg);
+  --rq-control-wax: var(--guild-select);
+  --rq-guild-wine: var(--guild-select);
+  --rq-guild-wine-selected: none;
+  --rq-guild-heading: var(--guild-text);
+  --rq-text-primary: var(--guild-text);
+  --rq-bg-panel: var(--guild-bg);
+  --rq-fill-color: rgba(var(--guild-c2-rgb), 0.16);
+}
+
+html body #root .player-campaign-page :is(h1, h2, h3) {
+  font-family: var(--guild-font-display) !important;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+}
+html body #root .player-campaign-page :is(p, dd, .player-campaign-description) { color: var(--guild-muted); }
+
+/* Cards: the deep blue with a thin edge and the glow inside. */
+html body #root .player-campaign-page.player-campaign-page .player-campaign-card {
+  position: relative;
+  background: var(--guild-bg) !important;
+  border-radius: 16px !important;
+}
+html body #root .player-campaign-page.player-campaign-page .player-campaign-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid var(--guild-line) !important;
+  box-shadow: var(--guild-box-glow) !important;
+}
+
+/* The tab strip sits on the deep blue with the same thin edge. */
+html body #root .player-campaign-page.player-campaign-page .player-campaign-tabs {
+  background: var(--guild-bg) !important;
+  border-color: var(--guild-line) !important;
+  border-radius: 14px !important;
+}
+
+/* Phones: all five tabs fit across, so the chosen one is never scrolled
+   out of sight, and the app frame's hexagon back button is the only one.
+   An app-wide rule in @layer rq-controls makes this strip a scroller of
+   92px tabs, so these rules are set from the same layer, more specifically. */
+@layer rq-controls {
+  html:root #root .rqk-app-shell[data-rq-device='mobile'] .player-campaign-page .player-campaign-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    overflow: hidden !important;
+  }
+  html:root #root .rqk-app-shell[data-rq-device='mobile'] .player-campaign-page .player-campaign-tabs button {
+    min-width: 0 !important;
+    width: auto !important;
+    padding: 6px 2px !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    font-size: 10.5px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    text-align: center;
+  }
+  html:root #root .rqk-app-shell[data-rq-device='mobile'][data-rq-inner='true'] .player-campaign-page .player-campaign-back { display: none !important; }
+}

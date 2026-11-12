@@ -11,6 +11,8 @@ import PlayerNowPlayingPanel from './PlayerNowPlayingPanel';
 import '@/styles/playerCampaign.css';
 import '@/styles/playerCampaignCharacterStatus.css';
 import '@/styles/playerCampaignTabBadge.css';
+import '@/styles/guildTokens.css';
+import '@/styles/playerCampaignGuild.css';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
