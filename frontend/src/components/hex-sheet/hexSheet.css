@@ -692,28 +692,36 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
   display: grid; gap: 8px; padding: 10px; border-radius: 12px;
   border: 1px solid var(--hex-line); box-shadow: var(--hex-glow);
 }
-.hex-recovery__pips { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.hex-recovery__pips > span { min-width: 76px; font-size: 0.82rem; color: var(--hex-muted); }
-/* The button stays transparent (an app-wide rule pins the background of any
-   [aria-pressed='true']), so the hexagon is drawn on a child span. */
-.hex-sheet .hex-recovery__pip {
-  --rq-control-blue: transparent;
-  width: 44px; height: 44px; min-height: 44px; padding: 0; cursor: pointer;
-  display: grid; place-items: center; border: 0 !important; background: transparent; box-shadow: none;
+.hex-recovery__wheel-labels { display: flex; justify-content: space-between; width: min(100%, 300px); margin: 0 auto; font-size: 0.82rem; color: var(--hex-muted); }
+.hex-recovery__label--success { color: var(--rq-success, #5FA67A); }
+.hex-recovery__label--failure { color: var(--rq-danger, #B94A4F); }
+.hex-recovery__wheel { position: relative; width: 240px; max-width: 100%; height: 240px; margin: 0 auto; justify-self: center; }
+.hex-recovery__svg { display: block; width: 100% !important; height: 100% !important; overflow: visible; }
+.hex-recovery__wedge { cursor: pointer; outline: none; }
+.hex-recovery__wedge polygon {
+  fill: rgba(var(--hex-muted-rgb), 0.16);
+  stroke: var(--hex-orange-soft); stroke-width: 1.2; stroke-linejoin: round;
+  transition: fill 160ms ease, stroke 160ms ease;
 }
-.hex-recovery__pip-fill {
-  width: 28px; height: 32px;
-  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  background: rgba(var(--hex-muted-rgb), 0.28);
-  transition: background-color 140ms ease;
-}
+.hex-recovery__wedge:hover polygon { stroke: var(--hex-orange); }
+.hex-recovery__wedge:focus-visible polygon { stroke: var(--hex-orange); stroke-width: 2.4; }
 /* Status colours stay semantic: successes green, failures red. */
-.hex-recovery__pips--success .hex-recovery__pip[aria-pressed='true'] .hex-recovery__pip-fill { background: var(--rq-success, #5FA67A); }
-.hex-recovery__pips--failure .hex-recovery__pip[aria-pressed='true'] .hex-recovery__pip-fill { background: var(--rq-danger, #B94A4F); }
-.hex-sheet .hex-recovery__pip:focus-visible { outline: 2px solid var(--hex-orange); outline-offset: 2px; }
-/* The app-wide pressed style (#root [aria-pressed='true']) adds a tint and an
-   underline; a death-save pip shows its state in the hexagon instead. */
-#root .hex-sheet .hex-recovery__pip[aria-pressed] {
-  background: transparent !important; background-image: none !important; box-shadow: none !important;
-  --rq-fill-color: transparent;
+.hex-recovery__wedge--success.is-marked polygon { fill: var(--rq-success, #5FA67A); stroke: var(--rq-success, #5FA67A); }
+.hex-recovery__wedge--failure.is-marked polygon { fill: var(--rq-danger, #B94A4F); stroke: var(--rq-danger, #B94A4F); }
+.hex-recovery__wedge[aria-disabled='true'] { cursor: default; opacity: 0.6; }
+.hex-recovery__centre-edge { fill: none; stroke: var(--hex-orange); stroke-width: 1.6; filter: drop-shadow(0 0 4px rgba(var(--hex-glow-rgb), 0.6)); pointer-events: none; }
+/* The centre hexagon is a real button laid over the wheel's middle. */
+.hex-sheet .hex-recovery__roll {
+  --rq-control-blue: transparent;
+  position: absolute !important; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 76px; height: 88px; min-width: 0; min-height: 0; padding: 0;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  border: 0 !important; background: rgba(var(--hex-glow-rgb), 0.16) !important; box-shadow: none !important;
+  color: var(--hex-text); font: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
 }
+.hex-recovery__roll span { font-family: var(--hex-title-font); font-weight: 700; font-size: 1.05rem; }
+.hex-recovery__roll small { font-size: 0.68rem; color: var(--hex-muted); }
+.hex-sheet .hex-recovery__roll:disabled { opacity: 0.5; cursor: default; }
+.hex-sheet .hex-recovery__roll:focus-visible { outline: none; background: rgba(var(--hex-glow-rgb), 0.32) !important; }
+.hex-recovery__clear { justify-self: center; }
