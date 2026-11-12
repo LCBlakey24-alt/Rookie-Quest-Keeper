@@ -1,6 +1,7 @@
 """Character routes: core CRUD, level up, journal, and campaign linking."""
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from config import db, HIT_DICE, get_subclass_unlock_level
+from utils.character_campaign_link import release_character_from_other_campaigns
 from utils.auth import get_current_user, verify_campaign_membership
 from data.spell_slot_rules import spell_slots_for_class_mix
 from models import (
@@ -632,6 +633,8 @@ async def link_character_to_campaign(character_id: str, join_data: Dict[str, Any
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="campaign_id is required")
     await verify_campaign_membership(campaign_id, username)
     now = datetime.now(timezone.utc).isoformat()
+    # The character now belongs here: release it from any other campaign's roster.
+    await release_character_from_other_campaigns(db, character_id, campaign_id)
     await db.player_characters.update_one(
         {'id': character_id, 'user_id': username},
         {'$set': {'campaign_id': campaign_id, 'updated_at': now}},

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db
 from utils.auth import get_current_user, verify_campaign_ownership
+from utils.character_campaign_link import character_belongs_to_campaign, release_character_from_other_campaigns
 from utils.ws_session import CLOSE_FORBIDDEN, REASON_FORBIDDEN, end_live_sessions
 from models import CampaignInvite, CampaignMember
 from typing import Dict, Any
@@ -145,6 +146,8 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
         await db.campaign_members.insert_one(member_doc)
         await db.campaign_invites.update_one({'code': code}, {'$inc': {'uses': 1}})
 
+    # The character now belongs here: release it from any other campaign's roster.
+    await release_character_from_other_campaigns(db, character_id, campaign_id)
     await db.player_characters.update_one(
         {'id': character_id, 'user_id': username},
         {'$set': {
@@ -208,11 +211,15 @@ async def get_campaign_members(campaign_id: str, username: str = Depends(get_cur
     character_ids = [member.get('character_id') for member in members if member.get('character_id')]
     characters = []
     if character_ids:
-        characters = await db.player_characters.find({'id': {'$in': character_ids}}, {'_id': 0, 'id': 1, 'name': 1, 'character_name': 1, 'level': 1, 'character_class': 1, 'class_name': 1}).to_list(1000)
+        characters = await db.player_characters.find({'id': {'$in': character_ids}}, {'_id': 0, 'id': 1, 'name': 1, 'character_name': 1, 'level': 1, 'character_class': 1, 'class_name': 1, 'campaign_id': 1}).to_list(1000)
     character_by_id = {character.get('id'): character for character in characters}
 
     for member in members:
         character = character_by_id.get(member.get('character_id'), {})
+        # A character that has moved to another campaign is not on this roster.
+        if character and not character_belongs_to_campaign(character, campaign_id):
+            member['character_id'] = None
+            character = {}
         member['status'] = member.get('status', 'active')
         member['character_name'] = character.get('name') or character.get('character_name') or ''
         member['character_level'] = character.get('level')
@@ -237,8 +244,10 @@ async def update_campaign_member_status(campaign_id: str, member_id: str, status
 
     member = await db.campaign_members.find_one({'id': member_id, 'campaign_id': campaign_id}, {'_id': 0})
     if member and member.get('character_id'):
+        # Only a character that is still in this campaign: a GM cannot change
+        # the status of a character that has moved to someone else's campaign.
         await db.player_characters.update_one(
-            {'id': member.get('character_id')},
+            {'id': member.get('character_id'), 'campaign_id': campaign_id},
             {'$set': {'campaign_join_status': next_state, 'updated_at': datetime.now(timezone.utc).isoformat()}}
         )
     # Only an active member may hold the campaign's live channel.
