@@ -78,14 +78,15 @@ html body #root .account-settings-page button:not(.account-password-toggle):not(
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  border: 1px solid var(--guild-line);
-  box-shadow: var(--guild-box-glow);
+  /* !important: accountSettings.css clears every ::after shadow. */
+  border: 1px solid var(--guild-line) !important;
+  box-shadow: var(--guild-box-glow) !important;
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 html body #root .account-settings-page button:not(.account-password-toggle):not(.account-settings-danger-button):not(:disabled):is(:hover, :focus-visible)::after,
 html body #root .account-settings-page .account-settings-primary:not(:disabled)::after {
-  border-color: var(--guild-line-hot);
-  box-shadow: var(--guild-box-glow-hot);
+  border-color: var(--guild-line-hot) !important;
+  box-shadow: var(--guild-box-glow-hot) !important;
 }
 html body #root .account-settings-page button svg { color: var(--guild-hi) !important; }
 html body #root .account-settings-page .account-password-toggle { background: transparent !important; color: var(--guild-muted) !important; }
