@@ -60,6 +60,18 @@ export const REVEAL_PAUSE_MS = 450;
 /** Pull the camera back in the hexagon so the dice stay clear of its corners. */
 const HEX_FRAME_SCALE = 1.25;
 
+/**
+ * With several dice, show each one: "5 + 2 + 1 = 8" rather than "8 = 8".
+ * The formula from DiceRollFlicker starts with the dice subtotal, so that
+ * number is replaced by the kept dice; a lone die, or any die counted
+ * negatively, leaves the formula as it was.
+ */
+export function spelledFormula(rolls, formulaText) {
+  const kept = (Array.isArray(rolls) ? rolls : []).filter((die) => die && !die.dropped);
+  if (kept.length < 2 || kept.some((die) => Number(die.sign) < 0) || !/^-?\d+/.test(String(formulaText || ''))) return formulaText;
+  return String(formulaText).replace(/^-?\d+/, kept.map((die) => die.result).join(' + '));
+}
+
 function supportsWebGl() {
   if (typeof document === 'undefined') return false;
   try {
@@ -244,7 +256,7 @@ export default function DiceTray3DOverlay(props) {
             {isRevealed ? (
               <>
                 <strong data-testid="dice-tray-total">{total}</strong>
-                <span>{formulaText}</span>
+                <span data-testid="dice-tray-formula">{spelledFormula(rolls, formulaText)}</span>
               </>
             ) : (
               <>

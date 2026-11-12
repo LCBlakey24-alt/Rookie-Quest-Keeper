@@ -600,3 +600,19 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .d20-glyph__edge { stroke: var(--hex-text, #fff); stroke-width: 0.9; stroke-linecap: round; opacity: 0.75; }
 .d20-glyph__face { fill: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.16); stroke-width: 1.5; }
 html body #root .d20-glyph__label { fill: var(--hex-text, #fff); font-family: var(--guild-font-display, 'Cinzel', serif) !important; font-weight: 700; }
+
+/* How many dice the wheel rolls: − 3 × D6 + under the dice wheel. */
+.hex-dice-count { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.hex-sheet .hex-dice-count button {
+  position: relative; width: 52px !important; height: 52px !important; min-width: 52px; padding: 0 !important;
+  display: grid; place-items: center; border-radius: 50% !important;
+  border: 1px solid var(--hex-orange-soft) !important; background: var(--hex-bg); box-shadow: var(--hex-glow);
+  color: var(--hex-text); font: 800 1.6rem/1 var(--rq-font-sans, Inter, sans-serif); cursor: pointer;
+  --rq-control-blue: var(--hex-bg);
+}
+.hex-sheet .hex-dice-count button:disabled { opacity: 0.4; cursor: default; }
+.hex-sheet .hex-dice-count button:not(:disabled):is(:hover, :focus-visible) { box-shadow: var(--hex-glow-strong); }
+.hex-dice-count output {
+  min-width: 7.5ch; text-align: center; font: 700 1.35rem/1 var(--hex-title-font); color: var(--hex-text);
+  font-variant-numeric: tabular-nums;
+}
