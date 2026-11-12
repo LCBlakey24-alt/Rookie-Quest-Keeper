@@ -246,7 +246,10 @@ export default function LandingPage() {
             <p>Plan. Organise. Play.</p>
           </div>
         </div>
-        <p className="landing-footer-note">© {new Date().getFullYear()} Rookie Quest Keeper. Independent tabletop campaign companion.</p>
+        <p className="landing-footer-note">
+          © {new Date().getFullYear()} Rookie Quest Keeper. Independent tabletop campaign companion, not affiliated with Wizards of the Coast.
+          {' '}<a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} data-testid="landing-credits-link">Credits &amp; licences</a>
+        </p>
       </footer>
     </div>
   );

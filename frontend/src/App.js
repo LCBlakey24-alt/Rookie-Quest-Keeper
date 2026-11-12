@@ -66,6 +66,7 @@ const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
 const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
 const VerifiedAdminRoute = lazyWithChunkRetry(() => import('@/components/admin/VerifiedAdminRoute'));
 const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
+const CreditsPage = lazyWithChunkRetry(() => import('@/components/legal/CreditsPage'));
 const AccountSettings = lazyWithChunkRetry(() => import('@/routes/AccountSettingsRoute'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/routes/HomebrewWorkshopRoute'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
@@ -198,6 +199,7 @@ export function AppRoutes() {
         <Route path="/forge" element={<Navigate to="/" replace />} />
         <Route path="/worlds" element={<Navigate to="/" replace />} />
         <Route path="/game" element={<Navigate to="/" replace />} />
+        <Route path="/credits" element={<CreditsPage />} />
         <Route path="/auth" element={isAuthenticated ? <PostSignInRedirect /> : <AuthPage onLogin={handleAuthLogin} />} />
         {/* Recovery links are public even when this browser still has an older session. */}
         <Route path="/reset-password" element={<AuthPage onLogin={handleAuthLogin} onPasswordReset={handleLogout} />} />
