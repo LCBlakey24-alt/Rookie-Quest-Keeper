@@ -1,5 +1,6 @@
 import {
   canSetPointBuy, isStandardArray, pointBuyRemaining, pointBuySpent, pointBuyStart,
+  addRollFor, assignRoll, assignValue, normaliseRolls,
   scoresFromRolls, standardArrayScores, swapScores,
 } from './abilityScoreMethods';
 import { rollAbilityScore } from './abilityScoreRolls';
@@ -54,5 +55,38 @@ describe('standard array and rolling', () => {
     expect(result.dice.find((die) => die.dropped).result).toBe(1);
     expect(result.total).toBe(14);
     result.dice.forEach((die) => expect(die.sides).toBe(6));
+  });
+});
+
+describe('rolling per ability and assigning by turning', () => {
+  const r = (total) => ({ total, dice: [] });
+
+  test('older drafts, rolled in order, keep their abilities', () => {
+    expect(normaliseRolls([r(16), r(9)]).map((e) => e.ability)).toEqual(['strength', 'dexterity']);
+  });
+
+  test('a roll can be made for any ability, in any order', () => {
+    const rolled = addRollFor(addRollFor([], 'wisdom', r(17)), 'strength', r(8));
+    const scores = scoresFromRolls(rolled);
+    expect(scores.wisdom).toBe(17);
+    expect(scores.strength).toBe(8);
+    expect(scores.dexterity).toBe(10); // not rolled yet
+  });
+
+  test('assigning a roll swaps it with the ability that held it, even with equal totals', () => {
+    let rolled = [];
+    [['strength', 12], ['dexterity', 15], ['constitution', 12]].forEach(([ability, total]) => { rolled = addRollFor(rolled, ability, r(total)); });
+    // Constitution takes the roll Dexterity held.
+    const swapped = assignRoll(rolled, 'constitution', 1);
+    expect(scoresFromRolls(swapped)).toMatchObject({ strength: 12, dexterity: 12, constitution: 15 });
+    expect(swapped).toHaveLength(3);
+  });
+
+  test('assigning a standard-array value swaps it, keeping the set', () => {
+    const scores = standardArrayScores();
+    const next = assignValue(scores, 'charisma', 15);
+    expect(next.charisma).toBe(15);
+    expect(next.strength).toBe(8);
+    expect(Object.values(next).sort()).toEqual(Object.values(scores).sort());
   });
 });

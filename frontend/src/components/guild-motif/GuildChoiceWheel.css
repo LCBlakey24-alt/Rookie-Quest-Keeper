@@ -74,3 +74,15 @@ html body #root .guild-wheel button.guild-wheel__confirm, .guild-wheel button.gu
 .guild-wheel:has(.guild-wheel__confirm:hover) .guild-wheel__core,
 .guild-wheel:has(.guild-wheel__confirm:active) .guild-wheel__core { fill: rgba(var(--_accent-rgb), 0.16); }
 .guild-wheel:has(.guild-wheel__confirm:focus-visible) .guild-wheel__core { stroke: var(--_text); stroke-width: 3; }
+
+/* Dimmed options (unaffordable point-buy scores, scores still to be rolled). */
+.guild-wheel__segment.is-disabled text { fill: rgba(198, 211, 226, 0.32); }
+.guild-wheel__segment.is-disabled .guild-wheel__glow { opacity: 0.12; }
+.guild-wheel__note { fill: var(--_hi); font: 800 9px/1 var(--rq-body-font, Manrope, sans-serif); pointer-events: none; }
+
+/* Compact: one of several wheels on screen, so ring numbers are larger. */
+.guild-wheel.is-compact .guild-wheel__svg { width: 100%; }
+.guild-wheel.is-compact .guild-wheel__segment text { font-size: 14px; font-weight: 800; letter-spacing: 0; }
+.guild-wheel.is-compact .guild-wheel__name { font-size: 26px; }
+.guild-wheel.is-compact .guild-wheel__caption { font-size: 9px; }
+.guild-wheel.is-compact .guild-wheel__confirm-label { font-size: 8px; }

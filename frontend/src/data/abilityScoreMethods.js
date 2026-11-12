@@ -52,12 +52,63 @@ export function swapScores(scores = {}, first, second) {
 }
 
 /**
- * Lay rolled totals onto the abilities in order (STR first). Abilities
- * not yet rolled keep a placeholder of 10 so the draft always holds a
- * complete, legal set of numbers.
+ * Rolls with the ability each one belongs to. A roll may name its ability
+ * (rolled from that ability's wheel, or reassigned since); older drafts
+ * stored rolls in order, STR first, so an unnamed roll belongs to the
+ * ability at its position.
+ */
+export function normaliseRolls(rolled = []) {
+  return (Array.isArray(rolled) ? rolled : []).map((entry, index) => ({
+    ...entry,
+    ability: entry?.ability || ABILITY_ORDER[index],
+  }));
+}
+
+/** The roll each ability holds, by ability. */
+export function rollsByAbility(rolled = []) {
+  return Object.fromEntries(normaliseRolls(rolled).map((entry) => [entry.ability, entry]));
+}
+
+/**
+ * Lay rolled totals onto their abilities. Abilities not yet rolled keep a
+ * placeholder of 10 so the draft always holds a complete, legal set.
  */
 export function scoresFromRolls(rolled = []) {
-  return Object.fromEntries(ABILITY_ORDER.map((ability, index) => [ability, Number(rolled[index]?.total) || 10]));
+  const byAbility = rollsByAbility(rolled);
+  return Object.fromEntries(ABILITY_ORDER.map((ability) => [ability, Number(byAbility[ability]?.total) || 10]));
+}
+
+/** Record a roll for one ability, replacing any it already had. */
+export function addRollFor(rolled = [], ability, result) {
+  const kept = normaliseRolls(rolled).filter((entry) => entry.ability !== ability);
+  return [...kept, { total: result.total, dice: result.dice, ability }];
+}
+
+/**
+ * Give `ability` the roll that `rollIndex` names, handing its own roll to
+ * whichever ability held that one. Duplicated totals stay distinct rolls.
+ */
+export function assignRoll(rolled = [], ability, rollIndex) {
+  const rolls = normaliseRolls(rolled);
+  const target = rolls[rollIndex];
+  if (!target || target.ability === ability) return rolls;
+  const holder = target.ability;
+  return rolls.map((entry, index) => {
+    if (index === rollIndex) return { ...entry, ability };
+    if (entry.ability === ability) return { ...entry, ability: holder };
+    return entry;
+  });
+}
+
+/**
+ * Give `ability` a score from a fixed set (the standard array), swapping it
+ * with whichever ability holds that score. The set of numbers never changes.
+ */
+export function assignValue(scores = {}, ability, value) {
+  const wanted = Number(value);
+  if (Number(scores[ability]) === wanted) return { ...scores };
+  const holder = ABILITY_ORDER.find((other) => other !== ability && Number(scores[other]) === wanted);
+  return holder ? swapScores(scores, ability, holder) : { ...scores };
 }
 
 /** True when the scores are exactly the standard array in some order. */

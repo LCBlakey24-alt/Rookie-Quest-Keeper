@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Dices, Minus, Plus, RotateCcw } from 'lucide-react';
+import { Minus, Plus, RotateCcw } from 'lucide-react';
 
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { rollAbilityScore } from '@/data/abilityScoreRolls';
@@ -9,15 +9,19 @@ import {
   POINT_BUY_MAX,
   POINT_BUY_MIN,
   POINT_BUY_TOTAL,
+  STANDARD_ARRAY,
+  addRollFor,
+  assignRoll,
+  assignValue,
   canSetPointBuy,
+  normaliseRolls,
   pointBuyRemaining,
   pointBuyStart,
   scoresFromRolls,
   standardArrayScores,
-  swapScores,
 } from '@/data/abilityScoreMethods';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
-import AbilityKnob from './AbilityKnob';
+import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 import './AbilityScoreStep.css';
 
 const NAMES = {
@@ -30,47 +34,37 @@ const mod = (score) => Math.floor((Number(score) - 10) / 2);
 const ROLLS_NEEDED = ABILITY_ORDER.length;
 
 /**
- * Setting ability scores in the creator: standard array, point buy on a
- * dial, rolling 4d6 in the 3D dice tray, or typing them in.
+ * Setting ability scores in the creator, on six wheels, one per ability,
+ * each with its score in the centre hexagon:
+ *
+ * - Point buy: turn a wheel through 8-15; scores you cannot afford are dimmed.
+ * - Roll 4d6: tap a wheel's centre to throw that ability's dice in the 3D
+ *   tray. Once all six are rolled, turn a wheel to the roll you want; the
+ *   ability that had it takes this one's in exchange.
+ * - Standard array: turn a wheel to the value you want; values swap the same way.
+ * - Manual: type each score.
  *
  * Everything is stored on the draft: `scores` always holds a complete set
  * of numbers (so the rest of the creator never sees a gap), `abilityMethod`
- * the chosen method and `rolledScores` the rolls made so far, so leaving
- * the step and coming back keeps them.
+ * the chosen method and `rolledScores` the rolls made so far, each naming
+ * its ability, so leaving the step and coming back keeps them.
  */
 export default function AbilityScoreStep({ draft, update, setScore, finalScores, bonus = {} }) {
   const method = draft.abilityMethod || 'standard';
   const scores = draft.scores || {};
-  const rolled = Array.isArray(draft.rolledScores) ? draft.rolledScores : [];
-  const [swapFrom, setSwapFrom] = useState(null);
-  const [focus, setFocus] = useState('strength');
+  const rolled = useMemo(() => normaliseRolls(draft.rolledScores), [draft.rolledScores]);
   const [burst, setBurst] = useState(null);
 
   const remaining = useMemo(() => pointBuyRemaining(scores), [scores]);
-  const rollingDone = rolled.length >= ROLLS_NEEDED;
-  const canSwap = method === 'standard' || (method === 'roll' && rollingDone);
+  const rolledAbilities = new Set(rolled.map((entry) => entry.ability));
+  const rollingDone = ABILITY_ORDER.every((ability) => rolledAbilities.has(ability));
 
   const chooseMethod = (next) => {
     if (next === method) return;
-    setSwapFrom(null);
     if (next === 'standard') update({ abilityMethod: next, scores: standardArrayScores() });
     else if (next === 'point') update({ abilityMethod: next, scores: pointBuyStart() });
     else if (next === 'roll') update({ abilityMethod: next, rolledScores: [], scores: scoresFromRolls([]) });
     else update({ abilityMethod: next });
-  };
-
-  const tapAbility = (ability) => {
-    if (method === 'point') {
-      setFocus(ability);
-      return;
-    }
-    if (!canSwap) return;
-    if (!swapFrom) {
-      setSwapFrom(ability);
-      return;
-    }
-    update({ scores: swapScores(scores, swapFrom, ability) });
-    setSwapFrom(null);
   };
 
   const setPoint = (ability, next) => {
@@ -78,43 +72,76 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
     update({ scores: { ...scores, [ability]: next } });
   };
 
-  const addRoll = (animate) => {
-    if (rollingDone) return;
+  const rollFor = (ability) => {
+    if (rolledAbilities.has(ability)) return;
     const result = rollAbilityScore();
-    const nextRolled = [...rolled, { total: result.total, dice: result.dice }];
+    const nextRolled = addRollFor(rolled, ability, result);
     update({ rolledScores: nextRolled, scores: scoresFromRolls(nextRolled) });
-    if (animate) {
-      setBurst({
-        rollId: `ability-${Date.now()}-${nextRolled.length}`,
-        label: `${NAMES[ABILITY_ORDER[nextRolled.length - 1]]} · 4d6, lowest dropped`,
-        rolls: result.dice,
-        total: result.total,
-      });
-    }
+    setBurst({
+      rollId: `ability-${ability}-${Date.now()}`,
+      label: `${NAMES[ability]} · 4d6, lowest dropped`,
+      rolls: result.dice,
+      total: result.total,
+    });
   };
 
   const rollTheRest = () => {
-    const nextRolled = [...rolled];
-    while (nextRolled.length < ROLLS_NEEDED) {
-      const result = rollAbilityScore();
-      nextRolled.push({ total: result.total, dice: result.dice });
-    }
+    let nextRolled = rolled;
+    ABILITY_ORDER.forEach((ability) => {
+      if (!rolledAbilities.has(ability)) nextRolled = addRollFor(nextRolled, ability, rollAbilityScore());
+    });
     update({ rolledScores: nextRolled, scores: scoresFromRolls(nextRolled) });
   };
 
-  const startOver = () => {
-    setSwapFrom(null);
-    update({ rolledScores: [], scores: scoresFromRolls([]) });
-  };
+  const startOver = () => update({ rolledScores: [], scores: scoresFromRolls([]) });
 
+  const rolledCount = ABILITY_ORDER.filter((ability) => rolledAbilities.has(ability)).length;
   const methodHint = {
-    standard: swapFrom ? `Now tap the ability to swap with ${NAMES[swapFrom]}.` : 'Tap two abilities to swap their scores.',
-    point: `Pick an ability, then turn the dial. ${remaining} of ${POINT_BUY_TOTAL} points left. Scores run ${POINT_BUY_MIN} to ${POINT_BUY_MAX} before bonuses.`,
+    standard: 'Turn a wheel to give that ability a score; the ability that had it takes the other in exchange.',
+    point: `Turn each wheel to set its score. ${remaining} of ${POINT_BUY_TOTAL} points left. Scores run ${POINT_BUY_MIN} to ${POINT_BUY_MAX} before bonuses.`,
     roll: rollingDone
-      ? (swapFrom ? `Now tap the ability to swap with ${NAMES[swapFrom]}.` : 'All six rolled. Tap two abilities to swap their scores.')
-      : `Roll ${NAMES[ABILITY_ORDER[rolled.length]]} next (${rolled.length} of ${ROLLS_NEEDED} rolled). Four d6 are thrown and the lowest is dropped.`,
+      ? 'All six rolled. Turn a wheel to the roll you want for that ability; the two swap.'
+      : `Tap a wheel's centre to roll that ability (${rolledCount} of ${ROLLS_NEEDED} rolled). Four d6 are thrown and the lowest is dropped.`,
     manual: 'Type each score from 3 to 20.',
   }[method];
+
+  // What each ability's wheel offers, and what turning it does.
+  const wheelFor = (ability) => {
+    if (method === 'point') {
+      const values = Array.from({ length: POINT_BUY_MAX - POINT_BUY_MIN + 1 }, (_, i) => POINT_BUY_MIN + i);
+      return {
+        options: values.map((v) => ({ id: String(v), label: String(v), short: String(v) })),
+        value: String(scores[ability]),
+        disabledIds: values.filter((v) => v !== Number(scores[ability]) && !canSetPointBuy(scores, ability, v)).map(String),
+        onChange: (id) => setPoint(ability, Number(id)),
+      };
+    }
+    if (method === 'standard') {
+      return {
+        options: STANDARD_ARRAY.map((v) => ({ id: String(v), label: String(v), short: String(v) })),
+        value: String(scores[ability]),
+        onChange: (id) => update({ scores: assignValue(scores, ability, Number(id)) }),
+      };
+    }
+    // Roll: the ring holds the rolls so far plus a "?" for each ability still to roll.
+    const options = [
+      ...rolled.map((entry, index) => ({ id: `r${index}`, label: String(entry.total), short: String(entry.total) })),
+      ...ABILITY_ORDER.filter((other) => !rolledAbilities.has(other)).map((other) => ({ id: `p-${other}`, label: `${NAMES[other]} not rolled`, short: '?' })),
+    ];
+    const own = rolled.findIndex((entry) => entry.ability === ability);
+    return {
+      options,
+      value: own >= 0 ? `r${own}` : `p-${ability}`,
+      // Rolls can be traded only once all six are in.
+      disabledIds: rollingDone ? [] : options.map((option) => option.id),
+      onChange: (id) => {
+        if (!rollingDone || !id.startsWith('r')) return;
+        const nextRolled = assignRoll(rolled, ability, Number(id.slice(1)));
+        update({ rolledScores: nextRolled, scores: scoresFromRolls(nextRolled) });
+      },
+      onConfirm: own >= 0 ? undefined : () => rollFor(ability),
+    };
+  };
 
   return (
     <div className="ability-step" data-testid="ability-step">
@@ -137,23 +164,8 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
 
       <p className="ability-step__hint" data-testid="ability-step-hint">{methodHint}</p>
 
-      {method === 'point' && (
-        <AbilityKnob
-          label={NAMES[focus]}
-          value={scores[focus]}
-          remaining={remaining}
-          canSet={(next) => canSetPointBuy(scores, focus, next)}
-          onChange={(next) => setPoint(focus, next)}
-        />
-      )}
-
       {method === 'roll' && (
         <div className="ability-step__roll-actions">
-          {!rollingDone && (
-            <button type="button" className="is-primary" onClick={() => addRoll(true)} data-testid="ability-roll-next">
-              <Dices size={18} aria-hidden="true" /> Roll {NAMES[ABILITY_ORDER[rolled.length]]}
-            </button>
-          )}
           {!rollingDone && (
             <button type="button" onClick={rollTheRest} data-testid="ability-roll-rest">Roll the rest quickly</button>
           )}
@@ -163,58 +175,70 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
         </div>
       )}
 
-      <div className="ability-step__grid">
-        {ABILITY_ORDER.map((ability, index) => {
-          const notRolledYet = method === 'roll' && index >= rolled.length;
-          const final = finalScores?.[ability];
-          const extra = bonus?.[ability] || 0;
-          const selected = (method === 'point' && focus === ability) || swapFrom === ability;
-          const interactive = method === 'point' || canSwap;
-          return (
-            <div key={ability} className={`ability-step__card${selected ? ' is-selected' : ''}${notRolledYet ? ' is-empty' : ''}`} data-testid={`ability-card-${ability}`}>
-              {interactive ? (
-                <button
-                  type="button"
-                  className="ability-step__pick"
-                  aria-pressed={selected}
-                  aria-label={method === 'point' ? `Adjust ${NAMES[ability]} on the dial` : `Swap ${NAMES[ability]} (${scores[ability]})`}
-                  onClick={() => tapAbility(ability)}
-                  data-testid={`ability-pick-${ability}`}
-                >
-                  <span>{SHORT[ability]}</span>
-                  <strong>{scores[ability]}</strong>
-                </button>
-              ) : (
+      {method === 'manual' ? (
+        <div className="ability-step__grid">
+          {ABILITY_ORDER.map((ability) => {
+            const final = finalScores?.[ability];
+            const extra = bonus?.[ability] || 0;
+            return (
+              <div key={ability} className="ability-step__card" data-testid={`ability-card-${ability}`}>
                 <div className="ability-step__pick">
                   <span>{SHORT[ability]}</span>
-                  {method === 'manual'
-                    ? <input type="number" min="3" max="20" value={scores[ability]} aria-label={`${NAMES[ability]} score`} onChange={(event) => setScore(ability, event.target.value)} />
-                    : <strong>{notRolledYet ? '—' : scores[ability]}</strong>}
+                  <input type="number" min="3" max="20" value={scores[ability]} aria-label={`${NAMES[ability]} score`} onChange={(event) => setScore(ability, event.target.value)} />
                 </div>
-              )}
-              {method === 'point' && (
-                <div className="ability-step__stepper">
-                  <button type="button" aria-label={`Lower ${NAMES[ability]}`} onClick={() => setPoint(ability, Number(scores[ability]) - 1)} disabled={!canSetPointBuy(scores, ability, Number(scores[ability]) - 1)}><Minus size={14} /></button>
-                  <button type="button" aria-label={`Raise ${NAMES[ability]}`} onClick={() => setPoint(ability, Number(scores[ability]) + 1)} disabled={!canSetPointBuy(scores, ability, Number(scores[ability]) + 1)}><Plus size={14} /></button>
-                </div>
-              )}
-              {method === 'roll' && rolled[index] && (
-                <span className="ability-step__dice" aria-label={`Rolled ${rolled[index].dice?.map((die) => die.result).join(', ')}`}>
-                  {(rolled[index].dice || []).map((die, dieIndex) => (
-                    <i key={dieIndex} className={die.dropped ? 'is-dropped' : ''}>{die.result}</i>
-                  ))}
-                </span>
-              )}
-              {!notRolledYet && (
                 <span className="ability-step__final">
                   {extra ? <em>{extra > 0 ? `+${extra}` : extra} = {final}</em> : <em>{final}</em>}
                   <b>{fmt(mod(final))}</b>
                 </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="ability-step__wheels">
+          {ABILITY_ORDER.map((ability) => {
+            const wheel = wheelFor(ability);
+            const notRolledYet = method === 'roll' && !rolledAbilities.has(ability);
+            const final = finalScores?.[ability];
+            const extra = bonus?.[ability] || 0;
+            const roll = rolled.find((entry) => entry.ability === ability);
+            return (
+              <div key={ability} className={`ability-step__wheel-card${notRolledYet ? ' is-empty' : ''}`} data-testid={`ability-card-${ability}`}>
+                <GuildChoiceWheel
+                  compact
+                  label={NAMES[ability]}
+                  caption={SHORT[ability]}
+                  options={wheel.options}
+                  value={wheel.value}
+                  disabledIds={wheel.disabledIds}
+                  onChange={wheel.onChange}
+                  onConfirm={wheel.onConfirm}
+                  confirmLabel="ROLL"
+                  confirmAria={`Roll ${NAMES[ability]}: four d6, lowest dropped`}
+                  centreText={notRolledYet ? '—' : String(scores[ability])}
+                  centreNote={notRolledYet ? undefined : fmt(mod(final))}
+                />
+                {method === 'point' && (
+                  <div className="ability-step__stepper">
+                    <button type="button" aria-label={`Lower ${NAMES[ability]}`} onClick={() => setPoint(ability, Number(scores[ability]) - 1)} disabled={!canSetPointBuy(scores, ability, Number(scores[ability]) - 1)}><Minus size={14} /></button>
+                    <button type="button" aria-label={`Raise ${NAMES[ability]}`} onClick={() => setPoint(ability, Number(scores[ability]) + 1)} disabled={!canSetPointBuy(scores, ability, Number(scores[ability]) + 1)}><Plus size={14} /></button>
+                  </div>
+                )}
+                {roll && (
+                  <span className="ability-step__dice" aria-label={`Rolled ${roll.dice?.map((die) => die.result).join(', ')}`}>
+                    {(roll.dice || []).map((die, dieIndex) => (
+                      <i key={dieIndex} className={die.dropped ? 'is-dropped' : ''}>{die.result}</i>
+                    ))}
+                  </span>
+                )}
+                {!notRolledYet && extra !== 0 && (
+                  <span className="ability-step__final"><em>{extra > 0 ? `+${extra}` : extra} = {final}</em></span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {burst && (
         <DiceRollFlicker
