@@ -602,13 +602,17 @@ test('reduced-motion preference keeps instant citrus underline without animation
   await expect(button).toHaveCSS('background-size', '100% 3px');
 });
 
-test('page surfaces are flat navy and never use the retired craft-paper texture', async ({ page }) => {
+// The approved Dusk sky (DESIGN_SYSTEM §3, 12 November 2026) is a plain
+// colour gradient behind the landing page; no image texture is allowed.
+test('page surfaces are navy or the dusk sky, never the retired craft-paper texture', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await avoidThirdPartyRequests(page);
   await page.goto('/');
   const landing = page.getByTestId('landing-page');
   await expect(landing).toBeVisible();
-  await expect(landing).toHaveCSS('background-image', 'none');
+  const landingImage = await landing.evaluate((node) => getComputedStyle(node).backgroundImage);
+  expect(landingImage).not.toContain('url(');
+  expect(landingImage === 'none' || landingImage.startsWith('linear-gradient(')).toBe(true);
   await expect(landing).toHaveCSS('background-color', 'rgb(10, 35, 66)');
   await page.getByTestId('landing-signin-btn').click();
   const login = page.getByTestId('auth-page');
