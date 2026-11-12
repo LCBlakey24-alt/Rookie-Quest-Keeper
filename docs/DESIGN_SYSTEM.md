@@ -60,6 +60,7 @@ Decoration never wins over legibility or table-speed.
 > **Current look: "Neon Coast" on a "Dusk sky" (owner-approved, 12 November 2026).** This supersedes the colour and typography decisions further down wherever they disagree. The tokens live in `frontend/src/styles/guildTokens.css`; read them rather than copying values.
 >
 > - **Background:** deep blue `#0A2342` fading to dusk purple at the bottom of the page (`--guild-sky`). Shapes are filled with the deep blue.
+> - **Backdrop hexagons:** a few large, faint hexagon outlines (the ring-in-a-hexagon motif) turn very slowly behind every page (`HexBackdrop`), showing only between panels. The sky is painted once on `<html>` and outer page surfaces stay see-through above it. The hexagons hold still for anyone who prefers reduced motion; the sign-in page and the TV player display stay flat.
 > - **Glow:** a thin edge with a soft glow that stays *inside* the shape, never outside it. Ordinary shapes glow hot pink `#FF3D8B` → violet `#B04DFF` → sky blue `#4FB3FF` (`--guild-box-glow`, `--guild-stroke-cool`). Chosen, primary and centre shapes glow peach `#FFB066` → pink `#FF5FA0` → gold `#FFD27A` (`--guild-box-glow-hot`, `--guild-stroke-hot`). Each wall of a box glows in its own colour. Keep it subtle; the middle of a box stays deep blue.
 > - **Type:** headings in **Cinzel**, text in **Inter**.
 > - **Text:** white, with `#C9D2E6` for muted text; peach `#FFB066` for small kickers.

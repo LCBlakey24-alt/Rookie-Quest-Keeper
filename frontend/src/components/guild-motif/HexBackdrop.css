@@ -1,0 +1,48 @@
+/* Large, faint, slowly turning hexagons behind every page (DESIGN_SYSTEM §3:
+ * the Neon Coast colours appear only as glow and the dusk sky, never as
+ * fills). The layer sits at z-index -1 above the sky on <html> and below all
+ * page content, so it shows only in the gaps between panels. Turning is a
+ * compositor-only transform, cheap on phones. */
+.rq-hex-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.rq-hex-backdrop__hex {
+  position: absolute;
+  overflow: visible;
+  opacity: 0.16;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  animation: rq-hex-backdrop-turn var(--turn, 200s) linear infinite;
+}
+.rq-hex-backdrop__hex :is(polygon, circle) {
+  fill: none;
+  stroke: var(--guild-stroke-cool, #b04dff);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.rq-hex-backdrop__ring { opacity: 0.55; }
+.rq-hex-backdrop__inner { opacity: 0.4; }
+
+/* Sizes, places and speeds: big ones off the corners, smaller ones turning
+   the other way, so the sky never looks tiled. */
+.rq-hex-backdrop__hex--one   { width: 78vmax; height: 78vmax; left: -26vmax; top: -30vmax; --turn: 260s; }
+.rq-hex-backdrop__hex--two   { width: 52vmax; height: 52vmax; right: -18vmax; top: 28vh;   --turn: 200s; animation-direction: reverse; }
+.rq-hex-backdrop__hex--three { width: 34vmax; height: 34vmax; left: 6vw;     bottom: -14vmax; --turn: 170s; }
+.rq-hex-backdrop__hex--four  { width: 20vmax; height: 20vmax; right: 14vw;   top: 6vh;    --turn: 130s; animation-direction: reverse; opacity: 0.13; }
+.rq-hex-backdrop__hex--five  { width: 14vmax; height: 14vmax; left: 38vw;    top: 46vh;   --turn: 110s; opacity: 0.1; }
+/* One warm hexagon, like a chosen shape on the sheet. */
+.rq-hex-backdrop__hex--two :is(polygon, circle) { stroke: var(--guild-stroke-hot, #ff5fa0); }
+
+@keyframes rq-hex-backdrop-turn {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rq-hex-backdrop__hex { animation: none; }
+}

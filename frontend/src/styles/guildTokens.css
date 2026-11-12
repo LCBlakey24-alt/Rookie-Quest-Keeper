@@ -82,20 +82,24 @@
   --guild-font-body: 'Inter', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-/* The dusk sky behind every page. The app-wide reset in citrusCommand.css
-   flattens outer page surfaces from inside @layer rq-controls, where
-   !important outranks anything unlayered, so the sky is set from the same
-   layer with a more specific selector. Nested outer surfaces all paint the
-   same viewport-fixed sky, so they line up seamlessly. The sign-in page and
-   the TV player display stay flat. */
+/* The dusk sky behind every page, painted once on <html>. The large turning
+   hexagons (HexBackdrop) sit above it at z-index -1, so every outer page
+   surface above them must be see-through. The app-wide reset in
+   citrusCommand.css flattens those surfaces from inside @layer rq-controls,
+   where !important outranks anything unlayered, so they are cleared from the
+   same layer with a more specific selector. The sign-in page and the TV
+   player display keep their own flat backgrounds. */
 @layer rq-controls {
-  html:root,
-  html:root > body,
-  html:root #root,
-  html:root #root :is(.App, .rqk-app-shell, .keeper-product-site, .character-page-v2, .clean-sheet-page) {
+  html:root {
     background-color: var(--guild-bg) !important;
     background-image: var(--guild-sky) !important;
     background-attachment: fixed !important;
+  }
+  html:root > body,
+  html:root #root,
+  html:root #root :is(.App, .rqk-app-shell, .keeper-product-site, .character-page-v2, .clean-sheet-page) {
+    background-color: transparent !important;
+    background-image: none !important;
   }
 }
 
@@ -105,13 +109,9 @@ html body #root :is(.guild-wheel__name, .guild-motif__value, .hex-wheel__centre-
   font-family: var(--guild-font-display) !important;
 }
 
-/* Signed-in pages: the app frame shows the sky instead of its old flat
-   ink, so every page sits on the same dusk background. */
-html body #root .rqk-app-shell.rqk-app-shell {
-  background-color: var(--guild-bg) !important;
-  background-image: var(--guild-sky) !important;
-  background-attachment: fixed !important;
-}
+/* Signed-in pages: the app frame and its workspace are see-through, so the
+   sky and the hexagons behind them show on every page. */
+html body #root .rqk-app-shell.rqk-app-shell,
 html body #root .rqk-app-shell .rqk-app-workspace.rqk-app-workspace,
 html body #root .rqk-app-shell .rqk-app-shell-content.rqk-app-shell-content {
   background: transparent !important;

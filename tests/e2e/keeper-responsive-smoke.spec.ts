@@ -602,7 +602,9 @@ test('reduced-motion preference keeps instant citrus underline without animation
 });
 
 // The approved Dusk sky (DESIGN_SYSTEM §3, 12 November 2026) is a plain
-// colour gradient behind the landing page; no image texture is allowed.
+// colour gradient painted once on <html>; page surfaces above it are
+// see-through so the turning backdrop hexagons show between panels. No
+// image texture is allowed anywhere.
 test('page surfaces are navy or the dusk sky, never the retired craft-paper texture', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await avoidThirdPartyRequests(page);
@@ -612,7 +614,13 @@ test('page surfaces are navy or the dusk sky, never the retired craft-paper text
   const landingImage = await landing.evaluate((node) => getComputedStyle(node).backgroundImage);
   expect(landingImage).not.toContain('url(');
   expect(landingImage === 'none' || landingImage.startsWith('linear-gradient(')).toBe(true);
-  await expect(landing).toHaveCSS('background-color', 'rgb(10, 35, 66)');
+  const sky = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    return { color: style.backgroundColor, image: style.backgroundImage };
+  });
+  expect(sky.color).toBe('rgb(10, 35, 66)');
+  expect(sky.image.startsWith('linear-gradient(')).toBe(true);
+  expect(sky.image).not.toContain('url(');
   await page.getByTestId('landing-signin-btn').click();
   const login = page.getByTestId('auth-page');
   await expect(login).toBeVisible();
