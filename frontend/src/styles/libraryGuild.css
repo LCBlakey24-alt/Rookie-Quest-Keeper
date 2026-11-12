@@ -1,13 +1,14 @@
 /* My Characters and My Campaigns in the approved look: Neon Coast on a Dusk
  * sky, Cinzel and Inter (DESIGN_SYSTEM §3, tokens in guildTokens.css).
  *
- * Loaded after libraryPages.css and each page's own stylesheet; `html body`
- * keeps these rules ahead of theirs. The app-wide control layer pins button
+ * Loaded after libraryPages.css and each page's own stylesheet. The doubled
+ * `.rqk-app-shell` keeps these rules ahead of signedInCalm.css, whose card
+ * rules carry three classes. The app-wide control layer pins button
  * borders and shadows, so buttons take their fill through --rq-control-blue
  * and draw their edge and glow on ::after. Delete actions keep their
  * semantic red.
  */
-html body #root :is(.characters-library-page, .campaigns-library-page) {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) {
   --rq-control-blue: var(--guild-bg);
   --rq-control-wax: var(--guild-select);
   --rq-fill-color: rgba(var(--guild-c2-rgb), 0.16);
@@ -19,7 +20,7 @@ html body #root :is(.characters-library-page, .campaigns-library-page) {
 }
 
 /* Type: white Cinzel headings, Inter text, a small accent kicker. */
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(h1, h2, h3) {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(h1, h2, h3) {
   font-family: var(--guild-font-display) !important;
   font-variant: normal !important;
   text-transform: none !important;
@@ -27,24 +28,25 @@ html body #root :is(.characters-library-page, .campaigns-library-page) :is(h1, h
   color: var(--guild-text) !important;
   -webkit-text-fill-color: var(--guild-text) !important;
 }
-html body #root :is(.characters-library-page, .campaigns-library-page) .library-page-eyebrow {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) .library-page-eyebrow {
   background: transparent !important;
   border: 0 !important;
   padding: 0 !important;
   color: var(--guild-hi) !important;
   letter-spacing: 0.14em !important;
 }
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(p, small, .campaign-card-description, .campaign-card-meta-line, .character-card-meta-line) { color: var(--guild-muted) !important; }
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(p, small, .campaign-card-description, .campaign-card-meta-line, .character-card-meta-line) { color: var(--guild-muted) !important; }
 
 /* Cards and empty states: the deep blue, a thin gradient edge, the glow inside. */
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.library-page-card, .library-card, .library-page-empty, .library-page-stale-warning) {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-card, .library-card, .library-page-empty, .library-page-stale-warning),
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-card, .library-card):is(:hover, :focus-within) {
   background: var(--guild-box) !important;
   border: 1px solid transparent !important;
   border-radius: 16px !important;
   box-shadow: var(--guild-box-glow) !important;
   color: var(--guild-text) !important;
 }
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.campaign-card-type, .character-card-level-badge) {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.campaign-card-type, .character-card-level-badge) {
   background: var(--guild-bg-deep) !important;
   border: 1px solid var(--guild-line) !important;
   color: var(--guild-hi) !important;
@@ -52,14 +54,14 @@ html body #root :is(.characters-library-page, .campaigns-library-page) :is(.camp
 }
 
 /* Buttons: rounded, edge and glow on ::after; primary ones glow warm. */
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger) {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger) {
   position: relative;
   border-color: transparent !important;
   border-radius: 12px !important;
   background: var(--guild-bg) !important;
   color: var(--guild-text) !important;
 }
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger)::after {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger)::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -69,18 +71,18 @@ html body #root :is(.characters-library-page, .campaigns-library-page) :is(.libr
   box-shadow: var(--guild-control-glow) !important;
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger):not(:disabled):is(:hover, :focus-visible)::after,
-html body #root :is(.characters-library-page, .campaigns-library-page) .library-page-button-primary::after {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger):not(:disabled):is(:hover, :focus-visible)::after,
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) .library-page-button-primary::after {
   border-color: var(--guild-line-hot) !important;
   box-shadow: var(--guild-control-glow-hot) !important;
 }
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger) svg { color: var(--guild-hi) !important; }
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-button, .library-page-button-secondary, .campaign-card-open):not(.library-page-button-danger) svg { color: var(--guild-hi) !important; }
 
 /* Delete stays red: a quiet red edge on the deep blue. */
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.library-page-danger-button, .library-page-button-danger) {
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-danger-button, .library-page-button-danger) {
   background: var(--guild-bg) !important;
   border: 1px solid rgba(255, 107, 107, 0.5) !important;
   border-radius: 12px !important;
   color: #ff8d8d !important;
 }
-html body #root :is(.characters-library-page, .campaigns-library-page) :is(.library-page-danger-button, .library-page-button-danger) svg { color: #ff8d8d !important; }
+html body #root .rqk-app-shell.rqk-app-shell :is(.characters-library-page, .campaigns-library-page) :is(.library-page-danger-button, .library-page-button-danger) svg { color: #ff8d8d !important; }
