@@ -1,25 +1,26 @@
 /**
  * The spinning wheel's arithmetic, kept free of React so it can be tested.
  *
- * A section that needs three choices uses three wedges, each covering two
- * of the hexagon's six slices and centred on a corner. Wedge 0 starts at
+ * A section that needs three choices uses three wedges, each a third of the
+ * round ring inside the hexagon and centred on a corner. Wedge 0 starts at
  * the top. Turning the wheel by 120 degrees brings the next wedge to the
  * top and leaves the hexagon's outline exactly where it was, so the wheel
  * always settles squarely. Whichever wedge rests at the top is selected.
  */
-import { INNER_RADIUS, OUTER_RADIUS, hexVertex } from './hexGeometry';
+import { hexVertex, ringSegment } from './hexGeometry';
 
 export const SPIN_SECTORS = 3;
 export const SPIN_STEP = 360 / SPIN_SECTORS;
 
 const wrap = (index, count) => ((index % count) + count) % count;
 
-/** The wedge polygon for sector `index` of a three-wedge wheel, unrotated. */
+/**
+ * The wedge for sector `index` of a three-wedge wheel, unrotated: a third of
+ * the round ring inside the hexagon, centred on corner 2 * index.
+ */
 export function sectorPolygon(index) {
-  const corner = 2 * index;
-  const O = (i) => hexVertex(wrap(i, 6), OUTER_RADIUS);
-  const I = (i) => hexVertex(wrap(i, 6), INNER_RADIUS);
-  return [O(corner - 1), O(corner), O(corner + 1), I(corner + 1), I(corner), I(corner - 1)];
+  const middle = SPIN_STEP * wrap(index, SPIN_SECTORS);
+  return ringSegment(middle - SPIN_STEP / 2, middle + SPIN_STEP / 2, { steps: 24 });
 }
 
 /** Where a sector's label sits, unrotated: towards its corner. */
