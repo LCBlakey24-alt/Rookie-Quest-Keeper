@@ -36,7 +36,7 @@
   --guild-text: #ffffff;
   --guild-muted: #c9d2e6;
   --guild-ink: #1a0f2e;         /* text on a solid accent button */
-  --guild-select: rgba(176, 77, 255, 0.18); /* fill of a selected card */
+  --guild-select: rgba(96, 156, 232, 0.2); /* fill of a selected card: a lighter blue; Neon Coast colours stay in the glow */
   --guild-cool: #b04dff;        /* one-colour stand-in for the ordinary glow */
   --guild-line: rgba(176, 77, 255, 0.45);
   --guild-line-hot: rgba(255, 176, 102, 0.85);
