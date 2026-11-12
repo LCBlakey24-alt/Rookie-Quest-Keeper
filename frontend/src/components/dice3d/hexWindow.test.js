@@ -1,4 +1,4 @@
-import { centredHex, hexBox, hexFromWheel, locateHexWindow } from './hexWindow';
+import { centredHex, hexBox, hexFromWheel, isMostlyOnScreen, locateHexWindow } from './hexWindow';
 
 test('a pointed-top hexagon box is sqrt(3) r wide and 2r tall', () => {
   const box = hexBox(100, 200, 50);
@@ -27,4 +27,10 @@ test('with no wheel, the window is a centred hexagon that fits a phone', () => {
   expect(hex.cx).toBe(195);
   expect(hex.width).toBeLessThanOrEqual(390);
   expect(locateHexWindow('.nothing-here', document).cx).toBe(window.innerWidth / 2);
+});
+
+test('a wheel mostly scrolled away is no anchor: only a nearly whole hexagon is used', () => {
+  expect(isMostlyOnScreen(hexBox(195, 400, 200), 844)).toBe(true);
+  expect(isMostlyOnScreen(hexBox(195, -150, 200), 844)).toBe(false); // only its bottom shows
+  expect(isMostlyOnScreen(hexBox(195, 820, 200), 844)).toBe(false); // mostly below the fold
 });

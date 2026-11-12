@@ -39,6 +39,12 @@ export function centredHex(viewportWidth, viewportHeight) {
   return hexBox(viewportWidth / 2, viewportHeight / 2, r);
 }
 
+/** At most a tenth of the hexagon may be cut off at the top or bottom. */
+export function isMostlyOnScreen(hex, viewportHeight) {
+  const allowance = hex.height * 0.1;
+  return hex.top >= -allowance && hex.top + hex.height <= viewportHeight + allowance;
+}
+
 /** Find the wheel matching `selector` and measure its hexagon, or centre one. */
 export function locateHexWindow(selector, doc = typeof document !== 'undefined' ? document : null) {
   const view = doc?.defaultView;
@@ -49,8 +55,9 @@ export function locateHexWindow(selector, doc = typeof document !== 'undefined' 
     const rect = element.getBoundingClientRect();
     const box = element.viewBox?.baseVal;
     const measured = hexFromWheel(rect, box && { x: box.x, y: box.y, width: box.width, height: box.height }, Number(element.getAttribute('data-hex-radius')));
-    // A wheel scrolled out of sight is no anchor: centre the window instead.
-    if (measured && measured.top + measured.height > 0 && measured.top < height) return measured;
+    // Only anchor to a wheel that is (almost) fully on screen, so the dice and
+    // the total in the hexagon's lower part can be read; otherwise centre it.
+    if (measured && isMostlyOnScreen(measured, height)) return measured;
   }
   return centredHex(width, height);
 }

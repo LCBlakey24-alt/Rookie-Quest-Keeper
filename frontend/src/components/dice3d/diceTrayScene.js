@@ -56,7 +56,7 @@ const DIE_RADIUS = 0.9;
 // the set back in proportion, the way dice in a real set sit together.
 const DIE_BULK = { 4: 1.06, 6: 0.94, 8: 1.0, 10: 0.98, 12: 0.95, 20: 1.0, 100: 0.98 };
 const STEP = 1 / 60;
-const MAX_STEPS = 900;
+const MAX_STEPS = 600;
 const SETTLED_SPEED = 0.05;
 /*
  * A throw is over only once every die has stayed still for this many
@@ -78,6 +78,15 @@ export const TIME_SCALE = 0.8;
  * when no quicker one is found.
  */
 export const QUICK_STEPS = 270;
+
+/**
+ * The longest a replay can run on screen, in milliseconds: MAX_STEPS at
+ * TIME_SCALE. The overlay's reveal backstop waits at least this long so a
+ * slow (reserve) throw is never cut short by the parent's timers.
+ */
+export function longestReplayMs() {
+  return Math.ceil((MAX_STEPS * STEP * 1000) / TIME_SCALE);
+}
 const COCKED_THRESHOLD = 0.86;
 /**
  * How far from the middle a die may finish, and how many throws to try.

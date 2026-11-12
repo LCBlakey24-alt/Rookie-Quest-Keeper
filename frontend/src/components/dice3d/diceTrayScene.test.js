@@ -1,4 +1,4 @@
-import { QUICK_STEPS, REST_HOLD_STEPS, centreRadiusFor, planThrow, simulateThrow, specForDie, throwAttemptsFor } from './diceTrayScene';
+import { QUICK_STEPS, REST_HOLD_STEPS, longestReplayMs, centreRadiusFor, planThrow, simulateThrow, specForDie, throwAttemptsFor } from './diceTrayScene';
 import { seedFromKey, settledFaceIndex } from './diceFaceReading';
 
 const spec = (sides, result, dropped = false) => specForDie({ sides, result, dropped });
@@ -186,5 +186,9 @@ describe('settling', () => {
     const replay = simulateThrow([spec], plan.seed);
     expect(replay.faces).toEqual(plan.settled); // the rehearsal and the replay agree
     expect(replay.steps).toBeLessThanOrEqual(QUICK_STEPS);
+  });
+
+  test('even the slowest allowed throw finishes before the overlay\'s reveal backstop', () => {
+    expect(longestReplayMs()).toBeLessThanOrEqual(12500);
   });
 });
