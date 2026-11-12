@@ -113,8 +113,15 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
     if existing_member:
         existing_state = str(existing_member.get('status') or 'active').lower()
         existing_character_id = existing_member.get('character_id')
+        released_character_id = existing_member.get('released_character_id')
         has_live_character = existing_state in ACTIVE_JOIN_STATES and existing_character_id
-        changing_character = existing_character_id and existing_character_id != character_id
+        # A character released when it moved to another campaign leaves an
+        # empty link. Linking a different character is still a replacement,
+        # so it must go through the campaign's approval step again.
+        changing_character = (
+            (existing_character_id and existing_character_id != character_id)
+            or (not existing_character_id and released_character_id and released_character_id != character_id)
+        )
         if has_live_character and changing_character:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -124,6 +131,7 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
         update_data = {
             'username': username,
             'character_id': character_id,
+            'released_character_id': None,
             'status': existing_state if existing_state in ACTIVE_JOIN_STATES and not changing_character else requested_member_state,
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }

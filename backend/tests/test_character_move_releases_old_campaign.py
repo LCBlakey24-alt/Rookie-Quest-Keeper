@@ -69,6 +69,10 @@ class _Collection:
                 return _Result(1, 1)
         return _Result(0, 0)
 
+    async def insert_one(self, doc):
+        self.docs.append(dict(doc))
+        return _Result(1, 1)
+
     async def update_many(self, query, update):
         count = 0
         for doc in self.docs:
@@ -129,3 +133,36 @@ def test_the_old_gm_cannot_change_a_moved_characters_status():
          patch.object(campaign_invites, 'end_live_sessions', AsyncMock()):
         asyncio.run(campaign_invites.update_campaign_member_status('old', 'm-old', {'status': 'dead'}, username='old-gm'))
     assert db.player_characters.docs[0].get('campaign_join_status') is None
+
+
+def _rejoin_world():
+    return _Db(
+        campaign_invites=[{'code': 'ABC123', 'campaign_id': 'old'}],
+        campaigns=[{'id': 'old', 'dm_user_id': 'old-gm', 'name': 'Old', 'join_mode': 'gm_approval'}],
+        campaign_members=[{'id': 'm-old', 'campaign_id': 'old', 'user_id': 'pat', 'character_id': 'hero', 'status': 'active'}],
+        player_characters=[
+            {'id': 'hero', 'user_id': 'pat', 'name': 'Hero', 'campaign_id': 'new'},
+            {'id': 'villain', 'user_id': 'pat', 'name': 'Villain'},
+        ],
+    )
+
+
+def _join(db, character_id):
+    from routes import campaign_invites
+    with patch.object(campaign_invites, 'db', db):
+        return asyncio.run(campaign_invites.join_campaign_by_code({'join_code': 'ABC123', 'character_id': character_id}, username='pat'))
+
+
+def test_a_replacement_after_a_release_needs_gm_approval_again():
+    db = _rejoin_world()
+    asyncio.run(release_character_from_other_campaigns(db, 'hero', 'new'))  # Hero moved to another campaign
+    result = _join(db, 'villain')
+    assert result['status'] == 'pending'
+    member = db.campaign_members.docs[0]
+    assert member['character_id'] == 'villain' and member['status'] == 'pending'
+
+
+def test_the_released_character_coming_back_keeps_its_approval():
+    db = _rejoin_world()
+    asyncio.run(release_character_from_other_campaigns(db, 'hero', 'new'))
+    assert _join(db, 'hero')['status'] == 'active'

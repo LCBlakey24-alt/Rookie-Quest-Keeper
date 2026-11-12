@@ -14,9 +14,13 @@ async def release_character_from_other_campaigns(db, character_id: str, keep_cam
     """Unlink `character_id` from every campaign roster except `keep_campaign_id`."""
     if not character_id:
         return 0
+    now = datetime.now(timezone.utc).isoformat()
+    # `released_character_id` remembers which character left, so a later join
+    # with a different character is treated as a replacement and goes through
+    # the campaign's approval step again (campaign_invites.join_campaign_by_code).
     result = await db.campaign_members.update_many(
         {'character_id': character_id, 'campaign_id': {'$ne': keep_campaign_id}},
-        {'$set': {'character_id': None, 'updated_at': datetime.now(timezone.utc).isoformat()}},
+        {'$set': {'character_id': None, 'released_character_id': character_id, 'updated_at': now}},
     )
     return getattr(result, 'modified_count', 0)
 
