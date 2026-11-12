@@ -1,115 +1,51 @@
-/* Landing page in the character sheet's look (DESIGN_SYSTEM §4 and §6a).
+/* Landing page in the approved look: Neon Coast on a Dusk sky, Cinzel and
+ * Inter (DESIGN_SYSTEM §3, tokens in guildTokens.css).
  *
- * One strong deep blue everywhere, no lighter panels: shapes are told apart
- * by a thin edge with a soft glow that stays inside the shape. Ordinary
- * shapes glow light blue, primary and chosen ones glow orange.
- *
- * Loaded after keeperProductSite.css and landingProductionTrust.css. The
- * app-wide control layer pins every button's border and box-shadow with
- * layered !important rules, so a button's edge and glow are drawn on
- * ::after and its fill comes through --rq-control-blue (as in the creator).
+ * The page is short: the hero, then the "Explore Keeper" wheel with one
+ * section card that changes as the wheel turns. Loaded after
+ * keeperProductSite.css and landingProductionTrust.css; the app-wide
+ * control layer pins every button's border and box-shadow with layered
+ * !important rules, so a button's edge and glow are drawn on ::after and
+ * its fill comes through --rq-control-blue.
  */
 html body #root .keeper-product-site {
-  --lg-line: rgba(111, 184, 255, 0.42);
-  --lg-line-hot: rgba(var(--guild-hi-rgb), 0.85);
-  --lg-glow-cool: inset 0 0 26px rgba(111, 184, 255, calc(0.22 * var(--guild-glow)));
-  --lg-glow-hot: inset 0 0 26px rgba(var(--guild-accent-rgb), calc(0.4 * var(--guild-glow)));
   --landing-bg: var(--guild-bg);
   --landing-surface: var(--guild-bg);
   --landing-card: var(--guild-bg);
   --landing-text: var(--guild-text);
   --landing-muted: var(--guild-muted);
-  --landing-gold: var(--guild-accent);
-  --landing-line: rgba(111, 184, 255, 0.24);
-  --landing-line-strong: var(--lg-line);
-  --landing-display: var(--rq-font-display, 'Fraunces', Georgia, serif) !important;
+  --landing-gold: var(--guild-hi);
+  --landing-line: var(--guild-line);
+  --landing-line-strong: var(--guild-line);
+  --landing-display: var(--guild-font-display) !important;
   --rq-control-blue: var(--guild-bg);
   --rq-control-wax: var(--guild-select);
-  --rq-fill-color: rgba(var(--guild-accent-rgb), 0.14);
+  --rq-fill-color: rgba(var(--guild-c2-rgb), 0.16);
   --rq-text-primary: var(--guild-text);
-  background: var(--guild-bg) !important;
+  --rq-guild-heading: var(--guild-text);
+  --rq-citrus-cream: var(--guild-text);
+  /* The dusk sky on <body> shows through. */
+  background: transparent !important;
   color: var(--guild-text);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
+html body #root .keeper-product-site .landing-final-main { flex: 1 0 auto; }
 
-/* Headline type: the display face everywhere, FAQ questions included. */
-html body #root .keeper-product-site :is(h1, h2, h3, .landing-faq-item summary, .landing-footer-brand strong) {
-  font-family: 'Fraunces', Georgia, serif !important;
+/* Type: Cinzel headings, Inter text. */
+html body #root .keeper-product-site :is(h1, h2, h3, .landing-footer-brand strong) {
+  font-family: var(--guild-font-display) !important;
   color: var(--guild-text) !important;
   -webkit-text-fill-color: var(--guild-text) !important;
+  letter-spacing: 0.01em !important;
 }
+html body #root .keeper-product-site :is(p, li, button, span, small) { font-family: var(--guild-font-body) !important; }
 html body #root .keeper-product-site .landing-kicker { color: var(--guild-hi) !important; }
-
-/* Panels: the page's own blue with a light-blue inner glow. */
-html body #root .keeper-product-site :is(
-  .landing-pillar-strip,
-  .landing-showcase-section,
-  .landing-audience-panel,
-  .landing-workflow-section,
-  .landing-faq-panel,
-  .landing-final-cta,
-  .landing-feature-card-grid article,
-  .landing-ledger-stack > div
-) {
-  background: var(--guild-bg) !important;
-  background-image: none !important;
-  border-color: var(--lg-line) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--lg-glow-cool) !important;
-}
-html body #root .keeper-product-site .landing-feature-card-grid article { padding: 18px !important; }
-html body #root .keeper-product-site .landing-ledger-stack > div { border-left-width: 1px !important; }
-html body #root .keeper-product-site .landing-final-cta { border-color: var(--lg-line-hot) !important; box-shadow: var(--lg-glow-hot) !important; }
-
-/* The parchment folio becomes a glass card like the sheet's. */
-html body #root .keeper-product-site .landing-character-folio {
-  background: var(--guild-bg) !important;
-  background-image: none !important;
-  border: 1px solid var(--lg-line-hot) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--lg-glow-hot) !important;
-  transform: none !important;
-}
-html body #root .keeper-product-site .landing-character-folio :is(strong, small, span, li, p) {
-  color: var(--guild-text) !important;
-  -webkit-text-fill-color: var(--guild-text) !important;
-}
-html body #root .keeper-product-site .landing-character-folio :is(small, li) { color: var(--guild-muted) !important; -webkit-text-fill-color: var(--guild-muted) !important; }
-html body #root .keeper-product-site .landing-character-folio__portrait {
-  background: var(--guild-bg) !important;
-  border: 1px solid var(--lg-line) !important;
-  box-shadow: var(--lg-glow-cool) !important;
-  color: var(--guild-hi) !important;
-}
-
-/* Buttons: rounded glass, edge and glow on ::after. */
-html body #root .keeper-product-site :is(.landing-button, .landing-faq-item summary button, .landing-nav-links button, .landing-footer-actions button) {
-  position: relative;
-  border-radius: 12px !important;
-}
-html body #root .keeper-product-site .landing-button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  border: 1px solid var(--lg-line);
-  box-shadow: var(--lg-glow-cool);
-  transition: border-color 140ms ease, box-shadow 140ms ease;
-}
-html body #root .keeper-product-site .landing-button { border-color: transparent !important; }
-html body #root .keeper-product-site .landing-button:is(:hover, :focus-visible)::after { border-color: var(--guild-hi); }
-
-/* Primary: orange edge, orange glow inside, white text. */
-html body #root .keeper-product-site .landing-button-primary { --rq-control-blue: var(--guild-bg); background: var(--guild-bg) !important; }
-html body #root .keeper-product-site .landing-button-primary::after { border-color: var(--lg-line-hot); box-shadow: var(--lg-glow-hot); }
-html body #root .keeper-product-site .landing-button-primary:is(:hover, :focus-visible)::after {
-  border-color: var(--guild-hi);
-  box-shadow: inset 0 0 30px rgba(var(--guild-accent-rgb), calc(0.6 * var(--guild-glow)));
-}
-html body #root .keeper-product-site .landing-button-ghost { background: var(--guild-bg) !important; }
+html body #root .keeper-product-site .landing-final-intro { color: var(--guild-muted) !important; }
 
 /* Header: brand left, both actions on one row at the right. */
-html body #root .keeper-product-site .landing-final-nav { border-bottom-color: var(--landing-line) !important; }
+html body #root .keeper-product-site .landing-final-nav { border-bottom-color: var(--guild-line) !important; background: transparent !important; }
 @media (max-width: 760px) {
   html body #root .keeper-product-site .landing-final-nav {
     display: flex !important;
@@ -121,30 +57,90 @@ html body #root .keeper-product-site .landing-final-nav { border-bottom-color: v
   html body #root .keeper-product-site .landing-nav-actions .landing-button-ghost::after { border-color: transparent; box-shadow: none; }
 }
 
-/* Hero picture: the character sheet's wheel. */
-html body #root .keeper-product-site .landing-product-stage {
-  display: grid !important;
-  justify-items: center;
-  align-content: center;
-  gap: 10px;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
+/* Buttons: rounded glass with the glow inside, edge on ::after. */
+html body #root .keeper-product-site :is(.landing-button, .landing-explore__arrow) {
+  position: relative;
+  border-color: transparent !important;
+  border-radius: 12px !important;
+  background: var(--guild-bg) !important;
+  color: var(--guild-text) !important;
 }
-html body #root .keeper-product-site .landing-product-stage::before,
-html body #root .keeper-product-site .landing-product-stage::after { display: none !important; }
-.landing-wheel { width: min(100%, 440px); height: auto; overflow: visible; }
-.landing-wheel__frame { fill: none; stroke: rgba(var(--guild-accent-rgb), 0.45); stroke-width: 1; }
-.landing-wheel .hex-glow__fill { fill: var(--guild-bg); }
-.landing-wheel .hex-glow__halo { fill: none; stroke: var(--guild-cool); stroke-width: 7; stroke-linejoin: round; opacity: calc(0.9 * var(--guild-glow)); }
-.landing-wheel .hex-glow__edge { fill: none; stroke: rgba(111, 184, 255, 0.55); stroke-width: 1.1; stroke-linejoin: round; }
-.landing-wheel :is(.is-chosen, .landing-wheel__centre) .hex-glow__halo { stroke: var(--guild-accent); opacity: calc(1.8 * var(--guild-glow)); }
-.landing-wheel :is(.is-chosen, .landing-wheel__centre) .hex-glow__edge { stroke: var(--guild-hi); stroke-width: 1.6; }
-.landing-wheel__label { fill: var(--guild-text); font-weight: 700; letter-spacing: 0.02em; }
-.landing-wheel__centre-label { fill: var(--guild-text); font-weight: 900; letter-spacing: 0.04em; }
-html body #root .keeper-product-site .landing-stage-caption { margin: 0; color: var(--guild-muted) !important; font-size: 0.9rem; text-align: center; }
+html body #root .keeper-product-site :is(.landing-button, .landing-explore__arrow)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid var(--guild-line);
+  box-shadow: var(--guild-box-glow);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+html body #root .keeper-product-site :is(.landing-button, .landing-explore__arrow):is(:hover, :focus-visible)::after,
+html body #root .keeper-product-site .landing-button-primary::after {
+  border-color: var(--guild-line-hot);
+  box-shadow: var(--guild-box-glow-hot);
+}
 
-@media (max-width: 760px) {
-  .landing-wheel { width: min(100%, 360px); }
+/* Explore Keeper: the wheel, its arrows and the section card. */
+html body #root .keeper-product-site .landing-explore { display: grid; gap: 12px; min-width: 0; justify-items: center; }
+html body #root .keeper-product-site .landing-explore__head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+html body #root .keeper-product-site .landing-explore__title { margin: 0 !important; font-size: 1.25rem !important; }
+html body #root .keeper-product-site .landing-explore__toggle { min-height: 44px; width: auto !important; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+html body #root .keeper-product-site .landing-explore__wheel-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
 }
+html body #root .keeper-product-site .landing-explore__wheel-row .guild-wheel { max-width: 440px; justify-self: center; }
+html body #root .keeper-product-site .landing-explore__arrow {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border-radius: 50% !important;
+  cursor: pointer;
+}
+html body #root .keeper-product-site .landing-explore__hint { margin: 0; color: var(--guild-muted) !important; font-size: 0.85rem; text-align: center; }
+html body #root .keeper-product-site .landing-explore__dots { display: flex; gap: 8px; justify-content: center; }
+html body #root .keeper-product-site .landing-explore__dots span { width: 9px; height: 9px; border-radius: 50%; background: rgba(201, 210, 230, 0.35); }
+html body #root .keeper-product-site .landing-explore__dots span.is-on { background: var(--guild-hi); }
+html body #root .keeper-product-site .landing-explore__list { width: 100%; display: grid; gap: 12px; }
+html body #root .keeper-product-site .landing-explore > div[aria-live] { width: 100%; }
+
+html body #root .keeper-product-site .landing-section-card {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--guild-box);
+  box-shadow: var(--guild-box-glow);
+}
+html body #root .keeper-product-site .landing-section-card__count {
+  color: var(--guild-hi) !important; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+}
+html body #root .keeper-product-site .landing-section-card h3 { margin: 0 !important; font-size: 1.45rem !important; line-height: 1.15 !important; }
+html body #root .keeper-product-site .landing-section-card p { margin: 0; color: var(--guild-muted) !important; }
+html body #root .keeper-product-site .landing-section-card ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--guild-text); }
+html body #root .keeper-product-site .landing-section-card li::marker { color: var(--guild-hi); }
+html body #root .keeper-product-site .landing-section-card__start { justify-self: start; min-height: 44px; width: auto !important; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; }
+
+html body #root .keeper-product-site .landing-explore__hint--touch { display: none; }
+/* Phones turn the wheel by hand: the arrows step aside for a bigger wheel. */
+@media (max-width: 600px) {
+  html body #root .keeper-product-site .landing-explore__hint--touch { display: inline; }
+  html body #root .keeper-product-site .landing-explore__hint--pointer { display: none; }
+  html body #root .keeper-product-site .landing-explore__wheel-row { grid-template-columns: minmax(0, 1fr); }
+  html body #root .keeper-product-site .landing-explore__arrow { display: none !important; }
+}
+
+/* Footer. */
+html body #root .keeper-product-site .landing-final-footer { border-top-color: var(--guild-line) !important; background: transparent !important; }
+html body #root .keeper-product-site .landing-footer-brand p,
+html body #root .keeper-product-site .landing-footer-note { color: var(--guild-muted) !important; }

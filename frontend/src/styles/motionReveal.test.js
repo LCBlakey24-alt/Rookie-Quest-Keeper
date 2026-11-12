@@ -71,33 +71,11 @@ describe('motion stays within the design system', () => {
   });
 });
 
-describe('the landing page reveals the right things', () => {
-  test('it attaches the container ref', () => {
-    expect(LANDING).toContain("import useRevealOnScroll from '@/hooks/useRevealOnScroll'");
-    expect(LANDING).toContain('ref={revealRef}');
-  });
-
-  test('the hero is not animated, so the first thing a visitor sees is immediate', () => {
-    const hero = LANDING.slice(
-      LANDING.indexOf('landing-final-hero'),
-      LANDING.indexOf('landing-pillar-strip'),
-    );
-    expect(hero).not.toContain('rqk-reveal');
-  });
-
-  test('the below-the-fold sections are animated', () => {
-    ['landing-showcase-section rqk-reveal',
-     'landing-audience-panel--player rqk-reveal',
-     'landing-audience-panel--gm rqk-reveal',
-     'landing-workflow-section rqk-reveal',
-     'landing-faq-panel landing-faq-layout rqk-reveal',
-     'landing-final-cta--reference rqk-reveal'].forEach((marker) => {
-      expect(LANDING).toContain(marker);
-    });
-  });
-
-  test('dense repeated items use the subtle variant', () => {
-    // Cards and list rows should settle, not restage the whole block.
-    expect(LANDING.match(/rqk-reveal rqk-reveal--subtle/g)).toHaveLength(3);
+describe('the landing page shows everything at once', () => {
+  // The landing page is one screen: the hero and the Explore Keeper wheel.
+  // Nothing waits for a scroll observer before it can be seen.
+  test('it has no scroll-reveal sections', () => {
+    expect(LANDING).not.toContain('rqk-reveal');
+    expect(LANDING).not.toContain('useRevealOnScroll');
   });
 });

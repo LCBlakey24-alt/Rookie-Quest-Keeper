@@ -408,10 +408,9 @@ for (const size of [
     });
     expect(columns, 'hero should be a single column below the desktop breakpoint').toBe(1);
 
-    // The hero picture is the character sheet's wheel; it must get room to
-    // read (its own size caps at 440px, as on the sheet).
+    // The Explore Keeper wheel must get room to read (it caps at 440px).
     const wheelWidth = await page.evaluate(() => {
-      const wheel = document.querySelector('.landing-wheel');
+      const wheel = document.querySelector('.landing-explore .guild-wheel__svg');
       return wheel ? Math.round(wheel.getBoundingClientRect().width) : 0;
     });
     expect(wheelWidth).toBeGreaterThan(300);
