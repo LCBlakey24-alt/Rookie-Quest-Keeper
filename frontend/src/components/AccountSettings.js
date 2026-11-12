@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
 import { setAuthToken } from '@/lib/auth';
+import '@/styles/guildTokens.css';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
   AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
@@ -298,8 +299,8 @@ function AccountSettingsLoading() {
 function SectionHeader({ icon: Icon, title, danger = false }) {
   return (
     <div style={sectionHeaderStyle}>
-      <Icon size={24} color={danger ? 'var(--rq-danger, #C1121F)' : 'var(--rq-accent-primary, #C1121F)'} />
-      <h2 style={{ ...sectionTitleStyle, color: danger ? 'var(--rq-danger, #C1121F)' : 'var(--rq-text-primary, #FFFFFF)' }}>{title}</h2>
+      <Icon size={24} color={danger ? 'var(--rq-danger, #ff6b6b)' : 'var(--guild-hi)'} />
+      <h2 style={{ ...sectionTitleStyle, color: danger ? 'var(--rq-danger, #ff6b6b)' : 'var(--guild-text)' }}>{title}</h2>
     </div>
   );
 }
@@ -324,24 +325,26 @@ function PasswordInput({ value, setValue, show, setShow, placeholder, testId, di
   );
 }
 
-const pageStyle = { minHeight: '100vh', background: 'var(--rq-bg-main, #1A1A1A)', padding: '20px' };
+// Neon Coast on a Dusk sky (DESIGN_SYSTEM §3): panels are the deep blue with
+// a thin edge and a soft glow inside; the danger zone keeps its semantic red.
+const pageStyle = { minHeight: '100vh', background: 'transparent', padding: '20px', color: 'var(--guild-text)' };
 const containerStyle = { maxWidth: '800px', margin: '0 auto' };
-const headerStyle = { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' };
-const backButtonStyle = { padding: '8px 16px', borderRadius: 'var(--rq-radius-sm, 4px)' };
-const pageTitleStyle = { fontSize: '28px', fontWeight: 900, color: 'var(--rq-text-primary, #FFFFFF)', fontFamily: "'Montserrat', sans-serif", margin: 0 };
-const pageSubtitleStyle = { color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px', margin: '6px 0 0' };
-const panelStyle = { background: 'var(--rq-bg-panel, #242424)', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))', borderRadius: 'var(--rq-radius-md, 6px)', padding: '24px', marginBottom: '24px', boxShadow: 'var(--rq-shadow-panel, 0 4px 14px rgba(0,0,0,0.22))' };
+const headerStyle = { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' };
+const backButtonStyle = { padding: '8px 16px', borderRadius: '12px' };
+const pageTitleStyle = { fontSize: '28px', fontWeight: 700, color: 'var(--guild-text)', fontFamily: 'var(--guild-font-display)', margin: 0 };
+const pageSubtitleStyle = { color: 'var(--guild-muted)', fontSize: '14px', margin: '6px 0 0' };
+const panelStyle = { background: 'var(--guild-box)', border: '1px solid transparent', borderRadius: '16px', padding: '24px', marginBottom: '24px', boxShadow: 'var(--guild-box-glow)' };
 const sectionHeaderStyle = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' };
-const sectionTitleStyle = { fontSize: '20px', fontWeight: 900, fontFamily: "'Montserrat', sans-serif", margin: 0 };
-const labelStyle = { color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', fontWeight: 800 };
-const helpTextStyle = { margin: '-10px 0 0', color: 'var(--rq-text-muted, #A8A8A8)', fontSize: '13px', lineHeight: 1.45 };
-const buttonFitStyle = { width: 'fit-content', borderRadius: 'var(--rq-radius-sm, 4px)', display: 'inline-flex', alignItems: 'center', gap: 8 };
-const eyeButtonStyle = { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--rq-text-muted, #A0A0A0)', cursor: 'pointer' };
-const dangerPanelStyle = { ...panelStyle, background: 'var(--rq-accent-soft, rgba(193,18,31,0.12))', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))' };
-const dangerTextStyle = { color: 'var(--rq-text-secondary, #D6D6D6)', marginBottom: '16px', fontSize: '14px', lineHeight: 1.55 };
-const dangerButtonStyle = { background: 'transparent', border: '1px solid var(--rq-danger, #C1121F)', color: 'var(--rq-danger, #C1121F)', borderRadius: 'var(--rq-radius-sm, 4px)' };
-const confirmBoxStyle = { background: 'rgba(0, 0, 0, 0.3)', padding: '20px', borderRadius: 'var(--rq-radius-sm, 4px)', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))' };
-const confirmDeleteButtonStyle = { background: 'var(--rq-danger, #C1121F)', border: 'none', color: 'white', borderRadius: 'var(--rq-radius-sm, 4px)', display: 'inline-flex', alignItems: 'center', gap: 8 };
+const sectionTitleStyle = { fontSize: '20px', fontWeight: 700, fontFamily: 'var(--guild-font-display)', margin: 0 };
+const labelStyle = { color: 'var(--guild-muted)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', fontWeight: 700 };
+const helpTextStyle = { margin: '-10px 0 0', color: 'var(--guild-muted)', fontSize: '13px', lineHeight: 1.45 };
+const buttonFitStyle = { width: 'fit-content', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: 8 };
+const eyeButtonStyle = { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--guild-muted)', cursor: 'pointer' };
+const dangerPanelStyle = { ...panelStyle, background: 'var(--guild-bg)', border: '1px solid rgba(255, 107, 107, 0.55)', boxShadow: 'inset 0 0 18px -8px rgba(255, 107, 107, 0.45)' };
+const dangerTextStyle = { color: 'var(--guild-muted)', marginBottom: '16px', fontSize: '14px', lineHeight: 1.55 };
+const dangerButtonStyle = { background: 'transparent', border: '1px solid var(--rq-danger, #ff6b6b)', color: 'var(--rq-danger, #ff6b6b)', borderRadius: '12px' };
+const confirmBoxStyle = { background: 'var(--guild-bg-deep)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255, 107, 107, 0.45)' };
+const confirmDeleteButtonStyle = { background: 'var(--rq-danger, #C1121F)', border: 'none', color: 'white', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: 8 };
 const spinStyle = { animation: 'rqAccountSettingsSpin 0.9s linear infinite' };
 const accountSettingsCss = `
   @keyframes rqAccountSettingsSpin { to { transform: rotate(360deg); } }
