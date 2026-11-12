@@ -1,0 +1,102 @@
+/* Homebrew Workshop and the Community preview in the approved look: Neon
+ * Coast on a Dusk sky, Cinzel and Inter (DESIGN_SYSTEM §3, tokens in
+ * guildTokens.css).
+ *
+ * Both pages style themselves inline; the doubled `.rqk-app-shell` and
+ * !important keep these rules ahead of the inline styles and of the older
+ * app-wide panel rules. Buttons take their fill through --rq-control-blue
+ * because the app-wide control layer pins button borders and shadows.
+ */
+html body #root .rqk-app-shell.rqk-app-shell :is(.hb-page, .community-preview) {
+  --rq-control-blue: var(--guild-bg);
+  --rq-control-wax: var(--guild-select);
+  --rq-fill-color: rgba(var(--guild-c2-rgb), 0.16);
+  --rq-text-primary: var(--guild-text);
+  --rq-guild-heading: var(--guild-text);
+  --rq-bg-panel: var(--guild-bg);
+  --rq-bg-main: var(--guild-bg-deep);
+  --rq-card: var(--guild-bg);
+  --rq-border-default: var(--guild-line);
+  --rq-accent-primary: var(--guild-line-hot);
+  background: transparent !important;
+  color: var(--guild-text) !important;
+  font-family: var(--guild-font-body) !important;
+}
+
+/* Type: white Cinzel headings. */
+html body #root .rqk-app-shell.rqk-app-shell :is(.hb-page, .community-preview) :is(h1, h2, h3) {
+  font-family: var(--guild-font-display) !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+}
+html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-title { font-weight: 700 !important; line-height: 1.05 !important; font-size: clamp(30px, 5vw, 52px) !important; }
+html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-title svg { color: var(--guild-hi) !important; flex: 0 0 auto; }
+html body #root .rqk-app-shell.rqk-app-shell .hb-page :is(h2) svg { color: var(--guild-hi) !important; }
+
+/* Panels and cards: the deep blue, a thin gradient edge, the glow inside. */
+html body #root .rqk-app-shell.rqk-app-shell :is(.hb-page, .community-preview) .hb-panel {
+  background: var(--guild-box) !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  box-shadow: var(--guild-box-glow) !important;
+  padding: 16px !important;
+}
+html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-card {
+  background: var(--guild-bg-deep) !important;
+  border: 1px solid var(--guild-line) !important;
+  border-radius: 12px !important;
+}
+
+/* The type picker: compact tiles; the chosen one in the selected blue with
+   the warm edge. */
+html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type {
+  min-height: 0 !important;
+  border-radius: 12px !important;
+  background: var(--guild-bg) !important;
+  border: 1px solid var(--guild-line) !important;
+  box-shadow: var(--guild-control-glow) !important;
+}
+html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type svg { color: var(--guild-hi) !important; }
+html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type span { color: var(--guild-muted) !important; font-size: 12px; line-height: 1.4; }
+html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type.is-active {
+  background: var(--guild-select) !important;
+  border-color: var(--guild-line-hot) !important;
+  box-shadow: var(--guild-control-glow-hot) !important;
+}
+
+/* Fields and buttons: rounded, on the deeper blue. */
+html body #root .rqk-app-shell.rqk-app-shell .hb-page :is(input, textarea, select) {
+  border-radius: 10px !important;
+  background: var(--guild-bg-deep) !important;
+  border-color: var(--guild-line) !important;
+  color: var(--guild-text) !important;
+}
+html body #root .rqk-app-shell.rqk-app-shell .hb-page :is(button, label[for='hb-file-input']) { border-radius: 12px !important; }
+html body #root .rqk-app-shell.rqk-app-shell .hb-page button svg { color: var(--guild-hi); }
+
+/* Phones: the app frame's hexagon back button is the way out, and the ten
+   types fit two to a row with their names only. */
+@layer rq-controls {
+  html:root #root .rqk-app-shell[data-rq-device='mobile'][data-rq-inner='true'] :is(.hb-page, .community-preview) .hb-back { display: none !important; }
+}
+html body #root .rqk-app-shell.rqk-app-shell[data-rq-device='mobile'] .hb-page .hb-types {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+html body #root .rqk-app-shell.rqk-app-shell[data-rq-device='mobile'] .hb-page .hb-type {
+  min-height: 52px !important;
+  padding: 8px 10px !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px !important;
+}
+html body #root .rqk-app-shell.rqk-app-shell[data-rq-device='mobile'] .hb-page .hb-type span { display: none !important; }
+
+/* The page wrapper is layout only: no frame of its own. */
+html body #root .rqk-app-shell.rqk-app-shell .hb-page > section {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
