@@ -276,6 +276,9 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
             </div>
           )}
         </section>
+        <p style={{ ...helpTextStyle, margin: '8px 0 0', textAlign: 'center' }}>
+          <a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} style={{ color: 'var(--guild-hi)' }} data-testid="account-credits-link">Credits &amp; licences</a>
+        </p>
       </div>
       <style>{accountSettingsCss}</style>
     </div>

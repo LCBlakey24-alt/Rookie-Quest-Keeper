@@ -1,0 +1,36 @@
+/* Credits page: a plain, readable document on the dusk sky. */
+html body #root .rq-credits {
+  width: min(100% - 32px, 760px);
+  margin: 0 auto;
+  padding: 32px 0 64px;
+  color: var(--guild-text);
+  font-family: var(--guild-font-body);
+}
+html body #root .rq-credits h1,
+html body #root .rq-credits h2 {
+  font-family: var(--guild-font-display) !important;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+}
+html body #root .rq-credits h1 { margin: 16px 0 20px; font-size: clamp(1.8rem, 5vw, 2.4rem); }
+html body #root .rq-credits h2 { margin: 0 0 10px; font-size: 1.2rem; }
+html body #root .rq-credits section {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--guild-box);
+  box-shadow: var(--guild-box-glow);
+}
+html body #root .rq-credits p { margin: 0 0 10px; color: var(--guild-muted); line-height: 1.6; }
+html body #root .rq-credits p:last-child { margin-bottom: 0; }
+html body #root .rq-credits .rq-credits__notice {
+  padding: 10px 12px;
+  border-left: 2px solid var(--guild-hi);
+  background: var(--guild-bg-deep);
+  border-radius: 8px;
+  color: var(--guild-text);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+html body #root .rq-credits .rq-credits__back { display: inline-flex; align-items: center; gap: 6px; color: var(--guild-hi); min-height: 44px; }
