@@ -59,6 +59,18 @@
     inset 0 11px 15px -7px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow))),
     inset -11px 0 15px -7px rgba(var(--guild-h3-rgb), calc(0.8 * var(--guild-glow))),
     inset 0 -11px 15px -7px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow)));
+  /* The same glow, tighter, for buttons and other short controls: a box
+     glow on a 40px button would fill most of it. */
+  --guild-control-glow:
+    inset 5px 0 8px -5px rgba(var(--guild-c1-rgb), calc(0.6 * var(--guild-glow))),
+    inset 0 5px 8px -5px rgba(var(--guild-c2-rgb), calc(0.6 * var(--guild-glow))),
+    inset -5px 0 8px -5px rgba(var(--guild-c3-rgb), calc(0.6 * var(--guild-glow))),
+    inset 0 -5px 8px -5px rgba(var(--guild-c2-rgb), calc(0.6 * var(--guild-glow)));
+  --guild-control-glow-hot:
+    inset 6px 0 9px -5px rgba(var(--guild-h1-rgb), calc(0.8 * var(--guild-glow))),
+    inset 0 6px 9px -5px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow))),
+    inset -6px 0 9px -5px rgba(var(--guild-h3-rgb), calc(0.8 * var(--guild-glow))),
+    inset 0 -6px 9px -5px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow)));
   /* A box's 1px edge in the same colours: background for an element with
      `border: 1px solid transparent`. */
   --guild-edge-cool: linear-gradient(120deg, rgba(var(--guild-c1-rgb), 0.75), rgba(var(--guild-c2-rgb), 0.75) 50%, rgba(var(--guild-c3-rgb), 0.75));
