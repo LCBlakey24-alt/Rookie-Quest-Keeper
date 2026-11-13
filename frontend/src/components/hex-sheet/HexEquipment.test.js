@@ -113,3 +113,22 @@ test('a spare copy of a worn name-only item stays in the backpack', () => {
   // The spare dagger is offered for the free off hand.
   expect(screen.getByTestId('hex-pack-equip-Dagger')).toHaveTextContent('Off Hand');
 });
+
+describe('the AC an equipment save keeps (review finding 6)', () => {
+  const barbarian = {
+    id: 'char-barb', character_class: 'Barbarian', level: 3, strength: 16, dexterity: 14, constitution: 18,
+    armor_class: 16, equipped: {}, inventory: [{ id: 'dagger', name: 'Dagger', type: 'Weapon', damage_dice: '1d4', weight: 1 }],
+  };
+
+  test('equipping something unrelated keeps an unarmoured Barbarian at 10 + DEX + CON', async () => {
+    const { onSave } = renderEquipment(barbarian);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-pack-equip-Dagger')); });
+    expect(onSave.mock.calls[0][0].armor_class).toBe(16);
+  });
+
+  test('a manually set AC is left alone by equipment changes', async () => {
+    const { onSave } = renderEquipment({ ...barbarian, armor_class: 19, armor_class_manual: true });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-pack-equip-Dagger')); });
+    expect(onSave.mock.calls[0][0]).not.toHaveProperty('armor_class');
+  });
+});

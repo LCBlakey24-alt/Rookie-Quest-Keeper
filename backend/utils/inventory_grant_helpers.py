@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import uuid
 
+from utils.armor_class import armor_class_from_equipment
+
 
 def safe_int(value, default: int = 0) -> int:
     try:
@@ -20,34 +22,8 @@ def ability_modifier(score: Any) -> int:
 
 
 def character_armor_class_with_equipped(character: Dict[str, Any], equipped: Dict[str, Any]) -> int:
-    dex_mod = ability_modifier(character.get('dexterity', 10))
-    armor = equipped.get('armor') or equipped.get('armour')
-    shield = equipped.get('shield')
-    base = 10 + dex_mod
-
-    armor_text = f"{str((armor or {}).get('name', '') if isinstance(armor, dict) else armor)} {str((armor or {}).get('type', '') if isinstance(armor, dict) else '')}".lower()
-    if armor:
-        if 'plate' in armor_text and 'breast' not in armor_text and 'half' not in armor_text:
-            base = 18
-        elif 'splint' in armor_text:
-            base = 17
-        elif 'chain mail' in armor_text:
-            base = 16
-        elif 'scale' in armor_text or 'breastplate' in armor_text:
-            base = 14 + min(dex_mod, 2)
-        elif 'half plate' in armor_text:
-            base = 15 + min(dex_mod, 2)
-        elif 'hide' in armor_text:
-            base = 12 + min(dex_mod, 2)
-        elif 'leather' in armor_text:
-            base = 11 + dex_mod
-        ac_bonus = safe_int(armor.get('ac_bonus'), 0) if isinstance(armor, dict) else 0
-        if ac_bonus and base == 10 + dex_mod:
-            base += ac_bonus
-    if shield:
-        shield_bonus = safe_int(shield.get('ac_bonus'), 0) if isinstance(shield, dict) else 0
-        base += max(shield_bonus, 2)
-    return base
+    """The same AC a player's own equipment save gives (utils.armor_class)."""
+    return armor_class_from_equipment(character, equipped)
 
 
 def infer_equip_slot(item: Dict[str, Any]) -> str:

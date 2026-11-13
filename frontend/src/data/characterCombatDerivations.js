@@ -158,6 +158,28 @@ export function deriveWalkingSpeed(character = {}) {
   return base + getMonkUnarmoredMovementBonus(monkLevel);
 }
 
+/** A class's own level on this character (multiclass aware), or 0. */
+function classLevelOf(character = {}, className = '') {
+  const want = String(className).toLowerCase();
+  const map = character?.class_levels || character?.multiclass_levels || {};
+  const fromMap = Object.entries(map).find(([name]) => String(name).toLowerCase() === want);
+  if (fromMap) return Number(fromMap[1]) || 0;
+  const fromList = (Array.isArray(character?.classes) ? character.classes : [])
+    .find((entry) => String(entry?.name || entry?.class_name || entry?.character_class || '').toLowerCase() === want);
+  if (fromList) return Number(fromList.level || fromList.class_level) || 0;
+  if (Object.keys(map).length || (Array.isArray(character?.classes) && character.classes.length)) return 0;
+  return String(character?.character_class || character?.class_name || '').toLowerCase() === want ? Number(character?.level) || 1 : 0;
+}
+
+/** Whether the character has the Defense fighting style (+1 AC in armour). */
+function hasDefenseStyle(character = {}) {
+  const styles = [
+    ...(Array.isArray(character?.fighting_styles) ? character.fighting_styles : []),
+    character?.fighting_style,
+  ].map((style) => String(style?.name || style || '').trim().toLowerCase());
+  return styles.includes('defense') || styles.includes('defence');
+}
+
 export function deriveArmorClass(character, options = {}) {
   const dexMod = mod(character?.dexterity);
   const equipped = character?.equipped || {};
@@ -171,10 +193,17 @@ export function deriveArmorClass(character, options = {}) {
   const normalUnarmoredAc = 10 + dexMod;
   const monkLevel = getMonkClassLevel(character);
   const canUseMonkDefense = monkLevel > 0 && !armor && !shield;
-  // A Monk may choose their normal 10 + DEX calculation if Wisdom lowers AC.
-  const unarmoredAc = canUseMonkDefense
-    ? Math.max(normalUnarmoredAc, 10 + dexMod + mod(character?.wisdom))
-    : normalUnarmoredAc;
+  // Barbarian Unarmored Defense works with a shield, but not in armour.
+  const canUseBarbarianDefense = classLevelOf(character, 'barbarian') > 0 && !armor;
+  // Either class's formula may be chosen; the normal 10 + DEX if it is higher.
+  const unarmoredAc = Math.max(
+    normalUnarmoredAc,
+    canUseMonkDefense ? 10 + dexMod + mod(character?.wisdom) : 0,
+    canUseBarbarianDefense ? 10 + dexMod + mod(character?.constitution) : 0,
+  );
+  const canUseClassDefense = canUseMonkDefense || canUseBarbarianDefense;
+  // Defense fighting style: +1 AC while wearing armour.
+  const defenseStyleBonus = armor && hasDefenseStyle(character) ? 1 : 0;
 
   // Persisted armour/shield AC is authoritative on an ordinary sheet render:
   // applying equipment again double-counts bonuses. For an *unarmoured* Monk
@@ -186,7 +215,7 @@ export function deriveArmorClass(character, options = {}) {
   const manualAc = character?.armor_class_manual === true
     || character?.armor_class_source === 'manual';
   if (explicitAc > 0) {
-    if (canUseMonkDefense && !manualAc && !importedSheetStatsAreFinal(character) && explicitAc <= normalUnarmoredAc) {
+    if (canUseClassDefense && !manualAc && !importedSheetStatsAreFinal(character) && explicitAc <= normalUnarmoredAc) {
       return Math.max(explicitAc, unarmoredAc);
     }
     return explicitAc;
@@ -196,10 +225,10 @@ export function deriveArmorClass(character, options = {}) {
     // No named armour rule, but equipped items may still carry ac_bonus.
     const armorBonus = typeof armor === 'object' && armor ? Number(armor.ac_bonus || 0) : 0;
     const shieldBonus = typeof shield === 'object' && shield ? Math.max(Number(shield.ac_bonus || 0), 2) : 0;
-    return unarmoredAc + armorBonus + shieldBonus + wornMagicAcBonus(equipped);
+    return unarmoredAc + armorBonus + shieldBonus + defenseStyleBonus + wornMagicAcBonus(equipped);
   }
 
   // Worn magic accessories (Ring or Cloak of Protection, ...) add on top of
   // armour and shield; they count only while attuned when they need it.
-  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc }) + wornMagicAcBonus(equipped);
+  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc }) + defenseStyleBonus + wornMagicAcBonus(equipped);
 }

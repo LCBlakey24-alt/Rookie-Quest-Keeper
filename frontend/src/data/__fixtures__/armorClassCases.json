@@ -1,0 +1,18 @@
+{
+  "_about": "Armour Class cases shared by the frontend (deriveArmorClass) and the backend (utils.armor_class) tests, so GM auto-equip and a player's own equipment save give the same AC.",
+  "cases": [
+    { "name": "unarmoured Barbarian uses 10 + DEX + CON", "character": { "character_class": "Barbarian", "level": 3, "dexterity": 14, "constitution": 18 }, "equipped": {}, "ac": 16 },
+    { "name": "Barbarian Unarmored Defense still takes a shield", "character": { "character_class": "Barbarian", "level": 3, "dexterity": 14, "constitution": 18 }, "equipped": { "offHand": { "name": "Shield", "type": "shield" } }, "ac": 18 },
+    { "name": "Barbarian in hide armour uses the armour", "character": { "character_class": "Barbarian", "level": 3, "dexterity": 14, "constitution": 18 }, "equipped": { "armor": { "name": "Hide Armor" } }, "ac": 14 },
+    { "name": "unarmoured Monk uses 10 + DEX + WIS", "character": { "character_class": "Monk", "level": 3, "dexterity": 16, "wisdom": 16 }, "equipped": {}, "ac": 16 },
+    { "name": "Fighter in chain mail with Defense", "character": { "character_class": "Fighter", "level": 2, "dexterity": 10, "fighting_style": "Defense" }, "equipped": { "armor": { "name": "Chain Mail" } }, "ac": 17 },
+    { "name": "Defense does nothing without armour", "character": { "character_class": "Fighter", "level": 2, "dexterity": 10, "fighting_style": "Defense" }, "equipped": {}, "ac": 10 },
+    { "name": "Chain Mail +1 counts its +1 once", "character": { "character_class": "Fighter", "level": 2, "dexterity": 10 }, "equipped": { "armor": { "name": "Chain Mail +1", "ac_bonus": 1 } }, "ac": 17 },
+    { "name": "Leather Armor", "character": { "character_class": "Rogue", "level": 2, "dexterity": 12 }, "equipped": { "armor": { "name": "Leather Armor" } }, "ac": 12 },
+    { "name": "Studded Leather Armor is not plain Leather", "character": { "character_class": "Rogue", "level": 2, "dexterity": 12 }, "equipped": { "armor": { "name": "Studded Leather Armor" } }, "ac": 13 },
+    { "name": "Studded Leather Armor +1", "character": { "character_class": "Rogue", "level": 2, "dexterity": 12 }, "equipped": { "armor": { "name": "Studded Leather Armor +1" } }, "ac": 14 },
+    { "name": "a shield in the off hand with chain mail", "character": { "character_class": "Fighter", "level": 2, "dexterity": 10 }, "equipped": { "armor": { "name": "Chain Mail" }, "offHand": { "name": "Shield", "type": "shield", "ac_bonus": 2 } }, "ac": 18 },
+    { "name": "an attuned Ring of Protection adds 1", "character": { "character_class": "Rogue", "level": 5, "dexterity": 12 }, "equipped": { "armor": { "name": "Leather Armor" }, "ring1": { "name": "Ring of Protection", "requires_attunement": true, "attuned": true } }, "ac": 13 },
+    { "name": "an unattuned Ring of Protection adds nothing", "character": { "character_class": "Rogue", "level": 5, "dexterity": 12 }, "equipped": { "armor": { "name": "Leather Armor" }, "ring1": { "name": "Ring of Protection", "requires_attunement": true } }, "ac": 12 }
+  ]
+}
