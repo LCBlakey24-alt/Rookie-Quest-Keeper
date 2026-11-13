@@ -28,3 +28,35 @@ describe('spellRequiresConcentration', () => {
     expect(spellRequiresConcentration({ name: 'Magic Missile', duration: 'Instantaneous', description: 'Darts of force strike their targets.' })).toBe(false);
   });
 });
+
+describe('the SRD fallback for spells saved without a duration', () => {
+  // eslint-disable-next-line global-require
+  const { spellRequiresConcentration: needs, srdSpellNeedsConcentration } = require('./spellConcentrationRules');
+
+  test('a built-in Bless or Hold Person, saved by name only, needs concentration', () => {
+    expect(needs({ name: 'Bless' })).toBe(true);
+    expect(needs({ name: 'Hold Person', level: 2 })).toBe(true);
+    expect(needs({ name: 'Magic Missile' })).toBe(false);
+  });
+
+  test('the edition decides where the SRDs differ', () => {
+    expect(needs({ name: 'Barkskin' }, { edition: '2014' })).toBe(true);
+    expect(needs({ name: 'Barkskin' }, { edition: '2024' })).toBe(false);
+    expect(needs({ name: 'Hex' }, { edition: '2024' })).toBe(true);
+    expect(srdSpellNeedsConcentration('Pass without Trace', '2014')).toBe(true);
+  });
+
+  test('a book name the SRD prints without the wizard still matches', () => {
+    expect(needs({ name: "Tasha's Hideous Laughter" })).toBe(true);
+  });
+
+  test('a saved flag or duration still wins over the name', () => {
+    expect(needs({ name: 'Bless', concentration: false })).toBe(false);
+    expect(needs({ name: 'Homebrew Glow', duration: 'Concentration, up to 1 minute' })).toBe(true);
+  });
+
+  test('a saved non-concentration duration is kept, even for an SRD concentration name', () => {
+    expect(needs({ name: 'Bless', duration: '1 minute' })).toBe(false);
+    expect(needs({ name: 'Bless', duration: '' })).toBe(true);
+  });
+});
