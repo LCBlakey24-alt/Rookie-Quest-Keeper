@@ -29,6 +29,7 @@ import HexSkillDial from './HexSkillDial';
 import HexSpinWheel from './HexSpinWheel';
 import HexWheel from './HexWheel';
 import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
+import HexBackdrop from '@/components/guild-motif/HexBackdrop';
 import HexMagicView from './HexMagicView';
 import { spellDiceEntry } from '@/components/clean-sheet/SpellRollRow';
 import { SLOT } from './hexGeometry';
@@ -499,6 +500,9 @@ export default function HexCharacterSheet() {
 
   return (
     <div className={`hex-sheet${['combat', 'equipment', 'skills', 'magic', 'traits'].includes(current.view) ? ' hex-sheet--with-list' : ''}${current.view === 'hp' ? ' hex-sheet--hp' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
+      {/* The slowly turning hexagons behind every page, drawn inside the sheet
+          so they show over its own background, in the chosen theme's colour. */}
+      <HexBackdrop />
       <header className="hex-sheet__header">
         <button type="button" className="hex-sheet__hex-button" onClick={() => navigate('/characters')} aria-label="Back to My Characters" data-testid="hex-leave">
           <span className="hex-sheet__hex-button-rim" aria-hidden="true">

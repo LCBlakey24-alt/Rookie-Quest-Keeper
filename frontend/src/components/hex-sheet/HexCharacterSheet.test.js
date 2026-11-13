@@ -76,6 +76,13 @@ describe('header and vitals', () => {
     expect(screen.getByTestId('hex-vital-ac')).toHaveTextContent(/\d+/);
   });
 
+  test('the slowly turning hexagons show behind the sheet, as decoration only', async () => {
+    await openSheet();
+    const backdrop = within(screen.getByTestId('hex-sheet')).getByTestId('hex-backdrop');
+    expect(backdrop).toHaveAttribute('aria-hidden', 'true');
+    expect(backdrop.querySelectorAll('svg').length).toBeGreaterThan(0);
+  });
+
   test('initiative rolls a d20 with the initiative modifier', async () => {
     await openSheet();
     fireEvent.click(screen.getByTestId('hex-vital-initiative'));
