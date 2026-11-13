@@ -5,6 +5,7 @@ import { getClassResourceRules } from '../../data/classResourceRules';
 import { getCharacterActionFeatures } from '../../data/characterFeatureSelectors';
 import { buildCharacterSpellCastUpdate } from '../../data/characterSpellCastingActions';
 import { spellRequiresConcentration } from '../../data/spellConcentrationRules';
+import { characterRulesEdition } from '../../data/characterSpellListRules';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
 import CombatSpellActionCard from './CombatSpellActionCard';
 import { ActionSection, AttackCard, SimpleActionCard, VariableResourceActionCard } from './CleanCombatTabCards';
@@ -296,7 +297,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
 
     // A concentration spell marks the caster as concentrating, like casting
     // from the Spells tab; the sheet asks before replacing a current one.
-    const concentration = spellRequiresConcentration(spell)
+    const concentration = spellRequiresConcentration(spell, { edition: characterRulesEdition(character) })
       ? { concentrating_on: spellName, concentration: spellName }
       : null;
 

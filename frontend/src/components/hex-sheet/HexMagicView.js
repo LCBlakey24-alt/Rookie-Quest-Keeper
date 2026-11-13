@@ -6,6 +6,7 @@ import { criticalNotation } from '@/components/clean-sheet/SpellRollRow';
 import { SPELLCASTING_CLASSES, getCanonicalSpellcastingClass } from '@/data/spellDatabase';
 import { buildCharacterSpellCastUpdate, getCharacterCastOptions, getCharacterSpellPools } from '@/data/characterSpellCastingActions';
 import { spellRequiresConcentration } from '@/data/spellConcentrationRules';
+import { characterRulesEdition } from '@/data/characterSpellListRules';
 import { spellRoll } from '@/data/spellRollRules';
 import { customCasterNumbers } from '@/data/savedCustomSpellcastingPresentation';
 import { castOptionAt, castableSpells, magicLevels, ordinal, spellsAtLevel } from './magicModel';
@@ -67,7 +68,7 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
       return;
     }
     const updates = { ...result.updates };
-    if (spellRequiresConcentration(spell)) {
+    if (spellRequiresConcentration(spell, { edition: characterRulesEdition(character) })) {
       updates.concentrating_on = spell.name;
       updates.concentration = spell.name;
     }
@@ -181,7 +182,7 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
                     </button>
                   )}
                   {roll?.kind === 'rider' && <p className="hex-spell__hint">Add this to a weapon hit.</p>}
-                  {spellRequiresConcentration(spell) && <p className="hex-spell__hint">Concentration: casting it marks you as concentrating.</p>}
+                  {spellRequiresConcentration(spell, { edition: characterRulesEdition(character) }) && <p className="hex-spell__hint">Concentration: casting it marks you as concentrating.</p>}
                 </div>
               )}
             </article>
