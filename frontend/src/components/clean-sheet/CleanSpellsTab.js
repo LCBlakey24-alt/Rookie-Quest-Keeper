@@ -30,6 +30,7 @@ import {
 import {
   buildLegacyPreparedMigrationPlan,
   characterSpellIdentity,
+  characterRulesEdition,
   legacySpellbookEntries,
   canonicalSpellClassName,
   getCharacterPreparedCapacity,
@@ -309,11 +310,12 @@ function SpellCard({
   onConcentrate,
   onPrepare,
   onUnprepare,
+  edition = '2014',
 }) {
   const [expanded, setExpanded] = useState(false);
   const [choosingSlot, setChoosingSlot] = useState(false);
   const hasDescription = Boolean(spell.description);
-  const concentrationLikely = spellRequiresConcentration(spell);
+  const concentrationLikely = spellRequiresConcentration(spell, { edition });
   const levelled = Number(spell.level || 0) > 0;
   const hasAvailableSlot = !levelled || castOptions.length > 0;
   const canPressCast = castable && hasAvailableSlot;
@@ -447,6 +449,7 @@ function SpellGroup({
   onConcentrate,
   onPrepare,
   onUnprepare,
+  edition = '2014',
 }) {
   const grouped = groupByLevel(spells);
   const levels = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
@@ -491,6 +494,7 @@ function SpellGroup({
                   castOptions={rules.castOptions}
                   castBlockedText={rules.castBlockedText}
                   onCast={onCast}
+                  edition={edition}
                   onConcentrate={onConcentrate}
                   onPrepare={onPrepare}
                   onUnprepare={onUnprepare}
@@ -986,6 +990,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAtt
       <PactMagicPool pool={pactPool} onChange={handlePactChange} />
 
       <SpellGroup
+        edition={characterRulesEdition(character)}
         title="Cantrips"
         spells={filterSpells(cantrips)}
         preparedSpells={prepared}
@@ -1002,6 +1007,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAtt
 
       {(hasPreparedModel || hasSpellbookModel || prepared.length > 0) && (
         <SpellGroup
+          edition={characterRulesEdition(character)}
           title="Prepared Spells"
           spells={filterSpells(prepared)}
           preparedSpells={prepared}
@@ -1017,6 +1023,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAtt
 
       {(hasSpellbookModel || spellbook.length > 0) && (
         <SpellGroup
+          edition={characterRulesEdition(character)}
           title="Spellbook"
           spells={filterSpells(spellbook.filter((spell) => !spellListContains(prepared, spell)))}
           preparedSpells={prepared}
@@ -1032,6 +1039,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAtt
 
       {(hasKnownModel || known.length > 0) && (
         <SpellGroup
+          edition={characterRulesEdition(character)}
           title="Known Spells"
           spells={filterSpells(known)}
           preparedSpells={prepared}
