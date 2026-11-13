@@ -54,4 +54,9 @@ describe('the SRD fallback for spells saved without a duration', () => {
     expect(needs({ name: 'Bless', concentration: false })).toBe(false);
     expect(needs({ name: 'Homebrew Glow', duration: 'Concentration, up to 1 minute' })).toBe(true);
   });
+
+  test('a saved non-concentration duration is kept, even for an SRD concentration name', () => {
+    expect(needs({ name: 'Bless', duration: '1 minute' })).toBe(false);
+    expect(needs({ name: 'Bless', duration: '' })).toBe(true);
+  });
 });

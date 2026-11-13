@@ -73,7 +73,12 @@ export function spellRequiresConcentration(spell = {}, options = {}) {
     .join(' ');
 
   if (/\bconcentration\b/i.test(searchableText)) return true;
-  // The built-in list keeps no durations: fall back to the SRD by name.
+  // A saved duration decides on its own: a customised "Bless, 1 minute"
+  // stays without concentration. Only a spell saved without any duration
+  // (the built-in list keeps none) falls back to the SRD by name.
+  const hasDuration = [spell.duration, spell.duration_text, spell.durationText]
+    .some((value) => value !== undefined && value !== null && String(value).trim() !== '');
+  if (hasDuration) return false;
   return srdSpellNeedsConcentration(spell.name || spell.spell_name || spell.title, options.edition);
 }
 
