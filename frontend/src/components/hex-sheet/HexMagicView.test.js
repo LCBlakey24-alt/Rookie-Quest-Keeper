@@ -77,3 +77,20 @@ describe('casterFor', () => {
     expect(casterFor(wizard, { name: 'Fireball' }, 3)).toEqual({ attackBonus: 6, saveDc: 14, mod: 3 });
   });
 });
+
+test('a cast offers Undo, which puts the slot back from the latest state', async () => {
+  const { toast } = jest.requireMock('sonner');
+  toast.success.mockClear();
+  const onSave = jest.fn(() => Promise.resolve(true));
+  const props = { proficiencyBonus: 3, onRollAttack: jest.fn(), onRollDice: jest.fn(), onSave, onManage: jest.fn() };
+  const { rerender } = render(<HexMagicView character={wizard} {...props} />);
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Cast Magic Missile, using a 1st-level slot' })); });
+  expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ spell_slots_remaining: expect.objectContaining({ 1: 3 }) }), expect.anything());
+  const [, options] = toast.success.mock.calls.find(([message]) => message === 'Magic Missile cast');
+  expect(options.action.label).toBe('Undo');
+  // The sheet saved the cast, then a 2nd-level slot was spent elsewhere:
+  // Undo gives back the 1st-level slot and leaves that later spend alone.
+  rerender(<HexMagicView character={{ ...wizard, spell_slots_remaining: { 1: 3, 2: 2, 3: 2 } }} {...props} />);
+  await act(async () => { await options.action.onClick(); });
+  expect(onSave).toHaveBeenLastCalledWith({ spell_slots_remaining: { 1: 4, 2: 2, 3: 2 } }, expect.anything());
+});

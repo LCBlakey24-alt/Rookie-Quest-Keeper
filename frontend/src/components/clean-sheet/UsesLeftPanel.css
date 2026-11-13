@@ -1,0 +1,23 @@
+/* Uses left: compact rows in the sheet's own look (DESIGN_SYSTEM §3). */
+.rq-uses-left {
+  display: grid; gap: 6px; padding: 10px 12px; margin-bottom: 10px;
+  border-radius: 14px; border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45));
+  background: var(--guild-bg, #0a2342); box-shadow: var(--guild-box-glow);
+  color: var(--guild-text, #fff);
+}
+.rq-uses-left h3 { margin: 0; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--guild-hi, #ffb066); }
+.rq-uses-left ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rq-uses-left li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 44px 44px; align-items: center; gap: 8px; min-height: 44px; }
+.rq-uses-left__name { font-weight: 700; font-size: 0.9rem; overflow-wrap: anywhere; }
+.rq-uses-left__pips { display: inline-flex; flex-wrap: wrap; gap: 3px; max-width: 96px; justify-content: flex-end; }
+.rq-uses-left__pips i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.6)); }
+.rq-uses-left__pips i.is-left { background: var(--guild-hi, #ffb066); border-color: var(--guild-hi, #ffb066); }
+.rq-uses-left__count { min-width: 2.6em; text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; }
+.rq-uses-left button {
+  --rq-control-blue: transparent;
+  width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border-radius: 12px; cursor: pointer;
+  background: transparent; color: var(--guild-text, #fff);
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45)) !important;
+}
+.rq-uses-left button:disabled { opacity: 0.4; cursor: default; }
+@media (max-width: 380px) { .rq-uses-left__pips { display: none; } }
