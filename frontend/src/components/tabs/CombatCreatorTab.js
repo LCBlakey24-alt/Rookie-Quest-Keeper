@@ -8,6 +8,7 @@ import { Search, Plus, X, RotateCcw, Trash2, Swords, Save, Map, Upload, Grid, Im
 import { MONSTER_DATABASE, MONSTER_TYPES, CR_OPTIONS, getCRValue, getXPFromCR } from '@/data/monsterDatabase';
 import EncounterDifficultyCalculator from '@/components/EncounterDifficultyCalculator';
 import QuickTips, { TIPS } from '@/components/QuickTips';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 
 const TOKEN_COLORS = [
@@ -399,7 +400,7 @@ function CombatCreatorTab({ campaignId }) {
     };
   };
 
-  if (loading) return <div className="loading-spinner"></div>;
+  if (loading) return <HexLoader label="Loading encounters…" />;
   const { players: filteredPlayers, npcs: filteredNPCs } = filteredEntities();
 
   return (

@@ -7,6 +7,7 @@ import {
   Sparkles, Users, Skull, Shield, Swords, Loader, Save, Plus, 
   RefreshCw, Zap, AlertTriangle, CheckCircle, Coins
 } from 'lucide-react';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 
 const DIFFICULTY_LEVELS = [
@@ -205,7 +206,7 @@ Please provide a JSON response with this exact structure:
     }
   };
 
-  if (loading) return <div className="loading-spinner" />;
+  if (loading) return <HexLoader label="Loading encounters…" />;
 
   return (
     <div>

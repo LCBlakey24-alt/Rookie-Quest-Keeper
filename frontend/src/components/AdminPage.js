@@ -15,6 +15,7 @@ import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
 import AdminCharacterAuditTab from './admin/AdminCharacterAuditTab';
 import AdminLayoutStudioTab from './admin/AdminLayoutStudioTab';
 import apiClient from '@/lib/apiClient';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const theme = {
   bg: {
@@ -338,7 +339,7 @@ function AdminLoadingScreen() {
     <main className="loading-screen admin-loading-screen" role="status" aria-live="polite" aria-busy="true">
       <section className="loading-card" aria-label="Admin Mission Control is loading">
         <div className="loading-brand-mark" aria-hidden="true">ADMIN</div>
-        <div className="loading-spinner" aria-hidden="true" />
+        <HexLoader />
         <p className="loading-kicker">Owner workspace</p>
         <h1 className="loading-title">Checking admin access…</h1>
         <p className="loading-tip">Verifying permissions, feedback queues, testing notes, layout controls, reviews, users, and site controls.</p>

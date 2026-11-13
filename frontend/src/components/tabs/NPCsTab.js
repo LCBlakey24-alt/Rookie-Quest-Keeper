@@ -13,6 +13,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { matchesNpcSearch } from '@/lib/npcRosterSearch';
 import './NPCsTab.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const NPC_BASIC_FIELDS = [
   { name: 'name', label: 'Name', type: 'text' },
@@ -257,7 +258,7 @@ function NPCsTab({ campaignId, onOpenCreate }) {
     );
   }
 
-  if (loading) return <div className="loading-spinner"></div>;
+  if (loading) return <HexLoader label="Loading NPCs…" />;
 
   return (
     <div className="rqk-npc-master">

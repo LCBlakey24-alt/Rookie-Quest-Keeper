@@ -18,6 +18,7 @@ import { rollDiceNotation } from '@/data/diceRoller';
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
 import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier, needsConcentrationReplacement } from '@/data/characterConcentrationRules';
 
+import HexLoader from '@/components/guild-motif/HexLoader';
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexPortrait from './HexPortrait';
@@ -373,8 +374,7 @@ export default function HexCharacterSheet() {
   if (loading && !character) {
     return (
       <div className="hex-sheet hex-sheet--state" style={themeVars} role="status" aria-live="polite">
-        <span className="hex-sheet__loading-hex" aria-hidden="true" />
-        <p>Opening character…</p>
+        <HexLoader label="Opening character…" />
       </div>
     );
   }

@@ -12,6 +12,7 @@ import {
   toneSliders,
   visibilityOptions,
 } from '@/components/dashboard/home/unifiedDashboardUtils';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const CLASS_OPTIONS = ['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
 
@@ -128,7 +129,7 @@ export default function CampaignRulesTab({ campaignId }) {
     }
   };
 
-  if (loading) return <div className="rq-panel"><div className="loading-spinner" /></div>;
+  if (loading) return <div className="rq-panel"><HexLoader label="Loading campaign rules…" /></div>;
 
   const campaignFeel = buildCampaignFeel(form);
 

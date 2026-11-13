@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import './PlayerNotesTab.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
   const requestRef = useRef(0);
@@ -141,7 +142,8 @@ function PlayerNotesTab({ campaigns = [], campaignId = '' }) {
   if (loading && !sessionRecaps.length && !playerNotes.length) {
     return (
       <div className="loading-screen" style={{ minHeight: '320px' }}>
-        <div className="loading-spinner" />
+        <HexLoader />
+        <p className="loading-title">Loading notes…</p>
       </div>
     );
   }

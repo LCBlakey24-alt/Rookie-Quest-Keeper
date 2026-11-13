@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, ChevronRight, ChevronLeft, Check, User, Dices, RotateCcw, Upload, Download } from 'lucide-react';
 import { rollAbilityScore, rollAbilityScoreSet } from '@/data/abilityScoreRolls';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 
 // Fantasy TTRPG 5e 2024 Data
@@ -563,7 +564,7 @@ function PlayersTab({ campaignId }) {
     }
   };
 
-  if (loading) return <div className="loading-spinner"></div>;
+  if (loading) return <HexLoader label="Loading players…" />;
 
   return (
     <div>

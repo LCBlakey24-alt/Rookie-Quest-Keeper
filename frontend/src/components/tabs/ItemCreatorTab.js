@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import ImageUploadPanel from '@/components/ImageUploadPanel';
 import apiClient from '@/lib/apiClient';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const ITEM_TYPES = [
   { id: 'weapon', label: 'Weapon', icon: Sword, color: '#ef4444' },
@@ -189,7 +190,7 @@ Respond with JSON only:
   const getTypeInfo = (type) => ITEM_TYPES.find(t => t.id === type) || ITEM_TYPES[6];
   const getRarityInfo = (rarity) => RARITIES.find(r => r.id === rarity) || RARITIES[0];
 
-  if (loading) return <div className="loading-spinner" />;
+  if (loading) return <HexLoader label="Loading items…" />;
 
   return (
     <div>

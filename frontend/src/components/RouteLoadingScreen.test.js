@@ -13,7 +13,7 @@ describe('RouteLoadingScreen', () => {
     expect(html).toContain('ROOKIE QUEST');
     expect(html).toContain('KEEPER');
     expect(html).toContain('Preparing your workspace');
-    expect(html).toContain('rqk-route-brand-rule');
+    expect(html).toContain('rq-hex-loader');
     expect(html).toContain('/brand/rqk-hex-logo-360.png');
     expect(html).not.toContain('rqk-route-orbit');
     expect(html).not.toContain('Loading checklist');
@@ -31,18 +31,21 @@ describe('RouteLoadingScreen', () => {
 
   test('uses a decorative logo and an accessible live status', () => {
     const { container } = render(<RouteLoadingScreen />);
-    const logo = container.querySelector('img[src="/brand/rqk-hex-logo-360.png"]');
+    // The Rookie mark sits in the centre of the turning loader, which is
+    // decorative (aria-hidden); the live status carries the meaning.
+    const logo = container.querySelector('image[href="/brand/rqk-hex-logo-360.png"]');
     expect(logo).toBeInTheDocument();
-    expect(logo).toHaveAttribute('alt', '');
+    expect(logo.closest('svg')).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
     expect(screen.getByRole('heading', { name: 'KEEPER', level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Every great story begins at the table.')).toBeInTheDocument();
   });
 
-  test('keeps the current flat-navy design and reduced-motion fallback', () => {
+  test('sits on the dusk sky in the approved look, with a reduced-motion fallback', () => {
     const styles = readFileSync(join(__dirname, 'RouteLoadingScreen.css'), 'utf8');
-    expect(styles).toContain('--rq-citrus-navy');
-    expect(styles).toContain('--rq-citrus-gradient');
+    expect(styles).toContain('background: transparent !important');
+    expect(styles).toContain('--guild-text');
+    expect(styles).not.toContain('--rq-citrus');
     expect(styles).toContain('prefers-reduced-motion: reduce');
     expect(styles).not.toContain('radial-gradient');
     expect(styles).not.toContain('rqkLedgerOrbit');

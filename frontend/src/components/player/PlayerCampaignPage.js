@@ -13,6 +13,7 @@ import '@/styles/playerCampaignCharacterStatus.css';
 import '@/styles/playerCampaignTabBadge.css';
 import '@/styles/guildTokens.css';
 import '@/styles/playerCampaignGuild.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const PlayerNotesTab = lazy(() => import('@/components/tabs/PlayerNotesTab'));
 const PlayerHandoutsPanel = lazy(() => import('@/components/tabs/HandoutsTab').then(module => ({ default: module.PlayerHandoutsPanel })));
@@ -170,7 +171,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
                         <p>Level {member.level || 1} {member.character_class || member.class_name || ''}</p></div>
                     </li>)}</ul>}
               </section>
-              {characters?.length > 0 && <Suspense fallback={<p>Loading initiative…</p>}>
+              {characters?.length > 0 && <Suspense fallback={<HexLoader size="sm" label="Loading initiative…" />}>
                 <CombatInitiativeSubmitter campaignId={campaignId} />
               </Suspense>}
             </div>
@@ -192,10 +193,10 @@ export function PlayerCampaignWorkspace({ campaignId }) {
             </section>
           </div>
         </TabsContent>
-        <TabsContent value="quests"><Suspense fallback={<p>Loading quests…</p>}><PlayerQuestsPanel campaignId={campaignId} /></Suspense></TabsContent>
-        <TabsContent value="notes"><Suspense fallback={<p>Loading notes…</p>}><PlayerNotesTab campaignId={campaignId} /></Suspense></TabsContent>
-        <TabsContent value="handouts"><Suspense fallback={<p>Loading handouts…</p>}><PlayerHandoutsPanel campaignId={campaignId} onSummaryChange={acceptHandoutSummary} /></Suspense></TabsContent>
-        <TabsContent value="timeline"><Suspense fallback={<p>Loading timeline…</p>}><SessionTimeline campaignId={campaignId} readOnly /></Suspense></TabsContent>
+        <TabsContent value="quests"><Suspense fallback={<HexLoader size="sm" label="Loading quests…" />}><PlayerQuestsPanel campaignId={campaignId} /></Suspense></TabsContent>
+        <TabsContent value="notes"><Suspense fallback={<HexLoader size="sm" label="Loading notes…" />}><PlayerNotesTab campaignId={campaignId} /></Suspense></TabsContent>
+        <TabsContent value="handouts"><Suspense fallback={<HexLoader size="sm" label="Loading handouts…" />}><PlayerHandoutsPanel campaignId={campaignId} onSummaryChange={acceptHandoutSummary} /></Suspense></TabsContent>
+        <TabsContent value="timeline"><Suspense fallback={<HexLoader size="sm" label="Loading timeline…" />}><SessionTimeline campaignId={campaignId} readOnly /></Suspense></TabsContent>
       </Tabs>
     </main>
   );

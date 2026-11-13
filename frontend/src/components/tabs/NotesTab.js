@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, FileText } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 function NotesTab({ campaignId }) {
   const [tabs, setTabs] = useState([]);
@@ -77,7 +78,7 @@ function NotesTab({ campaignId }) {
     setShowDialog(false);
   };
 
-  if (loading) return <div className="loading-spinner"></div>;
+  if (loading) return <HexLoader label="Loading notes…" />;
 
   return (
     <div>

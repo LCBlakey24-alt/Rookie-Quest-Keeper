@@ -11,6 +11,7 @@ import '@/styles/unifiedDashboardPolish.css';
 import '@/styles/homeDashboardV5.css';
 import '@/styles/guildTokens.css';
 import '@/styles/homeGuild.css';
+import HexLoader from '@/components/guild-motif/HexLoader';
 
 const VIEW_KEY = 'rqk.home.hubView';
 
@@ -94,7 +95,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   if (loading) return (
     <main className="unified-dashboard-page unified-dashboard-page--simple rqk-home-v5">
       <section className="dashboard-loading" role="status" aria-live="polite">
-        <div className="loading-spinner" aria-hidden="true" />
+        <HexLoader />
         <p className="loading-title">Opening dashboard…</p>
         {slowLoad && <p className="loading-tip">The backend may be waking up.</p>}
       </section>

@@ -1,0 +1,46 @@
+/* Loading screens in the approved look: Neon Coast on a Dusk sky
+ * (DESIGN_SYSTEM §3). The screens sit on the page's dusk sky (with the turning
+ * background hexagons showing through) and the turning HexLoader is the only
+ * mark. brandedLoading.css keeps the older layout rules; this file overrides
+ * its colours, and is loaded with HexLoader so every loader screen gets it. */
+#root .loading-screen.loading-screen,
+#root .clean-sheet-loading.clean-sheet-loading {
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--guild-text, #fff) !important;
+  font-family: var(--guild-font-body, 'Inter', system-ui, sans-serif);
+}
+#root .loading-screen.loading-screen::before,
+#root .loading-screen.loading-screen::after,
+#root .clean-sheet-loading.clean-sheet-loading::before,
+#root .clean-sheet-loading.clean-sheet-loading::after { content: none !important; display: none !important; }
+
+#root .loading-screen .loading-card {
+  display: grid; justify-items: center; gap: 8px;
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+  padding: 0 !important;
+}
+#root .loading-screen .loading-card::before,
+#root .loading-screen .loading-card::after { content: none !important; display: none !important; }
+/* The old two-letter badges and the round spinner give way to the HexLoader. */
+#root .loading-screen .loading-brand-mark,
+#root .loading-screen .loading-spinner { display: none !important; }
+#root .loading-screen :is(.loading-title, h1, h2) {
+  margin: 0;
+  font-family: var(--guild-font-display, 'Cinzel', Georgia, serif) !important;
+  font-weight: 700 !important;
+  font-size: clamp(1.3rem, 4.6vw, 1.75rem) !important;
+  color: var(--guild-text, #fff) !important;
+  -webkit-text-fill-color: var(--guild-text, #fff) !important;
+  background: none !important;
+  letter-spacing: 0.02em;
+}
+#root .loading-screen .loading-kicker {
+  margin: 0;
+  color: var(--guild-hi, #ffb066) !important;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+}
+#root .loading-screen :is(.loading-tip, p:not(.loading-title):not(.loading-kicker):not(.rq-hex-loader__label)) {
+  color: var(--guild-muted, #c9d2e6) !important;
+}
+#root .clean-sheet-loading.clean-sheet-loading p { color: var(--guild-muted, #c9d2e6) !important; }
