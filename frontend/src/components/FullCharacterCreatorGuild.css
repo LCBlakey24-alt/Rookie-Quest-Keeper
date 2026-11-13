@@ -83,3 +83,37 @@
 .full-creator-page .full-creator-progress-track span { background: linear-gradient(90deg, var(--guild-c1), var(--guild-c2), var(--guild-c3)); }
 /* Headings read white, as on the sheet; the app-wide heading rule uses this variable. */
 .full-creator-page.full-creator-page { --rq-guild-heading: var(--guild-text); }
+
+/* Step strip on phones: a rounded panel lined up with the cards above and
+   below it (the mobile layout used to stretch it past the page gutter as a
+   flat band with no side edges, so it looked cut off at both ends). The frame
+   draws the edge; the strip inside still scrolls sideways, and its steps fade
+   out at the frame's edges instead of being chopped. On wider screens the
+   frame is just a pass-through (display: contents). */
+.full-creator-page .full-creator-steps-frame { display: contents; }
+[data-rq-device='mobile'] .full-creator-page .full-creator-steps-frame {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--gl-line);
+  border-radius: 16px;
+  background: var(--gl-bg);
+  box-shadow: var(--guild-box-glow);
+}
+[data-rq-device='mobile'] .full-creator-page .full-creator-workspace .full-creator-steps {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 7px 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  scroll-padding-inline: 12px;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 26px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 26px), transparent 100%);
+}
+[data-rq-device='mobile'] .full-creator-page .full-creator-workspace .full-creator-steps::-webkit-scrollbar { display: none; }
+[data-rq-device='mobile'] .full-creator-page .full-creator-workspace .full-creator-steps button {
+  border-radius: 12px !important;
+}

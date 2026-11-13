@@ -738,6 +738,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       </section>
 
       <section className="full-creator-workspace">
+        <div className="full-creator-steps-frame">
         <nav className="full-creator-steps" aria-label="Character creation steps">
           {steps.map((item, index) => {
             const Icon = item.icon;
@@ -760,6 +761,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             );
           })}
         </nav>
+        </div>
 
         <section className="full-creator-layout">
           <article className={`full-creator-panel${leaving ? ' is-leaving' : ''}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
