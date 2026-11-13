@@ -6,7 +6,8 @@ import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 import { OUTER_RADIUS, hexVertices, pointsAttribute, wheelViewBox } from './hexGeometry';
 import { DRAG_THRESHOLD_DEGREES, angleStep, pointerAngle } from './hpDial';
 import { playDialTick } from './dialSound';
-import { rotationForSector, sectorAtTop, settleRotation } from './spinWheel';
+import { rotationForSector, sectorAtTop } from './spinWheel';
+import { GLIDE_EASING, addSpinSample, glideDuration, releaseVelocity, spinTarget, startSpinSamples } from '@/components/guild-motif/wheelSpin';
 
 const COUNT = SKILLS.length; // 18
 const STEP = 360 / COUNT; // 20 degrees per skill
@@ -14,6 +15,7 @@ const RING_OUTER = 84; // stays inside the hexagon's flat sides (86.6)
 const RING_INNER = 58;
 const LABEL_RADIUS = 72;
 const CENTRE_RADIUS = 50;
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
 export const SKILL_SHORT = {
   Acrobatics: 'ACR', 'Animal Handling': 'ANI', Arcana: 'ARC', Athletics: 'ATH', Deception: 'DEC',
@@ -62,6 +64,7 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
   const [selected, setSelected] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [dragging, setDragging] = useState(false);
+  const [glideMs, setGlideMs] = useState(0);
   const rotationRef = useRef(0);
   const svgRef = useRef(null);
   const drag = useRef(null);
@@ -89,6 +92,10 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
 
   const onPointerDown = (event) => {
     if (event.button > 0 || event.target.closest('[data-skill-centre]')) return;
+    // Only a touch on the ring turns it, not one near the dial.
+    const segment = event.target.closest('[data-skill-index]')?.getAttribute('data-skill-index');
+    if (segment === undefined || segment === null) return;
+    setGlideMs(0);
     const [cx, cy] = centreOf();
     drag.current = {
       pointerId: event.pointerId,
@@ -96,7 +103,8 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
       start: rotationRef.current,
       travelled: 0,
       lastIndex: selected,
-      segment: event.target.closest('[data-skill-index]')?.getAttribute('data-skill-index'),
+      segment,
+      samples: startSpinSamples(clock(), rotationRef.current),
     };
   };
 
@@ -114,6 +122,7 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
     }
     const next = state.start + state.travelled;
     turnTo(next);
+    state.samples = addSpinSample(state.samples, clock(), next);
     // Click once for every skill that passes the pointer.
     const atTop = sectorAtTop(next, COUNT);
     if (atTop !== state.lastIndex) {
@@ -131,7 +140,9 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
     if (dragging) {
       svgRef.current.releasePointerCapture?.(event.pointerId);
       setDragging(false);
-      const settled = settleRotation(rotationRef.current, COUNT);
+      // Carry on with the flick's speed, then lock on the skill it stops at.
+      const settled = spinTarget(rotationRef.current, state.start, releaseVelocity(state.samples, clock()), STEP);
+      setGlideMs(glideDuration(rotationRef.current, settled));
       turnTo(settled);
       setSelected(sectorAtTop(settled, COUNT));
       return;
@@ -178,7 +189,7 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
         <GlowPolygon className="hex-wheel__wedge hex-skills__case" points={pointsAttribute(hexVertices(OUTER_RADIUS))} filterId={filterId} />
         <circle className="hex-skills__ring" cx={0} cy={0} r={RING_OUTER} />
         <circle className="hex-skills__ring hex-skills__ring--inner" cx={0} cy={0} r={RING_INNER} />
-        <g className="hex-skills__rotor" style={{ transform: `rotate(${rotation}deg)` }}>
+        <g className="hex-skills__rotor" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
           {rows.map((row, index) => {
             const angle = index * STEP;
             const [lx, ly] = polar(angle, LABEL_RADIUS);
