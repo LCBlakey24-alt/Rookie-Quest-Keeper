@@ -1,6 +1,7 @@
 import React, { useId, useState } from 'react';
 
 import '@/styles/guildTokens.css';
+import './DisplayHexPortrait.css';
 
 /*
  * A character's portrait in a hexagon, for the player display (second

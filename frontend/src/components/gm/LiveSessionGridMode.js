@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Dices, FileText, Mail, Map, Swords, UserCircle, Users } from 'lucide-react';
 import LiveEncounterLauncher from './LiveEncounterLauncher';
+import LivePartyRow from './LivePartyRow';
 import { nextPreparedEncounterId } from './encounterSelection';
 import LiveToolRail, { LiveToolMenuButton } from './LiveToolRail';
 import {
@@ -299,6 +300,8 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
           <Swords size={18} /> {nextEncounter ? 'Review & run encounter' : 'Open encounters'} <ArrowRight size={16} />
         </button>
       </section>
+
+      <LivePartyRow players={players} onOpenParty={() => onSelect('party')} />
 
       {continueItems.length > 0 && (
         <section className="rqk-live-grid__continue" style={continueStyle}>
