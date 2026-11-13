@@ -29,6 +29,7 @@ import {
   Color,
   DirectionalLight,
   Mesh,
+  MeshBasicMaterial,
   MeshPhysicalMaterial,
   PCFSoftShadowMap,
   PMREMGenerator,
@@ -36,7 +37,9 @@ import {
   PlaneGeometry,
   Quaternion as ThreeQuaternion,
   Scene,
+  SRGBColorSpace,
   ShadowMaterial,
+  TextureLoader,
   Vector3,
   WebGLRenderer,
 } from 'three';
@@ -47,6 +50,27 @@ import { PERCENTILE_UNITS_VALUES, faceNormals, shapeForSides } from './diceShape
 import { createStudioScene } from './studioEnvironment';
 
 const TRAY_HALF = 3.5;
+
+/*
+ * The Rookie mark printed faintly on the tray floor, like a logo on a
+ * wrestling mat: the dice tumble over it and their shadows fall across it.
+ * It lies under the shadow-catching floor and moves with each throw's
+ * framing, so it always sits in the middle of the view.
+ */
+export const FLOOR_LOGO_URL = '/brand/rqk-hex-logo.png';
+export const FLOOR_LOGO_OPACITY = 0.16;
+const FLOOR_LOGO_HEIGHT = 4.4;
+const FLOOR_LOGO_ASPECT = 613 / 720; // width / height of rqk-hex-logo.png
+
+/** Where the floor logo goes for a throw's framing: centred under the view. */
+export function floorLogoPlacement(framing) {
+  const [x = 0, , z = 0] = framing?.target || [];
+  return {
+    position: [x, -0.01, z],
+    width: FLOOR_LOGO_HEIGHT * FLOOR_LOGO_ASPECT,
+    height: FLOOR_LOGO_HEIGHT,
+  };
+}
 const WALL_HEIGHT = 7.5;
 const DIE_RADIUS = 0.9;
 
@@ -378,7 +402,7 @@ export function cameraFraming(positions, fovDegrees, { aspect = 1, scale = 1 } =
  * inside a second coloured box -- the flat-surface direction applies to the
  * 3D view too, and the tray's edge is the panel's own hairline border.
  */
-export function createDiceTray({ canvas, palette, frameScale = 1 }) {
+export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = true }) {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
@@ -442,10 +466,32 @@ export function createDiceTray({ canvas, palette, frameScale = 1 }) {
   floor.receiveShadow = true;
   scene.add(floor);
 
+  // The faded logo, drawn before (and just under) the shadow floor. It only
+  // appears once its image has loaded; a failed load leaves a plain tray.
+  const logoPlacement = floorLogoPlacement({ target: [0, 0, 0] });
+  const logoMaterial = new MeshBasicMaterial({ transparent: true, opacity: FLOOR_LOGO_OPACITY, depthWrite: false, toneMapped: false });
+  const logo = new Mesh(new PlaneGeometry(logoPlacement.width, logoPlacement.height), logoMaterial);
+  logo.rotation.x = -Math.PI / 2;
+  logo.position.set(...logoPlacement.position);
+  logo.renderOrder = -1;
+  logo.visible = false;
+  scene.add(logo);
+
   let active = [];
   let frame = null;
   let world = null;
   let disposed = false;
+  let logoTexture = null;
+  if (floorLogo) {
+    new TextureLoader().load(FLOOR_LOGO_URL, (texture) => {
+      if (disposed) { texture.dispose(); return; }
+      texture.colorSpace = SRGBColorSpace;
+      logoTexture = texture;
+      logoMaterial.map = texture;
+      logoMaterial.needsUpdate = true;
+      logo.visible = true;
+    }, undefined, () => {});
+  }
 
   function clearDice() {
     active.forEach(({ mesh }) => {
@@ -482,6 +528,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1 }) {
     const framing = cameraFraming(plan.positions, FOV, { aspect: camera.aspect, scale: frameScale });
     camera.position.set(...framing.position);
     camera.lookAt(...framing.target);
+    logo.position.set(...floorLogoPlacement(framing).position);
 
     world = trayWorld();
     const entries = throwBodies(world, specs, seededRandom(plan.seed));
@@ -601,6 +648,9 @@ export function createDiceTray({ canvas, palette, frameScale = 1 }) {
     clearDice();
     floor.geometry.dispose();
     floor.material.dispose();
+    logo.geometry.dispose();
+    logoTexture?.dispose();
+    logoMaterial.dispose();
     environment.dispose();
     pmrem.dispose();
 

@@ -192,3 +192,20 @@ describe('settling', () => {
     expect(longestReplayMs()).toBeLessThanOrEqual(12500);
   });
 });
+
+describe('the logo on the tray floor', () => {
+  // eslint-disable-next-line global-require
+  const { floorLogoPlacement, FLOOR_LOGO_OPACITY, FLOOR_LOGO_URL } = require('./diceTrayScene');
+
+  test('sits centred under each throw, just below the shadow floor', () => {
+    const placement = floorLogoPlacement({ target: [1.2, 0, -0.8] });
+    expect(placement.position).toEqual([1.2, -0.01, -0.8]);
+    expect(placement.width / placement.height).toBeCloseTo(613 / 720, 5);
+  });
+
+  test('is faint and uses the hexagon Rookie mark', () => {
+    expect(FLOOR_LOGO_OPACITY).toBeGreaterThan(0);
+    expect(FLOOR_LOGO_OPACITY).toBeLessThanOrEqual(0.25);
+    expect(FLOOR_LOGO_URL).toBe('/brand/rqk-hex-logo.png');
+  });
+});
