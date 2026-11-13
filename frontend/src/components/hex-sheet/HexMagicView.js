@@ -37,7 +37,7 @@ export function casterFor(character, spell, proficiencyBonus) {
  * sheet's 3D tray, and has a hexagon that casts it (spending a slot).
  * Tapping a spell's name opens its details.
  */
-export default function HexMagicView({ character, proficiencyBonus = 2, onRollAttack, onRollDice, onSave, onManage }) {
+export default function HexMagicView({ character, proficiencyBonus = 2, onRollAttack, onRollDice, onSave, onManage, getLatestCharacter = null }) {
   const spells = useMemo(() => castableSpells(character), [character]);
   const pools = useMemo(() => getCharacterSpellPools(character), [character]);
   const levels = useMemo(() => magicLevels(spells, pools), [spells, pools]);
@@ -91,7 +91,8 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
       action: {
         label: 'Undo',
         onClick: async () => {
-          const now = characterRef.current;
+          // The sheet's latest state: this view may have closed since the cast.
+          const now = getLatestCharacter?.() || characterRef.current;
           const back = option.source === 'cantrip' ? {} : (slotAdjustUpdate(now, option, 1) || {});
           if (updates.concentrating_on && now?.concentrating_on === spell.name) Object.assign(back, before);
           if (!Object.keys(back).length) return;

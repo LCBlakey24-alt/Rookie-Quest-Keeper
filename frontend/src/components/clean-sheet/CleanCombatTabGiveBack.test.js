@@ -64,3 +64,26 @@ test('the classic sheet, which shows every group, has no extra panel', () => {
   render(<CleanCombatTab character={monk} proficiencyBonus={3} onRoll={jest.fn()} onCharacterUpdate={jest.fn()} />);
   expect(screen.queryByTestId('uses-left')).not.toBeInTheDocument();
 });
+
+test('a warlock sees Pact Magic once, as a slot row', () => {
+  const warlock = { ...monk, id: 'lock-1', character_class: 'Warlock', level: 5, charisma: 16, resources: { pact_magic: { current: 1, max: 2, slot_level: 3 } } };
+  renderTab(warlock);
+  expect(screen.getByTestId('uses-left-slot-pact-3')).toHaveTextContent('1/2');
+  expect(screen.queryByTestId('uses-left-resource-pact_magic')).not.toBeInTheDocument();
+});
+
+test('Undo counts from the host\'s latest state once this tab has closed', async () => {
+  const save = jest.fn().mockResolvedValue(true);
+  let latest = monk;
+  const { unmount } = render(<CleanCombatTab character={monk} proficiencyBonus={3} onRoll={jest.fn()} onCharacterUpdate={save} section="other" getLatestCharacter={() => latest} />);
+  const kiRow = screen.getAllByTestId(/^uses-left-resource-/).find((row) => /ki/i.test(row.textContent));
+  fireEvent.click(kiRow.querySelector('[data-testid^="uses-left-spend-"]'));
+  await waitFor(() => expect(toast.success).toHaveBeenCalled());
+  const kiKey = Object.keys(save.mock.calls[0][0].resources).find((key) => /ki/i.test(key));
+  const [, options] = toast.success.mock.calls[0];
+  // The player leaves Combat and spends another Ki point elsewhere: 0 left.
+  unmount();
+  latest = { ...monk, resources: { ki: { current: 0, max: 5, restore: 'short-rest' } } };
+  await act(async () => { await options.action.onClick(); });
+  expect(save.mock.calls[1][0].resources[kiKey].current).toBe(1);
+});
