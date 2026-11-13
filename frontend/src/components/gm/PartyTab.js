@@ -1,6 +1,9 @@
 import React from 'react';
 import { Users } from 'lucide-react';
 import SendItemPanel from './SendItemPanel';
+import DisplayHexPortrait from './DisplayHexPortrait';
+import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
+import { getInitiativeModifier } from '@/data/initiativeRules';
 
 export default function PartyTab({ theme, players }) {
   return (
@@ -17,16 +20,14 @@ export default function PartyTab({ theme, players }) {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-          {players.map(player => (
+          {players.map(player => { const summary = normalizeCampaignCharacter(player); return (
             <div key={player.id} style={{ background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: theme.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: theme.text.primary, fontSize: '20px' }}>
-                  {player.name.charAt(0).toUpperCase()}
-                </div>
+                <DisplayHexPortrait imageUrl={summary.portraitUrl} name={player.name} tone="cool" size={50} hpPercent={summary.maxHp ? summary.hpPercent : null} hpStatus={summary.hpStatus} />
                 <div>
                   <div style={{ color: theme.text.primary, fontWeight: '600', fontSize: '17px' }}>{player.name}</div>
                   <div style={{ color: theme.accent.secondary, fontSize: '14px' }}>
-                    {player.race || 'Unknown'} {player.class || 'Adventurer'} {player.level ? `Lv.${player.level}` : ''}
+                    {player.race || summary.race || ''} {summary.className !== 'Class' ? summary.className : (player.class || 'Adventurer')} {summary.level ? `Lv.${summary.level}` : ''}
                   </div>
                 </div>
               </div>
@@ -34,19 +35,20 @@ export default function PartyTab({ theme, players }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 <div style={{ background: 'rgba(236, 72, 153, 0.15)', border: `1px solid ${theme.accent.secondary}`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
                   <div style={{ fontSize: '12px', color: theme.accent.secondary, fontWeight: '500' }}>HP</div>
-                  <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>{player.hp || player.max_hp || '?'}/{player.max_hp || '?'}</div>
+                  <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>{summary.maxHp ? `${summary.currentHp}/${summary.maxHp}` : '?/?'}</div>
                 </div>
                 <div style={{ background: 'rgba(212, 160, 23, 0.15)', border: `1px solid ${theme.accent.primary}`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
                   <div style={{ fontSize: '12px', color: theme.accent.primary, fontWeight: '500' }}>AC</div>
-                  <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>{player.ac || '?'}</div>
+                  <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>{summary.armorClass || '?'}</div>
                 </div>
                 <div style={{ background: theme.accent.gmSubtle, border: `1px solid ${theme.accent.gm}`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
                   <div style={{ fontSize: '12px', color: theme.accent.gm, fontWeight: '500' }}>INIT</div>
                   <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>
-                    {player.stats?.dexterity ? (() => {
-                      const mod = Math.floor((player.stats.dexterity - 10) / 2);
+                    {(() => {
+                      // The same initiative modifier as the character sheet and campaign combat.
+                      const mod = getInitiativeModifier({ ...(player.stats || {}), ...player });
                       return mod >= 0 ? `+${mod}` : `${mod}`;
-                    })() : '?'}
+                    })()}
                   </div>
                 </div>
               </div>
@@ -68,7 +70,7 @@ export default function PartyTab({ theme, players }) {
                 </div>
               )}
             </div>
-          ))}
+          ); })}
         </div>
       )}
 

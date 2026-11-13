@@ -21,6 +21,18 @@ def _ability_mod(score: Any) -> int:
     return (_int(score, 10) - 10) // 2
 
 
+PORTRAIT_FIELDS = ("portrait_url", "image_url", "avatar_url", "character_image", "character_portrait")
+
+
+def _portrait(record: Dict[str, Any]) -> str:
+    """The record's portrait, whichever field it was saved under."""
+    for field in PORTRAIT_FIELDS:
+        value = record.get(field)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
 def _character_row(character: Dict[str, Any], member: Dict[str, Any]) -> Dict[str, Any]:
     max_hp = max(1, _int(character.get("max_hit_points"), 10))
     temp_hp = max(0, _int(character.get("temporary_hit_points", character.get("temp_hp", 0)), 0))
@@ -49,6 +61,7 @@ def _character_row(character: Dict[str, Any], member: Dict[str, Any]) -> Dict[st
             "wisdom": _int(character.get("wisdom"), 10),
             "charisma": _int(character.get("charisma"), 10),
         },
+        "portrait_url": _portrait(character),
         "source": "character",
         "member_status": member.get("status", "active"),
     }
@@ -75,6 +88,7 @@ def _legacy_row(player: Dict[str, Any]) -> Dict[str, Any]:
         "death_saves_failures": 0,
         "concentrating_on": "",
         "stats": stats,
+        "portrait_url": _portrait(player),
         "source": "legacy",
         "member_status": "gm_roster",
     }

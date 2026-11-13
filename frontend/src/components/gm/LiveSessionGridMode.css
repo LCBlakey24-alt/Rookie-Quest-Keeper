@@ -446,3 +446,40 @@
     transition: none;
   }
 }
+
+/* At the table: the party as hexagon portraits with health rings
+   (LivePartyRow.js), in the approved look (DESIGN_SYSTEM §3). */
+.rqk-live-party { display: grid; gap: 8px; }
+.rqk-live-party__label {
+  margin: 0; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--guild-hi, #ffb066);
+}
+.rqk-live-party__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px;
+}
+.rqk-live-party__member {
+  --rq-control-blue: transparent;
+  position: relative; width: 100%; min-height: 64px;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px;
+  padding: 6px 12px 6px 8px; text-align: left; cursor: pointer;
+  border-radius: 14px; background: var(--guild-bg, #0a2342); color: var(--guild-text, #fff); font: inherit;
+}
+.rqk-live-party__member::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45)) !important;
+  box-shadow: var(--guild-box-glow) !important;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.rqk-live-party__member:is(:hover, :focus-visible)::after {
+  border-color: var(--guild-line-hot, rgba(255, 176, 102, 0.85)) !important;
+  box-shadow: var(--guild-box-glow-hot) !important;
+}
+.rqk-live-party__copy { display: grid; gap: 2px; min-width: 0; }
+.rqk-live-party__copy strong {
+  font-family: var(--guild-font-display, 'Cinzel', serif); font-size: 0.95rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rqk-live-party__copy small { color: var(--guild-muted, #c9d2e6); font-size: 0.78rem; }
+.rqk-live-party__member.is-down .rqk-live-party__hp,
+.rqk-live-party__member.is-bloodied .rqk-live-party__hp { color: var(--rq-danger, #B94A4F); }
