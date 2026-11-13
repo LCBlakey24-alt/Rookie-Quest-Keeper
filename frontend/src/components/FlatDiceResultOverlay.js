@@ -20,12 +20,13 @@ export default function FlatDiceResultOverlay({
   isCrit = false,
   isFumble = false,
   isFixedDamage = false,
+  resultTone,
   onRevealNow,
   onClose,
 }) {
   return (
     <section
-      className={`rq-flat-roll ${isRevealed ? 'is-revealed' : 'is-rolling'} ${isCrit ? 'is-critical' : ''} ${isFumble ? 'is-fumble' : ''}`}
+      className={`rq-flat-roll ${isRevealed ? 'is-revealed' : 'is-rolling'} ${isCrit ? 'is-critical' : ''} ${isFumble ? 'is-fumble' : ''}${resultTone === 'success' || resultTone === 'failure' ? ` is-tone-${resultTone}` : ''}`}
       data-testid="flat-dice-overlay"
       aria-live="polite"
       aria-label="Dice roll result"

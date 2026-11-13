@@ -524,6 +524,89 @@ describe('Magic keeps the concentration warning', () => {
   });
 });
 
+describe('rest and recovery under the hit-point dial', () => {
+  const openHp = async (character) => {
+    apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...character, ...body } }));
+    await openSheet(character);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-vital-hp')); });
+  };
+
+  test('spending a Hit Die rolls it and saves the healing', async () => {
+    await openHp({ ...PUNCH, id: 'char-hit-die', current_hit_points: 10, hit_dice: '5d8', hit_dice_remaining: 5 });
+    expect(screen.getByTestId('hex-spend-hit-die')).toHaveTextContent('d8 · 5 of 5 left');
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-spend-hit-die')); });
+    const body = apiClient.patch.mock.calls.at(-1)[1];
+    expect(body.hit_dice_remaining).toBe(4);
+    expect(body.current_hit_points).toBeGreaterThan(10);
+  });
+
+  test('at 0 HP the Death Saves wheel opens from the panel, and a roll is saved and coloured', async () => {
+    await openHp({ ...PUNCH, id: 'char-dying', current_hit_points: 0 });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-open-death-saves')); });
+    expect(crumbs()).toEqual(['Character', 'Hit Points', 'Death Saves']);
+    expect(screen.getByTestId('hex-death-saves')).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-centre')); });
+    const body = apiClient.patch.mock.calls.at(-1)[1];
+    expect(Object.keys(body).some((key) => key.startsWith('death_saves') || key === 'current_hit_points')).toBe(true);
+    const roll = lastRoll();
+    expect(roll.label).toBe('Death Save');
+    expect(roll.resultTone).toBe(roll.rolls[0].result >= 10 ? 'success' : 'failure');
+  });
+
+  test('passes sit on the right and fails on the left, each starting at the top', async () => {
+    await openSheet({ ...PUNCH, id: 'char-death-wheel', current_hit_points: 0, death_saves_successes: 1 });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-main-death-saves')); });
+    const slot = (id) => Number(screen.getByTestId(`hex-wedge-${id}`).getAttribute('data-slot'));
+    expect([slot('death-success-1'), slot('death-success-2'), slot('death-success-3')]).toEqual([SLOT.UPPER_RIGHT, SLOT.RIGHT, SLOT.LOWER_RIGHT]);
+    expect([slot('death-failure-1'), slot('death-failure-2'), slot('death-failure-3')]).toEqual([SLOT.UPPER_LEFT, SLOT.LEFT, SLOT.LOWER_LEFT]);
+    expect(screen.getByTestId('hex-wedge-death-success-1')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('hex-wedge-death-success-2')).toHaveAttribute('aria-pressed', 'false');
+    apiClient.patch.mockImplementation((url, body) => Promise.resolve({ data: { ...PUNCH, ...body } }));
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-wedge-death-failure-1')); });
+    expect(apiClient.patch.mock.calls.at(-1)[1]).toEqual({ death_saves_failures: 1 });
+  });
+
+  test('death saves stay out of the way while the character is up and unmarked', async () => {
+    await openHp({ ...PUNCH, id: 'char-healthy' });
+    expect(screen.queryByTestId('hex-open-death-saves')).toBeNull();
+    expect(screen.queryByTestId('hex-main-death-saves')).toBeNull();
+  });
+
+  test('the HP dial waits while a rest is being applied', async () => {
+    const hero = { ...PUNCH, id: 'char-rest-wait', current_hit_points: 10 };
+    let finishRest;
+    apiClient.post.mockImplementation(() => new Promise((resolve) => { finishRest = () => resolve({ data: { ...hero, current_hit_points: 35 } }); }));
+    await openHp(hero);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-short-rest')); });
+    fireEvent.click(screen.getByTestId('hex-hp-target-hp'));
+    fireEvent.keyDown(screen.getByTestId('hex-hp-slider'), { key: 'ArrowDown' });
+    apiClient.patch.mockClear();
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-hp-confirm')); });
+    expect(apiClient.patch).not.toHaveBeenCalled();
+    expect(toast.info).toHaveBeenCalledWith('Finishing the rest first. Try again in a moment.');
+    await act(async () => { finishRest(); });
+  });
+
+  test('a long rest needs a second tap and uses the server rest route', async () => {
+    const hero = { ...PUNCH, id: 'char-long-rest', current_hit_points: 5 };
+    apiClient.post.mockResolvedValue({ data: { ...hero, current_hit_points: 35 } });
+    await openHp(hero);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(screen.getByTestId('hex-long-rest')).toHaveTextContent('Tap again to rest');
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    expect(apiClient.post).toHaveBeenCalledWith('/characters/char-long-rest/long-rest');
+  });
+
+  test('a short rest uses the server rest route straight away', async () => {
+    const hero = { ...PUNCH, id: 'char-short-rest' };
+    apiClient.post.mockResolvedValue({ data: hero });
+    await openHp(hero);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-short-rest')); });
+    expect(apiClient.post).toHaveBeenCalledWith('/characters/char-short-rest/short-rest');
+  });
+});
+
 describe('Combat keeps the concentration warning', () => {
   test('casting a second concentration spell from Combat asks before ending the first', async () => {
     const caster = {

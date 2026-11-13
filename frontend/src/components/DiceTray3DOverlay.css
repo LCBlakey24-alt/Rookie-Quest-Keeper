@@ -299,3 +299,16 @@ html body #root ~ .rq-dice-tray .rq-dice-hex__result strong,
 @media (prefers-reduced-motion: reduce) {
   .rq-dice-hex, .rq-dice-hex__result strong { animation: none; }
 }
+
+/* A roll that is a pass or a fail (a death save): the number in green or red,
+   whatever the natural roll. Status colours stay semantic.
+   An app-wide layered rule pins every dialog <strong> to --rq-text-primary
+   with !important, so the colour is set through that variable too. */
+html body #root ~ .rq-dice-tray .rq-dice-tray__panel.is-tone-success .rq-dice-tray__result strong,
+html body #root ~ .rq-dice-tray .rq-dice-hex.is-tone-success .rq-dice-hex__result strong,
+.rq-dice-tray__panel.is-tone-success .rq-dice-tray__result strong,
+.rq-dice-hex.is-tone-success .rq-dice-hex__result strong { --rq-text-primary: var(--rq-success, #5FA67A); color: var(--rq-success, #5FA67A); }
+html body #root ~ .rq-dice-tray .rq-dice-tray__panel.is-tone-failure .rq-dice-tray__result strong,
+html body #root ~ .rq-dice-tray .rq-dice-hex.is-tone-failure .rq-dice-hex__result strong,
+.rq-dice-tray__panel.is-tone-failure .rq-dice-tray__result strong,
+.rq-dice-hex.is-tone-failure .rq-dice-hex__result strong { --rq-text-primary: var(--rq-danger, #B94A4F); color: var(--rq-danger, #B94A4F); }

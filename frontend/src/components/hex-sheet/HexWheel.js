@@ -112,8 +112,9 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
             <g
               key={slot}
               ref={(node) => { wedgeRefs.current[slot] = node; }}
-              className={`hex-wheel__deal hex-wheel__slot${wedge.disabled ? ' is-disabled' : ''}${wedge.active ? ' is-active' : ''}`}
+              className={`hex-wheel__deal hex-wheel__slot${wedge.disabled ? ' is-disabled' : ''}${wedge.active ? ' is-active' : ''}${wedge.className ? ` ${wedge.className}` : ''}`}
               role="button"
+              aria-pressed={wedge.pressed === undefined ? undefined : Boolean(wedge.pressed)}
               tabIndex={wedge.disabled ? -1 : 0}
               aria-label={wedge.ariaLabel || wedge.label}
               aria-disabled={wedge.disabled ? 'true' : undefined}

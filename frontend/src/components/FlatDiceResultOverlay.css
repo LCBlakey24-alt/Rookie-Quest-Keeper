@@ -181,3 +181,7 @@
     white-space: normal;
   }
 }
+
+/* A pass or a fail (a death save): the total in green or red. */
+.rq-flat-roll.is-tone-success .rq-flat-roll__total strong { --rq-text-primary: var(--rq-success, #5FA67A); color: var(--rq-success, #5FA67A); }
+.rq-flat-roll.is-tone-failure .rq-flat-roll__total strong { --rq-text-primary: var(--rq-danger, #B94A4F); color: var(--rq-danger, #B94A4F); }

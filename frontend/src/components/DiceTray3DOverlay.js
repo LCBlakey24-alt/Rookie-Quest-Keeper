@@ -83,7 +83,7 @@ function supportsWebGl() {
 }
 
 export default function DiceTray3DOverlay(props) {
-  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector } = props;
+  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector, resultTone } = props;
   const isHex = shape === 'hex';
 
   // The hexagon window sits over the wheel's own hexagon (or mid-screen),
@@ -229,6 +229,7 @@ export default function DiceTray3DOverlay(props) {
   }
 
   const outcome = isCrit ? 'is-crit' : isFumble ? 'is-fumble' : '';
+  const tone = resultTone === 'success' || resultTone === 'failure' ? ` is-tone-${resultTone}` : '';
 
   if (isHex && hexWindow) {
     const { left, top, width, height } = hexWindow;
@@ -237,7 +238,7 @@ export default function DiceTray3DOverlay(props) {
       // hexagon sits over the wheel. Close with the X, Escape, or wait.
       <div className="rq-dice-tray rq-dice-tray--hex" data-testid="dice-tray-overlay" role="dialog" aria-modal="false" aria-label="Dice roll">
         <section
-          className={`rq-dice-hex ${outcome}${isRevealed ? ' is-revealed' : ''}`}
+          className={`rq-dice-hex ${outcome}${tone}${isRevealed ? ' is-revealed' : ''}`}
           style={{ left, top, width, height }}
           data-testid="dice-tray-hex"
         >
@@ -277,7 +278,7 @@ export default function DiceTray3DOverlay(props) {
     <div className="rq-dice-tray" data-testid="dice-tray-overlay" role="dialog" aria-modal="true" aria-label="Dice roll">
       <button type="button" className="rq-dice-tray__scrim" aria-label="Dismiss roll" onClick={onClose} />
 
-      <section className={`rq-dice-tray__panel ${outcome}`}>
+      <section className={`rq-dice-tray__panel ${outcome}${tone}`}>
         <header className="rq-dice-tray__header">
           <div>
             <span className="rq-dice-tray__eyebrow"><Dices size={14} /> {label || 'Roll'}</span>

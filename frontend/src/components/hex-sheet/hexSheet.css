@@ -664,3 +664,49 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 .hex-spell__details { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid var(--hex-line); }
 .hex-spell__details p { margin: 0; color: var(--hex-muted); font-size: 0.88rem; line-height: 1.5; }
 .hex-spell__hint { font-size: 0.8rem !important; color: var(--hex-sub) !important; }
+
+/* Rest and recovery, under the hit-point dial ----------------------------- */
+/* The HP view scrolls like the list views, so the panel never sits under the
+   footer. */
+.hex-sheet.hex-sheet--hp { height: auto; min-height: 100dvh; }
+.hex-sheet--hp .hex-sheet__wheel-area { flex: 0 0 auto; }
+.hex-recovery { display: grid; gap: 8px; width: min(100%, 520px); margin-top: 6px; }
+.hex-recovery__row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* Same look as the dial's own controls: transparent with the thin edge. */
+.hex-sheet .hex-recovery__button {
+  min-height: 48px; padding: 6px 10px; border-radius: 12px;
+  border: 1px solid var(--hex-orange-soft) !important; background: transparent; --rq-control-blue: transparent;
+  box-shadow: var(--hex-glow); color: var(--hex-text); font: inherit; font-weight: 600; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.hex-recovery__button small { font-size: 0.78rem; font-weight: 500; color: var(--hex-muted); }
+.hex-recovery__hint, .hex-recovery__status { margin: 0; text-align: center; font-size: 0.82rem; color: var(--hex-muted); }
+.hex-recovery__status { color: var(--hex-text); font-weight: 600; }
+
+/* Death saves --------------------------------------------------------------
+   The Death Saves view is the sheet's own wheel (HexWheel, stat layout):
+   passes on the right, fails on the left, each filling from the top wedge.
+   A marked wedge fills with the status colour (green pass, red fail); status
+   colours stay semantic. */
+.hex-death-wedge--success .hex-wheel__edge-label { fill: var(--rq-success, #5FA67A); }
+.hex-death-wedge--failure .hex-wheel__edge-label { fill: var(--rq-danger, #B94A4F); }
+.hex-death-wedge.is-marked .hex-glow__fill { fill-opacity: 1; }
+.hex-death-wedge--success.is-marked .hex-glow__fill { fill: var(--rq-success, #5FA67A); }
+.hex-death-wedge--failure.is-marked .hex-glow__fill { fill: var(--rq-danger, #B94A4F); }
+.hex-death-wedge--success.is-marked .hex-glow__edge { stroke: var(--rq-success, #5FA67A); stroke-opacity: 1; }
+.hex-death-wedge--failure.is-marked .hex-glow__edge { stroke: var(--rq-danger, #B94A4F); stroke-opacity: 1; }
+.hex-death-wedge.is-marked .hex-wheel__edge-label,
+.hex-death-wedge.is-marked .hex-wheel__value { fill: #fff; }
+.hex-death { display: grid; justify-items: center; gap: 6px; width: min(100%, 520px); }
+.hex-death__status { margin: 0; text-align: center; font-weight: 600; color: var(--hex-text); }
+.hex-recovery__count--success { color: var(--rq-success, #5FA67A); }
+.hex-recovery__count--failure { color: var(--rq-danger, #B94A4F); }
+/* At 0 HP the way in to the death saves takes the warm edge. */
+.hex-sheet .hex-recovery__death-link.is-urgent { border-color: var(--hex-orange) !important; }
+.hex-sheet .hex-sheet__death-link {
+  --rq-control-blue: transparent;
+  min-height: 48px; padding: 0 22px; border-radius: 999px;
+  border: 1px solid var(--hex-orange) !important; background: transparent; box-shadow: var(--hex-glow-strong);
+  color: var(--hex-text); font: inherit; font-weight: 700; cursor: pointer;
+}
+
