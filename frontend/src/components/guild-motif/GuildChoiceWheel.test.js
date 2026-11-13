@@ -67,3 +67,76 @@ describe('the centre hexagon as Confirm', () => {
     expect(screen.queryByTestId('guild-choice-wheel-confirm')).toBeNull();
   });
 });
+
+// jsdom has no PointerEvent; React reads pointerId and client coordinates.
+class TestPointerEvent extends MouseEvent {
+  constructor(type, init = {}) {
+    super(type, init);
+    this.pointerId = init.pointerId ?? 1;
+  }
+}
+
+
+
+
+describe('turning the wheel by hand', () => {
+  const RealPointerEvent = window.PointerEvent;
+  beforeAll(() => { window.PointerEvent = TestPointerEvent; });
+  afterAll(() => { window.PointerEvent = RealPointerEvent; });
+  // The wheel's centre is at (100, 100); points on a circle round it.
+  const at = (degrees) => {
+    const radians = ((degrees - 90) * Math.PI) / 180;
+    return { clientX: 100 + 80 * Math.cos(radians), clientY: 100 + 80 * Math.sin(radians) };
+  };
+  let clock = 0;
+  beforeEach(() => {
+    clock = 0;
+    jest.spyOn(performance, 'now').mockImplementation(() => clock);
+  });
+  afterEach(() => jest.restoreAllMocks());
+
+  function wheelSvg() {
+    const svg = screen.getByRole('radiogroup');
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200 });
+    return svg;
+  }
+
+  test('a short deliberate turn moves on to the next option instead of springing back', () => {
+    const { onChange } = setup('Barbarian');
+    wheelSvg();
+    const segment = screen.getByRole('radio', { name: 'Barbarian' });
+    fireEvent.pointerDown(segment, { pointerId: 1, button: 0, ...at(0) });
+    clock = 1000;
+    fireEvent.pointerMove(segment, { pointerId: 1, ...at(30) }); // a third of a wedge, then held still
+    clock = 1500;
+    fireEvent.pointerUp(segment, { pointerId: 1, ...at(30) });
+    expect(onChange).toHaveBeenCalledWith('Druid');
+  });
+
+  test('a flick carries on past where the finger let go', () => {
+    const { onChange } = setup('Barbarian');
+    wheelSvg();
+    const segment = screen.getByRole('radio', { name: 'Barbarian' });
+    fireEvent.pointerDown(segment, { pointerId: 1, button: 0, ...at(0) });
+    clock = 10;
+    fireEvent.pointerMove(segment, { pointerId: 1, ...at(10) });
+    clock = 40;
+    fireEvent.pointerMove(segment, { pointerId: 1, ...at(30) });
+    fireEvent.pointerUp(segment, { pointerId: 1, ...at(30) });
+    // 30 degrees of drag, flicked: it glides on to the option two places round.
+    expect(onChange).toHaveBeenCalledWith('Cleric');
+  });
+
+  test('a drag that starts off the ring does not turn the wheel', () => {
+    const { onChange } = setup('Barbarian');
+    const svg = wheelSvg();
+    const ring = svg.querySelector('.guild-wheel__ring');
+    const before = ring.style.transform;
+    fireEvent.pointerDown(svg, { pointerId: 1, button: 0, ...at(0) });
+    clock = 1000;
+    fireEvent.pointerMove(svg, { pointerId: 1, ...at(90) });
+    fireEvent.pointerUp(svg, { pointerId: 1, ...at(90) });
+    expect(ring.style.transform).toBe(before);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});

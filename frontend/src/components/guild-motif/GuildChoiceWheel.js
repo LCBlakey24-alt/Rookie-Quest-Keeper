@@ -1,7 +1,8 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import '@/styles/guildTokens.css';
-import { angleStep, fitRingLabels, optionAtTop, pointerAngle, readsUpsideDown, rotationForOption, settleRotation } from './choiceWheel';
+import { angleStep, fitRingLabels, optionAtTop, pointerAngle, readsUpsideDown, rotationForOption } from './choiceWheel';
+import { GLIDE_EASING, addSpinSample, glideDuration, releaseVelocity, spinTarget, startSpinSamples } from './wheelSpin';
 import './GuildChoiceWheel.css';
 
 const R = 100;
@@ -9,6 +10,7 @@ const RING_OUTER = 84; // inside the hexagon's flat sides (86.6)
 const RING_INNER = 56;
 const LABEL_RADIUS = 70;
 const DRAG_THRESHOLD = 6;
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
 const polar = (degrees, radius) => {
   const radians = ((degrees - 90) * Math.PI) / 180;
@@ -79,6 +81,7 @@ export default function GuildChoiceWheel({
   const [rotation, setRotation] = useState(() => rotationForOption(selectedIndex, 0, count));
   const [preview, setPreview] = useState(selectedIndex);
   const [dragging, setDragging] = useState(false);
+  const [glideMs, setGlideMs] = useState(0);
   const rotationRef = useRef(rotation);
   const svgRef = useRef(null);
   const drag = useRef(null);
@@ -99,16 +102,16 @@ export default function GuildChoiceWheel({
   const disabled = useMemo(() => new Set(disabledIds), [disabledIds]);
   const isDisabled = (index) => disabled.has(options[index]?.id);
 
-  const commit = (index) => {
+  const commit = (index, restAt) => {
     // A dimmed option cannot be chosen: turn back to the current one.
     if (isDisabled(index) && index !== selectedIndex) {
       buzz();
       setPreview(selectedIndex);
-      turnTo(rotationForOption(selectedIndex, rotationRef.current, count));
+      turnTo(rotationForOption(selectedIndex, restAt ?? rotationRef.current, count));
       return;
     }
     setPreview(index);
-    turnTo(rotationForOption(index, rotationRef.current, count));
+    turnTo(restAt ?? rotationForOption(index, rotationRef.current, count));
     if (index !== selectedIndex) {
       buzz();
       onChange(options[index].id);
@@ -122,6 +125,10 @@ export default function GuildChoiceWheel({
 
   const onPointerDown = (event) => {
     if (event.button > 0 || count === 0) return;
+    // Only a touch on the ring itself turns it, not one near the wheel.
+    const segment = event.target.closest?.('[data-wheel-index]')?.getAttribute('data-wheel-index');
+    if (segment === undefined || segment === null) return;
+    setGlideMs(0);
     const [cx, cy] = centreOf();
     drag.current = {
       pointerId: event.pointerId,
@@ -129,7 +136,8 @@ export default function GuildChoiceWheel({
       start: rotationRef.current,
       travelled: 0,
       lastIndex: preview,
-      segment: event.target.closest?.('[data-wheel-index]')?.getAttribute('data-wheel-index'),
+      segment,
+      samples: startSpinSamples(clock(), rotationRef.current),
     };
   };
 
@@ -147,6 +155,7 @@ export default function GuildChoiceWheel({
     }
     const next = state.start + state.travelled;
     turnTo(next);
+    state.samples = addSpinSample(state.samples, clock(), next);
     const atTop = optionAtTop(next, count);
     if (atTop !== state.lastIndex) {
       state.lastIndex = atTop;
@@ -162,7 +171,10 @@ export default function GuildChoiceWheel({
     if (dragging) {
       svgRef.current.releasePointerCapture?.(event.pointerId);
       setDragging(false);
-      commit(optionAtTop(settleRotation(rotationRef.current, count), count));
+      // Carry on with the flick's speed, then lock on the wedge it stops at.
+      const target = spinTarget(rotationRef.current, state.start, releaseVelocity(state.samples, clock()), step);
+      setGlideMs(glideDuration(rotationRef.current, target));
+      commit(optionAtTop(target, count), target);
       return;
     }
     if (state.segment !== undefined && state.segment !== null) commit(Number(state.segment));
@@ -223,7 +235,7 @@ export default function GuildChoiceWheel({
         <polygon className="guild-wheel__case" points={hexPoints(R)} />
         <polygon className="guild-wheel__glow guild-wheel__glow--case" points={hexPoints(R)} clipPath={`url(#${uid}-case)`} filter={`url(#${uid}-blur)`} />
         <circle className="guild-wheel__rim" cx="0" cy="0" r={RING_OUTER} />
-        <g className="guild-wheel__ring" style={{ transform: `rotate(${rotation}deg)` }}>
+        <g className="guild-wheel__ring" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
           {options.map((option, index) => {
             const [lx, ly] = polar(index * step, LABEL_RADIUS);
             const isSelected = index === selectedIndex;
