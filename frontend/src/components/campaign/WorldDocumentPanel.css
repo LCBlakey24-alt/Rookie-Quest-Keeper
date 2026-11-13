@@ -1,0 +1,33 @@
+/* The world document panel, in the approved look (DESIGN_SYSTEM §3): a
+   deep-blue panel with a thin edge and the glow inside, white text. */
+.rq-world-doc {
+  position: relative; display: grid; gap: 10px; padding: 14px;
+  border-radius: 16px; background: var(--guild-bg, #0a2342); color: var(--guild-text, #fff);
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45)); box-shadow: var(--guild-box-glow);
+}
+.rq-world-doc h2 {
+  margin: 0; display: flex; align-items: center; gap: 8px;
+  font-family: var(--guild-font-display, 'Cinzel', serif); font-size: 1.05rem; color: var(--guild-text, #fff);
+}
+.rq-world-doc h2 svg { color: var(--guild-hi, #ffb066); }
+.rq-world-doc__intro p, .rq-world-doc__summary { margin: 4px 0 0; color: var(--guild-muted, #c9d2e6); font-size: 0.86rem; line-height: 1.45; }
+.rq-world-doc__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.rq-world-doc__button {
+  --rq-control-blue: transparent;
+  min-height: 44px; padding: 0 14px; border-radius: 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px; font: inherit; font-weight: 700;
+  background: transparent; color: var(--guild-text, #fff);
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45)) !important;
+}
+.rq-world-doc__button--primary { border-color: var(--guild-line-hot, rgba(255, 176, 102, 0.85)) !important; box-shadow: var(--guild-box-glow-hot); }
+.rq-world-doc__button:disabled { opacity: 0.55; cursor: default; }
+.rq-world-doc__review { display: grid; gap: 10px; }
+.rq-world-doc__group { margin: 0; padding: 8px 10px 4px; border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45)); border-radius: 12px; }
+.rq-world-doc__group legend { padding: 0 6px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--guild-hi, #ffb066); }
+.rq-world-doc__item { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 10px; padding: 7px 0; cursor: pointer; }
+.rq-world-doc__item input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--guild-hi, #ffb066); }
+.rq-world-doc__item span { display: grid; gap: 2px; min-width: 0; }
+.rq-world-doc__item strong { font-size: 0.92rem; }
+.rq-world-doc__item small { color: var(--guild-muted, #c9d2e6); font-size: 0.8rem; overflow-wrap: anywhere; }
+.rq-world-doc__item.is-existing { opacity: 0.6; cursor: default; }
+.rq-world-doc__blocked { margin: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--rq-warning, #d9a441); color: var(--guild-text, #fff); font-size: 0.84rem; }
