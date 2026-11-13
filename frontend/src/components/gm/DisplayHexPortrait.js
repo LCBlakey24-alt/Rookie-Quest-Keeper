@@ -31,7 +31,10 @@ export function healthTone(percent, status) {
 
 export default function DisplayHexPortrait({ imageUrl, name, tone = 'cool', size = 64, hpPercent = null, hpStatus = '' }) {
   const id = useId().replace(/:/g, '');
-  const [failed, setFailed] = useState(false);
+  // The URL that failed, not a flag: a corrected or replaced portrait (the
+  // party refreshes in place) gets a fresh try.
+  const [failedUrl, setFailedUrl] = useState('');
+  const failed = Boolean(imageUrl) && failedUrl === imageUrl;
   const initials = String(name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0].toUpperCase()).join('') || '?';
   const showRing = hpPercent !== null && hpPercent !== undefined && Number.isFinite(Number(hpPercent));
   const percent = showRing ? Math.max(0, Math.min(100, Number(hpPercent))) : 0;
@@ -55,7 +58,7 @@ export default function DisplayHexPortrait({ imageUrl, name, tone = 'cool', size
         </defs>
         <polygon className="rqk-display-hex__fill" points={POINTS} />
         {imageUrl && !failed ? (
-          <image href={imageUrl} x="-50" y="-58" width="100" height="116" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-clip)`} onError={() => setFailed(true)} />
+          <image href={imageUrl} x="-50" y="-58" width="100" height="116" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-clip)`} onError={() => setFailedUrl(imageUrl)} />
         ) : (
           <text className="rqk-display-hex__initials" x="0" y="2" textAnchor="middle" dominantBaseline="central">{initials}</text>
         )}
