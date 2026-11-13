@@ -4,7 +4,7 @@ import { srdTraitSummary, traitKey } from '@/data/srdTraitSummaries';
 const elf = {
   character_class: 'Wizard', level: 3, subclass: 'School of Evocation',
   race: 'Elf', subrace: 'High Elf', speed: 30, languages: ['Common', 'Elvish'],
-  feats: ['Alert', { name: 'Homebrew Grit', description: 'Our table\'s own feat.', level: 4 }],
+  feats: ['Grappler', { name: 'Homebrew Grit', description: 'Our table\'s own feat.', level: 4 }],
   background: 'Acolyte',
 };
 const snapshotRace = { name: 'Elf', speed: 30, size: 'Medium', traits: ['Darkvision 60ft', 'Keen Senses (Perception proficiency)', 'Fey Ancestry', 'Trance', 'Cantrip (Wizard list)'] };
@@ -40,7 +40,7 @@ describe('traitSections', () => {
   });
 
   it('describes SRD feats and keeps a homebrew feat\'s own text', () => {
-    expect(feats.items[0]).toMatchObject({ name: 'Alert', description: expect.stringMatching(/initiative/) });
+    expect(feats.items[0]).toMatchObject({ name: 'Grappler', description: expect.stringMatching(/grappl/) });
     expect(feats.items[1]).toEqual({ name: 'Homebrew Grit', tag: 'Level 4', description: 'Our table\'s own feat.' });
   });
 
@@ -53,6 +53,27 @@ describe('traitSections', () => {
     const [, species] = traitSections(elf, { snapshotRace, rulesEdition: '2024' });
     expect(species.label).toBe('Species');
     expect(species.items.find((item) => item.name === 'Keen Senses').description).toMatch(/Insight, Perception or Survival/);
+  });
+});
+
+describe('edition-specific rules text', () => {
+  it('gives a 2014 character the 2014 Grappler text, and no text for a 2024-only feat', () => {
+    const fighter = { character_class: 'Fighter', level: 4, feats: ['Grappler', 'Alert'] };
+    const [, , older] = traitSections(fighter, { rulesEdition: '2014' });
+    expect(older.items[0].description).toMatch(/pin a grappled creature/);
+    expect(older.items[1]).toEqual({ name: 'Alert', tag: '', description: '' });
+    const [, , newer] = traitSections(fighter, { rulesEdition: '2024' });
+    expect(newer.items[0].description).toMatch(/Unarmed Strike/);
+    expect(newer.items[1].description).toMatch(/initiative/);
+  });
+
+  it('does not promise a 2014 Human the 2024 Versatile origin feat', () => {
+    const human = { character_class: 'Fighter', level: 1, race: 'Human' };
+    const snapshotRace = { name: 'Human', traits: ['Extra Language', 'Versatile (feat in 2024)'] };
+    const [, race] = traitSections(human, { snapshotRace, rulesEdition: '2014' });
+    expect(race.items.find((item) => item.name === 'Versatile').description).toBe('');
+    const [, species] = traitSections(human, { snapshotRace, rulesEdition: '2024' });
+    expect(species.items.find((item) => item.name === 'Versatile').description).toMatch(/Origin feat/);
   });
 });
 

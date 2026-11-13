@@ -46,7 +46,8 @@ export const SRD_TRAIT_SUMMARIES = {
   'extra skill': 'You gain proficiency in one skill of your choice.',
   resourceful: 'You gain Heroic Inspiration whenever you finish a long rest.',
   skillful: 'You gain proficiency in one skill of your choice.',
-  versatile: 'You gain an Origin feat of your choice.',
+  // A 2024 Human trait; under the 2014 rules it grants nothing, so no summary.
+  versatile: { 2014: '', 2024: 'You gain an Origin feat of your choice.' },
 };
 
 /** The name a trait is filed under: lower case, without notes in brackets or ranges. */

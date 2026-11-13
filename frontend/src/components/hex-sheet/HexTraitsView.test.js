@@ -10,13 +10,13 @@ const dwarf = {
 };
 
 function show(props = {}) {
-  render(<HexTraitsView character={dwarf} classFeatureSummary={[{ name: 'Second Wind', level: 1, type: 'bonus', description: 'Regain hit points as a bonus action.' }]} rulesEdition="2014" {...props} />);
+  render(<HexTraitsView character={dwarf} classFeatureSummary={[{ name: 'Second Wind', level: 1, type: 'bonus', description: 'Regain hit points as a bonus action.' }]} rulesEdition="2024" {...props} />);
 }
 
 test('the wheel has Class, Race, Feats and Background, and starts on Class', () => {
   show();
   const wheel = screen.getByRole('radiogroup', { name: /^Traits/ });
-  expect(within(wheel).getAllByRole('radio').map((radio) => radio.getAttribute('aria-label'))).toEqual(['Class', 'Race', 'Feats', 'Background']);
+  expect(within(wheel).getAllByRole('radio').map((radio) => radio.getAttribute('aria-label'))).toEqual(['Class', 'Species', 'Feats', 'Background']);
   expect(screen.getByTestId('hex-trait-Second Wind')).toHaveTextContent('Level 1 · Bonus action');
 });
 

@@ -7,7 +7,7 @@
  * their choices, is shown: nothing is invented.
  */
 import { BACKGROUNDS } from '@/data/characterRules5e';
-import { FEATS } from '@/data/levelUpData';
+import { FEATS, featDescriptionForEdition } from '@/data/levelUpData';
 import { srdTraitSummary, traitKey } from '@/data/srdTraitSummaries';
 import { featureTypeLabel } from '@/components/clean-sheet/cleanSheetUtils';
 
@@ -85,14 +85,18 @@ function raceSection(character, snapshotRace = {}, edition) {
 
 const FEAT_INDEX = new Map(FEATS.flatMap((feat) => [feat.name, ...asList(feat.aliases)].map((name) => [traitKey(name), feat])));
 
-function featsSection(character) {
+function featsSection(character, edition) {
+  const ruleset = is2024(edition) ? '2024' : '2014';
   const items = asList(character.feats).map((feat) => {
     const name = text(typeof feat === 'string' ? feat : feat.name || feat.title || feat.label);
     if (!name) return null;
-    const known = FEAT_INDEX.get(traitKey(name));
+    // The built-in feat's text for this character's rules, and none for a
+    // feat those rules do not have (a 2024-only feat on a 2014 sheet).
+    const match = FEAT_INDEX.get(traitKey(name));
+    const known = match && (!asList(match.editions).length || match.editions.includes(ruleset)) ? match : null;
     const level = typeof feat === 'object' ? feat.level || feat.gained_at_level : '';
     const source = typeof feat === 'object' ? text(feat.source || feat.category) : '';
-    const description = (typeof feat === 'object' && text(feat.description || feat.desc || feat.summary || feat.text)) || text(known?.description);
+    const description = (typeof feat === 'object' && text(feat.description || feat.desc || feat.summary || feat.text)) || text(known ? featDescriptionForEdition(known, ruleset) : '');
     return { name, tag: [level ? `Level ${level}` : '', source && !/^srd/i.test(source) ? source : ''].filter(Boolean).join(' · '), description };
   }).filter(Boolean);
   return { id: 'feats', label: 'Feats', items, facts: [] };
@@ -122,7 +126,7 @@ export function traitSections(character = {}, { classFeatures = [], snapshotRace
   return [
     classSection(character, classFeatures),
     raceSection(character, snapshotRace, rulesEdition),
-    featsSection(character),
+    featsSection(character, rulesEdition),
     backgroundSection(character, rulesEdition),
   ];
 }
