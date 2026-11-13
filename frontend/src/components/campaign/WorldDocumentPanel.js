@@ -38,7 +38,7 @@ function initialSelection(drafts) {
  * is added until the GM ticks what to keep and saves; anything already in the
  * campaign starts unticked and is skipped on save, so uploading twice is safe.
  */
-export default function WorldDocumentPanel({ campaignId, onSaved }) {
+export default function WorldDocumentPanel({ campaignId, onSaved, blockedReason = '' }) {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState('');
   const [drafts, setDrafts] = useState(null);
@@ -82,7 +82,7 @@ export default function WorldDocumentPanel({ campaignId, onSaved }) {
   };
 
   const save = async () => {
-    if (!drafts) return;
+    if (!drafts || blockedReason) return;
     const payload = { overview: selection.overview ? drafts.overview : '', lore: selection.lore ? drafts.lore : '' };
     SECTIONS.forEach(({ key }) => {
       payload[key] = (drafts[key] || []).filter((_, index) => selection[`${key}:${index}`]);
@@ -162,9 +162,10 @@ export default function WorldDocumentPanel({ campaignId, onSaved }) {
               ))}
             </fieldset>
           ) : null))}
+          {blockedReason && <p className="rq-world-doc__blocked" role="status" data-testid="world-document-blocked">{blockedReason}</p>}
           <div className="rq-world-doc__actions">
             <button type="button" className="rq-world-doc__button" onClick={() => { setDrafts(null); setSelection({}); }} disabled={busy === 'save'}>Cancel</button>
-            <button type="button" className="rq-world-doc__button rq-world-doc__button--primary" onClick={save} disabled={busy === 'save' || chosenCount === 0} data-testid="world-document-save">
+            <button type="button" className="rq-world-doc__button rq-world-doc__button--primary" onClick={save} disabled={busy === 'save' || chosenCount === 0 || Boolean(blockedReason)} data-testid="world-document-save">
               {busy === 'save' ? 'Adding…' : `Add ${chosenCount} to campaign`}
             </button>
           </div>

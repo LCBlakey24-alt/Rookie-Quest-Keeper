@@ -65,4 +65,15 @@ describe('WorldDocumentPanel', () => {
     fireEvent.change(screen.getByTestId('world-document-file'), { target: { files: [file] } });
     expect(apiClient.post).not.toHaveBeenCalled();
   });
+
+  it('will not add drafts while World Notes has unsaved edits', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: drafts });
+    render(<WorldDocumentPanel campaignId="c1" blockedReason="Save your World Notes changes first." />);
+    upload();
+    await screen.findByTestId('world-document-review');
+    expect(screen.getByTestId('world-document-blocked')).toHaveTextContent('Save your World Notes changes first.');
+    expect(screen.getByTestId('world-document-save')).toBeDisabled();
+    fireEvent.click(screen.getByTestId('world-document-save'));
+    expect(apiClient.post).toHaveBeenCalledTimes(1);
+  });
 });

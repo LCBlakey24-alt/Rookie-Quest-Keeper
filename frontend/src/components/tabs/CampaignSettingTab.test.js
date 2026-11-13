@@ -9,6 +9,7 @@ jest.mock('@/lib/apiClient', () => ({
   default: {
     get: jest.fn(),
     put: jest.fn(),
+    post: jest.fn(),
   },
 }));
 
@@ -123,5 +124,24 @@ describe('CampaignSettingTab reliability', () => {
     expect(screen.getByLabelText('Public Overview')).toBeDisabled();
     expect(screen.getByLabelText('World tone')).not.toBeDisabled();
     expect(screen.getByTestId('campaign-setting-save')).toBeDisabled();
+  });
+
+  test('the world document import waits until edited notes are saved', async () => {
+    apiClient.get.mockResolvedValueOnce(settingResponse).mockResolvedValueOnce(worldResponse);
+    apiClient.put.mockResolvedValue({ data: {} });
+    apiClient.post.mockResolvedValueOnce({ data: { overview: '', lore: '', locations: [{ name: 'Gullhaven', exists: false }], npcs: [], factions: [], quests: [] } });
+    render(<CampaignSettingTab campaignId="campaign-1" />);
+    await waitFor(() => expect(screen.getByLabelText('Public Overview')).not.toBeDisabled());
+
+    fireEvent.change(screen.getByLabelText('Public Overview'), { target: { value: 'An edit not yet saved.' } });
+    const file = new File(['docx'], 'world.docx');
+    fireEvent.change(screen.getByTestId('world-document-file'), { target: { files: [file] } });
+    await screen.findByTestId('world-document-review');
+    expect(screen.getByTestId('world-document-blocked')).toBeInTheDocument();
+    expect(screen.getByTestId('world-document-save')).toBeDisabled();
+
+    fireEvent.click(screen.getByTestId('campaign-setting-save'));
+    await waitFor(() => expect(screen.queryByTestId('world-document-blocked')).not.toBeInTheDocument());
+    expect(screen.getByTestId('world-document-save')).not.toBeDisabled();
   });
 });

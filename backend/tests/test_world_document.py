@@ -169,3 +169,13 @@ def test_a_structured_world_setting_gets_the_text_under_import_parking():
     assert content.endswith('Old notes.\n\nLore & history\nBells under water.')
     assert content.count('## Import Parking') == 1
 
+
+
+def test_existing_world_notes_move_into_unsorted_notes_when_the_setting_is_structured():
+    # An unstructured setting shows the campaign's world notes as its Unsorted
+    # Notes; after the import structures it, they must still be there.
+    db = _Db()
+    db.campaigns.docs[0]['world_setting_notes'] = 'The GM\'s earlier rough notes.'
+    _save(db, {'lore': 'Bells under water.'})
+    parking = db.campaign_settings.docs[0]['content'].split('## Import Parking\n', 1)[1]
+    assert parking == "The GM's earlier rough notes.\n\nLore & history\nBells under water."

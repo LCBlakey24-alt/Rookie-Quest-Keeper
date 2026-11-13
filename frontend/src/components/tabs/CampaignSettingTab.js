@@ -74,6 +74,9 @@ export default function CampaignSettingTab({ campaignId }) {
   const loadRequestRef = useRef(0);
   const [overview, setOverview] = useState(emptyOverview);
   const [worldSetting, setWorldSetting] = useState('custom');
+  // Edits not yet saved: the world document import waits for these, because
+  // it reloads the notes afterwards and would otherwise discard them.
+  const [unsaved, setUnsaved] = useState(false);
   const [availableSettings, setAvailableSettings] = useState([]);
   const [settingLoaded, setSettingLoaded] = useState(false);
   const [worldLoaded, setWorldLoaded] = useState(false);
@@ -122,6 +125,7 @@ export default function CampaignSettingTab({ campaignId }) {
         return parseOverview(settingData.content, worldNotes);
       });
       setSettingLoaded(true);
+      setUnsaved(false);
     }
 
     if (worldOk) {
@@ -144,7 +148,10 @@ export default function CampaignSettingTab({ campaignId }) {
     return { ok: settingOk && worldOk, partial: settingOk || worldOk };
   };
 
-  const setField = (field, value) => setOverview(prev => ({ ...prev, [field]: value }));
+  const setField = (field, value) => {
+    setOverview(prev => ({ ...prev, [field]: value }));
+    setUnsaved(true);
+  };
 
   const saveOverview = async () => {
     if (!settingLoaded || !worldLoaded) {
@@ -158,6 +165,7 @@ export default function CampaignSettingTab({ campaignId }) {
         apiClient.put(`/campaigns/${campaignId}/setting`, { content: serializeOverview(overview) }),
         apiClient.put(`/campaigns/${campaignId}/world-setting`, { world_setting: worldSetting, world_setting_notes: serializeAIContext(overview) }),
       ]);
+      setUnsaved(false);
       toast.success('World notes saved');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save world notes');
@@ -188,7 +196,7 @@ export default function CampaignSettingTab({ campaignId }) {
       <header style={toolbarStyle}>
         <label style={toneStyle}>
           <span>World tone</span>
-          <select value={worldSetting} onChange={event => setWorldSetting(event.target.value)} style={inputStyle} disabled={!worldLoaded}>
+          <select value={worldSetting} onChange={event => { setWorldSetting(event.target.value); setUnsaved(true); }} style={inputStyle} disabled={!worldLoaded}>
             {settingOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
@@ -199,7 +207,7 @@ export default function CampaignSettingTab({ campaignId }) {
         </div>
       </header>
 
-      <WorldDocumentPanel campaignId={campaignId} onSaved={() => loadOverview()} />
+      <WorldDocumentPanel campaignId={campaignId} onSaved={() => loadOverview()} blockedReason={unsaved ? 'Save your World Notes changes first: adding these reloads the notes below.' : ''} />
 
       <div style={fieldGridStyle}>
         <OverviewField label="Public Overview" value={overview.publicOverview} onChange={value => setField('publicOverview', value)} placeholder="What can the players safely know about the campaign and world?" tall disabled={!settingLoaded} />

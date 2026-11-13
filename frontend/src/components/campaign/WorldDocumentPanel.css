@@ -30,3 +30,4 @@
 .rq-world-doc__item strong { font-size: 0.92rem; }
 .rq-world-doc__item small { color: var(--guild-muted, #c9d2e6); font-size: 0.8rem; overflow-wrap: anywhere; }
 .rq-world-doc__item.is-existing { opacity: 0.6; cursor: default; }
+.rq-world-doc__blocked { margin: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--rq-warning, #d9a441); color: var(--guild-text, #fff); font-size: 0.84rem; }

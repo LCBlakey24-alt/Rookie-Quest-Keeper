@@ -59,17 +59,21 @@ async def _setting_content(campaign_id: str) -> str:
 SETTING_SECTIONS = ['Public Overview', 'Current Situation', 'Tone & Themes', 'GM Truths & Secrets', 'Import Parking']
 
 
-def _with_import_parking(content: str, blocks: List[str]) -> str:
+def _with_import_parking(content: str, blocks: List[str], existing_notes: str = '') -> str:
     addition = '\n\n'.join(blocks)
     if '## Import Parking' in content:
         return f"{content.rstrip()}\n\n{addition}"
     structured = '## Public Overview' in content or '## Current Situation' in content
     if structured:
         return f"{content.rstrip()}\n\n## Import Parking\n{addition}"
-    # Unstructured text is what the tab shows as the Public Overview; keep it there.
+    # Unstructured text is what the tab shows as the Public Overview; keep it
+    # there. While the setting is unstructured, the tab shows the campaign's
+    # world notes as its Unsorted Notes; once it is structured it reads them
+    # from this section instead, so they are carried across ahead of the new text.
+    parking = '\n\n'.join(part for part in (existing_notes.strip(), addition) if part)
     parts = ['# World Overview', '']
     for title in SETTING_SECTIONS:
-        body = content.strip() if title == 'Public Overview' else addition if title == 'Import Parking' else ''
+        body = content.strip() if title == 'Public Overview' else parking if title == 'Import Parking' else ''
         parts.extend([f'## {title}', body, ''])
     return '\n'.join(parts).rstrip()
 
@@ -223,7 +227,9 @@ async def save_world_document(campaign_id: str, payload: WorldDocumentSave, user
             continue
         added.append(block)
     if added:
-        new_content = _with_import_parking(content, added)
+        campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'world_setting_notes': 1}) or {}
+        notes = campaign.get('world_setting_notes')
+        new_content = _with_import_parking(content, added, notes if isinstance(notes, str) else '')
         await db.campaign_settings.update_one(
             {'campaign_id': campaign_id},
             {'$set': {'content': new_content}, '$setOnInsert': {'campaign_id': campaign_id, 'id': str(uuid4()), 'created_at': now_iso(), 'dm_rules': ''}},
