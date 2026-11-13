@@ -53,6 +53,9 @@
   color: var(--hex-text);
   font-family: var(--rq-font-sans, Inter, system-ui, sans-serif);
   overflow-x: hidden;
+  /* Its own stacking context, so the turning hexagons (z-index -1) sit
+     above this background and below everything on the sheet. */
+  isolation: isolate;
 }
 .hex-sheet *, .hex-sheet *::before, .hex-sheet *::after { box-sizing: border-box; }
 
@@ -741,3 +744,5 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 .hex-traits__more { justify-self: center; }
 /* Trait names are text, not buttons to look at: no pressed tint. */
 #root .hex-sheet .hex-trait__name { --rq-fill-color: transparent; }
+/* The turning hexagons behind the sheet take the chosen theme's colour. */
+.hex-sheet > .rq-hex-backdrop .rq-hex-backdrop__hex :is(polygon, circle) { stroke: rgb(var(--hex-glow-rgb)); }
