@@ -5,9 +5,11 @@ import D20Glyph from '@/components/guild-motif/D20Glyph';
 import { INNER_RADIUS, OUTER_RADIUS, hexVertices, pointsAttribute, wheelViewBox } from './hexGeometry';
 import { DRAG_THRESHOLD_DEGREES, angleStep, pointerAngle } from './hpDial';
 import { playDialTick } from './dialSound';
-import { SPIN_STEP, rotationForSector, sectorAtTop, sectorLabelPoint, sectorPolygon, settleRotation } from './spinWheel';
+import { SPIN_STEP, rotationForSector, sectorAtTop, sectorLabelPoint, sectorPolygon } from './spinWheel';
+import { GLIDE_EASING, addSpinSample, glideDuration, releaseVelocity, spinTarget, startSpinSamples } from '@/components/guild-motif/wheelSpin';
 
 const CENTRE_RADIUS = INNER_RADIUS - 4;
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
 function buzz() {
   try { navigator.vibrate?.(6); } catch { /* not supported */ }
@@ -26,6 +28,7 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
   const index = Math.max(0, sectors.findIndex((sector) => sector.id === value));
   const [rotation, setRotation] = useState(() => rotationForSector(index));
   const [dragging, setDragging] = useState(false);
+  const [glideMs, setGlideMs] = useState(0);
   const svgRef = useRef(null);
   const drag = useRef(null);
   const rotationRef = useRef(rotation);
@@ -59,13 +62,18 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
 
   const onPointerDown = (event) => {
     if (event.button > 0 || event.target.closest('[data-spin-centre]')) return;
+    // Only a touch on a wedge turns the wheel, not one near it.
+    const sector = event.target.closest('[data-sector]')?.getAttribute('data-sector');
+    if (sector === undefined || sector === null) return;
+    setGlideMs(0);
     const [cx, cy] = centreOf();
     drag.current = {
       pointerId: event.pointerId,
       last: pointerAngle(event.clientX, event.clientY, cx, cy),
       start: rotationRef.current,
       travelled: 0,
-      sector: event.target.closest('[data-sector]')?.getAttribute('data-sector'),
+      sector,
+      samples: startSpinSamples(clock(), rotationRef.current),
     };
   };
 
@@ -82,6 +90,7 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
       setDragging(true);
     }
     turnTo(state.start + state.travelled);
+    state.samples = addSpinSample(state.samples, clock(), rotationRef.current);
   };
 
   const onPointerUp = (event) => {
@@ -91,7 +100,9 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
     if (dragging) {
       svgRef.current.releasePointerCapture?.(event.pointerId);
       setDragging(false);
-      const settled = settleRotation(rotationRef.current);
+      // Carry on with the flick's speed, then lock on the wedge it stops at.
+      const settled = spinTarget(rotationRef.current, state.start, releaseVelocity(state.samples, clock()), SPIN_STEP);
+      setGlideMs(glideDuration(rotationRef.current, settled));
       settleOn(sectorAtTop(settled), settled);
       return;
     }
@@ -128,7 +139,7 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
     >
       <GlowFilter id={filterId} />
       <polygon className="hex-wheel__frame" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} aria-hidden="true" />
-      <g className="hex-spin__rotor" style={{ transform: `rotate(${rotation}deg)` }}>
+      <g className="hex-spin__rotor" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
         {sectors.map((sector, sectorIndex) => {
           const [lx, ly] = sectorLabelPoint(sectorIndex, 62);
           const chosen = sectorIndex === index && !dragging;

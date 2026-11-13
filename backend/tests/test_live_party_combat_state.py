@@ -267,3 +267,12 @@ def test_a_stranger_with_a_matching_campaign_id_is_not_admitted():
 
     rows = asyncio.run(live_party.build_live_party_rows('spilsby', database))
     assert rows == []
+
+
+def test_party_rows_carry_the_portrait_whichever_field_it_was_saved_under():
+    sheet = live_party_utils._character_row({'id': 'c1', 'name': 'Ash', 'max_hit_points': 20, 'image_url': ' https://img.example/ash.png '}, {'id': 'm1'})
+    legacy = live_party_utils._legacy_row({'id': 'p1', 'name': 'Quill', 'portrait_url': 'https://img.example/quill.png'})
+    bare = live_party_utils._character_row({'id': 'c2', 'name': 'Tuck', 'max_hit_points': 20}, {'id': 'm2'})
+    assert sheet['portrait_url'] == 'https://img.example/ash.png'
+    assert legacy['portrait_url'] == 'https://img.example/quill.png'
+    assert bare['portrait_url'] == ''
