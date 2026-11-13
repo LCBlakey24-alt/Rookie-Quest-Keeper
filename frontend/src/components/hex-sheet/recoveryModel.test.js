@@ -1,4 +1,4 @@
-import { deathSavePipUpdates, deathSaveUpdates, hitDieBlocker, hitDieUpdates, recoveryState } from './recoveryModel';
+import { deathSavePipUpdates, deathSaveResultStyle, deathSaveUpdates, hitDieBlocker, hitDieUpdates, recoveryState } from './recoveryModel';
 
 const fighter = { level: 5, hit_dice: '5d10', hit_dice_remaining: 3, constitution: 14, max_hit_points: 44, current_hit_points: 20 };
 
@@ -56,3 +56,19 @@ describe('death saves', () => {
     expect(deathSavePipUpdates(dying, 'failure', 1)).toEqual({ death_saves_failures: 0 });
   });
 });
+
+describe('death saves in the dice tray and after healing', () => {
+  test('a pass is green and a fail is red, whatever the natural roll', () => {
+    expect(deathSaveResultStyle(10)).toEqual({ tone: 'success', caption: 'Pass' });
+    expect(deathSaveResultStyle(20).tone).toBe('success');
+    expect(deathSaveResultStyle(9)).toEqual({ tone: 'failure', caption: 'Fail' });
+    expect(deathSaveResultStyle(1).tone).toBe('failure');
+  });
+
+  test('a Hit Die that brings the character above 0 HP clears the death saves', () => {
+    const dying = recoveryState({ ...fighter, current_hit_points: 0, death_saves_successes: 2, death_saves_failures: 1 });
+    expect(hitDieUpdates(dying, 6).updates).toMatchObject({ death_saves_successes: 0, death_saves_failures: 0 });
+    expect(hitDieUpdates(recoveryState(fighter), 6).updates).not.toHaveProperty('death_saves_successes');
+  });
+});
+

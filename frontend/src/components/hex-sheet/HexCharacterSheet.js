@@ -22,7 +22,7 @@ import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModif
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexRecovery from './HexRecovery';
-import { deathSaveUpdates, hitDieBlocker, hitDieUpdates, recoveryState } from './recoveryModel';
+import { deathSavePipUpdates, deathSaveResultStyle, deathSaveUpdates, hitDieBlocker, hitDieUpdates, recoveryState } from './recoveryModel';
 import HexPortrait from './HexPortrait';
 import HexSkillDial from './HexSkillDial';
 import HexSpinWheel from './HexSpinWheel';
@@ -74,7 +74,7 @@ export const DICE_CHOICES = [4, 6, 8, 10, 12, 20, 100];
 export const MAX_DICE = 10;
 
 const SECTION_TITLES = Object.fromEntries(MAIN_SECTIONS.map((section) => [section.id, section.label]));
-const VIEW_TITLES = { main: 'Character', core: 'Core Abilities', dice: 'Dice', hp: 'Hit Points', ...SECTION_TITLES };
+const VIEW_TITLES = { main: 'Character', core: 'Core Abilities', dice: 'Dice', hp: 'Hit Points', death: 'Death Saves', ...SECTION_TITLES };
 
 function viewTitle(entry, rows) {
   if (entry.view === 'roll') return rows.find((row) => row.key === entry.ability)?.name || 'Roll';
@@ -221,6 +221,12 @@ export default function HexCharacterSheet() {
    * Resolves true only once the server has accepted it.
    */
   const confirmHp = async (target, delta, adjustment) => {
+    // A rest is replacing HP on the server; a dial save worked out from the
+    // HP before the rest would undo it when it lands.
+    if (recovering) {
+      toast.info('Finishing the rest first. Try again in a moment.');
+      return false;
+    }
     const saved = await queueRef.current.patch(adjustment.updates, {
       error: target === 'temp' ? 'Could not save temporary HP' : 'Could not save HP',
     });
@@ -284,7 +290,11 @@ export default function HexCharacterSheet() {
   };
   const rollDeathSave = async () => {
     if (!character || recovering) return;
-    const result = rollCheck('Death Save', 0);
+    // A pass shows green in the dice tray and a fail red, captioned instead
+    // of the meaningless "d20 + 0" sum.
+    const result = rollD20(0, { mode: 'normal', label: 'Death Save' });
+    const style = deathSaveResultStyle(result.d20);
+    present({ label: 'Death Save', rolls: result.rolls, modifier: 0, total: result.total, d20: result.d20, sides: 20, tone: style.tone, caption: style.caption });
     const outcome = deathSaveUpdates(recoveryState(character), result.d20);
     setRecovering(true);
     await queueRef.current.patch(outcome.updates, { success: outcome.message, error: 'Could not save the death save' });
@@ -399,6 +409,52 @@ export default function HexCharacterSheet() {
         onSave={(updates, options) => queueRef.current.patch(updates, options)}
       />
     ) : null;
+  } else if (current.view === 'death' && character) {
+    // Death saves on the sheet's own wheel: passes on the right and fails on
+    // the left, each filling from the top wedge down; the centre rolls.
+    const state = recoveryState(character);
+    const tap = (type, index) => {
+      if (recovering) return;
+      queueRef.current.patch(deathSavePipUpdates(state, type, index), { error: 'Could not update death saves' });
+    };
+    const wedge = (type, index, slot) => {
+      const count = type === 'success' ? state.successes : state.failures;
+      const marked = count >= index;
+      const word = type === 'success' ? 'Pass' : 'Fail';
+      return {
+        id: `death-${type}-${index}`,
+        slot,
+        label: word,
+        edgeLabel: word,
+        value: marked ? (type === 'success' ? '✓' : '✗') : String(index),
+        className: `hex-death-wedge hex-death-wedge--${type}${marked ? ' is-marked' : ''}`,
+        pressed: marked,
+        ariaLabel: `${word} ${index} of 3${marked ? ', marked' : ''}`,
+        disabled: recovering,
+        onSelect: () => tap(type, index),
+      };
+    };
+    wheel = (
+      <HexWheel
+        viewKey="death"
+        variant="stat"
+        label="Death saves"
+        wedges={[
+          wedge('success', 1, SLOT.UPPER_RIGHT),
+          wedge('success', 2, SLOT.RIGHT),
+          wedge('success', 3, SLOT.LOWER_RIGHT),
+          wedge('failure', 1, SLOT.UPPER_LEFT),
+          wedge('failure', 2, SLOT.LEFT),
+          wedge('failure', 3, SLOT.LOWER_LEFT),
+        ]}
+        centre={{
+          label: 'Roll',
+          sublabel: 'DEATH SAVE',
+          ariaLabel: 'Roll a death save',
+          onSelect: () => { if (!(state.dead || state.stable || state.currentHp > 0)) rollDeathSave(); },
+        }}
+      />
+    );
   } else if (current.view === 'hp') {
     wheel = <HexHpDial character={character} initialTarget={current.target || 'hp'} onConfirm={confirmHp} onCancel={back} />;
   } else if (current.view === 'dice') {
@@ -511,9 +567,33 @@ export default function HexCharacterSheet() {
             busy={recovering}
             onRest={rest}
             onSpendHitDie={spendHitDie}
-            onRollDeathSave={rollDeathSave}
-            onPatch={(updates, options) => queueRef.current.patch(updates, options)}
+            onOpenDeathSaves={() => push({ view: 'death' })}
           />
+        )}
+        {current.view === 'death' && character && (() => {
+          const state = recoveryState(character);
+          return (
+            <div className="hex-death" data-testid="hex-death-saves">
+              <p className="hex-death__status" aria-live="polite">
+                {state.dead ? 'Three fails: your character has died.' : state.stable ? 'Three passes: stable at 0 HP.' : state.currentHp <= 0 ? 'Dying: roll a death save each turn.' : 'Back on your feet. These saves are still marked.'}
+              </p>
+              <button
+                type="button"
+                className="hex-sheet__text-button"
+                disabled={recovering}
+                onClick={() => queueRef.current.patch({ death_saves_successes: 0, death_saves_failures: 0 }, { success: 'Death saves cleared', error: 'Could not clear death saves' })}
+                data-testid="hex-clear-death-saves"
+              >
+                Clear death saves
+              </button>
+            </div>
+          );
+        })()}
+        {current.view === 'main' && character && recoveryState(character).showDeathSaves && (
+          <button type="button" className="hex-sheet__death-link" onClick={() => push({ view: 'death' })} data-testid="hex-main-death-saves">
+            <span className="hex-glass" aria-hidden="true" />
+            {recoveryState(character).currentHp <= 0 ? 'Dying: death saves' : 'Death saves'}
+          </button>
         )}
         {rollRow && (
           <div className="hex-sheet__choice" ref={choiceRef} role="group" aria-label={`${rollRow.name} roll`} data-testid="hex-roll-choice">
@@ -682,6 +762,8 @@ export default function HexCharacterSheet() {
           total={rollBurst.total}
           isCrit={rollBurst.sides === 20 && rollBurst.d20 === 20}
           isFumble={rollBurst.sides === 20 && rollBurst.d20 === 1}
+          resultTone={rollBurst.tone}
+          resultCaption={rollBurst.caption}
           theme="player"
           shape="hex"
           anchorSelector=".hex-sheet__wheel-area svg[data-hex-radius]"

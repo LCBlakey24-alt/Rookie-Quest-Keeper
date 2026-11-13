@@ -94,6 +94,9 @@ export default function DiceRollFlicker({
   // Replaces the "dice + modifier = total" line under the result, for a
   // throw that is ceremony rather than arithmetic (the level-up reveal).
   resultCaption,
+  // 'success' or 'failure' colours the result green or red, for a roll whose
+  // number is a pass or a fail (a death save).
+  resultTone,
 }) {
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
@@ -286,6 +289,7 @@ export default function DiceRollFlicker({
       isCrit={finalCrit}
       isFumble={finalFumble}
       isFixedDamage={isFixedDamage}
+      resultTone={resultTone}
       onRevealNow={() => setShowTotal(true)}
       onClose={() => onCloseRef.current?.()}
       shape={shape}

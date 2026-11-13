@@ -688,40 +688,31 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 .hex-recovery__button small { font-size: 0.78rem; font-weight: 500; color: var(--hex-muted); }
 .hex-recovery__hint, .hex-recovery__status { margin: 0; text-align: center; font-size: 0.82rem; color: var(--hex-muted); }
 .hex-recovery__status { color: var(--hex-text); font-weight: 600; }
-.hex-recovery__death {
-  display: grid; gap: 8px; padding: 10px; border-radius: 12px;
-  border: 1px solid var(--hex-line); box-shadow: var(--hex-glow);
-}
-.hex-recovery__wheel-labels { display: flex; justify-content: space-between; width: min(100%, 300px); margin: 0 auto; font-size: 0.82rem; color: var(--hex-muted); }
-.hex-recovery__label--success { color: var(--rq-success, #5FA67A); }
-.hex-recovery__label--failure { color: var(--rq-danger, #B94A4F); }
-.hex-recovery__wheel { position: relative; width: 240px; max-width: 100%; height: 240px; margin: 0 auto; justify-self: center; }
-.hex-recovery__svg { display: block; width: 100% !important; height: 100% !important; overflow: visible; }
-.hex-recovery__wedge { cursor: pointer; outline: none; }
-.hex-recovery__wedge polygon {
-  fill: rgba(var(--hex-muted-rgb), 0.16);
-  stroke: var(--hex-orange-soft); stroke-width: 1.2; stroke-linejoin: round;
-  transition: fill 160ms ease, stroke 160ms ease;
-}
-.hex-recovery__wedge:hover polygon { stroke: var(--hex-orange); }
-.hex-recovery__wedge:focus-visible polygon { stroke: var(--hex-orange); stroke-width: 2.4; }
-/* Status colours stay semantic: successes green, failures red. */
-.hex-recovery__wedge--success.is-marked polygon { fill: var(--rq-success, #5FA67A); stroke: var(--rq-success, #5FA67A); }
-.hex-recovery__wedge--failure.is-marked polygon { fill: var(--rq-danger, #B94A4F); stroke: var(--rq-danger, #B94A4F); }
-.hex-recovery__wedge[aria-disabled='true'] { cursor: default; opacity: 0.6; }
-.hex-recovery__centre-edge { fill: none; stroke: var(--hex-orange); stroke-width: 1.6; filter: drop-shadow(0 0 4px rgba(var(--hex-glow-rgb), 0.6)); pointer-events: none; }
-/* The centre hexagon is a real button laid over the wheel's middle. */
-.hex-sheet .hex-recovery__roll {
+
+/* Death saves --------------------------------------------------------------
+   The Death Saves view is the sheet's own wheel (HexWheel, stat layout):
+   passes on the right, fails on the left, each filling from the top wedge.
+   A marked wedge fills with the status colour (green pass, red fail); status
+   colours stay semantic. */
+.hex-death-wedge--success .hex-wheel__edge-label { fill: var(--rq-success, #5FA67A); }
+.hex-death-wedge--failure .hex-wheel__edge-label { fill: var(--rq-danger, #B94A4F); }
+.hex-death-wedge.is-marked .hex-glow__fill { fill-opacity: 1; }
+.hex-death-wedge--success.is-marked .hex-glow__fill { fill: var(--rq-success, #5FA67A); }
+.hex-death-wedge--failure.is-marked .hex-glow__fill { fill: var(--rq-danger, #B94A4F); }
+.hex-death-wedge--success.is-marked .hex-glow__edge { stroke: var(--rq-success, #5FA67A); stroke-opacity: 1; }
+.hex-death-wedge--failure.is-marked .hex-glow__edge { stroke: var(--rq-danger, #B94A4F); stroke-opacity: 1; }
+.hex-death-wedge.is-marked .hex-wheel__edge-label,
+.hex-death-wedge.is-marked .hex-wheel__value { fill: #fff; }
+.hex-death { display: grid; justify-items: center; gap: 6px; width: min(100%, 520px); }
+.hex-death__status { margin: 0; text-align: center; font-weight: 600; color: var(--hex-text); }
+.hex-recovery__count--success { color: var(--rq-success, #5FA67A); }
+.hex-recovery__count--failure { color: var(--rq-danger, #B94A4F); }
+/* At 0 HP the way in to the death saves takes the warm edge. */
+.hex-sheet .hex-recovery__death-link.is-urgent { border-color: var(--hex-orange) !important; }
+.hex-sheet .hex-sheet__death-link {
   --rq-control-blue: transparent;
-  position: absolute !important; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 76px; height: 88px; min-width: 0; min-height: 0; padding: 0;
-  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  border: 0 !important; background: rgba(var(--hex-glow-rgb), 0.16) !important; box-shadow: none !important;
-  color: var(--hex-text); font: inherit; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+  min-height: 48px; padding: 0 22px; border-radius: 999px;
+  border: 1px solid var(--hex-orange) !important; background: transparent; box-shadow: var(--hex-glow-strong);
+  color: var(--hex-text); font: inherit; font-weight: 700; cursor: pointer;
 }
-.hex-recovery__roll span { font-family: var(--hex-title-font); font-weight: 700; font-size: 1.05rem; }
-.hex-recovery__roll small { font-size: 0.68rem; color: var(--hex-muted); }
-.hex-sheet .hex-recovery__roll:disabled { opacity: 0.5; cursor: default; }
-.hex-sheet .hex-recovery__roll:focus-visible { outline: none; background: rgba(var(--hex-glow-rgb), 0.32) !important; }
-.hex-recovery__clear { justify-self: center; }
+

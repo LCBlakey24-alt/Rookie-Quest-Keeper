@@ -52,11 +52,13 @@ export function hitDieUpdates(state, die) {
   const minimum = state.edition === '2024' ? 1 : 0;
   const healed = Math.max(minimum, Number(die) + state.conMod);
   const nextHp = Math.min(state.maxHp, state.currentHp + healed);
-  return {
-    healed: nextHp - state.currentHp,
-    total: healed,
-    updates: { current_hit_points: nextHp, hit_dice_remaining: Math.max(0, state.hitDiceRemaining - 1) },
-  };
+  const updates = { current_hit_points: nextHp, hit_dice_remaining: Math.max(0, state.hitDiceRemaining - 1) };
+  // Back above 0 HP: the death saves start fresh, as healing on the HP dial does.
+  if (nextHp > 0 && (state.successes > 0 || state.failures > 0)) {
+    updates.death_saves_successes = 0;
+    updates.death_saves_failures = 0;
+  }
+  return { healed: nextHp - state.currentHp, total: healed, updates };
 }
 
 /** The save and message for a death save that rolled a natural `d20`. */
@@ -78,6 +80,17 @@ export function deathSaveUpdates(state, d20) {
   }
   const failures = Math.min(3, state.failures + 1);
   return { updates: { death_saves_failures: failures }, message: failures >= 3 ? 'Three failures. Your character has died.' : 'Death save failure marked.' };
+}
+
+/**
+ * How the dice tray shows a death save: a pass (10 or more) in green, a fail
+ * in red, with a short caption in place of the "d20 + 0" sum.
+ */
+export function deathSaveResultStyle(d20) {
+  const roll = Number(d20);
+  if (roll === 20) return { tone: 'success', caption: 'Natural 20: back up with 1 HP' };
+  if (roll === 1) return { tone: 'failure', caption: 'Natural 1: two fails' };
+  return roll >= 10 ? { tone: 'success', caption: 'Pass' } : { tone: 'failure', caption: 'Fail' };
 }
 
 /** Tapping the nth pip (1-3) sets the count to n, or clears it back to n-1. */
