@@ -605,6 +605,15 @@ describe('rest and recovery under the hit-point dial', () => {
     expect(apiClient.post).toHaveBeenCalledWith('/characters/char-long-rest/long-rest');
   });
 
+  test('a long rest at 0 HP is refused with the reason, and nothing is sent', async () => {
+    const hero = { ...PUNCH, id: 'char-down', current_hit_points: 0, death_saves_failures: 1 };
+    await openHp(hero);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/at least 1 HP at the start of a Long Rest/));
+  });
+
   test('a short rest uses the server rest route straight away', async () => {
     const hero = { ...PUNCH, id: 'char-short-rest' };
     apiClient.post.mockResolvedValue({ data: hero });
