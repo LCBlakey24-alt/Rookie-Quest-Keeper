@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, Settings, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
@@ -99,6 +99,11 @@ export default function HexCharacterSheet() {
   const { characterId } = useParams();
   const navigate = useNavigate();
   const [character, setCharacter] = useState(null);
+  // The sheet's latest character, for an Undo pressed after the view that
+  // offered it has closed (its own copy stops updating then).
+  const latestCharacterRef = useRef(null);
+  latestCharacterRef.current = character;
+  const latestCharacter = useCallback(() => latestCharacterRef.current, []);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [stack, setStack] = useState([{ view: 'main' }]);
@@ -629,6 +634,7 @@ export default function HexCharacterSheet() {
         {current.view === 'combat' && character && (
           <section className="hex-combat-list" aria-label={viewTitle(current, rows)} data-testid="hex-combat-list">
             <CleanCombatTab
+              getLatestCharacter={latestCharacter}
               character={character}
               proficiencyBonus={proficiencyBonusFor(character)}
               section={COMBAT_GROUPS.find((group) => group.id === current.group)?.sections || ['action', 'other']}
@@ -640,6 +646,7 @@ export default function HexCharacterSheet() {
         )}
         {current.view === 'magic' && character && (
           <HexMagicView
+            getLatestCharacter={latestCharacter}
             character={character}
             proficiencyBonus={proficiencyBonusFor(character)}
             onRollAttack={rollCheck}
