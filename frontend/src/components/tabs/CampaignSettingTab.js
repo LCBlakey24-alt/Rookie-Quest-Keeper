@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import HexLoader from '@/components/guild-motif/HexLoader';
+import WorldDocumentPanel from '@/components/campaign/WorldDocumentPanel';
 
 const WORLD_SETTINGS = [
   ['custom', 'Custom setting'], ['high_fantasy', 'High fantasy'], ['classic_fantasy', 'Classic fantasy'],
@@ -197,6 +198,8 @@ export default function CampaignSettingTab({ campaignId }) {
           <Button type="button" onClick={saveOverview} disabled={saveBlocked} style={primaryButtonStyle} data-testid="campaign-setting-save"><Save size={14} /> {saving ? 'Saving…' : 'Save'}</Button>
         </div>
       </header>
+
+      <WorldDocumentPanel campaignId={campaignId} onSaved={() => loadOverview()} />
 
       <div style={fieldGridStyle}>
         <OverviewField label="Public Overview" value={overview.publicOverview} onChange={value => setField('publicOverview', value)} placeholder="What can the players safely know about the campaign and world?" tall disabled={!settingLoaded} />

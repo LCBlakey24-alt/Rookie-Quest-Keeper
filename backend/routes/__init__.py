@@ -66,6 +66,7 @@ from routes.player_handout_summary import router as player_handout_summary_route
 from routes.handouts import router as handouts_router
 from routes.story_arcs import router as story_arcs_router
 from routes.quests import router as quests_router
+from routes.world_document import router as world_document_router
 from routes.roll_events import router as roll_events_router
 
 # Focused routes own these modern implementations while the remainder of each
@@ -184,5 +185,6 @@ all_routers = [
     handouts_router,
     story_arcs_router,
     quests_router,
+    world_document_router,
     roll_events_router,
 ]
