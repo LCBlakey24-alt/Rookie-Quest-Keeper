@@ -289,3 +289,77 @@
   .rqk-player-display__npc-info h2 { padding-bottom: 0; }
   .rqk-player-display__npc-info h2::after { display: none; }
 }
+
+/* Hexagon portraits (DisplayHexPortrait.js) ------------------------------- */
+.rqk-display-hex { display: inline-block; flex: none; line-height: 0; }
+.rqk-display-hex svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.rqk-display-hex__fill { fill: var(--guild-bg, #0a2342); }
+.rqk-display-hex__initials { fill: var(--guild-text, #fff); font-family: var(--guild-font-display, 'Cinzel', serif); font-weight: 700; font-size: 34px; }
+.rqk-display-hex__edge { fill: none; stroke-width: 2.6; stroke-linejoin: round; }
+/* The glow sits inside the shape: a wide soft band clipped to the hexagon. */
+.rqk-display-hex__glow { fill: none; stroke-width: 12; opacity: 0.32; stroke-linejoin: round; }
+.rqk-display-hex--cool .rqk-display-hex__stop-1 { stop-color: var(--guild-c1, #ff3d8b); }
+.rqk-display-hex--cool .rqk-display-hex__stop-2 { stop-color: var(--guild-c2, #b04dff); }
+.rqk-display-hex--cool .rqk-display-hex__stop-3 { stop-color: var(--guild-c3, #4fb3ff); }
+.rqk-display-hex--hot .rqk-display-hex__stop-1 { stop-color: var(--guild-h1, #ffb066); }
+.rqk-display-hex--hot .rqk-display-hex__stop-2 { stop-color: var(--guild-h2, #ff5fa0); }
+.rqk-display-hex--hot .rqk-display-hex__stop-3 { stop-color: var(--guild-h3, #ffd27a); }
+.rqk-display-hex--hot .rqk-display-hex__glow { opacity: 0.55; }
+.rqk-display-hex--danger .rqk-display-hex__stop-1,
+.rqk-display-hex--danger .rqk-display-hex__stop-2,
+.rqk-display-hex--danger .rqk-display-hex__stop-3 { stop-color: var(--rq-danger, #B94A4F); }
+.rqk-display-hex__ring-track { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 4; stroke-linejoin: round; }
+.rqk-display-hex__ring { fill: none; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; transition: stroke-dasharray 400ms ease; }
+.rqk-display-hex__ring--healthy { stroke: var(--rq-success, #5FA67A); }
+.rqk-display-hex__ring--hurt { stroke: #d9a441; }
+.rqk-display-hex__ring--bloodied { stroke: var(--rq-danger, #B94A4F); }
+.rqk-display-hex__ring--down { stroke: transparent; }
+@media (prefers-reduced-motion: reduce) { .rqk-display-hex__ring { transition: none; } }
+
+/* The player display in the approved look: Neon Coast on a Dusk sky
+   (DESIGN_SYSTEM §3). The page's inline styles read the shared --rq-*
+   variables, so pointing those at the guild tokens here re-themes the whole
+   display: the dusk sky behind everything, deep-blue panels with a thin edge
+   and the glow inside, white Cinzel headings, and the warm peach accent in
+   place of the old orange. Status colours (HP, danger) stay semantic. */
+.rqk-player-display {
+  --guild-bg-rgb: 10, 35, 66; /* #0a2342, for translucent panels */
+  --rq-bg-main: transparent;
+  --rq-bg-deep: transparent;
+  --rq-bg-panel: var(--guild-bg, #0a2342);
+  --rq-card: var(--guild-bg, #0a2342);
+  --rq-primary: var(--guild-hi, #ffb066);
+  --rq-accent-soft: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.12);
+  --rq-line: var(--guild-line, rgba(176, 77, 255, 0.45));
+  --rq-line-strong: rgba(var(--guild-hi-rgb, 255, 176, 102), 0.55);
+  --rq-text-primary: var(--guild-text, #fff);
+  --rq-text-secondary: var(--guild-muted, #c9d2e6);
+  --rq-font-display: var(--guild-font-display, 'Cinzel', serif);
+  --rq-body-font: var(--guild-font-body, 'Inter', system-ui, sans-serif);
+  background: var(--guild-sky, #0a2342) !important;
+}
+
+/* Panels: rounded, a thin edge, the glow inside. */
+.rqk-player-display :is(.rqk-player-display__party, .rqk-player-display__combat-roster, .rqk-player-display__status, .rqk-player-display__title-plate, .rqk-player-display__npc-card) {
+  background: rgba(var(--guild-bg-rgb, 10, 35, 66), 0.86) !important;
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45)) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--guild-box-glow, inset 0 0 18px rgba(176, 77, 255, 0.25)) !important;
+}
+.rqk-player-display .rqk-player-display__status { border-radius: 12px !important; }
+.rqk-player-display .rqk-player-display__title-plate h1 { font-family: var(--guild-font-display, 'Cinzel', serif) !important; }
+
+/* Party and combat cards: the hexagon portrait carries health, so the old
+   coloured left stripe becomes the same thin edge; the current turn takes
+   the warm edge and glow. */
+.rqk-player-display .rqk-display-card {
+  border: 1px solid var(--guild-line, rgba(176, 77, 255, 0.45)) !important;
+  border-radius: 14px !important;
+  background: rgba(var(--guild-bg-rgb, 10, 35, 66), 0.92) !important;
+  box-shadow: var(--guild-box-glow, inset 0 0 14px rgba(176, 77, 255, 0.2)) !important;
+}
+.rqk-player-display .rqk-display-card.is-active {
+  border-color: var(--guild-line-hot, rgba(255, 176, 102, 0.85)) !important;
+  box-shadow: var(--guild-box-glow-hot, inset 0 0 18px rgba(255, 95, 160, 0.3)) !important;
+}
+.rqk-player-display .rqk-display-card strong { font-family: var(--guild-font-display, 'Cinzel', serif); }

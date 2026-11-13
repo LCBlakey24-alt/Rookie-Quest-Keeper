@@ -6,6 +6,7 @@ import { currentDisplayAccount, loadDisplayState, subscribeDisplayState, subscri
 import { AUTH_TOKEN_KEY } from '@/lib/auth';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
+import DisplayHexPortrait from '@/components/gm/DisplayHexPortrait';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
 import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
 import { rollActorDisplayName } from '@/lib/rollActorLabels';
@@ -321,8 +322,8 @@ function PartyCard({ member }) {
   const hpPercent = Number.isFinite(Number(member.hpPercent)) ? Number(member.hpPercent) : member.maxHp ? Math.max(0, Math.min(100, Math.round((Number(member.hp || 0) / Number(member.maxHp || 1)) * 100))) : 0;
   const initLabel = member.initiativeLabel || signed(member.initiative);
   return (
-    <article style={partyCardStyle(member.hpStatus)}>
-      <div style={portraitStyle}>{member.imageUrl ? <img src={member.imageUrl} alt={member.name} style={portraitImageStyle} /> : <span>{String(member.name || '?').slice(0, 1).toUpperCase()}</span>}</div>
+    <article className="rqk-display-card" data-health={member.hpStatus || 'healthy'} style={partyCardStyle(member.hpStatus)}>
+      <DisplayHexPortrait imageUrl={member.imageUrl} name={member.name} tone="cool" size={52} hpPercent={hpPercent} hpStatus={member.hpStatus} />
       <div style={partyInfoStyle}>
         <div style={partyNameRowStyle}><strong>{member.name || 'Unknown Hero'}</strong><span>Lv {member.level || 1}</span></div>
         <p style={partySubStyle}>{member.className || 'Adventurer'}{member.race ? ` · ${member.race}` : ''}</p>
@@ -346,7 +347,7 @@ function PlayerBanner({ banner, target }) {
 }
 
 function BlankDisplay({ payload, target }) { return <section style={blankStyle(target)}><div style={sigilStyle(target)}><Monitor size={isTable(target) ? 34 : 54} /></div><p style={eyebrowStyle(target)}>{isTable(target) ? 'Virtual table ready' : 'Player screen ready'}</p><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'Scenes, maps, handouts, NPCs, combat reveals, and table results will appear here.'}</p><div style={readyGridStyle(target)}><span>Clean player view</span><span>No GM notes</span><span>Live synced</span></div></section>; }
-function TitleDisplay({ payload, target, hasPartySidebar }) { return <section style={titleDisplayStyle(target, hasPartySidebar)}><div style={titlePlateStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target, hasPartySidebar)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</div></section>; }
+function TitleDisplay({ payload, target, hasPartySidebar }) { return <section style={titleDisplayStyle(target, hasPartySidebar)}><div className="rqk-player-display__title-plate" style={titlePlateStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target, hasPartySidebar)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</div></section>; }
 function TableResultDisplay({ payload, target }) { return <section style={tableResultShellStyle(target)}><div style={diceSealStyle(target)}><Dice6 size={isTable(target) ? 32 : 54} /></div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Table Roll'}</p><h1 style={tableResultTitleStyle(target)}>{payload.title || 'Roll Table'}</h1><strong style={tableRollNumberStyle(target)}>{payload.die || 'd20'} → {payload.roll || '?'}</strong><p style={tableResultTextStyle(target)}>{payload.result || 'No result sent yet.'}</p></section>; }
 function ImageDisplay({ payload, target, hasPartySidebar }) { return <section style={imageShellStyle(target, hasPartySidebar)}><div style={imageStageStyle(target)}>{payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle(target)} /> : <div style={missingImageStyle(target)}>No image selected</div>}</div>{(payload.title || payload.caption) && <div style={imageCaptionPanelStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</div>}</section>; }
 
@@ -481,8 +482,15 @@ function CombatRosterCard({ item, active }) {
   const isPlayer = item.type === 'player';
   const hpText = item.maxHp ? `${item.hp || 0}/${item.maxHp}` : item.hp ? `${item.hp}` : '—';
   return (
-    <article style={combatRosterCardStyle(item.type, active)}>
-      <div style={combatPortraitStyle(item.type)}>{item.imageUrl || item.image_url ? <img src={item.imageUrl || item.image_url} alt={item.name} style={portraitImageStyle} /> : <span>{String(item.name || '?').slice(0, 1).toUpperCase()}</span>}</div>
+    <article className={`rqk-display-card rqk-display-card--${item.type || 'enemy'}${active ? ' is-active' : ''}`} style={combatRosterCardStyle(item.type, active)}>
+      <DisplayHexPortrait
+        imageUrl={item.imageUrl || item.image_url}
+        name={item.name}
+        tone={active ? 'hot' : isPlayer ? 'cool' : item.type === 'npc' ? 'cool' : 'danger'}
+        size={50}
+        hpPercent={isPlayer ? (item.hpPercent || 0) : null}
+        hpStatus={item.hpStatus}
+      />
       <div style={{ minWidth: 0 }}>
         <div style={combatNameRowStyle}><strong>{item.name || 'Combatant'}</strong><span>{isPlayer ? 'Player' : item.type === 'npc' ? 'NPC' : 'Enemy'}</span></div>
         <p style={partySubStyle}>{item.subtitle || (isPlayer ? item.className : 'Visible combatant')}</p>
@@ -649,9 +657,7 @@ const partySidebarStyle = { minHeight: 0, height: '100%', display: 'grid', gridT
 const partyHeaderStyle = { display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 8, color: theme.text, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const partyEyebrowStyle = { margin: 0, color: theme.red, fontSize: 10, fontWeight: 950, letterSpacing: '0.14em', textTransform: 'uppercase' };
 const partyListStyle = { minHeight: 0, overflowY: 'auto', display: 'grid', alignContent: 'start', gap: 5, paddingRight: 2 };
-const partyCardStyle = (status) => ({ display: 'grid', gridTemplateColumns: '42px minmax(0, 1fr)', gap: 5, padding: 5, background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `5px solid ${status === 'down' || status === 'bloodied' ? theme.danger : theme.lineStrong}`, boxShadow: '0 12px 34px rgba(0,0,0,0.24)' });
-const portraitStyle = { width: 42, height: 42, display: 'grid', placeItems: 'center', overflow: 'hidden', background: theme.panel, color: theme.text, fontFamily: titleFont, fontSize: 30, border: `1px solid ${theme.lineStrong}` };
-const portraitImageStyle = { width: '100%', height: '100%', objectFit: 'cover' };
+const partyCardStyle = (status) => ({ display: 'grid', gridTemplateColumns: '52px minmax(0, 1fr)', alignItems: 'center', gap: 5, padding: 5, background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `5px solid ${status === 'down' || status === 'bloodied' ? theme.danger : theme.lineStrong}`, boxShadow: '0 12px 34px rgba(0,0,0,0.24)' });
 const partyInfoStyle = { minWidth: 0, display: 'grid', gap: 4 };
 const partyNameRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, color: theme.text, fontSize: 13, fontWeight: 950 };
 const partySubStyle = { margin: 0, color: theme.soft, fontSize: 10, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
@@ -705,8 +711,7 @@ const combatHudShellStyle = { minHeight: 0, height: '100%', display: 'grid', gri
 const combatRosterPanelStyle = { minHeight: 0, display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 10, padding: 10, background: 'rgba(0,0,0,0.62)', border: `1px solid ${theme.line}`, borderLeft: `7px solid ${theme.red}`, overflow: 'hidden', boxShadow: '0 28px 90px rgba(0,0,0,0.36)' };
 const combatRosterHeaderStyle = { display: 'grid', gap: 3, color: theme.text, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const combatRosterListStyle = { minHeight: 0, overflowY: 'auto', display: 'grid', alignContent: 'start', gap: 8, paddingRight: 2 };
-const combatRosterCardStyle = (type, active) => ({ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 8, padding: 8, background: active ? 'var(--rq-accent-soft, rgba(242, 137, 47,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, borderLeft: `5px solid ${type === 'player' ? 'rgba(255,255,255,0.78)' : theme.red}`, boxShadow: 'none' });
-const combatPortraitStyle = (type) => ({ width: 48, height: 48, display: 'grid', placeItems: 'center', overflow: 'hidden', background: type === 'player' ? 'rgba(255,255,255,0.13)' : theme.panel, color: theme.text, fontFamily: titleFont, fontSize: 24, border: `1px solid ${theme.lineStrong}` });
+const combatRosterCardStyle = (type, active) => ({ display: 'grid', gridTemplateColumns: '50px minmax(0, 1fr)', alignItems: 'center', gap: 8, padding: 8, background: active ? 'var(--rq-accent-soft, rgba(242, 137, 47,0.12))' : theme.card, border: `1px solid ${active ? theme.red : theme.line}`, borderLeft: `5px solid ${type === 'player' ? 'rgba(255,255,255,0.78)' : theme.red}`, boxShadow: 'none' });
 const combatNameRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, color: theme.text, fontSize: 12, fontWeight: 950 };
 const combatMiniGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4, marginTop: 4 };
 const combatMapStageStyle = { minHeight: 0, display: 'grid', placeItems: 'center', background: '#000', border: `1px solid ${theme.line}`, position: 'relative', overflow: 'hidden', boxShadow: '0 30px 100px rgba(0,0,0,0.55)' };
