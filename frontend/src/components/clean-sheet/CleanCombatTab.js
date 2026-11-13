@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { getClassResourceRules } from '../../data/classResourceRules';
@@ -8,6 +8,8 @@ import { spellRequiresConcentration } from '../../data/spellConcentrationRules';
 import { characterRulesEdition } from '../../data/characterSpellListRules';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
 import CombatSpellActionCard from './CombatSpellActionCard';
+import UsesLeftPanel from './UsesLeftPanel';
+import { resourceAdjustUpdate, slotAdjustUpdate, spellSlotRows } from '../../data/spentResourceRestore';
 import { ActionSection, AttackCard, SimpleActionCard, VariableResourceActionCard } from './CleanCombatTabCards';
 import {
   buildConsumableUseUpdate,
@@ -142,11 +144,17 @@ function gatherActionFeatures(character = {}) {
  * for the hexagonal sheet's Combat wheel, which lists one group below the
  * wheel at a time. Without it every group is shown, as on the classic sheet.
  */
-export default function CleanCombatTab({ character, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult, section = null }) {
+export default function CleanCombatTab({ character, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult, section = null, getLatestCharacter = null }) {
   const shows = (group) => !section || (Array.isArray(section) ? section.includes(group) : section === group);
   const [pendingDamage, setPendingDamage] = useState(null);
   const [lastDamage, setLastDamage] = useState(null);
   const [resourceDrafts, setResourceDrafts] = useState({});
+  // The character as it is now, for an Undo pressed after later changes.
+  const characterRef = useRef(character);
+  characterRef.current = character;
+  // The host's latest state when it has one: this tab may have closed by the
+  // time an Undo is pressed, and its own copy stops updating then.
+  const latest = () => getLatestCharacter?.() || characterRef.current;
 
   const strengthMod = mod(character?.strength);
   const dexterityMod = mod(character?.dexterity);
@@ -219,29 +227,44 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     reaction: actionFeatures.filter((feature) => feature.actionType === 'reaction'),
   }), [actionFeatures]);
 
+  const classResourcesRef = useRef(classResources);
+  classResourcesRef.current = classResources;
+
+  // Spend (negative delta) or give back (positive) uses of a class resource.
+  // Works from the latest values, so an Undo never rolls back later spends.
   const updateResource = async (resourceKey, label, delta = -1) => {
-    const resource = classResources.find((item) => item.key === resourceKey);
-    if (!resource || resource.current <= 0 || !onCharacterUpdate) return;
+    const known = classResourcesRef.current.find((item) => item.key === resourceKey);
+    if (!known || !onCharacterUpdate) return;
+    // With a host that keeps the latest state, count from that (this tab may
+    // have closed since the spend being undone).
+    const resource = getLatestCharacter ? resourceValue(latest(), known) : known;
+    const change = resourceAdjustUpdate(latest(), resource, delta);
+    if (!change) return;
     const previous = resource.current;
-    const next = Math.max(0, Math.min(resource.max, resource.current + delta));
-    setResourceDrafts((prev) => ({ ...prev, [resourceKey]: next }));
-    const nextResources = {
-      ...(character?.resources || {}),
-      [resourceKey]: {
-        ...(character?.resources?.[resourceKey] || {}),
-        label: resource.label,
-        current: next,
-        remaining: next,
-        max: resource.max,
-        restore: resource.restore || character?.resources?.[resourceKey]?.restore,
-      },
-    };
-    const ok = await onCharacterUpdate({ resources: nextResources }, { error: `Could not use ${label}` });
+    setResourceDrafts((prev) => ({ ...prev, [resourceKey]: change.next }));
+    const ok = await onCharacterUpdate(change.updates, { error: delta < 0 ? `Could not use ${label}` : `Could not give back ${label}` });
     if (ok === false) {
       setResourceDrafts((prev) => ({ ...prev, [resourceKey]: previous }));
       return;
     }
-    toast.success(`${label}: ${next}/${resource.max} remaining`);
+    if (delta < 0) {
+      toast.success(`${label}: ${change.next}/${resource.max} remaining`, {
+        action: { label: 'Undo', onClick: () => updateResource(resourceKey, label, -delta) },
+      });
+    } else {
+      toast.success(`${label}: ${change.next}/${resource.max} remaining`, { description: 'Given back.' });
+    }
+  };
+
+  // Spend or give back one spell slot of a level (or a Pact Magic slot).
+  const adjustSlot = async (slot, delta) => {
+    if (!onCharacterUpdate) return false;
+    const updates = slotAdjustUpdate(latest(), slot, delta);
+    if (!updates) return false;
+    // Pact Magic is also a class resource: drop any draft of it so both read the saved value.
+    if (slot.source === 'pact') setResourceDrafts(({ pact_magic: _dropped, ...rest }) => rest);
+    const ok = await onCharacterUpdate(updates, { error: 'Could not update spell slots' });
+    return ok !== false;
   };
 
   const resourceActions = useMemo(() => resourceActionCards(character, classResources, {
@@ -324,7 +347,22 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     const description = cast.option?.source === 'pact'
       ? `Spent a level ${cast.option.level} Pact Magic slot.`
       : `Spent a level ${cast.option?.level} spell slot.`;
-    toast.success(`${spellName} cast`, { description });
+    // Undo: the slot comes back, and so does whatever was being concentrated
+    // on before this cast.
+    const before = { concentrating_on: character?.concentrating_on || '', concentration: character?.concentration || '' };
+    toast.success(`${spellName} cast`, {
+      description,
+      action: {
+        label: 'Undo',
+        onClick: async () => {
+          const restored = await adjustSlot({ source: cast.option?.source, level: cast.option?.level }, 1);
+          if (restored && concentration && latest()?.concentrating_on === spellName) {
+            await onCharacterUpdate(before, { error: 'Could not restore concentration' });
+          }
+          if (restored) toast.success(`${spellName} undone`, { description: 'The slot is back.' });
+        },
+      },
+    });
   };
 
   const useConsumable = async (item) => {
@@ -384,6 +422,20 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
 
   return (
     <div className="clean-sheet-combat-wrap clean-sheet-actions-tab">
+      {/* The hexagon sheet lists one group at a time; what's left to spend,
+          with a way to give back a use tapped by accident, sits above it. */}
+      {section && (
+        <UsesLeftPanel
+          // Pact Magic shows once, as a slot row, not again as a resource.
+          resources={classResources.filter((resource) => resource.key !== 'pact_magic')}
+          slots={spellSlotRows(character)}
+          onResource={(resource, delta) => updateResource(resource.key, resource.label, delta)}
+          onSlot={async (slot, delta) => {
+            if (await adjustSlot(slot, delta)) toast.success(delta > 0 ? 'Spell slot given back' : 'Spell slot spent');
+          }}
+          disabled={!onCharacterUpdate}
+        />
+      )}
       <div className="clean-sheet-grid">
         {shows('action') && <ActionSection
           title="Actions"

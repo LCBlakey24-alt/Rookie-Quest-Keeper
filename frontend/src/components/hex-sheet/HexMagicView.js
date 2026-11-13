@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
@@ -8,6 +8,7 @@ import { buildCharacterSpellCastUpdate, getCharacterCastOptions, getCharacterSpe
 import { spellRequiresConcentration } from '@/data/spellConcentrationRules';
 import { characterRulesEdition } from '@/data/characterSpellListRules';
 import { spellRoll } from '@/data/spellRollRules';
+import { slotAdjustUpdate } from '@/data/spentResourceRestore';
 import { customCasterNumbers } from '@/data/savedCustomSpellcastingPresentation';
 import { castOptionAt, castableSpells, magicLevels, ordinal, spellsAtLevel } from './magicModel';
 
@@ -36,11 +37,13 @@ export function casterFor(character, spell, proficiencyBonus) {
  * sheet's 3D tray, and has a hexagon that casts it (spending a slot).
  * Tapping a spell's name opens its details.
  */
-export default function HexMagicView({ character, proficiencyBonus = 2, onRollAttack, onRollDice, onSave, onManage }) {
+export default function HexMagicView({ character, proficiencyBonus = 2, onRollAttack, onRollDice, onSave, onManage, getLatestCharacter = null }) {
   const spells = useMemo(() => castableSpells(character), [character]);
   const pools = useMemo(() => getCharacterSpellPools(character), [character]);
   const levels = useMemo(() => magicLevels(spells, pools), [spells, pools]);
   const [levelId, setLevelId] = useState(null);
+  const characterRef = useRef(character);
+  characterRef.current = character;
   const [openSpell, setOpenSpell] = useState(null);
   const [crit, setCrit] = useState(null);
   const [casting, setCasting] = useState(null);
@@ -58,6 +61,7 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
   }
 
   const cast = async (spell, option) => {
+    const before = { concentrating_on: character?.concentrating_on || '', concentration: character?.concentration || '' };
     if (!option) {
       toast.error(`No ${ordinal(current.level)}-level slot left for ${spell.name}`);
       return;
@@ -82,6 +86,20 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
     if (ok === false) return;
     toast.success(`${spell.name} cast`, {
       description: option.source === 'cantrip' ? 'Cantrips do not use slots.' : `Used a ${ordinal(option.level)}-level ${option.source === 'pact' ? 'Pact Magic ' : ''}slot.`,
+      // Undo puts the slot back (from the character as it is now) and
+      // restores whatever was being concentrated on before.
+      action: {
+        label: 'Undo',
+        onClick: async () => {
+          // The sheet's latest state: this view may have closed since the cast.
+          const now = getLatestCharacter?.() || characterRef.current;
+          const back = option.source === 'cantrip' ? {} : (slotAdjustUpdate(now, option, 1) || {});
+          if (updates.concentrating_on && now?.concentrating_on === spell.name) Object.assign(back, before);
+          if (!Object.keys(back).length) return;
+          const undone = await onSave?.(back, { error: 'Could not undo the cast' });
+          if (undone !== false) toast.success(`${spell.name} undone`);
+        },
+      },
     });
   };
 
