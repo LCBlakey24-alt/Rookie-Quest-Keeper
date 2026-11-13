@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 
 import DisplayHexPortrait, { healthTone } from './DisplayHexPortrait';
 
@@ -37,5 +37,14 @@ describe('DisplayHexPortrait', () => {
     expect(healthTone(60)).toBe('hurt');
     expect(healthTone(20)).toBe('bloodied');
     expect(healthTone(0)).toBe('down');
+  });
+
+  test('a broken portrait falls back to initials, and a new portrait gets a fresh try', () => {
+    const { container, rerender } = render(<DisplayHexPortrait imageUrl="/broken.png" name="Ash Varrin" />);
+    fireEvent.error(container.querySelector('image'));
+    expect(container.querySelector('image')).toBeNull();
+    expect(container.querySelector('text')).toHaveTextContent('AV');
+    rerender(<DisplayHexPortrait imageUrl="/fixed.png" name="Ash Varrin" />);
+    expect(container.querySelector('image')).toHaveAttribute('href', '/fixed.png');
   });
 });
