@@ -30,6 +30,7 @@ import HexSpinWheel from './HexSpinWheel';
 import HexWheel from './HexWheel';
 import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 import HexMagicView from './HexMagicView';
+import HexTraitsView from './HexTraitsView';
 import { spellDiceEntry } from '@/components/clean-sheet/SpellRollRow';
 import { SLOT } from './hexGeometry';
 import { HEX_THEMES, getHexTheme, loadHexThemeId, saveHexThemeId } from './hexThemes';
@@ -208,6 +209,7 @@ export default function HexCharacterSheet() {
 
   const openDice = () => push({ view: 'dice' });
   const [manageSpells, setManageSpells] = useState(false);
+  const [traitDetails, setTraitDetails] = useState(false);
   const rollSpellDice = (request) => {
     const entry = spellDiceEntry(request);
     if (!entry) { toast.error(`Could not roll ${request.notation}`); return; }
@@ -657,7 +659,16 @@ export default function HexCharacterSheet() {
           </section>
         )}
         {current.view === 'traits' && character && (
-          <section className="hex-combat-list hex-section-list character-page-v2" aria-label="Traits and feats" data-testid="hex-traits-list">
+          <HexTraitsView
+            character={character}
+            classFeatureSummary={featureProps.classFeatureSummary}
+            rulesEdition={featureProps.rulesEdition}
+            onMore={() => setTraitDetails((open) => !open)}
+            moreOpen={traitDetails}
+          />
+        )}
+        {current.view === 'traits' && character && traitDetails && (
+          <section className="hex-combat-list hex-section-list character-page-v2" aria-label="All trait details" data-testid="hex-traits-details">
             <CleanSheetFeaturesTab
               ac={deriveArmorClass(character)}
               actionEconomyGroups={featureProps.actionEconomyGroups}

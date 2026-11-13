@@ -710,3 +710,34 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
   color: var(--hex-text); font: inherit; font-weight: 700; cursor: pointer;
 }
 
+
+/* Traits & Feats: the wheel picks Class, Race, Feats or Background. */
+.hex-traits { display: grid; gap: 14px; width: min(100%, 560px); justify-items: center; }
+.hex-traits .guild-wheel { max-width: 420px; }
+.hex-traits__list { width: 100%; display: grid; gap: 10px; }
+.hex-traits__facts {
+  margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;
+}
+.hex-traits__facts div {
+  padding: 8px 10px; border-radius: var(--hex-radius); border: 1px solid var(--hex-line);
+  background: var(--hex-bg); box-shadow: var(--hex-glow); min-width: 0;
+}
+.hex-traits__facts dt { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hex-sub); }
+.hex-traits__facts dd { margin: 2px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.hex-trait {
+  display: grid; gap: 8px; padding: 10px 12px; border-radius: var(--hex-radius);
+  border: 1px solid var(--hex-orange-soft); background: var(--hex-bg); box-shadow: var(--hex-glow);
+}
+.hex-trait.is-open { box-shadow: var(--hex-glow-strong); }
+.hex-sheet .hex-trait__name {
+  display: grid; gap: 2px; min-height: 36px; padding: 0 !important; border: 0 !important; background: transparent !important;
+  box-shadow: none !important; text-align: left; color: var(--hex-text); cursor: pointer; --rq-control-blue: transparent; --rq-fill-color: transparent;
+}
+.hex-sheet .hex-trait__name:disabled { cursor: default; opacity: 1; }
+.hex-trait__name strong { font: 700 1rem/1.2 var(--hex-title-font); overflow-wrap: anywhere; }
+.hex-trait__name small { color: var(--hex-muted); font-size: 0.75rem; overflow-wrap: anywhere; }
+.hex-trait p { margin: 0; color: var(--hex-text); font-size: 0.9rem; line-height: 1.45; }
+.hex-traits__empty { margin: 0; text-align: center; color: var(--hex-muted); font-size: 0.9rem; }
+.hex-traits__more { justify-self: center; }
+/* Trait names are text, not buttons to look at: no pressed tint. */
+#root .hex-sheet .hex-trait__name { --rq-fill-color: transparent; }
