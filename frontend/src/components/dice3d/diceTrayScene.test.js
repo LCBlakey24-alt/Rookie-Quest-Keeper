@@ -1,4 +1,4 @@
-import { QUICK_STEPS, REST_HOLD_STEPS, longestReplayMs, centreRadiusFor, planThrow, simulateThrow, specForDie, throwAttemptsFor } from './diceTrayScene';
+import { QUICK_STEPS, REST_HOLD_STEPS, longestReplayMs, centreRadiusFor, planThrow, rollingInkFor, settledAccentFor, simulateThrow, specForDie, throwAttemptsFor } from './diceTrayScene';
 import { seedFromKey, settledFaceIndex } from './diceFaceReading';
 
 const spec = (sides, result, dropped = false) => specForDie({ sides, result, dropped });
@@ -25,6 +25,20 @@ describe('specForDie', () => {
 
   test('carries the dropped flag through for advantage and keep/drop', () => {
     expect(spec(20, 4, true).dropped).toBe(true);
+  });
+
+  test('keeps natural 20 and 1 numerals normal in flight, then exposes a settled accent', () => {
+    const palette = {
+      ink: '#ffffff', inkMuted: '#888888', crit: '#ffd27a', fumble: '#ff9b7a',
+    };
+    const natural20 = spec(20, 20);
+    const natural1 = spec(20, 1);
+
+    expect(rollingInkFor(natural20, palette)).toBe(palette.ink);
+    expect(rollingInkFor(natural1, palette)).toBe(palette.ink);
+    expect(settledAccentFor(natural20, palette)).toBe(palette.crit);
+    expect(settledAccentFor(natural1, palette)).toBe(palette.fumble);
+    expect(settledAccentFor(spec(20, 20, true), palette)).toBeNull();
   });
 });
 

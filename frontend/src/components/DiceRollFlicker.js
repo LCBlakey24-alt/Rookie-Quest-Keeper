@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Dices } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
@@ -81,6 +81,7 @@ export default function DiceRollFlicker({
   show,
   onClose,
   onComplete,
+  onReveal,
   rolls = [],
   label,
   modifier = 0,
@@ -103,6 +104,8 @@ export default function DiceRollFlicker({
 }) {
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
+  const onRevealRef = useRef(onReveal);
+  const revealedKeyRef = useRef('');
   const recordedKeyRef = useRef('');
   const numericTotal = Number(total);
   const numericAnimationValue = Number(animationValue);
@@ -142,6 +145,7 @@ export default function DiceRollFlicker({
     });
   }, [diceFingerprint, isFixedDamage, hasRawDice]);
   const [showTotal, setShowTotal] = useState(false);
+  const [revealedKey, setRevealedKey] = useState('');
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
   const [trayLoadFailed, setTrayLoadFailed] = useState(false);
 
@@ -164,6 +168,7 @@ export default function DiceRollFlicker({
   }, [prefersReducedMotion, visible, TrayOverlay, isFixedDamage, rollId]);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
+  useEffect(() => { onRevealRef.current = onReveal; }, [onReveal]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
@@ -199,9 +204,22 @@ export default function DiceRollFlicker({
   const natural1 = keptPositiveD20s.length === 1 && keptPositiveD20s[0].result === 1;
   const finalCrit = Boolean(isCrit || natural20);
   const finalFumble = Boolean(!finalCrit && (isFumble || natural1));
+  const revealKey = rollId || `${label}-${finalTotal}-${modifier}-${diceFingerprint}`;
+  const isResultRevealed = showTotal && revealedKey === revealKey;
+  const revealNow = useCallback(() => {
+    setShowTotal(true);
+    setRevealedKey(revealKey);
+    if (revealedKeyRef.current === revealKey) return;
+    revealedKeyRef.current = revealKey;
+    onRevealRef.current?.({
+      total: finalTotal,
+      isCrit: finalCrit,
+      isFumble: finalFumble,
+    });
+  }, [revealKey, finalTotal, finalCrit, finalFumble]);
 
   useEffect(() => {
-    if (!visible || theme !== 'player') return undefined;
+    if (!visible || !isResultRevealed || theme !== 'player') return undefined;
     const characterId = getCharacterIdFromPath();
     if (!characterId) return undefined;
     const rollKey = rollId ? `${characterId}-${rollId}` : `${characterId}-${label}-${finalTotal}-${modifier}-${diceFingerprint}`;
@@ -231,13 +249,21 @@ export default function DiceRollFlicker({
       });
     });
     return () => { cancelled = true; };
-  }, [visible, theme, label, finalTotal, modifier, reportableDice, isFixedDamage, finalCrit, finalFumble, rollId, diceFingerprint]);
+  }, [visible, isResultRevealed, theme, label, finalTotal, modifier, reportableDice, isFixedDamage, finalCrit, finalFumble, rollId, diceFingerprint]);
 
   useEffect(() => {
-    if (!visible || typeof window === 'undefined') return undefined;
+    if (!visible || typeof window === 'undefined') {
+      setShowTotal(false);
+      setRevealedKey('');
+      revealedKeyRef.current = '';
+      return undefined;
+    }
     // Fixed damage has no dice to animate: reveal the result immediately.
-    setShowTotal(isFixedDamage);
-    if (isFixedDamage) return undefined;
+    setShowTotal(false);
+    if (isFixedDamage) {
+      revealNow();
+      return undefined;
+    }
     const waitingForTray = !prefersReducedMotion && !TrayOverlay && !trayLoadFailed;
     if (waitingForTray) return undefined;
     const usingTray = !prefersReducedMotion && Boolean(TrayOverlay);
@@ -245,15 +271,15 @@ export default function DiceRollFlicker({
       ? REDUCED_MOTION_REVEAL_DELAY
       : usingTray ? TRAY_REVEAL_CEILING : REVEAL_DELAY;
 
-    const revealTimer = window.setTimeout(() => setShowTotal(true), delay);
+    const revealTimer = window.setTimeout(revealNow, delay);
     return () => window.clearTimeout(revealTimer);
-  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, trayLoadFailed, rollId, isFixedDamage]);
+  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, trayLoadFailed, rollId, isFixedDamage, revealNow]);
 
   useEffect(() => {
-    if (!visible || !showTotal || typeof window === 'undefined') return undefined;
+    if (!visible || !isResultRevealed || typeof window === 'undefined') return undefined;
     const closeTimer = window.setTimeout(() => { onCloseRef.current?.(); }, HOLD_AFTER_REVEAL);
     return () => window.clearTimeout(closeTimer);
-  }, [visible, showTotal, finalTotal, rollId]);
+  }, [visible, isResultRevealed, finalTotal, rollId]);
 
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
@@ -264,12 +290,12 @@ export default function DiceRollFlicker({
       }
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        setShowTotal(true);
+        revealNow();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [visible]);
+  }, [visible, revealNow]);
 
   if (!visible || typeof document === 'undefined') return null;
 
@@ -304,12 +330,12 @@ export default function DiceRollFlicker({
       rollDetail={rollDetail}
       formulaText={formulaText}
       rolls={dice}
-      isRevealed={showTotal}
+      isRevealed={isResultRevealed}
       isCrit={finalCrit}
       isFumble={finalFumble}
       isFixedDamage={isFixedDamage}
       resultTone={resultTone}
-      onRevealNow={() => setShowTotal(true)}
+      onRevealNow={revealNow}
       onClose={() => onCloseRef.current?.()}
       shape={shape}
       anchorSelector={anchorSelector}

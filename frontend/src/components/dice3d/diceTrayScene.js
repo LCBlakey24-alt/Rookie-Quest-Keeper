@@ -35,6 +35,7 @@ import {
   PMREMGenerator,
   PerspectiveCamera,
   PlaneGeometry,
+  PointLight,
   Quaternion as ThreeQuaternion,
   Scene,
   SRGBColorSpace,
@@ -351,6 +352,19 @@ export function specForDie(die) {
   };
 }
 
+/** Normal material used while a die is moving: outcomes stay secret. */
+export function rollingInkFor(spec, palette) {
+  return spec?.dropped ? palette.inkMuted : palette.ink;
+}
+
+/** Outcome colour applied only after the physics engine reports rest. */
+export function settledAccentFor(spec, palette) {
+  if (!spec || spec.dropped) return null;
+  if (spec.accent === 'crit') return palette.crit;
+  if (spec.accent === 'fumble') return palette.fumble;
+  return null;
+}
+
 /**
  * How sharp each face's numerals need to be.
  *
@@ -478,6 +492,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
   scene.add(logo);
 
   let active = [];
+  let outcomeLights = [];
   let frame = null;
   let world = null;
   let disposed = false;
@@ -501,6 +516,8 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
       mesh.material.dispose();
     });
     active = [];
+    outcomeLights.forEach((light) => scene.remove(light));
+    outcomeLights = [];
   }
 
   function resize(width, height) {
@@ -547,21 +564,16 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
         columns,
         cellPixels: cellPixelsFor(specs.length),
         body: palette.body,
-        ink: entry.spec.dropped ? palette.inkMuted
-          : entry.spec.accent === 'crit' ? palette.crit
-          : entry.spec.accent === 'fumble' ? palette.fumble
-          : palette.ink,
+        // Never colour a natural 20/1 while it is moving. The result glow
+        // is applied by revealOutcomes only after the physics reports rest.
+        ink: rollingInkFor(entry.spec, palette),
         size: entry.spec.sides,
         corners: entry.spec.solid.faces[0].length,
       });
 
-      // A natural 20 or 1 is marked in its numerals and its edges: the
-      // rounded bevels take the accent colour, the faces keep the dye.
-      const accent = entry.spec.dropped ? null
-        : entry.spec.accent === 'crit' ? palette.crit
-        : entry.spec.accent === 'fumble' ? palette.fumble
-        : null;
-      const edgeColor = accent ? new Color(accent).toArray() : [1, 1, 1];
+      // The edge is the selected dye's ordinary edge during the throw.
+      // Critical/fumble colour before landing would reveal the result.
+      const edgeColor = new Color(palette.edge).toArray();
       const geometry = buildDieGeometry(entry.spec.solid, columns, { edgeColor, layouts: labelLayouts });
       const mesh = new Mesh(
         geometry,
@@ -576,6 +588,8 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
           clearcoat: 0.85,
           clearcoatRoughness: 0.16,
           envMapIntensity: 0.9,
+          emissive: 0x000000,
+          emissiveIntensity: 0,
           // A dropped die is dimmed, not made transparent. Transparency let
           // the die's own far faces show through its near ones, which looks
           // like a rendering fault rather than "this one does not count".
@@ -590,10 +604,28 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
       return { ...entry, mesh };
     });
 
+    const revealOutcomes = () => {
+      active.forEach((entry) => {
+        const accent = settledAccentFor(entry.spec, palette);
+        if (!accent) return;
+        entry.mesh.material.emissive.set(accent);
+        entry.mesh.material.emissiveIntensity = entry.spec.accent === 'crit' ? 0.48 : 0.34;
+        entry.mesh.material.needsUpdate = true;
+
+        // A small real scene light makes the landed die cast its result
+        // colour onto the tray instead of merely repainting the number.
+        const light = new PointLight(accent, entry.spec.accent === 'crit' ? 2.8 : 2.1, 4.8, 2);
+        light.position.copy(entry.mesh.position).add(new Vector3(0, 1.25, 0));
+        scene.add(light);
+        outcomeLights.push(light);
+      });
+    };
+
     let steps = 0;
     let still = 0;
     let announced = false;
     let settleFrames = 0;
+    let settledDelivered = false;
     let lastTime = null;
     let owed = 0;
 
@@ -622,7 +654,11 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
           if (still >= REST_HOLD_STEPS || steps >= MAX_STEPS) announced = true;
         }
         place();
-        if (announced) onSettled?.();
+        if (announced && !settledDelivered) {
+          settledDelivered = true;
+          revealOutcomes();
+          onSettled?.();
+        }
       }
       lastTime = now;
 
