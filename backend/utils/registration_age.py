@@ -18,8 +18,8 @@ def require_public_adult_attestation(confirmed: bool) -> None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
-                'Public self-registration is currently for adults aged 18 or over. '
-                'Please confirm you are 18+ to register. Parent-managed child '
+                f'Public self-registration is currently for adults aged {MIN_PUBLIC_SELF_REGISTRATION_AGE} or over. '
+                f'Please confirm you are {MIN_PUBLIC_SELF_REGISTRATION_AGE}+ to register. Parent-managed child '
                 'registration is not available yet.'
             ),
         )
