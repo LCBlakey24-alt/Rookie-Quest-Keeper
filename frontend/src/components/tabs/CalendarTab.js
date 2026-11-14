@@ -273,12 +273,12 @@ export default function CalendarTab({ campaignId }) {
               <ChevronRight size={16} aria-hidden="true" /> {advancingTime ? 'Updating…' : 'Advance time'}
             </button>
           </div>
-          <small className="rqk-calendar-clock-note">Advances only this campaign's clock. The other party's date will not change.</small>
+          <small className="rqk-calendar-clock-note">Advances only this campaign's clock. Other campaigns are not changed.</small>
         </section>
 
         <section className="rqk-calendar-panel rqk-calendar-settings-panel">
           <h3>Set the in-game date</h3>
-          <p>Each party has its own date. Setting Wednesday's date will never move Eldritch Heralds.</p>
+          <p>Each campaign has its own date. Updating it never changes another campaign.</p>
           <form className="rqk-calendar-date-controls" onSubmit={setCurrentDate}>
             <label>Day
               <input type="number" min="1" max={calendar.custom_months?.[dateDraft.month - 1]?.days || 31}

@@ -144,7 +144,7 @@ export default function CampaignDashboard() {
   }, [fetchCampaign]);
 
   useEffect(() => {
-    // An invite code from Friday must never appear in Wednesday.
+    // A route change must never flash an invite code from the previous campaign.
     setInvite(null);
     setInviteCampaignId(null);
     setInviteLoading(false);

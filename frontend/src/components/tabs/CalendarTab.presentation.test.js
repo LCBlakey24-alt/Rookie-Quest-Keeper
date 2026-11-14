@@ -115,14 +115,14 @@ describe('session-first calendar clock usability', () => {
     expect(css).toContain('@media (max-width: 720px)');
   });
 
-  test('one save uses the selected day count, does not double-submit and never mutates Friday from Wednesday', () => {
+  test('one save uses the selected day count, does not double-submit and never mutates another campaign', () => {
     const jsx = read('./CalendarTab.js');
     expect(jsx).toContain('if (advancingTime) return');
     expect(jsx).toContain('setAdvancingTime(true)');
     expect(jsx).toContain('calendar/advance?days=${days}');
     expect(jsx).toContain('activeCampaignRef.current !== requestedCampaign');
     expect(jsx).toContain('disabled={advancingTime}');
-    expect(jsx).toContain("other party's date will not change");
+    expect(jsx).toContain('Other campaigns are not changed');
   });
 
   test('event name and description have persistent accessible labels', () => {
