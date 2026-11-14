@@ -194,6 +194,22 @@ describe('AuthPage', () => {
     expect(toast.info).toHaveBeenCalledWith('Add a recovery email', expect.objectContaining({ action: expect.objectContaining({ label: 'Account settings' }) }));
   });
 
+  test('clearly warns that public signup is adult-only and refuses registration until confirmed', () => {
+    renderAuthPage('/auth?mode=register');
+    const gate = screen.getByTestId('register-adult-attestation');
+    expect(gate).toHaveAttribute('type', 'checkbox');
+    expect(gate).toBeRequired();
+    expect(gate).not.toBeChecked();
+    expect(screen.getByText(/parent-managed child account process is not yet available/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/email/i, { selector: 'input' }), { target: { value: 'new@example.test' } });
+    fireEvent.change(screen.getByLabelText(/^password/i, { selector: 'input' }), { target: { value: 'safe-password-123' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i, { selector: 'input' }), { target: { value: 'safe-password-123' } });
+    fireEvent.submit(document.getElementById('rqk-auth-panel-register'));
+    expect(apiClient.post).not.toHaveBeenCalledWith('/auth/register', expect.anything());
+    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/adults aged 18 or over/i));
+  });
+
   test('creates an account with email and password without a nickname', async () => {
     apiClient.post.mockResolvedValueOnce({ data: { token: 'new-token', username: 'hero', email: 'hero@example.com' } });
     const { onLogin } = renderAuthPage();
