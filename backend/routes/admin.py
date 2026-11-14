@@ -319,7 +319,7 @@ async def update_review(review_data: ReviewCreate, username: str = Depends(get_c
             'comment': review_data.comment,
             'is_approved': is_approved,
             'is_featured': is_featured
-        }}
+        }, '$unset': {'moderated_at': '', 'moderated_by': ''}}
     )
     return {"message": "Your updated review has been submitted for moderation.", "is_featured": is_featured}
 
@@ -333,7 +333,11 @@ async def get_my_review(username: str = Depends(get_current_user)):
 async def get_featured_reviews():
     """Get featured reviews for landing page (public endpoint)"""
     reviews = await db.reviews.find(
-        {'is_featured': True, 'is_approved': True},
+        {
+            'is_featured': True,
+            'is_approved': True,
+            'moderated_at': {'$exists': True},
+        },
         {'_id': 0, 'username': 1, 'rating': 1, 'comment': 1, 'created_at': 1}
     ).sort('created_at', -1).limit(6).to_list(6)
     return reviews
@@ -343,6 +347,13 @@ async def get_all_reviews(username: str = Depends(get_current_user)):
     """Get all reviews (admin only)"""
     await verify_admin(username)
     reviews = await db.reviews.find({}, {'_id': 0}).sort('created_at', -1).to_list(100)
+    # Previous releases auto-published only 4–5 star reviews. Do not present
+    # those unreviewed records as already moderated to the administrator.
+    for review in reviews:
+        if not review.get('moderated_at'):
+            review['needs_manual_review'] = True
+            review['is_approved'] = False
+            review['is_featured'] = False
     return reviews
 
 @router.put("/reviews/{review_id}/approve")
@@ -354,10 +365,17 @@ async def toggle_review_approval(review_id: str, username: str = Depends(get_cur
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
     
-    new_status = not review.get('is_approved', False)
+    # A legacy rating-based auto-approval is NOT human moderation.
+    is_manually_approved = bool(review.get('is_approved') and review.get('moderated_at'))
+    new_status = not is_manually_approved
     await db.reviews.update_one(
         {'id': review_id},
-        {'$set': {'is_approved': new_status, 'is_featured': new_status}}
+        {'$set': {
+            'is_approved': new_status,
+            'is_featured': new_status,
+            'moderated_at': datetime.now(timezone.utc).isoformat(),
+            'moderated_by': username,
+        }}
     )
     return {"message": f"Review {'approved' if new_status else 'hidden'}", "is_approved": new_status}
 
