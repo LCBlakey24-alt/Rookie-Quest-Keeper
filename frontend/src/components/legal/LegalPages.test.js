@@ -30,6 +30,21 @@ describe('Public legal transparency pages', () => {
     expect(screen.getByText(/Legal operator identification and a working contact route/i)).toBeInTheDocument();
   });
 
+  test('describes the current free, unincorporated beta without inventing a company', () => {
+    show('terms');
+    expect(screen.getByText(/currently a free public beta/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Free beta and any future paid features' })).toBeInTheDocument();
+    expect(screen.getByText(/There are no Keeper subscription fees or paid account plans at present/i)).toBeInTheDocument();
+    expect(screen.getByText(/Users will not be charged merely because the free beta is updated/i)).toBeInTheDocument();
+  });
+
+  test('privacy notice does not claim Keeper is an incorporated company', () => {
+    show('privacy');
+    expect(screen.getByText(/independently operated, unincorporated project/i)).toBeInTheDocument();
+    expect(screen.getByText(/payment details are not required for a Keeper account/i)).toBeInTheDocument();
+    expect(screen.getByText(/individual responsible for the service must be identified/i)).toBeInTheDocument();
+  });
+
   test('privacy notice covers AI processors, retention and account rights', () => {
     show('privacy');
     expect(screen.getByRole('heading', { name: 'Service providers and international transfers' })).toBeInTheDocument();
