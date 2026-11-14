@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, Settings, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
@@ -104,7 +104,6 @@ export default function HexCharacterSheet() {
   // offered it has closed (its own copy stops updating then).
   const latestCharacterRef = useRef(null);
   latestCharacterRef.current = character;
-  const latestCharacter = useCallback(() => latestCharacterRef.current, []);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [stack, setStack] = useState([{ view: 'main' }]);
@@ -150,6 +149,19 @@ export default function HexCharacterSheet() {
       onError: (error, options) => toast.error(error?.formattedDetail || error?.response?.data?.detail || options.error || 'Could not save character update'),
     });
   }
+
+  // Handlers from this render belong to this character's sheet session. A
+  // toast (Undo, Switch concentration) can outlive it: after the player opens
+  // another character, or reopens this one, the old action saves nothing and
+  // reads no state, exactly like the classic sheet's bound handlers.
+  const sheetSession = queueRef.current?.getSession() || null;
+  const isCurrentSheetSession = () => Boolean(sheetSession) && sheetSession === queueRef.current?.getSession();
+  const latestCharacter = () => (isCurrentSheetSession() ? latestCharacterRef.current : null);
+  const patchThisSheet = async (updates, options = {}) => {
+    if (!sheetSession) return queueRef.current.patch(updates, options);
+    const saved = await queueRef.current.patchForSession(sheetSession, updates, options);
+    return saved && isCurrentSheetSession();
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -330,7 +342,7 @@ export default function HexCharacterSheet() {
   const patchWithConcentrationGuard = async (updates, options = {}) => {
     const current = character?.concentrating_on || character?.concentration || null;
     const next = updates?.concentrating_on ?? updates?.concentration;
-    if (!needsConcentrationReplacement(current, next)) return queueRef.current.patch(updates, options);
+    if (!needsConcentrationReplacement(current, next)) return patchThisSheet(updates, options);
     const nextName = getConcentrationName(next);
     const currentName = getConcentrationName(current) || 'your current spell';
     // Toast actions can outlive this sheet; bind the choice to this character.
