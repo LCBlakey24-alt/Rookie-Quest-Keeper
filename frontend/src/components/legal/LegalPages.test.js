@@ -27,7 +27,7 @@ describe('Public legal transparency pages', () => {
     if (!process.env.REACT_APP_PUBLIC_LEGAL_OPERATOR || !process.env.REACT_APP_PUBLIC_LEGAL_CONTACT) {
       expect(screen.getByText('Publication review required')).toBeInTheDocument();
     }
-    expect(screen.getByText(/verified operator contact/i)).toBeInTheDocument();
+    expect(screen.getByText(/Legal operator identification and a working contact route/i)).toBeInTheDocument();
   });
 
   test('privacy notice covers AI processors, retention and account rights', () => {
