@@ -19,31 +19,31 @@ import HexLoader from '@/components/guild-motif/HexLoader';
 
 const theme = {
   bg: {
-    black: 'var(--rq-bg-main)',
-    panel: 'var(--rq-bg-panel)',
-    card: 'var(--rq-bg-panel-alt)',
-    tab: 'var(--rq-bg-panel-alt)',
+    black: 'var(--guild-bg)',
+    panel: 'var(--guild-bg)',
+    card: 'var(--guild-panel)',
+    tab: 'var(--guild-bg-deep)',
   },
-  gold: 'var(--rq-accent-primary)',
-  goldSoft: 'var(--rq-accent-soft)',
+  gold: 'var(--guild-hi)',
+  goldSoft: 'var(--guild-select)',
   text: {
-    white: 'var(--rq-text-primary)',
-    secondary: 'var(--rq-text-secondary)',
-    muted: 'var(--rq-text-muted)',
-    inverse: 'var(--rq-text-inverse)',
+    white: 'var(--guild-text)',
+    secondary: 'var(--guild-muted)',
+    muted: 'var(--guild-muted)',
+    inverse: 'var(--guild-ink)',
   },
-  border: 'var(--rq-border-default)',
-  borderStrong: 'var(--rq-accent-border)',
+  border: 'var(--guild-line)',
+  borderStrong: 'var(--guild-line-hot)',
   danger: 'var(--rq-danger)',
-  dangerSoft: 'var(--rq-accent-soft)',
+  dangerSoft: 'rgba(255, 61, 139, 0.12)',
 };
 
 const adminTabIds = ['testing', 'updates', 'layout', 'audit', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];
 
 function getInitialAdminTab() {
-  if (typeof window === 'undefined') return 'testing';
+  if (typeof window === 'undefined') return 'users';
   const fromHash = window.location.hash.replace('#', '');
-  return adminTabIds.includes(fromHash) ? fromHash : 'testing';
+  return adminTabIds.includes(fromHash) ? fromHash : 'users';
 }
 
 function AdminPage() {
@@ -180,7 +180,7 @@ function AdminPage() {
     { id: 'reviews', label: `Reviews (${reviews.length})`, short: 'Reviews', icon: Star, description: 'Approve or hide public user reviews.' },
     { id: 'rules', label: 'Rule Systems', short: 'Rules', icon: BookOpen, description: 'Manage rule-system records used by the app.' },
     { id: 'templates', label: 'Templates', short: 'Templates', icon: Users, description: 'Control premade character templates.' },
-    { id: 'users', label: 'Users', short: 'Users', icon: User, description: 'Review users and admin-only account tools.' },
+    { id: 'users', label: 'Accounts', short: 'Accounts', icon: Users, description: 'Review registered accounts, verified permissions, subscription details, and campaign usage.' },
     { id: 'site', label: 'Site Control', short: 'Site', icon: Shield, description: 'Control announcements, maintenance, and feature switches.' },
   ];
 
@@ -195,6 +195,7 @@ function AdminPage() {
   ];
 
   const buildFocusCards = [
+    { title: 'Manage member accounts', text: 'See registered members, their access rights, subscriptions, and usage.', icon: Users, tab: 'users' },
     { title: 'Open Layout Studio', text: 'Shape responsive layout rules and module visibility from Admin.', icon: LayoutDashboard, tab: 'layout' },
     { title: 'Log a bug while testing', text: 'Use this instead of losing notes in ChatGPT or Codex threads.', icon: ClipboardList, tab: 'testing' },
     { title: 'Publish a site update', text: 'Write dashboard news from Admin instead of editing hardcoded cards.', icon: Megaphone, tab: 'updates' },
@@ -229,57 +230,39 @@ function AdminPage() {
           <div style={heroMainStyle}>
             <Button onClick={() => navigate('/home')} aria-label="Back to dashboard" style={backButtonStyle}><ArrowLeft size={20} /></Button>
             <div style={{ minWidth: 0 }}>
-              <p style={eyebrowStyle}>Owner workspace</p>
-              <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Admin Mission Control</h1>
-              <p style={adminSubtitleStyle}>Manage testing notes, layout controls, dashboard updates, feedback, reviews, users, rules, templates, audit history, and site switches without digging through Codex every time.</p>
+              <p style={eyebrowStyle}>Rookie Quest Keeper · Administration</p>
+              <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Keeper Command Centre</h1>
+              <p style={adminSubtitleStyle}>Manage the community, review site health, and maintain your GM tools in one secure workspace.</p>
             </div>
           </div>
           <div style={heroActionsStyle}>
             <Button onClick={() => fetchData({ background: true })} disabled={refreshing} style={busySecondaryActionStyle(refreshing)} aria-busy={refreshing ? 'true' : 'false'}>{refreshing ? <RefreshCw size={16} style={adminInlineSpinStyle} /> : <RefreshCw size={16} />}{refreshing ? 'Refreshing…' : 'Refresh data'}</Button>
-            <Button onClick={() => setActiveTab('layout')} style={primaryActionStyle}><LayoutDashboard size={16} />Layout Studio</Button>
+            <Button onClick={() => setActiveTab('users')} style={primaryActionStyle}><Users size={16} />Accounts</Button>
           </div>
         </header>
 
-        <section className="admin-mission-control-page__stats" style={statsGridStyle} aria-label="Admin overview">
-          <StatCard label="Users" value={stats.totalUsers} icon={User} />
+        <section className="admin-mission-control-page__stats" style={statsGridStyle} aria-label="Site overview">
+          <StatCard label="Accounts" value={stats.totalUsers} icon={Users} />
           <StatCard label="Campaigns" value={stats.campaigns} icon={Map} />
           <StatCard label="Characters" value={stats.characters} icon={PenTool} />
-          <StatCard label="Reviews" value={stats.totalReviews} icon={Star} />
-          <StatCard label="Published Updates" value={stats.publishedUpdates} icon={Megaphone} />
-          <StatCard label="Draft Updates" value={stats.draftUpdates} icon={ClipboardList} tone={stats.draftUpdates > 0 ? 'hot' : 'normal'} />
-          <StatCard label="Archived Updates" value={stats.archivedUpdates} icon={Archive} />
           <StatCard label="New Feedback" value={stats.newFeedback} icon={MessageSquare} tone={stats.newFeedback > 0 ? 'hot' : 'normal'} />
-          <StatCard label="Active Feedback" value={stats.activeFeedback} icon={Activity} tone={stats.activeFeedback > 0 ? 'hot' : 'normal'} />
           <StatCard label="New Testing" value={stats.newTesting} icon={ClipboardList} tone={stats.newTesting > 0 ? 'hot' : 'normal'} />
-          <StatCard label="Active Testing" value={stats.activeTesting} icon={FlaskConical} tone={stats.activeTesting > 0 ? 'hot' : 'normal'} />
-          <StatCard label="Audit 24h" value={stats.recentAudit} icon={ShieldCheck} />
-          <StatCard label="Rook Requests This Month" value={stats.aiRequestsThisMonth} icon={Wand2} />
-          <StatCard label="Rook Users This Month" value={stats.aiUsersThisMonth} icon={Users} />
+          <StatCard label="Rook Requests" value={stats.aiRequestsThisMonth} icon={Wand2} />
         </section>
-
-        <AdminMissionBrief onOpenTab={setActiveTab} />
-
-        <section className="admin-mission-control-page__mission-grid" style={missionGridStyle} aria-label="Admin shortcuts and build focus">
-          <div style={missionPanelStyle}>
-            <div style={sectionHeadingStyle}>
-              <p style={eyebrowStyle}>Quick jumps</p>
-              <h2 style={sectionTitleStyle}>Open the part of the site you need</h2>
-            </div>
-            <div style={shortcutGridStyle}>
-              {ownerShortcuts.map(shortcut => <ShortcutCard key={shortcut.label} {...shortcut} onOpen={() => navigate(shortcut.to)} />)}
-            </div>
+        <details className="admin-mission-control-page__extra-metrics">
+          <summary>More site statistics <span>Reviews, updates and activity</span></summary>
+          <div className="admin-mission-control-page__stats" style={statsGridStyle}>
+            <StatCard label="Reviews" value={stats.totalReviews} icon={Star} />
+            <StatCard label="Visible Reviews" value={stats.visibleReviews} icon={Check} />
+            <StatCard label="Published Updates" value={stats.publishedUpdates} icon={Megaphone} />
+            <StatCard label="Draft Updates" value={stats.draftUpdates} icon={ClipboardList} />
+            <StatCard label="Archived Updates" value={stats.archivedUpdates} icon={Archive} />
+            <StatCard label="Active Feedback" value={stats.activeFeedback} icon={Activity} />
+            <StatCard label="Active Testing" value={stats.activeTesting} icon={FlaskConical} />
+            <StatCard label="Audit 24h" value={stats.recentAudit} icon={ShieldCheck} />
+            <StatCard label="Rook Users" value={stats.aiUsersThisMonth} icon={Users} />
           </div>
-
-          <div style={missionPanelStyle}>
-            <div style={sectionHeadingStyle}>
-              <p style={eyebrowStyle}>Build queue</p>
-              <h2 style={sectionTitleStyle}>Use admin instead of losing notes</h2>
-            </div>
-            <div style={focusGridStyle}>
-              {buildFocusCards.map(card => <FocusCard key={card.title} {...card} onOpen={() => setActiveTab(card.tab)} />)}
-            </div>
-          </div>
-        </section>
+        </details>
 
         <section className="admin-mission-control-page__active-summary" style={activeSummaryStyle} aria-live="polite">
           <div style={{ minWidth: 0 }}>
@@ -328,6 +311,30 @@ function AdminPage() {
           {activeTab === 'users' && <AdminUsersTab />}
           {activeTab === 'site' && <AdminSiteControlTab />}
         </section>
+        <AdminMissionBrief onOpenTab={setActiveTab} />
+
+        <section className="admin-mission-control-page__mission-grid" style={missionGridStyle} aria-label="Admin shortcuts and build focus">
+          <div style={missionPanelStyle}>
+            <div style={sectionHeadingStyle}>
+              <p style={eyebrowStyle}>Quick jumps</p>
+              <h2 style={sectionTitleStyle}>Open the part of the site you need</h2>
+            </div>
+            <div style={shortcutGridStyle}>
+              {ownerShortcuts.map(shortcut => <ShortcutCard key={shortcut.label} {...shortcut} onOpen={() => navigate(shortcut.to)} />)}
+            </div>
+          </div>
+
+          <div style={missionPanelStyle}>
+            <div style={sectionHeadingStyle}>
+              <p style={eyebrowStyle}>Build queue</p>
+              <h2 style={sectionTitleStyle}>Use admin instead of losing notes</h2>
+            </div>
+            <div style={focusGridStyle}>
+              {buildFocusCards.map(card => <FocusCard key={card.title} {...card} onOpen={() => setActiveTab(card.tab)} />)}
+            </div>
+          </div>
+        </section>
+
         <style>{adminPageCss}</style>
       </div>
     </div>
@@ -387,7 +394,7 @@ const reviewActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 
 function StatCard({ label, value, icon: Icon, tone = 'normal' }) {
   return (
-    <div style={{ background: tone === 'hot' ? theme.goldSoft : theme.bg.card, border: `1px solid ${tone === 'hot' ? theme.gold : theme.borderStrong}`, padding: 'clamp(14px, 3vw, 20px)', textAlign: 'center', borderRadius: 12, minWidth: 0 }}>
+    <div className="rqk-admin-stat" data-testid={`admin-stat-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} style={{ background: tone === 'hot' ? theme.goldSoft : theme.bg.card, border: `1px solid ${tone === 'hot' ? theme.gold : theme.borderStrong}`, padding: 'clamp(14px, 3vw, 20px)', textAlign: 'center', borderRadius: 12, minWidth: 0 }}>
       <Icon size={24} color={theme.gold} style={{ marginBottom: 8 }} />
       <div style={{ color: theme.text.white, fontSize: 28, fontWeight: 900 }}>{value}</div>
       <div style={{ color: theme.text.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 900 }}>{label}</div>
@@ -397,7 +404,7 @@ function StatCard({ label, value, icon: Icon, tone = 'normal' }) {
 
 function ShortcutCard({ label, text, icon: Icon, onOpen }) {
   return (
-    <button type="button" onClick={onOpen} style={shortcutCardStyle}>
+    <button type="button" onClick={onOpen} className="rqk-admin-shortcut" style={shortcutCardStyle}>
       <Icon size={20} color={theme.gold} />
       <strong style={{ fontSize: 14 }}>{label}</strong>
       <span style={{ color: theme.text.muted, fontSize: 12, lineHeight: 1.45 }}>{text}</span>
@@ -407,7 +414,7 @@ function ShortcutCard({ label, text, icon: Icon, onOpen }) {
 
 function FocusCard({ title, text, icon: Icon, onOpen }) {
   return (
-    <button type="button" onClick={onOpen} style={focusCardStyle}>
+    <button type="button" onClick={onOpen} className="rqk-admin-focus" style={focusCardStyle}>
       <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.gold, fontWeight: 900 }}><Icon size={18} />{title}</span>
       <span style={{ color: theme.text.muted, fontSize: 12, lineHeight: 1.5 }}>{text}</span>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text.white, fontSize: 12, fontWeight: 900 }}><Hammer size={14} />Open tool</span>
