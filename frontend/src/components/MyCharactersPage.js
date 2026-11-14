@@ -53,7 +53,14 @@ function formatDate(value) {
 }
 
 function duplicatePayload(source) {
+  // Preserve builder, multiclass, spellbook and homebrew fields when copying a
+  // sheet. The new character must have its own identity and campaign links.
+  const copy = { ...source };
+  for (const key of ['id', '_id', 'character_id', 'characterId', 'user_id', 'created_at', 'updated_at', 'campaign_id', 'campaign_name', 'campaign_join_status']) {
+    delete copy[key];
+  }
   return {
+    ...copy,
     name: `Copy of ${characterTitle(source)}`,
     race: source.race || source.species || 'Human',
     subrace: source.subrace || '',
@@ -63,18 +70,18 @@ function duplicatePayload(source) {
     level: Number(source.level || 1),
     edition: source.edition || source.rules_edition || (String(source.ruleset_id || '').includes('2024') ? '2024' : '2014'),
     ruleset_id: source.ruleset_id || (String(source.edition || source.rules_edition || '').includes('2024') ? 'dnd5e_2024' : 'dnd5e_2014'),
-    strength: Number(source.strength || 10),
-    dexterity: Number(source.dexterity || 10),
-    constitution: Number(source.constitution || 10),
-    intelligence: Number(source.intelligence || 10),
-    wisdom: Number(source.wisdom || 10),
-    charisma: Number(source.charisma || 10),
-    armor_class: Number(source.armor_class || 10),
-    speed: Number(source.speed || 30),
-    max_hit_points: Number(source.max_hit_points || 10),
-    current_hit_points: Number(source.current_hit_points || source.max_hit_points || 10),
-    temporary_hit_points: Number(source.temporary_hit_points || source.temp_hp || 0),
-    temp_hp: Number(source.temp_hp || source.temporary_hit_points || 0),
+    strength: Number(source.strength ?? 10),
+    dexterity: Number(source.dexterity ?? 10),
+    constitution: Number(source.constitution ?? 10),
+    intelligence: Number(source.intelligence ?? 10),
+    wisdom: Number(source.wisdom ?? 10),
+    charisma: Number(source.charisma ?? 10),
+    armor_class: Number(source.armor_class ?? 10),
+    speed: Number(source.speed ?? 30),
+    max_hit_points: Number(source.max_hit_points ?? 10),
+    current_hit_points: Number(source.current_hit_points ?? source.max_hit_points ?? 10),
+    temporary_hit_points: Number(source.temporary_hit_points ?? source.temp_hp ?? 0),
+    temp_hp: Number(source.temporary_hit_points ?? source.temp_hp ?? 0),
     hit_dice: source.hit_dice || undefined,
     hit_dice_remaining: Number(source.hit_dice_remaining ?? source.level ?? 1),
     alignment: source.alignment || 'Neutral',
@@ -110,10 +117,15 @@ function duplicatePayload(source) {
     inventory: source.inventory || [],
     equipped: source.equipped || {},
     currency: source.currency || {},
-    gold: Number(source.gold || source.currency?.gold || 0),
+    gold: Number(source.gold ?? source.currency?.gold ?? 0),
     conditions: [],
     inspiration: false,
+    has_inspiration: false,
     concentrating_on: '',
+    concentration: '',
+    death_saves_successes: 0,
+    death_saves_failures: 0,
+    exhaustion_level: 0,
   };
 }
 

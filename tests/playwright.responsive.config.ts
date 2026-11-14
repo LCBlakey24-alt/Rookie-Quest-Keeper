@@ -7,6 +7,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   workers: 1,
+  outputDir: 'test-results/artifacts',
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'test-results/responsive-report' }]],
   use: {
     ...devices['Desktop Chrome'],

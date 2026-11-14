@@ -113,9 +113,18 @@ test('a dropped connection is retried with the identical event', async () => {
 
 test.each([403, 413, 422])('a %s answer is final and not retried', async (status) => {
   apiClient.post.mockRejectedValue({ response: { status } });
-  await recordRemoteRoll(CAMPAIGN, roll());
+  await expect(recordRemoteRoll(CAMPAIGN, roll())).resolves.toMatchObject({ syncFailed: true });
   expect(apiClient.post).toHaveBeenCalledTimes(1);
   expect(removePendingRoll).toHaveBeenCalledTimes(1);
+});
+
+test('reports failure when a roll cannot be queued and the connection is unavailable', async () => {
+  jest.useFakeTimers();
+  queuePendingRoll.mockReturnValue(null);
+  apiClient.post.mockRejectedValue(new Error('Network Error'));
+  const result = recordRemoteRoll(CAMPAIGN, roll());
+  await settle();
+  await expect(result).resolves.toMatchObject({ queued: false, syncFailed: true });
 });
 
 test.each([401, 408, 429])('a temporary %s answer leaves the durable roll queued', async (status) => {
@@ -220,6 +229,24 @@ test('only a kept d20 joins an active GM group check; damage does not', async ()
   const d20 = apiClient.post.mock.calls[1][1];
   expect(damage.group_check_id).toBe('');
   expect(d20.group_check_id).toBe('check-12345678');
+});
+
+test('an empty group-check placeholder is filled without overriding explicit roll metadata', async () => {
+  loadDisplayState.mockReturnValue({
+    mode: 'group-check', payload: { group_check_id: 'check-active', id: 'request-active', title: 'Save' },
+  });
+  apiClient.post.mockResolvedValue({ data: { accepted: true } });
+  await recordRemoteRoll(CAMPAIGN, roll({ group_check_id: '', requestedRollId: 'request-explicit', checkName: 'Stealth' }));
+  expect(apiClient.post.mock.calls[0][1]).toMatchObject({
+    group_check_id: 'check-active', requested_roll_id: 'request-explicit', check_name: 'Stealth',
+  });
+});
+
+test('an explicitly supplied camel-case group check is not replaced by the active check', async () => {
+  loadDisplayState.mockReturnValue({ mode: 'group-check', payload: { group_check_id: 'check-active' } });
+  apiClient.post.mockResolvedValue({ data: { accepted: true } });
+  await recordRemoteRoll(CAMPAIGN, roll({ groupCheckId: 'check-explicit' }));
+  expect(apiClient.post.mock.calls[0][1].group_check_id).toBe('check-explicit');
 });
 
 test('recording the same roll twice adds it to local history once', () => {

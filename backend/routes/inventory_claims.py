@@ -98,11 +98,10 @@ async def claim_inventory_item(
         {
             'id': item_id,
             'campaign_id': campaign_id,
-            '$or': [
-                {'claimed_by': {'$exists': False}},
-                {'claimed_by': None},
-                {'claimed_by': ''},
-            ],
+            # Both fields must still be empty. Legacy or concurrent writes
+            # may populate the ID even when the display name is absent.
+            'claimed_by': {'$in': [None, '']},
+            'claimed_by_id': {'$in': [None, '']},
         },
         {
             '$set': {
@@ -159,9 +158,11 @@ async def unclaim_inventory_item(
             character_id=claimed_character_id,
             username=current_user,
         )
-        # Keep the write bound to the claim we just authorised in case another
-        # request changes ownership between the read and update.
-        update_query['claimed_by_id'] = claimed_character_id
+    # Bind the write to the observed claim for GMs as well as players. A
+    # return racing with a new claim must not erase the new owner's claim.
+    # MongoDB's equality-to-None also matches a missing field on legacy items.
+    for field in ('claimed_by', 'claimed_by_id', 'claimed_at'):
+        update_query[field] = {'$eq': item.get(field)}
 
     result = await db.inventory.update_one(
         update_query,

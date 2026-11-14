@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { isDetailRoute, isInnerRoute } from '@/components/app/detailRoutes';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
@@ -149,19 +149,34 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
     panelRef.current?.querySelector('.rqk-app-mobile-more-item')?.focus();
   }, []);
 
+  const keepFocusInPanel = (event) => {
+    if (event.key !== 'Tab') return;
+    const controls = [...panelRef.current.querySelectorAll('button:not([disabled]), a[href]')];
+    if (!controls.length) return;
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <>
     {/* Tapping anywhere outside the panel closes it. A plain element, not a
       * button: keyboard users close with Escape or the close button, and the
       * app-wide button theme would otherwise paint it solid. */}
-    <div className="rqk-app-mobile-more-backdrop" aria-hidden="true" onClick={onClose} data-testid="mobile-more-backdrop" />
-    <div ref={panelRef} id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
+    <div className="rqk-app-mobile-more-backdrop" aria-hidden="true" onClick={() => onClose()} data-testid="mobile-more-backdrop" />
+    <div ref={panelRef} id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="dialog" aria-modal="true" aria-label="More app tools" onKeyDown={keepFocusInPanel}>
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
           <span>Extra pages and tools for your workspace.</span>
         </div>
-        <button type="button" className="rqk-app-mobile-more-close" onClick={onClose} aria-label="Close more tools">
+        <button type="button" className="rqk-app-mobile-more-close" onClick={() => onClose()} aria-label="Close more tools">
           <X size={18} aria-hidden="true" />
         </button>
       </div>
@@ -171,7 +186,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
           const Icon = item.icon;
           if (item.kind === 'rook') {
             return (
-              <button key={item.label} type="button" className="rqk-app-mobile-more-item rqk-app-mobile-more-item--rook" onClick={onRook} role="menuitem">
+              <button key={item.label} type="button" className="rqk-app-mobile-more-item rqk-app-mobile-more-item--rook" onClick={onRook}>
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
@@ -180,7 +195,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
 
           if (item.kind === 'dice') {
             return (
-              <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onDice} role="menuitem">
+              <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onDice}>
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
@@ -189,7 +204,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
 
           if (item.kind === 'feedback') {
             return (
-              <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onFeedback} role="menuitem">
+              <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onFeedback}>
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
@@ -202,8 +217,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice 
               key={item.label}
               to={item.to}
               className={active ? 'rqk-app-mobile-more-item is-active' : 'rqk-app-mobile-more-item'}
-              onClick={onClose}
-              role="menuitem"
+              onClick={() => onClose(false)}
               aria-current={active ? 'page' : undefined}
             >
               <Icon size={18} aria-hidden="true" />
@@ -227,6 +241,12 @@ export default function AppShell({ children }) {
     ? availableNavItems.filter((item) => item.mobilePrimary)
     : availableNavItems;
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const moreTriggerRef = useRef(null);
+
+  const closeMore = useCallback((restoreFocus = true) => {
+    setIsMoreOpen(false);
+    if (restoreFocus) moreTriggerRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -255,12 +275,12 @@ export default function AppShell({ children }) {
     if (!isMoreOpen) return undefined;
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') setIsMoreOpen(false);
+      if (event.key === 'Escape') closeMore();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isMoreOpen]);
+  }, [isMoreOpen, closeMore]);
 
   const mobileMoreItems = useMemo(() => {
     return [
@@ -347,7 +367,7 @@ export default function AppShell({ children }) {
           <MobileMorePanel
             items={mobileMoreItems}
             pathname={location.pathname}
-            onClose={() => setIsMoreOpen(false)}
+            onClose={closeMore}
             onRook={handleRook}
             onDice={handleDice}
             onFeedback={handleFeedback}
@@ -360,7 +380,7 @@ export default function AppShell({ children }) {
         <MobileMorePanel
           items={mobileMoreItems}
           pathname={location.pathname}
-          onClose={() => setIsMoreOpen(false)}
+          onClose={closeMore}
           onRook={handleRook}
           onDice={handleDice}
           onFeedback={handleFeedback}
@@ -382,7 +402,7 @@ export default function AppShell({ children }) {
           </div>}
           {!isMobile && <Link to="/account" aria-label="Account settings" title="Account settings" className="rqk-app-topbar-settings" style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, color: "#cddce8" }}><Settings size={20} aria-hidden="true" /></Link>}
           {isMobile && (
-            <button type="button" className="rqk-app-topbar-tools-toggle"
+            <button ref={moreTriggerRef} type="button" className="rqk-app-topbar-tools-toggle"
               aria-label={mobileMoreCurrentSection ? `Open more tools, current section ${mobileMoreCurrentSection.label}` : "Open more tools"} aria-expanded={isMoreOpen}
               aria-controls="rqk-app-mobile-more-panel"
               onClick={() => setIsMoreOpen((open) => !open)}>

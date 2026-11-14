@@ -2,6 +2,7 @@ import apiClient from '@/lib/apiClient';
 import {
   saveOfflineCampaignPackMetadata,
   storeOfflineApiResponse,
+  getOfflineCacheScope,
 } from '@/offline/offlineApiCache';
 import { buildGmOfflinePackRequests, downloadCampaignOfflinePack } from './offlineCampaignPack';
 
@@ -11,7 +12,7 @@ jest.mock('@/lib/apiClient', () => ({
 }));
 
 jest.mock('@/offline/offlineApiCache', () => ({
-  getOfflineCacheKey: jest.fn(config => `key:${config.url}`),
+  getOfflineCacheScope: jest.fn(() => 'user:gm'),
   getOfflineCampaignPackMetadata: jest.fn(),
   listOfflineCampaignPacks: jest.fn(async () => []),
   removeOfflineCampaignPack: jest.fn(),
@@ -32,6 +33,9 @@ function response(url, data) {
 describe('offline campaign pack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    getOfflineCacheScope.mockReturnValue('user:gm');
+    storeOfflineApiResponse.mockImplementation(async config => `key:${config.url}`);
+    saveOfflineCampaignPackMetadata.mockImplementation(async pack => pack);
     apiClient.get.mockImplementation(async url => {
       if (url === '/campaigns/c1') return response(url, { id: 'c1', name: 'Test Campaign' });
       if (url === '/campaigns/c1/live-party') return response(url, [{ id: 'p1', character_id: 'char-1', name: 'Hero' }]);
@@ -96,6 +100,35 @@ describe('offline campaign pack', () => {
     });
 
     await expect(downloadCampaignOfflinePack('c1')).rejects.toThrow('Offline');
+    expect(saveOfflineCampaignPackMetadata).not.toHaveBeenCalled();
+  });
+
+  test('does not claim a required section was saved when local storage fails', async () => {
+    storeOfflineApiResponse.mockResolvedValueOnce('');
+    await expect(downloadCampaignOfflinePack('c1')).rejects.toThrow('Could not save this section');
+    expect(saveOfflineCampaignPackMetadata).not.toHaveBeenCalled();
+  });
+
+  test('marks an optional storage failure as unavailable', async () => {
+    storeOfflineApiResponse.mockImplementationOnce(async config => `key:${config.url}`)
+      .mockResolvedValueOnce('');
+    const pack = await downloadCampaignOfflinePack('c1');
+    expect(pack.complete).toBe(false);
+    expect(pack.sections.find(section => section.key === 'setting').status).toBe('unavailable');
+  });
+
+  test('fails when pack metadata could not be saved', async () => {
+    saveOfflineCampaignPackMetadata.mockResolvedValueOnce(null);
+    await expect(downloadCampaignOfflinePack('c1')).rejects.toThrow('Could not save the offline copy');
+  });
+
+  test('stops rather than filing the pack under a new account', async () => {
+    apiClient.get.mockImplementationOnce(async url => {
+      getOfflineCacheScope.mockReturnValue('user:other');
+      return response(url, { id: 'c1' });
+    });
+    await expect(downloadCampaignOfflinePack('c1')).rejects.toThrow('account changed');
+    expect(storeOfflineApiResponse).not.toHaveBeenCalled();
     expect(saveOfflineCampaignPackMetadata).not.toHaveBeenCalled();
   });
 });
