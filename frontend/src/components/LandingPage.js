@@ -250,7 +250,10 @@ export default function LandingPage() {
         </div>
         <p className="landing-footer-note">
           © {new Date().getFullYear()} Rookie Quest Keeper. Independent tabletop campaign companion, not affiliated with Wizards of the Coast.
-          {' '}<a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} data-testid="landing-credits-link">Credits &amp; licences</a>
+          {' '}<a href="/privacy" onClick={(event) => { event.preventDefault(); navigate('/privacy'); }}>Privacy</a>
+          {' · '}<a href="/terms" onClick={(event) => { event.preventDefault(); navigate('/terms'); }}>Terms</a>
+          {' · '}<a href="/cookies" onClick={(event) => { event.preventDefault(); navigate('/cookies'); }}>Cookies &amp; storage</a>
+          {' · '}<a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} data-testid="landing-credits-link">Credits &amp; licences</a>
         </p>
       </footer>
     </div>
