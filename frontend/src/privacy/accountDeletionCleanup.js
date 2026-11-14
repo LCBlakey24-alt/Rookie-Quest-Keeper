@@ -2,8 +2,7 @@ import apiClient from '@/lib/apiClient';
 import { clearCurrentOfflineAccountData } from '@/offline/offlineApiCache';
 import { clearOfflineMediaCache } from '@/offline/offlineMediaCache';
 import { revokeRookAiConsent } from '@/privacy/rookAiConsent';
-
-const ANALYTICS_KEY = 'rqk.analyticsConsent';
+import { setAnalyticsConsent } from '@/privacy/analyticsConsent';
 let installed = false;
 
 function isAccountDeleteResponse(response) {
@@ -21,8 +20,7 @@ export async function clearDeletedAccountDeviceData() {
     clearOfflineMediaCache(),
   ]);
   revokeRookAiConsent();
-  try { localStorage.removeItem(ANALYTICS_KEY); } catch {}
-  try { window.dispatchEvent(new CustomEvent('rqk:analytics-consent-changed')); } catch {}
+  setAnalyticsConsent('');
 }
 
 export function installAccountDeletionLocalCleanup() {
