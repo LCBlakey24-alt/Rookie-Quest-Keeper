@@ -2,8 +2,8 @@
  * Which routes are a working surface rather than a list.
  *
  * On a list page the labelled rail is the main way around the app. On a
- * working surface -- one campaign, one character sheet, the homebrew
- * workshop -- the page already has its own navigation, and the rail is
+ * working surface -- one campaign or one character sheet -- the page
+ * already has its own navigation, and the rail is
  * competing with it for width. On a laptop that produced four columns side
  * by side and squashed the content people actually came for.
  *
@@ -25,11 +25,6 @@ const DETAIL_PARENTS = [
   '/player-display',
 ];
 
-// Working surfaces that have no id in the path.
-const DETAIL_EXACT = [
-  '/homebrew',
-];
-
 function normalise(pathname) {
   const value = String(pathname || '').split('?')[0].split('#')[0];
   return value.length > 1 ? value.replace(/\/+$/, '') : value;
@@ -38,8 +33,6 @@ function normalise(pathname) {
 export function isDetailRoute(pathname) {
   const path = normalise(pathname);
   if (!path || path === '/') return false;
-
-  if (DETAIL_EXACT.includes(path)) return true;
 
   // A trailing segment is required, so a list page keeps the full rail.
   return DETAIL_PARENTS.some((parent) => path.startsWith(parent + '/') && path.length > parent.length + 1);
