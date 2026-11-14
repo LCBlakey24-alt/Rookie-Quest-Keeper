@@ -277,10 +277,11 @@ async def create_review(review_data: ReviewCreate, username: str = Depends(get_c
     if existing:
         raise HTTPException(status_code=400, detail="You have already submitted a review. You can edit your existing review.")
     
-    # Auto-approve 4-5 star reviews
-    is_approved = review_data.rating >= 4
-    is_featured = review_data.rating >= 4  # Auto-feature high ratings
-    
+    # All ratings follow the SAME moderation workflow. Automatically
+    # publishing only positive scores would misrepresent reviewer sentiment.
+    is_approved = False
+    is_featured = False
+
     review = Review(
         username=username,
         rating=review_data.rating,
@@ -290,7 +291,7 @@ async def create_review(review_data: ReviewCreate, username: str = Depends(get_c
     )
     
     await db.reviews.insert_one(review.model_dump())
-    return {"message": "Thank you for your review!", "is_featured": is_featured}
+    return {"message": "Thank you. Your review has been submitted for moderation.", "is_featured": is_featured}
 
 @router.put("/reviews")
 async def update_review(review_data: ReviewCreate, username: str = Depends(get_current_user)):
@@ -306,10 +307,11 @@ async def update_review(review_data: ReviewCreate, username: str = Depends(get_c
     if not existing:
         raise HTTPException(status_code=404, detail="You haven't submitted a review yet")
     
-    # Re-evaluate approval based on new rating
-    is_approved = review_data.rating >= 4
-    is_featured = review_data.rating >= 4
-    
+    # Edits return to moderation regardless of star rating. This prevents an
+    # approved comment being replaced with unreviewed public content.
+    is_approved = False
+    is_featured = False
+
     await db.reviews.update_one(
         {'username': username},
         {'$set': {
@@ -319,7 +321,7 @@ async def update_review(review_data: ReviewCreate, username: str = Depends(get_c
             'is_featured': is_featured
         }}
     )
-    return {"message": "Review updated!", "is_featured": is_featured}
+    return {"message": "Your updated review has been submitted for moderation.", "is_featured": is_featured}
 
 @router.get("/reviews/mine")
 async def get_my_review(username: str = Depends(get_current_user)):
