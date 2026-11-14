@@ -3,11 +3,7 @@ import { toast } from 'sonner';
 import { Calendar as CalendarIcon, ChevronRight, Edit, Plus, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import './CalendarTab.css';
-import {
-  calendarOrdinal,
-  TIA_KARTA_REFERENCE_EVENTS,
-  tiaKartaCalendar,
-} from '@/data/tiaKartaCalendar';
+import { calendarOrdinal } from '@/data/campaignCalendarMath';
 import { eventOccursOn, calendarMonthAfter, calendarWeekdayOffset, daysUntilNextOccurrence } from '@/data/customCalendarUtilities';
 import HexLoader from '@/components/guild-motif/HexLoader';
 
@@ -24,7 +20,7 @@ export default function CalendarTab({ campaignId }) {
   const [viewDate, setViewDate] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const eventEditorRef = useRef(null);
-  const [dateDraft, setDateDraft] = useState({ day: 1, month: 1, year: 592 });
+  const [dateDraft, setDateDraft] = useState({ day: 1, month: 1, year: 1 });
   const [showCalendarEditor, setShowCalendarEditor] = useState(false);
   const [structureDraft, setStructureDraft] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -32,7 +28,6 @@ export default function CalendarTab({ campaignId }) {
   const [advancingTime, setAdvancingTime] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState(emptyEvent);
-  const [applyingTiaKarta, setApplyingTiaKarta] = useState(false);
 
   const loadCalendar = useCallback(async (options = {}) => {
     const requestedCampaign = campaignId;
@@ -90,7 +85,7 @@ export default function CalendarTab({ campaignId }) {
     .filter(event => event.daysUntil !== null && event.daysUntil >= 0 && event.daysUntil <= 30)
     .sort((a, b) => a.daysUntil - b.daysUntil), [events, calendar]);
 
-  const viewYear = viewDate?.year ?? calendar?.current_year ?? 592;
+  const viewYear = viewDate?.year ?? calendar?.current_year ?? 1;
   const viewMonth = viewDate?.month ?? calendar?.current_month ?? 1;
   const selectedMonth = calendar?.custom_months?.[viewMonth - 1];
   const currentMonth = selectedMonth?.name || 'Month';
@@ -114,38 +109,6 @@ export default function CalendarTab({ campaignId }) {
     setEditingEvent(null);
     setEventForm({ ...emptyEvent, ...selectedDate });
     eventEditorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  };
-
-  const applyTiaKarta = async () => {
-    if (!window.confirm('Apply the Tia-Karta 12-month calendar? If this campaign already has a custom in-world date it will be preserved. Existing events will not be deleted.')) return;
-    setApplyingTiaKarta(true);
-    try {
-      await apiClient.put(`/campaigns/${campaignId}/calendar`, tiaKartaCalendar(campaignId, calendar));
-      // Friday campaign milestones must not be written into Wednesday's
-      // independent history. Only confirmed shared-world events are universal.
-      const campaignRes = await apiClient.get(`/campaigns/${campaignId}`);
-      const isWednesday = /spilsby\s+wednesday/i.test(String(campaignRes.data?.name || ''));
-      const referenceEvents = isWednesday
-        ? TIA_KARTA_REFERENCE_EVENTS.filter(event => event.id === 'tk-calendar-crowns')
-        : TIA_KARTA_REFERENCE_EVENTS;
-      const existingKeys = new Set(events.map(event => `${event.name}|${event.day}|${event.month}|${event.year}`));
-      for (const event of referenceEvents) {
-        const key = `${event.name}|${event.day}|${event.month}|${event.year}`;
-        if (!existingKeys.has(key)) {
-          await apiClient.post(`/campaigns/${campaignId}/calendar-events`, {
-            name: event.name, description: event.description,
-            day: event.day, month: event.month, year: event.year,
-            is_recurring: false, recurrence_type: 'none',
-          });
-        }
-      }
-      toast.success('Tia-Karta calendar restored: 6-day weeks and 12 named months.');
-      await loadCalendar();
-    } catch (error) {
-      toast.error(error?.response?.data?.detail || error?.message || 'Could not apply Tia-Karta calendar');
-    } finally {
-      setApplyingTiaKarta(false);
-    }
   };
 
   const saveEvent = async (event) => {
@@ -282,7 +245,7 @@ export default function CalendarTab({ campaignId }) {
             <h2><CalendarIcon size={22} aria-hidden="true" /> Campaign calendar</h2>
             <p>Plan events, navigate the world calendar and track this party's independent date.</p>
           </div>
-          <button type="button" className="btn-secondary" onClick={applyTiaKarta} disabled={applyingTiaKarta}>{applyingTiaKarta ? 'Restoring…' : 'Restore Tia-Karta months'}</button>
+
         </header>
 
         <section className="rqk-calendar-panel rqk-calendar-current">
@@ -342,7 +305,7 @@ export default function CalendarTab({ campaignId }) {
           {showCalendarEditor && structureDraft && (
             <form className="rqk-calendar-structure-form" onSubmit={saveCalendarSettings}>
               <p>Edit month names, lengths and seasons, or the number of days in a week.
-                This affects only this campaign. The 12-month Tia-Karta standard is available with the Restore button above.</p>
+                This affects only this campaign. Create a custom calendar for any world or game system.</p>
               <label>Days per week
                 <input data-testid="calendar-week-length" type="number" min="1" max="10"
                   value={structureDraft.days_per_week}
