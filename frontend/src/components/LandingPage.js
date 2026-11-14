@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
+import BetaNotice from '@/components/BetaNotice';
 import '@/styles/landingProductionTrust.css';
 import '@/styles/keeperProductSite.css';
 import '@/styles/guildTokens.css';
@@ -174,6 +175,7 @@ export default function LandingPage() {
       </nav>
 
       <main id="landing-main" className="landing-final-main">
+        <BetaNotice audience="public" />
         <section className="landing-final-hero" aria-labelledby="landing-hero-title">
           <div className="landing-hero-copy">
             <p className="landing-kicker">Your tabletop companion</p>
