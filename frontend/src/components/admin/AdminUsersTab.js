@@ -5,18 +5,18 @@ import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 
 const rq = {
-  panel: 'var(--rq-bg-panel, #242424)',
-  input: 'var(--rq-bg-input, #1F1F1F)',
-  border: 'var(--rq-accent-border, rgba(193,18,31,0.35))',
-  borderDefault: 'var(--rq-border-default, #3A3A3A)',
-  accent: 'var(--rq-accent-primary, #C1121F)',
-  accentHover: 'var(--rq-accent-hover, #D62839)',
-  accentSoft: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
-  text: 'var(--rq-text-primary, #FFFFFF)',
-  textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
-  muted: 'var(--rq-text-muted, #A0A0A0)',
-  radius: 'var(--rq-radius-md, 6px)',
-  radiusSm: 'var(--rq-radius-sm, 4px)',
+  panel: 'var(--guild-bg, #0a2342)',
+  input: 'var(--guild-bg-deep, #071a33)',
+  border: 'var(--guild-line, rgba(176,77,255,0.45))',
+  borderDefault: 'rgba(79,179,255,0.25)',
+  accent: 'var(--guild-hi, #ffb066)',
+  accentHover: 'var(--guild-c3, #4fb3ff)',
+  accentSoft: 'var(--guild-select, rgba(96,156,232,0.2))',
+  text: 'var(--guild-text, #ffffff)',
+  textSecondary: 'var(--guild-muted, #c9d2e6)',
+  muted: 'var(--guild-muted, #c9d2e6)',
+  radius: '16px',
+  radiusSm: '12px',
 };
 
 const buttonStyle = {
@@ -46,6 +46,7 @@ const subtleButtonStyle = {
 export default function AdminUsersTab() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [query, setQuery] = useState('');
   const [exportingKind, setExportingKind] = useState('');
   const [impersonatingUser, setImpersonatingUser] = useState('');
@@ -63,9 +64,11 @@ export default function AdminUsersTab() {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      setLoadError('');
       const res = await apiClient.get('/admin/users');
       setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
+      setLoadError(err?.response?.data?.detail || 'Could not load accounts. Try refreshing.');
       toast.error(err?.response?.data?.detail || 'Failed to load users');
     } finally {
       setLoading(false);
@@ -123,23 +126,27 @@ export default function AdminUsersTab() {
       user.username,
       user.email,
       user.created_at,
+      user.access_level,
+      user.subscription_tier,
+      user.subscription_status,
     ].some(value => String(value || '').toLowerCase().includes(q)));
   }, [users, query]);
 
   const totals = useMemo(() => ({
     users: users.length,
     filtered: filtered.length,
+    admins: users.filter(user => user.access_level === 'admin').length,
     characters: users.reduce((sum, user) => sum + Number(user.character_count || 0), 0),
     ownedCampaigns: users.reduce((sum, user) => sum + Number(user.owned_campaign_count || 0), 0),
     joinedCampaigns: users.reduce((sum, user) => sum + Number(user.joined_campaign_count || 0), 0),
   }), [users, filtered]);
 
   return (
-    <div data-testid="admin-users-tab" style={wrapStyle}>
+    <div data-testid="admin-users-tab" className="rqk-admin-users" style={wrapStyle}>
       <div style={headerStyle}>
         <div>
-          <h2 style={titleStyle}><UsersIcon size={20} /> User Accounts</h2>
-          <p style={subtitleStyle}>Track who has signed up, which email they used, and how much they are using the site.</p>
+          <h2 style={titleStyle}><UsersIcon size={20} /> Member Accounts</h2>
+          <p style={subtitleStyle}>View registration, verified site permissions, subscription plan and usage. Campaigns and character details remain private to their owners.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={loadUsers} disabled={loading} style={busyButtonStyle(loading)} aria-busy={loading ? 'true' : 'false'}><RefreshCw size={14} style={loading ? usersSpinStyle : undefined} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
@@ -154,6 +161,7 @@ export default function AdminUsersTab() {
 
       <div style={metricsStyle}>
         <Metric label="Accounts" value={totals.users} />
+        <Metric label="Site Admins" value={totals.admins} />
         <Metric label="Showing" value={totals.filtered} />
         <Metric label="Characters" value={totals.characters} />
         <Metric label="GM Campaigns" value={totals.ownedCampaigns} />
@@ -166,11 +174,13 @@ export default function AdminUsersTab() {
           data-testid="admin-user-search"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search by username, email, or created date..."
+          placeholder="Search name, email, access, or plan..."
           style={searchStyle}
         />
       </div>
 
+      {loadError && <div role="alert" className="rqk-admin-users__error">{loadError}</div>}
+      <p className="rqk-admin-users__disclaimer">Account activity refers to saved characters and campaigns. Last sign-in is shown only when recorded; it is not an online indicator.</p>
       {loading ? (
         <AdminUsersLoading />
       ) : isMobile ? (
@@ -184,7 +194,9 @@ export default function AdminUsersTab() {
                 <div style={userCardHeaderStyle}>
                   <div style={{ minWidth: 0 }}>
                     <strong style={userNameStyle}>{user.username || 'Unnamed user'}</strong>
+                    <AccessBadge value={user.access_level} />
                     <span style={userMetaStyle}>{user.email || 'No recovery email'}</span>
+                    <span style={userMetaStyle}>Plan: {formatSubscription(user)}</span>
                   </div>
                   <button
                     type="button"
@@ -197,7 +209,8 @@ export default function AdminUsersTab() {
                   </button>
                 </div>
                 <div style={userStatsGridStyle}>
-                  <MiniStat label="Joined" value={formatDate(user.created_at)} />
+                  <MiniStat label="Registered" value={formatDate(user.created_at)} />
+                  <MiniStat label="Last sign-in" value={formatLastLogin(user.last_login_at)} />
                   <MiniStat label="Characters" value={user.character_count || 0} />
                   <MiniStat label="GM Campaigns" value={user.owned_campaign_count || 0} />
                   <MiniStat label="Player In" value={user.joined_campaign_count || 0} />
@@ -210,12 +223,15 @@ export default function AdminUsersTab() {
         </div>
       ) : (
         <div style={tableScrollStyle}>
-          <table style={{ minWidth: 980, width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <table style={{ minWidth: 1180, width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ color: rq.muted, textAlign: 'left', letterSpacing: 1, fontWeight: 900 }}>
                 <th style={thStyle}>Username</th>
-                <th style={thStyle}>Email Used</th>
-                <th style={thStyle}>Joined</th>
+                <th style={thStyle}>Access</th>
+                <th style={thStyle}>Email</th>
+                <th style={thStyle}>Plan</th>
+                <th style={thStyle}>Registered</th>
+                <th style={thStyle}>Last sign-in</th>
                 <th style={thStyle}>Characters</th>
                 <th style={thStyle}>GM Campaigns</th>
                 <th style={thStyle}>Joined</th>
@@ -226,15 +242,18 @@ export default function AdminUsersTab() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan="9" style={{ color: rq.muted, padding: 24, textAlign: 'center' }}>No users match</td></tr>
+                <tr><td colSpan="12" style={{ color: rq.muted, padding: 24, textAlign: 'center' }}>No users match</td></tr>
               ) : (
                 filtered.map(user => {
                   const impersonating = impersonatingUser === user.username;
                   return (
                     <tr key={user.username || user.email} data-testid={`user-row-${user.username}`} style={trStyle} aria-busy={impersonating ? 'true' : 'false'}>
                       <td style={tdStrongStyle}>{user.username || '-'}</td>
+                      <td style={tdStyle}><AccessBadge value={user.access_level} /></td>
                       <td style={tdStyle}>{user.email || '-'}</td>
+                      <td style={tdStyle}>{formatSubscription(user)}</td>
                       <td style={tdStyle}>{formatDate(user.created_at)}</td>
+                      <td style={tdStyle}>{formatLastLogin(user.last_login_at)}</td>
                       <td style={tdNumberStyle}>{user.character_count || 0}</td>
                       <td style={tdNumberStyle}>{user.owned_campaign_count || 0}</td>
                       <td style={tdNumberStyle}>{user.joined_campaign_count || 0}</td>
@@ -269,7 +288,7 @@ function AdminUsersLoading() {
     <div style={usersLoadingStyle} role="status" aria-live="polite" aria-busy="true">
       <span style={usersLoadingSpinnerStyle} aria-hidden="true" />
       <strong>Loading user accounts…</strong>
-      <span style={usersLoadingTextStyle}>Checking signups, emails, characters, campaign ownership, feedback, and review activity.</span>
+      <span style={usersLoadingTextStyle}>Checking registered accounts and site permissions.</span>
     </div>
   );
 }
@@ -290,6 +309,23 @@ function Metric({ label, value }) {
       <div style={{ color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8 }}>{label}</div>
     </div>
   );
+}
+
+function AccessBadge({ value }) {
+  const isAdmin = value === 'admin';
+  return <span className={`rqk-admin-users__role ${isAdmin ? 'is-admin' : 'is-member'}`}>{isAdmin ? 'Site Admin' : 'Member'}</span>;
+}
+
+function formatSubscription(user) {
+  const tier = String(user.subscription_tier || '').trim();
+  if (!tier) return 'Not specified';
+  const status = String(user.subscription_status || '').trim();
+  const title = tier.charAt(0).toUpperCase() + tier.slice(1);
+  return status ? `${title} · ${status}` : title;
+}
+
+function formatLastLogin(value) {
+  return value ? formatDate(value) : 'Not recorded';
 }
 
 function formatDate(value) {
@@ -314,13 +350,13 @@ const userStatsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, mi
 const miniStatStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 8, display: 'grid', gap: 3, color: rq.textSecondary, fontSize: 11 };
 const emptyStyle = { color: rq.muted, fontSize: 13, padding: 28, textAlign: 'center', background: rq.input, border: `1px dashed ${rq.borderDefault}`, borderRadius: rq.radiusSm };
 const thStyle = { padding: '9px 10px', borderBottom: `1px solid ${rq.border}`, whiteSpace: 'nowrap', textTransform: 'uppercase' };
-const trStyle = { color: rq.text, borderBottom: `1px solid rgba(193,18,31,0.10)` };
+const trStyle = { color: rq.text, borderBottom: '1px solid rgba(79,179,255,0.16)' };
 const tdStyle = { padding: '10px', color: rq.textSecondary, whiteSpace: 'nowrap' };
 const tdStrongStyle = { padding: '10px', color: rq.text, fontWeight: 900, whiteSpace: 'nowrap' };
 const tdNumberStyle = { padding: '10px', color: rq.accentHover, fontWeight: 900, textAlign: 'center' };
 const usersSpinStyle = { animation: 'rqAdminUsersSpin 0.9s linear infinite' };
-const usersLoadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
-const usersLoadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminUsersSpin 0.9s linear infinite' };
+const usersLoadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'var(--guild-bg-deep)', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
+const usersLoadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--guild-c1), var(--guild-c2), var(--guild-c3), var(--guild-c1))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminUsersSpin 0.9s linear infinite' };
 const usersLoadingTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 430 };
 const usersTabCss = `
   @keyframes rqAdminUsersSpin { to { transform: rotate(360deg); } }
