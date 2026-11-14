@@ -1,115 +1,208 @@
-/* Admin Mission Control explicit hook styling.
-   This avoids relying on fragile :has() parent selectors for the inline-heavy Admin page. */
+/* Admin Command Centre — same Neon Coast / Guild system as the signed-in app.
+   Prefer reusable guild design tokens over the former isolated purple/red theme.
+   Specific selectors override legacy inline styles without changing Admin tools. */
 
 #root .admin-mission-control-page {
-  background:
-    radial-gradient(circle at 84% 0%, rgba(235, 63, 233, 0.14), transparent 34%),
-    radial-gradient(circle at 12% 100%, rgba(255,149,66,0.13), transparent 38%),
-    linear-gradient(180deg, #070713 0%, #10071e 54%, #19082d 100%) !important;
-  color: var(--rq-sunset-cream, #fff8ef) !important;
+  /* Feed the shared Guild palette into older admin modules which still read
+     the legacy --rq-* variables, without changing the palette elsewhere. */
+  --rq-bg-main: var(--guild-bg);
+  --rq-bg-panel: var(--guild-bg);
+  --rq-bg-panel-alt: var(--guild-panel);
+  --rq-bg-input: var(--guild-bg-deep);
+  --rq-accent-primary: var(--guild-hi);
+  --rq-accent-hover: var(--guild-h1);
+  --rq-accent-soft: var(--guild-select);
+  --rq-accent-border: var(--guild-line);
+  --rq-border-default: rgba(var(--guild-c3-rgb), .24);
+  --rq-text-primary: var(--guild-text);
+  --rq-text-secondary: var(--guild-muted);
+  --rq-text-muted: var(--guild-muted);
+  --rq-text-inverse: var(--guild-ink);
+  background: transparent !important;
+  color: var(--guild-text) !important;
+  font-family: var(--guild-font-body) !important;
+  padding: clamp(12px, 2.5vw, 26px) !important;
 }
-
-#root .admin-mission-control-page__container,
-#root .admin-mission-control-page__hero,
-#root .admin-mission-control-page__stats,
-#root .admin-mission-control-page__mission-grid,
-#root .admin-mission-control-page__active-summary,
-#root .admin-mission-control-page__tabs,
-#root .admin-mission-control-page__content {
-  max-width: 100% !important;
+#root .admin-mission-control-page__container {
+  max-width: 1480px !important;
   min-width: 0 !important;
+  gap: clamp(12px, 2vw, 20px) !important;
 }
-
+#root .admin-mission-control-page__container :is(h1, h2) {
+  font-family: var(--guild-font-display) !important;
+  letter-spacing: 0.01em;
+}
+#root .admin-mission-control-page__container :is(h1, h2, h3) {
+  overflow-wrap: anywhere;
+}
 #root .admin-mission-control-page__hero,
-#root .admin-mission-control-page__stats,
 #root .admin-mission-control-page__mission-grid > div,
 #root .admin-mission-control-page__active-summary,
 #root .admin-mission-control-page__templates-panel,
-#root .admin-mission-control-page__reviews-panel {
-  border-radius: 24px !important;
-  border: 2px solid transparent !important;
-  background:
-    linear-gradient(145deg, rgba(13,6,23,0.97), rgba(32,12,52,0.93)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  box-shadow: 0 16px 42px rgba(0,0,0,0.20), 0 0 24px rgba(235,63,233,0.07) !important;
+#root .admin-mission-control-page__reviews-panel,
+#root .admin-mission-control-page [data-testid="admin-mission-brief"] {
+  background: var(--guild-box) !important;
+  border: 1px solid transparent !important;
+  border-radius: 20px !important;
+  box-shadow: var(--guild-box-glow), 0 16px 36px rgba(0, 0, 0, 0.16) !important;
+  min-width: 0 !important;
 }
-
-#root .admin-mission-control-page__stats > div,
-#root .admin-mission-control-page__mission-grid button,
-#root .admin-mission-control-page__active-summary span,
-#root .admin-mission-control-page__content article,
-#root .admin-mission-control-page__content section,
-#root .admin-mission-control-page__content [role="tabpanel"] {
-  max-width: 100% !important;
+#root .admin-mission-control-page__hero {
+  padding: clamp(18px, 3vw, 32px) !important;
+  gap: 16px !important;
 }
-
-#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"] {
-  min-height: 54px !important;
+#root .admin-mission-control-page__hero h1 {
+  line-height: 1.13 !important;
+  font-size: clamp(27px, 3.9vw, 42px) !important;
+}
+#root .admin-mission-control-page__hero p,
+#root .admin-mission-control-page__active-summary p {
+  max-width: 72ch;
+}
+#root .admin-mission-control-page__stats {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: clamp(8px, 1.2vw, 12px) !important;
+  min-width: 0 !important;
+}
+#root .admin-mission-control-page__stats .rqk-admin-stat {
+  border: 1px solid transparent !important;
+  background: var(--guild-box) !important;
+  box-shadow: var(--guild-control-glow) !important;
   border-radius: 16px !important;
-  background: rgba(7,7,19,0.55) !important;
-  border-color: rgba(255,248,239,0.14) !important;
-  color: rgba(255,248,239,0.72) !important;
-  transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease !important;
+  padding: 16px 10px !important;
 }
-
+#root .admin-mission-control-page__stats .rqk-admin-stat > div:nth-child(2) {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(24px, 2.6vw, 32px) !important;
+}
+#root .admin-mission-control-page__extra-metrics {
+  color: var(--guild-muted);
+  border: 1px solid rgba(var(--guild-c3-rgb), .2);
+  border-radius: 14px;
+  background: rgba(7, 26, 51, .45);
+  padding: 12px;
+}
+#root .admin-mission-control-page__extra-metrics summary {
+  cursor: pointer;
+  color: var(--guild-text);
+  font-weight: 750;
+  padding: 2px 4px;
+}
+#root .admin-mission-control-page__extra-metrics summary span {
+  color: var(--guild-muted);
+  font-weight: 400;
+  font-size: 12px;
+  margin-left: 9px;
+}
+#root .admin-mission-control-page__extra-metrics > .admin-mission-control-page__stats {
+  margin-top: 14px;
+}
+#root .admin-mission-control-page__tabs {
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+  padding: 4px 2px 10px !important;
+  scrollbar-width: thin;
+  min-width: 0 !important;
+}
+#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"] {
+  flex: 0 0 auto !important;
+  min-width: 112px !important;
+  min-height: 48px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(var(--guild-c3-rgb), .24) !important;
+  background: rgba(7, 26, 51, .78) !important;
+  color: var(--guild-muted) !important;
+  padding: 11px 15px !important;
+  position: relative;
+  white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease !important;
+}
 #root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"][aria-pressed="true"] {
-  background: var(--rq-sunset-gradient) !important;
-  color: #ffffff !important;
-  border-color: rgba(255,248,239,0.25) !important;
+  background: var(--guild-select) !important;
+  color: var(--guild-text) !important;
+  border-color: var(--guild-h2) !important;
+  box-shadow: var(--guild-control-glow-hot) !important;
 }
-
-#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"]:hover,
-#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"]:focus-visible {
-  transform: translateY(-1px) !important;
-  filter: brightness(1.07) !important;
-  outline: none !important;
+#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"][aria-pressed="true"]::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 10px;
+  background: var(--guild-edge-hot);
 }
-
-#root .admin-mission-control-page input,
-#root .admin-mission-control-page textarea,
-#root .admin-mission-control-page select,
-#root .admin-mission-control-page table,
-#root .admin-mission-control-page [role="tabpanel"] {
-  max-width: 100% !important;
+#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"]:hover {
+  background: rgba(96, 156, 232, .18) !important;
+  color: var(--guild-text) !important;
 }
-
+#root .admin-mission-control-page__container :is(button, a, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--guild-h1) !important;
+  outline-offset: 3px !important;
+}
+#root .admin-mission-control-page__active-summary {
+  padding: clamp(14px, 2vw, 20px) !important;
+}
+#root .admin-mission-control-page__content {
+  max-width: 100%;
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+}
+#root .admin-mission-control-page__content > div,
+#root .admin-mission-control-page__content > section {
+  max-width: 100%;
+  min-width: 0;
+}
+#root .admin-mission-control-page__container :is(.rqk-admin-shortcut, .rqk-admin-focus) {
+  background: var(--guild-bg-deep) !important;
+  border: 1px solid rgba(var(--guild-c3-rgb), .25) !important;
+  border-radius: 14px !important;
+  min-height: 116px;
+  transition: border-color 160ms ease, box-shadow 160ms ease !important;
+}
+#root .admin-mission-control-page__container :is(.rqk-admin-shortcut, .rqk-admin-focus):hover {
+  border-color: var(--guild-c2) !important;
+  box-shadow: var(--guild-control-glow) !important;
+}
 #root .admin-mission-control-page input,
 #root .admin-mission-control-page textarea,
 #root .admin-mission-control-page select {
-  border-radius: 14px !important;
-  background: rgba(7,7,19,0.68) !important;
-  border-color: rgba(255,248,239,0.16) !important;
-  color: var(--rq-sunset-cream, #fff8ef) !important;
+  background: var(--guild-bg-deep) !important;
+  color: var(--guild-text) !important;
+  border: 1px solid rgba(var(--guild-c3-rgb), .25) !important;
+  border-radius: 11px !important;
 }
-
-@media (max-width: 780px) {
-  #root .admin-mission-control-page {
-    padding: 10px !important;
-  }
-
-  #root .admin-mission-control-page__container {
-    gap: 12px !important;
-  }
-
-  #root .admin-mission-control-page__tabs {
-    display: flex !important;
-    gap: 8px !important;
-    overflow-x: auto !important;
-    padding: 2px 2px 10px !important;
-    scroll-snap-type: x mandatory !important;
-  }
-
-  #root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"] {
-    min-width: 142px !important;
-    scroll-snap-align: start !important;
-  }
-
+#root .admin-mission-control-page table { max-width: 100%; }
+#root .admin-mission-control-page__mission-grid {
+  min-width: 0 !important;
+}
+#root .admin-mission-control-page [data-testid="admin-mission-brief"] {
+  padding: clamp(14px, 2vw, 22px) !important;
+}
+#root .admin-mission-control-page__container :is(button[aria-busy="true"], button:disabled) {
+  cursor: not-allowed;
+}
+@media (max-width: 1100px) {
+  #root .admin-mission-control-page__stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 700px) {
+  #root .admin-mission-control-page { padding: 10px !important; }
+  #root .admin-mission-control-page__hero { padding: 18px 14px !important; }
+  #root .admin-mission-control-page__stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  #root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"] { min-width: 104px !important; min-height: 46px !important; }
   #root .admin-mission-control-page__hero,
-  #root .admin-mission-control-page__stats,
   #root .admin-mission-control-page__mission-grid > div,
   #root .admin-mission-control-page__active-summary,
-  #root .admin-mission-control-page__templates-panel,
-  #root .admin-mission-control-page__reviews-panel {
-    border-radius: 18px !important;
+  #root .admin-mission-control-page__reviews-panel,
+  #root .admin-mission-control-page__templates-panel { border-radius: 16px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .admin-mission-control-page__container * {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
   }
 }
