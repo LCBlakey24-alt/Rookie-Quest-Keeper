@@ -26,6 +26,8 @@ export default function HomeHubWheel({ places }) {
     <div className="rqk-home-hub" data-testid="home-hub-wheel">
       <HexWheel
         variant="stat"
+        glowingFrame
+        turnable
         viewKey="home"
         label="Go to"
         wedges={places.slice(0, 6).map((place, index) => ({
