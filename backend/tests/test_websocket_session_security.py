@@ -410,7 +410,7 @@ def test_password_change_ends_this_users_live_sockets():
     from models import ChangePasswordRequest
     users = SimpleNamespace(
         find_one=AsyncMock(return_value={'username': PLAYER, 'password_hash': 'old', 'token_version': 0}),
-        update_one=AsyncMock(),
+        update_one=AsyncMock(return_value=SimpleNamespace(matched_count=1)),
     )
     ended = AsyncMock(return_value=1)
     with patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \

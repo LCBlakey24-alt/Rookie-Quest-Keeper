@@ -1,4 +1,5 @@
-import React, { useId, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
 import './NpcCompactStatBlock.css';
 
@@ -119,6 +120,8 @@ function ActionList({ title, items, onRoll, combatReady, sectionId }) {
 
 export default function NpcCompactStatBlock({ npc = {} }) {
   const [lastRoll, setLastRoll] = useState('');
+  const [rollBurst, setRollBurst] = useState(null);
+  const rollCounter = useRef(0);
   const sectionId = useId();
   const [notesExpanded, setNotesExpanded] = useState(true);
   const unverified = npc.combat_ready === false;
@@ -162,6 +165,11 @@ export default function NpcCompactStatBlock({ npc = {} }) {
     const bonus = result.modifier ? ' ' + (result.modifier > 0 ? '+' : '-') + ' ' + Math.abs(result.modifier) : '';
     const critical = result.isCrit ? ' (natural 20)' : result.isFumble ? ' (natural 1)' : '';
     setLastRoll(name + ': ' + notation + ' [' + dice + ']' + bonus + ' = ' + result.total + critical);
+    // The animation and the inline result must present the same throw; do not
+    // roll again for the tray. A fresh identity restarts consecutive throws,
+    // even when they happen to land on exactly the same numbers.
+    rollCounter.current += 1;
+    setRollBurst({ ...result, label: name, rollId: `${sectionId}-npc-${rollCounter.current}` });
   };
   const canRoll = !unverified && !estimatedLegacy;
   const statSections = [
@@ -264,6 +272,21 @@ export default function NpcCompactStatBlock({ npc = {} }) {
       )}
       {!allActions && !spells && <p className="rqk-stat-block__empty">No combat actions recorded yet. Add verified abilities rather than guessing.</p>}
       {lastRoll && <output role="status" aria-live="polite" className="rqk-stat-block__roll-result" data-testid="stat-block-roll-result">{lastRoll}</output>}
+      {rollBurst && (
+        <DiceRollFlicker
+          key={rollBurst.rollId}
+          isOpen
+          rollId={rollBurst.rollId}
+          onClose={() => setRollBurst(null)}
+          label={rollBurst.label}
+          rolls={rollBurst.rolls}
+          modifier={rollBurst.modifier}
+          total={rollBurst.total}
+          isCrit={rollBurst.isCrit}
+          isFumble={rollBurst.isFumble}
+          theme="gm"
+        />
+      )}
       {lore.length > 0 && (
         <details id={sectionId + '-lore'} className="rqk-stat-block__notes" open={notesExpanded} onToggle={event => setNotesExpanded(event.currentTarget.open)}>
           <summary>GM notes & story details</summary>

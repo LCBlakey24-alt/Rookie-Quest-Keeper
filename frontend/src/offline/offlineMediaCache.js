@@ -89,8 +89,19 @@ function requestForMedia(url) {
 }
 
 export async function cacheOfflineMediaUrls(urls = [], options = {}) {
-  if (typeof caches === 'undefined') return { saved: [], failed: [] };
-  const cacheName = getOfflineMediaCacheName();
+  if (typeof caches === 'undefined') {
+    return { saved: [], failed: Array.from(new Set(urls.map(normaliseMediaUrl).filter(Boolean))) };
+  }
+  const scope = options.expectedScope || getOfflineCacheScope();
+  const assertScope = () => {
+    if (scope !== getOfflineCacheScope()) {
+      const error = new Error('The signed-in account changed while downloading the offline copy.');
+      error.rqkAuthScopeChanged = true;
+      throw error;
+    }
+  };
+  assertScope();
+  const cacheName = getOfflineMediaCacheName(scope);
   if (!cacheName) return { saved: [], failed: Array.from(new Set(urls.filter(Boolean))) };
   const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
   const uniqueUrls = Array.from(new Set(urls.map(normaliseMediaUrl).filter(Boolean)));
@@ -99,15 +110,18 @@ export async function cacheOfflineMediaUrls(urls = [], options = {}) {
   const failed = [];
 
   for (let index = 0; index < uniqueUrls.length; index += 1) {
+    assertScope();
     const url = uniqueUrls[index];
     onProgress({ completed: index, total: uniqueUrls.length, label: `Media ${index + 1} of ${uniqueUrls.length}`, url });
     try {
       const request = requestForMedia(url);
       const response = await fetch(request);
+      assertScope();
       if (!response || (!response.ok && response.type !== 'opaque')) throw new Error(`HTTP ${response?.status || 0}`);
       await cache.put(url, response.clone());
       saved.push(url);
-    } catch {
+    } catch (error) {
+      if (error.rqkAuthScopeChanged) throw error;
       failed.push(url);
     }
   }

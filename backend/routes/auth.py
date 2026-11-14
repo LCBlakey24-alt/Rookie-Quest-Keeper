@@ -321,13 +321,14 @@ async def forgot_password(request: ForgotPasswordRequest):
         return generic_response
 
     reset_token = secrets.token_urlsafe(32)
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    created_at = datetime.now(timezone.utc)
+    expires_at = created_at + timedelta(hours=1)
 
     await db.password_resets.insert_one({
         'email': email,
         'token': reset_token,
         'expires_at': expires_at.isoformat(),
-        'created_at': datetime.now(timezone.utc).isoformat(),
+        'created_at': created_at.isoformat(),
     })
     reset_link = f"{APP_URL.rstrip('/')}/reset-password?token={reset_token}"
 
@@ -368,9 +369,17 @@ async def forgot_password(request: ForgotPasswordRequest):
         # sends: provider errors must not become an account-enumeration oracle.
         return generic_response
 
-    # Only once the provider accepts the new message is it safe to invalidate
-    # older requests. A new request must not break an existing usable link.
-    await db.password_resets.delete_many({'email': email, 'token': {'$ne': reset_token}})
+    # Only retire requests that existed before this one. Two sends can overlap:
+    # deleting every other token would let each successful send delete the
+    # other's token, leaving neither email usable. Legacy records without a
+    # creation timestamp predate this request and can also be retired.
+    await db.password_resets.delete_many({
+        'email': email,
+        '$or': [
+            {'created_at': {'$lt': created_at.isoformat()}},
+            {'created_at': {'$exists': False}},
+        ],
+    })
     logger.info("Password recovery email accepted by provider for a %s address", _email_domain(email))
     return generic_response
 
@@ -390,15 +399,24 @@ async def reset_password(request: ResetPasswordRequest):
     
     password_hash = hash_password(request.new_password)
     # Bumping token_version signs out every existing session for this account.
+    # Older accounts may store it as a string (or omit it). Convert and bump
+    # in one atomic update so concurrent password changes cannot reuse a
+    # session version, and an otherwise valid reset link is not lost to $inc
+    # failing on a legacy value.
     result = await db.users.update_one(
         {'email': reset_record['email']},
-        {
+        [{
             '$set': {
-                'password_hash': password_hash,
+                # Password hashes start with '$'; keep MongoDB from treating
+                # the hash as an aggregation field reference.
+                'password_hash': {'$literal': password_hash},
                 'password_login_enabled': True,
-            },
-            '$inc': {'token_version': 1},
-        }
+                'token_version': {'$add': [
+                    {'$convert': {'input': '$token_version', 'to': 'long', 'onError': 0, 'onNull': 0}},
+                    1,
+                ]},
+            }
+        }]
     )
     
     if result.matched_count != 1:
@@ -425,10 +443,17 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
     # Sign out every other session (stolen or forgotten devices) by bumping the
     # session version, and hand this device a fresh token so it stays signed in.
     new_version = session_version(user) + 1
-    await db.users.update_one(
-        {'username': current_username},
+    # Only update the exact credentials and session version we verified. A
+    # concurrent reset or change must not be overwritten by this stale read,
+    # nor may two changes mint tokens with the same new version. Preserve
+    # compatibility with legacy missing or string-valued versions.
+    version_match = user['token_version'] if 'token_version' in user else {'$exists': False}
+    result = await db.users.update_one(
+        {'username': current_username, 'password_hash': user['password_hash'], 'token_version': version_match},
         {'$set': {'password_hash': new_hash, 'token_version': new_version}}
     )
+    if result.matched_count != 1:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired. Please sign in again.")
     # Older tokens are retired, including the one this device's socket was
     # opened with; it reconnects with the fresh token returned below.
     await end_live_sessions(current_username)

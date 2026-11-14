@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Coffee, Dices, History, Moon, RotateCcw, Skull, Sparkles, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -53,6 +53,7 @@ export default function CleanSheetPlayTools({
   const [manualD20, setManualD20] = useState('');
   const [manualTotal, setManualTotal] = useState('');
   const [loggingManualRoll, setLoggingManualRoll] = useState(false);
+  const failedManualRollRef = useRef(null);
   const [checkingRest, setCheckingRest] = useState(false);
 
   const hitDieInfo = parseHitDie(hitDice);
@@ -128,12 +129,17 @@ export default function CleanSheetPlayTools({
       }
 
       const characterName = character.name || character.character_name || 'Player Character';
-      await recordRemoteRoll(campaignId, {
+      const label = manualLabel.trim() || 'Physical d20 Roll';
+      const signature = JSON.stringify([campaignId, character.id || characterId, label, d20, total]);
+      const retryId = failedManualRollRef.current?.signature === signature
+        ? failedManualRollRef.current.id : '';
+      const result = await recordRemoteRoll(campaignId, {
         actor: characterName,
         actor_type: 'player',
         character_id: character.id || characterId,
         character_name: characterName,
-        label: manualLabel.trim() || 'Physical d20 Roll',
+        label,
+        ...(retryId ? { client_event_id: retryId } : {}),
         notation: 'physical d20',
         total,
         modifier: total - d20,
@@ -143,9 +149,19 @@ export default function CleanSheetPlayTools({
         isFumble: d20 === 1,
         explosionCount: 0,
       });
-      toast.success('Physical roll logged', { description: 'This will count towards the end-session stats.' });
-      setManualD20('');
-      setManualTotal('');
+      if (result?.syncFailed) {
+        failedManualRollRef.current = { signature, id: result.id };
+        toast.error('Could not sync physical roll', { description: 'The campaign did not receive this roll.' });
+      } else {
+        failedManualRollRef.current = null;
+        if (result?.queued) {
+          toast.info('Physical roll saved offline', { description: 'It can sync when you are connected and signed in.' });
+        } else {
+          toast.success('Physical roll logged', { description: 'This will count towards the end-session stats.' });
+        }
+        setManualD20('');
+        setManualTotal('');
+      }
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not log physical roll');
     } finally {

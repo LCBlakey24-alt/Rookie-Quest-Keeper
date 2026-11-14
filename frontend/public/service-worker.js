@@ -20,7 +20,9 @@ const APP_SHELL = [
   '/favicon.png',
   '/apple-touch-icon.png',
 ];
-let activeMediaCacheName = '';
+// A worker serves every open tab. Keep each tab's account scope separate so
+// a sign-in or sign-out in one tab cannot change another tab's media cache.
+const mediaCacheNamesByClient = new Map();
 
 async function precacheCurrentBuild(cache) {
   try {
@@ -41,7 +43,9 @@ async function precacheCurrentBuild(cache) {
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
-    await cache.addAll(APP_SHELL).catch(() => undefined);
+    // One unavailable icon or other optional asset must not prevent the app
+    // shell and remaining assets from being available offline.
+    await Promise.all(APP_SHELL.map(path => cache.add(path).catch(() => undefined)));
     await precacheCurrentBuild(cache);
   })());
 });
@@ -61,7 +65,13 @@ self.addEventListener('message', event => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
   if (event.data?.type === 'SET_MEDIA_CACHE') {
     const requested = String(event.data.cacheName || '');
-    activeMediaCacheName = /^rqk-media-v\d+-[a-z0-9]+$/i.test(requested) ? requested : '';
+    const clientId = event.source?.id;
+    if (!clientId) return;
+    if (/^rqk-media-v\d+-[a-z0-9]+$/i.test(requested)) {
+      mediaCacheNamesByClient.set(clientId, requested);
+    } else {
+      mediaCacheNamesByClient.delete(clientId);
+    }
   }
 });
 
@@ -80,20 +90,45 @@ function isStaticRequest(request, url) {
   return /\.(?:js|css|woff2?|ttf|json)$/i.test(url.pathname);
 }
 
-async function matchActiveMedia(request) {
-  if (!activeMediaCacheName) return null;
+async function mediaCacheForClient(clientId) {
+  const known = mediaCacheNamesByClient.get(clientId);
+  if (known || !clientId || !self.clients?.get || typeof MessageChannel === 'undefined') return known || '';
+  // Workers may be stopped and restarted while a tab remains open. Ask that
+  // tab for its current scope instead of guessing from other cached accounts.
   try {
-    const cache = await caches.open(activeMediaCacheName);
+    const client = await self.clients.get(clientId);
+    if (!client) return '';
+    return await new Promise(resolve => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => { channel.port1.close(); resolve(''); }, 500);
+      channel.port1.onmessage = event => {
+        clearTimeout(timer);
+        channel.port1.close();
+        const name = String(event.data?.cacheName || '');
+        resolve(/^rqk-media-v\d+-[a-z0-9]+$/i.test(name) ? name : '');
+      };
+      client.postMessage({ type: 'GET_MEDIA_CACHE' }, [channel.port2]);
+    });
+  } catch {
+    return '';
+  }
+}
+
+async function matchActiveMedia(request, cacheName, clientId) {
+  cacheName = cacheName || await mediaCacheForClient(clientId);
+  if (!cacheName) return null;
+  try {
+    const cache = await caches.open(cacheName);
     return await cache.match(request, { ignoreVary: true });
   } catch {
     return null;
   }
 }
 
-async function networkFirstNavigation(request) {
+async function networkFirstNavigation(request, cacheName, clientId) {
   try {
     const response = await fetch(request);
-    if (response?.ok) {
+    if (response?.ok && response.headers.get('content-type')?.toLowerCase().includes('text/html')) {
       const cache = await caches.open(SHELL_CACHE);
       cache.put('/', response.clone()).catch(() => undefined);
     }
@@ -101,9 +136,9 @@ async function networkFirstNavigation(request) {
   } catch {
     // A same-origin downloaded PDF/file may be opened as a navigation. Check
     // the active account's media cache before falling back to the React shell.
-    const media = await matchActiveMedia(request);
+    const media = await matchActiveMedia(request, cacheName, clientId);
     if (media) return media;
-    const shell = await caches.match('/');
+    const shell = await (await caches.open(SHELL_CACHE)).match('/');
     if (shell) return shell;
     return new Response(
       '<!doctype html><html><body style="font-family:system-ui;background:#070713;color:#fff;padding:24px"><h1>Rookie Quest Keeper</h1><p>You are offline and the app shell is not cached on this device yet. Reconnect once, open Rookie, then it can launch offline.</p></body></html>',
@@ -112,19 +147,21 @@ async function networkFirstNavigation(request) {
   }
 }
 
-async function networkFirstMedia(request) {
+async function networkFirstMedia(request, cacheName, clientId) {
   try {
     const response = await fetch(request);
-    if (response && (response.ok || response.type === 'opaque') && activeMediaCacheName) {
-      const cache = await caches.open(activeMediaCacheName);
+    if (response && (response.ok || response.type === 'opaque') && cacheName) {
+      const cache = await caches.open(cacheName);
       cache.put(request, response.clone()).catch(() => undefined);
     }
     return response;
   } catch {
-    const cached = await matchActiveMedia(request);
+    const cached = await matchActiveMedia(request, cacheName, clientId);
     if (cached) return cached;
     // Public shell images such as the Rookie logo may live in the static cache.
-    const publicCached = await caches.match(request);
+    const shellCache = await caches.open(SHELL_CACHE);
+    const staticCache = await caches.open(STATIC_CACHE);
+    const publicCached = await shellCache.match(request) || await staticCache.match(request);
     return publicCached || Response.error();
   }
 }
@@ -143,7 +180,7 @@ async function staleWhileRevalidate(request) {
       return response;
     })
     .catch(() => null);
-  return cached || update || Response.error();
+  return cached || (await update) || Response.error();
 }
 
 self.addEventListener('fetch', event => {
@@ -151,18 +188,19 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+  const cacheName = mediaCacheNamesByClient.get(event.clientId) || '';
 
   // API data remains outside the service worker. It is handled by the
   // account-scoped IndexedDB read cache so mutations can never look successful.
   if (isApiRequest(url)) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstNavigation(request));
+    event.respondWith(networkFirstNavigation(request, cacheName, event.clientId));
     return;
   }
 
   if (isMediaRequest(request, url)) {
-    event.respondWith(networkFirstMedia(request));
+    event.respondWith(networkFirstMedia(request, cacheName, event.clientId));
     return;
   }
 

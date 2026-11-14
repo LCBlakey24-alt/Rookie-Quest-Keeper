@@ -194,29 +194,33 @@ export async function storeOfflineApiResponse(config, response) {
   // rather than filed. Losing one cache entry costs a slower read later;
   // filing it wrongly shows one person another person's campaign.
   if (!offlineCacheScopeStillMatches(config)) return '';
+  const scope = scopeForConfig(config);
   const db = await openDb().catch(() => null);
   if (!db) return '';
+  if (scope !== getOfflineCacheScope()) { db.close(); return ''; }
 
-  const key = getOfflineCacheKey(config);
+  const key = getOfflineCacheKey({ ...config, rqkCacheScope: scope });
   const record = {
     key,
     path: normaliseUrl(config),
     params: stableParams(config.params, inlineQueryPairs(config)),
-    scope: scopeForConfig(config),
+    scope,
     data: response.data,
     status: response.status,
     savedAt: Date.now(),
   };
 
-  await new Promise(resolve => {
-    const transaction = db.transaction(RESPONSE_STORE, 'readwrite');
-    transaction.objectStore(RESPONSE_STORE).put(record);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
+  const saved = await new Promise(resolve => {
+    try {
+      const transaction = db.transaction(RESPONSE_STORE, 'readwrite');
+      transaction.objectStore(RESPONSE_STORE).put(record);
+      transaction.oncomplete = () => resolve(true);
+      transaction.onerror = () => resolve(false);
+      transaction.onabort = () => resolve(false);
+    } catch { resolve(false); }
   });
   db.close();
-  return key;
+  return saved ? key : '';
 }
 
 export async function readOfflineApiResponse(config) {
@@ -248,31 +252,35 @@ export async function readOfflineApiResponse(config) {
   };
 }
 
-export async function saveOfflineCampaignPackMetadata(pack = {}) {
+export async function saveOfflineCampaignPackMetadata(pack = {}, expectedScope = getOfflineCacheScope()) {
   if (!pack.campaignId) return null;
+  if (expectedScope !== getOfflineCacheScope()) return null;
   const db = await openDb().catch(() => null);
   if (!db) return null;
+  if (expectedScope !== getOfflineCacheScope()) { db.close(); return null; }
   const audience = normaliseAudience(pack.audience);
 
   const record = {
     ...pack,
     audience,
-    key: campaignPackKey(pack.campaignId, audience),
-    scope: getOfflineCacheScope(),
+    key: `${expectedScope}::${audience}:${pack.campaignId}`,
+    scope: expectedScope,
     campaignId: String(pack.campaignId),
     savedAt: Number(pack.savedAt || Date.now()),
     recordKeys: Array.from(new Set(Array.isArray(pack.recordKeys) ? pack.recordKeys.filter(Boolean) : [])),
   };
 
-  await new Promise(resolve => {
-    const transaction = db.transaction(PACK_STORE, 'readwrite');
-    transaction.objectStore(PACK_STORE).put(record);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
+  const saved = await new Promise(resolve => {
+    try {
+      const transaction = db.transaction(PACK_STORE, 'readwrite');
+      transaction.objectStore(PACK_STORE).put(record);
+      transaction.oncomplete = () => resolve(true);
+      transaction.onerror = () => resolve(false);
+      transaction.onabort = () => resolve(false);
+    } catch { resolve(false); }
   });
   db.close();
-  return record;
+  return saved ? record : null;
 }
 
 export async function getOfflineCampaignPackMetadata(campaignId, audience = 'gm') {

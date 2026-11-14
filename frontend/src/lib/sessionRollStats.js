@@ -29,7 +29,7 @@ function normaliseActor(actor, label) {
 }
 
 function activeGroupCheckForRoll(campaignId, event = {}) {
-  if (!campaignId || event.group_check_id || event.actor_type !== 'player') return {};
+  if (!campaignId || event.group_check_id || event.groupCheckId || event.actor_type !== 'player') return {};
   // Damage/healing rolls must not fill a GM's pending d20 group check.
   // Only a reported kept d20 can answer that prompt.
   const dice = Array.isArray(event.visibleRolls) && event.visibleRolls.length
@@ -51,6 +51,17 @@ function activeGroupCheckForRoll(campaignId, event = {}) {
   } catch {
     return {};
   }
+}
+
+function attachActiveGroupCheck(campaignId, event) {
+  const detected = activeGroupCheckForRoll(campaignId, event);
+  if (!detected.group_check_id) return event;
+  return {
+    ...event,
+    group_check_id: detected.group_check_id,
+    requested_roll_id: event.requested_roll_id || event.requestedRollId || detected.requested_roll_id,
+    check_name: event.check_name || event.checkName || detected.check_name,
+  };
 }
 
 function newRollEventId() {
@@ -89,7 +100,7 @@ export function normaliseRollEvent(rollEvent = {}) {
 
 export function recordSessionRoll(campaignId, rollEvent = {}) {
   if (!campaignId || typeof localStorage === 'undefined') return null;
-  const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
+  const event = normaliseRollEvent(attachActiveGroupCheck(campaignId, rollEvent));
   const append = (list) => (list.some(item => item?.id === event.id) ? list : [...list, event]);
   writeList(sessionKey(campaignId), append(readList(sessionKey(campaignId))), 500);
   writeList(allTimeKey(campaignId), append(readList(allTimeKey(campaignId))), 5000);
@@ -186,7 +197,7 @@ async function drainPendingRemoteRolls(scope = getOfflineCacheScope()) {
 
 export async function recordRemoteRoll(campaignId, rollEvent = {}) {
   if (!campaignId) return null;
-  const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
+  const event = normaliseRollEvent(attachActiveGroupCheck(campaignId, rollEvent));
   const scope = getOfflineCacheScope();
   const olderPending = listPendingRolls(scope).filter(record => record?.scope === scope);
   // Queue synchronously before the first request. Closing the tab while a
@@ -203,7 +214,7 @@ export async function recordRemoteRoll(campaignId, rollEvent = {}) {
   }
 
   for (let attempt = 0; ; attempt += 1) {
-    if (getOfflineCacheScope() !== scope) return { ...event, queued: Boolean(pending) };
+    if (getOfflineCacheScope() !== scope) return { ...event, queued: Boolean(pending), syncFailed: !pending };
     try {
       // The identical event every time, so a retry is recognised, not re-counted.
       const response = await apiClient.post(
@@ -216,10 +227,10 @@ export async function recordRemoteRoll(campaignId, rollEvent = {}) {
     } catch (error) {
       if (shouldDiscardPendingRoll(error)) {
         removePendingRoll(pending?.key);
-        return event;
+        return { ...event, syncFailed: true };
       }
       if (attempt >= RETRY_DELAYS_MS.length || !worthRetrying(error)) {
-        return { ...event, queued: Boolean(pending) };
+        return { ...event, queued: Boolean(pending), syncFailed: !pending };
       }
       await wait(RETRY_DELAYS_MS[attempt]);
     }

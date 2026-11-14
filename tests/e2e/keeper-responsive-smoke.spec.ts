@@ -302,7 +302,7 @@ for (const size of [
       await trigger.click();
     } else {
       await page.getByRole('button', { name: 'Open more tools' }).click();
-      await page.getByRole('menuitem', { name: 'Dice roller' }).click();
+      await page.getByRole('dialog', { name: 'More app tools' }).getByRole('button', { name: 'Dice roller' }).click();
     }
     await expect(page.getByTestId('dice-roller-panel')).toBeVisible();
     const panel = await page.getByTestId('dice-roller-panel').boundingBox();

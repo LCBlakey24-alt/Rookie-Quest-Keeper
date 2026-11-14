@@ -1,4 +1,4 @@
-import { getOfflineIdentityFromToken, isCacheableOfflineGet } from './offlineApiCache';
+import { getOfflineIdentityFromToken, isCacheableOfflineGet, saveOfflineCampaignPackMetadata, storeOfflineApiResponse } from './offlineApiCache';
 
 describe('offline API cache boundaries', () => {
   test('allows read-only campaign and character data', () => {
@@ -40,5 +40,48 @@ describe('offline API cache boundaries', () => {
     expect(getOfflineIdentityFromToken(tokenA)).toBe('lewisblakey');
     expect(getOfflineIdentityFromToken(tokenB)).toBe('lewisblakey');
     expect(getOfflineIdentityFromToken('not-a-jwt')).toBe('');
+  });
+});
+
+describe('offline cache writes', () => {
+  let originalIndexedDB;
+  beforeEach(() => { originalIndexedDB = window.indexedDB; });
+  afterEach(() => Object.defineProperty(window, 'indexedDB', { configurable: true, value: originalIndexedDB }));
+
+  function installDb({ abort = false } = {}) {
+    const db = {
+      close: jest.fn(),
+      transaction: () => {
+        const tx = { objectStore: () => ({ put: jest.fn() }) };
+        setTimeout(() => abort ? tx.onabort() : tx.oncomplete(), 0);
+        return tx;
+      },
+    };
+    Object.defineProperty(window, 'indexedDB', { configurable: true, value: {
+      open: () => {
+        const request = { result: db };
+        Promise.resolve().then(() => request.onsuccess());
+        return request;
+      },
+    } });
+    return db;
+  }
+
+  test('reports failure when a response write aborts', async () => {
+    const db = installDb({ abort: true });
+    await expect(storeOfflineApiResponse({ method: 'get', url: '/campaigns/c1' }, { status: 200, data: {} })).resolves.toBe('');
+    expect(db.close).toHaveBeenCalled();
+  });
+
+  test('reports failure when a metadata write aborts', async () => {
+    const db = installDb({ abort: true });
+    await expect(saveOfflineCampaignPackMetadata({ campaignId: 'c1' })).resolves.toBeNull();
+    expect(db.close).toHaveBeenCalled();
+  });
+
+  test('rejects metadata for an account that is no longer current', async () => {
+    const db = installDb();
+    await expect(saveOfflineCampaignPackMetadata({ campaignId: 'c1' }, 'user:old')).resolves.toBeNull();
+    expect(db.close).not.toHaveBeenCalled();
   });
 });

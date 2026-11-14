@@ -55,12 +55,13 @@ describe('Keeper simplified navigation', () => {
     expect(within(nav).queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
     const moreTrigger = screen.getByRole('button', { name: 'Open more tools' });
     fireEvent.click(moreTrigger);
-    const more = screen.getByRole('menu', { name: 'More app tools' });
-    expect(within(more).getByRole('menuitem', { name: 'Account settings' })).toHaveAttribute('href', '/account');
-    expect(within(more).getByRole('menuitem', { name: 'Legacy uploads' })).toHaveAttribute('href', '/uploads');
-    expect(within(more).queryByRole('menuitem', { name: 'Admin' })).not.toBeInTheDocument();
+    const more = screen.getByRole('dialog', { name: 'More app tools' });
+    expect(within(more).getByRole('link', { name: 'Account settings' })).toHaveAttribute('href', '/account');
+    expect(within(more).getByRole('link', { name: 'Legacy uploads' })).toHaveAttribute('href', '/uploads');
+    expect(within(more).queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'Escape' });
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(moreTrigger).toHaveFocus();
   });
 
   test('keeps player campaign details under the Campaigns tab', async () => {
@@ -77,7 +78,7 @@ describe('Keeper simplified navigation', () => {
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
     const trigger = screen.getByRole('button', { name: 'Open more tools, current section Account settings' });
     fireEvent.click(trigger);
-    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Account settings' })).toHaveAttribute('aria-current', 'page');
+    expect(within(screen.getByRole('dialog')).getByRole('link', { name: 'Account settings' })).toHaveAttribute('aria-current', 'page');
   });
 
   test('keeps the five primary mobile tabs and exposes Admin in More only after backend approval', async () => {
@@ -93,7 +94,7 @@ describe('Keeper simplified navigation', () => {
     const more = screen.getByRole('button', { name: 'Open more tools' });
     expect(more.closest('.rqk-app-topbar')).toBeInTheDocument();
     fireEvent.click(more);
-    expect(within(screen.getByRole('menu', { name: 'More app tools' })).getByRole('menuitem', { name: 'Admin' })).toHaveAttribute('href', '/admin');
+    expect(within(screen.getByRole('dialog', { name: 'More app tools' })).getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin');
   });
 
   test.each([720, 1180, 1440])('keeps the approved five primary destinations on larger screens at %ipx', async (width) => {
@@ -110,10 +111,10 @@ describe('Keeper simplified navigation', () => {
     window.innerWidth = 390;
     await act(async () => { render(<AppShell><main>Dashboard content</main></AppShell>); });
     fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
-    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
     window.innerWidth = 1024;
     fireEvent(window, new Event('resize'));
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Player home' })).not.toBeInTheDocument();
     window.innerWidth = 390;
     fireEvent(window, new Event('resize'));
@@ -125,10 +126,17 @@ describe('Keeper simplified navigation', () => {
       window.innerWidth = 390;
       await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
       fireEvent.click(screen.getByRole('button', { name: 'Open more tools' }));
-      const more = screen.getByRole('menu', { name: 'More app tools' });
-      expect(within(more).getAllByRole('menuitem')[0]).toHaveFocus();
+      const more = screen.getByRole('dialog', { name: 'More app tools' });
+      expect(within(more).getByRole('button', { name: 'Ask Rook' })).toHaveFocus();
+      const close = within(more).getByRole('button', { name: 'Close more tools' });
+      const feedback = within(more).getByRole('button', { name: 'Feedback' });
+      close.focus();
+      fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
+      expect(feedback).toHaveFocus();
+      fireEvent.keyDown(feedback, { key: 'Tab' });
+      expect(close).toHaveFocus();
       fireEvent.click(screen.getByTestId('mobile-more-backdrop'));
-      expect(screen.queryByRole('menu', { name: 'More app tools' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog', { name: 'More app tools' })).not.toBeInTheDocument();
     });
 
     test('the veil is not a control: keyboard users close with Escape or the close button', async () => {
@@ -139,7 +147,7 @@ describe('Keeper simplified navigation', () => {
       expect(veil.tagName).toBe('DIV');
       expect(veil).toHaveAttribute('aria-hidden', 'true');
       fireEvent.click(screen.getByRole('button', { name: 'Close more tools' }));
-      expect(screen.queryByRole('menu', { name: 'More app tools' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog', { name: 'More app tools' })).not.toBeInTheDocument();
     });
 
     test('on the phone home dashboard the brand mark links home and the shell is not marked inner', async () => {
@@ -170,9 +178,9 @@ describe('Keeper simplified navigation', () => {
       mockPathname = '/campaigns';
       await act(async () => { render(<AppShell><main>Content</main></AppShell>); });
       fireEvent.click(screen.getByRole('button', { name: /Open more tools/ }));
-      const menu = screen.getByRole('menu', { name: 'More app tools' });
+      const menu = screen.getByRole('dialog', { name: 'More app tools' });
       expect(menu.closest('.rqk-app-rail')).toBeNull();
-      expect(screen.getByRole('menuitem', { name: 'Dice roller' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Dice roller' })).toBeInTheDocument();
     });
 
     test('larger screens keep their own header without the phone brand mark', async () => {

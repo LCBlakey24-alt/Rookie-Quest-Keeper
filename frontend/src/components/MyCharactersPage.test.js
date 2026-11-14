@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import MyCharactersPage from './MyCharactersPage';
@@ -76,6 +76,55 @@ describe('MyCharactersPage simplified library', () => {
 
     fireEvent.click(await screen.findByRole('link', { name: /Open Sheet/i }));
     expect(screen.getByTestId('sheet-return-path')).toHaveTextContent('/characters');
+  });
+
+  test('duplicates the full sheet without copying its identity or campaign link', async () => {
+    const fullCharacter = {
+      ...character,
+      user_id: 'owner',
+      campaign_id: 'campaign-1',
+      campaign_name: 'Campaign',
+      class_levels: { Warlock: 5, Fighter: 4 },
+      classes: [{ name: 'Warlock', level: 5 }, { name: 'Fighter', level: 4, subclass: 'Champion' }],
+      spellbook: [{ name: 'Shield' }],
+      resources: { custom: { current: 1, maximum: 3 } },
+      homebrew_actions: [{ name: 'Custom attack' }],
+      current_hit_points: 0,
+      max_hit_points: 50,
+      speed: 0,
+      conditions: ['Unconscious'],
+      has_inspiration: true,
+      concentration: 'Hex',
+      death_saves_failures: 2,
+    };
+    apiClient.get.mockImplementation((url) => Promise.resolve({ data: url === '/characters/char-1' ? fullCharacter : [character] }));
+    apiClient.post.mockResolvedValue({ data: {} });
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Duplicate Javen Crow' }));
+
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledTimes(1));
+    const [url, payload] = apiClient.post.mock.calls[0];
+    expect(url).toBe('/characters');
+    expect(payload).toMatchObject({
+      name: 'Copy of Javen Crow',
+      class_levels: fullCharacter.class_levels,
+      classes: fullCharacter.classes,
+      spellbook: fullCharacter.spellbook,
+      resources: fullCharacter.resources,
+      homebrew_actions: fullCharacter.homebrew_actions,
+      current_hit_points: 0,
+      speed: 0,
+      conditions: [],
+      has_inspiration: false,
+      concentration: '',
+      death_saves_failures: 0,
+    });
+    expect(payload).not.toHaveProperty('id');
+    expect(payload).not.toHaveProperty('user_id');
+    expect(payload).not.toHaveProperty('campaign_id');
+    expect(payload).not.toHaveProperty('campaign_name');
+    expect(payload).not.toHaveProperty('updated_at');
   });
 
   test('does not render the retired stats dashboard or status toolbar', async () => {
