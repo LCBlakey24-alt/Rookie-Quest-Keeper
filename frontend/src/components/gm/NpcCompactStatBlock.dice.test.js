@@ -4,9 +4,10 @@ import NpcCompactStatBlock from './NpcCompactStatBlock';
 
 jest.mock('@/components/DiceRollFlicker', () => ({
   __esModule: true,
-  default: ({ rollId, rolls, modifier, total, label, theme, onClose }) => (
+  default: ({ rollId, rolls, modifier, total, label, theme, onClose, onReveal }) => (
     <div data-testid="npc-dice-overlay">
       <output data-testid="npc-dice-values">{JSON.stringify({ rollId, rolls, modifier, total, label, theme })}</output>
+      <button type="button" onClick={onReveal}>Reveal dice</button>
       <button type="button" onClick={onClose}>Close dice</button>
     </div>
   ),
@@ -29,6 +30,8 @@ test('NPC attack and damage animate the same dice and total shown in the stat bl
     const attack = overlayValues();
     expect(attack).toMatchObject({ label: 'Bite attack', theme: 'gm', modifier: 4, total: 5 });
     expect(attack.rolls).toEqual([expect.objectContaining({ sides: 20, result: 1 })]);
+    expect(screen.queryByTestId('stat-block-roll-result')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
     expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Bite attack: 1d20+4 [1] + 4 = 5');
 
     fireEvent.click(screen.getByRole('button', { name: 'Roll Bite damage' }));
@@ -39,10 +42,13 @@ test('NPC attack and damage animate the same dice and total shown in the stat bl
       expect.objectContaining({ sides: 4, result: 1 }),
     ]);
     expect(damage.rollId).not.toBe(attack.rollId);
+    expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Bite attack');
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
     expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Bite damage: 2d4+2 [1, 1] + 2 = 4');
 
     fireEvent.click(screen.getByRole('button', { name: 'Roll Bite damage' }));
     expect(overlayValues().rollId).not.toBe(damage.rollId);
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close dice' }));
     expect(screen.queryByTestId('npc-dice-overlay')).not.toBeInTheDocument();
     expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Bite damage');
@@ -71,6 +77,8 @@ test('a mixed damage roll retains each die and its negative modifier', () => {
       expect.objectContaining({ sides: 6, result: 1 }),
       expect.objectContaining({ sides: 4, result: 1 }),
     ]);
+    expect(screen.queryByTestId('stat-block-roll-result')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
     expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Venom blade damage: 1d6-2+1d4 [1, 1] - 2 = 0');
   } finally {
     random.mockRestore();

@@ -32,7 +32,16 @@ jest.mock('sonner', () => {
 
 jest.mock('@/components/DiceRollFlicker', () => ({
   __esModule: true,
-  default: () => <div data-testid="mock-flicker" />,
+  default: ({ onReveal }) => (
+    <div data-testid="mock-flicker">
+      <button type="button" data-testid="mock-reveal-roll" onClick={onReveal}>Reveal</button>
+    </div>
+  ),
+}));
+
+jest.mock('@/components/dice3d/DiceDyePicker3D', () => ({
+  __esModule: true,
+  default: () => <div data-testid="mock-dye-picker-3d" />,
 }));
 
 jest.mock('@/lib/liveDisplayBus', () => ({
@@ -42,13 +51,14 @@ jest.mock('@/lib/liveDisplayBus', () => ({
   subscribeRemoteDisplayState: jest.fn(() => () => {}),
 }));
 
-function openPanel() {
+async function openPanel() {
   render(
     <MemoryRouter initialEntries={['/']}>
       <FloatingDiceRoller />
     </MemoryRouter>
   );
   fireEvent.click(screen.getByTestId('dice-roller-toggle'));
+  await screen.findByTestId('mock-dye-picker-3d');
 }
 
 function setFormula(value) {
@@ -62,10 +72,10 @@ describe('advantage and disadvantage use the formula on screen', () => {
     rollDiceNotation.mockImplementation((...args) => engine.rollDiceNotation(...args));
   });
 
-  test('advantage keeps the modifier the player typed', () => {
+  test('advantage keeps the modifier the player typed', async () => {
     // A check at the table is almost never a bare d20: rolling 1d20 with
     // advantage and silently dropping the +5 gives the wrong number.
-    openPanel();
+    await openPanel();
     setFormula('1d20+5');
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
 
@@ -74,8 +84,8 @@ describe('advantage and disadvantage use the formula on screen', () => {
     expect(options).toMatchObject({ rollType: 'advantage' });
   });
 
-  test('disadvantage keeps a negative modifier', () => {
-    openPanel();
+  test('disadvantage keeps a negative modifier', async () => {
+    await openPanel();
     setFormula('1d20-2');
     fireEvent.click(screen.getByTestId('roll-disadvantage-btn'));
 
@@ -84,33 +94,35 @@ describe('advantage and disadvantage use the formula on screen', () => {
     expect(options).toMatchObject({ rollType: 'disadvantage' });
   });
 
-  test('the rolled total includes the typed modifier', () => {
-    openPanel();
+  test('the rolled total includes the typed modifier', async () => {
+    await openPanel();
     // A modifier larger than the die makes this unambiguous: a plain d20
     // cannot reach 101, so a passing range here cannot overlap the bug.
     setFormula('1d20+100');
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
+    fireEvent.click(screen.getByTestId('mock-reveal-roll'));
 
     const total = Number(screen.getByTestId('roll-result').querySelector('strong').textContent);
     expect(total).toBeGreaterThanOrEqual(101);
     expect(total).toBeLessThanOrEqual(120);
   });
 
-  test('a formula that cannot take advantage falls back to a plain d20', () => {
+  test('a formula that cannot take advantage falls back to a plain d20', async () => {
     // The engine rejects advantage on anything but a single d20, so the panel
     // must not hand it 2d6+3 and surface an error the player cannot act on.
-    openPanel();
+    await openPanel();
     setFormula('2d6+3');
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
 
     const [notation, options] = lastCall();
     expect(notation).toBe('1d20');
     expect(options).toMatchObject({ rollType: 'advantage' });
+    fireEvent.click(screen.getByTestId('mock-reveal-roll'));
     expect(screen.getByTestId('roll-result')).toBeInTheDocument();
   });
 
-  test('an empty formula still rolls a plain d20 with advantage', () => {
-    openPanel();
+  test('an empty formula still rolls a plain d20 with advantage', async () => {
+    await openPanel();
     setFormula('');
     fireEvent.click(screen.getByTestId('roll-disadvantage-btn'));
 

@@ -26,7 +26,7 @@ export default function FlatDiceResultOverlay({
 }) {
   return (
     <section
-      className={`rq-flat-roll ${isRevealed ? 'is-revealed' : 'is-rolling'} ${isCrit ? 'is-critical' : ''} ${isFumble ? 'is-fumble' : ''}${resultTone === 'success' || resultTone === 'failure' ? ` is-tone-${resultTone}` : ''}`}
+      className={`rq-flat-roll ${isRevealed ? 'is-revealed' : 'is-rolling'} ${isRevealed && isCrit ? 'is-critical' : ''} ${isRevealed && isFumble ? 'is-fumble' : ''}${isRevealed && (resultTone === 'success' || resultTone === 'failure') ? ` is-tone-${resultTone}` : ''}`}
       data-testid="flat-dice-overlay"
       aria-live="polite"
       aria-label="Dice roll result"

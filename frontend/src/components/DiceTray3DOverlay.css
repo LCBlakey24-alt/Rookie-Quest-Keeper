@@ -89,6 +89,33 @@
   overflow: hidden;
 }
 
+.rq-dice-tray__stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* The landed die receives a real scene light; this brief tray reflection
+   makes the table moment legible without revealing anything in flight. */
+.rq-dice-tray__panel.is-revealed.is-crit .rq-dice-tray__stage::after {
+  background: radial-gradient(circle at 50% 58%, rgba(255, 210, 122, .28), transparent 48%);
+  animation: rq-dice-outcome-flash 780ms ease-out both;
+}
+
+.rq-dice-tray__panel.is-revealed.is-fumble .rq-dice-tray__stage::after {
+  background: radial-gradient(circle at 50% 58%, rgba(255, 96, 80, .24), transparent 48%);
+  animation: rq-dice-outcome-flash 620ms ease-out both;
+}
+
+@keyframes rq-dice-outcome-flash {
+  0% { opacity: 0; transform: scale(.78); }
+  28% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
 .rq-dice-tray__canvas-holder {
   position: absolute;
   inset: 0;
@@ -149,7 +176,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rq-dice-tray__result [data-testid='dice-tray-total'] { animation: none; }
+  .rq-dice-tray__result [data-testid='dice-tray-total'],
+  .rq-dice-tray__stage::after { animation: none !important; }
 }
 
 .rq-dice-tray__result .rq-dice-tray__rolling {

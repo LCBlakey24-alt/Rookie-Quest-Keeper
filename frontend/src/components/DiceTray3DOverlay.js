@@ -236,8 +236,10 @@ export default function DiceTray3DOverlay(props) {
     return <FlatDiceResultOverlay {...props} />;
   }
 
-  const outcome = isCrit ? 'is-crit' : isFumble ? 'is-fumble' : '';
-  const tone = resultTone === 'success' || resultTone === 'failure' ? ` is-tone-${resultTone}` : '';
+  // The result is already calculated, but it must not affect the panel or
+  // hex glow until the physical dice have landed (or the player skips).
+  const outcome = isRevealed ? (isCrit ? 'is-crit' : isFumble ? 'is-fumble' : '') : '';
+  const tone = isRevealed && (resultTone === 'success' || resultTone === 'failure') ? ` is-tone-${resultTone}` : '';
 
   if (isHex && hexWindow) {
     const { left, top, width, height } = hexWindow;
@@ -286,7 +288,7 @@ export default function DiceTray3DOverlay(props) {
     <div className="rq-dice-tray" data-testid="dice-tray-overlay" role="dialog" aria-modal="true" aria-label="Dice roll">
       <button type="button" className="rq-dice-tray__scrim" aria-label="Dismiss roll" onClick={onClose} />
 
-      <section className={`rq-dice-tray__panel ${outcome}${tone}`}>
+      <section className={`rq-dice-tray__panel ${outcome}${tone}${isRevealed ? ' is-revealed' : ''}`}>
         <header className="rq-dice-tray__header">
           <div>
             <span className="rq-dice-tray__eyebrow"><Dices size={14} /> {label || 'Roll'}</span>
