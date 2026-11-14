@@ -6,33 +6,13 @@ import {
   grantRookAiConsent,
   revokeRookAiConsent,
 } from '@/privacy/rookAiConsent';
+import { getAnalyticsConsent, setAnalyticsConsent } from '@/privacy/analyticsConsent';
 import '@/styles/privacyDataSettings.css';
-
-const ANALYTICS_KEY = 'rqk.analyticsConsent';
-
-function analyticsConsent() {
-  try { return localStorage.getItem(ANALYTICS_KEY) || ''; } catch { return ''; }
-}
-
-function setAnalyticsConsent(value) {
-  if (!value) {
-    // Revoking on an already-loaded page must stop the active tracker now,
-    // not merely prevent its script loading on the next visit.
-    try { window.posthog?.stopSessionRecording?.(); } catch {}
-    try { window.posthog?.opt_out_capturing?.(); } catch {}
-    try { window.posthog?.reset?.(); } catch {}
-  }
-  try {
-    if (value) localStorage.setItem(ANALYTICS_KEY, value);
-    else localStorage.removeItem(ANALYTICS_KEY);
-  } catch {}
-  try { window.dispatchEvent(new CustomEvent('rqk:analytics-consent-changed')); } catch {}
-}
 
 export default function PrivacyDataSettings() {
   const [mountNode, setMountNode] = useState(null);
   const [rookAllowed, setRookAllowed] = useState(() => getRookAiConsent() === 'granted');
-  const [analyticsAllowed, setAnalyticsAllowed] = useState(() => analyticsConsent() === 'granted');
+  const [analyticsAllowed, setAnalyticsAllowed] = useState(() => getAnalyticsConsent() === 'granted');
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +36,7 @@ export default function PrivacyDataSettings() {
   useEffect(() => {
     const refresh = () => {
       setRookAllowed(getRookAiConsent() === 'granted');
-      setAnalyticsAllowed(analyticsConsent() === 'granted');
+      setAnalyticsAllowed(getAnalyticsConsent() === 'granted');
     };
     window.addEventListener('rqk:rook-ai-consent-changed', refresh);
     window.addEventListener('rqk:analytics-consent-changed', refresh);
