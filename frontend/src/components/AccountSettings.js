@@ -313,7 +313,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
         <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle} aria-busy={deleteSaving ? 'true' : 'false'}>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" danger />
           <p style={dangerTextStyle}>
-            Once you delete your account, there is no going back. All your campaigns, characters, and data will be permanently removed. Please be certain.
+            Deleting your account removes your active account records and the campaigns you own. Other players keep their own characters. Some copies may remain temporarily in backups, provider systems or records kept for legal reasons; see the Privacy Notice for retention information. This action cannot be undone.
           </p>
 
           {!showDeleteConfirm ? (
