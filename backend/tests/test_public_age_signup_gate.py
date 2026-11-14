@@ -74,7 +74,7 @@ def test_password_registration_without_declaration_never_reads_or_writes_account
          patch.object(auth, 'hash_password') as hash_password:
         with pytest.raises(HTTPException) as rejected:
             asyncio.run(auth.register(UserRegister(
-                email='new@example.test', password='a-long-password',
+                email='new@example.com', password='a-long-password',
             )))
     assert rejected.value.status_code == 403
     db.users.find_one.assert_not_awaited()
@@ -92,10 +92,10 @@ def test_password_signup_records_attestation_and_not_a_birth_date():
          patch.object(auth, 'hash_password', return_value='hashed'), \
          patch.object(auth, 'create_token', return_value='token'):
         result = asyncio.run(auth.register(UserRegister(
-            email='adult@example.test', password='a-long-password',
+            email='adult@example.com', password='a-long-password',
             adult_self_attested=True,
         )))
-    assert result.email == 'adult@example.test'
+    assert result.email == 'adult@example.com'
     stored = db.users.insert_one.await_args.args[0]
     assert stored['self_declared_adult_at']
     assert stored['self_declared_adult_method'] == 'adult-self-declaration'
