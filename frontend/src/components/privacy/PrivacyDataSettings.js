@@ -6,26 +6,13 @@ import {
   grantRookAiConsent,
   revokeRookAiConsent,
 } from '@/privacy/rookAiConsent';
+import { getAnalyticsConsent, setAnalyticsConsent } from '@/privacy/analyticsConsent';
 import '@/styles/privacyDataSettings.css';
-
-const ANALYTICS_KEY = 'rqk.analyticsConsent';
-
-function analyticsConsent() {
-  try { return localStorage.getItem(ANALYTICS_KEY) || ''; } catch { return ''; }
-}
-
-function setAnalyticsConsent(value) {
-  try {
-    if (value) localStorage.setItem(ANALYTICS_KEY, value);
-    else localStorage.removeItem(ANALYTICS_KEY);
-  } catch {}
-  try { window.dispatchEvent(new CustomEvent('rqk:analytics-consent-changed')); } catch {}
-}
 
 export default function PrivacyDataSettings() {
   const [mountNode, setMountNode] = useState(null);
   const [rookAllowed, setRookAllowed] = useState(() => getRookAiConsent() === 'granted');
-  const [analyticsAllowed, setAnalyticsAllowed] = useState(() => analyticsConsent() === 'granted');
+  const [analyticsAllowed, setAnalyticsAllowed] = useState(() => getAnalyticsConsent() === 'granted');
 
   useEffect(() => {
     let cancelled = false;
@@ -49,14 +36,16 @@ export default function PrivacyDataSettings() {
   useEffect(() => {
     const refresh = () => {
       setRookAllowed(getRookAiConsent() === 'granted');
-      setAnalyticsAllowed(analyticsConsent() === 'granted');
+      setAnalyticsAllowed(getAnalyticsConsent() === 'granted');
     };
     window.addEventListener('rqk:rook-ai-consent-changed', refresh);
     window.addEventListener('rqk:analytics-consent-changed', refresh);
+    window.addEventListener('rqk:auth-scope-changed', refresh);
     window.addEventListener('storage', refresh);
     return () => {
       window.removeEventListener('rqk:rook-ai-consent-changed', refresh);
       window.removeEventListener('rqk:analytics-consent-changed', refresh);
+      window.removeEventListener('rqk:auth-scope-changed', refresh);
       window.removeEventListener('storage', refresh);
     };
   }, []);
@@ -90,7 +79,7 @@ export default function PrivacyDataSettings() {
                 setRookAllowed(false);
               } else {
                 grantRookAiConsent();
-                setRookAllowed(true);
+                setRookAllowed(getRookAiConsent() === 'granted');
               }
             }}
           >
@@ -102,7 +91,7 @@ export default function PrivacyDataSettings() {
           <span className="rqk-privacy-settings__icon"><SlidersHorizontal size={18} /></span>
           <span className="rqk-privacy-settings__copy">
             <strong>Usage analytics</strong>
-            <small>Optional product analytics help measure how Rookie is used. They are off by default. Session recording is disabled on the public production app.</small>
+            <small>Optional product analytics help measure how Rookie is used. They are off by default. Session recording is disabled. You can withdraw analytics permission at any time.</small>
           </span>
           <span className="rqk-privacy-settings__status" data-on={analyticsAllowed ? 'true' : 'false'}>
             {analyticsAllowed ? <CheckCircle2 size={13} /> : <XCircle size={13} />}

@@ -4,11 +4,11 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
-import { setAuthToken } from '@/lib/auth';
+import { getAuthToken, getStoredAuthUsername, setAuthToken } from '@/lib/auth';
 import '@/styles/guildTokens.css';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
-  AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
+  AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw, Download
 } from 'lucide-react';
 import HexLoader from '@/components/guild-motif/HexLoader';
 
@@ -143,6 +143,44 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
     }
   };
 
+  const handleExportAccountData = async () => {
+    const requestedToken = getAuthToken();
+    const requestedUsername = getStoredAuthUsername();
+    if (!requestedToken || !requestedUsername) {
+      toast.error('Please sign in again before exporting your data.');
+      return;
+    }
+
+    setSavingAction('export');
+    try {
+      // The export URL is excluded from offline caches. Never serve someone
+      // else's data when accounts switch while a request is in flight.
+      const response = await apiClient.get('/auth/me/export', { timeout: 45000 });
+      if (getAuthToken() !== requestedToken || getStoredAuthUsername() !== requestedUsername) {
+        throw new Error('The signed-in account changed during export. Please try again.');
+      }
+      const exportData = response?.data;
+      if (exportData?.format !== 'rookiequestkeeper-personal-data-v1'
+          || exportData?.account?.username !== requestedUsername) {
+        throw new Error('Could not verify the downloaded account data.');
+      }
+      const file = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(file);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `rookie-quest-keeper-account-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast.success('Your account data export has been downloaded.');
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || error?.message || 'Could not export your data.');
+    } finally {
+      setSavingAction('');
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') {
       toast.error('Please type DELETE to confirm');
@@ -248,10 +286,34 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           )}
         </section>
 
+        <section className="account-settings-panel" style={panelStyle} aria-label="Your information">
+          <SectionHeader icon={Download} title="Your Information" />
+          <p style={{ ...helpTextStyle, margin: '0 0 15px' }}>
+            Download a JSON copy of your account details, personal characters, notes,
+            homebrew and basic campaign information. This self-service file excludes
+            other players' private records and shared rosters. For additional data
+            requests, use the contact information in the Privacy Notice.
+          </p>
+          <Button
+            type="button"
+            onClick={handleExportAccountData}
+            disabled={saving}
+            className="btn-outline"
+            style={busyButtonStyle(savingAction === 'export')}
+            aria-busy={savingAction === 'export' ? 'true' : 'false'}
+            data-testid="export-account-data-btn"
+          >
+            {savingAction === 'export'
+              ? <RefreshCw size={16} style={spinStyle} />
+              : <Download size={16} />}
+            {savingAction === 'export' ? 'Preparing export…' : 'Download My Data'}
+          </Button>
+        </section>
+
         <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle} aria-busy={deleteSaving ? 'true' : 'false'}>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" danger />
           <p style={dangerTextStyle}>
-            Once you delete your account, there is no going back. All your campaigns, characters, and data will be permanently removed. Please be certain.
+            Deleting your account removes your active account records and the campaigns you own. Other players keep their own characters. Some copies may remain temporarily in backups, provider systems or records kept for legal reasons; see the Privacy Notice for retention information. This action cannot be undone.
           </p>
 
           {!showDeleteConfirm ? (
@@ -278,7 +340,10 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           )}
         </section>
         <p style={{ ...helpTextStyle, margin: '8px 0 0', textAlign: 'center' }}>
-          <a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} style={{ color: 'var(--guild-hi)' }} data-testid="account-credits-link">Credits &amp; licences</a>
+          <a href="/privacy" onClick={(event) => { event.preventDefault(); navigate('/privacy'); }} style={{ color: 'var(--guild-hi)' }}>Privacy Notice</a>
+          {' · '}<a href="/terms" onClick={(event) => { event.preventDefault(); navigate('/terms'); }} style={{ color: 'var(--guild-hi)' }}>Terms</a>
+          {' · '}<a href="/cookies" onClick={(event) => { event.preventDefault(); navigate('/cookies'); }} style={{ color: 'var(--guild-hi)' }}>Cookies &amp; Storage</a>
+          {' · '}<a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} style={{ color: 'var(--guild-hi)' }} data-testid="account-credits-link">Credits &amp; licences</a>
         </p>
       </div>
       <style>{accountSettingsCss}</style>

@@ -1,0 +1,88 @@
+.rqk-legal-page {
+  min-height: 100vh;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(18px, 4vw, 42px);
+  color: var(--guild-text);
+  font-family: var(--guild-font-body);
+  display: grid;
+  align-content: start;
+  gap: 24px;
+}
+.rqk-legal-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  color: var(--guild-muted);
+  text-decoration: none;
+}
+.rqk-legal-page__back:focus-visible,
+.rqk-legal-page a:focus-visible {
+  outline: 2px solid var(--guild-h1);
+  outline-offset: 3px;
+}
+.rqk-legal-page__hero,
+.rqk-legal-page__body,
+.rqk-legal-page__footer {
+  padding: clamp(18px, 3vw, 32px);
+  background: var(--guild-box);
+  border-radius: 18px;
+  border: 1px solid transparent;
+  box-shadow: var(--guild-box-glow);
+}
+.rqk-legal-page__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--guild-hi);
+}
+.rqk-legal-page h1,
+.rqk-legal-page h2 {
+  color: var(--guild-text);
+  font-family: var(--guild-font-display);
+  overflow-wrap: anywhere;
+}
+.rqk-legal-page h1 {
+  margin: 13px 0 9px;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.18;
+}
+.rqk-legal-page h2 {
+  margin: 0 0 10px;
+  font-size: clamp(19px, 2.7vw, 24px);
+}
+.rqk-legal-page p {
+  color: var(--guild-muted);
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 82ch;
+  margin: 0;
+}
+.rqk-legal-page__hero small { display: block; margin-top: 18px; color: var(--guild-muted); }
+.rqk-legal-page__body { display: grid; gap: 27px; }
+.rqk-legal-page__body section:not(:last-child) {
+  border-bottom: 1px solid rgba(var(--guild-c3-rgb), .17);
+  padding-bottom: 26px;
+}
+.rqk-legal-page__review {
+  border: 1px solid #ffb066;
+  background: rgba(255, 176, 102, .08);
+  padding: 18px 21px;
+  border-radius: 12px;
+}
+.rqk-legal-page__review strong { color: #ffd0aa; }
+.rqk-legal-page__review p { margin-top: 7px; }
+.rqk-legal-page__footer { display: grid; gap: 8px; }
+.rqk-legal-page__footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+.rqk-legal-page__footer a { color: var(--guild-hi); }
+@media (max-width: 650px) { .rqk-legal-page { gap: 16px; padding: 12px; } }

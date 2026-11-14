@@ -1,32 +1,59 @@
 import apiClient from '@/lib/apiClient';
+import { getStoredAuthUsername } from '@/lib/auth';
 
+// The legacy unscoped key must never be accepted for a different account on
+// a shared device. Existing users are prompted once again after this change.
 export const ROOK_AI_CONSENT_KEY = 'rqk.aiDataConsent';
 
+function currentConsentKey() {
+  const username = String(getStoredAuthUsername() || '').trim().toLowerCase();
+  return username
+    ? `${ROOK_AI_CONSENT_KEY}:account:${encodeURIComponent(username)}`
+    : null;
+}
+
+function announceConsentChange() {
+  try { window.dispatchEvent(new CustomEvent('rqk:rook-ai-consent-changed')); } catch {}
+}
+
 export function getRookAiConsent() {
-  try { return localStorage.getItem(ROOK_AI_CONSENT_KEY) || ''; } catch { return ''; }
+  const key = currentConsentKey();
+  if (!key) return '';
+  try { return localStorage.getItem(key) || ''; } catch { return ''; }
 }
 
 export function grantRookAiConsent() {
-  try { localStorage.setItem(ROOK_AI_CONSENT_KEY, 'granted'); } catch {}
-  try { window.dispatchEvent(new CustomEvent('rqk:rook-ai-consent-changed')); } catch {}
+  const key = currentConsentKey();
+  if (!key) return;
+  try { localStorage.setItem(key, 'granted'); } catch {}
+  announceConsentChange();
 }
 
 export function revokeRookAiConsent() {
-  try { localStorage.removeItem(ROOK_AI_CONSENT_KEY); } catch {}
-  try { window.dispatchEvent(new CustomEvent('rqk:rook-ai-consent-changed')); } catch {}
+  const key = currentConsentKey();
+  try {
+    if (key) localStorage.removeItem(key);
+    localStorage.removeItem(ROOK_AI_CONSENT_KEY); // legacy, never trusted
+  } catch {}
+  announceConsentChange();
 }
 
-function requiresExternalAiConsent(config = {}) {
+// Every route that can submit content to an external AI provider must obtain
+// informed permission. Match the URL pathname, not a query string or fragment.
+export function requiresExternalAiConsent(config = {}) {
   const method = String(config.method || 'get').toLowerCase();
-  if (method === 'get') return false;
-  const url = String(config.url || '');
+  if (method === 'get' || method === 'head' || method === 'options') return false;
+  const rawUrl = String(config.url || '');
+  const pathname = rawUrl.split(/[?#]/, 1)[0];
+  if (pathname === '/rook/draft/save') return false; // local draft save only
 
-  if (url === '/rook/draft/save') return false;
-  return url === '/rook/draft'
-    || url.startsWith('/rook/generate')
-    || url.startsWith('/unseen-servant/generate')
-    || url.startsWith('/ai/')
-    || url.startsWith('/character-import/extract');
+  return pathname === '/rook/draft'
+    || pathname === '/rook/chat'
+    || pathname === '/rook/form-fill'
+    || pathname.startsWith('/rook/generate')
+    || pathname.startsWith('/unseen-servant/generate')
+    || pathname.startsWith('/ai/')
+    || pathname.startsWith('/character-import/extract');
 }
 
 export function ensureRookAiConsent() {
@@ -34,7 +61,7 @@ export function ensureRookAiConsent() {
   if (typeof window === 'undefined') return false;
 
   const allowed = window.confirm(
-    'Use Rook AI?\n\nRook may send your request, relevant saved campaign context, or files you choose to process to OpenAI to generate a response or extract information. Passwords are not included.\n\nChoose OK to allow Rook AI on this device. You can revoke this later in Account Settings.'
+    'Allow Rook AI?\n\nWhen you use AI features, your prompt, relevant saved campaign context and any selected files may be sent to OpenAI for processing. Do not include private information about others without permission.\n\nChoose OK to allow this processing on this device. You can revoke permission later in Account Settings.'
   );
   if (allowed) grantRookAiConsent();
   return allowed;
