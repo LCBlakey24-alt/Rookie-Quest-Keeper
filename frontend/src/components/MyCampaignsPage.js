@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { BookOpen, ChevronRight, FileText, Link2, Mail, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
+import CampaignWorkbookImportDialog from '@/components/campaign/CampaignWorkbookImportDialog';
 import {
   buildCampaignFeel,
   buildWorldSettingNotes,
@@ -77,6 +78,7 @@ export default function MyCampaignsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [showWordImport, setShowWordImport] = useState(false);
   const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [deletingId, setDeletingId] = useState('');
@@ -303,6 +305,9 @@ export default function MyCampaignsPage() {
             <Plus size={16} />
             Create
           </button>
+          <button type="button" className="library-page-button-secondary" onClick={() => setShowWordImport(true)}>
+            <FileText size={16} aria-hidden="true" /> Import Word
+          </button>
           <button type="button" className="library-page-button-secondary" onClick={openJoinCampaign} disabled={!joinCharactersLoaded}>
             <Link2 size={16} /> Join by Code
           </button>
@@ -472,6 +477,17 @@ export default function MyCampaignsPage() {
         open={joinOpen} onOpenChange={setJoinOpen}
         onSuccess={() => { loadCampaigns(); loadPlayerCampaignTools(); }}
       />
+      {showWordImport && (
+        <CampaignWorkbookImportDialog
+          campaigns={sortedCampaigns}
+          onClose={() => setShowWordImport(false)}
+          onImported={async (outcome) => {
+            setShowWordImport(false);
+            await loadCampaigns();
+            if (outcome?.campaign_id) navigate(`/campaign/${outcome.campaign_id}`);
+          }}
+        />
+      )}
       {showCreateCampaign && (
         <CreateCampaignDialog
           form={campaignForm}
