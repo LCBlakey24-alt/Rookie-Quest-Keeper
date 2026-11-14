@@ -48,7 +48,7 @@ def test_normalize_username_rejects_unsafe_values(username):
 
 
 def test_registration_requires_email_but_not_a_username():
-    assert UserRegister(email='Hero@Example.com', password='strong-password').username is None
+    assert UserRegister(email='Hero@Example.com', password='strong-password', adult_self_attested=True).username is None
     with pytest.raises(ValidationError):
         UserRegister(username='Hero', password='strong-password')
 
@@ -60,7 +60,7 @@ def test_registration_generates_stable_internal_handle_without_changing_email():
          patch.object(auth, 'db', SimpleNamespace(users=users)), \
          patch.object(auth, 'hash_password', return_value='hashed'), \
          patch.object(auth, 'create_token', return_value='token'):
-        result = asyncio.run(register(UserRegister(email='Hero@Example.com', password='strong-password')))
+        result = asyncio.run(register(UserRegister(email='Hero@Example.com', password='strong-password', adult_self_attested=True)))
     assert result.username == 'hero'
     assert result.email == 'hero@example.com'
     assert users.insert_one.await_args.args[0]['username'] == 'hero'
@@ -75,6 +75,6 @@ def test_generated_handle_uses_a_suffix_when_taken():
          patch.object(auth, 'db', SimpleNamespace(users=users)), \
          patch.object(auth, 'hash_password', return_value='hashed'), \
          patch.object(auth, 'create_token', return_value='token'):
-        result = asyncio.run(register(UserRegister(email='hero@example.com', password='strong-password')))
+        result = asyncio.run(register(UserRegister(email='hero@example.com', password='strong-password', adult_self_attested=True)))
     assert result.username == 'hero2'
     assert users.insert_one.await_args.args[0]['username'] == 'hero2'

@@ -4,6 +4,7 @@ from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
 from utils.account_profile import public_account_profile
 from utils.admin_identity import USERNAME_UNAVAILABLE, username_is_available
 from utils.site_settings import require_signups_enabled
+from utils.registration_age import require_public_adult_attestation, adult_attestation_record
 from utils.auth import (
     get_current_user, hash_password, verify_password, create_token, session_version,
 )
@@ -221,6 +222,8 @@ async def cleanup_user_account(username: str) -> dict:
 @router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
     await require_signups_enabled()
+    # This must be enforced by the server; a hidden checkbox is not a safeguard.
+    require_public_adult_attestation(user_data.adult_self_attested)
     normalized_email = str(user_data.email).lower()
     requested_username = normalize_username_for_auth(user_data.username) if user_data.username else None
 
@@ -234,6 +237,7 @@ async def register(user_data: UserRegister):
         'password_hash': hash_password(user_data.password),
         'password_login_enabled': True,
         'created_at': datetime.now(timezone.utc).isoformat(),
+        **adult_attestation_record(),
     }
     # Username remains the JWT subject and ownership key. The unique indexes
     # also protect against concurrent registrations choosing the same handle.

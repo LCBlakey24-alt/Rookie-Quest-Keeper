@@ -205,6 +205,7 @@ class GoogleLoginTests(unittest.TestCase):
                 login_routes.GoogleLoginRequest(
                     credential='credential-1',
                     username='TableRook',
+                    adult_self_attested=True,
                 )
             ))
 
@@ -230,7 +231,7 @@ class GoogleLoginTests(unittest.TestCase):
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
             with self.assertRaises(HTTPException) as taken:
                 run(login_routes.login_google(
-                    login_routes.GoogleLoginRequest(credential='credential-1', username='lcblakey24')
+                    login_routes.GoogleLoginRequest(credential='credential-1', username='lcblakey24', adult_self_attested=True)
                 ))
 
         self.assertEqual(taken.exception.status_code, 409)
