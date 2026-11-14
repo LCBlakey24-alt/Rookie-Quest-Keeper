@@ -19,6 +19,7 @@ from models import UserLogin, TokenResponse
 from utils.auth import create_token, hash_password, session_version, verify_password
 from utils.admin_identity import USERNAME_UNAVAILABLE, is_admin_username, username_is_available
 from utils.site_settings import require_signups_enabled
+from utils.registration_age import require_public_adult_attestation, adult_attestation_record
 
 router = APIRouter()
 AUTH_LOGIN_ROUTE_KEY = ('POST', '/auth/login')
@@ -29,6 +30,8 @@ SAFE_USERNAME_RE = re.compile(r'^[A-Za-z0-9_-]{3,24}$')
 class GoogleLoginRequest(BaseModel):
     credential: str
     username: str | None = None
+    # Only used when a NEW account is created; existing logins never ask again.
+    adult_self_attested: bool = False
 
 
 def remove_legacy_auth_login_route(legacy_router) -> int:
@@ -218,6 +221,7 @@ async def login_google(request: GoogleLoginRequest):
             'suggested_username': suggest_google_username(google_email),
         }
 
+    require_public_adult_attestation(request.adult_self_attested)
     username = normalize_google_username(request.username)
     # Same rule as password sign-up: reserved and existing names are blocked in
     # any letter case.
@@ -239,6 +243,7 @@ async def login_google(request: GoogleLoginRequest):
         'auth_provider': 'google',
         'password_login_enabled': False,
         'created_at': datetime.now(timezone.utc).isoformat(),
+        **adult_attestation_record(),
     }
     if authoritative_email:
         user_doc['email'] = google_email
