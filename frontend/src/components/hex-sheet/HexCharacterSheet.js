@@ -15,7 +15,7 @@ import LevelUpWizard from '@/components/LevelUpWizard';
 import LevelUpReveal from '@/components/level-up-grant/LevelUpReveal';
 import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import { rollDiceNotation, rollDie as rollOneDie } from '@/data/diceRoller';
-import { buildLongRestUpdates, buildShortRestUpdates } from '@/data/characterRestRules';
+import { buildLongRestUpdates, buildShortRestUpdates, restBlockReason } from '@/data/characterRestRules';
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
 import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier, needsConcentrationReplacement } from '@/data/characterConcentrationRules';
 
@@ -261,6 +261,8 @@ export default function HexCharacterSheet() {
   const [recovering, setRecovering] = useState(false);
   const rest = async (type) => {
     if (!character || recovering) return;
+    const blocked = restBlockReason(character, type === 'long' ? 'long' : 'short');
+    if (blocked) { toast.error(blocked); return; }
     setRecovering(true);
     const endpoint = type === 'long' ? 'long-rest' : 'short-rest';
     try {

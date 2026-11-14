@@ -3,7 +3,7 @@ import { Coffee, Dices, History, Moon, RotateCcw, Skull, Sparkles, Star } from '
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
-import { canStartRest } from '@/data/characterRestRules';
+import { restBlockReason } from '@/data/characterRestRules';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { COMMON_CONDITIONS, fmt, parseHitDie } from './cleanSheetUtils';
 import { DeathSaveTrack } from './CleanSheetCommon';
@@ -88,8 +88,9 @@ export default function CleanSheetPlayTools({
     setCheckingRest(true);
     try {
       const { character } = await fetchCurrentCharacter();
-      if (!canStartRest(character)) {
-        toast.error('2024 rules require at least 1 HP to start a rest.');
+      const blocked = restBlockReason(character, type === 'long' ? 'long' : 'short');
+      if (blocked) {
+        toast.error(blocked);
         return;
       }
       handler();

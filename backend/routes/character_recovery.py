@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import random
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
@@ -62,17 +62,34 @@ def _current_hp(character: Dict[str, Any]) -> int:
     return max(0, min(max_hp, _int(raw, max_hp)))
 
 
-def can_start_rest(character: Dict[str, Any]) -> bool:
-    """2024 rests require at least 1 HP; preserve 2014 behaviour."""
-    return _edition(character) != "2024" or _current_hp(character) > 0
+def rest_block_reason(character: Dict[str, Any], kind: str = "short") -> Optional[str]:
+    """Why this character can't take this rest, or None.
+
+    - Dead (three failed death saves): no rest of either kind. Bringing a
+      character back is the GM's call, through HP, not a rest.
+    - Long Rest, both editions: at least 1 HP at its start to gain its
+      benefits (SRD 5.1 and 5.2), so a rest never revives a dying character.
+    - Short Rest: 2024 also needs 1 HP to start; 2014 does not.
+    """
+    if _int(character.get("death_saves_failures"), 0) >= 3:
+        return "A dead character can't rest. The GM decides whether they come back."
+    if _current_hp(character) > 0:
+        return None
+    if kind == "long":
+        return "A character needs at least 1 HP at the start of a Long Rest to gain its benefits."
+    if _edition(character) == "2024":
+        return "2024 rules require at least 1 HP to start a Short Rest."
+    return None
 
 
-def _require_rest_eligibility(character: Dict[str, Any]) -> None:
-    if not can_start_rest(character):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="2024 rules require at least 1 HP to start a Short or Long Rest",
-        )
+def can_start_rest(character: Dict[str, Any], kind: str = "short") -> bool:
+    return rest_block_reason(character, kind) is None
+
+
+def _require_rest_eligibility(character: Dict[str, Any], kind: str = "short") -> None:
+    reason = rest_block_reason(character, kind)
+    if reason:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=reason)
 
 
 def _class_key(value: Any) -> str:
@@ -337,7 +354,7 @@ async def long_rest_character(
 ):
     """Apply long-rest recovery while respecting the character's rules edition."""
     character = await _owned_character(character_id, username)
-    _require_rest_eligibility(character)
+    _require_rest_eligibility(character, "long")
     max_hp = max(1, _int(character.get("max_hit_points"), 1))
     canonical_resources = canonical_resources_for_rest(character)
     working_character = {**character, "resources": canonical_resources}
