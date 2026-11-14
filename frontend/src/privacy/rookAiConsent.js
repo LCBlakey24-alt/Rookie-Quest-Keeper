@@ -16,17 +16,22 @@ export function revokeRookAiConsent() {
   try { window.dispatchEvent(new CustomEvent('rqk:rook-ai-consent-changed')); } catch {}
 }
 
-function requiresExternalAiConsent(config = {}) {
+// Every route that can submit content to an external AI provider must obtain
+// informed permission. Match the URL pathname, not a query string or fragment.
+export function requiresExternalAiConsent(config = {}) {
   const method = String(config.method || 'get').toLowerCase();
-  if (method === 'get') return false;
-  const url = String(config.url || '');
+  if (method === 'get' || method === 'head' || method === 'options') return false;
+  const rawUrl = String(config.url || '');
+  const pathname = rawUrl.split(/[?#]/, 1)[0];
+  if (pathname === '/rook/draft/save') return false; // local draft save only
 
-  if (url === '/rook/draft/save') return false;
-  return url === '/rook/draft'
-    || url.startsWith('/rook/generate')
-    || url.startsWith('/unseen-servant/generate')
-    || url.startsWith('/ai/')
-    || url.startsWith('/character-import/extract');
+  return pathname === '/rook/draft'
+    || pathname === '/rook/chat'
+    || pathname === '/rook/form-fill'
+    || pathname.startsWith('/rook/generate')
+    || pathname.startsWith('/unseen-servant/generate')
+    || pathname.startsWith('/ai/')
+    || pathname.startsWith('/character-import/extract');
 }
 
 export function ensureRookAiConsent() {
@@ -34,7 +39,7 @@ export function ensureRookAiConsent() {
   if (typeof window === 'undefined') return false;
 
   const allowed = window.confirm(
-    'Use Rook AI?\n\nRook may send your request, relevant saved campaign context, or files you choose to process to OpenAI to generate a response or extract information. Passwords are not included.\n\nChoose OK to allow Rook AI on this device. You can revoke this later in Account Settings.'
+    'Allow Rook AI?\n\nWhen you use AI features, your prompt, relevant saved campaign context and any selected files may be sent to OpenAI for processing. Do not include private information about others without permission.\n\nChoose OK to allow this processing on this device. You can revoke permission later in Account Settings.'
   );
   if (allowed) grantRookAiConsent();
   return allowed;
