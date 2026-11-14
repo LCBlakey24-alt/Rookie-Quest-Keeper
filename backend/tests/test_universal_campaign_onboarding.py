@@ -113,9 +113,9 @@ async def _flow(monkeypatch):
     await npcs.create_npc(other["id"], npcs.NPCCreate(name="Other GM's NPC"), "gm-other")
 
     assert await setup.get_campaigns("gm-new") == []
-    assert await setup.get_campaigns("gm-other") == [other | {}] or (
-        await setup.get_campaigns("gm-other")
-    )[0]["id"] == other["id"]
+    other_campaigns = await setup.get_campaigns("gm-other")
+    assert len(other_campaigns) == 1
+    assert other_campaigns[0]["id"] == other["id"]
 
     fresh = await setup.create_campaign(
         {"name": "New World", "description": "", "world_name": "Untitled"},
