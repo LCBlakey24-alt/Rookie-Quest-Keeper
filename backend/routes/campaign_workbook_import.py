@@ -98,20 +98,99 @@ def _calendar_values(raw: dict, campaign_id: str) -> dict:
 
 def _models(section: str, raw: dict) -> Any:
     if section == "NPC":
-        data = {key: raw[key] for key in (
-            "name", "role", "race", "class_name", "alignment", "description",
-            "appearance", "personality", "backstory", "location", "notes", "image_url"
-        ) if key in raw}
+        # Only the specified fields are accepted. Empty statistics remain
+        # deliberately incomplete until the GM approves Rook's suggestions.
+        text_keys = (
+            "name", "role", "race", "class_name", "alignment",
+            "description", "appearance", "personality", "backstory",
+            "location", "notes", "image_url", "speed",
+        )
+        data = {key: raw[key] for key in text_keys if key in raw}
         if raw.get("image_url") and not raw["image_url"].lower().startswith(("https://", "http://")):
             raise WorkbookError("NPC image URLs must start with https:// or http://.")
-        for field, lo, hi, default in (("level", 1, 100, 1), ("hp", 0, 100000, 10), ("ac", 0, 100, 10)):
+        numeric = (
+            ("level", 1, 100, 1), ("hp", 0, 100000, 10),
+            ("max_hp", 0, 100000, 10), ("ac", 0, 100, 10),
+            ("proficiency_bonus", 0, 20, 2),
+        )
+        for field, lo, hi, default in numeric:
             if field in raw:
-                data[field] = _integer(raw[field], field.upper(), default, lo, hi)
-        # Imported prose is not a verified combat stat block. Never infer
-        # mechanics or expose an NPC to the players by default.
-        data.update(combat_ready=False, mechanics_status="unverified", dm_only=True,
-                    player_discovery_status="unknown",
-                    statblock_source="user-provided Word campaign workbook")
+                data[field] = _integer(raw[field], field, default, lo, hi)
+        if "hp" in data and "max_hp" not in data:
+            data["max_hp"] = data["hp"]
+        scores = ("strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma")
+        stat_values = {
+            key: _integer(raw[key], key, 10, 1, 30)
+            for key in scores if key in raw
+        }
+        if stat_values:
+            # The NPC model supplies neutral, explicitly unverified defaults
+            # for unspecified scores; it does not pretend to have rolled them.
+            data["stats"] = stat_values
+        for field in ("skills", "saving_throws"):
+            if raw.get(field):
+                data[field] = [
+                    piece.strip() for piece in re.split(r"[\n,;]+", raw[field])
+                    if piece.strip()
+                ]
+        attacks = []
+        for line in raw.get("attacks", "").splitlines():
+            if not line.strip():
+                continue
+            parts = [piece.strip() for piece in line.split("|", 3)]
+            if len(parts) < 3 or not all(parts[:3]):
+                raise WorkbookError(
+                    "Each NPC attack needs Name | to-hit bonus | damage [| notes]."
+                )
+            attacks.append({
+                "name": parts[0], "bonus": parts[1], "damage": parts[2],
+                "notes": parts[3] if len(parts) > 3 else "",
+            })
+        if len(attacks) > 50:
+            raise WorkbookError("An NPC can have at most 50 attack entries per workbook.")
+        if attacks:
+            data["attacks"] = attacks
+        abilities = []
+        for line in raw.get("abilities", "").splitlines():
+            if not line.strip():
+                continue
+            parts = [piece.strip() for piece in line.split("|", 1)]
+            if len(parts) != 2 or not all(parts):
+                raise WorkbookError("Each NPC ability needs Name | description.")
+            abilities.append({"name": parts[0], "description": parts[1]})
+        if len(abilities) > 60:
+            raise WorkbookError("An NPC can have at most 60 abilities per workbook.")
+        if abilities:
+            data["abilities"] = abilities
+
+        spell_fields = ("casting_ability", "spell_save_dc", "spell_attack_bonus",
+                        "cantrips", "known_spells", "slot_level", "slot_count")
+        if any(raw.get(key) for key in spell_fields):
+            spells = {}
+            for key in ("casting_ability",):
+                if raw.get(key):
+                    spells[key] = raw[key]
+            for key, lo, hi in (
+                ("spell_save_dc", 0, 40), ("spell_attack_bonus", -20, 40),
+                ("slot_level", 0, 9), ("slot_count", 0, 100),
+            ):
+                if raw.get(key):
+                    spells[key] = _integer(raw[key], key, 0, lo, hi)
+            for key in ("cantrips", "known_spells"):
+                if raw.get(key):
+                    spells[key] = [
+                        part.strip() for part in re.split(r"[\n,;]+", raw[key])
+                        if part.strip()
+                    ]
+            data["spells"] = spells
+
+        # A full-looking stat block isn't necessarily rules-correct. Require
+        # GM verification before presenting it as combat-ready mechanics.
+        data.update(
+            combat_ready=False, mechanics_status="unverified", dm_only=True,
+            player_discovery_status="unknown",
+            statblock_source="user-provided Word campaign workbook",
+        )
         return NPCCreate(**data)
     if section == "LOCATION":
         return LocationCreate(**raw)
