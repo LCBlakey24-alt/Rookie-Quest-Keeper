@@ -11,14 +11,16 @@ from datetime import datetime
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
-# Test credentials - Admin/Legendary user
+# Protected integration credentials; never provide a checked-in fallback.
 ADMIN_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
-ADMIN_PASSWORD = "Trigger24?!"
+ADMIN_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 TEST_CAMPAIGN_ID = "eabd4ae0-d1d8-40a5-858e-f7772af1d2ce"
 
 @pytest.fixture(scope="module")
 def auth_token():
     """Get authentication token for admin user"""
+    if not ADMIN_EMAIL or not ADMIN_PASSWORD:
+        pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD")
     response = requests.post(f"{BASE_URL}/api/auth/login", json={
         "email": ADMIN_EMAIL,
         "password": ADMIN_PASSWORD

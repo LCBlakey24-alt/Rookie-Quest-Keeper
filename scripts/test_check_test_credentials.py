@@ -27,6 +27,16 @@ class TestCredentialGuard(unittest.TestCase):
         source = 'password = os.getenv("RQK_E2E_PASSWORD", "EXAMPLE_SECRET")'
         self.assertIn("nonempty E2E credential fallback", guard.scan_text(source))
 
+    def test_rejects_runtime_email_paired_with_a_literal_password(self):
+        source = '''
+        email = os.getenv("RQK_E2E_EMAIL", "")
+        ADMIN_PASSWORD = "SYNTHETIC_SOURCE_PASSWORD"
+        requests.post('/auth/login', json={'email': email, 'password': ADMIN_PASSWORD})
+        '''
+        findings = guard.scan_text(source)
+        self.assertIn("runtime E2E email paired with source password", findings)
+        self.assertNotIn("SYNTHETIC_SOURCE_PASSWORD", str(findings))
+
     def test_rejects_personal_mailbox_even_inside_comment(self):
         source = "# old admin login: someone@outlook.com"
         self.assertIn("personal mailbox address in test source", guard.scan_text(source))

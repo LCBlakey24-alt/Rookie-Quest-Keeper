@@ -25,6 +25,12 @@ EMAIL_ASSIGNMENT = re.compile(
 PASSWORD_ASSIGNMENT = re.compile(
     r"""(?ix)(?:\b[A-Z0-9_]*PASSWORD\b\s*=\s*|\bpassword\s*:\s*)["'][^"'\n]{4,}["']"""
 )
+# Narrower form for a password paired with RQK_E2E_EMAIL. Lowercase local
+# `password = ...` values are allowed for newly registered disposable users;
+# shared TEST/ADMIN constants and JS login object properties are not.
+RUNTIME_PASSWORD_ASSIGNMENT = re.compile(
+    r"""(?ix)(?:\b(?:TEST|ADMIN|E2E|RQK_E2E)_PASSWORD\b\s*=\s*|\bpassword\s*:\s*)["'][^"'\n]{4,}["']"""
+)
 LOGIN_MARKERS = ("/auth/login", "login-email", "login-password", "login-btn")
 # Public mailbox addresses are not appropriate reusable test identities.
 # Google account fixtures with fake addresses are tested separately.
@@ -39,6 +45,9 @@ E2E_JS_DEFAULT = re.compile(
 E2E_PY_DEFAULT = re.compile(
     r"""(?:os\.environ\.get|os\.getenv)\(\s*['"]RQK_E2E_(?:EMAIL|PASSWORD)['"]\s*,\s*(['"])([^'"]+)\1"""
 )
+RUNTIME_E2E_EMAIL = re.compile(
+    r"""(?:process\.env\.RQK_E2E_EMAIL|(?:os\.environ\.get|os\.getenv)\(\s*['"]RQK_E2E_EMAIL['"])"""
+)
 RESEND_SECRET = re.compile(r"\bre_[A-Za-z0-9]{20,}\b")
 
 
@@ -52,6 +61,11 @@ def scan_text(content: str) -> list[str]:
         findings.append("personal mailbox address in test source")
     if E2E_JS_DEFAULT.search(content) or E2E_PY_DEFAULT.search(content):
         findings.append("nonempty E2E credential fallback")
+    # A protected email plus a source literal password is still a reusable
+    # credential pair. This mixed pattern evaded the original literal-pair
+    # check because only half of the pair was written directly in the file.
+    if RUNTIME_E2E_EMAIL.search(content) and RUNTIME_PASSWORD_ASSIGNMENT.search(content):
+        findings.append("runtime E2E email paired with source password")
     if RESEND_SECRET.search(content):
         findings.append("possible Resend secret")
     return findings
