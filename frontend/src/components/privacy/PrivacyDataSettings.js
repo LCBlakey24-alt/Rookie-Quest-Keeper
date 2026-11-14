@@ -40,10 +40,12 @@ export default function PrivacyDataSettings() {
     };
     window.addEventListener('rqk:rook-ai-consent-changed', refresh);
     window.addEventListener('rqk:analytics-consent-changed', refresh);
+    window.addEventListener('rqk:auth-scope-changed', refresh);
     window.addEventListener('storage', refresh);
     return () => {
       window.removeEventListener('rqk:rook-ai-consent-changed', refresh);
       window.removeEventListener('rqk:analytics-consent-changed', refresh);
+      window.removeEventListener('rqk:auth-scope-changed', refresh);
       window.removeEventListener('storage', refresh);
     };
   }, []);
@@ -77,7 +79,7 @@ export default function PrivacyDataSettings() {
                 setRookAllowed(false);
               } else {
                 grantRookAiConsent();
-                setRookAllowed(true);
+                setRookAllowed(getRookAiConsent() === 'granted');
               }
             }}
           >
