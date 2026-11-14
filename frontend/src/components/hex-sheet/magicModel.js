@@ -25,7 +25,9 @@ export function spellWithDetails(entry, fallbackLevel = null) {
   return {
     ...reference,
     ...saved,
-    level: toNumber(level, 0),
+    // A custom spell with no saved level stays unknown (null): it is never
+    // treated as a cantrip, which would cast it without spending a slot.
+    level: level === null || level === undefined || level === '' ? null : toNumber(level, null),
     description: saved.description || reference.description || '',
     school: saved.school || reference.school || '',
   };
