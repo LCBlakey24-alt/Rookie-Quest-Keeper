@@ -102,7 +102,7 @@
   display: grid; place-items: center; width: 100%; height: 100%;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 }
-.hex-sheet__hex-button-rim { background: var(--hex-orange); padding: 2px; }
+.hex-sheet__hex-button-rim { background: var(--hex-orange-soft); padding: 1px; }
 .hex-sheet__hex-button-face { background: var(--hex-bg); box-shadow: var(--hex-glow-strong); }
 .hex-sheet .hex-sheet__hex-button:hover .hex-sheet__hex-button-face { box-shadow: inset 0 0 22px rgba(var(--hex-glow-rgb), 0.7); }
 .hex-sheet__identity { min-width: 0; text-align: center; }
@@ -118,7 +118,7 @@
   display: block; width: 100%; height: 100%;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 }
-.hex-portrait__frame { background: var(--hex-orange-soft); padding: 2px; }
+.hex-portrait__frame { background: var(--hex-orange-soft); padding: 1px; }
 .hex-portrait__inner { background: var(--hex-bg); box-shadow: var(--hex-glow); display: grid; place-items: center; overflow: hidden; }
 .hex-portrait__inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hex-portrait__initials { font-weight: 800; font-size: 1.1rem; color: var(--hex-orange); }
@@ -202,6 +202,19 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-wheel__centre-shape .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-hi)); stroke-width: 1.6; }
 .hex-wheel__centre:hover .hex-glow__halo { opacity: 1; stroke-width: 9; }
 .hex-wheel__centre:focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 2.4; }
+
+/* Sheet wheels use the same fine edge and inward-clipped glow as Home.
+   Keep focus outlines strong so keyboard selection remains easy to find. */
+.hex-sheet .hex-wheel__frame--glowing .hex-glow__fill { stroke: none; }
+.hex-sheet .hex-wheel__frame--glowing .hex-glow__halo { stroke: var(--hex-stroke-cool, var(--hex-cool)); stroke-width: 9; opacity: 0.42; }
+.hex-sheet .hex-wheel__frame--glowing .hex-glow__edge,
+.hex-sheet .hex-wheel__wedge .hex-glow__edge { stroke-width: 0.4; stroke-opacity: 0.55; }
+.hex-sheet .hex-wheel__centre-shape .hex-glow__halo { opacity: 0.5; }
+.hex-sheet .hex-wheel__centre-shape .hex-glow__edge { stroke-width: 0.45; stroke-opacity: 0.65; }
+.hex-sheet .hex-wheel__slot.is-active .hex-glow__edge { stroke-opacity: 0.85; }
+.hex-sheet .hex-spin:focus-visible .hex-wheel__frame--glowing .hex-glow__edge,
+.hex-sheet .hex-wheel__slot:focus-visible .hex-glow__edge,
+.hex-sheet .hex-wheel__centre:focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 2; stroke-opacity: 1; }
 .hex-wheel__centre-label { fill: var(--hex-text); font-weight: 900; letter-spacing: 0.04em; pointer-events: none; }
 .hex-wheel__centre-sublabel { fill: var(--hex-sub); font-weight: 700; pointer-events: none; }
 
@@ -438,29 +451,31 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-equip__slot--boots { grid-area: boots; }
 .hex-equip__slot--ring2 { grid-area: ring2; }
 
-/* A slot is a hexagon: the button's own background is the rim (the app-wide
-   theme locks button borders, so the rim is drawn by the background) and an
-   inner face carries the glow. */
+/* Each slot's SVG clips its glow inside the actual hexagon, including the
+   angled edges. The native button remains the interactive element. */
 .hex-sheet .hex-equip__slot {
-  --rq-control-blue: var(--hex-line);
+  --rq-control-blue: transparent;
   /* Every slot the same size: rows used to shrink some tiles to fit others. */
   /* !important: an app-wide rule sets width: auto !important on any button
      with an aria-label (meant for icon buttons). */
   width: var(--hex-slot-w) !important; min-width: 0 !important; height: calc(var(--hex-slot-w) * 1.1547);
-  padding: 1.5px; border: 0 !important; cursor: pointer;
+  position: relative; padding: 1.5px; border: 0 !important; cursor: pointer;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
   color: var(--hex-text); font: inherit; justify-self: center;
 }
-.hex-sheet .hex-equip__slot.is-filled { --rq-control-blue: var(--hex-orange-soft); }
-.hex-sheet .hex-equip__slot.is-selected { --rq-control-blue: var(--hex-orange); }
-.hex-sheet .hex-equip__slot.is-attuned { --rq-control-blue: var(--hex-attuned); }
+.hex-equip__slot-glow { position: absolute !important; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.hex-equip__slot-glow .hex-glow__halo { stroke: var(--hex-stroke-cool, var(--hex-cool)); opacity: 0.4; }
+.hex-equip__slot-glow .hex-glow__edge { stroke: var(--hex-stroke-cool, var(--hex-cool)); stroke-width: 0.6; stroke-opacity: 0.55; }
+.hex-equip__slot:is(.is-filled, .is-selected) .hex-glow__halo,
+.hex-equip__slot:is(.is-filled, .is-selected) .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange)); }
+.hex-equip__slot.is-selected .hex-glow__halo { opacity: 0.65; }
+.hex-equip__slot.is-attuned .hex-glow__halo,
+.hex-equip__slot.is-attuned .hex-glow__edge { stroke: var(--hex-attuned); }
+.hex-equip__slot:focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 2.5; stroke-opacity: 1; }
 .hex-equip__slot-face {
-  display: grid; place-content: center; gap: 2px; width: 100%; height: 100%; padding: 0 12%;
-  clip-path: inherit; background: var(--hex-bg); text-align: center;
-  box-shadow: inset 0 0 12px rgba(var(--hex-glow-rgb), 0.18);
+  position: relative; display: grid; place-content: center; gap: 2px; width: 100%; height: 100%; padding: 0 12%;
+  background: transparent; text-align: center;
 }
-.hex-equip__slot.is-filled .hex-equip__slot-face { box-shadow: inset 0 0 16px rgba(var(--hex-glow-rgb), 0.35); }
-.hex-equip__slot.is-attuned .hex-equip__slot-face { box-shadow: inset 0 0 20px rgba(var(--hex-attuned-rgb), 0.65), inset 0 0 5px rgba(var(--hex-attuned-rgb), 0.8); }
 .hex-equip__slot-face small { font-size: .6rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--hex-muted); }
 .hex-equip__slot-face strong { font-size: .74rem; font-weight: 800; line-height: 1.15; overflow-wrap: break-word; word-break: normal; hyphens: auto; }
 .hex-equip__slot:not(.is-filled) .hex-equip__slot-face strong { color: var(--hex-muted); font-weight: 600; }
@@ -636,15 +651,13 @@ html body #root .d20-glyph__label { fill: var(--hex-text, #fff); font-family: va
   color: var(--hex-text); font: 800 0.95rem/1 var(--hex-title-font); cursor: pointer; --rq-control-blue: transparent;
 }
 .hex-spell__cast svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.hex-spell__cast polygon {
-  fill: var(--hex-bg); stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 4; vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 0 transparent);
-}
+.hex-spell__cast .hex-glow__halo { stroke: var(--hex-stroke-hot, var(--hex-orange)); }
+.hex-spell__cast .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 1; stroke-opacity: 0.7; }
 html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 var(--hex-title-font) !important; pointer-events: none; }
-/* Hover and focus thicken the edge; the fill stays the sheet's blue. */
-.hex-sheet .hex-spell__cast:not(:disabled):is(:hover, :focus-visible) polygon { stroke-width: 7; }
+.hex-sheet .hex-spell__cast:not(:disabled):is(:hover, :focus-visible) .hex-glow__halo { opacity: 0.7; }
+.hex-sheet .hex-spell__cast:not(:disabled):focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 3; stroke-opacity: 1; }
 .hex-sheet .hex-spell__cast:disabled { opacity: 0.4; cursor: default; }
-.hex-spell__cast--free polygon { stroke: var(--hex-stroke-cool, var(--hex-cool)); }
+.hex-spell__cast--free :is(.hex-glow__halo, .hex-glow__edge) { stroke: var(--hex-stroke-cool, var(--hex-cool)); }
 .hex-spell__cast--free { cursor: default; color: var(--hex-muted); }
 
 /* Name and details: tap to open. */

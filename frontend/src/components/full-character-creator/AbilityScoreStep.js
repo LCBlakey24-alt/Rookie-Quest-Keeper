@@ -289,6 +289,7 @@ export default function AbilityScoreStep({ draft, update, setScore, finalScores,
               <div key={spec.key} className={`ability-step__wheel-card${spec.empty ? ' is-empty' : ''}`} data-testid={spec.testId}>
                 <GuildChoiceWheel
                   compact
+                  tickOnTurn={method !== 'roll'}
                   label={spec.label}
                   caption={spec.caption}
                   options={spec.options}

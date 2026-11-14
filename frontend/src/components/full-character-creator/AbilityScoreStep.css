@@ -11,7 +11,7 @@
 }
 .ability-step__methods button strong { font-size: 0.95rem; font-weight: 900; }
 .ability-step__methods button span { font-size: 0.78rem; color: var(--rqk-creator-muted); }
-.ability-step__methods button.is-active { border-color: var(--rqk-creator-accent); box-shadow: inset 0 0 0 1px var(--rqk-creator-accent); }
+.ability-step__methods button.is-active { border-color: var(--guild-line-hot); box-shadow: var(--guild-control-glow-hot); }
 
 .ability-step__hint { margin: 0; font-size: 0.9rem; color: var(--rqk-creator-muted); }
 
@@ -28,7 +28,7 @@
   display: grid; gap: 6px; align-content: start; padding: 8px; border-radius: 8px;
   border: 1px solid var(--rqk-creator-line); background: var(--rqk-creator-panel);
 }
-.ability-step__card.is-selected { border-color: var(--rqk-creator-accent); box-shadow: inset 0 0 0 1px var(--rqk-creator-accent); }
+.ability-step__card.is-selected { border-color: var(--guild-line-hot); box-shadow: var(--guild-box-glow-hot); }
 .ability-step__card.is-empty { opacity: 0.6; }
 .ability-step__pick {
   display: grid; justify-items: center; gap: 2px; min-height: 64px; width: 100%; padding: 6px 4px;

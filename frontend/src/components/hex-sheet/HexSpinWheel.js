@@ -138,7 +138,7 @@ export default function HexSpinWheel({ sectors, value, onChange, centre, label =
       data-rotation={Math.round(rotation)}
     >
       <GlowFilter id={filterId} />
-      <polygon className="hex-wheel__frame" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} aria-hidden="true" />
+      <g aria-hidden="true"><GlowPolygon className="hex-wheel__frame hex-wheel__frame--glowing" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} filterId={filterId} /></g>
       <g className="hex-spin__rotor" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
         {sectors.map((sector, sectorIndex) => {
           const [lx, ly] = sectorLabelPoint(sectorIndex, 62);

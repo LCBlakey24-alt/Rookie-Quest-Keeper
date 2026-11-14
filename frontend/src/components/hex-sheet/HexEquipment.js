@@ -14,6 +14,7 @@ import {
   updateInventoryItemState,
 } from '@/data/characterInventoryState';
 import { rollDiceNotation } from '@/data/diceRoller';
+import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 import {
   ATTUNEMENT_LIMIT,
   BODY_SLOTS,
@@ -36,6 +37,16 @@ const mod = (score) => Math.floor((Number(score || 10) - 10) / 2);
 const nameOf = (item) => (typeof item === 'string' ? item : item?.name || 'Item');
 const signed = (value) => (value >= 0 ? `+${value}` : `${value}`);
 const slotLabel = (id) => BODY_SLOTS.find((slot) => slot.id === id)?.label || id;
+
+function SlotGlow() {
+  const filterId = useSvgId('hex-equipment-glow');
+  return (
+    <svg className="hex-equip__slot-glow" viewBox="0 0 100 115.47" preserveAspectRatio="none" aria-hidden="true">
+      <GlowFilter id={filterId} />
+      <GlowPolygon points="50,0 100,28.8675 100,86.6025 50,115.47 0,86.6025 0,28.8675" filterId={filterId} />
+    </svg>
+  );
+}
 
 /**
  * Equipment on the hexagonal sheet: what the character wears and holds,
@@ -167,6 +178,7 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
               aria-label={`${slot.label}: ${worn ? nameOf(worn) : lockedByTwoHander ? 'two-handed weapon' : 'empty'}${worn && isAttuned(worn) ? ', attuned' : ''}`}
               data-testid={`hex-slot-${slot.id}`}
             >
+              <SlotGlow />
               <span className="hex-equip__slot-face">
                 <small>{slot.label}</small>
                 <strong>{worn ? nameOf(worn) : lockedByTwoHander ? 'Both hands' : '—'}</strong>
