@@ -11,6 +11,7 @@ from routes.layout_settings import router as layout_settings_router
 from routes.campaign_invites import router as campaign_invites_router
 from routes.campaign_display import router as campaign_display_router
 from routes.campaign_setup import router as campaign_setup_router
+from routes.campaign_workbook_import import router as campaign_workbook_import_router
 from routes.campaigns import router as campaigns_router
 from routes.campaign_content import router as campaign_content_router
 from routes.world import router as world_router
@@ -108,6 +109,7 @@ all_routers = [
     # Register the setup router before the legacy campaigns router so the
     # modern campaign creation/list/detail routes keep their richer setup data.
     campaign_setup_router,
+    campaign_workbook_import_router,
     campaigns_router,
     campaign_content_router,
     # Core world-prep record updates keep both the write and response read
