@@ -184,7 +184,7 @@ export default function AdminUsersTab() {
       <p className="rqk-admin-users__disclaimer">Account activity refers to saved characters and campaigns. Last sign-in is shown only when recorded; it is not an online indicator.</p>
       {loading ? (
         <AdminUsersLoading />
-      ) : isMobile ? (
+      ) : loadError ? null : isMobile ? (
         <div className="rqk-admin-users__cards" style={mobileListStyle}>
           {filtered.length === 0 ? (
             <div style={emptyStyle}>No users match</div>
