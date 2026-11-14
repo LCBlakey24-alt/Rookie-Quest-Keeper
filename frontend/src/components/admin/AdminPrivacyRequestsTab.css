@@ -1,0 +1,60 @@
+#root .rqk-admin-rights {
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid var(--guild-line, rgba(79,179,255,.3));
+  border-radius: 16px;
+  background: var(--guild-box, #0a2342);
+  box-shadow: var(--guild-box-glow);
+  color: var(--guild-text, #fff);
+}
+#root .rqk-admin-rights__heading,
+#root .rqk-admin-rights__item-heading {
+  display: flex; flex-wrap: wrap; align-items: start;
+  justify-content: space-between; gap: 12px;
+}
+#root .rqk-admin-rights h2 {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0; color: var(--guild-text, #fff);
+  font-size: 19px;
+}
+#root .rqk-admin-rights p, #root .rqk-admin-rights small {
+  color: var(--guild-muted, #b7c7dc);
+  font-size: 13px; line-height: 1.65;
+}
+#root .rqk-admin-rights__heading p { max-width: 80ch; margin: 7px 0 0; }
+#root .rqk-admin-rights__list { display: grid; gap: 12px; margin-top: 18px; }
+#root .rqk-admin-rights__item {
+  display: grid; gap: 12px;
+  background: var(--guild-bg-deep, #0a2342);
+  border: 1px solid rgba(79,179,255,.25);
+  border-radius: 12px;
+  padding: clamp(12px, 2vw, 18px);
+  overflow-wrap: anywhere;
+}
+#root .rqk-admin-rights__item-heading strong { text-transform: capitalize; font-size: 14px; }
+#root .rqk-admin-rights__fields { display: grid; gap: 12px; }
+#root .rqk-admin-rights label { display: grid; gap: 7px; font-size: 13px; font-weight: 700; }
+#root .rqk-admin-rights :is(textarea,select) {
+  background: var(--guild-bg, #0a2342) !important;
+  border: 1px solid rgba(79,179,255,.35) !important;
+  border-radius: 9px;
+  padding: 10px;
+  color: var(--guild-text, #fff) !important;
+  font: inherit; font-size: 13px;
+  width: 100%;
+}
+#root .rqk-admin-rights button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 42px; width: fit-content; padding: 9px 13px;
+  background: var(--guild-select, rgba(79,179,255,.16));
+  border: 1px solid rgba(79,179,255,.55);
+  border-radius: 10px; color: var(--guild-text, #fff);
+  cursor: pointer; font-size: 13px; font-weight: 800;
+}
+#root .rqk-admin-rights button:disabled { opacity: .6; cursor: not-allowed; }
+#root .rqk-admin-rights :is(button,textarea,select):focus-visible {
+  outline: 3px solid var(--guild-h1, #4fb3ff);
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  #root .rqk-admin-rights button { width: 100%; }
+}
