@@ -84,11 +84,21 @@ async def _build_admin_user_summary(user: dict) -> dict:
     joined_campaign_count = await db.campaign_members.count_documents({'username': username})
     feedback_count = await db.improvement_feedback.count_documents({'username': username})
     review_count = await db.reviews.count_documents({'username': username})
+    subscription = user.get('subscription') if isinstance(user.get('subscription'), dict) else {}
+    # Account permissions are established by the shared canonical-admin check,
+    # never by a user-supplied role field or a campaign's GM membership.
+    admin_access = await is_admin_username(username)
 
     return {
         'username': username,
         'email': email,
         'created_at': user.get('created_at'),
+        'access_level': 'admin' if admin_access else 'member',
+        'subscription_tier': subscription.get('tier') or None,
+        'subscription_status': subscription.get('subscription_status') or None,
+        # Existing accounts may not have a last-login timestamp. Null must
+        # display as "Not recorded", not as an invented active/online state.
+        'last_login_at': user.get('last_login_at') or None,
         'character_count': character_count,
         'owned_campaign_count': owned_campaign_count,
         'joined_campaign_count': joined_campaign_count,
