@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Dices } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 import { currentCharacterId } from '@/lib/characterRoute';
+import { loadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
+import './DiceRollFlicker.css';
 
 const characterCache = new Map();
 const REVEAL_DELAY = 360;
@@ -140,22 +143,25 @@ export default function DiceRollFlicker({
   }, [diceFingerprint, isFixedDamage, hasRawDice]);
   const [showTotal, setShowTotal] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
+  const [trayLoadFailed, setTrayLoadFailed] = useState(false);
 
   // three.js and cannon-es are a large chunk, so they are only fetched once
   // a roll is actually shown, and never for a viewer on reduced motion.
-  // A failed fetch is not an error worth surfacing mid-turn: the flat
-  // overlay already shows the same result, so the roll simply stays flat.
+  // While the chunk is loading, show a neutral "Preparing" status instead
+  // of flashing the retired flat result before the physical throw appears.
+  // A genuine load failure still falls back so a table never loses a roll.
   const [TrayOverlay, setTrayOverlay] = useState(null);
   useEffect(() => {
     if (prefersReducedMotion || !visible || TrayOverlay || isFixedDamage) return undefined;
 
     let cancelled = false;
-    import('@/components/DiceTray3DOverlay')
-      .then((module) => { if (!cancelled) setTrayOverlay(() => module.default); })
-      .catch(() => {});
+    setTrayLoadFailed(false);
+    loadDiceTray3D()
+      .then((Overlay) => { if (!cancelled) setTrayOverlay(() => Overlay); })
+      .catch(() => { if (!cancelled) setTrayLoadFailed(true); });
 
     return () => { cancelled = true; };
-  }, [prefersReducedMotion, visible, TrayOverlay, isFixedDamage]);
+  }, [prefersReducedMotion, visible, TrayOverlay, isFixedDamage, rollId]);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
 
@@ -232,6 +238,8 @@ export default function DiceRollFlicker({
     // Fixed damage has no dice to animate: reveal the result immediately.
     setShowTotal(isFixedDamage);
     if (isFixedDamage) return undefined;
+    const waitingForTray = !prefersReducedMotion && !TrayOverlay && !trayLoadFailed;
+    if (waitingForTray) return undefined;
     const usingTray = !prefersReducedMotion && Boolean(TrayOverlay);
     const delay = prefersReducedMotion
       ? REDUCED_MOTION_REVEAL_DELAY
@@ -239,7 +247,7 @@ export default function DiceRollFlicker({
 
     const revealTimer = window.setTimeout(() => setShowTotal(true), delay);
     return () => window.clearTimeout(revealTimer);
-  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, rollId, isFixedDamage]);
+  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, trayLoadFailed, rollId, isFixedDamage]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
@@ -265,6 +273,17 @@ export default function DiceRollFlicker({
 
   if (!visible || typeof document === 'undefined') return null;
 
+  const waitingForTray = !isFixedDamage && !prefersReducedMotion && !TrayOverlay && !trayLoadFailed;
+  if (waitingForTray) {
+    return createPortal(
+      <div className="rq-dice-preparing" role="status" aria-live="polite" data-testid="dice-3d-preparing">
+        <Dices size={18} aria-hidden="true" />
+        <span>Preparing 3D dice…</span>
+      </div>,
+      document.body,
+    );
+  }
+
   const formulaText = resultCaption || (isFixedDamage
     ? `Fixed damage: ${fixedBase}${formatModifier(modifier)} = ${finalTotal}`
     : `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`);
@@ -272,8 +291,8 @@ export default function DiceRollFlicker({
   // Physical tumbling dice by default; the flat overlay stays the
   // presentation for viewers who ask for reduced motion
   // (docs/UI_DESIGN_SYSTEM.md requires honouring prefers-reduced-motion),
-  // and remains the fallback until the 3D chunk has loaded, or for good if
-  // it cannot load. Both take the same props.
+  // and remains the honest fallback if the 3D chunk or WebGL cannot load.
+  // Both take the same props.
   const Overlay = (!isFixedDamage && !prefersReducedMotion && TrayOverlay) || FlatDiceResultOverlay;
 
   return createPortal(
