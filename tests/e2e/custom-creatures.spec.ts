@@ -5,7 +5,10 @@ test.beforeEach(() => {
 });
 
 const TEST_CAMPAIGN_ID = '445891b3-96f8-4e18-9ae4-68987c2e884c';
-const TEST_USER = { email: (process.env.RQK_E2E_EMAIL || ''), password: 'Admin123!' };
+const TEST_USER = {
+  email: process.env.RQK_E2E_EMAIL || '',
+  password: process.env.RQK_E2E_PASSWORD || '',
+};
 
 // Helper to login
 async function loginUser(page: Page) {

@@ -8,15 +8,17 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 
-# Test credentials
+# Protected integration credentials; never provide a checked-in fallback.
 TEST_EMAIL = os.environ.get("RQK_E2E_EMAIL", "")
-TEST_PASSWORD = "Trigger24?!"
+TEST_PASSWORD = os.environ.get("RQK_E2E_PASSWORD", "")
 TEST_CAMPAIGN_ID = "eabd4ae0-d1d8-40a5-858e-f7772af1d2ce"
 
 
 @pytest.fixture
 def auth_token():
     """Get auth token for admin user"""
+    if not TEST_EMAIL or not TEST_PASSWORD:
+        pytest.skip("Requires RQK_E2E_EMAIL and RQK_E2E_PASSWORD")
     response = requests.post(
         f"{BASE_URL}/api/auth/login",
         json={"email": TEST_EMAIL, "password": TEST_PASSWORD}
