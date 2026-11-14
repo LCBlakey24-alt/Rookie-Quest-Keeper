@@ -1,10 +1,9 @@
 // Full offline SRD 5.1 bestiary under CC BY 4.0.
 import SRD_5_1_MONSTERS from './srd5eMonsters.generated.json';
 
-// Only SRD creatures ship. The approximate non-SRD entries that used to sit
-// beside them were exported to docs/licensing/legacy-monsters-homebrew-pack.json
-// (see docs/licensing/CONTENT_AUDIT.md); a table can re-add them to its own
-// account as homebrew. Encounters and NPCs saved earlier keep their own copy.
+// Only SRD creatures ship. The former non-SRD legacy fallback entries
+// were removed from the built-in catalogue and public repository. Existing
+// private account-owned campaign records are not changed by this module.
 export const MONSTER_DATABASE = [...SRD_5_1_MONSTERS];
 
 // Monster types for filtering
