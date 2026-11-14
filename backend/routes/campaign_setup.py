@@ -8,8 +8,10 @@ from typing import Dict, Any, List
 from datetime import datetime, timezone
 import secrets
 import string
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 JOIN_CODE_ALPHABET = string.ascii_uppercase + string.digits
 VALID_RULES_EDITIONS = {'2014', '2024'}
@@ -24,6 +26,12 @@ VALID_CAMPAIGN_TYPES = {
 def clean_text(value: Any, default: str = '') -> str:
     text = str(value or '').strip()
     return text if text else default
+
+
+def optional_text(data: Dict[str, Any], existing: Dict[str, Any], key: str) -> str:
+    """Preserve omitted text but allow an explicitly blank value to clear it."""
+    value = data.get(key)
+    return str(value).strip() if value is not None else clean_text(existing.get(key))
 
 
 def clamp_int(value: Any, default: int, minimum: int, maximum: int) -> int:
@@ -128,20 +136,23 @@ def build_campaign_update(campaign_data: Dict[str, Any], existing: Dict[str, Any
         available_classes = []
     available_classes = [str(class_name).strip() for class_name in available_classes if str(class_name).strip()]
 
-    system = clean_text(
-        campaign_data.get('system'),
-        'D&D 5e 2024 Compatible' if rules_edition == '2024' else 'D&D 5e 2014 Compatible'
-    )
+    default_system = f'D&D 5e {rules_edition} Compatible'
+    existing_system = clean_text(existing.get('system'))
+    standard_systems = {'D&D 5e 2014 Compatible', 'D&D 5e 2024 Compatible'}
+    # Keep custom systems on partial updates. The built-in label, however,
+    # follows the selected edition when the caller doesn't send a system.
+    fallback_system = existing_system if existing_system and existing_system not in standard_systems else default_system
+    system = clean_text(campaign_data.get('system'), fallback_system)
 
     return {
         'name': name,
-        'description': clean_text(campaign_data.get('description'), existing.get('description', '')),
+        'description': optional_text(campaign_data, existing, 'description'),
         'system': system,
         'rules_edition': rules_edition,
-        'world_name': clean_text(campaign_data.get('world_name'), existing.get('world_name', '')),
+        'world_name': optional_text(campaign_data, existing, 'world_name'),
         'world_genre': campaign_type,
         'world_setting': clean_text(campaign_data.get('world_setting'), existing.get('world_setting', 'custom')),
-        'world_setting_notes': clean_text(campaign_data.get('world_setting_notes'), existing.get('world_setting_notes', '')),
+        'world_setting_notes': optional_text(campaign_data, existing, 'world_setting_notes'),
         'allow_exploding_dice': bool(campaign_data.get('allow_exploding_dice', existing.get('allow_exploding_dice', False))),
         'allow_epic_levels': allow_epic_levels,
         'max_character_level': max_character_level,
@@ -149,7 +160,7 @@ def build_campaign_update(campaign_data: Dict[str, Any], existing: Dict[str, Any
         'campaign_type': campaign_type,
         'tone_preset': clean_text(campaign_data.get('tone_preset'), existing.get('tone_preset', 'heroic_fantasy')),
         'tone_sliders': campaign_data.get('tone_sliders') if isinstance(campaign_data.get('tone_sliders'), dict) else existing.get('tone_sliders', {}),
-        'campaign_feel': clean_text(campaign_data.get('campaign_feel'), existing.get('campaign_feel', '')),
+        'campaign_feel': optional_text(campaign_data, existing, 'campaign_feel'),
         'starting_level': clamp_int(campaign_data.get('starting_level', existing.get('starting_level')), 1, 1, 20),
         'party_size': clamp_int(campaign_data.get('party_size', existing.get('party_size')), 4, 1, 12),
         'visibility': visibility,

@@ -2,6 +2,7 @@ import apiClient from '@/lib/apiClient';
 import {
   saveOfflineCampaignPackMetadata,
   storeOfflineApiResponse,
+  getOfflineCacheScope,
 } from '@/offline/offlineApiCache';
 import { downloadPlayerOfflinePack } from './offlinePlayerCampaignPack';
 
@@ -11,7 +12,7 @@ jest.mock('@/lib/apiClient', () => ({
 }));
 
 jest.mock('@/offline/offlineApiCache', () => ({
-  getOfflineCacheKey: jest.fn(config => `key:${config.url}`),
+  getOfflineCacheScope: jest.fn(() => 'user:player'),
   getOfflineCampaignPackMetadata: jest.fn(),
   removeOfflineCampaignPack: jest.fn(),
   saveOfflineCampaignPackMetadata: jest.fn(async pack => pack),
@@ -31,6 +32,9 @@ function httpError(status, detail = 'Request failed') {
 describe('player offline campaign pack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    getOfflineCacheScope.mockReturnValue('user:player');
+    storeOfflineApiResponse.mockImplementation(async config => `key:${config.url}`);
+    saveOfflineCampaignPackMetadata.mockImplementation(async pack => pack);
     apiClient.get.mockImplementation(async url => {
       if (url === '/player/campaign/c1') return response(url, { id: 'c1', name: 'Player Campaign' });
       if (url === '/characters') return response(url, [{ id: 'char-1', campaign_id: 'c1', name: 'Hero' }]);
@@ -80,5 +84,26 @@ describe('player offline campaign pack', () => {
     await expect(downloadPlayerOfflinePack('c1')).rejects.toThrow('Token expired');
     expect(saveOfflineCampaignPackMetadata).not.toHaveBeenCalled();
     expect(apiClient.get).not.toHaveBeenCalledWith('/player/handouts', expect.anything());
+  });
+
+  test('does not claim a required section was saved when local storage fails', async () => {
+    storeOfflineApiResponse.mockResolvedValueOnce('');
+    await expect(downloadPlayerOfflinePack('c1')).rejects.toThrow('Could not save this section');
+    expect(saveOfflineCampaignPackMetadata).not.toHaveBeenCalled();
+  });
+
+  test('fails if the pack metadata was not stored', async () => {
+    saveOfflineCampaignPackMetadata.mockResolvedValueOnce(null);
+    await expect(downloadPlayerOfflinePack('c1')).rejects.toThrow('Could not save the offline copy');
+  });
+
+  test('stops on account change before storing the prior account response', async () => {
+    apiClient.get.mockImplementationOnce(async url => {
+      getOfflineCacheScope.mockReturnValue('user:other');
+      return response(url, { id: 'c1' });
+    });
+    await expect(downloadPlayerOfflinePack('c1')).rejects.toThrow('account changed');
+    expect(storeOfflineApiResponse).not.toHaveBeenCalled();
+    expect(saveOfflineCampaignPackMetadata).not.toHaveBeenCalled();
   });
 });

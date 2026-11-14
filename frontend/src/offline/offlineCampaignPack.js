@@ -1,6 +1,6 @@
 import apiClient from '@/lib/apiClient';
 import {
-  getOfflineCacheKey,
+  getOfflineCacheScope,
   getOfflineCampaignPackMetadata,
   listOfflineCampaignPacks,
   removeOfflineCampaignPack,
@@ -96,32 +96,42 @@ function sectionResult(request, status, extra = {}) {
   };
 }
 
-async function fetchAndPin(request) {
-  const response = await apiClient.get(request.url, { timeout: 30000 });
+function assertScope(scope) {
+  if (getOfflineCacheScope() !== scope) {
+    const error = new Error('The signed-in account changed while downloading the offline copy.');
+    error.rqkAuthScopeChanged = true;
+    throw error;
+  }
+}
+
+async function fetchAndPin(request, scope) {
+  assertScope(scope);
+  const response = await apiClient.get(request.url, { timeout: 30000, rqkExpectedAuthScope: scope });
+  assertScope(scope);
   if (isOfflineResponse(response)) {
     const error = new Error('Only an older offline copy was available.');
     error.code = 'RQK_OFFLINE_FALLBACK';
     throw error;
   }
-  const recordKey = await storeOfflineApiResponse(response.config || { method: 'get', url: request.url }, response);
-  return {
-    response,
-    recordKey: recordKey || getOfflineCacheKey(response.config || { method: 'get', url: request.url }),
-  };
+  const config = { ...(response.config || { method: 'get', url: request.url }), rqkCacheScope: scope };
+  const recordKey = await storeOfflineApiResponse(config, response);
+  assertScope(scope);
+  if (!recordKey) throw new Error('Could not save this section on this device.');
+  return { response, recordKey };
 }
 
 async function pinDynamicRequests(requests, context) {
-  const { sections, recordKeys, mediaPayloads, onProgress, phase } = context;
+  const { sections, recordKeys, mediaPayloads, onProgress, phase, scope } = context;
   let completed = 0;
   for (const request of requests) {
     onProgress({ phase, completed, total: requests.length, label: request.label });
     try {
-      const { response, recordKey } = await fetchAndPin(request);
+      const { response, recordKey } = await fetchAndPin(request, scope);
       mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
       sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
     } catch (error) {
-      if (isAuthFailure(error)) throw error;
+      if (isAuthFailure(error) || error.rqkAuthScopeChanged) throw error;
       sections.push(sectionResult(request, 'unavailable', {
         message: error?.response?.data?.detail || error?.message || `Could not download ${request.label}.`,
       }));
@@ -137,6 +147,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
   }
 
   const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
+  const scope = getOfflineCacheScope();
   const sections = [];
   const recordKeys = [];
   const payloads = {};
@@ -148,13 +159,13 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
   for (const request of requests) {
     onProgress({ phase: 'campaign', completed, total: totalBase, label: request.label });
     try {
-      const { response, recordKey } = await fetchAndPin(request);
+      const { response, recordKey } = await fetchAndPin(request, scope);
       payloads[request.key] = response.data;
       mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
       sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
     } catch (error) {
-      if (isAuthFailure(error)) throw error;
+      if (isAuthFailure(error) || error.rqkAuthScopeChanged) throw error;
       sections.push(sectionResult(request, 'unavailable', {
         message: error?.response?.data?.detail || error?.message || 'Could not download this section.',
       }));
@@ -178,6 +189,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     mediaPayloads,
     onProgress,
     phase: 'rules',
+    scope,
   });
 
   const characterIds = extractCharacterIds(payloads.party, payloads['legacy-party']);
@@ -192,14 +204,17 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     mediaPayloads,
     onProgress,
     phase: 'characters',
+    scope,
   });
 
   const discoveredMedia = Array.isArray(extractOfflineMediaUrls(...mediaPayloads))
     ? extractOfflineMediaUrls(...mediaPayloads)
     : [];
   const rawMediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
+    expectedScope: scope,
     onProgress: mediaProgress => onProgress({ ...mediaProgress, phase: 'media' }),
   });
+  assertScope(scope);
   const mediaResult = {
     saved: Array.isArray(rawMediaResult?.saved) ? rawMediaResult.saved : [],
     failed: Array.isArray(rawMediaResult?.failed) ? rawMediaResult.failed : [],
@@ -234,8 +249,9 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     mediaFailed: mediaResult.failed.length,
     mediaIncluded: mediaResult.saved.length > 0,
   };
-  const storedMetadata = await saveOfflineCampaignPackMetadata(metadataPayload);
-  const metadata = storedMetadata || metadataPayload;
+  const metadata = await saveOfflineCampaignPackMetadata(metadataPayload, scope);
+  assertScope(scope);
+  if (!metadata) throw new Error('Could not save the offline copy on this device.');
 
   onProgress({ phase: 'done', completed: sections.length, total: sections.length, label: 'Offline copy ready' });
   return metadata;

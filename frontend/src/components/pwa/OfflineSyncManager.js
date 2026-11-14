@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, CheckCircle2, CloudUpload, Package, RefreshCw, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { AUTH_TOKEN_KEY, AUTH_USERNAME_KEY } from '@/lib/auth';
+import { getOfflineCacheScope } from '@/offline/offlineApiCache';
 import {
   combatStateSnapshot,
   combatStatesMatch,
@@ -34,11 +36,13 @@ export default function OfflineSyncManager() {
   const syncingRef = useRef(false);
 
   const load = useCallback(async () => {
+    const scope = getOfflineCacheScope();
     const [nextRecords, nextLoot, nextClosures] = await Promise.all([
       listOfflineCombatSyncs(),
       listOfflineCombatLootSyncs(),
       listOfflineCombatClosures(),
     ]);
+    if (scope !== getOfflineCacheScope()) return { records: [], loot: [], closures: [] };
     setRecords(nextRecords);
     setLootRecords(nextLoot);
     setClosures(nextClosures);
@@ -49,6 +53,8 @@ export default function OfflineSyncManager() {
     if (navigator.onLine === false || syncingRef.current) return;
     syncingRef.current = true;
     setSyncing(true);
+    const scope = getOfflineCacheScope();
+    const scopeStillMatches = () => scope === getOfflineCacheScope();
     try {
       const [queued, queuedLoot, queuedClosures] = await Promise.all([
         listOfflineCombatSyncs(),
@@ -57,54 +63,65 @@ export default function OfflineSyncManager() {
       ]);
 
       for (const record of queued.filter(item => item.status !== 'conflict')) {
+        if (!scopeStillMatches()) break;
         try {
           // Combat state through the campaign: GET /characters/{id} is
           // owner-only, so a GM replaying the party's combat could not read it.
           const currentResponse = await apiClient.get(combatStatePath(record), { timeout: 15000 });
+          if (!scopeStillMatches()) break;
           if (currentResponse?.rqkOffline) break;
           const cloudState = combatStateSnapshot(currentResponse.data || {});
           if (!combatStatesMatch(cloudState, record.baseState)) {
             await markOfflineCombatConflict(
               record.key,
               cloudState,
-              'Cloud combat state changed while this device was offline.'
+              'Cloud combat state changed while this device was offline.',
+              record
             );
             continue;
           }
 
           await apiClient.patch(`/characters/${record.characterId}`, record.state, { timeout: 15000 });
+          if (!scopeStillMatches()) break;
           await apiClient.get(`/characters/${record.characterId}`, { timeout: 15000 }).catch(() => null);
-          await removeOfflineCombatSync(record.key);
+          if (!scopeStillMatches()) break;
+          await removeOfflineCombatSync(record.key, record);
         } catch (error) {
+          if (!scopeStillMatches()) break;
           if (!error?.response || error?.response?.status === 401) break;
-          await markOfflineCombatError(record.key, error?.response?.data?.detail || error?.message || 'Sync failed');
+          await markOfflineCombatError(record.key, error?.response?.data?.detail || error?.message || 'Sync failed', record);
         }
       }
 
       for (const record of queuedLoot) {
+        if (!scopeStillMatches()) break;
         try {
           await apiClient.post(
             `/campaigns/${record.campaignId}/inventory/offline-sync`,
             { operation_id: record.operationId, item: record.item },
             { timeout: 15000 }
           );
+          if (!scopeStillMatches()) break;
           await apiClient.get(`/campaigns/${record.campaignId}/inventory`, { timeout: 15000 }).catch(() => null);
-          await removeOfflineCombatLootSync(record.key);
+          if (!scopeStillMatches()) break;
+          await removeOfflineCombatLootSync(record.key, record);
         } catch (error) {
+          if (!scopeStillMatches()) break;
           if (!error?.response || error?.response?.status === 401) break;
-          await markOfflineCombatLootError(record.key, error?.response?.data?.detail || error?.message || 'Loot sync failed');
+          await markOfflineCombatLootError(record.key, error?.response?.data?.detail || error?.message || 'Loot sync failed', record);
         }
       }
 
       // Closing the shared combat display is independent of character conflicts
       // or a loot retry. The fight is over even if one record still needs work.
       for (const record of queuedClosures) {
+        if (!scopeStillMatches()) break;
         const displayRevision = Number(record.displayState?.sequence);
         if (!Number.isSafeInteger(displayRevision) || displayRevision <= 0) {
           // An older queue record had no creation-time revision. Publishing
           // a newly timestamped "combat ended" state here could overwrite a
           // newer battle. Do not clear newer initiative submissions either.
-          await removeOfflineCombatClose(record.key);
+          await removeOfflineCombatClose(record.key, record);
           toast.warning('Legacy combat display cleanup skipped to protect the current battle');
           continue;
         }
@@ -114,21 +131,25 @@ export default function OfflineSyncManager() {
             record.displayState,
             { timeout: 15000 }
           );
+          if (!scopeStillMatches()) break;
           await apiClient.delete(`/campaigns/${record.campaignId}/combat-initiative/submissions`, { timeout: 15000 });
+          if (!scopeStillMatches()) break;
           await apiClient.get(`/campaigns/${record.campaignId}/display-state`, { timeout: 15000 }).catch(() => null);
-          await removeOfflineCombatClose(record.key);
+          if (!scopeStillMatches()) break;
+          await removeOfflineCombatClose(record.key, record);
           toast.success('Offline combat cleanup synced');
         } catch (error) {
+          if (!scopeStillMatches()) break;
           if (!error?.response || error?.response?.status === 401) break;
           if (error.response.status === 409) {
             // A newer combat/scene already owns the display. This old
             // closure is obsolete: never delete the new fight's initiative,
             // and don't retry it indefinitely on each reconnect.
-            await removeOfflineCombatClose(record.key);
+            await removeOfflineCombatClose(record.key, record);
             toast.info('Skipped outdated combat display cleanup; a newer display is active');
             continue;
           }
-          await markOfflineCombatCloseError(record.key, error?.response?.data?.detail || error?.message || 'Combat cleanup failed');
+          await markOfflineCombatCloseError(record.key, error?.response?.data?.detail || error?.message || 'Combat cleanup failed', record);
         }
       }
     } finally {
@@ -159,13 +180,30 @@ export default function OfflineSyncManager() {
         if (navigator.onLine && hasAutoSyncWork(next)) syncPending();
       });
     };
+    const onScopeChanged = () => {
+      // Hide the old account's queue immediately, before IndexedDB returns
+      // the new account's records.
+      setRecords([]);
+      setLootRecords([]);
+      setClosures([]);
+      load();
+    };
+    const onStorage = event => {
+      if (event.key === null || [AUTH_TOKEN_KEY, AUTH_USERNAME_KEY, 'token', 'auth_token'].includes(event.key)) {
+        onScopeChanged();
+      }
+    };
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     window.addEventListener('rqk:offline-sync-queued', onQueued);
+    window.addEventListener('rqk:auth-scope-changed', onScopeChanged);
+    window.addEventListener('storage', onStorage);
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
       window.removeEventListener('rqk:offline-sync-queued', onQueued);
+      window.removeEventListener('rqk:auth-scope-changed', onScopeChanged);
+      window.removeEventListener('storage', onStorage);
     };
   }, [hasAutoSyncWork, load, syncPending]);
 
@@ -177,21 +215,26 @@ export default function OfflineSyncManager() {
   if (!total) return null;
 
   const keepCloud = async record => {
-    await removeOfflineCombatSync(record.key);
+    if (record.scope && record.scope !== getOfflineCacheScope()) return;
+    await removeOfflineCombatSync(record.key, record);
     await load();
     toast.success(`${record.characterName}: kept cloud combat state`);
   };
 
   const applyOffline = async record => {
+    if (record.scope && record.scope !== getOfflineCacheScope()) return;
     if (!online) {
       toast.error('Reconnect before applying the offline combat state');
       return;
     }
     if (!window.confirm(`Apply the offline combat state for ${record.characterName} over the newer cloud combat state?`)) return;
+    const scope = getOfflineCacheScope();
     try {
       await apiClient.patch(`/characters/${record.characterId}`, record.state, { timeout: 15000 });
+      if (scope !== getOfflineCacheScope()) return;
       await apiClient.get(`/characters/${record.characterId}`, { timeout: 15000 }).catch(() => null);
-      await removeOfflineCombatSync(record.key);
+      if (scope !== getOfflineCacheScope()) return;
+      await removeOfflineCombatSync(record.key, record);
       await load();
       toast.success(`${record.characterName}: offline combat state applied`);
     } catch (error) {
