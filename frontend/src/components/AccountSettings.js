@@ -278,7 +278,10 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           )}
         </section>
         <p style={{ ...helpTextStyle, margin: '8px 0 0', textAlign: 'center' }}>
-          <a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} style={{ color: 'var(--guild-hi)' }} data-testid="account-credits-link">Credits &amp; licences</a>
+          <a href="/privacy" onClick={(event) => { event.preventDefault(); navigate('/privacy'); }} style={{ color: 'var(--guild-hi)' }}>Privacy Notice</a>
+          {' · '}<a href="/terms" onClick={(event) => { event.preventDefault(); navigate('/terms'); }} style={{ color: 'var(--guild-hi)' }}>Terms</a>
+          {' · '}<a href="/cookies" onClick={(event) => { event.preventDefault(); navigate('/cookies'); }} style={{ color: 'var(--guild-hi)' }}>Cookies &amp; Storage</a>
+          {' · '}<a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} style={{ color: 'var(--guild-hi)' }} data-testid="account-credits-link">Credits &amp; licences</a>
         </p>
       </div>
       <style>{accountSettingsCss}</style>
