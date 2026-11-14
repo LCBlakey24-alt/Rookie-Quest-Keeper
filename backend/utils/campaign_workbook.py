@@ -204,41 +204,6 @@ def parse_workbook(data: bytes) -> dict:
 
 
 def generate_template() -> bytes:
-    """Create the downloadable version of the same import contract."""
-    doc = Document()
-    section = doc.sections[0]
-    section.top_margin = Inches(.70)
-    section.bottom_margin = Inches(.68)
-    section.left_margin = Inches(.82)
-    section.right_margin = Inches(.82)
-    doc.styles["Normal"].font.name = "Aptos"
-    doc.styles["Normal"].font.size = Pt(10)
-    for sty in ("Title", "Heading 1", "Heading 2"):
-        doc.styles[sty].font.color.rgb = RGBColor(10, 35, 66)
-    doc.add_heading("ROOKIE QUEST KEEPER", 0)
-    doc.add_paragraph("UNIVERSAL CAMPAIGN IMPORT WORKBOOK  •  " + FORMAT)
-    doc.add_heading("How to complete this workbook", level=2)
-    doc.add_paragraph(
-        "Enter your information into the right column of each table. Leave unknown values blank. "
-        "Duplicate a Heading 1 section and its table for additional NPCs, locations, quests, notes or events. "
-        "For AI assistance, upload this workbook and your campaign materials to ChatGPT, asking it to fill "
-        "the right-hand column only, use established facts, and preserve all labels and headings."
-    )
-    doc.add_paragraph(
-        "Private GM content stays private. Keep your own copy. Review the preview in Keeper "
-        "before importing; the site never overwrites existing records during a workbook import."
-    )
-    for section_name, fields in FIELDS.items():
-        doc.add_page_break()
-        doc.add_heading(section_name, level=1)
-        table = doc.add_table(rows=1, cols=2)
-        table.style = "Light Shading Accent 1"
-        table.cell(0, 0).text = "FIELD (DO NOT EDIT)"
-        table.cell(0, 1).text = "YOUR INFORMATION / AI-ASSISTED ENTRY"
-        for field_name in fields.values():
-            cells = table.add_row().cells
-            cells[0].text = field_name
-            cells[1].text = ""
-    result = BytesIO()
-    doc.save(result)
-    return result.getvalue()
+    """Download the branded blank template with the exact parser field labels."""
+    from utils.campaign_workbook_design import build_design_template
+    return build_design_template(FIELDS, FORMAT)
