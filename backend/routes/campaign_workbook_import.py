@@ -293,13 +293,9 @@ async def import_campaign_workbook(
                 await db.campaign_settings.insert_one(record)
                 created_records.append(("campaign_settings", record["id"]))
                 counts["GM rules"] += 1
-            elif not stored_setting.get("dm_rules"):
-                await db.campaign_settings.update_one(
-                    {"id": stored_setting["id"], "campaign_id": campaign_id},
-                    {"$set": {"dm_rules": prepared["campaign"]["dm_rules"]}}
-                )
-                counts["GM rules"] += 1
             else:
+                # Never edit even a blank pre-existing setting. An append-only
+                # import can then reliably roll back without restoring old data.
                 skipped["GM rules"] += 1
 
         if prepared["entries"].get("CALENDAR EVENT") and not await db.calendars.find_one(
