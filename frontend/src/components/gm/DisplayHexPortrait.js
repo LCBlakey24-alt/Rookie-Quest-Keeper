@@ -30,7 +30,7 @@ export function healthTone(percent, status) {
   return 'healthy';
 }
 
-export default function DisplayHexPortrait({ imageUrl, name, tone = 'cool', size = 64, hpPercent = null, hpStatus = '' }) {
+export default function DisplayHexPortrait({ imageUrl, name, tone = 'cool', size = 64, hpPercent = null, hpStatus = '', animated = false }) {
   const id = useId().replace(/:/g, '');
   // The URL that failed, not a flag: a corrected or replaced portrait (the
   // party refreshes in place) gets a fresh try.
@@ -46,11 +46,13 @@ export default function DisplayHexPortrait({ imageUrl, name, tone = 'cool', size
       style={{ width: size, height: size * 1.1547 }}
       data-testid="display-hex-portrait"
       data-tone={tone}
+      data-animated={animated ? 'true' : 'false'}
       data-health={showRing ? health : undefined}
     >
       <svg viewBox="-54 -58 108 116" aria-hidden="true" focusable="false">
         <defs>
           <clipPath id={`${id}-clip`}><polygon points={POINTS} /></clipPath>
+          <clipPath id={`${id}-portrait-clip`}><polygon points={POINTS} transform="scale(0.80)" /></clipPath>
           <linearGradient id={`${id}-edge`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" className="rqk-display-hex__stop-1" />
             <stop offset="50%" className="rqk-display-hex__stop-2" />
@@ -59,12 +61,14 @@ export default function DisplayHexPortrait({ imageUrl, name, tone = 'cool', size
         </defs>
         <polygon className="rqk-display-hex__fill" points={POINTS} />
         {imageUrl && !failed ? (
-          <image href={imageUrl} x="-50" y="-58" width="100" height="116" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-clip)`} onError={() => setFailedUrl(imageUrl)} />
+          <image href={imageUrl} x="-50" y="-58" width="100" height="116" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-${animated ? 'portrait-clip' : 'clip'})`} onError={() => setFailedUrl(imageUrl)} />
         ) : (
           <text className="rqk-display-hex__initials" x="0" y="2" textAnchor="middle" dominantBaseline="central">{initials}</text>
         )}
-        <polygon className="rqk-display-hex__glow" points={POINTS} stroke={`url(#${id}-edge)`} clipPath={`url(#${id}-clip)`} />
-        <polygon className="rqk-display-hex__edge" points={POINTS} stroke={`url(#${id}-edge)`} />
+        <g className={animated ? 'rqk-display-hex__rotating-frame' : undefined}>
+          <polygon className="rqk-display-hex__glow" points={POINTS} stroke={`url(#${id}-edge)`} clipPath={`url(#${id}-clip)`} />
+          <polygon className="rqk-display-hex__edge" points={POINTS} stroke={`url(#${id}-edge)`} />
+        </g>
         {showRing && (
           <>
             <polyline className="rqk-display-hex__ring-track" points={RING} />

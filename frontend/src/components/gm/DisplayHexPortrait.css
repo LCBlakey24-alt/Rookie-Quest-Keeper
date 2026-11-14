@@ -24,3 +24,8 @@
 .rqk-display-hex__ring--bloodied { stroke: var(--rq-danger, #B94A4F); }
 .rqk-display-hex__ring--down { stroke: transparent; }
 @media (prefers-reduced-motion: reduce) { .rqk-display-hex__ring { transition: none; } }
+
+/* Only the decorative rim rotates. Portrait, initials and HP remain upright. */
+.rqk-display-hex__rotating-frame { transform-box: view-box; transform-origin: 50% 50%; animation: rqk-display-hex-orbit 24s linear infinite; }
+@keyframes rqk-display-hex-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rqk-display-hex__rotating-frame { animation: none; } }
