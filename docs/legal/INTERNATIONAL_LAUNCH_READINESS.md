@@ -12,6 +12,9 @@ This is an engineering inventory, not legal advice. Cross-border online services
 - [x] Make withdrawal of optional PostHog analytics call the running SDK's opt-out, stop-recording and reset hooks; apply this also during account deletion.
 - [x] Introduce publicly reachable draft Privacy Notice, Terms of Use and Cookie & Device Storage pages, linked from the landing, account and signup screens.
 - [x] Add code tests for the AI and analytics safeguards.
+- [x] Add an authenticated JSON account export for personal characters, notes, homebrew and safe campaign metadata; refuse cross-account records, secret fields and silently truncated files; add backend and UI tests.
+- [x] Correct the account-deletion warning so it no longer guarantees immediate erasure from external processors or backups.
+- [ ] Expand the self-service download or provide an assisted access route for all other potentially relevant records; this limited download is **not** a complete legal DSAR/portability response.
 - [ ] **Publication blocker:** Legal entity/person responsible for the product, verified business contact and valid privacy request route — provide `REACT_APP_PUBLIC_LEGAL_OPERATOR` and `REACT_APP_PUBLIC_LEGAL_CONTACT` *after* confirming the information. A public page with placeholder contact details is not an adequate privacy notice.
 - [ ] **Publication blocker:** Final human/legal review of the documents, with actual processing and retention facts rather than assumptions.
 
