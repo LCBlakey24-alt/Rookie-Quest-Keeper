@@ -46,6 +46,9 @@ class PrivacyCollection:
         self.read_queries = []
     async def insert_one(self, doc):
         self.docs.append(dict(doc))
+    async def count_documents(self, query):
+        permitted = set(query.get('status', {}).get('$in', []))
+        return sum(1 for doc in self.docs if doc.get('status') in permitted)
     def find(self, query, projection=None):
         self.read_queries.append(query)
         docs = [dict(d) for d in self.docs if all(d.get(k) == v for k, v in query.items())]
@@ -171,3 +174,22 @@ def test_admin_update_nonexistent_request_returns_404(monkeypatch):
             username='administrator',
         ))
     assert missing.value.status_code == 404
+
+
+def test_admin_workload_summary_is_protected_and_counts_only_unresolved(monkeypatch):
+    collection = setup(monkeypatch, is_admin=True)
+    run(routes.create_privacy_request(request(), username='one'))
+    posted = run(routes.create_privacy_request(request(request_type='correction'), username='two'))
+    run(routes.update_admin_privacy_request(
+        posted['request']['id'],
+        routes.PrivacyRightsRequestUpdate(status='responded'),
+        username='administrator',
+    ))
+    assert run(routes.admin_privacy_request_summary(username='administrator')) == {'pending_count': 1}
+
+    async def reject(_username):
+        raise HTTPException(status_code=403, detail='Admin access required')
+    monkeypatch.setattr(routes, 'require_admin', reject)
+    with pytest.raises(HTTPException) as exc:
+        run(routes.admin_privacy_request_summary(username='not-admin'))
+    assert exc.value.status_code == 403
