@@ -5,7 +5,7 @@ import apiClient from '@/lib/apiClient';
 import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 import { createDisplayState, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
-import tiaKartaSecondScreenPresets from '@/data/tiaKartaSecondScreenPresets';
+import genericSecondScreenPresets from '@/data/genericSecondScreenPresets';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -232,7 +232,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
 
       <section style={buttonGroupStyle}>
         <p style={sectionLabelStyle}>Quick reveals</p>
-        {tiaKartaSecondScreenPresets.slice(0, 10).map(preset => <button key={preset.id} type="button" onClick={() => sendPreset(preset)} disabled={busy === preset.id} style={revealButtonStyle}><Send size={13} /> {preset.title}</button>)}
+        {genericSecondScreenPresets.slice(0, 10).map(preset => <button key={preset.id} type="button" onClick={() => sendPreset(preset)} disabled={busy === preset.id} style={revealButtonStyle}><Send size={13} /> {preset.title}</button>)}
       </section>
 
       <section style={buttonGroupStyle}>
