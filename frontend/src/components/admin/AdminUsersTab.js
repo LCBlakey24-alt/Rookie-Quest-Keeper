@@ -159,7 +159,7 @@ export default function AdminUsersTab() {
         </div>
       </div>
 
-      <div style={metricsStyle}>
+      <div className="rqk-admin-users__metrics" style={metricsStyle}>
         <Metric label="Accounts" value={totals.users} />
         <Metric label="Site Admins" value={totals.admins} />
         <Metric label="Showing" value={totals.filtered} />
@@ -168,7 +168,7 @@ export default function AdminUsersTab() {
         <Metric label="Joined Campaigns" value={totals.joinedCampaigns} />
       </div>
 
-      <div style={{ position: 'relative', marginBottom: 14 }}>
+      <div className="rqk-admin-users__search" style={{ position: 'relative', marginBottom: 14 }}>
         <Search size={14} color={rq.muted} style={{ position: 'absolute', top: 12, left: 12 }} />
         <input
           data-testid="admin-user-search"
@@ -184,13 +184,13 @@ export default function AdminUsersTab() {
       {loading ? (
         <AdminUsersLoading />
       ) : isMobile ? (
-        <div style={mobileListStyle}>
+        <div className="rqk-admin-users__cards" style={mobileListStyle}>
           {filtered.length === 0 ? (
             <div style={emptyStyle}>No users match</div>
           ) : filtered.map(user => {
             const impersonating = impersonatingUser === user.username;
             return (
-              <article key={user.username || user.email} data-testid={`user-row-${user.username}`} style={userCardStyle} aria-busy={impersonating ? 'true' : 'false'}>
+              <article className="rqk-admin-users__card" key={user.username || user.email} data-testid={`user-row-${user.username}`} style={userCardStyle} aria-busy={impersonating ? 'true' : 'false'}>
                 <div style={userCardHeaderStyle}>
                   <div style={{ minWidth: 0 }}>
                     <strong style={userNameStyle}>{user.username || 'Unnamed user'}</strong>
@@ -222,8 +222,8 @@ export default function AdminUsersTab() {
           })}
         </div>
       ) : (
-        <div style={tableScrollStyle}>
-          <table style={{ minWidth: 1180, width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <div className="rqk-admin-users__table-scroll" style={tableScrollStyle}>
+          <table className="rqk-admin-users__table" style={{ minWidth: 1180, width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ color: rq.muted, textAlign: 'left', letterSpacing: 1, fontWeight: 900 }}>
                 <th style={thStyle}>Username</th>
