@@ -57,6 +57,9 @@ function paletteFor(dye) {
 
 /** How long settled dice rest on screen before the total is shown. */
 export const REVEAL_PAUSE_MS = 450;
+// If the physical tray cannot run, use the same short reveal as the flat
+// result overlay instead of leaving it hidden until the 3D safety timeout.
+const FALLBACK_REVEAL_MS = 360;
 /** Pull the camera back in the hexagon so the dice stay clear of its corners. */
 const HEX_FRAME_SCALE = 1.25;
 
@@ -159,6 +162,11 @@ export default function DiceTray3DOverlay(props) {
   // Keep the physics callback stable so that alone cannot restart a throw.
   const onRevealNowRef = useRef(onRevealNow);
   useEffect(() => { onRevealNowRef.current = onRevealNow; }, [onRevealNow]);
+  useEffect(() => {
+    if (canRender || isRevealed) return undefined;
+    const timer = window.setTimeout(() => onRevealNowRef.current?.(), FALLBACK_REVEAL_MS);
+    return () => window.clearTimeout(timer);
+  }, [canRender, isRevealed, diceSignature]);
   // Once the dice have come to rest, let them sit still for a moment before
   // the total appears, so the player sees the face that landed first.
   const revealTimerRef = useRef(null);
