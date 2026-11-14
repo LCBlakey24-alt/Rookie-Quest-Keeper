@@ -259,16 +259,11 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
       } catch (loginError) {
         if (loginError?.response?.status !== 401) throw loginError;
 
-        try {
-          response = await apiClient.post('/auth/register', stagingCredentials);
-        } catch (registerError) {
-          const detail = String(registerError?.response?.data?.detail || '');
-          if (registerError?.response?.status === 400 && /username already taken/i.test(detail)) {
-            response = await apiClient.post('/auth/login', stagingCredentials);
-          } else {
-            throw registerError;
-          }
-        }
+        // Never create a new public account silently from a preview helper.
+        // New testers use the same adult eligibility and email recovery form.
+        toast.info('This staging account is not registered. Create an account through the normal 18+ sign-up form.');
+        goToMode('register');
+        return;
       }
 
       toast.success('Staging test account ready');
