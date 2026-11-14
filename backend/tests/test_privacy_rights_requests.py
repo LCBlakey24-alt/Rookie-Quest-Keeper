@@ -3,6 +3,7 @@
 This test never contacts the production database.
 """
 import asyncio
+import json
 import importlib.util
 import os
 import sys
@@ -70,7 +71,11 @@ def setup(monkeypatch, *, is_admin=False):
     return collection
 
 def run(coro):
-    return asyncio.run(coro)
+    result = asyncio.run(coro)
+    if hasattr(result, 'body'):
+        assert result.headers.get('cache-control') == 'private, no-store'
+        return json.loads(result.body)
+    return result
 
 def request(**kwargs):
     return routes.PrivacyRightsRequestCreate(
