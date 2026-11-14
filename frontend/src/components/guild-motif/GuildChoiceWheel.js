@@ -3,6 +3,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import '@/styles/guildTokens.css';
 import { angleStep, fitRingLabels, optionAtTop, pointerAngle, readsUpsideDown, rotationForOption } from './choiceWheel';
 import { GLIDE_EASING, addSpinSample, glideDuration, releaseVelocity, spinTarget, startSpinSamples } from './wheelSpin';
+import { playDialTick } from '@/components/hex-sheet/dialSound';
 import './GuildChoiceWheel.css';
 
 const R = 100;
@@ -62,10 +63,11 @@ function buzz() {
  * @param {string} [props.confirmLabel]  word on the centre button (default CONFIRM)
  * @param {string} [props.confirmAria]   accessible name for the centre button
  * @param {boolean} [props.compact]      a smaller wheel, one of several on screen
+ * @param {boolean} [props.tickOnTurn]   use the shared click for numeric adjustments
  */
 export default function GuildChoiceWheel({
   options, value, onChange, label, caption, onConfirm,
-  disabledIds = [], centreText, centreNote, confirmLabel = 'CONFIRM', confirmAria, compact = false,
+  disabledIds = [], centreText, centreNote, confirmLabel = 'CONFIRM', confirmAria, compact = false, tickOnTurn = false,
 }) {
   const count = options.length;
   const step = 360 / Math.max(1, count);
@@ -102,7 +104,7 @@ export default function GuildChoiceWheel({
   const disabled = useMemo(() => new Set(disabledIds), [disabledIds]);
   const isDisabled = (index) => disabled.has(options[index]?.id);
 
-  const commit = (index, restAt) => {
+  const commit = (index, restAt, quiet = false) => {
     // A dimmed option cannot be chosen: turn back to the current one.
     if (isDisabled(index) && index !== selectedIndex) {
       buzz();
@@ -114,6 +116,7 @@ export default function GuildChoiceWheel({
     turnTo(restAt ?? rotationForOption(index, rotationRef.current, count));
     if (index !== selectedIndex) {
       buzz();
+      if (tickOnTurn && !quiet) playDialTick();
       onChange(options[index].id);
     }
   };
@@ -161,6 +164,7 @@ export default function GuildChoiceWheel({
       state.lastIndex = atTop;
       setPreview(atTop);
       buzz();
+      if (tickOnTurn) playDialTick();
     }
   };
 
@@ -174,7 +178,8 @@ export default function GuildChoiceWheel({
       // Carry on with the flick's speed, then lock on the wedge it stops at.
       const target = spinTarget(rotationRef.current, state.start, releaseVelocity(state.samples, clock()), step);
       setGlideMs(glideDuration(rotationRef.current, target));
-      commit(optionAtTop(target, count), target);
+      const targetIndex = optionAtTop(target, count);
+      commit(targetIndex, target, tickOnTurn && targetIndex === state.lastIndex);
       return;
     }
     if (state.segment !== undefined && state.segment !== null) commit(Number(state.segment));

@@ -365,6 +365,7 @@ export default function HexCharacterSheet() {
   if (current.view === 'main') {
     wheel = (
       <HexWheel
+        glowingFrame
         viewKey="main"
         label="Character sections"
         wedges={MAIN_SECTIONS.map((section) => ({
@@ -378,6 +379,7 @@ export default function HexCharacterSheet() {
   } else if (current.view === 'core' || current.view === 'roll') {
     wheel = (
       <HexWheel
+        glowingFrame
         variant="stat"
         viewKey="core"
         label="Core abilities"
@@ -445,6 +447,7 @@ export default function HexCharacterSheet() {
     };
     wheel = (
       <HexWheel
+        glowingFrame
         viewKey="death"
         variant="stat"
         label="Death saves"
@@ -483,7 +486,7 @@ export default function HexCharacterSheet() {
     );
   } else {
     // Magic and Traits are lists for now: no empty wheel above them.
-    wheel = ['magic', 'traits'].includes(current.view) ? null : <HexWheel viewKey={current.view} label={VIEW_TITLES[current.view]} wedges={[]} centre={centreDice} />;
+    wheel = ['magic', 'traits'].includes(current.view) ? null : <HexWheel glowingFrame viewKey={current.view} label={VIEW_TITLES[current.view]} wedges={[]} centre={centreDice} />;
   }
 
   const rollRow = current.view === 'roll' ? rows.find((row) => row.key === current.ability) : null;

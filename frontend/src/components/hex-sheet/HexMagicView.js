@@ -11,10 +11,22 @@ import { spellRoll } from '@/data/spellRollRules';
 import { slotAdjustUpdate } from '@/data/spentResourceRestore';
 import { customCasterNumbers } from '@/data/savedCustomSpellcastingPresentation';
 import { castOptionAt, castableSpells, magicLevels, ordinal, spellsAtLevel } from './magicModel';
+import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 
 const signed = (value) => (Number(value) >= 0 ? `+${Number(value)}` : `${Number(value)}`);
 const abilityMod = (score) => Math.floor(((Number(score) || 10) - 10) / 2);
 const HEX = '50,0 100,25 100,75 50,100 0,75 0,25';
+
+function SpellCastIcon({ value }) {
+  const filterId = useSvgId('hex-spell-glow');
+  return (
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <GlowFilter id={filterId} />
+      <GlowPolygon className="hex-spell__cast-shape" points={HEX} filterId={filterId} />
+      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">{value}</text>
+    </svg>
+  );
+}
 
 /** The class a spell is cast with, and its attack bonus, save DC and modifier. */
 export function casterFor(character, spell, proficiencyBonus) {
@@ -143,17 +155,11 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
                     aria-label={`Cast ${spell.name}${sourceNote ? ` (${sourceNote})` : ''}, using a ${ordinal(slotLevel)}-level slot`}
                     title={noSlot ? 'No slot left' : 'Cast: uses a slot'}
                   >
-                    <svg viewBox="0 0 100 100" aria-hidden="true">
-                      <polygon points={HEX} />
-                      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">{slotLevel}</text>
-                    </svg>
+                    <SpellCastIcon value={slotLevel} />
                   </button>
                 ) : (
                   <span className="hex-spell__cast hex-spell__cast--free" aria-hidden="true" title="Cantrips use no slot">
-                    <svg viewBox="0 0 100 100">
-                      <polygon points={HEX} />
-                      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">∞</text>
-                    </svg>
+                    <SpellCastIcon value="∞" />
                   </span>
                 )}
                 <button type="button" className="hex-spell__name" onClick={() => setOpenSpell(isOpen ? null : id)} aria-expanded={isOpen}>

@@ -9,9 +9,8 @@
  * and app layout) under html body #root, which outranks all of them on
  * phones only; tablet and desktop are untouched.
  *
- * Direction: calm ink/navy chrome, cream text, and the app's citrus
- * accent (yellow -> orange -> red) used sparingly -- as a thin indicator
- * on the current tab, never as a solid block of colour.
+ * The phone dock uses the shared Neon Coast inner glow and a warm selected
+ * control, while keeping its compact layout and distinct current-tab marker.
  */
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] {
@@ -23,7 +22,7 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
   --rqk-nav-accent-soft: rgba(242, 181, 68, 0.14);
   /* Literal, not var(--rq-citrus-gradient): the tab links blank that
      variable (below) to switch off the older layers' full-tab fill. */
-  --rqk-nav-gradient: linear-gradient(90deg, #ffb21f 0%, #ff8a1f 30%, #f4551f 65%, #e03a2f 100%);
+  --rqk-nav-gradient: linear-gradient(90deg, var(--guild-h1), var(--guild-h2) 50%, var(--guild-h3));
   --rqk-nav-height: 64px;
   --rqk-topbar-height: 56px;
 }
@@ -39,12 +38,12 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
   width: auto !important;
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
   display: block !important;
-  background: var(--rqk-nav-bg) !important;
+  background: var(--guild-bg) !important;
   background-image: none !important;
   border: 0 !important;
-  border-top: 1px solid var(--rqk-nav-line) !important;
+  border-top: 1px solid rgba(var(--guild-c2-rgb), 0.3) !important;
   border-radius: 0 !important;
-  box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.32) !important;
+  box-shadow: var(--guild-control-glow) !important;
   /* No backdrop-filter here: it would make this bar the containing block
      for the fixed More panel and backdrop inside it. A near-opaque fill
      reads the same. */
@@ -151,9 +150,10 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] .rqk-app-rail-link.is-active svg {
   /* stroke as well as color: lucide icons draw with stroke, and older
      layers pin the active icon's color with heavier selectors. */
-  stroke: var(--rqk-nav-accent) !important;
-  color: var(--rqk-nav-accent) !important;
-  background: var(--rqk-nav-accent-soft) !important;
+  stroke: var(--guild-hi) !important;
+  color: var(--guild-hi) !important;
+  background: var(--guild-bg) !important;
+  box-shadow: var(--guild-control-glow-hot) !important;
 }
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] .rqk-app-rail-link.is-active span {
