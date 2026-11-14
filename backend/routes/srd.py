@@ -1,4 +1,4 @@
-"""SRD data routes: spells, classes, races, feats from SRD 5.1 public domain."""
+"""SRD data routes: spells, classes, races and feats under SRD 5.1 (CC BY 4.0)."""
 from fastapi import APIRouter, HTTPException
 from utils.helpers import load_srd_file
 from typing import Optional
@@ -37,7 +37,7 @@ async def get_srd_spells(
     return {
         "spells": spells,
         "count": len(spells),
-        "source": "SRD 5.1 - Open Gaming License"
+        "source": "SRD 5.1 (CC BY 4.0)"
     }
 
 @router.get("/srd/spells/{spell_name}")
@@ -63,7 +63,7 @@ async def get_srd_classes():
     
     return {
         "classes": data.get('classes', []),
-        "source": "SRD 5.1 - Open Gaming License"
+        "source": "SRD 5.1 (CC BY 4.0)"
     }
 
 @router.get("/srd/classes/{class_name}")
@@ -89,7 +89,7 @@ async def get_srd_races():
     
     return {
         "races": data.get('races', []),
-        "source": "SRD 5.1 - Open Gaming License"
+        "source": "SRD 5.1 (CC BY 4.0)"
     }
 
 @router.get("/srd/feats")
@@ -101,7 +101,7 @@ async def get_srd_feats():
     
     return {
         "feats": data.get('feats', []),
-        "source": "SRD 5.1 - Open Gaming License"
+        "source": "SRD 5.1 (CC BY 4.0)"
     }
 
 @router.get("/srd/class-features/{class_name}/{level}")
