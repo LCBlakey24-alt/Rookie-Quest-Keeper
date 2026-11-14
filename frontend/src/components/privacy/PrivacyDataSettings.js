@@ -15,6 +15,13 @@ function analyticsConsent() {
 }
 
 function setAnalyticsConsent(value) {
+  if (!value) {
+    // Revoking on an already-loaded page must stop the active tracker now,
+    // not merely prevent its script loading on the next visit.
+    try { window.posthog?.stopSessionRecording?.(); } catch {}
+    try { window.posthog?.opt_out_capturing?.(); } catch {}
+    try { window.posthog?.reset?.(); } catch {}
+  }
   try {
     if (value) localStorage.setItem(ANALYTICS_KEY, value);
     else localStorage.removeItem(ANALYTICS_KEY);
@@ -102,7 +109,7 @@ export default function PrivacyDataSettings() {
           <span className="rqk-privacy-settings__icon"><SlidersHorizontal size={18} /></span>
           <span className="rqk-privacy-settings__copy">
             <strong>Usage analytics</strong>
-            <small>Optional product analytics help measure how Rookie is used. They are off by default. Session recording is disabled on the public production app.</small>
+            <small>Optional product analytics help measure how Rookie is used. They are off by default. Session recording is disabled. You can withdraw analytics permission at any time.</small>
           </span>
           <span className="rqk-privacy-settings__status" data-on={analyticsAllowed ? 'true' : 'false'}>
             {analyticsAllowed ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
