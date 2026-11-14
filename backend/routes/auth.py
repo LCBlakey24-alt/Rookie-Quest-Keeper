@@ -1,15 +1,20 @@
 """Authentication routes: register, login, password reset, account management."""
 from fastapi import APIRouter, HTTPException, Depends, status
-from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
+from config import (
+    db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger,
+    AI_CONSENT_POLICY_VERSION,
+)
 from utils.account_profile import public_account_profile
 from utils.admin_identity import USERNAME_UNAVAILABLE, username_is_available
 from utils.site_settings import require_signups_enabled
 from utils.auth import (
     get_current_user, hash_password, verify_password, create_token, session_version,
+    get_ai_consent_status,
 )
 from models import (
     UserRegister, UserLogin, TokenResponse, ForgotPasswordRequest,
-    ResetPasswordRequest, ChangePasswordRequest, UpdateAccountRequest
+    ResetPasswordRequest, ChangePasswordRequest, UpdateAccountRequest,
+    RookAiConsentUpdate,
 )
 import uuid
 import secrets
@@ -43,6 +48,33 @@ else:
 router = APIRouter()
 
 SAFE_USERNAME_RE = re.compile(r"^[A-Za-z0-9_-]{3,24}$")
+
+
+@router.get("/auth/ai-consent")
+async def get_rook_ai_consent(username: str = Depends(get_current_user)):
+    """Read only the signed-in account's current Rook AI choice."""
+    return await get_ai_consent_status(username)
+
+
+@router.put("/auth/ai-consent")
+async def update_rook_ai_consent(
+    request: RookAiConsentUpdate,
+    username: str = Depends(get_current_user),
+):
+    """Grant or withdraw optional Rook AI permission for this account."""
+    now = datetime.now(timezone.utc).isoformat()
+    consent = {
+        'granted': request.granted,
+        'policy_version': AI_CONSENT_POLICY_VERSION,
+        'updated_at': now,
+    }
+    result = await db.users.update_one(
+        {'username': username},
+        {'$set': {'rook_ai_consent': consent}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    return await get_ai_consent_status(username)
 
 # These collections can reference an owned campaign but contain records that
 # belong to another person. Keep them, then unlink them explicitly below.

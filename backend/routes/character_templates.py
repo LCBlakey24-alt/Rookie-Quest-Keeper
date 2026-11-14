@@ -375,7 +375,21 @@ async def ai_match_template(
     # Gating the whole endpoint would deny a perfectly good non-AI match once a
     # cap were reached, which would be an over-broad fix. The limit defaults to
     # 0 (unlimited), so nothing changes until one is configured.
-    if LlmChat and UserMessage and get_llm_api_key("openai") and best_score > 0 and await check_ai_access(username, 'ai'):
+    ai_rationale_allowed = bool(
+        LlmChat and UserMessage and get_llm_api_key("openai") and best_score > 0
+    )
+    if ai_rationale_allowed:
+        try:
+            ai_rationale_allowed = await check_ai_access(username, 'ai')
+        except HTTPException as exc:
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            if detail.get('code') != 'rook_ai_consent_required':
+                raise
+            # Matching still works locally. Declining optional AI must not
+            # disable the ordinary tag-based character-template tool.
+            ai_rationale_allowed = False
+
+    if ai_rationale_allowed:
         try:
             chat = LlmChat(
                 api_key=get_llm_api_key("openai"),

@@ -64,7 +64,14 @@ RESEND_API_KEY=...
 SENDER_EMAIL=noreply@rookiequestkeeper.com
 ADMIN_USERNAMES=lcblakey24
 LLM_API_KEY=...
+AI_MONTHLY_LIMIT=0
+AI_CONSENT_ENFORCEMENT=false
+AI_CONSENT_POLICY_VERSION=rook-ai-v1
 ```
+
+Keep `AI_CONSENT_ENFORCEMENT=false` until the account-scoped frontend choice
+has been deployed and verified. When enabled, the backend requires a current,
+per-account Rook AI grant before sending campaign data to an AI provider.
 
 ## Frontend environment variables
 
