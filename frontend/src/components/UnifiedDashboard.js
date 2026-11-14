@@ -5,6 +5,7 @@ import { AlertTriangle, BookOpen, Clock3, Globe2, List, PlusCircle, ScrollText, 
 import HomeHubWheel from '@/components/dashboard/home/HomeHubWheel';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
+import BetaNotice from '@/components/BetaNotice';
 import { safeArray } from '@/components/dashboard/home/unifiedDashboardUtils';
 import { KeeperAnnouncementCarousel, LatestKeeperUpdates, UrgentKeeperNotices, useKeeperUpdates } from '@/components/dashboard/home/HomeUpdates';
 import '@/styles/unifiedDashboardPolish.css';
@@ -105,6 +106,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   return (
     <main className="unified-dashboard-page unified-dashboard-page--simple rqk-home-v5" data-testid="rookie-home-v5">
       <UnifiedDashboardHeader username={username} refreshing={refreshing} onRefresh={loadDashboard} onLogout={onLogout} />
+      <BetaNotice audience="member" />
       {dashboardWarning && (
         <div className="dashboard-empty-compact" role="status" aria-live="polite">
           <AlertTriangle size={18} aria-hidden="true" />
