@@ -1,0 +1,104 @@
+/* Member accounts: consistent with Keeper's guild / Neon Coast visual system. */
+#root .admin-mission-control-page .rqk-admin-users {
+  background: var(--guild-box) !important;
+  box-shadow: var(--guild-box-glow) !important;
+  border: 1px solid transparent !important;
+  border-radius: 20px !important;
+  padding: clamp(14px, 2.5vw, 26px) !important;
+  color: var(--guild-text);
+}
+#root .rqk-admin-users__metrics {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+#root .rqk-admin-users__metrics > div {
+  background: var(--guild-bg-deep) !important;
+  border: 1px solid rgba(var(--guild-c3-rgb), .2) !important;
+  border-radius: 12px !important;
+  min-width: 0;
+}
+#root .rqk-admin-users__role {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 750;
+  border: 1px solid rgba(var(--guild-c3-rgb), .36);
+  color: var(--guild-muted);
+  background: rgba(var(--guild-c3-rgb), .08);
+  white-space: nowrap;
+}
+#root .rqk-admin-users__role.is-admin {
+  color: var(--guild-h1);
+  background: rgba(var(--guild-h1-rgb), .12);
+  border-color: rgba(var(--guild-h1-rgb), .55);
+}
+#root .rqk-admin-users__disclaimer {
+  color: var(--guild-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 13px;
+}
+#root .rqk-admin-users__error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: rgba(255, 61, 139, .1);
+  border: 1px solid var(--guild-c1);
+  border-radius: 10px;
+  color: var(--guild-text);
+  font-size: 13px;
+}
+#root .rqk-admin-users__table-scroll {
+  border: 1px solid rgba(var(--guild-c3-rgb), .22);
+  border-radius: 12px;
+  background: var(--guild-bg-deep);
+  overflow-x: auto;
+}
+#root .rqk-admin-users__table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+#root .rqk-admin-users__table th {
+  background: rgba(var(--guild-c2-rgb), .13);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+#root .rqk-admin-users__table tr:hover td {
+  background: rgba(var(--guild-c3-rgb), .055);
+}
+#root .rqk-admin-users__card {
+  background: var(--guild-bg-deep) !important;
+  border: 1px solid rgba(var(--guild-c3-rgb), .28) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--guild-control-glow);
+}
+#root .rqk-admin-users__card > div:last-child > div {
+  background: var(--guild-bg) !important;
+  border: 1px solid rgba(var(--guild-c3-rgb), .2) !important;
+  border-radius: 10px !important;
+}
+#root .rqk-admin-users button {
+  min-height: 40px;
+}
+#root .rqk-admin-users__search input {
+  min-height: 44px;
+}
+@media (max-width: 1100px) {
+  #root .rqk-admin-users__metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 650px) {
+  #root .rqk-admin-users__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #root .rqk-admin-users__card > div:first-child {
+    align-items: flex-start;
+  }
+}
