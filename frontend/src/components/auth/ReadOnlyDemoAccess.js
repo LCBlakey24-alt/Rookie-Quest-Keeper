@@ -61,7 +61,7 @@ export default function ReadOnlyDemoAccess() {
     navigate(destination.to, { replace: true, state: destination.state });
   }, [destination, navigate]);
 
-  const exchangeGoogleCredential = useCallback(async (credential, username = '') => {
+  const exchangeGoogleCredential = useCallback(async (credential, username = '', adultConfirmed = false) => {
     if (!credential) return;
 
     setGoogleLoading(true);
@@ -69,7 +69,7 @@ export default function ReadOnlyDemoAccess() {
       const payload = { credential };
       if (username.trim()) {
         payload.username = username.trim();
-        payload.adult_self_attested = adultSelfAttested;
+        payload.adult_self_attested = adultConfirmed;
       }
 
       const response = await apiClient.post('/auth/google', payload);
@@ -85,7 +85,7 @@ export default function ReadOnlyDemoAccess() {
     } finally {
       setGoogleLoading(false);
     }
-  }, [completeGoogleLogin, adultSelfAttested]);
+  }, [completeGoogleLogin]);
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return undefined;
@@ -138,7 +138,7 @@ export default function ReadOnlyDemoAccess() {
       return;
     }
 
-    await exchangeGoogleCredential(pendingCredential, username);
+    await exchangeGoogleCredential(pendingCredential, username, adultSelfAttested);
   };
 
   return (
