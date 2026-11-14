@@ -690,6 +690,10 @@ async def process_note_with_ai(campaign_id: str, note_id: str, username: str = D
         campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
         if not campaign:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+        can_use_ai = await check_ai_access(username, 'ai')
+        if not can_use_ai:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI limit reached.")
         
         note = await db.ingame_notes.find_one({'id': note_id, 'campaign_id': campaign_id})
         if not note:
@@ -741,6 +745,7 @@ Only include entities that are explicitly mentioned in the notes. Return ONLY va
         
         user_message = UserMessage(text=f"Session Notes:\n\n{note['content']}")
         response = await chat.send_message(user_message)
+        await record_ai_usage(username)
         
         # Parse the AI response
         import json
@@ -783,6 +788,10 @@ async def parse_session_notes(
     Uses AI to automatically suggest updates to NPCs, locations, calendar, etc.
     """
     await verify_campaign_ownership(campaign_id, username)
+
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI limit reached.")
     
     note_text = request.note_text
     
@@ -858,6 +867,7 @@ Extract and return JSON in this EXACT format:
             max_tokens=1500,
             temperature=0.3
         )
+        await record_ai_usage(username)
         response_text = response_text.strip()
         
         # Remove markdown code blocks if present
@@ -1036,6 +1046,10 @@ async def generate_session_outline(campaign_id: str, request: Dict[str, Any], us
     """AI generates a session outline based on campaign context (notes, NPCs, locations, journal)."""
     await verify_campaign_ownership(campaign_id, username)
 
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI limit reached.")
+
     api_key = get_llm_api_key("openai")
     if not api_key:
         raise HTTPException(status_code=500, detail="AI service not configured")
@@ -1122,6 +1136,7 @@ An ending hook to leave players eager for next session.
         ).with_model("openai", "gpt-5.2")
 
         response = await chat.send_message(UserMessage(text=prompt))
+        await record_ai_usage(username)
         content = response.strip() if isinstance(response, str) else str(response)
 
         outline = {
@@ -1158,6 +1173,10 @@ async def get_session_outlines(campaign_id: str, username: str = Depends(get_cur
 async def generate_session_checklist(campaign_id: str, request: Dict[str, Any], username: str = Depends(get_current_user)):
     """AI generates a prep checklist from a session outline or campaign context."""
     await verify_campaign_ownership(campaign_id, username)
+
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI limit reached.")
 
     api_key = get_llm_api_key("openai")
     if not api_key:
@@ -1215,6 +1234,7 @@ Generate 8-15 practical checklist items. Return ONLY the JSON array, no other te
         ).with_model("openai", "gpt-4o")
 
         response = await chat.send_message(UserMessage(text=prompt))
+        await record_ai_usage(username)
         response_text = response.strip() if isinstance(response, str) else str(response)
 
         json_match = re.search(r'\[[\s\S]*\]', response_text)
@@ -1292,6 +1312,10 @@ async def generate_session_replay(campaign_id: str, request: Dict[str, Any], use
     """AI generates a narrative recap of the session from combat logs, notes, and dice rolls."""
     await verify_campaign_ownership(campaign_id, username)
 
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI limit reached.")
+
     api_key = get_llm_api_key("openai")
     if not api_key:
         raise HTTPException(status_code=500, detail="AI service not configured")
@@ -1354,6 +1378,7 @@ Make it feel like reading a fantasy novel chapter. Use character names and make 
         ).with_model("openai", "gpt-5.2")
 
         response = await chat.send_message(UserMessage(text=prompt))
+        await record_ai_usage(username)
         content = response.strip() if isinstance(response, str) else str(response)
 
         replay = {

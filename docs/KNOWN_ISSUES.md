@@ -32,9 +32,9 @@ Remaining risk: the limiter is in memory and therefore only coordinates within o
 
 ### AI usage controls
 
-Rook usage is recorded in MongoDB, monthly usage is visible in the admin overview, and `AI_MONTHLY_LIMIT` can enforce a per-user monthly cap when set above zero.
+Rook usage is recorded in MongoDB, monthly usage is visible in the admin overview, and `AI_MONTHLY_LIMIT` can enforce a per-user monthly cap when set above zero. The backend has a versioned, account-scoped AI permission boundary behind the default-off `AI_CONSENT_ENFORCEMENT` rollout flag.
 
-Remaining work: decide commercial/public limits before launch, make the chosen allowance clear to users, and consider daily/burst limits separately from the monthly cap.
+Remaining work: deploy and verify frontend/server consent synchronisation before enabling enforcement; decide commercial/public limits before launch; make the chosen allowance clear to users; and consider daily/burst limits separately from the monthly cap.
 
 ### Large frontend components
 

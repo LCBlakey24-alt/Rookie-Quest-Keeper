@@ -109,6 +109,17 @@ ADMIN_USERNAMES = [name.strip().lower() for name in os.environ.get('ADMIN_USERNA
 
 # AI usage limits (monthly per-user cap; 0 = unlimited)
 AI_MONTHLY_LIMIT = int(os.environ.get('AI_MONTHLY_LIMIT', '0'))
+# Consent enforcement is deliberately default-off so the server endpoint and
+# account-scoped frontend can be deployed and verified before existing beta
+# testers are required to make a choice. Once enabled, the backend refuses AI
+# provider calls unless the authenticated account accepted the current policy.
+AI_CONSENT_ENFORCEMENT = os.environ.get(
+    'AI_CONSENT_ENFORCEMENT', 'false'
+).strip().lower() in {'1', 'true', 'yes', 'on'}
+AI_CONSENT_POLICY_VERSION = (
+    os.environ.get('AI_CONSENT_POLICY_VERSION', 'rook-ai-v1').strip()
+    or 'rook-ai-v1'
+)
 RESERVED_USERNAMES = sorted(set(ADMIN_USERNAMES + [
     'admin',
     'administrator',
