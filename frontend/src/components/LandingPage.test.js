@@ -20,6 +20,18 @@ function renderLanding() {
   );
 }
 
+describe('public beta notice', () => {
+  test('appears on landing before the hero, with an actionable sign-in feedback link', () => {
+    renderLanding();
+    const beta = screen.getByTestId('beta-notice-landing');
+    const hero = screen.getByRole('heading', { name: /Your campaign/ });
+    expect(beta).toBeInTheDocument();
+    expect(beta.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(screen.getByTestId('beta-notice-feedback-login'));
+    expect(screen.getByTestId('where')).toHaveTextContent('/auth|');
+  });
+});
+
 describe('landing page wheel', () => {
   beforeEach(() => window.localStorage.clear());
 
