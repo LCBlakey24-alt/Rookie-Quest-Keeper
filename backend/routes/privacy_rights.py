@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from config import db
@@ -71,10 +72,14 @@ async def create_privacy_request(
         'updated_by': None,
     }
     await db.privacy_rights_requests.insert_one(doc)
-    return {
-        'message': 'Your request has been received for review. This is not a decision or completed action.',
-        'request': visible_request(doc),
-    }
+    return JSONResponse(
+        status_code=status.HTTP_202_ACCEPTED,
+        content={
+            'message': 'Your request has been received for review. This is not a decision or completed action.',
+            'request': visible_request(doc),
+        },
+        headers={'Cache-Control': 'private, no-store', 'Pragma': 'no-cache'},
+    )
 
 @router.get('/privacy/requests')
 async def list_my_privacy_requests(username: str = Depends(get_current_user)):
@@ -82,7 +87,10 @@ async def list_my_privacy_requests(username: str = Depends(get_current_user)):
     docs = await db.privacy_rights_requests.find(
         {'username': username}, {'_id': 0},
     ).sort('created_at', -1).to_list(100)
-    return [visible_request(doc) for doc in docs]
+    return JSONResponse(
+        content=[visible_request(doc) for doc in docs],
+        headers={'Cache-Control': 'private, no-store', 'Pragma': 'no-cache'},
+    )
 
 @router.get('/admin/privacy/requests')
 async def list_admin_privacy_requests(username: str = Depends(get_current_user)):
@@ -90,7 +98,10 @@ async def list_admin_privacy_requests(username: str = Depends(get_current_user))
     docs = await db.privacy_rights_requests.find(
         {}, {'_id': 0},
     ).sort('created_at', -1).to_list(200)
-    return [admin_request(doc) for doc in docs]
+    return JSONResponse(
+        content=[admin_request(doc) for doc in docs],
+        headers={'Cache-Control': 'private, no-store', 'Pragma': 'no-cache'},
+    )
 
 @router.patch('/admin/privacy/requests/{request_id}')
 async def update_admin_privacy_request(
@@ -116,4 +127,7 @@ async def update_admin_privacy_request(
     doc = await db.privacy_rights_requests.find_one(
         {'id': request_id}, {'_id': 0},
     )
-    return admin_request(doc)
+    return JSONResponse(
+        content=admin_request(doc),
+        headers={'Cache-Control': 'private, no-store', 'Pragma': 'no-cache'},
+    )
