@@ -3,6 +3,21 @@
    Specific selectors override legacy inline styles without changing Admin tools. */
 
 #root .admin-mission-control-page {
+  /* Feed the shared Guild palette into older admin modules which still read
+     the legacy --rq-* variables, without changing the palette elsewhere. */
+  --rq-bg-main: var(--guild-bg);
+  --rq-bg-panel: var(--guild-bg);
+  --rq-bg-panel-alt: var(--guild-panel);
+  --rq-bg-input: var(--guild-bg-deep);
+  --rq-accent-primary: var(--guild-hi);
+  --rq-accent-hover: var(--guild-h1);
+  --rq-accent-soft: var(--guild-select);
+  --rq-accent-border: var(--guild-line);
+  --rq-border-default: rgba(var(--guild-c3-rgb), .24);
+  --rq-text-primary: var(--guild-text);
+  --rq-text-secondary: var(--guild-muted);
+  --rq-text-muted: var(--guild-muted);
+  --rq-text-inverse: var(--guild-ink);
   background: transparent !important;
   color: var(--guild-text) !important;
   font-family: var(--guild-font-body) !important;
