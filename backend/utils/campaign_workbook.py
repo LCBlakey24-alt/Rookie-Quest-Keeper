@@ -11,6 +11,7 @@ from zipfile import BadZipFile, ZipFile
 import re
 
 from docx import Document
+from docx.text.paragraph import Paragraph
 from docx.shared import Inches, Pt, RGBColor
 
 FORMAT = "RQK-WORKBOOK-V1"
@@ -138,7 +139,9 @@ def parse_workbook(data: bytes) -> dict:
     }
     text_chars = 0
     for block in doc.iter_inner_content():
-        if hasattr(block, "style"):
+        # Word Tables also expose a .style property. Discriminate by type,
+        # otherwise every populated table is accidentally skipped.
+        if isinstance(block, Paragraph):
             if block.style.name.lower().startswith("heading 1"):
                 heading = block.text.strip().upper()
                 current = heading if heading in FIELDS else None
