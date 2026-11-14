@@ -53,6 +53,22 @@ describe('dice overlay lifecycle', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  test('announces a result exactly once and only when it becomes visible', () => {
+    const onReveal = jest.fn();
+    const view = render(<DiceRollFlicker {...rollProps({ onReveal })} />);
+
+    expect(onReveal).not.toHaveBeenCalled();
+    act(() => { jest.advanceTimersByTime(89); });
+    expect(onReveal).not.toHaveBeenCalled();
+    act(() => { jest.advanceTimersByTime(1); });
+    expect(onReveal).toHaveBeenCalledTimes(1);
+    expect(onReveal).toHaveBeenCalledWith(expect.objectContaining({ total: 12 }));
+
+    view.rerender(<DiceRollFlicker {...rollProps({ onReveal })} />);
+    act(() => { jest.advanceTimersByTime(200); });
+    expect(onReveal).toHaveBeenCalledTimes(1);
+  });
+
   test('an unrelated rerender with identical dice does not restart the hold', () => {
     const onClose = jest.fn();
     const view = render(<DiceRollFlicker {...rollProps({ onClose })} />);

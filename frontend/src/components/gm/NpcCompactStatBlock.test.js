@@ -2,6 +2,11 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import NpcCompactStatBlock, { actionAttackNotation, actionDamageNotation, npcModifier } from './NpcCompactStatBlock';
 
+jest.mock('@/components/DiceRollFlicker', () => ({
+  __esModule: true,
+  default: ({ onReveal }) => <button type="button" onClick={onReveal}>Reveal dice</button>,
+}));
+
 describe('NPC GM combat card', () => {
   test('prints quick stats, modifiers and attacks before optional lore', () => {
     render(<NpcCompactStatBlock npc={{
@@ -38,8 +43,10 @@ describe('NPC GM combat card', () => {
         special_abilities: [{ name: 'Pack Tactics', notes: 'Advantage when fighting beside an ally.' }],
       }} />);
       fireEvent.click(screen.getByRole('button', { name: 'Roll Bite to hit' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
       expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Bite attack: 1d20+4 [1] + 4 = 5 (natural 1)');
       fireEvent.click(screen.getByRole('button', { name: 'Roll Bite damage' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
       expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Bite damage: 2d4+2 [1, 1] + 2 = 4');
       expect(screen.getByText('Pack Tactics')).toBeInTheDocument();
     } finally {
