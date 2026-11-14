@@ -11,6 +11,7 @@ import AdminSiteUpdatesTab from './admin/AdminSiteUpdatesTab';
 import AdminAuditLogTab from './admin/AdminAuditLogTab';
 import AdminMissionBrief from './admin/AdminMissionBrief';
 import AdminFeedbackTab from './admin/AdminFeedbackTab';
+import AdminPrivacyRequestsTab from './admin/AdminPrivacyRequestsTab';
 import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
 import AdminCharacterAuditTab from './admin/AdminCharacterAuditTab';
 import AdminLayoutStudioTab from './admin/AdminLayoutStudioTab';
@@ -38,7 +39,7 @@ const theme = {
   dangerSoft: 'var(--rq-accent-soft)',
 };
 
-const adminTabIds = ['testing', 'updates', 'layout', 'audit', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];
+const adminTabIds = ['testing', 'updates', 'layout', 'audit', 'character-audit', 'feedback', 'privacy-rights', 'reviews', 'rules', 'templates', 'users', 'site'];
 
 function getInitialAdminTab() {
   if (typeof window === 'undefined') return 'testing';
@@ -177,6 +178,7 @@ function AdminPage() {
     { id: 'audit', label: 'Audit Log', short: 'Audit Log', icon: ShieldCheck, description: 'Review important admin actions and keep receipts for live-site changes.' },
     { id: 'character-audit', label: 'Character Audit', short: 'Audit', icon: FlaskConical, description: 'Check builder and sheet rules readiness.' },
     { id: 'feedback', label: `Feedback (${overview.new_feedback_count || 0})`, short: 'Feedback', icon: MessageSquare, description: 'Review user feedback and mark what needs action.' },
+    { id: 'privacy-rights', label: 'Privacy Requests', short: 'Privacy', icon: ShieldCheck, description: 'Review user data-access, correction and deletion requests privately.' },
     { id: 'reviews', label: `Reviews (${reviews.length})`, short: 'Reviews', icon: Star, description: 'Approve or hide public user reviews.' },
     { id: 'rules', label: 'Rule Systems', short: 'Rules', icon: BookOpen, description: 'Manage rule-system records used by the app.' },
     { id: 'templates', label: 'Templates', short: 'Templates', icon: Users, description: 'Control premade character templates.' },
@@ -322,6 +324,7 @@ function AdminPage() {
           {activeTab === 'audit' && <AdminAuditLogTab />}
           {activeTab === 'character-audit' && <AdminCharacterAuditTab />}
           {activeTab === 'feedback' && <AdminFeedbackTab />}
+          {activeTab === 'privacy-rights' && <AdminPrivacyRequestsTab />}
           {activeTab === 'reviews' && <ReviewsPanel reviews={reviews} busyId={reviewBusyId} onToggleReview={handleToggleReview} onDeleteReview={handleDeleteReview} />}
           {activeTab === 'rules' && <RuleSystemManager />}
           {activeTab === 'templates' && <div className="admin-mission-control-page__templates-panel" style={adminPanelStyle}><div style={{ marginBottom: 16 }}><h2 style={{ color: theme.gold, fontSize: 18, fontWeight: 800, margin: 0 }}>Premade Character Templates</h2><p style={{ color: theme.text.muted, fontSize: 12, marginTop: 4 }}>Toggle visibility, clone to homebrew, or delete custom templates. Core templates ship with the app and can only be hidden.</p></div><TemplateEditor /></div>}
