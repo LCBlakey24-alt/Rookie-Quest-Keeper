@@ -1,0 +1,105 @@
+/* Shared early-access notice for landing and signed-in home.
+ * Uses Keeper's approved guild tokens; no scary alert styling or modal. */
+#root .rqk-beta-notice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(12px, 2vw, 22px);
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: clamp(15px, 2vw, 22px) clamp(16px, 2.5vw, 26px);
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--guild-box);
+  box-shadow: var(--guild-box-glow);
+  color: var(--guild-text);
+  text-align: left;
+}
+#root .rqk-beta-notice__marker {
+  position: absolute;
+  left: 0;
+  top: 15px;
+  bottom: 15px;
+  width: 3px;
+  background: var(--guild-edge-hot);
+  border-radius: 999px;
+}
+#root .rqk-beta-notice__content { min-width: 0; display: grid; gap: 6px; }
+#root .rqk-beta-notice__eyebrow {
+  color: var(--guild-hi) !important;
+  font-family: var(--guild-font-body) !important;
+  font-size: 11px !important;
+  letter-spacing: .13em;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0 !important;
+}
+#root .rqk-beta-notice h2 {
+  font-family: var(--guild-font-display) !important;
+  font-size: clamp(16px, 2vw, 20px) !important;
+  line-height: 1.3;
+  color: var(--guild-text) !important;
+  -webkit-text-fill-color: var(--guild-text) !important;
+  font-weight: 750 !important;
+  margin: 0 !important;
+}
+#root .rqk-beta-notice__content > p:last-child {
+  color: var(--guild-muted) !important;
+  font-family: var(--guild-font-body) !important;
+  font-size: 13px !important;
+  line-height: 1.6;
+  margin: 0 !important;
+  max-width: 80ch;
+}
+#root .rqk-beta-notice__actions { display: flex; align-items: center; }
+#root .rqk-beta-notice__action {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  min-height: 44px;
+  border: 1px solid rgba(var(--guild-h1-rgb), .7);
+  border-radius: 12px;
+  padding: 11px 16px;
+  background: var(--guild-select);
+  box-shadow: var(--guild-control-glow-hot);
+  color: var(--guild-text) !important;
+  text-decoration: none !important;
+  font-family: var(--guild-font-body) !important;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#root .rqk-beta-notice__action:hover {
+  background: rgba(var(--guild-h2-rgb), .16);
+  border-color: var(--guild-hi);
+}
+#root .rqk-beta-notice__action:focus-visible {
+  outline: 3px solid var(--guild-h1) !important;
+  outline-offset: 3px;
+}
+#root .keeper-product-site .rqk-beta-notice {
+  width: min(100%, 1160px);
+  box-sizing: border-box;
+  margin: clamp(12px, 2vw, 20px) auto 0;
+}
+#root .rqk-home-v5 .rqk-beta-notice {
+  width: 100%;
+}
+@media (max-width: 760px) {
+  #root .rqk-beta-notice { grid-template-columns: minmax(0, 1fr); }
+  #root .rqk-beta-notice__actions { justify-content: flex-start; }
+}
+@media (max-width: 430px) {
+  #root .rqk-beta-notice { padding: 15px; }
+  #root .rqk-beta-notice__action { width: 100%; white-space: normal; }
+  #root .rqk-beta-notice__actions { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-beta-notice * { transition: none !important; }
+}
