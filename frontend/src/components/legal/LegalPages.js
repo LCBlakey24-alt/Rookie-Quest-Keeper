@@ -17,11 +17,11 @@ const sections = {
     entries: [
       {
         title: 'Who is responsible for your information?',
-        body: <>Rookie Quest Keeper is operated by the person or entity identified below. Questions, complaints and requests about your information can be sent to the contact shown on this page. The operator must verify these contact details before this notice is published.</>,
+        body: <>Rookie Quest Keeper is currently an independently operated, unincorporated project, rather than a registered limited company. The individual responsible for the service must be identified by a verified name and suitable contact details before this notice can be published. Questions, complaints and privacy requests should be directed to that verified operator contact once confirmed.</>,
       },
       {
         title: 'Information we handle',
-        body: <>Account details such as username, email, authentication and account settings; your characters, campaigns, notes, uploads, images and shared content; operational records such as login/security events and troubleshooting data; optional product analytics where enabled; and requests and contextual information you choose to submit to Rook AI. Some campaign descriptions may contain information about other people: please avoid uploading real personal information about others without an appropriate basis.</>,
+        body: <>Account details such as username, email, authentication and account settings; your characters, campaigns, notes, uploads, images and shared content; operational records such as login/security events and troubleshooting data; optional product analytics where enabled; and requests and contextual information you choose to submit to Rook AI. Keeper does not currently charge users to access the service, so payment details are not required for a Keeper account. Some campaign descriptions may contain information about other people: please avoid uploading real personal information about others without an appropriate basis.</>,
       },
       {
         title: 'Why we use information',
@@ -59,7 +59,7 @@ const sections = {
     entries: [
       {
         title: 'The service',
-        body: <>Keeper provides tabletop roleplaying utilities, including character records, campaigns, maps, session notes and optional AI assistance. Features may change while the service is in development. Community publishing and paid subscriptions are not included in these terms until separately documented and launched.</>,
+        body: <>Keeper is currently a free public beta providing tabletop roleplaying utilities, including character records, campaigns, maps, session notes and optional AI assistance. The service is actively being developed and tested; features may change and occasional faults or interruptions may occur. Users are welcome to report problems and suggest improvements. Paid subscriptions and other purchases are not part of this free service at present.</>,
       },
       {
         title: 'Accounts and security',
@@ -86,8 +86,8 @@ const sections = {
         body: <>Keep backups of important original content. We may limit misuse or suspend tools when necessary to protect the service. Nothing in these terms removes mandatory consumer, privacy, accessibility or other legal rights applying in your location.</>,
       },
       {
-        title: 'Payments and digital products',
-        body: <>Paid plans, merchant licences, digital downloads and subscriptions will have clearly disclosed prices, cancellation conditions and any applicable refund rights before purchases are enabled. No consumer right is waived simply by downloading digital content.</>,
+        title: 'Free beta and any future paid features',
+        body: <>Access to Rookie Quest Keeper is currently free. There are no Keeper subscription fees or paid account plans at present. If paid features, subscriptions or digital products are introduced in future, the operator must publish clear prices, billing frequency, cancellation and refund information, relevant tax disclosures and any additional consumer terms before taking payment. Users will not be charged merely because the free beta is updated. Nothing here waives statutory rights.</>,
       },
       {
         title: 'Contact and complaints',
