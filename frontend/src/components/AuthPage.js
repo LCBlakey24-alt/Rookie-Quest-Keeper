@@ -157,6 +157,7 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
   const [mode, setMode] = useState(initialMode);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ username: '', password: '', confirmPassword: '', email: '' });
+  const [adultSelfAttested, setAdultSelfAttested] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [recoveryRequested, setRecoveryRequested] = useState(false);
   const [resetData, setResetData] = useState({ token: initialToken || '', new_password: '' });
@@ -300,9 +301,14 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
       return;
     }
 
+    if (!adultSelfAttested) {
+      toast.error('Public registration is currently for adults aged 18 or over. Please confirm your eligibility.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const payload = { email: recoveryEmail, password: registerData.password };
+      const payload = { email: recoveryEmail, password: registerData.password, adult_self_attested: true };
       if (username) payload.username = username;
 
       const response = await apiClient.post('/auth/register', payload);
@@ -629,6 +635,23 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
                 />
 
                 <PasswordMatchNotice id="register-password-match" status={confirmStatus} />
+
+                <label className="rqk-auth-age-check" htmlFor="register-adult-attestation">
+                  <input
+                    id="register-adult-attestation"
+                    data-testid="register-adult-attestation"
+                    type="checkbox"
+                    checked={adultSelfAttested}
+                    onChange={(event) => setAdultSelfAttested(event.target.checked)}
+                    disabled={loading}
+                    required
+                  />
+                  <span>
+                    I confirm that I am aged 18 or over. Public self-registration is
+                    currently for adults only. A separate parent-managed child account
+                    process is not yet available.
+                  </span>
+                </label>
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Creating account...' : 'Create account'}
