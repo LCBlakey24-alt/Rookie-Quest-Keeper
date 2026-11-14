@@ -15,7 +15,9 @@ import uuid
 import secrets
 import re
 from pymongo.errors import DuplicateKeyError
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
+import json
+from fastapi.responses import JSONResponse
 import resend
 from utils.ws_session import end_live_sessions
 from utils.campaign_cleanup_scope import (
@@ -471,6 +473,137 @@ async def get_me(current_username: str = Depends(get_current_user)):
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return public_account_profile(user)
+
+
+# A user can download THEIR OWN records without asking an administrator to
+# impersonate them. This list is deliberately allowlisted: site-wide audit,
+# campaign memberships, other players' rosters, invites and admin records are
+# not personal exports even if their campaign happens to be GM-owned.
+PERSONAL_EXPORT_COLLECTIONS = (
+    'player_characters', 'player_notes', 'player_journal', 'player_handouts',
+    'session_recaps', 'user_rulesets', 'user_playtest_packs',
+    'user_playtest_content', 'user_races', 'user_classes', 'user_subclasses',
+    'user_backgrounds', 'user_feats', 'user_spells', 'user_magic_items',
+    'user_npcs', 'user_monsters', 'user_custom_rules', 'homebrew_items',
+    'character_templates', 'improvement_feedback', 'reviews', 'ai_usage',
+)
+PERSONAL_EXPORT_ROW_LIMIT = 2000
+PERSONAL_EXPORT_BYTE_LIMIT = 10 * 1024 * 1024
+PERSONAL_EXPORT_EXCLUDED_KEYS = {
+    '_id', 'password', 'password_hash', 'password_reset_token',
+    'reset_token', 'token', 'token_hash', 'access_token', 'refresh_token',
+    'jwt', 'jwt_secret', 'api_key', 'secret', 'client_secret',
+    'authorization', 'google_sub', 'stripe_secret_key',
+}
+
+
+def redact_personal_export(value):
+    """Portable JSON without database/internal auth secrets, at any depth."""
+    if isinstance(value, dict):
+        return {
+            str(k): redact_personal_export(v)
+            for k, v in value.items()
+            if str(k).lower() not in PERSONAL_EXPORT_EXCLUDED_KEYS
+        }
+    if isinstance(value, (list, tuple)):
+        return [redact_personal_export(v) for v in value]
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    # MongoDB native ObjectId/Decimal128 values may appear in legacy records.
+    return str(value)
+
+
+def record_owned_by_user(record: dict, username: str) -> bool:
+    """Reject records explicitly attributed to another user, even when a GM
+    also appears as created_by. A person's exported data cannot include
+    another person's own character just because they joined that campaign.
+    """
+    for key in ('user_id', 'username', 'owner_id'):
+        value = record.get(key)
+        if value is not None and str(value).strip() and str(value) != username:
+            return False
+    return True
+
+
+async def build_personal_data_export(username: str) -> dict:
+    """Conservative self-service download; not a substitute for a full DSAR.
+
+    Shared campaign rosters and third-party details are intentionally excluded.
+    Unsupported or oversized exports must fail clearly, NEVER silently omit
+    records and claim a complete legal response.
+    """
+    user = await db.users.find_one({'username': username})
+    if not user:
+        raise HTTPException(status_code=404, detail='Account not found')
+    owner_id = str(user.get('_id')) if user.get('_id') is not None else None
+
+    export = {
+        'format': 'rookiequestkeeper-personal-data-v1',
+        'exported_at': datetime.now(timezone.utc).isoformat(),
+        'account': public_account_profile(user),
+        'campaigns_created': [],
+        'records': {},
+        'scope_note': (
+            'This is a self-service export of account-owned records and basic '
+            'campaign metadata. Other players’ records and shared rosters are '
+            'excluded. Contact the service operator for additional access, '
+            'correction, erasure or portability requests.'
+        ),
+    }
+
+    owned = await db.campaigns.find(
+        {'dm_user_id': username},
+        {'_id': 0, 'id': 1, 'name': 1, 'description': 1, 'created_at': 1}
+    ).to_list(length=PERSONAL_EXPORT_ROW_LIMIT + 1)
+    if len(owned) > PERSONAL_EXPORT_ROW_LIMIT:
+        raise HTTPException(status_code=413, detail='Export exceeds automatic download limits. Contact support for an assisted data request.')
+    export['campaigns_created'] = redact_personal_export(owned)
+
+    owner_filter = {'$or': [
+        {'user_id': username},
+        {'username': username},
+        {'owner_id': username},
+        {'created_by': username},
+    ]}
+    for collection_name in PERSONAL_EXPORT_COLLECTIONS:
+        records = await db[collection_name].find(
+            owner_filter, {'_id': 0}
+        ).to_list(length=PERSONAL_EXPORT_ROW_LIMIT + 1)
+        if len(records) > PERSONAL_EXPORT_ROW_LIMIT:
+            raise HTTPException(status_code=413, detail='Export exceeds automatic download limits. Contact support for an assisted data request.')
+        export['records'][collection_name] = redact_personal_export([
+            item for item in records if record_owned_by_user(item, username)
+        ])
+
+    # Older private homebrew packs belong to Mongo's internal user _id.
+    if owner_id:
+        rulesets = await db.custom_rulesets.find(
+            {'owner_id': owner_id}, {'_id': 0, 'shared_with': 0}
+        ).to_list(length=PERSONAL_EXPORT_ROW_LIMIT + 1)
+        if len(rulesets) > PERSONAL_EXPORT_ROW_LIMIT:
+            raise HTTPException(status_code=413, detail='Export exceeds automatic download limits. Contact support for an assisted data request.')
+        export['records']['custom_rulesets'] = redact_personal_export(rulesets)
+
+    encoded = json.dumps(export, ensure_ascii=False, allow_nan=False).encode('utf-8')
+    if len(encoded) > PERSONAL_EXPORT_BYTE_LIMIT:
+        raise HTTPException(status_code=413, detail='Export exceeds 10 MB. Contact support for an assisted data request.')
+    return export
+
+
+@router.get("/auth/me/export")
+async def export_my_data(current_username: str = Depends(get_current_user)):
+    """Authenticated account holder only; returns a non-cacheable JSON export."""
+    document = await build_personal_data_export(current_username)
+    return JSONResponse(
+        content=document,
+        headers={
+            'Cache-Control': 'no-store, private',
+            'Pragma': 'no-cache',
+            'X-Content-Type-Options': 'nosniff',
+        },
+    )
 
 
 @router.patch("/auth/me")
