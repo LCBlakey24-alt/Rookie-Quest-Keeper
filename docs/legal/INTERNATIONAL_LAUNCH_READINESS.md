@@ -5,6 +5,17 @@ Reviewed on: 2026-11-14. The target is a worldwide service, not a UK-only produc
 
 This is an engineering inventory, not legal advice. Cross-border online services may be regulated based on who they serve, where they operate and how they process data. There is no single 'compliant everywhere' flag. Apply the stricter global baseline where feasible, then verify location-specific requirements before actively targeting each market. Keep the core product available for private development while completing reviews.
 
+## Confirmed operating position — free beta (14 November 2026)
+
+- **Current product:** Rookie Quest Keeper is available to users free of charge as an actively developed/tested beta. Access to Keeper currently requires no subscription or purchase.
+- **Current organisation:** The operator has **not registered or incorporated a company** for Rookie Quest Keeper. Do not call it "Rookie Quest Keeper Ltd", invent a Companies House number, or imply that a registered legal entity already operates the app.
+- **Legal identity still required:** The specific individual/controller identity and a suitable working public contact channel must be verified and approved for publication before making the legal pages final. Do not expose a private home address or personal email in GitHub without explicit approval; choose a suitable privacy/business contact.
+- **No present charging workflow:** Subscription billing, payment terms and digital-product checkout rules are **future launch tasks**, not active features to claim in present-tense Terms. New paid features must receive separate consumer/tax/payment review *before accepting money*.
+- **No exemption from privacy/safety obligations:** Free access does not remove data protection, cookies, copyright, child-safety, user-to-user service or other applicable duties. Complete the ICO's data protection fee self-assessment; no exemption or fee amount is assumed.
+- **Tax/registration:** A UK individual may not need Self Assessment registration solely because a free hobby app exists, but fees, donations, sponsorship, advertising or other trading income must be assessed under HMRC rules together with any other self-employment activities. The owner's actual tax and insolvency position is not determined here.
+
+References: https://ico.org.uk/for-organisations/data-protection-fee/data-protection-fee-self-assessment/ ; https://ico.org.uk/for-organisations/advice-for-small-organisations/getting-started-with-gdpr/data-protection-principles-definitions-and-key-terms/ ; https://www.gov.uk/become-sole-trader
+
 ## Implemented in the global privacy foundations PR
 
 - [x] Gate Rook chat, form-fill, generation, notes AI and character import behind the existing explicit external-AI permission check. This is a *client-side* privacy gate, not a substitute for server-side policy enforcement or GDPR legal-basis analysis.
@@ -106,4 +117,4 @@ Do not hardcode a single threshold or a global 18+ solution without a documented
 - Australia OAIC: https://www.oaic.gov.au/privacy/australian-privacy-principles
 - India DPDP Rules (2025): https://upload.indiacode.nic.in/showfile?actid=AC_CEN_45_0_00003_2023-22_1763464807080&filename=dpdprules2025.pdf&type=rule
 
-**Business decisions still required from the owner**: entity name/address/contact, child audience policy, which countries launch first, processor contracts, retention windows, monetisation model and community moderation policy.
+**Business decisions still required from the owner**: verified individual operator name/contact suitable for publication, child audience policy, which countries launch first, processor contracts, retention windows, future monetisation arrangements and community moderation policy. Current access to Keeper is free; the operator has not incorporated a company.
