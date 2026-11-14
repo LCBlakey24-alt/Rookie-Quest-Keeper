@@ -24,6 +24,7 @@ describe('offline API cache boundaries', () => {
     expect(isCacheableOfflineGet({ method: 'get', url: '/auth/me' })).toBe(false);
     expect(isCacheableOfflineGet({ method: 'get', url: '/admin/metrics' })).toBe(false);
     expect(isCacheableOfflineGet({ method: 'get', url: '/rook/context' })).toBe(false);
+    expect(isCacheableOfflineGet({ method: 'get', url: '/privacy/requests' })).toBe(false);
   });
 
   test('allows useful rules/reference reads', () => {
