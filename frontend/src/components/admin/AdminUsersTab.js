@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Download, LogIn, RefreshCw, Search, Users as UsersIcon } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
+import './AdminUsersTab.css';
 
 const rq = {
   panel: 'var(--guild-bg, #0a2342)',
