@@ -201,9 +201,10 @@ describe('AuthPage', () => {
     fireEvent.change(screen.getByLabelText(/email/i, { selector: 'input' }), { target: { value: 'Hero@Example.com' } });
     fireEvent.change(screen.getByLabelText(/^password/i, { selector: 'input' }), { target: { value: 'strong-password' } });
     fireEvent.change(screen.getByLabelText(/confirm password/i, { selector: 'input' }), { target: { value: 'strong-password' } });
+    fireEvent.click(screen.getByTestId('register-adult-attestation'));
     fireEvent.submit(document.getElementById('rqk-auth-panel-register'));
     await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/auth/register', {
-      email: 'Hero@Example.com', password: 'strong-password',
+      email: 'Hero@Example.com', password: 'strong-password', adult_self_attested: true,
     }));
     expect(onLogin).toHaveBeenCalledWith('new-token', 'hero', undefined);
   });
