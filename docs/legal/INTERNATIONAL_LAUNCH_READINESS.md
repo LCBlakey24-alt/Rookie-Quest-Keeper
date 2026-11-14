@@ -59,7 +59,7 @@ Do not hardcode a single threshold or a global 18+ solution without a documented
 
 ### Copyright, rules and marketplace
 
-- [ ] Prioritise `docs/licensing/CONTENT_AUDIT.md`: the unresolved built-in non-SRD subclasses, spells, 47 legacy reference creatures, races and backgrounds should not be publicly distributed until content provenance is checked and necessary material removed/replaced.
+- [ ] Prioritise `docs/licensing/CONTENT_AUDIT.md`: non-SRD subclasses, spells, races and backgrounds still need source verification and removal/replacement. The 47 legacy creatures were already absent from the live bestiary; this PR removes their old public JSON pack. Review historical Git commits separately.
 - [ ] Verify actual text matches licensed SRD 5.1/5.2, not just the title; retain notices and change records. User-uploaded material is not automatically licensed.
 - [ ] Establish IP complaint, review, takedown and appeals workflow before community sharing or public storefront sales.
 - [ ] Complete brand/trademark clearance in countries where marketed; don't imply official WotC partnership.
