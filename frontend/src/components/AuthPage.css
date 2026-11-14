@@ -1060,3 +1060,44 @@ html body #root .rqk-auth-brand .rqk-auth-brand__sigil {
   box-shadow: none !important;
   object-fit: contain;
 }
+
+
+/* Public adult self-registration disclosure, shared by password and Google.
+ * Intentionally neutral: this is self-declaration, not verified age. */
+#root .rqk-auth-page .rqk-auth-age-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px 13px;
+  border: 1px solid rgba(79, 179, 255, .35) !important;
+  border-radius: 11px;
+  background: rgba(79, 179, 255, .08) !important;
+  color: #e5edf8 !important;
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.55;
+  cursor: pointer;
+}
+#root .rqk-auth-page .rqk-auth-age-check input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 19px;
+  height: 19px;
+  min-width: 19px;
+  min-height: 19px;
+  margin: 1px 0 0;
+  accent-color: #4fb3ff;
+  cursor: pointer;
+}
+#root .rqk-auth-page .rqk-auth-age-check span {
+  flex: 1;
+  min-width: 0;
+  color: #e5edf8 !important;
+}
+#root .rqk-auth-page .rqk-auth-age-check input:focus-visible {
+  outline: 3px solid #ffb066 !important;
+  outline-offset: 3px;
+}
+#root .rqk-auth-page .rqk-auth-age-check:has(input:disabled) {
+  opacity: .65;
+  cursor: default;
+}
