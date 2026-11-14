@@ -39,7 +39,6 @@ const UploadTab = React.lazy(() => import('@/components/gm/UploadTab'));
 const PlayerInvitePanel = React.lazy(() => import('@/components/gm/PlayerInvitePanel'));
 const GMPartyWorkspace = React.lazy(() => import('@/components/gm/GMPartyWorkspace'));
 const GMHandoutsWorkspace = React.lazy(() => import('@/components/gm/GMHandoutsWorkspace'));
-const TiaKartaCampaignPackPanel = React.lazy(() => import('@/components/gm/TiaKartaCampaignPackPanel'));
 const PrivatePlaytestPacksTab = React.lazy(() => import('@/components/tabs/PrivatePlaytestPacksTab'));
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 import CampaignMobileNavigator from '@/components/gm/dashboard/CampaignMobileNavigator';
@@ -253,13 +252,6 @@ export default function CampaignDashboard() {
     }
   };
 
-  const withTiaKarta = (destination, children) => (
-    <>
-      <TiaKartaCampaignPackPanel campaignId={campaignId} destination={destination} />
-      {children}
-    </>
-  );
-
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'command-centre':
@@ -277,19 +269,19 @@ export default function CampaignDashboard() {
             onCopyInvite={copyInviteCode}
           />
         );
-      case 'story-arcs': return withTiaKarta('storyArcs', <StoryArcTracker campaignId={campaignId} onOpenTab={handleTabClick} />);
+      case 'story-arcs': return <StoryArcTracker campaignId={campaignId} onOpenTab={handleTabClick} />;
       case 'players': return <><PlayerInvitePanel campaignId={campaignId} /><GMPartyWorkspace campaignId={campaignId} /></>;
-      case 'npcs': return withTiaKarta('npcs', <NPCsConsolidatedTab campaignId={campaignId} />);
-      case 'maps': return withTiaKarta('worldAtlas', <MapsConsolidatedTab campaignId={campaignId} />);
-      case 'gods': return withTiaKarta('powers', <GodsTab campaignId={campaignId} />);
-      case 'setting': return withTiaKarta('worldOverview', <CampaignSettingTab campaignId={campaignId} />);
-      case 'chronicle': return withTiaKarta('chronicle', <ChronicleConsolidatedTab campaignId={campaignId} />);
-      case 'combat': return withTiaKarta('encounters', <CombatConsolidatedTab campaignId={campaignId} />);
-      case 'inventory': return withTiaKarta('inventory', <InventoryConsolidatedTab campaignId={campaignId} />);
-      case 'ingame-notes': return withTiaKarta('sessionNotes', <InGameNotesTab campaignId={campaignId} />);
-      case 'handouts': return withTiaKarta('handouts', <GMHandoutsWorkspace campaignId={campaignId} />);
+      case 'npcs': return <NPCsConsolidatedTab campaignId={campaignId} />;
+      case 'maps': return <MapsConsolidatedTab campaignId={campaignId} />;
+      case 'gods': return <GodsTab campaignId={campaignId} />;
+      case 'setting': return <CampaignSettingTab campaignId={campaignId} />;
+      case 'chronicle': return <ChronicleConsolidatedTab campaignId={campaignId} />;
+      case 'combat': return <CombatConsolidatedTab campaignId={campaignId} />;
+      case 'inventory': return <InventoryConsolidatedTab campaignId={campaignId} />;
+      case 'ingame-notes': return <InGameNotesTab campaignId={campaignId} />;
+      case 'handouts': return <GMHandoutsWorkspace campaignId={campaignId} />;
       case 'tools': return <ToolsConsolidatedTab campaignId={campaignId} />;
-      case 'campaign-rules': return withTiaKarta('campaignRules', <CampaignRulesTab campaignId={campaignId} />);
+      case 'campaign-rules': return <CampaignRulesTab campaignId={campaignId} />;
       case 'world-builder': return <WorldBuilderTab campaignId={campaignId} />;
       case 'uploads': return <UploadTab theme={uploadTheme} campaignId={campaignId} />;
       case 'playtest-packs': return <PrivatePlaytestPacksTab campaignId={campaignId} />;
