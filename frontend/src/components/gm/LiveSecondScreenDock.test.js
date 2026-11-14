@@ -31,7 +31,7 @@ jest.mock('@/lib/liveDisplayPublishStatus', () => ({
   publishCampaignDisplayStateWithStatus: jest.fn(async (_campaignId, state) => ({ state, remoteSynced: true })),
 }));
 
-jest.mock('@/data/tiaKartaSecondScreenPresets', () => [{
+jest.mock('@/data/genericSecondScreenPresets', () => [{
   id: 'test-screen',
   title: 'Test Screen',
   eyebrow: 'Test',
