@@ -8,6 +8,7 @@ This is an engineering inventory, not legal advice. Cross-border online services
 ## Implemented in the global privacy foundations PR
 
 - [x] Gate Rook chat, form-fill, generation, notes AI and character import behind the existing explicit external-AI permission check. This is a *client-side* privacy gate, not a substitute for server-side policy enforcement or GDPR legal-basis analysis.
+- [x] Scope external AI consent to the currently signed-in account instead of reusing the same permission across everyone sharing a phone or computer; ignore old global consent and prompt again after upgrade.
 - [x] Remove automatic third-party session-recording scripts from ALL hosting environments, including Vercel previews.
 - [x] Make withdrawal of optional PostHog analytics call the running SDK's opt-out, stop-recording and reset hooks; apply this also during account deletion.
 - [x] Introduce publicly reachable draft Privacy Notice, Terms of Use and Cookie & Device Storage pages, linked from the landing, account and signup screens.
