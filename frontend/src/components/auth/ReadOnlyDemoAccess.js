@@ -49,6 +49,7 @@ export default function ReadOnlyDemoAccess() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [pendingCredential, setPendingCredential] = useState('');
   const [rookieName, setRookieName] = useState('');
+  const [adultSelfAttested, setAdultSelfAttested] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
 
   const completeGoogleLogin = useCallback((data) => {
@@ -66,7 +67,10 @@ export default function ReadOnlyDemoAccess() {
     setGoogleLoading(true);
     try {
       const payload = { credential };
-      if (username.trim()) payload.username = username.trim();
+      if (username.trim()) {
+        payload.username = username.trim();
+        payload.adult_self_attested = adultSelfAttested;
+      }
 
       const response = await apiClient.post('/auth/google', payload);
       if (response.data?.requires_username) {
@@ -81,7 +85,7 @@ export default function ReadOnlyDemoAccess() {
     } finally {
       setGoogleLoading(false);
     }
-  }, [completeGoogleLogin]);
+  }, [completeGoogleLogin, adultSelfAttested]);
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return undefined;
@@ -129,6 +133,11 @@ export default function ReadOnlyDemoAccess() {
       return;
     }
 
+    if (!adultSelfAttested) {
+      toast.error('You must confirm you are at least 18 before creating a new account.');
+      return;
+    }
+
     await exchangeGoogleCredential(pendingCredential, username);
   };
 
@@ -173,6 +182,18 @@ export default function ReadOnlyDemoAccess() {
                 disabled={googleLoading}
                 required
               />
+              <label className="rqk-auth-age-check" htmlFor="google-adult-attestation">
+                <input
+                  id="google-adult-attestation"
+                  data-testid="google-adult-attestation"
+                  type="checkbox"
+                  required
+                  checked={adultSelfAttested}
+                  onChange={(event) => setAdultSelfAttested(event.target.checked)}
+                  disabled={googleLoading}
+                />
+                <span>I confirm that I am aged 18 or over. Public account creation is currently for adults only.</span>
+              </label>
               <button type="submit" disabled={googleLoading}>
                 {googleLoading ? 'Finishing account…' : 'Finish Google sign in'}
               </button>
