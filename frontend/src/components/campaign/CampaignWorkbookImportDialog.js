@@ -149,7 +149,8 @@ export default function CampaignWorkbookImportDialog({
         <div className="rqk-workbook-steps">
           <section>
             <h3>1. Prepare your workbook</h3>
-            <p>Download the template. Fill its right-hand table cells or ask ChatGPT to do that using your campaign notes. Keep the section headings and field labels unchanged.</p>
+            <p>Download the guild-branded template. Fill its right-hand table cells yourself or ask ChatGPT to do so using your campaign notes. To add more NPCs, duplicate the whole NPC heading and table, including its combat-stat rows. Keep section headings and field labels unchanged.</p>
+            <p className="rqk-workbook-hint">Rook suggestions for missing fields are being developed. This version imports what you provided; it does not invent missing abilities, lore, alignment or statistics automatically.</p>
             <button type="button" className="rqk-workbook-secondary" disabled={working} onClick={downloadTemplate}>
               <Download size={16} /> {busy === 'downloading' ? 'Downloading…' : 'Download Word template'}
             </button>
