@@ -92,6 +92,18 @@ async def list_my_privacy_requests(username: str = Depends(get_current_user)):
         headers={'Cache-Control': 'private, no-store', 'Pragma': 'no-cache'},
     )
 
+@router.get('/admin/privacy/requests/summary')
+async def admin_privacy_request_summary(username: str = Depends(get_current_user)):
+    """A safe administrative action counter; no requester names are exposed."""
+    await require_admin(username)
+    pending = await db.privacy_rights_requests.count_documents({
+        'status': {'$in': ['received', 'in_review', 'needs_information']},
+    })
+    return JSONResponse(
+        content={'pending_count': pending},
+        headers={'Cache-Control': 'private, no-store', 'Pragma': 'no-cache'},
+    )
+
 @router.get('/admin/privacy/requests')
 async def list_admin_privacy_requests(username: str = Depends(get_current_user)):
     await require_admin(username)
