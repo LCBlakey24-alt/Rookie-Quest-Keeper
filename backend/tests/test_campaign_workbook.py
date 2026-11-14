@@ -4,6 +4,7 @@ from zipfile import ZipFile
 
 import pytest
 from docx import Document
+from docx.text.paragraph import Paragraph
 
 from utils.campaign_workbook import (
     FORMAT, WorkbookError, generate_template, parse_workbook,
@@ -19,7 +20,7 @@ def _save(doc):
 def _fill(doc, section, label, value):
     current = None
     for block in doc.iter_inner_content():
-        if hasattr(block, "style"):
+        if isinstance(block, Paragraph):
             if block.style.name.startswith("Heading 1"):
                 current = block.text.strip().upper()
             continue
@@ -91,3 +92,41 @@ def test_unrecognised_heading_not_imported_as_other_campaign_lore():
 def test_invalid_docx_rejected_without_parsing_external_content():
     with pytest.raises(WorkbookError, match="valid Word"):
         parse_workbook(b"this is not a zip")
+
+
+def test_statted_npc_fields_and_repeated_sections_are_preserved():
+    doc = Document(BytesIO(generate_template()))
+    _fill(doc, "NPC", "Name", "Captain Saelen")
+    _fill(doc, "NPC", "Alignment", "Neutral Good")
+    _fill(doc, "NPC", "Hit points", "44")
+    _fill(doc, "NPC", "Armour class", "16")
+    _fill(doc, "NPC", "Strength score", "18")
+    _fill(doc, "NPC", "Charisma score", "13")
+    _fill(doc, "NPC", "Skill proficiencies", "Athletics, Perception")
+    _fill(doc, "NPC", "Attacks (one per line)", "Longsword | +6 | 1d8+4 slashing | versatile")
+    _fill(doc, "NPC", "Abilities and features (one per line)", "Extra Attack | Two attacks per action")
+    _fill(doc, "NPC", "Known spells", "Shield, Misty Step")
+    doc.add_heading("NPC", level=1)
+    second = doc.add_table(rows=2, cols=2)
+    second.cell(1, 0).text = "Name"
+    second.cell(1, 1).text = "Edda"
+    parsed = parse_workbook(_save(doc))
+    assert parsed["counts"]["NPC"] == 2
+    captain, edda = parsed["records"]["NPC"]
+    assert captain["strength"] == "18"
+    assert captain["ac"] == "16"
+    assert captain["attacks"].startswith("Longsword | +6")
+    assert captain["abilities"].startswith("Extra Attack |")
+    assert captain["known_spells"] == "Shield, Misty Step"
+    assert edda["name"] == "Edda"
+
+
+def test_word_template_looks_branded_without_changing_machine_readable_labels():
+    template = Document(BytesIO(generate_template()))
+    assert any("ROOKIE QUEST KEEPER" in p.text for p in template.paragraphs)
+    assert any(p.style.name == "Heading 1" and p.text == "NPC" for p in template.paragraphs)
+    assert len(template.inline_shapes) >= 1  # Decorative hexagon on cover
+    assert any(
+        row.cells[0].text == "Strength score"
+        for table in template.tables for row in table.rows
+    )
