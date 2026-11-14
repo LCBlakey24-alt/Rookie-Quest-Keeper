@@ -630,6 +630,10 @@ export default function AuthPage({ onLogin = () => {}, onPasswordReset = () => {
 
                 <PasswordMatchNotice id="register-password-match" status={confirmStatus} />
 
+                <p className="rqk-auth-form__legal-notice" style={{ color: 'var(--guild-muted)', fontSize: 12, lineHeight: 1.55, margin: '6px 0 2px' }}>
+                  Before creating an account, read our <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--guild-hi)' }}>Terms of Use</a>, <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--guild-hi)' }}>Privacy Notice</a> and <a href="/cookies" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--guild-hi)' }}>Cookie &amp; Storage Notice</a>.
+                  Self-registration is intended for adults. Parent-managed accounts for children require separate safeguards.
+                </p>
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Creating account...' : 'Create account'}
                 </PrimaryButton>
