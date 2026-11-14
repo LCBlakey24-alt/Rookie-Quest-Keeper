@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
 import { DICE_DYES } from '@/components/dice3d/diceDyes';
+import { preloadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
 import { loadDiceDyeId, saveDiceDyeId } from '@/lib/diceDyePreference';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
@@ -113,6 +114,10 @@ export default function FloatingDiceRoller() {
     window.addEventListener('rq-dice-open', openDice);
     return () => window.removeEventListener('rq-dice-open', openDice);
   }, []);
+
+  useEffect(() => {
+    if (open) preloadDiceTray3D();
+  }, [open]);
 
   useEffect(() => {
     let cancelled = false;
@@ -316,6 +321,9 @@ export default function FloatingDiceRoller() {
         data-testid="dice-roller-toggle"
         aria-label={toggleLabel}
         aria-expanded={open}
+        onPointerEnter={preloadDiceTray3D}
+        onFocus={preloadDiceTray3D}
+        onTouchStart={preloadDiceTray3D}
         onClick={() => setOpen(current => !current)}
       >
         <Dices size={25} />
