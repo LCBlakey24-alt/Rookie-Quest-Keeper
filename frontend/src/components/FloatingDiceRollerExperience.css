@@ -9,8 +9,8 @@
 
 .rq-floating-dice__panel {
   position: relative !important;
-  width: min(340px, calc(100vw - 24px)) !important;
-  max-height: min(70dvh, 540px) !important;
+  width: min(390px, calc(100vw - 24px)) !important;
+  max-height: min(82dvh, 760px) !important;
   overflow: auto !important;
 }
 
@@ -95,7 +95,7 @@
   }
 
   .rq-floating-dice__panel {
-    width: min(340px, calc(100vw - 20px)) !important;
+    width: min(390px, calc(100vw - 20px)) !important;
   }
 }
 

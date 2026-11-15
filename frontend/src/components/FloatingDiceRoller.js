@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Bell, CheckCircle2, Dices, Sparkles, Swords, X } from 'lucide-react';
+import { Bell, CheckCircle2, Dices, X } from 'lucide-react';
 import { toast } from 'sonner';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
@@ -12,8 +12,8 @@ import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } 
 import './FloatingDiceRoller.css';
 import './FloatingDiceRollerExperience.css';
 import { characterIdFromPath } from '@/lib/characterRoute';
+import GlobalDiceSelectionWheel from '@/components/dice3d/GlobalDiceSelectionWheel';
 
-const QUICK_DICE = [4, 6, 8, 10, 12, 20, 100];
 const HISTORY_LIMIT = 5;
 const DiceDyePicker3D = React.lazy(() => import('@/components/dice3d/DiceDyePicker3D'));
 
@@ -126,6 +126,9 @@ export default function FloatingDiceRoller() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [customFormula, setCustomFormula] = useState('2d6+3');
+  const [selectedSides, setSelectedSides] = useState(20);
+  const [rollMode, setRollMode] = useState('normal');
+  const [pickerStage, setPickerStage] = useState('style');
   const [history, setHistory] = useState([]);
   const [rollFlicker, setRollFlicker] = useState(null);
   const [playerContext, setPlayerContext] = useState(null);
@@ -135,7 +138,10 @@ export default function FloatingDiceRoller() {
   const isCharacterSheet = Boolean(characterIdFromPath(location.pathname || ''));
 
   useEffect(() => {
-    const openDice = () => setOpen(true);
+    const openDice = () => {
+      setPickerStage('style');
+      setOpen(true);
+    };
     window.addEventListener('rq-dice-open', openDice);
     return () => window.removeEventListener('rq-dice-open', openDice);
   }, []);
@@ -236,7 +242,17 @@ export default function FloatingDiceRoller() {
   };
 
   const rollCustom = () => performRoll(customFormula, 'Custom Roll');
-  const rollWithMode = (rollType, label) => performRoll(d20ExpressionOrFallback(customFormula), label, { rollType });
+  const selectSides = (sides) => {
+    setSelectedSides(sides);
+    if (sides !== 20) setRollMode('normal');
+  };
+  const rollSelected = () => {
+    if (selectedSides === 20 && rollMode !== 'normal') {
+      performRoll(d20ExpressionOrFallback(customFormula), rollMode === 'advantage' ? 'Advantage' : 'Disadvantage', { rollType: rollMode });
+      return;
+    }
+    performRoll(`1d${selectedSides}`, `1d${selectedSides}`);
+  };
   const rollRequestedCheck = () => {
     if (!requestedCheck) return;
     const payload = requestedCheck.payload || {};
@@ -273,27 +289,44 @@ export default function FloatingDiceRoller() {
               </div>
             )}
 
-            <div className="rq-floating-dice__quick-grid" aria-label="Quick dice buttons">
-              {QUICK_DICE.map(sides => (
-                <button
-                  key={sides}
-                  type="button"
-                  className="rq-floating-dice__button"
-                  data-testid={`roll-d${sides}-btn`}
-                  onClick={() => performRoll(`1d${sides}`, `1d${sides}`)}
-                >
-                  d{sides}
-                </button>
-              ))}
-            </div>
+            <div className="rq-floating-dice__journey" aria-label="3D dice selection">
+              <div className="rq-floating-dice__journey-header">
+                <span>STEP {pickerStage === 'style' ? '1' : '2'} OF 2</span>
+                <strong>{pickerStage === 'style' ? 'Choose your 3D dice' : 'Choose die type and roll'}</strong>
+                {pickerStage === 'type' && (
+                  <button type="button" onClick={() => setPickerStage('style')}>Change style</button>
+                )}
+              </div>
 
-            <div className="rq-floating-dice__modes">
-              <button type="button" className="rq-floating-dice__mode" data-testid="roll-advantage-btn" onClick={() => rollWithMode('advantage', 'Advantage')}>
-                <Swords size={15} /> Advantage
-              </button>
-              <button type="button" className="rq-floating-dice__mode" data-testid="roll-disadvantage-btn" onClick={() => rollWithMode('disadvantage', 'Disadvantage')}>
-                <Sparkles size={15} /> Disadvantage
-              </button>
+              {pickerStage === 'style' ? (
+                <fieldset className="rq-floating-dice__dyes">
+                  <legend>Turn the wheel, then press the centre</legend>
+                  <React.Suspense fallback={(
+                    <>
+                      <DiceDyePickerFallback
+                        selectedId={dyeId}
+                        onSelect={(id) => setDyeId(saveDiceDyeId(id))}
+                      />
+                      <button type="button" className="rq-floating-dice__style-next" onClick={() => setPickerStage('type')}>Choose die type</button>
+                    </>
+                  )}>
+                    <DiceDyePicker3D
+                      selectedId={dyeId}
+                      onSelect={(id) => setDyeId(saveDiceDyeId(id))}
+                      onConfirm={() => setPickerStage('type')}
+                    />
+                  </React.Suspense>
+                </fieldset>
+              ) : (
+                <GlobalDiceSelectionWheel
+                  selectedSides={selectedSides}
+                  onSidesChange={selectSides}
+                  rollMode={rollMode}
+                  onRollModeChange={setRollMode}
+                  onRoll={rollSelected}
+                  dyeId={dyeId}
+                />
+              )}
             </div>
 
             <div className="rq-floating-dice__custom">
@@ -309,21 +342,6 @@ export default function FloatingDiceRoller() {
               />
               <button type="button" className="rq-floating-dice__custom-button" data-testid="custom-roll-btn" onClick={rollCustom}>Roll</button>
             </div>
-
-            <fieldset className="rq-floating-dice__dyes">
-              <legend>Dice style</legend>
-              <React.Suspense fallback={(
-                <DiceDyePickerFallback
-                  selectedId={dyeId}
-                  onSelect={(id) => setDyeId(saveDiceDyeId(id))}
-                />
-              )}>
-                <DiceDyePicker3D
-                  selectedId={dyeId}
-                  onSelect={(id) => setDyeId(saveDiceDyeId(id))}
-                />
-              </React.Suspense>
-            </fieldset>
 
             <div className="rq-floating-dice__history" aria-label="Recent dice results">
               <span className="rq-floating-dice__history-title">Recent results</span>
@@ -370,6 +388,8 @@ export default function FloatingDiceRoller() {
           isCrit={rollFlicker.isCrit}
           isFumble={rollFlicker.isFumble}
           theme="player"
+          shape="hex"
+          anchorSelector=".rq-global-dice-wheel__centre"
         />
       )}
     </div>

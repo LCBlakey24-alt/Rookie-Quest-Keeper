@@ -15,18 +15,12 @@ import {
 import { atlasColumns, buildDieGeometry, drawFaceAtlas, faceLayouts } from './dieMesh';
 import { shapeForSides } from './diceShapes';
 
-const GRID = [
-  [-2.35, 2.05], [0, 2.05], [2.35, 2.05],
-  [-2.35, 0], [0, 0], [2.35, 0],
-  [-2.35, -2.05], [0, -2.05], [2.35, -2.05],
-];
-
 /**
- * Render every dye with the same procedural d20 geometry used by the tray.
- * One canvas means one WebGL context, rather than exhausting mobile GPU
- * context limits with a canvas for every option.
+ * Render one selected physical d20 at a time. All materials share a single
+ * WebGL context, and hidden meshes make changing dye instant without showing
+ * nine cramped dice at once.
  */
-export function createDiceDyeGallery({ canvas, dyes }) {
+export function createDiceDyeGallery({ canvas, dyes, sides = 20, layout = 'wheel' }) {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -49,7 +43,7 @@ export function createDiceDyeGallery({ canvas, dyes }) {
   rim.position.set(5, -2, 7);
   scene.add(rim);
 
-  const shape = shapeForSides(20);
+  const shape = shapeForSides(sides);
   const solid = shape.build();
   const layouts = faceLayouts(solid);
   const columns = atlasColumns(solid.faces.length);
@@ -80,12 +74,14 @@ export function createDiceDyeGallery({ canvas, dyes }) {
       clearcoatRoughness: 0.16,
     });
     const mesh = new Mesh(geometry, material);
-    const [x, y] = GRID[index] || [0, 0];
-    mesh.position.set(x, y, 0);
-    mesh.rotation.set(0.62, -0.52 + (index % 3) * 0.08, 0.12);
-    mesh.scale.setScalar(0.72);
+    const angle = (index / Math.max(1, dyes.length)) * Math.PI * 2 + Math.PI / 2;
+    const radius = layout === 'wheel' ? 2.42 : 0;
+    mesh.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
+    mesh.rotation.set(0.62, -0.52 + (index % 3) * 0.04, 0.12);
+    mesh.scale.setScalar(layout === 'wheel' ? 0.56 : 1.38);
+    mesh.visible = layout === 'wheel';
     scene.add(mesh);
-    return { id: dye.id, mesh };
+    return { id: dye.id, index, mesh };
   });
 
   let selectedId = null;
@@ -109,8 +105,16 @@ export function createDiceDyeGallery({ canvas, dyes }) {
   const select = (id) => {
     if (selectedId === id) return;
     selectedId = id;
+    const selectedIndex = Math.max(0, entries.findIndex((entry) => entry.id === id));
     entries.forEach((entry) => {
-      entry.mesh.scale.setScalar(entry.id === id ? 0.82 : 0.72);
+      if (layout === 'wheel') {
+        const angle = ((entry.index - selectedIndex) / Math.max(1, entries.length)) * Math.PI * 2 + Math.PI / 2;
+        entry.mesh.position.set(Math.cos(angle) * 2.42, Math.sin(angle) * 2.42, 0);
+      }
+      entry.mesh.visible = layout === 'wheel' || entry.id === id;
+      entry.mesh.scale.setScalar(layout === 'wheel'
+        ? (entry.id === id ? 0.68 : 0.56)
+        : 1.38);
     });
     render();
   };

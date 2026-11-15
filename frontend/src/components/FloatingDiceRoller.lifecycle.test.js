@@ -27,10 +27,12 @@ jest.mock('@/components/DiceRollFlicker', () => ({
 }));
 jest.mock('@/components/dice3d/DiceDyePicker3D', () => ({
   __esModule: true,
-  default: ({ selectedId, onSelect }) => {
+  default: ({ selectedId, onSelect, onConfirm }) => {
     const React = require('react');
     const dyes = require('@/components/dice3d/diceDyes').DICE_DYES;
-    return React.createElement('div', { 'data-testid': 'mock-dye-picker-3d' }, dyes.map(dye => React.createElement(
+    return React.createElement('div', { 'data-testid': 'mock-dye-picker-3d' }, [
+      React.createElement('button', { key: 'confirm', type: 'button', 'data-testid': 'dice-dye-confirm', onClick: onConfirm }, 'Choose'),
+      ...dyes.map(dye => React.createElement(
       'button',
       {
         key: dye.id,
@@ -42,9 +44,11 @@ jest.mock('@/components/dice3d/DiceDyePicker3D', () => ({
         onClick: () => onSelect(dye.id),
       },
       dye.name,
-    )));
+      )),
+    ]);
   },
 }));
+jest.mock('@/components/dice3d/DiceTypePreview3D', () => ({ __esModule: true, default: () => null }));
 jest.mock('@/components/dice3d/loadDiceTray3D', () => ({
   __esModule: true,
   preloadDiceTray3D: jest.fn(() => Promise.resolve(null)),
@@ -79,10 +83,11 @@ jest.mock('@/lib/liveDisplayBus', () => ({
   subscribeRemoteDisplayState: () => () => {},
 }));
 
-async function openRoller() {
+async function openRoller(confirmStyle = true) {
   render(<MemoryRouter initialEntries={['/']}><FloatingDiceRoller /></MemoryRouter>);
   fireEvent.click(screen.getByTestId('dice-roller-toggle'));
   await screen.findByTestId('mock-dye-picker-3d');
+  if (confirmStyle) fireEvent.click(screen.getByTestId('dice-dye-confirm'));
 }
 
 describe('fresh physical dice presentation', () => {
@@ -109,19 +114,22 @@ describe('fresh physical dice presentation', () => {
   });
 
   test('captures the chosen dye for each roll, not the picker default', async () => {
-    await openRoller();
+    await openRoller(false);
     const moss = DICE_DYES.find(dye => dye.id === 'moss');
     const swatch = screen.getByTestId('dice-dye-moss');
     expect(swatch).toHaveAttribute('data-rq-colour-swatch', 'true');
     expect(swatch.style.getPropertyValue('--swatch-body')).toBe(moss.body);
 
     fireEvent.click(swatch);
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
     fireEvent.click(screen.getByTestId('roll-d20-btn'));
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-dye-id', 'moss');
 
+    fireEvent.click(screen.getByRole('button', { name: 'Change style' }));
     fireEvent.click(screen.getByTestId('dice-dye-amber'));
     // The last throw's palette is a snapshot and must not change mid-flight.
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-dye-id', 'moss');
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
     fireEvent.click(screen.getByTestId('roll-d20-btn'));
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-dye-id', 'amber');
   });

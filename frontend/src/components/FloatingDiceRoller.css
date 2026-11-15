@@ -546,21 +546,30 @@
   outline-offset: 2px;
 }
 
-/* One WebGL canvas renders all nine actual d20 meshes. Invisible grid
-   buttons sit over their matching die, so pointer, touch and keyboard users
-   all select the physical material they can see without creating nine GPU
-   contexts on a phone. */
+/* One WebGL canvas renders the chosen physical d20. Material buttons orbit
+   that preview, so the dye is legible without nine meshes fighting for room
+   or nine GPU contexts fighting a phone. */
 .rq-dye-gallery {
   position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  min-height: 210px;
-  margin-top: 7px;
+  width: min(286px, 100%);
+  aspect-ratio: 1;
+  margin: 8px auto 0;
   overflow: hidden;
-  border: 1px solid var(--dice-line);
-  border-radius: 7px;
-  background: rgba(60, 146, 224, .035);
-  box-shadow: inset 0 0 28px rgba(60, 146, 224, .08);
+  clip-path: polygon(50% 0, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+  background: rgba(11, 35, 67, .96);
+  box-shadow: inset 0 0 34px rgba(81, 188, 255, .22);
+  isolation: isolate;
+  touch-action: none;
+}
+
+.rq-dye-gallery::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  clip-path: inherit;
+  box-shadow: inset 0 0 0 2px rgba(81, 188, 255, .72), inset 0 0 20px rgba(81, 188, 255, .18);
 }
 
 .rq-dye-gallery__canvas {
@@ -575,52 +584,383 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(3, minmax(0, 1fr));
 }
 
 #root .rq-dye-gallery__option[data-rq-colour-swatch] {
-  position: relative;
-  min-width: 0;
-  min-height: 44px;
+  position: absolute;
+  left: calc(50% - 18px);
+  top: calc(50% - 18px);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   padding: 0;
-  border: 1px solid transparent !important;
-  border-radius: 5px !important;
+  border: 2px solid transparent !important;
+  border-radius: 50% !important;
   background: transparent !important;
-  color: var(--dice-text) !important;
+  color: transparent !important;
   cursor: pointer;
+  transform: rotate(var(--dye-angle)) translateY(-106px) rotate(calc(-1 * var(--dye-angle)));
+  box-shadow: none;
+  transition: transform 240ms cubic-bezier(.2, .8, .2, 1), border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .rq-dye-gallery__option span {
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  bottom: 3px;
-  overflow: hidden;
-  color: rgba(255, 255, 255, .78);
-  font-size: 8px;
-  font-weight: 800;
-  line-height: 1.1;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  opacity: 0;
 }
 
 #root .rq-dye-gallery__option[data-rq-colour-swatch][aria-pressed='true'] {
-  border-color: var(--dice-line-strong) !important;
-  box-shadow: inset 0 -3px var(--rq-citrus, #F4551F) !important;
+  border-color: color-mix(in srgb, var(--swatch-body) 55%, white 45%) !important;
+  box-shadow: 0 0 12px var(--swatch-body), inset 0 0 8px color-mix(in srgb, var(--swatch-body) 55%, transparent) !important;
+  transform: rotate(var(--dye-angle)) translateY(-106px) rotate(calc(-1 * var(--dye-angle))) scale(1.12);
 }
 
 .rq-dye-gallery__option:hover,
 .rq-dye-gallery__option:focus-visible {
-  border-color: var(--dice-line-strong) !important;
-  outline: 1px solid var(--dice-line-strong);
-  outline-offset: -3px;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
-@media (max-width: 420px) {
-  .rq-dye-gallery { min-height: 198px; }
+.rq-dye-gallery__name {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-content: center;
+  gap: 1px;
+  width: 118px;
+  min-height: 102px;
+  padding: 15px;
+  border: 0;
+  clip-path: polygon(50% 0, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+  background: rgba(7, 28, 57, .94);
+  box-shadow: inset 0 0 0 2px rgba(239, 74, 164, .72), inset 0 0 18px rgba(239, 74, 164, .25);
+  color: #fff;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.rq-dye-gallery__name span {
+  color: rgba(255, 255, 255, .62);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.rq-dye-gallery__name strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rq-dye-gallery__name:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -12px;
+}
+
+.rq-floating-dice__journey {
+  display: grid;
+  gap: 7px;
+}
+
+.rq-floating-dice__journey-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2px 8px;
+}
+
+.rq-floating-dice__journey-header span {
+  grid-column: 1 / -1;
+  color: #ff8eae;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.rq-floating-dice__journey-header strong {
+  font-family: var(--rq-display-font, Cinzel, serif);
+  font-size: 13px;
+}
+
+.rq-floating-dice__journey-header button,
+.rq-floating-dice__style-next {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 2px solid rgba(81, 188, 255, .66);
+  border-radius: 16px;
+  background: rgba(7, 28, 57, .94);
+  color: #fff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 850;
+  box-shadow: inset 0 0 9px rgba(81, 188, 255, .2);
+  cursor: pointer;
+}
+
+.rq-floating-dice__style-next {
+  width: 100%;
+  margin-top: 7px;
+}
+
+/* ---- Staged global dice wheel ----------------------------------------- */
+.rq-global-dice-wheel {
+  --wheel-cyan: rgba(81, 188, 255, .82);
+  --wheel-pink: rgba(239, 74, 164, .82);
+  position: relative;
+  width: min(330px, 100%);
+  aspect-ratio: 1 / 1.08;
+  margin: 0 auto;
+  touch-action: pan-y;
+}
+
+.rq-global-dice-wheel__gesture {
+  position: absolute;
+  inset: 0 auto auto 50%;
+  width: min(316px, 100%);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  touch-action: none;
+}
+
+.rq-global-dice-wheel__ring,
+.rq-global-dice-wheel__options {
+  position: absolute;
+  inset: 5px;
+  transition: transform 260ms cubic-bezier(.2, .8, .2, 1);
+  transform: rotate(var(--wheel-rotation));
+}
+
+.rq-global-dice-wheel__ring {
+  clip-path: polygon(50% 0, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+  background: rgba(9, 34, 68, .98);
+  box-shadow:
+    inset 0 0 0 2px var(--wheel-cyan),
+    inset 0 0 30px rgba(81, 188, 255, .28),
+    inset 0 0 52px rgba(239, 74, 164, .13);
+  filter: drop-shadow(0 0 9px rgba(81, 188, 255, .3));
+}
+
+.rq-global-dice-wheel__options {
+  z-index: 2;
+}
+
+.rq-global-dice-wheel__die {
+  position: absolute;
+  left: calc(50% - 31px);
+  top: calc(50% - 22px);
+  width: 62px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .76);
+  cursor: pointer;
+  transform: rotate(var(--die-angle)) translateY(-116px);
+}
+
+.rq-global-dice-wheel__die span {
+  display: inline-block;
+  font-family: var(--rq-display-font, Cinzel, serif);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.rq-global-dice-wheel__die::after {
+  content: '';
+  position: absolute;
+  top: 38px;
+  left: 50%;
+  width: 1px;
+  height: 74px;
+  background: rgba(81, 188, 255, .34);
+  box-shadow: 0 0 7px rgba(81, 188, 255, .28);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.rq-global-dice-wheel__die[aria-pressed='true'] {
+  color: #fff;
+  text-shadow: 0 0 10px var(--wheel-cyan) !important;
+}
+
+.rq-global-dice-wheel__die:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
+.rq-global-dice-wheel__pointer {
+  position: absolute;
+  z-index: 7;
+  top: -3px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-right: 13px solid transparent;
+  border-left: 13px solid transparent;
+  border-top: 20px solid #ff718f;
+  filter: drop-shadow(0 0 8px rgba(255, 113, 143, .8));
+  transform: translateX(-50%);
+}
+
+.rq-global-dice-wheel__centre {
+  position: absolute;
+  z-index: 5;
+  top: 70px;
+  left: 50%;
+  width: 174px;
+  height: 174px;
+  clip-path: polygon(50% 0, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+  background: rgba(7, 28, 57, .98);
+  box-shadow: inset 0 0 0 2px var(--wheel-pink), inset 0 0 26px rgba(239, 74, 164, .25);
+  transform: translateX(-50%);
+}
+
+.rq-global-dice-wheel__modes {
+  position: absolute;
+  z-index: 2;
+  top: 27px;
+  left: 50%;
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
+  gap: 3px;
+  transform: translateX(-50%);
+}
+
+.rq-global-dice-wheel__modes button {
+  width: 40px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid rgba(239, 74, 164, .45);
+  border-radius: 12px;
+  background: rgba(14, 42, 78, .88);
+  color: rgba(255, 255, 255, .7);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.rq-global-dice-wheel__modes button[aria-pressed='true'] {
+  border-color: rgba(239, 74, 164, .92);
+  color: #fff;
+  box-shadow: inset 0 0 8px rgba(239, 74, 164, .5), 0 0 7px rgba(239, 74, 164, .3);
+}
+
+.rq-global-dice-wheel__modes button:disabled {
+  opacity: .28;
+  cursor: not-allowed;
+}
+
+.rq-global-dice-wheel__roll {
+  position: absolute;
+  left: 50%;
+  top: 73px;
+  display: grid;
+  place-items: center;
+  gap: 0;
+  width: 98px;
+  min-height: 72px;
+  padding: 7px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+
+.rq-die-type-preview {
+  position: absolute;
+  z-index: 1;
+  top: 52px;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.rq-die-type-preview canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.rq-die-type-preview span {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: #fff;
+  font-family: var(--rq-display-font, Cinzel, serif);
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.rq-global-dice-wheel__roll small {
+  position: absolute;
+  bottom: 3px;
+  color: #ff8eae;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.rq-global-dice-wheel__roll strong {
+  position: absolute;
+  right: 4px;
+  bottom: 20px;
+  font-family: var(--rq-display-font, Cinzel, serif);
+  font-size: 12px;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(81, 188, 255, .5) !important;
+}
+
+.rq-global-dice-wheel__roll:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -5px;
+}
+
+.rq-global-dice-wheel__stepper {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  left: 10px;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+}
+
+.rq-global-dice-wheel__stepper button {
+  min-height: 40px;
+  border: 1px solid var(--wheel-cyan);
+  border-radius: 50%;
+  background: rgba(7, 28, 57, .95);
+  color: #fff;
+  font-size: 24px;
+  box-shadow: inset 0 0 10px rgba(81, 188, 255, .3);
+  cursor: pointer;
+}
+
+.rq-global-dice-wheel__stepper span {
+  color: rgba(255, 255, 255, .62);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+@media (max-width: 370px) {
+  .rq-global-dice-wheel { transform: scale(.92); transform-origin: top center; margin-bottom: -27px; }
+  .rq-dye-gallery { width: 270px; }
+  #root .rq-dye-gallery__option[data-rq-colour-swatch] { transform: rotate(var(--dye-angle)) translateY(-99px) rotate(calc(-1 * var(--dye-angle))); }
+  #root .rq-dye-gallery__option[data-rq-colour-swatch][aria-pressed='true'] { transform: rotate(var(--dye-angle)) translateY(-99px) rotate(calc(-1 * var(--dye-angle))) scale(1.12); }
 }
 
 /* The tap target stays at the 44px floor on touch, while the painted
