@@ -7,7 +7,8 @@
   --_muted: var(--gm-muted, var(--guild-muted));
   flex: none; display: block; overflow: visible;
 }
-.guild-motif__case, .guild-motif__core { fill: var(--_bg); stroke: none; }
+.guild-motif__case { fill: var(--_bg); stroke: var(--_brass); stroke-width: 0.45; }
+.guild-motif__core { fill: var(--_bg); stroke: var(--_hi); stroke-width: 0.45; }
 .guild-motif__halo { fill: none; stroke: var(--_brass); stroke-width: 12; opacity: 0.42; pointer-events: none; }
 .guild-motif__halo--core { stroke: var(--_hi); stroke-width: 9; opacity: 0.5; }
 .guild-motif__ring { fill: none; stroke: var(--_brass); stroke-opacity: 0.4; stroke-width: 1; }

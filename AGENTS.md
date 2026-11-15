@@ -15,7 +15,7 @@ Core user goals:
 - Players can open and use character sheets at the table.
 - GMs can build a campaign library, prepare encounters, and run Live Play.
 - The app should feel polished, compact, clear, and beginner-friendly.
-- The visual direction is **Neon Coast on a Dusk sky** (owner-approved 12 November 2026 and refined 15 November 2026; see `docs/DESIGN_SYSTEM.md` §3): a deep blue page fading to dusk purple, shapes told apart by a subtle inner glow without a resting outline (pink → violet → blue for ordinary shapes, peach → pink → gold for chosen and primary ones), white text, Cinzel headings and Inter text. The signature control is the wheel (§6a).
+- The visual direction is **Neon Coast on a Dusk sky** (owner-approved 12 November 2026 and production-reviewed 15 November 2026; see `docs/DESIGN_SYSTEM.md` §3): a deep blue page fading to dusk purple, shapes told apart by a restrained 1px edge (sub-pixel on SVG wheels) and subtle inner glow (pink → violet → blue for ordinary shapes, peach → pink → gold for chosen and primary ones), white text, Cinzel headings and Inter text. The signature control is the wheel (§6a).
 
 ## Product principles
 
@@ -99,7 +99,7 @@ Use the current Rookie Quest direction:
 
 - Deep blue `#0A2342` page fading to dusk purple at the bottom (`--guild-sky`); shapes filled with the deep blue.
 - White primary text with a clear muted hierarchy; Cinzel for headings, Inter for text.
-- No visible resting outline on boxes, tabs, buttons, wheels or hexagons. A subtle inner glow defines each shape: pink → violet → blue for ordinary shapes, peach → pink → gold for chosen, primary and centre shapes. Glow never spills outside a shape and never takes over the box. Editable fields, semantic warnings/errors and keyboard focus retain clear accessible boundaries.
+- A restrained 1px resting edge on boxes, tabs and buttons, and the Home wheel's fine sub-pixel edge on SVG wheels and hexagons. A subtle inner glow supports each shape: pink → violet → blue for ordinary shapes, peach → pink → gold for chosen, primary and centre shapes. The edge must never become thick or dominate the glow. Glow never spills outside a shape and never takes over the box. Editable fields, semantic warnings/errors and keyboard focus retain clear accessible boundaries.
 - Status colours (success, warning, danger) stay semantic.
 - Tokens live in `frontend/src/styles/guildTokens.css`; use them rather than hard-coded colours.
 - Compact information density without tiny touch targets.

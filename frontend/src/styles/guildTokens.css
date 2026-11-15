@@ -5,9 +5,9 @@
  * (docs/DESIGN_SYSTEM.md §4). Approved by the owner on 2026-11-12:
  *
  * - The page is a deep blue that fades to dusk purple at the bottom.
- * - Shapes are told apart by a soft glow that stays inside the shape, with
- *   no resting outline. Ordinary shapes glow hot pink -> violet -> sky blue;
- *   chosen, primary and centre shapes glow peach -> pink -> gold.
+ * - Shapes are told apart by a fine edge with a soft glow that stays inside
+ *   the shape. Ordinary shapes glow hot pink -> violet -> sky blue; chosen,
+ *   primary and centre shapes glow peach -> pink -> gold.
  * - Headings are Cinzel, text is Inter.
  *
  * --guild-glow scales every glow. Change values here and every surface
@@ -38,11 +38,11 @@
   --guild-ink: #1a0f2e;         /* text on a solid accent button */
   --guild-select: rgba(96, 156, 232, 0.2); /* fill of a selected card: a lighter blue; Neon Coast colours stay in the glow */
   --guild-cool: #b04dff;        /* one-colour stand-in for the ordinary glow */
-  /* Structural borders keep their 1px of layout space but are invisible.
-     Shape is communicated by the inset glows below. Form fields and
-     keyboard focus use the dedicated accessible tokens instead. */
-  --guild-line: transparent;
-  --guild-line-hot: transparent;
+  /* Resting boxes use a restrained 1px edge so dark surfaces remain
+     distinct. The edge supports the inset glow; it must never become the
+     thick, dominant outline previously seen on large wheels. */
+  --guild-line: rgba(176, 77, 255, 0.45);
+  --guild-line-hot: rgba(255, 176, 102, 0.85);
   --guild-field-line: rgba(201, 210, 230, 0.38);
   --guild-field-line-focus: rgba(79, 179, 255, 0.9);
   --guild-focus-ring: #4fb3ff;
@@ -77,13 +77,12 @@
     inset 0 6px 9px -5px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow))),
     inset -6px 0 9px -5px rgba(var(--guild-h3-rgb), calc(0.8 * var(--guild-glow))),
     inset 0 -6px 9px -5px rgba(var(--guild-h2-rgb), calc(0.8 * var(--guild-glow)));
-  /* Edge gradients remain available for deliberate accent strips. Resting
-     boxes themselves use one fill across the padding and border boxes, so
-     a transparent structural border cannot reveal a coloured outline. */
+  /* A box's fine edge in the same colours: background for an element with
+     `border: 1px solid transparent`. */
   --guild-edge-cool: linear-gradient(120deg, rgba(var(--guild-c1-rgb), 0.75), rgba(var(--guild-c2-rgb), 0.75) 50%, rgba(var(--guild-c3-rgb), 0.75));
   --guild-edge-hot: linear-gradient(120deg, var(--guild-h1), var(--guild-h2) 50%, var(--guild-h3));
-  --guild-box: linear-gradient(var(--guild-bg), var(--guild-bg)) border-box;
-  --guild-box-hot: linear-gradient(var(--guild-bg), var(--guild-bg)) border-box;
+  --guild-box: linear-gradient(var(--guild-bg), var(--guild-bg)) padding-box, var(--guild-edge-cool) border-box;
+  --guild-box-hot: linear-gradient(var(--guild-bg), var(--guild-bg)) padding-box, var(--guild-edge-hot) border-box;
 
   --guild-font-display: 'Cinzel', 'Fraunces', Georgia, serif;
   --guild-font-body: 'Inter', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
