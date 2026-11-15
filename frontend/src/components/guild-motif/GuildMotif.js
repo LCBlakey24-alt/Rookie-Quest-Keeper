@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 import '@/styles/guildTokens.css';
 import './GuildMotif.css';
@@ -29,6 +29,7 @@ export function litTicks(progress, count = TICK_COUNT) {
 export default function GuildMotif({ caption, value, progress = 0, size = 64, label, className = '' }) {
   const lit = litTicks(progress);
   const text = String(value ?? '');
+  const uid = `guild-motif-${useId().replace(/:/g, '')}`;
   return (
     <svg
       className={`guild-motif ${className}`.trim()}
@@ -41,7 +42,15 @@ export default function GuildMotif({ caption, value, progress = 0, size = 64, la
       data-testid="guild-motif"
       data-lit={lit}
     >
+      <defs>
+        <filter id={`${uid}-blur`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" />
+        </filter>
+        <clipPath id={`${uid}-case`}><polygon points={hexPoints(R)} /></clipPath>
+        <clipPath id={`${uid}-core`}><polygon points={hexPoints(50)} /></clipPath>
+      </defs>
       <polygon className="guild-motif__case" points={hexPoints(R)} />
+      <polygon className="guild-motif__halo guild-motif__halo--case" points={hexPoints(R)} clipPath={`url(#${uid}-case)`} filter={`url(#${uid}-blur)`} />
       <circle className="guild-motif__ring" cx="0" cy="0" r="84" />
       {Array.from({ length: TICK_COUNT }, (_, index) => (
         <line
@@ -55,6 +64,7 @@ export default function GuildMotif({ caption, value, progress = 0, size = 64, la
         />
       ))}
       <polygon className="guild-motif__core" points={hexPoints(50)} />
+      <polygon className="guild-motif__halo guild-motif__halo--core" points={hexPoints(50)} clipPath={`url(#${uid}-core)`} filter={`url(#${uid}-blur)`} />
       {caption && <text className="guild-motif__caption" x="0" y="-20" textAnchor="middle">{caption}</text>}
       <text className={`guild-motif__value${text.length > 2 ? ' is-long' : ''}`} x="0" y={caption ? 16 : 4} textAnchor="middle" dominantBaseline="middle">{text}</text>
     </svg>

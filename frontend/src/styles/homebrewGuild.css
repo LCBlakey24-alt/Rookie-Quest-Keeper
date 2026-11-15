@@ -70,8 +70,13 @@ html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type.is-active {
 html body #root .rqk-app-shell.rqk-app-shell .hb-page :is(input, textarea, select) {
   border-radius: 10px !important;
   background: var(--guild-bg-deep) !important;
-  border-color: var(--guild-line) !important;
+  border-color: var(--guild-field-line) !important;
   color: var(--guild-text) !important;
+}
+html body #root .rqk-app-shell.rqk-app-shell .hb-page :is(input, textarea, select):focus-visible {
+  border-color: var(--guild-field-line-focus) !important;
+  outline: 2px solid var(--guild-focus-ring) !important;
+  outline-offset: 2px !important;
 }
 html body #root .rqk-app-shell.rqk-app-shell .hb-page :is(button, label[for='hb-file-input']) { border-radius: 12px !important; }
 html body #root .rqk-app-shell.rqk-app-shell .hb-page button svg { color: var(--guild-hi); }

@@ -4,8 +4,8 @@
    The creator already takes every colour from its --rqk-creator-* variables,
    so the palette change is just new values for those. Buttons need more:
    the app-wide control layer fixes their border colour and removes
-   box-shadows with layered !important rules, so each button's edge and glow
-   are drawn on ::after and its fill comes through --rq-control-blue. */
+   box-shadows with layered !important rules, so each button's inner glow is
+   drawn on ::after and its fill comes through --rq-control-blue. */
 .full-creator-page.full-creator-page {
   --gl-bg: var(--guild-bg); --gl-brass: var(--guild-accent); --gl-hi: var(--guild-hi); --gl-text: var(--guild-text); --gl-muted: var(--guild-muted);
   --gl-line: var(--guild-line); --gl-glass: var(--guild-bg); --gl-soft: var(--guild-select);
@@ -35,36 +35,39 @@
 .full-creator-page .full-creator-progress-track { border-color: var(--gl-line); }
 .full-creator-page .full-creator-progress-track span { background: linear-gradient(90deg, var(--gl-brass), var(--gl-hi)); }
 
-/* Buttons: edge and glow on ::after. */
+/* Buttons: the pseudo-element keeps the glow inside the control. Its
+   transparent border preserves geometry without drawing an outline. */
 .full-creator-page button { position: relative; border-width: 0 !important; border-radius: 10px; }
 .full-creator-page button::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  border: 1px solid var(--gl-line); box-shadow: var(--guild-box-glow);
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  border: 1px solid transparent; box-shadow: var(--guild-box-glow);
+  transition: box-shadow 140ms ease;
 }
 .full-creator-page button:hover:not(:disabled)::after,
-.full-creator-page button:focus-visible::after { border-color: var(--gl-hi); box-shadow: var(--guild-box-glow-hot); }
+.full-creator-page button:focus-visible::after { border-color: transparent; box-shadow: var(--guild-box-glow-hot); }
 .full-creator-page button:is(.active, .is-active, [aria-pressed='true'], [aria-checked='true'], [aria-current='step'])::after {
-  border-color: var(--gl-hi); box-shadow: var(--guild-box-glow-hot);
+  border-color: transparent; box-shadow: var(--guild-box-glow-hot);
 }
+.full-creator-page button:focus-visible { outline: 2px solid var(--guild-focus-ring); outline-offset: 2px; }
 .full-creator-page button:is(.active, .is-active, [aria-checked='true']) { --rq-control-blue: var(--gl-soft); }
 .full-creator-page button:is(.active, .is-active, [aria-pressed='true'], [aria-checked='true']) strong { color: var(--gl-hi); }
 
-/* Step tabs: the current step is filled with soft brass under a bright edge.
+/* Step tabs: the current step is filled with soft blue under a warm glow.
    (Its label keeps the light text colour, which other creator rules pin.) */
 .full-creator-page .full-creator-steps button[aria-current='step'] { --rq-control-blue: var(--guild-select); }
 .full-creator-page .full-creator-steps button[aria-current='step']::after { border-width: 1px; }
 .full-creator-page .full-creator-steps button.is-complete:not([aria-current='step']) small { color: var(--gl-hi); }
 
-/* Primary actions: the warm Neon Coast glow (peach, pink, gold) inside a bright edge. */
+/* Primary actions: the warm Neon Coast glow (peach, pink, gold) inside. */
 .full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) { --rq-control-blue: var(--gl-bg); --rq-text-primary: var(--gl-text); --rq-fill-color: rgba(var(--guild-h2-rgb), 0.16); font-weight: 900; }
-.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled)::after { border-color: var(--gl-hi); box-shadow: var(--guild-box-glow-hot); }
+.full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled)::after { border-color: transparent; box-shadow: var(--guild-box-glow-hot); }
 .full-creator-page button:is(.full-creator-primary, .is-primary):not(:disabled) svg { color: var(--gl-hi); }
 .full-creator-page .full-creator-roll-gold { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 
 /* Fields. */
 .full-creator-page :is(input, select, textarea) { border-radius: 10px; }
-.full-creator-page :is(input, select, textarea):focus-visible { outline: 2px solid var(--gl-hi); outline-offset: 2px; }
+.full-creator-page :is(input, select, textarea) { border-color: var(--guild-field-line); }
+.full-creator-page :is(input, select, textarea):focus-visible { border-color: var(--guild-field-line-focus); outline: 2px solid var(--guild-focus-ring); outline-offset: 2px; }
 
 /* Race and class wheel. */
 .full-creator-page .full-creator-choice-picker { display: grid; justify-items: center; gap: 8px; }
