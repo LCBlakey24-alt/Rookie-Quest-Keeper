@@ -154,7 +154,8 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   characterRef.current = character;
   // The host's latest state when it has one: this tab may have closed by the
   // time an Undo is pressed, and its own copy stops updating then.
-  const latest = () => getLatestCharacter?.() || characterRef.current;
+  // null once the sheet this tab belonged to has closed: old Undos then do nothing.
+  const latest = () => (getLatestCharacter ? getLatestCharacter() : characterRef.current);
 
   const strengthMod = mod(character?.strength);
   const dexterityMod = mod(character?.dexterity);
@@ -237,6 +238,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     if (!known || !onCharacterUpdate) return;
     // With a host that keeps the latest state, count from that (this tab may
     // have closed since the spend being undone).
+    if (getLatestCharacter && !latest()) return;
     const resource = getLatestCharacter ? resourceValue(latest(), known) : known;
     const change = resourceAdjustUpdate(latest(), resource, delta);
     if (!change) return;
@@ -259,6 +261,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   // Spend or give back one spell slot of a level (or a Pact Magic slot).
   const adjustSlot = async (slot, delta) => {
     if (!onCharacterUpdate) return false;
+    if (!latest()) return false;
     const updates = slotAdjustUpdate(latest(), slot, delta);
     if (!updates) return false;
     // Pact Magic is also a class resource: drop any draft of it so both read the saved value.
