@@ -167,16 +167,23 @@ export function mapFullCharacterPdfFields(character, options = {}) {
     put(prefix+'notes',tags.join(', '));
   });
   if(spells.length>24) overflow.push({field:'magic.spells',value:spells.slice(24)});
-  if(arr(character.spellbook).length && prepared.length){
-    // Never pretend a Wizard's spellbook entries are all prepared.
-    // Preserve the unprepared entries for a mandatory continuation page.
-    const active = new Set(prepared.map(spell=>spellName(spell).toLowerCase()));
-    const unprepared=arr(character.spellbook).filter(spell=>!active.has(spellName(spell).toLowerCase()));
-    if(unprepared.length){
-      overflow.push({field:'magic.spellbook',value:unprepared});
-      warnings.push('Wizard spellbook entries need a separate appendix; only prepared spells appear in the play list.');
-    }
+  const visibleSpellNames=new Set(spells.map(({spell})=>spellName(spell).toLowerCase()));
+  // Include no extra spells in the active list without verifying preparation.
+  // Instead, route any omitted sources to a continuation page for review.
+  const unprepared=arr(character.spellbook).filter(spell=>
+    !visibleSpellNames.has(spellName(spell).toLowerCase()));
+  if(unprepared.length){
+    overflow.push({field:'magic.spellbook',value:unprepared});
+    warnings.push('Wizard spellbook entries need a separate appendix; only prepared or known spells appear in the play list.');
   }
+  if(prepared.length){
+    const otherKnown=arr(character.spells_known || character.known_spells).filter(spell=>
+      !visibleSpellNames.has(spellName(spell).toLowerCase()));
+    if(otherKnown.length)overflow.push({field:'magic.other_known_spells',value:otherKnown});
+  }
+  const always=arr(character.always_prepared_spells || character.alwaysPreparedSpells).filter(spell=>
+    !visibleSpellNames.has(spellName(spell).toLowerCase()));
+  if(always.length)overflow.push({field:'magic.always_prepared_spells',value:always});
   const pact=character.resources?.pact_magic || {};
   put('magic.pact.remaining',readField(pact,'current','remaining'));
   put('magic.pact.total',readField(pact,'max','maximum','total'));
