@@ -92,6 +92,7 @@ export default function GuildChoiceWheel({
   const wheelTimer = useRef(null);
   const commitRef = useRef(null);
   const drag = useRef(null);
+  const suppressNextClick = useRef(false);
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   const turnTo = (next) => {
@@ -215,6 +216,10 @@ export default function GuildChoiceWheel({
     if (!state || state.pointerId !== event.pointerId) return;
     drag.current = null;
     if (dragging) {
+      // A mobile drag synthesizes a click after pointerup. Ignore that click
+      // or it would reselect the touched wedge instead of the settled one.
+      suppressNextClick.current = true;
+      window.setTimeout(() => { suppressNextClick.current = false; }, 0);
       svgRef.current.releasePointerCapture?.(event.pointerId);
       setDragging(false);
       // Carry on with the flick's speed, then lock on the wedge it stops at.
@@ -268,6 +273,13 @@ export default function GuildChoiceWheel({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onClickCapture={(event) => {
+          if (suppressNextClick.current) {
+            event.preventDefault();
+            event.stopPropagation();
+            suppressNextClick.current = false;
+          }
+        }}
         onKeyDown={onKeyDown}
       >
         <defs>
