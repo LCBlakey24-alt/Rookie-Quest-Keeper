@@ -12,7 +12,7 @@ const supportedTypes = [
 const MAX_PLAYTEST_JSON_CHARS = 250000;
 
 const samplePack = {
-  pack_name: 'Friday Private Playtest Pack',
+  pack_name: 'Private Playtest Pack',
   description: 'Private campaign test content. Delete or replace before public/shared release.',
   edition: '2024',
   replace_existing: false,
