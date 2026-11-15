@@ -2,6 +2,11 @@ import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { CreatureCard } from './MonstersTab';
 
+jest.mock('@/components/DiceRollFlicker', () => ({
+  __esModule: true,
+  default: ({ onReveal }) => <button type="button" onClick={onReveal}>Reveal dice</button>,
+}));
+
 describe('Bestiary stat-block expansion', () => {
   const creature = {
     id: 'dragon-1',
@@ -78,8 +83,10 @@ describe('Bestiary stat-block expansion', () => {
       render(<CreatureCard creature={creature} count={0} onAdjust={onAdjust} />);
       fireEvent.click(screen.getByRole('button', { name: 'Show full details' }));
       fireEvent.click(screen.getByRole('button', { name: 'Roll Claw to hit' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
       expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Claw attack: 1d20+9 [11] + 9 = 20');
       fireEvent.click(screen.getByRole('button', { name: 'Roll Tail damage' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Reveal dice' }));
       expect(screen.getByTestId('stat-block-roll-result')).toHaveTextContent('Tail damage: 2d8+6 [5, 5] + 6 = 16');
       expect(onAdjust).not.toHaveBeenCalled();
     } finally {
