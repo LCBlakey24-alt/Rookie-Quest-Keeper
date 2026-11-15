@@ -23,7 +23,7 @@ Existing site, open tickets and user concepts already cover far more than a mini
 
 **Printable character-sheet prototype (separate from live website export):**
 - 2014 and 2024 A4 variants; colour and black-and-white; seven pages; 422 editable AcroForm text/check fields in each; first page is the play sheet, last page the edition-specific exhaustion/conditions reference.
-- V5 prototype completed offline 15 Nov 2026; sample-filled files round-tripped locally. **PDF-to-account mapping, automated exporter, expansion pages, accessibility/reader compatibility testing, US Letter and any redistribution/licensing sign-off remain pending.**
+- **V7 prototype archived in GitHub on 15 Nov 2026:** 2014/2024 colour/BW, 8 A4 pages and 504 editable fields per PDF, exact supplied logo, separate actions page, field maps, generator source, printed-layout audit and filled example. See [V7 archive](../design/character-sheet-v7/HANDOFF.md). **Website character-to-PDF export is still unimplemented**; PR #911 targets V6 and must be migrated/retested before merge. Dynamic continuation pages, account-based export, tablet-reader/accessibility tests, US Letter and publication/licensing sign-off remain pending.
 - Proposed field map data can be imported into the eventual exporter, but it is **not a published API contract**.
 - Track implementation in [#906 printable and populated sheets](https://github.com/LCBlakey24-alt/Rookie-Quest-Keeper/issues/906).
 
