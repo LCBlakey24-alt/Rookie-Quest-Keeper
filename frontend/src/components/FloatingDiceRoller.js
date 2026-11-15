@@ -208,7 +208,7 @@ export default function FloatingDiceRoller() {
       const y = bounds ? bounds.top + bounds.height / 2 : window.innerHeight / 2;
       const left = Math.max(12, Math.min(window.innerWidth - width - 12, x - width / 2));
       const top = Math.max(28, Math.min(window.innerHeight - height - 12, y - height / 2));
-      setWheelPosition({ left, top, width });
+      setWheelPosition({ left, top, '--wheel-width': `${width}px` });
     };
     positionWheel();
     window.addEventListener('resize', positionWheel);
