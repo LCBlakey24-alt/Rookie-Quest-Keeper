@@ -51,14 +51,15 @@ html body #root .account-settings-danger {
 /* Inputs: wells in the deeper blue; focus brightens the edge. */
 html body #root .account-settings-page input {
   background: var(--guild-bg-deep) !important;
-  border: 1px solid var(--guild-line) !important;
+  border: 1px solid var(--guild-field-line) !important;
   border-radius: 10px !important;
   color: var(--guild-text) !important;
   min-height: 44px !important;
 }
 html body #root .account-settings-page input:focus {
-  border-color: var(--guild-line-hot) !important;
-  outline: 1px solid var(--guild-line-hot) !important;
+  border-color: var(--guild-field-line-focus) !important;
+  outline: 2px solid var(--guild-focus-ring) !important;
+  outline-offset: 2px !important;
 }
 
 /* Buttons: rounded, edge and glow on ::after. */

@@ -1,7 +1,7 @@
 /* Home in the character sheet's look (DESIGN_SYSTEM §4 and §6a).
  *
  * One strong deep blue, no lighter panels: panels, cards and buttons are
- * told apart by a thin edge with a glow inside the shape (light blue on
+ * told apart by a glow inside the shape without a resting outline (light blue on
  * ordinary shapes, orange on primary actions and notices). Loaded after
  * homeDashboardV5.css and unifiedDashboardPolish.css; the extra `html body`
  * keeps these rules ahead of theirs. Buttons get their edge on ::after
@@ -131,9 +131,8 @@ html body #root .rqk-home-v5 .rqk-home-view-toggle {
 @media (prefers-reduced-motion: reduce) {
   .rqk-home-hub .hex-wheel__view { transition-duration: 0ms !important; }
 }
-/* Like the cards above it, the wheel has a fine edge and a soft glow clipped
-   to the inside. Scale the SVG strokes down so they don't become a thick
-   outline when the wheel is displayed at phone or desktop widths. */
+/* Like the cards above it, the wheel is defined by a soft glow clipped to
+   the inside, without a resting SVG outline. */
 .rqk-home-hub .hex-wheel__frame--glowing .hex-glow__fill { stroke: none; }
 .rqk-home-hub .hex-wheel__frame--glowing .hex-glow__halo {
   stroke: var(--hex-stroke-cool);
@@ -142,16 +141,13 @@ html body #root .rqk-home-v5 .rqk-home-view-toggle {
 }
 .rqk-home-hub .hex-wheel__frame--glowing .hex-glow__edge,
 .rqk-home-hub .hex-wheel__wedge .hex-glow__edge {
-  stroke: var(--hex-stroke-cool);
-  stroke-width: 0.4;
-  stroke-opacity: 0.55;
+  stroke: none;
 }
 .rqk-home-hub .hex-wheel__centre-shape .hex-glow__halo { opacity: 0.5; }
 .rqk-home-hub .hex-wheel__centre-shape .hex-glow__edge {
-  stroke-width: 0.45;
-  stroke-opacity: 0.65;
+  stroke: none;
 }
-/* Keep keyboard focus as clear as before. */
+/* Keyboard focus temporarily restores a high-contrast boundary. */
 .rqk-home-hub .hex-wheel__slot:focus-visible .hex-glow__edge {
   stroke: var(--hex-text);
   stroke-width: 1.6;

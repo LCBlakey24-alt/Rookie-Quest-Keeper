@@ -15,7 +15,7 @@
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] {
   --rqk-nav-bg: rgba(8, 29, 56, 0.97);
-  --rqk-nav-line: rgba(255, 255, 255, 0.10);
+  --rqk-nav-line: transparent;
   --rqk-nav-ink: rgba(255, 255, 255, 0.68);
   --rqk-nav-ink-strong: #f5f1e8;
   --rqk-nav-accent: #f2b544;
@@ -205,8 +205,8 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
 }
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] .rqk-app-rail-link:focus-visible {
-  outline: 2px solid var(--rqk-nav-accent) !important;
-  outline-offset: -2px !important;
+  outline: 2px solid var(--guild-focus-ring) !important;
+  outline-offset: 2px !important;
 }
 
 /* Content must clear the fixed tab bar, including the home indicator. */
@@ -417,7 +417,9 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
 }
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] .rqk-app-mobile-more-item:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--rqk-nav-accent) !important;
+  box-shadow: var(--guild-control-glow-hot) !important;
+  outline: 2px solid var(--guild-focus-ring) !important;
+  outline-offset: 2px !important;
 }
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] .rqk-app-mobile-more-item.is-active {
