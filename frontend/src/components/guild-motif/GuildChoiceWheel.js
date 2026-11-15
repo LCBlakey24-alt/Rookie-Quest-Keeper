@@ -387,9 +387,25 @@ export default function GuildChoiceWheel({
                   className={`guild-wheel__inner-mode${chosen ? ' is-selected' : ''}${mode.disabled ? ' is-disabled' : ''}`}
                   onClick={() => { if (!mode.disabled) onInnerChange?.(mode.id); }}
                   onKeyDown={(event) => {
-                    if (!mode.disabled && (event.key === 'Enter' || event.key === ' ')) {
+                    // Inner mode controls own their keys; Enter must not
+                    // bubble to the outer wheel and roll the die immediately.
+                    const direction = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1
+                      : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 0;
+                    if (direction) {
                       event.preventDefault();
-                      onInnerChange?.(mode.id);
+                      event.stopPropagation();
+                      let next = index;
+                      for (let tries = 0; tries < innerOptions.length; tries += 1) {
+                        next = (next + direction + innerOptions.length) % innerOptions.length;
+                        if (!innerOptions[next].disabled) {
+                          onInnerChange?.(innerOptions[next].id);
+                          break;
+                        }
+                      }
+                    } else if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      if (!mode.disabled) onInnerChange?.(mode.id);
                     }
                   }}
                 >
