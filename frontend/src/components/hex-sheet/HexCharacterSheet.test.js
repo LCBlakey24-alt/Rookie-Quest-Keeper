@@ -197,6 +197,22 @@ describe('Back works like history', () => {
 });
 
 describe('the D20 centre and dice wheel', () => {
+  test('keeps the dice wheel in the shared anchor and Back above its interaction layer', async () => {
+    await openSheet();
+    expect(screen.getByTestId('hex-wheel-anchor')).toContainElement(screen.getByTestId('hex-wheel'));
+
+    fireEvent.click(screen.getByTestId('hex-centre'));
+    const diceAnchor = screen.getByTestId('hex-wheel-anchor');
+    const back = screen.getByTestId('hex-back');
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-view', 'dice');
+    expect(diceAnchor).toContainElement(screen.getByTestId('guild-choice-wheel'));
+    expect(diceAnchor).not.toContainElement(back);
+
+    fireEvent.click(back);
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-view', 'main');
+    expect(screen.getByTestId('hex-wheel-anchor')).toContainElement(screen.getByTestId('hex-wheel'));
+  });
+
   test('the centre opens a wheel of dice; turn the die you want to the top and the centre rolls it', async () => {
     await openSheet();
     fireEvent.click(screen.getByTestId('hex-centre'));
@@ -603,6 +619,15 @@ describe('rest and recovery under the hit-point dial', () => {
     expect(screen.getByTestId('hex-long-rest')).toHaveTextContent('Tap again to rest');
     await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
     expect(apiClient.post).toHaveBeenCalledWith('/characters/char-long-rest/long-rest');
+  });
+
+  test('a long rest at 0 HP is refused with the reason, and nothing is sent', async () => {
+    const hero = { ...PUNCH, id: 'char-down', current_hit_points: 0, death_saves_failures: 1 };
+    await openHp(hero);
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    await act(async () => { fireEvent.click(screen.getByTestId('hex-long-rest')); });
+    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/at least 1 HP at the start of a Long Rest/));
   });
 
   test('a short rest uses the server rest route straight away', async () => {

@@ -493,6 +493,72 @@ async def get_character_combat_state(campaign_id: str, character_id: str, userna
     return state
 
 
+def _combat_snapshot(source: Dict[str, Any]) -> Dict[str, Any]:
+    """The comparable combat state, as the offline queue records it
+    (frontend offlineCombatSyncQueue.combatStateSnapshot)."""
+    source = source or {}
+    def as_int(value, default=0):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+    saves = source.get("deathSaves") or source.get("death_saves") or {}
+    conditions = source.get("conditions")
+    hp = source.get("current_hit_points", source.get("current_hp", source.get("hp")))
+    temp = source.get("temporary_hit_points", source.get("temp_hp", source.get("tempHp")))
+    concentration = source.get("concentrating_on", source.get("concentration"))
+    return {
+        "current_hit_points": max(0, as_int(hp)),
+        "temporary_hit_points": max(0, as_int(temp)),
+        "conditions": sorted({str(item) for item in conditions if item}) if isinstance(conditions, list) else [],
+        "death_saves_successes": max(0, min(3, as_int(source.get("death_saves_successes", saves.get("successes") if isinstance(saves, dict) else 0)))),
+        "death_saves_failures": max(0, min(3, as_int(source.get("death_saves_failures", saves.get("failures") if isinstance(saves, dict) else 0)))),
+        "concentrating_on": "" if concentration is None else str(concentration),
+    }
+
+
+@router.post("/campaigns/{campaign_id}/characters/{character_id}/combat-state/apply")
+async def apply_character_combat_state(
+    campaign_id: str,
+    character_id: str,
+    payload: Dict[str, Any],
+    username: str = Depends(get_current_user),
+):
+    """Apply an offline combat change only if the cloud still holds the state
+    it was made from, as one atomic compare-and-set.
+
+    Body: {"expected": <combat state the change was made from>, "state": <new combat fields>}.
+    - Already equal to the new state (a retry after a lost response): 200, nothing written.
+    - Cloud differs from "expected", or changes between the read and the write: 409 with
+      the current cloud state, nothing written.
+    """
+    character = await _character_for_combat(character_id, username, campaign_id)
+    expected = payload.get("expected") if isinstance(payload, dict) else None
+    desired = payload.get("state") if isinstance(payload, dict) else None
+    if not isinstance(expected, dict) or not isinstance(desired, dict):
+        raise HTTPException(status_code=400, detail="expected and state are required")
+    update_data = {key: value for key, value in _clean_patch(desired).items() if key in GM_COMBAT_PATCH_FIELDS}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No combat fields to update")
+
+    current = _combat_snapshot(character)
+    if current == _combat_snapshot({**character, **update_data}):
+        return {"applied": True, "already_applied": True, "state": current}
+    if current != _combat_snapshot(expected):
+        raise HTTPException(status_code=409, detail={"message": "Cloud combat state changed", "state": current})
+
+    # Write only if every combat field still holds exactly what was just read.
+    guard = {"id": character_id}
+    for field in COMBAT_STATE_FIELDS:
+        guard[field] = character[field] if field in character else {"$exists": False}
+    result = await db.player_characters.update_one(guard, {"$set": update_data})
+    if not getattr(result, "matched_count", 0):
+        latest = await db.player_characters.find_one({"id": character_id}, {"_id": 0}) or {}
+        raise HTTPException(status_code=409, detail={"message": "Cloud combat state changed", "state": _combat_snapshot(latest)})
+    latest = await db.player_characters.find_one({"id": character_id}, {"_id": 0}) or {}
+    return {"applied": True, "already_applied": False, "state": _combat_snapshot(latest)}
+
+
 @router.patch("/characters/{character_id}")
 async def patch_character_lenient(character_id: str, payload: Dict[str, Any], username: str = Depends(get_current_user)):
     existing = await db.player_characters.find_one({"id": character_id})

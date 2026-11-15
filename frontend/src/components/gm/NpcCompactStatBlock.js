@@ -164,12 +164,12 @@ export default function NpcCompactStatBlock({ npc = {} }) {
     const dice = result.rolls.map(roll => roll.result).join(', ');
     const bonus = result.modifier ? ' ' + (result.modifier > 0 ? '+' : '-') + ' ' + Math.abs(result.modifier) : '';
     const critical = result.isCrit ? ' (natural 20)' : result.isFumble ? ' (natural 1)' : '';
-    setLastRoll(name + ': ' + notation + ' [' + dice + ']' + bonus + ' = ' + result.total + critical);
+    const resultText = name + ': ' + notation + ' [' + dice + ']' + bonus + ' = ' + result.total + critical;
     // The animation and the inline result must present the same throw; do not
     // roll again for the tray. A fresh identity restarts consecutive throws,
     // even when they happen to land on exactly the same numbers.
     rollCounter.current += 1;
-    setRollBurst({ ...result, label: name, rollId: `${sectionId}-npc-${rollCounter.current}` });
+    setRollBurst({ ...result, label: name, resultText, rollId: `${sectionId}-npc-${rollCounter.current}` });
   };
   const canRoll = !unverified && !estimatedLegacy;
   const statSections = [
@@ -278,6 +278,7 @@ export default function NpcCompactStatBlock({ npc = {} }) {
           isOpen
           rollId={rollBurst.rollId}
           onClose={() => setRollBurst(null)}
+          onReveal={() => setLastRoll(rollBurst.resultText)}
           label={rollBurst.label}
           rolls={rollBurst.rolls}
           modifier={rollBurst.modifier}

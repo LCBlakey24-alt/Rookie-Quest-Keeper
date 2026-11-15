@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Bell, CheckCircle2, Dices, Sparkles, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, parseDiceNotation, rollDiceNotation } from '@/data/diceRoller';
 import { DICE_DYES } from '@/components/dice3d/diceDyes';
+import { preloadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
 import { loadDiceDyeId, saveDiceDyeId } from '@/lib/diceDyePreference';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
@@ -14,6 +15,30 @@ import { characterIdFromPath } from '@/lib/characterRoute';
 
 const QUICK_DICE = [4, 6, 8, 10, 12, 20, 100];
 const HISTORY_LIMIT = 5;
+const DiceDyePicker3D = React.lazy(() => import('@/components/dice3d/DiceDyePicker3D'));
+
+function DiceDyePickerFallback({ selectedId, onSelect }) {
+  return (
+    <div className="rq-floating-dice__swatches">
+      {DICE_DYES.map((dye) => (
+        <button
+          key={dye.id}
+          type="button"
+          className="rq-floating-dice__swatch"
+          data-rq-colour-swatch="true"
+          data-testid={`dice-dye-${dye.id}`}
+          aria-pressed={selectedId === dye.id}
+          aria-label={dye.name}
+          title={dye.name}
+          style={{ '--swatch-body': dye.body, '--swatch-ink': dye.ink }}
+          onClick={() => onSelect(dye.id)}
+        >
+          <span aria-hidden="true">20</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function cleanFormula(value = '') {
   return String(value || '').replace(/\s+/g, '').trim();
@@ -106,6 +131,7 @@ export default function FloatingDiceRoller() {
   const [playerContext, setPlayerContext] = useState(null);
   const [dyeId, setDyeId] = useState(loadDiceDyeId);
   const [displayState, setDisplayState] = useState(null);
+  const revealedRollIdsRef = useRef(new Set());
   const isCharacterSheet = Boolean(characterIdFromPath(location.pathname || ''));
 
   useEffect(() => {
@@ -113,6 +139,10 @@ export default function FloatingDiceRoller() {
     window.addEventListener('rq-dice-open', openDice);
     return () => window.removeEventListener('rq-dice-open', openDice);
   }, []);
+
+  useEffect(() => {
+    if (open) preloadDiceTray3D();
+  }, [open]);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,17 +212,24 @@ export default function FloatingDiceRoller() {
       detail: describe(result),
     };
 
-    setHistory(current => [rollRecord, ...current].slice(0, HISTORY_LIMIT));
     setRollFlicker({
       ...result,
+      record: rollRecord,
       rollId: rollRecord.id,
       dyeId: loadDiceDyeId(),
       label: `${label}: ${formula}`,
       animationValue: getAnimationTarget(result),
     });
 
-    toast(`${label}: ${result.total}`, {
-      description: describe(result),
+  };
+
+  const revealRoll = (roll) => {
+    const record = roll?.record;
+    if (!record || revealedRollIdsRef.current.has(record.id)) return;
+    revealedRollIdsRef.current.add(record.id);
+    setHistory(current => [record, ...current].slice(0, HISTORY_LIMIT));
+    toast(`${record.label}: ${record.total}`, {
+      description: record.detail,
       icon: <Dices size={18} />,
       duration: 1400,
     });
@@ -274,25 +311,18 @@ export default function FloatingDiceRoller() {
             </div>
 
             <fieldset className="rq-floating-dice__dyes">
-              <legend>Dice colour</legend>
-              <div className="rq-floating-dice__swatches">
-                {DICE_DYES.map((dye) => (
-                  <button
-                    key={dye.id}
-                    type="button"
-                    className="rq-floating-dice__swatch"
-                    data-rq-colour-swatch="true"
-                    data-testid={`dice-dye-${dye.id}`}
-                    aria-pressed={dyeId === dye.id}
-                    aria-label={dye.name}
-                    title={dye.name}
-                    style={{ '--swatch-body': dye.body, '--swatch-ink': dye.ink }}
-                    onClick={() => setDyeId(saveDiceDyeId(dye.id))}
-                  >
-                    <span aria-hidden="true">20</span>
-                  </button>
-                ))}
-              </div>
+              <legend>Dice style</legend>
+              <React.Suspense fallback={(
+                <DiceDyePickerFallback
+                  selectedId={dyeId}
+                  onSelect={(id) => setDyeId(saveDiceDyeId(id))}
+                />
+              )}>
+                <DiceDyePicker3D
+                  selectedId={dyeId}
+                  onSelect={(id) => setDyeId(saveDiceDyeId(id))}
+                />
+              </React.Suspense>
             </fieldset>
 
             <div className="rq-floating-dice__history" aria-label="Recent dice results">
@@ -316,6 +346,9 @@ export default function FloatingDiceRoller() {
         data-testid="dice-roller-toggle"
         aria-label={toggleLabel}
         aria-expanded={open}
+        onPointerEnter={preloadDiceTray3D}
+        onFocus={preloadDiceTray3D}
+        onTouchStart={preloadDiceTray3D}
         onClick={() => setOpen(current => !current)}
       >
         <Dices size={25} />
@@ -328,6 +361,7 @@ export default function FloatingDiceRoller() {
           dyeId={rollFlicker.dyeId}
           isOpen={Boolean(rollFlicker)}
           onClose={() => setRollFlicker(null)}
+          onReveal={() => revealRoll(rollFlicker)}
           label={rollFlicker.label}
           rolls={rollFlicker.rolls}
           modifier={rollFlicker.modifier}

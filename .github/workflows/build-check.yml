@@ -76,6 +76,7 @@ jobs:
             backend/tests/test_auth_username_validation.py \
             backend/tests/test_auth_account_profile.py \
             backend/tests/test_admin_identity.py \
+            backend/tests/test_review_moderation_fairness.py \
             backend/tests/test_access_checks.py \
             backend/tests/test_upload_limits.py \
             backend/tests/test_session_and_socket_hardening.py \
@@ -94,8 +95,10 @@ jobs:
             backend/tests/test_ruleset_mass_assignment.py \
             backend/tests/test_ruleset_route_permissions.py \
             backend/tests/test_ai_route_quota_metering.py \
+            backend/tests/test_ai_consent.py \
             backend/tests/test_con_asi_retroactive_hp.py \
             backend/tests/test_campaign_members_authorization.py \
+            backend/tests/test_universal_campaign_onboarding.py \
             backend/tests/test_known_spell_swap_2014.py \
             backend/tests/test_password_recovery_observability.py
 

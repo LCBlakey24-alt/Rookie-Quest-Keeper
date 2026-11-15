@@ -6,7 +6,10 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
-from config import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security, AI_MONTHLY_LIMIT
+from config import (
+    db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security,
+    AI_MONTHLY_LIMIT, AI_CONSENT_ENFORCEMENT, AI_CONSENT_POLICY_VERSION,
+)
 from utils.admin_identity import is_admin_username
 from utils.child_access import ACCOUNT_TYPE_CLAIM, ADULT_ACCOUNT_TYPE
 
@@ -144,12 +147,50 @@ async def is_admin(username: str) -> bool:
     return await is_admin_username(username)
 
 
-async def check_ai_access(username: str, feature: str = 'ai') -> bool:
-    """Return whether this user is under their monthly AI request cap.
+async def get_ai_consent_status(username: str) -> Dict[str, Any]:
+    """Return the current authenticated account's versioned Rook AI choice."""
+    user = await db.users.find_one(
+        {'username': username},
+        {'_id': 0, 'rook_ai_consent': 1},
+    )
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
-    Admins are always allowed. If AI_MONTHLY_LIMIT is 0 the cap is disabled.
-    The counter is stored in the `ai_usage` collection, one document per request.
+    stored = user.get('rook_ai_consent') or {}
+    is_current = stored.get('policy_version') == AI_CONSENT_POLICY_VERSION
+    return {
+        'granted': bool(stored.get('granted')) and is_current,
+        'required': AI_CONSENT_ENFORCEMENT,
+        'policy_version': AI_CONSENT_POLICY_VERSION,
+        'updated_at': stored.get('updated_at') if is_current else None,
+    }
+
+
+async def require_ai_consent(username: str) -> None:
+    """Refuse provider use before any data leaves Keeper when enabled."""
+    if not AI_CONSENT_ENFORCEMENT:
+        return
+    consent = await get_ai_consent_status(username)
+    if consent['granted']:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail={
+            'code': 'rook_ai_consent_required',
+            'message': 'Rook AI permission is required before campaign data can be sent to the AI provider.',
+            'policy_version': AI_CONSENT_POLICY_VERSION,
+        },
+    )
+
+
+async def check_ai_access(username: str, feature: str = 'ai') -> bool:
+    """Require AI consent, then return whether the user is under their cap.
+
+    Consent is never bypassed for admins. Admins only bypass the monthly cap.
+    If AI_MONTHLY_LIMIT is 0 the cap is disabled. The counter is stored in the
+    `ai_usage` collection, one document per successful provider request.
     """
+    await require_ai_consent(username)
     if AI_MONTHLY_LIMIT == 0:
         return True
     if await is_admin(username):

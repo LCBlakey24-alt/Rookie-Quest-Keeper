@@ -2,6 +2,9 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import GuildChoiceWheel from './GuildChoiceWheel';
+import { playDialTick } from '@/components/hex-sheet/dialSound';
+
+jest.mock('@/components/hex-sheet/dialSound', () => ({ playDialTick: jest.fn() }));
 
 const OPTIONS = ['Barbarian', 'Bard', 'Cleric', 'Druid'].map((label) => ({ id: label, label }));
 
@@ -50,6 +53,26 @@ test('the wheel follows a selection made elsewhere', () => {
   rerender(<GuildChoiceWheel options={OPTIONS} value="Druid" onChange={onChange} label="Class" />);
   expect(screen.getByRole('radio', { name: 'Druid' })).toHaveAttribute('aria-checked', 'true');
   expect(screen.getByTestId('guild-choice-wheel-status')).toHaveTextContent('Druid selected');
+});
+
+test('numeric wheels click only when the user turns to a different option', () => {
+  playDialTick.mockClear();
+  const options = ['8', '9', '10'].map((value) => ({ id: value, label: value }));
+  const onChange = jest.fn();
+  const { rerender } = render(<GuildChoiceWheel options={options} value="8" onChange={onChange} label="Strength" tickOnTurn />);
+  expect(playDialTick).not.toHaveBeenCalled();
+  rerender(<GuildChoiceWheel options={options} value="9" onChange={onChange} label="Strength" tickOnTurn />);
+  expect(playDialTick).not.toHaveBeenCalled();
+  fireEvent.keyDown(screen.getByRole('radiogroup'), { key: 'ArrowRight' });
+  expect(onChange).toHaveBeenCalledWith('10');
+  expect(playDialTick).toHaveBeenCalledTimes(1);
+});
+
+test('choice wheels do not gain sounds unless explicitly opted in', () => {
+  playDialTick.mockClear();
+  setup();
+  fireEvent.keyDown(screen.getByRole('radiogroup'), { key: 'ArrowRight' });
+  expect(playDialTick).not.toHaveBeenCalled();
 });
 
 describe('the centre hexagon as Confirm', () => {

@@ -27,6 +27,19 @@ function renderHome(props = {}) {
   return render(<MemoryRouter><UnifiedDashboard username="Demo" onLogout={jest.fn()} {...props}/></MemoryRouter>);
 }
 
+describe('home beta notice', () => {
+  beforeEach(() => { jest.clearAllMocks(); useDashboardData.mockReturnValue(fixture()); });
+  test('always shows the beta status and opens the existing feedback form event', () => {
+    const spy = jest.fn();
+    window.addEventListener('rook-feedback-open', spy);
+    renderHome();
+    expect(screen.getByTestId('beta-notice-home')).toHaveTextContent('EARLY ACCESS · PUBLIC BETA');
+    fireEvent.click(screen.getByTestId('beta-notice-feedback'));
+    expect(spy).toHaveBeenCalledTimes(1);
+    window.removeEventListener('rook-feedback-open', spy);
+  });
+});
+
 describe('Home Dashboard v5', () => {
   beforeEach(() => { jest.clearAllMocks(); window.localStorage.clear(); useDashboardData.mockReturnValue(fixture()); });
   test('the hub wheel shows each count, opens its page and has a list alternative', () => {
