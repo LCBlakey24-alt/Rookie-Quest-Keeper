@@ -40,6 +40,7 @@ jobs:
             backend/tests/test_session_note_sync.py \
             backend/tests/test_campaign_identity_translation.py \
             backend/tests/test_admin_assign_character.py \
+            backend/tests/test_admin_user_directory.py \
             backend/tests/test_token_movement.py \
             backend/tests/test_npc_roster_resilience.py \
             backend/tests/test_campaign_collections_resilience.py \
