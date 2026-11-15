@@ -62,3 +62,15 @@ Official 5e SRD 5.1 and 5.2.1 are licensable under CC-BY-4.0 with attribution, b
 - Spell loadouts [#907](https://github.com/LCBlakey24-alt/Rookie-Quest-Keeper/issues/907)
 - Level-up progression wheel [#908](https://github.com/LCBlakey24-alt/Rookie-Quest-Keeper/issues/908)
 - Staged roadmap [ROOKIE_QUEST_PRODUCT_ROADMAP.md](./ROOKIE_QUEST_PRODUCT_ROADMAP.md)
+
+## Production PDF library recommendation (researched 15 November 2026)
+
+**Preferred for the web:** [pdf-lib](https://github.com/Hopding/pdf-lib), published under the **MIT license**. The JS form API supports reading/filling existing AcroForm text fields and checkboxes, updating appearance streams and saving without flattening. The current browser could generate a PDF **locally after retrieving only the authorised character record and the approved static template**, reducing server render cost and avoiding sending character text to an external PDF vendor. See [pdf-lib form API](https://pdf-lib.js.org/docs/api/classes/pdfform) and [MIT licence](https://github.com/Hopding/pdf-lib/blob/master/LICENSE.md).
+
+**Unicode warning:** pdf-lib's default Helvetica field appearance cannot represent every Unicode character. Include a licensed, appropriate embedded font and pdf-lib fontkit integration before supporting arbitrary character names or international scripts; never silently replace accented characters. Do not share font files separately with users.
+
+**Prototype-only tooling:** the V6 design/fill proof was authored and tested using local PyMuPDF, which is **AGPL/commercial dual licensed**. Do not copy that dependency into a proprietary hosted service without a separate AGPL compliance or commercial licence decision. [PyMuPDF licensing](https://pymupdf.io/licensing).
+
+**Draft website scaffolding:** [PR #911](https://github.com/LCBlakey24-alt/Rookie-Quest-Keeper/pull/911) now contains page-1 mapping, extended page mapping, an injected-pdf-lib form writer adapter and targeted tests. The writer is **not yet integrated or exercised with real pdf-lib and the V6 PDF bytes**, and no template binaries are hosted in the repository. CI and cross-reader verification must precede merge.
+
+**Cost / privacy gate:** No per-export third-party API is needed if the PDF is created in the browser. Fetch only the signed-in player's authorised data. Do not expose GM notes, private campaigns or another account's character; do not add external telemetry to PDF contents. Support an explicit separate flattened print copy only if requested; editable export remains the default.
