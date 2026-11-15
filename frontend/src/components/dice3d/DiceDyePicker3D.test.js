@@ -61,6 +61,60 @@ describe('physical 3D dice dye picker', () => {
     expect(screen.getByTestId('dice-dye-amber')).toHaveTextContent('20');
   });
 
+
+  test('a mobile tap on the centre confirm button is not stolen by pointer capture', () => {
+    const onConfirm = jest.fn();
+    const view = render(<DiceDyePicker3D selectedId="amber" onSelect={() => {}} onConfirm={onConfirm} />);
+    const galleryElement = screen.getByTestId('dice-dye-gallery-3d');
+    galleryElement.setPointerCapture = jest.fn();
+    const confirm = screen.getByTestId('dice-dye-confirm');
+    fireEvent.pointerDown(confirm, { pointerId: 1, clientX: 120, clientY: 120 });
+    fireEvent.pointerUp(confirm, { pointerId: 1, clientX: 120, clientY: 120 });
+    fireEvent.click(confirm);
+    expect(galleryElement.setPointerCapture).not.toHaveBeenCalled();
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    view.unmount();
+  });
+
+  test('tapping a material does not capture its pointer or skip to the next step', () => {
+    const onSelect = jest.fn();
+    const onConfirm = jest.fn();
+    render(<DiceDyePicker3D selectedId="amber" onSelect={onSelect} onConfirm={onConfirm} />);
+    const galleryElement = screen.getByTestId('dice-dye-gallery-3d');
+    galleryElement.setPointerCapture = jest.fn();
+    const dye = screen.getByTestId('dice-dye-moss');
+    fireEvent.pointerDown(dye, { pointerId: 2, clientX: 50, clientY: 50 });
+    fireEvent.pointerUp(dye, { pointerId: 2, clientX: 50, clientY: 50 });
+    fireEvent.click(dye);
+    expect(galleryElement.setPointerCapture).not.toHaveBeenCalled();
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith('moss');
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  test('a swipe started on a die turns the wheel but does not also tap that die', () => {
+    const onSelect = jest.fn();
+    const onConfirm = jest.fn();
+    render(<DiceDyePicker3D selectedId="amber" onSelect={onSelect} onConfirm={onConfirm} />);
+    const dye = screen.getByTestId('dice-dye-moss');
+    fireEvent.pointerDown(dye, { pointerId: 3, clientX: 140, clientY: 130 });
+    fireEvent.pointerUp(dye, { pointerId: 3, clientX: 90, clientY: 130 });
+    fireEvent.click(dye);
+    const index = DICE_DYES.findIndex((entry) => entry.id === 'amber');
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith(DICE_DYES[(index + 1) % DICE_DYES.length].id);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  test('the fallback still lets users continue when WebGL is unavailable', () => {
+    createDiceDyeGallery.mockImplementation(() => { throw new Error('No WebGL'); });
+    const onConfirm = jest.fn();
+    render(<DiceDyePicker3D selectedId="amber" onSelect={() => {}} onConfirm={onConfirm} />);
+    expect(screen.getByTestId('dice-dye-amber')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
   test('releases the shared GPU context on unmount', () => {
     const view = render(<DiceDyePicker3D selectedId="glow" onSelect={() => {}} />);
     view.unmount();
