@@ -97,7 +97,7 @@ def test_changing_password_signs_out_other_sessions_but_not_this_one():
 
     users = SimpleNamespace(
         find_one=AsyncMock(return_value={'username': 'Rook', 'password_hash': 'old', 'token_version': 4}),
-        update_one=AsyncMock(),
+        update_one=AsyncMock(return_value=SimpleNamespace(matched_count=1)),
     )
     with patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
          patch.object(auth_routes, 'verify_password', return_value=True), \
@@ -108,10 +108,80 @@ def test_changing_password_signs_out_other_sessions_but_not_this_one():
         ))
 
     query, update = users.update_one.await_args.args
-    assert query == {'username': 'Rook'}
+    assert query == {'username': 'Rook', 'password_hash': 'old', 'token_version': 4}
     assert update == {'$set': {'password_hash': 'new-hash', 'token_version': 5}}
     assert _claims(result['token'])['tv'] == 5
     assert _claims(result['token'])['sub'] == 'Rook'
+
+
+def test_overlapping_password_changes_cannot_overwrite_each_other_or_reuse_a_session_version():
+    auth_routes = _route_module('auth')
+    from models import ChangePasswordRequest
+
+    async def exercise():
+        user = {'username': 'Rook', 'password_hash': 'old', 'token_version': 4}
+        both_read = asyncio.Event()
+        reads = 0
+
+        async def find_one(_query):
+            nonlocal reads
+            snapshot = user.copy()
+            reads += 1
+            if reads == 2:
+                both_read.set()
+            await both_read.wait()
+            return snapshot
+
+        async def update_one(query, update):
+            if any(user.get(key) != value for key, value in query.items()):
+                return SimpleNamespace(matched_count=0)
+            user.update(update['$set'])
+            return SimpleNamespace(matched_count=1)
+
+        users = SimpleNamespace(find_one=find_one, update_one=update_one)
+        with patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
+             patch.object(auth_routes, 'verify_password', return_value=True), \
+             patch.object(auth_routes, 'hash_password', side_effect=lambda password: password), \
+             patch.object(auth_routes, 'end_live_sessions', new_callable=AsyncMock):
+            results = await asyncio.gather(*[
+                auth_routes.change_password(
+                    ChangePasswordRequest(current_password='old-password', new_password=new_password),
+                    current_username='Rook',
+                ) for new_password in ['new-password-1', 'new-password-2']
+            ], return_exceptions=True)
+
+        successful = [result for result in results if isinstance(result, dict)]
+        rejected = [result for result in results if isinstance(result, HTTPException)]
+        assert len(successful) == len(rejected) == 1
+        assert rejected[0].status_code == 401
+        assert user['token_version'] == _claims(successful[0]['token'])['tv'] == 5
+
+    run(exercise())
+
+
+@pytest.mark.parametrize('legacy_version, expected_version', [(None, 1), ('2', 3)])
+def test_password_change_supports_legacy_session_versions(legacy_version, expected_version):
+    auth_routes = _route_module('auth')
+    from models import ChangePasswordRequest
+
+    user = {'username': 'Rook', 'password_hash': 'old'}
+    if legacy_version is not None:
+        user['token_version'] = legacy_version
+    users = SimpleNamespace(
+        find_one=AsyncMock(return_value=user),
+        update_one=AsyncMock(return_value=SimpleNamespace(matched_count=1)),
+    )
+    with patch.object(auth_routes, 'db', SimpleNamespace(users=users)), \
+         patch.object(auth_routes, 'verify_password', return_value=True), \
+         patch.object(auth_routes, 'hash_password', return_value='new-hash'), \
+         patch.object(auth_routes, 'end_live_sessions', new_callable=AsyncMock):
+        result = run(auth_routes.change_password(
+            ChangePasswordRequest(current_password='old-password', new_password='new-password-1'),
+            current_username='Rook',
+        ))
+    query = users.update_one.await_args.args[0]
+    assert query['token_version'] == (legacy_version if legacy_version is not None else {'$exists': False})
+    assert _claims(result['token'])['tv'] == expected_version
 
 
 def test_missing_email_provider_reports_outage_for_every_address():
@@ -174,8 +244,58 @@ def test_accepted_recovery_send_retires_only_older_links():
     resets.delete_one.assert_not_awaited()
     resets.delete_many.assert_awaited_once_with({
         'email': 'player@example.com',
-        'token': {'$ne': inserted['token']},
+        '$or': [
+            {'created_at': {'$lt': inserted['created_at']}},
+            {'created_at': {'$exists': False}},
+        ],
     })
+
+
+def test_overlapping_recovery_sends_leave_the_newest_link_usable():
+    auth_routes = _route_module('auth')
+    from models import ForgotPasswordRequest
+
+    async def exercise():
+        records = [{'email': 'player@example.com', 'token': 'legacy'}]
+        both_sending = asyncio.Event()
+        first_can_finish = asyncio.Event()
+        calls = 0
+
+        async def insert_one(record):
+            records.append(record.copy())
+
+        async def delete_many(query):
+            cutoff = query['$or'][0]['created_at']['$lt']
+            records[:] = [record for record in records if record['email'] != query['email'] or (
+                'created_at' in record and record['created_at'] >= cutoff
+            )]
+
+        async def send(_sender, _params):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                await both_sending.wait()
+                await first_can_finish.wait()
+            else:
+                both_sending.set()
+            return {'id': 'accepted'}
+
+        resets = SimpleNamespace(insert_one=insert_one, delete_many=delete_many, delete_one=AsyncMock())
+        users = SimpleNamespace(find_one=AsyncMock(return_value={'email': 'player@example.com'}))
+        with patch.object(auth_routes, 'EMAIL_DELIVERY_CONFIGURED', True), \
+             patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
+             patch.object(auth_routes, 'run_in_threadpool', side_effect=send), \
+             patch.object(auth_routes.secrets, 'token_urlsafe', side_effect=['older', 'newer']):
+            request = ForgotPasswordRequest(email='player@example.com')
+            older = asyncio.create_task(auth_routes.forgot_password(request))
+            newer = asyncio.create_task(auth_routes.forgot_password(request))
+            await newer
+            first_can_finish.set()
+            await older
+
+        assert [record['token'] for record in records] == ['newer']
+
+    run(exercise())
 
 
 def test_unknown_recovery_email_never_sends_email():
@@ -206,8 +326,54 @@ def test_password_reset_signs_out_every_session():
         run(auth_routes.reset_password(ResetPasswordRequest(token='t', new_password='new-password-1')))
 
     _query, update = users.update_one.await_args.args
-    assert update['$inc'] == {'token_version': 1}
-    assert update['$set']['password_hash'] == 'new-hash'
+    assert update == [{'$set': {
+        'password_hash': {'$literal': 'new-hash'},
+        'password_login_enabled': True,
+        'token_version': {'$add': [
+            {'$convert': {'input': '$token_version', 'to': 'long', 'onError': 0, 'onNull': 0}}, 1,
+        ]},
+    }}]
+
+
+@pytest.mark.parametrize('version, expected', [
+    ('2', 3), (2, 3), (None, 1), ('invalid', 1), ('missing', 1),
+])
+def test_password_reset_supports_legacy_session_versions(version, expected):
+    auth_routes = _route_module('auth')
+    from models import ResetPasswordRequest
+
+    user = {'email': 'rook@example.com', 'token_version': version}
+    if version == 'missing':
+        del user['token_version']
+    resets = SimpleNamespace(find_one_and_delete=AsyncMock(return_value={
+        'email': user['email'], 'expires_at': '2999-01-01T00:00:00+00:00',
+    }))
+
+    async def atomic_update(query, pipeline):
+        assert query == {'email': user['email']}
+        fields = pipeline[0]['$set']
+        # Evaluate the supported aggregation expressions against the value at
+        # update time, as MongoDB does for an atomic pipeline update.
+        convert, increment = fields['token_version']['$add']
+        assert convert['$convert']['input'] == '$token_version'
+        try:
+            current = int(user.get('token_version'))
+        except (ValueError, TypeError):
+            current = convert['$convert']['onError']
+        user.update({
+            'token_version': current + increment,
+            'password_hash': fields['password_hash']['$literal'],
+            'password_login_enabled': fields['password_login_enabled'],
+        })
+        return SimpleNamespace(matched_count=1)
+
+    users = SimpleNamespace(update_one=AsyncMock(side_effect=atomic_update), find_one=AsyncMock(return_value=None))
+    with patch.object(auth_routes, 'db', SimpleNamespace(users=users, password_resets=resets)), \
+         patch.object(auth_routes, 'hash_password', return_value='$2b$example'):
+        assert run(auth_routes.reset_password(ResetPasswordRequest(token='t', new_password='new-password-1')))['message'] == 'Password reset successful'
+    assert user['token_version'] == expected
+    assert user['password_hash'] == '$2b$example'
+    assert user['password_login_enabled'] is True
 
 
 

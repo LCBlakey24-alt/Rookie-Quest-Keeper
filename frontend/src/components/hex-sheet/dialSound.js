@@ -9,16 +9,21 @@
 const STORAGE_KEY = 'rqk.hexSheet.dialSound';
 
 let context = null;
+let tickBuffer = null;
+let memorySoundOn = true;
+let lastTickTime = -Infinity;
 
 export function isDialSoundOn() {
   try {
-    return window.localStorage.getItem(STORAGE_KEY) !== 'off';
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    return saved == null ? memorySoundOn : saved !== 'off';
   } catch {
-    return true;
+    return memorySoundOn;
   }
 }
 
 export function setDialSoundOn(on) {
+  memorySoundOn = Boolean(on);
   try {
     window.localStorage.setItem(STORAGE_KEY, on ? 'on' : 'off');
   } catch {
@@ -32,19 +37,31 @@ export function playDialTick() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return;
     context = context || new AudioContextClass();
-    if (context.state === 'suspended') context.resume?.();
+    if (context.state === 'suspended') context.resume?.()?.catch?.(() => {});
     const now = context.currentTime;
-    const oscillator = context.createOscillator();
+    // Fast spins can cross many values in a single frame. Avoid stacking
+    // hundreds of sources into a loud burst while keeping the dial responsive.
+    if (now - lastTickTime < 0.025) return;
+    if (!tickBuffer) {
+      // A brief, damped noise transient has the texture of a physical click.
+      // The previous descending oscillator sweep sounded like a laser.
+      const rate = context.sampleRate;
+      tickBuffer = context.createBuffer(1, Math.ceil(rate * 0.016), rate);
+      const samples = tickBuffer.getChannelData(0);
+      let filtered = 0;
+      for (let index = 0; index < samples.length; index += 1) {
+        filtered = 0.35 * (Math.random() * 2 - 1) + 0.65 * filtered;
+        samples[index] = filtered * Math.exp(-index / (rate * 0.0025));
+      }
+    }
+    const source = context.createBufferSource();
     const gain = context.createGain();
-    oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(2400, now);
-    oscillator.frequency.exponentialRampToValueAtTime(900, now + 0.025);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
-    oscillator.connect(gain).connect(context.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.035);
+    source.buffer = tickBuffer;
+    gain.gain.setValueAtTime(0.16, now);
+    source.connect(gain).connect(context.destination);
+    source.onended = () => { source.disconnect(); gain.disconnect(); };
+    source.start(now);
+    lastTickTime = now;
   } catch {
     /* no sound is fine */
   }

@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import OfflineSyncManager from './OfflineSyncManager';
 import { getOfflineCacheScope } from '@/offline/offlineApiCache';
+import OfflineSyncManager from './OfflineSyncManager';
 import {
   listOfflineCombatClosures,
   listOfflineCombatLootSyncs,
@@ -18,6 +18,7 @@ jest.mock('@/lib/apiClient', () => ({
 jest.mock('sonner', () => ({
   toast: { warning: jest.fn(), success: jest.fn(), info: jest.fn(), error: jest.fn() },
 }));
+jest.mock('@/offline/offlineApiCache', () => ({ getOfflineCacheScope: jest.fn() }));
 jest.mock('@/offline/offlineCombatSyncQueue', () => ({
   listOfflineCombatSyncs: jest.fn().mockResolvedValue([]),
   listOfflineCombatLootSyncs: jest.fn().mockResolvedValue([]),
@@ -36,6 +37,7 @@ jest.mock('@/offline/offlineCombatSyncQueue', () => ({
 let queued;
 beforeEach(() => {
   jest.clearAllMocks();
+  getOfflineCacheScope.mockReturnValue('user:gm');
   listOfflineCombatSyncs.mockResolvedValue([]);
   listOfflineCombatLootSyncs.mockResolvedValue([]);
   queued = null;
@@ -53,7 +55,7 @@ test('a stale display-close 409 does not clear a newer fight initiative queue', 
   };
   apiClient.put.mockRejectedValue({ response: { status: 409 } });
   render(<OfflineSyncManager />);
-  await waitFor(() => expect(removeOfflineCombatClose).toHaveBeenCalledWith('close-1'));
+  await waitFor(() => expect(removeOfflineCombatClose).toHaveBeenCalledWith('close-1', expect.objectContaining({ key: 'close-1' })));
   expect(apiClient.put).toHaveBeenCalledTimes(1);
   expect(apiClient.delete).not.toHaveBeenCalled();
   expect(toast.info).toHaveBeenCalledWith(expect.stringContaining('outdated combat display'));
@@ -63,7 +65,7 @@ test('legacy offline closure without a timestamped revision is discarded safely'
   queued = { key: 'legacy-close', campaignId: 'campaign-1',
     displayState: { mode: 'blank', payload: { title: 'Old fight ended' } } };
   render(<OfflineSyncManager />);
-  await waitFor(() => expect(removeOfflineCombatClose).toHaveBeenCalledWith('legacy-close'));
+  await waitFor(() => expect(removeOfflineCombatClose).toHaveBeenCalledWith('legacy-close', expect.objectContaining({ key: 'legacy-close' })));
   expect(apiClient.put).not.toHaveBeenCalled();
   expect(apiClient.delete).not.toHaveBeenCalled();
   expect(toast.warning).toHaveBeenCalledWith(expect.stringContaining('Legacy combat display'));
@@ -78,7 +80,10 @@ test('replaying offline combat applies through the campaign, checked against its
   }]);
   apiClient.post.mockResolvedValue({ data: { applied: true } });
   render(<OfflineSyncManager />);
-  await waitFor(() => expect(removeOfflineCombatSync).toHaveBeenCalledWith('combat-1'));
+  await waitFor(() => expect(removeOfflineCombatSync).toHaveBeenCalledWith(
+    'combat-1',
+    expect.objectContaining({ key: 'combat-1' })
+  ));
   const [url, body, options] = apiClient.post.mock.calls[0];
   expect(url).toBe('/campaigns/campaign-1/characters/char-9/combat-state/apply');
   expect(body).toEqual({ expected: { current_hit_points: 10 }, state: { current_hit_points: 4 } });
@@ -95,7 +100,12 @@ test('a change made elsewhere between read and write is a conflict, and the chan
   }]);
   apiClient.post.mockRejectedValue({ response: { status: 409, data: { detail: { state: { current_hit_points: 7 } } } } });
   render(<OfflineSyncManager />);
-  await waitFor(() => expect(markOfflineCombatConflict).toHaveBeenCalledWith('combat-1', { current_hit_points: 7 }, expect.any(String)));
+  await waitFor(() => expect(markOfflineCombatConflict).toHaveBeenCalledWith(
+    'combat-1',
+    { current_hit_points: 7 },
+    expect.any(String),
+    expect.objectContaining({ key: 'combat-1' })
+  ));
   expect(removeOfflineCombatSync).not.toHaveBeenCalled();
 });
 
@@ -114,8 +124,7 @@ test('an account switch during replay stops it: nothing more is sent, removed or
   const switchDuring = (data) => async () => {
     if (first) {
       first = false;
-      window.localStorage.setItem('dm_token', 'b-token');
-      window.localStorage.setItem('dm_username', 'player-b');
+      getOfflineCacheScope.mockReturnValue('user:player-b');
     }
     return { data };
   };
@@ -130,11 +139,9 @@ test('an account switch during replay stops it: nothing more is sent, removed or
   expect(apiClient.post.mock.calls.length).toBeLessThanOrEqual(1);
   expect(queue.removeOfflineCombatSync).not.toHaveBeenCalled();
   expect(queue.markOfflineCombatError).not.toHaveBeenCalled();
-  window.localStorage.clear();
 });
 
 test('Apply Offline on a conflict writes only over the cloud state shown, as the queuing account', async () => {
-  const { fireEvent, screen } = require('@testing-library/react');
   const queue = jest.requireMock('@/offline/offlineCombatSyncQueue');
   listOfflineCombatClosures.mockResolvedValue([]);
   listOfflineCombatSyncs.mockResolvedValue([{
@@ -152,7 +159,41 @@ test('Apply Offline on a conflict writes only over the cloud state shown, as the
   expect(body.expected).toEqual({ current_hit_points: 7 });
   expect(options.rqkExpectedAuthScope).toBe(getOfflineCacheScope());
   // The cloud moved on again: still a conflict, still queued.
-  await waitFor(() => expect(queue.markOfflineCombatConflict).toHaveBeenCalledWith('combat-1', { current_hit_points: 2 }, expect.any(String)));
+  await waitFor(() => expect(queue.markOfflineCombatConflict).toHaveBeenCalledWith(
+    'combat-1',
+    { current_hit_points: 2 },
+    expect.any(String),
+    expect.objectContaining({ key: 'combat-1' })
+  ));
   expect(queue.removeOfflineCombatSync).not.toHaveBeenCalled();
   window.confirm.mockRestore();
+});
+
+test('stops replay when the signed-in account changes during the atomic apply', async () => {
+  const { removeOfflineCombatSync } = jest.requireMock('@/offline/offlineCombatSyncQueue');
+  listOfflineCombatSyncs.mockResolvedValue([{
+    key: 'combat-1', campaignId: 'campaign-1', characterId: 'char-9',
+    baseState: { current_hit_points: 10 }, state: { current_hit_points: 4 }, status: 'pending',
+  }]);
+  let resolveApply;
+  apiClient.post.mockImplementationOnce(() => new Promise(resolve => { resolveApply = resolve; }));
+  render(<OfflineSyncManager />);
+  await waitFor(() => expect(resolveApply).toBeDefined());
+  getOfflineCacheScope.mockReturnValue('user:player');
+  await act(async () => { resolveApply({ data: { applied: true } }); });
+  expect(removeOfflineCombatSync).not.toHaveBeenCalled();
+});
+
+test('hides the previous account queue immediately when another tab changes auth', async () => {
+  listOfflineCombatSyncs.mockResolvedValue([{
+    key: 'combat-1', campaignId: 'campaign-1', characterId: 'char-9',
+    characterName: 'Pip', scope: 'user:gm', status: 'conflict',
+  }]);
+  render(<OfflineSyncManager />);
+  expect(await screen.findByText('1 Sync Conflict')).toBeInTheDocument();
+
+  getOfflineCacheScope.mockReturnValue('user:player');
+  listOfflineCombatSyncs.mockImplementation(() => new Promise(() => {}));
+  act(() => { window.dispatchEvent(new StorageEvent('storage', { key: 'dm_token' })); });
+  expect(screen.queryByText('1 Sync Conflict')).not.toBeInTheDocument();
 });

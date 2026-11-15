@@ -1,4 +1,5 @@
-import { extractOfflineMediaUrls, getOfflineMediaCacheName } from './offlineMediaCache';
+import { cacheOfflineMediaUrls, extractOfflineMediaUrls, getOfflineMediaCacheName } from './offlineMediaCache';
+import { AUTH_USERNAME_KEY } from '@/lib/auth';
 
 describe('offline campaign media cache', () => {
   test('discovers map, handout, portrait and attachment media recursively', () => {
@@ -30,5 +31,40 @@ describe('offline campaign media cache', () => {
     expect(player).toMatch(/^rqk-media-v1-[a-z0-9]+$/);
     expect(lewis).not.toBe(player);
     expect(getOfflineMediaCacheName('anonymous')).toBe('');
+  });
+
+  test('does not write a response after the signed-in account changes', async () => {
+    const previousCaches = global.caches;
+    const previousFetch = global.fetch;
+    const previousRequest = global.Request;
+    const put = jest.fn();
+    localStorage.setItem(AUTH_USERNAME_KEY, 'gm');
+    global.caches = { open: jest.fn(async () => ({ put })) };
+    global.Request = jest.fn((url) => ({ url }));
+    global.fetch = jest.fn(async () => {
+      localStorage.setItem(AUTH_USERNAME_KEY, 'player');
+      return { ok: true, clone() { return this; } };
+    });
+    try {
+      await expect(cacheOfflineMediaUrls(['/uploads/map.png'], { expectedScope: 'user:gm' })).rejects.toThrow('account changed');
+      expect(put).not.toHaveBeenCalled();
+    } finally {
+      global.caches = previousCaches;
+      global.fetch = previousFetch;
+      global.Request = previousRequest;
+      localStorage.clear();
+    }
+  });
+
+  test('reports files unavailable when this browser has no Cache Storage', async () => {
+    const previousCaches = global.caches;
+    global.caches = undefined;
+    try {
+      const result = await cacheOfflineMediaUrls(['/uploads/map.png']);
+      expect(result.saved).toEqual([]);
+      expect(result.failed).toEqual([`${window.location.origin}/uploads/map.png`]);
+    } finally {
+      global.caches = previousCaches;
+    }
   });
 });

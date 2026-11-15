@@ -1,4 +1,7 @@
-import { combatStateSnapshot, combatStatesMatch } from './offlineCombatSyncQueue';
+import { combatStateSnapshot, combatStatesMatch, queueOfflineCombatClose, queueOfflineCombatEnd, removeOfflineCombatSync } from './offlineCombatSyncQueue';
+import { getOfflineCacheScope } from './offlineApiCache';
+
+jest.mock('./offlineApiCache', () => ({ getOfflineCacheScope: jest.fn() }));
 
 describe('offline combat state snapshots', () => {
   test('normalises combatant and API field aliases to the same state', () => {
@@ -47,5 +50,104 @@ describe('offline combat state snapshots', () => {
     ['concentration', { concentrating_on: 'Bless' }, { concentrating_on: 'Hex' }],
   ])('detects a real %s conflict', (_label, left, right) => {
     expect(combatStatesMatch(left, right)).toBe(false);
+  });
+});
+
+describe('offline combat queue persistence', () => {
+  let originalIndexedDB;
+  let put;
+  let close;
+  let remove;
+
+  beforeEach(() => {
+    originalIndexedDB = window.indexedDB;
+    getOfflineCacheScope.mockReset();
+    getOfflineCacheScope.mockReturnValue('user:gm');
+    put = jest.fn();
+    close = jest.fn();
+    remove = jest.fn();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'indexedDB', { configurable: true, value: originalIndexedDB });
+  });
+
+  function installIndexedDb({ abortWrites = false, failReads = false, storedRecord = undefined } = {}) {
+    const db = {
+      close,
+      transaction: (_store, mode) => {
+        const transaction = {
+          objectStore: () => ({
+            get: () => {
+              const request = { result: storedRecord };
+              Promise.resolve().then(() => {
+                if (failReads) request.onerror();
+                else request.onsuccess();
+              });
+              return request;
+            },
+            put,
+            delete: remove,
+          }),
+        };
+        if (mode === 'readwrite') {
+          setTimeout(() => {
+            if (abortWrites) transaction.onabort();
+            else transaction.oncomplete();
+          }, 0);
+        }
+        return transaction;
+      },
+    };
+    Object.defineProperty(window, 'indexedDB', {
+      configurable: true,
+      value: {
+        open: () => {
+          const request = { result: db };
+          Promise.resolve().then(() => request.onsuccess());
+          return request;
+        },
+      },
+    });
+  }
+
+  test('does not report a queued close when the write is aborted', async () => {
+    installIndexedDb({ abortWrites: true });
+    const onQueued = jest.fn();
+    window.addEventListener('rqk:offline-sync-queued', onQueued);
+    expect(await queueOfflineCombatClose({ campaignId: 'campaign' })).toBeNull();
+    expect(put).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalled();
+    expect(onQueued).not.toHaveBeenCalled();
+    window.removeEventListener('rqk:offline-sync-queued', onQueued);
+  });
+
+  test('does not write a combat end if the signed-in account changes while reading', async () => {
+    installIndexedDb();
+    getOfflineCacheScope.mockReturnValueOnce('user:gm').mockReturnValue('user:player');
+    expect(await queueOfflineCombatEnd({ campaignId: 'campaign' })).toBeNull();
+    expect(put).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalled();
+  });
+
+  test('does not overwrite queued data when the existing record cannot be read', async () => {
+    installIndexedDb({ failReads: true });
+    expect(await queueOfflineCombatClose({ campaignId: 'campaign' })).toBeNull();
+    expect(put).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalled();
+  });
+
+  test('keeps a newer offline edit when an earlier sync completes', async () => {
+    const sent = { key: 'user:gm::combat:campaign:character', state: { hp: 4 } };
+    installIndexedDb({ storedRecord: { ...sent, state: { hp: 2 } } });
+    await removeOfflineCombatSync(sent.key, sent);
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  test('removes the exact offline edit that was synced', async () => {
+    const sent = { key: 'user:gm::combat:campaign:character', state: { hp: 4 } };
+    installIndexedDb({ storedRecord: sent });
+    await removeOfflineCombatSync(sent.key, sent);
+    expect(remove).toHaveBeenCalledWith(sent.key);
   });
 });

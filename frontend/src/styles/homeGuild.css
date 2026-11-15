@@ -119,3 +119,46 @@ html body #root .rqk-home-v5 .rqk-home-view-toggle {
 }
 .rqk-home-hub .hex-wheel { width: min(100%, 460px); height: auto; overflow: visible; }
 .rqk-home-hub .hex-wheel__centre-label { font-family: var(--hex-title-font); }
+.rqk-home-hub .hex-wheel__view {
+  transform-box: view-box;
+  /* This SVG's viewBox is centred on (0, 0); use those coordinates here. */
+  transform-origin: 0 0;
+  transition-property: transform;
+  touch-action: none;
+  cursor: grab;
+}
+.rqk-home-hub .hex-wheel__view:active { cursor: grabbing; }
+@media (prefers-reduced-motion: reduce) {
+  .rqk-home-hub .hex-wheel__view { transition-duration: 0ms !important; }
+}
+/* Like the cards above it, the wheel has a fine edge and a soft glow clipped
+   to the inside. Scale the SVG strokes down so they don't become a thick
+   outline when the wheel is displayed at phone or desktop widths. */
+.rqk-home-hub .hex-wheel__frame--glowing .hex-glow__fill { stroke: none; }
+.rqk-home-hub .hex-wheel__frame--glowing .hex-glow__halo {
+  stroke: var(--hex-stroke-cool);
+  stroke-width: 9;
+  opacity: 0.42;
+}
+.rqk-home-hub .hex-wheel__frame--glowing .hex-glow__edge,
+.rqk-home-hub .hex-wheel__wedge .hex-glow__edge {
+  stroke: var(--hex-stroke-cool);
+  stroke-width: 0.4;
+  stroke-opacity: 0.55;
+}
+.rqk-home-hub .hex-wheel__centre-shape .hex-glow__halo { opacity: 0.5; }
+.rqk-home-hub .hex-wheel__centre-shape .hex-glow__edge {
+  stroke-width: 0.45;
+  stroke-opacity: 0.65;
+}
+/* Keep keyboard focus as clear as before. */
+.rqk-home-hub .hex-wheel__slot:focus-visible .hex-glow__edge {
+  stroke: var(--hex-text);
+  stroke-width: 1.6;
+  stroke-opacity: 1;
+}
+.rqk-home-hub .hex-wheel__centre:focus-visible .hex-glow__edge {
+  stroke: var(--hex-text);
+  stroke-width: 2.4;
+  stroke-opacity: 1;
+}

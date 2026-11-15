@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 
-import { specForDie } from '@/components/dice3d/diceTrayScene';
+import { createDiceTray, specForDie } from '@/components/dice3d/diceTrayScene';
 import DiceTray3DOverlay from './DiceTray3DOverlay';
 
 // This project sets jest `resetMocks: true`, so the real implementation is
@@ -11,9 +11,18 @@ jest.mock('@/components/dice3d/diceTrayScene', () => {
   return {
     __esModule: true,
     ...actual,
+    createDiceTray: jest.fn((...args) => actual.createDiceTray(...args)),
     specForDie: jest.fn((...args) => actual.specForDie(...args)),
   };
 });
+
+let getContext;
+beforeEach(() => {
+  const actual = jest.requireActual('@/components/dice3d/diceTrayScene');
+  specForDie.mockImplementation((...args) => actual.specForDie(...args));
+  getContext = jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+});
+afterEach(() => getContext.mockRestore());
 
 // jsdom has no WebGL, so these tests exercise the path that matters most for
 // the table: when the tray cannot run, the player still gets their result.
@@ -36,6 +45,52 @@ describe('DiceTray3DOverlay falls back rather than hiding a result', () => {
     expect(screen.getByTestId('flat-dice-overlay')).toBeInTheDocument();
     expect(screen.queryByTestId('dice-tray-overlay')).not.toBeInTheDocument();
     expect(screen.getByTestId('flat-dice-total')).toHaveTextContent('17');
+  });
+
+  test('reveals an unfinished fallback promptly when WebGL is unavailable', () => {
+    jest.useFakeTimers();
+    try {
+      const onRevealNow = jest.fn();
+      const view = render(<DiceTray3DOverlay {...baseProps} isRevealed={false} onRevealNow={onRevealNow} rolls={[{ id: 'a', sides: 20, result: 12 }]} />);
+
+      expect(screen.getByTestId('flat-dice-total')).toHaveTextContent('—');
+      act(() => { jest.advanceTimersByTime(359); });
+      expect(onRevealNow).not.toHaveBeenCalled();
+      act(() => { jest.advanceTimersByTime(1); });
+      expect(onRevealNow).toHaveBeenCalledTimes(1);
+      view.unmount();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('cancels a fallback reveal when the roll is closed', () => {
+    jest.useFakeTimers();
+    try {
+      const onRevealNow = jest.fn();
+      const view = render(<DiceTray3DOverlay {...baseProps} isRevealed={false} onRevealNow={onRevealNow} rolls={[{ id: 'a', sides: 20, result: 12 }]} />);
+      view.unmount();
+      act(() => { jest.advanceTimersByTime(360); });
+      expect(onRevealNow).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('reveals promptly when the 3D scene fails after WebGL detection', () => {
+    jest.useFakeTimers();
+    try {
+      getContext.mockReturnValue({});
+      createDiceTray.mockImplementation(() => { throw new Error('WebGL context unavailable'); });
+      const onRevealNow = jest.fn();
+      const view = render(<DiceTray3DOverlay {...baseProps} isRevealed={false} onRevealNow={onRevealNow} rolls={[{ id: 'a', sides: 20, result: 12 }]} />);
+      expect(screen.getByTestId('flat-dice-overlay')).toBeInTheDocument();
+      act(() => { jest.advanceTimersByTime(360); });
+      expect(onRevealNow).toHaveBeenCalledTimes(1);
+      view.unmount();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test('falls back for a die it has no solid for', () => {

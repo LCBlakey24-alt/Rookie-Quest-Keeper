@@ -1,6 +1,6 @@
 import apiClient from '@/lib/apiClient';
 import {
-  getOfflineCacheKey,
+  getOfflineCacheScope,
   getOfflineCampaignPackMetadata,
   listOfflineCampaignPacks,
   removeOfflineCampaignPack,
@@ -36,18 +36,28 @@ function unique(values) {
   return Array.from(new Set(values.filter(Boolean)));
 }
 
-async function fetchAndPin(request) {
-  const response = await apiClient.get(request.url, { timeout: 30000 });
+function assertScope(scope) {
+  if (getOfflineCacheScope() !== scope) {
+    const error = new Error('The signed-in account changed while downloading the offline copy.');
+    error.rqkAuthScopeChanged = true;
+    throw error;
+  }
+}
+
+async function fetchAndPin(request, scope) {
+  assertScope(scope);
+  const response = await apiClient.get(request.url, { timeout: 30000, rqkExpectedAuthScope: scope });
+  assertScope(scope);
   if (isOfflineResponse(response)) {
     const error = new Error('Only an older offline copy was available.');
     error.code = 'RQK_OFFLINE_FALLBACK';
     throw error;
   }
-  const recordKey = await storeOfflineApiResponse(response.config || { method: 'get', url: request.url }, response);
-  return {
-    response,
-    recordKey: recordKey || getOfflineCacheKey(response.config || { method: 'get', url: request.url }),
-  };
+  const config = { ...(response.config || { method: 'get', url: request.url }), rqkCacheScope: scope };
+  const recordKey = await storeOfflineApiResponse(config, response);
+  assertScope(scope);
+  if (!recordKey) throw new Error('Could not save this section on this device.');
+  return { response, recordKey };
 }
 
 function requestList(campaignId) {
@@ -82,6 +92,7 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
   }
 
   const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
+  const scope = getOfflineCacheScope();
   const sections = [];
   const recordKeys = [];
   const payloads = {};
@@ -92,7 +103,7 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
   for (const request of requests) {
     onProgress({ phase: 'player', completed, total: requests.length, label: request.label });
     try {
-      const { response, recordKey } = await fetchAndPin(request);
+      const { response, recordKey } = await fetchAndPin(request, scope);
       payloads[request.key] = response.data;
       mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
@@ -101,13 +112,13 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
       // A 401 clears the auth token in apiClient. Continuing after that could
       // move later cache records into a different account namespace, so abort
       // the entire download immediately. Optional 403s remain a partial pack.
-      if (isUnauthenticated(error) || (request.required && isForbidden(error))) throw error;
+      if (error.rqkAuthScopeChanged || isUnauthenticated(error) || (request.required && isForbidden(error))) throw error;
       sections.push({
         ...request,
         status: 'unavailable',
         message: error?.response?.data?.detail || error?.message || 'Could not download this section.',
       });
-      if (request.required) throw new Error(error?.response?.data?.detail || `Could not download ${request.label}.`);
+      if (request.required) throw new Error(error?.response?.data?.detail || error?.message || `Could not download ${request.label}.`);
     }
     completed += 1;
   }
@@ -123,12 +134,12 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
       label: `Character ${characterCompleted + 1} of ${characterIds.length}`,
     });
     try {
-      const { response, recordKey } = await fetchAndPin(request);
+      const { response, recordKey } = await fetchAndPin(request, scope);
       mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
       sections.push({ ...request, status: 'saved', savedAt: Date.now() });
     } catch (error) {
-      if (isUnauthenticated(error)) throw error;
+      if (isUnauthenticated(error) || error.rqkAuthScopeChanged) throw error;
       sections.push({
         ...request,
         status: 'unavailable',
@@ -143,8 +154,10 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
   const rawDiscoveredMedia = extractOfflineMediaUrls(...mediaPayloads);
   const discoveredMedia = Array.isArray(rawDiscoveredMedia) ? rawDiscoveredMedia : [];
   const rawMediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
+    expectedScope: scope,
     onProgress: mediaProgress => onProgress({ ...mediaProgress, phase: 'media' }),
   });
+  assertScope(scope);
   const mediaResult = {
     saved: Array.isArray(rawMediaResult?.saved) ? rawMediaResult.saved : [],
     failed: Array.isArray(rawMediaResult?.failed) ? rawMediaResult.failed : [],
@@ -182,8 +195,9 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
     mediaIncluded: mediaResult.saved.length > 0,
     playerSafe: true,
   };
-  const storedMetadata = await saveOfflineCampaignPackMetadata(metadataPayload);
-  const metadata = storedMetadata || metadataPayload;
+  const metadata = await saveOfflineCampaignPackMetadata(metadataPayload, scope);
+  assertScope(scope);
+  if (!metadata) throw new Error('Could not save the offline copy on this device.');
 
   onProgress({ phase: 'done', completed: sections.length, total: sections.length, label: 'Player offline copy ready' });
   return metadata;

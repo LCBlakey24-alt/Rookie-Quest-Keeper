@@ -159,7 +159,8 @@ def test_claim_uses_saved_character_name_and_campaign_scoped_atomic_write(monkey
     query, update = updates[0]
     assert query['id'] == 'item-1'
     assert query['campaign_id'] == 'campaign-a'
-    assert '$or' in query
+    assert query['claimed_by'] == {'$in': [None, '']}
+    assert query['claimed_by_id'] == {'$in': [None, '']}
     assert update['$set']['claimed_by'] == 'Saved Name'
     assert update['$set']['claimed_by_id'] == 'char-1'
     assert result['character_name'] == 'Saved Name'
@@ -254,7 +255,9 @@ def test_player_unclaim_requires_ownership_of_claimed_character(monkeypatch):
     assert query == {
         'id': 'item-1',
         'campaign_id': 'campaign-a',
-        'claimed_by_id': 'char-1',
+        'claimed_by': {'$eq': 'Ari'},
+        'claimed_by_id': {'$eq': 'char-1'},
+        'claimed_at': {'$eq': None},
     }
     assert set(update['$unset']) == {'claimed_by', 'claimed_by_id', 'claimed_at'}
     assert result == {'message': 'Item returned to party inventory'}
@@ -307,4 +310,53 @@ def test_gm_can_unclaim_any_campaign_item_but_write_stays_scoped(monkeypatch):
         'campaign-a', 'item-1', current_user='gm-a'
     ))
 
-    assert update_calls[0][0] == {'id': 'item-1', 'campaign_id': 'campaign-a'}
+    assert update_calls[0][0] == {
+        'id': 'item-1', 'campaign_id': 'campaign-a',
+        'claimed_by': {'$eq': 'Ari'}, 'claimed_by_id': {'$eq': 'char-1'}, 'claimed_at': {'$eq': None},
+    }
+
+
+def test_claim_rejects_concurrent_id_only_claim(monkeypatch):
+    async def membership(campaign_id, username):
+        return {'id': campaign_id, 'dm_user_id': 'gm-a'}
+
+    class Inventory:
+        async def find_one(self, query, projection=None):
+            return {'id': 'item-1', 'campaign_id': 'campaign-a'}
+
+        async def update_one(self, query, update):
+            # Another writer set an ID after our read without setting a name.
+            current = {'claimed_by': None, 'claimed_by_id': 'other-character'}
+            matches = all(current[field] in query[field]['$in'] for field in current)
+            return Result(int(matches))
+
+    class Characters:
+        async def find_one(self, query, projection=None):
+            return {'id': 'char-1', 'name': 'Ari'}
+
+    monkeypatch.setattr(claims, 'verify_campaign_membership', membership)
+    monkeypatch.setattr(claims, 'db', SimpleNamespace(inventory=Inventory(), player_characters=Characters()))
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(claims.claim_inventory_item('campaign-a', 'item-1', {'character_id': 'char-1'}, current_user='player-a'))
+    assert exc.value.status_code == 409
+
+
+def test_gm_unclaim_does_not_erase_concurrent_claim(monkeypatch):
+    async def membership(campaign_id, username):
+        return {'id': campaign_id, 'dm_user_id': 'gm-a'}
+
+    class Inventory:
+        async def find_one(self, query, projection=None):
+            return {'id': 'item-1', 'campaign_id': 'campaign-a', 'claimed_by': 'Ari',
+                    'claimed_by_id': 'char-1', 'claimed_at': 'first'}
+
+        async def update_one(self, query, update):
+            # A new claim, even to the same character, has a different timestamp.
+            current = {'claimed_by': 'Ari', 'claimed_by_id': 'char-1', 'claimed_at': 'second'}
+            return Result(int(all(query.get(field, {}).get('$eq') == value for field, value in current.items())))
+
+    monkeypatch.setattr(claims, 'verify_campaign_membership', membership)
+    monkeypatch.setattr(claims, 'db', SimpleNamespace(inventory=Inventory()))
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(claims.unclaim_inventory_item('campaign-a', 'item-1', current_user='gm-a'))
+    assert exc.value.status_code == 409

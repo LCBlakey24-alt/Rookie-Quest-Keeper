@@ -3,6 +3,7 @@ import { getOfflineCacheScope } from '@/offline/offlineApiCache';
 const DB_NAME = 'rookie-quest-keeper-offline-sync';
 const DB_VERSION = 1;
 const STORE = 'operations';
+const READ_FAILED = Symbol('read failed');
 
 function openDb() {
   if (typeof window === 'undefined' || !('indexedDB' in window)) return Promise.resolve(null);
@@ -50,16 +51,16 @@ export function combatStatesMatch(a, b) {
   return JSON.stringify(combatStateSnapshot(a)) === JSON.stringify(combatStateSnapshot(b));
 }
 
-function operationKey(campaignId, characterId) {
-  return `${getOfflineCacheScope()}::combat:${campaignId}:${characterId}`;
+function operationKey(scope, campaignId, characterId) {
+  return `${scope}::combat:${campaignId}:${characterId}`;
 }
 
-function closeOperationKey(campaignId) {
-  return `${getOfflineCacheScope()}::combat-close:${campaignId}`;
+function closeOperationKey(scope, campaignId) {
+  return `${scope}::combat-close:${campaignId}`;
 }
 
-function lootOperationKey(campaignId, operationId) {
-  return `${getOfflineCacheScope()}::combat-loot:${campaignId}:${operationId}`;
+function lootOperationKey(scope, campaignId, operationId) {
+  return `${scope}::combat-loot:${campaignId}:${operationId}`;
 }
 
 async function readOperation(db, key) {
@@ -67,17 +68,17 @@ async function readOperation(db, key) {
     const transaction = db.transaction(STORE, 'readonly');
     const request = transaction.objectStore(STORE).get(key);
     request.onsuccess = () => resolve(request.result || null);
-    request.onerror = () => resolve(null);
+    request.onerror = () => resolve(READ_FAILED);
   });
 }
 
 async function putOperation(db, record) {
-  await new Promise(resolve => {
+  return new Promise(resolve => {
     const transaction = db.transaction(STORE, 'readwrite');
     transaction.objectStore(STORE).put(record);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => resolve();
-    transaction.onabort = () => resolve();
+    transaction.oncomplete = () => resolve(true);
+    transaction.onerror = () => resolve(false);
+    transaction.onabort = () => resolve(false);
   });
 }
 
@@ -94,9 +95,13 @@ async function putOperationsAtomically(db, records) {
 }
 
 async function listOperations(type) {
+  const scope = getOfflineCacheScope();
   const db = await openDb().catch(() => null);
   if (!db) return [];
-  const scope = getOfflineCacheScope();
+  if (scope !== getOfflineCacheScope()) {
+    db.close();
+    return [];
+  }
   const records = await new Promise(resolve => {
     const transaction = db.transaction(STORE, 'readonly');
     const request = transaction.objectStore(STORE).getAll();
@@ -106,10 +111,17 @@ async function listOperations(type) {
     request.onerror = () => resolve([]);
   });
   db.close();
+  if (scope !== getOfflineCacheScope()) return [];
   return records.sort((a, b) => Number(a.queuedAt || 0) - Number(b.queuedAt || 0));
 }
 
-async function updateOperation(key, updater) {
+// A sync request may finish after a later offline edit replaced its record.
+// Only mutate the exact version that was sent to the server.
+function isExpectedRecord(current, expected) {
+  return !expected || JSON.stringify(current) === JSON.stringify(expected);
+}
+
+async function updateOperation(key, updater, expected) {
   const db = await openDb().catch(() => null);
   if (!db) return;
   await new Promise(resolve => {
@@ -118,7 +130,7 @@ async function updateOperation(key, updater) {
     const request = store.get(key);
     request.onsuccess = () => {
       const current = request.result;
-      if (current) store.put(updater(current));
+      if (current && isExpectedRecord(current, expected)) store.put(updater(current));
     };
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
@@ -127,13 +139,21 @@ async function updateOperation(key, updater) {
   db.close();
 }
 
-async function removeOperation(key) {
+async function removeOperation(key, expected) {
   if (!key) return;
   const db = await openDb().catch(() => null);
   if (!db) return;
   await new Promise(resolve => {
     const transaction = db.transaction(STORE, 'readwrite');
-    transaction.objectStore(STORE).delete(key);
+    const store = transaction.objectStore(STORE);
+    if (expected) {
+      const request = store.get(key);
+      request.onsuccess = () => {
+        if (request.result && isExpectedRecord(request.result, expected)) store.delete(key);
+      };
+    } else {
+      store.delete(key);
+    }
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
     transaction.onabort = () => resolve();
@@ -143,7 +163,7 @@ async function removeOperation(key) {
 
 function buildCombatStateRecord({ scope, campaignId, characterId, characterName, baseState, state, existing }) {
   return {
-    key: operationKey(campaignId, characterId),
+    key: operationKey(scope, campaignId, characterId),
     scope,
     type: 'character-combat-state',
     campaignId: String(campaignId),
@@ -163,7 +183,7 @@ function buildCombatStateRecord({ scope, campaignId, characterId, characterName,
 
 function buildCloseRecord({ scope, campaignId, displayState, existing }) {
   return {
-    key: closeOperationKey(campaignId),
+    key: closeOperationKey(scope, campaignId),
     scope,
     type: 'combat-close',
     campaignId: String(campaignId),
@@ -180,7 +200,7 @@ function buildCloseRecord({ scope, campaignId, displayState, existing }) {
 
 function buildLootRecord({ scope, campaignId, operationId, item, itemName, existing }) {
   return {
-    key: lootOperationKey(campaignId, operationId),
+    key: lootOperationKey(scope, campaignId, operationId),
     scope,
     type: 'combat-loot-create',
     campaignId: String(campaignId),
@@ -196,34 +216,41 @@ function buildLootRecord({ scope, campaignId, operationId, item, itemName, exist
 
 export async function queueOfflineCombatState({ campaignId, characterId, characterName, baseState, state }) {
   if (!campaignId || !characterId) return null;
+  const scope = getOfflineCacheScope();
   const db = await openDb().catch(() => null);
   if (!db) return null;
-  const key = operationKey(campaignId, characterId);
+  const key = operationKey(scope, campaignId, characterId);
   const existing = await readOperation(db, key);
+  if (existing === READ_FAILED) { db.close(); return null; }
   const record = buildCombatStateRecord({
-    scope: getOfflineCacheScope(), campaignId, characterId, characterName, baseState, state, existing,
+    scope, campaignId, characterId, characterName, baseState, state, existing,
   });
-  await putOperation(db, record);
+  const successful = scope === getOfflineCacheScope() && await putOperation(db, record);
   db.close();
+  if (!successful) return null;
   dispatchQueued();
   return record;
 }
 
 export async function queueOfflineCombatClose({ campaignId, displayState } = {}) {
   if (!campaignId) return null;
+  const scope = getOfflineCacheScope();
   const db = await openDb().catch(() => null);
   if (!db) return null;
-  const key = closeOperationKey(campaignId);
+  const key = closeOperationKey(scope, campaignId);
   const existing = await readOperation(db, key);
-  const record = buildCloseRecord({ scope: getOfflineCacheScope(), campaignId, displayState, existing });
-  await putOperation(db, record);
+  if (existing === READ_FAILED) { db.close(); return null; }
+  const record = buildCloseRecord({ scope, campaignId, displayState, existing });
+  const successful = scope === getOfflineCacheScope() && await putOperation(db, record);
   db.close();
+  if (!successful) return null;
   dispatchQueued();
   return record;
 }
 
 export async function queueOfflineCombatEnd({ campaignId, characters = [], loot = [], displayState } = {}) {
   if (!campaignId) return null;
+  const scope = getOfflineCacheScope();
   const safeCharacters = Array.isArray(characters)
     ? characters.filter(item => item?.characterId && item?.baseState && item?.state)
     : [];
@@ -232,12 +259,11 @@ export async function queueOfflineCombatEnd({ campaignId, characters = [], loot 
     : [];
   const db = await openDb().catch(() => null);
   if (!db) return null;
-  const scope = getOfflineCacheScope();
-
   const characterRecords = [];
   for (const item of safeCharacters) {
-    const key = operationKey(campaignId, item.characterId);
+    const key = operationKey(scope, campaignId, item.characterId);
     const existing = await readOperation(db, key);
+    if (existing === READ_FAILED) { db.close(); return null; }
     characterRecords.push(buildCombatStateRecord({
       scope,
       campaignId,
@@ -251,8 +277,9 @@ export async function queueOfflineCombatEnd({ campaignId, characters = [], loot 
 
   const lootRecords = [];
   for (const item of safeLoot) {
-    const key = lootOperationKey(campaignId, item.operationId);
+    const key = lootOperationKey(scope, campaignId, item.operationId);
     const existing = await readOperation(db, key);
+    if (existing === READ_FAILED) { db.close(); return null; }
     lootRecords.push(buildLootRecord({
       scope,
       campaignId,
@@ -263,10 +290,12 @@ export async function queueOfflineCombatEnd({ campaignId, characters = [], loot 
     }));
   }
 
-  const closeKey = closeOperationKey(campaignId);
+  const closeKey = closeOperationKey(scope, campaignId);
   const existingClose = await readOperation(db, closeKey);
+  if (existingClose === READ_FAILED) { db.close(); return null; }
   const closeRecord = buildCloseRecord({ scope, campaignId, displayState, existing: existingClose });
-  const successful = await putOperationsAtomically(db, [...characterRecords, ...lootRecords, closeRecord]);
+  const successful = scope === getOfflineCacheScope()
+    && await putOperationsAtomically(db, [...characterRecords, ...lootRecords, closeRecord]);
   db.close();
   if (!successful) return null;
   dispatchQueued();
@@ -285,51 +314,51 @@ export async function listOfflineCombatLootSyncs() {
   return listOperations('combat-loot-create');
 }
 
-export async function markOfflineCombatConflict(key, serverState, message = '') {
+export async function markOfflineCombatConflict(key, serverState, message = '', expected) {
   await updateOperation(key, current => ({
     ...current,
     status: 'conflict',
     serverState: combatStateSnapshot(serverState),
     lastError: message,
     updatedAt: Date.now(),
-  }));
+  }), expected);
 }
 
-export async function markOfflineCombatError(key, message = '') {
+export async function markOfflineCombatError(key, message = '', expected) {
   await updateOperation(key, current => ({
     ...current,
     status: 'pending',
     lastError: String(message || ''),
     updatedAt: Date.now(),
-  }));
+  }), expected);
 }
 
-export async function markOfflineCombatCloseError(key, message = '') {
+export async function markOfflineCombatCloseError(key, message = '', expected) {
   await updateOperation(key, current => ({
     ...current,
     status: 'pending',
     lastError: String(message || ''),
     updatedAt: Date.now(),
-  }));
+  }), expected);
 }
 
-export async function markOfflineCombatLootError(key, message = '') {
+export async function markOfflineCombatLootError(key, message = '', expected) {
   await updateOperation(key, current => ({
     ...current,
     status: 'pending',
     lastError: String(message || ''),
     updatedAt: Date.now(),
-  }));
+  }), expected);
 }
 
-export async function removeOfflineCombatSync(key) {
-  return removeOperation(key);
+export async function removeOfflineCombatSync(key, expected) {
+  return removeOperation(key, expected);
 }
 
-export async function removeOfflineCombatClose(key) {
-  return removeOperation(key);
+export async function removeOfflineCombatClose(key, expected) {
+  return removeOperation(key, expected);
 }
 
-export async function removeOfflineCombatLootSync(key) {
-  return removeOperation(key);
+export async function removeOfflineCombatLootSync(key, expected) {
+  return removeOperation(key, expected);
 }

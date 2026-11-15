@@ -11,10 +11,22 @@ import { spellRoll } from '@/data/spellRollRules';
 import { slotAdjustUpdate } from '@/data/spentResourceRestore';
 import { customCasterNumbers } from '@/data/savedCustomSpellcastingPresentation';
 import { castOptionAt, castableSpells, magicLevels, ordinal, spellsAtLevel } from './magicModel';
+import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 
 const signed = (value) => (Number(value) >= 0 ? `+${Number(value)}` : `${Number(value)}`);
 const abilityMod = (score) => Math.floor(((Number(score) || 10) - 10) / 2);
 const HEX = '50,0 100,25 100,75 50,100 0,75 0,25';
+
+function SpellCastIcon({ value }) {
+  const filterId = useSvgId('hex-spell-glow');
+  return (
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <GlowFilter id={filterId} />
+      <GlowPolygon className="hex-spell__cast-shape" points={HEX} filterId={filterId} />
+      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">{value}</text>
+    </svg>
+  );
+}
 
 /** The class a spell is cast with, and its attack bonus, save DC and modifier. */
 export function casterFor(character, spell, proficiencyBonus) {
@@ -92,7 +104,9 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
         label: 'Undo',
         onClick: async () => {
           // The sheet's latest state: this view may have closed since the cast.
-          const now = getLatestCharacter?.() || characterRef.current;
+          const now = getLatestCharacter ? getLatestCharacter() : characterRef.current;
+          // The sheet this cast was made on has closed: change nothing.
+          if (!now) { toast.error(`${spell.name} is on a sheet that is no longer open.`); return; }
           const back = option.source === 'cantrip' ? {} : (slotAdjustUpdate(now, option, 1) || {});
           if (updates.concentrating_on && now?.concentrating_on === spell.name) Object.assign(back, before);
           if (!Object.keys(back).length) return;
@@ -105,15 +119,17 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
 
   return (
     <section className="hex-magic" aria-label="Magic" data-testid="hex-magic">
-      <GuildChoiceWheel
-        label="Spell level"
-        caption="SPELLS"
-        options={levels.map((entry) => ({ id: entry.id, label: entry.label, short: entry.short, pips: entry.pips }))}
-        value={current.id}
-        onChange={(id) => { setLevelId(id); setOpenSpell(null); }}
-        centreText={current.level === 0 ? 'Cantrips' : ordinal(current.level)}
-        centreNote={current.pips ? `${current.pips.left} of ${current.pips.total} slots` : 'At will'}
-      />
+      <div className="hex-sheet__wheel-anchor" data-testid="hex-wheel-anchor">
+        <GuildChoiceWheel
+          label="Spell level"
+          caption="SPELLS"
+          options={levels.map((entry) => ({ id: entry.id, label: entry.label, short: entry.short, pips: entry.pips }))}
+          value={current.id}
+          onChange={(id) => { setLevelId(id); setOpenSpell(null); }}
+          centreText={current.level === 0 ? 'Cantrips' : ordinal(current.level)}
+          centreNote={current.pips ? `${current.pips.left} of ${current.pips.total} slots` : 'At will'}
+        />
+      </div>
 
       <div className="hex-magic__list" data-testid="hex-magic-list">
         {listed.length === 0 && (
@@ -143,17 +159,11 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
                     aria-label={`Cast ${spell.name}${sourceNote ? ` (${sourceNote})` : ''}, using a ${ordinal(slotLevel)}-level slot`}
                     title={noSlot ? 'No slot left' : 'Cast: uses a slot'}
                   >
-                    <svg viewBox="0 0 100 100" aria-hidden="true">
-                      <polygon points={HEX} />
-                      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">{slotLevel}</text>
-                    </svg>
+                    <SpellCastIcon value={slotLevel} />
                   </button>
                 ) : (
                   <span className="hex-spell__cast hex-spell__cast--free" aria-hidden="true" title="Cantrips use no slot">
-                    <svg viewBox="0 0 100 100">
-                      <polygon points={HEX} />
-                      <text x="50" y="52" textAnchor="middle" dominantBaseline="central">∞</text>
-                    </svg>
+                    <SpellCastIcon value="∞" />
                   </span>
                 )}
                 <button type="button" className="hex-spell__name" onClick={() => setOpenSpell(isOpen ? null : id)} aria-expanded={isOpen}>

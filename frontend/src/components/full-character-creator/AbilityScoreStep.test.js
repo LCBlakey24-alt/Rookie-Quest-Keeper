@@ -3,6 +3,9 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import AbilityScoreStep from './AbilityScoreStep';
 import { pointBuyRemaining } from '@/data/abilityScoreMethods';
+import { playDialTick } from '@/components/hex-sheet/dialSound';
+
+jest.mock('@/components/hex-sheet/dialSound', () => ({ playDialTick: jest.fn() }));
 
 jest.mock('@/components/DiceRollFlicker', () => function MockFlicker({ label, rolls, total, theme }) {
   return <div data-testid="dice-flicker" data-theme={theme} data-total={total}>{label} {rolls.map((die) => `${die.result}${die.dropped ? 'x' : ''}`).join(',')}</div>;
@@ -42,9 +45,12 @@ describe('six wheels', () => {
 
 describe('standard array', () => {
   test('turning a wheel to a value swaps it with the ability that had it', () => {
+    playDialTick.mockClear();
     render(<Harness />);
+    expect(playDialTick).not.toHaveBeenCalled();
     turn('charisma', '15');
     expect(draftNow().scores).toMatchObject({ charisma: 15, strength: 8 });
+    expect(playDialTick).toHaveBeenCalledTimes(1);
   });
 });
 

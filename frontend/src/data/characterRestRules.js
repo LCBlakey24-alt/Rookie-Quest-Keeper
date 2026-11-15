@@ -23,14 +23,27 @@ export function getCharacterEdition(character = {}) {
   return String(raw).includes('2024') ? '2024' : '2014';
 }
 
-export function canStartRest(character = {}) {
-  if (getCharacterEdition(character) !== '2024') return true;
+/**
+ * Why this character can't take this rest ('short' or 'long'), or ''.
+ * Dead (three failed death saves): no rest. Long Rest, both editions: at
+ * least 1 HP at its start (SRD 5.1 and 5.2). Short Rest: 1 HP in 2024 only.
+ * Mirrors backend routes/character_recovery.rest_block_reason.
+ */
+export function restBlockReason(character = {}, kind = 'short') {
+  if (toNumber(character.death_saves_failures, 0) >= 3) return "A dead character can't rest. The GM decides whether they come back.";
   const maxHp = Math.max(1, toNumber(character.max_hit_points ?? character.max_hp, 1));
   const rawCurrent = character.current_hit_points ?? character.hp;
   const currentHp = rawCurrent === undefined || rawCurrent === null || rawCurrent === ''
     ? maxHp
     : Math.max(0, Math.min(maxHp, toNumber(rawCurrent, maxHp)));
-  return currentHp > 0;
+  if (currentHp > 0) return '';
+  if (kind === 'long') return 'A character needs at least 1 HP at the start of a Long Rest to gain its benefits.';
+  if (getCharacterEdition(character) === '2024') return '2024 rules require at least 1 HP to start a Short Rest.';
+  return '';
+}
+
+export function canStartRest(character = {}, kind = 'short') {
+  return !restBlockReason(character, kind);
 }
 
 export function getCharacterClassLevels(character = {}) {

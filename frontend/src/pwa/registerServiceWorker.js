@@ -55,6 +55,14 @@ export function registerPwaServiceWorker() {
   if (navigator.serviceWorker.controller) syncCurrentScope();
 
   window.addEventListener('rqk:auth-scope-changed', syncCurrentScope);
+  // Auth storage is shared across tabs, but custom events are not. Resync this
+  // tab's worker scope when another tab signs in or out.
+  window.addEventListener('storage', syncCurrentScope);
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data?.type === 'GET_MEDIA_CACHE' && event.ports?.[0]) {
+      event.ports[0].postMessage(mediaCacheMessage());
+    }
+  });
 
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
